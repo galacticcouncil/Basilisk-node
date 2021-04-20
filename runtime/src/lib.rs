@@ -354,6 +354,10 @@ impl pallet_faucet::Config for Runtime {
 	type Currency = Currencies;
 }
 
+impl pallet_lbp::Config for Runtime {
+	type Event = Event;
+}
+
 /// Parachain Config
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
@@ -530,6 +534,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Storage, Event<T>},
+		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 	}
 );
 

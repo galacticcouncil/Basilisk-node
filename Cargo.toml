@@ -98,6 +98,7 @@ members = [
   'pallets/asset-registry',
   'pallets/exchange',
   'pallets/transaction-multi-payment',
+  'pallets/lbp',
   'primitives',
   'runtime',
 ]
