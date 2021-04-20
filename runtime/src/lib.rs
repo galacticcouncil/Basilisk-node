@@ -354,8 +354,14 @@ impl pallet_faucet::Config for Runtime {
 	type Currency = Currencies;
 }
 
+parameter_types! {
+	pub LBPSwapFee: Balance = 10u128.pow(21);
+}
+
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
+	type Currency = Currencies;
+	type SwapFee = LBPSwapFee;
 }
 
 /// Parachain Config
