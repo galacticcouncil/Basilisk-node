@@ -1,21 +1,16 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(clippy::unused_unit)]
 
-use primitives::{
-	Amount, AssetId, Balance, BlockNumber, CORE_ASSET_ID,
-	asset::AssetPair,
-};
-use frame_support::{
-	ensure, transactional,
-	traits::Get,
-};
 use frame_support::sp_runtime::{
-	traits::{Hash, Zero},
 	app_crypto::sp_core::crypto::UncheckedFrom,
+	traits::{Hash, Zero},
 };
+use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use primitives::{asset::AssetPair, Amount, AssetId, Balance, CORE_ASSET_ID};
 use sp_runtime::RuntimeDebug;
+use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -36,15 +31,17 @@ pub enum CurveType {
 }
 
 impl Default for CurveType {
-	fn default() -> Self { CurveType::Linear }
+	fn default() -> Self {
+		CurveType::Linear
+	}
 }
 
 type PoolId<T> = <T as frame_system::Config>::AccountId;
 type Weight = Balance;
 // type BalanceInfo = (Balance, AssetId);
 // type AssetParams = (AssetId, Weight, Balance);
-type AssetWeights = (Weight, Weight);
-type AssetBalances = (Balance, Balance);
+// type AssetWeights = (Weight, Weight);
+// type AssetBalances = (Balance, Balance);
 
 use codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -138,8 +135,8 @@ pub mod pallet {
 		/// who, asset out, asset in, amount, buy price
 		Buy(T::AccountId, AssetId, AssetId, Balance, Balance),
 
-		Paused,
-		Unpaused,
+		Paused(T::AccountId),
+		Unpaused(T::AccountId),
 	}
 
 	#[pallet::storage]
@@ -160,7 +157,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(0)]	// TODO: update the weight
+		#[pallet::weight(0)] // TODO: update the weight
 		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
@@ -172,7 +169,10 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(!amount_a.is_zero() || !amount_b.is_zero(), Error::<T>::CannotCreatePoolWithZeroLiquidity);
+			ensure!(
+				!amount_a.is_zero() || !amount_b.is_zero(),
+				Error::<T>::CannotCreatePoolWithZeroLiquidity
+			);
 
 			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
 
@@ -193,19 +193,7 @@ pub mod pallet {
 				Error::<T>::InsufficientAssetBalance
 			);
 
-			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(
-				pool_data.start == Zero::zero() || now <= pool_data.start,
-				Error::<T>::BlockNumberInvalid
-			);
-			ensure!(
-				pool_data.end == Zero::zero() || pool_data.start < pool_data.end,
-				Error::<T>::BlockNumberInvalid
-			);
-			ensure!(
-				pool_data.end_weights.0 <= 100 && pool_data.end_weights.1 <= 100,
-				Error::<T>::MaxWeightExceeded
-			);
+			Self::validate_pool_data(&pool_data)?;
 
 			T::Currency::reserve(CORE_ASSET_ID, &who, T::PoolDeposit::get())?;
 
@@ -228,6 +216,23 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	fn validate_pool_data(pool_data: &Pool<T::BlockNumber>) -> DispatchResult {
+		let now = <frame_system::Pallet<T>>::block_number();
+		ensure!(
+			pool_data.start == Zero::zero() || now <= pool_data.start,
+			Error::<T>::BlockNumberInvalid
+		);
+		ensure!(
+			pool_data.end == Zero::zero() || pool_data.start < pool_data.end,
+			Error::<T>::BlockNumberInvalid
+		);
+		ensure!(
+			pool_data.end_weights.0 <= 100 && pool_data.end_weights.1 <= 100,
+			Error::<T>::MaxWeightExceeded
+		);
+
+		Ok(())
+	}
 
 	fn exists(assets: AssetPair) -> bool {
 		let pair_account = T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out);

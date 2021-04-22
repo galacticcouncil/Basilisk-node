@@ -1,15 +1,15 @@
 use crate as lbp;
 use crate::{AssetPairPoolIdFor, Config, Pool};
 use frame_support::parameter_types;
+use frame_support::traits::GenesisBuild;
 use frame_system;
 use orml_traits::parameter_type_with_key;
+use primitives::{AssetId, Balance, CORE_ASSET_ID};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup, Zero},
 };
-use frame_support::traits::GenesisBuild;
-use primitives::{AssetId, Balance, CORE_ASSET_ID};
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -26,8 +26,8 @@ pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
 
 pub const HDX: AssetId = CORE_ASSET_ID;
-pub const DOT: AssetId = 2000;
-pub const ACA: AssetId = 3000;
+pub const ACA: AssetId = 2000;
+pub const DOT: AssetId = 3000;
 pub const ETH: AssetId = 4000;
 
 frame_support::construct_runtime!(
