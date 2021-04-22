@@ -55,7 +55,7 @@ use serde::{Deserialize, Serialize};
 pub struct Pool<BlockNumber> {
 	pub start: BlockNumber,
 	pub end: BlockNumber,
-	pub end_weights: (Weight, Weight),
+	pub final_weights: (Weight, Weight),
 	pub curve: CurveType,
 	pub pausable: bool,
 }
@@ -99,6 +99,11 @@ pub mod pallet {
 		CannotCreatePoolWithSameAssets,
 		CannotCreatePoolWithZeroLiquidity,
 
+		/// Update pool errors
+		NotOwner,
+		SaleStarted,
+		InvalidData,
+
 		/// Balance errors
 		InsufficientAssetBalance,
 
@@ -114,6 +119,14 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
+		/// Create new LBP pool
+		/// who, asset a, asset b, amount_a, amount_b
+		CreatePool(T::AccountId, AssetId, AssetId, Balance, Balance),
+
+		/// Update the LBP pool
+		/// who, pool id
+		UpdatePool(T::AccountId, PoolId<T>),
+
 		/// Add liquidity to the pool
 		/// who, asset_a, asset_b, amount_a, amount_b
 		AddLiquidity(T::AccountId, AssetId, AssetId, Balance, Balance),
@@ -121,10 +134,6 @@ pub mod pallet {
 		/// Remove liquidity from the pool
 		/// who, asset_a, asset_b, shares
 		RemoveLiquidity(T::AccountId, AssetId, AssetId, Balance),
-
-		/// Create new LBP pool
-		/// who, asset a, asset b, amount_a, amount_b
-		CreatePool(T::AccountId, AssetId, AssetId, Balance, Balance),
 
 		/// Destroy LBP pool
 		/// who, asset a, asset b
@@ -146,6 +155,11 @@ pub mod pallet {
 	#[pallet::getter(fn pool_owner)]
 	pub type PoolOwner<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, T::AccountId, ValueQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn pool_deposit)]
+	pub type PoolDeposit<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, Balance, ValueQuery>;
+
+	/// Asset pair for each pool. Assets are stored unordered.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_assets)]
 	pub type PoolAssets<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, (AssetId, AssetId), ValueQuery>;
@@ -198,20 +212,66 @@ pub mod pallet {
 
 			Self::validate_pool_data(&pool_data)?;
 
-			T::Currency::reserve(CORE_ASSET_ID, &who, T::PoolDeposit::get())?;
+			let pool_id = Self::get_pair_id(asset_pair);
 
-			let pool_account = Self::get_pair_id(asset_pair);
+			let deposit = T::PoolDeposit::get();
 
-			<PoolOwner<T>>::insert(&pool_account, &who);
-			<PoolAssets<T>>::insert(&pool_account, &(asset_a, asset_b));
-			<PoolData<T>>::insert(&pool_account, &pool_data);
+			T::Currency::reserve(CORE_ASSET_ID, &who, deposit)?;
+			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
-			T::Currency::transfer(asset_a, &who, &pool_account, amount_a)?;
-			T::Currency::transfer(asset_b, &who, &pool_account, amount_b)?;
+			<PoolOwner<T>>::insert(&pool_id, &who);
+			<PoolAssets<T>>::insert(&pool_id, &(asset_a, asset_b));
+			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			<PoolBalances<T>>::insert(&pool_account, &(amount_a, amount_b));
+			T::Currency::transfer(asset_a, &who, &pool_id, amount_a)?;
+			T::Currency::transfer(asset_b, &who, &pool_id, amount_b)?;
+
+			<PoolBalances<T>>::insert(&pool_id, &(amount_a, amount_b));
 
 			Self::deposit_event(Event::CreatePool(who, asset_a, asset_b, amount_a, amount_b));
+
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::update_pool_data())]
+		#[transactional]
+		pub fn update_pool_data(
+			origin: OriginFor<T>,
+			pool_id: PoolId<T>,
+			start: Option<T::BlockNumber>,
+			end: Option<T::BlockNumber>,
+			final_weights: Option<(Balance, Balance)>
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			let pool_owner = Self::pool_owner(&pool_id);
+			ensure!(who == pool_owner, Error::<T>::NotOwner);
+
+			let mut pool_data = Self::pool_data(&pool_id);
+
+			let now = <frame_system::Pallet<T>>::block_number();
+			ensure!(pool_data.start == Zero::zero() || now < pool_data.start,
+				Error::<T>::SaleStarted);
+
+
+			if let Some(new_start) = start {
+				pool_data.start = new_start;
+			}
+
+			if let Some(new_end) = end {
+				pool_data.end = new_end;
+			}
+
+			if let Some((w1, w2)) = final_weights {
+				pool_data.final_weights = (w1, w2);
+			}
+
+			Self::validate_pool_data(&pool_data)?;
+
+			<PoolData<T>>::insert(&pool_id, &pool_data);
+			Self::deposit_event(Event::UpdatePool(who, pool_id));
 
 			Ok(().into())
 		}
@@ -230,7 +290,7 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::BlockNumberInvalid
 		);
 		ensure!(
-			pool_data.end_weights.0 <= 100 && pool_data.end_weights.1 <= 100,
+			pool_data.final_weights.0 <= 100 && pool_data.final_weights.1 <= 100,
 			Error::<T>::MaxWeightExceeded
 		);
 
