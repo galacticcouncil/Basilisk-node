@@ -355,6 +355,7 @@ impl pallet_faucet::Config for Runtime {
 }
 
 parameter_types! {
+	pub PoolDeposit: Balance = 10u128.pow(22);
 	pub LBPSwapFee: Balance = 10u128.pow(21);
 }
 
@@ -362,6 +363,7 @@ impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type Currency = Currencies;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
+	type PoolDeposit = PoolDeposit;
 	type SwapFee = LBPSwapFee;
 }
 
