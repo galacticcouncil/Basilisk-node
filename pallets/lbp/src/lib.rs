@@ -20,6 +20,9 @@ mod tests;
 
 mod benchmarking;
 
+pub mod weights;
+use weights::WeightInfo;
+
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -83,8 +86,8 @@ pub mod pallet {
 		/// Trading fee rate
 		type SwapFee: Get<Balance>;
 
-		// /// Weight information for the extrinsics.
-		// type WeightInfo: WeightInfo;
+		/// Weight information for the extrinsics.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::hooks]
@@ -157,7 +160,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(0)] // TODO: update the weight
+		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,

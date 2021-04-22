@@ -365,6 +365,7 @@ impl pallet_lbp::Config for Runtime {
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type PoolDeposit = PoolDeposit;
 	type SwapFee = LBPSwapFee;
+	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
 }
 
 /// Parachain Config
