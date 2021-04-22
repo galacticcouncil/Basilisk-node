@@ -116,6 +116,7 @@ impl Config for Test {
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type PoolDeposit = PoolDeposit;
 	type SwapFee = LBPSwapFee;
+	type WeightInfo = ();
 }
 
 pub struct ExtBuilder {
