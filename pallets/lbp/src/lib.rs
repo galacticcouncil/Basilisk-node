@@ -102,7 +102,14 @@ pub mod pallet {
 		/// Update pool errors
 		NotOwner,
 		SaleStarted,
+		SaleNotEnded,
 		InvalidData,
+
+		/// Add / Remove liquidity errors
+		CannotAddZeroLiquidity,
+		CannotRemoveZeroLiquidity,
+		LiquidityOverflow,
+		LiquidityUnderflow,
 
 		/// Balance errors
 		InsufficientAssetBalance,
@@ -133,7 +140,7 @@ pub mod pallet {
 
 		/// Remove liquidity from the pool
 		/// who, asset_a, asset_b, shares
-		RemoveLiquidity(T::AccountId, AssetId, AssetId, Balance),
+		RemoveLiquidity(T::AccountId, AssetId, AssetId, Balance, Balance),
 
 		/// Destroy LBP pool
 		/// who, asset a, asset b
@@ -244,10 +251,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
-
-			let pool_owner = Self::pool_owner(&pool_id);
-			ensure!(who == pool_owner, Error::<T>::NotOwner);
+			Self::test_pool_ownership(&who, &pool_id)?;
 
 			let mut pool_data = Self::pool_data(&pool_id);
 
@@ -275,6 +279,110 @@ pub mod pallet {
 
 			Ok(().into())
 		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
+		#[transactional]
+		pub fn add_liquidity(
+			origin: OriginFor<T>,
+			pool_id: PoolId<T>,
+			amount_a: Balance,
+			amount_b: Balance,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			Self::test_pool_ownership(&who, &pool_id)?;
+
+			ensure!(
+				!amount_a.is_zero() || !amount_b.is_zero(),
+				Error::<T>::CannotAddZeroLiquidity
+			);
+
+			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
+			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+
+			let pool_data = Self::pool_data(&pool_id);
+
+			let now = <frame_system::Pallet<T>>::block_number();
+			ensure!(pool_data.start == Zero::zero() || now < pool_data.start,
+				Error::<T>::SaleStarted);
+
+			if !amount_a.is_zero() {
+				ensure!(
+					T::Currency::free_balance(asset_a, &who) >= amount_a,
+					Error::<T>::InsufficientAssetBalance
+				);
+
+				reserve_a = reserve_a
+				.checked_add(amount_a)
+				.ok_or(Error::<T>::LiquidityOverflow)?;
+			}
+
+			if !amount_b.is_zero() {
+				ensure!(
+					T::Currency::free_balance(asset_b, &who) >= amount_b,
+					Error::<T>::InsufficientAssetBalance
+				);
+
+				reserve_b = reserve_b
+				.checked_add(amount_b)
+				.ok_or(Error::<T>::LiquidityOverflow)?;
+			}
+
+			T::Currency::transfer(asset_a, &who, &pool_id, amount_a)?;
+			T::Currency::transfer(asset_b, &who, &pool_id, amount_b)?;
+
+			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
+			Self::deposit_event(Event::AddLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
+		#[transactional]
+		pub fn remove_liquidity(
+			origin: OriginFor<T>,
+			pool_id: PoolId<T>,
+			amount_a: Balance,
+			amount_b: Balance,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			Self::test_pool_ownership(&who, &pool_id)?;
+
+			ensure!(
+				!amount_a.is_zero() || !amount_b.is_zero(),
+				Error::<T>::CannotRemoveZeroLiquidity
+			);
+
+			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
+			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+
+			let pool_data = Self::pool_data(&pool_id);
+
+			let now = <frame_system::Pallet<T>>::block_number();
+			ensure!(pool_data.end == Zero::zero() || pool_data.end < now,
+				Error::<T>::SaleNotEnded);
+
+			if !amount_a.is_zero() {
+				reserve_a = reserve_a
+				.checked_sub(amount_a)
+				.ok_or(Error::<T>::LiquidityUnderflow)?;
+			}
+
+			if !amount_b.is_zero() {
+				reserve_b = reserve_b
+				.checked_sub(amount_b)
+				.ok_or(Error::<T>::LiquidityUnderflow)?;
+			}
+
+			T::Currency::transfer(asset_a, &pool_id, &who, amount_a)?;
+			T::Currency::transfer(asset_b, &pool_id, &who, amount_b)?;
+
+			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
+			Self::deposit_event(Event::RemoveLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+
+			Ok(().into())
+		}
 	}
 }
 
@@ -293,6 +401,15 @@ impl<T: Config> Pallet<T> {
 			pool_data.final_weights.0 <= 100 && pool_data.final_weights.1 <= 100,
 			Error::<T>::MaxWeightExceeded
 		);
+
+		Ok(())
+	}
+
+	fn test_pool_ownership(who: &T::AccountId, pool_id: &PoolId<T>) -> DispatchResult {
+		ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+		let pool_owner = Self::pool_owner(&pool_id);
+		ensure!(who == &pool_owner, Error::<T>::NotOwner);
 
 		Ok(())
 	}
