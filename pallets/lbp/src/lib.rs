@@ -77,12 +77,18 @@ pub mod pallet {
 		type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
 			+ MultiReservableCurrency<Self::AccountId>;
 
+		#[pallet::constant]
+		/// Native Asset Id
+		type NativeAssetId: Get<AssetId>;
+
 		/// Mapping of asset pairs to unique pool identities
 		type AssetPairPoolId: AssetPairPoolIdFor<AssetId, PoolId<Self>>;
 
+		#[pallet::constant]
 		/// Trading fee rate
 		type PoolDeposit: Get<Balance>;
 
+		#[pallet::constant]
 		/// Trading fee rate
 		type SwapFee: Get<Balance>;
 
@@ -144,7 +150,7 @@ pub mod pallet {
 
 		/// Destroy LBP pool
 		/// who, asset a, asset b
-		PoolDestroyed(T::AccountId, AssetId, AssetId),
+		PoolDestroyed(T::AccountId, AssetId, AssetId, Balance, Balance),
 
 		/// Sell token
 		/// who, asset in, asset out, amount, sale price
@@ -223,7 +229,7 @@ pub mod pallet {
 
 			let deposit = T::PoolDeposit::get();
 
-			T::Currency::reserve(CORE_ASSET_ID, &who, deposit)?;
+			T::Currency::reserve(T::NativeAssetId::get(), &who, deposit)?;
 			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
 			<PoolOwner<T>>::insert(&pool_id, &who);
@@ -380,6 +386,40 @@ pub mod pallet {
 
 			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
 			Self::deposit_event(Event::RemoveLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_pool())]
+		#[transactional]
+		pub fn destroy_pool(
+			origin: OriginFor<T>,
+			pool_id: PoolId<T>,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			Self::test_pool_ownership(&who, &pool_id)?;
+
+			let pool_data = Self::pool_data(&pool_id);
+			let now = <frame_system::Pallet<T>>::block_number();
+			ensure!(pool_data.start.is_zero() || pool_data.end < now, Error::<T>::SaleNotEnded);
+
+			let (amount_a, amount_b) = Self::pool_balances(&pool_id);
+			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+
+			T::Currency::transfer(asset_a, &pool_id, &who, amount_a)?;
+			T::Currency::transfer(asset_b, &pool_id, &who, amount_b)?;
+
+			let deposit = Self::pool_deposit(&pool_id);
+			T::Currency::unreserve(T::NativeAssetId::get(), &who, deposit);
+
+			<PoolOwner<T>>::remove(&pool_id);
+			<PoolDeposit<T>>::remove(&pool_id);
+			<PoolAssets<T>>::remove(&pool_id);
+			<PoolData<T>>::remove(&pool_id);
+			<PoolBalances<T>>::remove(&pool_id);
+
+			Self::deposit_event(Event::PoolDestroyed(pool_id, asset_a, asset_b, amount_a, amount_b));
 
 			Ok(().into())
 		}

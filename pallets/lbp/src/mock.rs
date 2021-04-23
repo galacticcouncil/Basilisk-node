@@ -108,11 +108,13 @@ impl AssetPairPoolIdFor<AssetId, u64> for AssetPairPoolIdTest {
 parameter_types! {
 	pub PoolDeposit: Balance = POOL_DEPOSIT;
 	pub LBPSwapFee: Balance = POOL_SWAP_FEE;
+	pub const NativeAssetId: AssetId = CORE_ASSET_ID;
 }
 
 impl Config for Test {
 	type Event = Event;
 	type Currency = Currency;
+	type NativeAssetId = NativeAssetId;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type PoolDeposit = PoolDeposit;
 	type SwapFee = LBPSwapFee;

@@ -679,3 +679,88 @@ fn remove_liquidity_before_sale_ended_should_not_work() {
 		]);
 	});
 }
+
+#[test]
+fn destroy_pool_should_work() {
+	predefined_test_ext().execute_with(|| {
+		System::set_block_number(21);
+
+		let user = ALICE;
+		let asset_a = ACA;
+		let asset_b = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		let user_balance_a_before = Currency::free_balance(asset_a, &user);
+		let user_balance_b_before = Currency::free_balance(asset_b, &user);
+		let user_balance_hdx_before = Currency::reserved_balance(HDX, &user);
+		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(pool_id);
+
+		assert_ok!(LBPPallet::destroy_pool(
+			Origin::signed(user),
+			pool_id,
+		));
+
+		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(pool_id);
+		assert_eq!(balance_a_after, 0);
+		assert_eq!(balance_b_after, 0);
+
+		let user_balance_a_after = Currency::free_balance(asset_a, &user);
+		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_add(balance_a_before));
+
+		let user_balance_b_after = Currency::free_balance(asset_b, &user);
+		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_add(balance_b_before));
+
+		let user_balance_hdx_after = Currency::reserved_balance(HDX, &user);
+		assert_eq!(user_balance_hdx_after, user_balance_hdx_before.saturating_sub(POOL_DEPOSIT));
+
+		expect_events(vec![
+			Event::CreatePool(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
+			frame_system::Event::KilledAccount(pool_id).into(),
+			Event::PoolDestroyed(pool_id, asset_a, asset_b, balance_a_before, balance_b_before).into(),
+		]);
+	});
+}
+
+#[test]
+fn destroy_not_finalized_pool_should_not_work()
+{
+	predefined_test_ext().execute_with(|| {
+		let user = ALICE;
+		let asset_a = ACA;
+		let asset_b = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		let user_balance_a_before = Currency::free_balance(asset_a, &user);
+		let user_balance_b_before = Currency::free_balance(asset_b, &user);
+		let user_balance_hdx_before = Currency::reserved_balance(HDX, &user);
+		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(pool_id);
+
+		assert_noop!(LBPPallet::destroy_pool(
+			Origin::signed(user),
+			pool_id,
+		),
+			Error::<Test>::SaleNotEnded
+		);
+
+		let user_balance_a_after = Currency::free_balance(asset_a, &user);
+		let user_balance_b_after = Currency::free_balance(asset_b, &user);
+		let user_balance_hdx_after = Currency::reserved_balance(HDX, &user);
+		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(pool_id);
+
+		assert_eq!(balance_a_before, balance_a_after);
+		assert_eq!(balance_b_before, balance_b_after);
+		assert_eq!(user_balance_a_before, user_balance_a_after);
+		assert_eq!(user_balance_b_before, user_balance_b_after);
+		assert_eq!(user_balance_hdx_before, user_balance_hdx_after);
+
+		expect_events(vec![
+			Event::CreatePool(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
+		]);
+	});
+}
