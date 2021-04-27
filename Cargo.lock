@@ -9682,7 +9682,8 @@ dependencies = [
 [[package]]
 name = "substrate-build-script-utils"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#e3919c69bf3a5f4720c0103d0a67c3bdb52b86d0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd540ba72520174c2c73ce96bf507eeba3cc8a481f58be92525b69110e1fa645"
 dependencies = [
  "platforms",
 ]
@@ -9690,8 +9691,7 @@ dependencies = [
 [[package]]
 name = "substrate-build-script-utils"
 version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd540ba72520174c2c73ce96bf507eeba3cc8a481f58be92525b69110e1fa645"
+source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#e3919c69bf3a5f4720c0103d0a67c3bdb52b86d0"
 dependencies = [
  "platforms",
 ]

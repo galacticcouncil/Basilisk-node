@@ -491,7 +491,7 @@ fn add_liquidity_after_sale_started_should_not_work() {
 #[test]
 fn remove_liquidity_should_work() {
 	predefined_test_ext().execute_with(|| {
-		System::set_block_number(30);
+		System::set_block_number(5);
 
 		let user = ALICE;
 		let asset_a = ACA;
@@ -500,6 +500,25 @@ fn remove_liquidity_should_work() {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
+
+		let user_balance_a_before = Currency::free_balance(asset_a, &user);
+		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(pool_id);
+
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(user),
+			pool_id,
+			1_000,
+			0,
+		));
+
+		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(pool_id);
+		assert_eq!(balance_a_after, balance_a_before.saturating_sub(1_000));
+		assert_eq!(balance_b_after, balance_b_before);
+
+		let user_balance_a_after = Currency::free_balance(asset_a, &user);
+		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_add(1_000));
+
+		System::set_block_number(30);
 
 		let user_balance_a_before = Currency::free_balance(asset_a, &user);
 		let user_balance_b_before = Currency::free_balance(asset_b, &user);
@@ -524,11 +543,6 @@ fn remove_liquidity_should_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_add(removed_a));
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_add(removed_b));
 
-		expect_events(vec![
-			Event::CreatePool(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
-			Event::RemoveLiquidity(pool_id, asset_a, asset_b, removed_a, removed_b).into()
-		]);
-
 		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(pool_id);
 
 		assert_ok!(LBPPallet::remove_liquidity(
@@ -545,6 +559,7 @@ fn remove_liquidity_should_work() {
 
 		expect_events(vec![
 			Event::CreatePool(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
+			Event::RemoveLiquidity(pool_id, asset_a, asset_b, 1_000, 0).into(),
 			Event::RemoveLiquidity(pool_id, asset_a, asset_b, removed_a, removed_b).into(),
 			Event::RemoveLiquidity(pool_id, asset_a, asset_b, removed_a, 0).into()
 		]);
@@ -631,9 +646,10 @@ fn remove_liquidity_insufficient_reserve_should_not_work() {
 }
 
 #[test]
-fn remove_liquidity_before_sale_ended_should_not_work() {
+fn remove_liquidity_during_sale_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		System::set_block_number(5);
+		// sale started at the block number 10
+		System::set_block_number(15);
 
 		let user = ALICE;
 		let asset_a = ACA;
@@ -642,28 +658,6 @@ fn remove_liquidity_before_sale_ended_should_not_work() {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
-
-		let user_balance_a_before = Currency::free_balance(asset_a, &user);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(pool_id);
-
-		assert_noop!(LBPPallet::remove_liquidity(
-			Origin::signed(user),
-			pool_id,
-			1_000,
-			0,
-		),
-			Error::<Test>::SaleNotEnded
-		);
-
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(pool_id);
-		assert_eq!(balance_a_after, balance_a_before);
-		assert_eq!(balance_b_after, balance_b_before);
-
-		let user_balance_a_after = Currency::free_balance(asset_a, &user);
-		assert_eq!(user_balance_a_after, user_balance_a_before);
-
-		// sale started at the block number 10
-		System::set_block_number(15);
 
 		let user_balance_a_before = Currency::free_balance(asset_a, &user);
 		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(pool_id);
