@@ -23,7 +23,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			final_weights: (40, 60),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			curve: CurveType::Linear,
 			pausable: true,
 		};
@@ -60,7 +61,8 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			final_weights: (40, 60),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			curve: CurveType::Linear,
 			pausable: true,
 		};
@@ -69,7 +71,8 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 0u64,
 			end: 0u64,
-			final_weights: (40, 60),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			curve: CurveType::Linear,
 			pausable: true,
 		};
@@ -78,7 +81,8 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 2u64,
-			final_weights: (40, 60),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			curve: CurveType::Linear,
 			pausable: true,
 		};
@@ -90,7 +94,8 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			final_weights: (400, 60),
+			initial_weights: (20, 80),
+			final_weights: (9_000_000, 10),
 			curve: CurveType::Linear,
 			pausable: true,
 		};
@@ -112,7 +117,8 @@ fn create_pool_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			final_weights: (40, 60),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			curve: CurveType::Linear,
 			pausable: true,
 		};
@@ -170,7 +176,8 @@ fn create_same_pool_should_not_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			final_weights: (40, 60),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			curve: CurveType::Linear,
 			pausable: true,
 		};
@@ -204,7 +211,8 @@ fn create_pool_invalid_data_should_not_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 2u64,
-			final_weights: (40, 60),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			curve: CurveType::Linear,
 			pausable: true,
 		};
@@ -233,7 +241,8 @@ fn update_pool_data_should_work() {
 			pool_id,
 			Some(new_start),
 			None,
-			Some(new_final_weights)
+			Some(new_final_weights),
+			None,
 		));
 
 		let updated_pool_data = LBPPallet::pool_data(pool_id);
@@ -265,7 +274,8 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 			pool_id,
 			Some(new_start),
 			None,
-			Some(new_final_weights)
+			Some(new_final_weights),
+			None,
 		),
 		Error::<Test>::SaleStarted
 		);

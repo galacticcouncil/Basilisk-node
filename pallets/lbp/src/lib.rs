@@ -55,6 +55,7 @@ use serde::{Deserialize, Serialize};
 pub struct Pool<BlockNumber> {
 	pub start: BlockNumber,
 	pub end: BlockNumber,
+	pub initial_weights: (Weight, Weight),
 	pub final_weights: (Weight, Weight),
 	pub curve: CurveType,
 	pub pausable: bool,
@@ -162,6 +163,7 @@ pub mod pallet {
 
 		Paused(T::AccountId),
 		Unpaused(T::AccountId),
+		WeightsUpdated(PoolId<T>, Balance, Balance),
 	}
 
 	#[pallet::storage]
@@ -253,7 +255,8 @@ pub mod pallet {
 			pool_id: PoolId<T>,
 			start: Option<T::BlockNumber>,
 			end: Option<T::BlockNumber>,
-			final_weights: Option<(Balance, Balance)>
+			initial_weights: Option<(Balance, Balance)>,
+			final_weights: Option<(Balance, Balance)>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -272,6 +275,10 @@ pub mod pallet {
 
 			if let Some(new_end) = end {
 				pool_data.end = new_end;
+			}
+
+			if let Some((w1, w2)) = initial_weights {
+				pool_data.initial_weights = (w1, w2);
 			}
 
 			if let Some((w1, w2)) = final_weights {
@@ -365,8 +372,7 @@ pub mod pallet {
 
 			let pool_data = Self::pool_data(&pool_id);
 
-			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(pool_data.end == Zero::zero() || pool_data.end < now,
+			ensure!(!Self::is_sale_running(&pool_data),
 				Error::<T>::SaleNotEnded);
 
 			if !amount_a.is_zero() {
@@ -438,7 +444,11 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::BlockNumberInvalid
 		);
 		ensure!(
-			pool_data.final_weights.0 <= 100 && pool_data.final_weights.1 <= 100,
+			pool_data.initial_weights.0 <= 1_000_000 && pool_data.initial_weights.1 <= 1_000_000,
+			Error::<T>::MaxWeightExceeded
+		);
+		ensure!(
+			pool_data.final_weights.0 <= 1_000_000 && pool_data.final_weights.1 <= 1_000_000,
 			Error::<T>::MaxWeightExceeded
 		);
 
@@ -452,6 +462,11 @@ impl<T: Config> Pallet<T> {
 		ensure!(who == &pool_owner, Error::<T>::NotOwner);
 
 		Ok(())
+	}
+
+	fn is_sale_running(pool_data: &Pool<T::BlockNumber>) -> bool {
+		let now = <frame_system::Pallet<T>>::block_number();
+		pool_data.start <= now && now <= pool_data.end
 	}
 
 	fn exists(assets: AssetPair) -> bool {
