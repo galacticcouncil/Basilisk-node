@@ -41,7 +41,7 @@ impl Default for CurveType {
 }
 
 type PoolId<T> = <T as frame_system::Config>::AccountId;
-type Weight = u128;
+type LBPWeight = u128;
 // type BalanceInfo = (Balance, AssetId);
 // type AssetParams = (AssetId, Weight, Balance);
 // type AssetWeights = (Weight, Weight);
@@ -56,8 +56,8 @@ use serde::{Deserialize, Serialize};
 pub struct Pool<BlockNumber> {
 	pub start: BlockNumber,
 	pub end: BlockNumber,
-	pub initial_weights: (Weight, Weight),
-	pub final_weights: (Weight, Weight),
+	pub initial_weights: (LBPWeight, LBPWeight),
+	pub final_weights: (LBPWeight, LBPWeight),
 	pub curve: CurveType,
 	pub pausable: bool,
 }
@@ -166,7 +166,7 @@ pub mod pallet {
 
 		Paused(T::AccountId),
 		Unpaused(T::AccountId),
-		WeightsUpdated(PoolId<T>, BalanceOf<T>, BalanceOf<T>),
+		WeightsUpdated(PoolId<T>, LBPWeight, LBPWeight),
 	}
 
 	#[pallet::storage]
@@ -258,8 +258,8 @@ pub mod pallet {
 			pool_id: PoolId<T>,
 			start: Option<T::BlockNumber>,
 			end: Option<T::BlockNumber>,
-			initial_weights: Option<(Balance, Balance)>,
-			final_weights: Option<(Balance, Balance)>,
+			initial_weights: Option<(LBPWeight, LBPWeight)>,
+			final_weights: Option<(LBPWeight, LBPWeight)>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
