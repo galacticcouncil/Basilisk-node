@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 
-use hack_hydra_dx_runtime::{opaque::Block, AccountId, AssetId, Balance, Index};
+use basilisk_runtime::{opaque::Block, AccountId, AssetId, Balance, Index};
 pub use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;

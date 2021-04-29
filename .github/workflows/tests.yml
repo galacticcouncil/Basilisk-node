@@ -79,17 +79,17 @@ jobs:
       - name: Build release
         run: time cargo build --release --verbose
       - name: Version info
-        run: ./target/release/hack-hydra-dx --version
+        run: ./target/release/basilisk --version
       - name: Upload release binary
         uses: actions/upload-artifact@v2
         with:
-          name: hack-hydra-dx
-          path: target/release/hack-hydra-dx
+          name: basilisk
+          path: target/release/basilisk
       - name: Upload release wasm
         uses: actions/upload-artifact@v2
         with:
-          name: hydra_dx_runtime.wasm
-          path: target/release/wbuild/hack-hydra-dx-runtime/hack_hydra_dx_runtime.compact.wasm
+          name: basilisk_runtime.wasm
+          path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.wasm
 
 
   destroy-runner-instance:

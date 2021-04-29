@@ -27,7 +27,7 @@
   },
   "parachains": [
     {
-      "bin": "../target/release/hack-hydra-dx",
+      "bin": "../target/release/basilisk",
       "id": "200",
       "wsPort": 9988,
       "port": 31200,
@@ -35,7 +35,7 @@
       "flags": ["--chain=local", "--", "--execution=wasm"]
     },
     {
-      "bin": "../target/release/hack-hydra-dx",
+      "bin": "../target/release/basilisk",
       "id": "300",
       "wsPort": 9999,
       "port": 31300,
@@ -43,7 +43,7 @@
       "flags": ["--chain=local", "--", "--execution=wasm"]
     },
     {
-      "bin": "../target/release/hack-hydra-dx",
+      "bin": "../target/release/basilisk",
       "id": "400",
       "wsPort": 9998,
       "port": 31400,

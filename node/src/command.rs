@@ -20,7 +20,7 @@ use crate::{chain_spec, service};
 use codec::Encode;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
-use hack_hydra_dx_runtime::Block;
+use basilisk_runtime::Block;
 use log::info;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
@@ -46,7 +46,7 @@ fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_servic
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"hydra-dx hydrate collator".into()
+		"basilisk collator".into()
 	}
 
 	fn impl_version() -> String {
@@ -80,13 +80,13 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&hack_hydra_dx_runtime::VERSION
+		&basilisk_runtime::VERSION
 	}
 }
 
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {
-		"hydra-dx rococo relay node".into()
+		"basilisk rococo relay node".into()
 	}
 
 	fn impl_version() -> String {

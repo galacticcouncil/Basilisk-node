@@ -2,7 +2,7 @@
 
 set -e
 
-echo "*** Start HydraDX node ***"
+echo "*** Start Basilisk node ***"
 
 cd $(dirname ${BASH_SOURCE[0]})/..
 

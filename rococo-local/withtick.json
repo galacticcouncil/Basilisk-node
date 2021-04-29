@@ -45,7 +45,7 @@
       "flags": ["--chain=local", "--", "--execution=wasm"]
     },
     {
-      "bin": "../target/release/hack-hydra-dx",
+      "bin": "../target/release/basilisk",
       "id": "200",
       "wsPort": 9988,
       "port": 31200,

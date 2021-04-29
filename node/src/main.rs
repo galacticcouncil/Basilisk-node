@@ -1,4 +1,4 @@
-//! HydraDX Node CLI library.
+//! Basilisk Node CLI library.
 #![warn(missing_docs)]
 
 mod chain_spec;

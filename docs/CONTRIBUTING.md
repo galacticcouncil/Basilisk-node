@@ -1,6 +1,6 @@
 ## Contributing
 
-The `HydraDX` project is an Open Source Project if you'd like to help us please follow these rules so that our lives are easy
+The `Basilisk` project is an Open Source Project if you'd like to help us please follow these rules so that our lives are easy
 
  - [Code of Conduct](#coc)
  - [Question or Problem?](#question)
@@ -12,7 +12,7 @@ The `HydraDX` project is an Open Source Project if you'd like to help us please 
  - [SemVer](#semver)
 
 ## <a name="coc"></a> Code of Conduct
-Help us keep HydraDX open and inclusive. Please read and follow our [coc](CODE_OF_CONDUCT.md).
+Help us keep Basilisk open and inclusive. Please read and follow our [coc](CODE_OF_CONDUCT.md).
 
 ## <a name="question"></a> Got a Question or Problem?
 

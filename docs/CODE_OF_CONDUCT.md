@@ -1,5 +1,5 @@
 
-# HydraDX Code of Conduct
+# Basilisk Code of Conduct
 
 ## Our Pledge
 

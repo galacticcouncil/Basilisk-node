@@ -8,7 +8,7 @@ use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use cumulus_primitives_core::ParaId;
-use hack_hydra_dx_runtime::{self, opaque::Block, RuntimeApi};
+use basilisk_runtime::{self, opaque::Block, RuntimeApi};
 use polkadot_primitives::v0::CollatorPair;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
@@ -21,8 +21,8 @@ use std::sync::Arc;
 // Our native executor instance.
 native_executor_instance!(
 	pub Executor,
-	hack_hydra_dx_runtime::api::dispatch,
-	hack_hydra_dx_runtime::native_version,
+	basilisk_runtime::api::dispatch,
+	basilisk_runtime::native_version,
 	frame_benchmarking::benchmarking::HostFunctions,
 );
 

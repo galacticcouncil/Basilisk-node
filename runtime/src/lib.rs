@@ -71,7 +71,6 @@ use xcm_builder::{
 };
 use xcm_executor::{Config, XcmExecutor};
 
-/// Import HydraDX pallets
 pub use pallet_asset_registry;
 pub use pallet_faucet;
 
@@ -123,8 +122,8 @@ pub mod opaque {
 }
 
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("hack-hydra-dx"),
-	impl_name: create_runtime_str!("hack-hydra-dx"),
+	spec_name: create_runtime_str!("basilisk"),
+	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
 	spec_version: 3,
 	impl_version: 1,
@@ -322,7 +321,7 @@ impl orml_currencies::Config for Runtime {
 	type WeightInfo = ();
 }
 
-/// HydraDX Pallets configurations
+/// Basilisk Pallets configurations
 
 impl pallet_asset_registry::Config for Runtime {
 	type AssetId = AssetId;
@@ -369,7 +368,7 @@ impl parachain_info::Config for Runtime {}
 parameter_types! {
 	pub const PolkadotNetworkId: NetworkId = NetworkId::Polkadot;
 
-	pub HydrateNetwork: NetworkId = NetworkId::Named("hydrate".into());
+	pub BasiliskNetwork: NetworkId = NetworkId::Named("basilisk".into());
 	pub RelayChainOrigin: Origin = xcm_handler::Origin::Relay.into();
 
 	pub Ancestry: MultiLocation = MultiLocation::X1(Junction::Parachain {
@@ -384,7 +383,7 @@ type LocationConverter = (
 	ParentIsDefault<AccountId>,
 	ChildParachainConvertsVia<ParaId, AccountId>,
 	SiblingParachainConvertsVia<Sibling, AccountId>,
-	AccountId32Aliases<HydrateNetwork, AccountId>,
+	AccountId32Aliases<BasiliskNetwork, AccountId>,
 );
 
 pub struct AssetCurrencyConverter;
@@ -422,7 +421,7 @@ type LocalOriginConverter = (
 	SovereignSignedViaLocation<LocationConverter, Origin>,
 	RelayChainAsNative<RelayChainOrigin, Origin>,
 	SiblingParachainAsNative<xcm_handler::Origin, Origin>,
-	SignedAccountId32AsNative<HydrateNetwork, Origin>,
+	SignedAccountId32AsNative<BasiliskNetwork, Origin>,
 );
 
 parameter_types! {
@@ -524,7 +523,7 @@ construct_runtime!(
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
 
-		// HydraDX related modules
+		// Basilisk related modules
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
 		AMM: pallet_amm::{Pallet, Call, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},

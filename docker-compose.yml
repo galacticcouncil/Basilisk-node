@@ -2,16 +2,16 @@ version: "3.2"
 
 services:
   dev:
-    container_name: hydra-dx-node
+    container_name: basilisk-node
     image: paritytech/ci-linux:production
-    working_dir: /hydra-dx-node
+    working_dir: /basilisk-node
     ports:
       - "9944:9944"
     environment:
-      - CARGO_HOME=/hydra-dx-node/.cargo
+      - CARGO_HOME=/basilisk-node/.cargo
     volumes:
-      - .:/hydra-dx-node
+      - .:/basilisk-node
       - type: bind
         source: ./.local
         target: /root/.local
-    command: bash -c "cargo build --release && ./target/release/hack-hydra-dx --dev --ws-external"
+    command: bash -c "cargo build --release && ./target/release/basilisk --dev --ws-external"

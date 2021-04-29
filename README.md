@@ -1,10 +1,4 @@
-# hack HydraDX node
-
-XYK AMM + Exchange order matching blockchain built on substrate for Hackusama hackaton
-
-- https://hack.hydradx.io/
-- [app source](https://github.com/galacticcouncil/hack.HydraDX-app)
-- [hack submission](https://devpost.com/software/hack-hydra-dx-io)
+# Basilisk node
 
 ## Local Development
 
@@ -41,19 +35,19 @@ cargo build --release
 Purge any existing dev chain state:
 
 ```bash
-./target/release/hack-hydra-dx purge-chain --dev
+./target/release/basilisk purge-chain --dev
 ```
 
 Start a dev chain:
 
 ```bash
-./target/release/hack-hydra-dx --dev
+./target/release/basilisk --dev
 ```
 
 Or, start a dev chain with detailed logging:
 
 ```bash
-RUST_LOG=debug RUST_BACKTRACE=1 ./target/release/hack-hydra-dx -lruntime=debug --dev
+RUST_LOG=debug RUST_BACKTRACE=1 ./target/release/basilisk -lruntime=debug --dev
 ```
 
 ### Rococo local testnet
@@ -70,7 +64,7 @@ chmod +x dist/index.js
 npm link
 ```
 
-Starts local testnet with 4 relay chain validators and 2 separate hydra parachains
+Starts local testnet with 4 relay chain validators and 2 separate parachains
 
 ```
 cd rococo-local
@@ -85,7 +79,7 @@ multitail *.log
 
 ### Interaction with the node
 
-Go to the polkadot apps at https://dotapps.io
+Go to the Polkadot apps at https://dotapps.io
 
 Then open settings screen -> developer and paste
 
@@ -125,5 +119,5 @@ Then open settings screen -> developer and paste
 }
 ```
 
-Connect to the `wss://hack.hydradx.io:9944` or local node.
+Connect to the `wss://basilisk.hydradx.io:9944` or local node.
 

@@ -1,7 +1,7 @@
 #![allow(clippy::or_fun_call)]
 
 use cumulus_primitives_core::ParaId;
-use hack_hydra_dx_runtime::{
+use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
 	SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY,
 };
@@ -59,9 +59,9 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"HydraDX Hydrate",
+		"Basilisk",
 		// ID
-		"hydrate",
+		"basilisk",
 		ChainType::Live,
 		move || {
 			parachain_genesis(

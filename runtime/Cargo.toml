@@ -1,10 +1,10 @@
 [package]
 authors = ['GalacticCouncil']
 edition = '2018'
-homepage = 'https://github.com/galacticcouncil/hack.hydradx-node'
-license = 'Unlicense'
-name = 'hack-hydra-dx-runtime'
-repository = 'https://github.com/galacticcouncil/hack.hydradx-node'
+homepage = 'https://github.com/galacticcouncil/Basilisk-node'
+license = 'Apache 2.0'
+name = 'basilisk-runtime'
+repository = 'https://github.com/galacticcouncil/Basilisk-node'
 version = '3.0.0'
 
 [package.metadata.docs.rs]

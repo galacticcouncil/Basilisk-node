@@ -1,5 +1,5 @@
 {
-  "name": "HydraDX node",
+  "name": "Basilisk node",
   "dockerFile": "Dockerfile",
   "settings": {
     "terminal.integrated.shell.linux": "/bin/bash",
