@@ -113,7 +113,7 @@ parameter_types! {
 
 impl Config for Test {
 	type Event = Event;
-	type Currency = Currency;
+	type MultiCurrency = Currency;
 	type NativeAssetId = NativeAssetId;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type PoolDeposit = PoolDeposit;
