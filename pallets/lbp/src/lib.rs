@@ -58,12 +58,13 @@ pub struct Pool<BlockNumber> {
 	pub final_weights: (Weight, Weight),
 	pub curve: CurveType,
 	pub pausable: bool,
+	pub paused: bool,
 }
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*, print};
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -103,6 +104,11 @@ pub mod pallet {
 		NotOwner,
 		SaleStarted,
 		InvalidData,
+		CannotPauseEndedPool,
+		CannotPausePausedPool,
+		PoolIsNotPausable,
+		CannotUnpauseEndedPool,
+		PoolIsNotPaused,
 
 		/// Balance errors
 		InsufficientAssetBalance,
@@ -240,7 +246,7 @@ pub mod pallet {
 			pool_id: PoolId<T>,
 			start: Option<T::BlockNumber>,
 			end: Option<T::BlockNumber>,
-			final_weights: Option<(Balance, Balance)>
+			final_weights: Option<(Balance, Balance)>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -252,9 +258,10 @@ pub mod pallet {
 			let mut pool_data = Self::pool_data(&pool_id);
 
 			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(pool_data.start == Zero::zero() || now < pool_data.start,
-				Error::<T>::SaleStarted);
-
+			ensure!(
+				pool_data.start == Zero::zero() || now < pool_data.start,
+				Error::<T>::SaleStarted
+			);
 
 			if let Some(new_start) = start {
 				pool_data.start = new_start;
@@ -273,6 +280,54 @@ pub mod pallet {
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 			Self::deposit_event(Event::UpdatePool(who, pool_id));
 
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::pause_pool())]
+		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			let pool_owner = Self::pool_owner(&pool_id);
+			ensure!(who == pool_owner, Error::<T>::NotOwner);
+
+			let mut pool_data = Self::pool_data(&pool_id);
+
+			ensure!(pool_data.pausable, Error::<T>::PoolIsNotPausable);
+
+			ensure!(!pool_data.paused, Error::<T>::CannotPausePausedPool);
+
+			let now = <frame_system::Pallet<T>>::block_number();
+			ensure!(pool_data.end > now, Error::<T>::CannotPauseEndedPool);
+
+			pool_data.paused = true;
+			<PoolData<T>>::insert(&pool_id, &pool_data);
+
+			Self::deposit_event(Event::Paused(who));
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::unpause_pool())]
+		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			let pool_owner = Self::pool_owner(&pool_id);
+			ensure!(who == pool_owner, Error::<T>::NotOwner);
+
+			let mut pool_data = Self::pool_data(&pool_id);
+
+			ensure!(pool_data.paused, Error::<T>::PoolIsNotPaused);
+
+			let now = <frame_system::Pallet<T>>::block_number();
+			ensure!(pool_data.end > now, Error::<T>::CannotUnpauseEndedPool);
+
+			pool_data.paused = false;
+			<PoolData<T>>::insert(&pool_id, &pool_data);
+
+			Self::deposit_event(Event::Unpaused(who));
 			Ok(().into())
 		}
 	}

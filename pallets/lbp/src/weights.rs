@@ -12,8 +12,8 @@ pub trait WeightInfo {
 	fn add_liquidity() -> Weight;
 	fn remove_liquidity() -> Weight;
 	fn pause_pool() -> Weight;
+	fn unpause_pool() -> Weight;
 	fn destroy_pool() -> Weight;
-
 }
 
 /// Weights for LBP pallet using the hydraDX node and recommended hardware.
@@ -37,6 +37,10 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	}
 
 	fn pause_pool() -> u64 {
+		0
+	}
+
+	fn unpause_pool() -> u64 {
 		0
 	}
 
@@ -68,6 +72,10 @@ impl WeightInfo for () {
 	}
 
 	fn destroy_pool() -> u64 {
+		0
+	}
+
+	fn unpause_pool() -> Weight {
 		0
 	}
 }

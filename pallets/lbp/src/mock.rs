@@ -4,7 +4,7 @@ use frame_support::parameter_types;
 use frame_support::traits::GenesisBuild;
 use frame_system;
 use orml_traits::parameter_type_with_key;
-use primitives::{AssetId, Balance, CORE_ASSET_ID};
+use primitives::{AssetId, Balance, BlockNumber, CORE_ASSET_ID};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -130,6 +130,11 @@ impl Default for ExtBuilder {
 				(ALICE, HDX, INITIAL_BALANCE),
 				(ALICE, DOT, INITIAL_BALANCE),
 				(ALICE, ACA, INITIAL_BALANCE),
+				(ALICE, ETH, INITIAL_BALANCE),
+				(BOB, HDX, INITIAL_BALANCE),
+				(BOB, DOT, INITIAL_BALANCE),
+				(BOB, ACA, INITIAL_BALANCE),
+				(BOB, ETH, INITIAL_BALANCE),
 			],
 		}
 	}
@@ -146,5 +151,11 @@ impl ExtBuilder {
 		.unwrap();
 
 		t.into()
+	}
+}
+
+pub fn run_to_block(n: u64) {
+	while System::block_number() < n {
+		System::set_block_number(System::block_number() + 1);
 	}
 }
