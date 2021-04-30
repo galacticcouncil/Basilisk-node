@@ -361,7 +361,8 @@ parameter_types! {
 
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
-	type Currency = Currencies;
+	type MultiCurrency = Currencies;
+	type NativeAssetId = HDXAssetId;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type PoolDeposit = PoolDeposit;
 	type SwapFee = LBPSwapFee;

@@ -8,8 +8,11 @@ use frame_support::sp_runtime::{
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
-use primitives::{asset::AssetPair, Amount, AssetId, Balance, CORE_ASSET_ID};
-use sp_runtime::RuntimeDebug;
+use primitives::{asset::AssetPair, Amount, AssetId, Balance};
+use sp_runtime::{
+	traits::{CheckedAdd, CheckedSub},
+	RuntimeDebug,
+};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
@@ -40,7 +43,7 @@ impl Default for CurveType {
 }
 
 type PoolId<T> = <T as frame_system::Config>::AccountId;
-type Weight = Balance;
+type LBPWeight = u128;
 // type BalanceInfo = (Balance, AssetId);
 // type AssetParams = (AssetId, Weight, Balance);
 // type AssetWeights = (Weight, Weight);
@@ -55,16 +58,19 @@ use serde::{Deserialize, Serialize};
 pub struct Pool<BlockNumber> {
 	pub start: BlockNumber,
 	pub end: BlockNumber,
-	pub final_weights: (Weight, Weight),
+	pub initial_weights: (LBPWeight, LBPWeight),
+	pub final_weights: (LBPWeight, LBPWeight),
 	pub curve: CurveType,
 	pub pausable: bool,
 	pub paused: bool,
 }
 
+type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
+
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{pallet_prelude::*, print};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -75,17 +81,23 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Multi currency for transfer of currencies
-		type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
+		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Amount = Amount>
 			+ MultiReservableCurrency<Self::AccountId>;
+
+		#[pallet::constant]
+		/// Native Asset Id
+		type NativeAssetId: Get<AssetId>;
 
 		/// Mapping of asset pairs to unique pool identities
 		type AssetPairPoolId: AssetPairPoolIdFor<AssetId, PoolId<Self>>;
 
+		#[pallet::constant]
 		/// Trading fee rate
-		type PoolDeposit: Get<Balance>;
+		type PoolDeposit: Get<BalanceOf<Self>>;
 
+		#[pallet::constant]
 		/// Trading fee rate
-		type SwapFee: Get<Balance>;
+		type SwapFee: Get<BalanceOf<Self>>;
 
 		/// Weight information for the extrinsics.
 		type WeightInfo: WeightInfo;
@@ -103,12 +115,19 @@ pub mod pallet {
 		/// Update pool errors
 		NotOwner,
 		SaleStarted,
+		SaleNotEnded,
 		InvalidData,
 		CannotPauseEndedPool,
 		CannotPausePausedPool,
 		PoolIsNotPausable,
 		CannotUnpauseEndedPool,
 		PoolIsNotPaused,
+
+		/// Add / Remove liquidity errors
+		CannotAddZeroLiquidity,
+		CannotRemoveZeroLiquidity,
+		LiquidityOverflow,
+		LiquidityUnderflow,
 
 		/// Balance errors
 		InsufficientAssetBalance,
@@ -127,7 +146,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Create new LBP pool
 		/// who, asset a, asset b, amount_a, amount_b
-		CreatePool(T::AccountId, AssetId, AssetId, Balance, Balance),
+		CreatePool(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Update the LBP pool
 		/// who, pool id
@@ -135,26 +154,27 @@ pub mod pallet {
 
 		/// Add liquidity to the pool
 		/// who, asset_a, asset_b, amount_a, amount_b
-		AddLiquidity(T::AccountId, AssetId, AssetId, Balance, Balance),
+		AddLiquidity(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Remove liquidity from the pool
 		/// who, asset_a, asset_b, shares
-		RemoveLiquidity(T::AccountId, AssetId, AssetId, Balance),
+		RemoveLiquidity(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Destroy LBP pool
 		/// who, asset a, asset b
-		PoolDestroyed(T::AccountId, AssetId, AssetId),
+		PoolDestroyed(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Sell token
 		/// who, asset in, asset out, amount, sale price
-		Sell(T::AccountId, AssetId, AssetId, Balance, Balance),
+		Sell(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Buy token
 		/// who, asset out, asset in, amount, buy price
-		Buy(T::AccountId, AssetId, AssetId, Balance, Balance),
+		Buy(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		Paused(T::AccountId),
 		Unpaused(T::AccountId),
+		WeightsUpdated(PoolId<T>, LBPWeight, LBPWeight),
 	}
 
 	#[pallet::storage]
@@ -163,7 +183,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_deposit)]
-	pub type PoolDeposit<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, Balance, ValueQuery>;
+	pub type PoolDeposit<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, BalanceOf<T>, ValueQuery>;
 
 	/// Asset pair for each pool. Assets are stored unordered.
 	#[pallet::storage]
@@ -176,7 +196,8 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_balances)]
-	pub type PoolBalances<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, (Balance, Balance), ValueQuery>;
+	pub type PoolBalances<T: Config> =
+		StorageMap<_, Blake2_128Concat, PoolId<T>, (BalanceOf<T>, BalanceOf<T>), ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -185,9 +206,9 @@ pub mod pallet {
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
-			amount_a: Balance,
+			amount_a: BalanceOf<T>,
 			asset_b: AssetId,
-			amount_b: Balance,
+			amount_b: BalanceOf<T>,
 			pool_data: Pool<T::BlockNumber>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
@@ -207,12 +228,12 @@ pub mod pallet {
 			ensure!(!Self::exists(asset_pair), Error::<T>::TokenPoolAlreadyExists);
 
 			ensure!(
-				T::Currency::free_balance(asset_a, &who) >= amount_a,
+				T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
 				Error::<T>::InsufficientAssetBalance
 			);
 
 			ensure!(
-				T::Currency::free_balance(asset_b, &who) >= amount_b,
+				T::MultiCurrency::free_balance(asset_b, &who) >= amount_b,
 				Error::<T>::InsufficientAssetBalance
 			);
 
@@ -222,15 +243,15 @@ pub mod pallet {
 
 			let deposit = T::PoolDeposit::get();
 
-			T::Currency::reserve(CORE_ASSET_ID, &who, deposit)?;
+			T::MultiCurrency::reserve(T::NativeAssetId::get(), &who, deposit)?;
 			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
 			<PoolOwner<T>>::insert(&pool_id, &who);
 			<PoolAssets<T>>::insert(&pool_id, &(asset_a, asset_b));
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			T::Currency::transfer(asset_a, &who, &pool_id, amount_a)?;
-			T::Currency::transfer(asset_b, &who, &pool_id, amount_b)?;
+			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
+			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
 
 			<PoolBalances<T>>::insert(&pool_id, &(amount_a, amount_b));
 
@@ -246,14 +267,12 @@ pub mod pallet {
 			pool_id: PoolId<T>,
 			start: Option<T::BlockNumber>,
 			end: Option<T::BlockNumber>,
-			final_weights: Option<(Balance, Balance)>,
+			initial_weights: Option<(LBPWeight, LBPWeight)>,
+			final_weights: Option<(LBPWeight, LBPWeight)>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
-
-			let pool_owner = Self::pool_owner(&pool_id);
-			ensure!(who == pool_owner, Error::<T>::NotOwner);
+			Self::test_pool_ownership(&who, &pool_id)?;
 
 			let mut pool_data = Self::pool_data(&pool_id);
 
@@ -269,6 +288,10 @@ pub mod pallet {
 
 			if let Some(new_end) = end {
 				pool_data.end = new_end;
+			}
+
+			if let Some((w1, w2)) = initial_weights {
+				pool_data.initial_weights = (w1, w2);
 			}
 
 			if let Some((w1, w2)) = final_weights {
@@ -287,10 +310,7 @@ pub mod pallet {
 		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
-
-			let pool_owner = Self::pool_owner(&pool_id);
-			ensure!(who == pool_owner, Error::<T>::NotOwner);
+			Self::test_pool_ownership(&who, &pool_id)?;
 
 			let mut pool_data = Self::pool_data(&pool_id);
 
@@ -312,10 +332,7 @@ pub mod pallet {
 		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
-
-			let pool_owner = Self::pool_owner(&pool_id);
-			ensure!(who == pool_owner, Error::<T>::NotOwner);
+			Self::test_pool_ownership(&who, &pool_id)?;
 
 			let mut pool_data = Self::pool_data(&pool_id);
 
@@ -328,6 +345,136 @@ pub mod pallet {
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
 			Self::deposit_event(Event::Unpaused(who));
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
+		#[transactional]
+		pub fn add_liquidity(
+			origin: OriginFor<T>,
+			pool_id: PoolId<T>,
+			amount_a: BalanceOf<T>,
+			amount_b: BalanceOf<T>,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			Self::test_pool_ownership(&who, &pool_id)?;
+
+			ensure!(
+				!amount_a.is_zero() || !amount_b.is_zero(),
+				Error::<T>::CannotAddZeroLiquidity
+			);
+
+			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
+			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+
+			let pool_data = Self::pool_data(&pool_id);
+
+			let now = <frame_system::Pallet<T>>::block_number();
+			ensure!(
+				pool_data.start == Zero::zero() || now < pool_data.start,
+				Error::<T>::SaleStarted
+			);
+
+			if !amount_a.is_zero() {
+				ensure!(
+					T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
+					Error::<T>::InsufficientAssetBalance
+				);
+
+				reserve_a = reserve_a.checked_add(&amount_a).ok_or(Error::<T>::LiquidityOverflow)?;
+			}
+
+			if !amount_b.is_zero() {
+				ensure!(
+					T::MultiCurrency::free_balance(asset_b, &who) >= amount_b,
+					Error::<T>::InsufficientAssetBalance
+				);
+
+				reserve_b = reserve_b.checked_add(&amount_b).ok_or(Error::<T>::LiquidityOverflow)?;
+			}
+
+			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
+			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
+
+			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
+			Self::deposit_event(Event::AddLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
+		#[transactional]
+		pub fn remove_liquidity(
+			origin: OriginFor<T>,
+			pool_id: PoolId<T>,
+			amount_a: BalanceOf<T>,
+			amount_b: BalanceOf<T>,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			Self::test_pool_ownership(&who, &pool_id)?;
+
+			ensure!(
+				!amount_a.is_zero() || !amount_b.is_zero(),
+				Error::<T>::CannotRemoveZeroLiquidity
+			);
+
+			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
+			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+
+			let pool_data = Self::pool_data(&pool_id);
+
+			ensure!(!Self::is_sale_running(&pool_data), Error::<T>::SaleNotEnded);
+
+			if !amount_a.is_zero() {
+				reserve_a = reserve_a.checked_sub(&amount_a).ok_or(Error::<T>::LiquidityUnderflow)?;
+			}
+
+			if !amount_b.is_zero() {
+				reserve_b = reserve_b.checked_sub(&amount_b).ok_or(Error::<T>::LiquidityUnderflow)?;
+			}
+
+			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
+			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
+
+			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
+			Self::deposit_event(Event::RemoveLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_pool())]
+		#[transactional]
+		pub fn destroy_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			Self::test_pool_ownership(&who, &pool_id)?;
+
+			let pool_data = Self::pool_data(&pool_id);
+			let now = <frame_system::Pallet<T>>::block_number();
+			ensure!(
+				pool_data.start.is_zero() || pool_data.end < now,
+				Error::<T>::SaleNotEnded
+			);
+
+			let (amount_a, amount_b) = Self::pool_balances(&pool_id);
+			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+
+			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
+			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
+
+			let deposit = Self::pool_deposit(&pool_id);
+			T::MultiCurrency::unreserve(T::NativeAssetId::get(), &who, deposit);
+
+			<PoolOwner<T>>::remove(&pool_id);
+			<PoolDeposit<T>>::remove(&pool_id);
+			<PoolAssets<T>>::remove(&pool_id);
+			<PoolData<T>>::remove(&pool_id);
+			<PoolBalances<T>>::remove(&pool_id);
+
+			Self::deposit_event(Event::PoolDestroyed(pool_id, asset_a, asset_b, amount_a, amount_b));
+
 			Ok(().into())
 		}
 	}
@@ -345,11 +492,29 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::BlockNumberInvalid
 		);
 		ensure!(
-			pool_data.final_weights.0 <= 100 && pool_data.final_weights.1 <= 100,
+			pool_data.initial_weights.0 <= 1_000_000 && pool_data.initial_weights.1 <= 1_000_000,
+			Error::<T>::MaxWeightExceeded
+		);
+		ensure!(
+			pool_data.final_weights.0 <= 1_000_000 && pool_data.final_weights.1 <= 1_000_000,
 			Error::<T>::MaxWeightExceeded
 		);
 
 		Ok(())
+	}
+
+	fn test_pool_ownership(who: &T::AccountId, pool_id: &PoolId<T>) -> DispatchResult {
+		ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+		let pool_owner = Self::pool_owner(&pool_id);
+		ensure!(who == &pool_owner, Error::<T>::NotOwner);
+
+		Ok(())
+	}
+
+	fn is_sale_running(pool_data: &Pool<T::BlockNumber>) -> bool {
+		let now = <frame_system::Pallet<T>>::block_number();
+		pool_data.start <= now && now <= pool_data.end
 	}
 
 	fn exists(assets: AssetPair) -> bool {
