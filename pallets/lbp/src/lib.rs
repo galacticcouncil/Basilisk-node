@@ -8,7 +8,7 @@ use frame_support::sp_runtime::{
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
-use primitives::{asset::AssetPair, Amount, AssetId, Balance};
+use primitives::{asset::AssetPair, Amount, AssetId};
 use sp_runtime::{
 	traits::{CheckedAdd, CheckedSub},
 	RuntimeDebug,
@@ -28,6 +28,36 @@ use weights::WeightInfo;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
+
+
+#[derive(Debug, Clone)]
+pub struct Overflow;
+trait WeightUpdate<BlockNumber: AtLeast32BitUnsigned> {
+	fn update_weights(&self, a_x: BlockNumber, b_x: BlockNumber, a_y: LBPWeight, b_y: LBPWeight, at: BlockNumber) -> Result<LBPWeight, Overflow>;
+}
+
+impl<BlockNumber: AtLeast32BitUnsigned> WeightUpdate<BlockNumber> for CurveType {
+	fn update_weights(&self, a_x: BlockNumber, b_x: BlockNumber, a_y: LBPWeight, b_y: LBPWeight, at: BlockNumber) -> Result<LBPWeight, Overflow> {
+		match self {
+			CurveType::Linear => calculate_linear_wieghts(a_x, b_x, a_y, b_y, at),
+			CurveType::Constant => calculate_const_wieghts(a_x, b_x, a_y, b_y, at),
+		}
+	}
+}
+
+fn calculate_linear_wieghts<BlockNumber: AtLeast32BitUnsigned>(a_x: BlockNumber, b_x: BlockNumber, a_y: LBPWeight, b_y: LBPWeight, at: BlockNumber) -> Result<LBPWeight, Overflow> {
+	let len_x: u32 = b_x.checked_sub(&a_x).ok_or(Overflow)?.into();
+	let d_x: u32 = at.checked_sub(&a_x).ok_or(Overflow)?.into();
+	let len_y = b_y.checked_sub(a_y).ok_or(Overflow)?;
+
+	let result = (len_y.checked_div(len_x.into()).ok_or(Overflow)?).checked_mul(d_x.into()).ok_or(Overflow)?;
+
+	Ok(result)
+}
+
+fn calculate_const_wieghts<BlockNumber: AtLeast32BitUnsigned>(a_x: BlockNumber, b_x: BlockNumber, a_y: LBPWeight, b_y: LBPWeight, at: BlockNumber) -> Result<LBPWeight, Overflow> {
+	Ok(a_y)
+}
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
@@ -52,6 +82,7 @@ type LBPWeight = u128;
 use codec::{Decode, Encode};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
+use sp_runtime::traits::AtLeast32BitUnsigned;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
