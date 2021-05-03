@@ -25,9 +25,9 @@ version = '2.0.0'
 serde = { features = ['derive'], optional = true, version = '1.0.101' }
 
 # Local dependencies
-primitives = { path = '../../../primitives', default-features = false }
-pallet-asset-registry= { path = '../../asset-registry', default-features = false }
-pallet-amm = { path = '../../amm', default-features = false }
+primitives = { default-features = false , version = "3.0.0"}
+pallet-asset-registry= { default-features = false, version = "3.0.0" }
+pallet-amm = { default-features = false, version = "4.0.1" }
 pallet-transaction-multi-payment = { path = '../../transaction-multi-payment', default-features = false }
 
 # ORML dependencies

@@ -24,15 +24,15 @@ memory-db = { version = "0.26.0", default-features = false }
 trie-db = { version = "0.22.0", default-features = false }
 
 # local dependencies
-pallet-asset-registry = { path = '../pallets/asset-registry', default-features = false, version = '3.0.0' }
-pallet-amm = { path = '../pallets/amm', default-features = false, version = '3.0.0' }
-pallet-exchange = { path = '../pallets/exchange', default-features = false, version = '3.0.0' }
-pallet-exchange-benchmarking = { path = '../pallets/exchange/benchmarking', default-features = false, optional = true, version = '3.0.0' }
-pallet-faucet = { path = '../pallets/faucet', default-features = false, version = '3.0.0' }
+pallet-asset-registry = { default-features = false, version = '3.0.0' }
+pallet-amm = { default-features = false, version = '4.0.1' }
+pallet-exchange = { default-features = false, version = '3.0.0' }
+pallet-exchange-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
+pallet-faucet = { default-features = false, version = '3.0.0' }
 pallet-transaction-multi-payment = { path = '../pallets/transaction-multi-payment', default-features = false, version = '3.0.0' }
 pallet-multi-payment-benchmarking = { path = '../pallets/transaction-multi-payment/benchmarking', default-features = false, optional = true, version = '3.0.0' }
-primitives = { path = '../primitives', default-features = false, version = '3.0.0' }
-module-amm-rpc-runtime-api = { path = '../pallets/amm/rpc/runtime-api', default-features = false, version = '3.0.0' }
+primitives = { default-features = false, version = '3.0.0' }
+module-amm-rpc-runtime-api = { default-features = false, version = '3.0.0' }
 
 # ORML dependencies
 orml-currencies = { default-features = false, version = "0.4.1-dev" }
