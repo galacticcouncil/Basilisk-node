@@ -55,7 +55,7 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), 12.into());
-	properties.insert("tokenSymbol".into(), "HDT".into());
+	properties.insert("tokenSymbol".into(), "BSX".into());
 
 	Ok(ChainSpec::from_genesis(
 		// Name

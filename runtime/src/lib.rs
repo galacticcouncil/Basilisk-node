@@ -241,7 +241,7 @@ impl frame_system::Config for Runtime {
 
 parameter_types! {
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
-	pub const HDXAssetId: AssetId = CORE_ASSET_ID;
+	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -317,7 +317,7 @@ impl orml_currencies::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-	type GetNativeCurrencyId = HDXAssetId;
+	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = ();
 }
 
@@ -335,7 +335,7 @@ impl pallet_amm::Config for Runtime {
 	type Event = Event;
 	type AssetPairAccountId = pallet_amm::AssetPairAccountId<Self>;
 	type Currency = Currencies;
-	type HDXAssetId = HDXAssetId;
+	type HDXAssetId = NativeAssetId;
 	type WeightInfo = pallet_amm::weights::HydraWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 }
