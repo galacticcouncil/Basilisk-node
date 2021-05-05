@@ -29,34 +29,61 @@ use weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum MathError {
+	Overflow,
+}
+use crate::MathError::Overflow;
 
-#[derive(Debug, Clone)]
-pub struct Overflow;
-trait WeightUpdate<BlockNumber: AtLeast32BitUnsigned> {
-	fn update_weights(&self, a_x: BlockNumber, b_x: BlockNumber, a_y: LBPWeight, b_y: LBPWeight, at: BlockNumber) -> Result<LBPWeight, Overflow>;
+pub trait WeightUpdate<BlockNumber: AtLeast32BitUnsigned> {
+	fn calculate_weight(
+		&self,
+		a_x: BlockNumber,
+		b_x: BlockNumber,
+		a_y: LBPWeight,
+		b_y: LBPWeight,
+		at: BlockNumber,
+	) -> Result<LBPWeight, MathError>;
 }
 
 impl<BlockNumber: AtLeast32BitUnsigned> WeightUpdate<BlockNumber> for CurveType {
-	fn update_weights(&self, a_x: BlockNumber, b_x: BlockNumber, a_y: LBPWeight, b_y: LBPWeight, at: BlockNumber) -> Result<LBPWeight, Overflow> {
+	fn calculate_weight(
+		&self,
+		a_x: BlockNumber,
+		b_x: BlockNumber,
+		a_y: LBPWeight,
+		b_y: LBPWeight,
+		at: BlockNumber,
+	) -> Result<LBPWeight, MathError> {
 		match self {
-			CurveType::Linear => calculate_linear_wieghts(a_x, b_x, a_y, b_y, at),
-			CurveType::Constant => calculate_const_wieghts(a_x, b_x, a_y, b_y, at),
+			CurveType::Linear => calculate_linear_weights(a_x, b_x, a_y, b_y, at),
+			CurveType::Constant => Ok(a_y),
 		}
 	}
 }
 
-fn calculate_linear_wieghts<BlockNumber: AtLeast32BitUnsigned>(a_x: BlockNumber, b_x: BlockNumber, a_y: LBPWeight, b_y: LBPWeight, at: BlockNumber) -> Result<LBPWeight, Overflow> {
-	let len_x: u32 = b_x.checked_sub(&a_x).ok_or(Overflow)?.into();
-	let d_x: u32 = at.checked_sub(&a_x).ok_or(Overflow)?.into();
-	let len_y = b_y.checked_sub(a_y).ok_or(Overflow)?;
+fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
+	a_x: BlockNumber,
+	b_x: BlockNumber,
+	a_y: LBPWeight,
+	b_y: LBPWeight,
+	at: BlockNumber,
+) -> Result<LBPWeight, MathError> {
+	let len_x = b_x.checked_sub(&a_x).ok_or(Overflow)?;
+	let d_x = at.checked_sub(&a_x).ok_or(Overflow)?;
+	let len_x: u32 = len_x.try_into().map_err(|_| Overflow)?;
+	let d_x: u32 = d_x.try_into().map_err(|_| Overflow)?;
+	let len_y = if let Some(value) = b_y.checked_sub(a_y) {
+		value
+	} else {
+		a_y.checked_sub(b_y).ok_or(Overflow)?
+	};
 
-	let result = (len_y.checked_div(len_x.into()).ok_or(Overflow)?).checked_mul(d_x.into()).ok_or(Overflow)?;
+	let result = (len_y.checked_div(len_x.into()).ok_or(Overflow)?)
+		.checked_mul(d_x.into())
+		.ok_or(Overflow)?;
 
 	Ok(result)
-}
-
-fn calculate_const_wieghts<BlockNumber: AtLeast32BitUnsigned>(a_x: BlockNumber, b_x: BlockNumber, a_y: LBPWeight, b_y: LBPWeight, at: BlockNumber) -> Result<LBPWeight, Overflow> {
-	Ok(a_y)
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
@@ -86,14 +113,26 @@ use sp_runtime::traits::AtLeast32BitUnsigned;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
-pub struct Pool<BlockNumber> {
+pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy, TCurve: WeightUpdate<BlockNumber>> {
 	pub start: BlockNumber,
 	pub end: BlockNumber,
 	pub initial_weights: (LBPWeight, LBPWeight),
 	pub final_weights: (LBPWeight, LBPWeight),
-	pub curve: CurveType,
+	pub curve: TCurve,
 	pub pausable: bool,
 	pub paused: bool,
+}
+
+impl<BlockNumber: AtLeast32BitUnsigned + Copy, TCurve: WeightUpdate<BlockNumber>> Pool<BlockNumber, TCurve> {
+	fn update_weights(&self, at: BlockNumber) -> Result<(LBPWeight, LBPWeight), MathError> {
+		let w1 = self
+			.curve
+			.calculate_weight(self.start, self.end, self.initial_weights.0, self.final_weights.0, at)?;
+		let w2 = self
+			.curve
+			.calculate_weight(self.start, self.end, self.initial_weights.1, self.final_weights.1, at)?;
+		Ok((w1, w2))
+	}
 }
 
 type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -158,7 +197,7 @@ pub mod pallet {
 		CannotAddZeroLiquidity,
 		CannotRemoveZeroLiquidity,
 		LiquidityOverflow,
-		LiquidityUnderflow,
+		LiquidityUnderflow, // TODO: do we need it? Can we use LiquidityOverflow instead?
 
 		/// Balance errors
 		InsufficientAssetBalance,
@@ -223,7 +262,8 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_data)]
-	pub type PoolData<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::BlockNumber>, ValueQuery>;
+	pub type PoolData<T: Config> =
+		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::BlockNumber, CurveType>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_balances)]
@@ -240,7 +280,7 @@ pub mod pallet {
 			amount_a: BalanceOf<T>,
 			asset_b: AssetId,
 			amount_b: BalanceOf<T>,
-			pool_data: Pool<T::BlockNumber>,
+			pool_data: Pool<T::BlockNumber, CurveType>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -303,7 +343,9 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			Self::test_pool_ownership(&who, &pool_id)?;
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			Self::ensure_pool_ownership(&who, &pool_id)?;
 
 			let mut pool_data = Self::pool_data(&pool_id);
 
@@ -341,7 +383,9 @@ pub mod pallet {
 		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			Self::test_pool_ownership(&who, &pool_id)?;
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			Self::ensure_pool_ownership(&who, &pool_id)?;
 
 			let mut pool_data = Self::pool_data(&pool_id);
 
@@ -363,7 +407,9 @@ pub mod pallet {
 		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			Self::test_pool_ownership(&who, &pool_id)?;
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			Self::ensure_pool_ownership(&who, &pool_id)?;
 
 			let mut pool_data = Self::pool_data(&pool_id);
 
@@ -389,7 +435,9 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			Self::test_pool_ownership(&who, &pool_id)?;
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			Self::ensure_pool_ownership(&who, &pool_id)?;
 
 			ensure!(
 				!amount_a.is_zero() || !amount_b.is_zero(),
@@ -444,7 +492,9 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			Self::test_pool_ownership(&who, &pool_id)?;
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			Self::ensure_pool_ownership(&who, &pool_id)?;
 
 			ensure!(
 				!amount_a.is_zero() || !amount_b.is_zero(),
@@ -480,7 +530,9 @@ pub mod pallet {
 		pub fn destroy_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			Self::test_pool_ownership(&who, &pool_id)?;
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+
+			Self::ensure_pool_ownership(&who, &pool_id)?;
 
 			let pool_data = Self::pool_data(&pool_id);
 			let now = <frame_system::Pallet<T>>::block_number();
@@ -512,7 +564,7 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn validate_pool_data(pool_data: &Pool<T::BlockNumber>) -> DispatchResult {
+	fn validate_pool_data(pool_data: &Pool<T::BlockNumber, CurveType>) -> DispatchResult {
 		let now = <frame_system::Pallet<T>>::block_number();
 		ensure!(
 			pool_data.start == Zero::zero() || now <= pool_data.start,
@@ -534,16 +586,14 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn test_pool_ownership(who: &T::AccountId, pool_id: &PoolId<T>) -> DispatchResult {
-		ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
-
+	fn ensure_pool_ownership(who: &T::AccountId, pool_id: &PoolId<T>) -> DispatchResult {
 		let pool_owner = Self::pool_owner(&pool_id);
 		ensure!(who == &pool_owner, Error::<T>::NotOwner);
 
 		Ok(())
 	}
 
-	fn is_sale_running(pool_data: &Pool<T::BlockNumber>) -> bool {
+	fn is_sale_running(pool_data: &Pool<T::BlockNumber, CurveType>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
 		pool_data.start <= now && now <= pool_data.end
 	}
