@@ -101,10 +101,6 @@ impl Default for CurveType {
 
 type PoolId<T> = <T as frame_system::Config>::AccountId;
 type LBPWeight = u128;
-// type BalanceInfo = (Balance, AssetId);
-// type AssetParams = (AssetId, Weight, Balance);
-// type AssetWeights = (Weight, Weight);
-// type AssetBalances = (Balance, Balance);
 
 use codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -118,20 +114,26 @@ pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy, TCurve: WeightUpdate<B
 	pub end: BlockNumber,
 	pub initial_weights: (LBPWeight, LBPWeight),
 	pub final_weights: (LBPWeight, LBPWeight),
+	pub last_weight_update: BlockNumber,
+	pub last_weights: (LBPWeight, LBPWeight),
 	pub curve: TCurve,
 	pub pausable: bool,
 	pub paused: bool,
 }
 
 impl<BlockNumber: AtLeast32BitUnsigned + Copy, TCurve: WeightUpdate<BlockNumber>> Pool<BlockNumber, TCurve> {
-	fn update_weights(&self, at: BlockNumber) -> Result<(LBPWeight, LBPWeight), MathError> {
-		let w1 = self
-			.curve
-			.calculate_weight(self.start, self.end, self.initial_weights.0, self.final_weights.0, at)?;
-		let w2 = self
-			.curve
-			.calculate_weight(self.start, self.end, self.initial_weights.1, self.final_weights.1, at)?;
-		Ok((w1, w2))
+	fn get_weights(&mut self, now: BlockNumber) -> Result<(LBPWeight, LBPWeight), MathError> {
+		if now != self.last_weight_update {
+			let w1 = self
+				.curve
+				.calculate_weight(self.start, self.end, self.initial_weights.0, self.final_weights.0, now)?;
+			let w2 = self
+				.curve
+				.calculate_weight(self.start, self.end, self.initial_weights.1, self.final_weights.1, now)?;
+			self.last_weight_update = now;
+			self.last_weights = (w1, w2);
+		}
+		Ok(self.last_weights)
 	}
 }
 
