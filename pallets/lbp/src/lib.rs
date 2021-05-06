@@ -62,6 +62,7 @@ impl<BlockNumber: AtLeast32BitUnsigned> WeightUpdate<BlockNumber> for CurveType 
 	}
 }
 
+// TODO: move this function to the hydradx-math crate
 fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 	a_x: BlockNumber,
 	b_x: BlockNumber,
@@ -194,6 +195,8 @@ pub mod pallet {
 		PoolIsNotPausable,
 		CannotUnpauseEndedPool,
 		PoolIsNotPaused,
+		MaxWeightExceeded,
+		MaxSaleDurationExceeded,
 
 		/// Add / Remove liquidity errors
 		CannotAddZeroLiquidity,
@@ -209,8 +212,7 @@ pub mod pallet {
 		TokenPoolAlreadyExists,
 
 		/// Calculation errors
-		BlockNumberInvalid,
-		MaxWeightExceeded,
+		InvalidBlockNumber,
 	}
 
 	#[pallet::event]
@@ -570,11 +572,17 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 		ensure!(
 			pool_data.start == Zero::zero() || now <= pool_data.start,
-			Error::<T>::BlockNumberInvalid
+			Error::<T>::InvalidBlockNumber
 		);
 		ensure!(
 			pool_data.end == Zero::zero() || pool_data.start < pool_data.end,
-			Error::<T>::BlockNumberInvalid
+			Error::<T>::InvalidBlockNumber
+		);
+		// this restriction is based on the AtLeast32Bit trait of the frame_system::Balance type
+		// and is expected by the calculate_linear_weights function
+		ensure!(
+			pool_data.end - pool_data.start <= u32::MAX.into(),
+			Error::<T>::MaxSaleDurationExceeded
 		);
 		ensure!(
 			pool_data.initial_weights.0 <= 1_000_000 && pool_data.initial_weights.1 <= 1_000_000,

@@ -100,7 +100,7 @@ fn validate_pool_data_should_work() {
 		};
 		assert_noop!(
 			LBPPallet::validate_pool_data(&pool_data),
-			Error::<Test>::BlockNumberInvalid
+			Error::<Test>::InvalidBlockNumber
 		);
 
 		let pool_data = Pool {
@@ -117,6 +117,22 @@ fn validate_pool_data_should_work() {
 		assert_noop!(
 			LBPPallet::validate_pool_data(&pool_data),
 			Error::<Test>::MaxWeightExceeded
+		);
+
+		let pool_data = Pool {
+			start: 10u64,
+			end: 11u64 + u32::MAX as u64,
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
+			last_weight_update: 0u64,
+			last_weights: (20, 80),
+			curve: CurveType::Linear,
+			pausable: true,
+			paused: false,
+		};
+		assert_noop!(
+			LBPPallet::validate_pool_data(&pool_data),
+			Error::<Test>::MaxSaleDurationExceeded
 		);
 	});
 }
@@ -240,7 +256,7 @@ fn create_pool_invalid_data_should_not_work() {
 
 		assert_noop!(
 			LBPPallet::create_pool(Origin::signed(user), asset_a, amount_a, asset_b, amount_b, pool_data),
-			Error::<Test>::BlockNumberInvalid
+			Error::<Test>::InvalidBlockNumber
 		);
 	});
 }
