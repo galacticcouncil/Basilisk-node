@@ -46,7 +46,9 @@ pub use sp_runtime::{Perbill, Permill};
 
 use primitives::fee;
 
-use primitives::currency::CurrencyId;
+mod currency;
+
+use currency::CurrencyId;
 
 use cumulus_pallet_xcm_handler as xcm_handler;
 

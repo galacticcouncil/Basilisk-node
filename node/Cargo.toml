@@ -29,8 +29,8 @@ structopt = '0.3.8'
 
 # local dependencies
 basilisk-runtime = {path = '../runtime', version = '3.0.0'}
-module-amm-rpc = {path = '../pallets/amm/rpc', version = '3.0.0'}
-primitives = {path = '../primitives', version = '3.0.0'}
+module-amm-rpc = {version = '3.0.0'}
+primitives = {version = '3.0.0'}
 
 # Substrate dependencies
 frame-benchmarking = '3.0.0'

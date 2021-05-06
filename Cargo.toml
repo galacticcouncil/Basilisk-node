@@ -87,6 +87,16 @@ polkadot-test-client = { git = 'https://github.com/paritytech/polkadot', branch 
 
 librocksdb-sys = { git = "https://github.com/hdevalence/rust-rocksdb", branch = "master" }
 
+primitives = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+pallet-amm = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+pallet-exchange = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+pallet-exchange-benchmarking = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+pallet-faucet = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+pallet-claims = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+module-amm-rpc-runtime-api = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+module-amm-rpc = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+
 [profile.release]
 panic = 'unwind'
 
@@ -94,10 +104,5 @@ panic = 'unwind'
 members = [
   # 'pallets/proposal', Update this
   'node',
-  'pallets/amm',
-  'pallets/asset-registry',
-  'pallets/exchange',
-  'pallets/transaction-multi-payment',
-  'primitives',
   'runtime',
 ]
