@@ -4,7 +4,7 @@ pub use crate::mock::{
 	DOT, ETH, HDX,
 };
 use crate::mock::{INITIAL_BALANCE, POOL_ADDRESS, POOL_DEPOSIT, POOL_SWAP_FEE};
-use frame_support::{assert_err, assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok};
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -98,7 +98,7 @@ fn validate_pool_data_should_work() {
 			pausable: true,
 			paused: false,
 		};
-		assert_err!(
+		assert_noop!(
 			LBPPallet::validate_pool_data(&pool_data),
 			Error::<Test>::BlockNumberInvalid
 		);
@@ -114,7 +114,7 @@ fn validate_pool_data_should_work() {
 			pausable: true,
 			paused: false,
 		};
-		assert_err!(
+		assert_noop!(
 			LBPPallet::validate_pool_data(&pool_data),
 			Error::<Test>::MaxWeightExceeded
 		);
