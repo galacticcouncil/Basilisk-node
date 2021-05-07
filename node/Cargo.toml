@@ -16,7 +16,7 @@ name = 'basilisk'
 targets = ['x86_64-unknown-linux-gnu']
 
 [build-dependencies]
-substrate-build-script-utils = '3.0.0'
+basilisk-build-script-utils = {path = '../utils/build-script-utils'}
 
 [dependencies]
 codec = {package = 'parity-scale-codec', version = '2.0.0'}
