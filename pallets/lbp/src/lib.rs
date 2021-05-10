@@ -32,8 +32,9 @@ pub use pallet::*;
 #[derive(Debug, Clone, PartialEq)]
 pub enum MathError {
 	Overflow,
+	ZeroDuration,
 }
-use crate::MathError::Overflow;
+use crate::MathError::{Overflow, ZeroDuration};
 
 pub trait WeightUpdate<BlockNumber: AtLeast32BitUnsigned> {
 	fn calculate_weight(
@@ -63,6 +64,7 @@ impl<BlockNumber: AtLeast32BitUnsigned> WeightUpdate<BlockNumber> for CurveType 
 }
 
 // TODO: move this function to the hydradx-math crate
+// Linear interpolation
 fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 	a_x: BlockNumber,
 	b_x: BlockNumber,
@@ -70,18 +72,21 @@ fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 	b_y: LBPWeight,
 	at: BlockNumber,
 ) -> Result<LBPWeight, MathError> {
-	let len_x = b_x.checked_sub(&a_x).ok_or(Overflow)?;
-	let d_x = at.checked_sub(&a_x).ok_or(Overflow)?;
-	let len_x: u32 = len_x.try_into().map_err(|_| Overflow)?;
-	let d_x: u32 = d_x.try_into().map_err(|_| Overflow)?;
-	let len_y = if let Some(value) = b_y.checked_sub(a_y) {
-		value
-	} else {
-		a_y.checked_sub(b_y).ok_or(Overflow)?
-	};
+	let d1 = b_x.checked_sub(&at).ok_or(Overflow)?;
+	let d2 = at.checked_sub(&a_x).ok_or(Overflow)?;
+	let dx = b_x.checked_sub(&a_x).ok_or(Overflow)?;
 
-	let result = (len_y.checked_div(len_x.into()).ok_or(Overflow)?)
-		.checked_mul(d_x.into())
+	let dx: u32 = dx.try_into().map_err(|_| Overflow)?;
+	// if dx fits into u32, d1 and d2 fit into u128
+	let d1: u128 = d1.try_into().map_err(|_| Overflow)?;
+	let d2: u128 = d2.try_into().map_err(|_| Overflow)?;
+
+	ensure!(dx != 0, ZeroDuration);
+
+	let left = a_y.checked_mul(d1).ok_or(Overflow)?;	// TODO: change to u256
+	let right = b_y.checked_mul(d2).ok_or(Overflow)?;	// TODO: change to u256
+	let result = (left.checked_add(right).ok_or(Overflow)?)
+		.checked_div(dx.into())
 		.ok_or(Overflow)?;
 
 	Ok(result)
@@ -213,6 +218,7 @@ pub mod pallet {
 
 		/// Calculation errors
 		InvalidBlockNumber,
+		CalculationError,	// TODO: replace me with something more meaningful?
 	}
 
 	#[pallet::event]
