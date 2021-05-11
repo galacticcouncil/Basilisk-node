@@ -2,6 +2,7 @@
 #![allow(clippy::unused_unit)]
 
 use frame_support::sp_runtime::{
+	DispatchError,
 	app_crypto::sp_core::crypto::UncheckedFrom,
 	traits::{Hash, Zero},
 };
@@ -35,33 +36,6 @@ pub enum MathError {
 	ZeroDuration,
 }
 use crate::MathError::{Overflow, ZeroDuration};
-
-pub trait WeightUpdate<BlockNumber: AtLeast32BitUnsigned> {
-	fn calculate_weight(
-		&self,
-		a_x: BlockNumber,
-		b_x: BlockNumber,
-		a_y: LBPWeight,
-		b_y: LBPWeight,
-		at: BlockNumber,
-	) -> Result<LBPWeight, MathError>;
-}
-
-impl<BlockNumber: AtLeast32BitUnsigned> WeightUpdate<BlockNumber> for CurveType {
-	fn calculate_weight(
-		&self,
-		a_x: BlockNumber,
-		b_x: BlockNumber,
-		a_y: LBPWeight,
-		b_y: LBPWeight,
-		at: BlockNumber,
-	) -> Result<LBPWeight, MathError> {
-		match self {
-			CurveType::Linear => calculate_linear_weights(a_x, b_x, a_y, b_y, at),
-			CurveType::Constant => Ok(a_y),
-		}
-	}
-}
 
 // TODO: move this function to the hydradx-math crate
 // Linear interpolation
@@ -115,35 +89,47 @@ use sp_runtime::traits::AtLeast32BitUnsigned;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
-pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy, TCurve: WeightUpdate<BlockNumber>> {
+pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub start: BlockNumber,
 	pub end: BlockNumber,
 	pub initial_weights: (LBPWeight, LBPWeight),
 	pub final_weights: (LBPWeight, LBPWeight),
 	pub last_weight_update: BlockNumber,
 	pub last_weights: (LBPWeight, LBPWeight),
-	pub curve: TCurve,
+	pub curve: CurveType,
 	pub pausable: bool,
 	pub paused: bool,
 }
 
-impl<BlockNumber: AtLeast32BitUnsigned + Copy, TCurve: WeightUpdate<BlockNumber>> Pool<BlockNumber, TCurve> {
-	fn get_weights(&mut self, now: BlockNumber) -> Result<(LBPWeight, LBPWeight), MathError> {
-		if now != self.last_weight_update {
-			let w1 = self
-				.curve
-				.calculate_weight(self.start, self.end, self.initial_weights.0, self.final_weights.0, now)?;
-			let w2 = self
-				.curve
-				.calculate_weight(self.start, self.end, self.initial_weights.1, self.final_weights.1, now)?;
-			self.last_weight_update = now;
-			self.last_weights = (w1, w2);
-		}
-		Ok(self.last_weights)
-	}
+type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
+
+pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
+	fn calculate_weight(
+		curve_type: CurveType,
+		a_x: BlockNumber,
+		b_x: BlockNumber,
+		a_y: LBPWeight,
+		b_y: LBPWeight,
+		at: BlockNumber,
+	) -> Result<LBPWeight, MathError>;
 }
 
-type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
+pub struct LBPWeightFunction;
+impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LBPWeightFunction {
+	fn calculate_weight(
+		curve_type: CurveType,
+		a_x: BlockNumber,
+		b_x: BlockNumber,
+		a_y: LBPWeight,
+		b_y: LBPWeight,
+		at: BlockNumber,
+	) -> Result<LBPWeight, MathError> {
+		match curve_type {
+			CurveType::Linear => calculate_linear_weights(a_x, b_x, a_y, b_y, at),
+			CurveType::Constant => Ok(a_y),
+		}
+	}
+}
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -165,6 +151,9 @@ pub mod pallet {
 		#[pallet::constant]
 		/// Native Asset Id
 		type NativeAssetId: Get<AssetId>;
+
+		/// Function for calculation of LBP weights
+		type LBPWeightFunction: LBPWeightCalculation<Self::BlockNumber>;
 
 		/// Mapping of asset pairs to unique pool identities
 		type AssetPairPoolId: AssetPairPoolIdFor<AssetId, PoolId<Self>>;
@@ -273,7 +262,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn pool_data)]
 	pub type PoolData<T: Config> =
-		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::BlockNumber, CurveType>, ValueQuery>;
+		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_balances)]
@@ -290,7 +279,7 @@ pub mod pallet {
 			amount_a: BalanceOf<T>,
 			asset_b: AssetId,
 			amount_b: BalanceOf<T>,
-			pool_data: Pool<T::BlockNumber, CurveType>,
+			pool_data: Pool<T::BlockNumber>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -574,7 +563,35 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn validate_pool_data(pool_data: &Pool<T::BlockNumber, CurveType>) -> DispatchResult {
+	fn update_weights(pool_data: &mut Pool<T::BlockNumber>) -> Result<(LBPWeight, LBPWeight), DispatchError> {
+		let now = <frame_system::Pallet<T>>::block_number();
+
+		if now!= pool_data.last_weight_update {
+			let w1 = T::LBPWeightFunction::calculate_weight(
+				pool_data.curve,
+				pool_data.start,
+				pool_data.end,
+				pool_data.initial_weights.0,
+				pool_data.final_weights.0,
+				now
+			).map_err(|_| Error::<T>::CalculationError)?;
+
+			let w2 = T::LBPWeightFunction::calculate_weight(
+				pool_data.curve,
+				pool_data.start,
+				pool_data.end,
+				pool_data.initial_weights.1,
+				pool_data.final_weights.1,
+				now
+			).map_err(|_| Error::<T>::CalculationError)?;
+			pool_data.last_weight_update = now;
+			pool_data.last_weights = (w1, w2);
+		}
+
+		Ok(pool_data.last_weights)
+	}
+
+	fn validate_pool_data(pool_data: &Pool<T::BlockNumber>) -> DispatchResult {
 		let now = <frame_system::Pallet<T>>::block_number();
 		ensure!(
 			pool_data.start == Zero::zero() || now <= pool_data.start,
@@ -609,7 +626,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn is_sale_running(pool_data: &Pool<T::BlockNumber, CurveType>) -> bool {
+	fn is_sale_running(pool_data: &Pool<T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
 		pool_data.start <= now && now <= pool_data.end
 	}

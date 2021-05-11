@@ -115,6 +115,7 @@ impl Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
 	type NativeAssetId = NativeAssetId;
+	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type PoolDeposit = PoolDeposit;
 	type SwapFee = LBPSwapFee;

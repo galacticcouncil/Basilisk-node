@@ -77,7 +77,7 @@ fn linear_weights_should_work() {
 		(200u32, 100u32, 1_000u128, 2_000u128, 170u32, Err(Overflow), "Invalid interval"),
 		(100u32, 100u32, 1_000u128, 2_000u128, 100u32, Err(ZeroDuration), "Invalid interval"),
 		(100u32, 200u32, 1_000u128, 2_000u128, 10u32, Err(Overflow), "Out of bound"),
-		// (100u32, 200u32, 1_000u128, 2_000u128, 210u32, Err(Overflow), "Out of bound"),	// 2100
+		(100u32, 200u32, 1_000u128, 2_000u128, 210u32, Err(Overflow), "Out of bound"),
 	];
 	let u64_cases = vec![
 		(100u64, 200u64, 1_000u128, 2_000u128, 170u64, Ok(1_700), "Easy case"),
