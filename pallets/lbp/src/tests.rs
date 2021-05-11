@@ -103,6 +103,74 @@ fn linear_weights_should_work() {
 }
 
 #[test]
+fn weight_update_should_work() {
+	new_test_ext().execute_with(|| {
+		let mut linear_pool = Pool {
+			start: 10u64,
+			end: 19u64,
+			initial_weights: (20, 80),
+			final_weights: (80, 20),
+			last_weight_update: 2u64,
+			last_weights: (2, 2),
+			curve: CurveType::Linear,
+			pausable: false,
+			paused: false,
+		};
+		let mut constant_pool = Pool {
+			start: 10u64,
+			end: 19u64,
+			initial_weights: (20, 80),
+			final_weights: (80, 20),
+			last_weight_update: 2u64,
+			last_weights: (2, 2),
+			curve: CurveType::Constant,
+			pausable: false,
+			paused: false,
+		};
+
+		// TODO: add test: last_weights and last_weight_update values are initialized to meaningful values
+
+		assert_ok!(LBPPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			1,
+			DOT,
+			1,
+			linear_pool,
+		));
+		assert_ok!(LBPPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			1,
+			ACA,
+			1,
+			constant_pool,
+		));
+
+		System::set_block_number(13);
+
+		LBPPallet::update_weights(&mut linear_pool);
+		LBPPallet::update_weights(&mut constant_pool);
+
+		assert_eq!(linear_pool.last_weight_update, 13);
+		assert_eq!(constant_pool.last_weight_update, 13);
+
+		assert_eq!(linear_pool.last_weights, (40u128, 60u128));
+		assert_eq!(constant_pool.last_weights, (20u128, 80u128));
+
+		// call update again in the same block, data should be the same
+		LBPPallet::update_weights(&mut linear_pool);
+		LBPPallet::update_weights(&mut constant_pool);
+
+		assert_eq!(linear_pool.last_weight_update, 13);
+		assert_eq!(constant_pool.last_weight_update, 13);
+
+		assert_eq!(linear_pool.last_weights, (40u128, 60u128));
+		assert_eq!(constant_pool.last_weights, (20u128, 80u128));
+	});
+}
+
+#[test]
 fn validate_pool_data_should_work() {
 	new_test_ext().execute_with(|| {
 		let pool_data = Pool {
