@@ -355,6 +355,22 @@ impl pallet_faucet::Config for Runtime {
 	type Currency = Currencies;
 }
 
+parameter_types! {
+	pub PoolDeposit: Balance = 10u128.pow(22);
+	pub LBPSwapFee: Balance = 10u128.pow(21);
+}
+
+impl pallet_lbp::Config for Runtime {
+	type Event = Event;
+	type MultiCurrency = Currencies;
+	type NativeAssetId = HDXAssetId;
+	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
+	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
+	type PoolDeposit = PoolDeposit;
+	type SwapFee = LBPSwapFee;
+	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
+}
+
 /// Parachain Config
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
@@ -531,6 +547,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Storage, Event<T>},
+		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 	}
 );
 

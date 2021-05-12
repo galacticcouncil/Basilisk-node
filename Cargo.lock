@@ -514,6 +514,7 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-faucet",
  "pallet-grandpa",
+ "pallet-lbp",
  "pallet-multi-payment-benchmarking",
  "pallet-randomness-collective-flip",
  "pallet-session",
@@ -4837,6 +4838,28 @@ dependencies = [
  "sp-keyring",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-lbp"
+version = "3.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "orml-tokens",
+ "orml-traits",
+ "orml-utilities",
+ "parity-scale-codec 2.0.1",
+ "primitive-types 0.8.0",
+ "primitives",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder-runner",
 ]
 
 [[package]]
