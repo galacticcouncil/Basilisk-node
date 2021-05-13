@@ -189,7 +189,6 @@ pub mod pallet {
 		PoolIsNotPausable,
 		CannotUnpauseEndedPool,
 		PoolIsNotPaused,
-		MaxWeightExceeded,
 		MaxSaleDurationExceeded,
 
 		/// Add / Remove liquidity errors
@@ -606,14 +605,6 @@ impl<T: Config> Pallet<T> {
 		ensure!(
 			pool_data.end - pool_data.start <= u32::MAX.into(),
 			Error::<T>::MaxSaleDurationExceeded
-		);
-		ensure!(
-			pool_data.initial_weights.0 <= 1_000_000 && pool_data.initial_weights.1 <= 1_000_000,
-			Error::<T>::MaxWeightExceeded
-		);
-		ensure!(
-			pool_data.final_weights.0 <= 1_000_000 && pool_data.final_weights.1 <= 1_000_000,
-			Error::<T>::MaxWeightExceeded
 		);
 
 		Ok(())
