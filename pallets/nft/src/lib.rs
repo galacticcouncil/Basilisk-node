@@ -58,7 +58,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		pub fn create_class(origin: OriginFor<T>, metadata: Vec<u8>, data: T::ClassData) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			let class_id = orml_nft::Module::<T>::create_class(&sender, metadata, data)?;
+			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
 			Self::deposit_event(Event::NFTTokenClassCreated(sender, class_id));
 			Ok(().into())
 		}
@@ -73,12 +73,12 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 			ensure!(quantity > Zero::zero(), Error::<T>::InvalidQuantity);
-			let class_info = orml_nft::Module::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
+			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NoPermission);
 			let mut data = token_data;
 			data.locked = false;
 			for _ in 0..quantity {
-				orml_nft::Module::<T>::mint(&sender, class_id, metadata.clone(), data.clone())?;
+				orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data.clone())?;
 			}
 			Self::deposit_event(Event::NFTTokenMinted(sender, class_id, quantity));
 			Ok(().into())
@@ -91,12 +91,12 @@ pub mod pallet {
 			token: (T::ClassId, T::TokenId),
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			let _class_info = orml_nft::Module::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
-			let token_info = orml_nft::Module::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
+			let _class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
+			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			ensure!(sender == token_info.owner, Error::<T>::NoPermission);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 			let to: T::AccountId = T::Lookup::lookup(dest)?;
-			orml_nft::Module::<T>::transfer(&sender, &to, token)?;
+			orml_nft::Pallet::<T>::transfer(&sender, &to, token)?;
 			Self::deposit_event(Event::NFTTokenTransferred(sender, to, token.0, token.1));
 			Ok(().into())
 		}
@@ -104,11 +104,11 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		pub fn burn(origin: OriginFor<T>, token: (T::ClassId, T::TokenId)) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			let _class_info = orml_nft::Module::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
-			let token_info = orml_nft::Module::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
+			let _class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
+			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			ensure!(sender == token_info.owner, Error::<T>::NoPermission);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
-			orml_nft::Module::<T>::burn(&sender, token)?;
+			orml_nft::Pallet::<T>::burn(&sender, token)?;
 			Self::deposit_event(Event::NFTTokenBurned(sender, token.0, token.1));
 			Ok(().into())
 		}
@@ -116,13 +116,13 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		pub fn destroy_class(origin: OriginFor<T>, class_id: T::ClassId) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			let class_info = orml_nft::Module::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
+			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NoPermission);
 			ensure!(
 				class_info.total_issuance == Zero::zero(),
 				Error::<T>::CannotDestroyClass
 			);
-			orml_nft::Module::<T>::destroy_class(&sender, class_id)?;
+			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
 			Self::deposit_event(Event::NFTTokenClassDestroyed(sender, class_id));
 			Ok(().into())
 		}
@@ -155,16 +155,16 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	pub fn is_owner(account: &T::AccountId, token: (T::ClassId, T::TokenId)) -> bool {
-		orml_nft::Module::<T>::is_owner(account, token)
+		orml_nft::Pallet::<T>::is_owner(account, token)
 	}
 
 	pub fn is_locked(token: (T::ClassId, T::TokenId)) -> Result<bool, DispatchError> {
-		let token_info = orml_nft::Module::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
+		let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 		Ok(token_info.data.locked)
 	}
 
 	pub fn toggle_lock(account: &T::AccountId, token_id: (T::ClassId, T::TokenId)) -> DispatchResult {
-		let _class_info = orml_nft::Module::<T>::classes(token_id.0).ok_or(Error::<T>::ClassNotFound)?;
+		let _class_info = orml_nft::Pallet::<T>::classes(token_id.0).ok_or(Error::<T>::ClassNotFound)?;
 		orml_nft::Tokens::<T>::mutate_exists(token_id.0, token_id.1, |token| -> DispatchResult {
 			if let Some(ref mut token) = token {
 				ensure!(*account == token.owner, Error::<T>::NoPermission);

@@ -28,7 +28,7 @@ benchmarks! {
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let token_data = TokenData { locked:false };
 		let class_data = 123;
-		let class_id = orml_nft::Module::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
+		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_quantity = 1;
 	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data, token_quantity)
 	verify {
@@ -40,8 +40,8 @@ benchmarks! {
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = 123;
 		let token_data = TokenData { locked:false };
-		let class_id = orml_nft::Module::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
-		let token_id = orml_nft::Module::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
+		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
+		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), T::Lookup::unlookup(caller2.clone()), token)
 	verify {
@@ -51,7 +51,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = 123;
-		let class_id = orml_nft::Module::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
+		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller.clone()), class_id)
 	verify {
 	}
@@ -61,8 +61,8 @@ benchmarks! {
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = 123;
 		let token_data = TokenData { locked:false };
-		let class_id = orml_nft::Module::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
-		let token_id = orml_nft::Module::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
+		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
+		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), token)
 	verify {

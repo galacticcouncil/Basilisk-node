@@ -25,16 +25,16 @@ frame_support::construct_runtime!(
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Module, Call, Config, Storage, Event<T>},
-		OrmlNft: orml_nft::{Module, Storage},
-		Nft: pallet_nft::{Module, Call, Event<T>},
-		Balances: pallet_balances::{Module, Call, Storage, Config<T>, Event<T>},
+		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+		OrmlNft: orml_nft::{Pallet, Storage},
+		Nft: pallet_nft::{Pallet, Call, Event<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 
 impl pallet_nft::Config for Test {
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::SubstrateWeight<Test>;
+	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
 }
 
 impl orml_nft::Config for Test {
@@ -74,6 +74,7 @@ impl frame_system::Config for Test {
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
+	type OnSetCode = ();
 }
 
 parameter_types! {
@@ -84,7 +85,7 @@ impl pallet_balances::Config for Test {
 	type Event = Event;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
-	type AccountStore = frame_system::Module<Test>;
+	type AccountStore = frame_system::Pallet<Test>;
 	type MaxLocks = ();
 	type WeightInfo = ();
 }

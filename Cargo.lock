@@ -4400,6 +4400,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-nft"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6b52928f5bb44f1b87dee2a4bf10356475c79d8a97ab33042aa111d25ba3b5c"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "funty",
+ "parity-scale-codec 2.0.1",
+ "serde",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?branch=master#ea01954dc99347451113a652681c2d0104eaa767"
@@ -4887,6 +4902,23 @@ source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#e3919c69b
 dependencies = [
  "frame-support",
  "frame-system",
+ "parity-scale-codec 2.0.1",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-nft"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "orml-nft",
+ "pallet-balances",
  "parity-scale-codec 2.0.1",
  "serde",
  "sp-core",

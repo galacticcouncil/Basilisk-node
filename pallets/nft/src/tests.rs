@@ -3,7 +3,7 @@ use frame_support::{assert_noop, assert_ok, error::BadOrigin};
 use super::*;
 use mock::{Event, *};
 
-type NftModule = Module<Test>;
+type NftModule = Pallet<Test>;
 
 #[test]
 fn create_class_works() {

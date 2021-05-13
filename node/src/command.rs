@@ -15,12 +15,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(clippy::redundant_clone)]
+
 use crate::cli::{Cli, RelayChainCli, Subcommand};
 use crate::{chain_spec, service};
+use basilisk_runtime::Block;
 use codec::Encode;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
-use basilisk_runtime::Block;
 use log::info;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
@@ -38,7 +40,7 @@ use std::{io::Write, net::SocketAddr};
 fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
 		"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-		"" => Box::new(chain_spec::roccocco_parachain_config(para_id)?),
+		"" => Box::new(chain_spec::rococo_parachain_config(para_id)?),
 		"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
@@ -73,7 +75,7 @@ impl SubstrateCli for Cli {
 		let para_id: ParaId = self.run.parachain_id.unwrap_or(200).into();
 		Ok(match id {
 			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-			"" => Box::new(chain_spec::roccocco_parachain_config(para_id)?),
+			"" => Box::new(chain_spec::rococo_parachain_config(para_id)?),
 			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
