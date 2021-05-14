@@ -4,7 +4,7 @@ use frame_support::parameter_types;
 use frame_support::traits::GenesisBuild;
 use frame_system;
 use orml_traits::parameter_type_with_key;
-use primitives::{AssetId, Balance, BlockNumber, CORE_ASSET_ID};
+use primitives::{fee, AssetId, Balance, BlockNumber, CORE_ASSET_ID};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -19,7 +19,6 @@ type Block = frame_system::mocking::MockBlock<Test>;
 pub const INITIAL_BALANCE: Balance = 1_000_000_000_000_000u128;
 pub const POOL_ADDRESS: AccountId = 1_000;
 pub const POOL_DEPOSIT: Balance = 10u128.pow(14);
-pub const POOL_SWAP_FEE: Balance = 10u128.pow(13);
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
@@ -107,7 +106,7 @@ impl AssetPairPoolIdFor<AssetId, u64> for AssetPairPoolIdTest {
 
 parameter_types! {
 	pub PoolDeposit: Balance = POOL_DEPOSIT;
-	pub LBPSwapFee: Balance = POOL_SWAP_FEE;
+	pub ExchangeFee: fee::Fee  = fee::Fee::default();
 	pub const NativeAssetId: AssetId = CORE_ASSET_ID;
 }
 
@@ -118,7 +117,7 @@ impl Config for Test {
 	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type PoolDeposit = PoolDeposit;
-	type SwapFee = LBPSwapFee;
+	type ExchangeFee = ExchangeFee;
 	type WeightInfo = ();
 }
 

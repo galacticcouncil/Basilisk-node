@@ -1,18 +1,22 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
 
+//TODO:
+// * add assetId validation to weights manipulation by user - reason: change from (w,w) to ((assetId, w), (assetid, w))
+
 use frame_support::sp_runtime::{
-	DispatchError,
 	app_crypto::sp_core::crypto::UncheckedFrom,
 	traits::{Hash, Zero},
+	DispatchError, RuntimeDebug,
 };
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
-use primitives::{asset::AssetPair, Amount, AssetId};
-use sp_runtime::{
-	traits::{CheckedAdd, CheckedSub},
-	RuntimeDebug,
+use primitives::traits::{AMMTransfer, AMM};
+use primitives::{
+	asset::AssetPair,
+	fee::{self, WithFee},
+	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
 };
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
@@ -57,8 +61,8 @@ fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 
 	ensure!(dx != 0, ZeroDuration);
 
-	let left = a_y.checked_mul(d1).ok_or(Overflow)?;	// TODO: change to u256
-	let right = b_y.checked_mul(d2).ok_or(Overflow)?;	// TODO: change to u256
+	let left = a_y.checked_mul(d1).ok_or(Overflow)?; // TODO: change to u256
+	let right = b_y.checked_mul(d2).ok_or(Overflow)?; // TODO: change to u256
 	let result = (left.checked_add(right).ok_or(Overflow)?)
 		.checked_div(dx.into())
 		.ok_or(Overflow)?;
@@ -92,10 +96,10 @@ use sp_runtime::traits::AtLeast32BitUnsigned;
 pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub start: BlockNumber,
 	pub end: BlockNumber,
-	pub initial_weights: (LBPWeight, LBPWeight),
-	pub final_weights: (LBPWeight, LBPWeight),
+	pub initial_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
+	pub final_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
 	pub last_weight_update: BlockNumber,
-	pub last_weights: (LBPWeight, LBPWeight),
+	pub last_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
 	pub curve: CurveType,
 	pub pausable: bool,
 	pub paused: bool,
@@ -145,7 +149,7 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Multi currency for transfer of currencies
-		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Amount = Amount>
+		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Amount = Amount, Balance = Balance>
 			+ MultiReservableCurrency<Self::AccountId>;
 
 		#[pallet::constant]
@@ -159,12 +163,11 @@ pub mod pallet {
 		type AssetPairPoolId: AssetPairPoolIdFor<AssetId, PoolId<Self>>;
 
 		#[pallet::constant]
-		/// Trading fee rate
+		/// Storage fee
 		type PoolDeposit: Get<BalanceOf<Self>>;
 
-		#[pallet::constant]
 		/// Trading fee rate
-		type SwapFee: Get<BalanceOf<Self>>;
+		type ExchangeFee: Get<fee::Fee>;
 
 		/// Weight information for the extrinsics.
 		type WeightInfo: WeightInfo;
@@ -206,7 +209,24 @@ pub mod pallet {
 
 		/// Calculation errors
 		InvalidBlockNumber,
-		CalculationError,	// TODO: replace me with something more meaningful?
+		CalculationError, // TODO: replace me with something more meaningful?
+
+		BlockNumberInvalid,
+
+		ZeroAmount,
+		SaleIsNotRunning,
+
+		// Trading limit errors
+		MaxInRatioExceeded,
+		MaxOutRatioExceeded,
+
+		/// Invalid fee
+		FeeAmountInvalid,
+
+		// Asset limit exceeded
+		AssetBalanceLimitExceeded,
+
+		Overflow,
 	}
 
 	#[pallet::event]
@@ -234,11 +254,11 @@ pub mod pallet {
 
 		/// Sell token
 		/// who, asset in, asset out, amount, sale price
-		Sell(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		SellExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Buy token
 		/// who, asset out, asset in, amount, buy price
-		Buy(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		BuyExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		Paused(T::AccountId),
 		Unpaused(T::AccountId),
@@ -260,8 +280,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_data)]
-	pub type PoolData<T: Config> =
-		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::BlockNumber>, ValueQuery>;
+	pub type PoolData<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_balances)]
@@ -336,8 +355,8 @@ pub mod pallet {
 			pool_id: PoolId<T>,
 			start: Option<T::BlockNumber>,
 			end: Option<T::BlockNumber>,
-			initial_weights: Option<(LBPWeight, LBPWeight)>,
-			final_weights: Option<(LBPWeight, LBPWeight)>,
+			initial_weights: Option<((AssetId, LBPWeight), (AssetId, LBPWeight))>,
+			final_weights: Option<((AssetId, LBPWeight), (AssetId, LBPWeight))>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -459,7 +478,7 @@ pub mod pallet {
 					Error::<T>::InsufficientAssetBalance
 				);
 
-				reserve_a = reserve_a.checked_add(&amount_a).ok_or(Error::<T>::LiquidityOverflow)?;
+				reserve_a = reserve_a.checked_add(amount_a).ok_or(Error::<T>::LiquidityOverflow)?;
 			}
 
 			if !amount_b.is_zero() {
@@ -468,7 +487,7 @@ pub mod pallet {
 					Error::<T>::InsufficientAssetBalance
 				);
 
-				reserve_b = reserve_b.checked_add(&amount_b).ok_or(Error::<T>::LiquidityOverflow)?;
+				reserve_b = reserve_b.checked_add(amount_b).ok_or(Error::<T>::LiquidityOverflow)?;
 			}
 
 			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
@@ -504,14 +523,14 @@ pub mod pallet {
 
 			let pool_data = Self::pool_data(&pool_id);
 
-			ensure!(!Self::is_sale_running(&pool_data), Error::<T>::SaleNotEnded);
+			ensure!(!Self::is_pool_running(&pool_data), Error::<T>::SaleNotEnded);
 
 			if !amount_a.is_zero() {
-				reserve_a = reserve_a.checked_sub(&amount_a).ok_or(Error::<T>::LiquidityUnderflow)?;
+				reserve_a = reserve_a.checked_sub(amount_a).ok_or(Error::<T>::LiquidityUnderflow)?;
 			}
 
 			if !amount_b.is_zero() {
-				reserve_b = reserve_b.checked_sub(&amount_b).ok_or(Error::<T>::LiquidityUnderflow)?;
+				reserve_b = reserve_b.checked_sub(amount_b).ok_or(Error::<T>::LiquidityUnderflow)?;
 			}
 
 			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
@@ -558,33 +577,75 @@ pub mod pallet {
 
 			Ok(().into())
 		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::sell())]
+		#[transactional]
+		pub fn sell(
+			origin: OriginFor<T>,
+			asset_in: AssetId,
+			asset_out: AssetId,
+			amount: BalanceOf<T>,
+			max_limit: BalanceOf<T>,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
+
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::buy())]
+		#[transactional]
+		pub fn buy(
+			origin: OriginFor<T>,
+			asset_out: AssetId,
+			asset_in: AssetId,
+			amount: BalanceOf<T>,
+			max_limit: BalanceOf<T>,
+		) -> DispatchResultWithPostInfo {
+			let who = ensure_signed(origin)?;
+
+			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
+
+			Ok(().into())
+		}
 	}
 }
 
+/// Trade type used in validation to determine how to perform certain checks
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum TradeType {
+	Sell,
+	Buy,
+}
+
 impl<T: Config> Pallet<T> {
-	fn update_weights(pool_data: &mut Pool<T::BlockNumber>) -> Result<(LBPWeight, LBPWeight), DispatchError> {
+	fn update_weights(
+		pool_data: &mut Pool<T::BlockNumber>,
+	) -> Result<((AssetId, LBPWeight), (AssetId, LBPWeight)), DispatchError> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
-		if now!= pool_data.last_weight_update {
-			let w1 = T::LBPWeightFunction::calculate_weight(
+		if now != pool_data.last_weight_update {
+			pool_data.last_weights.0 .1 = T::LBPWeightFunction::calculate_weight(
 				pool_data.curve,
 				pool_data.start,
 				pool_data.end,
-				pool_data.initial_weights.0,
-				pool_data.final_weights.0,
-				now
-			).map_err(|_| Error::<T>::CalculationError)?;
+				pool_data.initial_weights.0 .1,
+				pool_data.final_weights.0 .1,
+				now,
+			)
+			.map_err(|_| Error::<T>::CalculationError)?;
 
-			let w2 = T::LBPWeightFunction::calculate_weight(
+			pool_data.last_weights.1 .1 = T::LBPWeightFunction::calculate_weight(
 				pool_data.curve,
 				pool_data.start,
 				pool_data.end,
-				pool_data.initial_weights.1,
-				pool_data.final_weights.1,
-				now
-			).map_err(|_| Error::<T>::CalculationError)?;
+				pool_data.initial_weights.1 .1,
+				pool_data.final_weights.1 .1,
+				now,
+			)
+			.map_err(|_| Error::<T>::CalculationError)?;
 			pool_data.last_weight_update = now;
-			pool_data.last_weights = (w1, w2);
 		}
 
 		Ok(pool_data.last_weights)
@@ -617,27 +678,146 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn is_sale_running(pool_data: &Pool<T::BlockNumber>) -> bool {
+	/// return true if now is in interval <pool.start, pool.end> WARN: pool.paused DOESN'T MATTER
+	fn is_pool_running(pool_data: &Pool<T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
 		pool_data.start <= now && now <= pool_data.end
 	}
 
-	fn exists(assets: AssetPair) -> bool {
-		let pair_account = T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out);
-		<PoolAssets<T>>::contains_key(&pair_account)
+	/// return true if now is in interval <pool.start, pool.end> and POOL IS NOT PAUSED
+	fn is_sale_running(pool_data: &Pool<T::BlockNumber>) -> bool {
+		let now = <frame_system::Pallet<T>>::block_number();
+		pool_data.start <= now && now <= pool_data.end && !pool_data.paused
 	}
 
-	fn get_pair_id(assets: AssetPair) -> PoolId<T> {
-		T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out)
+	fn update_weights_and_validate_trade(
+		who: &T::AccountId,
+		assets: AssetPair,
+		amount: BalanceOf<T>,
+		limit: BalanceOf<T>,
+		trade_type: TradeType,
+	) -> Result<AMMTransfer<T::AccountId, AssetPair, Balance>, DispatchError> {
+		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
+
+		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+
+		ensure!(
+			T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount,
+			Error::<T>::InsufficientAssetBalance
+		);
+
+		let pool_id = Self::get_pair_id(assets);
+		let mut pool_data = Self::pool_data(&pool_id);
+		ensure!(Self::is_sale_running(&pool_data), Error::<T>::SaleIsNotRunning);
+
+		let asset_in_weight: LBPWeight;
+		let asset_out_weight: LBPWeight;
+		// update weight or reuse last if update is not necessary
+		if pool_data.last_weight_update == <frame_system::Pallet<T>>::block_number() {
+			let w = Self::get_weights_in_order(&pool_data, assets.asset_in);
+
+			asset_in_weight = w.0;
+			asset_out_weight = w.1;
+		} else {
+			match Self::update_weights(&mut pool_data) {
+				Ok(weights) => {
+					if weights.0 .0 == assets.asset_in {
+						asset_in_weight = weights.0 .1;
+						asset_out_weight = weights.1 .1;
+					} else {
+						asset_in_weight = weights.1 .1;
+						asset_out_weight = weights.0 .1;
+					}
+				}
+				Err(_) => return Err(<Error<T>>::Overflow.into()),
+			};
+
+			<PoolData<T>>::insert(&pool_id, &pool_data);
+		}
+
+		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
+		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
+		if trade_type == TradeType::Sell {
+			ensure!(
+				amount <= asset_in_reserve / MAX_IN_RATIO,
+				Error::<T>::MaxInRatioExceeded
+			);
+		} else {
+			ensure!(
+				amount <= asset_out_reserve / MAX_OUT_RATIO,
+				Error::<T>::MaxOutRatioExceeded
+			);
+		}
+
+		let transfer_fee = Self::calculate_fees(amount)?;
+		let (amount_in, amount_out) = if trade_type == TradeType::Sell {
+			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
+				asset_in_reserve,
+				asset_out_reserve,
+				asset_in_weight,
+				asset_out_weight,
+				amount.checked_sub(transfer_fee).ok_or(Error::<T>::Overflow)?,
+			)
+			.map_err(|_| Error::<T>::Overflow)?;
+
+			ensure!(limit <= token_amount_out, Error::<T>::AssetBalanceLimitExceeded);
+			(amount, token_amount_out)
+		} else {
+			let token_amount_in = hydra_dx_math::lbp::calculate_in_given_out(
+				asset_in_reserve,
+				asset_out_reserve,
+				asset_in_weight,
+				asset_out_weight,
+				amount.checked_add(transfer_fee).ok_or(Error::<T>::Overflow)?,
+			)
+			.map_err(|_| Error::<T>::Overflow)?;
+
+			ensure!(limit >= token_amount_in, Error::<T>::AssetBalanceLimitExceeded);
+
+			(token_amount_in, amount)
+		};
+
+		ensure!(
+			T::MultiCurrency::free_balance(assets.asset_out, &pool_id) >= amount_out,
+			Error::<T>::InsufficientAssetBalance
+		);
+
+		Ok(AMMTransfer {
+			origin: who.clone(),
+			assets,
+			amount: amount_in,
+			amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+		})
 	}
 
-	fn get_pool_assets(pool_id: &T::AccountId) -> Option<Vec<AssetId>> {
-		match <PoolAssets<T>>::contains_key(pool_id) {
-			true => {
-				let assets = Self::pool_assets(pool_id);
-				Some(vec![assets.0, assets.1])
-			}
-			false => None,
+	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetPair, Balance>) -> DispatchResult {
+		let pool_id = Self::get_pair_id(transfer.assets);
+
+		T::MultiCurrency::transfer(transfer.assets.asset_in, &transfer.origin, &pool_id, transfer.amount)?;
+		T::MultiCurrency::transfer(
+			transfer.assets.asset_out,
+			&pool_id,
+			&transfer.origin,
+			transfer.amount_out,
+		)?;
+
+		Ok(())
+	}
+
+	fn calculate_fees(amount: BalanceOf<T>) -> Result<BalanceOf<T>, DispatchError> {
+		Ok(amount
+			.just_fee(T::ExchangeFee::get())
+			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
+	}
+
+	/// WARN: unsafe function - make sure asset_a is in pool. This function return weigth in order based on asset_a id
+	fn get_weights_in_order(pool_data: &Pool<T::BlockNumber>, asset_a: AssetId) -> (LBPWeight, LBPWeight) {
+		if pool_data.last_weights.0 .0 == asset_a {
+			(pool_data.last_weights.0 .1, pool_data.last_weights.1 .1)
+		} else {
+			(pool_data.last_weights.1 .1, pool_data.last_weights.0 .1)
 		}
 	}
 }
@@ -653,8 +833,8 @@ where
 	PoolId<T>: UncheckedFrom<T::Hash> + AsRef<[u8]>,
 {
 	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId<T> {
-		let mut buf = Vec::new();
-		buf.extend_from_slice(b"lbp");
+		let mut buf: Vec<u8> = b"lbp".to_vec();
+
 		if asset_a < asset_b {
 			buf.extend_from_slice(&asset_a.to_le_bytes());
 			buf.extend_from_slice(&asset_b.to_le_bytes());
@@ -663,5 +843,122 @@ where
 			buf.extend_from_slice(&asset_a.to_le_bytes());
 		}
 		PoolId::<T>::unchecked_from(T::Hashing::hash(&buf[..]))
+	}
+}
+
+impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T> {
+	fn exists(assets: AssetPair) -> bool {
+		let pair_account = T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out);
+		<PoolAssets<T>>::contains_key(&pair_account)
+	}
+
+	fn get_pair_id(assets: AssetPair) -> T::AccountId {
+		T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out)
+	}
+
+	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {
+		match <PoolAssets<T>>::contains_key(pool_account_id) {
+			true => {
+				let assets = Self::pool_assets(pool_account_id);
+				Some(vec![assets.0, assets.1])
+			}
+			false => None,
+		}
+	}
+
+	/// Calculate spot price for given assets and amount and update pool weights if necessary
+	///
+	/// Provided assets must exist in the pool. Panic if an asset does not exist in the pool.
+	///
+	/// Return 0 if calculation overflows or weights calculation overflows.
+	fn get_spot_price_unchecked(asset_a: AssetId, asset_b: AssetId, amount: BalanceOf<T>) -> BalanceOf<T> {
+		let pool_id = Self::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		let asset_a_reserve = T::MultiCurrency::free_balance(asset_a, &pool_id);
+		let asset_b_reserve = T::MultiCurrency::free_balance(asset_b, &pool_id);
+
+		// Note : unchecked function; assumes that existence was checked prior to this call
+		let mut pool_data = Self::pool_data(&pool_id);
+
+		let weight_a: LBPWeight;
+		let weight_b: LBPWeight;
+		// update weight or reuse last if update is not necessary
+		if pool_data.last_weight_update == <frame_system::Pallet<T>>::block_number() {
+			let w = Self::get_weights_in_order(&pool_data, asset_a);
+
+			weight_a = w.0;
+			weight_b = w.1;
+		} else {
+			match Self::update_weights(&mut pool_data) {
+				Ok(weights) => {
+					if weights.0 .0 == asset_a {
+						weight_a = weights.0 .1;
+						weight_b = weights.1 .1;
+					} else {
+						weight_a = weights.1 .1;
+						weight_b = weights.0 .1;
+					}
+
+					<PoolData<T>>::insert(&pool_id, &pool_data);
+				}
+				Err(_) => {
+					return BalanceOf::<T>::zero();
+				}
+			};
+		}
+		hydra_dx_math::lbp::calculate_spot_price(asset_a_reserve, asset_b_reserve, weight_a, weight_b, amount)
+			.unwrap_or_else(|_| BalanceOf::<T>::zero())
+	}
+
+	/// Validate sell trade and update pool weights
+	fn validate_sell(
+		who: &T::AccountId,
+		assets: AssetPair,
+		amount: BalanceOf<T>,
+		min_bought: BalanceOf<T>,
+		_discount: bool,
+	) -> Result<AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>, sp_runtime::DispatchError> {
+		Self::update_weights_and_validate_trade(who, assets, amount, min_bought, TradeType::Sell)
+	}
+
+	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetPair, Balance>) -> DispatchResult {
+		Self::execute_trade(transfer)?;
+
+		Self::deposit_event(Event::<T>::SellExecuted(
+			transfer.origin.clone(),
+			transfer.assets.asset_in,
+			transfer.assets.asset_out,
+			transfer.amount,
+			transfer.amount_out,
+		));
+
+		Ok(().into())
+	}
+
+	/// Validate buy trade and update pool weights
+	fn validate_buy(
+		who: &T::AccountId,
+		assets: AssetPair,
+		amount: BalanceOf<T>,
+		max_limit: BalanceOf<T>,
+		_discount: bool,
+	) -> Result<AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>, frame_support::sp_runtime::DispatchError> {
+		Self::update_weights_and_validate_trade(who, assets, amount, max_limit, TradeType::Buy)
+	}
+
+	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>) -> DispatchResult {
+		Self::execute_trade(transfer)?;
+
+		Self::deposit_event(Event::<T>::SellExecuted(
+			transfer.origin.clone(),
+			transfer.assets.asset_out,
+			transfer.assets.asset_in,
+			transfer.amount,
+			transfer.amount_out,
+		));
+		Ok(().into())
 	}
 }

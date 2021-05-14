@@ -357,7 +357,7 @@ impl pallet_faucet::Config for Runtime {
 
 parameter_types! {
 	pub PoolDeposit: Balance = 10u128.pow(22);
-	pub LBPSwapFee: Balance = 10u128.pow(21);
+	pub LBPExchangeFee: fee::Fee  = fee::Fee::default();
 }
 
 impl pallet_lbp::Config for Runtime {
@@ -367,7 +367,7 @@ impl pallet_lbp::Config for Runtime {
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type PoolDeposit = PoolDeposit;
-	type SwapFee = LBPSwapFee;
+	type ExchangeFee = LBPExchangeFee;
 	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
 }
 

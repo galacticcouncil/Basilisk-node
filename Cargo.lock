@@ -2686,6 +2686,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydra-dx-math"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/hydraDX-math?branch=feat/lbp#b5fe6a4cd2d9394548daefeaa2e241d9d81a23cb"
+dependencies = [
+ "lazy_static",
+ "primitive-types 0.7.3",
+]
+
+[[package]]
 name = "hyper"
 version = "0.12.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3293,6 +3302,9 @@ name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+dependencies = [
+ "spin",
+]
 
 [[package]]
 name = "lazycell"
@@ -4507,7 +4519,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydra-dx-math",
+ "hydra-dx-math 1.0.0 (git+https://github.com/galacticcouncil/hydraDX-math?tag=v1.0.0)",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
@@ -4848,6 +4860,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
+ "hydra-dx-math 1.0.0 (git+https://github.com/galacticcouncil/hydraDX-math?branch=feat/lbp)",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",

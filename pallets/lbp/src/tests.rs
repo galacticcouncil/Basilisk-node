@@ -3,8 +3,8 @@ pub use crate::mock::{
 	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, ACA, ALICE, BOB, CHARLIE,
 	DOT, ETH, HDX,
 };
-use crate::mock::{INITIAL_BALANCE, POOL_ADDRESS, POOL_DEPOSIT, POOL_SWAP_FEE};
-use frame_support::{assert_noop, assert_ok};
+use crate::mock::{INITIAL_BALANCE, POOL_ADDRESS, POOL_DEPOSIT};
+use frame_support::{assert_err, assert_noop, assert_ok};
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -23,10 +23,10 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			initial_weights: (20, 80),
-			final_weights: (90, 10),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
-			last_weights: (20, 80),
+			last_weights: ((1, 20), (2, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -63,25 +63,118 @@ fn expect_events(e: Vec<TestEvent>) {
 fn linear_weights_should_work() {
 	let u32_cases = vec![
 		(100u32, 200u32, 1_000u128, 2_000u128, 170u32, Ok(1_700), "Easy case"),
-		(100u32, 200u32, 2_000u128, 1_000u128, 170u32, Ok(1_300), "Easy decreasing case"),
-		(100u32, 200u32, 2_000u128, 2_000u128, 170u32, Ok(2_000), "Easy constant case"),
-
-		(100u32, 200u32, 1_000u128, 2_000u128, 100u32, Ok(1_000), "Initial weight"),
-		(100u32, 200u32, 2_000u128, 1_000u128, 100u32, Ok(2_000), "Initial decreasing weight"),
-		(100u32, 200u32, 2_000u128, 2_000u128, 100u32, Ok(2_000), "Initial constant weight"),
-
+		(
+			100u32,
+			200u32,
+			2_000u128,
+			1_000u128,
+			170u32,
+			Ok(1_300),
+			"Easy decreasing case",
+		),
+		(
+			100u32,
+			200u32,
+			2_000u128,
+			2_000u128,
+			170u32,
+			Ok(2_000),
+			"Easy constant case",
+		),
+		(
+			100u32,
+			200u32,
+			1_000u128,
+			2_000u128,
+			100u32,
+			Ok(1_000),
+			"Initial weight",
+		),
+		(
+			100u32,
+			200u32,
+			2_000u128,
+			1_000u128,
+			100u32,
+			Ok(2_000),
+			"Initial decreasing weight",
+		),
+		(
+			100u32,
+			200u32,
+			2_000u128,
+			2_000u128,
+			100u32,
+			Ok(2_000),
+			"Initial constant weight",
+		),
 		(100u32, 200u32, 1_000u128, 2_000u128, 200u32, Ok(2_000), "Final weight"),
-		(100u32, 200u32, 2_000u128, 1_000u128, 200u32, Ok(1_000), "Final decreasing weight"),
-		(100u32, 200u32, 2_000u128, 2_000u128, 200u32, Ok(2_000), "Final constant weight"),
-
-		(200u32, 100u32, 1_000u128, 2_000u128, 170u32, Err(Overflow), "Invalid interval"),
-		(100u32, 100u32, 1_000u128, 2_000u128, 100u32, Err(ZeroDuration), "Invalid interval"),
-		(100u32, 200u32, 1_000u128, 2_000u128, 10u32, Err(Overflow), "Out of bound"),
-		(100u32, 200u32, 1_000u128, 2_000u128, 210u32, Err(Overflow), "Out of bound"),
+		(
+			100u32,
+			200u32,
+			2_000u128,
+			1_000u128,
+			200u32,
+			Ok(1_000),
+			"Final decreasing weight",
+		),
+		(
+			100u32,
+			200u32,
+			2_000u128,
+			2_000u128,
+			200u32,
+			Ok(2_000),
+			"Final constant weight",
+		),
+		(
+			200u32,
+			100u32,
+			1_000u128,
+			2_000u128,
+			170u32,
+			Err(Overflow),
+			"Invalid interval",
+		),
+		(
+			100u32,
+			100u32,
+			1_000u128,
+			2_000u128,
+			100u32,
+			Err(ZeroDuration),
+			"Invalid interval",
+		),
+		(
+			100u32,
+			200u32,
+			1_000u128,
+			2_000u128,
+			10u32,
+			Err(Overflow),
+			"Out of bound",
+		),
+		(
+			100u32,
+			200u32,
+			1_000u128,
+			2_000u128,
+			210u32,
+			Err(Overflow),
+			"Out of bound",
+		),
 	];
 	let u64_cases = vec![
 		(100u64, 200u64, 1_000u128, 2_000u128, 170u64, Ok(1_700), "Easy case"),
-		(100u64, u64::MAX, 1_000u128, 2_000u128, 200u64, Err(Overflow), "Interval too long"),
+		(
+			100u64,
+			u64::MAX,
+			1_000u128,
+			2_000u128,
+			200u64,
+			Err(Overflow),
+			"Interval too long",
+		),
 	];
 
 	for case in u32_cases {
@@ -108,10 +201,10 @@ fn weight_update_should_work() {
 		let mut linear_pool = Pool {
 			start: 10u64,
 			end: 19u64,
-			initial_weights: (20, 80),
-			final_weights: (80, 20),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 80), (2, 20)),
 			last_weight_update: 2u64,
-			last_weights: (2, 2),
+			last_weights: ((1, 2), (2, 2)),
 			curve: CurveType::Linear,
 			pausable: false,
 			paused: false,
@@ -119,10 +212,10 @@ fn weight_update_should_work() {
 		let mut constant_pool = Pool {
 			start: 10u64,
 			end: 19u64,
-			initial_weights: (20, 80),
-			final_weights: (80, 20),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 80), (2, 20)),
 			last_weight_update: 2u64,
-			last_weights: (2, 2),
+			last_weights: ((1, 2), (2, 2)),
 			curve: CurveType::Constant,
 			pausable: false,
 			paused: false,
@@ -155,8 +248,8 @@ fn weight_update_should_work() {
 		assert_eq!(linear_pool.last_weight_update, 13);
 		assert_eq!(constant_pool.last_weight_update, 13);
 
-		assert_eq!(linear_pool.last_weights, (40u128, 60u128));
-		assert_eq!(constant_pool.last_weights, (20u128, 80u128));
+		assert_eq!(linear_pool.last_weights, ((1, 40u128), (2, 60u128)));
+		assert_eq!(constant_pool.last_weights, ((1, 20u128), (2, 80u128)));
 
 		// call update again in the same block, data should be the same
 		LBPPallet::update_weights(&mut linear_pool);
@@ -165,8 +258,8 @@ fn weight_update_should_work() {
 		assert_eq!(linear_pool.last_weight_update, 13);
 		assert_eq!(constant_pool.last_weight_update, 13);
 
-		assert_eq!(linear_pool.last_weights, (40u128, 60u128));
-		assert_eq!(constant_pool.last_weights, (20u128, 80u128));
+		assert_eq!(linear_pool.last_weights, ((1, 40u128), (2, 60u128)));
+		assert_eq!(constant_pool.last_weights, ((1, 20u128), (2, 80u128)));
 	});
 }
 
@@ -176,10 +269,10 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			initial_weights: (20, 80),
-			final_weights: (90, 10),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
-			last_weights: (20, 80),
+			last_weights: ((1, 20), (2, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -189,10 +282,10 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 0u64,
 			end: 0u64,
-			initial_weights: (20, 80),
-			final_weights: (90, 10),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
-			last_weights: (20, 80),
+			last_weights: ((1, 20), (2, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -202,10 +295,10 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 2u64,
-			initial_weights: (20, 80),
-			final_weights: (90, 10),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
-			last_weights: (20, 80),
+			last_weights: ((1, 20), (2, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -218,10 +311,10 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 11u64 + u32::MAX as u64,
-			initial_weights: (20, 80),
-			final_weights: (90, 10),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
-			last_weights: (20, 80),
+			last_weights: ((1, 20), (2, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -244,10 +337,10 @@ fn create_pool_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			initial_weights: (20, 80),
-			final_weights: (90, 10),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
-			last_weights: (20, 80),
+			last_weights: ((1, 20), (2, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -303,10 +396,10 @@ fn create_same_pool_should_not_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			initial_weights: (20, 80),
-			final_weights: (90, 10),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
-			last_weights: (20, 80),
+			last_weights: ((1, 20), (2, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -341,10 +434,10 @@ fn create_pool_invalid_data_should_not_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 2u64,
-			initial_weights: (20, 80),
-			final_weights: (90, 10),
+			initial_weights: ((1, 20), (2, 80)),
+			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
-			last_weights: (20, 80),
+			last_weights: ((1, 20), (2, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -366,7 +459,7 @@ fn update_pool_data_should_work() {
 			asset_out: DOT,
 		});
 		let new_start = 15;
-		let new_final_weights = (10, 90);
+		let new_final_weights = ((1, 10), (2, 90));
 
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(user),
@@ -402,10 +495,10 @@ fn pause_pool_should_work() {
 			Pool {
 				start: 10u64,
 				end: 20u64,
-				initial_weights: (20, 80),
-				final_weights: (90, 10),
+				initial_weights: ((1, 20), (2, 80)),
+				final_weights: ((1, 90), (2, 10)),
 				last_weight_update: 0u64,
-				last_weights: (20, 80),
+				last_weights: ((1, 20), (2, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: true
@@ -448,10 +541,10 @@ fn pause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: (20, 80),
-				final_weights: (40, 60),
+				initial_weights: ((1, 20), (2, 80)),
+				final_weights: ((1, 40), (2, 60)),
 				last_weight_update: 0u64,
-				last_weights: (20, 80),
+				last_weights: ((1, 20), (2, 80)),
 				curve: CurveType::Linear,
 				pausable: false,
 				paused: false,
@@ -477,10 +570,10 @@ fn pause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: (20, 80),
-				final_weights: (40, 60),
+				initial_weights: ((3, 20), (2, 80)),
+				final_weights: ((3, 40), (3, 60)),
 				last_weight_update: 0u64,
-				last_weights: (20, 80),
+				last_weights: ((3, 20), (2, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: true,
@@ -506,10 +599,10 @@ fn pause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: (20, 80),
-				final_weights: (40, 60),
+				initial_weights: ((3, 20), (4, 80)),
+				final_weights: ((3, 40), (4, 60)),
 				last_weight_update: 0u64,
-				last_weights: (20, 80),
+				last_weights: ((3, 20), (4, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: false,
@@ -552,10 +645,10 @@ fn unpause_pool_should_work() {
 			Pool {
 				start: 200u64,
 				end: 400u64,
-				initial_weights: (20, 80),
-				final_weights: (40, 60),
+				initial_weights: ((3, 20), (4, 80)),
+				final_weights: ((3, 40), (4, 60)),
 				last_weight_update: 0u64,
-				last_weights: (20, 80),
+				last_weights: ((3, 20), (4, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: true,
@@ -570,10 +663,10 @@ fn unpause_pool_should_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: (20, 80),
-				final_weights: (40, 60),
+				initial_weights: ((3, 20), (4, 80)),
+				final_weights: ((3, 40), (4, 60)),
 				last_weight_update: 0u64,
-				last_weights: (20, 80),
+				last_weights: ((3, 20), (4, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: false
@@ -616,10 +709,10 @@ fn unpause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: (20, 80),
-				final_weights: (40, 60),
+				initial_weights: ((1, 20), (2, 80)),
+				final_weights: ((1, 40), (2, 60)),
 				last_weight_update: 0u64,
-				last_weights: (20, 80),
+				last_weights: ((1, 20), (2, 80)),
 				curve: CurveType::Linear,
 				pausable: false,
 				paused: false,
@@ -645,10 +738,10 @@ fn unpause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: (20, 80),
-				final_weights: (40, 60),
+				initial_weights: ((3, 20), (4, 80)),
+				final_weights: ((3, 40), (4, 60)),
 				last_weight_update: 0u64,
-				last_weights: (20, 80),
+				last_weights: ((3, 20), (4, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: true,
@@ -684,7 +777,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 			asset_out: DOT,
 		});
 		let new_start = 15;
-		let new_final_weights = (10, 90);
+		let new_final_weights = ((1, 10), (2, 90));
 
 		assert_noop!(
 			LBPPallet::update_pool_data(
