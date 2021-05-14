@@ -698,8 +698,8 @@ impl_runtime_apis! {
 			use pallet_multi_payment_benchmarking::Pallet as MultiBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
-			impl pallet_exchange_benchmarking::Config for Runtime {};
-			impl pallet_multi_payment_benchmarking::Config for Runtime {};
+			impl pallet_exchange_benchmarking::Config for Runtime {}
+			impl pallet_multi_payment_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number

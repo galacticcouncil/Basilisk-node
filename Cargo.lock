@@ -510,7 +510,7 @@ dependencies = [
  "pallet-asset-registry",
  "pallet-aura",
  "pallet-balances",
- "pallet-collective 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pallet-collective",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-faucet",
@@ -519,7 +519,7 @@ dependencies = [
  "pallet-nft",
  "pallet-randomness-collective-flip",
  "pallet-session",
- "pallet-society 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pallet-society",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-multi-payment",
@@ -3190,7 +3190,7 @@ dependencies = [
  "pallet-babe",
  "pallet-balances",
  "pallet-bounties",
- "pallet-collective 3.0.0 (git+https://github.com/paritytech/substrate?branch=rococo-v1)",
+ "pallet-collective",
  "pallet-democracy",
  "pallet-election-provider-multi-phase",
  "pallet-elections-phragmen",
@@ -3207,7 +3207,7 @@ dependencies = [
  "pallet-recovery",
  "pallet-scheduler",
  "pallet-session",
- "pallet-society 3.0.0 (git+https://github.com/paritytech/substrate?branch=rococo-v1)",
+ "pallet-society",
  "pallet-staking",
  "pallet-staking-reward-curve",
  "pallet-timestamp",
@@ -4662,27 +4662,12 @@ name = "pallet-collective"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#e3919c69bf3a5f4720c0103d0a67c3bdb52b86d0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
  "parity-scale-codec 2.0.1",
  "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-collective"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe826f3bfb984b3dd8d6675d7d156ba4c0877ee562bf59d86a4e805b7737dcb1"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec 2.0.1",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -5065,20 +5050,6 @@ dependencies = [
  "parity-scale-codec 2.0.1",
  "rand_chacha 0.2.2",
  "serde",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-society"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b01491c412abf6318a9f76b92ec818d920350c3af88028c6d4026025ee2bac94"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec 2.0.1",
- "rand_chacha 0.2.2",
  "sp-runtime",
  "sp-std",
 ]
@@ -6334,7 +6305,7 @@ dependencies = [
  "pallet-babe",
  "pallet-balances",
  "pallet-bounties",
- "pallet-collective 3.0.0 (git+https://github.com/paritytech/substrate?branch=rococo-v1)",
+ "pallet-collective",
  "pallet-democracy",
  "pallet-election-provider-multi-phase",
  "pallet-elections-phragmen",
@@ -11143,7 +11114,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-babe",
  "pallet-balances",
- "pallet-collective 3.0.0 (git+https://github.com/paritytech/substrate?branch=rococo-v1)",
+ "pallet-collective",
  "pallet-democracy",
  "pallet-election-provider-multi-phase",
  "pallet-elections-phragmen",
@@ -11160,7 +11131,7 @@ dependencies = [
  "pallet-recovery",
  "pallet-scheduler",
  "pallet-session",
- "pallet-society 3.0.0 (git+https://github.com/paritytech/substrate?branch=rococo-v1)",
+ "pallet-society",
  "pallet-staking",
  "pallet-staking-reward-curve",
  "pallet-sudo",

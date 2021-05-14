@@ -101,6 +101,8 @@ runtime-benchmarks = [
     'pallet-balances/runtime-benchmarks',
     'pallet-collective/runtime-benchmarks',
     'pallet-exchange-benchmarking',
+    'pallet-society/runtime-benchmarks',
+    'pallet-timestamp/runtime-benchmarks',
     'pallet-multi-payment-benchmarking',
     'pallet-nft/runtime-benchmarks',
     'pallet-society/runtime-benchmarks',
