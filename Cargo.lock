@@ -510,6 +510,7 @@ dependencies = [
  "pallet-asset-registry",
  "pallet-aura",
  "pallet-balances",
+ "pallet-collective",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-faucet",
@@ -518,6 +519,7 @@ dependencies = [
  "pallet-multi-payment-benchmarking",
  "pallet-randomness-collective-flip",
  "pallet-session",
+ "pallet-society",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-multi-payment",
@@ -4657,6 +4659,7 @@ name = "pallet-collective"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=rococo-v1#e3919c69bf3a5f4720c0103d0a67c3bdb52b86d0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",

@@ -65,9 +65,11 @@ frame-system-benchmarking = { default-features = false, optional = true, version
 frame-system-rpc-runtime-api = { default-features = false, version = '3.0.0' }
 pallet-aura = { default-features = false, version = '3.0.0' }
 pallet-balances = { default-features = false, version = '3.0.0' }
+pallet-collective = { default-features = false , version= '3.0.0'}
 pallet-grandpa = { default-features = false, version = '3.0.0' }
 pallet-randomness-collective-flip = { default-features = false, version = '3.0.0' }
 pallet-session = { default-features = false, version = '3.0.0' }
+pallet-society = { default-features = false, version = '3.0.0' }
 pallet-sudo = { default-features = false, version = '3.0.0' }
 pallet-timestamp = { default-features = false, version = '3.0.0' }
 pallet-transaction-payment = { default-features = false, version = '3.0.0' }
@@ -96,6 +98,8 @@ runtime-benchmarks = [
     'frame-system-benchmarking',
     'frame-system/runtime-benchmarks',
     'pallet-balances/runtime-benchmarks',
+    'pallet-collective/runtime-benchmarks',
+    'pallet-society/runtime-benchmarks',
     'pallet-timestamp/runtime-benchmarks',
     'pallet-multi-payment-benchmarking',
     "pallet-amm/runtime-benchmarks",
