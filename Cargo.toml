@@ -93,7 +93,6 @@ pallet-amm = { git = "https://github.com/galacticcouncil/HydraDX-node", branch =
 pallet-exchange = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-exchange-benchmarking = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-faucet = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-claims = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 module-amm-rpc-runtime-api = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 module-amm-rpc = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
