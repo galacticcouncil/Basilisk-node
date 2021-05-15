@@ -356,7 +356,7 @@ impl pallet_faucet::Config for Runtime {
 }
 
 parameter_types! {
-	pub PoolDeposit: Balance = 10u128.pow(22);
+	pub PoolDeposit: Balance = 10u128.pow(12);
 	pub LBPExchangeFee: fee::Fee  = fee::Fee::default();
 }
 
@@ -733,6 +733,7 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 
 			add_benchmark!(params, batches, amm, AMM);
+			add_benchmark!(params, batches, lbp, LBP);
 			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);

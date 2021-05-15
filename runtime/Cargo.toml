@@ -104,6 +104,7 @@ runtime-benchmarks = [
     'pallet-multi-payment-benchmarking',
     "pallet-amm/runtime-benchmarks",
     "pallet-exchange-benchmarking",
+    "pallet-lbp/runtime-benchmarks",
     'sp-runtime/runtime-benchmarks',
 ]
 std = [
