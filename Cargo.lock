@@ -501,6 +501,7 @@ dependencies = [
  "memory-db",
  "module-amm-rpc-runtime-api",
  "orml-currencies",
+ "orml-nft",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",

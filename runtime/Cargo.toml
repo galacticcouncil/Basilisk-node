@@ -37,6 +37,7 @@ primitives = { default-features = false, version = '3.0.0' }
 
 # ORML dependencies
 orml-currencies = { default-features = false, version = '0.4.1-dev' }
+orml-nft = { default-features = false, version = '0.4.0' }
 orml-tokens = { default-features = false, version = '0.4.1-dev' }
 orml-unknown-tokens = { default-features = false, version = '0.4.1-dev' }
 orml-traits = { default-features = false, version = '0.4.1-dev' }
@@ -120,6 +121,7 @@ std = [
     'frame-system-rpc-runtime-api/std',
     'frame-system/std',
     'orml-currencies/std',
+    'orml-nft/std',
     'orml-tokens/std',
     'orml-traits/std',
     'orml-xcm-support/std',

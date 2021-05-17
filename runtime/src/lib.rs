@@ -502,6 +502,18 @@ impl orml_unknown_tokens::Config for Runtime {
 	type Event = Event;
 }
 
+impl pallet_nft::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+}
+
+impl orml_nft::Config for Runtime {
+	type ClassId = u64;
+	type TokenId = u64;
+	type ClassData = u32;
+	type TokenData = pallet_nft::TokenData;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -523,8 +535,9 @@ construct_runtime!(
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
 
 		// ORML related modules
-		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
+		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
+		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
 
 		// Basilisk related modules
@@ -533,6 +546,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Storage, Event<T>},
+		Nft: pallet_nft::{Pallet, Call, Event<T>},
 	}
 );
 
@@ -718,11 +732,12 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 
 			add_benchmark!(params, batches, amm, AMM);
-			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
-			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);
+			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
+			add_benchmark!(params, batches, pallet_nft, Nft);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
+			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

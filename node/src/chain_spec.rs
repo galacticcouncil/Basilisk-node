@@ -1,8 +1,8 @@
 #![allow(clippy::or_fun_call)]
 
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
-	SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY,
+	AccountId, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, OrmlNftConfig, ParachainInfoConfig,
+	Signature, SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -239,6 +239,9 @@ fn parachain_genesis(
 			rampage: false,
 			mint_limit: 5,
 			mintable_currencies: vec![0, 1, 2],
+		},
+		orml_nft: OrmlNftConfig {
+			tokens: Default::default(),
 		},
 	}
 }
