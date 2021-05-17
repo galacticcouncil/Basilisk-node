@@ -34,7 +34,7 @@ frame_support::construct_runtime!(
 
 impl pallet_nft::Config for Test {
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 }
 
 impl orml_nft::Config for Test {
