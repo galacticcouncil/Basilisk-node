@@ -70,7 +70,7 @@ fn mint_fails() {
 				TokenData { locked: false },
 				TEST_QUANTITY,
 			),
-			Error::<Test>::NoPermission
+			Error::<Test>::NotClassOwner
 		);
 	});
 }
@@ -117,7 +117,7 @@ fn transfer_fails() {
 
 		assert_noop!(
 			NftModule::transfer(Origin::signed(BOB), ALICE, (CLASS_ID, TOKEN_ID)),
-			Error::<Test>::NoPermission
+			Error::<Test>::NotTokenOwner
 		);
 	});
 }
@@ -164,7 +164,7 @@ fn burn_fails() {
 
 		assert_noop!(
 			NftModule::burn(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)),
-			Error::<Test>::NoPermission
+			Error::<Test>::NotTokenOwner
 		);
 	});
 }
@@ -201,7 +201,7 @@ fn destroy_class_fails() {
 
 		assert_noop!(
 			NftModule::destroy_class(Origin::signed(ALICE), CLASS_ID),
-			Error::<Test>::CannotDestroyClass
+			Error::<Test>::NonZeroIssuance
 		);
 	});
 }

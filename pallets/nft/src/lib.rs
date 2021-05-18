@@ -74,7 +74,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 			ensure!(quantity > Zero::zero(), Error::<T>::InvalidQuantity);
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
-			ensure!(sender == class_info.owner, Error::<T>::NoPermission);
+			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			let mut data = token_data;
 			data.locked = false;
 			for _ in 0..quantity {
@@ -93,7 +93,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 			let _class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
-			ensure!(sender == token_info.owner, Error::<T>::NoPermission);
+			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 			let to: T::AccountId = T::Lookup::lookup(dest)?;
 			orml_nft::Pallet::<T>::transfer(&sender, &to, token)?;
@@ -106,7 +106,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 			let _class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
-			ensure!(sender == token_info.owner, Error::<T>::NoPermission);
+			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 			orml_nft::Pallet::<T>::burn(&sender, token)?;
 			Self::deposit_event(Event::NFTTokenBurned(sender, token.0, token.1));
@@ -117,11 +117,8 @@ pub mod pallet {
 		pub fn destroy_class(origin: OriginFor<T>, class_id: T::ClassId) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
-			ensure!(sender == class_info.owner, Error::<T>::NoPermission);
-			ensure!(
-				class_info.total_issuance == Zero::zero(),
-				Error::<T>::CannotDestroyClass
-			);
+			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
+			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
 			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
 			Self::deposit_event(Event::NFTTokenClassDestroyed(sender, class_id));
 			Ok(().into())
@@ -144,11 +141,19 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
+		/// The class does not exist
 		ClassNotFound,
+		/// The token does not exist
 		TokenNotFound,
-		NoPermission,
-		CannotDestroyClass,
+		/// Not the class owner
+		NotClassOwner,
+		/// Not the token owner
+		NotTokenOwner,
+		/// The token class is not empty
+		NonZeroIssuance,
+		/// Token is currently locked
 		TokenLocked,
+		/// Quantity has to be greater than zero
 		InvalidQuantity,
 	}
 }
@@ -167,7 +172,7 @@ impl<T: Config> Pallet<T> {
 		let _class_info = orml_nft::Pallet::<T>::classes(token_id.0).ok_or(Error::<T>::ClassNotFound)?;
 		orml_nft::Tokens::<T>::mutate_exists(token_id.0, token_id.1, |token| -> DispatchResult {
 			if let Some(ref mut token) = token {
-				ensure!(*account == token.owner, Error::<T>::NoPermission);
+				ensure!(*account == token.owner, Error::<T>::NotTokenOwner);
 				token.data.locked ^= true; // Toggle
 						   // fix clone
 				Self::deposit_event(Event::NFTTokenMintedLockToggled(

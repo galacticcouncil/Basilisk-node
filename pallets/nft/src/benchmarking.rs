@@ -6,6 +6,7 @@ use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
 
 const SEED: u32 = 0;
+const TOKEN_QUANTITY: u32 = u32::MAX;
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
@@ -27,7 +28,7 @@ benchmarks! {
 		let token_data = TokenData { locked:false };
 		let class_data = 123;
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
-		let token_quantity = 1;
+		let token_quantity = TOKEN_QUANTITY;
 	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data, token_quantity)
 	verify {
 	}

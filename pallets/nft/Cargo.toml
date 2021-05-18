@@ -3,10 +3,10 @@ name = 'pallet-nft'
 authors = ['GalacticCoucil']
 description = 'Simple NFT pallet for creating tokens'
 edition = '2018'
-homepage = 'https://github.com/galacticcouncil/hydra-dx'
+homepage = 'https://github.com/galacticcouncil/Basilisk-node'
 license = 'Unlicense'
-repository = 'https://github.com/galacticcouncil/hydra-dx'
-version = '3.0.0'
+repository = 'https://github.com/galacticcouncil/Basilisk-node'
+version = '1.0.0'
 
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
