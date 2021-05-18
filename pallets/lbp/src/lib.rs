@@ -18,7 +18,7 @@ use primitives::{
 	fee::{self, WithFee},
 	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
 };
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_std::{marker::PhantomData, vec, vec::Vec, fmt::Debug};
 
 #[cfg(test)]
 mod mock;
@@ -34,7 +34,7 @@ use weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(RuntimeDebug, Clone, PartialEq)]
 pub enum MathError {
 	Overflow,
 	ZeroDuration,
@@ -103,6 +103,42 @@ pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub curve: CurveType,
 	pub pausable: bool,
 	pub paused: bool,
+}
+
+impl<BlockNumber: AtLeast32BitUnsigned + Copy> Pool<BlockNumber>
+where
+	BlockNumber: AtLeast32BitUnsigned + Copy,
+	Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq,
+{
+	fn new(
+		asset_a: LBPAssetInfo<Balance>,
+		asset_b: LBPAssetInfo<Balance>,
+		sale_duration: (BlockNumber, BlockNumber),
+		weight_curve: CurveType,
+		pausable: bool,
+	) -> Self {
+		Pool{
+			start: sale_duration.0,
+			end: sale_duration.1,
+			initial_weights: ((asset_a.id, asset_a.initial_weight), (asset_b.id, asset_b.initial_weight)),
+			final_weights: ((asset_a.id, asset_a.final_weight), (asset_b.id, asset_b.final_weight)),
+			last_weight_update: Zero::zero(),
+			last_weights: ((asset_a.id, asset_a.initial_weight), (asset_b.id, asset_b.initial_weight)),
+			curve: weight_curve,
+			pausable: pausable,
+			paused: false,
+		}
+	}
+}
+
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq>
+{
+	pub id: AssetId,
+	pub amount: Balance,
+	pub initial_weight: LBPWeight,
+	pub final_weight: LBPWeight,
 }
 
 type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -293,38 +329,39 @@ pub mod pallet {
 		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
-			asset_a: AssetId,
-			amount_a: BalanceOf<T>,
-			asset_b: AssetId,
-			amount_b: BalanceOf<T>,
-			pool_data: Pool<T::BlockNumber>,
+			asset_a: LBPAssetInfo<BalanceOf<T>>,
+			asset_b: LBPAssetInfo<BalanceOf<T>>,
+			sale_duration: (T::BlockNumber, T::BlockNumber),
+			weight_curve: CurveType,
+			pausable: bool,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
 			ensure!(
-				!amount_a.is_zero() || !amount_b.is_zero(),
+				!asset_a.amount.is_zero() || !asset_b.amount.is_zero(),
 				Error::<T>::CannotCreatePoolWithZeroLiquidity
 			);
 
-			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
+			ensure!(asset_a.id != asset_b.id, Error::<T>::CannotCreatePoolWithSameAssets);
 
 			let asset_pair = AssetPair {
-				asset_in: asset_a,
-				asset_out: asset_b,
+				asset_in: asset_a.id,
+				asset_out: asset_b.id,
 			};
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::TokenPoolAlreadyExists);
 
 			ensure!(
-				T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
+				T::MultiCurrency::free_balance(asset_a.id, &who) >= asset_a.amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 
 			ensure!(
-				T::MultiCurrency::free_balance(asset_b, &who) >= amount_b,
+				T::MultiCurrency::free_balance(asset_b.id, &who) >= asset_b.amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 
+			let pool_data = Pool::new(asset_a, asset_b, sale_duration, weight_curve, pausable);
 			Self::validate_pool_data(&pool_data)?;
 
 			let pool_id = Self::get_pair_id(asset_pair);
@@ -335,15 +372,15 @@ pub mod pallet {
 			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
 			<PoolOwner<T>>::insert(&pool_id, &who);
-			<PoolAssets<T>>::insert(&pool_id, &(asset_a, asset_b));
+			<PoolAssets<T>>::insert(&pool_id, &(asset_a.id, asset_b.id));
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
-			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
+			T::MultiCurrency::transfer(asset_a.id, &who, &pool_id, asset_a.amount)?;
+			T::MultiCurrency::transfer(asset_b.id, &who, &pool_id, asset_b.amount)?;
 
-			<PoolBalances<T>>::insert(&pool_id, &(amount_a, amount_b));
+			<PoolBalances<T>>::insert(&pool_id, &(asset_a.amount, asset_b.amount));
 
-			Self::deposit_event(Event::CreatePool(who, asset_a, asset_b, amount_a, amount_b));
+			Self::deposit_event(Event::CreatePool(who, asset_a.id, asset_b.id, asset_a.amount, asset_b.amount));
 
 			Ok(().into())
 		}
@@ -613,7 +650,7 @@ pub mod pallet {
 }
 
 /// Trade type used in validation to determine how to perform certain checks
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(RuntimeDebug, Clone, PartialEq, Eq)]
 enum TradeType {
 	Sell,
 	Buy,
