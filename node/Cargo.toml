@@ -29,7 +29,7 @@ structopt = '0.3.8'
 
 # local dependencies
 basilisk-runtime = {path = '../runtime', version = '3.0.0'}
-module-amm-rpc = {version = '3.0.0'}
+pallet-xyk-rpc = {version = '1.0.0'}
 primitives = {version = '3.0.0'}
 
 # Substrate dependencies
@@ -66,19 +66,19 @@ sp-trie = '3.0.0'
 substrate-frame-rpc-system = '3.0.0'
 
 # Cumulus dependencies
-cumulus-client-cli = {git = "https://github.com/paritytech/cumulus", branch = "rococo-v1"}
-cumulus-client-collator = {git = "https://github.com/paritytech/cumulus", branch = "rococo-v1"}
-cumulus-client-consensus-relay-chain = {git = "https://github.com/paritytech/cumulus", branch = "rococo-v1"}
-cumulus-client-network = {git = "https://github.com/paritytech/cumulus", branch = "rococo-v1"}
-cumulus-client-service = {git = "https://github.com/paritytech/cumulus", branch = "rococo-v1"}
-cumulus-primitives-core = {git = "https://github.com/paritytech/cumulus", branch = "rococo-v1"}
+cumulus-client-cli = {git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.1"}
+cumulus-client-collator = {git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.1"}
+cumulus-client-consensus-relay-chain = {git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.1"}
+cumulus-client-network = {git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.1"}
+cumulus-client-service = {git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.1"}
+cumulus-primitives-core = {git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.1"}
 
 # Polkadot dependencies
-polkadot-cli = {git = "https://github.com/paritytech/polkadot", branch = "rococo-v1"}
-polkadot-parachain = {git = "https://github.com/paritytech/polkadot", branch = "rococo-v1"}
-polkadot-primitives = {git = "https://github.com/paritytech/polkadot", branch = "rococo-v1"}
-polkadot-service = {git = "https://github.com/paritytech/polkadot", branch = "rococo-v1"}
-polkadot-test-service = {git = "https://github.com/paritytech/polkadot", branch = "rococo-v1"}
+polkadot-cli = {version="0.9.1"}
+polkadot-parachain = {version="0.9.1"}
+polkadot-primitives = {version="0.9.1"}
+polkadot-service = {version="0.9.1"}
+polkadot-test-service = {version="0.9.1"}
 
 [features]
 default = [
@@ -91,12 +91,11 @@ runtime-benchmarks = [
 
 [dev-dependencies]
 # Polkadot dependencies
-polkadot-runtime-common = {git = 'https://github.com/paritytech/polkadot', branch = "rococo-v1"}
-polkadot-test-client = {git = 'https://github.com/paritytech/polkadot', branch = "rococo-v1"}
-polkadot-test-runtime = {git = 'https://github.com/paritytech/polkadot', branch = "rococo-v1"}
-polkadot-test-service = {git = 'https://github.com/paritytech/polkadot', branch = "rococo-v1"}
+polkadot-runtime-common = {version="0.9.1"}
+polkadot-test-client = {version="0.9.1"}
+polkadot-test-runtime = {version="0.9.1"}
 
 # Substrate dependencies
-pallet-sudo = {git = 'https://github.com/paritytech/substrate', branch = "rococo-v1"}
-substrate-test-client = {git = 'https://github.com/paritytech/substrate', branch = "rococo-v1"}
-substrate-test-runtime-client = {git = 'https://github.com/paritytech/substrate', branch = "rococo-v1"}
+pallet-sudo = {version="3.0.0"}
+substrate-test-client = {version="2.0.1"}
+substrate-test-runtime-client = {version="2.0.0"}
