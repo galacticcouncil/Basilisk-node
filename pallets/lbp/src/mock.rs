@@ -1,10 +1,10 @@
 use crate as lbp;
-use crate::{AssetPairPoolIdFor, Config, Pool};
+use crate::{AssetPairPoolIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::GenesisBuild;
 use frame_system;
 use orml_traits::parameter_type_with_key;
-use primitives::{fee, AssetId, Balance, BlockNumber, CORE_ASSET_ID};
+use primitives::{fee, AssetId, Balance, CORE_ASSET_ID};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -17,17 +17,18 @@ type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 pub const INITIAL_BALANCE: Balance = 1_000_000_000_000_000u128;
-pub const POOL_ADDRESS: AccountId = 1_000;
 pub const POOL_DEPOSIT: Balance = 10u128.pow(14);
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
-pub const CHARLIE: AccountId = 3;
 
 pub const HDX: AssetId = CORE_ASSET_ID;
-pub const ACA: AssetId = 2000;
-pub const DOT: AssetId = 3000;
-pub const ETH: AssetId = 4000;
+pub const ACA: AssetId = 2_000;
+pub const DOT: AssetId = 3_000;
+pub const ETH: AssetId = 4_000;
+
+pub const HDX_DOT_POOL_ID: AccountId = 3_000;
+pub const ACA_DOT_POOL_ID: AccountId = 2_003_000;
 
 frame_support::construct_runtime!(
 	pub enum Test where
