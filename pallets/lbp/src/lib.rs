@@ -44,7 +44,13 @@ pub enum MathError {
 use crate::MathError::{Overflow, ZeroDuration};
 
 // TODO: move this function to the hydradx-math crate
-// Linear interpolation
+/// Calculating weight at any given block in an interval using linear interpolation.
+///
+/// - `a_x` - beginning of an interval
+/// - `b_x` - end of an interval
+/// - `a_y` - initial weight
+/// - `b_y` - final weight
+/// - `at` - block number at which to calculate the weight
 fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 	a_x: BlockNumber,
 	b_x: BlockNumber,
@@ -63,8 +69,8 @@ fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 
 	ensure!(dx != 0, ZeroDuration);
 
-	let left = a_y.checked_mul(d1).ok_or(Overflow)?; // TODO: change to u256
-	let right = b_y.checked_mul(d2).ok_or(Overflow)?; // TODO: change to u256
+	let left = a_y.checked_mul(d1).ok_or(Overflow)?; // TODO: change to u256 once moved to hydradx-math
+	let right = b_y.checked_mul(d2).ok_or(Overflow)?; // TODO: change to u256 once moved to hydradx-math
 	let result = (left.checked_add(right).ok_or(Overflow)?)
 		.checked_div(dx.into())
 		.ok_or(Overflow)?;
@@ -74,14 +80,14 @@ fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
-pub enum CurveType {
+pub enum WeightCurveType {
 	Constant,
 	Linear,
 }
 
-impl Default for CurveType {
+impl Default for WeightCurveType {
 	fn default() -> Self {
-		CurveType::Linear
+		WeightCurveType::Linear
 	}
 }
 
@@ -102,7 +108,7 @@ pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub final_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
 	pub last_weight_update: BlockNumber,
 	pub last_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
-	pub curve: CurveType,
+	pub curve: WeightCurveType,
 	pub pausable: bool,
 	pub paused: bool,
 }
@@ -116,7 +122,7 @@ where
 		asset_a: LBPAssetInfo<Balance>,
 		asset_b: LBPAssetInfo<Balance>,
 		sale_duration: (BlockNumber, BlockNumber),
-		weight_curve: CurveType,
+		weight_curve: WeightCurveType,
 		pausable: bool,
 	) -> Self {
 		Pool{
@@ -147,7 +153,7 @@ type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_s
 
 pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 	fn calculate_weight(
-		curve_type: CurveType,
+		curve_type: WeightCurveType,
 		a_x: BlockNumber,
 		b_x: BlockNumber,
 		a_y: LBPWeight,
@@ -159,7 +165,7 @@ pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 pub struct LBPWeightFunction;
 impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LBPWeightFunction {
 	fn calculate_weight(
-		curve_type: CurveType,
+		curve_type: WeightCurveType,
 		a_x: BlockNumber,
 		b_x: BlockNumber,
 		a_y: LBPWeight,
@@ -167,8 +173,8 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 		at: BlockNumber,
 	) -> Result<LBPWeight, MathError> {
 		match curve_type {
-			CurveType::Linear => calculate_linear_weights(a_x, b_x, a_y, b_y, at),
-			CurveType::Constant => Ok(a_y),
+			WeightCurveType::Linear => calculate_linear_weights(a_x, b_x, a_y, b_y, at),
+			WeightCurveType::Constant => Ok(a_y),
 		}
 	}
 }
@@ -342,7 +348,7 @@ pub mod pallet {
 			asset_a: LBPAssetInfo<BalanceOf<T>>,
 			asset_b: LBPAssetInfo<BalanceOf<T>>,
 			sale_duration: (T::BlockNumber, T::BlockNumber),
-			weight_curve: CurveType,
+			weight_curve: WeightCurveType,
 			pausable: bool,
 		) -> DispatchResultWithPostInfo {
 			T::CreatePoolOrigin::ensure_origin(origin)?;

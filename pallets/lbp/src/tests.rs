@@ -32,7 +32,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				final_weight: 10,
 			},
 			(10u64, 20u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 		));
 	});
@@ -213,8 +213,8 @@ fn weight_update_should_work() {
 		};
 		let duration = (10u64, 19u64);
 
-		let mut linear_pool = Pool::new(asset_a, asset_b, duration, CurveType::Linear, false);
-		let mut constant_pool = Pool::new(asset_a, asset_c, duration, CurveType::Constant, false);
+		let mut linear_pool = Pool::new(asset_a, asset_b, duration, WeightCurveType::Linear, false);
+		let mut constant_pool = Pool::new(asset_a, asset_c, duration, WeightCurveType::Constant, false);
 
 		// TODO: add test: last_weights and last_weight_update values are initialized to meaningful values
 
@@ -224,7 +224,7 @@ fn weight_update_should_work() {
 			asset_a,
 			asset_b,
 			duration,
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			false
 		));
 		assert_ok!(LBPPallet::create_pool(
@@ -233,7 +233,7 @@ fn weight_update_should_work() {
 			asset_a,
 			asset_c,
 			duration,
-			CurveType::Constant,
+			WeightCurveType::Constant,
 			false
 		));
 
@@ -270,7 +270,7 @@ fn validate_pool_data_should_work() {
 			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
 			last_weights: ((1, 20), (2, 80)),
-			curve: CurveType::Linear,
+			curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
 		};
@@ -283,7 +283,7 @@ fn validate_pool_data_should_work() {
 			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
 			last_weights: ((1, 20), (2, 80)),
-			curve: CurveType::Linear,
+			curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
 		};
@@ -296,7 +296,7 @@ fn validate_pool_data_should_work() {
 			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
 			last_weights: ((1, 20), (2, 80)),
-			curve: CurveType::Linear,
+			curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
 		};
@@ -312,7 +312,7 @@ fn validate_pool_data_should_work() {
 			final_weights: ((1, 90), (2, 10)),
 			last_weight_update: 0u64,
 			last_weights: ((1, 20), (2, 80)),
-			curve: CurveType::Linear,
+			curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
 		};
@@ -342,7 +342,7 @@ fn create_pool_should_work() {
 				final_weight: 10,
 			},
 			(10u64, 20u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 		));
 
@@ -386,7 +386,7 @@ fn create_pool_should_work() {
 				final_weight: 10,
 			},
 			(10u64, 20u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 		),
 		BadOrigin);
@@ -416,7 +416,7 @@ fn create_same_pool_should_not_work() {
 				final_weight: 10,
 			},
 			(10u64, 20u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 		));
 
@@ -437,7 +437,7 @@ fn create_same_pool_should_not_work() {
 					final_weight: 30,
 				},
 				(100u64, 200u64),
-				CurveType::Linear,
+				WeightCurveType::Linear,
 				true,
 			),
 			Error::<Test>::PoolAlreadyExists
@@ -469,7 +469,7 @@ fn create_pool_invalid_data_should_not_work() {
 					final_weight: 10,
 				},
 			(20u64, 10u64),	// reversed interval, the end precedes the beginning
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 			),
 			Error::<Test>::InvalidBlockNumber
@@ -526,7 +526,7 @@ fn pause_pool_should_work() {
 				final_weights: ((ACA, 90), (DOT, 10)),
 				last_weight_update: 0u64,
 				last_weights: ((ACA, 20), (DOT, 80)),
-				curve: CurveType::Linear,
+				curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: true
 			}
@@ -575,7 +575,7 @@ fn pause_pool_should_not_work() {
 				final_weight: 60,
 			},
 			(200u64, 400u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			false,
 		));
 		let pool_id = LBPPallet::get_pair_id(AssetPair {
@@ -605,7 +605,7 @@ fn pause_pool_should_not_work() {
 				final_weight: 60,
 			},
 			(200u64, 400u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 		));
 		let pool_id = LBPPallet::get_pair_id(AssetPair {
@@ -638,7 +638,7 @@ fn pause_pool_should_not_work() {
 				final_weight: 60,
 			},
 			(200u64, 400u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 		));
 		let pool_id = LBPPallet::get_pair_id(AssetPair {
@@ -685,7 +685,7 @@ fn unpause_pool_should_work() {
 				final_weight: 60,
 			},
 			(200u64, 400u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 		));
 
@@ -703,7 +703,7 @@ fn unpause_pool_should_work() {
 				final_weights: ((DOT, 40), (HDX, 60)),
 				last_weight_update: 0u64,
 				last_weights: ((DOT, 20), (HDX, 80)),
-				curve: CurveType::Linear,
+				curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: false
 			}
@@ -755,7 +755,7 @@ fn unpause_pool_should_not_work() {
 				final_weight: 60,
 			},
 			(200u64, 400u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			false,
 		));
 		let pool_id = LBPPallet::get_pair_id(AssetPair {
@@ -785,7 +785,7 @@ fn unpause_pool_should_not_work() {
 				final_weight: 60,
 			},
 			(200u64, 400u64),
-			CurveType::Linear,
+			WeightCurveType::Linear,
 			true,
 		));
 		let pool_id = LBPPallet::get_pair_id(AssetPair {
