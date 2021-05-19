@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
+#![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::type_complexity)]
 
 //TODO:
 // * add assetId validation to weights manipulation by user - reason: change from (w,w) to ((assetId, w), (assetid, w))
@@ -9,7 +11,7 @@ use frame_support::sp_runtime::{
 	traits::{Hash, Zero},
 	DispatchError, RuntimeDebug,
 };
-use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
+use frame_support::{dispatch::DispatchResult, ensure, transactional, traits::{EnsureOrigin, Get}};
 use frame_system::ensure_signed;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::traits::{AMMTransfer, AMM};
@@ -125,7 +127,7 @@ where
 			last_weight_update: Zero::zero(),
 			last_weights: ((asset_a.id, asset_a.initial_weight), (asset_b.id, asset_b.initial_weight)),
 			curve: weight_curve,
-			pausable: pausable,
+			pausable,
 			paused: false,
 		}
 	}
@@ -191,6 +193,9 @@ pub mod pallet {
 		#[pallet::constant]
 		/// Native Asset Id
 		type NativeAssetId: Get<AssetId>;
+
+		/// The origin which can create a new pool.
+		type CreatePoolOrigin: EnsureOrigin<Self::Origin>;
 
 		/// Function for calculation of LBP weights
 		type LBPWeightFunction: LBPWeightCalculation<Self::BlockNumber>;
@@ -329,13 +334,14 @@ pub mod pallet {
 		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
+			pool_owner: T::AccountId,
 			asset_a: LBPAssetInfo<BalanceOf<T>>,
 			asset_b: LBPAssetInfo<BalanceOf<T>>,
 			sale_duration: (T::BlockNumber, T::BlockNumber),
 			weight_curve: CurveType,
 			pausable: bool,
 		) -> DispatchResultWithPostInfo {
-			let who = ensure_signed(origin)?;
+			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			ensure!(
 				!asset_a.amount.is_zero() || !asset_b.amount.is_zero(),
@@ -352,12 +358,12 @@ pub mod pallet {
 			ensure!(!Self::exists(asset_pair), Error::<T>::TokenPoolAlreadyExists);
 
 			ensure!(
-				T::MultiCurrency::free_balance(asset_a.id, &who) >= asset_a.amount,
+				T::MultiCurrency::free_balance(asset_a.id, &pool_owner) >= asset_a.amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 
 			ensure!(
-				T::MultiCurrency::free_balance(asset_b.id, &who) >= asset_b.amount,
+				T::MultiCurrency::free_balance(asset_b.id, &pool_owner) >= asset_b.amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 
@@ -368,19 +374,19 @@ pub mod pallet {
 
 			let deposit = T::PoolDeposit::get();
 
-			T::MultiCurrency::reserve(T::NativeAssetId::get(), &who, deposit)?;
+			T::MultiCurrency::reserve(T::NativeAssetId::get(), &pool_owner, deposit)?;
 			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
-			<PoolOwner<T>>::insert(&pool_id, &who);
+			<PoolOwner<T>>::insert(&pool_id, &pool_owner);
 			<PoolAssets<T>>::insert(&pool_id, &(asset_a.id, asset_b.id));
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			T::MultiCurrency::transfer(asset_a.id, &who, &pool_id, asset_a.amount)?;
-			T::MultiCurrency::transfer(asset_b.id, &who, &pool_id, asset_b.amount)?;
+			T::MultiCurrency::transfer(asset_a.id, &pool_owner, &pool_id, asset_a.amount)?;
+			T::MultiCurrency::transfer(asset_b.id, &pool_owner, &pool_id, asset_b.amount)?;
 
 			<PoolBalances<T>>::insert(&pool_id, &(asset_a.amount, asset_b.amount));
 
-			Self::deposit_event(Event::CreatePool(who, asset_a.id, asset_b.id, asset_a.amount, asset_b.amount));
+			Self::deposit_event(Event::CreatePool(pool_owner, asset_a.id, asset_b.id, asset_a.amount, asset_b.amount));
 
 			Ok(().into())
 		}
@@ -972,7 +978,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.amount_out,
 		));
 
-		Ok(().into())
+		Ok(())
 	}
 
 	/// Validate buy trade and update pool weights
@@ -996,6 +1002,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.amount,
 			transfer.amount_out,
 		));
-		Ok(().into())
+		Ok(())
 	}
 }

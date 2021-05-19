@@ -5,6 +5,7 @@ pub use crate::mock::{
 };
 use crate::mock::{INITIAL_BALANCE, POOL_ADDRESS, POOL_DEPOSIT};
 use frame_support::{assert_err, assert_noop, assert_ok};
+use sp_runtime::traits::BadOrigin;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -16,7 +17,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
 	ext.execute_with(|| {
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(ALICE),
+			Origin::root(),
+			ALICE,
 			LBPAssetInfo{
 				id: ACA,
 				amount: 1_000_000_000,
@@ -217,7 +219,8 @@ fn weight_update_should_work() {
 		// TODO: add test: last_weights and last_weight_update values are initialized to meaningful values
 
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(ALICE),
+			Origin::root(),
+			ALICE,
 			asset_a,
 			asset_b,
 			duration,
@@ -225,7 +228,8 @@ fn weight_update_should_work() {
 			false
 		));
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(ALICE),
+			Origin::root(),
+			ALICE,
 			asset_a,
 			asset_c,
 			duration,
@@ -323,7 +327,8 @@ fn validate_pool_data_should_work() {
 fn create_pool_should_work() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(ALICE),
+			Origin::root(),
+			ALICE,
 			LBPAssetInfo{
 				id: ACA,
 				amount: 1_000_000_000,
@@ -365,6 +370,27 @@ fn create_pool_should_work() {
 
 		assert_eq!(LBPPallet::get_pool_assets(&pool_id).unwrap(), vec![ACA, DOT]);
 
+		assert_noop!(LBPPallet::create_pool(
+			Origin::signed(ALICE),
+			ALICE,
+			LBPAssetInfo{
+				id: HDX,
+				amount: 1_000_000_000,
+				initial_weight: 20,
+				final_weight: 90,
+			},
+			LBPAssetInfo{
+				id: DOT,
+				amount: 2_000_000_000,
+				initial_weight: 80,
+				final_weight: 10,
+			},
+			(10u64, 20u64),
+			CurveType::Linear,
+			true,
+		),
+		BadOrigin);
+
 		expect_events(vec![
 			Event::CreatePool(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
 		]);
@@ -375,7 +401,8 @@ fn create_pool_should_work() {
 fn create_same_pool_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(ALICE),
+			Origin::root(),
+			ALICE,
 			LBPAssetInfo{
 				id: ACA,
 				amount: 1_000_000_000,
@@ -395,22 +422,23 @@ fn create_same_pool_should_not_work() {
 
 		assert_noop!(
 			LBPPallet::create_pool(
-				Origin::signed(ALICE),
-			LBPAssetInfo{
-				id: ACA,
-				amount: 10_000_000_000,
-				initial_weight: 30,
-				final_weight: 70,
-			},
-			LBPAssetInfo{
-				id: DOT,
-				amount: 20_000_000_000,
-				initial_weight: 70,
-				final_weight: 30,
-			},
-			(100u64, 200u64),
-			CurveType::Linear,
-			true,
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo{
+					id: ACA,
+					amount: 10_000_000_000,
+					initial_weight: 30,
+					final_weight: 70,
+				},
+				LBPAssetInfo{
+					id: DOT,
+					amount: 20_000_000_000,
+					initial_weight: 70,
+					final_weight: 30,
+				},
+				(100u64, 200u64),
+				CurveType::Linear,
+				true,
 			),
 			Error::<Test>::TokenPoolAlreadyExists
 		);
@@ -426,19 +454,20 @@ fn create_pool_invalid_data_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
 			LBPPallet::create_pool(
-				Origin::signed(ALICE),
-			LBPAssetInfo{
-				id: ACA,
-				amount: 1_000_000_000,
-				initial_weight: 20,
-				final_weight: 90,
-			},
-			LBPAssetInfo{
-				id: DOT,
-				amount: 2_000_000_000,
-				initial_weight: 80,
-				final_weight: 10,
-			},
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo{
+					id: ACA,
+					amount: 1_000_000_000,
+					initial_weight: 20,
+					final_weight: 90,
+				},
+				LBPAssetInfo{
+					id: DOT,
+					amount: 2_000_000_000,
+					initial_weight: 80,
+					final_weight: 10,
+				},
 			(20u64, 10u64),	// reversed interval, the end precedes the beginning
 			CurveType::Linear,
 			true,
@@ -531,7 +560,8 @@ fn pause_pool_should_not_work() {
 
 		//pool is not puasable
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(BOB),
+			Origin::root(),
+			BOB,
 			LBPAssetInfo{
 				id: ACA,
 				amount: 1_000_000_000,
@@ -560,7 +590,8 @@ fn pause_pool_should_not_work() {
 
 		//pool is already paused
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(BOB),
+			Origin::root(),
+			BOB,
 			LBPAssetInfo{
 				id: DOT,
 				amount: 1_000_000_000,
@@ -592,7 +623,8 @@ fn pause_pool_should_not_work() {
 
 		//pool ended or ending in current block
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(ALICE),
+			Origin::root(),
+			ALICE,
 			LBPAssetInfo{
 				id: DOT,
 				amount: 1_000_000_000,
@@ -638,7 +670,8 @@ fn unpause_pool_should_work() {
 		});
 
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(owner),
+			Origin::root(),
+			ALICE,
 			LBPAssetInfo{
 				id: DOT,
 				amount: 1_000_000_000,
@@ -707,7 +740,8 @@ fn unpause_pool_should_not_work() {
 
 		//pool is not puased
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(BOB),
+			Origin::root(),
+			BOB,
 			LBPAssetInfo{
 				id: ACA,
 				amount: 1_000_000_000,
@@ -736,7 +770,8 @@ fn unpause_pool_should_not_work() {
 
 		//pooled ended or ending in current block
 		assert_ok!(LBPPallet::create_pool(
-			Origin::signed(ALICE),
+			Origin::root(),
+			ALICE,
 			LBPAssetInfo{
 				id: DOT,
 				amount: 1_000_000_000,

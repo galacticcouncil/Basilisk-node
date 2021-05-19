@@ -1,6 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
+#![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 
@@ -364,6 +365,7 @@ impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type NativeAssetId = NativeAssetId;
+	type CreatePoolOrigin = EnsureRoot<AccountId>;	// TODO: change to governance membership
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type PoolDeposit = PoolDeposit;

@@ -114,6 +114,7 @@ impl Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
 	type NativeAssetId = NativeAssetId;
+	type CreatePoolOrigin = frame_system::EnsureRoot<u64>;
 	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type PoolDeposit = PoolDeposit;
