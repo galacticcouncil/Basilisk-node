@@ -440,7 +440,7 @@ fn create_same_pool_should_not_work() {
 				CurveType::Linear,
 				true,
 			),
-			Error::<Test>::TokenPoolAlreadyExists
+			Error::<Test>::PoolAlreadyExists
 		);
 
 		expect_events(vec![
@@ -555,7 +555,7 @@ fn pause_pool_should_not_work() {
 		//pool is not found
 		assert_noop!(
 			LBPPallet::pause_pool(Origin::signed(owner), 24568),
-			Error::<Test>::TokenPoolNotFound
+			Error::<Test>::PoolNotFound
 		);
 
 		//pool is not puasable
@@ -735,7 +735,7 @@ fn unpause_pool_should_not_work() {
 		//pool is not found
 		assert_noop!(
 			LBPPallet::unpause_pool(Origin::signed(owner), 24568),
-			Error::<Test>::TokenPoolNotFound
+			Error::<Test>::PoolNotFound
 		);
 
 		//pool is not puased

@@ -194,7 +194,7 @@ pub mod pallet {
 		/// Native Asset Id
 		type NativeAssetId: Get<AssetId>;
 
-		/// The origin which can create a new pool.
+		/// The origin which can create a new pool
 		type CreatePoolOrigin: EnsureOrigin<Self::Origin>;
 
 		/// Function for calculation of LBP weights
@@ -210,7 +210,7 @@ pub mod pallet {
 		/// Trading fee rate
 		type ExchangeFee: Get<fee::Fee>;
 
-		/// Weight information for the extrinsics.
+		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
 	}
 
@@ -219,54 +219,63 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// Create pool errors
+		/// Pool assets can not be the same
 		CannotCreatePoolWithSameAssets,
+		/// Initial liquidity should be non-zero
 		CannotCreatePoolWithZeroLiquidity,
-
-		/// Update pool errors
+		/// Account is not a pool owner
 		NotOwner,
+		/// Sale already started
 		SaleStarted,
+		/// Sale is still in progress
 		SaleNotEnded,
-		InvalidData,
-		CannotPauseEndedPool,
-		CannotPausePausedPool,
-		PoolIsNotPausable,
-		CannotUnpauseEndedPool,
-		PoolIsNotPaused,
-		MaxSaleDurationExceeded,
-
-		/// Add / Remove liquidity errors
-		CannotAddZeroLiquidity,
-		CannotRemoveZeroLiquidity,
-		LiquidityOverflow,
-		LiquidityUnderflow, // TODO: do we need it? Can we use LiquidityOverflow instead?
-
-		/// Balance errors
-		InsufficientAssetBalance,
-
-		/// Pool existence errors
-		TokenPoolNotFound,
-		TokenPoolAlreadyExists,
-
-		/// Calculation errors
-		InvalidBlockNumber,
-		CalculationError, // TODO: replace me with something more meaningful?
-
-		BlockNumberInvalid,
-
-		ZeroAmount,
+		/// Sale is not running
 		SaleIsNotRunning,
-
-		// Trading limit errors
+		/// Provided data are not valid
+		InvalidData,
+		/// Sale already ended
+		CannotPauseEndedPool,
+		/// Sale already ended
+		CannotUnpauseEndedPool,
+		/// Sale is already paused
+		CannotPausePausedPool,
+		/// Pool is set to be not pausable
+		PoolIsNotPausable,
+		/// Pool is not paused
+		PoolIsNotPaused,
+		/// Sale duration is too long
+		MaxSaleDurationExceeded,
+		/// Liquidity being added should not be zero
+		CannotAddZeroLiquidity,
+		/// Can not remove zero liquidity
+		CannotRemoveZeroLiquidity,
+		/// Overflow after adding liquidity
+		LiquidityOverflow,
+		/// Underflow after removing liquidity
+		LiquidityUnderflow,
+		/// Asset balance too low
+		InsufficientAssetBalance,
+		/// Pool does not exist
+		PoolNotFound,
+		/// Pool has been already created
+		PoolAlreadyExists,
+		/// Invalid block number
+		InvalidBlockNumber,
+		/// Calculation error
+		WeightCalculationError,
+		/// Invalid block number
+		BlockNumberInvalid,
+		/// Can not perform a trade with zero amount
+		ZeroAmount,
+		/// Trade amount is too high
 		MaxInRatioExceeded,
+		/// Trade amount is too high
 		MaxOutRatioExceeded,
-
-		/// Invalid fee
+		/// Invalid fee amount
 		FeeAmountInvalid,
-
-		// Asset limit exceeded
+		/// Trading limit reached
 		AssetBalanceLimitExceeded,
-
+		/// An unexpected integer overflow occurred
 		Overflow,
 	}
 
@@ -350,7 +359,7 @@ pub mod pallet {
 				asset_out: asset_b.id,
 			};
 
-			ensure!(!Self::exists(asset_pair), Error::<T>::TokenPoolAlreadyExists);
+			ensure!(!Self::exists(asset_pair), Error::<T>::PoolAlreadyExists);
 
 			ensure!(
 				T::MultiCurrency::free_balance(asset_a.id, &pool_owner) >= asset_a.amount,
@@ -398,7 +407,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -438,7 +447,7 @@ pub mod pallet {
 		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -462,7 +471,7 @@ pub mod pallet {
 		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -490,7 +499,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -547,7 +556,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -585,7 +594,7 @@ pub mod pallet {
 		pub fn destroy_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -672,7 +681,7 @@ impl<T: Config> Pallet<T> {
 				pool_data.final_weights.0 .1,
 				now,
 			)
-			.map_err(|_| Error::<T>::CalculationError)?;
+			.map_err(|_| Error::<T>::WeightCalculationError)?;
 
 			pool_data.last_weights.1 .1 = T::LBPWeightFunction::calculate_weight(
 				pool_data.curve,
@@ -682,7 +691,7 @@ impl<T: Config> Pallet<T> {
 				pool_data.final_weights.1 .1,
 				now,
 			)
-			.map_err(|_| Error::<T>::CalculationError)?;
+			.map_err(|_| Error::<T>::WeightCalculationError)?;
 			pool_data.last_weight_update = now;
 		}
 
@@ -737,7 +746,7 @@ impl<T: Config> Pallet<T> {
 	) -> Result<AMMTransfer<T::AccountId, AssetPair, Balance>, DispatchError> {
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
-		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+		ensure!(Self::exists(assets), Error::<T>::PoolNotFound);
 
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount,
