@@ -273,37 +273,32 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Create new LBP pool
-		/// who, asset a, asset b, amount_a, amount_b
-		CreatePool(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Pool was created by the `CreatePool` origin. [who, asset_a, asset_b, amount_a, amount_b]
+		PoolCreated(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Update the LBP pool
-		/// who, pool id
-		UpdatePool(T::AccountId, PoolId<T>),
+		/// Pool data were updated. [who, pool_id]
+		PoolUpdated(T::AccountId, PoolId<T>),
 
-		/// Add liquidity to the pool
-		/// who, asset_a, asset_b, amount_a, amount_b
-		AddLiquidity(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// New liquidity was provided to the pool. [who, asset_a, asset_b, amount_a, amount_b]
+		LiquidityAdded(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Remove liquidity from the pool
-		/// who, asset_a, asset_b, shares
-		RemoveLiquidity(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Liquidity was removed from the pool. [who, asset_a, asset_b, amount_a, amount_b]
+		LiquidityRemoved(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Destroy LBP pool
-		/// who, asset a, asset b
+		/// Pool was destroyed. [who, asset_a, asset_b, balance_a, balance_b]
 		PoolDestroyed(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Sell token
-		/// who, asset in, asset out, amount, sale price
+		/// Sale executed. [who, asset_in, asset_out, amount, sale_price]
 		SellExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Buy token
-		/// who, asset out, asset in, amount, buy price
+		/// Purchase executed. [who, asset_out, asset_in, amount, buy_price]
 		BuyExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		Paused(T::AccountId),
-		Unpaused(T::AccountId),
-		WeightsUpdated(PoolId<T>, LBPWeight, LBPWeight),
+		/// Pool was paused. [who, pool_id]
+		Paused(T::AccountId, PoolId<T>),
+
+		/// Pool was unpaused. [who, pool_id]
+		Unpaused(T::AccountId, PoolId<T>),
 	}
 
 	#[pallet::storage]
@@ -386,7 +381,7 @@ pub mod pallet {
 
 			<PoolBalances<T>>::insert(&pool_id, &(asset_a.amount, asset_b.amount));
 
-			Self::deposit_event(Event::CreatePool(pool_owner, asset_a.id, asset_b.id, asset_a.amount, asset_b.amount));
+			Self::deposit_event(Event::PoolCreated(pool_owner, asset_a.id, asset_b.id, asset_a.amount, asset_b.amount));
 
 			Ok(().into())
 		}
@@ -434,7 +429,7 @@ pub mod pallet {
 			Self::validate_pool_data(&pool_data)?;
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
-			Self::deposit_event(Event::UpdatePool(who, pool_id));
+			Self::deposit_event(Event::PoolUpdated(who, pool_id));
 
 			Ok(().into())
 		}
@@ -459,7 +454,7 @@ pub mod pallet {
 			pool_data.paused = true;
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			Self::deposit_event(Event::Paused(who));
+			Self::deposit_event(Event::Paused(who, pool_id));
 			Ok(().into())
 		}
 
@@ -481,7 +476,7 @@ pub mod pallet {
 			pool_data.paused = false;
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			Self::deposit_event(Event::Unpaused(who));
+			Self::deposit_event(Event::Unpaused(who, pool_id));
 			Ok(().into())
 		}
 
@@ -537,7 +532,7 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
 
 			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
-			Self::deposit_event(Event::AddLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+			Self::deposit_event(Event::LiquidityAdded(pool_id, asset_a, asset_b, amount_a, amount_b));
 
 			Ok(().into())
 		}
@@ -580,7 +575,7 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
 
 			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
-			Self::deposit_event(Event::RemoveLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
 
 			Ok(().into())
 		}

@@ -392,7 +392,7 @@ fn create_pool_should_work() {
 		BadOrigin);
 
 		expect_events(vec![
-			Event::CreatePool(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
 		]);
 	});
 }
@@ -444,7 +444,7 @@ fn create_same_pool_should_not_work() {
 		);
 
 		expect_events(vec![
-			Event::CreatePool(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
 		]);
 	});
 }
@@ -501,7 +501,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data.start, new_start);
 		assert_eq!(updated_pool_data.end, 20);
 
-		expect_events(vec![Event::UpdatePool(user, pool_id).into()]);
+		expect_events(vec![Event::PoolUpdated(user, pool_id).into()]);
 	});
 }
 
@@ -532,7 +532,7 @@ fn pause_pool_should_work() {
 			}
 		);
 
-		expect_events(vec![Event::Paused(user).into()]);
+		expect_events(vec![Event::Paused(user, pool_id).into()]);
 	});
 }
 
@@ -710,8 +710,8 @@ fn unpause_pool_should_work() {
 		);
 
 		expect_events(vec![
-			Event::Paused(owner).into(),
-			Event::Unpaused(owner).into(),
+			Event::Paused(owner, pool_id).into(),
+			Event::Unpaused(owner, pool_id).into(),
 		]);
 	});
 }
@@ -839,7 +839,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 		assert_eq!(updated_pool_data.end, 20);
 
 		expect_events(vec![
-			Event::CreatePool(user, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(user, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
 		]);
 	});
 }
@@ -879,8 +879,8 @@ fn add_liquidity_should_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(added_b));
 
 		expect_events(vec![
-			Event::CreatePool(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
-			Event::AddLiquidity(pool_id, asset_a, asset_b, added_a, added_b).into(),
+			Event::PoolCreated(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
+			Event::LiquidityAdded(pool_id, asset_a, asset_b, added_a, added_b).into(),
 		]);
 
 		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(pool_id);
@@ -893,9 +893,9 @@ fn add_liquidity_should_work() {
 		assert_eq!(balance_b_after, balance_b_before);
 
 		expect_events(vec![
-			Event::CreatePool(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
-			Event::AddLiquidity(pool_id, asset_a, asset_b, added_a, added_b).into(),
-			Event::AddLiquidity(pool_id, asset_a, asset_b, added_a, 0).into(),
+			Event::PoolCreated(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
+			Event::LiquidityAdded(pool_id, asset_a, asset_b, added_a, added_b).into(),
+			Event::LiquidityAdded(pool_id, asset_a, asset_b, added_a, 0).into(),
 		]);
 	});
 }
@@ -929,7 +929,7 @@ fn add_zero_liquidity_should_not_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
-		expect_events(vec![Event::CreatePool(
+		expect_events(vec![Event::PoolCreated(
 			user,
 			asset_a,
 			asset_b,
@@ -1020,7 +1020,7 @@ fn add_liquidity_after_sale_started_should_not_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
-		expect_events(vec![Event::CreatePool(
+		expect_events(vec![Event::PoolCreated(
 			user,
 			asset_a,
 			asset_b,
@@ -1091,10 +1091,10 @@ fn remove_liquidity_should_work() {
 		assert_eq!(balance_b_after, balance_b_before);
 
 		expect_events(vec![
-			Event::CreatePool(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
-			Event::RemoveLiquidity(pool_id, asset_a, asset_b, 1_000, 0).into(),
-			Event::RemoveLiquidity(pool_id, asset_a, asset_b, removed_a, removed_b).into(),
-			Event::RemoveLiquidity(pool_id, asset_a, asset_b, removed_a, 0).into(),
+			Event::PoolCreated(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
+			Event::LiquidityRemoved(pool_id, asset_a, asset_b, 1_000, 0).into(),
+			Event::LiquidityRemoved(pool_id, asset_a, asset_b, removed_a, removed_b).into(),
+			Event::LiquidityRemoved(pool_id, asset_a, asset_b, removed_a, 0).into(),
 		]);
 	});
 }
@@ -1130,7 +1130,7 @@ fn remove_zero_liquidity_should_not_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
-		expect_events(vec![Event::CreatePool(
+		expect_events(vec![Event::PoolCreated(
 			user,
 			asset_a,
 			asset_b,
@@ -1169,7 +1169,7 @@ fn remove_liquidity_insufficient_reserve_should_not_work() {
 		let user_balance_a_after = Currency::free_balance(asset_a, &user);
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 
-		expect_events(vec![Event::CreatePool(
+		expect_events(vec![Event::PoolCreated(
 			user,
 			asset_a,
 			asset_b,
@@ -1209,7 +1209,7 @@ fn remove_liquidity_during_sale_should_not_work() {
 		let user_balance_a_after = Currency::free_balance(asset_a, &user);
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 
-		expect_events(vec![Event::CreatePool(
+		expect_events(vec![Event::PoolCreated(
 			user,
 			asset_a,
 			asset_b,
@@ -1263,7 +1263,7 @@ fn destroy_pool_should_work() {
 		);
 
 		expect_events(vec![
-			Event::CreatePool(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(user, asset_a, asset_b, 1_000_000_000, 2_000_000_000).into(),
 			frame_system::Event::KilledAccount(pool_id).into(),
 			Event::PoolDestroyed(pool_id, asset_a, asset_b, balance_a_before, balance_b_before).into(),
 		]);
@@ -1302,7 +1302,7 @@ fn destroy_not_finalized_pool_should_not_work() {
 		assert_eq!(user_balance_b_before, user_balance_b_after);
 		assert_eq!(user_balance_hdx_before, user_balance_hdx_after);
 
-		expect_events(vec![Event::CreatePool(
+		expect_events(vec![Event::PoolCreated(
 			user,
 			asset_a,
 			asset_b,
