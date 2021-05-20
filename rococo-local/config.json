@@ -23,7 +23,15 @@
         "wsPort": 9977,
         "port": 30777
       }
-    ]
+    ],
+    "runtime_genesis_config": {
+      "parachainsConfiguration": {
+        "config": {
+          "validation_upgrade_frequency": 1,
+          "validation_upgrade_delay": 1
+        }
+      }
+    }
   },
   "parachains": [
     {
@@ -32,15 +40,18 @@
       "wsPort": 9988,
       "port": 31200,
       "balance": "1000000000000000000000",
-      "flags": ["--", "--execution=wasm"]
-    },
-    {
-      "bin": "../target/release/basilisk",
-      "id": "300",
-      "wsPort": 9999,
-      "port": 31300,
-      "balance": "1000000000000000000000",
-      "flags": ["--", "--execution=wasm"]
+      "nodes": [
+        {
+          "wsPort": 9988,
+          "port": 31200,
+          "flags": ["--force-authoring", "--alice","--", "--execution=wasm"]
+        },
+        {
+          "wsPort": 9999,
+          "port": 31300,
+          "flags": ["--force-authoring", "--bob","--", "--execution=wasm"]
+        }
+      ]
     }
   ],
   "hrmpChannels": [

@@ -68,8 +68,10 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(),
+				// TODO generate real authorities
 				vec![
-					// TODO generate initial rococo authorities
+					get_from_seed::<AuraId>("Alice"),
+					get_from_seed::<AuraId>("Bob"),
 				],
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
