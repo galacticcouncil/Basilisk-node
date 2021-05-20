@@ -105,20 +105,14 @@ pub fn new_partial(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-async fn start_node_impl<RB, BIC>(
+async fn start_node_impl<BIC>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	para_id: ParaId,
-	rpc_ext_builder: RB,
 	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
-	RB: Fn(
-			Arc<TFullClient<Block, RuntimeApi, Executor>>,
-		) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
-		+ Send
-		+ 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, Executor>>,
 		Option<&Registry>,
@@ -176,23 +170,20 @@ where
 			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
 		})?;
 
-	let rpc_client = client.clone();
-	let rpc_extensions_builder = Box::new(move |_, _| rpc_ext_builder(rpc_client.clone()));
-	// TODO
-	// let rpc_extensions_builder = {
-	// 	let client = client.clone();
-	// 	let pool = transaction_pool.clone();
-	//
-	// 	Box::new(move |deny_unsafe, _| {
-	// 		let deps = crate::rpc::FullDeps {
-	// 			client: client.clone(),
-	// 			pool: pool.clone(),
-	// 			deny_unsafe,
-	// 		};
-	//
-	// 		crate::rpc::create_full(deps)
-	// 	})
-	// };
+	let rpc_extensions_builder = {
+		let client = client.clone();
+		let pool = transaction_pool.clone();
+
+		Box::new(move |deny_unsafe, _| {
+			let deps = crate::rpc::FullDeps {
+				client: client.clone(),
+				pool: pool.clone(),
+				deny_unsafe,
+			};
+
+			crate::rpc::create_full(deps)
+		})
+	};
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		on_demand: None,
@@ -322,12 +313,11 @@ pub async fn start_node(
 ) -> sc_service::error::Result<
 	(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)
 > {
-	start_node_impl::<_, _>(
+	start_node_impl::<_>(
 		parachain_config,
 		collator_key,
 		polkadot_config,
 		para_id,
-		|_| Default::default(),
 		|client,
 		 prometheus_registry,
 		 telemetry,
