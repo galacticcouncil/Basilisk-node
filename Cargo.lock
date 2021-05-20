@@ -4867,7 +4867,6 @@ dependencies = [
  "hydra-dx-math 1.0.0 (git+https://github.com/galacticcouncil/hydraDX-math?branch=feat/lbp)",
  "orml-tokens",
  "orml-traits",
- "orml-utilities",
  "parity-scale-codec 2.0.1",
  "primitive-types 0.8.0",
  "primitives",
