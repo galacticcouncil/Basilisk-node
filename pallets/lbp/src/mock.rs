@@ -23,9 +23,12 @@ pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 
 pub const HDX: AssetId = CORE_ASSET_ID;
-pub const ACA: AssetId = 2000;
-pub const DOT: AssetId = 3000;
-pub const ETH: AssetId = 4000;
+pub const ACA: AssetId = 2_000;
+pub const DOT: AssetId = 3_000;
+pub const ETH: AssetId = 4_000;
+
+pub const HDX_DOT_POOL_ID: AccountId = 3_000;
+pub const ACA_DOT_POOL_ID: AccountId = 2_003_000;
 
 frame_support::construct_runtime!(
 	pub enum Test where
@@ -112,6 +115,7 @@ impl Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
 	type NativeAssetId = NativeAssetId;
+	type CreatePoolOrigin = frame_system::EnsureRoot<u64>;
 	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type PoolDeposit = PoolDeposit;

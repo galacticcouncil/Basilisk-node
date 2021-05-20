@@ -4857,7 +4857,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "3.0.0"
+version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

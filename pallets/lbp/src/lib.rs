@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
+#![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::type_complexity)]
 
 //TODO:
 // * add assetId validation to weights manipulation by user - reason: change from (w,w) to ((assetId, w), (assetid, w))
@@ -9,7 +11,12 @@ use frame_support::sp_runtime::{
 	traits::{Hash, Zero},
 	DispatchError, RuntimeDebug,
 };
-use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
+use frame_support::{
+	dispatch::DispatchResult,
+	ensure,
+	traits::{EnsureOrigin, Get},
+	transactional,
+};
 use frame_system::ensure_signed;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::traits::{AMMTransfer, AMM};
@@ -18,7 +25,7 @@ use primitives::{
 	fee::{self, WithFee},
 	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
 };
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -42,7 +49,13 @@ pub enum MathError {
 use crate::MathError::{Overflow, ZeroDuration};
 
 // TODO: move this function to the hydradx-math crate
-// Linear interpolation
+/// Calculating weight at any given block in an interval using linear interpolation.
+///
+/// - `a_x` - beginning of an interval
+/// - `b_x` - end of an interval
+/// - `a_y` - initial weight
+/// - `b_y` - final weight
+/// - `at` - block number at which to calculate the weight
 fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 	a_x: BlockNumber,
 	b_x: BlockNumber,
@@ -61,8 +74,8 @@ fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 
 	ensure!(dx != 0, ZeroDuration);
 
-	let left = a_y.checked_mul(d1).ok_or(Overflow)?; // TODO: change to u256
-	let right = b_y.checked_mul(d2).ok_or(Overflow)?; // TODO: change to u256
+	let left = a_y.checked_mul(d1).ok_or(Overflow)?; // TODO: change to u256 once moved to hydradx-math
+	let right = b_y.checked_mul(d2).ok_or(Overflow)?; // TODO: change to u256 once moved to hydradx-math
 	let result = (left.checked_add(right).ok_or(Overflow)?)
 		.checked_div(dx.into())
 		.ok_or(Overflow)?;
@@ -72,14 +85,14 @@ fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
-pub enum CurveType {
+pub enum WeightCurveType {
 	Constant,
 	Linear,
 }
 
-impl Default for CurveType {
+impl Default for WeightCurveType {
 	fn default() -> Self {
-		CurveType::Linear
+		WeightCurveType::Linear
 	}
 }
 
@@ -100,16 +113,57 @@ pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub final_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
 	pub last_weight_update: BlockNumber,
 	pub last_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
-	pub curve: CurveType,
+	pub curve: WeightCurveType,
 	pub pausable: bool,
 	pub paused: bool,
+}
+
+impl<BlockNumber: AtLeast32BitUnsigned + Copy> Pool<BlockNumber>
+where
+	BlockNumber: AtLeast32BitUnsigned + Copy,
+	Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq,
+{
+	fn new(
+		asset_a: LBPAssetInfo<Balance>,
+		asset_b: LBPAssetInfo<Balance>,
+		sale_duration: (BlockNumber, BlockNumber),
+		weight_curve: WeightCurveType,
+		pausable: bool,
+	) -> Self {
+		Pool {
+			start: sale_duration.0,
+			end: sale_duration.1,
+			initial_weights: (
+				(asset_a.id, asset_a.initial_weight),
+				(asset_b.id, asset_b.initial_weight),
+			),
+			final_weights: ((asset_a.id, asset_a.final_weight), (asset_b.id, asset_b.final_weight)),
+			last_weight_update: Zero::zero(),
+			last_weights: (
+				(asset_a.id, asset_a.initial_weight),
+				(asset_b.id, asset_b.initial_weight),
+			),
+			curve: weight_curve,
+			pausable,
+			paused: false,
+		}
+	}
+}
+
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq> {
+	pub id: AssetId,
+	pub amount: Balance,
+	pub initial_weight: LBPWeight,
+	pub final_weight: LBPWeight,
 }
 
 type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
 
 pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 	fn calculate_weight(
-		curve_type: CurveType,
+		curve_type: WeightCurveType,
 		a_x: BlockNumber,
 		b_x: BlockNumber,
 		a_y: LBPWeight,
@@ -121,7 +175,7 @@ pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 pub struct LBPWeightFunction;
 impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LBPWeightFunction {
 	fn calculate_weight(
-		curve_type: CurveType,
+		curve_type: WeightCurveType,
 		a_x: BlockNumber,
 		b_x: BlockNumber,
 		a_y: LBPWeight,
@@ -129,8 +183,8 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 		at: BlockNumber,
 	) -> Result<LBPWeight, MathError> {
 		match curve_type {
-			CurveType::Linear => calculate_linear_weights(a_x, b_x, a_y, b_y, at),
-			CurveType::Constant => Ok(a_y),
+			WeightCurveType::Linear => calculate_linear_weights(a_x, b_x, a_y, b_y, at),
+			WeightCurveType::Constant => Ok(a_y),
 		}
 	}
 }
@@ -156,6 +210,9 @@ pub mod pallet {
 		/// Native Asset Id
 		type NativeAssetId: Get<AssetId>;
 
+		/// The origin which can create a new pool
+		type CreatePoolOrigin: EnsureOrigin<Self::Origin>;
+
 		/// Function for calculation of LBP weights
 		type LBPWeightFunction: LBPWeightCalculation<Self::BlockNumber>;
 
@@ -169,7 +226,7 @@ pub mod pallet {
 		/// Trading fee rate
 		type ExchangeFee: Get<fee::Fee>;
 
-		/// Weight information for the extrinsics.
+		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
 	}
 
@@ -178,91 +235,95 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// Create pool errors
+		/// Pool assets can not be the same
 		CannotCreatePoolWithSameAssets,
+		/// Initial liquidity should be non-zero
 		CannotCreatePoolWithZeroLiquidity,
-
-		/// Update pool errors
+		/// Account is not a pool owner
 		NotOwner,
+		/// Sale already started
 		SaleStarted,
+		/// Sale is still in progress
 		SaleNotEnded,
-		InvalidData,
-		CannotPauseEndedPool,
-		CannotPausePausedPool,
-		PoolIsNotPausable,
-		CannotUnpauseEndedPool,
-		PoolIsNotPaused,
-		MaxSaleDurationExceeded,
-
-		/// Add / Remove liquidity errors
-		CannotAddZeroLiquidity,
-		CannotRemoveZeroLiquidity,
-		LiquidityOverflow,
-		LiquidityUnderflow, // TODO: do we need it? Can we use LiquidityOverflow instead?
-
-		/// Balance errors
-		InsufficientAssetBalance,
-
-		/// Pool existence errors
-		TokenPoolNotFound,
-		TokenPoolAlreadyExists,
-
-		/// Calculation errors
-		InvalidBlockNumber,
-		CalculationError, // TODO: replace me with something more meaningful?
-
-		BlockNumberInvalid,
-
-		ZeroAmount,
+		/// Sale is not running
 		SaleIsNotRunning,
-
-		// Trading limit errors
+		/// Provided data are not valid
+		InvalidData,
+		/// Sale already ended
+		CannotPauseEndedPool,
+		/// Sale already ended
+		CannotUnpauseEndedPool,
+		/// Sale is already paused
+		CannotPausePausedPool,
+		/// Pool is set to be not pausable
+		PoolIsNotPausable,
+		/// Pool is not paused
+		PoolIsNotPaused,
+		/// Sale duration is too long
+		MaxSaleDurationExceeded,
+		/// Liquidity being added should not be zero
+		CannotAddZeroLiquidity,
+		/// Can not remove zero liquidity
+		CannotRemoveZeroLiquidity,
+		/// Overflow after adding liquidity
+		LiquidityOverflow,
+		/// Underflow after removing liquidity
+		LiquidityUnderflow,
+		/// Asset balance too low
+		InsufficientAssetBalance,
+		/// Pool does not exist
+		PoolNotFound,
+		/// Pool has been already created
+		PoolAlreadyExists,
+		/// Invalid block number
+		InvalidBlockNumber,
+		/// Calculation error
+		WeightCalculationError,
+		/// Invalid block number
+		BlockNumberInvalid,
+		/// Can not perform a trade with zero amount
+		ZeroAmount,
+		/// Trade amount is too high
 		MaxInRatioExceeded,
+		/// Trade amount is too high
 		MaxOutRatioExceeded,
-
-		/// Invalid fee
+		/// Invalid fee amount
 		FeeAmountInvalid,
-
-		// Asset limit exceeded
+		/// Trading limit reached
 		AssetBalanceLimitExceeded,
-
+		/// An unexpected integer overflow occurred
 		Overflow,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Create new LBP pool
-		/// who, asset a, asset b, amount_a, amount_b
-		CreatePool(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Pool was created by the `CreatePool` origin. [who, asset_a, asset_b, amount_a, amount_b]
+		PoolCreated(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Update the LBP pool
-		/// who, pool id
-		UpdatePool(T::AccountId, PoolId<T>),
+		/// Pool data were updated. [who, pool_id]
+		PoolUpdated(T::AccountId, PoolId<T>),
 
-		/// Add liquidity to the pool
-		/// who, asset_a, asset_b, amount_a, amount_b
-		AddLiquidity(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// New liquidity was provided to the pool. [who, asset_a, asset_b, amount_a, amount_b]
+		LiquidityAdded(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Remove liquidity from the pool
-		/// who, asset_a, asset_b, shares
-		RemoveLiquidity(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Liquidity was removed from the pool. [who, asset_a, asset_b, amount_a, amount_b]
+		LiquidityRemoved(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Destroy LBP pool
-		/// who, asset a, asset b
+		/// Pool was destroyed. [who, asset_a, asset_b, balance_a, balance_b]
 		PoolDestroyed(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Sell token
-		/// who, asset in, asset out, amount, sale price
+		/// Sale executed. [who, asset_in, asset_out, amount, sale_price]
 		SellExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Buy token
-		/// who, asset out, asset in, amount, buy price
+		/// Purchase executed. [who, asset_out, asset_in, amount, buy_price]
 		BuyExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		Paused(T::AccountId),
-		Unpaused(T::AccountId),
-		WeightsUpdated(PoolId<T>, LBPWeight, LBPWeight),
+		/// Pool was paused. [who, pool_id]
+		Paused(T::AccountId, PoolId<T>),
+
+		/// Pool was unpaused. [who, pool_id]
+		Unpaused(T::AccountId, PoolId<T>),
 	}
 
 	#[pallet::storage]
@@ -293,56 +354,65 @@ pub mod pallet {
 		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
-			asset_a: AssetId,
-			amount_a: BalanceOf<T>,
-			asset_b: AssetId,
-			amount_b: BalanceOf<T>,
-			pool_data: Pool<T::BlockNumber>,
+			pool_owner: T::AccountId,
+			asset_a: LBPAssetInfo<BalanceOf<T>>,
+			asset_b: LBPAssetInfo<BalanceOf<T>>,
+			sale_duration: (T::BlockNumber, T::BlockNumber),
+			weight_curve: WeightCurveType,
+			pausable: bool,
 		) -> DispatchResultWithPostInfo {
-			let who = ensure_signed(origin)?;
+			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				!amount_a.is_zero() || !amount_b.is_zero(),
+				!asset_a.amount.is_zero() || !asset_b.amount.is_zero(),
 				Error::<T>::CannotCreatePoolWithZeroLiquidity
 			);
 
-			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
+			ensure!(asset_a.id != asset_b.id, Error::<T>::CannotCreatePoolWithSameAssets);
 
 			let asset_pair = AssetPair {
-				asset_in: asset_a,
-				asset_out: asset_b,
+				asset_in: asset_a.id,
+				asset_out: asset_b.id,
 			};
 
-			ensure!(!Self::exists(asset_pair), Error::<T>::TokenPoolAlreadyExists);
+			ensure!(!Self::exists(asset_pair), Error::<T>::PoolAlreadyExists);
 
 			ensure!(
-				T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
+				T::MultiCurrency::free_balance(asset_a.id, &pool_owner) >= asset_a.amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 
 			ensure!(
-				T::MultiCurrency::free_balance(asset_b, &who) >= amount_b,
+				T::MultiCurrency::free_balance(asset_b.id, &pool_owner) >= asset_b.amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 
+			let pool_data = Pool::new(asset_a, asset_b, sale_duration, weight_curve, pausable);
 			Self::validate_pool_data(&pool_data)?;
 
 			let pool_id = Self::get_pair_id(asset_pair);
 
 			let deposit = T::PoolDeposit::get();
 
-			T::MultiCurrency::reserve(T::NativeAssetId::get(), &who, deposit)?;
+			T::MultiCurrency::reserve(T::NativeAssetId::get(), &pool_owner, deposit)?;
 			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
-			<PoolOwner<T>>::insert(&pool_id, &who);
-			<PoolAssets<T>>::insert(&pool_id, &(asset_a, asset_b));
+			<PoolOwner<T>>::insert(&pool_id, &pool_owner);
+			<PoolAssets<T>>::insert(&pool_id, &(asset_a.id, asset_b.id));
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
-			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
-			<PoolBalances<T>>::insert(&pool_id, &(amount_a, amount_b));
+			T::MultiCurrency::transfer(asset_a.id, &pool_owner, &pool_id, asset_a.amount)?;
+			T::MultiCurrency::transfer(asset_b.id, &pool_owner, &pool_id, asset_b.amount)?;
 
-			Self::deposit_event(Event::CreatePool(who, asset_a, asset_b, amount_a, amount_b));
+			<PoolBalances<T>>::insert(&pool_id, &(asset_a.amount, asset_b.amount));
+
+			Self::deposit_event(Event::PoolCreated(
+				pool_owner,
+				asset_a.id,
+				asset_b.id,
+				asset_a.amount,
+				asset_b.amount,
+			));
 
 			Ok(().into())
 		}
@@ -359,7 +429,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -390,7 +460,7 @@ pub mod pallet {
 			Self::validate_pool_data(&pool_data)?;
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
-			Self::deposit_event(Event::UpdatePool(who, pool_id));
+			Self::deposit_event(Event::PoolUpdated(who, pool_id));
 
 			Ok(().into())
 		}
@@ -399,7 +469,7 @@ pub mod pallet {
 		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -415,7 +485,7 @@ pub mod pallet {
 			pool_data.paused = true;
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			Self::deposit_event(Event::Paused(who));
+			Self::deposit_event(Event::Paused(who, pool_id));
 			Ok(().into())
 		}
 
@@ -423,7 +493,7 @@ pub mod pallet {
 		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -437,7 +507,7 @@ pub mod pallet {
 			pool_data.paused = false;
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			Self::deposit_event(Event::Unpaused(who));
+			Self::deposit_event(Event::Unpaused(who, pool_id));
 			Ok(().into())
 		}
 
@@ -451,7 +521,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -493,7 +563,7 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
 
 			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
-			Self::deposit_event(Event::AddLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+			Self::deposit_event(Event::LiquidityAdded(pool_id, asset_a, asset_b, amount_a, amount_b));
 
 			Ok(().into())
 		}
@@ -508,7 +578,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -536,7 +606,7 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
 
 			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
-			Self::deposit_event(Event::RemoveLiquidity(pool_id, asset_a, asset_b, amount_a, amount_b));
+			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
 
 			Ok(().into())
 		}
@@ -546,7 +616,7 @@ pub mod pallet {
 		pub fn destroy_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::TokenPoolNotFound);
+			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
@@ -612,7 +682,7 @@ pub mod pallet {
 }
 
 /// Trade type used in validation to determine how to perform certain checks
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(RuntimeDebug, Clone, PartialEq, Eq)]
 enum TradeType {
 	Sell,
 	Buy,
@@ -633,7 +703,7 @@ impl<T: Config> Pallet<T> {
 				pool_data.final_weights.0 .1,
 				now,
 			)
-			.map_err(|_| Error::<T>::CalculationError)?;
+			.map_err(|_| Error::<T>::WeightCalculationError)?;
 
 			pool_data.last_weights.1 .1 = T::LBPWeightFunction::calculate_weight(
 				pool_data.curve,
@@ -643,7 +713,7 @@ impl<T: Config> Pallet<T> {
 				pool_data.final_weights.1 .1,
 				now,
 			)
-			.map_err(|_| Error::<T>::CalculationError)?;
+			.map_err(|_| Error::<T>::WeightCalculationError)?;
 			pool_data.last_weight_update = now;
 		}
 
@@ -698,7 +768,7 @@ impl<T: Config> Pallet<T> {
 	) -> Result<AMMTransfer<T::AccountId, AssetPair, Balance>, DispatchError> {
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
-		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+		ensure!(Self::exists(assets), Error::<T>::PoolNotFound);
 
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount,
@@ -935,7 +1005,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.amount_out,
 		));
 
-		Ok(().into())
+		Ok(())
 	}
 
 	/// Validate buy trade and update pool weights
@@ -959,6 +1029,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.amount,
 			transfer.amount_out,
 		));
-		Ok(().into())
+		Ok(())
 	}
 }

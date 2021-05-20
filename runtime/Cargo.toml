@@ -33,7 +33,7 @@ pallet-transaction-multi-payment = { path = '../pallets/transaction-multi-paymen
 pallet-multi-payment-benchmarking = { path = '../pallets/transaction-multi-payment/benchmarking', default-features = false, optional = true, version = '3.0.0' }
 primitives = { default-features = false, version = '3.0.0' }
 module-amm-rpc-runtime-api = { default-features = false, version = '3.0.0' }
-pallet-lbp = { path = '../pallets/lbp', default-features = false, version = '3.0.0' }
+pallet-lbp = { path = '../pallets/lbp', default-features = false, version = '1.0.0' }
 
 # ORML dependencies
 orml-currencies = { default-features = false, version = "0.4.1-dev" }
