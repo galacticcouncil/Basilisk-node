@@ -418,6 +418,21 @@ fn update_pool_data_should_work() {
 }
 
 #[test]
+fn update_pool_data_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(LBPPallet::update_pool_data(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID,
+			Some(15),
+			None,
+			Some(((ACA, 10), (DOT, 90))),
+			None,
+		),
+		Error::<Test>::NotOwner);
+	});
+}
+
+#[test]
 fn update_pool_data_for_running_lbp_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		System::set_block_number(16);
@@ -760,6 +775,19 @@ fn add_liquidity_should_work() {
 }
 
 #[test]
+fn add_liquidity_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::add_liquidity(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID,
+			10_000_000_000,
+			20_000_000_000,),
+		Error::<Test>::NotOwner);
+		});
+}
+
+#[test]
 fn add_zero_liquidity_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
@@ -930,6 +958,19 @@ fn remove_liquidity_should_work() {
 }
 
 #[test]
+fn remove_liquidity_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::remove_liquidity(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID,
+			10_000_000_000,
+			20_000_000_000,),
+		Error::<Test>::NotOwner);
+		});
+}
+
+#[test]
 fn remove_zero_liquidity_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		System::set_block_number(30);
@@ -1055,6 +1096,17 @@ fn destroy_pool_should_work() {
 			Event::PoolDestroyed(ACA_DOT_POOL_ID, ACA, DOT, balance_a_before, balance_b_before).into(),
 		]);
 	});
+}
+
+#[test]
+fn destroy_pool_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::destroy_pool(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID),
+		Error::<Test>::NotOwner);
+		});
 }
 
 #[test]

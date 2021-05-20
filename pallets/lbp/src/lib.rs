@@ -390,33 +390,23 @@ pub mod pallet {
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
-			let mut pool_data = Self::pool_data(&pool_id);
+			<PoolData<T>>::try_mutate(pool_id.clone(), |pool| -> DispatchResult {
+				let now = <frame_system::Pallet<T>>::block_number();
 
-			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(
-				pool_data.start == Zero::zero() || now < pool_data.start,
-				Error::<T>::SaleStarted
-			);
+				ensure!(
+					pool.start == Zero::zero() || now < pool.start,
+					Error::<T>::SaleStarted
+				);
 
-			if let Some(new_start) = start {
-				pool_data.start = new_start;
-			}
+				pool.start = start.unwrap_or(pool.start);
+				pool.end = end.unwrap_or(pool.end);
+				pool.initial_weights = initial_weights.unwrap_or(pool.initial_weights);
+				pool.final_weights = final_weights.unwrap_or(pool.final_weights);
 
-			if let Some(new_end) = end {
-				pool_data.end = new_end;
-			}
+				Self::validate_pool_data(&pool)?;
+				Ok(())
+			})?;
 
-			if let Some((w1, w2)) = initial_weights {
-				pool_data.initial_weights = (w1, w2);
-			}
-
-			if let Some((w1, w2)) = final_weights {
-				pool_data.final_weights = (w1, w2);
-			}
-
-			Self::validate_pool_data(&pool_data)?;
-
-			<PoolData<T>>::insert(&pool_id, &pool_data);
 			Self::deposit_event(Event::PoolUpdated(who, pool_id));
 
 			Ok(().into())
