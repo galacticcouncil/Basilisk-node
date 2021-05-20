@@ -2,7 +2,7 @@
 
 use cumulus_primitives_core::ParaId;
 use basilisk_runtime::{
-	AccountId, AuraId, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
+	AccountId, AuraId, AuraConfig, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
 	SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY,
 };
 use hex_literal::hex;
@@ -223,7 +223,7 @@ fn parachain_genesis(
 			// Assign network admin rights.
 			key: root_key,
 		},
-		pallet_aura: rococo_parachain_runtime::AuraConfig {
+		pallet_aura: AuraConfig {
 			authorities: initial_authorities,
 		},
 		pallet_asset_registry: AssetRegistryConfig {
@@ -255,5 +255,6 @@ fn parachain_genesis(
 			mint_limit: 5,
 			mintable_currencies: vec![0, 1, 2],
 		},
+		cumulus_pallet_aura_ext: Default::default(),
 	}
 }
