@@ -22,6 +22,8 @@ use primitives::{
 };
 use sp_std::{marker::PhantomData, vec, vec::Vec, fmt::Debug};
 
+use hydra_dx_math::lbp::LBPWeight;
+
 #[cfg(test)]
 mod mock;
 
@@ -35,48 +37,6 @@ use weights::WeightInfo;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
-
-#[derive(RuntimeDebug, Clone, PartialEq)]
-pub enum MathError {
-	Overflow,
-	ZeroDuration,
-}
-use crate::MathError::{Overflow, ZeroDuration};
-
-// TODO: move this function to the hydradx-math crate
-/// Calculating weight at any given block in an interval using linear interpolation.
-///
-/// - `a_x` - beginning of an interval
-/// - `b_x` - end of an interval
-/// - `a_y` - initial weight
-/// - `b_y` - final weight
-/// - `at` - block number at which to calculate the weight
-fn calculate_linear_weights<BlockNumber: AtLeast32BitUnsigned>(
-	a_x: BlockNumber,
-	b_x: BlockNumber,
-	a_y: LBPWeight,
-	b_y: LBPWeight,
-	at: BlockNumber,
-) -> Result<LBPWeight, MathError> {
-	let d1 = b_x.checked_sub(&at).ok_or(Overflow)?;
-	let d2 = at.checked_sub(&a_x).ok_or(Overflow)?;
-	let dx = b_x.checked_sub(&a_x).ok_or(Overflow)?;
-
-	let dx: u32 = dx.try_into().map_err(|_| Overflow)?;
-	// if dx fits into u32, d1 and d2 fit into u128
-	let d1: u128 = d1.try_into().map_err(|_| Overflow)?;
-	let d2: u128 = d2.try_into().map_err(|_| Overflow)?;
-
-	ensure!(dx != 0, ZeroDuration);
-
-	let left = a_y.checked_mul(d1).ok_or(Overflow)?; // TODO: change to u256 once moved to hydradx-math
-	let right = b_y.checked_mul(d2).ok_or(Overflow)?; // TODO: change to u256 once moved to hydradx-math
-	let result = (left.checked_add(right).ok_or(Overflow)?)
-		.checked_div(dx.into())
-		.ok_or(Overflow)?;
-
-	Ok(result)
-}
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
@@ -92,7 +52,6 @@ impl Default for WeightCurveType {
 }
 
 type PoolId<T> = <T as frame_system::Config>::AccountId;
-type LBPWeight = u128;
 
 use codec::{Decode, Encode};
 #[cfg(feature = "std")]
@@ -159,7 +118,7 @@ pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 		a_y: LBPWeight,
 		b_y: LBPWeight,
 		at: BlockNumber,
-	) -> Result<LBPWeight, MathError>;
+	) -> Result<LBPWeight, ()>;
 }
 
 pub struct LBPWeightFunction;
@@ -171,9 +130,10 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 		a_y: LBPWeight,
 		b_y: LBPWeight,
 		at: BlockNumber,
-	) -> Result<LBPWeight, MathError> {
+	) -> Result<LBPWeight, ()> {
 		match curve_type {
-			WeightCurveType::Linear => calculate_linear_weights(a_x, b_x, a_y, b_y, at),
+			WeightCurveType::Linear => hydra_dx_math::lbp::calculate_linear_weights(a_x, b_x, a_y, b_y, at)
+				.map_err(|_| ()),
 			WeightCurveType::Constant => Ok(a_y),
 		}
 	}
@@ -316,10 +276,12 @@ pub mod pallet {
 		Unpaused(T::AccountId, PoolId<T>),
 	}
 
+	/// Tracks pool owners.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_owner)]
 	pub type PoolOwner<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, T::AccountId, ValueQuery>;
 
+	/// Paid deposit. Returned when a pool is destroyed and removed from the storage.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_deposit)]
 	pub type PoolDeposit<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, BalanceOf<T>, ValueQuery>;
@@ -329,10 +291,12 @@ pub mod pallet {
 	#[pallet::getter(fn pool_assets)]
 	pub type PoolAssets<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, (AssetId, AssetId), ValueQuery>;
 
+	/// Details of a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_data)]
 	pub type PoolData<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::BlockNumber>, ValueQuery>;
 
+	/// Pool balances.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_balances)]
 	pub type PoolBalances<T: Config> =
@@ -354,7 +318,7 @@ pub mod pallet {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				!asset_a.amount.is_zero() || !asset_b.amount.is_zero(),
+				!asset_a.amount.is_zero() && !asset_b.amount.is_zero(),
 				Error::<T>::CannotCreatePoolWithZeroLiquidity
 			);
 
@@ -380,11 +344,10 @@ pub mod pallet {
 			let pool_data = Pool::new(asset_a, asset_b, sale_duration, weight_curve, pausable);
 			Self::validate_pool_data(&pool_data)?;
 
-			let pool_id = Self::get_pair_id(asset_pair);
-
 			let deposit = T::PoolDeposit::get();
 
 			T::MultiCurrency::reserve(T::NativeAssetId::get(), &pool_owner, deposit)?;
+			let pool_id = Self::get_pair_id(asset_pair);
 			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
 			<PoolOwner<T>>::insert(&pool_id, &pool_owner);
@@ -865,7 +828,7 @@ impl<T: Config> Pallet<T> {
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 
-	/// WARN: unsafe function - make sure asset_a is in pool. This function return weigth in order based on asset_a id
+	/// WARN: unsafe function - make sure asset_a is in pool. This function return weight in order based on asset_a id
 	fn get_weights_in_order(pool_data: &Pool<T::BlockNumber>, asset_a: AssetId) -> (LBPWeight, LBPWeight) {
 		if pool_data.last_weights.0 .0 == asset_a {
 			(pool_data.last_weights.0 .1, pool_data.last_weights.1 .1)

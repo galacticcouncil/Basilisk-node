@@ -53,143 +53,6 @@ fn expect_events(e: Vec<TestEvent>) {
 	assert_eq!(last_events(e.len()), e);
 }
 
-// TODO: move me to the hydradx-math crate
-#[test]
-fn linear_weights_should_work() {
-	let u32_cases = vec![
-		(100u32, 200u32, 1_000u128, 2_000u128, 170u32, Ok(1_700), "Easy case"),
-		(
-			100u32,
-			200u32,
-			2_000u128,
-			1_000u128,
-			170u32,
-			Ok(1_300),
-			"Easy decreasing case",
-		),
-		(
-			100u32,
-			200u32,
-			2_000u128,
-			2_000u128,
-			170u32,
-			Ok(2_000),
-			"Easy constant case",
-		),
-		(
-			100u32,
-			200u32,
-			1_000u128,
-			2_000u128,
-			100u32,
-			Ok(1_000),
-			"Initial weight",
-		),
-		(
-			100u32,
-			200u32,
-			2_000u128,
-			1_000u128,
-			100u32,
-			Ok(2_000),
-			"Initial decreasing weight",
-		),
-		(
-			100u32,
-			200u32,
-			2_000u128,
-			2_000u128,
-			100u32,
-			Ok(2_000),
-			"Initial constant weight",
-		),
-		(100u32, 200u32, 1_000u128, 2_000u128, 200u32, Ok(2_000), "Final weight"),
-		(
-			100u32,
-			200u32,
-			2_000u128,
-			1_000u128,
-			200u32,
-			Ok(1_000),
-			"Final decreasing weight",
-		),
-		(
-			100u32,
-			200u32,
-			2_000u128,
-			2_000u128,
-			200u32,
-			Ok(2_000),
-			"Final constant weight",
-		),
-		(
-			200u32,
-			100u32,
-			1_000u128,
-			2_000u128,
-			170u32,
-			Err(Overflow),
-			"Invalid interval",
-		),
-		(
-			100u32,
-			100u32,
-			1_000u128,
-			2_000u128,
-			100u32,
-			Err(ZeroDuration),
-			"Invalid interval",
-		),
-		(
-			100u32,
-			200u32,
-			1_000u128,
-			2_000u128,
-			10u32,
-			Err(Overflow),
-			"Out of bound",
-		),
-		(
-			100u32,
-			200u32,
-			1_000u128,
-			2_000u128,
-			210u32,
-			Err(Overflow),
-			"Out of bound",
-		),
-	];
-	let u64_cases = vec![
-		(100u64, 200u64, 1_000u128, 2_000u128, 170u64, Ok(1_700), "Easy case"),
-		(
-			100u64,
-			u64::MAX,
-			1_000u128,
-			2_000u128,
-			200u64,
-			Err(Overflow),
-			"Interval too long",
-		),
-	];
-
-	for case in u32_cases {
-		assert_eq!(
-			crate::calculate_linear_weights(case.0, case.1, case.2, case.3, case.4),
-			case.5,
-			"{}",
-			case.6
-		);
-	}
-	for case in u64_cases {
-		assert_eq!(
-			crate::calculate_linear_weights(case.0, case.1, case.2, case.3, case.4),
-			case.5,
-			"{}",
-			case.6
-		);
-	}
-}
-
 #[test]
 fn weight_update_should_work() {
 	new_test_ext().execute_with(|| {
@@ -274,6 +137,7 @@ fn validate_pool_data_should_work() {
 		};
 		assert_ok!(LBPPallet::validate_pool_data(&pool_data));
 
+		// null interval
 		let pool_data = Pool {
 			start: 0u64,
 			end: 0u64,
@@ -451,6 +315,34 @@ fn create_same_pool_should_not_work() {
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
 		]);
+	});
+}
+
+#[test]
+fn create_pool_with_same_assets_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo{
+					id: ACA,
+					amount: 1_000_000_000,
+					initial_weight: 20,
+					final_weight: 90,
+				},
+				LBPAssetInfo{
+					id: ACA,
+					amount: 2_000_000_000,
+					initial_weight: 80,
+					final_weight: 10,
+				},
+			(20u64, 10u64),
+			WeightCurveType::Linear,
+			true,
+			),
+			Error::<Test>::CannotCreatePoolWithSameAssets
+		);
 	});
 }
 
