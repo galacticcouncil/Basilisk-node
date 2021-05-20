@@ -3,10 +3,10 @@
 use super::*;
 
 use frame_benchmarking::{account, benchmarks};
-use frame_system::RawOrigin;
 use frame_support::dispatch::DispatchResultWithPostInfo;
+use frame_system::RawOrigin;
 
-use primitives::{AssetId};
+use primitives::AssetId;
 
 use crate::Pallet as LBP;
 

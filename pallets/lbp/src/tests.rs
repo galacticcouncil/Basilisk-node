@@ -1,16 +1,18 @@
 use super::*;
 pub use crate::mock::{
-	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, ACA, ALICE, BOB, CHARLIE,
-	DOT, ETH, HDX,
+	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, ACA, ALICE, BOB, DOT, ETH,
+	HDX,
 };
-use crate::mock::{INITIAL_BALANCE, POOL_ADDRESS, POOL_DEPOSIT};
-use frame_support::{assert_err, assert_noop, assert_ok};
+use crate::mock::{INITIAL_BALANCE, POOL_DEPOSIT};
+use frame_support::{assert_noop, assert_ok};
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
 	ext.execute_with(|| System::set_block_number(1));
 	ext
 }
+
+pub use primitives::{asset::AssetPair, traits::AMMTransfer, MAX_IN_RATIO, MAX_OUT_RATIO};
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
@@ -23,10 +25,10 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
+			initial_weights: ((asset_a, 20), (asset_b, 80)),
+			final_weights: ((asset_a, 90), (asset_b, 10)),
 			last_weight_update: 0u64,
-			last_weights: ((1, 20), (2, 80)),
+			last_weights: ((asset_a, 20), (asset_b, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -201,10 +203,10 @@ fn weight_update_should_work() {
 		let mut linear_pool = Pool {
 			start: 10u64,
 			end: 19u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 80), (2, 20)),
+			initial_weights: ((ACA, 20), (DOT, 80)),
+			final_weights: ((ACA, 80), (DOT, 20)),
 			last_weight_update: 2u64,
-			last_weights: ((1, 2), (2, 2)),
+			last_weights: ((ACA, 2), (DOT, 2)),
 			curve: CurveType::Linear,
 			pausable: false,
 			paused: false,
@@ -212,10 +214,10 @@ fn weight_update_should_work() {
 		let mut constant_pool = Pool {
 			start: 10u64,
 			end: 19u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 80), (2, 20)),
+			initial_weights: ((ACA, 20), (DOT, 80)),
+			final_weights: ((ACA, 80), (DOT, 20)),
 			last_weight_update: 2u64,
-			last_weights: ((1, 2), (2, 2)),
+			last_weights: ((ACA, 2), (DOT, 2)),
 			curve: CurveType::Constant,
 			pausable: false,
 			paused: false,
@@ -242,24 +244,24 @@ fn weight_update_should_work() {
 
 		System::set_block_number(13);
 
-		LBPPallet::update_weights(&mut linear_pool);
-		LBPPallet::update_weights(&mut constant_pool);
+		assert_ok!(LBPPallet::update_weights(&mut linear_pool));
+		assert_ok!(LBPPallet::update_weights(&mut constant_pool));
 
 		assert_eq!(linear_pool.last_weight_update, 13);
 		assert_eq!(constant_pool.last_weight_update, 13);
 
-		assert_eq!(linear_pool.last_weights, ((1, 40u128), (2, 60u128)));
-		assert_eq!(constant_pool.last_weights, ((1, 20u128), (2, 80u128)));
+		assert_eq!(linear_pool.last_weights, ((ACA, 40u128), (DOT, 60u128)));
+		assert_eq!(constant_pool.last_weights, ((ACA, 20u128), (DOT, 80u128)));
 
 		// call update again in the same block, data should be the same
-		LBPPallet::update_weights(&mut linear_pool);
-		LBPPallet::update_weights(&mut constant_pool);
+		assert_ok!(LBPPallet::update_weights(&mut linear_pool));
+		assert_ok!(LBPPallet::update_weights(&mut constant_pool));
 
 		assert_eq!(linear_pool.last_weight_update, 13);
 		assert_eq!(constant_pool.last_weight_update, 13);
 
-		assert_eq!(linear_pool.last_weights, ((1, 40u128), (2, 60u128)));
-		assert_eq!(constant_pool.last_weights, ((1, 20u128), (2, 80u128)));
+		assert_eq!(linear_pool.last_weights, ((ACA, 40u128), (DOT, 60u128)));
+		assert_eq!(constant_pool.last_weights, ((ACA, 20u128), (DOT, 80u128)));
 	});
 }
 
@@ -269,10 +271,10 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
+			initial_weights: ((ACA, 20), (DOT, 80)),
+			final_weights: ((ACA, 90), (DOT, 10)),
 			last_weight_update: 0u64,
-			last_weights: ((1, 20), (2, 80)),
+			last_weights: ((ACA, 20), (DOT, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -282,10 +284,10 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 0u64,
 			end: 0u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
+			initial_weights: ((ACA, 20), (DOT, 80)),
+			final_weights: ((ACA, 90), (DOT, 10)),
 			last_weight_update: 0u64,
-			last_weights: ((1, 20), (2, 80)),
+			last_weights: ((ACA, 20), (DOT, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -295,10 +297,10 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 2u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
+			initial_weights: ((ACA, 20), (DOT, 80)),
+			final_weights: ((ACA, 90), (DOT, 10)),
 			last_weight_update: 0u64,
-			last_weights: ((1, 20), (2, 80)),
+			last_weights: ((ACA, 20), (DOT, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -311,10 +313,10 @@ fn validate_pool_data_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 11u64 + u32::MAX as u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
+			initial_weights: ((ACA, 20), (DOT, 80)),
+			final_weights: ((ACA, 90), (DOT, 10)),
 			last_weight_update: 0u64,
-			last_weights: ((1, 20), (2, 80)),
+			last_weights: ((ACA, 20), (DOT, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -337,10 +339,10 @@ fn create_pool_should_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
+			initial_weights: ((asset_a, 20), (asset_b, 80)),
+			final_weights: ((asset_a, 90), (asset_b, 10)),
 			last_weight_update: 0u64,
-			last_weights: ((1, 20), (2, 80)),
+			last_weights: ((asset_a, 20), (asset_b, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -396,10 +398,10 @@ fn create_same_pool_should_not_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 20u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
+			initial_weights: ((asset_a, 20), (asset_b, 80)),
+			final_weights: ((asset_a, 90), (asset_b, 10)),
 			last_weight_update: 0u64,
-			last_weights: ((1, 20), (2, 80)),
+			last_weights: ((asset_a, 20), (asset_b, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -434,10 +436,10 @@ fn create_pool_invalid_data_should_not_work() {
 		let pool_data = Pool {
 			start: 10u64,
 			end: 2u64,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
+			initial_weights: ((asset_a, 20), (asset_b, 80)),
+			final_weights: ((asset_a, 90), (asset_b, 10)),
 			last_weight_update: 0u64,
-			last_weights: ((1, 20), (2, 80)),
+			last_weights: ((asset_a, 20), (asset_b, 80)),
 			curve: CurveType::Linear,
 			pausable: true,
 			paused: false,
@@ -459,7 +461,7 @@ fn update_pool_data_should_work() {
 			asset_out: DOT,
 		});
 		let new_start = 15;
-		let new_final_weights = ((1, 10), (2, 90));
+		let new_final_weights = ((ACA, 10), (DOT, 90));
 
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(user),
@@ -495,10 +497,10 @@ fn pause_pool_should_work() {
 			Pool {
 				start: 10u64,
 				end: 20u64,
-				initial_weights: ((1, 20), (2, 80)),
-				final_weights: ((1, 90), (2, 10)),
+				initial_weights: ((ACA, 20), (DOT, 80)),
+				final_weights: ((ACA, 90), (DOT, 10)),
 				last_weight_update: 0u64,
-				last_weights: ((1, 20), (2, 80)),
+				last_weights: ((ACA, 20), (DOT, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: true
@@ -541,10 +543,10 @@ fn pause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: ((1, 20), (2, 80)),
-				final_weights: ((1, 40), (2, 60)),
+				initial_weights: ((ACA, 20), (ETH, 80)),
+				final_weights: ((ACA, 40), (ETH, 60)),
 				last_weight_update: 0u64,
-				last_weights: ((1, 20), (2, 80)),
+				last_weights: ((ACA, 20), (ETH, 80)),
 				curve: CurveType::Linear,
 				pausable: false,
 				paused: false,
@@ -570,10 +572,10 @@ fn pause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: ((3, 20), (2, 80)),
-				final_weights: ((3, 40), (3, 60)),
+				initial_weights: ((DOT, 20), (ETH, 80)),
+				final_weights: ((DOT, 40), (ETH, 60)),
 				last_weight_update: 0u64,
-				last_weights: ((3, 20), (2, 80)),
+				last_weights: ((DOT, 20), (ETH, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: true,
@@ -599,10 +601,10 @@ fn pause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: ((3, 20), (4, 80)),
-				final_weights: ((3, 40), (4, 60)),
+				initial_weights: ((DOT, 20), (HDX, 80)),
+				final_weights: ((DOT, 40), (HDX, 60)),
 				last_weight_update: 0u64,
-				last_weights: ((3, 20), (4, 80)),
+				last_weights: ((DOT, 20), (HDX, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: false,
@@ -645,10 +647,10 @@ fn unpause_pool_should_work() {
 			Pool {
 				start: 200u64,
 				end: 400u64,
-				initial_weights: ((3, 20), (4, 80)),
-				final_weights: ((3, 40), (4, 60)),
+				initial_weights: ((DOT, 20), (HDX, 80)),
+				final_weights: ((DOT, 40), (HDX, 60)),
 				last_weight_update: 0u64,
-				last_weights: ((3, 20), (4, 80)),
+				last_weights: ((DOT, 20), (HDX, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: true,
@@ -663,10 +665,10 @@ fn unpause_pool_should_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: ((3, 20), (4, 80)),
-				final_weights: ((3, 40), (4, 60)),
+				initial_weights: ((DOT, 20), (HDX, 80)),
+				final_weights: ((DOT, 40), (HDX, 60)),
 				last_weight_update: 0u64,
-				last_weights: ((3, 20), (4, 80)),
+				last_weights: ((DOT, 20), (HDX, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: false
@@ -709,10 +711,10 @@ fn unpause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: ((1, 20), (2, 80)),
-				final_weights: ((1, 40), (2, 60)),
+				initial_weights: ((ACA, 20), (ETH, 80)),
+				final_weights: ((ACA, 40), (ETH, 60)),
 				last_weight_update: 0u64,
-				last_weights: ((1, 20), (2, 80)),
+				last_weights: ((ACA, 20), (ETH, 80)),
 				curve: CurveType::Linear,
 				pausable: false,
 				paused: false,
@@ -738,10 +740,10 @@ fn unpause_pool_should_not_work() {
 			Pool {
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: ((3, 20), (4, 80)),
-				final_weights: ((3, 40), (4, 60)),
+				initial_weights: ((DOT, 20), (HDX, 80)),
+				final_weights: ((DOT, 40), (HDX, 60)),
 				last_weight_update: 0u64,
-				last_weights: ((3, 20), (4, 80)),
+				last_weights: ((DOT, 20), (HDX, 80)),
 				curve: CurveType::Linear,
 				pausable: true,
 				paused: true,
@@ -777,7 +779,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 			asset_out: DOT,
 		});
 		let new_start = 15;
-		let new_final_weights = ((1, 10), (2, 90));
+		let new_final_weights = ((ACA, 10), (DOT, 90));
 
 		assert_noop!(
 			LBPPallet::update_pool_data(
@@ -1267,5 +1269,595 @@ fn destroy_not_finalized_pool_should_not_work() {
 			2_000_000_000,
 		)
 		.into()]);
+	});
+}
+
+#[test]
+fn execute_trade_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+
+		let amount_in = 5_000_000_u128;
+		let amount_out = 10_000_000_u128;
+		let t = AMMTransfer {
+			origin: ALICE,
+			assets: AssetPair { asset_in, asset_out },
+			amount: amount_in,
+			amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+		};
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+
+		assert_ok!(LBPPallet::execute_trade(&t));
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_995_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_010_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_005_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
+	});
+}
+
+// This test ensure storage was not modified on error
+#[test]
+fn execute_trade_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+
+		let amount_in = 5_000_000_u128;
+		let amount_out = 10_000_000_000_000_000u128;
+		let t = AMMTransfer {
+			origin: ALICE,
+			assets: AssetPair { asset_in, asset_out },
+			amount: amount_in,
+			amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+		};
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+
+		assert_noop!(LBPPallet::execute_trade(&t), orml_tokens::Error::<Test>::BalanceTooLow);
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+	});
+}
+
+#[test]
+fn execute_sell_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+
+		let amount_in = 8_000_000_u128;
+		let amount_out = 20_000_000_u128;
+		let t = AMMTransfer {
+			origin: ALICE,
+			assets: AssetPair { asset_in, asset_out },
+			amount: amount_in,
+			amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+		};
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+
+		assert_ok!(LBPPallet::execute_sell(&t));
+
+		expect_events(vec![Event::SellExecuted(
+			ALICE, asset_in, asset_out, amount_in, amount_out,
+		)
+		.into()]);
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_992_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
+	});
+}
+
+// This test ensure storage was not modified on error
+#[test]
+fn execute_sell_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+
+		let amount_in = 8_000_000_000_u128;
+		let amount_out = 200_000_000_000_000_u128;
+		let t = AMMTransfer {
+			origin: ALICE,
+			assets: AssetPair { asset_in, asset_out },
+			amount: amount_in,
+			amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+		};
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+
+		assert_noop!(LBPPallet::execute_sell(&t), orml_tokens::Error::<Test>::BalanceTooLow);
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+	});
+}
+
+#[test]
+fn execute_buy_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+
+		let amount_in = 8_000_000_u128;
+		let amount_out = 20_000_000_u128;
+		let t = AMMTransfer {
+			origin: ALICE,
+			assets: AssetPair { asset_in, asset_out },
+			amount: amount_in,
+			amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+		};
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+
+		assert_ok!(LBPPallet::execute_buy(&t));
+
+		expect_events(vec![Event::BuyExecuted(
+			ALICE, asset_out, asset_in, amount_in, amount_out,
+		)
+		.into()]);
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_992_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
+	});
+}
+
+// This test ensure storage was not modified on error
+#[test]
+fn execute_buy_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+
+		let amount_in = 8_000_000_000_u128;
+		let amount_out = 200_000_000_000_000_u128;
+		let t = AMMTransfer {
+			origin: ALICE,
+			assets: AssetPair { asset_in, asset_out },
+			amount: amount_in,
+			amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+		};
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+
+		assert_noop!(LBPPallet::execute_buy(&t), orml_tokens::Error::<Test>::BalanceTooLow);
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
+	});
+}
+
+#[test]
+fn sell_zero_amount_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(BOB), ACA, DOT, 0_u128, 200_000_u128),
+			Error::<Test>::ZeroAmount
+		);
+	});
+}
+
+#[test]
+fn buy_zero_amount_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(BOB), ACA, DOT, 0_u128, 200_000_u128),
+			Error::<Test>::ZeroAmount
+		);
+	});
+}
+
+#[test]
+fn sell_to_non_existing_pool_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(BOB), ACA, ETH, 800_000_u128, 200_000_u128),
+			Error::<Test>::TokenPoolNotFound
+		);
+	});
+}
+
+#[test]
+fn buy_from_non_existing_pool_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(BOB), ACA, ETH, 800_000_u128, 200_000_u128),
+			Error::<Test>::TokenPoolNotFound
+		);
+	});
+}
+
+#[test]
+fn exceed_max_in_ratio_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		run_to_block(11); //start sale
+		assert_noop!(
+			LBPPallet::sell(
+				Origin::signed(BOB),
+				ACA,
+				DOT,
+				1_000_000_000 / MAX_IN_RATIO + 1,
+				200_000_u128
+			),
+			Error::<Test>::MaxInRatioExceeded
+		);
+
+		//1/2 should not work
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(BOB), ACA, DOT, 1_000_000_000 / 2, 200_000_u128),
+			Error::<Test>::MaxInRatioExceeded
+		);
+
+		//max ratio should work
+		assert_ok!(LBPPallet::sell(
+			Origin::signed(BOB),
+			ACA,
+			DOT,
+			1_000_000_000 / MAX_IN_RATIO,
+			2_000_u128
+		));
+	});
+}
+
+#[test]
+fn exceed_max_out_ratio_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		run_to_block(11); //start sale
+
+		//max_ratio_out + 1 should not work
+		assert_noop!(
+			LBPPallet::buy(
+				Origin::signed(BOB),
+				ACA,
+				DOT,
+				1_000_000_000 / MAX_OUT_RATIO + 1,
+				200_000_u128
+			),
+			Error::<Test>::MaxOutRatioExceeded
+		);
+
+		//1/2 should not work
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(BOB), ACA, DOT, 1_000_000_000 / 2, 200_000_u128),
+			Error::<Test>::MaxOutRatioExceeded
+		);
+
+		//max ratio should work
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(BOB),
+			ACA,
+			DOT,
+			1_000_000_000 / MAX_OUT_RATIO,
+			2_000_000_000_u128
+		));
+	});
+}
+
+#[test]
+fn trade_in_non_running_pool_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let who = BOB;
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let amount = 800_000_u128;
+		let limit = 200_000_u128;
+
+		//sale not started
+		run_to_block(9);
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, limit),
+			Error::<Test>::SaleIsNotRunning
+		);
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(who), asset_in, asset_out, amount, limit),
+			Error::<Test>::SaleIsNotRunning
+		);
+
+		//sale ended
+		run_to_block(21);
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, limit),
+			Error::<Test>::SaleIsNotRunning
+		);
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(who), asset_in, asset_out, amount, limit),
+			Error::<Test>::SaleIsNotRunning
+		);
+
+		//puased pool
+		assert_ok!(LBPPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			1_000_000_000_u128,
+			ETH,
+			10_000_u128,
+			Pool {
+				start: 30u64,
+				end: 40u64,
+				initial_weights: ((HDX, 20), (ETH, 80)),
+				final_weights: ((HDX, 90), (ETH, 10)),
+				last_weight_update: 0u64,
+				last_weights: ((HDX, 20), (ETH, 80)),
+				curve: CurveType::Linear,
+				pausable: true,
+				paused: true,
+			}
+		));
+
+		//pool started but is paused
+		run_to_block(30);
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(BOB), HDX, ETH, amount, limit),
+			Error::<Test>::SaleIsNotRunning
+		);
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(BOB), HDX, ETH, amount, limit),
+			Error::<Test>::SaleIsNotRunning
+		);
+	});
+}
+
+//AssetBalanceLimitExceeded
+#[test]
+fn exceed_trader_limit_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let who = BOB;
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let amount = 800_000_u128;
+		let sell_limit = 800_000_u128;
+		let buy_limit = 1_000_u128;
+
+		//start sale
+		run_to_block(11);
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, sell_limit),
+			Error::<Test>::AssetBalanceLimitExceeded
+		);
+
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(who), asset_in, asset_out, amount, buy_limit),
+			Error::<Test>::AssetBalanceLimitExceeded
+		);
+	});
+}
+
+#[test]
+fn sell_with_insufficient_balance_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let who = BOB;
+		let asset_in = ACA;
+		let asset_out = ETH;
+		let amount = 800_000_u128;
+
+		//puased pool
+		assert_ok!(LBPPallet::create_pool(
+			Origin::signed(who),
+			asset_in,
+			INITIAL_BALANCE,
+			asset_out,
+			10_000_u128,
+			Pool {
+				start: 30u64,
+				end: 40u64,
+				initial_weights: ((asset_in, 20), (asset_out, 80)),
+				final_weights: ((asset_in, 90), (asset_out, 10)),
+				last_weight_update: 0u64,
+				last_weights: ((asset_in, 20), (asset_out, 80)),
+				curve: CurveType::Linear,
+				pausable: true,
+				paused: false,
+			}
+		));
+
+		//start sale
+		run_to_block(31);
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, 2_u128),
+			Error::<Test>::InsufficientAssetBalance
+		);
+	});
+}
+
+#[test]
+fn buy_with_insufficient_balance_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let who = BOB;
+		let asset_in = ACA;
+		let asset_out = ETH;
+		let amount = 800_000_u128;
+
+		//puased pool
+		assert_ok!(LBPPallet::create_pool(
+			Origin::signed(who),
+			asset_in,
+			INITIAL_BALANCE,
+			asset_out,
+			10_000_u128,
+			Pool {
+				start: 30u64,
+				end: 40u64,
+				initial_weights: ((asset_in, 20), (asset_out, 80)),
+				final_weights: ((asset_in, 90), (asset_out, 10)),
+				last_weight_update: 0u64,
+				last_weights: ((asset_in, 20), (asset_out, 80)),
+				curve: CurveType::Linear,
+				pausable: true,
+				paused: false,
+			}
+		));
+
+		//start sale
+		run_to_block(31);
+		assert_noop!(
+			LBPPallet::buy(
+				Origin::signed(who),
+				asset_out,
+				asset_in,
+				amount,
+				2_000_000_000_000_000_000_000_u128
+			),
+			Error::<Test>::InsufficientAssetBalance
+		);
+	});
+}
+
+#[test]
+fn buy_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let who = BOB;
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+
+		assert_eq!(Currency::free_balance(asset_in, &who), 1_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000_u128);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000_u128);
+
+		//start sale
+		run_to_block(11);
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(who),
+			asset_out,
+			asset_in,
+			10_000_000_u128,
+			2_000_000_000_u128
+		));
+
+		let pool = <PoolData<Test>>::get(pool_id);
+
+		assert_eq!(
+			Pool {
+				start: 10u64,
+				end: 20u64,
+				initial_weights: ((asset_in, 20), (asset_out, 80)),
+				final_weights: ((asset_in, 90), (asset_out, 10)),
+				last_weight_update: 11u64,
+				last_weights: ((asset_in, 27), (asset_out, 73)),
+				curve: CurveType::Linear,
+				pausable: true,
+				paused: false,
+			},
+			pool
+		);
+
+		assert_eq!(Currency::free_balance(asset_in, &who), 999_999_986_327_783_u128);
+		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_010_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_013_672_217_u128);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000_u128);
+	});
+}
+
+#[test]
+fn sell_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let who = BOB;
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+
+		assert_eq!(Currency::free_balance(asset_in, &who), 1_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000_u128);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000_u128);
+
+		//start sale
+		run_to_block(11);
+		assert_ok!(LBPPallet::sell(
+			Origin::signed(who),
+			asset_in,
+			asset_out,
+			10_000_000_u128,
+			2_000_u128
+		));
+
+		let pool = <PoolData<Test>>::get(pool_id);
+
+		assert_eq!(
+			Pool {
+				start: 10u64,
+				end: 20u64,
+				initial_weights: ((asset_in, 20), (asset_out, 80)),
+				final_weights: ((asset_in, 90), (asset_out, 10)),
+				last_weight_update: 11u64,
+				last_weights: ((asset_in, 27), (asset_out, 73)),
+				curve: CurveType::Linear,
+				pausable: true,
+				paused: false,
+			},
+			pool
+		);
+
+		assert_eq!(Currency::free_balance(asset_in, &who), INITIAL_BALANCE - 10_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_007_332_274);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000_u128);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_992_667_726_u128);
 	});
 }

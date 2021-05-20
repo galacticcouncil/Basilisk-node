@@ -340,7 +340,6 @@ pub mod pallet {
 
 			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
-
 			<PoolBalances<T>>::insert(&pool_id, &(amount_a, amount_b));
 
 			Self::deposit_event(Event::CreatePool(who, asset_a, asset_b, amount_a, amount_b));
@@ -792,6 +791,7 @@ impl<T: Config> Pallet<T> {
 		})
 	}
 
+	#[transactional]
 	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetPair, Balance>) -> DispatchResult {
 		let pool_id = Self::get_pair_id(transfer.assets);
 
@@ -952,7 +952,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>) -> DispatchResult {
 		Self::execute_trade(transfer)?;
 
-		Self::deposit_event(Event::<T>::SellExecuted(
+		Self::deposit_event(Event::<T>::BuyExecuted(
 			transfer.origin.clone(),
 			transfer.assets.asset_out,
 			transfer.assets.asset_in,
