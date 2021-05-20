@@ -2690,10 +2690,11 @@ dependencies = [
 [[package]]
 name = "hydra-dx-math"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/hydraDX-math?branch=feat/lbp#b5fe6a4cd2d9394548daefeaa2e241d9d81a23cb"
+source = "git+https://github.com/galacticcouncil/hydraDX-math?branch=feat/lbp#3f2c9a6b35007449754324a6a62207bdb7f12471"
 dependencies = [
  "lazy_static",
  "primitive-types 0.7.3",
+ "sp-arithmetic",
 ]
 
 [[package]]
