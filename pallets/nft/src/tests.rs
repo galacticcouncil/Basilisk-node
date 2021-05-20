@@ -205,3 +205,50 @@ fn destroy_class_fails() {
 		);
 	});
 }
+
+#[test]
+fn toggle_lock_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NftModule::create_class(
+			Origin::signed(ALICE),
+			"a class".as_bytes().to_vec(),
+			Default::default()
+		));
+
+		assert_ok!(NftModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+			TEST_QUANTITY,
+		));
+
+		assert_ok!(NftModule::toggle_lock(&ALICE, (CLASS_ID, TOKEN_ID)));
+		let locked = NftModule::is_locked((CLASS_ID, TOKEN_ID));
+		assert!(locked.unwrap());
+	});
+}
+
+#[test]
+fn toggle_lock_fails() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NftModule::create_class(
+			Origin::signed(ALICE),
+			"a class".as_bytes().to_vec(),
+			Default::default()
+		));
+
+		assert_ok!(NftModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+			TEST_QUANTITY,
+		));
+
+		assert_noop!(
+			NftModule::toggle_lock(&BOB, (CLASS_ID, TOKEN_ID)),
+			Error::<Test>::NotTokenOwner
+		);
+	});
+}

@@ -63,10 +63,10 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::mint())]
+		#[pallet::weight(<T as Config>::WeightInfo::mint(*quantity))]
 		pub fn mint(
 			origin: OriginFor<T>,
-			class_id: <T as orml_nft::Config>::ClassId,
+			class_id: ClassIdOf<T>,
 			metadata: Vec<u8>,
 			token_data: TokenData,
 			quantity: u32,
@@ -75,8 +75,7 @@ pub mod pallet {
 			ensure!(quantity > Zero::zero(), Error::<T>::InvalidQuantity);
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
-			let mut data = token_data;
-			data.locked = false;
+			let data = token_data;
 			for _ in 0..quantity {
 				orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data.clone())?;
 			}
@@ -88,14 +87,14 @@ pub mod pallet {
 		pub fn transfer(
 			origin: OriginFor<T>,
 			dest: <T::Lookup as StaticLookup>::Source,
-			token: (T::ClassId, T::TokenId),
+			token: (ClassIdOf<T>, TokenIdOf<T>),
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
+			let to: T::AccountId = T::Lookup::lookup(dest)?;
 			let _class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
-			let to: T::AccountId = T::Lookup::lookup(dest)?;
 			orml_nft::Pallet::<T>::transfer(&sender, &to, token)?;
 			Self::deposit_event(Event::NFTTokenTransferred(sender, to, token.0, token.1));
 			Ok(().into())
@@ -114,7 +113,7 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
-		pub fn destroy_class(origin: OriginFor<T>, class_id: T::ClassId) -> DispatchResultWithPostInfo {
+		pub fn destroy_class(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);

@@ -28,7 +28,7 @@ benchmarks! {
 		let token_data = TokenData { locked:false };
 		let class_data = "just some class data".as_bytes().to_vec();
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
-		let token_quantity = TOKEN_QUANTITY;
+		let token_quantity in 1 .. 1000;
 	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data, token_quantity)
 	verify {
 	}
