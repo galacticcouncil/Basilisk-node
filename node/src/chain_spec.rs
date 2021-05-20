@@ -89,7 +89,7 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "rococo".into(),
+			relay_chain: "westend-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -136,7 +136,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "local_testnet".into(),
+			relay_chain: "westend-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -192,7 +192,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "local_testnet".into(),
+			relay_chain: "westend-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
