@@ -25,35 +25,36 @@ trie-db = { version = "0.22.0", default-features = false }
 
 # local dependencies
 pallet-asset-registry = { default-features = false, version = '3.0.0' }
-pallet-amm = { default-features = false, version = '4.0.1' }
+pallet-xyk= { default-features = false, version = '1.0.0' }
 pallet-exchange = { default-features = false, version = '3.0.0' }
 pallet-exchange-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
 pallet-faucet = { default-features = false, version = '3.0.0' }
-pallet-transaction-multi-payment = { path = '../pallets/transaction-multi-payment', default-features = false, version = '3.0.0' }
-pallet-multi-payment-benchmarking = { path = '../pallets/transaction-multi-payment/benchmarking', default-features = false, optional = true, version = '3.0.0' }
+pallet-transaction-multi-payment = { default-features = false, version = '3.0.0' }
+pallet-multi-payment-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
 primitives = { default-features = false, version = '3.0.0' }
-module-amm-rpc-runtime-api = { default-features = false, version = '3.0.0' }
+pallet-xyk-rpc-runtime-api = { default-features = false, version = '3.0.0' }
 
 # ORML dependencies
 orml-currencies = { default-features = false, version = "0.4.1-dev" }
 orml-tokens = { default-features = false, version = "0.4.1-dev" }
-orml-unknown-tokens = { default-features = false, version = "0.4.1-dev" }
+#orml-unknown-tokens = { default-features = false, version = "0.4.1-dev" }
 orml-traits = { default-features = false, version = "0.4.1-dev" }
-orml-xtokens = { default-features = false, version = "0.4.1-dev" }
-orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
+#orml-xtokens = { default-features = false, version = "0.4.1-dev" }
+#orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
 
 # Cumulus dependencies
-cumulus-pallet-parachain-system = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "rococo-v1" }
-cumulus-primitives-core = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "rococo-v1" }
-cumulus-primitives-parachain-inherent = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "rococo-v1" }
-cumulus-pallet-xcm-handler = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "rococo-v1" }
-parachain-info = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "rococo-v1" }
+cumulus-pallet-aura-ext = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
+cumulus-pallet-parachain-system = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
+cumulus-primitives-core = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
+cumulus-primitives-parachain-inherent = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
+#cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
+parachain-info = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
 
 # Polkadot dependencies
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", default-features = false, features = ["wasm-api"], branch = "rococo-v1" }
-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false , branch = "rococo-v1" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false , branch = "rococo-v1" }
-xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false , branch = "rococo-v1" }
+polkadot-parachain = { version = "0.9.1", default-features = false, features = ["wasm-api"]}
+#xcm = { default-features = false }
+#xcm-builder = { default-features = false }
+#xcm-executor = { default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
@@ -101,7 +102,7 @@ runtime-benchmarks = [
     'pallet-society/runtime-benchmarks',
     'pallet-timestamp/runtime-benchmarks',
     'pallet-multi-payment-benchmarking',
-    "pallet-amm/runtime-benchmarks",
+    "pallet-xyk/runtime-benchmarks",
     "pallet-exchange-benchmarking",
     'sp-runtime/runtime-benchmarks',
 ]
@@ -115,17 +116,18 @@ std = [
     'orml-currencies/std',
     'orml-tokens/std',
     'orml-traits/std',
-    "orml-xtokens/std",
-    "orml-xcm-support/std",
+    #"orml-xtokens/std",
+    #"orml-xcm-support/std",
     "cumulus-pallet-parachain-system/std",
-    "cumulus-pallet-xcm-handler/std",
+    "cumulus-pallet-aura-ext/std",
+    #"cumulus-pallet-xcm/std",
     "cumulus-primitives-core/std",
     "cumulus-primitives-parachain-inherent/std",
-    "xcm/std",
-    "xcm-builder/std",
-    "xcm-executor/std",
+    #"xcm/std",
+    #"xcm-builder/std",
+    #"xcm-executor/std",
     'parachain-info/std',
-    'pallet-amm/std',
+    'pallet-xyk/std',
     'pallet-asset-registry/std',
     'pallet-exchange/std',
     'pallet-faucet/std',

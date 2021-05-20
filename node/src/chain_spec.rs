@@ -2,7 +2,7 @@
 
 use cumulus_primitives_core::ParaId;
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
+	AccountId, AuraId, AuraConfig, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
 	SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY,
 };
 use hex_literal::hex;
@@ -68,6 +68,11 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(),
+				// TODO generate real authorities
+				vec![
+					get_from_seed::<AuraId>("Alice"),
+					get_from_seed::<AuraId>("Bob"),
+				],
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				true,
@@ -84,7 +89,7 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "rococo".into(),
+			relay_chain: "westend-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -106,6 +111,10 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				vec![
+					get_from_seed::<AuraId>("Alice"),
+					get_from_seed::<AuraId>("Bob"),
+				],
 				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -127,7 +136,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "local_testnet".into(),
+			relay_chain: "westend-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -150,6 +159,10 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				vec![
+					get_from_seed::<AuraId>("Alice"),
+					get_from_seed::<AuraId>("Bob"),
+				],
 				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -179,7 +192,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "local_testnet".into(),
+			relay_chain: "westend-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -189,6 +202,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 fn parachain_genesis(
 	wasm_binary: &[u8],
 	root_key: AccountId,
+	initial_authorities: Vec<AuraId>,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
@@ -210,6 +224,9 @@ fn parachain_genesis(
 		pallet_sudo: SudoConfig {
 			// Assign network admin rights.
 			key: root_key,
+		},
+		pallet_aura: AuraConfig {
+			authorities: initial_authorities,
 		},
 		pallet_asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
@@ -240,5 +257,6 @@ fn parachain_genesis(
 			mint_limit: 5,
 			mintable_currencies: vec![0, 1, 2],
 		},
+		cumulus_pallet_aura_ext: Default::default(),
 	}
 }
