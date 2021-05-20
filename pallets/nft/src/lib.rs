@@ -25,7 +25,7 @@ mod mock;
 mod tests;
 
 pub type Balance = u128;
-pub type ClassData = u32;
+pub type ClassData = Vec<u8>;
 pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
 pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
 
@@ -183,7 +183,6 @@ impl<T: Config> Pallet<T> {
 				));
 			}
 			Ok(())
-		})?;
-		Ok(())
+		})
 	}
 }

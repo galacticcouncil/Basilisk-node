@@ -17,7 +17,7 @@ benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = 123;
+		let class_data = "just some class data".as_bytes().to_vec();
 	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data)
 	verify {
 	}
@@ -26,7 +26,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let token_data = TokenData { locked:false };
-		let class_data = 123;
+		let class_data = "just some class data".as_bytes().to_vec();
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_quantity = TOKEN_QUANTITY;
 	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data, token_quantity)
@@ -37,7 +37,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = 123;
+		let class_data = "just some class data".as_bytes().to_vec();
 		let token_data = TokenData { locked:false };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
@@ -49,7 +49,7 @@ benchmarks! {
 	destroy_class {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = 123;
+		let class_data = "just some class data".as_bytes().to_vec();
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller.clone()), class_id)
 	verify {
@@ -58,7 +58,7 @@ benchmarks! {
 	burn {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = 123;
+		let class_data = "just some class data".as_bytes().to_vec();
 		let token_data = TokenData { locked:false };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
