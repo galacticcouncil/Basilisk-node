@@ -14,12 +14,11 @@ use cumulus_primitives_core::ParaId;
 use basilisk_runtime::{self, RuntimeApi};
 use polkadot_primitives::v1::CollatorPair;
 use sc_executor::native_executor_instance;
+use sc_client_api::ExecutorProvider;
 use sc_network::NetworkService;
 pub use sc_executor::NativeExecutor;
 use sc_service::{Configuration, PartialComponents, Role, TaskManager, TFullBackend, TFullClient};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
-use sp_runtime::traits::BlakeTwo256;
-use sp_api::ConstructRuntimeApi;
 use sp_consensus::SlotData;
 use sp_keystore::SyncCryptoStorePtr;
 use std::sync::Arc;
@@ -33,24 +32,13 @@ native_executor_instance!(
 	frame_benchmarking::benchmarking::HostFunctions,
 );
 
-type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
-type FullBackend = sc_service::TFullBackend<Block>;
-
 type BlockNumber = u32;
 type Header = sp_runtime::generic::Header<BlockNumber, sp_runtime::traits::BlakeTwo256>;
 pub type Block = sp_runtime::generic::Block<Header, sp_runtime::OpaqueExtrinsic>;
 type Hash = sp_core::H256;
 
-// Native executor instance.
-native_executor_instance!(
-	pub BasiliskParachainRuntimeExecutor,
-	basilisk_runtime::api::dispatch,
-	basilisk_runtime::native_version,
-);
-
-pub fn new_partial<RuntimeApi, Executor, BIQ>(
-	config: &Configuration,
-	build_import_queue: BIQ,
+pub fn new_partial(
+	config: &Configuration
 ) -> Result<
 	PartialComponents<
 		TFullClient<Block, RuntimeApi, Executor>,
@@ -62,30 +50,6 @@ pub fn new_partial<RuntimeApi, Executor, BIQ>(
 	>,
 	sc_service::Error,
 >
-	where
-	RuntimeApi: ConstructRuntimeApi<Block, TFullClient<Block, RuntimeApi, Executor>>
-	+ Send
-	+ Sync
-	+ 'static,
-	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
-	+ sp_api::Metadata<Block>
-	+ sp_session::SessionKeys<Block>
-	+ sp_api::ApiExt<
-		Block,
-		StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>,
-	> + sp_offchain::OffchainWorkerApi<Block>
-	+ sp_block_builder::BlockBuilder<Block>,
-	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
-	Executor: sc_executor::NativeExecutionDispatch + 'static,
-	BIQ: FnOnce(
-		Arc<TFullClient<Block, RuntimeApi, Executor>>,
-		&Configuration,
-		Option<TelemetryHandle>,
-		&TaskManager,
-	) -> Result<
-		sp_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
-		sc_service::Error,
-	>,
 {
 	let telemetry = config
 		.telemetry_endpoints
@@ -119,7 +83,7 @@ pub fn new_partial<RuntimeApi, Executor, BIQ>(
 		client.clone(),
 	);
 
-	let import_queue = build_import_queue(
+	let import_queue = parachain_build_import_queue(
 		client.clone(),
 		config,
 		telemetry.as_ref().map(|telemetry| telemetry.handle()),
@@ -141,45 +105,20 @@ pub fn new_partial<RuntimeApi, Executor, BIQ>(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-async fn start_node_impl<RuntimeApi, Executor, RB, BIQ, BIC>(
+async fn start_node_impl<RB, BIC>(
 	parachain_config: Configuration,
 	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	para_id: ParaId,
 	rpc_ext_builder: RB,
-	build_import_queue: BIQ,
 	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)>
 where
-	RuntimeApi: ConstructRuntimeApi<Block, TFullClient<Block, RuntimeApi, Executor>>
-		+ Send
-		+ Sync
-		+ 'static,
-	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
-		+ sp_api::Metadata<Block>
-		+ sp_session::SessionKeys<Block>
-		+ sp_api::ApiExt<
-			Block,
-			StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>,
-		> + sp_offchain::OffchainWorkerApi<Block>
-		+ sp_block_builder::BlockBuilder<Block>
-		+ cumulus_primitives_core::CollectCollationInfo<Block>,
-	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
-	Executor: sc_executor::NativeExecutionDispatch + 'static,
 	RB: Fn(
 			Arc<TFullClient<Block, RuntimeApi, Executor>>,
 		) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 		+ Send
 		+ 'static,
-	BIQ: FnOnce(
-		Arc<TFullClient<Block, RuntimeApi, Executor>>,
-		&Configuration,
-		Option<TelemetryHandle>,
-		&TaskManager,
-	) -> Result<
-		sp_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
-		sc_service::Error,
-	>,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, Executor>>,
 		Option<&Registry>,
@@ -198,7 +137,7 @@ where
 
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial::<RuntimeApi, Executor, BIQ>(&parachain_config, build_import_queue)?;
+	let params = new_partial(&parachain_config)?;
 	let (mut telemetry, telemetry_worker_handle) = params.other;
 
 	let polkadot_full_node = cumulus_client_service::build_polkadot_full_node(
@@ -323,14 +262,14 @@ where
 
 /// Build the import queue for the parachain runtime.
 pub fn parachain_build_import_queue(
-	client: Arc<TFullClient<Block, RuntimeApi, BasiliskParachainRuntimeExecutor>>,
+	client: Arc<TFullClient<Block, RuntimeApi, Executor>>,
 	config: &Configuration,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 ) -> Result<
 	sp_consensus::DefaultImportQueue<
 		Block,
-		TFullClient<Block, RuntimeApi, BasiliskParachainRuntimeExecutor>,
+		TFullClient<Block, RuntimeApi, Executor>,
 	>,
 	sc_service::Error,
 > {
@@ -381,15 +320,14 @@ pub async fn start_node(
 	polkadot_config: Configuration,
 	para_id: ParaId,
 ) -> sc_service::error::Result<
-	(TaskManager, Arc<TFullClient<Block, RuntimeApi, BasiliskParachainRuntimeExecutor>>)
+	(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)
 > {
-	start_node_impl::<RuntimeApi, BasiliskParachainRuntimeExecutor, _, _, _>(
+	start_node_impl::<_, _>(
 		parachain_config,
 		collator_key,
 		polkadot_config,
 		para_id,
 		|_| Default::default(),
-		parachain_build_import_queue,
 		|client,
 		 prometheus_registry,
 		 telemetry,
