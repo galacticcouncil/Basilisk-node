@@ -265,7 +265,7 @@ pub fn run() -> sc_cli::Result<()> {
 			Ok(())
 		}
 		None => {
-			let runner = cli.create_runner(&*cli.run)?;
+			let runner = cli.create_runner(&cli.run.normalize())?;
 
 			runner.run_node_until_exit(|config| async move {
 				// TODO
@@ -290,7 +290,6 @@ pub fn run() -> sc_cli::Result<()> {
 				let task_executor = config.task_executor.clone();
 				let polkadot_config = SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
 					.map_err(|err| format!("Relay chain argument error: {}", err))?;
-				let collator = cli.run.base.validator || cli.collator;
 
 				info!("Parachain id: {:?}", id);
 				info!("Parachain Account: {}", parachain_account);
