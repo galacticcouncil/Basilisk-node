@@ -29,3 +29,4 @@ rococo-local.json
 rococo-local-raw.json
 *.log
 
+*.orig

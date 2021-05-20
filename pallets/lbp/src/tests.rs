@@ -37,6 +37,23 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			WeightCurveType::Linear,
 			true,
 		));
+
+		assert_ok!(LBPPallet::unpause_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID));
+
+		assert_eq!(
+			<PoolData<Test>>::get(ACA_DOT_POOL_ID),
+			Pool {
+				start: 10u64,
+				end: 20u64,
+				initial_weights: ((ACA, 20), (DOT, 80)),
+				final_weights: ((ACA, 90), (DOT, 10)),
+				last_weight_update: 0_u64,
+				last_weights: ((ACA, 20), (DOT, 80)),
+				curve: WeightCurveType::Linear,
+				pausable: true,
+				paused: false,
+			}
+		);
 	});
 	ext
 }
@@ -233,7 +250,7 @@ fn create_pool_should_work() {
 		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(updated_pool_data.last_weight_update, 0);
 		assert_eq!(updated_pool_data.last_weights, ((ACA, 20), (DOT, 80)));
-		assert_eq!(updated_pool_data.paused, false);
+		assert_eq!(updated_pool_data.paused, true);
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
@@ -423,7 +440,8 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 		assert_eq!(updated_pool_data.end, 20);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
 }
@@ -454,7 +472,18 @@ fn pause_pool_should_work() {
 }
 
 #[test]
-fn pause_pool_should_not_work() {
+fn pause_non_existing_pool_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let non_existing_id = 25486;
+		assert_noop!(
+			LBPPallet::pause_pool(Origin::signed(ALICE), non_existing_id),
+			Error::<Test>::PoolNotFound
+		);
+	});
+}
+
+#[test]
+fn pause_pool_by_non_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		//user is not pool owner
 		let not_owner = BOB;
@@ -462,13 +491,12 @@ fn pause_pool_should_not_work() {
 			LBPPallet::pause_pool(Origin::signed(not_owner), ACA_DOT_POOL_ID),
 			Error::<Test>::NotOwner
 		);
+	});
+}
 
-		//pool is not found
-		assert_noop!(
-			LBPPallet::pause_pool(Origin::signed(ALICE), 24568),
-			Error::<Test>::PoolNotFound
-		);
-
+#[test]
+fn pause_non_puasable_pool_should_not_work() {
+	predefined_test_ext().execute_with(|| {
 		//pool is not puasable
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
@@ -494,7 +522,12 @@ fn pause_pool_should_not_work() {
 			LBPPallet::pause_pool(Origin::signed(BOB), 2_004_000),
 			Error::<Test>::PoolIsNotPausable
 		);
+	});
+}
 
+#[test]
+fn pause_paused_pool_should_not_work() {
+	predefined_test_ext().execute_with(|| {
 		//pool is already paused
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
@@ -516,15 +549,18 @@ fn pause_pool_should_not_work() {
 			true,
 		));
 
-		// pause the pool
-		assert_ok!(LBPPallet::pause_pool(Origin::signed(BOB), 3_004_000));
-		// pool is already paused
+		// pool is already paused  - pool is created as puased by default
 		assert_noop!(
 			LBPPallet::pause_pool(Origin::signed(BOB), 3_004_000),
 			Error::<Test>::CannotPausePausedPool
 		);
+	});
+}
 
-		//pool ended or ending in current block
+#[test]
+fn pause_non_running_pool_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		//pool is ended or ending in current block
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
@@ -544,6 +580,9 @@ fn pause_pool_should_not_work() {
 			WeightCurveType::Linear,
 			true,
 		));
+
+		//pool is created as puased by default
+		assert_ok!(LBPPallet::unpause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID));
 
 		run_to_block(400);
 		assert_noop!(
@@ -562,6 +601,7 @@ fn pause_pool_should_not_work() {
 #[test]
 fn unpause_pool_should_work() {
 	predefined_test_ext().execute_with(|| {
+		//pool is created as puased by default
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
@@ -582,8 +622,6 @@ fn unpause_pool_should_work() {
 			true,
 		));
 
-		// pause the pool before trying to unpause it
-		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID,));
 		assert_ok!(LBPPallet::unpause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID,));
 
 		let unpaused_pool = LBPPallet::pool_data(HDX_DOT_POOL_ID);
@@ -603,7 +641,7 @@ fn unpause_pool_should_work() {
 		);
 
 		expect_events(vec![
-			Event::Paused(ALICE, HDX_DOT_POOL_ID).into(),
+			Event::PoolCreated(ALICE, DOT, HDX, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, HDX_DOT_POOL_ID).into(),
 		]);
 	});
@@ -625,33 +663,13 @@ fn unpause_pool_should_not_work() {
 			Error::<Test>::PoolNotFound
 		);
 
-		//pool is not puased
-		assert_ok!(LBPPallet::create_pool(
-			Origin::root(),
-			BOB,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-				initial_weight: 20,
-				final_weight: 40,
-			},
-			LBPAssetInfo {
-				id: ETH,
-				amount: 2_000_000_000,
-				initial_weight: 80,
-				final_weight: 60,
-			},
-			(200u64, 400u64),
-			WeightCurveType::Linear,
-			false,
-		));
-
+		//predefined_test_ext pool is unpaused
 		assert_noop!(
-			LBPPallet::unpause_pool(Origin::signed(BOB), 2_004_000),
+			LBPPallet::unpause_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID),
 			Error::<Test>::PoolIsNotPaused
 		);
 
-		//pooled ended or ending in current block
+		//pool is ended or ending in current block - pool is puased by default
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
@@ -671,9 +689,6 @@ fn unpause_pool_should_not_work() {
 			WeightCurveType::Linear,
 			true,
 		));
-
-		// pause the pool before trying to unpause it
-		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID,));
 
 		run_to_block(400);
 		assert_noop!(
@@ -717,6 +732,7 @@ fn add_liquidity_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, added_b).into(),
 		]);
 
@@ -736,6 +752,7 @@ fn add_liquidity_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, added_b).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, 0).into(),
 		]);
@@ -764,7 +781,8 @@ fn add_zero_liquidity_should_not_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
 }
@@ -834,7 +852,8 @@ fn add_liquidity_after_sale_started_should_not_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
 }
@@ -902,6 +921,7 @@ fn remove_liquidity_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, 1_000, 0).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, removed_a, removed_b).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, removed_a, 0).into(),
@@ -933,7 +953,8 @@ fn remove_zero_liquidity_should_not_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
 }
@@ -959,7 +980,8 @@ fn remove_liquidity_insufficient_reserve_should_not_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
 }
@@ -986,7 +1008,8 @@ fn remove_liquidity_during_sale_should_not_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
 }
@@ -1027,6 +1050,7 @@ fn destroy_pool_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
 			Event::PoolDestroyed(ACA_DOT_POOL_ID, ACA, DOT, balance_a_before, balance_b_before).into(),
 		]);
@@ -1058,7 +1082,8 @@ fn destroy_not_finalized_pool_should_not_work() {
 		assert_eq!(user_balance_hdx_before, user_balance_hdx_after);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
 }
@@ -1417,7 +1442,7 @@ fn trade_in_non_running_pool_should_not_work() {
 			Error::<Test>::SaleIsNotRunning
 		);
 
-		//puased pool
+		//puased pool - pool is created as puased by default
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
@@ -1437,13 +1462,6 @@ fn trade_in_non_running_pool_should_not_work() {
 			WeightCurveType::Linear,
 			true,
 		));
-
-		let pool_id = LBPPallet::get_pair_id(AssetPair {
-			asset_in: HDX,
-			asset_out: ETH,
-		});
-
-		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), pool_id));
 
 		//pool started but is paused
 		run_to_block(30);

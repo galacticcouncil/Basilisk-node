@@ -104,7 +104,7 @@ where
 			),
 			curve: weight_curve,
 			pausable,
-			paused: false,
+			paused: true,
 		}
 	}
 }
