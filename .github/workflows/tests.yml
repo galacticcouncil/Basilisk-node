@@ -154,6 +154,10 @@ jobs:
           tag: v0.9.1
           fileName: polkadot
           out-file-path: ../polkadot/target/release
+      - run: ./target/release/basilisk --version
+        name: Basilisk version
+      - run: ../polkadot/target/release/polkadot --version
+        name: Polkadot version
       - uses: actions/setup-node@v2
         name: Setup node.js
         with:
@@ -161,9 +165,9 @@ jobs:
       - run: ./install_polkadot_launch.sh
         name: Setup polkadot launch
         working-directory: scripts
-      - run: polkadot-launch config.json
+      - run: polkadot-launch config.json &
         name: Launch rococo local
         working-directory: rococo-local
-      - run: npm start 1000
+      - run: npm install && npm start 1000
         name: Wait for parachain inclusion
         working-directory: scripts/wait-for-inclusion
