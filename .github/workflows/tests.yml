@@ -154,7 +154,7 @@ jobs:
           tag: v0.9.1
           fileName: polkadot
           out-file-path: ../polkadot/target/release
-      - run: chmod +x basilisk && basilisk --version
+      - run: chmod +x ./basilisk && ./basilisk --version
         name: Basilisk version
         working-directory: target/release
       - run: ../polkadot/target/release/polkadot --version
