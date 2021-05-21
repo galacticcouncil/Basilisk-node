@@ -157,8 +157,9 @@ jobs:
       - run: chmod +x ./basilisk && ./basilisk --version
         name: Basilisk version
         working-directory: target/release
-      - run: ../polkadot/target/release/polkadot --version
+      - run: .chmod +x ./polkadot && ./polkadot --version
         name: Polkadot version
+        working-directory: ../polkadot/target/release/polkadot
       - uses: actions/setup-node@v2
         name: Setup node.js
         with:
