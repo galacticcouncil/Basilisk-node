@@ -1193,6 +1193,11 @@ fn execute_sell_should_work() {
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
+
+		expect_events(vec![Event::SellExecuted(
+			ALICE, asset_in, asset_out, 8_000_000, 20_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -1267,6 +1272,11 @@ fn execute_buy_should_work() {
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
+
+		expect_events(vec![Event::BuyExecuted(
+			ALICE, asset_out, asset_in, 8_000_000, 20_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -1627,6 +1637,11 @@ fn buy_should_work() {
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_013_672_217_u128);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000_u128);
+
+		expect_events(vec![Event::BuyExecuted(
+			who, asset_out, asset_in, 13_672_217, 10_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -1676,5 +1691,10 @@ fn sell_should_work() {
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000_u128);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_992_667_726_u128);
+
+		expect_events(vec![Event::SellExecuted(
+			who, asset_in, asset_out, 10_000_000, 7_332_274,
+		)
+		.into()]);
 	});
 }
