@@ -30,29 +30,9 @@ cargo build --release
 
 ## Run
 
-### Single Node Development Chain
-
-Purge any existing dev chain state:
-
-```bash
-./target/release/basilisk purge-chain --dev
-```
-
-Start a dev chain:
-
-```bash
-./target/release/basilisk --dev
-```
-
-Or, start a dev chain with detailed logging:
-
-```bash
-RUST_LOG=debug RUST_BACKTRACE=1 ./target/release/basilisk -lruntime=debug --dev
-```
-
 ### Rococo local testnet
 
-Relay chain (polkadot) has to be built in `../polkadot` with `--features=real-overseer` 
+Relay chain repository (polkadot) has to be built in `../polkadot`
 Uses `polkadot-launch` utility that has to installed from latest sources
 
 ```
@@ -64,17 +44,17 @@ chmod +x dist/index.js
 npm link
 ```
 
-Starts local testnet with 4 relay chain validators and 2 separate parachains
+Starts local testnet with 4 relay chain validators and Basilisk as parachain
 
 ```
 cd rococo-local
 polkadot-launch config.json
 ```
 
-Observe logs
+Observe Basilisk logs
 
 ```
-multitail *.log
+multitail 99*.log
 ```
 
 ### Interaction with the node
