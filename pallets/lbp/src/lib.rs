@@ -7,20 +7,19 @@
 // * add assetId validation to weights manipulation by user - reason: change from (w,w) to ((assetId, w), (assetid, w))
 
 use codec::{Decode, Encode};
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
+use frame_support::sp_runtime::{
+	app_crypto::sp_core::crypto::UncheckedFrom,
+	traits::{AtLeast32BitUnsigned, Hash, Zero},
+	DispatchError, RuntimeDebug,
+};
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
 	traits::{EnsureOrigin, Get},
 	transactional,
 };
-use frame_support::sp_runtime::{
-	app_crypto::sp_core::crypto::UncheckedFrom,
-	traits::{AtLeast32BitUnsigned, Hash, Zero},
-	DispatchError, RuntimeDebug,
-};
 use frame_system::ensure_signed;
+use hydra_dx_math::lbp::LBPWeight;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::traits::{AMMTransfer, AMM};
 use primitives::{
@@ -28,8 +27,9 @@ use primitives::{
 	fee::{self, WithFee},
 	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
 };
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
-use hydra_dx_math::lbp::LBPWeight;
 
 #[cfg(test)]
 mod mock;
@@ -246,6 +246,8 @@ pub mod pallet {
 		AssetBalanceLimitExceeded,
 		/// An unexpected integer overflow occurred
 		Overflow,
+		/// Nothing to update
+		NothingToUpdate,
 	}
 
 	#[pallet::event]
@@ -390,13 +392,15 @@ pub mod pallet {
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
+			ensure!(
+				start.is_some() || end.is_some() || initial_weights.is_some() || final_weights.is_some(),
+				Error::<T>::NothingToUpdate
+			);
+
 			<PoolData<T>>::try_mutate(pool_id.clone(), |pool| -> DispatchResult {
 				let now = <frame_system::Pallet<T>>::block_number();
 
-				ensure!(
-					pool.start == Zero::zero() || now < pool.start,
-					Error::<T>::SaleStarted
-				);
+				ensure!(pool.start == Zero::zero() || now < pool.start, Error::<T>::SaleStarted);
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);

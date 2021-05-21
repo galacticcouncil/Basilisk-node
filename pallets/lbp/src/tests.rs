@@ -474,29 +474,26 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
 		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
 
-		// update nothing
-		assert_ok!(LBPPallet::update_pool_data(
+		expect_events(vec![
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
+		]);
+	});
+}
+
+#[test]
+fn update_pool_data_without_changes_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
 			None,
 			None,
 			None,
 			None,
-		));
-
-		// verify changes
-		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-		assert_eq!(updated_pool_data.start, 15);
-		assert_eq!(updated_pool_data.end, 18);
-		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
-		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
-
-		expect_events(vec![
-			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
-			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
-			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
-			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
-		]);
+		),
+		Error::<Test>::NothingToUpdate);
 	});
 }
 
