@@ -119,8 +119,11 @@ fn weight_update_should_work() {
 
 		System::set_block_number(13);
 
-		assert_ok!(LBPPallet::update_weights(&mut linear_pool));
-		assert_ok!(LBPPallet::update_weights(&mut constant_pool));
+		assert_ok!(LBPPallet::update_weights(&HDX_DOT_POOL_ID, &mut linear_pool));
+		assert_ok!(LBPPallet::update_weights(&ACA_DOT_POOL_ID, &mut constant_pool));
+
+		let mut linear_pool = LBPPallet::pool_data(HDX_DOT_POOL_ID);
+		let mut constant_pool = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
 		assert_eq!(linear_pool.last_weight_update, 13);
 		assert_eq!(constant_pool.last_weight_update, 13);
@@ -129,8 +132,11 @@ fn weight_update_should_work() {
 		assert_eq!(constant_pool.last_weights, ((HDX, 20u128), (ACA, 80u128)));
 
 		// call update again in the same block, data should be the same
-		assert_ok!(LBPPallet::update_weights(&mut linear_pool));
-		assert_ok!(LBPPallet::update_weights(&mut constant_pool));
+		assert_ok!(LBPPallet::update_weights(&HDX_DOT_POOL_ID, &mut linear_pool));
+		assert_ok!(LBPPallet::update_weights(&ACA_DOT_POOL_ID, &mut constant_pool));
+
+		let linear_pool = LBPPallet::pool_data(HDX_DOT_POOL_ID);
+		let constant_pool = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
 		assert_eq!(linear_pool.last_weight_update, 13);
 		assert_eq!(constant_pool.last_weight_update, 13);
@@ -1834,5 +1840,26 @@ fn sell_should_work() {
 			who, asset_in, asset_out, 10_000_000, 7_332_274,
 		)
 		.into()]);
+	});
+}
+
+#[test]
+fn amm_trait_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let asset_pair = AssetPair{asset_in: ACA, asset_out: DOT};
+		let reversed_asset_pair = AssetPair{asset_in: DOT, asset_out: ACA};
+		let non_existing_asset_pair = AssetPair{asset_in: DOT, asset_out: HDX};
+
+		assert_eq!(LBPPallet::exists(asset_pair), true);
+		assert_eq!(LBPPallet::exists(reversed_asset_pair), true);
+		assert_eq!(LBPPallet::exists(non_existing_asset_pair), false);
+
+		assert_eq!(LBPPallet::get_pair_id(asset_pair), ACA_DOT_POOL_ID);
+		assert_eq!(LBPPallet::get_pair_id(reversed_asset_pair), ACA_DOT_POOL_ID);
+
+		assert_eq!(LBPPallet::get_pool_assets(&ACA_DOT_POOL_ID), Some(vec![ACA, DOT]));
+		assert_eq!(LBPPallet::get_pool_assets(&HDX_DOT_POOL_ID), None);
+
+		// TODO: test all methods from the AMM trait
 	});
 }

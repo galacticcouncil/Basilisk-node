@@ -388,6 +388,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
+			// check existence of the pool
 			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
@@ -420,6 +421,7 @@ pub mod pallet {
 		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
+			// check existence of the pool
 			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
@@ -443,6 +445,7 @@ pub mod pallet {
 		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
+			// check existence of the pool
 			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
@@ -471,6 +474,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
+			// check existence of the pool
 			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
@@ -529,6 +533,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
+			// check existence of the pool
 			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
@@ -563,6 +568,7 @@ pub mod pallet {
 		pub fn destroy_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
+			// check existence of the pool
 			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
@@ -637,6 +643,7 @@ enum TradeType {
 
 impl<T: Config> Pallet<T> {
 	fn update_weights(
+		pool_id: &PoolId<T>,
 		pool_data: &mut Pool<T::BlockNumber>,
 	) -> Result<((AssetId, LBPWeight), (AssetId, LBPWeight)), DispatchError> {
 		let now = <frame_system::Pallet<T>>::block_number();
@@ -662,6 +669,9 @@ impl<T: Config> Pallet<T> {
 			)
 			.map_err(|_| Error::<T>::WeightCalculationError)?;
 			pool_data.last_weight_update = now;
+
+			let pool_data = &*pool_data;
+			<PoolData<T>>::insert(&pool_id, &pool_data);
 		}
 
 		Ok(pool_data.last_weights)
@@ -715,6 +725,7 @@ impl<T: Config> Pallet<T> {
 	) -> Result<AMMTransfer<T::AccountId, AssetPair, Balance>, DispatchError> {
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
+		// check existence of the pool
 		ensure!(Self::exists(assets), Error::<T>::PoolNotFound);
 
 		ensure!(
@@ -735,7 +746,7 @@ impl<T: Config> Pallet<T> {
 			asset_in_weight = w.0;
 			asset_out_weight = w.1;
 		} else {
-			match Self::update_weights(&mut pool_data) {
+			match Self::update_weights(&pool_id, &mut pool_data) {
 				Ok(weights) => {
 					if weights.0 .0 == assets.asset_in {
 						asset_in_weight = weights.0 .1;
@@ -747,8 +758,6 @@ impl<T: Config> Pallet<T> {
 				}
 				Err(_) => return Err(<Error<T>>::Overflow.into()),
 			};
-
-			<PoolData<T>>::insert(&pool_id, &pool_data);
 		}
 
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
@@ -874,12 +883,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	}
 
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {
-		match <PoolAssets<T>>::contains_key(pool_account_id) {
-			true => {
-				let assets = Self::pool_assets(pool_account_id);
-				Some(vec![assets.0, assets.1])
-			}
-			false => None,
+		if <PoolAssets<T>>::contains_key(pool_account_id) {
+			let assets = Self::pool_assets(pool_account_id);
+			Some(vec![assets.0, assets.1])
+		} else {
+			None
 		}
 	}
 
@@ -909,7 +917,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			weight_a = w.0;
 			weight_b = w.1;
 		} else {
-			match Self::update_weights(&mut pool_data) {
+			match Self::update_weights(&pool_id, &mut pool_data) {
 				Ok(weights) => {
 					if weights.0 .0 == asset_a {
 						weight_a = weights.0 .1;
@@ -918,8 +926,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 						weight_a = weights.1 .1;
 						weight_b = weights.0 .1;
 					}
-
-					<PoolData<T>>::insert(&pool_id, &pool_data);
 				}
 				Err(_) => {
 					return BalanceOf::<T>::zero();
