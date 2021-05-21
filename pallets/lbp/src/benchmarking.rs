@@ -27,31 +27,26 @@ fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 benchmarks! {
 	create_pool {
 		let caller = funded_account::<T>("caller", 0);
-
-		let asset_a: AssetId = ASSET_ID_A;
-		let asset_b: AssetId = ASSET_ID_B;
-		let amount_a = BalanceOf::<T>::from(1_000_000_000_u32);
-		let amount_b = BalanceOf::<T>::from(2_000_000_000_u32);
-		let start = T::BlockNumber::from(10_u32);
-		let end = T::BlockNumber::from(20_u32);
-		let last_weight_update = T::BlockNumber::from(0_u32);
-		let pool_data = Pool {
-			start: start,
-			end: end,
-			initial_weights: ((1, 20), (2, 80)),
-			final_weights: ((1, 90), (2, 10)),
-			last_weight_update: last_weight_update,
-			last_weights: ((1, 20), (2, 80)),
-			curve: CurveType::Linear,
-			pausable: true,
-			paused: false,
+		let duration = (T::BlockNumber::from(10_u32), T::BlockNumber::from(20_u32));
+		let asset_a = LBPAssetInfo{
+			id: ASSET_ID_A,
+			amount: BalanceOf::<T>::from(1_000_000_000_u32),
+			initial_weight: 20,
+			final_weight: 90
 		};
-		let available_amount = T::MultiCurrency::free_balance(asset_a, &caller)
-			.saturating_sub(amount_a);
+		let asset_b = LBPAssetInfo{
+			id: ASSET_ID_B,
+			amount: BalanceOf::<T>::from(2_000_000_000_u32),
+			initial_weight: 80,
+			final_weight: 10
+		};
 
-	}: _(RawOrigin::Signed(caller.clone()), asset_a, amount_a, asset_b, amount_b, pool_data)
+		let available_amount = T::MultiCurrency::free_balance(asset_a.id, &caller)
+			.saturating_sub(asset_a.amount);
+
+	}: _(RawOrigin::Root, caller.clone(), asset_a, asset_b, duration, WeightCurveType::Linear, false)
 	verify {
-		assert_eq!(T::MultiCurrency::free_balance(asset_a, &caller), available_amount);
+		assert_eq!(T::MultiCurrency::free_balance(asset_a.id, &caller), available_amount);
 	}
 }
 

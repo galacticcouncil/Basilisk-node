@@ -6,16 +6,19 @@
 //TODO:
 // * add assetId validation to weights manipulation by user - reason: change from (w,w) to ((assetId, w), (assetid, w))
 
-use frame_support::sp_runtime::{
-	app_crypto::sp_core::crypto::UncheckedFrom,
-	traits::{Hash, Zero},
-	DispatchError, RuntimeDebug,
-};
+use codec::{Decode, Encode};
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
 	traits::{EnsureOrigin, Get},
 	transactional,
+};
+use frame_support::sp_runtime::{
+	app_crypto::sp_core::crypto::UncheckedFrom,
+	traits::{AtLeast32BitUnsigned, Hash, Zero},
+	DispatchError, RuntimeDebug,
 };
 use frame_system::ensure_signed;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
@@ -26,7 +29,6 @@ use primitives::{
 	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
 };
 use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
-
 use hydra_dx_math::lbp::LBPWeight;
 
 #[cfg(test)]
@@ -36,12 +38,13 @@ mod mock;
 mod tests;
 
 mod benchmarking;
-
 pub mod weights;
 use weights::WeightInfo;
-
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
+
+type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
+type PoolId<T> = <T as frame_system::Config>::AccountId;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
@@ -55,13 +58,6 @@ impl Default for WeightCurveType {
 		WeightCurveType::Linear
 	}
 }
-
-type PoolId<T> = <T as frame_system::Config>::AccountId;
-
-use codec::{Decode, Encode};
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
-use sp_runtime::traits::AtLeast32BitUnsigned;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
@@ -117,8 +113,6 @@ pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + P
 	pub initial_weight: LBPWeight,
 	pub final_weight: LBPWeight,
 }
-
-type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
 
 pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 	fn calculate_weight(
@@ -208,15 +202,13 @@ pub mod pallet {
 		SaleNotEnded,
 		/// Sale is not running
 		SaleIsNotRunning,
-		/// Provided data are not valid
-		InvalidData,
 		/// Sale already ended
 		CannotPauseEndedPool,
 		/// Sale already ended
 		CannotUnpauseEndedPool,
 		/// Sale is already paused
 		CannotPausePausedPool,
-		/// Pool is set to be not pausable
+		/// Pool cannot be paused
 		PoolIsNotPausable,
 		/// Pool is not paused
 		PoolIsNotPaused,
@@ -259,8 +251,8 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Pool was created by the `CreatePool` origin. [who, asset_a, asset_b, amount_a, amount_b]
-		PoolCreated(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Pool was created by the `CreatePool` origin. [who, pool_id, asset_a, asset_b, amount_a, amount_b]
+		PoolCreated(T::AccountId, PoolId<T>, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Pool data were updated. [who, pool_id]
 		PoolUpdated(T::AccountId, PoolId<T>),
@@ -372,6 +364,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::PoolCreated(
 				pool_owner,
+				pool_id,
 				asset_a.id,
 				asset_b.id,
 				asset_a.amount,
@@ -397,33 +390,23 @@ pub mod pallet {
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
-			let mut pool_data = Self::pool_data(&pool_id);
+			<PoolData<T>>::try_mutate(pool_id.clone(), |pool| -> DispatchResult {
+				let now = <frame_system::Pallet<T>>::block_number();
 
-			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(
-				pool_data.start == Zero::zero() || now < pool_data.start,
-				Error::<T>::SaleStarted
-			);
+				ensure!(
+					pool.start == Zero::zero() || now < pool.start,
+					Error::<T>::SaleStarted
+				);
 
-			if let Some(new_start) = start {
-				pool_data.start = new_start;
-			}
+				pool.start = start.unwrap_or(pool.start);
+				pool.end = end.unwrap_or(pool.end);
+				pool.initial_weights = initial_weights.unwrap_or(pool.initial_weights);
+				pool.final_weights = final_weights.unwrap_or(pool.final_weights);
 
-			if let Some(new_end) = end {
-				pool_data.end = new_end;
-			}
+				Self::validate_pool_data(&pool)?;
+				Ok(())
+			})?;
 
-			if let Some((w1, w2)) = initial_weights {
-				pool_data.initial_weights = (w1, w2);
-			}
-
-			if let Some((w1, w2)) = final_weights {
-				pool_data.final_weights = (w1, w2);
-			}
-
-			Self::validate_pool_data(&pool_data)?;
-
-			<PoolData<T>>::insert(&pool_id, &pool_data);
 			Self::deposit_event(Event::PoolUpdated(who, pool_id));
 
 			Ok(().into())
@@ -437,17 +420,16 @@ pub mod pallet {
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
-			let mut pool_data = Self::pool_data(&pool_id);
+			<PoolData<T>>::try_mutate(&pool_id, |pool| -> DispatchResult {
+				ensure!(pool.pausable, Error::<T>::PoolIsNotPausable);
+				ensure!(!pool.paused, Error::<T>::CannotPausePausedPool);
 
-			ensure!(pool_data.pausable, Error::<T>::PoolIsNotPausable);
+				let now = <frame_system::Pallet<T>>::block_number();
+				ensure!(pool.end > now, Error::<T>::CannotPauseEndedPool);
 
-			ensure!(!pool_data.paused, Error::<T>::CannotPausePausedPool);
-
-			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(pool_data.end > now, Error::<T>::CannotPauseEndedPool);
-
-			pool_data.paused = true;
-			<PoolData<T>>::insert(&pool_id, &pool_data);
+				pool.paused = true;
+				Ok(())
+			})?;
 
 			Self::deposit_event(Event::Paused(who, pool_id));
 			Ok(().into())
@@ -461,15 +443,15 @@ pub mod pallet {
 
 			Self::ensure_pool_ownership(&who, &pool_id)?;
 
-			let mut pool_data = Self::pool_data(&pool_id);
+			<PoolData<T>>::try_mutate(&pool_id, |pool| -> DispatchResult {
+				ensure!(pool.paused, Error::<T>::PoolIsNotPaused);
 
-			ensure!(pool_data.paused, Error::<T>::PoolIsNotPaused);
+				let now = <frame_system::Pallet<T>>::block_number();
+				ensure!(pool.end > now, Error::<T>::CannotUnpauseEndedPool);
 
-			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(pool_data.end > now, Error::<T>::CannotUnpauseEndedPool);
-
-			pool_data.paused = false;
-			<PoolData<T>>::insert(&pool_id, &pool_data);
+				pool.paused = false;
+				Ok(())
+			})?;
 
 			Self::deposit_event(Event::Unpaused(who, pool_id));
 			Ok(().into())
@@ -494,9 +476,6 @@ pub mod pallet {
 				Error::<T>::CannotAddZeroLiquidity
 			);
 
-			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
-			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
-
 			let pool_data = Self::pool_data(&pool_id);
 
 			let now = <frame_system::Pallet<T>>::block_number();
@@ -505,13 +484,14 @@ pub mod pallet {
 				Error::<T>::SaleStarted
 			);
 
+			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+
+			// check free balances before accessing pool balances
 			if !amount_a.is_zero() {
 				ensure!(
 					T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
 					Error::<T>::InsufficientAssetBalance
 				);
-
-				reserve_a = reserve_a.checked_add(amount_a).ok_or(Error::<T>::LiquidityOverflow)?;
 			}
 
 			if !amount_b.is_zero() {
@@ -519,9 +499,12 @@ pub mod pallet {
 					T::MultiCurrency::free_balance(asset_b, &who) >= amount_b,
 					Error::<T>::InsufficientAssetBalance
 				);
-
-				reserve_b = reserve_b.checked_add(amount_b).ok_or(Error::<T>::LiquidityOverflow)?;
 			}
+
+			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
+
+			reserve_a = reserve_a.checked_add(amount_a).ok_or(Error::<T>::LiquidityOverflow)?;
+			reserve_b = reserve_b.checked_add(amount_b).ok_or(Error::<T>::LiquidityOverflow)?;
 
 			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
@@ -551,20 +534,16 @@ pub mod pallet {
 				Error::<T>::CannotRemoveZeroLiquidity
 			);
 
-			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
-			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
-
 			let pool_data = Self::pool_data(&pool_id);
 
 			ensure!(!Self::is_pool_running(&pool_data), Error::<T>::SaleNotEnded);
 
-			if !amount_a.is_zero() {
-				reserve_a = reserve_a.checked_sub(amount_a).ok_or(Error::<T>::LiquidityUnderflow)?;
-			}
+			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
 
-			if !amount_b.is_zero() {
-				reserve_b = reserve_b.checked_sub(amount_b).ok_or(Error::<T>::LiquidityUnderflow)?;
-			}
+			reserve_a = reserve_a.checked_sub(amount_a).ok_or(Error::<T>::LiquidityUnderflow)?;
+			reserve_b = reserve_b.checked_sub(amount_b).ok_or(Error::<T>::LiquidityUnderflow)?;
+
+			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
 
 			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
@@ -954,7 +933,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		amount: BalanceOf<T>,
 		min_bought: BalanceOf<T>,
 		_discount: bool,
-	) -> Result<AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>, sp_runtime::DispatchError> {
+	) -> Result<AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>, DispatchError> {
 		Self::update_weights_and_validate_trade(who, assets, amount, min_bought, TradeType::Sell)
 	}
 
@@ -979,7 +958,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		amount: BalanceOf<T>,
 		max_limit: BalanceOf<T>,
 		_discount: bool,
-	) -> Result<AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>, frame_support::sp_runtime::DispatchError> {
+	) -> Result<AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>, DispatchError> {
 		Self::update_weights_and_validate_trade(who, assets, amount, max_limit, TradeType::Buy)
 	}
 

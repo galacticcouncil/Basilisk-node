@@ -253,7 +253,7 @@ fn create_pool_should_work() {
 		assert_eq!(updated_pool_data.paused, true);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
 		]);
 	});
 }
@@ -334,7 +334,7 @@ fn create_same_pool_should_not_work() {
 		);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
 		]);
 	});
 }
@@ -418,6 +418,21 @@ fn update_pool_data_should_work() {
 }
 
 #[test]
+fn update_pool_data_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(LBPPallet::update_pool_data(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID,
+			Some(15),
+			None,
+			Some(((ACA, 10), (DOT, 90))),
+			None,
+		),
+		Error::<Test>::NotOwner);
+	});
+}
+
+#[test]
 fn update_pool_data_for_running_lbp_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		System::set_block_number(16);
@@ -440,7 +455,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 		assert_eq!(updated_pool_data.end, 20);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
@@ -641,7 +656,7 @@ fn unpause_pool_should_work() {
 		);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, DOT, HDX, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, HDX_DOT_POOL_ID, DOT, HDX, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, HDX_DOT_POOL_ID).into(),
 		]);
 	});
@@ -731,7 +746,7 @@ fn add_liquidity_should_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(added_b));
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, added_b).into(),
 		]);
@@ -751,12 +766,25 @@ fn add_liquidity_should_work() {
 		assert_eq!(balance_b_after, balance_b_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, added_b).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, 0).into(),
 		]);
 	});
+}
+
+#[test]
+fn add_liquidity_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::add_liquidity(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID,
+			10_000_000_000,
+			20_000_000_000,),
+		Error::<Test>::NotOwner);
+		});
 }
 
 #[test]
@@ -781,7 +809,7 @@ fn add_zero_liquidity_should_not_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
@@ -852,7 +880,7 @@ fn add_liquidity_after_sale_started_should_not_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
@@ -920,13 +948,26 @@ fn remove_liquidity_should_work() {
 		assert_eq!(balance_b_after, balance_b_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, 1_000, 0).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, removed_a, removed_b).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, removed_a, 0).into(),
 		]);
 	});
+}
+
+#[test]
+fn remove_liquidity_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::remove_liquidity(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID,
+			10_000_000_000,
+			20_000_000_000,),
+		Error::<Test>::NotOwner);
+		});
 }
 
 #[test]
@@ -953,7 +994,7 @@ fn remove_zero_liquidity_should_not_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
@@ -980,7 +1021,7 @@ fn remove_liquidity_insufficient_reserve_should_not_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
@@ -1008,7 +1049,7 @@ fn remove_liquidity_during_sale_should_not_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
@@ -1049,12 +1090,23 @@ fn destroy_pool_should_work() {
 		);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
 			Event::PoolDestroyed(ACA_DOT_POOL_ID, ACA, DOT, balance_a_before, balance_b_before).into(),
 		]);
 	});
+}
+
+#[test]
+fn destroy_pool_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::destroy_pool(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID),
+		Error::<Test>::NotOwner);
+		});
 }
 
 #[test]
@@ -1082,7 +1134,7 @@ fn destroy_not_finalized_pool_should_not_work() {
 		assert_eq!(user_balance_hdx_before, user_balance_hdx_after);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 		]);
 	});
