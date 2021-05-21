@@ -17,7 +17,7 @@ jobs:
         name: Download basilisk binary
         with:
           name: basilisk
-          path: target/release/basilisk
+          path: target/release
       - uses: robinraju/release-downloader@v1
         name: Download relay chain binary
         with:
