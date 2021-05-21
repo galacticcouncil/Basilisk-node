@@ -242,15 +242,23 @@ fn create_pool_should_work() {
 			Currency::free_balance(HDX, &ALICE),
 			INITIAL_BALANCE.saturating_sub(POOL_DEPOSIT)
 		);
+
+		assert_eq!(LBPPallet::pool_owner(&ACA_DOT_POOL_ID), ALICE);
 		assert_eq!(LBPPallet::pool_deposit(&ACA_DOT_POOL_ID), POOL_DEPOSIT);
+		assert_eq!(LBPPallet::pool_assets(&ACA_DOT_POOL_ID), (ACA, DOT));
+		assert_eq!(LBPPallet::pool_balances(&ACA_DOT_POOL_ID), (1_000_000_000, 2_000_000_000));
 
-		assert_eq!(LBPPallet::get_pool_assets(&ACA_DOT_POOL_ID).unwrap(), vec![ACA, DOT]);
-
+		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_eq!(pool_data.start, 10u64);
+		assert_eq!(pool_data.end, 20u64);
+		assert_eq!(pool_data.initial_weights, ((ACA, 20), (DOT, 80)));
+		assert_eq!(pool_data.final_weights, ((ACA, 90), (DOT, 10)));
+		assert_eq!(pool_data.curve, WeightCurveType::Linear);
+		assert_eq!(pool_data.pausable, true);
 		// verify that `last_weight_update`, `last_weights` and `paused` fields are correctly initialized
-		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-		assert_eq!(updated_pool_data.last_weight_update, 0);
-		assert_eq!(updated_pool_data.last_weights, ((ACA, 20), (DOT, 80)));
-		assert_eq!(updated_pool_data.paused, true);
+		assert_eq!(pool_data.last_weight_update, 0);
+		assert_eq!(pool_data.last_weights, ((ACA, 20), (DOT, 80)));
+		assert_eq!(pool_data.paused, true);
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
@@ -398,12 +406,63 @@ fn create_pool_invalid_data_should_not_work() {
 #[test]
 fn update_pool_data_should_work() {
 	predefined_test_ext().execute_with(|| {
-		// update starting block and final weights
+		// update all parameters
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
 			Some(15),
+			Some(18),
+			Some(((ACA, 10), (DOT, 90))),
+			Some(((ACA, 80), (DOT, 20))),
+		));
+
+		// verify changes
+		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_eq!(updated_pool_data.start, 15);
+		assert_eq!(updated_pool_data.end, 18);
+		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
+		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
+
+		// update only one parameter
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
 			None,
+			Some(30),
+			None,
+			None,
+		));
+
+		// verify changes
+		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_eq!(updated_pool_data.start, 15);
+		assert_eq!(updated_pool_data.end, 30);
+		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
+		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
+
+		// update only one parameter
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			None,
+			None,
+			Some(((ACA, 10), (DOT, 70))),
+			None,
+		));
+
+		// verify changes
+		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_eq!(updated_pool_data.start, 15);
+		assert_eq!(updated_pool_data.end, 30);
+		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 70)));
+		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
+
+		// mix
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			None,
+			Some(18),
 			Some(((ACA, 10), (DOT, 90))),
 			None,
 		));
@@ -411,9 +470,33 @@ fn update_pool_data_should_work() {
 		// verify changes
 		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(updated_pool_data.start, 15);
-		assert_eq!(updated_pool_data.end, 20);
+		assert_eq!(updated_pool_data.end, 18);
+		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
+		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
 
-		expect_events(vec![Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into()]);
+		// update nothing
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			None,
+			None,
+			None,
+			None,
+		));
+
+		// verify changes
+		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_eq!(updated_pool_data.start, 15);
+		assert_eq!(updated_pool_data.end, 18);
+		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
+		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
+
+		expect_events(vec![
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
+		]);
 	});
 }
 
@@ -1088,6 +1171,12 @@ fn destroy_pool_should_work() {
 			user_balance_hdx_after,
 			user_balance_hdx_before.saturating_sub(POOL_DEPOSIT)
 		);
+
+		assert_eq!(<PoolOwner<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+		assert_eq!(<PoolDeposit<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+		assert_eq!(<PoolAssets<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+		assert_eq!(<PoolBalances<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
