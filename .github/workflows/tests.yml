@@ -170,6 +170,6 @@ jobs:
       - run: polkadot-launch config.json &
         name: Launch rococo local
         working-directory: rococo-local
-      - run: npm install && npm start 1000
+      - run: npm install && npm start 200
         name: Wait for parachain inclusion
         working-directory: scripts/wait-for-inclusion
