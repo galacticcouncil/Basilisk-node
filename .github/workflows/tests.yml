@@ -159,7 +159,7 @@ jobs:
         working-directory: target/release
       - run: .chmod +x ./polkadot && ./polkadot --version
         name: Polkadot version
-        working-directory: ../polkadot/target/release/polkadot
+        working-directory: ../polkadot/target/release
       - uses: actions/setup-node@v2
         name: Setup node.js
         with:
