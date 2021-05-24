@@ -388,17 +388,17 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			// check existence of the pool
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
+			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResultWithPostInfo {
+				// check existence of the pool
+				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
 
-			Self::ensure_pool_ownership(&who, &pool_id)?;
+				ensure!(
+					start.is_some() || end.is_some() || initial_weights.is_some() || final_weights.is_some(),
+					Error::<T>::NothingToUpdate
+				);
 
-			ensure!(
-				start.is_some() || end.is_some() || initial_weights.is_some() || final_weights.is_some(),
-				Error::<T>::NothingToUpdate
-			);
+				Self::ensure_pool_ownership(&who, &pool_id)?;
 
-			<PoolData<T>>::try_mutate(pool_id.clone(), |pool| -> DispatchResult {
 				let now = <frame_system::Pallet<T>>::block_number();
 
 				ensure!(pool.start == Zero::zero() || now < pool.start, Error::<T>::SaleStarted);
@@ -409,24 +409,22 @@ pub mod pallet {
 				pool.final_weights = final_weights.unwrap_or(pool.final_weights);
 
 				Self::validate_pool_data(&pool)?;
-				Ok(())
-			})?;
 
-			Self::deposit_event(Event::PoolUpdated(who, pool_id));
-
-			Ok(().into())
+				Self::deposit_event(Event::PoolUpdated(who, pool_id));
+				Ok(().into())
+			})
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::pause_pool())]
 		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			// check existence of the pool
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
+			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResultWithPostInfo {
+				// check existence of the pool
+				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
 
-			Self::ensure_pool_ownership(&who, &pool_id)?;
+				Self::ensure_pool_ownership(&who, &pool_id)?;
 
-			<PoolData<T>>::try_mutate(&pool_id, |pool| -> DispatchResult {
 				ensure!(pool.pausable, Error::<T>::PoolIsNotPausable);
 				ensure!(!pool.paused, Error::<T>::CannotPausePausedPool);
 
@@ -434,34 +432,32 @@ pub mod pallet {
 				ensure!(pool.end > now, Error::<T>::CannotPauseEndedPool);
 
 				pool.paused = true;
-				Ok(())
-			})?;
 
-			Self::deposit_event(Event::Paused(who, pool_id));
-			Ok(().into())
+				Self::deposit_event(Event::Paused(who, pool_id));
+				Ok(().into())
+			})
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::unpause_pool())]
 		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			// check existence of the pool
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
+			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResultWithPostInfo {
+				// check existence of the pool
+				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
 
-			Self::ensure_pool_ownership(&who, &pool_id)?;
+				Self::ensure_pool_ownership(&who, &pool_id)?;
 
-			<PoolData<T>>::try_mutate(&pool_id, |pool| -> DispatchResult {
 				ensure!(pool.paused, Error::<T>::PoolIsNotPaused);
 
 				let now = <frame_system::Pallet<T>>::block_number();
 				ensure!(pool.end > now, Error::<T>::CannotUnpauseEndedPool);
 
 				pool.paused = false;
-				Ok(())
-			})?;
 
-			Self::deposit_event(Event::Unpaused(who, pool_id));
-			Ok(().into())
+				Self::deposit_event(Event::Unpaused(who, pool_id));
+				Ok(().into())
+			})
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
