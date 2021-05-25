@@ -61,44 +61,49 @@ impl Default for WeightCurveType {
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
-pub struct Pool<BlockNumber: AtLeast32BitUnsigned + Copy> {
+pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
+	pub owner: AccountId,
 	pub start: BlockNumber,
 	pub end: BlockNumber,
-	pub initial_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
-	pub final_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
+	pub assets: (AssetId, AssetId),
+	pub initial_weights: (LBPWeight, LBPWeight),
+	pub final_weights: (LBPWeight, LBPWeight),
 	pub last_weight_update: BlockNumber,
-	pub last_weights: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
-	pub curve: WeightCurveType,
+	pub last_weights: (LBPWeight, LBPWeight),
+	pub weight_curve: WeightCurveType,
 	pub pausable: bool,
 	pub paused: bool,
 }
 
-impl<BlockNumber: AtLeast32BitUnsigned + Copy> Pool<BlockNumber>
+impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockNumber>
 where
 	BlockNumber: AtLeast32BitUnsigned + Copy,
 	Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq,
 {
 	fn new(
+		pool_owner: AccountId,
 		asset_a: LBPAssetInfo<Balance>,
 		asset_b: LBPAssetInfo<Balance>,
 		sale_duration: (BlockNumber, BlockNumber),
 		weight_curve: WeightCurveType,
 		pausable: bool,
 	) -> Self {
+		let ordered_assets = if asset_a.id < asset_b.id {
+			(asset_a, asset_b)
+		} else {
+			(asset_b, asset_a)
+		};
+
 		Pool {
+			owner: pool_owner,
 			start: sale_duration.0,
 			end: sale_duration.1,
-			initial_weights: (
-				(asset_a.id, asset_a.initial_weight),
-				(asset_b.id, asset_b.initial_weight),
-			),
-			final_weights: ((asset_a.id, asset_a.final_weight), (asset_b.id, asset_b.final_weight)),
+			assets: (ordered_assets.0.id, ordered_assets.1.id),
+			initial_weights: (ordered_assets.0.initial_weight, ordered_assets.1.initial_weight),
+			final_weights: (ordered_assets.0.final_weight, ordered_assets.1.final_weight),
 			last_weight_update: Zero::zero(),
-			last_weights: (
-				(asset_a.id, asset_a.initial_weight),
-				(asset_b.id, asset_b.initial_weight),
-			),
-			curve: weight_curve,
+			last_weights: (ordered_assets.0.initial_weight, ordered_assets.1.initial_weight),
+			weight_curve,
 			pausable,
 			paused: true,
 		}
@@ -116,11 +121,11 @@ pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + P
 
 pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 	fn calculate_weight(
-		curve_type: WeightCurveType,
-		a_x: BlockNumber,
-		b_x: BlockNumber,
-		a_y: LBPWeight,
-		b_y: LBPWeight,
+		weight_curve: WeightCurveType,
+		start: BlockNumber,
+		end: BlockNumber,
+		initial_weight: LBPWeight,
+		final_weight: LBPWeight,
 		at: BlockNumber,
 	) -> Result<LBPWeight, ()>;
 }
@@ -128,18 +133,19 @@ pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 pub struct LBPWeightFunction;
 impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LBPWeightFunction {
 	fn calculate_weight(
-		curve_type: WeightCurveType,
-		a_x: BlockNumber,
-		b_x: BlockNumber,
-		a_y: LBPWeight,
-		b_y: LBPWeight,
+		weight_curve: WeightCurveType,
+		start: BlockNumber,
+		end: BlockNumber,
+		initial_weight: LBPWeight,
+		final_weight: LBPWeight,
 		at: BlockNumber,
 	) -> Result<LBPWeight, ()> {
-		match curve_type {
+		match weight_curve {
 			WeightCurveType::Linear => {
-				hydra_dx_math::lbp::calculate_linear_weights(a_x, b_x, a_y, b_y, at).map_err(|_| ())
+				hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at)
+					.map_err(|_| ())
 			}
-			WeightCurveType::Constant => Ok(a_y),
+			WeightCurveType::Constant => Ok(initial_weight),
 		}
 	}
 }
@@ -220,14 +226,14 @@ pub mod pallet {
 		CannotRemoveZeroLiquidity,
 		/// Overflow after adding liquidity
 		LiquidityOverflow,
-		/// Underflow after removing liquidity
-		LiquidityUnderflow,
 		/// Asset balance too low
 		InsufficientAssetBalance,
 		/// Pool does not exist
 		PoolNotFound,
 		/// Pool has been already created
 		PoolAlreadyExists,
+		/// Pool does not contain the asset
+		InvalidAsset,
 		/// Invalid block number
 		InvalidBlockNumber,
 		/// Calculation error
@@ -281,31 +287,16 @@ pub mod pallet {
 		Unpaused(T::AccountId, PoolId<T>),
 	}
 
-	/// Tracks pool owners.
-	#[pallet::storage]
-	#[pallet::getter(fn pool_owner)]
-	pub type PoolOwner<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, T::AccountId, ValueQuery>;
-
 	/// Paid deposit. Returned when a pool is destroyed and removed from the storage.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_deposit)]
 	pub type PoolDeposit<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, BalanceOf<T>, ValueQuery>;
 
-	/// Asset pair for each pool. Assets are stored unordered.
-	#[pallet::storage]
-	#[pallet::getter(fn pool_assets)]
-	pub type PoolAssets<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, (AssetId, AssetId), ValueQuery>;
-
 	/// Details of a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_data)]
-	pub type PoolData<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::BlockNumber>, ValueQuery>;
-
-	/// Pool balances.
-	#[pallet::storage]
-	#[pallet::getter(fn pool_balances)]
-	pub type PoolBalances<T: Config> =
-		StorageMap<_, Blake2_128Concat, PoolId<T>, (BalanceOf<T>, BalanceOf<T>), ValueQuery>;
+	pub type PoolData<T: Config> =
+		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::AccountId, T::BlockNumber>, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -346,7 +337,14 @@ pub mod pallet {
 				Error::<T>::InsufficientAssetBalance
 			);
 
-			let pool_data = Pool::new(asset_a, asset_b, sale_duration, weight_curve, pausable);
+			let pool_data = Pool::new(
+				pool_owner.clone(),
+				asset_a,
+				asset_b,
+				sale_duration,
+				weight_curve,
+				pausable,
+			);
 			Self::validate_pool_data(&pool_data)?;
 
 			let deposit = T::PoolDeposit::get();
@@ -355,14 +353,10 @@ pub mod pallet {
 			let pool_id = Self::get_pair_id(asset_pair);
 			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
-			<PoolOwner<T>>::insert(&pool_id, &pool_owner);
-			<PoolAssets<T>>::insert(&pool_id, &(asset_a.id, asset_b.id));
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
 			T::MultiCurrency::transfer(asset_a.id, &pool_owner, &pool_id, asset_a.amount)?;
 			T::MultiCurrency::transfer(asset_b.id, &pool_owner, &pool_id, asset_b.amount)?;
-
-			<PoolBalances<T>>::insert(&pool_id, &(asset_a.amount, asset_b.amount));
 
 			Self::deposit_event(Event::PoolCreated(
 				pool_owner,
@@ -405,8 +399,12 @@ pub mod pallet {
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
-				pool.initial_weights = initial_weights.unwrap_or(pool.initial_weights);
-				pool.final_weights = final_weights.unwrap_or(pool.final_weights);
+				if let Some(initial_weights) = initial_weights {
+					pool.initial_weights = Self::get_weights_in_order(pool, initial_weights)?;
+				}
+				if let Some(final_weights) = final_weights {
+					pool.final_weights = Self::get_weights_in_order(pool, final_weights)?;
+				}
 
 				Self::validate_pool_data(&pool)?;
 
@@ -470,17 +468,14 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			// check existence of the pool
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
-
-			Self::ensure_pool_ownership(&who, &pool_id)?;
-
 			ensure!(
 				!amount_a.is_zero() || !amount_b.is_zero(),
 				Error::<T>::CannotAddZeroLiquidity
 			);
 
-			let pool_data = Self::pool_data(&pool_id);
+			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+
+			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
 
 			let now = <frame_system::Pallet<T>>::block_number();
 			ensure!(
@@ -488,32 +483,31 @@ pub mod pallet {
 				Error::<T>::SaleStarted
 			);
 
-			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+			let (asset_a, asset_b) = pool_data.assets;
 
-			// check free balances before accessing pool balances
 			if !amount_a.is_zero() {
 				ensure!(
 					T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
 					Error::<T>::InsufficientAssetBalance
 				);
+
+				T::MultiCurrency::free_balance(asset_a, &pool_id)
+					.checked_add(amount_a)
+					.ok_or(Error::<T>::LiquidityOverflow)?;
 			}
 
 			if !amount_b.is_zero() {
-				ensure!(
-					T::MultiCurrency::free_balance(asset_b, &who) >= amount_b,
-					Error::<T>::InsufficientAssetBalance
-				);
+				let reserve_b = T::MultiCurrency::free_balance(asset_b, &who);
+				ensure!(reserve_b >= amount_b, Error::<T>::InsufficientAssetBalance);
+
+				T::MultiCurrency::free_balance(asset_b, &pool_id)
+					.checked_add(amount_b)
+					.ok_or(Error::<T>::LiquidityOverflow)?;
 			}
-
-			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
-
-			reserve_a = reserve_a.checked_add(amount_a).ok_or(Error::<T>::LiquidityOverflow)?;
-			reserve_b = reserve_b.checked_add(amount_b).ok_or(Error::<T>::LiquidityOverflow)?;
 
 			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
 
-			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
 			Self::deposit_event(Event::LiquidityAdded(pool_id, asset_a, asset_b, amount_a, amount_b));
 
 			Ok(().into())
@@ -529,31 +523,44 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			// check existence of the pool
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
-
-			Self::ensure_pool_ownership(&who, &pool_id)?;
-
 			ensure!(
 				!amount_a.is_zero() || !amount_b.is_zero(),
 				Error::<T>::CannotRemoveZeroLiquidity
 			);
 
-			let pool_data = Self::pool_data(&pool_id);
+			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+
+			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
 
 			ensure!(!Self::is_pool_running(&pool_data), Error::<T>::SaleNotEnded);
 
-			let (mut reserve_a, mut reserve_b) = Self::pool_balances(&pool_id);
+			let (asset_a, asset_b) = pool_data.assets;
 
-			reserve_a = reserve_a.checked_sub(amount_a).ok_or(Error::<T>::LiquidityUnderflow)?;
-			reserve_b = reserve_b.checked_sub(amount_b).ok_or(Error::<T>::LiquidityUnderflow)?;
+			if !amount_a.is_zero() {
+				ensure!(
+					T::MultiCurrency::free_balance(asset_a, &pool_id) >= amount_a,
+					Error::<T>::InsufficientAssetBalance
+				);
 
-			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+				T::MultiCurrency::free_balance(asset_a, &who)
+					.checked_add(amount_a)
+					.ok_or(Error::<T>::Overflow)?;
+			}
+
+			if !amount_b.is_zero() {
+				ensure!(
+					T::MultiCurrency::free_balance(asset_b, &pool_id) >= amount_b,
+					Error::<T>::InsufficientAssetBalance
+				);
+
+				T::MultiCurrency::free_balance(asset_b, &who)
+					.checked_add(amount_b)
+					.ok_or(Error::<T>::Overflow)?;
+			}
 
 			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
 
-			<PoolBalances<T>>::insert(&pool_id, (reserve_a, reserve_b));
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
 
 			Ok(().into())
@@ -564,20 +571,20 @@ pub mod pallet {
 		pub fn destroy_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			// check existence of the pool
-			ensure!(<PoolOwner<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
+			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
-			Self::ensure_pool_ownership(&who, &pool_id)?;
+			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
 
-			let pool_data = Self::pool_data(&pool_id);
 			let now = <frame_system::Pallet<T>>::block_number();
 			ensure!(
 				pool_data.start.is_zero() || pool_data.end < now,
 				Error::<T>::SaleNotEnded
 			);
 
-			let (amount_a, amount_b) = Self::pool_balances(&pool_id);
-			let (asset_a, asset_b) = Self::pool_assets(&pool_id);
+			let (asset_a, asset_b) = pool_data.assets;
+
+			let amount_a = T::MultiCurrency::free_balance(asset_a, &pool_id);
+			let amount_b = T::MultiCurrency::free_balance(asset_b, &pool_id);
 
 			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
@@ -585,11 +592,8 @@ pub mod pallet {
 			let deposit = Self::pool_deposit(&pool_id);
 			T::MultiCurrency::unreserve(T::NativeAssetId::get(), &who, deposit);
 
-			<PoolOwner<T>>::remove(&pool_id);
 			<PoolDeposit<T>>::remove(&pool_id);
-			<PoolAssets<T>>::remove(&pool_id);
 			<PoolData<T>>::remove(&pool_id);
-			<PoolBalances<T>>::remove(&pool_id);
 
 			Self::deposit_event(Event::PoolDestroyed(pool_id, asset_a, asset_b, amount_a, amount_b));
 
@@ -640,27 +644,27 @@ enum TradeType {
 impl<T: Config> Pallet<T> {
 	fn update_weights(
 		pool_id: &PoolId<T>,
-		pool_data: &mut Pool<T::BlockNumber>,
-	) -> Result<((AssetId, LBPWeight), (AssetId, LBPWeight)), DispatchError> {
+		pool_data: &mut Pool<T::AccountId, T::BlockNumber>,
+	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		if now != pool_data.last_weight_update {
-			pool_data.last_weights.0 .1 = T::LBPWeightFunction::calculate_weight(
-				pool_data.curve,
+			pool_data.last_weights.0 = T::LBPWeightFunction::calculate_weight(
+				pool_data.weight_curve,
 				pool_data.start,
 				pool_data.end,
-				pool_data.initial_weights.0 .1,
-				pool_data.final_weights.0 .1,
+				pool_data.initial_weights.0,
+				pool_data.final_weights.0,
 				now,
 			)
 			.map_err(|_| Error::<T>::WeightCalculationError)?;
 
-			pool_data.last_weights.1 .1 = T::LBPWeightFunction::calculate_weight(
-				pool_data.curve,
+			pool_data.last_weights.1 = T::LBPWeightFunction::calculate_weight(
+				pool_data.weight_curve,
 				pool_data.start,
 				pool_data.end,
-				pool_data.initial_weights.1 .1,
-				pool_data.final_weights.1 .1,
+				pool_data.initial_weights.1,
+				pool_data.final_weights.1,
 				now,
 			)
 			.map_err(|_| Error::<T>::WeightCalculationError)?;
@@ -673,7 +677,7 @@ impl<T: Config> Pallet<T> {
 		Ok(pool_data.last_weights)
 	}
 
-	fn validate_pool_data(pool_data: &Pool<T::BlockNumber>) -> DispatchResult {
+	fn validate_pool_data(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> DispatchResult {
 		let now = <frame_system::Pallet<T>>::block_number();
 		ensure!(
 			pool_data.start == Zero::zero() || now <= pool_data.start,
@@ -694,20 +698,20 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn ensure_pool_ownership(who: &T::AccountId, pool_id: &PoolId<T>) -> DispatchResult {
-		let pool_owner = Self::pool_owner(&pool_id);
+		let pool_owner = Self::pool_data(&pool_id).owner;
 		ensure!(who == &pool_owner, Error::<T>::NotOwner);
 
 		Ok(())
 	}
 
 	/// return true if now is in interval <pool.start, pool.end> WARN: pool.paused DOESN'T MATTER
-	fn is_pool_running(pool_data: &Pool<T::BlockNumber>) -> bool {
+	fn is_pool_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
 		pool_data.start <= now && now <= pool_data.end
 	}
 
 	/// return true if now is in interval <pool.start, pool.end> and POOL IS NOT PAUSED
-	fn is_sale_running(pool_data: &Pool<T::BlockNumber>) -> bool {
+	fn is_sale_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
 		pool_data.start <= now && now <= pool_data.end && !pool_data.paused
 	}
@@ -733,28 +737,22 @@ impl<T: Config> Pallet<T> {
 		let mut pool_data = Self::pool_data(&pool_id);
 		ensure!(Self::is_sale_running(&pool_data), Error::<T>::SaleIsNotRunning);
 
-		let asset_in_weight: LBPWeight;
-		let asset_out_weight: LBPWeight;
 		// update weight or reuse last if update is not necessary
-		if pool_data.last_weight_update == <frame_system::Pallet<T>>::block_number() {
-			let w = Self::get_weights_in_order(&pool_data, assets.asset_in);
-
-			asset_in_weight = w.0;
-			asset_out_weight = w.1;
+		let (weight_in, weight_out) = if pool_data.last_weight_update == <frame_system::Pallet<T>>::block_number() {
+			let last_weights = Self::get_last_weights_in_order(&pool_data, assets.asset_in);
+			(last_weights.0, last_weights.1)
 		} else {
 			match Self::update_weights(&pool_id, &mut pool_data) {
 				Ok(weights) => {
-					if weights.0 .0 == assets.asset_in {
-						asset_in_weight = weights.0 .1;
-						asset_out_weight = weights.1 .1;
+					if pool_data.assets.0 == assets.asset_in {
+						(weights.0, weights.1)
 					} else {
-						asset_in_weight = weights.1 .1;
-						asset_out_weight = weights.0 .1;
+						(weights.1, weights.0)
 					}
 				}
 				Err(_) => return Err(<Error<T>>::Overflow.into()),
-			};
-		}
+			}
+		};
 
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
@@ -775,8 +773,8 @@ impl<T: Config> Pallet<T> {
 			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
 				asset_out_reserve,
-				asset_in_weight,
-				asset_out_weight,
+				weight_in,
+				weight_out,
 				amount.checked_sub(transfer_fee).ok_or(Error::<T>::Overflow)?,
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
@@ -787,8 +785,8 @@ impl<T: Config> Pallet<T> {
 			let token_amount_in = hydra_dx_math::lbp::calculate_in_given_out(
 				asset_in_reserve,
 				asset_out_reserve,
-				asset_in_weight,
-				asset_out_weight,
+				weight_in,
+				weight_out,
 				amount.checked_add(transfer_fee).ok_or(Error::<T>::Overflow)?,
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
@@ -835,11 +833,27 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// WARN: unsafe function - make sure asset_a is in pool. This function return weight in order based on asset_a id
-	fn get_weights_in_order(pool_data: &Pool<T::BlockNumber>, asset_a: AssetId) -> (LBPWeight, LBPWeight) {
-		if pool_data.last_weights.0 .0 == asset_a {
-			(pool_data.last_weights.0 .1, pool_data.last_weights.1 .1)
+	fn get_last_weights_in_order(
+		pool_data: &Pool<T::AccountId, T::BlockNumber>,
+		asset_a: AssetId,
+	) -> (LBPWeight, LBPWeight) {
+		if pool_data.assets.0 == asset_a {
+			(pool_data.last_weights.0, pool_data.last_weights.1)
 		} else {
-			(pool_data.last_weights.1 .1, pool_data.last_weights.0 .1)
+			(pool_data.last_weights.1, pool_data.last_weights.0)
+		}
+	}
+
+	fn get_weights_in_order(
+		pool_data: &Pool<T::AccountId, T::BlockNumber>,
+		weight_data: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
+	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
+		if pool_data.assets == (weight_data.0 .0, weight_data.1 .0) {
+			Ok((weight_data.0 .1, weight_data.1 .1))
+		} else if pool_data.assets == (weight_data.1 .0, weight_data.0 .0) {
+			Ok((weight_data.1 .1, weight_data.0 .1))
+		} else {
+			Err(Error::<T>::InvalidAsset.into())
 		}
 	}
 }
@@ -871,7 +885,7 @@ where
 impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
 		let pair_account = T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out);
-		<PoolAssets<T>>::contains_key(&pair_account)
+		<PoolData<T>>::contains_key(&pair_account)
 	}
 
 	fn get_pair_id(assets: AssetPair) -> T::AccountId {
@@ -879,9 +893,9 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	}
 
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {
-		if <PoolAssets<T>>::contains_key(pool_account_id) {
-			let assets = Self::pool_assets(pool_account_id);
-			Some(vec![assets.0, assets.1])
+		let maybe_pool = <PoolData<T>>::try_get(pool_account_id);
+		if let Ok(pool_data) = maybe_pool {
+			Some(vec![pool_data.assets.0, pool_data.assets.1])
 		} else {
 			None
 		}
@@ -901,34 +915,32 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		let asset_a_reserve = T::MultiCurrency::free_balance(asset_a, &pool_id);
 		let asset_b_reserve = T::MultiCurrency::free_balance(asset_b, &pool_id);
 
-		// Note : unchecked function; assumes that existence was checked prior to this call
-		let mut pool_data = Self::pool_data(&pool_id);
+		let maybe_pool_data = <PoolData<T>>::try_get(&pool_id);
+		if maybe_pool_data.is_err() {
+			return BalanceOf::<T>::zero()
+		}
+		let mut pool_data = maybe_pool_data.unwrap();
 
-		let weight_a: LBPWeight;
-		let weight_b: LBPWeight;
 		// update weight or reuse last if update is not necessary
-		if pool_data.last_weight_update == <frame_system::Pallet<T>>::block_number() {
-			let w = Self::get_weights_in_order(&pool_data, asset_a);
-
-			weight_a = w.0;
-			weight_b = w.1;
+		let (weight_in, weight_out) = if pool_data.last_weight_update == <frame_system::Pallet<T>>::block_number() {
+			let last_weights = Self::get_last_weights_in_order(&pool_data, asset_a);
+			(last_weights.0, last_weights.1)
 		} else {
 			match Self::update_weights(&pool_id, &mut pool_data) {
 				Ok(weights) => {
-					if weights.0 .0 == asset_a {
-						weight_a = weights.0 .1;
-						weight_b = weights.1 .1;
+					if pool_data.assets.0 == asset_a {
+						(weights.0, weights.1)
 					} else {
-						weight_a = weights.1 .1;
-						weight_b = weights.0 .1;
+						(weights.1, weights.0)
 					}
 				}
 				Err(_) => {
 					return BalanceOf::<T>::zero();
 				}
-			};
-		}
-		hydra_dx_math::lbp::calculate_spot_price(asset_a_reserve, asset_b_reserve, weight_a, weight_b, amount)
+			}
+		};
+
+		hydra_dx_math::lbp::calculate_spot_price(asset_a_reserve, asset_b_reserve, weight_in, weight_out, amount)
 			.unwrap_or_else(|_| BalanceOf::<T>::zero())
 	}
 

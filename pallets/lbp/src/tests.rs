@@ -43,13 +43,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_eq!(
 			<PoolData<Test>>::get(ACA_DOT_POOL_ID),
 			Pool {
+				owner: ALICE,
 				start: 10u64,
 				end: 20u64,
-				initial_weights: ((ACA, 20), (DOT, 80)),
-				final_weights: ((ACA, 90), (DOT, 10)),
+				assets: (ACA, DOT),
+				initial_weights: (20, 80),
+				final_weights: (90, 10),
 				last_weight_update: 0_u64,
-				last_weights: ((ACA, 20), (DOT, 80)),
-				curve: WeightCurveType::Linear,
+				last_weights: (20, 80),
+				weight_curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: false,
 			}
@@ -95,8 +97,8 @@ fn weight_update_should_work() {
 		};
 		let duration = (10u64, 19u64);
 
-		let mut linear_pool = Pool::new(asset_a, asset_b, duration, WeightCurveType::Linear, false);
-		let mut constant_pool = Pool::new(asset_a, asset_c, duration, WeightCurveType::Constant, false);
+		let mut linear_pool = Pool::new(ALICE, asset_a, asset_b, duration, WeightCurveType::Linear, false);
+		let mut constant_pool = Pool::new(ALICE, asset_a, asset_c, duration, WeightCurveType::Constant, false);
 
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
@@ -128,8 +130,8 @@ fn weight_update_should_work() {
 		assert_eq!(linear_pool.last_weight_update, 13);
 		assert_eq!(constant_pool.last_weight_update, 13);
 
-		assert_eq!(linear_pool.last_weights, ((HDX, 40u128), (DOT, 60u128)));
-		assert_eq!(constant_pool.last_weights, ((HDX, 20u128), (ACA, 80u128)));
+		assert_eq!(linear_pool.last_weights, (40u128, 60u128));
+		assert_eq!(constant_pool.last_weights, (20u128, 80u128));
 
 		// call update again in the same block, data should be the same
 		assert_ok!(LBPPallet::update_weights(&HDX_DOT_POOL_ID, &mut linear_pool));
@@ -141,8 +143,8 @@ fn weight_update_should_work() {
 		assert_eq!(linear_pool.last_weight_update, 13);
 		assert_eq!(constant_pool.last_weight_update, 13);
 
-		assert_eq!(linear_pool.last_weights, ((HDX, 40u128), (DOT, 60u128)));
-		assert_eq!(constant_pool.last_weights, ((HDX, 20u128), (ACA, 80u128)));
+		assert_eq!(linear_pool.last_weights, (40u128, 60u128));
+		assert_eq!(constant_pool.last_weights, (20u128, 80u128));
 	});
 }
 
@@ -150,13 +152,15 @@ fn weight_update_should_work() {
 fn validate_pool_data_should_work() {
 	new_test_ext().execute_with(|| {
 		let pool_data = Pool {
+			owner: ALICE,
 			start: 10u64,
 			end: 20u64,
-			initial_weights: ((ACA, 20), (DOT, 80)),
-			final_weights: ((ACA, 90), (DOT, 10)),
+			assets: (ACA, DOT),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			last_weight_update: 0u64,
-			last_weights: ((ACA, 20), (DOT, 80)),
-			curve: WeightCurveType::Linear,
+			last_weights: (20, 80),
+			weight_curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
 		};
@@ -164,26 +168,30 @@ fn validate_pool_data_should_work() {
 
 		// null interval
 		let pool_data = Pool {
+			owner: ALICE,
 			start: 0u64,
 			end: 0u64,
-			initial_weights: ((ACA, 20), (DOT, 80)),
-			final_weights: ((ACA, 90), (DOT, 10)),
+			assets: (ACA, DOT),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			last_weight_update: 0u64,
-			last_weights: ((ACA, 20), (DOT, 80)),
-			curve: WeightCurveType::Linear,
+			last_weights: (20, 80),
+			weight_curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
 		};
 		assert_ok!(LBPPallet::validate_pool_data(&pool_data));
 
 		let pool_data = Pool {
+			owner: ALICE,
 			start: 10u64,
 			end: 2u64,
-			initial_weights: ((ACA, 20), (DOT, 80)),
-			final_weights: ((ACA, 90), (DOT, 10)),
+			assets: (ACA, DOT),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			last_weight_update: 0u64,
-			last_weights: ((ACA, 20), (DOT, 80)),
-			curve: WeightCurveType::Linear,
+			last_weights: (20, 80),
+			weight_curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
 		};
@@ -193,13 +201,15 @@ fn validate_pool_data_should_work() {
 		);
 
 		let pool_data = Pool {
+			owner: ALICE,
 			start: 10u64,
 			end: 11u64 + u32::MAX as u64,
-			initial_weights: ((ACA, 20), (DOT, 80)),
-			final_weights: ((ACA, 90), (DOT, 10)),
+			assets: (ACA, DOT),
+			initial_weights: (20, 80),
+			final_weights: (90, 10),
 			last_weight_update: 0u64,
-			last_weights: ((ACA, 20), (DOT, 80)),
-			curve: WeightCurveType::Linear,
+			last_weights: (20, 80),
+			weight_curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
 		};
@@ -249,26 +259,31 @@ fn create_pool_should_work() {
 			INITIAL_BALANCE.saturating_sub(POOL_DEPOSIT)
 		);
 
-		assert_eq!(LBPPallet::pool_owner(&ACA_DOT_POOL_ID), ALICE);
 		assert_eq!(LBPPallet::pool_deposit(&ACA_DOT_POOL_ID), POOL_DEPOSIT);
-		assert_eq!(LBPPallet::pool_assets(&ACA_DOT_POOL_ID), (ACA, DOT));
-		assert_eq!(LBPPallet::pool_balances(&ACA_DOT_POOL_ID), (1_000_000_000, 2_000_000_000));
 
 		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_eq!(pool_data.owner, ALICE);
 		assert_eq!(pool_data.start, 10u64);
 		assert_eq!(pool_data.end, 20u64);
-		assert_eq!(pool_data.initial_weights, ((ACA, 20), (DOT, 80)));
-		assert_eq!(pool_data.final_weights, ((ACA, 90), (DOT, 10)));
-		assert_eq!(pool_data.curve, WeightCurveType::Linear);
+		assert_eq!(pool_data.assets, (ACA, DOT));
+		assert_eq!(pool_data.initial_weights, (20, 80));
+		assert_eq!(pool_data.final_weights, (90, 10));
+		assert_eq!(pool_data.weight_curve, WeightCurveType::Linear);
 		assert_eq!(pool_data.pausable, true);
 		// verify that `last_weight_update`, `last_weights` and `paused` fields are correctly initialized
 		assert_eq!(pool_data.last_weight_update, 0);
-		assert_eq!(pool_data.last_weights, ((ACA, 20), (DOT, 80)));
+		assert_eq!(pool_data.last_weights, (20, 80));
 		assert_eq!(pool_data.paused, true);
 
-		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
-		]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -347,9 +362,15 @@ fn create_same_pool_should_not_work() {
 			Error::<Test>::PoolAlreadyExists
 		);
 
-		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into()
-		]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -426,8 +447,8 @@ fn update_pool_data_should_work() {
 		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(updated_pool_data.start, 15);
 		assert_eq!(updated_pool_data.end, 18);
-		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
-		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
+		assert_eq!(updated_pool_data.initial_weights, (10, 90));
+		assert_eq!(updated_pool_data.final_weights, (80, 20));
 
 		// update only one parameter
 		assert_ok!(LBPPallet::update_pool_data(
@@ -443,8 +464,8 @@ fn update_pool_data_should_work() {
 		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(updated_pool_data.start, 15);
 		assert_eq!(updated_pool_data.end, 30);
-		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
-		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
+		assert_eq!(updated_pool_data.initial_weights, (10, 90));
+		assert_eq!(updated_pool_data.final_weights, (80, 20));
 
 		// update only one parameter
 		assert_ok!(LBPPallet::update_pool_data(
@@ -460,8 +481,8 @@ fn update_pool_data_should_work() {
 		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(updated_pool_data.start, 15);
 		assert_eq!(updated_pool_data.end, 30);
-		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 70)));
-		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
+		assert_eq!(updated_pool_data.initial_weights, (10, 70));
+		assert_eq!(updated_pool_data.final_weights, (80, 20));
 
 		// mix
 		assert_ok!(LBPPallet::update_pool_data(
@@ -477,8 +498,8 @@ fn update_pool_data_should_work() {
 		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(updated_pool_data.start, 15);
 		assert_eq!(updated_pool_data.end, 18);
-		assert_eq!(updated_pool_data.initial_weights, ((ACA, 10), (DOT, 90)));
-		assert_eq!(updated_pool_data.final_weights, ((ACA, 80), (DOT, 20)));
+		assert_eq!(updated_pool_data.initial_weights, (10, 90));
+		assert_eq!(updated_pool_data.final_weights, (80, 20));
 
 		expect_events(vec![
 			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
@@ -491,30 +512,27 @@ fn update_pool_data_should_work() {
 #[test]
 fn update_pool_data_without_changes_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		assert_noop!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			None,
-			None,
-			None,
-			None,
-		),
-		Error::<Test>::NothingToUpdate);
+		assert_noop!(
+			LBPPallet::update_pool_data(Origin::signed(ALICE), ACA_DOT_POOL_ID, None, None, None, None,),
+			Error::<Test>::NothingToUpdate
+		);
 	});
 }
 
 #[test]
 fn update_pool_data_by_non_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		assert_noop!(LBPPallet::update_pool_data(
-			Origin::signed(BOB),
-			ACA_DOT_POOL_ID,
-			Some(15),
-			None,
-			Some(((ACA, 10), (DOT, 90))),
-			None,
-		),
-		Error::<Test>::NotOwner);
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(BOB),
+				ACA_DOT_POOL_ID,
+				Some(15),
+				None,
+				Some(((ACA, 10), (DOT, 90))),
+				None,
+			),
+			Error::<Test>::NotOwner
+		);
 	});
 }
 
@@ -530,7 +548,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 				ACA_DOT_POOL_ID,
 				Some(15),
 				None,
-				Some(((1, 10), (2, 90))),
+				Some(((ACA, 10), (DOT, 90))),
 				None,
 			),
 			Error::<Test>::SaleStarted
@@ -548,6 +566,23 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 }
 
 #[test]
+fn update_pool_data_with_wrong_asset_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				None,
+				None,
+				Some(((HDX, 10), (DOT, 90))),
+				None,
+			),
+			Error::<Test>::InvalidAsset
+		);
+	});
+}
+
+#[test]
 fn pause_pool_should_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID));
@@ -556,15 +591,17 @@ fn pause_pool_should_work() {
 		assert_eq!(
 			paused_pool,
 			Pool {
+				owner: ALICE,
 				start: 10u64,
 				end: 20u64,
-				initial_weights: ((ACA, 20), (DOT, 80)),
-				final_weights: ((ACA, 90), (DOT, 10)),
+				assets: (ACA, DOT),
+				initial_weights: (20, 80),
+				final_weights: (90, 10),
 				last_weight_update: 0u64,
-				last_weights: ((ACA, 20), (DOT, 80)),
-				curve: WeightCurveType::Linear,
+				last_weights: (20, 80),
+				weight_curve: WeightCurveType::Linear,
 				pausable: true,
-				paused: true
+				paused: true,
 			}
 		);
 
@@ -729,15 +766,17 @@ fn unpause_pool_should_work() {
 		assert_eq!(
 			unpaused_pool,
 			Pool {
+				owner: ALICE,
 				start: 200_u64,
 				end: 400_u64,
-				initial_weights: ((DOT, 20), (HDX, 80)),
-				final_weights: ((DOT, 40), (HDX, 60)),
+				assets: (HDX, DOT),
+				initial_weights: (80, 20),
+				final_weights: (60, 40),
 				last_weight_update: 0u64,
-				last_weights: ((DOT, 20), (HDX, 80)),
-				curve: WeightCurveType::Linear,
+				last_weights: (80, 20),
+				weight_curve: WeightCurveType::Linear,
 				pausable: true,
-				paused: false
+				paused: false,
 			}
 		);
 
@@ -810,7 +849,9 @@ fn add_liquidity_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		let added_a = 10_000_000_000;
 		let added_b = 20_000_000_000;
@@ -822,9 +863,11 @@ fn add_liquidity_should_work() {
 			added_b,
 		));
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before.saturating_add(added_a));
-		assert_eq!(balance_b_after, balance_b_before.saturating_add(added_b));
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_add(added_a));
+		assert_eq!(pool_balance_b_after, pool_balance_b_before.saturating_add(added_b));
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
@@ -837,7 +880,8 @@ fn add_liquidity_should_work() {
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, added_b).into(),
 		]);
 
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_ok!(LBPPallet::add_liquidity(
 			Origin::signed(ALICE),
@@ -846,10 +890,11 @@ fn add_liquidity_should_work() {
 			0,
 		));
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
-		assert_eq!(balance_a_after, balance_a_before.saturating_add(added_a));
-		assert_eq!(balance_b_after, balance_b_before);
+		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_add(added_a));
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
@@ -864,13 +909,10 @@ fn add_liquidity_should_work() {
 fn add_liquidity_by_non_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LBPPallet::add_liquidity(
-			Origin::signed(BOB),
-			ACA_DOT_POOL_ID,
-			10_000_000_000,
-			20_000_000_000,),
-		Error::<Test>::NotOwner);
-		});
+			LBPPallet::add_liquidity(Origin::signed(BOB), ACA_DOT_POOL_ID, 10_000_000_000, 20_000_000_000,),
+			Error::<Test>::NotOwner
+		);
+	});
 }
 
 #[test]
@@ -878,16 +920,20 @@ fn add_zero_liquidity_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
 			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 0, 0,),
 			Error::<Test>::CannotAddZeroLiquidity
 		);
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before);
-		assert_eq!(balance_b_after, balance_b_before);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before);
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
@@ -905,16 +951,20 @@ fn add_zero_liquidity_should_not_work() {
 fn add_liquidity_insufficient_balance_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
 			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, u128::MAX, 0,),
 			Error::<Test>::InsufficientAssetBalance
 		);
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before);
-		assert_eq!(balance_b_after, balance_b_before);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before);
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		assert_eq!(user_balance_a_after, user_balance_a_before);
@@ -928,19 +978,24 @@ fn add_liquidity_after_sale_started_should_not_work() {
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
 			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 1_000, 1_000,),
 			Error::<Test>::SaleStarted
 		);
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before);
-		assert_eq!(balance_b_after, balance_b_before);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before);
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
+
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
@@ -949,19 +1004,24 @@ fn add_liquidity_after_sale_started_should_not_work() {
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
 			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 1_000, 1_000,),
 			Error::<Test>::SaleStarted
 		);
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before);
-		assert_eq!(balance_b_after, balance_b_before);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before);
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
+
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
@@ -978,7 +1038,9 @@ fn remove_liquidity_should_work() {
 		System::set_block_number(5);
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_ok!(LBPPallet::remove_liquidity(
 			Origin::signed(ALICE),
@@ -987,9 +1049,11 @@ fn remove_liquidity_should_work() {
 			0,
 		));
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before.saturating_sub(1_000));
-		assert_eq!(balance_b_after, balance_b_before);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_sub(1_000));
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_add(1_000));
@@ -998,7 +1062,9 @@ fn remove_liquidity_should_work() {
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		let removed_a = 10_000_000;
 		let removed_b = 20_000_000;
@@ -1010,16 +1076,19 @@ fn remove_liquidity_should_work() {
 			removed_b,
 		));
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before.saturating_sub(removed_a));
-		assert_eq!(balance_b_after, balance_b_before.saturating_sub(removed_b));
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_sub(removed_a));
+		assert_eq!(pool_balance_b_after, pool_balance_b_before.saturating_sub(removed_b));
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
 		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_add(removed_a));
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_add(removed_b));
 
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_ok!(LBPPallet::remove_liquidity(
 			Origin::signed(ALICE),
@@ -1028,10 +1097,11 @@ fn remove_liquidity_should_work() {
 			0,
 		));
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
-		assert_eq!(balance_a_after, balance_a_before.saturating_sub(removed_a));
-		assert_eq!(balance_b_after, balance_b_before);
+		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_sub(removed_a));
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
@@ -1047,13 +1117,10 @@ fn remove_liquidity_should_work() {
 fn remove_liquidity_by_non_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LBPPallet::remove_liquidity(
-			Origin::signed(BOB),
-			ACA_DOT_POOL_ID,
-			10_000_000_000,
-			20_000_000_000,),
-		Error::<Test>::NotOwner);
-		});
+			LBPPallet::remove_liquidity(Origin::signed(BOB), ACA_DOT_POOL_ID, 10_000_000_000, 20_000_000_000,),
+			Error::<Test>::NotOwner
+		);
+	});
 }
 
 #[test]
@@ -1063,19 +1130,24 @@ fn remove_zero_liquidity_should_not_work() {
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
 			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 0, 0,),
 			Error::<Test>::CannotRemoveZeroLiquidity
 		);
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before);
-		assert_eq!(balance_b_after, balance_b_before);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before);
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
+
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
@@ -1092,16 +1164,20 @@ fn remove_liquidity_insufficient_reserve_should_not_work() {
 		System::set_block_number(30);
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
 			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, u128::MAX, 0,),
-			Error::<Test>::LiquidityUnderflow
+			Error::<Test>::InsufficientAssetBalance
 		);
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before);
-		assert_eq!(balance_b_after, balance_b_before);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before);
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		assert_eq!(user_balance_a_after, user_balance_a_before);
@@ -1120,16 +1196,20 @@ fn remove_liquidity_during_sale_should_not_work() {
 		System::set_block_number(15);
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
 			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 1_000, 0,),
 			Error::<Test>::SaleNotEnded
 		);
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, balance_a_before);
-		assert_eq!(balance_b_after, balance_b_before);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, pool_balance_a_before);
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		assert_eq!(user_balance_a_after, user_balance_a_before);
@@ -1149,24 +1229,28 @@ fn destroy_pool_should_work() {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
 		let user_balance_hdx_before = Currency::reserved_balance(HDX, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_ok!(LBPPallet::destroy_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
 
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
-		assert_eq!(balance_a_after, 0);
-		assert_eq!(balance_b_after, 0);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, 0);
+		assert_eq!(pool_balance_b_after, 0);
 
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		assert_eq!(
 			user_balance_a_after,
-			user_balance_a_before.saturating_add(balance_a_before)
+			user_balance_a_before.saturating_add(pool_balance_a_before)
 		);
 
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
 		assert_eq!(
 			user_balance_b_after,
-			user_balance_b_before.saturating_add(balance_b_before)
+			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
 		let user_balance_hdx_after = Currency::reserved_balance(HDX, &ALICE);
@@ -1175,17 +1259,14 @@ fn destroy_pool_should_work() {
 			user_balance_hdx_before.saturating_sub(POOL_DEPOSIT)
 		);
 
-		assert_eq!(<PoolOwner<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 		assert_eq!(<PoolDeposit<Test>>::contains_key(ACA_DOT_POOL_ID), false);
-		assert_eq!(<PoolAssets<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
-		assert_eq!(<PoolBalances<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
-			Event::PoolDestroyed(ACA_DOT_POOL_ID, ACA, DOT, balance_a_before, balance_b_before).into(),
+			Event::PoolDestroyed(ACA_DOT_POOL_ID, ACA, DOT, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
 	});
 }
@@ -1194,11 +1275,10 @@ fn destroy_pool_should_work() {
 fn destroy_pool_by_non_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LBPPallet::destroy_pool(
-			Origin::signed(BOB),
-			ACA_DOT_POOL_ID),
-		Error::<Test>::NotOwner);
-		});
+			LBPPallet::destroy_pool(Origin::signed(BOB), ACA_DOT_POOL_ID),
+			Error::<Test>::NotOwner
+		);
+	});
 }
 
 #[test]
@@ -1207,7 +1287,9 @@ fn destroy_not_finalized_pool_should_not_work() {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
 		let user_balance_hdx_before = Currency::reserved_balance(HDX, &ALICE);
-		let (balance_a_before, balance_b_before) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
 			LBPPallet::destroy_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID,),
@@ -1217,10 +1299,12 @@ fn destroy_not_finalized_pool_should_not_work() {
 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
 		let user_balance_hdx_after = Currency::reserved_balance(HDX, &ALICE);
-		let (balance_a_after, balance_b_after) = LBPPallet::pool_balances(ACA_DOT_POOL_ID);
 
-		assert_eq!(balance_a_before, balance_a_after);
-		assert_eq!(balance_b_before, balance_b_after);
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_before, pool_balance_a_after);
+		assert_eq!(pool_balance_b_before, pool_balance_b_after);
 		assert_eq!(user_balance_a_before, user_balance_a_after);
 		assert_eq!(user_balance_b_before, user_balance_b_after);
 		assert_eq!(user_balance_hdx_before, user_balance_hdx_after);
@@ -1763,13 +1847,15 @@ fn buy_should_work() {
 
 		assert_eq!(
 			Pool {
+				owner: ALICE,
 				start: 10u64,
 				end: 20u64,
-				initial_weights: ((asset_in, 20), (asset_out, 80)),
-				final_weights: ((asset_in, 90), (asset_out, 10)),
+				assets: (asset_in, asset_out),
+				initial_weights: (20, 80),
+				final_weights: (90, 10),
 				last_weight_update: 11u64,
-				last_weights: ((asset_in, 27), (asset_out, 73)),
-				curve: WeightCurveType::Linear,
+				last_weights: (27, 73),
+				weight_curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: false,
 			},
@@ -1817,13 +1903,15 @@ fn sell_should_work() {
 
 		assert_eq!(
 			Pool {
+				owner: ALICE,
 				start: 10u64,
 				end: 20u64,
-				initial_weights: ((asset_in, 20), (asset_out, 80)),
-				final_weights: ((asset_in, 90), (asset_out, 10)),
+				assets: (asset_in, asset_out),
+				initial_weights: (20, 80),
+				final_weights: (90, 10),
 				last_weight_update: 11u64,
-				last_weights: ((asset_in, 27), (asset_out, 73)),
-				curve: WeightCurveType::Linear,
+				last_weights: (27, 73),
+				weight_curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: false,
 			},
@@ -1846,9 +1934,18 @@ fn sell_should_work() {
 #[test]
 fn amm_trait_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let asset_pair = AssetPair{asset_in: ACA, asset_out: DOT};
-		let reversed_asset_pair = AssetPair{asset_in: DOT, asset_out: ACA};
-		let non_existing_asset_pair = AssetPair{asset_in: DOT, asset_out: HDX};
+		let asset_pair = AssetPair {
+			asset_in: ACA,
+			asset_out: DOT,
+		};
+		let reversed_asset_pair = AssetPair {
+			asset_in: DOT,
+			asset_out: ACA,
+		};
+		let non_existing_asset_pair = AssetPair {
+			asset_in: DOT,
+			asset_out: HDX,
+		};
 
 		assert_eq!(LBPPallet::exists(asset_pair), true);
 		assert_eq!(LBPPallet::exists(reversed_asset_pair), true);
