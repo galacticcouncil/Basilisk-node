@@ -34,6 +34,10 @@ pallet-multi-payment-benchmarking = { default-features = false, optional = true,
 primitives = { default-features = false, version = '3.0.0' }
 pallet-xyk-rpc-runtime-api = { default-features = false, version = '3.0.0' }
 
+pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.1", default-features = false }
+pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.1", default-features = false }
+pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.1", default-features = false }
+
 # ORML dependencies
 orml-currencies = { default-features = false, version = "0.4.1-dev" }
 orml-tokens = { default-features = false, version = "0.4.1-dev" }
@@ -152,4 +156,8 @@ std = [
     'sp-std/std',
     'sp-transaction-pool/std',
     'sp-version/std',
+    'pallet-treasury/std',
+    'pallet-collective/std',
+    'pallet-democracy/std',
+    'pallet-scheduler/std',
 ]
