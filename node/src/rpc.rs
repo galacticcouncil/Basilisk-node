@@ -32,11 +32,11 @@ where
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: module_amm_rpc::AMMRuntimeApi<Block, AccountId, AssetId, Balance>,
+	C::Api: pallet_xyk_rpc::XYKRuntimeApi<Block, AccountId, AssetId, Balance>,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + 'static,
 {
-	use module_amm_rpc::{AMMApi, AMM};
+	use pallet_xyk_rpc::{XYKApi, XYK};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
@@ -62,7 +62,7 @@ where
 	// to call into the runtime.
 	// `io.extend_with(YourRpcTrait::to_delegate(YourRpcStruct::new(ReferenceToClient, ...)));`
 
-	io.extend_with(AMMApi::to_delegate(AMM::new(client)));
+	io.extend_with(XYKApi::to_delegate(XYK::new(client)));
 
 	io
 }
