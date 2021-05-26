@@ -23,40 +23,37 @@
         "wsPort": 9977,
         "port": 30777
       }
-    ]
+    ],
+    "runtime_genesis_config": {
+      "parachainsConfiguration": {
+        "config": {
+          "validation_upgrade_frequency": 1,
+          "validation_upgrade_delay": 1
+        }
+      }
+    }
   },
   "parachains": [
     {
       "bin": "../target/release/basilisk",
       "id": "200",
-      "wsPort": 9988,
-      "port": 31200,
+      "chain":"local",
       "balance": "1000000000000000000000",
-      "flags": ["--", "--execution=wasm"]
-    },
-    {
-      "bin": "../target/release/basilisk",
-      "id": "300",
-      "wsPort": 9999,
-      "port": 31300,
-      "balance": "1000000000000000000000",
-      "flags": ["--", "--execution=wasm"]
+      "nodes": [
+        {
+          "wsPort": 9988,
+          "port": 31200,
+          "flags": ["--alice","--", "--execution=wasm"]
+        },
+        {
+          "wsPort": 9999,
+          "port": 31300,
+          "flags": ["--bob","--", "--execution=wasm"]
+        }
+      ]
     }
   ],
-  "hrmpChannels": [
-    {
-      "sender": "200",
-      "recipient": "300",
-      "maxCapacity": 8,
-      "maxMessageSize": 512
-    },
-    {
-      "sender": "300",
-      "recipient": "200",
-      "maxCapacity": 8,
-      "maxMessageSize": 512
-    }
-  ],
+  "hrmpChannels": [],
   "types": {
     "Address": "MultiAddress",
     "LookupSource": "MultiAddress"

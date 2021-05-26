@@ -11,24 +11,19 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::OpaqueMetadata;
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::Convert,
 	traits::Zero,
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, DispatchResult, MultiSignature,
+	ApplyExtrinsicResult, MultiSignature,
 };
-use sp_std::convert::{From, TryFrom};
+use sp_std::convert::From;
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-
-use sp_std::collections::btree_set::BTreeSet;
-
-use frame_system::{limits, EnsureRoot};
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
@@ -42,6 +37,7 @@ pub use frame_support::{
 };
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
+pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
@@ -50,35 +46,16 @@ use primitives::fee;
 
 mod currency;
 
-use currency::CurrencyId;
-
-use cumulus_pallet_xcm_handler as xcm_handler;
-
-use module_amm_rpc_runtime_api as amm_rpc;
+use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
-use orml_xcm_support::{
-	CurrencyIdConversion, IsConcreteWithGeneralKey, MultiCurrencyAdapter as XCMMultiCurrencyAdapter,
-	NativePalletAssetOr, XcmHandler as XcmHandlerT,
-};
 
-use cumulus_primitives_core::relay_chain::Balance as RelayChainBalance;
 pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
-
-// XCM imports
-use polkadot_parachain::primitives::Sibling;
-use xcm::v0::{Junction, MultiAsset, MultiLocation, NetworkId, Xcm};
-use xcm_builder::{
-	AccountId32Aliases, ChildParachainConvertsVia, LocationInverter, ParentIsDefault, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative, SovereignSignedViaLocation,
-};
-use xcm_executor::{Config, XcmExecutor};
 
 pub use pallet_asset_registry;
 pub use pallet_faucet;
 
-use cumulus_primitives_core::ParaId;
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
 /// An index to a block.
@@ -119,9 +96,11 @@ pub mod opaque {
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 	/// Opaque block identifier type.
 	pub type BlockId = generic::BlockId<Block>;
+}
 
-	impl_opaque_keys! {
-		pub struct SessionKeys {}
+impl_opaque_keys! {
+	pub struct SessionKeys {
+		pub aura: Aura,
 	}
 }
 
@@ -135,14 +114,20 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	transaction_version: 1,
 };
 
+//TODO is 6s safe?
 pub const MILLISECS_PER_BLOCK: u64 = 6000;
 
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
+
+pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10 * MINUTES;
 
 // Time is measured by number of blocks.
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
+
+// 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
+pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
@@ -163,13 +148,13 @@ pub fn native_version() -> NativeVersion {
 }
 
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 2400;
+	pub const BlockHashCount: BlockNumber = 250;
 	pub const Version: RuntimeVersion = VERSION;
 	/// Maximum length of block. Up to 5MB.
-	pub BlockLength: limits::BlockLength =
-		limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	pub BlockLength: frame_system::limits::BlockLength =
+		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	/// Block weights base values and limits.
-	pub BlockWeights: limits::BlockWeights = limits::BlockWeights::builder()
+	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights::builder()
 		.base_block(BlockExecutionWeight::get())
 		.for_class(DispatchClass::all(), |weights| {
 			weights.base_extrinsic = ExtrinsicBaseWeight::get();
@@ -240,7 +225,7 @@ impl frame_system::Config for Runtime {
 	/// Weight information for the extrinsics of this pallet.
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = ParachainSystem;
+	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
 
 parameter_types! {
@@ -289,7 +274,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MultiCurrency = Currencies;
-	type AMMPool = AMM;
+	type AMMPool = XYK;
 	type WeightInfo = pallet_transaction_multi_payment::weights::HydraWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = IdentityFee<Balance>;
@@ -315,6 +300,7 @@ impl orml_tokens::Config for Runtime {
 	type WeightInfo = ();
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
+	type MaxLocks = MaxLocks;
 }
 
 impl orml_currencies::Config for Runtime {
@@ -335,18 +321,18 @@ parameter_types! {
 	pub ExchangeFee: fee::Fee = fee::Fee::default();
 }
 
-impl pallet_amm::Config for Runtime {
+impl pallet_xyk::Config for Runtime {
 	type Event = Event;
-	type AssetPairAccountId = pallet_amm::AssetPairAccountId<Self>;
+	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
-	type HDXAssetId = NativeAssetId;
-	type WeightInfo = pallet_amm::weights::HydraWeight<Runtime>;
+	type NativeAssetId = NativeAssetId;
+	type WeightInfo = pallet_xyk::weights::HydraWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 }
 
 impl pallet_exchange::Config for Runtime {
 	type Event = Event;
-	type AMMPool = AMM;
+	type AMMPool = XYK;
 	type Resolver = Exchange;
 	type Currency = Currencies;
 	type WeightInfo = pallet_exchange::weights::HydraWeight<Runtime>;
@@ -363,144 +349,20 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type DownwardMessageHandlers = XcmHandler;
-	type XcmpMessageHandlers = XcmHandler;
+	type OutboundXcmpMessageSource = ();
+	type DmpMessageHandler = ();
+	type ReservedDmpWeight = ();
+	type XcmpMessageHandler = ();
+	type ReservedXcmpWeight = ();
+}
+
+impl pallet_aura::Config for Runtime {
+	type AuthorityId = AuraId;
 }
 
 impl parachain_info::Config for Runtime {}
 
-parameter_types! {
-	pub const PolkadotNetworkId: NetworkId = NetworkId::Polkadot;
-
-	pub BasiliskNetwork: NetworkId = NetworkId::Named("basilisk".into());
-	pub RelayChainOrigin: Origin = xcm_handler::Origin::Relay.into();
-
-	pub Ancestry: MultiLocation = MultiLocation::X1(Junction::Parachain {
-		id: ParachainInfo::parachain_id().into(),
-	});
-
-	pub const RelayChainCurrencyId: CurrencyId = CurrencyId::DOT;
-
-}
-
-type LocationConverter = (
-	ParentIsDefault<AccountId>,
-	ChildParachainConvertsVia<ParaId, AccountId>,
-	SiblingParachainConvertsVia<Sibling, AccountId>,
-	AccountId32Aliases<BasiliskNetwork, AccountId>,
-);
-
-pub struct AssetCurrencyConverter;
-
-impl CurrencyIdConversion<AssetId> for AssetCurrencyConverter {
-	fn from_asset(asset: &MultiAsset) -> Option<AssetId> {
-		if let MultiAsset::ConcreteFungible { id: location, .. } = asset {
-			if location == &MultiLocation::X1(Junction::Parent) {
-				return Some(CurrencyId::DOT as u32);
-			}
-			if let Some(Junction::GeneralKey(key)) = location.last() {
-				let r = match CurrencyId::try_from(key.clone()).ok() {
-					Some(val) => Some(val as u32),
-					None => None,
-				};
-
-				return r;
-			}
-		}
-		None
-	}
-}
-
-pub type LocalAssetTransactor = XCMMultiCurrencyAdapter<
-	Currencies,
-	UnknownTokens,
-	IsConcreteWithGeneralKey<CurrencyId, RelayToNative>,
-	LocationConverter,
-	AccountId,
-	AssetCurrencyConverter,
-	AssetId,
->;
-
-type LocalOriginConverter = (
-	SovereignSignedViaLocation<LocationConverter, Origin>,
-	RelayChainAsNative<RelayChainOrigin, Origin>,
-	SiblingParachainAsNative<xcm_handler::Origin, Origin>,
-	SignedAccountId32AsNative<BasiliskNetwork, Origin>,
-);
-
-parameter_types! {
-	pub NativeTokens: BTreeSet<(Vec<u8>, MultiLocation)> = {
-		let mut t = BTreeSet::new();
-		t.insert(("AUSD".into(), (Junction::Parent, Junction::Parachain { id: 666 }).into()));
-		t.insert(("ACA".into(), (Junction::Parent, Junction::Parachain { id: 666 }).into()));
-		t
-	};
-}
-
-pub struct XcmConfig;
-impl Config for XcmConfig {
-	type Call = Call;
-	type XcmSender = XcmHandler;
-	// How to withdraw and deposit an asset.
-	type AssetTransactor = LocalAssetTransactor;
-	type OriginConverter = LocalOriginConverter;
-	type IsReserve = NativePalletAssetOr<NativeTokens>;
-	type IsTeleporter = ();
-	type LocationInverter = LocationInverter<Ancestry>;
-}
-
-impl cumulus_pallet_xcm_handler::Config for Runtime {
-	type Event = Event;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type UpwardMessageSender = ParachainSystem;
-	type XcmpMessageSender = ParachainSystem;
-	type SendXcmOrigin = EnsureRoot<AccountId>;
-	type AccountIdConverter = LocationConverter;
-}
-
-/// Xtokens config
-
-pub struct RelayToNative;
-impl Convert<RelayChainBalance, Balance> for RelayToNative {
-	fn convert(val: u128) -> Balance {
-		val
-	}
-}
-
-pub struct NativeToRelay;
-impl Convert<Balance, RelayChainBalance> for NativeToRelay {
-	fn convert(val: u128) -> Balance {
-		val
-	}
-}
-
-pub struct AccountId32Convert;
-impl Convert<AccountId, [u8; 32]> for AccountId32Convert {
-	fn convert(account_id: AccountId) -> [u8; 32] {
-		account_id.into()
-	}
-}
-
-pub struct HandleXcm;
-impl XcmHandlerT<AccountId> for HandleXcm {
-	fn execute_xcm(origin: AccountId, xcm: Xcm) -> DispatchResult {
-		XcmHandler::execute_xcm(origin, xcm)
-	}
-}
-
-impl orml_xtokens::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type ToRelayChainBalance = NativeToRelay;
-	type AccountId32Convert = AccountId32Convert;
-	type RelayChainNetworkId = PolkadotNetworkId;
-	type ParaId = ParachainInfo;
-	type XcmHandler = HandleXcm;
-}
-
-impl orml_unknown_tokens::Config for Runtime {
-	type Event = Event;
-}
+impl cumulus_pallet_aura_ext::Config for Runtime {}
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
@@ -529,10 +391,10 @@ construct_runtime!(
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 
 		// Parachain
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
-		XcmHandler: xcm_handler::{Pallet, Call, Event<T>, Origin},
-		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
+		Aura: pallet_aura::{Pallet, Config<T>},
+		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config},
 
 		// ORML related modules
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
@@ -542,7 +404,7 @@ construct_runtime!(
 
 		// Basilisk related modules
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
-		AMM: pallet_amm::{Pallet, Call, Storage, Event<T>},
+		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Storage, Event<T>},
@@ -618,10 +480,6 @@ impl_runtime_apis! {
 		) -> sp_inherents::CheckInherentsResult {
 			data.check_extrinsics(&block)
 		}
-
-		fn random_seed() -> <Block as BlockT>::Hash {
-			RandomnessCollectiveFlip::random_seed().0
-		}
 	}
 
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
@@ -640,14 +498,30 @@ impl_runtime_apis! {
 	}
 
 	impl sp_session::SessionKeys<Block> for Runtime {
-		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-			opaque::SessionKeys::generate(seed)
-		}
-
 		fn decode_session_keys(
 			encoded: Vec<u8>,
-		) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
-			opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
+		) -> Option<Vec<(Vec<u8>, sp_core::crypto::KeyTypeId)>> {
+			SessionKeys::decode_into_raw_public_keys(&encoded)
+		}
+
+		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
+			SessionKeys::generate(seed)
+		}
+	}
+
+	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
+		fn slot_duration() -> sp_consensus_aura::SlotDuration {
+			sp_consensus_aura::SlotDuration::from_millis(Aura::slot_duration())
+		}
+
+		fn authorities() -> Vec<AuraId> {
+			Aura::authorities()
+		}
+	}
+
+	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
+		fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
+			ParachainSystem::collect_collation_info()
 		}
 	}
 
@@ -673,7 +547,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl amm_rpc::AMMApi<
+	impl xyk_rpc::XYKApi<
 		Block,
 		AccountId,
 		AssetId,
@@ -681,13 +555,13 @@ impl_runtime_apis! {
 	> for Runtime {
 		fn get_pool_balances(
 			pool_address: AccountId,
-		) -> Vec<amm_rpc::BalanceInfo<AssetId, Balance>> {
+		) -> Vec<xyk_rpc::BalanceInfo<AssetId, Balance>> {
 			let mut vec = Vec::new();
 
-			let pool_balances = AMM::get_pool_balances(pool_address).unwrap();
+			let pool_balances = XYK::get_pool_balances(pool_address).unwrap();
 
 			for b in pool_balances {
-				let item  = amm_rpc::BalanceInfo{
+				let item  = xyk_rpc::BalanceInfo{
 				 asset: Some(b.0),
 					amount: b.1
 				};
@@ -731,7 +605,9 @@ impl_runtime_apis! {
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 
-			add_benchmark!(params, batches, amm, AMM);
+			add_benchmark!(params, batches, xyk, XYK);
+			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
+			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
@@ -745,4 +621,7 @@ impl_runtime_apis! {
 	}
 }
 
-cumulus_pallet_parachain_system::register_validate_block!(Runtime, Executive);
+cumulus_pallet_parachain_system::register_validate_block!(
+	Runtime,
+	cumulus_pallet_aura_ext::BlockExecutor::<Runtime, Executive>,
+);
