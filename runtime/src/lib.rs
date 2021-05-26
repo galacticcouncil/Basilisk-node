@@ -400,7 +400,6 @@ construct_runtime!(
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
 		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
-		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
 
 		// Basilisk related modules
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
