@@ -3,7 +3,7 @@
 use super::*;
 
 use frame_benchmarking::{account, benchmarks};
-use frame_system::{RawOrigin, Pallet as System};
+use frame_system::{Pallet as System, RawOrigin};
 
 use primitives::AssetId;
 
@@ -162,7 +162,7 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, duration, WeightCurveType::Linear, true)?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-	}: _(RawOrigin::Signed(caller), pool_id.clone(), 1_000_000_000_u128, 2_000_000_000_u128)
+	}: _(RawOrigin::Signed(caller), pool_id.clone(), (asset_a.id, 1_000_000_000_u128), (asset_b.id, 2_000_000_000_u128))
 	verify {
 		assert_eq!(T::MultiCurrency::free_balance(asset_a.id, &pool_id), 2_000_000_000_u128);
 		assert_eq!(T::MultiCurrency::free_balance(asset_b.id, &pool_id), 4_000_000_000_u128);
@@ -189,7 +189,7 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, duration, WeightCurveType::Linear, true)?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-	}: _(RawOrigin::Signed(caller), pool_id.clone(), 500_000_000_u128, 1_000_000_000_u128)
+	}: _(RawOrigin::Signed(caller), pool_id.clone(), (asset_a.id, 500_000_000_u128), (asset_b.id, 1_000_000_000_u128))
 	verify {
 		assert_eq!(T::MultiCurrency::free_balance(asset_a.id, &pool_id), 500_000_000_u128);
 		assert_eq!(T::MultiCurrency::free_balance(asset_b.id, &pool_id), 1_000_000_000_u128);

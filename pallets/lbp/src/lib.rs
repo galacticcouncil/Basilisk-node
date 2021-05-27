@@ -3,9 +3,6 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::type_complexity)]
 
-//TODO:
-// * add assetId validation to weights manipulation by user - reason: change from (w,w) to ((assetId, w), (assetid, w))
-
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
@@ -463,10 +460,16 @@ pub mod pallet {
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T>,
-			amount_a: BalanceOf<T>,
-			amount_b: BalanceOf<T>,
+			amount_a: (AssetId, BalanceOf<T>),
+			amount_b: (AssetId, BalanceOf<T>),
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
+
+			let (asset_a, asset_b) = (amount_a.0, amount_b.0);
+			let (amount_a, amount_b) = (amount_a.1, amount_b.1);
+
+			let asset_pair_id = T::AssetPairPoolId::from_assets(asset_a, asset_b);
+			ensure!(pool_id == asset_pair_id, Error::<T>::InvalidAsset);
 
 			ensure!(
 				!amount_a.is_zero() || !amount_b.is_zero(),
@@ -482,8 +485,6 @@ pub mod pallet {
 				pool_data.start == Zero::zero() || now < pool_data.start,
 				Error::<T>::SaleStarted
 			);
-
-			let (asset_a, asset_b) = pool_data.assets;
 
 			if !amount_a.is_zero() {
 				ensure!(
@@ -518,10 +519,16 @@ pub mod pallet {
 		pub fn remove_liquidity(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T>,
-			amount_a: BalanceOf<T>,
-			amount_b: BalanceOf<T>,
+			amount_a: (AssetId, BalanceOf<T>),
+			amount_b: (AssetId, BalanceOf<T>),
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
+
+			let (asset_a, asset_b) = (amount_a.0, amount_b.0);
+			let (amount_a, amount_b) = (amount_a.1, amount_b.1);
+
+			let asset_pair_id = T::AssetPairPoolId::from_assets(asset_a, asset_b);
+			ensure!(pool_id == asset_pair_id, Error::<T>::InvalidAsset);
 
 			ensure!(
 				!amount_a.is_zero() || !amount_b.is_zero(),
@@ -533,8 +540,6 @@ pub mod pallet {
 			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
 
 			ensure!(!Self::is_pool_running(&pool_data), Error::<T>::SaleNotEnded);
-
-			let (asset_a, asset_b) = pool_data.assets;
 
 			if !amount_a.is_zero() {
 				ensure!(

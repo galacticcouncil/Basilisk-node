@@ -849,7 +849,6 @@ fn add_liquidity_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-
 		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
@@ -859,13 +858,57 @@ fn add_liquidity_should_work() {
 		assert_ok!(LBPPallet::add_liquidity(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
-			added_a,
-			added_b,
+			(ACA, added_a),
+			(DOT, added_b),
 		));
 
 		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_add(added_a));
+		assert_eq!(pool_balance_b_after, pool_balance_b_before.saturating_add(added_b));
 
+		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
+		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
+		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_sub(added_a));
+		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(added_b));
+
+		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
+		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_ok!(LBPPallet::add_liquidity(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			(ACA, added_a),
+			(DOT, 0),
+		));
+
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_add(added_a));
+		assert_eq!(pool_balance_b_after, pool_balance_b_before);
+
+		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
+		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
+		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_sub(added_a));
+		assert_eq!(user_balance_b_after, user_balance_b_before);
+
+		// change asset order
+		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
+		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_ok!(LBPPallet::add_liquidity(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			(DOT, added_b),
+			(ACA, added_a),
+		));
+
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_add(added_a));
 		assert_eq!(pool_balance_b_after, pool_balance_b_before.saturating_add(added_b));
 
@@ -878,29 +921,8 @@ fn add_liquidity_should_work() {
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, added_b).into(),
-		]);
-
-		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
-		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
-
-		assert_ok!(LBPPallet::add_liquidity(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			added_a,
-			0,
-		));
-
-		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
-		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
-
-		assert_eq!(pool_balance_a_after, pool_balance_a_before.saturating_add(added_a));
-		assert_eq!(pool_balance_b_after, pool_balance_b_before);
-
-		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
-			Event::Unpaused(ALICE, ACA_DOT_POOL_ID).into(),
-			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, added_b).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, added_a, 0).into(),
+			Event::LiquidityAdded(ACA_DOT_POOL_ID, DOT, ACA, added_b, added_a).into(),
 		]);
 	});
 }
@@ -909,7 +931,12 @@ fn add_liquidity_should_work() {
 fn add_liquidity_by_non_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LBPPallet::add_liquidity(Origin::signed(BOB), ACA_DOT_POOL_ID, 10_000_000_000, 20_000_000_000,),
+			LBPPallet::add_liquidity(
+				Origin::signed(BOB),
+				ACA_DOT_POOL_ID,
+				(ACA, 10_000_000_000),
+				(DOT, 20_000_000_000),
+			),
 			Error::<Test>::NotOwner
 		);
 	});
@@ -925,7 +952,7 @@ fn add_zero_liquidity_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 0, 0,),
+			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 0), (DOT, 0),),
 			Error::<Test>::CannotAddZeroLiquidity
 		);
 
@@ -956,7 +983,7 @@ fn add_liquidity_insufficient_balance_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, u128::MAX, 0,),
+			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, u128::MAX), (DOT, 0),),
 			Error::<Test>::InsufficientAssetBalance
 		);
 
@@ -983,7 +1010,7 @@ fn add_liquidity_after_sale_started_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 1_000, 1_000,),
+			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 1_000), (DOT, 1_000),),
 			Error::<Test>::SaleStarted
 		);
 
@@ -1009,7 +1036,7 @@ fn add_liquidity_after_sale_started_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 1_000, 1_000,),
+			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 1_000), (DOT, 1_000),),
 			Error::<Test>::SaleStarted
 		);
 
@@ -1033,6 +1060,16 @@ fn add_liquidity_after_sale_started_should_not_work() {
 }
 
 #[test]
+fn add_wrong_liquidity_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 1_000), (HDX, 1_000),),
+			Error::<Test>::InvalidAsset
+		);
+	});
+}
+
+#[test]
 fn remove_liquidity_should_work() {
 	predefined_test_ext().execute_with(|| {
 		System::set_block_number(5);
@@ -1045,8 +1082,8 @@ fn remove_liquidity_should_work() {
 		assert_ok!(LBPPallet::remove_liquidity(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
-			1_000,
-			0,
+			(ACA, 1_000),
+			(DOT, 0),
 		));
 
 		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
@@ -1072,8 +1109,8 @@ fn remove_liquidity_should_work() {
 		assert_ok!(LBPPallet::remove_liquidity(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
-			removed_a,
-			removed_b,
+			(ACA, removed_a),
+			(DOT, removed_b),
 		));
 
 		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
@@ -1093,8 +1130,8 @@ fn remove_liquidity_should_work() {
 		assert_ok!(LBPPallet::remove_liquidity(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
-			removed_a,
-			0,
+			(ACA, removed_a),
+			(DOT, 0),
 		));
 
 		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
@@ -1117,7 +1154,12 @@ fn remove_liquidity_should_work() {
 fn remove_liquidity_by_non_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LBPPallet::remove_liquidity(Origin::signed(BOB), ACA_DOT_POOL_ID, 10_000_000_000, 20_000_000_000,),
+			LBPPallet::remove_liquidity(
+				Origin::signed(BOB),
+				ACA_DOT_POOL_ID,
+				(ACA, 10_000_000_000),
+				(DOT, 20_000_000_000),
+			),
 			Error::<Test>::NotOwner
 		);
 	});
@@ -1135,7 +1177,7 @@ fn remove_zero_liquidity_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 0, 0,),
+			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 0), (DOT, 0),),
 			Error::<Test>::CannotRemoveZeroLiquidity
 		);
 
@@ -1169,7 +1211,7 @@ fn remove_liquidity_insufficient_reserve_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, u128::MAX, 0,),
+			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, u128::MAX), (DOT, 0),),
 			Error::<Test>::InsufficientAssetBalance
 		);
 
@@ -1201,7 +1243,7 @@ fn remove_liquidity_during_sale_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, 1_000, 0,),
+			LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 1_000), (DOT, 0),),
 			Error::<Test>::SaleNotEnded
 		);
 
