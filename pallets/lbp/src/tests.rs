@@ -1974,3 +1974,60 @@ fn amm_trait_should_work() {
 		// TODO: test all methods from the AMM trait
 	});
 }
+
+#[test]
+fn get_spot_price_should_work() {
+	predefined_test_ext().execute_with(|| {
+		System::set_block_number(10);
+
+		let price = hydra_dx_math::lbp::calculate_spot_price(
+			1_000_000_000_u128,
+			2_000_000_000_u128,
+			20_u128,
+			80_u128,
+			1_000_000_u128,
+		)
+		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
+
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000_u128), price);
+
+		// swap assets
+		let price = hydra_dx_math::lbp::calculate_spot_price(
+			2_000_000_000_u128,
+			1_000_000_000_u128,
+			80_u128,
+			20_u128,
+			1_000_000_u128,
+		)
+		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
+
+		assert_eq!(LBPPallet::get_spot_price_unchecked(DOT, ACA, 1_000_000_u128), price);
+
+		// change weights
+		System::set_block_number(20);
+
+		let price = hydra_dx_math::lbp::calculate_spot_price(
+			1_000_000_000_u128,
+			2_000_000_000_u128,
+			90_u128,
+			10_u128,
+			1_000_000_u128,
+		)
+		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
+
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000), price);
+
+		// pool does not exist
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, HDX, 1_000_000), 0);
+
+		// overflow
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, u128::MAX), 0);
+
+		// sale ended
+		System::set_block_number(21);
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000), 0);
+	});
+}
+
+// TODO: test calculate_spot_price function
+// TODO: test update_weights_and_validate_trade function

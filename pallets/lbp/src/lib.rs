@@ -641,6 +641,46 @@ enum TradeType {
 }
 
 impl<T: Config> Pallet<T> {
+	fn calculate_weights(
+		pool_data: &Pool<T::AccountId, T::BlockNumber>,
+		at: T::BlockNumber,
+	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
+
+		let weight_a = T::LBPWeightFunction::calculate_weight(
+			pool_data.weight_curve,
+			pool_data.start,
+			pool_data.end,
+			pool_data.initial_weights.0,
+			pool_data.final_weights.0,
+			at,
+		)
+		.map_err(|_| Error::<T>::WeightCalculationError)?;
+
+		let weight_b = T::LBPWeightFunction::calculate_weight(
+			pool_data.weight_curve,
+			pool_data.start,
+			pool_data.end,
+			pool_data.initial_weights.1,
+			pool_data.final_weights.1,
+			at,
+		)
+		.map_err(|_| Error::<T>::WeightCalculationError)?;
+
+		Ok((weight_a, weight_b))
+	}
+
+	fn get_actual_weights(
+		pool_data: &Pool<T::AccountId, T::BlockNumber>,
+	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
+		let now = <frame_system::Pallet<T>>::block_number();
+
+		if now != pool_data.last_weight_update {
+			return Ok(Self::calculate_weights(pool_data, now)?)
+		}
+
+		Ok(pool_data.last_weights)
+	}
+
 	fn update_weights(
 		pool_id: &PoolId<T>,
 		pool_data: &mut Pool<T::AccountId, T::BlockNumber>,
@@ -648,26 +688,8 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		if now != pool_data.last_weight_update {
-			pool_data.last_weights.0 = T::LBPWeightFunction::calculate_weight(
-				pool_data.weight_curve,
-				pool_data.start,
-				pool_data.end,
-				pool_data.initial_weights.0,
-				pool_data.final_weights.0,
-				now,
-			)
-			.map_err(|_| Error::<T>::WeightCalculationError)?;
-
-			pool_data.last_weights.1 = T::LBPWeightFunction::calculate_weight(
-				pool_data.weight_curve,
-				pool_data.start,
-				pool_data.end,
-				pool_data.initial_weights.1,
-				pool_data.final_weights.1,
-				now,
-			)
-			.map_err(|_| Error::<T>::WeightCalculationError)?;
 			pool_data.last_weight_update = now;
+			pool_data.last_weights = Self::calculate_weights(&*pool_data, now)?;
 
 			let pool_data = &*pool_data;
 			<PoolData<T>>::insert(&pool_id, &pool_data);
@@ -724,33 +746,27 @@ impl<T: Config> Pallet<T> {
 	) -> Result<AMMTransfer<T::AccountId, AssetPair, Balance>, DispatchError> {
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
-		// check existence of the pool
-		ensure!(Self::exists(assets), Error::<T>::PoolNotFound);
-
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount,
 			Error::<T>::InsufficientAssetBalance
 		);
 
 		let pool_id = Self::get_pair_id(assets);
-		let mut pool_data = Self::pool_data(&pool_id);
+		let mut pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+
 		ensure!(Self::is_sale_running(&pool_data), Error::<T>::SaleIsNotRunning);
 
-		// update weight or reuse last if update is not necessary
-		let (weight_in, weight_out) = if pool_data.last_weight_update == <frame_system::Pallet<T>>::block_number() {
-			let last_weights = Self::get_last_weights_in_order(&pool_data, assets.asset_in);
-			(last_weights.0, last_weights.1)
-		} else {
-			match Self::update_weights(&pool_id, &mut pool_data) {
-				Ok(weights) => {
-					if pool_data.assets.0 == assets.asset_in {
-						(weights.0, weights.1)
-					} else {
-						(weights.1, weights.0)
-					}
+		// update weights or reuse the last if update is not necessary
+		let (weight_in, weight_out) = match Self::update_weights(&pool_id, &mut pool_data) {
+			Ok(weights) => {
+				if assets.asset_in == pool_data.assets.0 {
+					(weights.0, weights.1)
+				} else {
+					// swap weights if assets are in different order
+					(weights.1, weights.0)
 				}
-				Err(_) => return Err(<Error<T>>::Overflow.into()),
 			}
+			Err(_) => return Err(<Error<T>>::Overflow.into()),
 		};
 
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
@@ -831,18 +847,6 @@ impl<T: Config> Pallet<T> {
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 
-	/// WARN: unsafe function - make sure asset_a is in pool. This function return weight in order based on asset_a id
-	fn get_last_weights_in_order(
-		pool_data: &Pool<T::AccountId, T::BlockNumber>,
-		asset_a: AssetId,
-	) -> (LBPWeight, LBPWeight) {
-		if pool_data.assets.0 == asset_a {
-			(pool_data.last_weights.0, pool_data.last_weights.1)
-		} else {
-			(pool_data.last_weights.1, pool_data.last_weights.0)
-		}
-	}
-
 	fn get_weights_in_order(
 		pool_data: &Pool<T::AccountId, T::BlockNumber>,
 		weight_data: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
@@ -900,7 +904,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		}
 	}
 
-	/// Calculate spot price for given assets and amount and update pool weights if necessary
+	/// Calculate spot price for given assets and amount. This method does not modify the storage.
 	///
 	/// Provided assets must exist in the pool. Panic if an asset does not exist in the pool.
 	///
@@ -914,29 +918,22 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		let asset_a_reserve = T::MultiCurrency::free_balance(asset_a, &pool_id);
 		let asset_b_reserve = T::MultiCurrency::free_balance(asset_b, &pool_id);
 
-		let maybe_pool_data = <PoolData<T>>::try_get(&pool_id);
-		if maybe_pool_data.is_err() {
-			return BalanceOf::<T>::zero()
-		}
-		let mut pool_data = maybe_pool_data.unwrap();
+		let pool_data = match <PoolData<T>>::try_get(&pool_id) {
+			Ok(pool) => pool,
+			Err(_) => return BalanceOf::<T>::zero()
+		};
 
-		// update weight or reuse last if update is not necessary
-		let (weight_in, weight_out) = if pool_data.last_weight_update == <frame_system::Pallet<T>>::block_number() {
-			let last_weights = Self::get_last_weights_in_order(&pool_data, asset_a);
-			(last_weights.0, last_weights.1)
-		} else {
-			match Self::update_weights(&pool_id, &mut pool_data) {
-				Ok(weights) => {
-					if pool_data.assets.0 == asset_a {
-						(weights.0, weights.1)
-					} else {
-						(weights.1, weights.0)
-					}
-				}
-				Err(_) => {
-					return BalanceOf::<T>::zero();
+		// calculate actual weights or reuse the last if calculation is not necessary
+		let (weight_in, weight_out) = match Self::get_actual_weights(&pool_data) {
+			Ok(weights) => {
+				if asset_a == pool_data.assets.0 {
+					(weights.0, weights.1)
+				} else {
+					// swap weights if assets are in different order
+					(weights.1, weights.0)
 				}
 			}
+			Err(_) => return BalanceOf::<T>::zero(),
 		};
 
 		hydra_dx_math::lbp::calculate_spot_price(asset_a_reserve, asset_b_reserve, weight_in, weight_out, amount)
