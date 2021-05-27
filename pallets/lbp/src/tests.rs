@@ -78,7 +78,7 @@ fn expect_events(e: Vec<TestEvent>) {
 fn weight_update_should_work() {
 	new_test_ext().execute_with(|| {
 		let asset_a = LBPAssetInfo {
-			id: HDX,
+			id: ACA,
 			amount: 1,
 			initial_weight: 20,
 			final_weight: 80,
@@ -89,16 +89,9 @@ fn weight_update_should_work() {
 			initial_weight: 80,
 			final_weight: 20,
 		};
-		let asset_c = LBPAssetInfo {
-			id: ACA,
-			amount: 2,
-			initial_weight: 80,
-			final_weight: 20,
-		};
 		let duration = (10u64, 19u64);
 
 		let mut linear_pool = Pool::new(ALICE, asset_a, asset_b, duration, WeightCurveType::Linear, false);
-		let mut constant_pool = Pool::new(ALICE, asset_a, asset_c, duration, WeightCurveType::Constant, false);
 
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
@@ -109,42 +102,21 @@ fn weight_update_should_work() {
 			WeightCurveType::Linear,
 			false
 		));
-		assert_ok!(LBPPallet::create_pool(
-			Origin::root(),
-			ALICE,
-			asset_a,
-			asset_c,
-			duration,
-			WeightCurveType::Constant,
-			false
-		));
 
 		System::set_block_number(13);
 
-		assert_ok!(LBPPallet::update_weights(&HDX_DOT_POOL_ID, &mut linear_pool));
-		assert_ok!(LBPPallet::update_weights(&ACA_DOT_POOL_ID, &mut constant_pool));
+		assert_ok!(LBPPallet::update_weights(&ACA_DOT_POOL_ID, &mut linear_pool));
 
-		let mut linear_pool = LBPPallet::pool_data(HDX_DOT_POOL_ID);
-		let mut constant_pool = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-
+		let mut linear_pool = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(linear_pool.last_weight_update, 13);
-		assert_eq!(constant_pool.last_weight_update, 13);
-
 		assert_eq!(linear_pool.last_weights, (40u128, 60u128));
-		assert_eq!(constant_pool.last_weights, (20u128, 80u128));
 
 		// call update again in the same block, data should be the same
-		assert_ok!(LBPPallet::update_weights(&HDX_DOT_POOL_ID, &mut linear_pool));
-		assert_ok!(LBPPallet::update_weights(&ACA_DOT_POOL_ID, &mut constant_pool));
+		assert_ok!(LBPPallet::update_weights(&ACA_DOT_POOL_ID, &mut linear_pool));
 
-		let linear_pool = LBPPallet::pool_data(HDX_DOT_POOL_ID);
-		let constant_pool = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-
+		let linear_pool = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(linear_pool.last_weight_update, 13);
-		assert_eq!(constant_pool.last_weight_update, 13);
-
 		assert_eq!(linear_pool.last_weights, (40u128, 60u128));
-		assert_eq!(constant_pool.last_weights, (20u128, 80u128));
 	});
 }
 

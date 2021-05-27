@@ -46,7 +46,6 @@ type PoolId<T> = <T as frame_system::Config>::AccountId;
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
 pub enum WeightCurveType {
-	Constant,
 	Linear,
 }
 
@@ -130,20 +129,15 @@ pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 pub struct LBPWeightFunction;
 impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LBPWeightFunction {
 	fn calculate_weight(
-		weight_curve: WeightCurveType,
+		_weight_curve: WeightCurveType,
 		start: BlockNumber,
 		end: BlockNumber,
 		initial_weight: LBPWeight,
 		final_weight: LBPWeight,
 		at: BlockNumber,
 	) -> Result<LBPWeight, ()> {
-		match weight_curve {
-			WeightCurveType::Linear => {
-				hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at)
-					.map_err(|_| ())
-			}
-			WeightCurveType::Constant => Ok(initial_weight),
-		}
+		hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at)
+			.map_err(|_| ())
 	}
 }
 
