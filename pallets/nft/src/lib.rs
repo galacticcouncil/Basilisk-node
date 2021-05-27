@@ -91,6 +91,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 			let to: T::AccountId = T::Lookup::lookup(dest)?;
+			ensure!(sender != to, Error::<T>::CannotSendToSelf);
 			let _class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
@@ -154,6 +155,8 @@ pub mod pallet {
 		TokenLocked,
 		/// Quantity has to be greater than zero
 		InvalidQuantity,
+		/// A token can not be transferred to self
+		CannotSendToSelf,
 	}
 }
 

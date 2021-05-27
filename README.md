@@ -79,6 +79,10 @@ Then open settings screen -> developer and paste
   },
   "CurrencyId": "AssetId",
   "CurrencyIdOf": "AssetId",
+  "Fee": {
+    "numerator": "u32",
+    "denominator": "u32"
+  },
   "Intention": {
     "who": "AccountId",
     "asset_sell": "AssetId",
@@ -95,7 +99,29 @@ Then open settings screen -> developer and paste
     ]
   },
   "LookupSource": "AccountId",
-  "Price": "Balance"
+  "Price": "Balance",
+  "ClassId": "u64",
+  "TokenId": "u64",
+  "ClassData": "Vec<u8>",
+  "TokenData": {
+    "locked": "bool"
+  },
+  "CID": "Vec<u8>",
+  "ClassInfo": {
+    "metadata": "Vec<u8>",
+    "total_issuance": "TokenId",
+    "owner": "AccountId",
+    "data": "ClassData"
+  },
+  "TokenInfo": {
+    "metadata": "Vec<u8>",
+    "owner": "AccountId",
+    "data": "TokenData"
+  },
+  "ClassInfoOf": "ClassInfo",
+  "TokenInfoOf": "TokenInfo",
+  "ClassIdOf": "ClassId",
+  "TokenIdOf": "TokenId"
 }
 ```
 
