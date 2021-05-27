@@ -119,6 +119,11 @@ fn transfer_fails() {
 			NftModule::transfer(Origin::signed(BOB), ALICE, (CLASS_ID, TOKEN_ID)),
 			Error::<Test>::NotTokenOwner
 		);
+
+		assert_noop!(
+			NftModule::transfer(Origin::signed(ALICE), ALICE, (CLASS_ID, TOKEN_ID)),
+			Error::<Test>::CannotSendToSelf
+		);
 	});
 }
 
