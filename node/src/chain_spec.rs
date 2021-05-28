@@ -250,7 +250,7 @@ fn parachain_genesis(
 	_enable_println: bool,
 	parachain_id: ParaId,
 	council_members: Vec<AccountId>,
-	tech_committe_members: Vec<AccountId>,
+	tech_committee_members: Vec<AccountId>,
 ) -> GenesisConfig {
 	GenesisConfig {
 		frame_system: SystemConfig {
@@ -302,7 +302,7 @@ fn parachain_genesis(
 			phantom: Default::default(),
 		},
 		pallet_collective_Instance2: TechnicalCommitteeConfig {
-			members: tech_committe_members,
+			members: tech_committee_members,
 			phantom: Default::default(),
 		},
 		parachain_info: ParachainInfoConfig { parachain_id },

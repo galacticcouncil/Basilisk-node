@@ -382,8 +382,34 @@ parameter_types! {
 	pub const InstantAllowed: bool = true;
 	pub const MaxVotes: u32 = 30;
 	pub const MaxProposals: u32 = 30;
+
 }
 
+type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
+	AccountId,
+	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
+	frame_system::EnsureRoot<AccountId>,
+>;
+type EnsureUnanimousCouncilOrRoot = frame_system::EnsureOneOf<
+	AccountId,
+	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>,
+	frame_system::EnsureRoot<AccountId>,
+>;
+type EnsureSuperMajorityCouncilOrRoot = frame_system::EnsureOneOf<
+	AccountId,
+	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>,
+	frame_system::EnsureRoot<AccountId>,
+>;
+type EnsureSuperMajorityTechCommitteeOrRoot = frame_system::EnsureOneOf<
+	AccountId,
+	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechnicalCollective>,
+	frame_system::EnsureRoot<AccountId>,
+>;
+type EnsureUnanimousTechCommitteOrRoot = frame_system::EnsureOneOf<
+	AccountId,
+	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
+	frame_system::EnsureRoot<AccountId>,
+>;
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
@@ -393,51 +419,23 @@ impl pallet_democracy::Config for Runtime {
 	type VotingPeriod = VotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
 	/// A straight majority of the council can decide what their next motion is.
-	type ExternalOrigin = frame_system::EnsureOneOf<
-		AccountId,
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>,
-		frame_system::EnsureRoot<AccountId>,
-	>;
-	/// A 66% super-majority can have the next scheduled referendum be a straight majority-carries vote
-	type ExternalMajorityOrigin = frame_system::EnsureOneOf<
-		AccountId,
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>,
-		frame_system::EnsureRoot<AccountId>,
-	>;
+	type ExternalOrigin = EnsureMajorityCouncilOrRoot;
+	/// A majority can have the next scheduled referendum be a straight majority-carries vote
+	type ExternalMajorityOrigin = EnsureMajorityCouncilOrRoot;
 	/// A unanimous council can have the next scheduled referendum be a straight default-carries
 	/// (NTB) vote.
-	type ExternalDefaultOrigin = frame_system::EnsureOneOf<
-		AccountId,
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>,
-		frame_system::EnsureRoot<AccountId>,
-	>;
+	type ExternalDefaultOrigin = EnsureUnanimousCouncilOrRoot;
 	/// Two thirds of the technical committee can have an ExternalMajority/ExternalDefault vote
 	/// be tabled immediately and with a shorter voting/enactment period.
-	type FastTrackOrigin = frame_system::EnsureOneOf<
-		AccountId,
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechnicalCollective>,
-		frame_system::EnsureRoot<AccountId>,
-	>;
-	type InstantOrigin = frame_system::EnsureOneOf<
-		AccountId,
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
-		frame_system::EnsureRoot<AccountId>,
-	>;
+	type FastTrackOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type InstantOrigin = EnsureUnanimousTechCommitteOrRoot;
 	type InstantAllowed = InstantAllowed;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	// To cancel a proposal which has been passed, 2/3 of the council must agree to it.
-	type CancellationOrigin = EnsureOneOf<
-		AccountId,
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>,
-		EnsureRoot<AccountId>,
-	>;
+	type CancellationOrigin = EnsureSuperMajorityCouncilOrRoot;
 	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
 	// Root must agree.
-	type CancelProposalOrigin = EnsureOneOf<
-		AccountId,
-		pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
-		EnsureRoot<AccountId>,
-	>;
+	type CancelProposalOrigin = EnsureUnanimousTechCommitteOrRoot;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// Any single technical committee member may veto a coming council proposal, however they can
 	// only do it once and it lasts only for the cooloff period.
