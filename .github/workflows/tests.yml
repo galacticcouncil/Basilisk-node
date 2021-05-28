@@ -94,7 +94,6 @@ jobs:
           name: basilisk_runtime.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.wasm
 
-
   destroy-runner-instance:
     name: destroy infra
     runs-on: ubuntu-latest
@@ -134,3 +133,43 @@ jobs:
         working-directory: ./infrastructure
         run: terraform destroy -var="ec2_pwd=$EC2_SECRET" -var="branch_name=${{ needs.pop-runner-instance.outputs.runner }}" -auto-approve
         continue-on-error: false
+
+  test-inclusion:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v2
+        name: Download basilisk binary
+        with:
+          name: basilisk
+          path: target/release
+      - uses: robinraju/release-downloader@v1
+        name: Download relay chain binary
+        with:
+          repository: paritytech/polkadot
+          tag: v0.9.1
+          fileName: polkadot
+          out-file-path: ../polkadot/target/release
+      - run: chmod +x ./basilisk && ./basilisk --version
+        name: Basilisk version
+        working-directory: target/release
+      - run: chmod +x ./polkadot && ./polkadot --version
+        name: Polkadot version
+        working-directory: ../polkadot/target/release
+      - uses: actions/setup-node@v2
+        name: Setup node.js
+        with:
+          node-version: '14'
+      - run: ./install_polkadot_launch.sh
+        name: Setup polkadot launch
+        working-directory: scripts
+      - run: polkadot-launch config.json &
+        name: Launch rococo local
+        working-directory: rococo-local
+      - run: npm install && npm start 200
+        name: Wait for parachain inclusion
+        working-directory: scripts/wait-for-inclusion
