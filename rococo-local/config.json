@@ -43,12 +43,7 @@
         {
           "wsPort": 9988,
           "port": 31200,
-          "flags": ["--alice","--", "--execution=wasm"]
-        },
-        {
-          "wsPort": 9999,
-          "port": 31300,
-          "flags": ["--bob","--", "--execution=wasm"]
+          "flags": ["--", "--execution=wasm"]
         }
       ]
     }

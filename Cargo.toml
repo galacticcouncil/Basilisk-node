@@ -70,13 +70,13 @@ substrate-test-runtime-client = { git = 'https://github.com/paritytech/substrate
 pallet-transaction-payment = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.1" }
 
 # ORML dependencies
-orml-currencies = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'master' }
-orml-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'master' }
-#orml-unknown-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'master' }
-orml-traits = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'master' }
-orml-utilities = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'master' }
-#orml-xtokens= { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'master' }
-#orml-xcm-support = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'master' }
+orml-currencies = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '11191abe385c9e74a6f179fc1df0e37c5163e9fe' }
+orml-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '11191abe385c9e74a6f179fc1df0e37c5163e9fe' }
+#orml-unknown-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '11191abe385c9e74a6f179fc1df0e37c5163e9fe' }
+orml-traits = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '11191abe385c9e74a6f179fc1df0e37c5163e9fe' }
+orml-utilities = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '11191abe385c9e74a6f179fc1df0e37c5163e9fe' }
+#orml-xtokens= { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '11191abe385c9e74a6f179fc1df0e37c5163e9fe' }
+#orml-xcm-support = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '11191abe385c9e74a6f179fc1df0e37c5163e9fe' }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.1" }
@@ -91,6 +91,7 @@ polkadot-test-client = { git = 'https://github.com/paritytech/polkadot', branch 
 #xcm-builder = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.1" }
 #xcm-executor = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.1" }
 
+hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 primitives = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-xyk = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
