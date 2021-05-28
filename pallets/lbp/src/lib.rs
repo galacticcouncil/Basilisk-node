@@ -101,7 +101,7 @@ where
 			last_weights: (ordered_assets.0.initial_weight, ordered_assets.1.initial_weight),
 			weight_curve,
 			pausable,
-			paused: true,
+			paused: false,
 		}
 	}
 }
