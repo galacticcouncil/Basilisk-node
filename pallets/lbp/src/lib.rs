@@ -574,11 +574,7 @@ pub mod pallet {
 
 			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
 
-			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(
-				pool_data.start.is_zero() || pool_data.end < now,
-				Error::<T>::SaleNotEnded
-			);
+			ensure!(!Self::is_pool_running(&pool_data), Error::<T>::SaleNotEnded);
 
 			let (asset_a, asset_b) = pool_data.assets;
 
