@@ -135,7 +135,7 @@ jobs:
         continue-on-error: false
 
   test-inclusion:
-    needs: destroy-runner-instance
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
