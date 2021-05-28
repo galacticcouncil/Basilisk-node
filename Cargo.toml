@@ -91,6 +91,7 @@ polkadot-test-client = { git = 'https://github.com/paritytech/polkadot', branch 
 #xcm-builder = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.1" }
 #xcm-executor = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.1" }
 
+hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 primitives = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-xyk = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
