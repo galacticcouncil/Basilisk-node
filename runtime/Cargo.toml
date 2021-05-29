@@ -31,7 +31,7 @@ pallet-exchange-benchmarking = { default-features = false, optional = true, vers
 pallet-faucet = { default-features = false, version = '3.0.0' }
 pallet-transaction-multi-payment = { default-features = false, version = '3.0.0' }
 pallet-multi-payment-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
-primitives = { default-features = false, version = '3.0.0' }
+primitives = { default-features = false, version = '4.0.0' }
 pallet-xyk-rpc-runtime-api = { default-features = false, version = '3.0.0' }
 
 # ORML dependencies
@@ -43,15 +43,15 @@ orml-traits = { default-features = false, version = "0.4.1-dev" }
 #orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
 
 # Cumulus dependencies
-cumulus-pallet-aura-ext = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
-cumulus-pallet-parachain-system = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
-cumulus-primitives-core = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
-cumulus-primitives-parachain-inherent = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
-#cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
-parachain-info = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.1" }
+cumulus-pallet-aura-ext = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
+cumulus-pallet-parachain-system = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
+cumulus-primitives-core = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
+cumulus-primitives-parachain-inherent = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
+#cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
+parachain-info = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
 
 # Polkadot dependencies
-polkadot-parachain = { version = "0.9.1", default-features = false, features = ["wasm-api"]}
+polkadot-parachain = { version = "0.9.3", default-features = false, features = ["wasm-api"]}
 #xcm = { default-features = false }
 #xcm-builder = { default-features = false }
 #xcm-executor = { default-features = false }
