@@ -561,7 +561,9 @@ dependencies = [
  "orml-traits",
  "pallet-asset-registry",
  "pallet-aura",
+ "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-selection",
  "pallet-collective",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
@@ -4869,6 +4871,30 @@ dependencies = [
  "parity-scale-codec 2.1.1",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-collator-selection"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-aura",
+ "pallet-authorship",
+ "pallet-balances",
+ "pallet-session",
+ "pallet-timestamp",
+ "parity-scale-codec 2.1.1",
+ "serde",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+ "sp-tracing",
 ]
 
 [[package]]

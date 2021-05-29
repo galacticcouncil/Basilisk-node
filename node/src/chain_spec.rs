@@ -3,7 +3,7 @@
 use cumulus_primitives_core::ParaId;
 use basilisk_runtime::{
 	AccountId, AuraId, AuraConfig, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
-	SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY,
+	SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY, CollatorSelectionConfig, SessionConfig
 };
 use hex_literal::hex;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
@@ -225,6 +225,25 @@ fn parachain_genesis(
 			// Assign network admin rights.
 			key: root_key,
 		},
+        pallet_collator_selection: CollatorSelectionConfig {
+            invulnerables: initial_authorities.iter().cloned().map(|(acc, _, _, _)| acc).collect(),
+            candidacy_bond: 10_000,
+            ..Default::default()
+        },
+        pallet_session: SessionConfig {
+            keys: initial_authorities
+                .iter()
+                .cloned()
+                .map(|(acc, _, _, aura)| {
+                    (
+                        acc.clone(),          // account id
+                        acc,                  // validator id
+                        SessionKeys { aura }, // session keys
+                    )
+                })
+            .collect(),
+        },
+
 		pallet_aura: AuraConfig {
 			authorities: initial_authorities,
 		},
