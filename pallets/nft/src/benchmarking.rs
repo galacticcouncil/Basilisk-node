@@ -9,7 +9,7 @@ const SEED: u32 = 0;
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
-	<T as pallet_nft::Config>::Currency::update_balance(1, &caller, 1_000_000).unwrap();
+	T::Currency::deposit_into_existing(&caller, T::CurrencyBalance::from(1_000_000_u128).into()).unwrap();
 	caller
 }
 
@@ -18,7 +18,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = "just some class data".as_bytes().to_vec();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data)
+	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, T::CurrencyBalance::from(666_u128).into())
 	verify {
 	}
 
@@ -89,7 +89,7 @@ benchmarks! {
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
-		orml_nft::Pallet::<T>::transfer(&caller, caller2, token).unwrap_or_default();
+		orml_nft::Pallet::<T>::transfer(&caller, &caller2, token).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller2.clone()), token)
 	verify {
 	}

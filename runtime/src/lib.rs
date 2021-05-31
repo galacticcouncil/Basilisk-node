@@ -164,6 +164,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Exchange(_)
 			| Call::Faucet(_)
 			| Call::MultiTransactionPayment(_)
+			| Call::Nft(_)
 			| Call::Tokens(_) => false,
 		}
 	}
@@ -390,6 +391,7 @@ impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+	type CurrencyBalance = Balance;
 }
 
 impl orml_nft::Config for Runtime {
