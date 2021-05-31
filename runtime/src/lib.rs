@@ -157,6 +157,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_)
+			| Call::LBP(_)
 			| Call::Balances(_)
 			| Call::AssetRegistry(_)
 			| Call::Currencies(_)

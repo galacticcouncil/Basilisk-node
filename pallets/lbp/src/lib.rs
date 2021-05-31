@@ -461,12 +461,6 @@ pub mod pallet {
 
 			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
 
-			let now = <frame_system::Pallet<T>>::block_number();
-			ensure!(
-				pool_data.start == Zero::zero() || now < pool_data.start,
-				Error::<T>::SaleStarted
-			);
-
 			if !amount_a.is_zero() {
 				ensure!(
 					T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
