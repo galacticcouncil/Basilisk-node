@@ -3,7 +3,7 @@ pub use crate::mock::{
 	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, ACA, ALICE, BOB, DOT, ETH,
 	HDX,
 };
-use crate::mock::{ACA_DOT_POOL_ID, HDX_DOT_POOL_ID, INITIAL_BALANCE, POOL_DEPOSIT};
+use crate::mock::{ACA_DOT_POOL_ID, HDX_DOT_POOL_ID, INITIAL_BALANCE};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::traits::BadOrigin;
 
@@ -223,13 +223,6 @@ fn create_pool_should_work() {
 			Currency::free_balance(DOT, &ALICE),
 			INITIAL_BALANCE.saturating_sub(2_000_000_000)
 		);
-		assert_eq!(Currency::reserved_balance(HDX, &ALICE), POOL_DEPOSIT);
-		assert_eq!(
-			Currency::free_balance(HDX, &ALICE),
-			INITIAL_BALANCE.saturating_sub(POOL_DEPOSIT)
-		);
-
-		assert_eq!(LBPPallet::pool_deposit(&ACA_DOT_POOL_ID), POOL_DEPOSIT);
 
 		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(pool_data.owner, ALICE);
@@ -368,6 +361,57 @@ fn create_pool_with_same_assets_should_not_work() {
 				true,
 			),
 			Error::<Test>::CannotCreatePoolWithSameAssets
+		);
+	});
+}
+
+#[test]
+fn create_pool_with_zero_liquidity_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo {
+					id: HDX,
+					amount: 0,
+					initial_weight: 20,
+					final_weight: 90,
+				},
+				LBPAssetInfo {
+					id: DOT,
+					amount: 0,
+					initial_weight: 80,
+					final_weight: 10,
+				},
+				(10u64, 20u64),
+				WeightCurveType::Linear,
+				true,
+			),
+			Error::<Test>::CannotCreatePoolWithZeroLiquidity
+		);
+
+		assert_noop!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo {
+					id: HDX,
+					amount: 0,
+					initial_weight: 20,
+					final_weight: 90,
+				},
+				LBPAssetInfo {
+					id: DOT,
+					amount: 2_000_000_000,
+					initial_weight: 80,
+					final_weight: 10,
+				},
+				(10u64, 20u64),
+				WeightCurveType::Linear,
+				true,
+			),
+			Error::<Test>::CannotCreatePoolWithZeroLiquidity
 		);
 	});
 }
@@ -1238,7 +1282,6 @@ fn destroy_pool_should_work() {
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let user_balance_hdx_before = Currency::reserved_balance(HDX, &ALICE);
 
 		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
@@ -1263,13 +1306,6 @@ fn destroy_pool_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		let user_balance_hdx_after = Currency::reserved_balance(HDX, &ALICE);
-		assert_eq!(
-			user_balance_hdx_after,
-			user_balance_hdx_before.saturating_sub(POOL_DEPOSIT)
-		);
-
-		assert_eq!(<PoolDeposit<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 
 		expect_events(vec![
@@ -1285,7 +1321,6 @@ fn destroy_not_started_pool_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let user_balance_hdx_before = Currency::reserved_balance(HDX, &ALICE);
 
 		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
@@ -1310,13 +1345,6 @@ fn destroy_not_started_pool_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		let user_balance_hdx_after = Currency::reserved_balance(HDX, &ALICE);
-		assert_eq!(
-			user_balance_hdx_after,
-			user_balance_hdx_before.saturating_sub(POOL_DEPOSIT)
-		);
-
-		assert_eq!(<PoolDeposit<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 
 		expect_events(vec![
@@ -1324,6 +1352,27 @@ fn destroy_not_started_pool_should_work() {
 			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
 			Event::PoolDestroyed(ACA_DOT_POOL_ID, ACA, DOT, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
+
+		// sale duration is not specified
+		assert_ok!(LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo {
+					id: HDX,
+					amount: 1_000_000_000,
+					initial_weight: 20,
+					final_weight: 90,
+				},
+				LBPAssetInfo {
+					id: DOT,
+					amount: 2_000_000_000,
+					initial_weight: 80,
+					final_weight: 10,
+				},
+				(0u64, 0u64),
+				WeightCurveType::Linear,
+				true,
+			));
 	});
 }
 
@@ -1334,7 +1383,6 @@ fn destroy_not_finalized_pool_should_not_work() {
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let user_balance_hdx_before = Currency::reserved_balance(HDX, &ALICE);
 
 		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
@@ -1355,7 +1403,6 @@ fn destroy_not_finalized_pool_should_not_work() {
 		assert_eq!(pool_balance_b_before, pool_balance_b_after);
 		assert_eq!(user_balance_a_before, user_balance_a_after);
 		assert_eq!(user_balance_b_before, user_balance_b_after);
-		assert_eq!(user_balance_hdx_before, user_balance_hdx_after);
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
@@ -1370,7 +1417,6 @@ fn destroy_finalized_pool_should_work() {
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-		let user_balance_hdx_before = Currency::reserved_balance(HDX, &ALICE);
 
 		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
@@ -1395,13 +1441,6 @@ fn destroy_finalized_pool_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		let user_balance_hdx_after = Currency::reserved_balance(HDX, &ALICE);
-		assert_eq!(
-			user_balance_hdx_after,
-			user_balance_hdx_before.saturating_sub(POOL_DEPOSIT)
-		);
-
-		assert_eq!(<PoolDeposit<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
 
 		expect_events(vec![

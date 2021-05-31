@@ -17,7 +17,6 @@ type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 pub const INITIAL_BALANCE: Balance = 1_000_000_000_000_000u128;
-pub const POOL_DEPOSIT: Balance = 10u128.pow(14);
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
@@ -107,7 +106,6 @@ impl AssetPairPoolIdFor<AssetId, u64> for AssetPairPoolIdTest {
 }
 
 parameter_types! {
-	pub PoolDeposit: Balance = POOL_DEPOSIT;
 	pub ExchangeFee: fee::Fee  = fee::Fee::default();
 	pub const NativeAssetId: AssetId = CORE_ASSET_ID;
 }
@@ -119,7 +117,6 @@ impl Config for Test {
 	type CreatePoolOrigin = frame_system::EnsureRoot<u64>;
 	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairPoolId = AssetPairPoolIdTest;
-	type PoolDeposit = PoolDeposit;
 	type ExchangeFee = ExchangeFee;
 	type WeightInfo = ();
 }

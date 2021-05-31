@@ -171,10 +171,6 @@ pub mod pallet {
 		/// Mapping of asset pairs to unique pool identities
 		type AssetPairPoolId: AssetPairPoolIdFor<AssetId, PoolId<Self>>;
 
-		#[pallet::constant]
-		/// Storage fee
-		type PoolDeposit: Get<BalanceOf<Self>>;
-
 		/// Trading fee rate
 		type ExchangeFee: Get<fee::Fee>;
 
@@ -278,11 +274,6 @@ pub mod pallet {
 		Unpaused(T::AccountId, PoolId<T>),
 	}
 
-	/// Paid deposit. Returned when a pool is destroyed and removed from the storage.
-	#[pallet::storage]
-	#[pallet::getter(fn pool_deposit)]
-	pub type PoolDeposit<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T>, BalanceOf<T>, ValueQuery>;
-
 	/// Details of a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_data)]
@@ -338,11 +329,7 @@ pub mod pallet {
 			);
 			Self::validate_pool_data(&pool_data)?;
 
-			let deposit = T::PoolDeposit::get();
-
-			T::MultiCurrency::reserve(T::NativeAssetId::get(), &pool_owner, deposit)?;
 			let pool_id = Self::get_pair_id(asset_pair);
-			<PoolDeposit<T>>::insert(&pool_id, &deposit);
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
@@ -584,10 +571,6 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
 
-			let deposit = Self::pool_deposit(&pool_id);
-			T::MultiCurrency::unreserve(T::NativeAssetId::get(), &who, deposit);
-
-			<PoolDeposit<T>>::remove(&pool_id);
 			<PoolData<T>>::remove(&pool_id);
 
 			Self::deposit_event(Event::PoolDestroyed(pool_id, asset_a, asset_b, amount_a, amount_b));

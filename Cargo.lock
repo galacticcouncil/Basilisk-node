@@ -4940,7 +4940,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5154,7 +5154,7 @@ dependencies = [
 [[package]]
 name = "pallet-exchange"
 version = "3.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5175,7 +5175,7 @@ dependencies = [
 [[package]]
 name = "pallet-exchange-benchmarking"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5197,7 +5197,7 @@ dependencies = [
 [[package]]
 name = "pallet-faucet"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5387,7 +5387,7 @@ dependencies = [
 [[package]]
 name = "pallet-multi-payment-benchmarking"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5631,7 +5631,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5753,7 +5753,7 @@ dependencies = [
 [[package]]
 name = "pallet-xyk"
 version = "1.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5776,7 +5776,7 @@ dependencies = [
 [[package]]
 name = "pallet-xyk-rpc"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -5794,7 +5794,7 @@ dependencies = [
 [[package]]
 name = "pallet-xyk-rpc-runtime-api"
 version = "3.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "parity-scale-codec 2.1.1",
  "serde",
@@ -7336,7 +7336,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "4.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
 dependencies = [
  "frame-support",
  "frame-system",
