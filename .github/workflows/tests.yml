@@ -135,7 +135,7 @@ jobs:
         continue-on-error: false
 
   test-inclusion:
-    needs: destroy-runner-instance
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -151,7 +151,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: v0.9.1
+          tag: v0.9.3
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
