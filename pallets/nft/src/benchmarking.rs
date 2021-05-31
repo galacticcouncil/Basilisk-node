@@ -9,6 +9,7 @@ const SEED: u32 = 0;
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
+	<T as pallet_nft::Config>::Currency::update_balance(1, &caller, 1_000_000).unwrap();
 	caller
 }
 
@@ -65,6 +66,33 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), token)
 	verify {
 	}
+
+	buy_from_pool {
+		let caller = create_account::<T>("caller", 0);
+		let caller2 = create_account::<T>("caller2", 1);
+		let class_metadata = "just a token class".as_bytes().to_vec();
+		let class_data = "just some class data".as_bytes().to_vec();
+		let token_data = TokenData { locked:false };
+		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
+		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
+		let token = (class_id, token_id);
+	}: _(RawOrigin::Signed(caller2.clone()), token)
+	verify {
+	}
+
+	sell_to_pool {
+		let caller = create_account::<T>("caller", 0);
+		let caller2 = create_account::<T>("caller2", 1);
+		let class_metadata = "just a token class".as_bytes().to_vec();
+		let class_data = "just some class data".as_bytes().to_vec();
+		let token_data = TokenData { locked:false };
+		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
+		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
+		let token = (class_id, token_id);
+		orml_nft::Pallet::<T>::transfer(&caller, caller2, token).unwrap_or_default();
+	}: _(RawOrigin::Signed(caller2.clone()), token)
+	verify {
+	}
 }
 
 #[cfg(test)]
@@ -88,6 +116,8 @@ mod tests {
 			assert_ok!(test_benchmark_transfer::<Test>());
 			assert_ok!(test_benchmark_burn::<Test>());
 			assert_ok!(test_benchmark_destroy_class::<Test>());
+			assert_ok!(test_benchmark_buy_from_pool::<Test>());
+			assert_ok!(test_benchmark_sell_to_pool::<Test>());
 		});
 	}
 }

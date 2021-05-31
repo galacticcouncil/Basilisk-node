@@ -52,6 +52,8 @@ pub trait WeightInfo {
 	fn transfer() -> Weight;
 	fn destroy_class() -> Weight;
 	fn burn() -> Weight;
+	fn buy_from_pool() -> Weight;
+	fn sell_to_pool() -> Weight;
 }
 
 /// Weights for pallet_nft using the Basilisk node and recommended hardware.
@@ -85,6 +87,16 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
+	fn buy_from_pool() -> Weight {
+		(45_125_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn sell_to_pool() -> Weight {
+		(45_125_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
 }
 
 // For backwards compatibility and tests
@@ -112,6 +124,16 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
 	fn burn() -> Weight {
+		(45_125_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn buy_from_pool() -> Weight {
+		(45_125_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn sell_to_pool() -> Weight {
 		(45_125_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))

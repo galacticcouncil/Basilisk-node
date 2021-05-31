@@ -11,7 +11,8 @@ fn create_class_works() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -22,7 +23,12 @@ fn create_class_works() {
 fn create_class_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			NftModule::create_class(Origin::none(), "a class".as_bytes().to_vec(), Default::default()),
+			NftModule::create_class(
+				Origin::none(),
+				"a class".as_bytes().to_vec(),
+				Default::default(),
+				TEST_PRICE
+			),
 			BadOrigin
 		);
 	})
@@ -34,7 +40,8 @@ fn mint_works() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -57,7 +64,8 @@ fn mint_fails() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -81,7 +89,8 @@ fn transfer_works() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -104,7 +113,8 @@ fn transfer_fails() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -133,7 +143,8 @@ fn burn_works() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -156,7 +167,8 @@ fn burn_fails() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -180,7 +192,8 @@ fn destroy_class_works() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::destroy_class(Origin::signed(ALICE), CLASS_ID));
@@ -193,7 +206,8 @@ fn destroy_class_fails() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -217,7 +231,8 @@ fn toggle_lock_works() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -240,7 +255,8 @@ fn toggle_lock_fails() {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
-			Default::default()
+			Default::default(),
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -253,6 +269,126 @@ fn toggle_lock_fails() {
 
 		assert_noop!(
 			NftModule::toggle_lock(&BOB, (CLASS_ID, TOKEN_ID)),
+			Error::<Test>::NotTokenOwner
+		);
+	});
+}
+
+#[test]
+fn buy_from_pool_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NftModule::create_class(
+			Origin::signed(ALICE),
+			"a class".as_bytes().to_vec(),
+			Default::default(),
+			TEST_PRICE
+		));
+
+		assert_ok!(NftModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+			TEST_QUANTITY,
+		));
+
+		assert_ok!(NftModule::buy_from_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)));
+		let event = Event::pallet_nft(crate::Event::NFTBoughtFromPool(ALICE, BOB, CLASS_ID, TOKEN_ID));
+		assert_eq!(last_event(), event);
+	});
+}
+
+#[test]
+fn buy_from_pool_fails() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NftModule::create_class(
+			Origin::signed(ALICE),
+			"a class".as_bytes().to_vec(),
+			Default::default(),
+			TEST_PRICE
+		));
+
+		assert_ok!(NftModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+			TEST_QUANTITY,
+		));
+
+		assert_ok!(NftModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
+
+		assert_noop!(
+			NftModule::buy_from_pool(Origin::signed(ALICE), (CLASS_ID, TOKEN_ID)),
+			Error::<Test>::TokenAlreadyHasAnOwner
+		);
+
+		assert_ok!(NftModule::transfer(Origin::signed(BOB), ALICE, (CLASS_ID, TOKEN_ID)));
+
+		assert_noop!(
+			NftModule::buy_from_pool(Origin::signed(ALICE), (CLASS_ID, TOKEN_ID)),
+			Error::<Test>::CannotBuyOwnToken
+		);
+	});
+}
+
+#[test]
+fn sell_to_pool_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NftModule::create_class(
+			Origin::signed(ALICE),
+			"a class".as_bytes().to_vec(),
+			Default::default(),
+			TEST_PRICE
+		));
+
+		assert_ok!(NftModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+			TEST_QUANTITY,
+		));
+
+		assert_ok!(NftModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
+
+		assert_ok!(NftModule::sell_to_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)));
+		let event = Event::pallet_nft(crate::Event::NFTSoldToPool(BOB, ALICE, CLASS_ID, TOKEN_ID));
+		assert_eq!(last_event(), event);
+	});
+}
+
+#[test]
+fn sell_to_pool_fails() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NftModule::create_class(
+			Origin::signed(ALICE),
+			"a class".as_bytes().to_vec(),
+			Default::default(),
+			TEST_PRICE
+		));
+
+		assert_ok!(NftModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+			TEST_QUANTITY,
+		));
+
+		assert_noop!(
+			NftModule::sell_to_pool(Origin::signed(ALICE), (CLASS_ID, TOKEN_ID)),
+			Error::<Test>::CannotSellPoolToken
+		);
+
+		assert_ok!(NftModule::transfer(
+			Origin::signed(ALICE),
+			CHARLIE,
+			(CLASS_ID, TOKEN_ID)
+		));
+
+		assert_noop!(
+			NftModule::sell_to_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)),
 			Error::<Test>::NotTokenOwner
 		);
 	});

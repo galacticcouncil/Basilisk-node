@@ -6,8 +6,10 @@ use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult, DispatchResultWithPostInfo},
 	ensure,
+	traits::{Currency, ExistenceRequirement},
 };
 use frame_system::ensure_signed;
+use orml_utilities::with_transaction_result;
 use sp_runtime::{
 	traits::{StaticLookup, Zero},
 	RuntimeDebug,
@@ -25,6 +27,7 @@ mod mock;
 mod tests;
 
 pub type Balance = u128;
+pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 pub type ClassData = Vec<u8>;
 pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
 pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
@@ -47,8 +50,14 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
+	/// Stores prices for each NFT class
+	#[pallet::storage]
+	#[pallet::getter(fn class_item_price)]
+	pub type ClassItemPrice<T: Config> = StorageMap<_, Blake2_128Concat, ClassIdOf<T>, BalanceOf<T>, ValueQuery>;
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config + orml_nft::Config<ClassData = ClassData, TokenData = TokenData> {
+		type Currency: Currency<Self::AccountId>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 	}
@@ -56,9 +65,15 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
-		pub fn create_class(origin: OriginFor<T>, metadata: Vec<u8>, data: T::ClassData) -> DispatchResultWithPostInfo {
+		pub fn create_class(
+			origin: OriginFor<T>,
+			metadata: Vec<u8>,
+			data: T::ClassData,
+			price: BalanceOf<T>,
+		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
+			ClassItemPrice::<T>::insert(class_id, price);
 			Self::deposit_event(Event::NFTTokenClassCreated(sender, class_id));
 			Ok(().into())
 		}
@@ -92,7 +107,6 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 			let to: T::AccountId = T::Lookup::lookup(dest)?;
 			ensure!(sender != to, Error::<T>::CannotSendToSelf);
-			let _class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
@@ -104,7 +118,6 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		pub fn burn(origin: OriginFor<T>, token: (T::ClassId, T::TokenId)) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			let _class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
@@ -123,6 +136,42 @@ pub mod pallet {
 			Self::deposit_event(Event::NFTTokenClassDestroyed(sender, class_id));
 			Ok(().into())
 		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::buy_from_pool())]
+		pub fn buy_from_pool(origin: OriginFor<T>, token: (ClassIdOf<T>, TokenIdOf<T>)) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
+			let class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
+			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
+			let price = Self::class_item_price(token.0);
+			ensure!(class_info.owner == token_info.owner, Error::<T>::TokenAlreadyHasAnOwner);
+			ensure!(sender != token_info.owner, Error::<T>::CannotBuyOwnToken);
+			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
+
+			with_transaction_result(|| {
+				orml_nft::Pallet::<T>::transfer(&token_info.owner, &sender, token)?;
+				T::Currency::transfer(&sender, &token_info.owner, price, ExistenceRequirement::KeepAlive)?;
+				Self::deposit_event(Event::NFTBoughtFromPool(class_info.owner, sender, token.0, token.1));
+				Ok(())
+			})
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::sell_to_pool())]
+		pub fn sell_to_pool(origin: OriginFor<T>, token: (ClassIdOf<T>, TokenIdOf<T>)) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
+			let class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
+			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
+			let price = Self::class_item_price(token.0);
+			ensure!(class_info.owner != token_info.owner, Error::<T>::CannotSellPoolToken);
+			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
+			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
+
+			with_transaction_result(|| {
+				orml_nft::Pallet::<T>::transfer(&sender, &class_info.owner, token)?;
+				T::Currency::transfer(&class_info.owner, &sender, price, ExistenceRequirement::KeepAlive)?;
+				Self::deposit_event(Event::NFTSoldToPool(sender, class_info.owner, token.0, token.1));
+				Ok(())
+			})
+		}
 	}
 
 	#[pallet::hooks]
@@ -137,6 +186,8 @@ pub mod pallet {
 		NFTTokenTransferred(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
 		NFTTokenBurned(T::AccountId, T::ClassId, T::TokenId),
 		NFTTokenClassDestroyed(T::AccountId, T::ClassId),
+		NFTBoughtFromPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
+		NFTSoldToPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
 	}
 
 	#[pallet::error]
@@ -157,6 +208,12 @@ pub mod pallet {
 		InvalidQuantity,
 		/// A token can not be transferred to self
 		CannotSendToSelf,
+		/// A user cannot buy already owned token
+		CannotBuyOwnToken,
+		/// Token has been already bought from a pool
+		TokenAlreadyHasAnOwner,
+		/// A token still owned by class owner
+		CannotSellPoolToken,
 	}
 }
 

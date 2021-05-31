@@ -17,6 +17,7 @@ mod nfc {
 type AccountId = AccountId32;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
+type Balance = u128;
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -33,6 +34,7 @@ frame_support::construct_runtime!(
 );
 
 impl pallet_nft::Config for Test {
+	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 }
@@ -92,8 +94,10 @@ impl pallet_balances::Config for Test {
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
+pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const CLASS_ID: <Test as orml_nft::Config>::ClassId = 0;
 pub const TEST_QUANTITY: u32 = 99;
+pub const TEST_PRICE: u128 = 999;
 pub const TOKEN_ID: <Test as orml_nft::Config>::TokenId = 0;
 
 pub struct ExtBuilder;
@@ -108,7 +112,7 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 100000)],
+			balances: vec![(ALICE, 100000), (BOB, 66666)],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

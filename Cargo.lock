@@ -4686,7 +4686,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "orml-traits",
- "orml-utilities",
+ "orml-utilities 0.4.1-dev",
  "parity-scale-codec 2.1.1",
  "serde",
  "sp-io",
@@ -4731,9 +4731,23 @@ dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
  "num-traits",
- "orml-utilities",
+ "orml-utilities 0.4.1-dev",
  "parity-scale-codec 2.1.1",
  "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "orml-utilities"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f84d1a0ce4c65a8695cf8c41895c6161d2345214a4a413e674478f6a37968db"
+dependencies = [
+ "frame-support",
+ "funty",
+ "parity-scale-codec 2.1.1",
  "sp-io",
  "sp-runtime",
  "sp-std",
@@ -5176,7 +5190,7 @@ dependencies = [
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
- "orml-utilities",
+ "orml-utilities 0.4.1-dev",
  "pallet-asset-registry",
  "pallet-balances",
  "pallet-transaction-multi-payment",
@@ -5212,6 +5226,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "orml-nft",
+ "orml-utilities 0.4.0",
  "pallet-balances",
  "parity-scale-codec 2.1.1",
  "serde",
@@ -5434,7 +5449,7 @@ dependencies = [
  "frame-system",
  "orml-tokens",
  "orml-traits",
- "orml-utilities",
+ "orml-utilities 0.4.1-dev",
  "pallet-transaction-payment",
  "parity-scale-codec 2.1.1",
  "primitive-types 0.8.0",
@@ -5558,7 +5573,7 @@ dependencies = [
  "hydra-dx-math",
  "orml-tokens",
  "orml-traits",
- "orml-utilities",
+ "orml-utilities 0.4.1-dev",
  "pallet-asset-registry",
  "parity-scale-codec 2.1.1",
  "primitive-types 0.8.0",
