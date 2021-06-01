@@ -1,8 +1,8 @@
-#![allow(clippy::or_fun_call)]
+
 
 use cumulus_primitives_core::ParaId;
 use basilisk_runtime::{
-	AccountId, AuraId, AuraConfig, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
+	AccountId, AuraId, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
 	SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY, CollatorSelectionConfig, SessionConfig
 };
 use hex_literal::hex;
@@ -69,9 +69,15 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				// Sudo account
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(),
 				// TODO generate real authorities
+                //initial authorities & invulnerables
 				vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
+					(
+                        get_account_id_from_seed::<sr25519::Public>("Alice"),
+                        get_from_seed::<AuraId>("Alice")
+                    ),(
+                        get_account_id_from_seed::<sr25519::Public>("Bob"),
+					    get_from_seed::<AuraId>("Bob"),
+                    )
 				],
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
@@ -111,9 +117,15 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
+                //initial authorities & invulnerables
 				vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
+					(
+                        get_account_id_from_seed::<sr25519::Public>("Alice"),
+                        get_from_seed::<AuraId>("Alice")
+                    ),(
+                        get_account_id_from_seed::<sr25519::Public>("Bob"),
+					    get_from_seed::<AuraId>("Bob"),
+                    )
 				],
 				// Pre-funded accounts
 				vec![
@@ -159,9 +171,15 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
+                //initial authorities & invulnerables
 				vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
+					(
+                        get_account_id_from_seed::<sr25519::Public>("Alice"),
+                        get_from_seed::<AuraId>("Alice")
+                    ),(
+                        get_account_id_from_seed::<sr25519::Public>("Bob"),
+					    get_from_seed::<AuraId>("Bob"),
+                    )
 				],
 				// Pre-funded accounts
 				vec![
@@ -202,7 +220,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 fn parachain_genesis(
 	wasm_binary: &[u8],
 	root_key: AccountId,
-	initial_authorities: Vec<AuraId>,
+	initial_authorities: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
@@ -226,7 +244,7 @@ fn parachain_genesis(
 			key: root_key,
 		},
         pallet_collator_selection: CollatorSelectionConfig {
-            invulnerables: initial_authorities.iter().cloned().map(|(acc, _, _, _)| acc).collect(),
+            invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
             candidacy_bond: 10_000,
             ..Default::default()
         },
@@ -234,19 +252,19 @@ fn parachain_genesis(
             keys: initial_authorities
                 .iter()
                 .cloned()
-                .map(|(acc, _, _, aura)| {
+                .map(|(acc, aura)| {
                     (
                         acc.clone(),          // account id
                         acc,                  // validator id
-                        SessionKeys { aura }, // session keys
+                        basilisk_runtime::opaque::SessionKeys { aura }, // session keys
                     )
                 })
             .collect(),
         },
 
-		pallet_aura: AuraConfig {
-			authorities: initial_authorities,
-		},
+        // no need to pass anything, it will panic if we do. Session will take care
+		// of this.
+        pallet_aura: Default::default(),
 		pallet_asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![
