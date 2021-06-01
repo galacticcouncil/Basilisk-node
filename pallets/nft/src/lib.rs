@@ -6,7 +6,7 @@ use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult, DispatchResultWithPostInfo},
 	ensure,
-	traits::{Currency, ExistenceRequirement},
+	traits::{Currency, ExistenceRequirement, ReservableCurrency},
 };
 use frame_system::ensure_signed;
 use orml_utilities::with_transaction_result;
@@ -55,14 +55,24 @@ pub mod pallet {
 	#[pallet::getter(fn class_item_price)]
 	pub type ClassItemPrice<T: Config> = StorageMap<_, Blake2_128Concat, ClassIdOf<T>, BalanceOf<T>, ValueQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn class_bond_until)]
+	/// Each class has a bond that will be unlocked after some period of time
+	pub type ClassBondUntil<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, T::BlockNumber, Twox64Concat, ClassIdOf<T>, (), OptionQuery>;
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config + orml_nft::Config<ClassData = ClassData, TokenData = TokenData> {
-		type Currency: Currency<Self::AccountId>;
+		type Currency: ReservableCurrency<Self::AccountId>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 		// This type is needed to convert from Currency to Balance
 		type CurrencyBalance: From<Balance>
 			+ Into<<Self::Currency as Currency<<Self as frame_system::Config>::AccountId>>::Balance>;
+		#[pallet::constant]
+		type ClassBondAmount: Get<BalanceOf<Self>>;
+		#[pallet::constant]
+		type ClassBondDuration: Get<u32>;
 	}
 
 	#[pallet::call]
@@ -75,8 +85,17 @@ pub mod pallet {
 			price: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
+
+			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
+
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
 			ClassItemPrice::<T>::insert(class_id, price);
+
+			ClassBondUntil::<T>::insert(
+				<frame_system::Pallet<T>>::block_number() + T::ClassBondDuration::get().into(),
+				class_id,
+				(),
+			);
 			Self::deposit_event(Event::NFTTokenClassCreated(sender, class_id));
 			Ok(().into())
 		}
@@ -136,6 +155,7 @@ pub mod pallet {
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
 			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
+			ClassItemPrice::<T>::remove(class_id);
 			Self::deposit_event(Event::NFTTokenClassDestroyed(sender, class_id));
 			Ok(().into())
 		}
@@ -178,7 +198,12 @@ pub mod pallet {
 	}
 
 	#[pallet::hooks]
-	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
+	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
+		fn on_finalize(now: T::BlockNumber) {
+			let bond = T::ClassBondAmount::get();
+			Self::unlock_bond(now, bond);
+		}
+	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
@@ -246,5 +271,13 @@ impl<T: Config> Pallet<T> {
 			}
 			Ok(())
 		})
+	}
+
+	pub fn unlock_bond(now: T::BlockNumber, amount: BalanceOf<T>) {
+		for (class_id, _) in <ClassBondUntil<T>>::drain_prefix(&now) {
+			if let Some(class) = orml_nft::Pallet::<T>::classes(class_id) {
+				T::Currency::unreserve(&class.owner, amount);
+			}
+		}
 	}
 }

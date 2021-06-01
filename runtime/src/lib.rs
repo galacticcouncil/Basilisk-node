@@ -151,20 +151,20 @@ pub struct BaseFilter;
 impl Filter<Call> for BaseFilter {
 	fn filter(call: &Call) -> bool {
 		match call {
-			Call::System(_)
-			| Call::Timestamp(_)
-			| Call::RandomnessCollectiveFlip(_)
+			Call::Balances(_)
+			| Call::Nft(_)
 			| Call::ParachainSystem(_)
-			| Call::Sudo(_) => true,
+			| Call::RandomnessCollectiveFlip(_)
+			| Call::System(_)
+			| Call::Sudo(_)
+			| Call::Timestamp(_) => true,
 
 			Call::XYK(_)
-			| Call::Balances(_)
 			| Call::AssetRegistry(_)
 			| Call::Currencies(_)
 			| Call::Exchange(_)
 			| Call::Faucet(_)
 			| Call::MultiTransactionPayment(_)
-			| Call::Nft(_)
 			| Call::Tokens(_) => false,
 		}
 	}
@@ -387,11 +387,18 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
+parameter_types! {
+	pub ClassBondAmount: Balance = 1000000;
+	pub ClassBondDuration: u32 = 10;//24 * DAYS;
+}
+
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
 	type CurrencyBalance = Balance;
+	type ClassBondAmount = ClassBondAmount;
+	type ClassBondDuration = ClassBondDuration;
 }
 
 impl orml_nft::Config for Runtime {
@@ -432,7 +439,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Storage, Event<T>},
-		Nft: pallet_nft::{Pallet, Call, Event<T>},
+		Nft: pallet_nft::{Pallet, Call, Event<T>, Storage},
 	}
 );
 
