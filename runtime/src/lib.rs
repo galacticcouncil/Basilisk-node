@@ -30,7 +30,7 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Get, KeyOwnerProofSystem, LockIdentifier, Randomness},
+	traits::{Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Pays, Weight,
@@ -154,6 +154,35 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
+pub struct BaseFilter;
+impl Filter<Call> for BaseFilter {
+	fn filter(call: &Call) -> bool {
+		match call {
+			Call::System(_)
+			| Call::Timestamp(_)
+			| Call::RandomnessCollectiveFlip(_)
+			| Call::ParachainSystem(_)
+            //TODO: validate this
+            | Call::Democracy(_)
+            | Call::Scheduler(_)
+            | Call::Council(_)
+            | Call::TechnicalCommittee(_)
+            | Call::Treasury(_)
+            //TODO: validate this end
+			| Call::Sudo(_) => true,
+
+			Call::XYK(_)
+			| Call::Balances(_)
+			| Call::AssetRegistry(_)
+			| Call::Currencies(_)
+			| Call::Exchange(_)
+			| Call::Faucet(_)
+			| Call::MultiTransactionPayment(_)
+			| Call::Tokens(_) => false,
+		}
+	}
+}
+
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
 	pub const Version: RuntimeVersion = VERSION;
@@ -188,7 +217,7 @@ parameter_types! {
 
 impl frame_system::Config for Runtime {
 	/// The basic call filter to use in dispatchable.
-	type BaseCallFilter = ();
+	type BaseCallFilter = BaseFilter;
 	type BlockWeights = BlockWeights;
 	type BlockLength = BlockLength;
 	/// The ubiquitous origin type.
