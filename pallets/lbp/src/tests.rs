@@ -736,13 +736,7 @@ fn pause_non_running_pool_should_not_work() {
 			true,
 		));
 
-		run_to_block(400);
-		assert_noop!(
-			LBPPallet::pause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID),
-			Error::<Test>::CannotPauseEndedPool
-		);
-
-		run_to_block(500);
+		run_to_block(401);
 		assert_noop!(
 			LBPPallet::pause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID),
 			Error::<Test>::CannotPauseEndedPool
@@ -849,13 +843,7 @@ fn unpause_pool_should_not_work() {
 		// pause the pool before trying to unpause it
 		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID,));
 
-		run_to_block(400);
-		assert_noop!(
-			LBPPallet::unpause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID),
-			Error::<Test>::CannotUnpauseEndedPool
-		);
-
-		run_to_block(500);
+		run_to_block(401);
 		assert_noop!(
 			LBPPallet::unpause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID),
 			Error::<Test>::CannotUnpauseEndedPool

@@ -211,8 +211,6 @@ pub mod pallet {
 		CannotAddZeroLiquidity,
 		/// Can not remove zero liquidity
 		CannotRemoveZeroLiquidity,
-		/// Overflow after adding liquidity
-		LiquidityOverflow,
 		/// Asset balance too low
 		InsufficientAssetBalance,
 		/// Pool does not exist
@@ -371,18 +369,12 @@ pub mod pallet {
 
 				Self::ensure_pool_ownership(&who, &pool_id)?;
 
-				let now = <frame_system::Pallet<T>>::block_number();
-
-				ensure!(pool.start == Zero::zero() || now < pool.start, Error::<T>::SaleStarted);
+				ensure!(Self::is_prior_sale_or_uninitialized(&pool), Error::<T>::SaleStarted);
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
-				if let Some(initial_weights) = initial_weights {
-					pool.initial_weights = Self::get_weights_in_order(pool, initial_weights)?;
-				}
-				if let Some(final_weights) = final_weights {
-					pool.final_weights = Self::get_weights_in_order(pool, final_weights)?;
-				}
+				pool.initial_weights = initial_weights.map_or(Ok(pool.initial_weights),  |w| Self::get_weights_in_order(pool, w))?;
+				pool.final_weights = final_weights.map_or(Ok(pool.final_weights),  |w| Self::get_weights_in_order(pool, w))?;
 
 				Self::validate_pool_data(&pool)?;
 
@@ -404,8 +396,7 @@ pub mod pallet {
 				ensure!(pool.pausable, Error::<T>::PoolIsNotPausable);
 				ensure!(!pool.paused, Error::<T>::CannotPausePausedPool);
 
-				let now = <frame_system::Pallet<T>>::block_number();
-				ensure!(pool.end > now, Error::<T>::CannotPauseEndedPool);
+				ensure!(Self::is_after_sale(&pool), Error::<T>::CannotPauseEndedPool);
 
 				pool.paused = true;
 
@@ -426,8 +417,7 @@ pub mod pallet {
 
 				ensure!(pool.paused, Error::<T>::PoolIsNotPaused);
 
-				let now = <frame_system::Pallet<T>>::block_number();
-				ensure!(pool.end > now, Error::<T>::CannotUnpauseEndedPool);
+				ensure!(Self::is_after_sale(&pool), Error::<T>::CannotUnpauseEndedPool);
 
 				pool.paused = false;
 
@@ -466,19 +456,11 @@ pub mod pallet {
 					T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
 					Error::<T>::InsufficientAssetBalance
 				);
-
-				T::MultiCurrency::free_balance(asset_a, &pool_id)
-					.checked_add(amount_a)
-					.ok_or(Error::<T>::LiquidityOverflow)?;
 			}
 
 			if !amount_b.is_zero() {
 				let reserve_b = T::MultiCurrency::free_balance(asset_b, &who);
 				ensure!(reserve_b >= amount_b, Error::<T>::InsufficientAssetBalance);
-
-				T::MultiCurrency::free_balance(asset_b, &pool_id)
-					.checked_add(amount_b)
-					.ok_or(Error::<T>::LiquidityOverflow)?;
 			}
 
 			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
@@ -706,8 +688,17 @@ impl<T: Config> Pallet<T> {
 
 	/// return true if now is in interval <pool.start, pool.end> and POOL IS NOT PAUSED
 	fn is_sale_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
+		Self::is_pool_running(pool_data) && !pool_data.paused
+	}
+	/// return true if the LBP event has not yet started, or the beginning is not set
+	fn is_prior_sale_or_uninitialized(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
-		pool_data.start <= now && now <= pool_data.end && !pool_data.paused
+		pool_data.start == Zero::zero() || now < pool_data.start
+	}
+
+	fn is_after_sale(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
+		let now = <frame_system::Pallet<T>>::block_number();
+		pool_data.end >= now
 	}
 
 	fn update_weights_and_validate_trade(
