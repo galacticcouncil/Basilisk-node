@@ -579,14 +579,14 @@ impl pallet_authorship::Config for Runtime {
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
 	pub const MaxCandidates: u32 = 20;              //TODO: check this param
-	pub const MaxInvulnerables: u32 = 10;           //TODO: check this param
+	pub const MaxInvulnerables: u32 = 10;
 }
 
 impl pallet_collator_selection::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	//TODO: allow 1/2 of concil to execute privileged collator selection operations. (require code from: feat/initial_chain_setup)
-	type UpdateOrigin = EnsureRoot<AccountId>;
+	//allow 1/2 of concil to execute privileged collator selection operations. (require code from: feat/initial_chain_setup)
+	type UpdateOrigin = EnsureMajorityCouncilOrRoot;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
 	type MaxInvulnerables = MaxInvulnerables;

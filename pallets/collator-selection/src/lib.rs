@@ -424,11 +424,7 @@ pub mod pallet {
 			);
 			Some(result)
 		}
-		fn start_session(_: SessionIndex) {
-			// we don't care.
-		}
-		fn end_session(_: SessionIndex) {
-			// we don't care.
-		}
+		fn start_session(_: SessionIndex) {}
+		fn end_session(_: SessionIndex) {}
 	}
 }
