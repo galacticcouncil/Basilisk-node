@@ -10,6 +10,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use currency::BSX;
 use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify};
@@ -388,8 +389,8 @@ impl parachain_info::Config for Runtime {}
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
 parameter_types! {
-	pub ClassBondAmount: Balance = 1000000;
-	pub ClassBondDuration: u32 = 10;//24 * DAYS;
+	pub ClassBondAmount: Balance = 10_000 * BSX;
+	pub ClassBondDuration: u32 = 24 * DAYS;
 }
 
 impl pallet_nft::Config for Runtime {

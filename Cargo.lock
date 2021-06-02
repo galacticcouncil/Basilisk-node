@@ -5442,6 +5442,7 @@ dependencies = [
  "orml-utilities 0.4.0",
  "pallet-balances",
  "parity-scale-codec 2.1.1",
+ "primitives",
  "serde",
  "sp-core",
  "sp-io",

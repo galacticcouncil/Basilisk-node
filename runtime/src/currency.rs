@@ -6,8 +6,12 @@ use sp_std::{convert::TryFrom, vec::Vec};
 
 use sp_std::prelude::*;
 
+use primitives::Balance;
+
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
+
+pub const BSX: Balance = 100_000_000_000;
 
 #[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, PartialOrd, Ord)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]

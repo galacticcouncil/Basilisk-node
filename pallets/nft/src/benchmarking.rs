@@ -18,7 +18,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = "just some class data".as_bytes().to_vec();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, T::CurrencyBalance::from(666_u128).into())
+	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, Price::from(666_u128).into())
 	verify {
 	}
 
