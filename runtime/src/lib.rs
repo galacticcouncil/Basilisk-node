@@ -129,7 +129,7 @@ pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 pub const FORTUNE: Balance = u128::MAX;
 pub const BSX: Balance = 1_000_000_000_000;
-pub const DOLLARS: Balance = BSX * 10; // 10 BSX ~= 1 $
+pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
 pub const CENTS: Balance = DOLLARS / 100;
 pub const MILLICENTS: Balance = CENTS / 1_000;
 
@@ -519,7 +519,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = FORTUNE;
+	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
 	pub const SpendPeriod: BlockNumber = DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
