@@ -105,6 +105,7 @@ Then open settings screen -> developer and paste
   "ClassData": "Vec<u8>",
   "TokenData": {
     "locked": "bool"
+    "emote": "Vec<u8>"
   },
   "CID": "Vec<u8>",
   "ClassInfo": {

@@ -6,12 +6,10 @@ use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult, DispatchResultWithPostInfo},
 	ensure,
-	sp_runtime::FixedPointNumber,
 	traits::{Currency, ExistenceRequirement, ReservableCurrency},
 };
 use frame_system::ensure_signed;
 use orml_utilities::with_transaction_result;
-use primitives::Price;
 use sp_runtime::{
 	traits::{StaticLookup, Zero},
 	RuntimeDebug,
@@ -34,12 +32,11 @@ pub type ClassData = Vec<u8>;
 pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
 pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
 
-pub const BSX: Balance = 100_000_000_000;
-
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
 pub struct TokenData {
 	pub locked: bool,
+	pub emote: Vec<u8>,
 }
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
@@ -50,7 +47,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-	use sp_runtime::SaturatedConversion;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -58,7 +54,7 @@ pub mod pallet {
 	/// Stores prices for each NFT class
 	#[pallet::storage]
 	#[pallet::getter(fn class_item_price)]
-	pub type ClassItemPrice<T: Config> = StorageMap<_, Blake2_128Concat, ClassIdOf<T>, Price, ValueQuery>;
+	pub type ClassItemPrice<T: Config> = StorageMap<_, Blake2_128Concat, ClassIdOf<T>, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn class_bond_until)]
@@ -87,7 +83,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			metadata: Vec<u8>,
 			data: T::ClassData,
-			price: Price,
+			price: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
@@ -177,12 +173,7 @@ pub mod pallet {
 
 			with_transaction_result(|| {
 				orml_nft::Pallet::<T>::transfer(&token_info.owner, &sender, token)?;
-				T::Currency::transfer(
-					&sender,
-					&token_info.owner,
-					price.checked_mul_int(BSX).unwrap().saturated_into(),
-					ExistenceRequirement::KeepAlive,
-				)?;
+				T::Currency::transfer(&sender, &token_info.owner, price, ExistenceRequirement::KeepAlive)?;
 				Self::deposit_event(Event::NFTBoughtFromPool(class_info.owner, sender, token.0, token.1));
 				Ok(())
 			})
@@ -200,12 +191,7 @@ pub mod pallet {
 
 			with_transaction_result(|| {
 				orml_nft::Pallet::<T>::transfer(&sender, &class_info.owner, token)?;
-				T::Currency::transfer(
-					&class_info.owner,
-					&sender,
-					price.checked_mul_int(BSX).unwrap().saturated_into(),
-					ExistenceRequirement::KeepAlive,
-				)?;
+				T::Currency::transfer(&class_info.owner, &sender, price, ExistenceRequirement::KeepAlive)?;
 				Self::deposit_event(Event::NFTSoldToPool(sender, class_info.owner, token.0, token.1));
 				Ok(())
 			})

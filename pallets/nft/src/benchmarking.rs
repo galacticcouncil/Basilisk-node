@@ -6,6 +6,7 @@ use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
 
 const SEED: u32 = 0;
+const EMOTE: &str = "RMRK::EMOTE::RMRK1.0.0::0aff6865bed3a66b-VALHELLO-POTION_HEAL-0000000000000001::1F389";
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
@@ -18,7 +19,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = "just some class data".as_bytes().to_vec();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, Price::from(666_u128).into())
+	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, T::CurrencyBalance::from(666_u128).into())
 	verify {
 	}
 
@@ -26,7 +27,7 @@ benchmarks! {
 		let i in 1 .. 1000;
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let token_data = TokenData { locked:false };
+		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_data = "just some class data".as_bytes().to_vec();
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data, i)
@@ -38,7 +39,7 @@ benchmarks! {
 		let caller2 = create_account::<T>("caller2", 1);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = "just some class data".as_bytes().to_vec();
-		let token_data = TokenData { locked:false };
+		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
@@ -59,7 +60,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = "just some class data".as_bytes().to_vec();
-		let token_data = TokenData { locked:false };
+		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
@@ -72,7 +73,7 @@ benchmarks! {
 		let caller2 = create_account::<T>("caller2", 1);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = "just some class data".as_bytes().to_vec();
-		let token_data = TokenData { locked:false };
+		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
@@ -85,7 +86,7 @@ benchmarks! {
 		let caller2 = create_account::<T>("caller2", 1);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = "just some class data".as_bytes().to_vec();
-		let token_data = TokenData { locked:false };
+		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
