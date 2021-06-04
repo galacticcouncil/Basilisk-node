@@ -566,7 +566,6 @@ dependencies = [
  "pallet-democracy",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
- "pallet-faucet",
  "pallet-grandpa",
  "pallet-multi-payment-benchmarking",
  "pallet-randomness-collective-flip",
@@ -5177,25 +5176,6 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec 2.1.1",
  "primitives",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder 3.0.0",
-]
-
-[[package]]
-name = "pallet-faucet"
-version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
-dependencies = [
- "frame-support",
- "frame-system",
- "orml-tokens",
- "orml-traits",
- "parity-scale-codec 2.1.1",
- "primitive-types 0.7.3",
- "primitives",
- "serde",
  "sp-core",
  "sp-runtime",
  "sp-std",
