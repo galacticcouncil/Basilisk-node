@@ -12,7 +12,7 @@ fn create_class_works() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -27,7 +27,7 @@ fn create_class_fails() {
 				Origin::none(),
 				"a class".as_bytes().to_vec(),
 				Default::default(),
-				Price::from(TEST_PRICE)
+				TEST_PRICE
 			),
 			BadOrigin
 		);
@@ -41,7 +41,7 @@ fn mint_works() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -52,7 +52,7 @@ fn mint_works() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -68,7 +68,7 @@ fn mint_fails() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -80,7 +80,7 @@ fn mint_fails() {
 				"a token".as_bytes().to_vec(),
 				TokenData {
 					locked: false,
-					emote: EMOTE
+					emote: EMOTE.as_bytes().to_vec()
 				},
 				TEST_QUANTITY,
 			),
@@ -96,7 +96,7 @@ fn transfer_works() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -105,7 +105,7 @@ fn transfer_works() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -123,7 +123,7 @@ fn transfer_fails() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -132,7 +132,7 @@ fn transfer_fails() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -156,7 +156,7 @@ fn burn_works() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -165,7 +165,7 @@ fn burn_works() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -183,7 +183,7 @@ fn burn_fails() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -192,7 +192,7 @@ fn burn_fails() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -211,7 +211,7 @@ fn destroy_class_works() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::destroy_class(Origin::signed(ALICE), CLASS_ID));
@@ -225,7 +225,7 @@ fn destroy_class_fails() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -234,7 +234,7 @@ fn destroy_class_fails() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -253,7 +253,7 @@ fn toggle_lock_works() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -262,7 +262,7 @@ fn toggle_lock_works() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -280,7 +280,7 @@ fn toggle_lock_fails() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -289,7 +289,7 @@ fn toggle_lock_fails() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -308,7 +308,7 @@ fn buy_from_pool_works() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -317,7 +317,7 @@ fn buy_from_pool_works() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -335,7 +335,7 @@ fn buy_from_pool_fails() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -344,7 +344,7 @@ fn buy_from_pool_fails() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -372,7 +372,7 @@ fn sell_to_pool_works() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -381,7 +381,7 @@ fn sell_to_pool_works() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
@@ -401,7 +401,7 @@ fn sell_to_pool_fails() {
 			Origin::signed(ALICE),
 			"a class".as_bytes().to_vec(),
 			Default::default(),
-			Price::from(TEST_PRICE)
+			TEST_PRICE
 		));
 
 		assert_ok!(NftModule::mint(
@@ -410,7 +410,7 @@ fn sell_to_pool_fails() {
 			"a token".as_bytes().to_vec(),
 			TokenData {
 				locked: false,
-				emote: EMOTE
+				emote: EMOTE.as_bytes().to_vec()
 			},
 			TEST_QUANTITY,
 		));
