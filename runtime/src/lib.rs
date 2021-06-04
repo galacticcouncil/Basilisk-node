@@ -56,7 +56,6 @@ use orml_traits::parameter_type_with_key;
 pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
 
 pub use pallet_asset_registry;
-pub use pallet_faucet;
 
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
@@ -160,23 +159,20 @@ impl Filter<Call> for BaseFilter {
 			| Call::Timestamp(_)
 			| Call::RandomnessCollectiveFlip(_)
 			| Call::ParachainSystem(_)
-            //TODO: validate this
-            | Call::Democracy(_)
-            | Call::Scheduler(_)
-            | Call::Council(_)
-            | Call::TechnicalCommittee(_)
-            | Call::Treasury(_)
-            //TODO: validate this end
-			| Call::Sudo(_) => true,
-
-			Call::XYK(_)
+			| Call::Democracy(_)
+			| Call::Scheduler(_)
+			| Call::Council(_)
+			| Call::TechnicalCommittee(_)
+			| Call::Treasury(_)
 			| Call::Balances(_)
 			| Call::AssetRegistry(_)
 			| Call::Currencies(_)
 			| Call::Exchange(_)
-			| Call::Faucet(_)
 			| Call::MultiTransactionPayment(_)
-			| Call::Tokens(_) => false,
+			| Call::Tokens(_)
+			| Call::Sudo(_) => true,
+
+			Call::XYK(_) => false,
 		}
 	}
 }
@@ -370,11 +366,6 @@ impl pallet_exchange::Config for Runtime {
 	type Resolver = Exchange;
 	type Currency = Currencies;
 	type WeightInfo = pallet_exchange::weights::HydraWeight<Runtime>;
-}
-
-impl pallet_faucet::Config for Runtime {
-	type Event = Event;
-	type Currency = Currencies;
 }
 
 /// Parachain Config
@@ -594,7 +585,6 @@ construct_runtime!(
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
-		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Storage, Event<T>},
 	}
 );

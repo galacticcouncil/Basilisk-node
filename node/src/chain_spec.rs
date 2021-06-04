@@ -1,7 +1,7 @@
 #![allow(clippy::or_fun_call)]
 
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CouncilConfig, FaucetConfig, GenesisConfig,
+	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CouncilConfig, GenesisConfig,
 	ParachainInfoConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, CORE_ASSET_ID,
 	WASM_BINARY,
 };
@@ -120,7 +120,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "westend".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -173,7 +173,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "rococo-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -235,7 +235,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "rococo-local".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -306,11 +306,6 @@ fn parachain_genesis(
 			phantom: Default::default(),
 		},
 		parachain_info: ParachainInfoConfig { parachain_id },
-		pallet_faucet: FaucetConfig {
-			rampage: false,
-			mint_limit: 5,
-			mintable_currencies: vec![0, 1, 2],
-		},
 		cumulus_pallet_aura_ext: Default::default(),
 	}
 }
