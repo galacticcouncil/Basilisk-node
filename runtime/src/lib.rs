@@ -154,10 +154,10 @@ impl Filter<Call> for BaseFilter {
 			| Call::Timestamp(_)
 			| Call::RandomnessCollectiveFlip(_)
 			| Call::ParachainSystem(_)
-			| Call::Sudo(_) => true,
+			| Call::Sudo(_)
+			| Call::LBP(_) => true,
 
 			Call::XYK(_)
-			| Call::LBP(_)
 			| Call::Balances(_)
 			| Call::AssetRegistry(_)
 			| Call::Currencies(_)
