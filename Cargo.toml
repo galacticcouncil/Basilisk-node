@@ -103,7 +103,6 @@ pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/H
 pallet-multi-payment-benchmarking = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-exchange = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-exchange-benchmarking = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-faucet = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-xyk-rpc-runtime-api = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
 pallet-xyk-rpc = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
