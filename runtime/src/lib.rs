@@ -14,12 +14,11 @@ use sp_core::{
 	u32_trait::{_1, _2, _3},
 	OpaqueMetadata,
 };
-use sp_runtime::traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::Zero,
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify, ConvertInto, Zero}
 };
 use sp_std::convert::From;
 use sp_std::prelude::*;
@@ -170,6 +169,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Exchange(_)
 			| Call::MultiTransactionPayment(_)
 			| Call::Tokens(_)
+			| Call::Vesting(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -551,6 +551,18 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const MinVestedTransfer: Balance = 10 * DOLLARS;
+}
+
+impl pallet_vesting::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BlockNumberToBalance = ConvertInto;
+	type MinVestedTransfer = MinVestedTransfer;
+	type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -570,6 +582,7 @@ construct_runtime!(
 		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
+		Vesting: pallet_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
 
 		// Parachain
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
