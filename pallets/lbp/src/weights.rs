@@ -13,7 +13,6 @@ pub trait WeightInfo {
 	fn remove_liquidity() -> Weight;
 	fn pause_pool() -> Weight;
 	fn unpause_pool() -> Weight;
-	fn destroy_pool() -> Weight;
 	fn sell() -> Weight;
 	fn buy() -> Weight;
 }
@@ -46,10 +45,6 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 		0
 	}
 
-	fn destroy_pool() -> u64 {
-		0
-	}
-
 	fn sell() -> u64 {
 		0
 	}
@@ -78,10 +73,6 @@ impl WeightInfo for () {
 	}
 
 	fn pause_pool() -> u64 {
-		0
-	}
-
-	fn destroy_pool() -> u64 {
 		0
 	}
 

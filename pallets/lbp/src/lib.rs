@@ -253,11 +253,8 @@ pub mod pallet {
 		/// New liquidity was provided to the pool. [who, asset_a, asset_b, amount_a, amount_b]
 		LiquidityAdded(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Liquidity was removed from the pool. [who, asset_a, asset_b, amount_a, amount_b]
+		/// Liquidity was removed from the pool and the pool was destroyed. [who, asset_a, asset_b, amount_a, amount_b]
 		LiquidityRemoved(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
-
-		/// Pool was destroyed. [who, asset_a, asset_b, balance_a, balance_b]
-		PoolDestroyed(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Sale executed. [who, asset_in, asset_out, amount, sale_price]
 		SellExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
@@ -471,66 +468,9 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
 		#[transactional]
-		pub fn remove_liquidity(
-			origin: OriginFor<T>,
-			pool_id: PoolId<T>,
-			amount_a: (AssetId, BalanceOf<T>),
-			amount_b: (AssetId, BalanceOf<T>),
-		) -> DispatchResultWithPostInfo {
-			let who = ensure_signed(origin)?;
-
-			let (asset_a, asset_b) = (amount_a.0, amount_b.0);
-			let (amount_a, amount_b) = (amount_a.1, amount_b.1);
-
-			let asset_pair_id = T::AssetPairPoolId::from_assets(asset_a, asset_b);
-			ensure!(pool_id == asset_pair_id, Error::<T>::InvalidAsset);
-
-			ensure!(
-				!amount_a.is_zero() || !amount_b.is_zero(),
-				Error::<T>::CannotRemoveZeroLiquidity
-			);
-
-			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
-
-			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
-
-			ensure!(!Self::is_pool_running(&pool_data), Error::<T>::SaleNotEnded);
-
-			if !amount_a.is_zero() {
-				ensure!(
-					T::MultiCurrency::free_balance(asset_a, &pool_id) >= amount_a,
-					Error::<T>::InsufficientAssetBalance
-				);
-
-				T::MultiCurrency::free_balance(asset_a, &who)
-					.checked_add(amount_a)
-					.ok_or(Error::<T>::Overflow)?;
-			}
-
-			if !amount_b.is_zero() {
-				ensure!(
-					T::MultiCurrency::free_balance(asset_b, &pool_id) >= amount_b,
-					Error::<T>::InsufficientAssetBalance
-				);
-
-				T::MultiCurrency::free_balance(asset_b, &who)
-					.checked_add(amount_b)
-					.ok_or(Error::<T>::Overflow)?;
-			}
-
-			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
-			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
-
-			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
-
-			Ok(().into())
-		}
-
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_pool())]
-		#[transactional]
-		pub fn destroy_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
+		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
 			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
@@ -549,7 +489,7 @@ pub mod pallet {
 
 			<PoolData<T>>::remove(&pool_id);
 
-			Self::deposit_event(Event::PoolDestroyed(pool_id, asset_a, asset_b, amount_a, amount_b));
+			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
 
 			Ok(().into())
 		}

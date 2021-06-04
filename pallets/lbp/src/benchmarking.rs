@@ -189,33 +189,6 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, duration, WeightCurveType::Linear, true)?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-	}: _(RawOrigin::Signed(caller), pool_id.clone(), (asset_a.id, 500_000_000_u128), (asset_b.id, 1_000_000_000_u128))
-	verify {
-		assert_eq!(T::MultiCurrency::free_balance(asset_a.id, &pool_id), 500_000_000_u128);
-		assert_eq!(T::MultiCurrency::free_balance(asset_b.id, &pool_id), 1_000_000_000_u128);
-	}
-
-	destroy_pool {
-		let caller = funded_account::<T>("caller", 0);
-		let duration = (T::BlockNumber::from(10_u32), T::BlockNumber::from(20_u32));
-		let asset_a = LBPAssetInfo{
-			id: ASSET_ID_A,
-			amount: BalanceOf::<T>::from(1_000_000_000_u32),
-			initial_weight: 20,
-			final_weight: 90
-		};
-		let asset_b = LBPAssetInfo{
-			id: ASSET_ID_B,
-			amount: BalanceOf::<T>::from(2_000_000_000_u32),
-			initial_weight: 80,
-			final_weight: 10
-		};
-
-		let pool_id = T::AssetPairPoolId::from_assets(asset_a.id, asset_b.id);
-
-		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, duration, WeightCurveType::Linear, true)?;
-		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
-
 		System::<T>::set_block_number(21u32.into());
 
 	}: _(RawOrigin::Signed(caller), pool_id.clone())
@@ -315,7 +288,6 @@ mod tests {
 			assert_ok!(test_benchmark_unpause_pool::<Test>());
 			assert_ok!(test_benchmark_add_liquidity::<Test>());
 			assert_ok!(test_benchmark_remove_liquidity::<Test>());
-			assert_ok!(test_benchmark_destroy_pool::<Test>());
 			assert_ok!(test_benchmark_sell::<Test>());
 			assert_ok!(test_benchmark_buy::<Test>());
 		});
