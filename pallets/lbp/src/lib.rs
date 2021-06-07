@@ -277,6 +277,26 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Create a new liquidity bootstrapping pool for given asset pair.
+		///
+		/// For any asset pair, only one pool can exist at a time.
+		///
+		/// The dispatch origin for this call must be `T::CreatePoolOrigin`.
+		/// The pool is created with initial liquidity provided by the `pool_owner` who must have
+		/// sufficient funds free.
+		///
+		/// Parameters:
+		/// - `pool_owner`: the owner of the new pool.
+		/// - `asset`: The asset ID, the initial liquidity amount and the starting and ending weight.
+		/// - `sale_duration`: The LBP event duration is determined by the starting and ending block number,
+		/// or uninitialized if both values are set to zero.
+		/// - `weight_curve`: The weight function used to update the LBP weights. Currently,
+		/// there is only one weight function implemented, the linear function.
+		/// - `pausable`: If the `pausable` option is set to `true`, the pool owner is allowed
+		/// to pause the pool during the sale.
+		/// - `fee`: The trading fee charged on every trade distributed to `fee_receiver`.
+		///
+		/// Emits `PoolCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		#[transactional]
 		pub fn create_pool(
@@ -343,6 +363,22 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		/// Update pool data of a pool.
+		///
+		/// The dispatch origin for this call must be signed by the pool owner.
+		///
+		/// The pool can be updated only if the sale has not already started.
+		///
+		/// At least one of the following optional parameters has to be specified.
+		///
+		/// Parameters:
+		/// - `pool_id`: The identifier of the pool to be updated.
+		/// - `start`: The new starting time of the sale. This parameter is optional.
+		/// - `end`: The new ending time of the sale. This parameter is optional.
+		/// - `initial_weights`: The new initial weights. This parameter is optional.
+		/// - `final_weights`: The new final weights. This parameter is optional.
+		///
+		/// Emits `PoolUpdated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::update_pool_data())]
 		#[transactional]
 		pub fn update_pool_data(
@@ -380,6 +416,16 @@ pub mod pallet {
 			})
 		}
 
+		/// Pause a pool and disallow buy and sell operations on the pool.
+		///
+		/// Only a pool with the `pausable` option set to `true` can be paused.
+		///
+		/// The dispatch origin for this call must be signed by the pool owner.
+		///
+		/// Parameters:
+		/// - `pool_id`: The identifier of the pool
+ 		///
+ 		/// Emits `Paused` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::pause_pool())]
 		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
@@ -402,6 +448,16 @@ pub mod pallet {
 			})
 		}
 
+		/// Unpause a pool and allow token buy and sell operations on the pool.
+		///
+		/// A pool needs to be in the paused state prior this call.
+		///
+		/// The dispatch origin for this call must be signed by the pool owner.
+		///
+		/// Parameters:
+		/// - `pool_id`: The identifier of the pool
+		///
+		/// Emits `Unpaused` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::unpause_pool())]
 		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
@@ -423,6 +479,18 @@ pub mod pallet {
 			})
 		}
 
+		/// Add liquidity to a pool.
+		///
+		/// Assets to add has to match the pool assets. At least one amount has to be non-zero.
+		///
+		/// The dispatch origin for this call must be signed by the pool owner.
+		///
+		/// Parameters:
+		/// - `pool_id`: The identifier of the pool
+		/// - `amount_a`: The identifier of the asset and the amount to add.
+		/// - `amount_b`: The identifier of the second asset and the amount to add.
+		///
+		/// Emits `LiquidityAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
 		#[transactional]
 		pub fn add_liquidity(
@@ -468,6 +536,17 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		/// Transfer all the liquidity from a pool back to the pool owner and destroy the pool.
+		/// The pool data are also removed from the storage.
+		///
+		/// The pool can't be destroyed during the sale.
+		///
+		/// The dispatch origin for this call must be signed by the pool owner.
+		///
+		/// Parameters:
+		/// - `amount_a`: The identifier of the asset and the amount to add.
+		///
+		/// Emits 'LiquidityRemoved' when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
 		#[transactional]
 		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
@@ -494,6 +573,20 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		/// Trade `asset_in` for `asset_out`.
+		///
+		/// Executes a swap of `asset_in` for `asset_out`. Price is determined by the pool and is
+		/// affected by the amount and proportion of the pool assets and the weights.
+		///
+		/// Trading `fee` is distributed to the `fee_receiver`.
+		///
+		/// Parameters:
+		/// - `asset_in`: The identifier of the asset being transferred from the account to the pool.
+		/// - `asset_out`: The identifier of the asset being transferred from the pool to the account.
+		/// - `amount`: The amount of `asset_in`
+		/// - `max_limit`: minimum amount of `asset_out` / amount of asset_out to be obtained from the pool in exchange for `asset_in`.
+		///
+		/// Emits `SellExecuted` when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]
 		#[transactional]
 		pub fn sell(
@@ -510,6 +603,20 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		/// Trade `asset_in` for `asset_out`.
+		///
+		/// Executes a swap of `asset_in` for `asset_out`. Price is determined by the pool and is
+		/// affected by the amount and the proportion of the pool assets and the weights.
+		///
+		/// Trading `fee` is distributed to the `fee_receiver`.
+		///
+		/// Parameters:
+		/// - `asset_in`: The identifier of the asset being transferred from the account to the pool.
+		/// - `asset_out`: The identifier of the asset being transferred from the pool to the account.
+		/// - `amount`: The amount of `asset_out`.
+		/// - `max_limit`: maximum amount of `asset_in` to be sold in exchange for `asset_out`.
+		///
+		/// Emits `BuyExecuted` when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
 		#[transactional]
 		pub fn buy(
@@ -844,7 +951,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			.unwrap_or_else(|_| BalanceOf::<T>::zero())
 	}
 
-	/// Validate sell trade and update pool weights
+	/// Validate a sell trade and update pool weights if necessary
 	fn validate_sell(
 		who: &T::AccountId,
 		assets: AssetPair,
