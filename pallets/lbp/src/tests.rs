@@ -1,7 +1,7 @@
 use super::*;
 pub use crate::mock::{
-	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, ACA, ALICE, BOB, DOT, ETH,
-	HDX,
+	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, ACA, ALICE, BOB, CHARLIE,
+	DOT, ETH, HDX,
 };
 use crate::mock::{ACA_DOT_POOL_ID, HDX_DOT_POOL_ID, INITIAL_BALANCE};
 use frame_support::{assert_noop, assert_ok};
@@ -13,7 +13,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-pub use primitives::{asset::AssetPair, traits::AMMTransfer, MAX_IN_RATIO, MAX_OUT_RATIO};
+pub use primitives::{asset::AssetPair, fee::Fee, traits::AMMTransfer, MAX_IN_RATIO, MAX_OUT_RATIO};
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
@@ -36,6 +36,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			(10u64, 20u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		assert_eq!(
@@ -52,6 +54,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				weight_curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: false,
+				fee: Fee::default(),
+				fee_receiver: CHARLIE,
 			}
 		);
 	});
@@ -89,7 +93,16 @@ fn weight_update_should_work() {
 		};
 		let duration = (10u64, 19u64);
 
-		let mut linear_pool = Pool::new(ALICE, asset_a, asset_b, duration, WeightCurveType::Linear, false);
+		let mut linear_pool = Pool::new(
+			ALICE,
+			asset_a,
+			asset_b,
+			duration,
+			WeightCurveType::Linear,
+			false,
+			Fee::default(),
+			CHARLIE,
+		);
 
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
@@ -98,7 +111,9 @@ fn weight_update_should_work() {
 			asset_b,
 			duration,
 			WeightCurveType::Linear,
-			false
+			false,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		System::set_block_number(13);
@@ -133,6 +148,8 @@ fn validate_pool_data_should_work() {
 			weight_curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
+			fee: Fee::default(),
+			fee_receiver: CHARLIE,
 		};
 		assert_ok!(LBPPallet::validate_pool_data(&pool_data));
 
@@ -149,6 +166,8 @@ fn validate_pool_data_should_work() {
 			weight_curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
+			fee: Fee::default(),
+			fee_receiver: CHARLIE,
 		};
 		assert_ok!(LBPPallet::validate_pool_data(&pool_data));
 
@@ -164,6 +183,8 @@ fn validate_pool_data_should_work() {
 			weight_curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
+			fee: Fee::default(),
+			fee_receiver: CHARLIE,
 		};
 		assert_noop!(
 			LBPPallet::validate_pool_data(&pool_data),
@@ -182,6 +203,8 @@ fn validate_pool_data_should_work() {
 			weight_curve: WeightCurveType::Linear,
 			pausable: true,
 			paused: false,
+			fee: Fee::default(),
+			fee_receiver: CHARLIE,
 		};
 		assert_noop!(
 			LBPPallet::validate_pool_data(&pool_data),
@@ -211,6 +234,8 @@ fn create_pool_should_work() {
 			(10u64, 20u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		assert_eq!(Currency::free_balance(ACA, &ACA_DOT_POOL_ID), 1_000_000_000);
@@ -237,6 +262,8 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.last_weight_update, 0);
 		assert_eq!(pool_data.last_weights, (20, 80));
 		assert_eq!(pool_data.paused, false);
+		assert_eq!(pool_data.fee, Fee::default());
+		assert_eq!(pool_data.fee_receiver, CHARLIE);
 
 		expect_events(vec![Event::PoolCreated(
 			ALICE,
@@ -273,6 +300,8 @@ fn create_pool_from_basic_origin_should_not_work() {
 				(10u64, 20u64),
 				WeightCurveType::Linear,
 				true,
+				Fee::default(),
+				CHARLIE,
 			),
 			BadOrigin
 		);
@@ -300,6 +329,8 @@ fn create_same_pool_should_not_work() {
 			(10u64, 20u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		assert_noop!(
@@ -321,6 +352,8 @@ fn create_same_pool_should_not_work() {
 				(100u64, 200u64),
 				WeightCurveType::Linear,
 				true,
+				Fee::default(),
+				CHARLIE,
 			),
 			Error::<Test>::PoolAlreadyExists
 		);
@@ -359,6 +392,8 @@ fn create_pool_with_same_assets_should_not_work() {
 				(20u64, 10u64),
 				WeightCurveType::Linear,
 				true,
+				Fee::default(),
+				CHARLIE,
 			),
 			Error::<Test>::CannotCreatePoolWithSameAssets
 		);
@@ -387,6 +422,8 @@ fn create_pool_with_zero_liquidity_should_not_work() {
 				(10u64, 20u64),
 				WeightCurveType::Linear,
 				true,
+				Fee::default(),
+				CHARLIE,
 			),
 			Error::<Test>::CannotCreatePoolWithZeroLiquidity
 		);
@@ -410,6 +447,8 @@ fn create_pool_with_zero_liquidity_should_not_work() {
 				(10u64, 20u64),
 				WeightCurveType::Linear,
 				true,
+				Fee::default(),
+				CHARLIE,
 			),
 			Error::<Test>::CannotCreatePoolWithZeroLiquidity
 		);
@@ -438,6 +477,8 @@ fn create_pool_invalid_data_should_not_work() {
 				(20u64, 10u64), // reversed interval, the end precedes the beginning
 				WeightCurveType::Linear,
 				true,
+				Fee::default(),
+				CHARLIE,
 			),
 			Error::<Test>::InvalidBlockNumber
 		);
@@ -455,6 +496,11 @@ fn update_pool_data_should_work() {
 			Some(18),
 			Some(((ACA, 10), (DOT, 90))),
 			Some(((ACA, 80), (DOT, 20))),
+			Some(Fee {
+				numerator: 5,
+				denominator: 100,
+			}),
+			Some(BOB),
 		));
 
 		// verify changes
@@ -463,6 +509,14 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data.end, 18);
 		assert_eq!(updated_pool_data.initial_weights, (10, 90));
 		assert_eq!(updated_pool_data.final_weights, (80, 20));
+		assert_eq!(
+			updated_pool_data.fee,
+			Fee {
+				numerator: 5,
+				denominator: 100
+			}
+		);
+		assert_eq!(updated_pool_data.fee_receiver, BOB);
 
 		// update only one parameter
 		assert_ok!(LBPPallet::update_pool_data(
@@ -472,6 +526,8 @@ fn update_pool_data_should_work() {
 			Some(30),
 			None,
 			None,
+			None,
+			None,
 		));
 
 		// verify changes
@@ -480,6 +536,14 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data.end, 30);
 		assert_eq!(updated_pool_data.initial_weights, (10, 90));
 		assert_eq!(updated_pool_data.final_weights, (80, 20));
+		assert_eq!(
+			updated_pool_data.fee,
+			Fee {
+				numerator: 5,
+				denominator: 100
+			}
+		);
+		assert_eq!(updated_pool_data.fee_receiver, BOB);
 
 		// update only one parameter
 		assert_ok!(LBPPallet::update_pool_data(
@@ -489,6 +553,8 @@ fn update_pool_data_should_work() {
 			None,
 			Some(((ACA, 10), (DOT, 70))),
 			None,
+			None,
+			None,
 		));
 
 		// verify changes
@@ -497,6 +563,41 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data.end, 30);
 		assert_eq!(updated_pool_data.initial_weights, (10, 70));
 		assert_eq!(updated_pool_data.final_weights, (80, 20));
+		assert_eq!(
+			updated_pool_data.fee,
+			Fee {
+				numerator: 5,
+				denominator: 100
+			}
+		);
+		assert_eq!(updated_pool_data.fee_receiver, BOB);
+
+		// update only one parameter
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			None,
+			None,
+			None,
+			None,
+			None,
+			Some(ALICE),
+		));
+
+		// verify changes
+		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_eq!(updated_pool_data.start, 15);
+		assert_eq!(updated_pool_data.end, 30);
+		assert_eq!(updated_pool_data.initial_weights, (10, 70));
+		assert_eq!(updated_pool_data.final_weights, (80, 20));
+		assert_eq!(
+			updated_pool_data.fee,
+			Fee {
+				numerator: 5,
+				denominator: 100
+			}
+		);
+		assert_eq!(updated_pool_data.fee_receiver, ALICE);
 
 		// mix
 		assert_ok!(LBPPallet::update_pool_data(
@@ -506,6 +607,11 @@ fn update_pool_data_should_work() {
 			Some(18),
 			Some(((ACA, 10), (DOT, 90))),
 			None,
+			Some(Fee {
+				numerator: 6,
+				denominator: 1_000
+			}),
+			None,
 		));
 
 		// verify changes
@@ -514,8 +620,18 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data.end, 18);
 		assert_eq!(updated_pool_data.initial_weights, (10, 90));
 		assert_eq!(updated_pool_data.final_weights, (80, 20));
+		assert_eq!(
+			updated_pool_data.fee,
+			Fee {
+				numerator: 6,
+				denominator: 1_000
+			}
+		);
+		assert_eq!(updated_pool_data.fee_receiver, ALICE);
 
 		expect_events(vec![
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
+			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
 			Event::PoolUpdated(ALICE, ACA_DOT_POOL_ID).into(),
@@ -527,7 +643,16 @@ fn update_pool_data_should_work() {
 fn update_pool_data_without_changes_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LBPPallet::update_pool_data(Origin::signed(ALICE), ACA_DOT_POOL_ID, None, None, None, None,),
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				None,
+				None,
+				None,
+				None,
+				None,
+				None,
+			),
 			Error::<Test>::NothingToUpdate
 		);
 	});
@@ -543,6 +668,8 @@ fn update_pool_data_by_non_owner_should_not_work() {
 				Some(15),
 				None,
 				Some(((ACA, 10), (DOT, 90))),
+				None,
+				None,
 				None,
 			),
 			Error::<Test>::NotOwner
@@ -564,17 +691,24 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 				None,
 				Some(((ACA, 10), (DOT, 90))),
 				None,
+				Some(Fee {
+					numerator: 5,
+					denominator: 100
+				}),
+				Some(BOB),
 			),
 			Error::<Test>::SaleStarted
 		);
 
-		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-		assert_eq!(updated_pool_data.start, 10);
-		assert_eq!(updated_pool_data.end, 20);
-
-		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
-		]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -588,6 +722,8 @@ fn update_pool_data_with_wrong_asset_should_not_work() {
 				None,
 				None,
 				Some(((HDX, 10), (DOT, 90))),
+				None,
+				None,
 				None,
 			),
 			Error::<Test>::InvalidAsset
@@ -615,6 +751,8 @@ fn pause_pool_should_work() {
 				weight_curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: true,
+				fee: Fee::default(),
+				fee_receiver: CHARLIE,
 			}
 		);
 
@@ -670,6 +808,8 @@ fn pause_non_pausable_pool_should_not_work() {
 			(200u64, 400u64),
 			WeightCurveType::Linear,
 			false,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		assert_noop!(
@@ -700,6 +840,8 @@ fn pause_paused_pool_should_not_work() {
 			(200u64, 400u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		//pause the pool - pool is created as unpaused by default
@@ -734,6 +876,8 @@ fn pause_non_running_pool_should_not_work() {
 			(200u64, 400u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		run_to_block(401);
@@ -765,6 +909,8 @@ fn unpause_pool_should_work() {
 			(200u64, 400u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		//pool is created as unpaused by default
@@ -786,6 +932,8 @@ fn unpause_pool_should_work() {
 				weight_curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: false,
+				fee: Fee::default(),
+				fee_receiver: CHARLIE,
 			}
 		);
 
@@ -838,6 +986,8 @@ fn unpause_pool_should_not_work() {
 			(200u64, 400u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		// pause the pool before trying to unpause it
@@ -973,9 +1123,15 @@ fn add_zero_liquidity_should_not_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 		assert_eq!(user_balance_b_after, user_balance_b_before);
 
-		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
-		]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -1014,8 +1170,12 @@ fn add_liquidity_after_sale_started_should_work() {
 		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
-		assert_ok!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 1_000), (DOT, 1_000),));
+		assert_ok!(LBPPallet::add_liquidity(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			(ACA, 1_000),
+			(DOT, 1_000),
+		));
 
 		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
@@ -1038,8 +1198,12 @@ fn add_liquidity_after_sale_started_should_work() {
 		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
-		assert_ok!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 1_000), (DOT, 1_000),));
+		assert_ok!(LBPPallet::add_liquidity(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			(ACA, 1_000),
+			(DOT, 1_000),
+		));
 
 		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
@@ -1151,24 +1315,26 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 
 		// sale duration is not specified
 		assert_ok!(LBPPallet::create_pool(
-				Origin::root(),
-				ALICE,
-				LBPAssetInfo {
-					id: HDX,
-					amount: 1_000_000_000,
-					initial_weight: 20,
-					final_weight: 90,
-				},
-				LBPAssetInfo {
-					id: DOT,
-					amount: 2_000_000_000,
-					initial_weight: 80,
-					final_weight: 10,
-				},
-				(0u64, 0u64),
-				WeightCurveType::Linear,
-				true,
-			));
+			Origin::root(),
+			ALICE,
+			LBPAssetInfo {
+				id: HDX,
+				amount: 1_000_000_000,
+				initial_weight: 20,
+				final_weight: 90,
+			},
+			LBPAssetInfo {
+				id: DOT,
+				amount: 2_000_000_000,
+				initial_weight: 80,
+				final_weight: 10,
+			},
+			(0u64, 0u64),
+			WeightCurveType::Linear,
+			true,
+			Fee::default(),
+			CHARLIE,
+		));
 
 		let user_balance_a_before = Currency::free_balance(HDX, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
@@ -1203,7 +1369,6 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 			frame_system::Event::KilledAccount(HDX_DOT_POOL_ID).into(),
 			Event::LiquidityRemoved(HDX_DOT_POOL_ID, HDX, DOT, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
-
 	});
 }
 
@@ -1234,9 +1399,15 @@ fn remove_liquidity_from_not_finalized_pool_should_not_work() {
 		assert_eq!(user_balance_a_before, user_balance_a_after);
 		assert_eq!(user_balance_b_before, user_balance_b_after);
 
-		expect_events(vec![
-			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
-		]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -1300,28 +1471,53 @@ fn execute_trade_should_work() {
 
 		let amount_in = 5_000_000_u128;
 		let amount_out = 10_000_000_u128;
-		let t = AMMTransfer {
+		let t_sell = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
+			fee: (asset_out, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 0);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
 
-		assert_ok!(LBPPallet::execute_trade(&t));
+		assert_ok!(LBPPallet::execute_trade(&t_sell));
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_995_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_010_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 0);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 1_000);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_005_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_989_999_000);
+
+		let t_buy = AMMTransfer {
+			origin: ALICE,
+			assets: AssetPair { asset_in, asset_out },
+			amount: amount_in,
+			amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+			fee: (asset_in, 1_000),
+		};
+
+		assert_ok!(LBPPallet::execute_trade(&t_buy));
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_989_999_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 1_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 1_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_979_999_000);
 	});
 }
 
@@ -1342,10 +1538,12 @@ fn execute_trade_should_not_work() {
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
+			fee: (asset_in, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
@@ -1354,6 +1552,7 @@ fn execute_trade_should_not_work() {
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
@@ -1376,10 +1575,12 @@ fn execute_sell_should_work() {
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
+			fee: (asset_out, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
@@ -1387,18 +1588,19 @@ fn execute_sell_should_work() {
 		assert_ok!(LBPPallet::execute_sell(&t));
 
 		expect_events(vec![Event::SellExecuted(
-			ALICE, asset_in, asset_out, amount_in, amount_out,
+			ALICE, asset_in, asset_out, amount_in, amount_out, asset_out, 1_000,
 		)
 		.into()]);
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_992_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 1_000);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_979_999_000);
 
 		expect_events(vec![Event::SellExecuted(
-			ALICE, asset_in, asset_out, 8_000_000, 20_000_000,
+			ALICE, asset_in, asset_out, 8_000_000, 20_000_000, asset_out, 1_000,
 		)
 		.into()]);
 	});
@@ -1421,10 +1623,12 @@ fn execute_sell_should_not_work() {
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
+			fee: (asset_out, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
@@ -1433,6 +1637,7 @@ fn execute_sell_should_not_work() {
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
@@ -1455,29 +1660,29 @@ fn execute_buy_should_work() {
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
+			fee: (asset_in, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 0);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
 
 		assert_ok!(LBPPallet::execute_buy(&t));
 
-		expect_events(vec![Event::BuyExecuted(
-			ALICE, asset_out, asset_in, amount_in, amount_out,
-		)
-		.into()]);
-
-		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_992_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_991_999_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 1_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
 
 		expect_events(vec![Event::BuyExecuted(
-			ALICE, asset_out, asset_in, 8_000_000, 20_000_000,
+			ALICE, asset_out, asset_in, 8_000_000, 20_000_000, asset_in, 1_000,
 		)
 		.into()]);
 	});
@@ -1500,10 +1705,12 @@ fn execute_buy_should_not_work() {
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
+			fee: (asset_in, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
@@ -1512,6 +1719,7 @@ fn execute_buy_should_not_work() {
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_000_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
@@ -1674,6 +1882,8 @@ fn trade_in_non_running_pool_should_not_work() {
 			(30u64, 40u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), 4_000));
@@ -1741,6 +1951,8 @@ fn sell_with_insufficient_balance_should_not_work() {
 			(30u64, 40u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		//start sale
@@ -1778,6 +1990,8 @@ fn buy_with_insufficient_balance_should_not_work() {
 			(30u64, 40u64),
 			WeightCurveType::Linear,
 			true,
+			Fee::default(),
+			CHARLIE,
 		));
 
 		//start sale
@@ -1834,18 +2048,20 @@ fn buy_should_work() {
 				weight_curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: false,
+				fee: Fee::default(),
+				fee_receiver: CHARLIE,
 			},
 			pool
 		);
 
-		assert_eq!(Currency::free_balance(asset_in, &who), 999_999_986_327_783_u128);
+		assert_eq!(Currency::free_balance(asset_in, &who), 999_999_986_328_038);
 		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_010_000_000);
 
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_013_672_217_u128);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000_u128);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_013_644_673);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
 
 		expect_events(vec![Event::BuyExecuted(
-			who, asset_out, asset_in, 13_672_217, 10_000_000,
+			who, asset_out, asset_in, 13_644_673, 10_000_000, asset_in, 27_289,
 		)
 		.into()]);
 	});
@@ -1890,18 +2106,20 @@ fn sell_should_work() {
 				weight_curve: WeightCurveType::Linear,
 				pausable: true,
 				paused: false,
+				fee: Fee::default(),
+				fee_receiver: CHARLIE,
 			},
 			pool
 		);
 
 		assert_eq!(Currency::free_balance(asset_in, &who), INITIAL_BALANCE - 10_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_007_332_274);
+		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_007_332_175);
 
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000_u128);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_992_667_726_u128);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_992_653_132);
 
 		expect_events(vec![Event::SellExecuted(
-			who, asset_in, asset_out, 10_000_000, 7_332_274,
+			who, asset_in, asset_out, 10_000_000, 7_332_175, asset_out, 14_693,
 		)
 		.into()]);
 	});

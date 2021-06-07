@@ -21,7 +21,7 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency}
 use primitives::traits::{AMMTransfer, AMM};
 use primitives::{
 	asset::AssetPair,
-	fee::{self, WithFee},
+	fee::{Fee, WithFee},
 	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
 };
 #[cfg(feature = "std")]
@@ -56,11 +56,12 @@ impl Default for WeightCurveType {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub owner: AccountId,
 	pub start: BlockNumber,
 	pub end: BlockNumber,
+	// assets should be stored ordered by id
 	pub assets: (AssetId, AssetId),
 	pub initial_weights: (LBPWeight, LBPWeight),
 	pub final_weights: (LBPWeight, LBPWeight),
@@ -69,13 +70,11 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub weight_curve: WeightCurveType,
 	pub pausable: bool,
 	pub paused: bool,
+	pub fee: Fee,
+	pub fee_receiver: AccountId,
 }
 
-impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockNumber>
-where
-	BlockNumber: AtLeast32BitUnsigned + Copy,
-	Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq,
-{
+impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockNumber> {
 	fn new(
 		pool_owner: AccountId,
 		asset_a: LBPAssetInfo<Balance>,
@@ -83,6 +82,8 @@ where
 		sale_duration: (BlockNumber, BlockNumber),
 		weight_curve: WeightCurveType,
 		pausable: bool,
+		fee: Fee,
+		fee_receiver: AccountId,
 	) -> Self {
 		let ordered_assets = if asset_a.id < asset_b.id {
 			(asset_a, asset_b)
@@ -102,6 +103,8 @@ where
 			weight_curve,
 			pausable,
 			paused: false,
+			fee,
+			fee_receiver,
 		}
 	}
 }
@@ -169,9 +172,6 @@ pub mod pallet {
 
 		/// Mapping of asset pairs to unique pool identities
 		type AssetPairPoolId: AssetPairPoolIdFor<AssetId, PoolId<Self>>;
-
-		/// Trading fee rate
-		type ExchangeFee: Get<fee::Fee>;
 
 		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
@@ -255,11 +255,27 @@ pub mod pallet {
 		/// Liquidity was removed from the pool and the pool was destroyed. [who, asset_a, asset_b, amount_a, amount_b]
 		LiquidityRemoved(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
-		/// Sale executed. [who, asset_in, asset_out, amount, sale_price]
-		SellExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Sale executed. [who, asset_in, asset_out, amount, sale_price, fee_asset, fee_amount]
+		SellExecuted(
+			T::AccountId,
+			AssetId,
+			AssetId,
+			BalanceOf<T>,
+			BalanceOf<T>,
+			AssetId,
+			BalanceOf<T>,
+		),
 
-		/// Purchase executed. [who, asset_out, asset_in, amount, buy_price]
-		BuyExecuted(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Purchase executed. [who, asset_out, asset_in, amount, buy_price, fee_asset, fee_amount]
+		BuyExecuted(
+			T::AccountId,
+			AssetId,
+			AssetId,
+			BalanceOf<T>,
+			BalanceOf<T>,
+			AssetId,
+			BalanceOf<T>,
+		),
 
 		/// Pool was paused. [who, pool_id]
 		Paused(T::AccountId, PoolId<T>),
@@ -294,6 +310,7 @@ pub mod pallet {
 		/// - `pausable`: If the `pausable` option is set to `true`, the pool owner is allowed
 		/// to pause the pool during the sale.
 		/// - `fee`: The trading fee charged on every trade distributed to `fee_receiver`.
+		/// - `fee_receiver`: The account to which trading fees will be transferred.
 		///
 		/// Emits `PoolCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
@@ -306,6 +323,8 @@ pub mod pallet {
 			sale_duration: (T::BlockNumber, T::BlockNumber),
 			weight_curve: WeightCurveType,
 			pausable: bool,
+			fee: Fee,
+			fee_receiver: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
@@ -340,6 +359,8 @@ pub mod pallet {
 				sale_duration,
 				weight_curve,
 				pausable,
+				fee,
+				fee_receiver,
 			);
 			Self::validate_pool_data(&pool_data)?;
 
@@ -376,6 +397,8 @@ pub mod pallet {
 		/// - `end`: The new ending time of the sale. This parameter is optional.
 		/// - `initial_weights`: The new initial weights. This parameter is optional.
 		/// - `final_weights`: The new final weights. This parameter is optional.
+		/// - `fee`: The new trading fee charged on every trade. This parameter is optional.
+		/// - `fee_receiver`: The new receiver of trading fees. This parameter is optional.
 		///
 		/// Emits `PoolUpdated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::update_pool_data())]
@@ -387,6 +410,8 @@ pub mod pallet {
 			end: Option<T::BlockNumber>,
 			initial_weights: Option<((AssetId, LBPWeight), (AssetId, LBPWeight))>,
 			final_weights: Option<((AssetId, LBPWeight), (AssetId, LBPWeight))>,
+			fee: Option<Fee>,
+			fee_receiver: Option<T::AccountId>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -395,7 +420,10 @@ pub mod pallet {
 				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
 
 				ensure!(
-					start.is_some() || end.is_some() || initial_weights.is_some() || final_weights.is_some(),
+					start.is_some()
+						|| end.is_some() || initial_weights.is_some()
+						|| final_weights.is_some()
+						|| fee.is_some() || fee_receiver.is_some(),
 					Error::<T>::NothingToUpdate
 				);
 
@@ -405,10 +433,15 @@ pub mod pallet {
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
+
 				pool.initial_weights =
 					initial_weights.map_or(Ok(pool.initial_weights), |w| Self::get_weights_in_order(pool, w))?;
+
 				pool.final_weights =
 					final_weights.map_or(Ok(pool.final_weights), |w| Self::get_weights_in_order(pool, w))?;
+
+				pool.fee = fee.unwrap_or(pool.fee);
+				pool.fee_receiver = fee_receiver.unwrap_or(pool.fee_receiver.clone());
 
 				Self::validate_pool_data(&pool)?;
 
@@ -754,7 +787,7 @@ impl<T: Config> Pallet<T> {
 		amount: BalanceOf<T>,
 		limit: BalanceOf<T>,
 		trade_type: TradeType,
-	) -> Result<AMMTransfer<T::AccountId, AssetPair, Balance>, DispatchError> {
+	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
 		ensure!(
@@ -794,32 +827,38 @@ impl<T: Config> Pallet<T> {
 			);
 		}
 
-		let transfer_fee = Self::calculate_fees(amount)?;
-		let (amount_in, amount_out) = if trade_type == TradeType::Sell {
+		let (amount_in, amount_out, fee_asset, fee_amount) = if trade_type == TradeType::Sell {
 			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
 				asset_out_reserve,
 				weight_in,
 				weight_out,
-				amount.checked_sub(transfer_fee).ok_or(Error::<T>::Overflow)?,
+				amount,
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
 
-			ensure!(limit <= token_amount_out, Error::<T>::AssetBalanceLimitExceeded);
-			(amount, token_amount_out)
+			let transfer_fee = Self::calculate_fees(&pool_data, token_amount_out)?;
+
+			let amount_out_without_fee = token_amount_out.checked_sub(transfer_fee).ok_or(Error::<T>::Overflow)?;
+
+			ensure!(limit <= amount_out_without_fee, Error::<T>::AssetBalanceLimitExceeded);
+			(amount, amount_out_without_fee, assets.asset_out, transfer_fee)
 		} else {
 			let token_amount_in = hydra_dx_math::lbp::calculate_in_given_out(
 				asset_in_reserve,
 				asset_out_reserve,
 				weight_in,
 				weight_out,
-				amount.checked_add(transfer_fee).ok_or(Error::<T>::Overflow)?,
+				amount,
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
 
-			ensure!(limit >= token_amount_in, Error::<T>::AssetBalanceLimitExceeded);
+			let transfer_fee = Self::calculate_fees(&pool_data, token_amount_in)?;
+			let amount_in_with_fee = token_amount_in.checked_add(transfer_fee).ok_or(Error::<T>::Overflow)?;
 
-			(token_amount_in, amount)
+			ensure!(limit >= amount_in_with_fee, Error::<T>::AssetBalanceLimitExceeded);
+
+			(token_amount_in, amount, assets.asset_in, transfer_fee)
 		};
 
 		ensure!(
@@ -834,12 +873,14 @@ impl<T: Config> Pallet<T> {
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
+			fee: (fee_asset, fee_amount),
 		})
 	}
 
 	#[transactional]
-	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetPair, Balance>) -> DispatchResult {
+	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pool_id = Self::get_pair_id(transfer.assets);
+		let pool_data = Self::pool_data(&pool_id);
 
 		T::MultiCurrency::transfer(transfer.assets.asset_in, &transfer.origin, &pool_id, transfer.amount)?;
 		T::MultiCurrency::transfer(
@@ -849,12 +890,26 @@ impl<T: Config> Pallet<T> {
 			transfer.amount_out,
 		)?;
 
+		if transfer.fee.0 == transfer.assets.asset_in {
+			T::MultiCurrency::transfer(
+				transfer.fee.0,
+				&transfer.origin,
+				&pool_data.fee_receiver,
+				transfer.fee.1,
+			)?;
+		} else {
+			T::MultiCurrency::transfer(transfer.fee.0, &pool_id, &pool_data.fee_receiver, transfer.fee.1)?;
+		}
+
 		Ok(())
 	}
 
-	fn calculate_fees(amount: BalanceOf<T>) -> Result<BalanceOf<T>, DispatchError> {
+	fn calculate_fees(
+		pool_data: &Pool<T::AccountId, T::BlockNumber>,
+		amount: BalanceOf<T>,
+	) -> Result<BalanceOf<T>, DispatchError> {
 		Ok(amount
-			.just_fee(T::ExchangeFee::get())
+			.just_fee(pool_data.fee)
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 
@@ -958,11 +1013,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		amount: BalanceOf<T>,
 		min_bought: BalanceOf<T>,
 		_discount: bool,
-	) -> Result<AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>, DispatchError> {
+	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, BalanceOf<T>>, DispatchError> {
 		Self::update_weights_and_validate_trade(who, assets, amount, min_bought, TradeType::Sell)
 	}
 
-	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetPair, Balance>) -> DispatchResult {
+	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		Self::execute_trade(transfer)?;
 
 		Self::deposit_event(Event::<T>::SellExecuted(
@@ -971,6 +1026,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.assets.asset_out,
 			transfer.amount,
 			transfer.amount_out,
+			transfer.fee.0,
+			transfer.fee.1,
 		));
 
 		Ok(())
@@ -983,11 +1040,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		amount: BalanceOf<T>,
 		max_limit: BalanceOf<T>,
 		_discount: bool,
-	) -> Result<AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>, DispatchError> {
+	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, BalanceOf<T>>, DispatchError> {
 		Self::update_weights_and_validate_trade(who, assets, amount, max_limit, TradeType::Buy)
 	}
 
-	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetPair, BalanceOf<T>>) -> DispatchResult {
+	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, BalanceOf<T>>) -> DispatchResult {
 		Self::execute_trade(transfer)?;
 
 		Self::deposit_event(Event::<T>::BuyExecuted(
@@ -996,6 +1053,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.assets.asset_in,
 			transfer.amount,
 			transfer.amount_out,
+			transfer.fee.0,
+			transfer.fee.1,
 		));
 		Ok(())
 	}

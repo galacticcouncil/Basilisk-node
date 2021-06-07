@@ -2316,7 +2316,7 @@ dependencies = [
 [[package]]
 name = "frame-benchmarking"
 version = "3.1.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2386,7 +2386,7 @@ dependencies = [
 [[package]]
 name = "frame-metadata"
 version = "13.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "parity-scale-codec 2.1.1",
  "serde",
@@ -2423,7 +2423,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "Inflector",
  "frame-support-procedural-tools",
@@ -2435,7 +2435,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "frame-support-procedural-tools-derive",
  "proc-macro-crate 1.0.0",
@@ -2447,7 +2447,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools-derive"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3091,7 +3091,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 [[package]]
 name = "hydra-dx-build-script-utils"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#7ab0578fae4b410a325cda9dd3cbb3bda805ac26"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "cargo-lock",
  "platforms",
@@ -4942,7 +4942,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5155,8 +5155,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "3.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+version = "3.3.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5176,8 +5176,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+version = "3.1.1"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5370,7 +5370,7 @@ dependencies = [
 [[package]]
 name = "pallet-multi-payment-benchmarking"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5614,7 +5614,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5735,8 +5735,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "1.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+version = "1.2.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5759,7 +5759,7 @@ dependencies = [
 [[package]]
 name = "pallet-xyk-rpc"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -5777,7 +5777,7 @@ dependencies = [
 [[package]]
 name = "pallet-xyk-rpc-runtime-api"
 version = "3.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "parity-scale-codec 2.1.1",
  "serde",
@@ -7318,8 +7318,8 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "4.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#b8095834d2e3b68973ce09368a8f25ed84ade25f"
+version = "4.1.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#3cf0799c80d80e60db0a55e82911efceb7afc472"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9513,7 +9513,7 @@ dependencies = [
 [[package]]
 name = "sp-api-proc-macro"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "blake2-rfc",
  "proc-macro-crate 1.0.0",
@@ -9525,7 +9525,7 @@ dependencies = [
 [[package]]
 name = "sp-application-crypto"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "parity-scale-codec 2.1.1",
  "serde",
@@ -9537,7 +9537,7 @@ dependencies = [
 [[package]]
 name = "sp-arithmetic"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "integer-sqrt",
  "num-traits",
@@ -9746,7 +9746,7 @@ dependencies = [
 [[package]]
 name = "sp-database"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "kvdb",
  "parking_lot 0.11.1",
@@ -9755,7 +9755,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -9860,7 +9860,7 @@ dependencies = [
 [[package]]
 name = "sp-maybe-compressed-blob"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "ruzstd",
  "zstd",
@@ -9903,7 +9903,7 @@ dependencies = [
 [[package]]
 name = "sp-panic-handler"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "backtrace",
 ]
@@ -9943,7 +9943,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec 2.1.1",
@@ -9960,7 +9960,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "Inflector",
  "proc-macro-crate 1.0.0",
@@ -10004,7 +10004,7 @@ dependencies = [
 [[package]]
 name = "sp-state-machine"
 version = "0.9.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "hash-db",
  "log",
@@ -10032,7 +10032,7 @@ source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85f
 [[package]]
 name = "sp-storage"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "impl-serde",
  "parity-scale-codec 2.1.1",
@@ -10075,7 +10075,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "erased-serde",
  "log",
@@ -10123,7 +10123,7 @@ dependencies = [
 [[package]]
 name = "sp-utils"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "futures 0.3.15",
  "futures-core",
@@ -10148,7 +10148,7 @@ dependencies = [
 [[package]]
 name = "sp-version-proc-macro"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "parity-scale-codec 2.1.1",
  "proc-macro-crate 1.0.0",
@@ -10160,7 +10160,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#85fa0ab80c3ceccf4bb98380d7833578aaf8815e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.3#c94e0cdfe5556680dca1996004751eeb114755d7"
 dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec 2.1.1",
