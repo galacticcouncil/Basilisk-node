@@ -136,8 +136,7 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 		final_weight: LBPWeight,
 		at: BlockNumber,
 	) -> Result<LBPWeight, ()> {
-		hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at)
-			.map_err(|_| ())
+		hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at).map_err(|_| ())
 	}
 }
 
@@ -406,8 +405,10 @@ pub mod pallet {
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
-				pool.initial_weights = initial_weights.map_or(Ok(pool.initial_weights),  |w| Self::get_weights_in_order(pool, w))?;
-				pool.final_weights = final_weights.map_or(Ok(pool.final_weights),  |w| Self::get_weights_in_order(pool, w))?;
+				pool.initial_weights =
+					initial_weights.map_or(Ok(pool.initial_weights), |w| Self::get_weights_in_order(pool, w))?;
+				pool.final_weights =
+					final_weights.map_or(Ok(pool.final_weights), |w| Self::get_weights_in_order(pool, w))?;
 
 				Self::validate_pool_data(&pool)?;
 
@@ -424,8 +425,8 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `pool_id`: The identifier of the pool
- 		///
- 		/// Emits `Paused` event when successful.
+		///
+		/// Emits `Paused` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::pause_pool())]
 		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
@@ -647,7 +648,6 @@ impl<T: Config> Pallet<T> {
 		pool_data: &Pool<T::AccountId, T::BlockNumber>,
 		at: T::BlockNumber,
 	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
-
 		let weight_a = T::LBPWeightFunction::calculate_weight(
 			pool_data.weight_curve,
 			pool_data.start,
@@ -677,7 +677,7 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		if now != pool_data.last_weight_update {
-			return Ok(Self::calculate_weights(pool_data, now)?)
+			return Ok(Self::calculate_weights(pool_data, now)?);
 		}
 
 		Ok(pool_data.last_weights)
@@ -931,7 +931,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 
 		let pool_data = match <PoolData<T>>::try_get(&pool_id) {
 			Ok(pool) => pool,
-			Err(_) => return BalanceOf::<T>::zero()
+			Err(_) => return BalanceOf::<T>::zero(),
 		};
 
 		// calculate actual weights or reuse the last if calculation is not necessary
