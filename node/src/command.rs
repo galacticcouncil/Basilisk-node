@@ -17,10 +17,10 @@
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
 use crate::{chain_spec, service};
+use basilisk_runtime::Block;
 use codec::Encode;
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
-use basilisk_runtime::Block;
 use log::info;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
@@ -38,7 +38,7 @@ use std::{io::Write, net::SocketAddr};
 fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
 		"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-		"" => Box::new(chain_spec::roccocco_parachain_config(para_id)?),
+		"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 		"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
@@ -73,7 +73,7 @@ impl SubstrateCli for Cli {
 		let para_id: ParaId = self.run.parachain_id.unwrap_or(200).into();
 		Ok(match id {
 			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-			"" => Box::new(chain_spec::roccocco_parachain_config(para_id)?),
+			"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
@@ -110,8 +110,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name().to_string()].iter())
-			.load_spec(id)
+		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name().to_string()].iter()).load_spec(id)
 	}
 
 	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -296,11 +295,7 @@ pub fn run() -> sc_cli::Result<()> {
 				info!("Parachain genesis state: {}", genesis_state);
 				info!(
 					"Is collating: {}",
-					if config.role.is_authority() {
-						"yes"
-					} else {
-						"no"
-					}
+					if config.role.is_authority() { "yes" } else { "no" }
 				);
 
 				crate::service::start_node(config, key, polkadot_config, id)
