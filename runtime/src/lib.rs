@@ -380,7 +380,6 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = EnsureRoot<AccountId>;	// TODO: change to governance membership
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
-	type ExchangeFee = LBPExchangeFee;
 	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
 }
 
