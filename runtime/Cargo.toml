@@ -53,7 +53,7 @@ cumulus-primitives-parachain-inherent ={ version = "0.1.0", default-features = f
 parachain-info = { version = "0.1.0", default-features = false}
 
 # Polkadot dependencies
-polkadot-parachain = { version = "0.9.3", default-features = false, features = ["wasm-api"]}
+polkadot-parachain = { version = "0.9.4", default-features = false, features = ["wasm-api"]}
 #xcm = { default-features = false }
 #xcm-builder = { default-features = false }
 #xcm-executor = { default-features = false }
