@@ -214,6 +214,60 @@ fn validate_pool_data_should_work() {
 }
 
 #[test]
+fn calculate_weight_should_work() {
+	new_test_ext().execute_with(|| {
+		let mut pool_data = Pool {
+			owner: ALICE,
+			start: 100u64,
+			end: 200u64,
+			assets: (ACA, DOT),
+			initial_weights: (2000, 2000),
+			final_weights: (1000, 2000),
+			last_weight_update: 0u64,
+			last_weights: (2000, 2000),
+			weight_curve: WeightCurveType::Linear,
+			pausable: true,
+			paused: false,
+			fee: Fee::default(),
+			fee_receiver: CHARLIE,
+		};
+		assert_eq!(LBPPallet::calculate_weights(&pool_data, 170), Ok((1300, 2000)));
+
+		pool_data.initial_weights = (1000, 2000);
+		pool_data.final_weights = (2000, 1000);
+		pool_data.last_weights = pool_data.initial_weights;
+		assert_eq!(LBPPallet::calculate_weights(&pool_data, 100), Ok((1000, 2000)));
+
+		pool_data.initial_weights = (1000, 2000);
+		pool_data.final_weights = (1000, 2000);
+		pool_data.last_weights = pool_data.initial_weights;
+		assert_eq!(LBPPallet::calculate_weights(&pool_data, 100), Ok((1000, 2000)));
+
+		pool_data.initial_weights = (2000, 2000);
+		pool_data.final_weights = (1000, 2000);
+		pool_data.last_weights = pool_data.initial_weights;
+		assert_eq!(LBPPallet::calculate_weights(&pool_data, 200), Ok((1000, 2000)));
+
+		// invalid interval
+		pool_data.start = 200;
+		pool_data.end = 100;
+		assert_eq!(LBPPallet::calculate_weights(&pool_data, 200), Err(Error::<Test>::WeightCalculationError.into()));
+
+		// invalid interval
+		pool_data.start = 100;
+		pool_data.end = 100;
+		assert_eq!(LBPPallet::calculate_weights(&pool_data, 200), Err(Error::<Test>::WeightCalculationError.into()));
+
+		// out of bound
+		pool_data.start = 100;
+		pool_data.end = 200;
+		assert_eq!(LBPPallet::calculate_weights(&pool_data, 10), Err(Error::<Test>::WeightCalculationError.into()));
+		assert_eq!(LBPPallet::calculate_weights(&pool_data, 210), Err(Error::<Test>::WeightCalculationError.into()));
+
+	});
+}
+
+#[test]
 fn create_pool_should_work() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(LBPPallet::create_pool(
