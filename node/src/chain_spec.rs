@@ -1,17 +1,28 @@
 #![allow(clippy::or_fun_call)]
 
-use cumulus_primitives_core::ParaId;
 use basilisk_runtime::{
-	AccountId, AuraId, AuraConfig, AssetRegistryConfig, BalancesConfig, FaucetConfig, GenesisConfig, ParachainInfoConfig, Signature,
-	SudoConfig, SystemConfig, TokensConfig, CORE_ASSET_ID, WASM_BINARY,
+	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CouncilConfig, GenesisConfig,
+	ParachainInfoConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, CORE_ASSET_ID,
+	VestingConfig, WASM_BINARY,
 };
+use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
+use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+
+const TOKEN_DECIMALS: u8 = 12;
+const TOKEN_SYMBOL: &str = "BSX";
+const PROTOCOL_ID: &str = "bsx";
+// The URL for the telemetry server.
+const TELEMETRY_URLS: [&str; 2] = [
+	"wss://telemetry.polkadot.io/submit/",
+	"wss://telemetry.hydradx.io:9000/submit/",
+];
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -51,11 +62,11 @@ where
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
-pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
-	properties.insert("tokenDecimals".into(), 12.into());
-	properties.insert("tokenSymbol".into(), "BSX".into());
+	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
+	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
 	Ok(ChainSpec::from_genesis(
 		// Name
@@ -68,28 +79,48 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(),
-				// TODO generate real authorities
 				vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
+					hex!["da0fa4ab419def66fb4ac5224e594e82c34ee795268fc7787c8a096c4ff14f11"].unchecked_into(),
+					hex!["ecd7a5439c6ab0cd6550bc2f1cef5299d425bb95bb6d7afb32aa3d95ee4f7f1f"].unchecked_into(),
+					hex!["f0ad6f1aae7a445c1e80cac883096ec8177eda276fec53ad9ccbe570f3090a26"].unchecked_into(),
 				],
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				true,
 				para_id,
+				//council
+				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
+				//technical committee
+				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 			)
 		},
 		// Bootnodes
-		vec![],
+		vec![
+            "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooW9qapYrocm6W1meShf8eQfeJzbry9PN2CN6SfBGbymxPL"
+                .parse()
+                .unwrap(),
+            "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooWPS16BYW173YxmxEJpQBoDz1t3Ht4yaPwwg5qCTED7N66"
+                .parse()
+                .unwrap(),
+            "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooWRMgQRtYrWsLvuwg3V3aQEvMgsbb88T29cKCTH6RAxTaj"
+                .parse()
+                .unwrap(),
+        ],
 		// Telemetry
-		None,
+		Some(
+			TelemetryEndpoints::new(vec![
+				(TELEMETRY_URLS[0].to_string(), 0),
+				(TELEMETRY_URLS[1].to_string(), 0),
+			])
+			.expect("Telemetry url is valid"),
+		),
 		// Protocol ID
-		None,
+		Some(PROTOCOL_ID),
 		// Properties
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "westend".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -98,7 +129,8 @@ pub fn roccocco_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
-	properties.insert("tokenDecimals".into(), 12.into());
+	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
+	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
 	Ok(ChainSpec::from_genesis(
 		// Name
@@ -111,10 +143,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
-				],
+				vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
 				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -124,6 +153,14 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				],
 				true,
 				para_id,
+				//council
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
+				//technical_committe
+				vec![
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Eve"),
+				],
 			)
 		},
 		// Bootnodes
@@ -131,12 +168,12 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		// Telemetry
 		None,
 		// Protocol ID
-		None,
+		Some(PROTOCOL_ID),
 		// Properties
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "rococo-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -146,7 +183,8 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
 	let mut properties = Map::new();
-	properties.insert("tokenDecimals".into(), 12.into());
+	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
+	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
 	Ok(ChainSpec::from_genesis(
 		// Name
@@ -159,10 +197,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				vec![
-					get_from_seed::<AuraId>("Alice"),
-					get_from_seed::<AuraId>("Bob"),
-				],
+				vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
 				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -180,6 +215,14 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				],
 				true,
 				para_id,
+				//council
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
+				//technical_committe
+				vec![
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Eve"),
+				],
 			)
 		},
 		// Bootnodes
@@ -187,12 +230,12 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		// Telemetry
 		None,
 		// Protocol ID
-		None,
+		Some(PROTOCOL_ID),
 		// Properties
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "rococo-local".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -206,6 +249,8 @@ fn parachain_genesis(
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
+	council_members: Vec<AccountId>,
+	tech_committee_members: Vec<AccountId>,
 ) -> GenesisConfig {
 	GenesisConfig {
 		frame_system: SystemConfig {
@@ -251,12 +296,17 @@ fn parachain_genesis(
 				})
 				.collect(),
 		},
-		parachain_info: ParachainInfoConfig { parachain_id },
-		pallet_faucet: FaucetConfig {
-			rampage: false,
-			mint_limit: 5,
-			mintable_currencies: vec![0, 1, 2],
+		pallet_treasury: Default::default(),
+		pallet_collective_Instance1: CouncilConfig {
+			members: council_members,
+			phantom: Default::default(),
 		},
+		pallet_collective_Instance2: TechnicalCommitteeConfig {
+			members: tech_committee_members,
+			phantom: Default::default(),
+		},
+		pallet_vesting: VestingConfig { vesting: vec![] },
+		parachain_info: ParachainInfoConfig { parachain_id },
 		cumulus_pallet_aura_ext: Default::default(),
 	}
 }
