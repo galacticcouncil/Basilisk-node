@@ -208,8 +208,6 @@ pub mod pallet {
 		MaxSaleDurationExceeded,
 		/// Liquidity being added should not be zero
 		CannotAddZeroLiquidity,
-		/// Can not remove zero liquidity
-		CannotRemoveZeroLiquidity,
 		/// Asset balance too low
 		InsufficientAssetBalance,
 		/// Pool does not exist
@@ -222,8 +220,8 @@ pub mod pallet {
 		InvalidBlockNumber,
 		/// Calculation error
 		WeightCalculationError,
-		/// Invalid block number
-		BlockNumberInvalid,
+		/// Weight should be non-zero
+		ZeroWeight,
 		/// Can not perform a trade with zero amount
 		ZeroAmount,
 		/// Trade amount is too high
@@ -427,7 +425,7 @@ pub mod pallet {
 					Error::<T>::NothingToUpdate
 				);
 
-				Self::ensure_pool_ownership(&who, &pool_id)?;
+				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
 				ensure!(Self::is_prior_sale_or_uninitialized(&pool), Error::<T>::SaleStarted);
 
@@ -468,7 +466,7 @@ pub mod pallet {
 				// check existence of the pool
 				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
 
-				Self::ensure_pool_ownership(&who, &pool_id)?;
+				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
 				ensure!(pool.pausable, Error::<T>::PoolIsNotPausable);
 				ensure!(!pool.paused, Error::<T>::CannotPausePausedPool);
@@ -500,7 +498,7 @@ pub mod pallet {
 				// check existence of the pool
 				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
 
-				Self::ensure_pool_ownership(&who, &pool_id)?;
+				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
 				ensure!(pool.paused, Error::<T>::PoolIsNotPaused);
 
@@ -733,11 +731,11 @@ impl<T: Config> Pallet<T> {
 	fn validate_pool_data(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> DispatchResult {
 		let now = <frame_system::Pallet<T>>::block_number();
 		ensure!(
-			pool_data.start == Zero::zero() || now <= pool_data.start,
+			pool_data.start.is_zero() || now <= pool_data.start,
 			Error::<T>::InvalidBlockNumber
 		);
 		ensure!(
-			pool_data.end == Zero::zero() || pool_data.start < pool_data.end,
+			pool_data.end.is_zero() || pool_data.start < pool_data.end,
 			Error::<T>::InvalidBlockNumber
 		);
 		// this restriction is based on the AtLeast32Bit trait of the frame_system::Balance type
@@ -747,12 +745,14 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::MaxSaleDurationExceeded
 		);
 
-		Ok(())
-	}
-
-	fn ensure_pool_ownership(who: &T::AccountId, pool_id: &PoolId<T>) -> DispatchResult {
-		let pool_owner = Self::pool_data(&pool_id).owner;
-		ensure!(who == &pool_owner, Error::<T>::NotOwner);
+		// zero weight at the beginning or at the end of a sale may cause a problem in the price calculation
+		ensure!(
+			!pool_data.initial_weights.0.is_zero()
+				&& !pool_data.initial_weights.1.is_zero()
+				&& !pool_data.final_weights.0.is_zero()
+				&& !pool_data.final_weights.1.is_zero(),
+			Error::<T>::ZeroWeight
+		);
 
 		Ok(())
 	}
@@ -770,7 +770,7 @@ impl<T: Config> Pallet<T> {
 	/// return true if the LBP event has not yet started, or the beginning is not set
 	fn is_prior_sale_or_uninitialized(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
-		pool_data.start == Zero::zero() || now < pool_data.start
+		pool_data.start.is_zero() || now < pool_data.start
 	}
 
 	fn is_after_sale(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
