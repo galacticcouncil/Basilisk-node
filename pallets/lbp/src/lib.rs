@@ -529,7 +529,6 @@ pub mod pallet {
 		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
-			pool_id: PoolId<T>,
 			amount_a: (AssetId, BalanceOf<T>),
 			amount_b: (AssetId, BalanceOf<T>),
 		) -> DispatchResultWithPostInfo {
@@ -538,14 +537,14 @@ pub mod pallet {
 			let (asset_a, asset_b) = (amount_a.0, amount_b.0);
 			let (amount_a, amount_b) = (amount_a.1, amount_b.1);
 
-			let asset_pair_id = T::AssetPairPoolId::from_assets(asset_a, asset_b);
-			ensure!(pool_id == asset_pair_id, Error::<T>::InvalidAsset);
+			let pool_id = T::AssetPairPoolId::from_assets(asset_a, asset_b);
+			ensure!(<PoolData<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
 
 			ensure!(
 				!amount_a.is_zero() || !amount_b.is_zero(),
 				Error::<T>::CannotAddZeroLiquidity
 			);
-			
+
 			if !amount_a.is_zero() {
 				ensure!(
 					T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,
@@ -554,8 +553,10 @@ pub mod pallet {
 			}
 
 			if !amount_b.is_zero() {
-				let reserve_b = T::MultiCurrency::free_balance(asset_b, &who);
-				ensure!(reserve_b >= amount_b, Error::<T>::InsufficientAssetBalance);
+				ensure!(
+					T::MultiCurrency::free_balance(asset_b, &who) >= amount_b,
+					Error::<T>::InsufficientAssetBalance
+				);
 			}
 
 			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;

@@ -1014,7 +1014,6 @@ fn add_liquidity_should_work() {
 
 		assert_ok!(LBPPallet::add_liquidity(
 			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
 			(ACA, added_a),
 			(DOT, added_b),
 		));
@@ -1036,7 +1035,6 @@ fn add_liquidity_should_work() {
 
 		assert_ok!(LBPPallet::add_liquidity(
 			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
 			(ACA, added_a),
 			(DOT, 0),
 		));
@@ -1059,7 +1057,6 @@ fn add_liquidity_should_work() {
 
 		assert_ok!(LBPPallet::add_liquidity(
 			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
 			(DOT, added_b),
 			(ACA, added_a),
 		));
@@ -1095,7 +1092,6 @@ fn add_liquidity_by_non_owner_should_work() {
 		assert_ok!(
 			LBPPallet::add_liquidity(
 				Origin::signed(BOB),
-				ACA_DOT_POOL_ID,
 				(ACA, 10_000_000_000),
 				(DOT, 20_000_000_000),
 			));
@@ -1118,7 +1114,7 @@ fn add_zero_liquidity_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 0), (DOT, 0),),
+			LBPPallet::add_liquidity(Origin::signed(ALICE), (ACA, 0), (DOT, 0),),
 			Error::<Test>::CannotAddZeroLiquidity
 		);
 
@@ -1154,7 +1150,7 @@ fn add_liquidity_insufficient_balance_should_not_work() {
 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
 
 		assert_noop!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, u128::MAX), (DOT, 0),),
+			LBPPallet::add_liquidity(Origin::signed(ALICE), (ACA, u128::MAX), (DOT, 0),),
 			Error::<Test>::InsufficientAssetBalance
 		);
 
@@ -1182,7 +1178,6 @@ fn add_liquidity_after_sale_started_should_work() {
 
 		assert_ok!(LBPPallet::add_liquidity(
 			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
 			(ACA, 1_000),
 			(DOT, 1_000),
 		));
@@ -1210,7 +1205,6 @@ fn add_liquidity_after_sale_started_should_work() {
 
 		assert_ok!(LBPPallet::add_liquidity(
 			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
 			(ACA, 1_000),
 			(DOT, 1_000),
 		));
@@ -1236,11 +1230,11 @@ fn add_liquidity_after_sale_started_should_work() {
 }
 
 #[test]
-fn add_wrong_liquidity_should_not_work() {
+fn add_liquidity_to_not_existing_pool_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LBPPallet::add_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID, (ACA, 1_000), (HDX, 1_000),),
-			Error::<Test>::InvalidAsset
+			LBPPallet::add_liquidity(Origin::signed(ALICE), (ACA, 1_000), (HDX, 1_000),),
+			Error::<Test>::PoolNotFound
 		);
 	});
 }
