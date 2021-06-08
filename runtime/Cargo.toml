@@ -33,9 +33,9 @@ pallet-multi-payment-benchmarking = { default-features = false, optional = true,
 primitives = { default-features = false, version = '4.0.0' }
 pallet-xyk-rpc-runtime-api = { default-features = false, version = '3.0.0' }
 
-pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3", default-features = false }
-pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3", default-features = false }
-pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.3", default-features = false }
+pallet-treasury = { version = "3.0.0", default-features = false }
+pallet-democracy = { version = "3.0.0", default-features = false }
+pallet-scheduler = { version = "3.0.0", default-features = false }
 
 # ORML dependencies
 orml-currencies = { default-features = false, version = "0.4.1-dev" }
@@ -46,12 +46,11 @@ orml-traits = { default-features = false, version = "0.4.1-dev" }
 #orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
 
 # Cumulus dependencies
-cumulus-pallet-aura-ext = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
-cumulus-pallet-parachain-system = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
-cumulus-primitives-core = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
-cumulus-primitives-parachain-inherent = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
-#cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
-parachain-info = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.3" }
+cumulus-pallet-aura-ext = { version = "0.1.0", default-features = false}
+cumulus-pallet-parachain-system ={ version = "0.1.0", default-features = false}
+cumulus-primitives-core ={ version = "0.1.0", default-features = false}
+cumulus-primitives-parachain-inherent ={ version = "0.1.0", default-features = false}
+parachain-info = { version = "0.1.0", default-features = false}
 
 # Polkadot dependencies
 polkadot-parachain = { version = "0.9.3", default-features = false, features = ["wasm-api"]}
