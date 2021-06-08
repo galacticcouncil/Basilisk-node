@@ -70,12 +70,29 @@ Then open settings screen -> developer and paste
 
 ```
 {
+  "AssetPair": {
+    "asset_in": "AssetId",
+    "asset_out": "AssetId"
+  },
   "Amount": "i128",
   "AmountOf": "Amount",
   "Address": "AccountId",
+  "OrmlAccountData": {
+    "free": "Balance",
+    "frozen": "Balance",
+    "reserved": "Balance"
+  },
+  "Fee": {
+    "numerator": "u32",
+    "denominator": "u32",
+  },
   "BalanceInfo": {
     "amount": "Balance",
     "assetId": "AssetId"
+  },
+  "Chain": {
+    "genesisHash": "Vec<u8>",
+    "lastBlockHash": "Vec<u8>"
   },
   "CurrencyId": "AssetId",
   "CurrencyIdOf": "AssetId",
@@ -87,7 +104,7 @@ Then open settings screen -> developer and paste
     "discount": "bool",
     "sell_or_buy": "IntentionType"
   },
-  "IntentionId": "u128",
+  "IntentionId": "Hash",
   "IntentionType": {
     "_enum": [
       "SELL",
@@ -95,6 +112,7 @@ Then open settings screen -> developer and paste
     ]
   },
   "LookupSource": "AccountId",
+  "OrderedSet": "Vec<AssetId>",
   "Price": "Balance"
 }
 ```
