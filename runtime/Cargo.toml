@@ -159,4 +159,5 @@ std = [
     'pallet-collective/std',
     'pallet-democracy/std',
     'pallet-scheduler/std',
+    'pallet-society/std',
 ]
