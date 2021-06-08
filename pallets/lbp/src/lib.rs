@@ -545,11 +545,7 @@ pub mod pallet {
 				!amount_a.is_zero() || !amount_b.is_zero(),
 				Error::<T>::CannotAddZeroLiquidity
 			);
-
-			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
-
-			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
-
+			
 			if !amount_a.is_zero() {
 				ensure!(
 					T::MultiCurrency::free_balance(asset_a, &who) >= amount_a,

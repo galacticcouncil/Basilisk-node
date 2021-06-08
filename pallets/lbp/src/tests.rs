@@ -1084,17 +1084,27 @@ fn add_liquidity_should_work() {
 }
 
 #[test]
-fn add_liquidity_by_non_owner_should_not_work() {
+fn add_liquidity_by_non_owner_should_work() {
 	predefined_test_ext().execute_with(|| {
-		assert_noop!(
+		assert_eq!(Currency::free_balance(ACA, &BOB), 1000000000000000);
+		assert_eq!(Currency::free_balance(DOT, &BOB), 1000000000000000);
+
+		assert_eq!(Currency::free_balance(ACA, &ACA_DOT_POOL_ID), 1_000_000_000);
+		assert_eq!(Currency::free_balance(DOT, &ACA_DOT_POOL_ID), 2_000_000_000);
+
+		assert_ok!(
 			LBPPallet::add_liquidity(
 				Origin::signed(BOB),
 				ACA_DOT_POOL_ID,
 				(ACA, 10_000_000_000),
 				(DOT, 20_000_000_000),
-			),
-			Error::<Test>::NotOwner
-		);
+			));
+
+		assert_eq!(Currency::free_balance(ACA, &BOB), 999_990_000_000_000);
+		assert_eq!(Currency::free_balance(DOT, &BOB), 999_980_000_000_000);
+
+		assert_eq!(Currency::free_balance(ACA, &ACA_DOT_POOL_ID), 11_000_000_000);
+		assert_eq!(Currency::free_balance(DOT, &ACA_DOT_POOL_ID), 22_000_000_000);
 	});
 }
 
@@ -1467,7 +1477,7 @@ fn execute_trade_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let asset_in = ACA;
 		let asset_out = DOT;
-		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+		let pool_id = ACA_DOT_POOL_ID;
 
 		let amount_in = 5_000_000_u128;
 		let amount_out = 10_000_000_u128;
