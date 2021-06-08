@@ -21,6 +21,7 @@ pallet-timestamp = { git = 'https://github.com/paritytech/substrate', branch = "
 pallet-treasury= { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.4" }
 pallet-transaction-payment-rpc = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.4" }
 pallet-transaction-payment-rpc-runtime-api = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.4" }
+pallet-vesting = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.3" }
 sc-basic-authorship = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.4" }
 sc-chain-spec = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.4" }
 sc-cli = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.4" }

@@ -49,8 +49,5 @@
     }
   ],
   "hrmpChannels": [],
-  "types": {
-    "Address": "MultiAddress",
-    "LookupSource": "MultiAddress"
-  }
+  "types": {}
 }
