@@ -47,6 +47,8 @@ use primitives::fee;
 
 mod currency;
 
+mod weights;
+
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
@@ -108,8 +110,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 3,
-	impl_version: 1,
+	spec_version: 4,
+	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
@@ -205,7 +207,7 @@ parameter_types! {
 		.build_or_panic();
 	pub ExtrinsicPaymentExtraWeight: Weight =  <Runtime as pallet_transaction_multi_payment::Config>::WeightInfo::swap_currency();
 	pub ExtrinsicBaseWeight: Weight = frame_support::weights::constants::ExtrinsicBaseWeight::get() + ExtrinsicPaymentExtraWeight::get();
-	pub const SS58Prefix: u8 = 63;
+	pub const SS58Prefix: u16 = 10041;
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -254,7 +256,7 @@ impl frame_system::Config for Runtime {
 	/// What to do if an account is fully reaped from the system.
 	type OnKilledAccount = ();
 	/// Weight information for the extrinsics of this pallet.
-	type SystemWeightInfo = ();
+	type SystemWeightInfo = weights::system::HydraWeight<Runtime>;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
@@ -269,7 +271,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
-	type WeightInfo = ();
+	type WeightInfo = weights::timestamp::HydraWeight<Runtime>;
 }
 
 parameter_types! {
@@ -306,7 +308,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type Currency = Balances;
 	type MultiCurrency = Currencies;
 	type AMMPool = XYK;
-	type WeightInfo = pallet_transaction_multi_payment::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::payment::HydraWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = IdentityFee<Balance>;
 }
@@ -357,7 +359,7 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = pallet_xyk::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::xyk::HydraWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 }
 
@@ -366,7 +368,7 @@ impl pallet_exchange::Config for Runtime {
 	type AMMPool = XYK;
 	type Resolver = Exchange;
 	type Currency = Currencies;
-	type WeightInfo = pallet_exchange::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::exchange::HydraWeight<Runtime>;
 }
 
 parameter_types! {
