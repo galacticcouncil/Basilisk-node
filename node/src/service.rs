@@ -12,7 +12,6 @@ use cumulus_client_service::{
 };
 use cumulus_primitives_core::ParaId;
 use basilisk_runtime::{self, RuntimeApi};
-use polkadot_primitives::v1::CollatorPair;
 use sc_executor::native_executor_instance;
 use sc_client_api::ExecutorProvider;
 use sc_network::NetworkService;
@@ -107,7 +106,6 @@ pub fn new_partial(
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 async fn start_node_impl<BIC>(
 	parachain_config: Configuration,
-	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	para_id: ParaId,
 	build_consensus: BIC,
@@ -136,7 +134,6 @@ where
 
         let relay_chain_full_node = cumulus_client_service::build_polkadot_full_node(
 		polkadot_config,
-		collator_key.clone(),
 		telemetry_worker_handle,
 	)
 	.map_err(|e| match e {
@@ -159,7 +156,7 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
         let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
-	let (network, network_status_sinks, system_rpc_tx, start_network) =
+	let (network, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
 			client: client.clone(),
@@ -196,7 +193,6 @@ where
 		keystore: params.keystore_container.sync_keystore(),
 		backend: backend.clone(),
 		network: network.clone(),
-		network_status_sinks,
 		system_rpc_tx,
 		telemetry: telemetry.as_mut(),
 	})?;
@@ -227,7 +223,6 @@ where
 			announce_block,
 			client: client.clone(),
 			task_manager: &mut task_manager,
-			collator_key,
 			relay_chain_full_node,
 			spawner,
 			parachain_consensus,
@@ -301,7 +296,6 @@ pub fn parachain_build_import_queue(
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 pub async fn start_node(
 	parachain_config: Configuration,
-	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	para_id: ParaId,
 ) -> sc_service::error::Result<
@@ -309,7 +303,6 @@ pub async fn start_node(
 > {
 	start_node_impl::<_>(
 		parachain_config,
-		collator_key,
 		polkadot_config,
 		para_id,
 		|client,

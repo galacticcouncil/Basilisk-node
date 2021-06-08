@@ -3,7 +3,7 @@
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CouncilConfig, GenesisConfig,
 	ParachainInfoConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, CORE_ASSET_ID,
-	WASM_BINARY,
+	VestingConfig, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -305,6 +305,7 @@ fn parachain_genesis(
 			members: tech_committee_members,
 			phantom: Default::default(),
 		},
+		pallet_vesting: VestingConfig { vesting: vec![] },
 		parachain_info: ParachainInfoConfig { parachain_id },
 		cumulus_pallet_aura_ext: Default::default(),
 	}
