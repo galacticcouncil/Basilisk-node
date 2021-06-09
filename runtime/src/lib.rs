@@ -110,7 +110,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 4,
+	spec_version: 5,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -172,6 +172,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::MultiTransactionPayment(_)
 			| Call::Tokens(_)
 			| Call::LBP(_)
+			| Call::Utility(_)
 			| Call::Vesting(_)
 			| Call::Sudo(_) => true,
 
@@ -572,6 +573,12 @@ parameter_types! {
 	pub const MinVestedTransfer: Balance = 10 * DOLLARS;
 }
 
+impl pallet_utility::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type WeightInfo = ();
+}
+
 impl pallet_vesting::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -599,6 +606,7 @@ construct_runtime!(
 		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
+		Utility: pallet_utility::{Pallet, Call, Event},
 		Vesting: pallet_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
 
 		// Parachain

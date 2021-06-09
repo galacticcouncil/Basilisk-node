@@ -545,7 +545,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "4.0.0"
+version = "5.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -583,6 +583,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-utility 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pallet-vesting",
  "pallet-xyk",
  "pallet-xyk-rpc-runtime-api",
@@ -3651,7 +3652,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility",
+ "pallet-utility 3.0.0 (git+https://github.com/galacticcouncil/substrate?branch=polkadot-v0.9.4)",
  "pallet-vesting",
  "pallet-xcm",
  "parity-scale-codec 2.1.1",
@@ -5731,6 +5732,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-utility"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcd63d1b336800d155ab60ee918afd111f7449e44cec936f460d555e850fa93b"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec 2.1.1",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-vesting"
 version = "3.0.0"
 source = "git+https://github.com/galacticcouncil/substrate?branch=polkadot-v0.9.4#ef5eb52e9028322f266380278b920af6d253de42"
@@ -6906,7 +6923,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility",
+ "pallet-utility 3.0.0 (git+https://github.com/galacticcouncil/substrate?branch=polkadot-v0.9.4)",
  "pallet-vesting",
  "parity-scale-codec 2.1.1",
  "polkadot-primitives",
@@ -7951,7 +7968,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
- "pallet-utility",
+ "pallet-utility 3.0.0 (git+https://github.com/galacticcouncil/substrate?branch=polkadot-v0.9.4)",
  "pallet-xcm",
  "parity-scale-codec 2.1.1",
  "polkadot-parachain",
@@ -11859,7 +11876,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility",
+ "pallet-utility 3.0.0 (git+https://github.com/galacticcouncil/substrate?branch=polkadot-v0.9.4)",
  "pallet-vesting",
  "pallet-xcm",
  "parity-scale-codec 2.1.1",
