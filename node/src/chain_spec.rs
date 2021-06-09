@@ -70,9 +70,9 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Basilisk",
+		"Basilisk Egg",
 		// ID
-		"basilisk",
+		"basilisk_egg",
 		ChainType::Live,
 		move || {
 			parachain_genesis(
@@ -134,7 +134,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Development",
+		"Basilisk Development",
 		// ID
 		"dev",
 		ChainType::Development,
@@ -188,7 +188,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Local Testnet",
+		"Basilisk Local Testnet",
 		// ID
 		"local_testnet",
 		ChainType::Local,
