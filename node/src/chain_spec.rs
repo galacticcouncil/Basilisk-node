@@ -70,9 +70,9 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Basilisk",
+		"Basilisk Egg",
 		// ID
-		"basilisk",
+		"basilisk_egg",
 		ChainType::Live,
 		move || {
 			parachain_genesis(
@@ -96,13 +96,13 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		},
 		// Bootnodes
 		vec![
-            "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooW9qapYrocm6W1meShf8eQfeJzbry9PN2CN6SfBGbymxPL"
+            "/dns/p2p-01.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooW9qapYrocm6W1meShf8eQfeJzbry9PN2CN6SfBGbymxPL"
                 .parse()
                 .unwrap(),
             "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooWPS16BYW173YxmxEJpQBoDz1t3Ht4yaPwwg5qCTED7N66"
                 .parse()
                 .unwrap(),
-            "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooWRMgQRtYrWsLvuwg3V3aQEvMgsbb88T29cKCTH6RAxTaj"
+            "/dns/p2p-03.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooWRMgQRtYrWsLvuwg3V3aQEvMgsbb88T29cKCTH6RAxTaj"
                 .parse()
                 .unwrap(),
         ],
@@ -134,7 +134,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Development",
+		"Basilisk Development",
 		// ID
 		"dev",
 		ChainType::Development,
@@ -188,7 +188,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Local Testnet",
+		"Basilisk Local Testnet",
 		// ID
 		"local_testnet",
 		ChainType::Local,
