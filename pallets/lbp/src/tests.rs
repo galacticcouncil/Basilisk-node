@@ -2463,6 +2463,3 @@ fn get_spot_price_should_work() {
 		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000), 0);
 	});
 }
-
-// TODO: test calculate_spot_price function
-// TODO: test update_weights_and_validate_trade function
