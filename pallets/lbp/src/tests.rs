@@ -1438,6 +1438,50 @@ fn remove_liquidity_should_work() {
 }
 
 #[test]
+fn remove_liquidity_from_paused_pool_should_work() {
+	predefined_test_ext().execute_with(|| {
+		System::set_block_number(11);
+		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
+		System::set_block_number(21);
+
+		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
+		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
+
+		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
+
+		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
+		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
+
+		assert_eq!(pool_balance_a_after, 0);
+		assert_eq!(pool_balance_b_after, 0);
+
+		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
+		assert_eq!(
+			user_balance_a_after,
+			user_balance_a_before.saturating_add(pool_balance_a_before)
+		);
+
+		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
+		assert_eq!(
+			user_balance_b_after,
+			user_balance_b_before.saturating_add(pool_balance_b_before)
+		);
+
+		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+
+		expect_events(vec![
+			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			Event::Paused(1, 2003000).into(),
+			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
+			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, pool_balance_a_before, pool_balance_b_before).into(),
+		]);
+	});
+}
+
+#[test]
 fn remove_liquidity_from_not_started_pool_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
@@ -1815,46 +1859,47 @@ fn execute_sell_should_not_work() {
 #[test]
 fn zero_weight_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		assert_noop!(LBPPallet::create_pool(
-			Origin::root(),
-			ALICE,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-				initial_weight: 100,
-				final_weight: 0,
-			},
-			LBPAssetInfo {
-				id: ETH,
-				amount: 2_000_000_000,
-				initial_weight: 100,
-				final_weight: 100,
-			},
-			(10u64, 20u64),
-			WeightCurveType::Linear,
-			true,
-			Fee::default(),
-			CHARLIE,
-		),
+		assert_noop!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo {
+					id: ACA,
+					amount: 1_000_000_000,
+					initial_weight: 100,
+					final_weight: 0,
+				},
+				LBPAssetInfo {
+					id: ETH,
+					amount: 2_000_000_000,
+					initial_weight: 100,
+					final_weight: 100,
+				},
+				(10u64, 20u64),
+				WeightCurveType::Linear,
+				true,
+				Fee::default(),
+				CHARLIE,
+			),
 			Error::<Test>::ZeroWeight
 		);
 
-		assert_noop!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			Some(15),
-			Some(18),
-			Some(((ACA, 0), (DOT, 90))),
-			Some(((ACA, 80), (DOT, 20))),
-			Some(Fee {
-				numerator: 5,
-				denominator: 100,
-			}),
-			Some(BOB),
-		),
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some(15),
+				Some(18),
+				Some(((ACA, 0), (DOT, 90))),
+				Some(((ACA, 80), (DOT, 20))),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100,
+				}),
+				Some(BOB),
+			),
 			Error::<Test>::ZeroWeight
 		);
-
 	});
 }
 

@@ -233,7 +233,7 @@ pub mod pallet {
 		/// Trading limit reached
 		AssetBalanceLimitExceeded,
 		/// An unexpected integer overflow occurred
-		Overflow,	// no tests
+		Overflow, // no tests
 		/// Nothing to update
 		NothingToUpdate,
 	}
