@@ -10,7 +10,6 @@ use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use cumulus_primitives_core::ParaId;
-use polkadot_primitives::v1::CollatorPair;
 use sc_client_api::ExecutorProvider;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
@@ -104,7 +103,6 @@ pub fn new_partial(
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 async fn start_node_impl<BIC>(
 	parachain_config: Configuration,
-	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	para_id: ParaId,
 	build_consensus: BIC,
@@ -131,15 +129,13 @@ where
 	let params = new_partial(&parachain_config)?;
 	let (mut telemetry, telemetry_worker_handle) = params.other;
 
-	let relay_chain_full_node = cumulus_client_service::build_polkadot_full_node(
-		polkadot_config,
-		collator_key.clone(),
-		telemetry_worker_handle,
-	)
-	.map_err(|e| match e {
-		polkadot_service::Error::Sub(x) => x,
-		s => format!("{}", s).into(),
-	})?;
+	let relay_chain_full_node =
+		cumulus_client_service::build_polkadot_full_node(polkadot_config, telemetry_worker_handle).map_err(
+			|e| match e {
+				polkadot_service::Error::Sub(x) => x,
+				s => format!("{}", s).into(),
+			},
+		)?;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -156,16 +152,15 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let mut task_manager = params.task_manager;
 	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
-	let (network, network_status_sinks, system_rpc_tx, start_network) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
-			config: &parachain_config,
-			client: client.clone(),
-			transaction_pool: transaction_pool.clone(),
-			spawn_handle: task_manager.spawn_handle(),
-			import_queue: import_queue.clone(),
-			on_demand: None,
-			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
-		})?;
+	let (network, system_rpc_tx, start_network) = sc_service::build_network(sc_service::BuildNetworkParams {
+		config: &parachain_config,
+		client: client.clone(),
+		transaction_pool: transaction_pool.clone(),
+		spawn_handle: task_manager.spawn_handle(),
+		import_queue: import_queue.clone(),
+		on_demand: None,
+		block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
+	})?;
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -193,7 +188,6 @@ where
 		keystore: params.keystore_container.sync_keystore(),
 		backend: backend.clone(),
 		network: network.clone(),
-		network_status_sinks,
 		system_rpc_tx,
 		telemetry: telemetry.as_mut(),
 	})?;
@@ -224,7 +218,6 @@ where
 			announce_block,
 			client: client.clone(),
 			task_manager: &mut task_manager,
-			collator_key,
 			relay_chain_full_node,
 			spawner,
 			parachain_consensus,
@@ -285,13 +278,11 @@ pub fn parachain_build_import_queue(
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 pub async fn start_node(
 	parachain_config: Configuration,
-	collator_key: CollatorPair,
 	polkadot_config: Configuration,
 	para_id: ParaId,
 ) -> sc_service::error::Result<(TaskManager, Arc<TFullClient<Block, RuntimeApi, Executor>>)> {
 	start_node_impl::<_>(
 		parachain_config,
-		collator_key,
 		polkadot_config,
 		para_id,
 		|client,

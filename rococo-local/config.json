@@ -43,19 +43,16 @@
         {
           "wsPort": 9988,
           "port": 31200,
-          "flags": ["--", "--execution=wasm"]
+          "flags": ["--alice","--", "--execution=wasm"]
         },
         {
           "wsPort": 9999,
-          "port": 31300,
-          "flags": ["--", "--execution=wasm"]
+          "port": 31202,
+          "flags": ["--bob","--", "--execution=wasm"]
         }
       ]
     }
   ],
   "hrmpChannels": [],
-  "types": {
-    "Address": "MultiAddress",
-    "LookupSource": "MultiAddress"
-  }
+  "types": {}
 }

@@ -38,7 +38,7 @@ use std::{io::Write, net::SocketAddr};
 fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
 		"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-		"" => Box::new(chain_spec::rococo_parachain_config(para_id)?),
+		"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 		"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
@@ -46,7 +46,7 @@ fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_servic
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"basilisk collator".into()
+		"Basilisk".into()
 	}
 
 	fn impl_version() -> String {
@@ -73,7 +73,7 @@ impl SubstrateCli for Cli {
 		let para_id: ParaId = self.run.parachain_id.unwrap_or(200).into();
 		Ok(match id {
 			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-			"" => Box::new(chain_spec::rococo_parachain_config(para_id)?),
+			"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
@@ -86,7 +86,7 @@ impl SubstrateCli for Cli {
 
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {
-		"basilisk collator".into()
+		"Basilisk".into()
 	}
 
 	fn impl_version() -> String {
@@ -110,7 +110,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id)
+		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name().to_string()].iter()).load_spec(id)
 	}
 
 	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -267,9 +267,6 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(&cli.run.normalize())?;
 
 			runner.run_node_until_exit(|config| async move {
-				// TODO
-				let key = sp_core::Pair::generate().0;
-
 				let para_id = chain_spec::Extensions::try_get(&config.chain_spec).map(|e| e.para_id);
 
 				let polkadot_cli = RelayChainCli::new(
@@ -298,7 +295,7 @@ pub fn run() -> sc_cli::Result<()> {
 					if config.role.is_authority() { "yes" } else { "no" }
 				);
 
-				crate::service::start_node(config, key, polkadot_config, id)
+				crate::service::start_node(config, polkadot_config, id)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into)
