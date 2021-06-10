@@ -2,6 +2,7 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::type_complexity)]
+#![allow(clippy::too_many_arguments)]
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
@@ -126,7 +127,7 @@ pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 		initial_weight: LBPWeight,
 		final_weight: LBPWeight,
 		at: BlockNumber,
-	) -> Result<LBPWeight, ()>;
+	) -> Option<LBPWeight>;
 }
 
 pub struct LBPWeightFunction;
@@ -138,8 +139,8 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 		initial_weight: LBPWeight,
 		final_weight: LBPWeight,
 		at: BlockNumber,
-	) -> Result<LBPWeight, ()> {
-		hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at).map_err(|_| ())
+	) -> Option<LBPWeight> {
+		hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at).ok()
 	}
 }
 
@@ -439,7 +440,7 @@ pub mod pallet {
 					final_weights.map_or(Ok(pool.final_weights), |w| Self::get_weights_in_order(pool, w))?;
 
 				pool.fee = fee.unwrap_or(pool.fee);
-				pool.fee_receiver = fee_receiver.unwrap_or(pool.fee_receiver.clone());
+				pool.fee_receiver = fee_receiver.unwrap_or_else(|| pool.fee_receiver.clone());
 
 				Self::validate_pool_data(&pool)?;
 
@@ -684,7 +685,7 @@ impl<T: Config> Pallet<T> {
 			pool_data.final_weights.0,
 			at,
 		)
-		.map_err(|_| Error::<T>::WeightCalculationError)?;
+		.ok_or(Error::<T>::WeightCalculationError)?;
 
 		let weight_b = T::LBPWeightFunction::calculate_weight(
 			pool_data.weight_curve,
@@ -694,7 +695,7 @@ impl<T: Config> Pallet<T> {
 			pool_data.final_weights.1,
 			at,
 		)
-		.map_err(|_| Error::<T>::WeightCalculationError)?;
+		.ok_or(Error::<T>::WeightCalculationError)?;
 
 		Ok((weight_a, weight_b))
 	}
@@ -705,7 +706,7 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		if now != pool_data.last_weight_update {
-			return Ok(Self::calculate_weights(pool_data, now)?);
+			return Self::calculate_weights(pool_data, now);
 		}
 
 		Ok(pool_data.last_weights)
