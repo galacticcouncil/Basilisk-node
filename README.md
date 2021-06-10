@@ -84,7 +84,7 @@ Then open settings screen -> developer and paste
   },
   "Fee": {
     "numerator": "u32",
-    "denominator": "u32",
+    "denominator": "u32"
   },
   "BalanceInfo": {
     "amount": "Balance",
