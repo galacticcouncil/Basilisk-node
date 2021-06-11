@@ -10,7 +10,7 @@ const EMOTE: &str = "RMRK::EMOTE::RMRK1.0.0::0aff6865bed3a66b-VALHELLO-POTION_HE
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
-	T::Currency::deposit_into_existing(&caller, T::CurrencyBalance::from(1_000_000_u128).into()).unwrap();
+	T::Currency::deposit_creating(&caller, T::CurrencyBalance::from(1_000_000_u128).into());
 	caller
 }
 
@@ -19,8 +19,10 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = "just some class data".as_bytes().to_vec();
+		let class_id = orml_nft::Pallet::<T>::next_class_id();
 	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, T::CurrencyBalance::from(666_u128).into())
 	verify {
+		assert_eq!(ClassItemPrice::<T>::get(class_id), T::CurrencyBalance::from(666_u128).into());
 	}
 
 	mint {
@@ -30,8 +32,11 @@ benchmarks! {
 		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_data = "just some class data".as_bytes().to_vec();
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
+		let token_id = orml_nft::Pallet::<T>::next_token_id(class_id);
+		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data, i)
 	verify {
+		assert_eq!(orml_nft::Pallet::<T>::tokens_by_owner(caller, token), ());
 	}
 
 	transfer {
@@ -45,6 +50,8 @@ benchmarks! {
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), T::Lookup::unlookup(caller2.clone()), token)
 	verify {
+		let transferred_token = orml_nft::Pallet::<T>::tokens(class_id, token_id);
+		assert_eq!(transferred_token.unwrap().owner, caller2);
 	}
 
 	destroy_class {
@@ -54,6 +61,7 @@ benchmarks! {
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller.clone()), class_id)
 	verify {
+		assert_eq!(orml_nft::Pallet::<T>::classes(class_id), None);
 	}
 
 	burn {
@@ -66,6 +74,7 @@ benchmarks! {
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), token)
 	verify {
+		assert_eq!(orml_nft::Pallet::<T>::tokens(class_id, token_id), None);
 	}
 
 	buy_from_pool {
@@ -79,6 +88,8 @@ benchmarks! {
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller2.clone()), token)
 	verify {
+		let bought_token = orml_nft::Pallet::<T>::tokens(class_id, token_id);
+		assert_eq!(bought_token.unwrap().owner, caller2);
 	}
 
 	sell_to_pool {
@@ -93,6 +104,8 @@ benchmarks! {
 		orml_nft::Pallet::<T>::transfer(&caller, &caller2, token).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller2.clone()), token)
 	verify {
+		let sold_token = orml_nft::Pallet::<T>::tokens(class_id, token_id);
+		assert_eq!(sold_token.unwrap().owner, caller);
 	}
 }
 

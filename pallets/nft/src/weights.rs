@@ -54,6 +54,7 @@ pub trait WeightInfo {
 	fn burn() -> Weight;
 	fn buy_from_pool() -> Weight;
 	fn sell_to_pool() -> Weight;
+	fn on_finalize() -> Weight;
 }
 
 /// Weights for pallet_nft using the Basilisk node and recommended hardware.
@@ -97,6 +98,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
+	fn on_finalize() -> Weight {
+		(8_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
 }
 
 // For backwards compatibility and tests
@@ -137,5 +143,10 @@ impl WeightInfo for () {
 		(45_125_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn on_finalize() -> Weight {
+		(8_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 }

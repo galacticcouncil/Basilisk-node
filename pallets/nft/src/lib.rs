@@ -51,9 +51,9 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
-	/// Stores prices for each NFT class
 	#[pallet::storage]
 	#[pallet::getter(fn class_item_price)]
+	/// Stores prices for each NFT class
 	pub type ClassItemPrice<T: Config> = StorageMap<_, Blake2_128Concat, ClassIdOf<T>, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
@@ -262,7 +262,6 @@ impl<T: Config> Pallet<T> {
 			if let Some(ref mut token) = token {
 				ensure!(*account == token.owner, Error::<T>::NotTokenOwner);
 				token.data.locked ^= true; // Toggle
-						   // fix clone
 				Self::deposit_event(Event::NFTTokenMintedLockToggled(
 					account.clone(),
 					token_id.0,
