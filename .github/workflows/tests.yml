@@ -164,6 +164,7 @@ jobs:
         name: Setup node.js
         with:
           node-version: '14'
+          check-latest: true
       - run: ./install_polkadot_launch.sh
         name: Setup polkadot launch
         working-directory: scripts

@@ -1,9 +1,9 @@
 #![allow(clippy::or_fun_call)]
 
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, AuraId, BalancesConfig, CollatorSelectionConfig, CouncilConfig, FaucetConfig,
-	GenesisConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig,
-	TokensConfig, CORE_ASSET_ID, WASM_BINARY,
+	AccountId, AssetRegistryConfig, AuraId, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
+	MultiTransactionPaymentConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig,
+	TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -70,9 +70,9 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Basilisk",
+		"Basilisk Egg",
 		// ID
-		"basilisk",
+		"basilisk_egg",
 		ChainType::Live,
 		move || {
 			parachain_genesis(
@@ -102,17 +102,18 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
+				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
 			)
 		},
 		// Bootnodes
 		vec![
-            "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooW9qapYrocm6W1meShf8eQfeJzbry9PN2CN6SfBGbymxPL"
+            "/dns/p2p-01.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooW9qapYrocm6W1meShf8eQfeJzbry9PN2CN6SfBGbymxPL"
                 .parse()
                 .unwrap(),
             "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooWPS16BYW173YxmxEJpQBoDz1t3Ht4yaPwwg5qCTED7N66"
                 .parse()
                 .unwrap(),
-            "/dns/p2p-02.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooWRMgQRtYrWsLvuwg3V3aQEvMgsbb88T29cKCTH6RAxTaj"
+            "/dns/p2p-03.basilisk-testnet.hydradx.io/tcp/30333/p2p/12D3KooWRMgQRtYrWsLvuwg3V3aQEvMgsbb88T29cKCTH6RAxTaj"
                 .parse()
                 .unwrap(),
         ],
@@ -130,7 +131,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "westend".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -144,7 +145,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Development",
+		"Basilisk Development",
 		// ID
 		"dev",
 		ChainType::Development,
@@ -181,6 +182,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
+				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 			)
 		},
 		// Bootnodes
@@ -193,7 +195,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "rococo-dev".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -208,7 +210,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 
 	Ok(ChainSpec::from_genesis(
 		// Name
-		"Local Testnet",
+		"Basilisk Local Testnet",
 		// ID
 		"local_testnet",
 		ChainType::Local,
@@ -253,6 +255,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
+				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 			)
 		},
 		// Bootnodes
@@ -265,7 +268,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "westend-dev".into(),
+			relay_chain: "rococo-local".into(),
 			para_id: para_id.into(),
 		},
 	))
@@ -281,6 +284,7 @@ fn parachain_genesis(
 	parachain_id: ParaId,
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
+	tx_fee_payment_account: AccountId,
 ) -> GenesisConfig {
 	GenesisConfig {
 		frame_system: SystemConfig {
@@ -332,6 +336,11 @@ fn parachain_genesis(
 			],
 			next_asset_id: 5,
 		},
+		pallet_transaction_multi_payment: MultiTransactionPaymentConfig {
+			currencies: vec![],
+			authorities: vec![],
+			fallback_account: tx_fee_payment_account,
+		},
 		orml_tokens: TokensConfig {
 			endowed_accounts: endowed_accounts
 				.iter()
@@ -354,12 +363,8 @@ fn parachain_genesis(
 			members: tech_committee_members,
 			phantom: Default::default(),
 		},
+		pallet_vesting: VestingConfig { vesting: vec![] },
 		parachain_info: ParachainInfoConfig { parachain_id },
-		pallet_faucet: FaucetConfig {
-			rampage: false,
-			mint_limit: 5,
-			mintable_currencies: vec![0, 1, 2],
-		},
 		cumulus_pallet_aura_ext: Default::default(),
 	}
 }

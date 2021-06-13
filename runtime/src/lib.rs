@@ -14,10 +14,9 @@ use sp_core::{
 	u32_trait::{_1, _2, _3},
 	OpaqueMetadata,
 };
-use sp_runtime::traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::Zero,
+	traits::{BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount, IdentityLookup, Verify, Zero},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
@@ -48,6 +47,8 @@ use primitives::fee;
 
 mod currency;
 
+mod weights;
+
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
@@ -56,7 +57,6 @@ use orml_traits::parameter_type_with_key;
 pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
 
 pub use pallet_asset_registry;
-pub use pallet_faucet;
 
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
@@ -109,8 +109,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 3,
-	impl_version: 1,
+	spec_version: 6,
+	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
@@ -120,15 +120,13 @@ pub const MILLISECS_PER_BLOCK: u64 = 6000;
 
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 
-pub const EPOCH_DURATION_IN_BLOCKS: u32 = 10 * MINUTES;
-
 // Time is measured by number of blocks.
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 pub const FORTUNE: Balance = u128::MAX;
 pub const BSX: Balance = 1_000_000_000_000;
-pub const DOLLARS: Balance = BSX * 10; // 10 BSX ~= 1 $
+pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
 pub const CENTS: Balance = DOLLARS / 100;
 pub const MILLICENTS: Balance = CENTS / 1_000;
 
@@ -161,27 +159,25 @@ impl Filter<Call> for BaseFilter {
 			| Call::Timestamp(_)
 			| Call::RandomnessCollectiveFlip(_)
 			| Call::ParachainSystem(_)
-            //TODO: validate this
-            | Call::Democracy(_)
-            | Call::Scheduler(_)
-            | Call::Council(_)
-            | Call::TechnicalCommittee(_)
-            | Call::Treasury(_)
-            | Call::Authorship(_)
-            | Call::CollatorSelection(_)
-            | Call::Session(_)
-            //TODO: validate this end
-			| Call::Sudo(_) => true,
-
-
-			Call::XYK(_)
+			| Call::Democracy(_)
+			| Call::Scheduler(_)
+			| Call::Council(_)
+			| Call::TechnicalCommittee(_)
+			| Call::Treasury(_)
+			| Call::Authorship(_)
+			| Call::CollatorSelection(_)
+			| Call::Session(_)
 			| Call::Balances(_)
 			| Call::AssetRegistry(_)
 			| Call::Currencies(_)
 			| Call::Exchange(_)
-			| Call::Faucet(_)
 			| Call::MultiTransactionPayment(_)
-			| Call::Tokens(_) => false,
+			| Call::Tokens(_)
+			| Call::Utility(_)
+			| Call::Vesting(_)
+			| Call::Sudo(_) => true,
+
+			Call::XYK(_) => false,
 		}
 	}
 }
@@ -213,7 +209,7 @@ parameter_types! {
 		.build_or_panic();
 	pub ExtrinsicPaymentExtraWeight: Weight =  <Runtime as pallet_transaction_multi_payment::Config>::WeightInfo::swap_currency();
 	pub ExtrinsicBaseWeight: Weight = frame_support::weights::constants::ExtrinsicBaseWeight::get() + ExtrinsicPaymentExtraWeight::get();
-	pub const SS58Prefix: u8 = 63;
+	pub const SS58Prefix: u16 = 10041;
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -262,7 +258,7 @@ impl frame_system::Config for Runtime {
 	/// What to do if an account is fully reaped from the system.
 	type OnKilledAccount = ();
 	/// Weight information for the extrinsics of this pallet.
-	type SystemWeightInfo = ();
+	type SystemWeightInfo = weights::system::HydraWeight<Runtime>;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
@@ -277,7 +273,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
-	type WeightInfo = ();
+	type WeightInfo = weights::timestamp::HydraWeight<Runtime>;
 }
 
 parameter_types! {
@@ -314,7 +310,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type Currency = Balances;
 	type MultiCurrency = Currencies;
 	type AMMPool = XYK;
-	type WeightInfo = pallet_transaction_multi_payment::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::payment::HydraWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = IdentityFee<Balance>;
 }
@@ -365,7 +361,7 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = pallet_xyk::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::xyk::HydraWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 }
 
@@ -374,12 +370,7 @@ impl pallet_exchange::Config for Runtime {
 	type AMMPool = XYK;
 	type Resolver = Exchange;
 	type Currency = Currencies;
-	type WeightInfo = pallet_exchange::weights::HydraWeight<Runtime>;
-}
-
-impl pallet_faucet::Config for Runtime {
-	type Event = Event;
-	type Currency = Currencies;
+	type WeightInfo = weights::exchange::HydraWeight<Runtime>;
 }
 
 /// Parachain Config
@@ -503,7 +494,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 }
 
 parameter_types! {
-	pub const TechnicalMotionDuration: BlockNumber = 7 * DAYS;
+	pub const TechnicalMotionDuration: BlockNumber = 5 * DAYS;
 	pub const TechnicalMaxProposals: u32 = 20;
 	pub const TechnicalMaxMembers: u32 = 10;
 }
@@ -522,7 +513,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = FORTUNE;
+	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
 	pub const SpendPeriod: BlockNumber = DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
@@ -562,6 +553,24 @@ impl pallet_scheduler::Config for Runtime {
 	type MaximumWeight = MaximumSchedulerWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
+	type WeightInfo = ();
+}
+
+parameter_types! {
+	pub const MinVestedTransfer: Balance = 10 * DOLLARS;
+}
+
+impl pallet_utility::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type WeightInfo = ();
+}
+
+impl pallet_vesting::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BlockNumberToBalance = ConvertInto;
+	type MinVestedTransfer = MinVestedTransfer;
 	type WeightInfo = ();
 }
 
@@ -635,6 +644,8 @@ construct_runtime!(
 		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
+		Utility: pallet_utility::{Pallet, Call, Event},
+		Vesting: pallet_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
 
 		// Parachain
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
@@ -655,8 +666,7 @@ construct_runtime!(
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
-		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>},
-		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Storage, Event<T>},
+		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 	}
 );
 
