@@ -3,7 +3,7 @@
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CouncilConfig, GenesisConfig, OrmlNftConfig,
 	ParachainInfoConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
-	CORE_ASSET_ID, WASM_BINARY,
+	CORE_ASSET_ID, WASM_BINARY, MultiTransactionPaymentConfig
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -92,6 +92,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
+				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
 			)
 		},
 		// Bootnodes
@@ -161,6 +162,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
+				get_account_id_from_seed::<sr25519::Public>("Alice"),  // SAME AS ROOT
 			)
 		},
 		// Bootnodes
@@ -223,6 +225,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
+				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 			)
 		},
 		// Bootnodes
@@ -251,6 +254,7 @@ fn parachain_genesis(
 	parachain_id: ParaId,
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
+	tx_fee_payment_account: AccountId,
 ) -> GenesisConfig {
 	GenesisConfig {
 		frame_system: SystemConfig {
@@ -282,6 +286,11 @@ fn parachain_genesis(
 				(b"hUSDT".to_vec(), 4),
 			],
 			next_asset_id: 5,
+		},
+		pallet_transaction_multi_payment: MultiTransactionPaymentConfig {
+			currencies: vec![],
+			authorities: vec![],
+			fallback_account: tx_fee_payment_account,
 		},
 		orml_tokens: TokensConfig {
 			endowed_accounts: endowed_accounts
