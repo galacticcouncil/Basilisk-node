@@ -435,6 +435,7 @@ pub mod pallet {
 
 				pool.initial_weights =
 					initial_weights.map_or(Ok(pool.initial_weights), |w| Self::get_weights_in_order(pool, w))?;
+				pool.last_weights = pool.initial_weights;
 
 				pool.final_weights =
 					final_weights.map_or(Ok(pool.final_weights), |w| Self::get_weights_in_order(pool, w))?;

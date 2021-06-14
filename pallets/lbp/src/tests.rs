@@ -612,6 +612,8 @@ fn update_pool_data_should_work() {
 			}
 		);
 		assert_eq!(updated_pool_data.fee_receiver, BOB);
+		assert_eq!(updated_pool_data.last_weight_update, 0);
+		assert_eq!(updated_pool_data.last_weights, (10, 90));
 
 		// update only one parameter
 		assert_ok!(LBPPallet::update_pool_data(
