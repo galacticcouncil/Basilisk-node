@@ -25,6 +25,9 @@ benchmarks! {
 
 		let price: BalanceOf<T> = 666_u32.into();
 
+		T::Currency::reserve(&caller, 666_u32.into())?;
+		T::Currency::unreserve(&caller, 666_u32.into());
+
 	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, price)
 	verify {
 		assert_eq!(ClassItemPrice::<T>::get(class_id), price);
