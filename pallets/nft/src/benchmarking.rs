@@ -10,7 +10,9 @@ const EMOTE: &str = "RMRK::EMOTE::RMRK1.0.0::0aff6865bed3a66b-VALHELLO-POTION_HE
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
-	T::Currency::deposit_creating(&caller, T::CurrencyBalance::from(1_000_000_u128).into());
+
+	let amount: BalanceOf<T> = 1_000_000_u32.into();
+	T::Currency::deposit_creating(&caller, amount);
 	caller
 }
 
@@ -20,9 +22,12 @@ benchmarks! {
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, T::CurrencyBalance::from(666_u128).into())
+
+		let price: BalanceOf<T> = 666_u32.into();
+
+	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, price)
 	verify {
-		assert_eq!(ClassItemPrice::<T>::get(class_id), T::CurrencyBalance::from(666_u128).into());
+		assert_eq!(ClassItemPrice::<T>::get(class_id), price);
 	}
 
 	mint {
