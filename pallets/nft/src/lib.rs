@@ -72,9 +72,6 @@ pub mod pallet {
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
-		// This type is needed to convert from Currency to Balance
-		type CurrencyBalance: From<Balance>
-			+ Into<<Self::Currency as Currency<<Self as frame_system::Config>::AccountId>>::Balance>;
 		#[pallet::constant]
 		type ClassBondAmount: Get<BalanceOf<Self>>;
 		#[pallet::constant]

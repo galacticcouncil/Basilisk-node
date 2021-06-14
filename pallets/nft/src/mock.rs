@@ -42,7 +42,6 @@ impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type CurrencyBalance = Balance;
 	type ClassBondAmount = ClassBondAmount;
 	type ClassBondDuration = ClassBondDuration;
 }
