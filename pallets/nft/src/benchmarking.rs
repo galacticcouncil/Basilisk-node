@@ -18,7 +18,7 @@ benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = "just some class data".as_bytes().to_vec();
+		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
 	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, T::CurrencyBalance::from(666_u128).into())
 	verify {
@@ -30,7 +30,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
-		let class_data = "just some class data".as_bytes().to_vec();
+		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::next_token_id(class_id);
 		let token = (class_id, token_id);
@@ -43,7 +43,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = "just some class data".as_bytes().to_vec();
+		let class_data = ClassData { is_pool:true };
 		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
@@ -57,7 +57,7 @@ benchmarks! {
 	destroy_class {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = "just some class data".as_bytes().to_vec();
+		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller.clone()), class_id)
 	verify {
@@ -67,7 +67,7 @@ benchmarks! {
 	burn {
 		let caller = create_account::<T>("caller", 0);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = "just some class data".as_bytes().to_vec();
+		let class_data = ClassData { is_pool:true };
 		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
@@ -81,7 +81,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = "just some class data".as_bytes().to_vec();
+		let class_data = ClassData { is_pool:true };
 		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
@@ -96,7 +96,7 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 		let class_metadata = "just a token class".as_bytes().to_vec();
-		let class_data = "just some class data".as_bytes().to_vec();
+		let class_data = ClassData { is_pool:true };
 		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();

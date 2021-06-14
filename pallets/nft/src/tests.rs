@@ -10,8 +10,8 @@ fn create_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
@@ -25,8 +25,8 @@ fn create_class_fails() {
 		assert_noop!(
 			NftModule::create_class(
 				Origin::none(),
-				"a class".as_bytes().to_vec(),
-				Default::default(),
+				"some metadata about token".as_bytes().to_vec(),
+				ClassData { is_pool: true },
 				TEST_PRICE
 			),
 			BadOrigin
@@ -39,8 +39,8 @@ fn mint_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
@@ -66,8 +66,8 @@ fn mint_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 		let event = Event::pallet_nft(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
@@ -94,8 +94,8 @@ fn transfer_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -121,8 +121,8 @@ fn transfer_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -154,8 +154,8 @@ fn burn_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -181,8 +181,8 @@ fn burn_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -209,8 +209,8 @@ fn destroy_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -223,8 +223,8 @@ fn destroy_class_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -251,8 +251,8 @@ fn toggle_lock_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -278,8 +278,8 @@ fn toggle_lock_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -306,8 +306,8 @@ fn buy_from_pool_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -333,8 +333,8 @@ fn buy_from_pool_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -366,12 +366,40 @@ fn buy_from_pool_fails() {
 }
 
 #[test]
+fn buy_from_pool_fails_notapool() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NftModule::create_class(
+			Origin::signed(ALICE),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: false },
+			TEST_PRICE
+		));
+
+		assert_ok!(NftModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData {
+				locked: false,
+				emote: EMOTE.as_bytes().to_vec()
+			},
+			TEST_QUANTITY,
+		));
+
+		assert_noop!(
+			NftModule::buy_from_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)),
+			Error::<Test>::NotAPool
+		);
+	});
+}
+
+#[test]
 fn sell_to_pool_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 
@@ -399,8 +427,8 @@ fn sell_to_pool_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NftModule::create_class(
 			Origin::signed(ALICE),
-			"a class".as_bytes().to_vec(),
-			Default::default(),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
 			TEST_PRICE
 		));
 

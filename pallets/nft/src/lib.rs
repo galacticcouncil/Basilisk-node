@@ -28,9 +28,14 @@ mod tests;
 
 pub type Balance = u128;
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-pub type ClassData = Vec<u8>;
 pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
 pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
+
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
+pub struct ClassData {
+	pub is_pool: bool,
+}
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
@@ -167,6 +172,7 @@ pub mod pallet {
 			let class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			let price = Self::class_item_price(token.0);
+			ensure!(class_info.data.is_pool, Error::<T>::NotAPool);
 			ensure!(class_info.owner == token_info.owner, Error::<T>::TokenAlreadyHasAnOwner);
 			ensure!(sender != token_info.owner, Error::<T>::CannotBuyOwnToken);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
@@ -185,6 +191,7 @@ pub mod pallet {
 			let class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			let price = Self::class_item_price(token.0);
+			ensure!(class_info.data.is_pool, Error::<T>::NotAPool);
 			ensure!(class_info.owner != token_info.owner, Error::<T>::CannotSellPoolToken);
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
@@ -243,6 +250,8 @@ pub mod pallet {
 		TokenAlreadyHasAnOwner,
 		/// A token still owned by class owner
 		CannotSellPoolToken,
+		/// Class wasn't created as a pool
+		NotAPool,
 	}
 }
 

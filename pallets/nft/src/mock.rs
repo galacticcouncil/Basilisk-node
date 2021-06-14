@@ -50,7 +50,7 @@ impl pallet_nft::Config for Test {
 impl orml_nft::Config for Test {
 	type ClassId = u64;
 	type TokenId = u64;
-	type ClassData = Vec<u8>;
+	type ClassData = pallet_nft::ClassData;
 	type TokenData = pallet_nft::TokenData;
 }
 

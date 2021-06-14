@@ -119,9 +119,11 @@ Then open settings screen -> developer and paste
   "Price": "Balance",
   "ClassId": "u64",
   "TokenId": "u64",
-  "ClassData": "Vec<u8>",
+  "ClassData": {
+    "is_pool": "bool"
+  },
   "TokenData": {
-    "locked": "bool"
+    "locked": "bool",
     "emote": "Vec<u8>"
   },
   "CID": "Vec<u8>",
@@ -141,7 +143,6 @@ Then open settings screen -> developer and paste
   "ClassIdOf": "ClassId",
   "TokenIdOf": "TokenId"
   "OrderedSet": "Vec<AssetId>",
-  "Price": "Balance"
 }
 ```
 
