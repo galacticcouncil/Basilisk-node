@@ -606,7 +606,7 @@ impl pallet_collator_selection::Config for Runtime {
 
 parameter_types! {
 	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(33);
-	pub const Period: u32 = 4 * HOURS;
+	pub const Period: u32 = 1 * MINUTES;//4 * HOURS;
 	pub const Offset: u32 = 0;
 }
 
