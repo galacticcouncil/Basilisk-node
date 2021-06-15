@@ -3111,12 +3111,13 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/hydraDX-math?branch=feat/lbp#3f2c9a6b35007449754324a6a62207bdb7f12471"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d796834f59ab9c02c6f44749064f9049997ac53c1f9cdcc14b709b5fcbc80e0"
 dependencies = [
  "lazy_static",
- "primitive-types 0.7.3",
- "sp-arithmetic",
+ "num-traits",
+ "primitive-types 0.8.0",
 ]
 
 [[package]]
@@ -5312,7 +5313,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 1.0.0 (git+https://github.com/galacticcouncil/hydraDX-math?branch=feat/lbp)",
+ "hydra-dx-math 2.0.0",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec 2.1.1",
@@ -5786,7 +5787,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydra-dx-math 1.0.0 (git+https://github.com/galacticcouncil/hydraDX-math?tag=v1.0.0)",
+ "hydra-dx-math 1.0.0",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
