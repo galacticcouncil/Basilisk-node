@@ -35,11 +35,13 @@
 // --template=.maintain/pallet-weight-template.hbs
 // --output=exchange.rs
 
-
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
+};
 use sp_std::marker::PhantomData;
 
 use pallet_exchange::weights::WeightInfo;
@@ -48,8 +50,7 @@ use pallet_exchange::weights::WeightInfo;
 pub struct HydraWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn known_overhead_for_on_finalize() -> Weight {
-		(10_892_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+		(10_892_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
 	}
 	fn sell_intention() -> Weight {
 		(99_285_000 as Weight)
@@ -61,7 +62,7 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn on_finalize(t: u32, ) -> Weight {
+	fn on_finalize(t: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 95_000
 			.saturating_add((104_621_000 as Weight).saturating_mul(t as Weight))
@@ -70,7 +71,7 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
 	}
-	fn on_finalize_buys_no_matches(t: u32, ) -> Weight {
+	fn on_finalize_buys_no_matches(t: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 129_000
 			.saturating_add((119_022_000 as Weight).saturating_mul(t as Weight))
@@ -79,7 +80,7 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
 	}
-	fn on_finalize_sells_no_matches(t: u32, ) -> Weight {
+	fn on_finalize_sells_no_matches(t: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 69_000
 			.saturating_add((103_999_000 as Weight).saturating_mul(t as Weight))

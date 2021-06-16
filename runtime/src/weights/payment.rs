@@ -35,11 +35,13 @@
 // --template=.maintain/pallet-weight-template.hbs
 // --output=payment.rs
 
-
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
+};
 use sp_std::marker::PhantomData;
 
 use pallet_transaction_multi_payment::weights::WeightInfo;

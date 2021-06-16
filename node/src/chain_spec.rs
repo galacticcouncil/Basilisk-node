@@ -1,9 +1,9 @@
 #![allow(clippy::or_fun_call)]
 
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CouncilConfig, GenesisConfig,
-	ParachainInfoConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, CORE_ASSET_ID,
-	VestingConfig, WASM_BINARY, MultiTransactionPaymentConfig,
+	AccountId, AssetRegistryConfig, AuraId, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
+	MultiTransactionPaymentConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig,
+	TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -79,10 +79,20 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(),
+				//initial authorities & invulnerables
 				vec![
-					hex!["da0fa4ab419def66fb4ac5224e594e82c34ee795268fc7787c8a096c4ff14f11"].unchecked_into(),
-					hex!["ecd7a5439c6ab0cd6550bc2f1cef5299d425bb95bb6d7afb32aa3d95ee4f7f1f"].unchecked_into(),
-					hex!["f0ad6f1aae7a445c1e80cac883096ec8177eda276fec53ad9ccbe570f3090a26"].unchecked_into(),
+					(
+						hex!["da0fa4ab419def66fb4ac5224e594e82c34ee795268fc7787c8a096c4ff14f11"].into(),
+						hex!["da0fa4ab419def66fb4ac5224e594e82c34ee795268fc7787c8a096c4ff14f11"].unchecked_into(),
+					),
+					(
+						hex!["ecd7a5439c6ab0cd6550bc2f1cef5299d425bb95bb6d7afb32aa3d95ee4f7f1f"].into(),
+						hex!["ecd7a5439c6ab0cd6550bc2f1cef5299d425bb95bb6d7afb32aa3d95ee4f7f1f"].unchecked_into(),
+					),
+					(
+						hex!["f0ad6f1aae7a445c1e80cac883096ec8177eda276fec53ad9ccbe570f3090a26"].into(),
+						hex!["f0ad6f1aae7a445c1e80cac883096ec8177eda276fec53ad9ccbe570f3090a26"].unchecked_into(),
+					),
 				],
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
@@ -144,7 +154,17 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
+				//initial authorities & invulnerables
+				vec![
+					(
+						get_account_id_from_seed::<sr25519::Public>("Alice"),
+						get_from_seed::<AuraId>("Alice"),
+					),
+					(
+						get_account_id_from_seed::<sr25519::Public>("Bob"),
+						get_from_seed::<AuraId>("Bob"),
+					),
+				],
 				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -162,7 +182,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
-				get_account_id_from_seed::<sr25519::Public>("Alice"),  // SAME AS ROOT
+				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 			)
 		},
 		// Bootnodes
@@ -199,7 +219,17 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
+				//initial authorities & invulnerables
+				vec![
+					(
+						get_account_id_from_seed::<sr25519::Public>("Alice"),
+						get_from_seed::<AuraId>("Alice"),
+					),
+					(
+						get_account_id_from_seed::<sr25519::Public>("Bob"),
+						get_from_seed::<AuraId>("Bob"),
+					),
+				],
 				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -248,7 +278,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 fn parachain_genesis(
 	wasm_binary: &[u8],
 	root_key: AccountId,
-	initial_authorities: Vec<AuraId>,
+	initial_authorities: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
@@ -274,9 +304,28 @@ fn parachain_genesis(
 			// Assign network admin rights.
 			key: root_key,
 		},
-		pallet_aura: AuraConfig {
-			authorities: initial_authorities,
+		pallet_collator_selection: CollatorSelectionConfig {
+			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
+			candidacy_bond: 10_000,
+			..Default::default()
 		},
+		pallet_session: SessionConfig {
+			keys: initial_authorities
+				.iter()
+				.cloned()
+				.map(|(acc, aura)| {
+					(
+						acc.clone(),                                    // account id
+						acc,                                            // validator id
+						basilisk_runtime::opaque::SessionKeys { aura }, // session keys
+					)
+				})
+				.collect(),
+		},
+
+		// no need to pass anything, it will panic if we do. Session will take care
+		// of this.
+		pallet_aura: Default::default(),
 		pallet_asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![
