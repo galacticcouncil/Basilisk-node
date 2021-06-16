@@ -545,7 +545,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "6.0.0"
+version = "7.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -573,6 +573,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-grandpa",
+ "pallet-lbp",
  "pallet-multi-payment-benchmarking",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
@@ -3111,6 +3112,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydra-dx-math"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d796834f59ab9c02c6f44749064f9049997ac53c1f9cdcc14b709b5fcbc80e0"
+dependencies = [
+ "lazy_static",
+ "num-traits",
+ "primitive-types 0.8.0",
+]
+
+[[package]]
 name = "hyper"
 version = "0.12.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3730,6 +3742,9 @@ name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+dependencies = [
+ "spin",
+]
 
 [[package]]
 name = "lazycell"
@@ -5311,6 +5326,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-lbp"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "hydra-dx-math 2.0.0",
+ "orml-tokens",
+ "orml-traits",
+ "parity-scale-codec 2.1.1",
+ "primitive-types 0.8.0",
+ "primitives",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder-runner",
+]
+
+[[package]]
 name = "pallet-membership"
 version = "3.0.0"
 source = "git+https://github.com/galacticcouncil/substrate?branch=polkadot-v0.9.4#ef5eb52e9028322f266380278b920af6d253de42"
@@ -5770,7 +5807,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydra-dx-math",
+ "hydra-dx-math 1.0.0",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
@@ -10527,6 +10564,12 @@ dependencies = [
  "walkdir",
  "wasm-gc-api",
 ]
+
+[[package]]
+name = "substrate-wasm-builder-runner"
+version = "1.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2a965994514ab35d3893e9260245f2947fd1981cdd4fffd2c6e6d1a9ce02e6a"
 
 [[package]]
 name = "subtle"

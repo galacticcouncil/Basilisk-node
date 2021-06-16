@@ -1,6 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
+#![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 
@@ -28,13 +29,12 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime, parameter_types, PalletId, StorageValue,
 	traits::{Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Pays, Weight,
 	},
-	PalletId, StorageValue,
 };
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
@@ -109,7 +109,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 6,
+	spec_version: 7,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -173,6 +173,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Exchange(_)
 			| Call::MultiTransactionPayment(_)
 			| Call::Tokens(_)
+			| Call::LBP(_)
 			| Call::Utility(_)
 			| Call::Vesting(_)
 			| Call::Sudo(_) => true,
@@ -371,6 +372,20 @@ impl pallet_exchange::Config for Runtime {
 	type Resolver = Exchange;
 	type Currency = Currencies;
 	type WeightInfo = weights::exchange::HydraWeight<Runtime>;
+}
+
+parameter_types! {
+	pub LBPExchangeFee: fee::Fee  = fee::Fee::default();
+}
+
+impl pallet_lbp::Config for Runtime {
+	type Event = Event;
+	type MultiCurrency = Currencies;
+	type NativeAssetId = NativeAssetId;
+	type CreatePoolOrigin = EnsureRoot<AccountId>;	// TODO: change to governance membership
+	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
+	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
+	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
 }
 
 /// Parachain Config
@@ -666,6 +681,7 @@ construct_runtime!(
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
+		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 	}
 );
@@ -864,6 +880,7 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 
 			add_benchmark!(params, batches, xyk, XYK);
+			add_benchmark!(params, batches, lbp, LBP);
 			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);

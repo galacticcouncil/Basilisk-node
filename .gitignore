@@ -29,6 +29,7 @@ rococo-local.json
 rococo-local-raw.json
 *.log
 
+*.orig
 scripts/polkadot-launch/
 node_modules/
 _actions/

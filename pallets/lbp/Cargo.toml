@@ -1,0 +1,69 @@
+[package]
+authors = ['GalacticCouncil']
+description = 'HydraDX Liquidity Bootstrapping Pool Pallet'
+edition = '2018'
+homepage = 'https://github.com/galacticcouncil/Basilisk-node'
+license = 'Apache 2.0'
+name = 'pallet-lbp'
+repository = 'https://github.com/galacticcouncil/Basilisk-node'
+version = '1.0.0'
+
+[package.metadata.docs.rs]
+targets = ['x86_64-unknown-linux-gnu']
+
+[build-dependencies]
+wasm-builder-runner = {package = 'substrate-wasm-builder-runner', version = '1.0.5'}
+
+# alias "parity-scale-code" to "codec"
+[dependencies.codec]
+default-features = false
+features = ['derive']
+package = 'parity-scale-codec'
+version = '2.0.0'
+
+[dependencies]
+primitive-types = {default-features = false, version = '0.8.0'}
+serde = {features = ['derive'], optional = true, version = '1.0.101'}
+
+hydra-dx-math = {default-features = false, version = "2.0.0"}
+
+## Local dependencies
+primitives = { default-features = false, version = '4.1.0' }
+
+## ORML dependencies
+orml-traits = {default-features = false, version = "0.4.1-dev"}
+
+## Substrate dependencies
+frame-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
+frame-support = {default-features = false, version = '3.0.0'}
+frame-system = {default-features = false, version = '3.0.0'}
+frame-system-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
+sp-std = {default-features = false, version = '3.0.0'}
+
+# Needed for benchmarks
+orml-tokens = {default-features = false, version = "0.4.1-dev"}
+sp-core = {default-features = false, version = '3.0.0'}
+sp-runtime = {default-features = false, version = '3.0.0'}
+
+[dev-dependencies]
+sp-io = {default-features = false, version = '3.0.0'}
+
+[features]
+default = ['std']
+runtime-benchmarks = [
+  "frame-benchmarking",
+  "frame-system/runtime-benchmarks",
+  "frame-support/runtime-benchmarks",
+]
+std = [
+  'serde',
+  'codec/std',
+  'frame-support/std',
+  'frame-system/std',
+  'orml-tokens/std',
+  'orml-traits/std',
+  'sp-runtime/std',
+  'sp-core/std',
+  'sp-std/std',
+  'primitives/std',
+]

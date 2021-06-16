@@ -19,6 +19,10 @@ jobs:
     outputs:
       runner: ${{ steps.determine-runner.outputs.runner }}
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
       - id: determine-runner
         name: Determine runner
         run: if $IS_LOCAL; then echo "::set-output name=runner::${{ github.sha }}"; else echo "::set-output name=runner::ubuntu-latest"; fi;
@@ -79,6 +83,9 @@ jobs:
           default: true
       - name: Tests
         run: time cargo test --all --release --verbose --locked
+      - name: Test benchmarks
+        run: cargo test --release --features runtime-benchmarks -p pallet-lbp
+        working-directory: node
       - name: Build release
         run: time cargo build --release --verbose
       - name: Version info
@@ -107,8 +114,10 @@ jobs:
       EC2_SECRET: ${{ secrets.EC2_PWD }}
       S3_BACKEND_KEY_NAME: tf-state-${{ github.sha }}
     steps:
-      - name: checkout code
-        uses: actions/checkout@v2.1.0
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: setup node
         uses: actions/setup-node@v2
         with:
