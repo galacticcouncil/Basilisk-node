@@ -83,6 +83,9 @@ jobs:
           default: true
       - name: Tests
         run: time cargo test --all --release --verbose --locked
+      - name: Test benchmarks
+        run: cargo test --release --features runtime-benchmarks -p pallet-lbp
+        working-directory: node
       - name: Build release
         run: time cargo build --release --verbose
       - name: Version info
