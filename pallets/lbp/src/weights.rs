@@ -1,4 +1,4 @@
-// This file is part of hack.HydraDX-node.
+// This file is part of HydraDX-node.
 
 // Copyright (C) 2021 Intergalactic Ltd.
 // SPDX-License-Identifier: Apache-2.0
@@ -57,8 +57,8 @@ pub trait WeightInfo {
 }
 
 /// Weights for lbp using the hack.hydraDX node and recommended hardware.
-pub struct HackHydraWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for HackHydraWeight<T> {
+pub struct HydraWeight<T>(PhantomData<T>);
+impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn create_pool() -> Weight {
 		(121_358_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))
