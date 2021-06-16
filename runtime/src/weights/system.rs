@@ -35,11 +35,13 @@
 // --template=.maintain/pallet-weight-template.hbs
 // --output=system.rs
 
-
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
+};
 use sp_std::marker::PhantomData;
 
 use frame_system::WeightInfo;
@@ -47,36 +49,35 @@ use frame_system::WeightInfo;
 /// Weights for frame_system using the hack.hydraDX node and recommended hardware.
 pub struct HydraWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
-	fn remark(_b: u32, ) -> Weight {
+	fn remark(_b: u32) -> Weight {
 		(1_084_000 as Weight)
 	}
-	fn remark_with_event(b: u32, ) -> Weight {
+	fn remark_with_event(b: u32) -> Weight {
 		(1_255_000 as Weight)
 			// Standard Error: 0
 			.saturating_add((1_000 as Weight).saturating_mul(b as Weight))
 	}
 	fn set_heap_pages() -> Weight {
-		(1_772_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		(1_772_000 as Weight).saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	fn set_changes_trie_config() -> Weight {
 		(6_724_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn set_storage(i: u32, ) -> Weight {
+	fn set_storage(i: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 0
 			.saturating_add((590_000 as Weight).saturating_mul(i as Weight))
 			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(i as Weight)))
 	}
-	fn kill_storage(i: u32, ) -> Weight {
+	fn kill_storage(i: u32) -> Weight {
 		(5_051_000 as Weight)
 			// Standard Error: 2_000
 			.saturating_add((439_000 as Weight).saturating_mul(i as Weight))
 			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(i as Weight)))
 	}
-	fn kill_prefix(p: u32, ) -> Weight {
+	fn kill_prefix(p: u32) -> Weight {
 		(12_078_000 as Weight)
 			// Standard Error: 3_000
 			.saturating_add((798_000 as Weight).saturating_mul(p as Weight))

@@ -565,7 +565,9 @@ dependencies = [
  "orml-traits",
  "pallet-asset-registry",
  "pallet-aura",
+ "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-selection",
  "pallet-collective",
  "pallet-democracy",
  "pallet-exchange",
@@ -5095,6 +5097,24 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "sp-trie",
+]
+
+[[package]]
+name = "pallet-collator-selection"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/statemint?rev=903a7569f7ff5ca66848827a937a809a1b9eac21#903a7569f7ff5ca66848827a937a809a1b9eac21"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-authorship",
+ "pallet-session",
+ "parity-scale-codec 2.1.1",
+ "serde",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
 ]
 
 [[package]]
