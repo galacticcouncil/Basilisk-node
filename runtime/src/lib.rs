@@ -587,7 +587,7 @@ impl pallet_authorship::Config for Runtime {
 
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const MaxCandidates: u32 = 20;              //TODO: check this param
+	pub const MaxCandidates: u32 = 20;             // only for benchmarking
 	pub const MaxInvulnerables: u32 = 10;
 }
 
@@ -600,13 +600,13 @@ impl pallet_collator_selection::Config for Runtime {
 	type MaxCandidates = MaxCandidates;
 	type MaxInvulnerables = MaxInvulnerables;
 	// should be a multiple of session or things will get inconsistent
-	type KickThreshold = Period; //TODO: check this param
+	type KickThreshold = Period;
 	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(33);
-	pub const Period: u32 = 1 * MINUTES;//4 * HOURS;
+	pub const Period: u32 = 4 * HOURS;
 	pub const Offset: u32 = 0;
 }
 
