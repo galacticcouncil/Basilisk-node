@@ -29,12 +29,14 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-	construct_runtime, parameter_types, PalletId, StorageValue,
+	construct_runtime, parameter_types,
 	traits::{Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, IdentityFee, Pays, Weight,
+		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	},
+	PalletId, StorageValue,
 };
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
@@ -127,7 +129,7 @@ pub const DAYS: BlockNumber = HOURS * 24;
 pub const FORTUNE: Balance = u128::MAX;
 pub const BSX: Balance = 1_000_000_000_000;
 pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
-pub const CENTS: Balance = DOLLARS / 100;
+pub const CENTS: Balance = DOLLARS / 100; // 1 BSX ~= 1 cent
 pub const MILLICENTS: Balance = CENTS / 1_000;
 
 // 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
@@ -139,8 +141,66 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-/// We allow for 2 seconds of compute with a 6 second average block time.
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
+/// We allow for 0.5 seconds of compute with a 6 second average block time.
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+
+use smallvec::smallvec;
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+	type Balance = Balance;
+
+	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
+	/// node's balance type.
+	///
+	/// This should typically create a mapping between the following ranges:
+	///   - [0, MAXIMUM_BLOCK_WEIGHT]
+	///   - [Balance::min, Balance::max]
+	///
+	/// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
+	///   - Setting it to `0` will essentially disable the weight fee.
+	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		// extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT
+		let p = CENTS; // 1_000_000_000_000
+		let q = 10 * Balance::from(ExtrinsicBaseWeight::get()); // 8_041_050_000
+		smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			negative: false,
+			coeff_frac: Perbill::from_rational(p % q, q),
+			coeff_integer: p / q, // 124
+		}]
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::{
+		ExtrinsicBaseWeight, TransactionByteFee, WeightToFee, CENTS, DOLLARS, MAXIMUM_BLOCK_WEIGHT, MILLICENTS,
+	};
+	use frame_support::weights::WeightToFeePolynomial;
+
+	#[test]
+	fn full_block_fee_is_correct() {
+		// A full block should cost ~166 $
+		let max_bytes = 5 * 1024 * 1024 * 75 / 100;
+		let length_fee = max_bytes * &TransactionByteFee::get(); // 39_321_600_000_000_000
+
+		let max_weight = MAXIMUM_BLOCK_WEIGHT * 75 / 100;
+		let weight_fee = WeightToFee::calc(&max_weight); // 46_635_700_561_125
+
+		let target_fee = 393 * DOLLARS + 68_236_504_666_125;
+		assert_eq!(ExtrinsicBaseWeight::get() as u128 + length_fee + weight_fee, target_fee);
+	}
+
+	#[test]
+	// This function tests that the fee for `ExtrinsicBaseWeight` of weight is correct
+	fn extrinsic_base_fee_is_correct() {
+		// `ExtrinsicBaseWeight` should cost 1/10 of a CENT
+		let x = WeightToFee::calc(&ExtrinsicBaseWeight::get()); // 804_105_000
+		let y = CENTS / 10;
+		assert!(x.max(y) - x.min(y) < MILLICENTS);
+	}
+}
 
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
@@ -295,7 +355,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = 1;
+	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
 	pub const MultiPaymentCurrencySetFee: Pays = Pays::No;
 }
 
@@ -382,7 +442,7 @@ impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type CreatePoolOrigin = EnsureRoot<AccountId>;	// TODO: change to governance membership
+	type CreatePoolOrigin = EnsureRoot<AccountId>; // TODO: change to governance membership
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
