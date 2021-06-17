@@ -4761,7 +4761,7 @@ dependencies = [
 [[package]]
 name = "orml-currencies"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=69978ca4278d5bcd0437e50a132034e8230b6a66#69978ca4278d5bcd0437e50a132034e8230b6a66"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ded28318c23e2d263beeb1235f040f51826fe11e#ded28318c23e2d263beeb1235f040f51826fe11e"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4777,7 +4777,7 @@ dependencies = [
 [[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=69978ca4278d5bcd0437e50a132034e8230b6a66#69978ca4278d5bcd0437e50a132034e8230b6a66"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ded28318c23e2d263beeb1235f040f51826fe11e#ded28318c23e2d263beeb1235f040f51826fe11e"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -4792,7 +4792,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=69978ca4278d5bcd0437e50a132034e8230b6a66#69978ca4278d5bcd0437e50a132034e8230b6a66"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ded28318c23e2d263beeb1235f040f51826fe11e#ded28318c23e2d263beeb1235f040f51826fe11e"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -4808,7 +4808,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=69978ca4278d5bcd0437e50a132034e8230b6a66#69978ca4278d5bcd0437e50a132034e8230b6a66"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ded28318c23e2d263beeb1235f040f51826fe11e#ded28318c23e2d263beeb1235f040f51826fe11e"
 dependencies = [
  "frame-support",
  "parity-scale-codec 2.1.1",
