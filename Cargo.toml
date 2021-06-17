@@ -77,10 +77,10 @@ substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate
 
 
 # ORML dependencies
-orml-currencies = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'update-polkadot-v0.9.5' }
-orml-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'update-polkadot-v0.9.5' }
-orml-traits = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'update-polkadot-v0.9.5' }
-orml-utilities = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', branch = 'update-polkadot-v0.9.5' }
+orml-currencies = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '69978ca4278d5bcd0437e50a132034e8230b6a66' }
+orml-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '69978ca4278d5bcd0437e50a132034e8230b6a66' }
+orml-traits = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '69978ca4278d5bcd0437e50a132034e8230b6a66' }
+orml-utilities = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '69978ca4278d5bcd0437e50a132034e8230b6a66' }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.5" }
