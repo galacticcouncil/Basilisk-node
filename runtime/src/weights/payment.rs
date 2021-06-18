@@ -45,15 +45,7 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for transaction_multi_payment.
-pub trait WeightInfo {
-	fn swap_currency() -> Weight;
-	fn set_currency() -> Weight;
-	fn add_currency() -> Weight;
-	fn remove_currency() -> Weight;
-	fn add_member() -> Weight;
-	fn remove_member() -> Weight;
-}
+use pallet_transaction_multi_payment::weights::WeightInfo;
 
 /// Weights for transaction_multi_payment using the hydraDX node and recommended hardware.
 pub struct HydraWeight<T>(PhantomData<T>);
