@@ -83,36 +83,3 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	}
 }
 
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	fn swap_currency() -> Weight {
-		(116_984_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
-	}
-	fn set_currency() -> Weight {
-		(30_981_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
-	}
-	fn add_currency() -> Weight {
-		(22_969_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
-	}
-	fn remove_currency() -> Weight {
-		(23_660_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
-	}
-	fn add_member() -> Weight {
-		(21_431_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
-	}
-	fn remove_member() -> Weight {
-		(22_052_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
-	}
-}
