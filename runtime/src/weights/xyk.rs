@@ -1,4 +1,4 @@
-// This file is part of hack.HydraDX-node.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2021 Intergalactic Ltd.
 // SPDX-License-Identifier: Apache-2.0
