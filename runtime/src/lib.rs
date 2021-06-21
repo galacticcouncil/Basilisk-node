@@ -5,6 +5,9 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 
+#[cfg(test)]
+mod tests;
+
 // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
@@ -40,10 +43,11 @@ pub use frame_support::{
 };
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
+pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
+pub use sp_runtime::{FixedPointNumber, Perbill, Permill, Perquintill};
 
 use primitives::fee;
 
@@ -169,36 +173,6 @@ impl WeightToFeePolynomial for WeightToFee {
 			coeff_frac: Perbill::from_rational(p % q, q),
 			coeff_integer: p / q, // 124
 		}]
-	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::{
-		ExtrinsicBaseWeight, TransactionByteFee, WeightToFee, CENTS, DOLLARS, MAXIMUM_BLOCK_WEIGHT, MILLICENTS,
-	};
-	use frame_support::weights::WeightToFeePolynomial;
-
-	#[test]
-	fn full_block_fee_is_correct() {
-		// A full block should cost ~166 $
-		let max_bytes = 5 * 1024 * 1024 * 75 / 100;
-		let length_fee = max_bytes * &TransactionByteFee::get(); // 39_321_600_000_000_000
-
-		let max_weight = MAXIMUM_BLOCK_WEIGHT * 75 / 100;
-		let weight_fee = WeightToFee::calc(&max_weight); // 46_635_700_561_125
-
-		let target_fee = 393 * DOLLARS + 68_236_504_666_125;
-		assert_eq!(ExtrinsicBaseWeight::get() as u128 + length_fee + weight_fee, target_fee);
-	}
-
-	#[test]
-	// This function tests that the fee for `ExtrinsicBaseWeight` of weight is correct
-	fn extrinsic_base_fee_is_correct() {
-		// `ExtrinsicBaseWeight` should cost 1/10 of a CENT
-		let x = WeightToFee::calc(&ExtrinsicBaseWeight::get()); // 804_105_000
-		let y = CENTS / 10;
-		assert!(x.max(y) - x.min(y) < MILLICENTS);
 	}
 }
 
@@ -356,14 +330,28 @@ impl pallet_balances::Config for Runtime {
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
+	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
+	/// than this will decrease the weight and more will increase.
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
+	/// change the fees more rapidly.
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
+	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
+	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
 	pub const MultiPaymentCurrencySetFee: Pays = Pays::No;
 }
+
+/// Parameterized slow adjusting fee updated based on
+/// https://w3f-research.readthedocs.io/en/latest/polkadot/Token%20Economics.html#-2.-slow-adjusting-mechanism
+pub type SlowAdjustingFeeUpdate<R> =
+	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), MultiTransactionPayment>;
 	type TransactionByteFee = TransactionByteFee;
-	type WeightToFee = IdentityFee<Balance>;
-	type FeeMultiplierUpdate = ();
+	type WeightToFee = WeightToFee;
+	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
 impl pallet_transaction_multi_payment::Config for Runtime {
@@ -373,7 +361,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type AMMPool = XYK;
 	type WeightInfo = weights::payment::HydraWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
-	type WeightToFee = IdentityFee<Balance>;
+	type WeightToFee = WeightToFee;
 }
 
 impl pallet_sudo::Config for Runtime {

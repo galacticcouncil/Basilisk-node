@@ -98,6 +98,7 @@ sp-transaction-pool = { default-features = false, version = '3.0.0' }
 sp-version = { default-features = false, version = '3.0.0' }
 sp-staking = { default-features = false, version = '3.0.0' }
 sp-trie = { default-features = false, version = '3.0.0' }
+sp-io = { default-features = false, version = '3.0.0' }
 
 [features]
 default = ['std']

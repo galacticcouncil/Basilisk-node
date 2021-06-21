@@ -601,6 +601,7 @@ dependencies = [
  "sp-core",
  "sp-externalities",
  "sp-inherents",
+ "sp-io",
  "sp-offchain",
  "sp-runtime",
  "sp-session",
