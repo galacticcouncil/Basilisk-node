@@ -122,7 +122,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 };
 
 //TODO is 6s safe?
-pub const MILLISECS_PER_BLOCK: u64 = 6000;
+pub const MILLISECS_PER_BLOCK: u64 = 12000;
 
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 
@@ -136,16 +136,13 @@ pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
 pub const CENTS: Balance = DOLLARS / 100; // 1 BSX ~= 1 cent
 pub const MILLICENTS: Balance = CENTS / 1_000;
 
-// 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
-pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
-
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
 pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-/// We allow for 0.5 seconds of compute with a 6 second average block time.
+/// We allow for
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
 use smallvec::smallvec;
@@ -314,6 +311,7 @@ impl pallet_timestamp::Config for Runtime {
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 	pub const MaxLocks: u32 = 50;
+	pub const MaxReserves: u32 = 50;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -326,6 +324,8 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = [u8; 8];
 }
 
 parameter_types! {
@@ -456,6 +456,8 @@ impl pallet_aura::Config for Runtime {
 impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
+
+impl pallet_randomness_collective_flip::Config for Runtime {}
 
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 7 * DAYS;
@@ -941,7 +943,31 @@ impl_runtime_apis! {
 	}
 }
 
-cumulus_pallet_parachain_system::register_validate_block!(
-	Runtime,
-	cumulus_pallet_aura_ext::BlockExecutor::<Runtime, Executive>,
-);
+struct CheckInherents;
+
+impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
+	fn check_inherents(
+		block: &Block,
+		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
+	) -> sp_inherents::CheckInherentsResult {
+		let relay_chain_slot = relay_state_proof
+			.read_slot()
+			.expect("Could not read the relay chain slot from the proof");
+
+		let inherent_data =
+			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
+				relay_chain_slot,
+				sp_std::time::Duration::from_secs(6),
+			)
+				.create_inherent_data()
+				.expect("Could not create the timestamp inherent data");
+
+		inherent_data.check_extrinsics(&block)
+	}
+}
+
+cumulus_pallet_parachain_system::register_validate_block! {
+	Runtime = Runtime,
+	BlockExecutor = cumulus_pallet_aura_ext::BlockExecutor::<Runtime, Executive>,
+	CheckInherents = CheckInherents,
+}

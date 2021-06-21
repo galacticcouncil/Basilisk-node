@@ -82,11 +82,11 @@ cumulus-primitives-core = "0.1.0"
 cumulus-primitives-parachain-inherent = "0.1.0"
 
 # Polkadot dependencies
-polkadot-cli = {version="0.9.4"}
-polkadot-parachain = {version="0.9.4"}
-polkadot-primitives = {version="0.9.4"}
-polkadot-service = {version="0.9.4"}
-polkadot-test-service = {version="0.9.4"}
+polkadot-cli = {version="0.9.5"}
+polkadot-parachain = {version="0.9.5"}
+polkadot-primitives = {version="0.9.5"}
+polkadot-service = {version="0.9.5"}
+polkadot-test-service = {version="0.9.5"}
 
 [features]
 default = [
@@ -99,9 +99,9 @@ runtime-benchmarks = [
 
 [dev-dependencies]
 # Polkadot dependencies
-polkadot-runtime-common = {version="0.9.4"}
-polkadot-test-client = {version="0.9.4"}
-polkadot-test-runtime = {version="0.9.4"}
+polkadot-runtime-common = {version="0.9.5"}
+polkadot-test-client = {version="0.9.5"}
+polkadot-test-runtime = {version="0.9.5"}
 
 # Substrate dependencies
 pallet-sudo = {version="3.0.0"}
