@@ -15,7 +15,7 @@ substrate-build-script-utils = '3.0.0'
 substrate-wasm-builder = "3.0.0"
 
 [dependencies]
-hex-literal = { optional = true, version = '0.3.1' }
+hex-literal = { version = '0.3.1' }
 tracing-core = { optional = true, version = '0.1.17' }
 serde = { features = ['derive'], optional = true, version = '1.0.101' }
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
@@ -49,6 +49,11 @@ orml-tokens = { default-features = false, version = "0.4.1-dev" }
 orml-traits = { default-features = false, version = "0.4.1-dev" }
 #orml-xtokens = { default-features = false, version = "0.4.1-dev" }
 #orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
+## version from 02/2021 - working
+orml-vesting = {default-features = false, version = '0.4.0'}
+## version 05/2021 - breaks build
+#orml-vesting = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '7c9fd1c7491f8933a589985b7ed434519beeb8bb' }
+
 
 # Cumulus dependencies
 cumulus-pallet-aura-ext = { version = "0.1.0", default-features = false}
@@ -101,7 +106,6 @@ sp-trie = { default-features = false, version = '3.0.0' }
 [features]
 default = ['std']
 runtime-benchmarks = [
-    'hex-literal',
     'frame-benchmarking',
     'frame-support/runtime-benchmarks',
     'frame-system-benchmarking',
@@ -127,6 +131,7 @@ std = [
     'orml-currencies/std',
     'orml-tokens/std',
     'orml-traits/std',
+    'orml-vesting/std',
     #"orml-xtokens/std",
     #"orml-xcm-support/std",
     "cumulus-pallet-parachain-system/std",
@@ -153,7 +158,6 @@ std = [
     'pallet-transaction-payment-rpc-runtime-api/std',
     'pallet-lbp/std',
     'pallet-utility/std',
-    'pallet-vesting/std',
     'sp-api/std',
     'sp-block-builder/std',
     'sp-consensus-aura/std',

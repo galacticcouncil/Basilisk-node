@@ -563,6 +563,7 @@ dependencies = [
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
+ "orml-vesting",
  "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
@@ -4949,6 +4950,22 @@ version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=3c64d532c8db5311b95d4f39d702d15bcd6319c1#3c64d532c8db5311b95d4f39d702d15bcd6319c1"
 dependencies = [
  "frame-support",
+ "parity-scale-codec 2.1.1",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "orml-vesting"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c1c7e94bfebdbaef02716f92c26dbfb3c26e2620ca3e44b64087cd1fe1d06aa"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "funty",
  "parity-scale-codec 2.1.1",
  "serde",
  "sp-io",
