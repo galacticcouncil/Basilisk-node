@@ -382,7 +382,7 @@ fn parachain_genesis(
 			members: tech_committee_members,
 			phantom: Default::default(),
 		},
-		orml_vesting: VestingConfig { vesting: vesting_list },
+		vesting: VestingConfig { vesting: vesting_list },
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 	}
