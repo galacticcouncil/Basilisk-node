@@ -306,12 +306,12 @@ fn parachain_genesis(
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 ) -> GenesisConfig {
 	GenesisConfig {
-		frame_system: SystemConfig {
+		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
 			changes_trie_config: Default::default(),
 		},
-		pallet_balances: BalancesConfig {
+		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.
 			balances: endowed_accounts
 				.iter()
@@ -319,16 +319,16 @@ fn parachain_genesis(
 				.map(|k| (k, 1_000_000_000_000_000_000_000u128))
 				.collect(),
 		},
-		pallet_sudo: SudoConfig {
+		sudo: SudoConfig {
 			// Assign network admin rights.
 			key: root_key,
 		},
-		pallet_collator_selection: CollatorSelectionConfig {
+		collator_selection: CollatorSelectionConfig {
 			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
 			candidacy_bond: 10_000,
 			..Default::default()
 		},
-		pallet_session: SessionConfig {
+		session: SessionConfig {
 			keys: initial_authorities
 				.iter()
 				.cloned()
@@ -344,8 +344,8 @@ fn parachain_genesis(
 
 		// no need to pass anything, it will panic if we do. Session will take care
 		// of this.
-		pallet_aura: Default::default(),
-		pallet_asset_registry: AssetRegistryConfig {
+		aura: Default::default(),
+		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![
 				(b"hKSM".to_vec(), 1),
@@ -355,13 +355,13 @@ fn parachain_genesis(
 			],
 			next_asset_id: 5,
 		},
-		pallet_transaction_multi_payment: MultiTransactionPaymentConfig {
+		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
 			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
-		orml_tokens: TokensConfig {
-			endowed_accounts: endowed_accounts
+		tokens: TokensConfig {
+			balances: endowed_accounts
 				.iter()
 				.flat_map(|x| {
 					vec![
@@ -373,17 +373,17 @@ fn parachain_genesis(
 				})
 				.collect(),
 		},
-		pallet_treasury: Default::default(),
-		pallet_collective_Instance1: CouncilConfig {
+		treasury: Default::default(),
+		council: CouncilConfig {
 			members: council_members,
 			phantom: Default::default(),
 		},
-		pallet_collective_Instance2: TechnicalCommitteeConfig {
+		technical_committee: TechnicalCommitteeConfig {
 			members: tech_committee_members,
 			phantom: Default::default(),
 		},
 		orml_vesting: VestingConfig { vesting: vesting_list },
 		parachain_info: ParachainInfoConfig { parachain_id },
-		cumulus_pallet_aura_ext: Default::default(),
+		aura_ext: Default::default(),
 	}
 }
