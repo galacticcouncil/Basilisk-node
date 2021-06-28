@@ -5,6 +5,9 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 
+#[cfg(test)]
+mod tests;
+
 // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
@@ -29,19 +32,22 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-	construct_runtime, parameter_types, PalletId, StorageValue,
+	construct_runtime, parameter_types,
 	traits::{Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, IdentityFee, Pays, Weight,
+		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	},
+	PalletId, StorageValue,
 };
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
+pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
+pub use sp_runtime::{FixedPointNumber, Perbill, Permill, Perquintill};
 
 use primitives::fee;
 
@@ -127,7 +133,7 @@ pub const DAYS: BlockNumber = HOURS * 24;
 pub const FORTUNE: Balance = u128::MAX;
 pub const BSX: Balance = 1_000_000_000_000;
 pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
-pub const CENTS: Balance = DOLLARS / 100;
+pub const CENTS: Balance = DOLLARS / 100; // 1 BSX ~= 1 cent
 pub const MILLICENTS: Balance = CENTS / 1_000;
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
@@ -138,6 +144,34 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// We allow for
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+
+use smallvec::smallvec;
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+	type Balance = Balance;
+
+	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
+	/// node's balance type.
+	///
+	/// This should typically create a mapping between the following ranges:
+	///   - [0, MAXIMUM_BLOCK_WEIGHT]
+	///   - [Balance::min, Balance::max]
+	///
+	/// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
+	///   - Setting it to `0` will essentially disable the weight fee.
+	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		// extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT
+		let p = CENTS; // 1_000_000_000_000
+		let q = 10 * Balance::from(ExtrinsicBaseWeight::get()); // 7_919_840_000
+		smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			negative: false,
+			coeff_frac: Perbill::from_rational(p % q, q),
+			coeff_integer: p / q, // 124
+		}]
+	}
+}
 
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
@@ -295,15 +329,29 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = 1;
+	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
+	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
+	/// than this will decrease the weight and more will increase.
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
+	/// change the fees more rapidly.
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(6, 100_000);
+	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
+	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
 	pub const MultiPaymentCurrencySetFee: Pays = Pays::No;
 }
+
+/// Parameterized slow adjusting fee updated based on
+/// https://w3f-research.readthedocs.io/en/latest/polkadot/Token%20Economics.html#-2.-slow-adjusting-mechanism
+pub type SlowAdjustingFeeUpdate<R> =
+	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), MultiTransactionPayment>;
 	type TransactionByteFee = TransactionByteFee;
-	type WeightToFee = IdentityFee<Balance>;
-	type FeeMultiplierUpdate = ();
+	type WeightToFee = WeightToFee;
+	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
 impl pallet_transaction_multi_payment::Config for Runtime {
@@ -313,7 +361,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type AMMPool = XYK;
 	type WeightInfo = weights::payment::HydraWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
-	type WeightToFee = IdentityFee<Balance>;
+	type WeightToFee = WeightToFee;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -382,7 +430,7 @@ impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type CreatePoolOrigin = EnsureRoot<AccountId>;	// TODO: change to governance membership
+	type CreatePoolOrigin = EnsureRoot<AccountId>; // TODO: change to governance membership
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
