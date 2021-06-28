@@ -175,7 +175,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::LBP(_)
 			| Call::Utility(_)
 			| Call::Vesting(_)
-			| Call::Nft(_)
+			| Call::NFT(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -708,7 +708,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Nft: pallet_nft::{Pallet, Call, Event<T>, Storage},
+		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 	}
 );
 
@@ -912,7 +912,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
-			add_benchmark!(params, batches, pallet_nft, Nft);
+			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
 			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 
