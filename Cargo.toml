@@ -112,17 +112,18 @@ cumulus-pallet-parachain-system = { git = 'https://github.com/paritytech/cumulus
 #cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.4" }
 parachain-info = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.5" }
 
-
+# HydraDX utils
 hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-primitives = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-xyk = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-multi-payment-benchmarking = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-exchange = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-exchange-benchmarking = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-xyk-rpc-runtime-api = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
-pallet-xyk-rpc = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "master" }
+
+primitives = { path = "primitives"}
+pallet-transaction-multi-payment = {path = "pallets/transaction-multi-payment"}
+pallet-multi-payment-benchmarking = { path = "pallets/transaction-multi-payment/benchmarking"}
+pallet-exchange = {path = "pallets/exchange"}
+pallet-exchange-benchmarking = { path = "pallets/exchange/benchmarking"}
+pallet-asset-registry = {path = "pallets/asset-registry"}
+pallet-xyk = { path = "pallets/xyk"}
+pallet-xyk-rpc-runtime-api = {path = "pallets/xyk/rpc/runtime-api"}
+pallet-xyk-rpc = {path="pallets/xyk/rpc"}
 
 [profile.release]
 panic = 'unwind'
