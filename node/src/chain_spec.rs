@@ -118,7 +118,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
-				get_vesting_config_for_test(),
+				vec![]
 			)
 		},
 		// Bootnodes
@@ -382,7 +382,7 @@ fn parachain_genesis(
 			members: tech_committee_members,
 			phantom: Default::default(),
 		},
-		vesting: VestingConfig { vesting: vesting_list },
+		vesting: VestingConfig { vesting: vec![] },
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 	}

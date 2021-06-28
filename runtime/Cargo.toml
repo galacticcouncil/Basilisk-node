@@ -50,7 +50,7 @@ orml-traits = { default-features = false, version = "0.4.1-dev" }
 #orml-xtokens = { default-features = false, version = "0.4.1-dev" }
 #orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
 ## version from 02/2021 - working
-orml-vesting = {default-features = false, version = '0.4.0'}
+orml-vesting = { default-features = false, version = "0.4.1-dev" }
 ## version 05/2021 - breaks build
 #orml-vesting = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '7c9fd1c7491f8933a589985b7ed434519beeb8bb' }
 

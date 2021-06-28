@@ -670,7 +670,7 @@ impl orml_vesting::Config for Runtime {
 	type MinVestedTransfer = MinVestedTransfer;
 	type VestedTransferOrigin = EnsureIntergalactic;
 	type WeightInfo = ();
-	//type MaxVestingSchedules = MaxVestingSchedules;
+	type MaxVestingSchedules = MaxVestingSchedules;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
