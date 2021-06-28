@@ -1,4 +1,4 @@
-// This file is part of Basilisk.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -46,35 +46,34 @@ pub trait WeightInfo {
 {{~/each}}
 }
 
-/// Weights for {{pallet}} using the Basilisk node and recommended hardware.
-pub struct BasiliskWeight<T>(PhantomData<T>);
-
-impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
-    {{~#each benchmarks as |benchmark|}}
-    fn {{benchmark.name~}}
-    (
-    {{~#each benchmark.components as |c| ~}}
-    {{~#if (not c.is_used)}}_{{/if}}{{c.name}}: u32, {{/each~}}
-    ) -> Weight {
-        ({{underscore benchmark.base_weight}} as Weight)
-    {{~#each benchmark.component_weight as |cw|}}
-            // Standard Error: {{underscore cw.error}}
-            .saturating_add(({{underscore cw.slope}} as Weight).saturating_mul({{cw.name}} as Weight))
-    {{~/each}}
-    {{~#if (ne benchmark.base_reads "0")}}
-            .saturating_add(T::DbWeight::get().reads({{benchmark.base_reads}} as Weight))
-    {{~/if}}
-    {{~#each benchmark.component_reads as |cr|}}
-            .saturating_add(T::DbWeight::get().reads(({{cr.slope}} as Weight).saturating_mul({{cr.name}} as Weight)))
-    {{~/each}}
-    {{~#if (ne benchmark.base_writes "0")}}
-            .saturating_add(T::DbWeight::get().writes({{benchmark.base_writes}} as Weight))
-    {{~/if}}
-        {{~#each benchmark.component_writes as |cw|}}
-            .saturating_add(T::DbWeight::get().writes(({{cw.slope}} as Weight).saturating_mul({{cw.name}} as Weight)))
-    {{~/each}}
-    }
-    {{~/each}}
+/// Weights for {{pallet}} using the hack.hydraDX node and recommended hardware.
+pub struct HydraWeight<T>(PhantomData<T>);
+impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
+	{{~#each benchmarks as |benchmark|}}
+	fn {{benchmark.name~}}
+	(
+		{{~#each benchmark.components as |c| ~}}
+		{{~#if (not c.is_used)}}_{{/if}}{{c.name}}: u32, {{/each~}}
+	) -> Weight {
+		({{underscore benchmark.base_weight}} as Weight)
+			{{~#each benchmark.component_weight as |cw|}}
+			// Standard Error: {{underscore cw.error}}
+			.saturating_add(({{underscore cw.slope}} as Weight).saturating_mul({{cw.name}} as Weight))
+			{{~/each}}
+			{{~#if (ne benchmark.base_reads "0")}}
+			.saturating_add(T::DbWeight::get().reads({{benchmark.base_reads}} as Weight))
+			{{~/if}}
+			{{~#each benchmark.component_reads as |cr|}}
+			.saturating_add(T::DbWeight::get().reads(({{cr.slope}} as Weight).saturating_mul({{cr.name}} as Weight)))
+			{{~/each}}
+			{{~#if (ne benchmark.base_writes "0")}}
+			.saturating_add(T::DbWeight::get().writes({{benchmark.base_writes}} as Weight))
+			{{~/if}}
+			{{~#each benchmark.component_writes as |cw|}}
+			.saturating_add(T::DbWeight::get().writes(({{cw.slope}} as Weight).saturating_mul({{cw.name}} as Weight)))
+			{{~/each}}
+	}
+	{{~/each}}
 }
 
 // For backwards compatibility and tests

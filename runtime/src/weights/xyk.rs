@@ -1,4 +1,4 @@
-// This file is part of hack.HydraDX-node.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2021 Intergalactic Ltd.
 // SPDX-License-Identifier: Apache-2.0
@@ -35,11 +35,13 @@
 // --template=.maintain/pallet-weight-template.hbs
 // --output=xyk.rs
 
-
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
+};
 use sp_std::marker::PhantomData;
 
 use pallet_xyk::weights::WeightInfo;

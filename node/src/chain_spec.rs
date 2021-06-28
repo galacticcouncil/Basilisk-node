@@ -1,9 +1,9 @@
 #![allow(clippy::or_fun_call)]
 
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, AuraConfig, AuraId, BalancesConfig, CouncilConfig, GenesisConfig, OrmlNftConfig,
-	ParachainInfoConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
-	CORE_ASSET_ID, WASM_BINARY, MultiTransactionPaymentConfig
+	AccountId, AssetRegistryConfig, AuraId, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
+	MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig,
+	SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -79,10 +79,20 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(),
+				//initial authorities & invulnerables
 				vec![
-					hex!["da0fa4ab419def66fb4ac5224e594e82c34ee795268fc7787c8a096c4ff14f11"].unchecked_into(),
-					hex!["ecd7a5439c6ab0cd6550bc2f1cef5299d425bb95bb6d7afb32aa3d95ee4f7f1f"].unchecked_into(),
-					hex!["f0ad6f1aae7a445c1e80cac883096ec8177eda276fec53ad9ccbe570f3090a26"].unchecked_into(),
+					(
+						hex!["da0fa4ab419def66fb4ac5224e594e82c34ee795268fc7787c8a096c4ff14f11"].into(),
+						hex!["da0fa4ab419def66fb4ac5224e594e82c34ee795268fc7787c8a096c4ff14f11"].unchecked_into(),
+					),
+					(
+						hex!["ecd7a5439c6ab0cd6550bc2f1cef5299d425bb95bb6d7afb32aa3d95ee4f7f1f"].into(),
+						hex!["ecd7a5439c6ab0cd6550bc2f1cef5299d425bb95bb6d7afb32aa3d95ee4f7f1f"].unchecked_into(),
+					),
+					(
+						hex!["f0ad6f1aae7a445c1e80cac883096ec8177eda276fec53ad9ccbe570f3090a26"].into(),
+						hex!["f0ad6f1aae7a445c1e80cac883096ec8177eda276fec53ad9ccbe570f3090a26"].unchecked_into(),
+					),
 				],
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
@@ -144,7 +154,17 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
+				//initial authorities & invulnerables
+				vec![
+					(
+						get_account_id_from_seed::<sr25519::Public>("Alice"),
+						get_from_seed::<AuraId>("Alice"),
+					),
+					(
+						get_account_id_from_seed::<sr25519::Public>("Bob"),
+						get_from_seed::<AuraId>("Bob"),
+					),
+				],
 				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -162,7 +182,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
-				get_account_id_from_seed::<sr25519::Public>("Alice"),  // SAME AS ROOT
+				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 			)
 		},
 		// Bootnodes
@@ -199,7 +219,17 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				vec![get_from_seed::<AuraId>("Alice"), get_from_seed::<AuraId>("Bob")],
+				//initial authorities & invulnerables
+				vec![
+					(
+						get_account_id_from_seed::<sr25519::Public>("Alice"),
+						get_from_seed::<AuraId>("Alice"),
+					),
+					(
+						get_account_id_from_seed::<sr25519::Public>("Bob"),
+						get_from_seed::<AuraId>("Bob"),
+					),
+				],
 				// Pre-funded accounts
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -248,7 +278,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 fn parachain_genesis(
 	wasm_binary: &[u8],
 	root_key: AccountId,
-	initial_authorities: Vec<AuraId>,
+	initial_authorities: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
@@ -257,12 +287,12 @@ fn parachain_genesis(
 	tx_fee_payment_account: AccountId,
 ) -> GenesisConfig {
 	GenesisConfig {
-		frame_system: SystemConfig {
+		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
 			changes_trie_config: Default::default(),
 		},
-		pallet_balances: BalancesConfig {
+		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.
 			balances: endowed_accounts
 				.iter()
@@ -270,14 +300,33 @@ fn parachain_genesis(
 				.map(|k| (k, 1_000_000_000_000_000_000_000u128))
 				.collect(),
 		},
-		pallet_sudo: SudoConfig {
+		sudo: SudoConfig {
 			// Assign network admin rights.
 			key: root_key,
 		},
-		pallet_aura: AuraConfig {
-			authorities: initial_authorities,
+		collator_selection: CollatorSelectionConfig {
+			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
+			candidacy_bond: 10_000,
+			..Default::default()
 		},
-		pallet_asset_registry: AssetRegistryConfig {
+		session: SessionConfig {
+			keys: initial_authorities
+				.iter()
+				.cloned()
+				.map(|(acc, aura)| {
+					(
+						acc.clone(),                                    // account id
+						acc,                                            // validator id
+						basilisk_runtime::opaque::SessionKeys { aura }, // session keys
+					)
+				})
+				.collect(),
+		},
+
+		// no need to pass anything, it will panic if we do. Session will take care
+		// of this.
+		aura: Default::default(),
+		asset_registry: AssetRegistryConfig {
 			core_asset_id: CORE_ASSET_ID,
 			asset_ids: vec![
 				(b"hKSM".to_vec(), 1),
@@ -287,13 +336,13 @@ fn parachain_genesis(
 			],
 			next_asset_id: 5,
 		},
-		pallet_transaction_multi_payment: MultiTransactionPaymentConfig {
+		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
 			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
-		orml_tokens: TokensConfig {
-			endowed_accounts: endowed_accounts
+		tokens: TokensConfig {
+			balances: endowed_accounts
 				.iter()
 				.flat_map(|x| {
 					vec![
@@ -305,20 +354,20 @@ fn parachain_genesis(
 				})
 				.collect(),
 		},
-		pallet_treasury: Default::default(),
-		pallet_collective_Instance1: CouncilConfig {
+		treasury: Default::default(),
+		council: CouncilConfig {
 			members: council_members,
 			phantom: Default::default(),
 		},
-		pallet_collective_Instance2: TechnicalCommitteeConfig {
+		technical_committee: TechnicalCommitteeConfig {
 			members: tech_committee_members,
 			phantom: Default::default(),
 		},
 		orml_nft: OrmlNftConfig {
 			tokens: Default::default(),
 		},
-		pallet_vesting: VestingConfig { vesting: vec![] },
+		vesting: VestingConfig { vesting: vec![] },
 		parachain_info: ParachainInfoConfig { parachain_id },
-		cumulus_pallet_aura_ext: Default::default(),
+		aura_ext: Default::default(),
 	}
 }
