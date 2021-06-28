@@ -88,6 +88,7 @@ impl frame_system::Config for Test {
 
 parameter_types! {
 	pub const ExistentialDeposit: u64 = 1;
+	pub const MaxReserves: u32 = 50;
 }
 impl pallet_balances::Config for Test {
 	type Balance = Balance;
@@ -97,6 +98,8 @@ impl pallet_balances::Config for Test {
 	type AccountStore = frame_system::Pallet<Test>;
 	type MaxLocks = ();
 	type WeightInfo = ();
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = [u8; 8];
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
