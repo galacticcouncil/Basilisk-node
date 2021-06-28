@@ -133,4 +133,6 @@ members = [
   # 'pallets/proposal', Update this
   'node',
   'runtime',
+  'pallets/xyk',
+  'pallets/exchange',
 ]
