@@ -22,6 +22,7 @@ codec = { package = "parity-scale-codec", version = "2.0.0", default-features = 
 hash-db = { version = "0.15.2", default-features = false }
 memory-db = { version = "0.26.0", default-features = false }
 trie-db = { version = "0.22.0", default-features = false }
+smallvec = "1.6.1"
 
 # local dependencies
 pallet-asset-registry = { default-features = false, version = '3.0.0' }
@@ -102,6 +103,7 @@ sp-transaction-pool = { default-features = false, version = '3.0.0' }
 sp-version = { default-features = false, version = '3.0.0' }
 sp-staking = { default-features = false, version = '3.0.0' }
 sp-trie = { default-features = false, version = '3.0.0' }
+sp-io = { default-features = false, version = '3.0.0' }
 
 [features]
 default = ['std']
@@ -143,6 +145,7 @@ std = [
     #"xcm-executor/std",
     'parachain-info/std',
     'pallet-xyk/std',
+    'pallet-xyk-rpc-runtime-api/std',
     'pallet-asset-registry/std',
     'pallet-exchange/std',
     'pallet-aura/std',
