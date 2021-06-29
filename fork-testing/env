@@ -1,0 +1,6 @@
+RELAY_BINARY=../polkadot/target/release/polkadot
+RELAYCHAIN_SPEC=./westend-fork.json
+
+PARA_BINARY=../target/release/basilisk
+PARACHAIN_SPEC=local-raw.json
+PARA_ID=4000

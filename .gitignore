@@ -35,3 +35,13 @@ node_modules/
 _actions/
 
 *.orig
+
+fork-testing/*.wasm
+fork-testing/*.state
+fork-testing/relaychain/alice/*
+fork-testing/relaychain/bob/*
+fork-testing/relaychain/charlie/*
+fork-testing/relaychain/dave/*
+fork-testing/parachain/coll-01/*
+fork-testing/parachain/coll-02/*
+fork-testing/parachain/coll-03/*
