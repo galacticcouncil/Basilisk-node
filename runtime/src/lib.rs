@@ -677,12 +677,6 @@ impl pallet_session::Config for Runtime {
 	type WeightInfo = ();
 }
 
-parameter_types! {
-	pub IntergalacticAccounts: Vec<AccountId> = vec![
-		hex_literal::hex!["0abad795adcb5dee45d29528005b1f78d55fc170844babde88df84016c6cd14d"].into(),
-	];
-}
-
 pub struct EnsureRootOrTreasury;
 impl EnsureOrigin<Origin> for EnsureRootOrTreasury {
 	type Success = AccountId;
