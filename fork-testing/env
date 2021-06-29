@@ -1,4 +1,4 @@
-RELAY_BINARY=../polkadot/target/release/polkadot
+RELAY_BINARY=../../polkadot/target/release/polkadot
 RELAYCHAIN_SPEC=./westend-fork.json
 
 PARA_BINARY=../target/release/basilisk
