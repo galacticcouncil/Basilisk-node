@@ -25,7 +25,7 @@
 ### Note
 * `sudo->paras->forceQueueAction(para)`- can be used to speed up parachain actions
 * chains are always start from 0 if `./fork-testing.sh` is used
-* KUSAMA - kusama binary need modifications, some pallets have to be added. Use: `git clone git@github.com:Phala-Network/polkadot.git` branch: `kusama-para-test-093` 
+* KUSAMA - kusama binary needs modifications, some pallets have to be added. Use: `git clone git@github.com:Phala-Network/polkadot.git` branch: `kusama-para-test-093` 
 
 ### Networking
 * *RELAYCHAIN* - `alice` - `127.0.0.1:9944`
@@ -36,7 +36,7 @@
 * *PARACHAIN* - `coll-01` - `127.0.0.1:2244`, `127.0.0.1:2233`
 * *PARACHAIN* - `coll-01` - `127.0.0.1:3344`, `127.0.0.1:3333`
 
-## Usefull commands
+## Useful commands
 * start/stop parchain and relaychain with one cmd `./fork-testing.sh --start/--stop`
 * generate `local` chainspec `../target/release/basilisk build-spec --chain local --raw > local-raw.json`
 * view logs relaychain `docker-compose --env-file env -f relaychain.yml logs --tail=100 -f {alice|bob|charlie|dave}` 
