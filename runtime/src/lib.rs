@@ -20,7 +20,7 @@ use sp_core::{
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount, IdentityLookup, Verify, Zero},
+	traits::{BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount, IdentityLookup, Verify, Zero, AccountIdConversion},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
@@ -683,14 +683,15 @@ parameter_types! {
 	];
 }
 
-pub struct EnsureIntergalactic;
-impl EnsureOrigin<Origin> for EnsureIntergalactic {
+pub struct EnsureRootOrTreasury;
+impl EnsureOrigin<Origin> for EnsureRootOrTreasury {
 	type Success = AccountId;
 
 	fn try_origin(o: Origin) -> Result<Self::Success, Origin> {
 		Into::<Result<RawOrigin<AccountId>, Origin>>::into(o).and_then(|o| match o {
+			RawOrigin::Root => Ok(TreasuryPalletId::get().into_account()),
 			RawOrigin::Signed(caller) => {
-				if IntergalacticAccounts::get().contains(&caller) {
+				if caller == TreasuryPalletId::get().into_account() {
 					Ok(caller)
 				} else {
 					Err(Origin::from(Some(caller)))
@@ -707,7 +708,7 @@ impl EnsureOrigin<Origin> for EnsureIntergalactic {
 }
 
 parameter_types! {
-	pub MinVestedTransfer: Balance = BSX / 100_000;
+	pub MinVestedTransfer: Balance = 100_000 * BSX;
 	pub const MaxVestingSchedules: u32 = 100;
 }
 
@@ -715,7 +716,7 @@ impl orml_vesting::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
-	type VestedTransferOrigin = EnsureIntergalactic;
+	type VestedTransferOrigin = EnsureRootOrTreasury;
 	type WeightInfo = ();
 	type MaxVestingSchedules = MaxVestingSchedules;
 }

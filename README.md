@@ -113,7 +113,14 @@ Then open settings screen -> developer and paste
   },
   "LookupSource": "AccountId",
   "OrderedSet": "Vec<AssetId>",
-  "Price": "Balance"
+  "Price": "Balance",
+  "VestingSchedule": {
+    "start": "BlockNumber",
+    "period": "BlockNumber",
+    "period_count": "u32",
+    "per_period": "Compact<Balance>"
+  },
+  "VestingScheduleOf": "VestingSchedule"
 }
 ```
 
