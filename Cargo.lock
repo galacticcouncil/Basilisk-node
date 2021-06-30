@@ -565,7 +565,6 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pallet-vesting",
  "pallet-xyk",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
