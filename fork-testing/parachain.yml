@@ -1,0 +1,113 @@
+version: "3"
+
+networks:
+  fork-off-testing:
+
+services:
+  coll-01:
+    build: ./parachain
+    networks: 
+      - "fork-off-testing"
+    volumes:
+      - ./parachain/coll-01:/data
+      - ./${PARACHAIN_SPEC}:/basilisk/${PARACHAIN_SPEC}
+      - ./${PARA_BINARY}:/basilisk/basilisk
+      - ./${RELAYCHAIN_SPEC}:/basilisk/${RELAYCHAIN_SPEC}
+    ports: 
+      - 127.0.0.1:1144:9944
+      - 127.0.0.1:1133:9933
+    command: 
+      - "/basilisk/basilisk" 
+      - "--chain" 
+      - "/basilisk/${PARACHAIN_SPEC}"
+      - "--parachain-id"
+      - ${PARA_ID}
+      - "--collator"
+      - "--node-key"
+      - "0000000000000000000000000000000000000000000000000000000000000005"
+      - "--bootnodes"
+      - "/dns/coll-01/tcp/30333/p2p/12D3KooWSuTq6MG9gPt7qZqLFKkYrfxMewTZhj9nmRHJkPwzWDG2"
+      - "--unsafe-ws-external"
+      - "--unsafe-rpc-external"
+      - "--rpc-cors"
+      - "all"
+      - "--rpc-methods"
+      - "Unsafe"
+      - "--"
+      - "--chain"
+      - "/basilisk/${RELAYCHAIN_SPEC}"
+      - "--bootnodes"
+      - "/dns/alice/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp"
+      - "--execution=wasm"
+  
+  coll-02:
+    build: ./parachain
+    networks: 
+      - "fork-off-testing"
+    volumes:
+      - ./parachain/coll-02:/data
+      - ./${PARACHAIN_SPEC}:/basilisk/${PARACHAIN_SPEC}
+      - ./${PARA_BINARY}:/basilisk/basilisk
+      - ./${RELAYCHAIN_SPEC}:/basilisk/${RELAYCHAIN_SPEC}
+    ports: 
+      - 127.0.0.1:2244:9944
+      - 127.0.0.1:2233:9933
+    command: 
+      - "/basilisk/basilisk" 
+      - "--chain" 
+      - "/basilisk/${PARACHAIN_SPEC}"
+      - "--parachain-id"
+      - ${PARA_ID}
+      - "--collator"
+      - "--node-key"
+      - "0000000000000000000000000000000000000000000000000000000000000006"
+      - "--bootnodes"
+      - "/dns/coll-01/tcp/30333/p2p/12D3KooWSuTq6MG9gPt7qZqLFKkYrfxMewTZhj9nmRHJkPwzWDG2"
+      - "--unsafe-ws-external"
+      - "--unsafe-rpc-external"
+      - "--rpc-cors"
+      - "all"
+      - "--rpc-methods"
+      - "Unsafe"
+      - "--"
+      - "--chain"
+      - "/basilisk/${RELAYCHAIN_SPEC}"
+      - "--execution=wasm"
+      - "--bootnodes"
+      - "/dns/alice/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp"
+
+  coll-03:
+    build: ./parachain
+    networks: 
+      - "fork-off-testing"
+    volumes:
+      - ./parachain/coll-03:/data
+      - ./${PARACHAIN_SPEC}:/basilisk/${PARACHAIN_SPEC}
+      - ./${PARA_BINARY}:/basilisk/basilisk
+      - ./${RELAYCHAIN_SPEC}:/basilisk/${RELAYCHAIN_SPEC}
+    ports: 
+      - 127.0.0.1:3344:9944
+      - 127.0.0.1:3333:9933
+    command: 
+      - "/basilisk/basilisk" 
+      - "--chain" 
+      - "/basilisk/${PARACHAIN_SPEC}"
+      - "--parachain-id"
+      - ${PARA_ID}
+      - "--collator"
+      - "--node-key"
+      - "0000000000000000000000000000000000000000000000000000000000000007"
+      - "--bootnodes"
+      - "/dns/coll-01/tcp/30333/p2p/12D3KooWSuTq6MG9gPt7qZqLFKkYrfxMewTZhj9nmRHJkPwzWDG2"
+      - "--unsafe-ws-external"
+      - "--unsafe-rpc-external"
+      - "--rpc-cors"
+      - "all"
+      - "--rpc-methods"
+      - "Unsafe"
+      - "--"
+      - "--chain"
+      - "/basilisk/${RELAYCHAIN_SPEC}"
+      - "--execution=wasm"
+      - "--bootnodes"
+      - "/dns/alice/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp"

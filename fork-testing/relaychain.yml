@@ -1,0 +1,106 @@
+version: "3"
+
+networks:
+  fork-off-testing:
+
+services:
+  alice:
+    build: ./relaychain
+    networks: 
+      - "fork-off-testing"
+    volumes:
+      - ./relaychain/alice:/data
+      - ./${RELAYCHAIN_SPEC}:/polkadot/${RELAYCHAIN_SPEC}
+      - ./${RELAY_BINARY}:/polkadot/polkadot
+    ports: 
+      - 127.0.0.1:9944:9944
+    command: 
+      - "/polkadot/polkadot" 
+      - "--chain" 
+      - "/polkadot/${RELAYCHAIN_SPEC}"
+      - "--alice"
+      - "--node-key"
+      - "0000000000000000000000000000000000000000000000000000000000000001"
+      - "--bootnodes"
+      - "/dns/alice/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp"
+      - "--unsafe-ws-external"
+      - "--rpc-cors"
+      - "all"
+
+  bob:
+    build: ./relaychain
+    networks: 
+      - "fork-off-testing"
+    volumes:
+      - ./relaychain/bob:/data
+      - ./${RELAYCHAIN_SPEC}:/polkadot/${RELAYCHAIN_SPEC}
+      - ./${RELAY_BINARY}:/polkadot/polkadot
+    ports: 
+      - 127.0.0.1:9955:9944
+    command: 
+      - "/polkadot/polkadot" 
+      - "--chain" 
+      - "/polkadot/${RELAYCHAIN_SPEC}"
+      - "--ws-port"
+      - "9955"
+      - "--port"
+      - "30555"
+      - "--bob"
+      - "--node-key"
+      - "0000000000000000000000000000000000000000000000000000000000000002"
+      - "--bootnodes"
+      - "/dns/alice/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp"
+      - "--unsafe-ws-external"
+      - "--rpc-cors"
+      - "all"
+
+  charlie:
+    build: ./relaychain
+    networks: 
+      - "fork-off-testing"
+    volumes:
+      - ./relaychain/charlie:/data
+      - ./${RELAYCHAIN_SPEC}:/polkadot/${RELAYCHAIN_SPEC}
+      - ./${RELAY_BINARY}:/polkadot/polkadot
+    ports: 
+      - 127.0.0.1:9966:9944
+    command: 
+      - "/polkadot/polkadot" 
+      - "--chain" 
+      - "/polkadot/${RELAYCHAIN_SPEC}"
+      - "--charlie"
+      - "--node-key"
+      - "0000000000000000000000000000000000000000000000000000000000000003"
+      - "--bootnodes"
+      - "/dns/alice/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp"
+      - "--unsafe-ws-external"
+      - "--rpc-cors"
+      - "all"
+
+  dave:
+    build: ./relaychain
+    networks: 
+      - "fork-off-testing"
+    volumes:
+      - ./relaychain/dave:/data
+      - ./${RELAYCHAIN_SPEC}:/polkadot/${RELAYCHAIN_SPEC}
+      - ./${RELAY_BINARY}:/polkadot/polkadot
+    ports: 
+      - 127.0.0.1:9977:9944
+    command: 
+      - "/polkadot/polkadot" 
+      - "--chain" 
+      - "/polkadot/${RELAYCHAIN_SPEC}"
+      - "--ws-port"
+      - "9977"
+      - "--port"
+      - "30777"
+      - "--dave"
+      - "--node-key"
+      - "0000000000000000000000000000000000000000000000000000000000000004"
+      - "--bootnodes"
+      - "/dns/alice/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp"
+      - "--unsafe-ws-external"
+      - "--rpc-cors"
+      - "all"
+

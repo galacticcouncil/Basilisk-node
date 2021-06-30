@@ -5,29 +5,31 @@ homepage = 'https://github.com/galacticcouncil/Basilisk-node'
 license = 'Apache 2.0'
 name = 'basilisk-runtime'
 repository = 'https://github.com/galacticcouncil/Basilisk-node'
-version = '7.0.0'
+version = '8.0.0'
 
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
 
 [build-dependencies]
 substrate-build-script-utils = '3.0.0'
-substrate-wasm-builder = "3.0.0"
+substrate-wasm-builder = '3.0.0'
 
 [dependencies]
-hex-literal = { optional = true, version = '0.3.1' }
+hex-literal = { version = '0.3.1' }
 tracing-core = { optional = true, version = '0.1.17' }
 serde = { features = ['derive'], optional = true, version = '1.0.101' }
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
 hash-db = { version = "0.15.2", default-features = false }
 memory-db = { version = "0.26.0", default-features = false }
 trie-db = { version = "0.22.0", default-features = false }
+smallvec = "1.6.1"
 
 # local dependencies
 pallet-asset-registry = { default-features = false, version = '3.0.0' }
 pallet-xyk= { default-features = false, version = '1.2.0' }
 pallet-exchange = { default-features = false, version = '4.0.0' }
 pallet-exchange-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
+pallet-nft = { path = '../pallets/nft', default-features = false, version = '1.0.0' }
 pallet-transaction-multi-payment = { default-features = false, version = '4.0.0' }
 pallet-multi-payment-benchmarking = { default-features = false, optional = true, version = '4.0.0' }
 primitives = { default-features = false, version = '4.0.0' }
@@ -44,9 +46,11 @@ pallet-authorship = { git = "https://github.com/paritytech/substrate", branch = 
 
 # ORML dependencies
 orml-currencies = { default-features = false, version = "0.4.1-dev" }
+orml-nft = { default-features = false, version = '0.4.0' }
 orml-tokens = { default-features = false, version = "0.4.1-dev" }
 #orml-unknown-tokens = { default-features = false, version = "0.4.1-dev" }
 orml-traits = { default-features = false, version = "0.4.1-dev" }
+orml-vesting = { default-features = false, version = "0.4.1-dev" }
 #orml-xtokens = { default-features = false, version = "0.4.1-dev" }
 #orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
 
@@ -82,7 +86,6 @@ pallet-timestamp = { default-features = false, version = '3.0.0' }
 pallet-transaction-payment = { default-features = false, version = '3.0.0' }
 pallet-transaction-payment-rpc-runtime-api = { default-features = false, version = '3.0.0' }
 pallet-utility = { default-features = false, version = '3.0.0' }
-pallet-vesting = { default-features = false, version = '3.0.0' }
 sp-api = { default-features = false, version = '3.0.0' }
 sp-block-builder = { default-features = false, version = '3.0.0' }
 sp-consensus-aura = { default-features = false, version = '0.9.0' }
@@ -97,11 +100,11 @@ sp-transaction-pool = { default-features = false, version = '3.0.0' }
 sp-version = { default-features = false, version = '3.0.0' }
 sp-staking = { default-features = false, version = '3.0.0' }
 sp-trie = { default-features = false, version = '3.0.0' }
+sp-io = { default-features = false, version = '3.0.0' }
 
 [features]
 default = ['std']
 runtime-benchmarks = [
-    'hex-literal',
     'frame-benchmarking',
     'frame-support/runtime-benchmarks',
     'frame-system-benchmarking',
@@ -110,6 +113,7 @@ runtime-benchmarks = [
     'pallet-collective/runtime-benchmarks',
     'pallet-timestamp/runtime-benchmarks',
     'pallet-multi-payment-benchmarking',
+    'pallet-nft/runtime-benchmarks',
     "pallet-xyk/runtime-benchmarks",
     "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
@@ -126,6 +130,7 @@ std = [
     'orml-currencies/std',
     'orml-tokens/std',
     'orml-traits/std',
+    'orml-vesting/std',
     #"orml-xtokens/std",
     #"orml-xcm-support/std",
     "cumulus-pallet-parachain-system/std",
@@ -136,13 +141,16 @@ std = [
     #"xcm/std",
     #"xcm-builder/std",
     #"xcm-executor/std",
+    'orml-nft/std',
     'parachain-info/std',
     'pallet-xyk/std',
+    'pallet-xyk-rpc-runtime-api/std',
     'pallet-asset-registry/std',
     'pallet-exchange/std',
     'pallet-aura/std',
     'pallet-balances/std',
     'pallet-grandpa/std',
+    'pallet-nft/std',
     'pallet-randomness-collective-flip/std',
     'pallet-session/std',
     'pallet-sudo/std',
@@ -152,7 +160,6 @@ std = [
     'pallet-transaction-payment-rpc-runtime-api/std',
     'pallet-lbp/std',
     'pallet-utility/std',
-    'pallet-vesting/std',
     'sp-api/std',
     'sp-block-builder/std',
     'sp-consensus-aura/std',
