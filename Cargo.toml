@@ -20,7 +20,6 @@ pallet-timestamp = { git = 'https://github.com/paritytech/substrate', branch = "
 pallet-treasury= { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 pallet-transaction-payment-rpc = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 pallet-transaction-payment-rpc-runtime-api = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
-pallet-vesting = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 sc-basic-authorship = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 sc-chain-spec = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 sc-cli = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
@@ -81,6 +80,7 @@ orml-currencies = { git = 'https://github.com/open-web3-stack/open-runtime-modul
 orml-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ded28318c23e2d263beeb1235f040f51826fe11e' }
 orml-traits = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ded28318c23e2d263beeb1235f040f51826fe11e' }
 orml-utilities = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ded28318c23e2d263beeb1235f040f51826fe11e' }
+orml-vesting = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ded28318c23e2d263beeb1235f040f51826fe11e' }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.5" }
