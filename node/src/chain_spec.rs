@@ -1,9 +1,9 @@
 #![allow(clippy::or_fun_call)]
 
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, AuraId, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
-	MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig,
-	SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY,
+	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
+	GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig, SessionConfig, Signature,
+	SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -122,7 +122,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
-				vec![]
+				vec![].into(),
 			)
 		},
 		// Bootnodes
