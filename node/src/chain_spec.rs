@@ -1,6 +1,10 @@
 #![allow(clippy::or_fun_call)]
 
-use basilisk_runtime::{AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CORE_ASSET_ID, CollatorSelectionConfig, CouncilConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, WASM_BINARY};
+use basilisk_runtime::{
+	AccountId, AssetRegistryConfig, AuraId, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
+	MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig,
+	SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY,
+};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use primitives::BlockNumber;
@@ -383,6 +387,9 @@ fn parachain_genesis(
 			phantom: Default::default(),
 		},
 		vesting: VestingConfig { vesting: vesting_list },
+		orml_nft: OrmlNftConfig {
+			tokens: Default::default(),
+		},
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 	}

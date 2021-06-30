@@ -4,6 +4,8 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
+#![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::from_over_into)]
 
 #[cfg(test)]
 mod tests;
@@ -206,6 +208,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::LBP(_)
 			| Call::Utility(_)
 			| Call::Vesting(_)
+			| Call::NFT(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -459,6 +462,26 @@ impl cumulus_pallet_aura_ext::Config for Runtime {}
 impl pallet_randomness_collective_flip::Config for Runtime {}
 
 parameter_types! {
+	pub ClassBondAmount: Balance = 10_000 * BSX;
+	pub ClassBondDuration: u32 = 7 * DAYS;
+}
+
+impl pallet_nft::Config for Runtime {
+	type Currency = Balances;
+	type Event = Event;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+	type ClassBondAmount = ClassBondAmount;
+	type ClassBondDuration = ClassBondDuration;
+}
+
+impl orml_nft::Config for Runtime {
+	type ClassId = u64;
+	type TokenId = u64;
+	type ClassData = pallet_nft::ClassData;
+	type TokenData = pallet_nft::TokenData;
+}
+
+parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 7 * DAYS;
 	pub const VotingPeriod: BlockNumber = 7 * DAYS;
 	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
@@ -469,7 +492,6 @@ parameter_types! {
 	pub const InstantAllowed: bool = true;
 	pub const MaxVotes: u32 = 30;
 	pub const MaxProposals: u32 = 30;
-
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
@@ -749,8 +771,9 @@ construct_runtime!(
 		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config},
 
 		// ORML related modules
-		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
+		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
+		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
@@ -758,6 +781,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
+		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 	}
 );
 
@@ -959,8 +983,11 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);
+			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
+			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
+			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
