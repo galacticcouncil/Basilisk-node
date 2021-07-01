@@ -30,7 +30,7 @@ structopt = '0.3.8'
 # local dependencies
 basilisk-runtime = {path = '../runtime'}
 pallet-xyk-rpc = {path="../pallets/xyk/rpc"}
-primitives = {version = '4.0.0', path = "../primitives"}
+primitives = {path = "../primitives"}
 
 # Substrate dependencies
 frame-benchmarking = '3.0.0'

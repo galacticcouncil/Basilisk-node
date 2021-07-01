@@ -32,10 +32,10 @@ pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", opti
 pallet-asset-registry = {path = "../pallets/asset-registry",default-features=false}
 pallet-xyk = { path = "../pallets/xyk",default-features=false}
 pallet-xyk-rpc-runtime-api = {path = "../pallets/xyk/rpc/runtime-api",default-features=false}
-pallet-nft = { path = '../pallets/nft', default-features = false, version = '1.0.0' }
-pallet-lbp = { path = '../pallets/lbp', default-features = false, version = '1.0.0' }
+pallet-nft = { path = '../pallets/nft', default-features = false }
+pallet-lbp = { path = '../pallets/lbp', default-features = false }
 
-primitives = { default-features = false, version = '4.0.0', path = "../primitives" }
+primitives = { default-features = false, path = "../primitives" }
 
 pallet-treasury = { version = "3.0.0", default-features = false }
 pallet-democracy = { version = "3.0.0", default-features = false }
