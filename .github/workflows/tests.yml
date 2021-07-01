@@ -77,17 +77,20 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly-2021-02-17
+          toolchain: nightly-2021-06-01
           target: wasm32-unknown-unknown
           override: true
           default: true
-      - name: Tests
-        run: time cargo test --all --release --verbose --locked
-      - name: Test benchmarks
-        run: cargo test --release --features runtime-benchmarks -p pallet-lbp
-        working-directory: node
+      - name: Install tarpaulin
+        run: cargo install cargo-tarpaulin
+      - name: Test && Generate code coverage
+        run: cargo tarpaulin --all-features --workspace --locked  --exclude-files node/* --exclude-files runtime/* --exclude-files infrastructure/* --ignore-tests -o Xml -o lcov
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
       - name: Build release
-        run: time cargo build --release --verbose
+        run: time cargo build --release --quiet --locked
       - name: Version info
         run: ./target/release/basilisk --version
       - name: Upload release binary
