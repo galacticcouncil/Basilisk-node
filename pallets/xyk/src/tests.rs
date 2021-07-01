@@ -339,14 +339,14 @@ fn sell_test() {
 		));
 
 		assert_eq!(Currency::free_balance(asset_a, &user_1), 999799543555322);
-		assert_eq!(Currency::free_balance(asset_b, &user_1), 401363483591788);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 401363483591787);
 		assert_eq!(Currency::free_balance(share_token, &user_1), 600000000000000);
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 200456444678);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 598636516408212);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 598636516408213);
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, asset_a, asset_b, 600000000000000).into(),
-			Event::SellExecuted(ALICE, asset_a, asset_b, 456444678, 1363483591788, asset_b, 2732432047).into(),
+			Event::SellExecuted(ALICE, asset_a, asset_b, 456444678, 1363483591787, asset_b, 2732432047).into(),
 		]);
 	});
 }
@@ -442,13 +442,13 @@ fn work_flow_happy_path_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &user_1), 986_000_000_000_000);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 999_483_333_333_334);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), 994_486_999_999_986);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 994_486_999_999_985);
 
 		assert_eq!(Currency::free_balance(share_token, &user_1), 350_000_000_000);
 		assert_eq!(Currency::free_balance(share_token, &user_2), 300_000_000_000);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 866_666_666_666);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 19_513_000_000_014);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 19_513_000_000_015);
 
 		// User 1 SELLs
 		assert_ok!(XYK::sell(
@@ -461,13 +461,13 @@ fn work_flow_happy_path_should_work() {
 		));
 
 		assert_eq!(Currency::free_balance(asset_a, &user_1), 999_361_111_111_112);
-		assert_eq!(Currency::free_balance(asset_b, &user_1), 990_868_493_499_997);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 990_868_493_499_996);
 
 		let user_2_original_balance_1 = Currency::free_balance(asset_a, &user_2);
 		let user_2_original_balance_2 = Currency::free_balance(asset_b, &user_2);
 
 		assert_eq!(user_2_original_balance_1, 999_483_333_333_334);
-		assert_eq!(user_2_original_balance_2, 994_486_999_999_986);
+		assert_eq!(user_2_original_balance_2, 994_486_999_999_985);
 
 		assert_eq!(Currency::free_balance(share_token, &user_1), 350_000_000_000);
 		assert_eq!(Currency::free_balance(share_token, &user_2), 300_000_000_000);
@@ -480,7 +480,7 @@ fn work_flow_happy_path_should_work() {
 		let user_2_remove_1_balance_2 = Currency::free_balance(asset_b, &user_2);
 
 		assert_eq!(user_2_remove_1_balance_1, 999_483_333_351_111);
-		assert_eq!(user_2_remove_1_balance_2, 994_487_000_225_286);
+		assert_eq!(user_2_remove_1_balance_2, 994_487_000_225_285);
 		assert_eq!(Currency::free_balance(share_token, &user_2), 299_999_990_000);
 
 		assert_ok!(XYK::remove_liquidity(Origin::signed(user_2), asset_b, asset_a, 10_000));
@@ -489,7 +489,7 @@ fn work_flow_happy_path_should_work() {
 		let user_2_remove_2_balance_2 = Currency::free_balance(asset_b, &user_2);
 
 		assert_eq!(user_2_remove_2_balance_1, 999_483_333_368_888);
-		assert_eq!(user_2_remove_2_balance_2, 994_487_000_450_586);
+		assert_eq!(user_2_remove_2_balance_2, 994_487_000_450_585);
 		assert_eq!(Currency::free_balance(share_token, &user_2), 299_999_980_000);
 
 		// The two removes should be equal (this could slip by 1 because of rounding error)
@@ -520,7 +520,7 @@ fn work_flow_happy_path_should_work() {
 				asset_a,
 				asset_b,
 				216_666_666_666,
-				6_486_999_999_986,
+				6_486_999_999_985,
 				asset_b,
 				12_999_999_999,
 			)
@@ -530,7 +530,7 @@ fn work_flow_happy_path_should_work() {
 				asset_a,
 				asset_b,
 				288_888_888_888,
-				4_868_493_499_997,
+				4_868_493_499_996,
 				asset_b,
 				9_756_499_999,
 			)
@@ -600,13 +600,13 @@ fn sell_with_correct_fees_should_work() {
 		));
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 10100000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1980237622,);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1980237623);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_1), 999999989900000);
-		assert_eq!(Currency::free_balance(asset_b, &user_1), 999998019762378,);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 999998019762377);
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, asset_b, 2000000000).into(),
-			Event::SellExecuted(user_1, asset_a, asset_b, 100_000, 19_762_378, asset_b, 39_603).into(),
+			Event::SellExecuted(user_1, asset_a, asset_b, 100_000, 19_762_377, asset_b, 39_603).into(),
 		]);
 	});
 }
@@ -664,12 +664,12 @@ fn discount_sell_fees_should_work() {
 		assert_ok!(XYK::sell(Origin::signed(user_1), asset_a, asset_b, 10_000, 1_500, true,));
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 40_000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 45_009);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 45_010);
 		assert_eq!(Currency::free_balance(asset_a, &native_pair_account), 5_000);
 		assert_eq!(Currency::free_balance(HDX, &native_pair_account), 10_000);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_1), 955_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_1), 954_991);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 954_990);
 		assert_eq!(Currency::free_balance(HDX, &user_1), 989_980);
 
 		expect_events(vec![
@@ -679,7 +679,7 @@ fn discount_sell_fees_should_work() {
 			orml_tokens::Event::Endowed(asset_b, pair_account, 60000).into(),
 			orml_tokens::Event::Endowed(1, 1, 60000).into(),
 			Event::PoolCreated(user_1, asset_a, asset_b, 60_000).into(),
-			Event::SellExecuted(user_1, asset_a, asset_b, 10_000, 14_991, asset_b, 10).into(),
+			Event::SellExecuted(user_1, asset_a, asset_b, 10_000, 14_990, asset_b, 10).into(),
 		]);
 	});
 }
@@ -1237,7 +1237,7 @@ fn test_calculate_out_given_in() {
 		let out_reserve: Balance = 100000;
 		let in_amount: Balance = 100000000000;
 		let result = hydra_dx_math::calculate_out_given_in(in_reserve, out_reserve, in_amount);
-		assert_eq!(result, Ok(991));
+		assert_eq!(result, Ok(990));
 	});
 }
 
@@ -1248,7 +1248,7 @@ fn test_calculate_out_given_in_invalid() {
 		let out_reserve: Balance = 1000;
 		let in_amount: Balance = 0;
 		let result = hydra_dx_math::calculate_out_given_in(in_reserve, out_reserve, in_amount);
-		assert_eq!(result, Err(MathError::ZeroInReserve));
+		assert_eq!(result, Ok(0));
 	});
 }
 
