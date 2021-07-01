@@ -206,20 +206,20 @@ fn sell_test_pool_finalization_states() {
 				4000000000,
 			)
 			.into(),
-			xyk::Event::SellExecuted(user_2, 3000, 2000, 1000000000000, 1976296910892, 2000, 3960514851).into(),
+			xyk::Event::SellExecuted(user_2, 3000, 2000, 1000000000000, 1976296910891, 2000, 3960514851).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				1000000000000,
-				1980257425743,
+				1980257425742,
 			)
 			.into(),
 		]);
 
 		// Check final account balances
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_998_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), 100003974296910892);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 100003974296910891);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_3), 100_001000000000000);
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_997996000000000);
@@ -227,7 +227,7 @@ fn sell_test_pool_finalization_states() {
 		// Check final pool balances
 		// TODO: CHECK IF RIGHT
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 101000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 198029703089108);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 198029703089109);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 	});
@@ -279,14 +279,14 @@ fn sell_test_standard() {
 
 		// Check final account balances -> SEEMS LEGIT
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_998_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), 100003974296910892);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 100003974296910891);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_3), 100_001000000000000);
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_997996000000000);
 
 		// Check final pool balances -> SEEMS LEGIT
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 101000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 198029703089108);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 198029703089109);
 
 		// TODO: check if final transferred balances add up to initial balance
 		// No tokens should be created or lost
@@ -340,13 +340,13 @@ fn sell_test_standard() {
 				4000000000,
 			)
 			.into(),
-			xyk::Event::SellExecuted(user_2, 3000, 2000, 1000000000000, 1976296910892, 2000, 3960514851).into(),
+			xyk::Event::SellExecuted(user_2, 3000, 2000, 1000000000000, 1976296910891, 2000, 3960514851).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				1000000000000,
-				1980257425743,
+				1980257425742,
 			)
 			.into(),
 		]);
@@ -402,11 +402,11 @@ fn sell_test_inverse_standard() {
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_999_000_000_000_000);
 		assert_eq!(Currency::free_balance(asset_b, &user_2), 100_001996000000000);
 
-		assert_eq!(Currency::free_balance(asset_a, &user_3), 100001986118811882);
+		assert_eq!(Currency::free_balance(asset_a, &user_3), 100001986118811881);
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_996_000_000_000_000);
 
 		// Check final pool balances  -> SEEMS LEGIT
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 99_013_881_188_118);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 99_013_881_188_119);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 202004000000000);
 
 		// TODO: check if final transferred balances add up to initial balance
@@ -437,13 +437,13 @@ fn sell_test_inverse_standard() {
 			orml_tokens::Event::Reserved(asset_b, 3, 2000000000000).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 4000000000).into(),
 			orml_tokens::Event::Reserved(asset_a, 3, 2000000000).into(),
-			xyk::Event::SellExecuted(3, 2000, 3000, 2000000000000, 988118811882, 3000, 1980198019).into(),
+			xyk::Event::SellExecuted(3, 2000, 3000, 2000000000000, 988118811881, 3000, 1980198019).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_3,
 				IntentionType::SELL,
 				user_3_sell_intention_id,
 				2000000000000,
-				990099009901,
+				990099009900,
 			)
 			.into(),
 			Event::IntentionResolvedDirectTrade(
@@ -630,14 +630,14 @@ fn sell_test_single_eth_sells() {
 
 		// Check final account balances -> SEEMS LEGIT
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_999_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), 100001899942737485);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 100001899942737484);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_3), 99_998_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_3), 100003913725490197);
+		assert_eq!(Currency::free_balance(asset_b, &user_3), 100003913725490196);
 
 		// Check final pool balances -> SEEMS LEGIT
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 103_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 194_186_331_772_318);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 194_186_331_772_320);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -665,7 +665,7 @@ fn sell_test_single_eth_sells() {
 				asset_a,
 				asset_b,
 				2000000000000,
-				3913725490197,
+				3913725490196,
 				asset_b,
 				7843137254,
 			)
@@ -675,7 +675,7 @@ fn sell_test_single_eth_sells() {
 				IntentionType::SELL,
 				user_3_sell_intention_id,
 				2000000000000,
-				3921568627451,
+				3921568627450,
 			)
 			.into(),
 			xyk::Event::SellExecuted(
@@ -683,7 +683,7 @@ fn sell_test_single_eth_sells() {
 				asset_a,
 				asset_b,
 				1000000000000,
-				1899942737485,
+				1899942737484,
 				asset_b,
 				3807500475,
 			)
@@ -693,7 +693,7 @@ fn sell_test_single_eth_sells() {
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				1000000000000,
-				1903750237960,
+				1903750237959,
 			)
 			.into(),
 		]);
@@ -745,14 +745,14 @@ fn sell_test_single_dot_sells() {
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
 
 		// Check final account balances -> SEEMS LEGIT
-		assert_eq!(Currency::free_balance(asset_a, &user_2), 100000486767770571);
+		assert_eq!(Currency::free_balance(asset_a, &user_2), 100000486767770570);
 		assert_eq!(Currency::free_balance(asset_b, &user_2), 99_999_000_000_000_000);
 
-		assert_eq!(Currency::free_balance(asset_a, &user_3), 100000988118811882);
+		assert_eq!(Currency::free_balance(asset_a, &user_3), 100000988118811881);
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_998_000_000_000_000);
 
 		// Check final pool balances -> SEEMS LEGIT
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 98525113417547);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 98525113417549);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 203_000_000_000_000);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
@@ -780,7 +780,7 @@ fn sell_test_single_dot_sells() {
 				asset_b,
 				asset_a,
 				2000000000000,
-				988118811882,
+				988118811881,
 				asset_a,
 				1980198019,
 			)
@@ -790,7 +790,7 @@ fn sell_test_single_dot_sells() {
 				IntentionType::SELL,
 				user_3_sell_intention_id,
 				2000000000000,
-				990099009901,
+				990099009900,
 			)
 			.into(),
 			xyk::Event::SellExecuted(
@@ -798,7 +798,7 @@ fn sell_test_single_dot_sells() {
 				asset_b,
 				asset_a,
 				1000000000000,
-				486767770571,
+				486767770570,
 				asset_a,
 				975486514,
 			)
@@ -808,7 +808,7 @@ fn sell_test_single_dot_sells() {
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				1000000000000,
-				487743257085,
+				487743257084,
 			)
 			.into(),
 		]);
@@ -892,7 +892,7 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				asset_a,
 				asset_b,
 				1000000000000,
-				1976237623763,
+				1976237623762,
 				asset_b,
 				3960396039,
 			)
@@ -902,7 +902,7 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				1000000000000,
-				1980198019802,
+				1980198019801,
 			)
 			.into(),
 		]);
@@ -990,11 +990,11 @@ fn sell_test_single_multiple_sells() {
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_999000000000000);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_4), 99_999000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_4), 100001991034974081);
+		assert_eq!(Currency::free_balance(asset_b, &user_4), 100001991034974080);
 
 		// Check final pool balances
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100001522538341);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200012965025919);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100001522538342);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200012965025920);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -1107,7 +1107,7 @@ fn sell_test_single_multiple_sells() {
 				asset_a,
 				asset_b,
 				500000000000,
-				993034974081,
+				993034974080,
 				asset_b,
 				1990050048,
 			)
@@ -1117,7 +1117,7 @@ fn sell_test_single_multiple_sells() {
 				IntentionType::SELL,
 				user_4_sell_intention_id,
 				500000000000,
-				995025024129,
+				995025024128,
 			)
 			.into(),
 			xyk::Event::SellExecuted(
@@ -1125,7 +1125,7 @@ fn sell_test_single_multiple_sells() {
 				asset_b,
 				asset_a,
 				1000000000000,
-				501477461659,
+				501477461658,
 				asset_a,
 				1004964853,
 			)
@@ -1135,7 +1135,7 @@ fn sell_test_single_multiple_sells() {
 				IntentionType::SELL,
 				user_5_sell_intention_id,
 				1000000000000,
-				502482426512,
+				502482426511,
 			)
 			.into(),
 		]);
@@ -1203,11 +1203,11 @@ fn sell_test_group_sells() {
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_997000000000000);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_4), 99_990000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_4), 100019282164364955);
+		assert_eq!(Currency::free_balance(asset_b, &user_4), 100019282164364954);
 
 		// Check final pool balances
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 106008000000000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 188717835635045);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 188717835635046);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -1302,7 +1302,7 @@ fn sell_test_group_sells() {
 				asset_a,
 				asset_b,
 				6000000000000,
-				11298164364955,
+				11298164364954,
 				asset_b,
 				22641611953,
 			)
@@ -1312,7 +1312,7 @@ fn sell_test_group_sells() {
 				IntentionType::SELL,
 				user_4_sell_intention_id,
 				6000000000000,
-				11320805976908,
+				11320805976907,
 			)
 			.into(),
 		]);
@@ -1434,11 +1434,11 @@ fn sell_test_mixed_buy_sells() {
 		assert_eq!(Currency::free_balance(asset_a, &user_3), 100_001497000000000);
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_997000000000000);
 		assert_eq!(Currency::free_balance(asset_a, &user_4), 99_990000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_4), 100018630903108671);
+		assert_eq!(Currency::free_balance(asset_b, &user_4), 100018630903108670);
 
 		// Check final pool balances
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 111533622551048);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 179369096891329);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 179369096891330);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -1504,7 +1504,7 @@ fn sell_test_mixed_buy_sells() {
 				asset_a,
 				asset_b,
 				8500000000000,
-				15636903108671,
+				15636903108670,
 				asset_b,
 				31336479175,
 			)
@@ -1514,7 +1514,7 @@ fn sell_test_mixed_buy_sells() {
 				IntentionType::SELL,
 				user_4_sell_intention_id,
 				8500000000000,
-				15668239587846,
+				15668239587845,
 			)
 			.into(),
 			xyk::Event::BuyExecuted(
@@ -1600,11 +1600,11 @@ fn discount_tests_no_discount() {
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_997000000000000);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_4), 99_990000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_4), 100018630903108671);
+		assert_eq!(Currency::free_balance(asset_b, &user_4), 100018630903108670);
 
 		// Check final pool balances
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 111533622551048);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 179369096891329);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 179369096891330);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -1670,7 +1670,7 @@ fn discount_tests_no_discount() {
 				asset_a,
 				asset_b,
 				8500000000000,
-				15636903108671,
+				15636903108670,
 				asset_b,
 				31336479175,
 			)
@@ -1680,7 +1680,7 @@ fn discount_tests_no_discount() {
 				IntentionType::SELL,
 				user_4_sell_intention_id,
 				8500000000000,
-				15668239587846,
+				15668239587845,
 			)
 			.into(),
 			xyk::Event::BuyExecuted(
@@ -1768,11 +1768,11 @@ fn discount_tests_with_discount() {
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_897000000000000);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_4), 99_990000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_4), 100018651271820135);
+		assert_eq!(Currency::free_balance(asset_b, &user_4), 100018651271820134);
 
 		// Check final pool balances
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 111530034348164);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 179348728179865);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 179348728179866);
 
 		assert_eq!(Currency::free_balance(HDX, &user_4), 99999978064464578);
 		assert_eq!(Currency::free_balance(HDX, &user_2), 99799995765116332);
@@ -1842,7 +1842,7 @@ fn discount_tests_with_discount() {
 				asset_a,
 				asset_b,
 				8500000000000,
-				15657271820135,
+				15657271820134,
 				asset_b,
 				10967767711,
 			)
@@ -1852,7 +1852,7 @@ fn discount_tests_with_discount() {
 				IntentionType::SELL,
 				user_4_sell_intention_id,
 				8500000000000,
-				15668239587846,
+				15668239587845,
 			)
 			.into(),
 			xyk::Event::BuyExecuted(
@@ -2385,8 +2385,8 @@ fn simple_sell_sell() {
 			.into(),
 			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 2).into(),
 			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_a, 1).into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2994, 2000, 6).into(),
-			Event::IntentionResolvedAMMTrade(user_2, IntentionType::SELL, user_2_sell_intention_id, 1500, 3000).into(),
+			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2994, 2000, 5).into(),
+			Event::IntentionResolvedAMMTrade(user_2, IntentionType::SELL, user_2_sell_intention_id, 1500, 2999).into(),
 		]);
 	});
 }
@@ -2568,8 +2568,8 @@ fn simple_sell_buy() {
 			.into(),
 			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 2).into(),
 			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_b, 4).into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1000, 1996, 2000, 4).into(),
-			Event::IntentionResolvedAMMTrade(user_2, IntentionType::SELL, user_2_sell_intention_id, 1000, 2000).into(),
+			xyk::Event::SellExecuted(2, 3000, 2000, 1000, 1996, 2000, 3).into(),
+			Event::IntentionResolvedAMMTrade(user_2, IntentionType::SELL, user_2_sell_intention_id, 1000, 1999).into(),
 		]);
 	});
 }
@@ -2700,11 +2700,11 @@ fn single_sell_intention_test() {
 
 		// Check final account balances -> SEEMS LEGIT
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_998_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), 100003913725490197);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 100003913725490196);
 
 		// Check final pool balances -> SEEMS LEGIT
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 102000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 196086274509803);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 196086274509804);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -2718,13 +2718,13 @@ fn single_sell_intention_test() {
 				user_2_sell_intention_id,
 			)
 			.into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 2000000000000, 3913725490197, 2000, 7843137254).into(),
+			xyk::Event::SellExecuted(2, 3000, 2000, 2000000000000, 3913725490196, 2000, 7843137254).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				2000000000000,
-				3921568627451,
+				3921568627450,
 			)
 			.into(),
 		]);
@@ -3084,7 +3084,7 @@ fn matching_limits_sell_buy_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &user_2), 99_939_880_000_000_000);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1020000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1961042745098039);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1961042745098040);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -3114,7 +3114,7 @@ fn matching_limits_sell_buy_should_work() {
 				asset_a,
 				asset_b,
 				20_000_000_000_000,
-				39137254901961,
+				39137254901960,
 				asset_b,
 				78431372549,
 			)
@@ -3124,7 +3124,7 @@ fn matching_limits_sell_buy_should_work() {
 				IntentionType::SELL,
 				user_3_sell_intention_id,
 				20_000_000_000_000,
-				39215686274510,
+				39215686274509,
 			)
 			.into(),
 			Event::IntentionResolvedDirectTrade(

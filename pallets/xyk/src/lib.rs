@@ -629,7 +629,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		ensure!(asset_out_reserve > amount_out, Error::<T>::InsufficientAssetBalance);
 
-		ensure!(min_bought <= amount_out_without_fee, Error::<T>::AssetAmountNotReachedLimit);
+		ensure!(
+			min_bought <= amount_out_without_fee,
+			Error::<T>::AssetAmountNotReachedLimit
+		);
 
 		let discount_fee = if discount {
 			let native_asset = T::NativeAssetId::get();
