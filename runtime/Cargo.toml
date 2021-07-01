@@ -25,16 +25,17 @@ trie-db = { version = "0.22.0", default-features = false }
 smallvec = "1.6.1"
 
 # local dependencies
-pallet-asset-registry = { default-features = false, version = '3.0.0' }
-pallet-xyk= { default-features = false, version = '1.2.0' }
-pallet-exchange = { default-features = false, version = '4.0.0' }
-pallet-exchange-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
+pallet-transaction-multi-payment = {path = "../pallets/transaction-multi-payment", default-features = false}
+pallet-multi-payment-benchmarking = { path = "../pallets/transaction-multi-payment/benchmarking", optional=true, default-features= false}
+pallet-exchange = {path = "../pallets/exchange", default-features=false}
+pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional=true, default-features=false}
+pallet-asset-registry = {path = "../pallets/asset-registry",default-features=false}
+pallet-xyk = { path = "../pallets/xyk",default-features=false}
+pallet-xyk-rpc-runtime-api = {path = "../pallets/xyk/rpc/runtime-api",default-features=false}
 pallet-nft = { path = '../pallets/nft', default-features = false, version = '1.0.0' }
-pallet-transaction-multi-payment = { default-features = false, version = '4.0.0' }
-pallet-multi-payment-benchmarking = { default-features = false, optional = true, version = '4.0.0' }
-primitives = { default-features = false, version = '4.0.0' }
-pallet-xyk-rpc-runtime-api = { default-features = false, version = '3.0.0' }
 pallet-lbp = { path = '../pallets/lbp', default-features = false, version = '1.0.0' }
+
+primitives = { default-features = false, version = '4.0.0', path = "../primitives" }
 
 pallet-treasury = { version = "3.0.0", default-features = false }
 pallet-democracy = { version = "3.0.0", default-features = false }

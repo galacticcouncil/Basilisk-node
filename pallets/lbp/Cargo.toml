@@ -28,7 +28,7 @@ serde = {features = ['derive'], optional = true, version = '1.0.101'}
 hydra-dx-math = {default-features = false, version = "2.0.0"}
 
 ## Local dependencies
-primitives = { default-features = false, version = '4.1.0' }
+primitives = { default-features = false, path = "../../primitives" }
 
 ## ORML dependencies
 orml-traits = {default-features = false, version = "0.4.1-dev"}
