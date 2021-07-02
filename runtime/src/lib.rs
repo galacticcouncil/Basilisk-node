@@ -22,7 +22,7 @@ use sp_core::{
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount, IdentityLookup, Verify, Zero, AccountIdConversion},
+	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify, Zero},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
@@ -34,13 +34,14 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-	construct_runtime, parameter_types, PalletId, StorageValue,
-	traits::{Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, EnsureOrigin},
+	construct_runtime, parameter_types,
+	traits::{EnsureOrigin, Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
 		WeightToFeePolynomial,
 	},
+	PalletId, StorageValue,
 };
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
@@ -146,7 +147,9 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// We allow for
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
+use frame_support::sp_runtime::offchain::storage_lock::BlockNumberProvider;
 use smallvec::smallvec;
+
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
@@ -728,6 +731,18 @@ parameter_types! {
 	pub const MaxVestingSchedules: u32 = 100;
 }
 
+pub struct RelaychainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
+
+impl BlockNumberProvider for RelaychainBlockNumberProvider<Runtime> {
+	type BlockNumber = BlockNumber;
+
+	fn current_block_number() -> Self::BlockNumber {
+		cumulus_pallet_parachain_system::Pallet::<Runtime>::validation_data()
+			.map(|d| d.relay_parent_number)
+			.unwrap_or_default()
+	}
+}
+
 impl orml_vesting::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -735,6 +750,7 @@ impl orml_vesting::Config for Runtime {
 	type VestedTransferOrigin = EnsureRootOrTreasury;
 	type WeightInfo = ();
 	type MaxVestingSchedules = MaxVestingSchedules;
+	type BlockNumberProvider = RelaychainBlockNumberProvider<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -1006,13 +1022,12 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 			.read_slot()
 			.expect("Could not read the relay chain slot from the proof");
 
-		let inherent_data =
-			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-				relay_chain_slot,
-				sp_std::time::Duration::from_secs(6),
-			)
-				.create_inherent_data()
-				.expect("Could not create the timestamp inherent data");
+		let inherent_data = cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
+			relay_chain_slot,
+			sp_std::time::Duration::from_secs(6),
+		)
+		.create_inherent_data()
+		.expect("Could not create the timestamp inherent data");
 
 		inherent_data.check_extrinsics(&block)
 	}
