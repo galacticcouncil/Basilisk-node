@@ -910,6 +910,100 @@ fn sell_trade_limits_respected_for_matched_intention() {
 }
 
 #[test]
+fn buy_trade_limits_respected_for_matched_intention() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let user_2 = BOB;
+		let user_3 = CHARLIE;
+		let asset_a = ETH;
+		let asset_b = DOT;
+
+		let pool_amount = 100_000_000_000_000;
+		let initial_price = Price::from(2);
+
+		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+
+		assert_ok!(Exchange::buy(
+			Origin::signed(user_2),
+			asset_b,
+			asset_a,
+			1_000_000_000_000,
+			10_000_000_000_000_000,
+			false,
+		));
+
+		assert_ok!(Exchange::buy(
+			Origin::signed(user_3),
+			asset_a,
+			asset_b,
+			100_000_000_000,
+			1,
+			false,
+		));
+		let user_3_buy_intention_id = generate_intention_id(&user_3, 1);
+
+		let user_2_buy_intention_id = generate_intention_id(&user_2, 0);
+
+		// Finalize block
+		<Exchange as OnFinalize<u64>>::on_finalize(9);
+
+		expect_events(vec![
+			Event::IntentionRegistered(
+				user_2,
+				asset_b,
+				asset_a,
+				1_000_000_000_000,
+				IntentionType::BUY,
+				user_2_buy_intention_id,
+			)
+			.into(),
+			Event::IntentionRegistered(
+				user_3,
+				asset_a,
+				asset_b,
+				100_000_000_000,
+				IntentionType::BUY,
+				user_3_buy_intention_id,
+			)
+			.into(),
+			Event::IntentionResolveErrorEvent(
+				user_3,
+				AssetPair {
+					asset_in: asset_b,
+					asset_out: asset_a,
+				},
+				IntentionType::BUY,
+				user_3_buy_intention_id,
+				DispatchError::Module {
+					index: 1,
+					error: 2,
+					message: None,
+				},
+			)
+			.into(),
+			xyk::Event::BuyExecuted(
+				user_2,
+				asset_b,
+				asset_a,
+				1000000000000,
+				502512562815,
+				asset_a,
+				1005025125,
+			)
+			.into(),
+			Event::IntentionResolvedAMMTrade(
+				user_2,
+				IntentionType::BUY,
+				user_2_buy_intention_id,
+				1000000000000,
+				503517587940,
+			)
+			.into(),
+		]);
+	});
+}
+
+#[test]
 fn sell_test_single_multiple_sells() {
 	new_test_ext().execute_with(|| {
 		let user_1 = ALICE;
