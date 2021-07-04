@@ -62,6 +62,89 @@ where
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
+pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+	let mut properties = Map::new();
+	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
+	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
+
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"Basilisk",
+		// ID
+		"basilisk",
+		ChainType::Live,
+		move || {
+			parachain_genesis(
+				wasm_binary,
+				// Sudo account
+				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), //TODO: @jak-pan
+				//initial authorities & invulnerables
+				vec![
+					(
+						hex!["f25e5d7b43266a5b4cca762c9be917f18852d7a5db85e734776206eeb539dd4f"].into(),
+						hex!["f25e5d7b43266a5b4cca762c9be917f18852d7a5db85e734776206eeb539dd4f"].unchecked_into(),
+					),
+					(
+						hex!["e84a7090cb18fe39eafebdae9a3ac1111c955247a202a3ab2a3cfe8573c03c60"].into(),
+						hex!["e84a7090cb18fe39eafebdae9a3ac1111c955247a202a3ab2a3cfe8573c03c60"].unchecked_into(),
+					),
+					(
+						hex!["c49e3fbebac92027e0d19c2fc1ddc288eb549971831e336550832a476727f601"].into(),
+						hex!["c49e3fbebac92027e0d19c2fc1ddc288eb549971831e336550832a476727f601"].unchecked_into(),
+					),
+					(
+						hex!["c856aabea6e433be2dfe233c6118d156133e4e663a1223da06421058ddb56712"].into(),
+						hex!["c856aabea6e433be2dfe233c6118d156133e4e663a1223da06421058ddb56712"].unchecked_into(),
+					),
+					(
+						hex!["e02a753fc885bde7ea5839df8619ab80b67be6c869bc19b41f20f865a2f90578"].into(),
+						hex!["e02a753fc885bde7ea5839df8619ab80b67be6c869bc19b41f20f865a2f90578"].unchecked_into(),
+					),
+				],
+				// Pre-funded accounts
+				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()], //TODO: @jak-pan
+				true,
+				para_id,
+				//council
+				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()], //TODO: @jak-pan
+				//technical committee
+				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()], //TODO: @jak-pan
+				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT    //TODO: @jak-pan
+			)
+		},
+		// Bootnodes
+		vec![
+			"/dns/p2p-01.basilisk.hydradx.io/tcp/30333/p2p/12D3KooWJRdTtgFnwrrcigrMRxdJ9zfmhtpH5qgAV9budWat4UtR"
+				.parse()
+				.unwrap(),
+			"/dns/p2p-02.basilisk.hydradx.io/tcp/30333/p2p/12D3KooWQNvuYebz6Zt34LnesFfdVh5i7FWP8GUe9QxuBmKE4b9R"
+				.parse()
+				.unwrap(),
+			"/dns/p2p-03.basilisk.hydradx.io/tcp/30333/p2p/12D3KooWD2Y9VkfC9cmQEpKZLN26xWq7XPJXHDUH8LNVmhoNBrdJ"
+				.parse()
+				.unwrap(),
+		],
+		// Telemetry
+		Some(
+			TelemetryEndpoints::new(vec![
+				(TELEMETRY_URLS[0].to_string(), 0),
+				(TELEMETRY_URLS[1].to_string(), 0),
+			])
+			.expect("Telemetry url is valid"),
+		),
+		// Protocol ID
+		Some(PROTOCOL_ID),
+		// Properties
+		Some(properties),
+		// Extensions
+		Extensions {
+			relay_chain: "kusama".into(),
+			para_id: para_id.into(),
+		},
+	))
+}
+
 pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
