@@ -25,6 +25,7 @@ use frame_support::sp_runtime::FixedPointNumber;
 use frame_support::traits::OnFinalize;
 use frame_support::{assert_noop, assert_ok};
 use frame_system::InitKind;
+use primitives::traits::Resolver;
 use primitives::Price;
 use sp_runtime::DispatchError;
 
@@ -102,6 +103,37 @@ fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: P
 
 	// Advance blockchain so that we kill old events
 	System::initialize(&1, &[0u8; 32].into(), &Default::default(), InitKind::Full);
+}
+
+#[test]
+fn no_intentions_should_work() {
+	new_test_ext().execute_with(|| {
+		let user = ALICE;
+		let asset_a = ETH;
+		let asset_b = DOT;
+		let pool_amount = 100_000_000_000_000;
+		let initial_price = Price::from(2);
+
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
+
+		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+
+		// Finalize block
+		<Exchange as OnFinalize<u64>>::on_finalize(9);
+
+		assert_eq!(Currency::free_balance(asset_a, &user), 99_900_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user), 99_800_000_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200_000_000_000_000);
+
+		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+	});
 }
 
 #[test]
@@ -903,6 +935,100 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				user_2_sell_intention_id,
 				1000000000000,
 				1980198019801,
+			)
+			.into(),
+		]);
+	});
+}
+
+#[test]
+fn buy_trade_limits_respected_for_matched_intention() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let user_2 = BOB;
+		let user_3 = CHARLIE;
+		let asset_a = ETH;
+		let asset_b = DOT;
+
+		let pool_amount = 100_000_000_000_000;
+		let initial_price = Price::from(2);
+
+		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+
+		assert_ok!(Exchange::buy(
+			Origin::signed(user_2),
+			asset_b,
+			asset_a,
+			1_000_000_000_000,
+			10_000_000_000_000_000,
+			false,
+		));
+
+		assert_ok!(Exchange::buy(
+			Origin::signed(user_3),
+			asset_a,
+			asset_b,
+			100_000_000_000,
+			1,
+			false,
+		));
+		let user_3_buy_intention_id = generate_intention_id(&user_3, 1);
+
+		let user_2_buy_intention_id = generate_intention_id(&user_2, 0);
+
+		// Finalize block
+		<Exchange as OnFinalize<u64>>::on_finalize(9);
+
+		expect_events(vec![
+			Event::IntentionRegistered(
+				user_2,
+				asset_b,
+				asset_a,
+				1_000_000_000_000,
+				IntentionType::BUY,
+				user_2_buy_intention_id,
+			)
+			.into(),
+			Event::IntentionRegistered(
+				user_3,
+				asset_a,
+				asset_b,
+				100_000_000_000,
+				IntentionType::BUY,
+				user_3_buy_intention_id,
+			)
+			.into(),
+			Event::IntentionResolveErrorEvent(
+				user_3,
+				AssetPair {
+					asset_in: asset_b,
+					asset_out: asset_a,
+				},
+				IntentionType::BUY,
+				user_3_buy_intention_id,
+				DispatchError::Module {
+					index: 1,
+					error: 2,
+					message: None,
+				},
+			)
+			.into(),
+			xyk::Event::BuyExecuted(
+				user_2,
+				asset_b,
+				asset_a,
+				1000000000000,
+				502512562815,
+				asset_a,
+				1005025125,
+			)
+			.into(),
+			Event::IntentionResolvedAMMTrade(
+				user_2,
+				IntentionType::BUY,
+				user_2_buy_intention_id,
+				1000000000000,
+				503517587940,
 			)
 			.into(),
 		]);
@@ -3522,5 +3648,537 @@ fn matching_limit_scenario_3() {
 			)
 			.into(),
 		]);
+	});
+}
+
+#[test]
+fn process_invalid_intention_should_work() {
+	// this test targets the `continue` statement in `process_exchange_intention`
+	new_test_ext().execute_with(|| {
+		let one: Balance = 1_000_000_000_000;
+		let user = ALICE;
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 1000 * one;
+		let initial_price = Price::from(2);
+
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
+
+		let main_intention = ExchangeIntention {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 2_000_000,
+			amount_out: 10 * pool_amount,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user, 0),
+		};
+
+		let mut intentions_a = Vec::<Intention<Test>>::new();
+		intentions_a.push(main_intention);
+
+		Exchange::process_exchange_intentions(&pair_account, &intentions_a, &Vec::<Intention<Test>>::new());
+
+		assert_eq!(Currency::free_balance(asset_a, &user), 99_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user), 98_000_000_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000_000_000_000_000);
+	});
+}
+
+#[test]
+fn main_intention_greater_than_matched_should_work() {
+	// this test targets the `break` statement in `process_exchange_intentions`
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let user_2 = BOB;
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 1_000_000_000_000_000;
+		let initial_price = Price::from(2);
+
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+
+		let main_intention = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 2_000_000,
+			amount_out: 1_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		let matched_intention = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 3_000_000,
+			amount_out: 6_000_000,
+			trade_limit: 10,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_a = Vec::<Intention<Test>>::new();
+		intentions_a.push(main_intention);
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention);
+
+		Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b);
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000_000_002_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1_999_999_996_014_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_1), 99_000_000_001_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 97_999_999_997_996_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_999_999_997_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 100_000_000_005_990_000);
+	});
+}
+
+#[test]
+fn in_out_calculations_error_should_work() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let user_2 = BOB;
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 1_000_000_000_000_000;
+		let initial_price = Price::from(2);
+
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+
+		// amount_a_in > amount_b_out scenario
+		let main_intention = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 3_000_000,
+			amount_out: 1_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		let matched_intention = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 3_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 10,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_a = Vec::<Intention<Test>>::new();
+		intentions_a.push(main_intention);
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention);
+
+		let maybe_error = std::panic::catch_unwind(|| {
+			Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b)
+		});
+		assert!(maybe_error.is_err());
+
+		// amount_a_in < amount_b_out scenario
+		let main_intention = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 1_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_1, 2),
+		};
+
+		let matched_intention = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 10,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 3),
+		};
+
+		let mut intentions_a = Vec::<Intention<Test>>::new();
+		intentions_a.push(main_intention);
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention);
+
+		let maybe_error = std::panic::catch_unwind(|| {
+			Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b)
+		});
+		assert!(maybe_error.is_err());
+	});
+}
+
+#[test]
+fn revert_invalid_direct_trades_should_work() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let user_2 = BOB;
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 1_000_000_000_000_000;
+		let initial_price = Price::from(2);
+
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+
+		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, asset_b, 98_000_000_000_000_000));
+
+		// amount_a_in > amount_b_out scenario
+		let main_intention = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 4_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		let matched_intention = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 10,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention);
+
+		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
+
+		// amount_a_in < amount_b_out scenario
+		let main_intention = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 2_000_000,
+			amount_out: 1_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		let matched_intention = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 2_000_000,
+			amount_out: 4_000_000,
+			trade_limit: 10,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention);
+
+		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
+
+		// amount_a_in == amount_b_out scenario
+		let main_intention = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 2_000_000,
+			amount_out: 1_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		let matched_intention = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 10,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention);
+
+		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000_000_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_1), 99_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 0);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_2), 100_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 198_000_000_000_000_000);
+	});
+}
+
+#[test]
+fn invalid_transfers_in_resolver_should_not_work() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let user_2 = BOB;
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 1_000_000_000_000_000;
+		let initial_price = Price::from(2);
+
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+
+		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, asset_b, 98_000_000_000_000_000));
+
+		let main_intention = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 2_000_000_000_000_000,
+			amount_out: 1_000_000_000_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		let matched_intention = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 2_000_000_000_000_000,
+			amount_out: 4_000_000_000_000_000,
+			trade_limit: 10,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention);
+
+		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000_000_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_1), 99_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 0);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_2), 100_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 198_000_000_000_000_000);
+	});
+}
+
+#[test]
+fn trade_limits_in_exact_match_scenario_should_work() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let user_2 = BOB;
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 1_000_000_000_000_000;
+		let initial_price = Price::from(2);
+
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+
+		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, asset_b, 98_000_000_000_000_000));
+
+		let main_intention_1 = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 2_000_000,
+			amount_out: 1_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		let matched_intention_1 = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 10,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention_1);
+
+		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_1, &intentions_b);
+
+		let main_intention_2 = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 2_000_000,
+			amount_out: 1_000_000,
+			trade_limit: 100_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_2, &intentions_b);
+
+		let main_intention_3 = ExchangeIntention {
+			who: user_1,
+			assets: AssetPair {
+				asset_in: asset_b,
+				asset_out: asset_a,
+			},
+			amount_in: 2_000_000,
+			amount_out: 1_000_000,
+			trade_limit: 1_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_1, 0),
+		};
+
+		let matched_intention_3 = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 10_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention_3);
+
+		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_3, &intentions_b);
+
+		let matched_intention_4 = ExchangeIntention {
+			who: user_2,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000,
+			amount_out: 2_000_000,
+			trade_limit: 100_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user_2, 1),
+		};
+
+		let mut intentions_b = Vec::<Intention<Test>>::new();
+		intentions_b.push(matched_intention_4);
+
+		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_3, &intentions_b);
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000_000_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_1), 99_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 0);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_2), 100_000_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 198_000_000_000_000_000);
 	});
 }
