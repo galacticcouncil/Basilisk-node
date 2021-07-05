@@ -67,6 +67,8 @@ sp-tracing = { git = 'https://github.com/paritytech/substrate', branch = "polkad
 sp-transaction-pool = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 sp-trie = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 sp-version = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
+pallet-elections-phragmen = {git = 'https://github.com/paritytech/substrate', branch = 'polkadot-v0.9.5'}
+pallet-tips = {git = 'https://github.com/paritytech/substrate', branch = 'polkadot-v0.9.5'}
 substrate-frame-rpc-system = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 substrate-test-client = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }
 substrate-test-runtime-client = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.5" }

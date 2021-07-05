@@ -2,8 +2,8 @@
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
-	MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig,
-	SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY,
+	MultiTransactionPaymentConfig, OrmlNftConfig, ElectionsConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig,
+	SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY, BSX
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -78,7 +78,7 @@ pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, Str
 			parachain_genesis(
 				wasm_binary,
 				// Sudo account
-				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), //TODO: @jak-pan
+				hex!["0x0"].into(), //TODO intergalactic
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -103,14 +103,11 @@ pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, Str
 					),
 				],
 				// Pre-funded accounts
-				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()], //TODO: @jak-pan
+				vec![], 
 				true,
 				para_id,
-				//council
-				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()], //TODO: @jak-pan
 				//technical committee
-				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()], //TODO: @jak-pan
-				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT    //TODO: @jak-pan
+				hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(), // TREASURY - Fallback for multi tx payment
 			)
 		},
 		// Bootnodes
@@ -158,7 +155,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		"basilisk_egg",
 		ChainType::Live,
 		move || {
-			parachain_genesis(
+			testnet_parachain_genesis(
 				wasm_binary,
 				// Sudo account
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(),
@@ -233,7 +230,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		"dev",
 		ChainType::Development,
 		move || {
-			parachain_genesis(
+			testnet_parachain_genesis(
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -298,7 +295,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		"local_testnet",
 		ChainType::Local,
 		move || {
-			parachain_genesis(
+			testnet_parachain_genesis(
 				wasm_binary,
 				// Sudo account
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -365,6 +362,108 @@ fn parachain_genesis(
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
+	tx_fee_payment_account: AccountId,
+) -> GenesisConfig {
+	GenesisConfig {
+		system: SystemConfig {
+			// Add Wasm runtime to storage.
+			code: wasm_binary.to_vec(),
+			changes_trie_config: Default::default(),
+		},
+		balances: BalancesConfig {
+			// Configure endowed accounts with initial balance of a lot.
+			balances: vec![
+				(
+					// Intergalactic HDX Tokens 15%
+					hex!["0xbca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
+					15_000_000_000u128 * BSX,
+				),
+				(
+					// Treasury 9%
+					hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
+					9_000_000_000 * BSX,
+				),
+			]
+		},
+		sudo: SudoConfig {
+			// Assign network admin rights.
+			key: root_key,
+		},
+		collator_selection: CollatorSelectionConfig {
+			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
+			candidacy_bond: 10_000,
+			..Default::default()
+		},
+		session: SessionConfig {
+			keys: initial_authorities
+				.iter()
+				.cloned()
+				.map(|(acc, aura)| {
+					(
+						acc.clone(),                                    // account id
+						acc,                                            // validator id
+						basilisk_runtime::opaque::SessionKeys { aura }, // session keys
+					)
+				})
+				.collect(),
+		},
+
+		// no need to pass anything, it will panic if we do. Session will take care
+		// of this.
+		aura: Default::default(),
+		asset_registry: AssetRegistryConfig {
+			core_asset_id: CORE_ASSET_ID,
+			asset_ids: vec![],
+			next_asset_id: 1,
+		},
+		multi_transaction_payment: MultiTransactionPaymentConfig {
+			currencies: vec![],
+			authorities: vec![],
+			fallback_account: tx_fee_payment_account,
+		},
+		tokens: TokensConfig {
+			balances: vec![],
+		},
+		treasury: Default::default(),
+		elections: ElectionsConfig {
+			// Intergalactic elections
+			members: vec![(
+				hex!["0xbca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
+				14_999_900_000u128 * BSX,
+			)],
+		},
+		council: CouncilConfig {
+			// Intergalactic council member
+			members: vec![hex!["0xbca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into()],
+			phantom: Default::default(),
+		},
+		technical_committee: TechnicalCommitteeConfig {
+			members: vec![
+				hex!["d6cf8789dce651cb54a4036406f4aa0c771914d345c004ad0567b814c71fb637"].into(),
+				hex!["bc96ec00952efa8f0e3e08b36bf5096bcb877acac536e478aecb72868db5db02"].into(),
+				hex!["2875dd47bc1bcb70e23de79e7538c312be12c716033bbae425130e46f5f2b35e"].into(),
+				hex!["644643bf953233d08c4c9bae0acd49f3baa7658d9b342b7e6879bb149ee6e44c"].into(),
+				hex!["ccdb435892c9883656d0398b2b67023ba1e11bda0c7f213f70fdac54c6abab3f"].into(),
+				hex!["f461c5ae6e80bf4af5b84452789c17b0b0a095a2d77c2a407978147de2d5b572"].into(),
+			],
+			phantom: Default::default(),
+		},
+		orml_nft: OrmlNftConfig {
+			tokens: Default::default(),
+		},
+		vesting: VestingConfig { vesting: vec![] },
+		parachain_info: ParachainInfoConfig { parachain_id }, //TODO
+		aura_ext: Default::default(),
+	}
+}
+
+fn testnet_parachain_genesis(
+	wasm_binary: &[u8],
+	root_key: AccountId,
+	initial_authorities: Vec<(AccountId, AuraId)>,
+	endowed_accounts: Vec<AccountId>,
+	_enable_println: bool,
+	parachain_id: ParaId,
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
 	tx_fee_payment_account: AccountId,
@@ -380,7 +479,7 @@ fn parachain_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1_000_000_000_000_000_000_000u128))
+				.map(|k| (k, 1_000_000_000u128 * BSX))
 				.collect(),
 		},
 		sudo: SudoConfig {
@@ -429,15 +528,22 @@ fn parachain_genesis(
 				.iter()
 				.flat_map(|x| {
 					vec![
-						(x.clone(), 1, 1_000_000_000_000_000_000_000u128),
-						(x.clone(), 2, 1_000_000_000_000_000_000_000u128),
-						(x.clone(), 3, 1_000_000_000_000_000_000_000u128),
-						(x.clone(), 4, 1_000_000_000_000_000_000_000u128),
+						(x.clone(), 1, 1_000_000_000u128 * BSX),
+						(x.clone(), 2, 1_000_000_000u128 * BSX),
+						(x.clone(), 3, 1_000_000_000u128 * BSX),
+						(x.clone(), 4, 1_000_000_000u128 * BSX),
 					]
 				})
 				.collect(),
 		},
 		treasury: Default::default(),
+		elections: ElectionsConfig {
+			// Intergalactic elections
+			members: vec![(
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				100_000_000u128 * BSX,
+			)],
+		},
 		council: CouncilConfig {
 			members: council_members,
 			phantom: Default::default(),
