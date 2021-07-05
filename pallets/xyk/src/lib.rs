@@ -151,8 +151,9 @@ pub mod pallet {
 		SellAssetAmountInvalid, // no tests
 		/// Overflow
 		BuyAssetAmountInvalid, // no tests
+
 		/// Overflow
-		FeeAmountInvalid, // no tests
+		FeeAmountInvalid,
 
 		/// Overflow
 		CannotApplyDiscount,

@@ -1605,3 +1605,35 @@ fn buy_with_excesive_amount_should_not_work() {
 		);
 	});
 }
+
+#[test]
+fn fee_calculation() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(XYK::calculate_discounted_fee(10000), Ok(7));
+		assert_eq!(XYK::calculate_discounted_fee(100000), Ok(70));
+		assert_eq!(XYK::calculate_discounted_fee(100000), Ok(70));
+
+		assert_eq!(XYK::calculate_fee(100000), Ok(200));
+		assert_eq!(XYK::calculate_fee(10000), Ok(20));
+	});
+	ExtBuilder::default()
+		.with_exchange_fee(fee::Fee {
+			numerator: 10,
+			denominator: 1000,
+		})
+		.build()
+		.execute_with(|| {
+			assert_eq!(XYK::calculate_fee(100000), Ok(1000));
+			assert_eq!(XYK::calculate_fee(10000), Ok(100));
+		});
+
+	ExtBuilder::default()
+		.with_exchange_fee(fee::Fee {
+			numerator: 10,
+			denominator: 0,
+		})
+		.build()
+		.execute_with(|| {
+			assert_noop!(XYK::calculate_fee(100000), Error::<Test>::FeeAmountInvalid);
+		});
+}
