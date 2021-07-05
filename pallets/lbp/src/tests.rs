@@ -2373,13 +2373,13 @@ fn sell_should_work() {
 		);
 
 		assert_eq!(Currency::free_balance(asset_in, &who), INITIAL_BALANCE - 10_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_007_332_175);
+		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_007_332_174);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_992_653_132);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_992_653_133);
 
 		expect_events(vec![Event::SellExecuted(
-			who, asset_in, asset_out, 10_000_000, 7_332_175, asset_out, 14_693,
+			who, asset_in, asset_out, 10_000_000, 7_332_174, asset_out, 14_693,
 		)
 		.into()]);
 	});
