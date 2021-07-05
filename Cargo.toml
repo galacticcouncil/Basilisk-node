@@ -72,6 +72,7 @@ substrate-test-client = { git = 'https://github.com/paritytech/substrate', branc
 substrate-test-runtime-client = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 pallet-transaction-payment = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 pallet-elections-phragmen = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
+pallet-utility = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 
 sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.7" }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.7" }
