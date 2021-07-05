@@ -143,6 +143,14 @@ Then open settings screen -> developer and paste
   "ClassIdOf": "ClassId",
   "TokenIdOf": "TokenId"
   "OrderedSet": "Vec<AssetId>",
+  "Price": "Balance",
+  "VestingSchedule": {
+    "start": "BlockNumber",
+    "period": "BlockNumber",
+    "period_count": "u32",
+    "per_period": "Compact<Balance>"
+  },
+  "VestingScheduleOf": "VestingSchedule"
 }
 ```
 

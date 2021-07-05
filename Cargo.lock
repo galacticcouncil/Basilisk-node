@@ -521,7 +521,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -541,6 +541,7 @@ dependencies = [
  "orml-nft",
  "orml-tokens",
  "orml-traits",
+ "orml-vesting",
  "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
@@ -566,7 +567,6 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pallet-vesting",
  "pallet-xyk",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
@@ -3106,18 +3106,9 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "1.0.0"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef1f96851e25837b8a3dc37bfa4cde2c3696fdeb5fcb279aa2ddef6b73604f31"
-dependencies = [
- "primitive-types 0.8.0",
-]
-
-[[package]]
-name = "hydra-dx-math"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d796834f59ab9c02c6f44749064f9049997ac53c1f9cdcc14b709b5fcbc80e0"
+checksum = "89da0625a7ca083062bd64b6787b6cbd71677b332dc20ea5a3d5dc6f14b48a1b"
 dependencies = [
  "lazy_static",
  "num-traits",
@@ -4948,7 +4939,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "orml-traits",
- "orml-utilities 0.4.1-dev",
+ "orml-utilities",
  "parity-scale-codec 2.1.3",
  "serde",
  "sp-io",
@@ -4994,23 +4985,9 @@ dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
  "num-traits",
- "orml-utilities 0.4.1-dev",
+ "orml-utilities",
  "parity-scale-codec 2.1.3",
  "serde",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "orml-utilities"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f84d1a0ce4c65a8695cf8c41895c6161d2345214a4a413e674478f6a37968db"
-dependencies = [
- "frame-support",
- "funty",
- "parity-scale-codec 2.1.3",
  "sp-io",
  "sp-runtime",
  "sp-std",
@@ -5030,6 +5007,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-vesting"
+version = "0.4.1-dev"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ded28318c23e2d263beeb1235f040f51826fe11e#ded28318c23e2d263beeb1235f040f51826fe11e"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "max-encoded-len",
+ "parity-scale-codec 2.1.3",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "owning_ref"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5041,7 +5033,6 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5050,6 +5041,7 @@ dependencies = [
  "primitives",
  "serde",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder 3.0.0",
@@ -5278,7 +5270,6 @@ dependencies = [
 [[package]]
 name = "pallet-exchange"
 version = "4.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5291,6 +5282,7 @@ dependencies = [
  "primitives",
  "serde",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder 3.0.0",
@@ -5299,7 +5291,6 @@ dependencies = [
 [[package]]
 name = "pallet-exchange-benchmarking"
 version = "3.1.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5312,7 +5303,9 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec 2.1.3",
  "primitives",
+ "serde",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder 3.0.0",
@@ -5412,7 +5405,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 2.0.0",
+ "hydra-dx-math",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec 2.1.3",
@@ -5495,7 +5488,6 @@ dependencies = [
 [[package]]
 name = "pallet-multi-payment-benchmarking"
 version = "4.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5504,7 +5496,7 @@ dependencies = [
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
- "orml-utilities 0.4.1-dev",
+ "orml-utilities",
  "pallet-asset-registry",
  "pallet-balances",
  "pallet-transaction-multi-payment",
@@ -5512,7 +5504,9 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec 2.1.3",
  "primitives",
+ "serde",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder 3.0.0",
@@ -5541,7 +5535,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "orml-nft",
- "orml-utilities 0.4.0",
+ "orml-utilities",
  "pallet-balances",
  "parity-scale-codec 2.1.3",
  "primitives",
@@ -5803,22 +5797,24 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "4.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "frame-support",
  "frame-system",
+ "orml-currencies",
  "orml-tokens",
  "orml-traits",
- "orml-utilities 0.4.1-dev",
+ "orml-utilities",
  "pallet-asset-registry",
  "pallet-balances",
  "pallet-transaction-payment",
+ "pallet-xyk",
  "parity-scale-codec 2.1.3",
  "primitive-types 0.8.0",
  "primitives",
  "serde",
  "sp-api",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder 3.0.0",
@@ -5887,12 +5883,13 @@ dependencies = [
 [[package]]
 name = "pallet-utility"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5#9c572625f6557dfdb19f47474369a0327d51dfbc"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcd63d1b336800d155ab60ee918afd111f7449e44cec936f460d555e850fa93b"
 dependencies = [
- "frame-benchmarking",
  "frame-support",
  "frame-system",
  "parity-scale-codec 2.1.3",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -5902,13 +5899,12 @@ dependencies = [
 [[package]]
 name = "pallet-utility"
 version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcd63d1b336800d155ab60ee918afd111f7449e44cec936f460d555e850fa93b"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5#9c572625f6557dfdb19f47474369a0327d51dfbc"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "parity-scale-codec 2.1.3",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -5947,21 +5943,22 @@ dependencies = [
 [[package]]
 name = "pallet-xyk"
 version = "1.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydra-dx-math 1.0.0",
+ "frame-system-benchmarking",
+ "hydra-dx-math",
  "orml-tokens",
  "orml-traits",
- "orml-utilities 0.4.1-dev",
+ "orml-utilities",
  "pallet-asset-registry",
  "parity-scale-codec 2.1.3",
  "primitive-types 0.8.0",
  "primitives",
  "serde",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder 3.0.0",
@@ -5970,7 +5967,6 @@ dependencies = [
 [[package]]
 name = "pallet-xyk-rpc"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -5988,7 +5984,6 @@ dependencies = [
 [[package]]
 name = "pallet-xyk-rpc-runtime-api"
 version = "3.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "parity-scale-codec 2.1.3",
  "serde",
@@ -7547,13 +7542,15 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "4.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#2f037f46d7a616a76bdb316603d2c1cac404124a"
 dependencies = [
  "frame-support",
  "frame-system",
  "parity-scale-codec 2.1.3",
  "primitive-types 0.8.0",
  "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-std",
  "substrate-wasm-builder 3.0.0",
 ]
@@ -10631,7 +10628,8 @@ dependencies = [
 [[package]]
 name = "substrate-build-script-utils"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5#9c572625f6557dfdb19f47474369a0327d51dfbc"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd540ba72520174c2c73ce96bf507eeba3cc8a481f58be92525b69110e1fa645"
 dependencies = [
  "platforms",
 ]
@@ -10639,8 +10637,7 @@ dependencies = [
 [[package]]
 name = "substrate-build-script-utils"
 version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd540ba72520174c2c73ce96bf507eeba3cc8a481f58be92525b69110e1fa645"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5#9c572625f6557dfdb19f47474369a0327d51dfbc"
 dependencies = [
  "platforms",
 ]

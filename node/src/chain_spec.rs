@@ -1,12 +1,13 @@
 #![allow(clippy::or_fun_call)]
 
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, AuraId, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
+	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
 	MultiTransactionPaymentConfig, OrmlNftConfig, ElectionsConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig,
 	SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY, BSX
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
+use primitives::BlockNumber;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use sc_telemetry::TelemetryEndpoints;
@@ -62,6 +63,24 @@ where
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
+pub fn get_vesting_config_for_test() -> Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)> {
+	let vesting_list_json = &include_bytes!("../res/basilisk-vesting-lbp-test.json")[..];
+	let vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)> =
+		serde_json::from_slice(vesting_list_json).unwrap();
+
+	// ensure no duplicates exist.
+	let unique_vesting_accounts = vesting_list
+		.iter()
+		.map(|(x, _, _, _, _)| x)
+		.cloned()
+		.collect::<std::collections::BTreeSet<_>>();
+	assert!(
+		unique_vesting_accounts.len() == vesting_list.len(),
+		"duplicate vesting accounts in genesis."
+	);
+	vesting_list
+}
+
 pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
@@ -78,7 +97,7 @@ pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, Str
 			parachain_genesis(
 				wasm_binary,
 				// Sudo account
-				hex!["0x0"].into(), //TODO intergalactic
+				hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(), //TODO intergalactic
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -183,6 +202,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
+				vec![].into(),
 			)
 		},
 		// Bootnodes
@@ -263,6 +283,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
+				get_vesting_config_for_test(),
 			)
 		},
 		// Bootnodes
@@ -336,6 +357,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
+				get_vesting_config_for_test(),
 			)
 		},
 		// Bootnodes
@@ -359,7 +381,7 @@ fn parachain_genesis(
 	wasm_binary: &[u8],
 	root_key: AccountId,
 	initial_authorities: Vec<(AccountId, AuraId)>,
-	endowed_accounts: Vec<AccountId>,
+	_endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
 	tx_fee_payment_account: AccountId,
@@ -375,7 +397,7 @@ fn parachain_genesis(
 			balances: vec![
 				(
 					// Intergalactic HDX Tokens 15%
-					hex!["0xbca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
+					hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
 					15_000_000_000u128 * BSX,
 				),
 				(
@@ -428,13 +450,13 @@ fn parachain_genesis(
 		elections: ElectionsConfig {
 			// Intergalactic elections
 			members: vec![(
-				hex!["0xbca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
+				hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
 				14_999_900_000u128 * BSX,
 			)],
 		},
 		council: CouncilConfig {
 			// Intergalactic council member
-			members: vec![hex!["0xbca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into()],
+			members: vec![hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into()],
 			phantom: Default::default(),
 		},
 		technical_committee: TechnicalCommitteeConfig {
@@ -467,6 +489,7 @@ fn testnet_parachain_genesis(
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
 	tx_fee_payment_account: AccountId,
+	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -552,10 +575,10 @@ fn testnet_parachain_genesis(
 			members: tech_committee_members,
 			phantom: Default::default(),
 		},
+		vesting: VestingConfig { vesting: vesting_list },
 		orml_nft: OrmlNftConfig {
 			tokens: Default::default(),
 		},
-		vesting: VestingConfig { vesting: vec![] },
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 	}
