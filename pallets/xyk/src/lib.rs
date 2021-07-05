@@ -403,7 +403,7 @@ pub mod pallet {
 			ensure!(
 				(account_shares - liquidity_amount) >= MIN_POOL_LIQUIDITY
 					|| (account_shares - liquidity_amount).is_zero(),
-				Error::<T>::InsufficientAssetBalance
+				Error::<T>::InsufficientLiquidity
 			);
 
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);

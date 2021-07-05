@@ -411,7 +411,13 @@ fn add_liquidity_more_than_owner_should_not_work() {
 #[test]
 fn add_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(XYK::create_pool(Origin::signed(ALICE), HDX, ACA, 1000, Price::from(1)));
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			ACA,
+			1000,
+			Price::from_float(1.5)
+		));
 
 		assert_noop!(
 			XYK::add_liquidity(Origin::signed(ALICE), HDX, ACA, 0, 0),
@@ -421,6 +427,11 @@ fn add_insufficient_liquidity_should_not_work() {
 		assert_noop!(
 			XYK::add_liquidity(Origin::signed(ALICE), HDX, ACA, 1000, 0),
 			Error::<Test>::ZeroLiquidity
+		);
+
+		assert_noop!(
+			XYK::add_liquidity(Origin::signed(BOB), ACA, HDX, 1000, 2000),
+			Error::<Test>::InsufficientLiquidity
 		);
 	});
 }
@@ -439,6 +450,25 @@ fn add_liquidity_exceeding_max_limit_should_not_work() {
 		assert_noop!(
 			XYK::add_liquidity(Origin::signed(ALICE), HDX, ACA, 10_000_000, 1_000_000),
 			Error::<Test>::AssetAmountExceededLimit
+		);
+	});
+}
+#[test]
+fn remove_liquidity_should_respect_min_pool_limit() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			ACA,
+			1000,
+			Price::from_float(1.5)
+		));
+
+		assert_ok!(XYK::add_liquidity(Origin::signed(BOB), ACA, HDX, 2000, 2000));
+
+		assert_noop!(
+			XYK::remove_liquidity(Origin::signed(BOB), ACA, HDX, 500),
+			Error::<Test>::InsufficientLiquidity
 		);
 	});
 }
