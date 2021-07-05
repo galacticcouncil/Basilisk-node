@@ -231,7 +231,7 @@ pub mod pallet {
 				<AccountCurrencyMap<T>>::insert(who.clone(), currency);
 
 				if T::WithdrawFeeForSetCurrency::get() == Pays::Yes {
-					Self::withdraw_set_fee(&who, currency)?;
+					Self::withdraw_set_fee(&who)?;
 				}
 
 				Self::deposit_event(Event::CurrencySet(who, currency));
@@ -371,15 +371,17 @@ impl<T: Config> Pallet<T> {
 		Authorities::<T>::mutate(|x| x.push(who.clone()));
 	}
 
-	pub fn withdraw_set_fee(who: &T::AccountId, currency: AssetId) -> DispatchResult {
+	pub fn withdraw_set_fee(who: &T::AccountId) -> DispatchResult {
 		let base_fee = Self::weight_to_fee(T::BlockWeights::get().get(DispatchClass::Normal).base_extrinsic);
 		let adjusted_weight_fee = Self::weight_to_fee(T::WeightInfo::set_currency());
 		let fee = base_fee.saturating_add(adjusted_weight_fee);
 
-		Self::swap_currency(who, fee)?;
-		T::MultiCurrency::withdraw(currency, who, fee)?;
-
-		Ok(())
+        let result = Self::swap(who, fee)?;
+        match result {
+			PaymentSwapResult::Transferred => Ok(()),
+			PaymentSwapResult::Native | PaymentSwapResult::Swapped => T::MultiCurrency::withdraw(CORE_ASSET_ID, who, fee),
+			PaymentSwapResult::Error => Err(Error::<T>::Overflow.into()),
+		}
 	}
 
 	fn weight_to_fee(weight: Weight) -> Balance {
