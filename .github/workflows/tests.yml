@@ -1,6 +1,9 @@
 name: build-and-deploy
 
 on:
+  push:
+    branches:
+      - master
   workflow_dispatch:
   pull_request:
 
@@ -74,7 +77,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - run: git describe --tags --abbrev=0 --always
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v1.0.7
         with:
           profile: minimal
           toolchain: nightly-2021-06-01
@@ -84,7 +87,7 @@ jobs:
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage
-        run: cargo tarpaulin --all-features --workspace --locked  --exclude-files node/* --exclude-files runtime/* --exclude-files infrastructure/* --ignore-tests -o Xml -o lcov
+        run: cargo tarpaulin --all-features --workspace --locked  --exclude-files node/* --exclude-files runtime/* --exclude-files infrastructure/* --exclude-files **/weights.rs --ignore-tests -o Xml -o lcov
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
