@@ -826,20 +826,20 @@ fn single_buy_with_discount_should_work() {
 	});
 }
 
-/*#[test]
-fn create_pool_with_zero_liquidity_should_not_work() {
+#[test]
+fn create_pool_with_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 0, Price::from(3200)),
-			Error::<Test>::CannotCreatePoolWithZeroLiquidity
+			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 500, Price::from(3200)),
+			Error::<Test>::InsufficientLiquidity
 		);
 
 		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 10, Price::from(0)),
-			Error::<Test>::CannotCreatePoolWithZeroInitialPrice
+			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 1000, Price::from(0)),
+			Error::<Test>::ZeroInitialPrice
 		);
 	});
-}*/
+}
 
 #[test]
 fn add_liquidity_to_non_existing_pool_should_not_work() {
