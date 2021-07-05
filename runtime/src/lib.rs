@@ -22,7 +22,7 @@ use sp_core::{
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, ConvertInto, IdentifyAccount, IdentityLookup, Verify, Zero, AccountIdConversion},
+	traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify, Zero, AccountIdConversion},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
