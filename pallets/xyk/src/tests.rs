@@ -1200,12 +1200,12 @@ fn discount_buy_with_no_native_pool_should_not_work() {
 			Origin::signed(ALICE),
 			ACA,
 			DOT,
-			1000,
+			10000,
 			Price::from(3200)
 		));
 
 		assert_noop!(
-			XYK::buy(Origin::signed(ALICE), ACA, DOT, 10, 1_000_000_000, true),
+			XYK::buy(Origin::signed(ALICE), ACA, DOT, 1000, 1_000_000_000, true),
 			Error::<Test>::CannotApplyDiscount
 		);
 	});
@@ -1565,5 +1565,25 @@ fn test_calculate_in_given_out() {
 		let out_amount: Balance = 1000000;
 		let result = hydra_dx_math::calculate_in_given_out(out_reserve, in_reserve, out_amount);
 		assert_eq!(result, Ok(1111111111112));
+	});
+}
+
+#[test]
+fn sell_with_low_amount_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			XYK::sell(Origin::signed(ALICE), HDX, DOT, 1, 1_000_000, false),
+			Error::<Test>::InsufficientTradingAmount
+		);
+	});
+}
+
+#[test]
+fn buy_with_low_amount_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			XYK::buy(Origin::signed(ALICE), HDX, DOT, 1, 1_000_000, false),
+			Error::<Test>::InsufficientTradingAmount
+		);
 	});
 }

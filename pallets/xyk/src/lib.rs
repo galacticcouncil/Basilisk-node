@@ -596,6 +596,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		min_bought: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, sp_runtime::DispatchError> {
+		ensure!(amount >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
+
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
 		ensure!(
@@ -731,6 +733,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		max_limit: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
+		ensure!(amount >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
+
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
 		let pair_account = Self::get_pair_id(assets);
