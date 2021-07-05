@@ -120,7 +120,7 @@ pub mod pallet {
 		InvalidMintedLiquidity, // No tests - but it is currently not possible this error to occur due to previous checks in the code.
 
 		/// Overflow
-		InvalidLiquidityAmount, // no tests
+		InvalidLiquidityAmount, // no tests - it is currently not possible this error to occur due to previous checks in the code.
 
 		/// Asset amount has exceeded given limit.
 		AssetAmountExceededLimit,
@@ -132,10 +132,10 @@ pub mod pallet {
 		InsufficientAssetBalance,
 
 		/// Not enough asset liquidity in the pool.
-		InsufficientPoolAssetBalance, // No tests
+		InsufficientPoolAssetBalance,
 
 		/// Not enough core asset liquidity in the pool.
-		InsufficientNativeCurrencyBalance, // No tests
+		InsufficientNativeCurrencyBalance,
 
 		/// Liquidity pool for given assets does not exist.
 		TokenPoolNotFound,

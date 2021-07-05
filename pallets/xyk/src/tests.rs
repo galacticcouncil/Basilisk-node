@@ -1587,3 +1587,21 @@ fn buy_with_low_amount_should_not_work() {
 		);
 	});
 }
+
+#[test]
+fn buy_with_excesive_amount_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			DOT,
+			10_000,
+			Price::from(1)
+		));
+
+		assert_noop!(
+			XYK::buy(Origin::signed(ALICE), HDX, DOT, 20_000, 1_000_000, false),
+			Error::<Test>::InsufficientPoolAssetBalance
+		);
+	});
+}
