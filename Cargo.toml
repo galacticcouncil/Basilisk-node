@@ -16,6 +16,7 @@ pallet-randomness-collective-flip = { git = 'https://github.com/paritytech/subst
 pallet-session = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 pallet-scheduler = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 pallet-sudo = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
+pallet-tips = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 pallet-timestamp = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 pallet-treasury= { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 pallet-transaction-payment-rpc = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
@@ -70,6 +71,7 @@ substrate-frame-rpc-system = { git = 'https://github.com/paritytech/substrate', 
 substrate-test-client = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 substrate-test-runtime-client = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 pallet-transaction-payment = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
+pallet-elections-phragmen = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.7" }
 
 sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.7" }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.7" }

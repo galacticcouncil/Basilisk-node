@@ -511,7 +511,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "8.0.0"
+version = "9.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -539,6 +539,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-democracy",
+ "pallet-elections-phragmen",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-grandpa",
@@ -550,6 +551,7 @@ dependencies = [
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
+ "pallet-tips",
  "pallet-transaction-multi-payment",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",

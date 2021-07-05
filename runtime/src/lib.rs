@@ -35,7 +35,7 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOrigin, Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness},
+	traits::{EnsureOrigin, Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
@@ -49,7 +49,7 @@ pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{FixedPointNumber, Perbill, Permill, Perquintill};
+pub use sp_runtime::{FixedPointNumber, Perbill, Permill, Perquintill, Percent};
 
 use primitives::fee;
 
@@ -122,8 +122,6 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
-
-//TODO is 6s safe?
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
@@ -194,6 +192,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Timestamp(_)
 			| Call::RandomnessCollectiveFlip(_)
 			| Call::ParachainSystem(_)
+			| Call::Elections(_)
 			| Call::Democracy(_)
 			| Call::Scheduler(_)
 			| Call::Council(_)
@@ -208,6 +207,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Exchange(_)
 			| Call::MultiTransactionPayment(_)
 			| Call::Tokens(_)
+			| Call::Tips(_)
 			| Call::LBP(_)
 			| Call::Utility(_)
 			| Call::Vesting(_)
@@ -564,6 +564,37 @@ impl pallet_democracy::Config for Runtime {
 }
 
 parameter_types! {
+	// Bond for candidacy into governance
+	pub const CandidacyBond: Balance = 100_000_000_000 * BSX;
+	// 1 storage item created, key size is 32 bytes, value size is 16+16.
+	pub const VotingBondBase: Balance = CENTS;
+	// additional data per vote is 32 bytes (account id).
+	pub const VotingBondFactor: Balance = CENTS;
+	pub const TermDuration: BlockNumber = 7 * DAYS;
+	pub const DesiredMembers: u32 = 1;
+	pub const DesiredRunnersUp: u32 = 0;
+	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
+}
+
+impl pallet_elections_phragmen::Config for Runtime {
+	type Event = Event;
+	type PalletId = ElectionsPhragmenPalletId;
+	type Currency = Balances;
+	type ChangeMembers = Council;
+	type InitializeMembers = (); // Set to () if defined in chain spec
+	type CurrencyToVote = U128CurrencyToVote;
+	type CandidacyBond = CandidacyBond;
+	type VotingBondBase = VotingBondBase;
+	type VotingBondFactor = VotingBondFactor;
+	type LoserCandidate = Treasury;
+	type KickedMember = Treasury;
+	type DesiredMembers = DesiredMembers;
+	type DesiredRunnersUp = DesiredRunnersUp;
+	type TermDuration = TermDuration;
+	type WeightInfo = ();
+}
+
+parameter_types! {
 	pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
 	pub const CouncilMaxProposals: u32 = 20;
 	pub const ProposalVotesRequired: u32 = 1;
@@ -606,7 +637,7 @@ parameter_types! {
 	pub const SpendPeriod: BlockNumber = DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const MaxApprovals: u32 =  100; //TODO: someone should check this value
+	pub const MaxApprovals: u32 =  100; 
 }
 
 type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
@@ -668,10 +699,30 @@ parameter_types! {
 	pub const MaxInvulnerables: u32 = 10;
 }
 
+parameter_types! {
+	pub const DataDepositPerByte: Balance = CENTS;
+	pub const TipCountdown: BlockNumber = 4 * HOURS;
+	pub const TipFindersFee: Percent = Percent::from_percent(1);
+	pub const TipReportDepositBase: Balance = 10 * DOLLARS;
+	pub const TipReportDepositPerByte: Balance = CENTS;
+	pub const MaximumReasonLength: u32 = 1024;
+}
+
+impl pallet_tips::Config for Runtime {
+	type Event = Event;
+	type DataDepositPerByte = DataDepositPerByte;
+	type MaximumReasonLength = MaximumReasonLength;
+	type Tippers = Elections;
+	type TipCountdown = TipCountdown;
+	type TipFindersFee = TipFindersFee;
+	type TipReportDepositBase = TipReportDepositBase;
+	type WeightInfo = ();
+}
+
 impl pallet_collator_selection::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	//allow 1/2 of concil to execute privileged collator selection operations. (require code from: feat/initial_chain_setup)
+	//allow 1/2 of council to execute privileged collator selection operations. (require code from: feat/initial_chain_setup)
 	type UpdateOrigin = EnsureMajorityCouncilOrRoot;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
@@ -769,6 +820,7 @@ construct_runtime!(
 
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>},
+		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
 		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
@@ -789,6 +841,7 @@ construct_runtime!(
 		// ORML related modules
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
 		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
+		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules

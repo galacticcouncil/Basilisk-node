@@ -40,6 +40,8 @@ primitives = { default-features = false, path = "../primitives" }
 pallet-treasury = { version = "3.0.0", default-features = false }
 pallet-democracy = { version = "3.0.0", default-features = false }
 pallet-scheduler = { version = "3.0.0", default-features = false }
+pallet-elections-phragmen = {default-features = false, version = '4.0.0'}
+pallet-tips = {default-features = false, version = '=3.0.0'}
 
 # collator support
 pallet-collator-selection = { default-features=false, version="3.0.0" }
@@ -150,6 +152,7 @@ std = [
     'pallet-exchange/std',
     'pallet-aura/std',
     'pallet-balances/std',
+    'pallet-elections-phragmen/std',
     'pallet-grandpa/std',
     'pallet-nft/std',
     'pallet-randomness-collective-flip/std',
@@ -177,6 +180,7 @@ std = [
     'pallet-collective/std',
     'pallet-democracy/std',
     'pallet-scheduler/std',
+      'pallet-tips/std',
     'pallet-collator-selection/std',
     'pallet-authorship/std',
 ]
