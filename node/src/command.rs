@@ -37,6 +37,7 @@ use std::{io::Write, net::SocketAddr};
 
 fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
+		"" => Box::new(chain_spec::basilisk_parachain_config()?),
 		"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
 		"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 		"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
@@ -73,6 +74,7 @@ impl SubstrateCli for Cli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		let para_id: ParaId = self.run.parachain_id.unwrap_or(200).into();
 		Ok(match id {
+			"" => Box::new(chain_spec::basilisk_parachain_config()?),
 			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
 			"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
