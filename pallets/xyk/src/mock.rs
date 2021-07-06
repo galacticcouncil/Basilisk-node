@@ -26,8 +26,10 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Zero},
 };
 
-use frame_support::traits::GenesisBuild;
+use frame_support::traits::{GenesisBuild, Get};
 use primitives::{fee, AssetId, Balance};
+
+use std::cell::RefCell;
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -56,11 +58,22 @@ frame_support::construct_runtime!(
 
 );
 
+thread_local! {
+		static EXCHANGE_FEE: RefCell<fee::Fee> = RefCell::new(fee::Fee::default());
+}
+
+struct ExchangeFee;
+impl Get<fee::Fee> for ExchangeFee {
+	fn get() -> fee::Fee {
+		EXCHANGE_FEE.with(|v| *v.borrow())
+	}
+}
+
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 63;
 	pub const NativeAssetId: AssetId = HDX;
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub ExchangeFeeRate: fee::Fee = ExchangeFee::get();
 }
 
 impl pallet_asset_registry::Config for Test {
@@ -159,6 +172,11 @@ impl ExtBuilder {
 
 	pub fn with_accounts(mut self, accounts: Vec<(AccountId, AssetId, Balance)>) -> Self {
 		self.endowed_accounts = accounts;
+		self
+	}
+
+	pub fn with_exchange_fee(self, f: fee::Fee) -> Self {
+		EXCHANGE_FEE.with(|v| *v.borrow_mut() = f);
 		self
 	}
 

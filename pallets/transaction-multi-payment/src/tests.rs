@@ -136,7 +136,7 @@ fn fee_payment_in_non_native_currency() {
 	ExtBuilder::default()
 		.base_weight(5)
 		.account_native_balance(CHARLIE, 0)
-		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 1000)
+		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 10000)
 		.build()
 		.execute_with(|| {
 			// Make sure Charlie ain't got a penny!
@@ -154,7 +154,7 @@ fn fee_payment_in_non_native_currency() {
 				SUPPORTED_CURRENCY_WITH_BALANCE
 			));
 
-			let len = 10;
+			let len = 1000;
 			let info = DispatchInfo {
 				weight: 5,
 				..Default::default()
@@ -170,7 +170,7 @@ fn fee_payment_in_non_native_currency() {
 			// token check should be less by the fee amount and -1 as fee in amm swap
 			assert_eq!(
 				Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE),
-				1000 - 20 - 1
+				10000 - 1000 - 23
 			);
 		});
 }
@@ -332,7 +332,10 @@ fn fee_payment_in_non_native_currency_with_no_pool() {
 
 			// token check should be less by the fee amount and -1 as fee in amm swap
 			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 970);
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &FALLBACK_ACCOUNT), 30);
+			assert_eq!(
+				Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &FALLBACK_ACCOUNT),
+				30
+			);
 		});
 }
 
