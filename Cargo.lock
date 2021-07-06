@@ -564,7 +564,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pallet-utility",
  "pallet-xyk",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
@@ -3678,7 +3678,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5)",
+ "pallet-utility",
  "pallet-vesting",
  "pallet-xcm",
  "parity-scale-codec 2.1.3",
@@ -5881,22 +5881,6 @@ dependencies = [
 [[package]]
 name = "pallet-utility"
 version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcd63d1b336800d155ab60ee918afd111f7449e44cec936f460d555e850fa93b"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec 2.1.3",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-utility"
-version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5#9c572625f6557dfdb19f47474369a0327d51dfbc"
 dependencies = [
  "frame-benchmarking",
@@ -7106,7 +7090,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5)",
+ "pallet-utility",
  "pallet-vesting",
  "parity-scale-codec 2.1.3",
  "polkadot-primitives",
@@ -8148,7 +8132,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
- "pallet-utility 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5)",
+ "pallet-utility",
  "pallet-xcm",
  "parity-scale-codec 2.1.3",
  "polkadot-parachain",
@@ -12145,7 +12129,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.5)",
+ "pallet-utility",
  "pallet-vesting",
  "pallet-xcm",
  "parity-scale-codec 2.1.3",
