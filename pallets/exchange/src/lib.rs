@@ -559,7 +559,7 @@ impl<T: Config> Resolver<T::AccountId, Intention<T>, Error<T>> for Pallet<T> {
 			let amount_b_out = matched_intention.amount_out;
 
 			// There are multiple scenarios to handle
-			// !. Main intention amount left > matched intention amount
+			// 1. Main intention amount left > matched intention amount
 			// 2. Main intention amount left < matched intention amount
 			// 3. Main intention amount left = matched intention amount
 
