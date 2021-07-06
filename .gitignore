@@ -46,3 +46,5 @@ fork-testing/parachain/coll-01/*
 fork-testing/parachain/coll-02/*
 fork-testing/parachain/coll-03/*
 fork-testing/local-raw.json
+
+.env
