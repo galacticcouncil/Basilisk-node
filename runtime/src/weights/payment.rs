@@ -82,4 +82,3 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 }
-

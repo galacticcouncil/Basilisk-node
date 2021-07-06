@@ -40,6 +40,7 @@ fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_servic
 		"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
 		"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 		"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
+		"staging" => Box::new(chain_spec::kusama_staging_parachain_config(para_id)?),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
@@ -75,6 +76,7 @@ impl SubstrateCli for Cli {
 			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
 			"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
+			"staging" => Box::new(chain_spec::kusama_staging_parachain_config(para_id)?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
 	}
