@@ -59,6 +59,9 @@ pub const MAX_IN_RATIO: u128 = 3;
 /// Trading limit
 pub const MIN_TRADING_LIMIT: Balance = 1000;
 
+/// Minimum pool liquidity
+pub const MIN_POOL_LIQUIDITY: Balance = 1000;
+
 /// Scaled Unsigned of Balance
 pub type HighPrecisionBalance = U256;
 pub type LowPrecisionBalance = u128;

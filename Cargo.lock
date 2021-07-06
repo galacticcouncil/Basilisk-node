@@ -3104,9 +3104,9 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "3.0.0"
+version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89da0625a7ca083062bd64b6787b6cbd71677b332dc20ea5a3d5dc6f14b48a1b"
+checksum = "b6a3fe933cfec8619fdfce942bc08b618903abb443e9338d307810ce20d6591d"
 dependencies = [
  "lazy_static",
  "num-traits",
