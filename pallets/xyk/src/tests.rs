@@ -82,14 +82,14 @@ fn create_same_pool_should_not_work() {
 			Origin::signed(user),
 			asset_b,
 			asset_a,
-			100,
+			1000,
 			Price::from(2)
 		));
 		assert_noop!(
-			XYK::create_pool(Origin::signed(user), asset_b, asset_a, 100, Price::from(2)),
+			XYK::create_pool(Origin::signed(user), asset_b, asset_a, 1000, Price::from(2)),
 			Error::<Test>::TokenPoolAlreadyExists
 		);
-		expect_events(vec![Event::PoolCreated(ALICE, asset_b, asset_a, 200).into()]);
+		expect_events(vec![Event::PoolCreated(ALICE, asset_b, asset_a, 2000).into()]);
 	});
 }
 
@@ -409,18 +409,29 @@ fn add_liquidity_more_than_owner_should_not_work() {
 }
 
 #[test]
-fn add_zero_liquidity_should_not_work() {
+fn add_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(XYK::create_pool(Origin::signed(ALICE), HDX, ACA, 100, Price::from(1)));
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			ACA,
+			1000,
+			Price::from_float(1.5)
+		));
 
 		assert_noop!(
 			XYK::add_liquidity(Origin::signed(ALICE), HDX, ACA, 0, 0),
-			Error::<Test>::CannotAddZeroLiquidity
+			Error::<Test>::InsufficientTradingAmount
 		);
 
 		assert_noop!(
-			XYK::add_liquidity(Origin::signed(ALICE), HDX, ACA, 100, 0),
-			Error::<Test>::CannotAddZeroLiquidity
+			XYK::add_liquidity(Origin::signed(ALICE), HDX, ACA, 1000, 0),
+			Error::<Test>::ZeroLiquidity
+		);
+
+		assert_noop!(
+			XYK::add_liquidity(Origin::signed(BOB), ACA, HDX, 1000, 2000),
+			Error::<Test>::InsufficientLiquidity
 		);
 	});
 }
@@ -442,13 +453,32 @@ fn add_liquidity_exceeding_max_limit_should_not_work() {
 		);
 	});
 }
+#[test]
+fn remove_liquidity_should_respect_min_pool_limit() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			ACA,
+			1000,
+			Price::from_float(1.5)
+		));
+
+		assert_ok!(XYK::add_liquidity(Origin::signed(BOB), ACA, HDX, 2000, 2000));
+
+		assert_noop!(
+			XYK::remove_liquidity(Origin::signed(BOB), ACA, HDX, 500),
+			Error::<Test>::InsufficientLiquidity
+		);
+	});
+}
 
 #[test]
 fn remove_zero_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
 			XYK::remove_liquidity(Origin::signed(ALICE), HDX, ACA, 0),
-			Error::<Test>::CannotRemoveLiquidityWithZero
+			Error::<Test>::ZeroLiquidity
 		);
 	});
 }
@@ -1091,16 +1121,16 @@ fn single_buy_with_discount_should_work() {
 }
 
 #[test]
-fn create_pool_with_zero_liquidity_should_not_work() {
+fn create_pool_with_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 0, Price::from(3200)),
-			Error::<Test>::CannotCreatePoolWithZeroLiquidity
+			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 500, Price::from(3200)),
+			Error::<Test>::InsufficientLiquidity
 		);
 
 		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 10, Price::from(0)),
-			Error::<Test>::CannotCreatePoolWithZeroInitialPrice
+			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 1000, Price::from(0)),
+			Error::<Test>::ZeroInitialPrice
 		);
 	});
 }
@@ -1142,7 +1172,7 @@ fn discount_sell_with_no_native_pool_should_not_work() {
 			Origin::signed(ALICE),
 			ACA,
 			DOT,
-			100,
+			1000,
 			Price::from(3200)
 		));
 
@@ -1170,12 +1200,12 @@ fn discount_buy_with_no_native_pool_should_not_work() {
 			Origin::signed(ALICE),
 			ACA,
 			DOT,
-			100,
+			10000,
 			Price::from(3200)
 		));
 
 		assert_noop!(
-			XYK::buy(Origin::signed(ALICE), ACA, DOT, 10, 1_000_000_000, true),
+			XYK::buy(Origin::signed(ALICE), ACA, DOT, 1000, 1_000_000_000, true),
 			Error::<Test>::CannotApplyDiscount
 		);
 	});
@@ -1536,4 +1566,74 @@ fn test_calculate_in_given_out() {
 		let result = hydra_dx_math::calculate_in_given_out(out_reserve, in_reserve, out_amount);
 		assert_eq!(result, Ok(1111111111112));
 	});
+}
+
+#[test]
+fn sell_with_low_amount_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			XYK::sell(Origin::signed(ALICE), HDX, DOT, 1, 1_000_000, false),
+			Error::<Test>::InsufficientTradingAmount
+		);
+	});
+}
+
+#[test]
+fn buy_with_low_amount_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			XYK::buy(Origin::signed(ALICE), HDX, DOT, 1, 1_000_000, false),
+			Error::<Test>::InsufficientTradingAmount
+		);
+	});
+}
+
+#[test]
+fn buy_with_excesive_amount_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			DOT,
+			10_000,
+			Price::from(1)
+		));
+
+		assert_noop!(
+			XYK::buy(Origin::signed(ALICE), HDX, DOT, 20_000, 1_000_000, false),
+			Error::<Test>::InsufficientPoolAssetBalance
+		);
+	});
+}
+
+#[test]
+fn fee_calculation() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(XYK::calculate_discounted_fee(10000), Ok(7));
+		assert_eq!(XYK::calculate_discounted_fee(100000), Ok(70));
+		assert_eq!(XYK::calculate_discounted_fee(100000), Ok(70));
+
+		assert_eq!(XYK::calculate_fee(100000), Ok(200));
+		assert_eq!(XYK::calculate_fee(10000), Ok(20));
+	});
+	ExtBuilder::default()
+		.with_exchange_fee(fee::Fee {
+			numerator: 10,
+			denominator: 1000,
+		})
+		.build()
+		.execute_with(|| {
+			assert_eq!(XYK::calculate_fee(100000), Ok(1000));
+			assert_eq!(XYK::calculate_fee(10000), Ok(100));
+		});
+
+	ExtBuilder::default()
+		.with_exchange_fee(fee::Fee {
+			numerator: 10,
+			denominator: 0,
+		})
+		.build()
+		.execute_with(|| {
+			assert_noop!(XYK::calculate_fee(100000), Error::<Test>::FeeAmountInvalid);
+		});
 }

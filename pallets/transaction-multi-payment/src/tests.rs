@@ -198,7 +198,7 @@ fn fee_payment_in_non_native_currency() {
 	ExtBuilder::default()
 		.base_weight(5)
 		.account_native_balance(CHARLIE, 0)
-		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 1_063)
+		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 10_000)
 		.build()
 		.execute_with(|| {
 			// Make sure Charlie ain't got a penny!
@@ -217,13 +217,13 @@ fn fee_payment_in_non_native_currency() {
 				SUPPORTED_CURRENCY_WITH_BALANCE
 			));
 
-			let len = 10;
+			let len = 1000;
 			let info = DispatchInfo {
 				weight: 5,
 				..Default::default()
 			};
 
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 21);
+			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 8_958);
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
 				.pre_dispatch(&CHARLIE, CALL, &info, len)
@@ -232,8 +232,7 @@ fn fee_payment_in_non_native_currency() {
 			//Native balance check - Charlie should be still broke!
 			assert_eq!(Balances::free_balance(CHARLIE), 0);
 
-			// token check should be less by the fee amount and -1 as fee in amm swap
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 0);
+			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 7_914);
 		});
 }
 
@@ -244,7 +243,7 @@ fn fee_payment_non_native_insufficient_balance() {
 	ExtBuilder::default()
 		.base_weight(5)
 		.account_native_balance(CHARLIE, 0)
-		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 1_042)
+		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 2_000)
 		.build()
 		.execute_with(|| {
 			assert_ok!(pallet_xyk::Pallet::<Test>::create_pool(
@@ -260,7 +259,7 @@ fn fee_payment_non_native_insufficient_balance() {
 				SUPPORTED_CURRENCY_WITH_BALANCE
 			));
 
-			let len = 10;
+			let len = 1000;
 			let info = DispatchInfo {
 				weight: 5,
 				..Default::default()
@@ -270,7 +269,7 @@ fn fee_payment_non_native_insufficient_balance() {
 				.pre_dispatch(&CHARLIE, CALL, &info, len)
 				.is_err());
 
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 0);
+			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 958);
 		});
 }
 
@@ -368,7 +367,7 @@ fn fee_payment_in_non_native_currency_with_no_pool() {
 	ExtBuilder::default()
 		.base_weight(5)
 		.account_native_balance(CHARLIE, 0)
-		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 1_000_000)
+		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 10_000)
 		.build()
 		.execute_with(|| {
 			// Make sure Charlie ain't got a penny!
@@ -397,8 +396,7 @@ fn fee_payment_in_non_native_currency_with_no_pool() {
 			//Native balance check - Charlie should be still broke!
 			assert_eq!(Balances::free_balance(CHARLIE), 0);
 
-			// token check should be less by the fee amount and -1 as fee in amm swap
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 998_427);
+			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 8_427);
 			assert_eq!(
 				Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &FALLBACK_ACCOUNT),
 				1_573
@@ -413,7 +411,7 @@ fn fee_payment_non_native_insufficient_balance_with_no_pool() {
 	ExtBuilder::default()
 		.base_weight(5)
 		.account_native_balance(CHARLIE, 0)
-		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 1_553)
+		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 2_000)
 		.build()
 		.execute_with(|| {
 			assert_ok!(PaymentPallet::set_currency(
@@ -421,7 +419,7 @@ fn fee_payment_non_native_insufficient_balance_with_no_pool() {
 				SUPPORTED_CURRENCY_WITH_BALANCE
 			));
 
-			let len = 10;
+			let len = 1000;
 			let info = DispatchInfo {
 				weight: 5,
 				..Default::default()
@@ -431,6 +429,6 @@ fn fee_payment_non_native_insufficient_balance_with_no_pool() {
 				.pre_dispatch(&CHARLIE, CALL, &info, len)
 				.is_err());
 
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 10);
+			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 457);
 		});
 }
