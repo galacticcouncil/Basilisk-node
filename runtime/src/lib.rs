@@ -341,7 +341,7 @@ parameter_types! {
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
-	pub const MultiPaymentCurrencySetFee: Pays = Pays::No;
+	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
 }
 
 /// Parameterized slow adjusting fee updated based on
