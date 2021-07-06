@@ -1,9 +1,10 @@
 #![allow(clippy::or_fun_call)]
 
 use basilisk_runtime::{
-	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig, GenesisConfig,
-	MultiTransactionPaymentConfig, OrmlNftConfig, ElectionsConfig, ParachainInfoConfig, SessionConfig, Signature, SudoConfig,
-	SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, CORE_ASSET_ID, WASM_BINARY, BSX
+	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
+	ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig, SessionConfig,
+	Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX, CORE_ASSET_ID,
+	WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -81,6 +82,10 @@ pub fn get_vesting_config_for_test() -> Vec<(AccountId, BlockNumber, BlockNumber
 	vesting_list
 }
 
+pub fn basilisk_parachain_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../res/basilisk.json")[..])
+}
+
 pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
@@ -122,7 +127,7 @@ pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, Str
 					),
 				],
 				// Pre-funded accounts
-				vec![], 
+				vec![],
 				true,
 				para_id,
 				//technical committee
@@ -405,7 +410,7 @@ fn parachain_genesis(
 					hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
 					9_000_000_000 * BSX,
 				),
-			]
+			],
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.
@@ -443,9 +448,7 @@ fn parachain_genesis(
 			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
-		tokens: TokensConfig {
-			balances: vec![],
-		},
+		tokens: TokensConfig { balances: vec![] },
 		treasury: Default::default(),
 		elections: ElectionsConfig {
 			// Intergalactic elections
