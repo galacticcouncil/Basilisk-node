@@ -41,7 +41,7 @@ use primitives::fee;
 
 pub type AccountId = u64;
 
-pub const INITIAL_BALANCE: Balance = 1000_000_000_000_000u128;
+pub const INITIAL_BALANCE: Balance = 1_000_000_000_000_000u128;
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
@@ -113,7 +113,7 @@ parameter_types! {
 		.build_or_panic();
 
 	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
-	 pub PayForSetCurrency : Pays = Pays::No;
+	pub PayForSetCurrency : Pays = Pays::Yes;
 }
 
 impl system::Config for Test {

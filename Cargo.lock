@@ -511,7 +511,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "9.0.0"
+version = "10.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -5758,7 +5758,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "4.0.0"
+version = "4.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
