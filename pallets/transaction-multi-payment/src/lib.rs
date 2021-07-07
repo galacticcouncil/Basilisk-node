@@ -380,7 +380,6 @@ impl<T: Config> Pallet<T> {
         match result {
 			PaymentSwapResult::Transferred => Ok(()),
 			PaymentSwapResult::Native | PaymentSwapResult::Swapped => T::MultiCurrency::withdraw(CORE_ASSET_ID, who, fee),
-			PaymentSwapResult::Error => Err(Error::<T>::Overflow.into()),
 		}
 	}
 
@@ -465,7 +464,6 @@ where
 		if let Ok(detail) = SW::swap(&who, fee.into()) {
 			match detail {
 				PaymentSwapResult::Transferred => Ok(None),
-				PaymentSwapResult::Error => Err(InvalidTransaction::Payment.into()),
 				PaymentSwapResult::Native | PaymentSwapResult::Swapped => {
 					match C::withdraw(who, fee, withdraw_reason, ExistenceRequirement::KeepAlive) {
 						Ok(imbalance) => Ok(Some(imbalance)),
