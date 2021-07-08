@@ -49,7 +49,7 @@ pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{FixedPointNumber, Perbill, Permill, Perquintill, Percent};
+pub use sp_runtime::{FixedPointNumber, Perbill, Percent, Permill, Perquintill};
 
 use primitives::fee;
 
@@ -62,7 +62,9 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
 
-pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
+pub use primitives::{
+	Amount, AssetId, Balance, Moment, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+};
 
 pub use pallet_asset_registry;
 
@@ -408,6 +410,10 @@ impl pallet_asset_registry::Config for Runtime {
 
 parameter_types! {
 	pub ExchangeFee: fee::Fee = fee::Fee::default();
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 }
 
 impl pallet_xyk::Config for Runtime {
@@ -417,6 +423,10 @@ impl pallet_xyk::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::xyk::HydraWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 impl pallet_exchange::Config for Runtime {
@@ -425,10 +435,6 @@ impl pallet_exchange::Config for Runtime {
 	type Resolver = Exchange;
 	type Currency = Currencies;
 	type WeightInfo = weights::exchange::HydraWeight<Runtime>;
-}
-
-parameter_types! {
-	pub LBPExchangeFee: fee::Fee  = fee::Fee::default();
 }
 
 impl pallet_lbp::Config for Runtime {
@@ -637,7 +643,7 @@ parameter_types! {
 	pub const SpendPeriod: BlockNumber = DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const MaxApprovals: u32 =  100; 
+	pub const MaxApprovals: u32 =  100;
 }
 
 type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
