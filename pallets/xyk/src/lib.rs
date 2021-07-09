@@ -870,4 +870,20 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		Ok(())
 	}
+
+	fn get_min_trading_limit() -> Balance {
+		T::MinTradingLimit::get()
+	}
+
+	fn get_min_pool_liquidity() -> Balance {
+		T::MinPoolLiquidity::get()
+	}
+
+	fn get_max_in_ratio() -> u128 {
+		T::MaxInRatio::get()
+	}
+
+	fn get_max_out_ratio() -> u128 {
+		T::MaxOutRatio::get()
+	}
 }

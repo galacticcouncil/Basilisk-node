@@ -176,6 +176,14 @@ pub mod pallet {
 
 		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
+
+		/// Max fraction of pool to sell in single transaction
+		#[pallet::constant]
+		type MaxInRatio: Get<u128>;
+
+		/// Max fraction of pool to buy in single transaction
+		#[pallet::constant]
+		type MaxOutRatio: Get<u128>;
 	}
 
 	#[pallet::hooks]
@@ -1056,5 +1064,13 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.fee.1,
 		));
 		Ok(())
+	}
+
+	fn get_max_in_ratio() -> u128 {
+		T::MaxInRatio::get()
+	}
+
+	fn get_max_out_ratio() -> u128 {
+		T::MaxOutRatio::get()
 	}
 }
