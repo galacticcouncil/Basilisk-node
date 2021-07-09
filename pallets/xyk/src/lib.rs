@@ -240,6 +240,8 @@ pub mod pallet {
 				.checked_mul_int(amount)
 				.ok_or(Error::<T>::CreatePoolAssetAmountInvalid)?;
 
+			ensure!(asset_b_amount >= MIN_POOL_LIQUIDITY, Error::<T>::InsufficientLiquidity);
+
 			let shares_added = if asset_a < asset_b { amount } else { asset_b_amount };
 
 			ensure!(
