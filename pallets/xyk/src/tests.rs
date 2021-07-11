@@ -1129,6 +1129,11 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 		);
 
 		assert_noop!(
+			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 5000, Price::from_float(0.1f64)),
+			Error::<Test>::InsufficientLiquidity
+		);
+
+		assert_noop!(
 			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 1000, Price::from(0)),
 			Error::<Test>::ZeroInitialPrice
 		);
