@@ -322,8 +322,9 @@ pub mod pallet {
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
 			let total_liquidity = Self::total_liquidity(&pair_account);
 
-			let amount_b_required = hydra_dx_math::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
-				.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
+			let amount_b_required =
+				hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
+					.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
 
 			let shares_added = if asset_a < asset_b { amount_a } else { amount_b_required };
 
@@ -412,7 +413,7 @@ pub mod pallet {
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
 
-			let liquidity_out = hydra_dx_math::calculate_liquidity_out(
+			let liquidity_out = hydra_dx_math::xyk::calculate_liquidity_out(
 				asset_a_reserve,
 				asset_b_reserve,
 				liquidity_amount,
@@ -584,7 +585,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
 		let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
 
-		hydra_dx_math::calculate_spot_price(asset_a_reserve, asset_b_reserve, amount)
+		hydra_dx_math::xyk::calculate_spot_price(asset_a_reserve, asset_b_reserve, amount)
 			.unwrap_or_else(|_| Balance::zero())
 	}
 
@@ -629,7 +630,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			Error::<T>::MaxInRatioExceeded
 		);
 
-		let amount_out = hydra_dx_math::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount)
+		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount)
 			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
 
 		let transfer_fee = if discount {
@@ -661,7 +662,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			let asset_reserve = T::Currency::free_balance(assets.asset_in, &native_pair_account);
 
 			let native_fee_spot_price =
-				hydra_dx_math::calculate_spot_price(asset_reserve, native_reserve, transfer_fee)
+				hydra_dx_math::xyk::calculate_spot_price(asset_reserve, native_reserve, transfer_fee)
 					.map_err(|_| Error::<T>::CannotApplyDiscount)?;
 
 			ensure!(
@@ -763,7 +764,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			);
 		}
 
-		let buy_price = hydra_dx_math::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount)
+		let buy_price = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount)
 			.map_err(|_| Error::<T>::BuyAssetAmountInvalid)?;
 
 		let transfer_fee = if discount {
@@ -795,7 +796,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			let asset_reserve = T::Currency::free_balance(assets.asset_out, &native_pair_account);
 
 			let native_fee_spot_price =
-				hydra_dx_math::calculate_spot_price(asset_reserve, native_reserve, transfer_fee)
+				hydra_dx_math::xyk::calculate_spot_price(asset_reserve, native_reserve, transfer_fee)
 					.map_err(|_| Error::<T>::CannotApplyDiscount)?;
 
 			ensure!(
