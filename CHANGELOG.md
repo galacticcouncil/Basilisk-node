@@ -1,3 +1,15 @@
+# v3.0.0 (Mon Jul 12 2021)
+
+#### 🐛 Bug Fix
+
+- chore!: use latest math package [#99](https://github.com/galacticcouncil/Basilisk-node/pull/99) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### Authors: 1
+
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+---
+
 # v2.0.0 (Sun Jul 11 2021)
 
 #### 💥 Breaking Change
