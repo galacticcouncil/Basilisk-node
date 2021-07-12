@@ -25,6 +25,8 @@ const TELEMETRY_URLS: [&str; 2] = [
 	"wss://telemetry.polkadot.io/submit/",
 	"wss://telemetry.hydradx.io:9000/submit/",
 ];
+//Kusama parachain id
+const PARA_ID: u32 = 2082;
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -86,7 +88,7 @@ pub fn basilisk_parachain_config() -> Result<ChainSpec, String> {
 	ChainSpec::from_json_bytes(&include_bytes!("../res/basilisk.json")[..])
 }
 
-pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -129,7 +131,7 @@ pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, Str
 				// Pre-funded accounts
 				vec![],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//technical committee
 				hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(), // TREASURY - Fallback for multi tx payment
 			)
@@ -161,7 +163,7 @@ pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, Str
 		// Extensions
 		Extensions {
 			relay_chain: "kusama".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
@@ -477,7 +479,7 @@ fn parachain_genesis(
 			tokens: Default::default(),
 		},
 		vesting: VestingConfig { vesting: vec![] },
-		parachain_info: ParachainInfoConfig { parachain_id }, //TODO
+		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 	}
 }
