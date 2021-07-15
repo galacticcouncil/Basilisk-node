@@ -212,6 +212,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Utility(_)
 			| Call::Vesting(_)
 			| Call::NFT(_)
+			| Call::PriceOracle(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -439,6 +440,17 @@ impl pallet_lbp::Config for Runtime {
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
+}
+
+parameter_types! {
+	pub BucketLength: u32 = 10u32;
+	pub BucketDepth: u32 = 4u32;
+}
+
+impl pallet_price_oracle::Config for Runtime {
+    type Event = Event;
+	type BucketLength = BucketLength;
+	type BucketDepth = BucketDepth;
 }
 
 /// Parachain Config
@@ -851,6 +863,7 @@ construct_runtime!(
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
+		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
