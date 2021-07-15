@@ -128,6 +128,7 @@ members = [
   # 'pallets/proposal', Update this
   'node',
   'pallets/nft',
+  'pallets/duster',
   'runtime',
   'pallets/xyk',
   'pallets/exchange',
