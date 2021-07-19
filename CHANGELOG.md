@@ -1,3 +1,28 @@
+# v3.0.0 (Mon Jul 12 2021)
+
+#### 🐛 Bug Fix
+
+- chore!: use latest math package [#99](https://github.com/galacticcouncil/Basilisk-node/pull/99) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### Authors: 1
+
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+---
+
+# v2.0.0 (Sun Jul 11 2021)
+
+#### 💥 Breaking Change
+
+- fix(xyk)!: create_pool respects min liquidity limit [#96](https://github.com/galacticcouncil/Basilisk-node/pull/96) ([@Roznovjak](https://github.com/Roznovjak))
+- feat(multipayment)!: use fallback in set_currency [#93](https://github.com/galacticcouncil/Basilisk-node/pull/93) ([@Roznovjak](https://github.com/Roznovjak))
+
+#### Authors: 1
+
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
 # v1.0.0 (Tue Jul 06 2021)
 
 #### 💥 Breaking Change
