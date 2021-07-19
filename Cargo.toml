@@ -96,9 +96,9 @@ polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = 
 polkadot-runtime-common = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
 polkadot-test-runtime = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
 polkadot-test-client = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
-#xcm = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.4" }
-#xcm-builder = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.4" }
-#3c64d532c8db5311b95d4f39d702d15bcd6319c1xcm-executor = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.4" }
+xcm = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
+xcm-builder = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
+xcm-executor = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
 
 # Cumulus
 cumulus-client-cli = {git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.7"}
@@ -114,7 +114,7 @@ cumulus-primitives-timestamp = { git = "https://github.com/paritytech/cumulus", 
 
 cumulus-pallet-aura-ext = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.7" }
 cumulus-pallet-parachain-system = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.7" }
-#cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.4" }
+cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.7" }
 parachain-info = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.7" }
 
 # HydraDX utils

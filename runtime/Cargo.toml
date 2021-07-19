@@ -60,16 +60,17 @@ orml-vesting = { default-features = false, version = "0.4.1-dev" }
 # Cumulus dependencies
 cumulus-pallet-aura-ext = { version = "0.1.0", default-features = false}
 cumulus-pallet-parachain-system ={ version = "0.1.0", default-features = false}
+cumulus-pallet-xcm = { version = "0.1.0", default-features = false}
 cumulus-primitives-core ={ version = "0.1.0", default-features = false}
 cumulus-primitives-parachain-inherent ={ version = "0.1.0", default-features = false}
 cumulus-primitives-timestamp ={ version = "0.1.0", default-features = false}
 parachain-info = { version = "0.1.0", default-features = false}
 
 # Polkadot dependencies
-polkadot-parachain = { version = "0.9.5", default-features = false, features = ["wasm-api"]}
-#xcm = { default-features = false }
-#xcm-builder = { default-features = false }
-#xcm-executor = { default-features = false }
+polkadot-parachain = { version = "0.9.7", default-features = false, features = ["wasm-api"]}
+xcm = { version = "0.9.7" }
+xcm-builder = { version = "0.9.7" }
+xcm-executor = { version = "0.9.7" }
 
 # Substrate dependencies
 frame-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
@@ -138,12 +139,12 @@ std = [
     #"orml-xcm-support/std",
     "cumulus-pallet-parachain-system/std",
     "cumulus-pallet-aura-ext/std",
-    #"cumulus-pallet-xcm/std",
+    "cumulus-pallet-xcm/std",
     "cumulus-primitives-core/std",
     "cumulus-primitives-parachain-inherent/std",
-    #"xcm/std",
-    #"xcm-builder/std",
-    #"xcm-executor/std",
+    "xcm/std",
+    "xcm-builder/std",
+    "xcm-executor/std",
     'orml-nft/std',
     'parachain-info/std',
     'pallet-xyk/std',

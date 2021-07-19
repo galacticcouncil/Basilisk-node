@@ -51,6 +51,13 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{FixedPointNumber, Perbill, Permill, Perquintill, Percent};
 
+use xcm::v0::{Junction::*, MultiLocation, MultiLocation::*, NetworkId};
+use xcm_builder::{
+	AllowUnpaidExecutionFrom, FixedWeightBounds, LocationInverter, ParentAsSuperuser,
+	ParentIsDefault, SovereignSignedViaLocation,
+};
+use xcm_executor::{Config, XcmExecutor};
+
 use primitives::fee;
 
 mod currency;
@@ -637,7 +644,7 @@ parameter_types! {
 	pub const SpendPeriod: BlockNumber = DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const MaxApprovals: u32 =  100; 
+	pub const MaxApprovals: u32 =  100;
 }
 
 type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
@@ -804,6 +811,26 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = RelaychainBlockNumberProvider<Runtime>;
 }
 
+pub struct XcmConfig;
+impl Config for XcmConfig {
+	type Call = Call;
+	type XcmSender = (); // sending XCM not supported
+	type AssetTransactor = (); // balances not supported
+	type OriginConverter = XcmOriginToTransactDispatchOrigin;
+	type IsReserve = (); // balances not supported
+	type IsTeleporter = (); // balances not supported
+	type LocationInverter = LocationInverter<Ancestry>;
+	type Barrier = AllowUnpaidExecutionFrom<JustTheParent>;
+	type Weigher = FixedWeightBounds<UnitWeightCost, Call>; // balances not supported
+	type Trader = (); // balances not supported
+	type ResponseHandler = (); // Don't handle responses for now.
+}
+
+impl cumulus_pallet_xcm::Config for Runtime {
+	type Event = Event;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -830,6 +857,9 @@ construct_runtime!(
 		// Parachain
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
+
+		// XCM
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
 
 		// Collator support
 		Authorship: pallet_authorship::{Pallet, Call, Storage},
