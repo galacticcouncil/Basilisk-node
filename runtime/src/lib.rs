@@ -34,7 +34,7 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime, parameter_types, match_type,
 	traits::{EnsureOrigin, Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -219,6 +219,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Utility(_)
 			| Call::Vesting(_)
 			| Call::NFT(_)
+			| Call::CumulusXcm(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -809,6 +810,31 @@ impl orml_vesting::Config for Runtime {
 	type WeightInfo = ();
 	type MaxVestingSchedules = MaxVestingSchedules;
 	type BlockNumberProvider = RelaychainBlockNumberProvider<Runtime>;
+}
+
+parameter_types! {
+	pub const RococoLocation: MultiLocation = X1(Parent);
+	pub const RococoNetwork: NetworkId = NetworkId::Polkadot;
+	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+}
+
+pub type XcmOriginToTransactDispatchOrigin = (
+	// Sovereign account converter; this attempts to derive an `AccountId` from the origin location
+	// using `LocationToAccountId` and then turn that into the usual `Signed` origin. Useful for
+	// foreign chains who want to have a local sovereign account on this chain which they control.
+	SovereignSignedViaLocation<ParentIsDefault<AccountId>, Origin>,
+	// Superuser converter for the Relay-chain (Parent) location. This will allow it to issue a
+	// transaction from the Root origin.
+	ParentAsSuperuser<Origin>,
+);
+
+match_type! {
+	pub type JustTheParent: impl Contains<MultiLocation> = { X1(Parent) };
+}
+
+parameter_types! {
+	// One XCM operation is 1_000_000 weight - almost certainly a conservative estimate.
+	pub UnitWeightCost: Weight = 1_000_000;
 }
 
 pub struct XcmConfig;
