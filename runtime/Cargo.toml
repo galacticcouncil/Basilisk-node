@@ -15,6 +15,7 @@ substrate-build-script-utils = '3.0.0'
 substrate-wasm-builder = '3.0.0'
 
 [dependencies]
+getrandom = { version = "0.2.3", features = ["js"] }
 hex-literal = { version = '0.3.1' }
 tracing-core = { optional = true, version = '0.1.17' }
 serde = { features = ['derive'], optional = true, version = '1.0.101' }
@@ -169,6 +170,7 @@ std = [
     'sp-block-builder/std',
     'sp-consensus-aura/std',
     'sp-core/std',
+    "sp-io/std",
     'sp-inherents/std',
     'sp-externalities/std',
     'sp-offchain/std',
@@ -181,7 +183,7 @@ std = [
     'pallet-collective/std',
     'pallet-democracy/std',
     'pallet-scheduler/std',
-      'pallet-tips/std',
+    'pallet-tips/std',
     'pallet-collator-selection/std',
     'pallet-authorship/std',
 ]
