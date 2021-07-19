@@ -152,9 +152,6 @@ jobs:
   test-inclusion:
     needs: build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        polkadot: [v0.9.3, v0.9.7, v0.9.8]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -169,7 +166,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: ${{ matrix.polkadot }}
+          tag: v0.9.8
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
