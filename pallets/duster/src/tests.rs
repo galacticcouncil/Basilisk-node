@@ -5,6 +5,8 @@ use crate::mock::{
 use frame_support::{assert_noop, assert_ok};
 use primitives::AssetId;
 
+use sp_runtime::traits::BadOrigin;
+
 #[test]
 fn dust_account_works() {
 	ExtBuilder::default()
@@ -199,4 +201,60 @@ fn native_existential_deposit() {
 			orml_currencies::Event::Transferred(currency_id, *ALICE, *DUSTER, 20_000).into(),
 		]);
 	});
+}
+
+#[test]
+fn add_nondustable_account_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Duster::add_nondustable_account(Origin::signed(*DUSTER), *ALICE),
+			BadOrigin
+		);
+
+		assert!(Duster::blacklisted(*ALICE).is_none());
+
+		assert_ok!(Duster::add_nondustable_account(Origin::root(), *ALICE));
+
+		assert!(Duster::blacklisted(*ALICE).is_some());
+
+		assert_ok!(Duster::add_nondustable_account(Origin::root(), *ALICE));
+
+		assert!(Duster::blacklisted(*ALICE).is_some());
+	});
+}
+
+#[test]
+fn remove_nondustable_account_works() {
+	ExtBuilder::default()
+		.with_native_balance(*ALICE, 500)
+		.build()
+		.execute_with(|| {
+			assert_ok!(Duster::add_nondustable_account(Origin::root(), *ALICE));
+			assert!(Duster::blacklisted(*ALICE).is_some());
+
+			assert_ok!(Duster::add_nondustable_account(Origin::root(), *ALICE));
+
+			// Dust dont work now
+			assert_noop!(
+				Duster::dust_account(Origin::signed(*DUSTER), *ALICE, 1),
+				Error::<Test>::AccountBlacklisted
+			);
+
+			assert_noop!(
+				Duster::remove_nondustable_account(Origin::signed(*DUSTER), *ALICE),
+				BadOrigin
+			);
+
+			//remove non-existing account
+			assert_noop!(
+				Duster::remove_nondustable_account(Origin::root(), 1234556),
+				Error::<Test>::AccountNotBlacklisted
+			);
+
+			assert_ok!(Duster::remove_nondustable_account(Origin::root(), *ALICE));
+			assert!(Duster::blacklisted(*ALICE).is_none());
+
+			// We can dust again
+			assert_ok!(Duster::dust_account(Origin::signed(*DUSTER), *ALICE, 0),);
+		});
 }

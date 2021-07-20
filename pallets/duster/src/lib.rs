@@ -34,7 +34,7 @@ use orml_traits::{
 	GetByKey, MultiCurrency, MultiCurrencyExtended,
 };
 
-use frame_system::ensure_signed;
+use frame_system::{ensure_root, ensure_signed};
 
 use sp_std::convert::{TryFrom, TryInto};
 
@@ -146,6 +146,9 @@ pub mod pallet {
 		/// Account is excluded from dusting.
 		AccountBlacklisted,
 
+		/// Account is not present in the non-dustable list.
+		AccountNotBlacklisted,
+
 		/// The balance is zero.
 		ZeroBalance,
 
@@ -158,6 +161,9 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Account dusted.
 		Dusted(T::AccountId, T::Balance),
+
+		/// Account added to non-dustable list.
+		Added(T::AccountId),
 	}
 
 	#[pallet::call]
@@ -189,6 +195,34 @@ pub mod pallet {
 
 			// Ignore the result, it fails - no problem.
 			let _ = Self::reward_duster(&who, currency_id, dust);
+
+			Ok(().into())
+		}
+
+		#[pallet::weight((<T as Config>::WeightInfo::add_nondustable_account(), DispatchClass::Normal, Pays::Yes))]
+		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
+			ensure_root(origin)?;
+
+			AccountBlacklist::<T>::insert(&account, ());
+
+			Self::deposit_event(Event::Added(account));
+
+			Ok(().into())
+		}
+
+		#[pallet::weight((<T as Config>::WeightInfo::remove_nondustable_account(), DispatchClass::Normal, Pays::No))]
+		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
+			ensure_root(origin)?;
+
+			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResultWithPostInfo {
+				ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
+
+				*maybe_account = None;
+
+				Ok(().into())
+			})?;
+
+			Self::deposit_event(Event::Added(account));
 
 			Ok(().into())
 		}

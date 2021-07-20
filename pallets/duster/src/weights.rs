@@ -48,6 +48,8 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for duster.
 pub trait WeightInfo {
 	fn dust_account() -> Weight;
+	fn add_nondustable_account() -> Weight;
+	fn remove_nondustable_account() -> Weight;
 }
 
 /// Weights for claims using the hydraDX node and recommended hardware.
@@ -56,11 +58,27 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn dust_account() -> Weight {
 		0
 	}
+
+	fn add_nondustable_account() -> u64 {
+		0
+	}
+
+	fn remove_nondustable_account() -> u64 {
+		0
+	}
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn dust_account() -> Weight {
+		0
+	}
+
+	fn add_nondustable_account() -> u64 {
+		0
+	}
+
+	fn remove_nondustable_account() -> u64 {
 		0
 	}
 }
