@@ -164,6 +164,9 @@ pub mod pallet {
 
 		/// Account added to non-dustable list.
 		Added(T::AccountId),
+
+		/// Account removed from non-dustable list.
+		Removed(T::AccountId),
 	}
 
 	#[pallet::call]
@@ -222,7 +225,7 @@ pub mod pallet {
 				Ok(().into())
 			})?;
 
-			Self::deposit_event(Event::Added(account));
+			Self::deposit_event(Event::Removed(account));
 
 			Ok(().into())
 		}
