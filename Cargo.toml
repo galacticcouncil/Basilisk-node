@@ -81,11 +81,14 @@ pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", bra
 
 
 # ORML dependencies
-orml-currencies = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '443ee91bc2ca5f1fc155c0378eef6e89b67e2e97' }
-orml-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '443ee91bc2ca5f1fc155c0378eef6e89b67e2e97' }
-orml-traits = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '443ee91bc2ca5f1fc155c0378eef6e89b67e2e97' }
-orml-utilities = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '443ee91bc2ca5f1fc155c0378eef6e89b67e2e97' }
-orml-vesting = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '443ee91bc2ca5f1fc155c0378eef6e89b67e2e97' }
+orml-currencies = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
+orml-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
+orml-traits = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
+orml-utilities = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
+orml-vesting = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
+orml-xtokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
+orml-xcm-support = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
+orml-unknown-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
 
 # Polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.7" }
