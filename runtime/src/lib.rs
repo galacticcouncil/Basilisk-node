@@ -446,17 +446,23 @@ impl pallet_lbp::Config for Runtime {
 	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
 }
 
+parameter_types! {
+	pub ReservedXcmpWeight: Weight = BlockWeights::get().max_block / 4;
+	pub ReservedDmpWeight: Weight = BlockWeights::get().max_block / 4;
+}
+
 /// Parachain Config
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type OutboundXcmpMessageSource = ();
+
+	type OutboundXcmpMessageSource = XcmpQueue;
 	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
+	type ReservedDmpWeight = ReservedDmpWeight;
+	type XcmpMessageHandler = XcmpQueue;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
 impl pallet_aura::Config for Runtime {
