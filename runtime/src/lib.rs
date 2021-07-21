@@ -215,6 +215,8 @@ impl Filter<Call> for BaseFilter {
 			| Call::NFT(_)
 			| Call::CumulusXcm(_)
 			| Call::XTokens(_)
+			| Call::XcmpQueue(_)
+			| Call::PolkadotXcm(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -835,9 +837,11 @@ construct_runtime!(
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
 
 		// XCM
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
 
 		// Collator support
 		Authorship: pallet_authorship::{Pallet, Call, Storage},

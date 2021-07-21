@@ -69,7 +69,9 @@ orml-unknown-tokens = { default-features = false, version = "0.4.1-dev" }
 cumulus-pallet-aura-ext = { version = "0.1.0", default-features = false}
 cumulus-pallet-parachain-system ={ version = "0.1.0", default-features = false}
 cumulus-pallet-xcm = { version = "0.1.0", default-features = false}
+cumulus-pallet-xcmp-queue = { version = "0.1.0", default-features = false}
 cumulus-primitives-core ={ version = "0.1.0", default-features = false}
+cumulus-primitives-utility ={ version = "0.1.0", default-features = false}
 cumulus-primitives-parachain-inherent ={ version = "0.1.0", default-features = false}
 cumulus-primitives-timestamp ={ version = "0.1.0", default-features = false}
 parachain-info = { version = "0.1.0", default-features = false}
@@ -77,6 +79,7 @@ parachain-info = { version = "0.1.0", default-features = false}
 # Polkadot dependencies
 polkadot-parachain = { version = "0.9.7", default-features = false, features = ["wasm-api"]}
 xcm-builder = { version = "0.9.7", default-features = false }
+pallet-xcm = { version = "0.1.0", default-features = false }
 xcm-executor = { version = "0.9.7", default-features = false }
 
 # Substrate dependencies
@@ -144,16 +147,17 @@ std = [
     'orml-vesting/std',
     "orml-xtokens/std",
     "orml-xcm-support/std",
-    "orml-xcm-support/std",
     "orml-unknown-tokens/std",
     "cumulus-pallet-parachain-system/std",
     "cumulus-pallet-aura-ext/std",
     "cumulus-pallet-xcm/std",
+    "cumulus-pallet-xcmp-queue/std",
     "cumulus-primitives-core/std",
     "cumulus-primitives-parachain-inherent/std",
     "polkadot-xcm/std",
     "xcm-builder/std",
     "xcm-executor/std",
+    "pallet-xcm/std",
     'orml-nft/std',
     'parachain-info/std',
     'pallet-xyk/std',
