@@ -685,9 +685,9 @@ dependencies = [
 
 [[package]]
 name = "bindgen"
-version = "0.57.0"
+version = "0.59.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd4865004a46a0aafb2a0a5eb19d3c9fc46ee5f063a6cfc605c69ac9ecf5263d"
+checksum = "0b2ce639ee22f41a6ea0a3061e9bea9f690cf0c6ffc1ada0a3a599778f99ccba"
 dependencies = [
  "bitflags",
  "cexpr",
@@ -716,6 +716,18 @@ checksum = "41262f11d771fd4a61aa3ce019fca363b4b6c282fca9da2a31186d3965a47a5c"
 dependencies = [
  "either",
  "radium 0.3.0",
+]
+
+[[package]]
+name = "bitvec"
+version = "0.19.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8942c8d352ae1838c9dda0b0ca2ab657696ef2232a20147cf1b30ae1a9cb4321"
+dependencies = [
+ "funty",
+ "radium 0.5.3",
+ "tap",
+ "wyz",
 ]
 
 [[package]]
@@ -1118,9 +1130,9 @@ dependencies = [
 
 [[package]]
 name = "cexpr"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4aedb84272dbe89af497cf81375129abda4fc0a9e7c5d317498c15cc30c0d27"
+checksum = "db507a7679252d2276ed0dd8113c6875ec56d3089f9225b2b42c30cc1f8e5c89"
 dependencies = [
  "nom",
 ]
@@ -1574,7 +1586,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "sc-cli",
  "sc-service",
@@ -1584,7 +1596,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
@@ -1608,7 +1620,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-aura"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1638,7 +1650,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "async-trait",
  "dyn-clone",
@@ -1662,7 +1674,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1686,7 +1698,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "derive_more",
  "futures 0.3.15",
@@ -1710,7 +1722,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "cumulus-primitives-core",
  "futures 0.3.15",
@@ -1733,7 +1745,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
@@ -1761,7 +1773,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-aura-ext"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -1778,7 +1790,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
  "cumulus-primitives-core",
@@ -1806,7 +1818,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "proc-macro-crate 1.0.0",
  "proc-macro2",
@@ -1817,7 +1829,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -1835,7 +1847,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1856,7 +1868,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "cumulus-primitives-core",
  "sp-inherents",
@@ -1867,7 +1879,7 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec 2.2.0",
@@ -2057,9 +2069,9 @@ checksum = "ee2626afccd7561a06cf1367e2950c4718ea04565e20fb5029b6c7d8ad09abcf"
 
 [[package]]
 name = "ed25519"
-version = "1.1.1"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d0860415b12243916284c67a9be413e044ee6668247b99ba26d94b2bc06c8f6"
+checksum = "4620d40f6d2601794401d6dd95a5cf69b6c157852539470eeda433a99b3c0efc"
 dependencies = [
  "signature",
 ]
@@ -3219,7 +3231,7 @@ dependencies = [
  "httparse",
  "httpdate 0.3.2",
  "itoa",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "socket2 0.3.19",
  "tokio 0.2.25",
  "tower-service",
@@ -3229,9 +3241,9 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.14.10"
+version = "0.14.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7728a72c4c7d72665fde02204bcbd93b247721025b222ef78606f14513e0fd03"
+checksum = "0b61cf2d1aebcf6e6352c97b81dc2244ca29194be1b276f5d8ad5c6330fffb11"
 dependencies = [
  "bytes 1.0.1",
  "futures-channel",
@@ -3243,7 +3255,7 @@ dependencies = [
  "httpdate 1.0.1",
  "itoa",
  "pin-project-lite 0.2.7",
- "tokio 1.8.2",
+ "tokio 1.9.0",
  "tower-service",
  "tracing",
  "want 0.3.0",
@@ -3638,7 +3650,7 @@ dependencies = [
  "beef",
  "futures-channel",
  "futures-util",
- "hyper 0.14.10",
+ "hyper 0.14.11",
  "log",
  "serde",
  "serde_json",
@@ -3657,7 +3669,7 @@ dependencies = [
  "futures 0.3.15",
  "jsonrpsee-types",
  "log",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "rustls 0.19.1",
  "rustls-native-certs 0.5.0",
  "serde",
@@ -3906,7 +3918,7 @@ dependencies = [
  "libp2p-yamux",
  "parity-multiaddr",
  "parking_lot 0.11.1",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "smallvec 1.6.1",
  "wasm-timer",
 ]
@@ -3931,7 +3943,7 @@ dependencies = [
  "multistream-select",
  "parity-multiaddr",
  "parking_lot 0.11.1",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "prost",
  "prost-build",
  "rand 0.7.3",
@@ -4157,7 +4169,7 @@ checksum = "6ce3374f3b28162db9d3442c9347c4f14cb01e8290052615c7d341d40eae0599"
 dependencies = [
  "futures 0.3.15",
  "log",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "rand 0.7.3",
  "salsa20",
  "sha3",
@@ -4176,7 +4188,7 @@ dependencies = [
  "libp2p-core",
  "libp2p-swarm",
  "log",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "prost",
  "prost-build",
  "rand 0.7.3",
@@ -4308,9 +4320,9 @@ dependencies = [
 
 [[package]]
 name = "librocksdb-sys"
-version = "6.17.3"
+version = "6.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5da125e1c0f22c7cae785982115523a0738728498547f415c9054cb17c7e89f9"
+checksum = "c309a9d2470844aceb9a4a098cf5286154d20596868b75a6b36357d2bb9ca25d"
 dependencies = [
  "bindgen",
  "cc",
@@ -4592,9 +4604,9 @@ dependencies = [
 
 [[package]]
 name = "minicbor-derive"
-version = "0.6.3"
+version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f2b9e8883d58e34b18facd16c4564a77ea50fce028ad3d0ee6753440e37acc8"
+checksum = "54999f917cd092b13904737e26631aa2b2b88d625db68e4bab461dcd8006c788"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4749,7 +4761,7 @@ dependencies = [
  "bytes 1.0.1",
  "futures 0.3.15",
  "log",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "smallvec 1.6.1",
  "unsigned-varint 0.7.0",
 ]
@@ -4817,10 +4829,12 @@ checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 
 [[package]]
 name = "nom"
-version = "5.1.2"
+version = "6.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffb4262d26ed83a1c0a33a38fe2bb15797329c85770da05e6b828ddb782627af"
+checksum = "e7413f999671bd4745a7b624bd370a569fb6bc574b23c83a3c5ed2e453f3d5e2"
 dependencies = [
+ "bitvec 0.19.5",
+ "funty",
  "memchr",
  "version_check",
 ]
@@ -5206,7 +5220,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-selection"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6003,7 +6017,7 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#6d0e0e677d2094a0718a3dd0b04ed022ae329b7f"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.8#ed6ba5dfb2c112c29505e856e8971da3420ce6d0"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -6366,11 +6380,11 @@ dependencies = [
 
 [[package]]
 name = "pin-project"
-version = "1.0.7"
+version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7509cc106041c40a4518d2af7a61530e1eed0e6285296a3d8c5472806ccc4a4"
+checksum = "576bc800220cc65dac09e99e97b08b358cfab6e17078de8dc5fee223bd2d0c08"
 dependencies = [
- "pin-project-internal 1.0.7",
+ "pin-project-internal 1.0.8",
 ]
 
 [[package]]
@@ -6386,9 +6400,9 @@ dependencies = [
 
 [[package]]
 name = "pin-project-internal"
-version = "1.0.7"
+version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48c950132583b500556b1efd71d45b319029f2b71518d979fcc208e16b42426f"
+checksum = "6e8fe8163d14ce7f0cdac2e040116f22eac817edabff0be91e8aff7e9accf389"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6807,7 +6821,7 @@ dependencies = [
  "futures-timer 3.0.2",
  "libc",
  "parity-scale-codec 2.2.0",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "rand 0.8.4",
@@ -6912,7 +6926,7 @@ dependencies = [
  "mick-jaeger",
  "parity-scale-codec 2.2.0",
  "parking_lot 0.11.1",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "polkadot-node-jaeger",
  "polkadot-node-network-protocol",
  "polkadot-node-primitives",
@@ -6939,7 +6953,7 @@ dependencies = [
  "lru",
  "metered-channel",
  "parity-scale-codec 2.2.0",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "polkadot-node-jaeger",
  "polkadot-node-network-protocol",
  "polkadot-node-primitives",
@@ -7756,6 +7770,12 @@ name = "radium"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "def50a86306165861203e7f84ecffbbdfdea79f0e51039b33de1e952358c47ac"
+
+[[package]]
+name = "radium"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "941ba9d78d8e2f7ce474c015eea4d9c6d25b6a3327f9832ee29a4de27f91bbb8"
 
 [[package]]
 name = "radium"
@@ -8820,7 +8840,7 @@ dependencies = [
  "log",
  "parity-scale-codec 2.2.0",
  "parking_lot 0.11.1",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "rand 0.7.3",
  "sc-block-builder",
  "sc-client-api",
@@ -8976,7 +8996,7 @@ dependencies = [
  "nohash-hasher",
  "parity-scale-codec 2.2.0",
  "parking_lot 0.11.1",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "prost",
  "prost-build",
  "rand 0.7.3",
@@ -9164,7 +9184,7 @@ dependencies = [
  "parity-scale-codec 2.2.0",
  "parity-util-mem",
  "parking_lot 0.11.1",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "rand 0.7.3",
  "sc-block-builder",
  "sc-chain-spec",
@@ -9256,7 +9276,7 @@ dependencies = [
  "libp2p",
  "log",
  "parking_lot 0.11.1",
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "rand 0.7.3",
  "serde",
  "serde_json",
@@ -9634,9 +9654,9 @@ dependencies = [
 
 [[package]]
 name = "shlex"
-version = "0.1.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fdf1b9db47230893d76faad238fd6097fd6d6a9245cd7a4d90dbd639536bbd2"
+checksum = "42a568c8f2cd051a4d283bd6eb0343ac214c1b0f1ac19f93e1175b2dee38c73d"
 
 [[package]]
 name = "signal-hook"
@@ -10816,9 +10836,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.73"
+version = "1.0.74"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f71489ff30030d2ae598524f61326b902466f72a0fb1a8564c001cc63425bcc7"
+checksum = "1873d832550d4588c3dbc20f01361ab00bfe741048f71e3fecf145a7cc18b29c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -10978,9 +10998,9 @@ dependencies = [
 
 [[package]]
 name = "tinyvec"
-version = "1.3.0"
+version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ac2e1d4bd0f75279cfd5a076e0d578bbf02c22b7c39e766c437dd49b3ec43e0"
+checksum = "848a1e1181b9f6753b5e96a092749e29b11d19ede67dfbbd6c7dc7e0f49b5338"
 dependencies = [
  "tinyvec_macros",
 ]
@@ -11039,9 +11059,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.8.2"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2602b8af3767c285202012822834005f596c811042315fa7e9f5b12b2a43207"
+checksum = "4b7b349f11a7047e6d1276853e612d152f5e8a352c61917887cc2169e2366b4c"
 dependencies = [
  "autocfg",
  "pin-project-lite 0.2.7",
@@ -11331,7 +11351,7 @@ version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97d095ae15e245a057c8e8451bab9b3ee1e1f68e9ba2b4fbc18d0ac5237835f2"
 dependencies = [
- "pin-project 1.0.7",
+ "pin-project 1.0.8",
  "tracing",
 ]
 
