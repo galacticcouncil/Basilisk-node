@@ -18,14 +18,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Decode, Encode};
-use sp_std::prelude::*;
-use sp_std::ops::{Add, Mul, Index, IndexMut};
-use sp_std::iter::Sum;
-use frame_support::traits::{Get, Len};
-use frame_support::sp_runtime::RuntimeDebug;
-use frame_support::sp_runtime::traits::{CheckedDiv, Zero};
 use frame_support::dispatch::DispatchResult;
+use frame_support::sp_runtime::traits::{CheckedDiv, Zero};
+use frame_support::sp_runtime::RuntimeDebug;
+use frame_support::traits::Get;
 use primitives::{Balance, Price};
+use sp_std::iter::Sum;
+use sp_std::ops::{Add, Index, IndexMut, Mul};
+use sp_std::prelude::*;
 
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
@@ -84,13 +84,26 @@ impl<'a> Sum<&'a Self> for PriceInfo {
 	where
 		I: Iterator<Item = &'a Self>,
 	{
-		iter.fold( PriceInfo{ avg_price: Price::zero(), volume: Balance::zero() }, |a, b| {&a + b})
+		iter.fold(
+			PriceInfo {
+				avg_price: Price::zero(),
+				volume: Balance::zero(),
+			},
+			|a, b| &a + b,
+		)
 	}
 }
 
 impl PriceInfoCalculation<PriceInfo> for PriceInfo {
 	fn calculate_price_info(entries: &[PriceEntry]) -> Option<PriceInfo> {
-        let intermediate_result: Vec<PriceEntry> = entries.iter().map(|x| PriceEntry{price: x.price.mul(Price::from(x.liq_amount)), amount: x.amount, liq_amount: x.liq_amount}).collect();
+		let intermediate_result: Vec<PriceEntry> = entries
+			.iter()
+			.map(|x| PriceEntry {
+				price: x.price.mul(Price::from(x.liq_amount)),
+				amount: x.amount,
+				liq_amount: x.liq_amount,
+			})
+			.collect();
 
 		let sum = intermediate_result.iter().sum::<PriceEntry>();
 		let weighted_avg_price = sum.price.checked_div(&Price::from(sum.liq_amount as u128))?;
@@ -98,7 +111,7 @@ impl PriceInfoCalculation<PriceInfo> for PriceInfo {
 			avg_price: weighted_avg_price,
 			volume: sum.amount,
 		})
-}
+	}
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
@@ -138,7 +151,7 @@ impl BucketQueueT for BucketQueue {
 	}
 
 	fn calculate_average(&self) -> Option<PriceInfo> {
-        let sum = self.bucket.iter().sum::<PriceInfo>();
+		let sum = self.bucket.iter().sum::<PriceInfo>();
 		Some(PriceInfo {
 			avg_price: sum.avg_price.checked_div(&Price::from(Self::BUCKET_SIZE as u128))?,
 			volume: sum.volume.checked_div(Self::BUCKET_SIZE as u128)?,
@@ -188,11 +201,7 @@ impl Zero for PriceEntry {
 	}
 
 	fn is_zero(&self) -> bool {
-		if self == &PriceEntry::zero() {
-			true
-		} else {
-			false
-		}
+		self == &PriceEntry::zero()
 	}
 }
 
@@ -212,7 +221,14 @@ impl<'a> Sum<&'a Self> for PriceEntry {
 	where
 		I: Iterator<Item = &'a Self>,
 	{
-		iter.fold( PriceEntry{ price: Price::zero(), amount: Balance::zero(), liq_amount: Balance::zero() }, |a, b| {&a + b})
+		iter.fold(
+			PriceEntry {
+				price: Price::zero(),
+				amount: Balance::zero(),
+				liq_amount: Balance::zero(),
+			},
+			|a, b| &a + b,
+		)
 	}
 }
 
@@ -257,23 +273,19 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn price_buffer)]
-	pub type PriceBuffer<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, Vec<PriceEntry>, ValueQuery>;
+	pub type PriceBuffer<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Vec<PriceEntry>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_ten)]
-	pub type PriceDataTen<T: Config> =
-		StorageValue<_, Vec<(T::AccountId, BucketQueue)>, ValueQuery>;
+	pub type PriceDataTen<T: Config> = StorageValue<_, Vec<(T::AccountId, BucketQueue)>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_hundred)]
-	pub type PriceDataHundred<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, BucketQueue, ValueQuery>;
+	pub type PriceDataHundred<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BucketQueue, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_thousand)]
-	pub type PriceDataThousand<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, BucketQueue, ValueQuery>;
+	pub type PriceDataThousand<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BucketQueue, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
@@ -284,22 +296,23 @@ pub mod pallet {
 	}
 
 	#[pallet::call]
-	impl<T: Config> Pallet<T> {
-	}
+	impl<T: Config> Pallet<T> {}
 }
 
 impl<T: Config> Pallet<T> {
 	fn new_entry(asset_pair: T::AccountId) -> DispatchResult {
-        PriceDataTen::<T>::append((asset_pair, BucketQueue::default()));
+		PriceDataTen::<T>::append((asset_pair, BucketQueue::default()));
 
-		let incremented_asset_count = Self::asset_count().checked_add(1).ok_or(Error::<T>::AssetCountOverflow)?;
+		let incremented_asset_count = Self::asset_count()
+			.checked_add(1)
+			.ok_or(Error::<T>::AssetCountOverflow)?;
 		<NumOfTrackedAssets<T>>::put(incremented_asset_count);
 
 		Ok(())
 	}
 
 	fn on_trade(asset_pair: T::AccountId, entry: PriceEntry) -> DispatchResult {
-        if PriceBuffer::<T>::contains_key(&asset_pair) {
+		if PriceBuffer::<T>::contains_key(&asset_pair) {
 			PriceBuffer::<T>::append(asset_pair, entry);
 		} else {
 			PriceBuffer::<T>::insert(asset_pair, vec![entry]);
@@ -309,19 +322,16 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn update_data() -> DispatchResult {
-        PriceDataTen::<T>::try_mutate(|data_ten| -> DispatchResult {
-
-            for (asset_pair, data) in data_ten.iter_mut() {
-
+		PriceDataTen::<T>::try_mutate(|data_ten| -> DispatchResult {
+			for (asset_pair, data) in data_ten.iter_mut() {
 				let maybe_price = <PriceBuffer<T>>::try_get(asset_pair);
 				let result = if let Ok(prices) = maybe_price {
-					PriceInfo::calculate_price_info(prices.as_slice())
-						.ok_or(Error::<T>::PriceComputationError)?
+					PriceInfo::calculate_price_info(prices.as_slice()).ok_or(Error::<T>::PriceComputationError)?
 				} else {
 					PriceInfo::default()
 				};
 
-                data.update_last(result);
+				data.update_last(result);
 			}
 
 			PriceBuffer::<T>::remove_all();
@@ -330,26 +340,38 @@ impl<T: Config> Pallet<T> {
 		})?;
 
 		let now = <frame_system::Pallet<T>>::block_number();
-        if now.is_zero() { return Ok(()) } // TODO ???
+		if now.is_zero() {
+			return Ok(());
+		} // TODO ???
 
 		if (now % T::BlockNumber::from(BUCKET_SIZE)) == T::BlockNumber::from(BUCKET_SIZE - 1) {
-            for element_from_ten in PriceDataTen::<T>::get().iter() {
+			for element_from_ten in PriceDataTen::<T>::get().iter() {
 				PriceDataHundred::<T>::mutate(element_from_ten.0.clone(), |data| -> DispatchResult {
-					data.update_last(element_from_ten.1.calculate_average().ok_or(Error::<T>::PriceComputationError)?);
-                    Ok(())
+					data.update_last(
+						element_from_ten
+							.1
+							.calculate_average()
+							.ok_or(Error::<T>::PriceComputationError)?,
+					);
+					Ok(())
 				})?;
 			}
 		}
 
 		if (now % T::BlockNumber::from(BUCKET_SIZE.pow(2))) == T::BlockNumber::from(BUCKET_SIZE.pow(2) - 1) {
-            for element_from_hundred in PriceDataHundred::<T>::iter() {
+			for element_from_hundred in PriceDataHundred::<T>::iter() {
 				PriceDataThousand::<T>::mutate(element_from_hundred.0.clone(), |data| -> DispatchResult {
-					data.update_last(element_from_hundred.1.calculate_average().ok_or(Error::<T>::PriceComputationError)?);
-                    Ok(())
+					data.update_last(
+						element_from_hundred
+							.1
+							.calculate_average()
+							.ok_or(Error::<T>::PriceComputationError)?,
+					);
+					Ok(())
 				})?;
 			}
 		}
 
-        Ok(())
+		Ok(())
 	}
 }
