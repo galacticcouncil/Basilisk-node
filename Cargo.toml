@@ -1,4 +1,5 @@
 [patch.crates-io]
+substrate-wasm-builder = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.8" }
 frame-benchmarking = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.8" }
 frame-benchmarking-cli = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.8" }
 frame-executive = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.8" }
