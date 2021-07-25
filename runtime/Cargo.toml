@@ -25,6 +25,8 @@ trie-db = { version = "0.22.0", default-features = false }
 smallvec = "1.6.1"
 
 # local dependencies
+# REVIEW: Seems like you copied the pallets from HydraDX node. Seems like a bad idea as it increases
+#   the maintenance burden.
 pallet-transaction-multi-payment = {path = "../pallets/transaction-multi-payment", default-features = false}
 pallet-multi-payment-benchmarking = { path = "../pallets/transaction-multi-payment/benchmarking", optional=true, default-features= false}
 pallet-exchange = {path = "../pallets/exchange", default-features=false}

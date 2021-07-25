@@ -312,6 +312,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
+	// REVIEW: How do you avoid dust?
 	pub const ExistentialDeposit: u128 = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
@@ -346,11 +347,13 @@ parameter_types! {
 }
 
 /// Parameterized slow adjusting fee updated based on
-/// https://w3f-research.readthedocs.io/en/latest/polkadot/Token%20Economics.html#-2.-slow-adjusting-mechanism
+// REVIEW: Broken link
+/// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html?highlight=token%20economics#-2.-slow-adjusting-mechanism
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for Runtime {
+	// REVIEW: You might want to note explicitly that you burn fees?
 	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), MultiTransactionPayment>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = WeightToFee;
@@ -373,6 +376,7 @@ impl pallet_sudo::Config for Runtime {
 }
 
 parameter_type_with_key! {
+	// REVIEW: How do you plan on handling dust?
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
 		Zero::zero()
 	};
@@ -446,6 +450,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
 	type OutboundXcmpMessageSource = ();
+	// REVIEW: I'd understand holding off on XCMP, but you're not even handling DMPs, why?
 	type DmpMessageHandler = ();
 	type ReservedDmpWeight = ();
 	type XcmpMessageHandler = ();
@@ -557,6 +562,8 @@ impl pallet_democracy::Config for Runtime {
 	type Scheduler = Scheduler;
 	type PalletsOrigin = OriginCaller;
 	type MaxVotes = MaxVotes;
+	// REVIEW: You might want to run your own benchmark here because you changed the number of
+	// MaxVotes and MaxProposals. (Though you reduced them, so you should be fine security-wise.)
 	type WeightInfo = ();
 	type MaxProposals = MaxProposals;
 }
@@ -589,12 +596,14 @@ impl pallet_elections_phragmen::Config for Runtime {
 	type DesiredMembers = DesiredMembers;
 	type DesiredRunnersUp = DesiredRunnersUp;
 	type TermDuration = TermDuration;
+	// REVIEW: Same note here about benchmarks.
 	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
 	pub const CouncilMaxProposals: u32 = 20;
+	// REVIEW: What's the use of having a council of one?
 	pub const ProposalVotesRequired: u32 = 1;
 	pub const CouncilMaxMembers: u32 = 1;
 }
@@ -608,6 +617,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
+	// REVIEW: Same note about benchmarks.
 	type WeightInfo = ();
 }
 
@@ -732,6 +742,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
+	// REVIEW: Same note about benchmarks.
 	type WeightInfo = ();
 }
 
@@ -1041,7 +1052,7 @@ impl_runtime_apis! {
 
 			add_benchmark!(params, batches, xyk, XYK);
 			add_benchmark!(params, batches, lbp, LBP);
-			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
+			// REVIEW: You have the multi payment benchmark twice
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
