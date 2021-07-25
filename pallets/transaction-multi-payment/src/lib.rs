@@ -218,7 +218,8 @@ pub mod pallet {
 		/// When currency is set, fixed fee is withdrawn from the account to pay for the currency change
 		///
 		/// Emits `CurrencySet` event when successful.
-		#[pallet::weight((<T as Config>::WeightInfo::set_currency(), DispatchClass::Normal, Pays::No))]
+		// REVIEW: You would want to charge before the transaction is executed, no?
+		#[pallet::weight((<T as Config>::WeightInfo::set_currency(), DispatchClass::Normal, T::WithdrawFeeForSetCurrency::get()))]
 		#[transactional]
 		pub fn set_currency(origin: OriginFor<T>, currency: AssetId) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
@@ -229,10 +230,6 @@ pub mod pallet {
 				}
 
 				<AccountCurrencyMap<T>>::insert(who.clone(), currency);
-
-				if T::WithdrawFeeForSetCurrency::get() == Pays::Yes {
-					Self::withdraw_set_fee(&who)?;
-				}
 
 				Self::deposit_event(Event::CurrencySet(who, currency));
 
@@ -256,6 +253,7 @@ pub mod pallet {
 			ensure!(currency != CORE_ASSET_ID, Error::<T>::CoreAssetNotAllowed);
 
 			// Only selected accounts can perform this action
+			// REVIEW: You might want to consider changing this to an origin check at some point.
 			ensure!(Self::authorities().contains(&who), Error::<T>::NotAllowed);
 
 			AcceptedCurrencies::<T>::try_mutate_exists(currency, |maybe_price| -> DispatchResultWithPostInfo {
@@ -367,6 +365,8 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	// REVIEW: nitpick: Seems a bit weird to pull this out, but not remove_member. Not sure this
+	// carries its weight.
 	pub fn add_new_member(who: &T::AccountId) {
 		Authorities::<T>::mutate(|x| x.push(who.clone()));
 	}
@@ -465,6 +465,7 @@ where
 
 		if let Ok(detail) = SW::swap(&who, fee.into()) {
 			match detail {
+				// REVIEW: You don't track how much you transferred.
 				PaymentSwapResult::Transferred => Ok(None),
 				PaymentSwapResult::Native | PaymentSwapResult::Swapped => {
 					match C::withdraw(who, fee, withdraw_reason, ExistenceRequirement::KeepAlive) {
@@ -492,6 +493,9 @@ where
 		tip: Self::Balance,
 		already_withdrawn: Self::LiquidityInfo,
 	) -> Result<(), TransactionValidityError> {
+		// REVIEW: Because you don't track what you transferred above you cannot refund in that case.
+		// Is that intentional? If yes, you might want to add a comment mentioning it (because it is
+		// surprising, at least to me).
 		if let Some(paid) = already_withdrawn {
 			// Calculate how much refund we should return
 			let refund_amount = paid.peek().saturating_sub(corrected_fee);
