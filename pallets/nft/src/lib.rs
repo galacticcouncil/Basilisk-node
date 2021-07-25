@@ -26,6 +26,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+// REVIEW: Seems unused.
 pub type Balance = u128;
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
@@ -67,9 +68,11 @@ pub mod pallet {
 	pub type ClassBondUntil<T: Config> =
 		StorageDoubleMap<_, Twox64Concat, T::BlockNumber, Twox64Concat, ClassIdOf<T>, (), OptionQuery>;
 
+	// REVIEW: Docs ;-)
 	#[pallet::config]
 	pub trait Config: frame_system::Config + orml_nft::Config<ClassData = ClassData, TokenData = TokenData> {
-		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		// REVIEW: nitpick: Direct dependance on `Currency` is redundant.
+		type Currency: ReservableCurrency<Self::AccountId>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 		#[pallet::constant]
@@ -103,6 +106,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		// REVIEW: This should be #[transactional] as `orml_nft::Pallet::mint` can fail.
 		#[pallet::weight(<T as Config>::WeightInfo::mint(*quantity))]
 		pub fn mint(
 			origin: OriginFor<T>,
@@ -206,6 +210,8 @@ pub mod pallet {
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
 		fn on_finalize(now: T::BlockNumber) {
 			let bond = T::ClassBondAmount::get();
+			// REVIEW: Don't do this in `on_finalize` as it iterates over storage keys. Especially not
+			// without registering the weight in `on_initialize`.
 			Self::unlock_bond(now, bond);
 		}
 	}
