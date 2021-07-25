@@ -96,6 +96,7 @@ benchmarks! {
 
 	add_currency {
 		let caller = funded_account::<T>("maker", 1);
+		// REVIEW: This is not the worst case. You need a full auhorities set for that.
 		MultiPaymentModule::<T>::add_new_member(&caller);
 
 		let price = Price::from(10);
@@ -107,6 +108,7 @@ benchmarks! {
 
 	remove_currency {
 		let caller = funded_account::<T>("maker", 1);
+		// REVIEW: This is not the worst case. You need a full auhorities set for that.
 		MultiPaymentModule::<T>::add_new_member(&caller);
 		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(caller.clone()).into(), 10, Price::from(2))?;
 
@@ -119,6 +121,7 @@ benchmarks! {
 
 	add_member{
 		let member = funded_account::<T>("newmember", 10);
+		// REVIEW: This is not the worst case. You need a full auhorities set for that.
 	}: { MultiPaymentModule::<T>::add_member(RawOrigin::Root.into(), member.clone())? }
 	verify {
 		assert_eq!(MultiPaymentModule::<T>::authorities(), vec![member]);
@@ -127,6 +130,7 @@ benchmarks! {
 	remove_member{
 		let member = funded_account::<T>("newmember", 10);
 		MultiPaymentModule::<T>::add_new_member(&member);
+		// REVIEW: This is not the worst case. You need a full auhorities set for that.
 	}: { MultiPaymentModule::<T>::remove_member(RawOrigin::Root.into(), member.clone())? }
 	verify {
 		assert_eq!(MultiPaymentModule::<T>::authorities(), vec![]);
