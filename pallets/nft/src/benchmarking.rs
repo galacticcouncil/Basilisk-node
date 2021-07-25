@@ -6,6 +6,7 @@ use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
 
 const SEED: u32 = 0;
+// REVIEW: Is this the worst case for the token data?
 const EMOTE: &str = "RMRK::EMOTE::RMRK1.0.0::0aff6865bed3a66b-VALHELLO-POTION_HEAL-0000000000000001::1F389";
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
@@ -19,6 +20,7 @@ fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
+		// REVIEW: This is not the worst case. You need to store the max allowable metadata for that.
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
@@ -36,12 +38,15 @@ benchmarks! {
 	mint {
 		let i in 1 .. 1000;
 		let caller = create_account::<T>("caller", 0);
+		// REVIEW: This is not the worst case. You need to store the max allowable metadata for that.
 		let class_metadata = "just a token class".as_bytes().to_vec();
 		let token_data = TokenData { locked:false, emote:EMOTE.as_bytes().to_vec() };
 		let class_data = ClassData { is_pool:true };
+		// REVIEW: Why does this not use the pallet-nft dispatchable?
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::next_token_id(class_id);
 		let token = (class_id, token_id);
+		// REVIEW: nitpick: Shouldn't this be token metadata?
 	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data, i)
 	verify {
 		assert_eq!(orml_nft::Pallet::<T>::tokens_by_owner(caller, token), ());

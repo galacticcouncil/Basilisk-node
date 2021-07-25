@@ -116,6 +116,8 @@ pub mod pallet {
 			quantity: u32,
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
+			// REVIEW: Quantity is unbounded. Are you sure you want to allow people to fill the
+			// whole block with one mint transaction?
 			ensure!(quantity > Zero::zero(), Error::<T>::InvalidQuantity);
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
@@ -158,6 +160,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		pub fn destroy_class(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
+			// REVIEW: AFAICT this check is redundant (because ` orml_nft::destroy_class` does the same)
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
