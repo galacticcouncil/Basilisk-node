@@ -473,7 +473,8 @@ pub mod pallet {
 				ensure!(pool.pausable, Error::<T>::PoolIsNotPausable);
 				ensure!(!pool.paused, Error::<T>::CannotPausePausedPool);
 
-				ensure!(Self::is_after_sale(&pool), Error::<T>::CannotPauseEndedPool);
+				// REVIEW: You want to ensure the pool is running, no?
+				ensure!(Self::is_pool_running(&pool), Error::<T>::CannotPauseEndedPool);
 
 				pool.paused = true;
 
@@ -504,7 +505,9 @@ pub mod pallet {
 
 				ensure!(pool.paused, Error::<T>::PoolIsNotPaused);
 
-				ensure!(Self::is_after_sale(&pool), Error::<T>::CannotUnpauseEndedPool);
+				// REVIEW: You want to ensure the pool is running, no? Or do you want to allow
+				// starting it paused?
+				ensure!(Self::is_pool_running(&pool), Error::<T>::CannotUnpauseEndedPool);
 
 				pool.paused = false;
 
@@ -515,7 +518,7 @@ pub mod pallet {
 
 		/// Add liquidity to a pool.
 		///
-		/// Assets to add has to match the pool assets. At least one amount has to be non-zero.
+		/// Assets to add have to match the pool assets. At least one amount has to be non-zero.
 		///
 		/// The dispatch origin for this call must be signed by the pool owner.
 		///
@@ -575,11 +578,13 @@ pub mod pallet {
 		/// The dispatch origin for this call must be signed by the pool owner.
 		///
 		/// Parameters:
-		/// - `amount_a`: The identifier of the asset and the amount to add.
+		/// - `pool_id`: Id of the pool to remove.
 		///
 		/// Emits 'LiquidityRemoved' when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
 		#[transactional]
+		// REVIEW: nitpick: I would call it `remove_all_liquidity` or `remove_pool` to distinguish
+		// from `add_liquidity`.
 		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -706,6 +711,7 @@ impl<T: Config> Pallet<T> {
 	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
+		// REVIEW: This has an edge case for block 0.
 		if now != pool_data.last_weight_update {
 			return Self::calculate_weights(pool_data, now);
 		}
@@ -724,7 +730,7 @@ impl<T: Config> Pallet<T> {
 			pool_data.last_weights = Self::calculate_weights(&*pool_data, now)?;
 
 			let pool_data = &*pool_data;
-			<PoolData<T>>::insert(&pool_id, &pool_data);
+			<PoolData<T>>::insert(&pool_id, pool_data);
 		}
 
 		Ok(pool_data.last_weights)
@@ -775,9 +781,10 @@ impl<T: Config> Pallet<T> {
 		pool_data.start.is_zero() || now < pool_data.start
 	}
 
+	// REVIEW: This seems wrong. As written (before my change) this is `is_active_sale`, no?
 	fn is_after_sale(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
-		pool_data.end >= now
+		now > pool_data.end
 	}
 
 	fn update_weights_and_validate_trade(
@@ -897,6 +904,7 @@ impl<T: Config> Pallet<T> {
 				transfer.fee.1,
 			)?;
 		} else {
+			// REVIEW: This means the pool pays the fee?
 			T::MultiCurrency::transfer(transfer.fee.0, &pool_id, &pool_data.fee_receiver, transfer.fee.1)?;
 		}
 
@@ -952,8 +960,8 @@ where
 
 impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
-		let pair_account = T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out);
-		<PoolData<T>>::contains_key(&pair_account)
+		// REVIEW: nitpick: Why not use the function?
+		<PoolData<T>>::contains_key(&Self::get_pair_id(assets))
 	}
 
 	fn get_pair_id(assets: AssetPair) -> T::AccountId {
