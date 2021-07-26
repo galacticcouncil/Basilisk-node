@@ -31,13 +31,14 @@ use sp_runtime::{
 use frame_support::weights::IdentityFee;
 use frame_support::weights::Weight;
 use orml_currencies::BasicCurrencyAdapter;
-use primitives::{Amount, AssetId, Balance, Price};
+use primitives::{
+	fee, Amount, AssetId, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+};
 
 use pallet_xyk::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 use frame_support::traits::{GenesisBuild, Get};
-use primitives::fee;
 
 pub type AccountId = u64;
 
@@ -191,6 +192,13 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 	}
 }
 
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+}
+
 impl pallet_xyk::Config for Test {
 	type Event = Event;
 	type AssetPairAccountId = AssetPairAccountIdTest;
@@ -198,6 +206,10 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 parameter_type_with_key! {

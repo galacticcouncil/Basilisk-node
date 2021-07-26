@@ -23,7 +23,7 @@ use primitives::traits::{AMMTransfer, AMM};
 use primitives::{
 	asset::AssetPair,
 	fee::{Fee, WithFee},
-	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
+	Amount, AssetId, Balance,
 };
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
@@ -177,6 +177,14 @@ pub mod pallet {
 		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
 
+		/// Minimum trading limit
+		#[pallet::constant]
+		type MinTradingLimit: Get<Balance>;
+
+		/// Minimum pool liquidity
+		#[pallet::constant]
+		type MinPoolLiquidity: Get<Balance>;
+
 		/// Max fraction of pool to sell in single transaction
 		#[pallet::constant]
 		type MaxInRatio: Get<u128>;
@@ -193,58 +201,86 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// Pool assets can not be the same
 		CannotCreatePoolWithSameAssets,
-		/// Initial liquidity should be non-zero
-		CannotCreatePoolWithZeroLiquidity,
+
 		/// Account is not a pool owner
 		NotOwner,
+
 		/// Sale already started
 		SaleStarted,
+
 		/// Sale is still in progress
 		SaleNotEnded,
+
 		/// Sale is not running
 		SaleIsNotRunning,
+
 		/// Sale already ended
 		CannotPauseEndedPool,
+
 		/// Sale already ended
 		CannotUnpauseEndedPool,
+
 		/// Sale is already paused
 		CannotPausePausedPool,
+
 		/// Pool cannot be paused
 		PoolIsNotPausable,
+
 		/// Pool is not paused
 		PoolIsNotPaused,
+
 		/// Sale duration is too long
 		MaxSaleDurationExceeded,
+
 		/// Liquidity being added should not be zero
 		CannotAddZeroLiquidity,
 		/// Asset balance too low
 		InsufficientAssetBalance,
+
 		/// Pool does not exist
 		PoolNotFound,
+
 		/// Pool has been already created
 		PoolAlreadyExists,
+
 		/// Pool does not contain the asset
 		InvalidAsset,
+
 		/// Invalid block number
 		InvalidBlockNumber,
+
 		/// Calculation error
 		WeightCalculationError,
+
 		/// Weight should be non-zero
 		ZeroWeight,
+
 		/// Can not perform a trade with zero amount
 		ZeroAmount,
+
 		/// Trade amount is too high
 		MaxInRatioExceeded,
+
 		/// Trade amount is too high
 		MaxOutRatioExceeded,
+
 		/// Invalid fee amount
 		FeeAmountInvalid,
+
 		/// Trading limit reached
 		AssetBalanceLimitExceeded,
+
 		/// An unexpected integer overflow occurred
 		Overflow, // no tests
+
 		/// Nothing to update
 		NothingToUpdate,
+
+		/// Liquidity has not reached the required minimum.
+		InsufficientLiquidity,
+
+		/// Amount is less than minimum trading limit.
+		InsufficientTradingAmount,
 	}
 
 	#[pallet::event]
@@ -336,8 +372,8 @@ pub mod pallet {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				!asset_a.amount.is_zero() && !asset_b.amount.is_zero(),
-				Error::<T>::CannotCreatePoolWithZeroLiquidity
+				asset_a.amount >= T::MinPoolLiquidity::get() && asset_b.amount >= T::MinPoolLiquidity::get(),
+				Error::<T>::InsufficientLiquidity
 			);
 
 			ensure!(asset_a.id != asset_b.id, Error::<T>::CannotCreatePoolWithSameAssets);
@@ -795,7 +831,10 @@ impl<T: Config> Pallet<T> {
 		limit: BalanceOf<T>,
 		trade_type: TradeType,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
 
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount,
@@ -824,12 +863,12 @@ impl<T: Config> Pallet<T> {
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
 		if trade_type == TradeType::Sell {
 			ensure!(
-				amount <= asset_in_reserve / MAX_IN_RATIO,
+				amount <= asset_in_reserve / T::MaxInRatio::get(),
 				Error::<T>::MaxInRatioExceeded
 			);
 		} else {
 			ensure!(
-				amount <= asset_out_reserve / MAX_OUT_RATIO,
+				amount <= asset_out_reserve / T::MaxOutRatio::get(),
 				Error::<T>::MaxOutRatioExceeded
 			);
 		}
@@ -1064,6 +1103,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.fee.1,
 		));
 		Ok(())
+	}
+
+	fn get_min_trading_limit() -> Balance {
+		T::MinTradingLimit::get()
+	}
+
+	fn get_min_pool_liquidity() -> Balance {
+		T::MinPoolLiquidity::get()
 	}
 
 	fn get_max_in_ratio() -> u128 {

@@ -81,13 +81,13 @@ fn weight_update_should_work() {
 	new_test_ext().execute_with(|| {
 		let asset_a = LBPAssetInfo {
 			id: ACA,
-			amount: 1,
+			amount: 1_000_000,
 			initial_weight: 20,
 			final_weight: 80,
 		};
 		let asset_b = LBPAssetInfo {
 			id: DOT,
-			amount: 2,
+			amount: 2_000_000,
 			initial_weight: 80,
 			final_weight: 20,
 		};
@@ -466,7 +466,7 @@ fn create_pool_with_same_assets_should_not_work() {
 }
 
 #[test]
-fn create_pool_with_zero_liquidity_should_not_work() {
+fn create_pool_with_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
 			LBPPallet::create_pool(
@@ -490,7 +490,7 @@ fn create_pool_with_zero_liquidity_should_not_work() {
 				Fee::default(),
 				CHARLIE,
 			),
-			Error::<Test>::CannotCreatePoolWithZeroLiquidity
+			Error::<Test>::InsufficientLiquidity
 		);
 
 		assert_noop!(
@@ -515,7 +515,32 @@ fn create_pool_with_zero_liquidity_should_not_work() {
 				Fee::default(),
 				CHARLIE,
 			),
-			Error::<Test>::CannotCreatePoolWithZeroLiquidity
+			Error::<Test>::InsufficientLiquidity
+		);
+
+		assert_noop!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo {
+					id: HDX,
+					amount: 100,
+					initial_weight: 20,
+					final_weight: 90,
+				},
+				LBPAssetInfo {
+					id: DOT,
+					amount: 100,
+					initial_weight: 80,
+					final_weight: 10,
+				},
+				(10u64, 20u64),
+				WeightCurveType::Linear,
+				true,
+				Fee::default(),
+				CHARLIE,
+			),
+			Error::<Test>::InsufficientLiquidity
 		);
 	});
 }
@@ -1992,7 +2017,7 @@ fn sell_zero_amount_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(BOB), ACA, DOT, 0_u128, 200_000_u128),
-			Error::<Test>::ZeroAmount
+			Error::<Test>::InsufficientTradingAmount
 		);
 	});
 }
@@ -2002,7 +2027,7 @@ fn buy_zero_amount_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
 			LBPPallet::buy(Origin::signed(BOB), ACA, DOT, 0_u128, 200_000_u128),
-			Error::<Test>::ZeroAmount
+			Error::<Test>::InsufficientTradingAmount
 		);
 	});
 }

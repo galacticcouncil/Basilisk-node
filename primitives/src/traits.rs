@@ -98,21 +98,13 @@ pub trait AMM<AccountId, AssetId, AssetPair, Amount: Zero> {
 		Ok(())
 	}
 
-	fn get_min_trading_limit() -> Amount {
-		Zero::zero()
-	}
+	fn get_min_trading_limit() -> Amount;
 
-	fn get_min_pool_liquidity() -> Amount {
-		Zero::zero()
-	}
+	fn get_min_pool_liquidity() -> Amount;
 
-	fn get_max_in_ratio() -> u128 {
-		Zero::zero()
-	}
+	fn get_max_in_ratio() -> u128;
 
-	fn get_max_out_ratio() -> u128 {
-		Zero::zero()
-	}
+	fn get_max_out_ratio() -> u128;
 }
 
 pub trait Resolver<AccountId, Intention, E> {
