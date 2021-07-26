@@ -375,8 +375,10 @@ impl<T: Config> Pallet<T> {
 		b_in_intentions: &[Intention<T>],
 	) {
 		let mut b_copy = b_in_intentions.to_owned();
+		// REVIEW: You can sort `mut` slices, so you could pass a mut slice and avoid a clone here.
 		let mut a_copy = a_in_intentions.to_owned();
 
+		// REVIEW: nitpick: change `a, b` to something else like `l, r` to avoid naming collision.
 		b_copy.sort_by(|a, b| b.amount_in.cmp(&a.amount_in));
 		a_copy.sort_by(|a, b| b.amount_in.cmp(&a.amount_in));
 
@@ -390,9 +392,13 @@ impl<T: Config> Pallet<T> {
 			let mut bvec = Vec::<Intention<T>>::new();
 			let mut total = 0;
 
+			// REVIEW: I think you can avoid the allocation of the vec here if you use `take_while`
+			// https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html#method.take_while
+			// on an iterator of the slice.
 			while let Some(matched) = b_copy.pop() {
-				bvec.push(matched.clone());
 				total += matched.amount_in;
+				// REVIEW: You can avoid the clone.
+				bvec.push(matched);
 
 				if total >= intention.amount_in {
 					break;

@@ -294,14 +294,18 @@ benchmarks! {
 	on_finalize_for_one_sell_extrinsic {
 		let creator = funded_account::<T>("creator", 100);
 		let seller = funded_account::<T>("seller", 101);
-
+		
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
 		let amount : Balance = 10_000_000_000;
 		let discount = false;
-
+		
 		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
-
+		
+		// REVIEW: I don't think one sell covers the worst-case on_finalize overhead.
+		// I would expect `resolve_matched_intentions` not to be called with just one intention
+		// because it's based on the matching. The on_finalize overhead of one sell should probably
+		// be based on max-buy-intentions already in the queue and vice-versa for one buy.
 		pallet_exchange::Pallet::<T>::sell(
 			RawOrigin::Signed(seller.clone()).into(),
 			asset_a,
