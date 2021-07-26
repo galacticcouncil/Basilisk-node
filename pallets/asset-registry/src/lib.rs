@@ -91,9 +91,16 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
+			// REVIEW: You probably want to make sure the genesis config is sane?
+			assert_ne!(self.core_asset_id, self.next_asset_id, "core asset id needs to be unique");
+			// REVIEW: maybe even:
+			assert!(self.core_asset_id < self.next_asset_id, "core asset id needs to be unique");
 			CoreAssetId::<T>::put(self.core_asset_id);
 			NextAssetId::<T>::put(self.next_asset_id);
+			// REVIEW: Maybe track them in a btree-set? Might be overkill, not sure.
 			self.asset_ids.iter().for_each(|(name, asset_id)| {
+				// REVIEW: maybe:
+				assert!(asset_id < &self.next_asset_id, "asset ids need to be unique");
 				AssetIds::<T>::insert(name, Some(asset_id));
 			})
 		}
@@ -102,9 +109,12 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	/// Create asset for given name or return existing AssetId if such asset already exists.
+	/// 
+	/// Note: Does not check that `name` is of a sane length, length bound checks fall to the caller.
 	pub fn get_or_create_asset(name: Vec<u8>) -> Result<T::AssetId, DispatchError> {
 		if <AssetIds<T>>::contains_key(&name) {
-			Ok(<AssetIds<T>>::get(&name).unwrap())
+			// REVIEW: Add a "proof"
+			Ok(<AssetIds<T>>::get(&name).expect("checked existence of value; qed"))
 		} else {
 			let asset_id = Self::next_asset_id();
 			let next_id = asset_id.checked_add(&One::one()).ok_or(Error::<T>::NoIdAvailable)?;
