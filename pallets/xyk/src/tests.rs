@@ -1129,6 +1129,11 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 		);
 
 		assert_noop!(
+			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 5000, Price::from_float(0.1f64)),
+			Error::<Test>::InsufficientLiquidity
+		);
+
+		assert_noop!(
 			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 1000, Price::from(0)),
 			Error::<Test>::ZeroInitialPrice
 		);
@@ -1530,7 +1535,7 @@ fn test_calculate_out_given_in() {
 		let in_reserve: Balance = 10000000000000;
 		let out_reserve: Balance = 100000;
 		let in_amount: Balance = 100000000000;
-		let result = hydra_dx_math::calculate_out_given_in(in_reserve, out_reserve, in_amount);
+		let result = hydra_dx_math::xyk::calculate_out_given_in(in_reserve, out_reserve, in_amount);
 		assert_eq!(result, Ok(990));
 	});
 }
@@ -1541,7 +1546,7 @@ fn test_calculate_out_given_in_invalid() {
 		let in_reserve: Balance = 0;
 		let out_reserve: Balance = 1000;
 		let in_amount: Balance = 0;
-		let result = hydra_dx_math::calculate_out_given_in(in_reserve, out_reserve, in_amount);
+		let result = hydra_dx_math::xyk::calculate_out_given_in(in_reserve, out_reserve, in_amount);
 		assert_eq!(result, Ok(0));
 	});
 }
@@ -1552,7 +1557,7 @@ fn test_calculate_in_given_out_insufficient_pool_balance() {
 		let in_reserve: Balance = 10000000000000;
 		let out_reserve: Balance = 100000;
 		let out_amount: Balance = 100000000000;
-		let result = hydra_dx_math::calculate_in_given_out(out_reserve, in_reserve, out_amount);
+		let result = hydra_dx_math::xyk::calculate_in_given_out(out_reserve, in_reserve, out_amount);
 		assert_eq!(result, Err(MathError::InsufficientOutReserve));
 	});
 }
@@ -1563,7 +1568,7 @@ fn test_calculate_in_given_out() {
 		let in_reserve: Balance = 10000000000000;
 		let out_reserve: Balance = 10000000;
 		let out_amount: Balance = 1000000;
-		let result = hydra_dx_math::calculate_in_given_out(out_reserve, in_reserve, out_amount);
+		let result = hydra_dx_math::xyk::calculate_in_given_out(out_reserve, in_reserve, out_amount);
 		assert_eq!(result, Ok(1111111111112));
 	});
 }
