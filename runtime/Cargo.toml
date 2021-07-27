@@ -70,6 +70,7 @@ cumulus-pallet-aura-ext = { version = "0.1.0", default-features = false}
 cumulus-pallet-parachain-system ={ version = "0.1.0", default-features = false}
 cumulus-pallet-xcm = { version = "0.1.0", default-features = false}
 cumulus-pallet-xcmp-queue = { version = "0.1.0", default-features = false}
+cumulus-pallet-dmp-queue = { version = "0.1.0", default-features = false}
 cumulus-primitives-core ={ version = "0.1.0", default-features = false}
 cumulus-primitives-utility ={ version = "0.1.0", default-features = false}
 cumulus-primitives-parachain-inherent ={ version = "0.1.0", default-features = false}

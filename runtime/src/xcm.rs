@@ -102,6 +102,12 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ChannelInfo = ParachainSystem;
 }
 
+impl cumulus_pallet_dmp_queue::Config for Runtime {
+	type Event = Event;
+	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+}
+
 parameter_types! {
 		pub const BaseXcmWeight: Weight = 100_000_000;
 }
@@ -140,8 +146,7 @@ pub struct CurrencyIdConvert;
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
 		match id {
-			1 => Some(X1(Parent)),
-			0 => Some(X1(Parent)),
+			0 => Some(X3(Parent, Parachain(ParachainInfo::get().into()), GeneralKey(vec![]))),
 			_ => None,
 		}
 	}
@@ -151,8 +156,9 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
-			X1(Parent) => Some(1),
-			X3(Parent, Parachain(id), GeneralKey(_key)) if ParaId::from(id) == ParachainInfo::get() => Some(1),
+			X1(Parent) => Some(0),
+			X2(Parent, Parachain(_id)) => Some(0),
+			X3(Parent, Parachain(id), GeneralKey(_key)) => Some(0),
 			_ => None,
 		}
 	}

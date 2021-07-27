@@ -216,6 +216,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::CumulusXcm(_)
 			| Call::XTokens(_)
 			| Call::XcmpQueue(_)
+			| Call::DmpQueue(_)
 			| Call::PolkadotXcm(_)
 			| Call::Sudo(_) => true,
 
@@ -242,7 +243,7 @@ parameter_types! {
 		.for_class(DispatchClass::Operational, |weights| {
 			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
 			// Operational transactions have an extra reserved space, so that they
-			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
+			// are included even if block reachd `MAXIMUM_BLOCK_WEIGHT`.
 			weights.reserved = Some(
 				MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT,
 			);
@@ -459,7 +460,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type SelfParaId = ParachainInfo;
 
 	type OutboundXcmpMessageSource = XcmpQueue;
-	type DmpMessageHandler = ();
+	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
@@ -848,6 +849,7 @@ construct_runtime!(
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} ,
 
 		// Collator support
 		Authorship: pallet_authorship::{Pallet, Call, Storage},
