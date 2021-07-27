@@ -118,7 +118,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 12,
+	spec_version: 13,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -146,7 +146,6 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// We allow for
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 
-use frame_support::sp_runtime::offchain::storage_lock::BlockNumberProvider;
 use smallvec::smallvec;
 
 pub struct WeightToFee;
@@ -191,7 +190,6 @@ impl Filter<Call> for BaseFilter {
 		match call {
 			Call::System(_)
 			| Call::Timestamp(_)
-			| Call::RandomnessCollectiveFlip(_)
 			| Call::ParachainSystem(_)
 			| Call::Elections(_)
 			| Call::Democracy(_)
@@ -708,6 +706,7 @@ impl pallet_authorship::Config for Runtime {
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
 	pub const MaxCandidates: u32 = 20;             // only for benchmarking
+	pub const MinCandidates: u32 = 0;
 	pub const MaxInvulnerables: u32 = 10;
 }
 
@@ -738,9 +737,13 @@ impl pallet_collator_selection::Config for Runtime {
 	type UpdateOrigin = EnsureMajorityCouncilOrRoot;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
+	type MinCandidates = MinCandidates;
 	type MaxInvulnerables = MaxInvulnerables;
 	// should be a multiple of session or things will get inconsistent
 	type KickThreshold = Period;
+	type ValidatorId = <Self as frame_system::Config>::AccountId;
+	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
+	type ValidatorRegistration = Session;
 	type WeightInfo = ();
 }
 
@@ -794,18 +797,6 @@ parameter_types! {
 	pub const MaxVestingSchedules: u32 = 100;
 }
 
-pub struct RelaychainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
-
-impl BlockNumberProvider for RelaychainBlockNumberProvider<Runtime> {
-	type BlockNumber = BlockNumber;
-
-	fn current_block_number() -> Self::BlockNumber {
-		cumulus_pallet_parachain_system::Pallet::<Runtime>::validation_data()
-			.map(|d| d.relay_parent_number)
-			.unwrap_or_default()
-	}
-}
-
 impl orml_vesting::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -813,7 +804,7 @@ impl orml_vesting::Config for Runtime {
 	type VestedTransferOrigin = EnsureRootOrTreasury;
 	type WeightInfo = ();
 	type MaxVestingSchedules = MaxVestingSchedules;
-	type BlockNumberProvider = RelaychainBlockNumberProvider<Runtime>;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -824,7 +815,7 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Call, Storage},
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
@@ -840,7 +831,7 @@ construct_runtime!(
 		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
 
 		// Parachain
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
 
 		// XCM
@@ -948,8 +939,9 @@ impl_runtime_apis! {
 		fn validate_transaction(
 			source: TransactionSource,
 			tx: <Block as BlockT>::Extrinsic,
+			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
-			Executive::validate_transaction(source, tx)
+			Executive::validate_transaction(source, tx, block_hash)
 		}
 	}
 
