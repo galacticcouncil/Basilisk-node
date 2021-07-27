@@ -399,14 +399,15 @@ pub mod pallet {
 
 			let account_shares = T::Currency::free_balance(share_token, &who);
 
+			// REVIEW: Using the same error with that name seems slightly misleading. Add another error?
 			ensure!(total_shares >= liquidity_amount, Error::<T>::InsufficientAssetBalance);
 
 			ensure!(account_shares >= liquidity_amount, Error::<T>::InsufficientAssetBalance);
 
 			// Account's liquidity left should be either 0 or at least MIN_POOL_LIQUIDITY
 			ensure!(
-				(account_shares - liquidity_amount) >= MIN_POOL_LIQUIDITY
-					|| (account_shares - liquidity_amount).is_zero(),
+				(account_shares.saturating_sub(liquidity_amount)) >= MIN_POOL_LIQUIDITY
+					|| (account_shares == liquidity_amount)),
 				Error::<T>::InsufficientLiquidity
 			);
 
@@ -448,6 +449,8 @@ pub mod pallet {
 			if liquidity_left == 0 {
 				<ShareToken<T>>::remove(&pair_account);
 				<PoolAssets<T>>::remove(&pair_account);
+
+				// REVIEW: You might want to remove the `TotalLiquidity` entry as well?
 
 				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b));
 			}
@@ -558,8 +561,7 @@ impl<T: Config> Pallet<T> {
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
 impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
-		let pair_account = T::AssetPairAccountId::from_assets(assets.asset_in, assets.asset_out);
-		<ShareToken<T>>::contains_key(&pair_account)
+		<ShareToken<T>>::contains_key(&Self::get_pair_id(assets))
 	}
 
 	fn get_pair_id(assets: AssetPair) -> T::AccountId {
