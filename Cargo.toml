@@ -131,4 +131,5 @@ members = [
   'runtime',
   'pallets/xyk',
   'pallets/exchange',
+  'pallets/incetives',
 ]
