@@ -81,17 +81,18 @@ pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", bra
 
 
 # ORML dependencies
-orml-xcm-support = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
-orml-unknown-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '6856a5cb6f762756a13dc3d7b118c9cbba5befc4' }
+orml-xcm-support = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ca054d3078a8d157d0c176ed319d6ff49f38d349' }
+orml-xtokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ca054d3078a8d157d0c176ed319d6ff49f38d349' }
+orml-unknown-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ca054d3078a8d157d0c176ed319d6ff49f38d349' }
 
-xcm = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
-pallet-xcm = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
-xcm-builder = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
-xcm-executor = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.7" }
+xcm = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.8" }
+pallet-xcm = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.8" }
+xcm-builder = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.8" }
+xcm-executor = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.8" }
 
-cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.7" }
-cumulus-pallet-xcmp-queue = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.7" }
-cumulus-pallet-dmp-queue = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.7" }
+cumulus-pallet-xcm = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.8" }
+cumulus-pallet-xcmp-queue = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.8" }
+cumulus-pallet-dmp-queue = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.8" }
 
 orml-currencies = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ca054d3078a8d157d0c176ed319d6ff49f38d349' }
 orml-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = 'ca054d3078a8d157d0c176ed319d6ff49f38d349' }
@@ -119,6 +120,7 @@ cumulus-client-service = {git = "https://github.com/paritytech/cumulus", branch 
 cumulus-primitives-core = {git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.8"}
 cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.8" }
 cumulus-primitives-timestamp = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.8" }
+cumulus-primitives-utility = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.8" }
 
 cumulus-pallet-aura-ext = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.8" }
 cumulus-pallet-parachain-system = { git = 'https://github.com/paritytech/cumulus',  default-features = false, branch = "polkadot-v0.9.8" }
