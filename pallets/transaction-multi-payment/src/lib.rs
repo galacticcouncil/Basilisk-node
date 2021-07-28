@@ -531,7 +531,7 @@ pub struct CurrencyBalanceCheck<T: Config + Send + Sync>(PhantomData<T>);
 
 impl<T: Config + Send + Sync> sp_std::fmt::Debug for CurrencyBalanceCheck<T> {
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-		write!(f, "ValidateClaim")
+		write!(f, "CurrencyBalanceCheck")
 	}
 }
 

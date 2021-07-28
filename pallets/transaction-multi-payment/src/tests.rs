@@ -451,6 +451,13 @@ fn check_balance_extension_works() {
 				CurrencyBalanceCheck::<Test>(PhantomData).validate(&CHARLIE, &call, &info, 150),
 				Ok(ValidTransaction::default())
 			);
+
+			let call = <crate::Call<Test>>::add_currency(SUPPORTED_CURRENCY_WITH_BALANCE, Price::from(1)).into();
+
+			assert_eq!(
+				CurrencyBalanceCheck::<Test>(PhantomData).validate(&CHARLIE, &call, &info, 150),
+				Ok(ValidTransaction::default())
+			);
 		});
 }
 
