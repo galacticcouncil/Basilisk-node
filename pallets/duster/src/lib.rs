@@ -171,6 +171,11 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Dust specified account.
+		/// IF account balance is < min. existential deposit of given currency, and account is allowed to
+		/// be dusted, the remaining balance is transferred to selected account (usually treasury).
+		///
+		/// Caller is rewarded with chosen reward in native currency.
 		#[pallet::weight((<T as Config>::WeightInfo::dust_account(), DispatchClass::Normal, Pays::Yes))]
 		pub fn dust_account(
 			origin: OriginFor<T>,
@@ -190,6 +195,11 @@ pub mod pallet {
 			Self::transfer_dust(&account, &T::DustAccount::get(), currency_id, dust)?;
 
 			if currency_id == T::NativeCurrencyId::get() {
+				// When dusting native currency, in order to make sure that account is killed,
+				// we need to decrease providers count.
+				// It is due to the fact that the balances pallet has set its existential deposit to 0,
+				// therefore it will never do it.
+				//
 				// Not sure if we should fail here?
 				let _ = frame_system::Pallet::<T>::dec_providers(&account);
 			}
@@ -202,7 +212,10 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		#[pallet::weight((<T as Config>::WeightInfo::add_nondustable_account(), DispatchClass::Normal, Pays::Yes))]
+		/// Add account to list of non-dustable account. Account whihc are excluded from udsting.
+		/// If such account should be dusted - `AccountBlacklisted` error is returned.
+		/// Only root can perform this action.
+		#[pallet::weight((<T as Config>::WeightInfo::add_nondustable_account(), DispatchClass::Normal, Pays::No))]
 		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
 			ensure_root(origin)?;
 
@@ -213,6 +226,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		/// Remove account from list of non-dustable accounts. That means account can be dusted again.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_nondustable_account(), DispatchClass::Normal, Pays::No))]
 		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
 			ensure_root(origin)?;
