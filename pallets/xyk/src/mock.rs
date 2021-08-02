@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use crate as xyk;
-use crate::{AssetPairAccountIdFor, Config};
+use crate::Config;
 use frame_support::parameter_types;
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
@@ -27,7 +27,7 @@ use sp_runtime::{
 };
 
 use frame_support::traits::{GenesisBuild, Get};
-use primitives::{fee, AssetId, Balance};
+use primitives::{fee, AssetId, Balance, traits::AssetPairAccountIdFor};
 
 use std::cell::RefCell;
 
@@ -145,6 +145,7 @@ impl Config for Test {
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type AMMHandler = ();
 }
 
 pub struct ExtBuilder {

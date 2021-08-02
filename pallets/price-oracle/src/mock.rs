@@ -1,22 +1,25 @@
 use crate as price_oracle;
 use crate::Config;
 use frame_support::parameter_types;
+use orml_traits::parameter_type_with_key;
 use frame_support::traits::OnInitialize;
 use frame_system;
-use primitives::{AssetId, Balance, Price};
+use primitives::{fee, AssetId, Balance, Price, traits::AssetPairAccountIdFor};
+use primitives::asset::AssetPair;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup, Zero},
 };
-use price_oracle::PriceEntry;
+use price_oracle::{PriceEntry, PriceOracleHandler};
 
+pub type Amount = i128;
 pub type AccountId = u64;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
-pub const ASSET_PAIR_A: AccountId = 1_000;
-pub const ASSET_PAIR_B: AccountId = 2_000;
+pub const ASSET_PAIR_A: AssetPair = AssetPair{ asset_in: 1_000, asset_out: 2_000 };
+pub const ASSET_PAIR_B: AssetPair = AssetPair{ asset_in: 1_000, asset_out: 3_000 };
 
 pub const PRICE_ENTRY_1: PriceEntry = PriceEntry {price: Price::from_inner(2000000000000000000), amount: 1_000, liq_amount: 2_000};
 pub const PRICE_ENTRY_2: PriceEntry = PriceEntry {price: Price::from_inner(5000000000000000000), amount: 3_000, liq_amount: 4_000};
@@ -29,6 +32,9 @@ frame_support::construct_runtime!(
 	 {
 		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		 PriceOracle: price_oracle::{Pallet, Call, Storage, Event<T>},
+		 XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
+		 Currency: orml_tokens::{Pallet, Event<T>},
+		 AssetRegistry: pallet_asset_registry::{Pallet, Storage},
 	 }
 
 );
@@ -62,6 +68,57 @@ impl frame_system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+}
+
+pub struct AssetPairAccountIdTest();
+
+impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> u64 {
+		let mut a = asset_a as u128;
+		let mut b = asset_b as u128;
+		if a > b {
+			let tmp = a;
+			a = b;
+			b = tmp;
+		}
+		return (a * 1000 + b) as u64;
+	}
+}
+
+parameter_types! {
+	pub const HdxAssetId: u32 = 0;
+	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+}
+
+impl pallet_xyk::Config for Test {
+	type Event = Event;
+	type AssetPairAccountId = AssetPairAccountIdTest;
+	type Currency = Currency;
+	type NativeAssetId = HdxAssetId;
+	type WeightInfo = ();
+	type GetExchangeFee = ExchangeFeeRate;
+	type AMMHandler = PriceOracleHandler<Test>;
+}
+
+impl pallet_asset_registry::Config for Test {
+	type AssetId = AssetId;
+}
+
+parameter_type_with_key! {
+	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
+		Zero::zero()
+	};
+}
+
+impl orml_tokens::Config for Test {
+	type Event = Event;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = AssetId;
+	type WeightInfo = ();
+	type ExistentialDeposits = ExistentialDeposits;
+	type OnDust = ();
+	type MaxLocks = ();
 }
 
 parameter_types! {

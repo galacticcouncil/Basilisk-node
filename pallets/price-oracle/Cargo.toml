@@ -39,6 +39,10 @@ sp-std = {default-features = false, version = '3.0.0'}
 
 [dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
+pallet-xyk = {path = '../xyk', default-features = false}
+orml-tokens = {default-features = false, version = "0.4.1-dev"}
+orml-traits = {default-features = false, version = "0.4.1-dev"}
+pallet-asset-registry = {path = '../asset-registry', default-features = false}
 
 [features]
 default = ['std']

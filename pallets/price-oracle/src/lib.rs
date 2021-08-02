@@ -22,10 +22,12 @@ use frame_support::dispatch::DispatchResult;
 use frame_support::sp_runtime::traits::{CheckedDiv, Zero};
 use frame_support::sp_runtime::RuntimeDebug;
 use frame_support::traits::Get;
-use primitives::{Balance, Price};
+use primitives::{AssetId, Balance, Price, asset::AssetPair, traits::{AMMTransfer, AMMHandlers}};
 use sp_std::iter::Sum;
+use sp_std::vec;
 use sp_std::ops::{Add, Index, IndexMut, Mul};
 use sp_std::prelude::*;
+use sp_std::marker::PhantomData;
 
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
@@ -38,12 +40,68 @@ mod tests;
 
 // mod benchmarking;
 
-// pub mod weights;
-
-// use weights::WeightInfo;
-
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
+
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+pub struct PriceEntry {
+	pub price: Price,
+	pub amount: Balance,
+	pub liq_amount: Balance,
+}
+
+impl Add for PriceEntry {
+	type Output = Self;
+	fn add(self, other: Self) -> Self {
+		Self {
+			price: self.price.add(other.price),
+			amount: self.amount.add(other.amount),
+			liq_amount: self.liq_amount.add(other.liq_amount),
+		}
+	}
+}
+
+impl Zero for PriceEntry {
+	fn zero() -> Self {
+		Self {
+			price: Price::zero(),
+			amount: Balance::zero(),
+			liq_amount: Balance::zero(),
+		}
+	}
+
+	fn is_zero(&self) -> bool {
+		self == &PriceEntry::zero()
+	}
+}
+
+impl Add for &PriceEntry {
+	type Output = PriceEntry;
+	fn add(self, other: Self) -> Self::Output {
+		PriceEntry {
+			price: self.price.add(other.price),
+			amount: self.amount.add(other.amount),
+			liq_amount: self.liq_amount.add(other.liq_amount),
+		}
+	}
+}
+
+impl<'a> Sum<&'a Self> for PriceEntry {
+	fn sum<I>(iter: I) -> Self
+	where
+		I: Iterator<Item = &'a Self>,
+	{
+		iter.fold(
+			PriceEntry {
+				price: Price::zero(),
+				amount: Balance::zero(),
+				liq_amount: Balance::zero(),
+			},
+			|a, b| &a + b,
+		)
+	}
+}
 
 pub const BUCKET_SIZE: u32 = 10;
 
@@ -172,65 +230,7 @@ impl IndexMut<usize> for BucketQueue {
 	}
 }
 
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
-pub struct PriceEntry {
-	price: Price,
-	amount: Balance,
-	liq_amount: Balance,
-}
-
-impl Add for PriceEntry {
-	type Output = Self;
-	fn add(self, other: Self) -> Self {
-		Self {
-			price: self.price.add(other.price),
-			amount: self.amount.add(other.amount),
-			liq_amount: self.liq_amount.add(other.liq_amount),
-		}
-	}
-}
-
-impl Zero for PriceEntry {
-	fn zero() -> Self {
-		Self {
-			price: Price::zero(),
-			amount: Balance::zero(),
-			liq_amount: Balance::zero(),
-		}
-	}
-
-	fn is_zero(&self) -> bool {
-		self == &PriceEntry::zero()
-	}
-}
-
-impl Add for &PriceEntry {
-	type Output = PriceEntry;
-	fn add(self, other: Self) -> Self::Output {
-		PriceEntry {
-			price: self.price.add(other.price),
-			amount: self.amount.add(other.amount),
-			liq_amount: self.liq_amount.add(other.liq_amount),
-		}
-	}
-}
-
-impl<'a> Sum<&'a Self> for PriceEntry {
-	fn sum<I>(iter: I) -> Self
-	where
-		I: Iterator<Item = &'a Self>,
-	{
-		iter.fold(
-			PriceEntry {
-				price: Price::zero(),
-				amount: Balance::zero(),
-				liq_amount: Balance::zero(),
-			},
-			|a, b| &a + b,
-		)
-	}
-}
+pub type AssetPairId = Vec<u8>;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -262,10 +262,7 @@ pub mod pallet {
 	}
 
 	#[pallet::event]
-	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {
-		Placeholder(),
-	}
+	pub enum Event<T: Config> {}
 
 	#[pallet::storage]
 	#[pallet::getter(fn asset_count)]
@@ -273,25 +270,28 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn price_buffer)]
-	pub type PriceBuffer<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Vec<PriceEntry>, ValueQuery>;
+	pub type PriceBuffer<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, Vec<PriceEntry>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_ten)]
-	pub type PriceDataTen<T: Config> = StorageValue<_, Vec<(T::AccountId, BucketQueue)>, ValueQuery>;
+	pub type PriceDataTen<T: Config> = StorageValue<_, Vec<(AssetPairId, BucketQueue)>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_hundred)]
-	pub type PriceDataHundred<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BucketQueue, ValueQuery>;
+	pub type PriceDataHundred<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, BucketQueue, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_thousand)]
-	pub type PriceDataThousand<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BucketQueue, ValueQuery>;
+	pub type PriceDataThousand<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, BucketQueue, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
 		fn on_initialize(_n: T::BlockNumber) -> Weight {
 			Self::update_data();
-			Weight::zero()
+
+			PriceBuffer::<T>::remove_all();
+
+			Weight::zero()	// TODO
 		}
 	}
 
@@ -300,8 +300,8 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn new_entry(asset_pair: T::AccountId) -> DispatchResult {
-		PriceDataTen::<T>::append((asset_pair, BucketQueue::default()));
+	pub fn on_create_pool(asset_pair: AssetPair) -> DispatchResult {
+		PriceDataTen::<T>::append((asset_pair.name(), BucketQueue::default()));
 
 		let incremented_asset_count = Self::asset_count()
 			.checked_add(1)
@@ -311,20 +311,23 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn on_trade(asset_pair: T::AccountId, entry: PriceEntry) -> DispatchResult {
-		if PriceBuffer::<T>::contains_key(&asset_pair) {
-			PriceBuffer::<T>::append(asset_pair, entry);
+	pub fn on_trade(asset_pair: AssetPair, price_entry: PriceEntry) -> DispatchResult {
+		let asset_pair_id = asset_pair.name();
+		if PriceBuffer::<T>::contains_key(&asset_pair_id) {
+			PriceBuffer::<T>::append(asset_pair_id, price_entry);
 		} else {
-			PriceBuffer::<T>::insert(asset_pair, vec![entry]);
+			PriceBuffer::<T>::insert(asset_pair_id, vec![price_entry]);
 		}
 
 		Ok(())
 	}
 
 	fn update_data() -> DispatchResult {
-		PriceDataTen::<T>::try_mutate(|data_ten| -> DispatchResult {
-			for (asset_pair, data) in data_ten.iter_mut() {
-				let maybe_price = <PriceBuffer<T>>::try_get(asset_pair);
+        // TODO: maybe create a separate storage for liquidity_data and process it separately
+
+		PriceDataTen::<T>::mutate(|data_ten| -> DispatchResult {
+			for (asset_pair_id, data) in data_ten.iter_mut() {
+				let maybe_price = <PriceBuffer<T>>::try_get(asset_pair_id);
 				let result = if let Ok(prices) = maybe_price {
 					PriceInfo::calculate_price_info(prices.as_slice()).ok_or(Error::<T>::PriceComputationError)?
 				} else {
@@ -333,8 +336,6 @@ impl<T: Config> Pallet<T> {
 
 				data.update_last(result);
 			}
-
-			PriceBuffer::<T>::remove_all();
 
 			Ok(())
 		})?;
@@ -373,5 +374,24 @@ impl<T: Config> Pallet<T> {
 		}
 
 		Ok(())
+	}
+}
+
+pub struct PriceOracleHandler<T>(PhantomData<T>);
+impl<T: Config> AMMHandlers<T::AccountId, AssetId, AssetPair, Balance> for PriceOracleHandler<T> {
+	fn on_create_pool(asset_pair: AssetPair) {
+		Pallet::<T>::on_create_pool(asset_pair);
+	}
+
+	fn on_trade(amm_transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, liq_amount: Balance) {
+		let (price, amount) = amm_transfer.normalize_price().unwrap_or((Zero::zero(), Zero::zero()));
+
+		let price_entry = PriceEntry {
+			price,
+			amount,
+			liq_amount,
+		};
+
+		Pallet::<T>::on_trade(amm_transfer.assets, price_entry);
 	}
 }

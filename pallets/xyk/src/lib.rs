@@ -36,7 +36,7 @@ use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional
 use frame_system::ensure_signed;
 use primitives::{
 	asset::AssetPair, fee, traits::AMM, AssetId, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY,
-	MIN_TRADING_LIMIT,
+	MIN_TRADING_LIMIT, traits::AMMHandlers,
 };
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
@@ -44,7 +44,7 @@ use frame_support::sp_runtime::app_crypto::sp_core::crypto::UncheckedFrom;
 use frame_support::sp_runtime::FixedPointNumber;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::fee::WithFee;
-use primitives::traits::AMMTransfer;
+use primitives::traits::{AMMTransfer, AssetPairAccountIdFor};
 use primitives::Amount;
 
 #[cfg(test)]
@@ -94,6 +94,9 @@ pub mod pallet {
 		/// Trading fee rate
 		#[pallet::constant]
 		type GetExchangeFee: Get<fee::Fee>;
+
+		/// AMM handlers
+		type AMMHandler: AMMHandlers<Self::AccountId, AssetId, AssetPair, Balance>;
 	}
 
 	#[pallet::error]
@@ -259,6 +262,8 @@ pub mod pallet {
 			let token_name = asset_pair.name();
 
 			let share_token = <pallet_asset_registry::Pallet<T>>::get_or_create_asset(token_name)?.into();
+
+			T::AMMHandler::on_create_pool(asset_pair);
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
@@ -503,10 +508,6 @@ pub mod pallet {
 	}
 }
 
-pub trait AssetPairAccountIdFor<AssetId: Sized, AccountId: Sized> {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> AccountId;
-}
-
 pub struct AssetPairAccountId<T: Config>(PhantomData<T>);
 
 impl<T: Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
@@ -695,6 +696,9 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(transfer, total_liquidity);
+
 		if transfer.discount && transfer.discount_amount > 0u128 {
 			let native_asset = T::NativeAssetId::get();
 			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
@@ -827,6 +831,9 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	#[transactional]
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
+
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(transfer, total_liquidity);
 
 		if transfer.discount && transfer.discount_amount > 0 {
 			let native_asset = T::NativeAssetId::get();

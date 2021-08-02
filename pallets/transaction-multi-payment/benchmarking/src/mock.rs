@@ -31,10 +31,9 @@ use sp_runtime::{
 use frame_support::weights::IdentityFee;
 use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
-use primitives::{Amount, AssetId, Balance};
+use primitives::{Amount, AssetId, Balance, traits::AssetPairAccountIdFor};
 
 use frame_support::traits::Get;
-use pallet_xyk::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 use frame_benchmarking::frame_support::weights::Pays;
@@ -168,6 +167,7 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type AMMHandler = ();
 }
 
 parameter_type_with_key! {

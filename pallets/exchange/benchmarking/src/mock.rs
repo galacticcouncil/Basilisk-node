@@ -28,8 +28,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Zero},
 };
 
-use pallet_xyk::AssetPairAccountIdFor;
-use primitives::{fee, AssetId, Balance};
+use primitives::{fee, AssetId, Balance, traits::AssetPairAccountIdFor};
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -138,6 +137,7 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HDXAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type AMMHandler = ();
 }
 
 impl pallet_exchange::Config for Test {

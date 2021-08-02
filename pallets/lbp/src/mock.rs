@@ -1,10 +1,10 @@
 use crate as lbp;
-use crate::{AssetPairPoolIdFor, Config};
+use crate::Config;
 use frame_support::parameter_types;
 use frame_support::traits::GenesisBuild;
 use frame_system;
 use orml_traits::parameter_type_with_key;
-use primitives::{AssetId, Balance, CORE_ASSET_ID};
+use primitives::{AssetId, Balance, CORE_ASSET_ID, traits::AssetPairAccountIdFor};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -93,7 +93,7 @@ impl orml_tokens::Config for Test {
 
 pub struct AssetPairPoolIdTest();
 
-impl AssetPairPoolIdFor<AssetId, u64> for AssetPairPoolIdTest {
+impl AssetPairAccountIdFor<AssetId, u64> for AssetPairPoolIdTest {
 	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> u64 {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;

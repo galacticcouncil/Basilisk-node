@@ -30,8 +30,7 @@ use sp_runtime::{
 use pallet_xyk as xyk;
 
 use frame_support::traits::GenesisBuild;
-use pallet_xyk::AssetPairAccountIdFor;
-use primitives::{fee, AssetId, Balance};
+use primitives::{fee, AssetId, Balance, traits::AssetPairAccountIdFor};
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -144,6 +143,7 @@ impl xyk::Config for Test {
 	type NativeAssetId = HDXAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type AMMHandler = ();
 }
 
 impl Config for Test {

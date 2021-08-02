@@ -46,12 +46,12 @@ fn add_new_asset_pair_should_work() {
 	new_test_ext().execute_with(|| {
 		assert_eq!(PriceOracle::asset_count(), 0);
 		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A, BucketQueue::default())),
+			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			false
 		);
-		assert_ok!(PriceOracle::new_entry(ASSET_PAIR_A));
+		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_A));
 		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A, BucketQueue::default())),
+			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			true
 		);
 		assert_eq!(PriceOracle::asset_count(), 1);
@@ -61,13 +61,13 @@ fn add_new_asset_pair_should_work() {
 #[test]
 fn on_trade_should_work() {
 	new_test_ext().execute_with(|| {
-		assert_eq!(<PriceBuffer<Test>>::try_get(ASSET_PAIR_A), Err(()));
+		assert_eq!(<PriceBuffer<Test>>::try_get(ASSET_PAIR_A.name()), Err(()));
 		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1));
 		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_2));
 		let mut vec = Vec::new();
 		vec.push(PRICE_ENTRY_1);
 		vec.push(PRICE_ENTRY_2);
-		assert_eq!(<PriceBuffer<Test>>::try_get(ASSET_PAIR_A), Ok(vec));
+		assert_eq!(<PriceBuffer<Test>>::try_get(ASSET_PAIR_A.name()), Ok(vec));
 	});
 }
 
@@ -76,8 +76,8 @@ fn update_data_should_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
 
-		assert_ok!(PriceOracle::new_entry(ASSET_PAIR_B));
-		assert_ok!(PriceOracle::new_entry(ASSET_PAIR_A));
+		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_B));
+		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_A));
 
 		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1));
 		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_2));
@@ -87,12 +87,12 @@ fn update_data_should_work() {
 
 		let data_ten_a = PriceOracle::price_data_ten()
 			.iter()
-			.find(|&x| x.0 == ASSET_PAIR_A)
+			.find(|&x| x.0 == ASSET_PAIR_A.name())
 			.unwrap()
 			.1;
 		let data_ten_b = PriceOracle::price_data_ten()
 			.iter()
-			.find(|&x| x.0 == ASSET_PAIR_B)
+			.find(|&x| x.0 == ASSET_PAIR_B.name())
 			.unwrap()
 			.1;
 
@@ -118,14 +118,14 @@ fn update_empty_data_should_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
 
-		assert_ok!(PriceOracle::new_entry(ASSET_PAIR_B));
-		assert_ok!(PriceOracle::new_entry(ASSET_PAIR_A));
+		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_B));
+		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_A));
 
 		assert_ok!(PriceOracle::update_data());
 
 		let data_ten = PriceOracle::price_data_ten()
 			.iter()
-			.find(|&x| x.0 == ASSET_PAIR_A)
+			.find(|&x| x.0 == ASSET_PAIR_A.name())
 			.unwrap()
 			.1;
 
@@ -215,7 +215,7 @@ fn bucket_queue_should_work() {
 #[test]
 fn continuous_trades_should_work() {
 	ExtBuilder.build().execute_with(|| {
-		assert_ok!(PriceOracle::new_entry(ASSET_PAIR_A));
+		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_A));
 
 		for i in 0..210 {
 			System::set_block_number(i);

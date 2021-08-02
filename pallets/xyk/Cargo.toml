@@ -47,6 +47,7 @@ sp-std = {default-features = false, version = '3.0.0'}
 
 [dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
+pallet-price-oracle = {path = '../price-oracle', default-features = false}
 
 [features]
 default = ['std']

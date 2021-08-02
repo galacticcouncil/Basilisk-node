@@ -51,8 +51,6 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{FixedPointNumber, Perbill, Permill, Perquintill, Percent};
 
-use primitives::fee;
-
 mod currency;
 
 mod weights;
@@ -62,7 +60,7 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
 
-pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
+pub use primitives::{fee, Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
 
 pub use pallet_asset_registry;
 
@@ -418,6 +416,7 @@ impl pallet_xyk::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::xyk::HydraWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
+	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
 }
 
 impl pallet_exchange::Config for Runtime {

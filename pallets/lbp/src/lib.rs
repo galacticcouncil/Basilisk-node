@@ -19,7 +19,7 @@ use frame_support::{
 use frame_system::ensure_signed;
 use hydra_dx_math::lbp::Weight as LBPWeight;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
-use primitives::traits::{AMMTransfer, AMM};
+use primitives::traits::{AMMTransfer, AMM, AssetPairAccountIdFor};
 use primitives::{
 	asset::AssetPair,
 	fee::{Fee, WithFee},
@@ -172,7 +172,7 @@ pub mod pallet {
 		type LBPWeightFunction: LBPWeightCalculation<Self::BlockNumber>;
 
 		/// Mapping of asset pairs to unique pool identities
-		type AssetPairPoolId: AssetPairPoolIdFor<AssetId, PoolId<Self>>;
+		type AssetPairPoolId: AssetPairAccountIdFor<AssetId, PoolId<Self>>;
 
 		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
@@ -926,13 +926,9 @@ impl<T: Config> Pallet<T> {
 	}
 }
 
-pub trait AssetPairPoolIdFor<AssetId: Sized, PoolId: Sized> {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId;
-}
-
 pub struct AssetPairPoolId<T: Config>(PhantomData<T>);
 
-impl<T: Config> AssetPairPoolIdFor<AssetId, PoolId<T>> for AssetPairPoolId<T>
+impl<T: Config> AssetPairAccountIdFor<AssetId, PoolId<T>> for AssetPairPoolId<T>
 where
 	PoolId<T>: UncheckedFrom<T::Hash> + AsRef<[u8]>,
 {
