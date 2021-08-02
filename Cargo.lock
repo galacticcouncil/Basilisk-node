@@ -557,7 +557,6 @@ dependencies = [
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",
- "log",
  "memory-db",
  "orml-currencies",
  "orml-nft",

@@ -8,12 +8,15 @@ use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::v0::{Junction::*, MultiAsset, MultiLocation, MultiLocation::*, NetworkId, Xcm};
 use sp_runtime::traits::Convert;
 use xcm_builder::{
-	AccountId32Aliases, AllowTopLevelPaidExecutionFrom, EnsureXcmOrigin, FixedRateOfConcreteFungible,
+	AccountId32Aliases, AllowTopLevelPaidExecutionFrom, EnsureXcmOrigin,
 	FixedWeightBounds, LocationInverter, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
 	TakeWeightCredit,
 };
-use xcm_executor::{Config, XcmExecutor};
+use xcm_executor::{Config, XcmExecutor, Assets};
+use codec::Encode;
+use xcm_executor::traits::WeightTrader;
+use polkadot_xcm::opaque::v0::Error;
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
@@ -67,9 +70,21 @@ pub fn ksm_per_second() -> u128 {
 
 parameter_types! {
 	// One XCM operation is 1_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = 1_000_000;
+	pub UnitWeightCost: Weight = 400_000_000;
 
 	pub KsmPerSecond: (MultiLocation, u128) = (X1(Parent), ksm_per_second());
+}
+
+pub struct TradePassthrough();
+impl WeightTrader for TradePassthrough {
+	fn new() -> Self {
+		Self()
+	}
+
+	fn buy_weight(&mut self, _weight: Weight, payment: Assets) -> Result<Assets, Error> {
+		// Just let it through for now
+		Ok(payment)
+	}
 }
 
 pub struct XcmConfig;
@@ -87,7 +102,8 @@ impl Config for XcmConfig {
 
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
 
-	type Trader = FixedRateOfConcreteFungible<KsmPerSecond, ()>;
+	//type Trader = FixedRateOfConcreteFungible<KsmPerSecond, ()>;
+	type Trader = TradePassthrough;
 	type ResponseHandler = (); // Don't handle responses for now.
 }
 
@@ -146,7 +162,8 @@ pub struct CurrencyIdConvert;
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
 		match id {
-			0 => Some(X3(Parent, Parachain(ParachainInfo::get().into()), GeneralKey(vec![]))),
+			0 => Some(X3(Parent, Parachain(ParachainInfo::get().into()), GeneralKey(id.encode()))),
+			1 => Some(X1(Parent)), // KSM for now has currency id 1 ( will be handled by asset registry
 			_ => None,
 		}
 	}
@@ -156,9 +173,12 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
-			X1(Parent) => Some(0),
-			X2(Parent, Parachain(_id)) => Some(0),
-			X3(Parent, Parachain(id), GeneralKey(_key)) => Some(0),
+			X1(Parent) => Some(1), // KSM
+			X3(Parent, Parachain(id), GeneralKey(_key)) if ParaId::from(id) == ParachainInfo::get() => {
+				// Need to decoded the key and check
+				// for now return 0
+				Some(0)
+			},
 			_ => None,
 		}
 	}

@@ -17,7 +17,7 @@ substrate-wasm-builder = '3.0.0'
 [dependencies.polkadot-xcm]
 default-features = false
 package = 'xcm'
-version = '0.9.7'
+version = '0.9.8'
 
 [dependencies]
 getrandom = { version = "0.2.3", features = ["js"] }
@@ -78,10 +78,10 @@ cumulus-primitives-timestamp ={ version = "0.1.0", default-features = false}
 parachain-info = { version = "0.1.0", default-features = false}
 
 # Polkadot dependencies
-polkadot-parachain = { version = "0.9.7", default-features = false, features = ["wasm-api"]}
-xcm-builder = { version = "0.9.7", default-features = false }
+polkadot-parachain = { version = "0.9.8", default-features = false, features = ["wasm-api"]}
+xcm-builder = { version = "0.9.8", default-features = false }
 pallet-xcm = { version = "0.1.0", default-features = false }
-xcm-executor = { version = "0.9.7", default-features = false }
+xcm-executor = { version = "0.9.8", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
