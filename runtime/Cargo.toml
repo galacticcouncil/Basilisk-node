@@ -134,6 +134,8 @@ runtime-benchmarks = [
     "pallet-lbp/runtime-benchmarks",
     'sp-runtime/runtime-benchmarks',
     'pallet-collator-selection/runtime-benchmarks',
+    "pallet-xcm/runtime-benchmarks",
+    "xcm-builder/runtime-benchmarks",
 ]
 std = [
     'codec/std',
