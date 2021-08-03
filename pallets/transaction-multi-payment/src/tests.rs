@@ -20,10 +20,13 @@ use frame_support::{assert_noop, assert_ok};
 use pallet_transaction_payment::ChargeTransactionPayment;
 use sp_runtime::traits::SignedExtension;
 
+use crate::CurrencyBalanceCheck;
+use frame_support::sp_runtime::transaction_validity::{InvalidTransaction, ValidTransaction};
 use frame_support::weights::DispatchInfo;
 use orml_traits::MultiCurrency;
 use pallet_balances::Call as BalancesCall;
 use primitives::Price;
+use sp_std::marker::PhantomData;
 
 const CALL: &<Test as frame_system::Config>::Call = &Call::Balances(BalancesCall::transfer(2, 69));
 
@@ -431,4 +434,44 @@ fn fee_payment_non_native_insufficient_balance_with_no_pool() {
 
 			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 457);
 		});
+}
+
+#[test]
+fn check_balance_extension_works() {
+	const CHARLIE: AccountId = 5;
+
+	ExtBuilder::default()
+		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 1000)
+		.build()
+		.execute_with(|| {
+			let call = <crate::Call<Test>>::set_currency(SUPPORTED_CURRENCY_WITH_BALANCE).into();
+			let info = DispatchInfo::default();
+
+			assert_eq!(
+				CurrencyBalanceCheck::<Test>(PhantomData).validate(&CHARLIE, &call, &info, 150),
+				Ok(ValidTransaction::default())
+			);
+
+			let call = <crate::Call<Test>>::add_currency(SUPPORTED_CURRENCY_WITH_BALANCE, Price::from(1)).into();
+
+			assert_eq!(
+				CurrencyBalanceCheck::<Test>(PhantomData).validate(&CHARLIE, &call, &info, 150),
+				Ok(ValidTransaction::default())
+			);
+		});
+}
+
+#[test]
+fn check_balance_extension_fails() {
+	const NOT_CHARLIE: AccountId = 6;
+
+	ExtBuilder::default().build().execute_with(|| {
+		let call = <crate::Call<Test>>::set_currency(SUPPORTED_CURRENCY_WITH_BALANCE).into();
+		let info = DispatchInfo::default();
+
+		assert_eq!(
+			CurrencyBalanceCheck::<Test>(PhantomData).validate(&NOT_CHARLIE, &call, &info, 150),
+			InvalidTransaction::Custom(Error::<Test>::ZeroBalance.as_u8()).into()
+		);
+	});
 }
