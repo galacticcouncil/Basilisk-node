@@ -34,7 +34,7 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime, match_type, parameter_types,
 	traits::{EnsureOrigin, Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -49,13 +49,14 @@ pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{FixedPointNumber, Perbill, Permill, Perquintill, Percent};
+pub use sp_runtime::{FixedPointNumber, Perbill, Percent, Permill, Perquintill};
 
 use primitives::fee;
 
 mod currency;
 
 mod weights;
+mod xcm;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -210,6 +211,11 @@ impl Filter<Call> for BaseFilter {
 			| Call::Utility(_)
 			| Call::Vesting(_)
 			| Call::NFT(_)
+			| Call::CumulusXcm(_)
+			| Call::XTokens(_)
+			| Call::XcmpQueue(_)
+			| Call::DmpQueue(_)
+			| Call::PolkadotXcm(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -235,7 +241,7 @@ parameter_types! {
 		.for_class(DispatchClass::Operational, |weights| {
 			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
 			// Operational transactions have an extra reserved space, so that they
-			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
+			// are included even if block reachd `MAXIMUM_BLOCK_WEIGHT`.
 			weights.reserved = Some(
 				MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT,
 			);
@@ -439,17 +445,23 @@ impl pallet_lbp::Config for Runtime {
 	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
 }
 
+parameter_types! {
+	pub ReservedXcmpWeight: Weight = BlockWeights::get().max_block / 4;
+	pub ReservedDmpWeight: Weight = BlockWeights::get().max_block / 4;
+}
+
 /// Parachain Config
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
 	type SelfParaId = ParachainInfo;
-	type OutboundXcmpMessageSource = ();
-	type DmpMessageHandler = ();
-	type ReservedDmpWeight = ();
-	type XcmpMessageHandler = ();
-	type ReservedXcmpWeight = ();
+
+	type OutboundXcmpMessageSource = XcmpQueue;
+	type DmpMessageHandler = DmpQueue;
+	type ReservedDmpWeight = ReservedDmpWeight;
+	type XcmpMessageHandler = XcmpQueue;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
 impl pallet_aura::Config for Runtime {
@@ -821,6 +833,14 @@ construct_runtime!(
 		// Parachain
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
+
+		// XCM
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
+		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
+		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} ,
 
 		// Collator support
 		Authorship: pallet_authorship::{Pallet, Call, Storage},
