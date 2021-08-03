@@ -11,6 +11,7 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for amm.
 pub trait WeightInfo {
 	fn add_shares() -> Weight;
+	fn claim_rewards() -> Weight;
 }
 
 /// Weights for amm using the hydraDX node and recommended hardware.
@@ -20,6 +21,10 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn add_shares() -> Weight {
         0
 	}
+	
+    fn claim_rewards() -> Weight {
+        0    
+    }
 }
 
 // For backwards compatibility and tests
@@ -27,4 +32,8 @@ impl WeightInfo for () {
 	fn add_shares() -> Weight {
         0
 	}
+
+    fn claim_rewards() -> Weight {
+        0
+    }
 }
