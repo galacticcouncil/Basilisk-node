@@ -11,4 +11,4 @@ coverage:
         threshold: 5%
     patch: 
       default:
-        threshold: 5%            # allows coverage to drop by up to the percent noted and still post a success status
+        threshold: 5%
