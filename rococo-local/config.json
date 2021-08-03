@@ -44,15 +44,30 @@
           "wsPort": 9988,
           "port": 31200,
           "flags": ["--alice","--", "--execution=wasm"]
-        },
+        }
+      ]
+    },
+    {
+      "bin": "../target/release/basilisk",
+      "id": "300",
+      "chain":"local",
+      "balance": "1000000000000000000000",
+      "nodes": [
         {
           "wsPort": 9999,
-          "port": 31202,
-          "flags": ["--bob","--", "--execution=wasm"]
+          "port": 31210,
+          "flags": ["--alice","--", "--execution=wasm"]
         }
       ]
     }
   ],
-  "hrmpChannels": [],
+  "hrmpChannels": [
+		{
+			"sender": 200,
+			"recipient": 300,
+			"maxCapacity": 8,
+			"maxMessageSize": 512
+		}
+  ],
   "types": {}
 }
