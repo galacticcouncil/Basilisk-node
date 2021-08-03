@@ -376,10 +376,12 @@ impl<T: Config> Pallet<T> {
 		let adjusted_weight_fee = Self::weight_to_fee(T::WeightInfo::set_currency());
 		let fee = base_fee.saturating_add(adjusted_weight_fee);
 
-        let result = Self::swap(who, fee)?;
-        match result {
+		let result = Self::swap(who, fee)?;
+		match result {
 			PaymentSwapResult::Transferred => Ok(()),
-			PaymentSwapResult::Native | PaymentSwapResult::Swapped => T::MultiCurrency::withdraw(CORE_ASSET_ID, who, fee),
+			PaymentSwapResult::Native | PaymentSwapResult::Swapped => {
+				T::MultiCurrency::withdraw(CORE_ASSET_ID, who, fee)
+			}
 		}
 	}
 

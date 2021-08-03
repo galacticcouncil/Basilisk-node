@@ -5,16 +5,22 @@ homepage = 'https://github.com/galacticcouncil/Basilisk-node'
 license = 'Apache 2.0'
 name = 'basilisk-runtime'
 repository = 'https://github.com/galacticcouncil/Basilisk-node'
-version = '12.0.0'
+version = '13.0.0'
 
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
 
 [build-dependencies]
 substrate-build-script-utils = '3.0.0'
-substrate-wasm-builder = '3.0.0'
+substrate-wasm-builder = '4.0.0'
+
+[dependencies.polkadot-xcm]
+default-features = false
+package = 'xcm'
+version = '0.9.8'
 
 [dependencies]
+getrandom = { version = "0.2.3", features = ["js"] }
 hex-literal = { version = '0.3.1' }
 tracing-core = { optional = true, version = '0.1.17' }
 serde = { features = ['derive'], optional = true, version = '1.0.101' }
@@ -51,25 +57,31 @@ pallet-authorship = { default-features = false, version="3.0.0"}
 orml-currencies = { default-features = false, version = "0.4.1-dev" }
 orml-nft = { default-features = false, version = '0.4.0' }
 orml-tokens = { default-features = false, version = "0.4.1-dev" }
-#orml-unknown-tokens = { default-features = false, version = "0.4.1-dev" }
 orml-traits = { default-features = false, version = "0.4.1-dev" }
 orml-vesting = { default-features = false, version = "0.4.1-dev" }
-#orml-xtokens = { default-features = false, version = "0.4.1-dev" }
-#orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
+
+# orml XCM support
+orml-xtokens = { default-features = false, version = "0.4.1-dev" }
+orml-xcm-support = { default-features = false, version = "0.4.1-dev" }
+orml-unknown-tokens = { default-features = false, version = "0.4.1-dev" }
 
 # Cumulus dependencies
 cumulus-pallet-aura-ext = { version = "0.1.0", default-features = false}
 cumulus-pallet-parachain-system ={ version = "0.1.0", default-features = false}
+cumulus-pallet-xcm = { version = "0.1.0", default-features = false}
+cumulus-pallet-xcmp-queue = { version = "0.1.0", default-features = false}
+cumulus-pallet-dmp-queue = { version = "0.1.0", default-features = false}
 cumulus-primitives-core ={ version = "0.1.0", default-features = false}
+cumulus-primitives-utility ={ version = "0.1.0", default-features = false}
 cumulus-primitives-parachain-inherent ={ version = "0.1.0", default-features = false}
 cumulus-primitives-timestamp ={ version = "0.1.0", default-features = false}
 parachain-info = { version = "0.1.0", default-features = false}
 
 # Polkadot dependencies
-polkadot-parachain = { version = "0.9.5", default-features = false, features = ["wasm-api"]}
-#xcm = { default-features = false }
-#xcm-builder = { default-features = false }
-#xcm-executor = { default-features = false }
+polkadot-parachain = { version = "0.9.8", default-features = false, features = ["wasm-api"]}
+xcm-builder = { version = "0.9.8", default-features = false }
+pallet-xcm = { version = "0.1.0", default-features = false }
+xcm-executor = { version = "0.9.8", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { default-features = false, optional = true, version = '3.0.0' }
@@ -122,6 +134,8 @@ runtime-benchmarks = [
     "pallet-lbp/runtime-benchmarks",
     'sp-runtime/runtime-benchmarks',
     'pallet-collator-selection/runtime-benchmarks',
+    "pallet-xcm/runtime-benchmarks",
+    "xcm-builder/runtime-benchmarks",
 ]
 std = [
     'codec/std',
@@ -134,16 +148,19 @@ std = [
     'orml-tokens/std',
     'orml-traits/std',
     'orml-vesting/std',
-    #"orml-xtokens/std",
-    #"orml-xcm-support/std",
+    "orml-xtokens/std",
+    "orml-xcm-support/std",
+    "orml-unknown-tokens/std",
     "cumulus-pallet-parachain-system/std",
     "cumulus-pallet-aura-ext/std",
-    #"cumulus-pallet-xcm/std",
+    "cumulus-pallet-xcm/std",
+    "cumulus-pallet-xcmp-queue/std",
     "cumulus-primitives-core/std",
     "cumulus-primitives-parachain-inherent/std",
-    #"xcm/std",
-    #"xcm-builder/std",
-    #"xcm-executor/std",
+    "polkadot-xcm/std",
+    "xcm-builder/std",
+    "xcm-executor/std",
+    "pallet-xcm/std",
     'orml-nft/std',
     'parachain-info/std',
     'pallet-xyk/std',
@@ -168,6 +185,7 @@ std = [
     'sp-block-builder/std',
     'sp-consensus-aura/std',
     'sp-core/std',
+    "sp-io/std",
     'sp-inherents/std',
     'sp-externalities/std',
     'sp-offchain/std',
@@ -180,7 +198,7 @@ std = [
     'pallet-collective/std',
     'pallet-democracy/std',
     'pallet-scheduler/std',
-      'pallet-tips/std',
+    'pallet-tips/std',
     'pallet-collator-selection/std',
     'pallet-authorship/std',
 ]
