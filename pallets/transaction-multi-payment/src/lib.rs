@@ -54,6 +54,11 @@ use primitives::asset::AssetPair;
 use primitives::traits::AMM;
 use primitives::{Amount, AssetId, Balance, CORE_ASSET_ID};
 
+use codec::{Decode, Encode};
+use frame_support::sp_runtime::traits::SignedExtension;
+use frame_support::sp_runtime::transaction_validity::{TransactionValidity, ValidTransaction};
+use frame_support::traits::IsSubType;
+
 type NegativeImbalanceOf<C, T> = <C as Currency<<T as frame_system::Config>::AccountId>>::NegativeImbalance;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -391,6 +396,13 @@ impl<T: Config> Pallet<T> {
 		let capped_weight: Weight = weight.min(T::BlockWeights::get().max_block);
 		<T as Config>::WeightToFee::calc(&capped_weight)
 	}
+
+	fn check_balance(account: &T::AccountId, currency: AssetId) -> Result<(), Error<T>> {
+		if T::MultiCurrency::free_balance(currency, account) == Balance::zero() {
+			return Err(Error::<T>::ZeroBalance.into());
+		};
+		Ok(())
+	}
 }
 
 use crate::traits::PaymentSwapResult;
@@ -510,5 +522,53 @@ where
 			OU::on_unbalanceds(Some(imbalances.0).into_iter().chain(Some(imbalances.1)));
 		}
 		Ok(())
+	}
+}
+
+/// Signed extension that checks for the `set_currency` call and in that case, it checks the account balance
+#[derive(Encode, Decode, Clone, Eq, PartialEq)]
+pub struct CurrencyBalanceCheck<T: Config + Send + Sync>(PhantomData<T>);
+
+impl<T: Config + Send + Sync> sp_std::fmt::Debug for CurrencyBalanceCheck<T> {
+	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+		write!(f, "CurrencyBalanceCheck")
+	}
+}
+
+impl<T: Config + Send + Sync> SignedExtension for CurrencyBalanceCheck<T>
+where
+	<T as frame_system::Config>::Call: IsSubType<Call<T>>,
+{
+	const IDENTIFIER: &'static str = "CurrencyBalanceCheck";
+	type AccountId = T::AccountId;
+	type Call = <T as frame_system::Config>::Call;
+	type AdditionalSigned = ();
+	type Pre = ();
+
+	fn additional_signed(&self) -> sp_std::result::Result<(), TransactionValidityError> {
+		Ok(())
+	}
+
+	fn validate(
+		&self,
+		who: &Self::AccountId,
+		call: &Self::Call,
+		_info: &DispatchInfoOf<Self::Call>,
+		_len: usize,
+	) -> TransactionValidity {
+		match call.is_sub_type() {
+			Some(Call::set_currency(currency)) => match Pallet::<T>::check_balance(who, *currency) {
+				Ok(_) => Ok(ValidTransaction::default()),
+				Err(error) => InvalidTransaction::Custom(error.as_u8()).into(),
+			},
+			_ => Ok(Default::default()),
+		}
+	}
+}
+
+impl<T: Config + Send + Sync> CurrencyBalanceCheck<T> {
+	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_without_default))]
+	pub fn new() -> Self {
+		Self(sp_std::marker::PhantomData)
 	}
 }
