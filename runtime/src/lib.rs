@@ -445,17 +445,8 @@ impl pallet_lbp::Config for Runtime {
 	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
 }
 
-parameter_types! {
-	pub BucketLength: u32 = 10u32;
-	pub BucketDepth: u32 = 4u32;
-	pub MaxAssetCount: u32 = u32::MAX;
-}
-
 impl pallet_price_oracle::Config for Runtime {
 	type Event = Event;
-	type BucketLength = BucketLength;
-	type BucketDepth = BucketDepth;
-	type MaxAssetCount = MaxAssetCount;
 }
 
 parameter_types! {

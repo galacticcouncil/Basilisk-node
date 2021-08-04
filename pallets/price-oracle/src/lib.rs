@@ -19,7 +19,6 @@
 
 use frame_support::dispatch::DispatchResult;
 use frame_support::sp_runtime::traits::Zero;
-use frame_support::traits::Get;
 use primitives::{
 	asset::AssetPair,
 	traits::{AMMHandlers, AMMTransfer},
@@ -55,15 +54,6 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-
-		#[pallet::constant]
-		type BucketLength: Get<u32>;
-
-		#[pallet::constant]
-		type BucketDepth: Get<u32>;
-
-		#[pallet::constant]
-		type MaxAssetCount: Get<u32>;
 	}
 
 	#[pallet::error]
@@ -96,7 +86,7 @@ pub mod pallet {
 		fn on_initialize(_n: T::BlockNumber) -> Weight {
 			Self::update_data();
 
-			PriceBuffer::<T>::remove_all();
+			PriceBuffer::<T>::remove_all(None);
 
 			Weight::zero() // TODO
 		}
@@ -139,7 +129,7 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 		if now.is_zero() {
 			return Ok(());
-		} // TODO: delete me
+		} // TODO: delete me. It is here just to make testing easier.
 
 		if (now % T::BlockNumber::from(BUCKET_SIZE)) == T::BlockNumber::from(BUCKET_SIZE - 1) {
 			for element_from_ten in PriceDataTen::<T>::get().iter() {
@@ -186,7 +176,7 @@ impl<T: Config> AMMHandlers<T::AccountId, AssetId, AssetPair, Balance> for Price
 			return;
 		};
 
-		// zero prices are not added to the queue
+		// zero prices are ignored and not added to the queue
 		if price.is_zero() {
 			return;
 		}

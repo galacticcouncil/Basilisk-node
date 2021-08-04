@@ -135,17 +135,8 @@ impl orml_tokens::Config for Test {
 	type MaxLocks = ();
 }
 
-parameter_types! {
-	pub const BucketLength: u32 = 10;
-	pub const BucketDepth: u32 = 4;
-	pub const MaxAssetCount: u32 = 5;
-}
-
 impl Config for Test {
 	type Event = Event;
-	type BucketLength = BucketLength;
-	type BucketDepth = BucketDepth;
-	type MaxAssetCount = MaxAssetCount;
 }
 
 pub struct ExtBuilder;
