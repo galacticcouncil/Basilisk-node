@@ -7,6 +7,7 @@ use frame_support::{
 	dispatch::{DispatchError, DispatchResult, DispatchResultWithPostInfo},
 	ensure,
 	traits::{Currency, ExistenceRequirement, ReservableCurrency},
+	transactional
 };
 use frame_system::ensure_signed;
 use orml_utilities::with_transaction_result;
@@ -69,13 +70,18 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + orml_nft::Config<ClassData = ClassData, TokenData = TokenData> {
-		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		type Currency: ReservableCurrency<Self::AccountId>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
+		// How much will be bonded
 		#[pallet::constant]
 		type ClassBondAmount: Get<BalanceOf<Self>>;
+		// How long will the class bond be reserved
 		#[pallet::constant]
 		type ClassBondDuration: Get<u32>;
+		// Maximum amount of minted NFTs in a collection
+		#[pallet::constant]
+		type MintMaxQuantity: Get<u32>;
 	}
 
 	#[pallet::call]
@@ -104,6 +110,7 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::mint(*quantity))]
+		#[transactional]
 		pub fn mint(
 			origin: OriginFor<T>,
 			class_id: ClassIdOf<T>,
@@ -112,7 +119,7 @@ pub mod pallet {
 			quantity: u32,
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			ensure!(quantity > Zero::zero(), Error::<T>::InvalidQuantity);
+			ensure!(quantity > Zero::zero() && T::MintMaxQuantity::get() > quantity, Error::<T>::InvalidQuantity);
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			let data = token_data;
@@ -155,7 +162,6 @@ pub mod pallet {
 		pub fn destroy_class(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
-			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
 			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
 			ClassItemPrice::<T>::remove(class_id);
@@ -207,6 +213,10 @@ pub mod pallet {
 		fn on_finalize(now: T::BlockNumber) {
 			let bond = T::ClassBondAmount::get();
 			Self::unlock_bond(now, bond);
+		}
+
+		fn on_initialize(_n: T::BlockNumber) -> Weight {
+			T::WeightInfo::on_finalize()
 		}
 	}
 

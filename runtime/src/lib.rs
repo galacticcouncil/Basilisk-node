@@ -477,6 +477,7 @@ impl pallet_randomness_collective_flip::Config for Runtime {}
 parameter_types! {
 	pub ClassBondAmount: Balance = 10_000 * BSX;
 	pub ClassBondDuration: u32 = 7 * DAYS;
+	pub MintMaxQuantity: u32 = 10_000;
 }
 
 impl pallet_nft::Config for Runtime {
@@ -485,6 +486,7 @@ impl pallet_nft::Config for Runtime {
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
 	type ClassBondAmount = ClassBondAmount;
 	type ClassBondDuration = ClassBondDuration;
+	type MintMaxQuantity = MintMaxQuantity;
 }
 
 impl orml_nft::Config for Runtime {

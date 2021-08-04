@@ -115,6 +115,10 @@ benchmarks! {
 		let sold_token = orml_nft::Pallet::<T>::tokens(class_id, token_id);
 		assert_eq!(sold_token.unwrap().owner, caller);
 	}
+
+	on_finalize {
+		todo!
+	}
 }
 
 #[cfg(test)]
@@ -140,6 +144,7 @@ mod tests {
 			assert_ok!(test_benchmark_destroy_class::<Test>());
 			assert_ok!(test_benchmark_buy_from_pool::<Test>());
 			assert_ok!(test_benchmark_sell_to_pool::<Test>());
+			assert_ok!(test_benchmark_on_finalize::<Test>());
 		});
 	}
 }
