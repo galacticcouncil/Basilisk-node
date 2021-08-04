@@ -68,6 +68,7 @@ frame_support::construct_runtime!(
 				 Currencies: orml_currencies::{Pallet, Event<T>},
 				 Tokens: orml_tokens::{Pallet, Event<T>},
 				 AssetRegistry: pallet_asset_registry::{Pallet, Storage},
+				 transaction_payment: pallet_transaction_payment::{Pallet, Storage},
 		 }
 
 );
