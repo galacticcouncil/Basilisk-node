@@ -1,28 +1,42 @@
 use crate as price_oracle;
 use crate::Config;
 use frame_support::parameter_types;
-use orml_traits::parameter_type_with_key;
 use frame_support::traits::OnInitialize;
 use frame_system;
-use primitives::{fee, AssetId, Balance, Price, traits::AssetPairAccountIdFor};
+use orml_traits::parameter_type_with_key;
+use price_oracle::{PriceEntry, PriceOracleHandler};
 use primitives::asset::AssetPair;
+use primitives::{fee, traits::AssetPairAccountIdFor, AssetId, Balance, Price};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup, Zero},
 };
-use price_oracle::{PriceEntry, PriceOracleHandler};
 
 pub type Amount = i128;
 pub type AccountId = u64;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
-pub const ASSET_PAIR_A: AssetPair = AssetPair{ asset_in: 1_000, asset_out: 2_000 };
-pub const ASSET_PAIR_B: AssetPair = AssetPair{ asset_in: 1_000, asset_out: 3_000 };
+pub const ASSET_PAIR_A: AssetPair = AssetPair {
+	asset_in: 1_000,
+	asset_out: 2_000,
+};
+pub const ASSET_PAIR_B: AssetPair = AssetPair {
+	asset_in: 1_000,
+	asset_out: 3_000,
+};
 
-pub const PRICE_ENTRY_1: PriceEntry = PriceEntry {price: Price::from_inner(2000000000000000000), amount: 1_000, liq_amount: 2_000};
-pub const PRICE_ENTRY_2: PriceEntry = PriceEntry {price: Price::from_inner(5000000000000000000), amount: 3_000, liq_amount: 4_000};
+pub const PRICE_ENTRY_1: PriceEntry = PriceEntry {
+	price: Price::from_inner(2000000000000000000),
+	amount: 1_000,
+	liq_amount: 2_000,
+};
+pub const PRICE_ENTRY_2: PriceEntry = PriceEntry {
+	price: Price::from_inner(5000000000000000000),
+	amount: 3_000,
+	liq_amount: 4_000,
+};
 
 frame_support::construct_runtime!(
 	pub enum Test where

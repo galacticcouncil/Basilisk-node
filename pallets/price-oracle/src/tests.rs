@@ -20,7 +20,7 @@ pub use crate::mock::{
 	Event as TestEvent, ExtBuilder, Origin, PriceOracle, System, Test, ASSET_PAIR_A, ASSET_PAIR_B, PRICE_ENTRY_1,
 	PRICE_ENTRY_2,
 };
-use frame_support::{assert_noop, assert_ok, traits::OnInitialize};
+use frame_support::{assert_noop, assert_storage_noop, assert_ok, traits::OnInitialize};
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let ext = ExtBuilder.build();
@@ -44,17 +44,27 @@ fn expect_events(e: Vec<TestEvent>) {
 #[test]
 fn add_new_asset_pair_should_work() {
 	new_test_ext().execute_with(|| {
-		assert_eq!(PriceOracle::asset_count(), 0);
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			false
 		);
-		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_A));
+		PriceOracle::on_create_pool(ASSET_PAIR_A);
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			true
 		);
-		assert_eq!(PriceOracle::asset_count(), 1);
+	});
+}
+
+#[test]
+fn add_existing_asset_pair_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_eq!(
+			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
+			false
+		);
+		PriceOracle::on_create_pool(ASSET_PAIR_A);
+		assert_storage_noop!(PriceOracle::on_create_pool(ASSET_PAIR_A));
 	});
 }
 
@@ -62,8 +72,8 @@ fn add_new_asset_pair_should_work() {
 fn on_trade_should_work() {
 	new_test_ext().execute_with(|| {
 		assert_eq!(<PriceBuffer<Test>>::try_get(ASSET_PAIR_A.name()), Err(()));
-		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1));
-		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_2));
+		PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);
+		PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_2);
 		let mut vec = Vec::new();
 		vec.push(PRICE_ENTRY_1);
 		vec.push(PRICE_ENTRY_2);
@@ -72,16 +82,138 @@ fn on_trade_should_work() {
 }
 
 #[test]
+fn on_trade_handler_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_eq!(<PriceBuffer<Test>>::try_get(ASSET_PAIR_A.name()), Err(()));
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: 1_000,
+			amount_out: 500,
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+
+		PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000);
+		let mut vec = Vec::new();
+		vec.push(PRICE_ENTRY_1);
+		assert_eq!(<PriceBuffer<Test>>::try_get(ASSET_PAIR_A.name()), Ok(vec));
+	});
+}
+
+#[test]
+fn price_normalization_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_eq!(<PriceBuffer<Test>>::try_get(ASSET_PAIR_A.name()), Err(()));
+
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: Balance::MAX,
+			amount_out: 1,
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+		assert_storage_noop!(PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000));
+
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: 1,
+			amount_out: Balance::MAX,
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+		assert_storage_noop!(PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000));
+
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: Balance::zero(),
+			amount_out: 1_000,
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+		assert_storage_noop!(PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000));
+
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: 1_000,
+			amount_out: Balance::zero(),
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+		assert_storage_noop!(PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000));
+
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: 340282366920938463463,
+			amount_out: 1,
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+		PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000);
+
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: 1,
+			amount_out: 340282366920938463463,
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+		assert_storage_noop!(PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000));
+
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: 2_000_000,
+			amount_out: 1_000,
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+		PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000);
+
+		let amm_transfer = AMMTransfer {
+			origin: 1,
+			assets: ASSET_PAIR_A,
+			amount: 1_000,
+			amount_out: 2_000_000,
+			discount: false,
+			discount_amount: 0,
+			fee: (1, 0),
+		};
+		PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000);
+
+		let data = PriceBuffer::<Test>::get(ASSET_PAIR_A.name());
+		assert_eq!(data[0].price, Price::from(340282366920938463463));
+		assert_eq!(data[1].price, Price::from(2_000));
+		assert_eq!(data[2].price, Price::from_float(0.0005));
+        assert_eq!(data.len(), 3);
+	});
+}
+
+#[test]
 fn update_data_should_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
 
-		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_B));
-		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_A));
+		PriceOracle::on_create_pool(ASSET_PAIR_B);
+		PriceOracle::on_create_pool(ASSET_PAIR_A);
 
-		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1));
-		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_2));
-		assert_ok!(PriceOracle::on_trade(ASSET_PAIR_B, PRICE_ENTRY_1));
+		PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);
+		PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_2);
+		PriceOracle::on_trade(ASSET_PAIR_B, PRICE_ENTRY_1);
 
 		assert_ok!(PriceOracle::update_data());
 
@@ -118,8 +250,8 @@ fn update_empty_data_should_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
 
-		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_B));
-		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_A));
+		PriceOracle::on_create_pool(ASSET_PAIR_B);
+		PriceOracle::on_create_pool(ASSET_PAIR_A);
 
 		assert_ok!(PriceOracle::update_data());
 
@@ -215,20 +347,20 @@ fn bucket_queue_should_work() {
 #[test]
 fn continuous_trades_should_work() {
 	ExtBuilder.build().execute_with(|| {
-		assert_ok!(PriceOracle::on_create_pool(ASSET_PAIR_A));
+		PriceOracle::on_create_pool(ASSET_PAIR_A);
 
 		for i in 0..210 {
 			System::set_block_number(i);
 			PriceOracle::on_initialize(System::block_number());
 
-			assert_ok!(PriceOracle::on_trade(
+			PriceOracle::on_trade(
 				ASSET_PAIR_A,
 				PriceEntry {
 					price: Price::from((i + 1) as u128),
 					amount: (i * 1_000).into(),
-					liq_amount: 1u128
-				}
-			));
+					liq_amount: 1u128,
+				},
+			);
 
 			// let ten = PriceOracle::price_data_ten().iter().find(|&x| x.0 == ASSET_PAIR_A).unwrap().1;
 			// let hundred = PriceOracle::price_data_hundred(ASSET_PAIR_A);

@@ -18,7 +18,7 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::dispatch;
-use frame_support::sp_runtime::traits::CheckedDiv;
+use frame_support::sp_runtime::{FixedPointNumber, traits::CheckedDiv};
 use sp_std::vec::Vec;
 use crate::{Balance, Price};
 use crate::asset::AssetPair;
@@ -39,6 +39,7 @@ impl<AccountId, AssetId> AMMTransfer<AccountId, AssetId, AssetPair, Balance>
 where
 	Balance: Copy
 {
+    /// Calculate price from ordered assets
 	pub fn normalize_price(&self) -> Option<(Price, Balance)> {
 		let ordered_asset_pair = self.assets.ordered_pair();
 		let (balance_a, balance_b) = if ordered_asset_pair.0 == self.assets.asset_in {
@@ -47,8 +48,8 @@ where
 			(self.amount_out, self.amount)
 		};
 
-        let price_a = Price::from(balance_a);
-		let price_b = Price::from(balance_b);
+        let price_a = Price::checked_from_integer(balance_a)?;
+		let price_b = Price::checked_from_integer(balance_b)?;
 		let price = price_a.checked_div(&price_b);
         price.map(|p| (p, balance_a))
 	}
