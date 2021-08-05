@@ -29,7 +29,7 @@ fn register_asset_works() {
 	new_test_ext().execute_with(|| {
 		let name: Vec<u8> = b"HDX".to_vec();
 
-		assert_ok!(AssetRegistryPallet::register_asset(
+		assert_ok!(AssetRegistryPallet::register(
 			Origin::signed(1),
 			name.clone(),
 			AssetType::Token,
@@ -47,7 +47,7 @@ fn register_asset_works() {
 		);
 
 		assert_noop!(
-			AssetRegistryPallet::register_asset(Origin::signed(1), name.clone(), AssetType::Token),
+			AssetRegistryPallet::register(Origin::signed(1), name.clone(), AssetType::Token),
 			Error::<Test>::AssetAlreadyRegistered
 		);
 	});
@@ -56,18 +56,27 @@ fn register_asset_works() {
 #[test]
 fn create_asset() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetRegistryPallet::get_or_create_asset(b"HDX".to_vec()));
+		assert_ok!(AssetRegistryPallet::get_or_create_asset(
+			b"HDX".to_vec(),
+			AssetType::Token
+		));
 
-		let dot_asset = AssetRegistryPallet::get_or_create_asset(b"DOT".to_vec());
+		let dot_asset = AssetRegistryPallet::get_or_create_asset(b"DOT".to_vec(), AssetType::Token);
 		assert_ok!(dot_asset);
 		let dot_asset_id = dot_asset.ok().unwrap();
 
-		assert_ok!(AssetRegistryPallet::get_or_create_asset(b"BTC".to_vec()));
+		assert_ok!(AssetRegistryPallet::get_or_create_asset(
+			b"BTC".to_vec(),
+			AssetType::Token
+		));
 
 		let current_asset_id = AssetRegistryPallet::next_asset_id();
 
 		// Existing asset should return previously created one.
-		assert_ok!(AssetRegistryPallet::get_or_create_asset(b"DOT".to_vec()), dot_asset_id);
+		assert_ok!(
+			AssetRegistryPallet::get_or_create_asset(b"DOT".to_vec(), AssetType::Token),
+			dot_asset_id
+		);
 
 		// Retrieving existing asset should not increased the next asset id counter.
 		assert_eq!(AssetRegistryPallet::next_asset_id(), current_asset_id);
@@ -75,7 +84,7 @@ fn create_asset() {
 		let dot: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"DOT".to_vec().try_into().unwrap();
 		let aaa: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"AAA".to_vec().try_into().unwrap();
 
-		assert_eq!(AssetRegistryPallet::asset_ids(dot).unwrap(), 1u32);
+		assert_eq!(AssetRegistryPallet::asset_ids(dot).unwrap(), 2u32);
 		assert!(AssetRegistryPallet::asset_ids(aaa).is_none());
 	});
 }
@@ -84,8 +93,11 @@ fn create_asset() {
 fn location_mapping_works() {
 	new_test_ext().execute_with(|| {
 		let bn = AssetRegistryPallet::to_bounded_name(b"HDX".to_vec()).unwrap();
-		assert_ok!(AssetRegistryPallet::get_or_create_asset(b"HDX".to_vec()));
-		let asset_id: AssetId = AssetRegistryPallet::get_or_create_asset(b"HDX".to_vec()).unwrap();
+		assert_ok!(AssetRegistryPallet::get_or_create_asset(
+			b"HDX".to_vec(),
+			AssetType::Token
+		));
+		let asset_id: AssetId = AssetRegistryPallet::get_or_create_asset(b"HDX".to_vec(), AssetType::Token).unwrap();
 
 		crate::Assets::<Test>::insert(
 			asset_id,

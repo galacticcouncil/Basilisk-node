@@ -18,7 +18,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::dispatch::DispatchError;
-use frame_support::sp_runtime::traits::{CheckedAdd, One};
+use frame_support::pallet_prelude::*;
+use frame_support::sp_runtime::traits::CheckedAdd;
 use frame_support::transactional;
 use frame_system::pallet_prelude::*;
 use sp_arithmetic::traits::BaseArithmetic;
@@ -34,17 +35,18 @@ mod tests;
 mod types;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
+use crate::types::{AssetDetails, AssetMetadata, AssetType};
 use frame_support::BoundedVec;
 pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::types::{AssetDetails, AssetMetadata, AssetType};
-	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
+		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+
 		/// Asset type
 		type AssetId: Parameter + Member + Default + Copy + BaseArithmetic + MaybeSerializeDeserialize + MaxEncodedLen;
 
@@ -86,9 +88,9 @@ pub mod pallet {
 		AssetMismatch,
 	}
 
-	/// Details of an asset.
 	#[pallet::storage]
 	#[pallet::getter(fn assets)]
+	/// Details of an asset.
 	pub type Assets<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
@@ -97,29 +99,29 @@ pub mod pallet {
 		OptionQuery,
 	>;
 
-	/// Next available asset id. This is sequential id assigned for each new registered asset.
 	#[pallet::storage]
 	#[pallet::getter(fn next_asset_id)]
+	/// Next available asset id. This is sequential id assigned for each new registered asset.
 	pub type NextAssetId<T: Config> = StorageValue<_, T::AssetId, ValueQuery>;
 
-	/// Created assets
 	#[pallet::storage]
 	#[pallet::getter(fn asset_ids)]
+	/// Mapping between asset name and asset id.
 	pub type AssetIds<T: Config> = StorageMap<_, Twox64Concat, BoundedVec<u8, T::StringLimit>, T::AssetId, OptionQuery>;
 
-	///
 	#[pallet::storage]
 	#[pallet::getter(fn locations)]
+	/// Native location of an asset.
 	pub type AssetLocations<T: Config> = StorageMap<_, Twox64Concat, T::AssetId, T::AssetNativeLocation, OptionQuery>;
 
-	///
 	#[pallet::storage]
 	#[pallet::getter(fn location_assets)]
+	/// Local asset for native location.
 	pub type LocationAssets<T: Config> = StorageMap<_, Twox64Concat, T::AssetNativeLocation, T::AssetId, OptionQuery>;
 
-	/// Details of an asset.
 	#[pallet::storage]
 	#[pallet::getter(fn asset_metadata)]
+	/// Metadata of an asset.
 	pub type AssetMetadataMap<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AssetId, AssetMetadata<BoundedVec<u8, T::StringLimit>>, OptionQuery>;
 
@@ -147,15 +149,37 @@ pub mod pallet {
 			})
 		}
 	}
+
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	#[pallet::metadata(T::AccountId = "AccountId", T::AssetId = "AssetId")]
+	pub enum Event<T: Config> {
+		/// Asset was registered. \[asset_id, name, type\]
+		Registered(T::AssetId, BoundedVec<u8, T::StringLimit>, AssetType<T::AssetId>),
+		/// Asset was updated. \[asset_id, name, type\]
+		Updated(T::AssetId, BoundedVec<u8, T::StringLimit>, AssetType<T::AssetId>),
+
+		/// Metadata set for an asset. \[asset_id, symbol, decimals\]
+		MetadataSet(T::AssetId, BoundedVec<u8, T::StringLimit>, u8),
+
+		/// Native location set for an asset. \[asset_id, symbol, decimals\]
+		LocationSet(T::AssetId, T::AssetNativeLocation),
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Register a new asset.
+		///
+		/// Asset is identified by `name` and the name must not be used to register another asset.
+		///
+		/// New asset is given `NextAssetId` - sequential asset id
+		///
+		/// Adds mapping between `name` and assigned `asset_id` so asset id can be retrieved by name too (Note: this approach is used in AMM implementation (xyk))
+		///
+		/// Emits 'Registered` event when successful.
 		#[pallet::weight(0)]
 		#[transactional]
-		pub fn register_asset(
-			origin: OriginFor<T>,
-			name: Vec<u8>,
-			asset_type: AssetType<T::AssetId>,
-		) -> DispatchResult {
+		pub fn register(origin: OriginFor<T>, name: Vec<u8>, asset_type: AssetType<T::AssetId>) -> DispatchResult {
 			let _ = ensure_signed(origin)?;
 
 			let bounded_name = Self::to_bounded_name(name)?;
@@ -165,45 +189,19 @@ pub mod pallet {
 				Error::<T>::AssetAlreadyRegistered
 			);
 
-			NextAssetId::<T>::mutate(|value| -> DispatchResult {
-				// Check if current id does not clash with CORE ASSET ID.
-				// If yes, just skip it and use next one, otherwise use it.
-				// Note: this way we prevent accidental clashes with native asset id, so no need to set next asset id to be > next asset id
-				let asset_id = if *value == T::NativeAssetId::get() {
-					value
-						.checked_add(&T::AssetId::from(1))
-						.ok_or(Error::<T>::NoIdAvailable)?
-				} else {
-					*value
-				};
-
-				// Map name to asset id
-				AssetIds::<T>::insert(&bounded_name, asset_id);
-
-				let details = AssetDetails {
-					name: bounded_name,
-					asset_type,
-					locked: false,
-				};
-
-				// Store the details
-				Assets::<T>::insert(asset_id, details);
-
-				// Increase asset id to be assigned for following asset.
-				*value = asset_id
-					.checked_add(&T::AssetId::from(1))
-					.ok_or(Error::<T>::NoIdAvailable)?;
-
-				//TODO: add event
-
-				Ok(())
-			})?;
+			Self::register_asset(bounded_name, asset_type)?;
 
 			Ok(())
 		}
+
+		/// Update registered asset.
+		///
+		/// Updates also mapping between name and asset id if provided name is different than currently registered.
+		///
+		/// Emits `Updated` event when successful.
 		#[pallet::weight(0)]
 		#[transactional]
-		pub fn update_asset(
+		pub fn update(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 			name: Vec<u8>,
@@ -222,15 +220,22 @@ pub mod pallet {
 					AssetIds::<T>::insert(&bn, asset_id);
 				}
 
-				detail.name = bn;
+				detail.name = bn.clone();
 				detail.asset_type = asset_type;
 
-				//TODO: add event
+				Self::deposit_event(Event::Updated(asset_id, bn, asset_type));
 
 				Ok(())
 			})
 		}
 
+		/// Set metadata for an asset.
+		///
+		/// - `asset_id`: Asset identifier.
+		/// - `symbol`: The exchange symbol for this asset. Limited in length by `StringLimit`.
+		/// - `decimals`: The number of decimals this asset uses to represent one unit.
+		///
+		/// Emits `MetedataSet` event when successful.
 		#[pallet::weight(0)]
 		#[transactional]
 		pub fn set_metadata(
@@ -243,18 +248,27 @@ pub mod pallet {
 
 			ensure!(Self::assets(asset_id).is_some(), Error::<T>::AsseTNotFound);
 
+			let b_symbol = Self::to_bounded_name(symbol)?;
+
 			let metadata = AssetMetadata::<BoundedVec<u8, T::StringLimit>> {
-				symbol: Self::to_bounded_name(symbol)?,
+				symbol: b_symbol.clone(),
 				decimals,
 			};
 
 			AssetMetadataMap::<T>::insert(asset_id, metadata);
 
-			//TODO: add event
+			Self::deposit_event(Event::MetadataSet(asset_id, b_symbol, decimals));
 
 			Ok(())
 		}
 
+		/// Set asset native location.
+		///
+		/// Adds mapping between native location and local asset id and vice versa.
+		///
+		/// Mainly used in XCM.
+		///
+		/// Emits `LocationSet` event when successful.
 		#[pallet::weight(0)]
 		#[transactional]
 		pub fn set_asset_location(
@@ -267,9 +281,9 @@ pub mod pallet {
 			ensure!(Self::assets(asset_id).is_some(), Error::<T>::AssetNotRegistered);
 
 			AssetLocations::<T>::insert(asset_id, &location);
-			LocationAssets::<T>::insert(location, asset_id);
+			LocationAssets::<T>::insert(&location, asset_id);
 
-			//TODO: add event
+			Self::deposit_event(Event::LocationSet(asset_id, location));
 
 			Ok(())
 		}
@@ -277,29 +291,70 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	/// Convert Vec<u8> to BoundedVec so it respects the max set limit, otherwise return BadMetadata error
 	fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
 		name.try_into().map_err(|_| Error::<T>::BadMetadata)
 	}
 
+	///Register new asset.
+	///
+	/// Does not perform any  check whether an asset for given name alrady exists. This has to be prior to calling this function.
+	fn register_asset(
+		name: BoundedVec<u8, T::StringLimit>,
+		asset_type: AssetType<T::AssetId>,
+	) -> Result<T::AssetId, DispatchError> {
+		NextAssetId::<T>::mutate(|value| -> Result<T::AssetId, DispatchError> {
+			// Check if current id does not clash with CORE ASSET ID.
+			// If yes, just skip it and use next one, otherwise use it.
+			// Note: this way we prevent accidental clashes with native asset id, so no need to set next asset id to be > next asset id
+			let asset_id = if *value == T::NativeAssetId::get() {
+				value
+					.checked_add(&T::AssetId::from(1))
+					.ok_or(Error::<T>::NoIdAvailable)?
+			} else {
+				*value
+			};
+
+			// Map name to asset id
+			AssetIds::<T>::insert(&name, asset_id);
+
+			let details = AssetDetails {
+				name: name.clone(),
+				asset_type,
+				locked: false,
+			};
+
+			// Store the details
+			Assets::<T>::insert(asset_id, details);
+
+			// Increase asset id to be assigned for following asset.
+			*value = asset_id
+				.checked_add(&T::AssetId::from(1))
+				.ok_or(Error::<T>::NoIdAvailable)?;
+
+			Self::deposit_event(Event::Registered(asset_id, name, asset_type));
+
+			Ok(asset_id)
+		})
+	}
+
 	/// Create asset for given name or return existing AssetId if such asset already exists.
-	pub fn get_or_create_asset(name: Vec<u8>) -> Result<T::AssetId, DispatchError> {
+	pub fn get_or_create_asset(name: Vec<u8>, asset_type: AssetType<T::AssetId>) -> Result<T::AssetId, DispatchError> {
 		let bounded_name: BoundedVec<u8, T::StringLimit> = Self::to_bounded_name(name)?;
 
-		if <AssetIds<T>>::contains_key(&bounded_name) {
-			Ok(<AssetIds<T>>::get(&bounded_name).unwrap())
-		} else {
-			let asset_id = Self::next_asset_id();
-			let next_id = asset_id.checked_add(&One::one()).ok_or(Error::<T>::NoIdAvailable)?;
-			<NextAssetId<T>>::put(next_id);
-			<AssetIds<T>>::insert(bounded_name, asset_id);
+		if let Some(asset_id) = AssetIds::<T>::get(&bounded_name) {
 			Ok(asset_id)
+		} else {
+			Self::register_asset(bounded_name, asset_type)
 		}
 	}
 
+	/// Return location for given asset.
 	pub fn asset_to_location(asset_id: T::AssetId) -> Option<T::AssetNativeLocation> {
 		Self::locations(asset_id)
 	}
 
+	/// Return asset for given loation.
 	pub fn location_to_asset(location: T::AssetNativeLocation) -> Option<T::AssetId> {
 		Self::location_assets(location)
 	}

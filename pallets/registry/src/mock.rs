@@ -40,7 +40,7 @@ frame_support::construct_runtime!(
 	 UncheckedExtrinsic = UncheckedExtrinsic,
 	 {
 		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		 Registry: asset_registry::{Pallet, Call, Storage},
+		 Registry: asset_registry::{Pallet, Call, Storage, Event<T>},
 	 }
 
 );
@@ -65,7 +65,7 @@ impl system::Config for Test {
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = ();
+	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();
 	type Version = ();
@@ -78,6 +78,7 @@ impl system::Config for Test {
 	type OnSetCode = ();
 }
 impl Config for Test {
+	type Event = Event;
 	type AssetId = u32;
 	type AssetNativeLocation = MultiLocation;
 	type StringLimit = RegistryStringLimit;
