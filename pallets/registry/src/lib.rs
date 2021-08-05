@@ -215,7 +215,10 @@ pub mod pallet {
 				let bn = Self::to_bounded_name(name)?;
 
 				if bn != detail.name {
-					// update also name map
+					// Make sure that there is no such name already registered
+					ensure!(Self::asset_ids(&bn).is_none(), Error::<T>::AssetAlreadyRegistered);
+
+					// update also name map - remove old one first
 					AssetIds::<T>::remove(&detail.name);
 					AssetIds::<T>::insert(&bn, asset_id);
 				}
@@ -298,7 +301,7 @@ impl<T: Config> Pallet<T> {
 
 	///Register new asset.
 	///
-	/// Does not perform any  check whether an asset for given name alrady exists. This has to be prior to calling this function.
+	/// Does not perform any  check whether an asset for given name already exists. This has to be prior to calling this function.
 	fn register_asset(
 		name: BoundedVec<u8, T::StringLimit>,
 		asset_type: AssetType<T::AssetId>,
