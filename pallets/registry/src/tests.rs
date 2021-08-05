@@ -1,0 +1,113 @@
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+use super::Error;
+use crate::mock::*;
+use crate::types::{AssetDetails, AssetType};
+use codec::Encode;
+use frame_support::{assert_noop, assert_ok, BoundedVec};
+use polkadot_xcm::v0::{Junction::*, MultiLocation::*};
+use primitives::AssetId;
+use sp_std::convert::TryInto;
+
+#[test]
+fn register_asset_works() {
+	new_test_ext().execute_with(|| {
+		let name: Vec<u8> = b"HDX".to_vec();
+
+		assert_ok!(AssetRegistryPallet::register_asset(
+			Origin::signed(1),
+			name.clone(),
+			AssetType::Token,
+		));
+
+		let bn = AssetRegistryPallet::to_bounded_name(name.clone()).unwrap();
+		assert_eq!(AssetRegistryPallet::asset_ids(&bn).unwrap(), 1u32);
+		assert_eq!(
+			AssetRegistryPallet::assets(1u32).unwrap(),
+			AssetDetails {
+				name: bn,
+				asset_type: AssetType::Token,
+				locked: false
+			}
+		);
+
+		assert_noop!(
+			AssetRegistryPallet::register_asset(Origin::signed(1), name.clone(), AssetType::Token),
+			Error::<Test>::AssetAlreadyRegistered
+		);
+	});
+}
+
+#[test]
+fn create_asset() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetRegistryPallet::get_or_create_asset(b"HDX".to_vec()));
+
+		let dot_asset = AssetRegistryPallet::get_or_create_asset(b"DOT".to_vec());
+		assert_ok!(dot_asset);
+		let dot_asset_id = dot_asset.ok().unwrap();
+
+		assert_ok!(AssetRegistryPallet::get_or_create_asset(b"BTC".to_vec()));
+
+		let current_asset_id = AssetRegistryPallet::next_asset_id();
+
+		// Existing asset should return previously created one.
+		assert_ok!(AssetRegistryPallet::get_or_create_asset(b"DOT".to_vec()), dot_asset_id);
+
+		// Retrieving existing asset should not increased the next asset id counter.
+		assert_eq!(AssetRegistryPallet::next_asset_id(), current_asset_id);
+
+		let dot: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"DOT".to_vec().try_into().unwrap();
+		let aaa: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"AAA".to_vec().try_into().unwrap();
+
+		assert_eq!(AssetRegistryPallet::asset_ids(dot).unwrap(), 1u32);
+		assert!(AssetRegistryPallet::asset_ids(aaa).is_none());
+	});
+}
+
+#[test]
+fn location_mapping_works() {
+	new_test_ext().execute_with(|| {
+		let bn = AssetRegistryPallet::to_bounded_name(b"HDX".to_vec()).unwrap();
+		assert_ok!(AssetRegistryPallet::get_or_create_asset(b"HDX".to_vec()));
+		let asset_id: AssetId = AssetRegistryPallet::get_or_create_asset(b"HDX".to_vec()).unwrap();
+
+		crate::Assets::<Test>::insert(
+			asset_id,
+			AssetDetails::<AssetId, BoundedVec<u8, RegistryStringLimit>> {
+				name: bn,
+				asset_type: AssetType::Token,
+				locked: false,
+			},
+		);
+
+		let asset_location = X3(Parent, Parachain(200), GeneralKey(asset_id.encode()));
+
+		assert_ok!(AssetRegistryPallet::set_asset_location(
+			Origin::signed(1),
+			asset_id,
+			asset_location.clone()
+		));
+
+		assert_eq!(
+			AssetRegistryPallet::location_to_asset(asset_location.clone()),
+			Some(asset_id)
+		);
+		assert_eq!(AssetRegistryPallet::asset_to_location(asset_id), Some(asset_location));
+	});
+}
