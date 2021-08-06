@@ -36,6 +36,7 @@ frame_support::construct_runtime!(
 parameter_types! {
 	pub ClassBondAmount: Balance = 100;
 	pub ClassBondDuration: u32 = 10;
+	pub MintMaxQuantity: u32 = 100_000;
 }
 
 impl pallet_nft::Config for Test {
@@ -44,6 +45,7 @@ impl pallet_nft::Config for Test {
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type ClassBondAmount = ClassBondAmount;
 	type ClassBondDuration = ClassBondDuration;
+	type MintMaxQuantity = MintMaxQuantity;
 }
 
 impl orml_nft::Config for Test {
