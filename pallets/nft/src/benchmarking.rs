@@ -4,7 +4,7 @@ use super::*;
 
 use crate as NFT;
 use frame_benchmarking::{account, benchmarks};
-use frame_support::traits::{Get, OnFinalize};
+use frame_support::traits::OnFinalize;
 use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::vec;

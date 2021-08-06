@@ -7,7 +7,7 @@ use frame_support::{
 	dispatch::{DispatchError, DispatchResult, DispatchResultWithPostInfo},
 	ensure,
 	traits::{Currency, ExistenceRequirement, ReservableCurrency},
-	transactional
+	transactional,
 };
 use frame_system::ensure_signed;
 use orml_utilities::with_transaction_result;
@@ -32,6 +32,7 @@ pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
 pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
 
 pub const METADATA_MAX_LENGTH: usize = 1024;
+pub const EMOTE_MAX_LENGTH: usize = 1024;
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
@@ -120,8 +121,12 @@ pub mod pallet {
 			quantity: u32,
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			ensure!(quantity > Zero::zero() && T::MintMaxQuantity::get() >= quantity, Error::<T>::InvalidQuantity);
+			ensure!(
+				quantity > Zero::zero() && T::MintMaxQuantity::get() >= quantity,
+				Error::<T>::InvalidQuantity
+			);
 			ensure!(metadata.len() <= METADATA_MAX_LENGTH, Error::<T>::MetadataTooLong);
+			ensure!(token_data.emote.len() <= EMOTE_MAX_LENGTH, Error::<T>::EmoteTooLong);
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			let data = token_data;
@@ -263,6 +268,8 @@ pub mod pallet {
 		NotAPool,
 		/// Metadata exceed the allowed length
 		MetadataTooLong,
+		/// Emote exceed the allowed length
+		EmoteTooLong,
 	}
 }
 
