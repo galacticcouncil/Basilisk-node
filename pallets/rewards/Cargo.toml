@@ -1,6 +1,6 @@
 [package]
 authors = ['GalacticCouncil']
-description = 'Incentives Pallet'
+description = 'Rewards Pallet'
 edition = '2018'
 homepage = 'https://github.com/galacticcouncil/basilisk-node'
 license = 'Apache 2.0'
