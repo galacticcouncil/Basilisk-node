@@ -216,6 +216,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::XcmpQueue(_)
 			| Call::DmpQueue(_)
 			| Call::PolkadotXcm(_)
+			| Call::Registry(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -410,8 +411,17 @@ impl pallet_asset_registry::Config for Runtime {
 	type AssetId = AssetId;
 }
 
+impl pallet_registry::Config for Runtime {
+	type Event = Event;
+	type AssetId = AssetId;
+	type AssetNativeLocation = polkadot_xcm::v0::MultiLocation;
+	type StringLimit = RegistryStrLimit;
+	type NativeAssetId = NativeAssetId;
+}
+
 parameter_types! {
 	pub ExchangeFee: fee::Fee = fee::Fee::default();
+	pub RegistryStrLimit: u32 = 10;
 }
 
 impl pallet_xyk::Config for Runtime {
@@ -857,6 +867,7 @@ construct_runtime!(
 
 		// Basilisk related modules
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
+		Registry: pallet_registry::{Pallet, Call, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},

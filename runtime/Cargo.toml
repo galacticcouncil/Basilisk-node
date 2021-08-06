@@ -36,6 +36,7 @@ pallet-multi-payment-benchmarking = { path = "../pallets/transaction-multi-payme
 pallet-exchange = {path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional=true, default-features=false}
 pallet-asset-registry = {path = "../pallets/asset-registry",default-features=false}
+pallet-registry = {path = "../pallets/registry",default-features=false}
 pallet-xyk = { path = "../pallets/xyk",default-features=false}
 pallet-xyk-rpc-runtime-api = {path = "../pallets/xyk/rpc/runtime-api",default-features=false}
 pallet-nft = { path = '../pallets/nft', default-features = false }
@@ -166,6 +167,7 @@ std = [
     'pallet-xyk/std',
     'pallet-xyk-rpc-runtime-api/std',
     'pallet-asset-registry/std',
+    'pallet-registry/std',
     'pallet-exchange/std',
     'pallet-aura/std',
     'pallet-balances/std',

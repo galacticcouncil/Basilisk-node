@@ -581,6 +581,7 @@ dependencies = [
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-randomness-collective-flip",
+ "pallet-registry",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
