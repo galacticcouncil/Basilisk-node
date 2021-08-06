@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -163,6 +163,7 @@ pub struct BucketQueue {
 }
 
 impl BucketQueue {
+	// make sure that BUCKET_SIZE != 0
 	pub const BUCKET_SIZE: u32 = BUCKET_SIZE;
 }
 
@@ -178,7 +179,7 @@ impl Default for BucketQueue {
 pub trait BucketQueueT {
 	fn update_last(&mut self, price_info: PriceInfo);
 	fn get_last(&self) -> PriceInfo;
-	fn calculate_average(&self) -> Option<PriceInfo>;
+	fn calculate_average(&self) -> PriceInfo;
 }
 
 impl BucketQueueT for BucketQueue {
@@ -191,12 +192,12 @@ impl BucketQueueT for BucketQueue {
 		self.bucket[self.last as usize]
 	}
 
-	fn calculate_average(&self) -> Option<PriceInfo> {
+	fn calculate_average(&self) -> PriceInfo {
 		let sum = self.bucket.iter().sum::<PriceInfo>();
-		Some(PriceInfo {
-			avg_price: sum.avg_price.checked_div(&Price::from(Self::BUCKET_SIZE as u128))?,
-			volume: sum.volume.checked_div(Self::BUCKET_SIZE as u128)?,
-		})
+		PriceInfo {
+			avg_price: sum.avg_price.checked_div(&Price::from(Self::BUCKET_SIZE as u128)).expect("avg_price is valid value; BUCKET_SIZE is non-zero integer; qed"),
+			volume: sum.volume.checked_div(Self::BUCKET_SIZE as u128).expect("avg_price is valid value; BUCKET_SIZE is non-zero integer; qed"),
+		}
 	}
 }
 

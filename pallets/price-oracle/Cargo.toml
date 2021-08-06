@@ -29,10 +29,10 @@ serde = {features = ['derive'], optional = true, version = '1.0.101'}
 primitives = {path = '../../primitives', default-features = false}
 
 # Substrate dependencies
-#frame-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
+frame-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
 frame-support = {default-features = false, version = '3.0.0'}
 frame-system = {default-features = false, version = '3.0.0'}
-#frame-system-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
+frame-system-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
 sp-core = {default-features = false, version = '3.0.0'}
 sp-runtime = {default-features = false, version = '3.0.0'}
 sp-std = {default-features = false, version = '3.0.0'}
@@ -46,6 +46,11 @@ pallet-asset-registry = {path = '../asset-registry', default-features = false}
 
 [features]
 default = ['std']
+runtime-benchmarks = [
+  "frame-benchmarking",
+  "frame-system/runtime-benchmarks",
+  "frame-support/runtime-benchmarks",
+]
 std = [
   'serde',
   'codec/std',
@@ -54,5 +59,4 @@ std = [
   'sp-runtime/std',
   'sp-core/std',
   'sp-std/std',
-#  'primitives/std',
 ]

@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -36,7 +36,7 @@ mod tests;
 mod types;
 pub use types::*;
 
-// mod benchmarking;
+mod benchmarking;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -58,7 +58,6 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		PriceDataNotFound,
 		PriceComputationError,
 	}
 
@@ -138,7 +137,6 @@ impl<T: Config> Pallet<T> {
 						element_from_ten
 							.1
 							.calculate_average()
-							.ok_or(Error::<T>::PriceComputationError)?,
 					);
 					Ok(())
 				})?;
@@ -152,7 +150,6 @@ impl<T: Config> Pallet<T> {
 						element_from_hundred
 							.1
 							.calculate_average()
-							.ok_or(Error::<T>::PriceComputationError)?,
 					);
 					Ok(())
 				})?;
@@ -176,8 +173,9 @@ impl<T: Config> AMMHandlers<T::AccountId, AssetId, AssetPair, Balance> for Price
 			return;
 		};
 
-		// zero prices are ignored and not added to the queue
-		if price.is_zero() {
+		// we assume that zero prices are not valid
+		// zero values are ignored and not added to the queue
+		if price.is_zero() || amount.is_zero() || liq_amount.is_zero() {
 			return;
 		}
 

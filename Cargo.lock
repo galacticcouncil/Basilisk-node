@@ -5786,8 +5786,10 @@ dependencies = [
 name = "pallet-price-oracle"
 version = "1.0.0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "frame-system-benchmarking",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",

@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -246,21 +246,40 @@ fn update_data_should_work() {
 }
 
 #[test]
-fn update_empty_data_should_work() {
+fn update_data_with_incorrect_input_should_not_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
 
-		PriceOracle::on_create_pool(ASSET_PAIR_B);
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 
-		assert_ok!(PriceOracle::update_data());
+		PriceOracle::on_trade(ASSET_PAIR_A, PriceEntry {
+			price: Price::from(1),
+			amount: Zero::zero(),
+			liq_amount: Zero::zero(),
+		});
+
+		assert_noop!(PriceOracle::update_data(),
+			Error::<Test>::PriceComputationError,
+		);
+	});
+}
+
+#[test]
+fn update_empty_data_should_work() {
+	new_test_ext().execute_with(|| {
+
+		PriceOracle::on_create_pool(ASSET_PAIR_A);
+
+        for i in 0..1002 {
+			System::set_block_number(i);
+			assert_ok!(PriceOracle::update_data());
+		}
 
 		let data_ten = PriceOracle::price_data_ten()
 			.iter()
 			.find(|&x| x.0 == ASSET_PAIR_A.name())
 			.unwrap()
 			.1;
-
 		assert_eq!(
 			data_ten.get_last(),
 			PriceInfo {
@@ -268,8 +287,27 @@ fn update_empty_data_should_work() {
 				volume: Zero::zero()
 			}
 		);
+
+		let data_hundred = PriceOracle::price_data_hundred(ASSET_PAIR_A.name());
+		assert_eq!(
+			data_hundred.get_last(),
+			PriceInfo {
+				avg_price: Zero::zero(),
+				volume: Zero::zero()
+			}
+		);
+
+		let data_thousand = PriceOracle::price_data_thousand(ASSET_PAIR_A.name());
+		assert_eq!(
+			data_thousand.get_last(),
+			PriceInfo {
+				avg_price: Zero::zero(),
+				volume: Zero::zero()
+			}
+		);
 	});
 }
+
 #[test]
 fn bucket_queue_should_work() {
 	let mut queue = BucketQueue::default();
