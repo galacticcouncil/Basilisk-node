@@ -36,6 +36,7 @@ pub const PRICE_ENTRY_1: PriceEntry = PriceEntry {
 };
 
 pub const NUM_OF_ITERS: u32 = 100;
+pub const NUM_OF_NESTED_ITERS: u32 = 100;
 
 benchmarks! {
 	on_initialize_no_entry {
@@ -87,9 +88,6 @@ benchmarks! {
 			vec.push(PRICE_ENTRY_1);
 		}
 
-		// PriceOracle::<T>::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);// ??????????????
-		// vec.push(PRICE_ENTRY_1);
-
 		assert_eq!(PriceBuffer::<T>::try_get(ASSET_PAIR_A.name()), Ok(vec));
 
 		let price_data = PriceOracle::<T>::price_data_ten();
@@ -107,7 +105,7 @@ benchmarks! {
 	on_initialize_one_entry_multiple_tokens {
 		let t in 1 .. NUM_OF_ITERS;
 		let mut vec = Vec::new();
-		let mut asset_pair = AssetPair::default();
+		let asset_pair = AssetPair::default();
 
 		for i in 0 .. t {
 			let asset_pair = AssetPair {asset_in: i * 1_000, asset_out: i * 2_000};
@@ -116,7 +114,35 @@ benchmarks! {
 			vec.push(PRICE_ENTRY_1);
 		}
 
-		// assert_eq!(PriceBuffer::<T>::try_get(asset_pair.name()), Ok(vec));
+		let price_data = PriceOracle::<T>::price_data_ten();
+		let bucket_queue = price_data.iter().find(|&x| x.0 == asset_pair.name()).unwrap().1;
+		assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::zero(), volume: 0});
+
+	}: { PriceOracle::<T>::on_initialize(t.into()); }
+	verify {
+		for i in 0 .. t {
+			let asset_pair = AssetPair {asset_in: i * 1_000, asset_out: i * 2_000};
+			assert_eq!(PriceBuffer::<T>::contains_key(asset_pair.name()), false);
+			let price_data = PriceOracle::<T>::price_data_ten();
+			let bucket_queue = price_data.iter().find(|&x| x.0 == asset_pair.name()).unwrap().1;
+			assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::from(2), volume: 1_000});
+		}
+	}
+
+	on_initialize_multiple_entries_multiple_tokens {
+		let t in 1 .. NUM_OF_ITERS;
+		let u in 1 .. NUM_OF_NESTED_ITERS;
+		let mut vec = Vec::new();
+		let asset_pair = AssetPair::default();
+
+		for i in 0 .. t {
+			let asset_pair = AssetPair {asset_in: i * 1_000, asset_out: i * 2_000};
+			for j in 0 .. u {
+				PriceOracle::<T>::on_create_pool(asset_pair);
+				PriceOracle::<T>::on_trade(asset_pair, PRICE_ENTRY_1);
+			}
+			vec.push(PRICE_ENTRY_1);
+		}
 
 		let price_data = PriceOracle::<T>::price_data_ten();
 		let bucket_queue = price_data.iter().find(|&x| x.0 == asset_pair.name()).unwrap().1;
@@ -124,10 +150,14 @@ benchmarks! {
 
 	}: { PriceOracle::<T>::on_initialize(t.into()); }
 	verify {
-		assert_eq!(PriceBuffer::<T>::contains_key(asset_pair.name()), false);
-		let price_data = PriceOracle::<T>::price_data_ten();
-		let bucket_queue = price_data.iter().find(|&x| x.0 == asset_pair.name()).unwrap().1;
-		assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::from(2), volume: 1_000});
+		for i in 0 .. t {
+			let asset_pair = AssetPair {asset_in: i * 1_000, asset_out: i * 2_000};
+			assert_eq!(PriceBuffer::<T>::contains_key(asset_pair.name()), false);
+			let price_data = PriceOracle::<T>::price_data_ten();
+			let bucket_queue = price_data.iter().find(|&x| x.0 == asset_pair.name()).unwrap().1;
+			assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::from(2), volume: u as u128 * 1_000});
+		}
+
 	}
 }
 
