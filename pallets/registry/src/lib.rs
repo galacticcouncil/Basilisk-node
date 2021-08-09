@@ -134,17 +134,53 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig {
 		pub asset_names: Vec<Vec<u8>>,
+		pub native_asset_name: Vec<u8>,
 	}
 
 	#[cfg(feature = "std")]
 	impl Default for GenesisConfig {
 		fn default() -> Self {
-			GenesisConfig { asset_names: vec![] }
+			GenesisConfig {
+				asset_names: vec![],
+				native_asset_name: b"BSX".to_vec(),
+			}
 		}
 	}
+	#[cfg(feature = "std")]
+	impl GenesisConfig {
+		/// Direct implementation of `GenesisBuild::build_storage`.
+		///
+		/// Kept in order not to break dependency.
+		pub fn build_storage<T: Config>(&self) -> Result<sp_runtime::Storage, String> {
+			<Self as GenesisBuild<T>>::build_storage(self)
+		}
+
+		/// Direct implementation of `GenesisBuild::assimilate_storage`.
+		///
+		/// Kept in order not to break dependency.
+		pub fn assimilate_storage<T: Config>(&self, storage: &mut sp_runtime::Storage) -> Result<(), String> {
+			<Self as GenesisBuild<T>>::assimilate_storage(self, storage)
+		}
+	}
+
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
+			// Register first native asset
+			// It is to make sure that native is registered as any other asset
+			let native_asset_name = Pallet::<T>::to_bounded_name(self.native_asset_name.to_vec())
+				.map_err(|_| panic!("Invalid native asset name!"))
+				.unwrap();
+
+			AssetIds::<T>::insert(&native_asset_name, T::NativeAssetId::get());
+			let details = AssetDetails {
+				name: native_asset_name,
+				asset_type: AssetType::Token,
+				locked: false,
+			};
+
+			Assets::<T>::insert(T::NativeAssetId::get(), details);
+
 			self.asset_names.iter().for_each(|name| {
 				let bounded_name = Pallet::<T>::to_bounded_name(name.to_vec())
 					.map_err(|_| panic!("Invalid asset name!"))

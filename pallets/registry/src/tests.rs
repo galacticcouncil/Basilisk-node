@@ -123,3 +123,27 @@ fn location_mapping_works() {
 		assert_eq!(AssetRegistryPallet::asset_to_location(asset_id), Some(asset_location));
 	});
 }
+
+#[test]
+fn genesis_config_works() {
+	ExtBuilder::default()
+		.with_native_asset_name(b"NATIVE".to_vec())
+		.build()
+		.execute_with(|| {
+			let native: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"NATIVE".to_vec().try_into().unwrap();
+			assert_eq!(AssetRegistryPallet::asset_ids(native).unwrap(), 0u32);
+		});
+	ExtBuilder::default()
+		.with_assets(vec![b"ONE".to_vec()])
+		.build()
+		.execute_with(|| {
+			let native: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"NATIVE".to_vec().try_into().unwrap();
+			assert_eq!(AssetRegistryPallet::asset_ids(native), None);
+
+			let bsx: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"BSX".to_vec().try_into().unwrap();
+			assert_eq!(AssetRegistryPallet::asset_ids(bsx).unwrap(), 0u32);
+
+			let one: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"ONE".to_vec().try_into().unwrap();
+			assert_eq!(AssetRegistryPallet::asset_ids(one).unwrap(), 1u32);
+		});
+}

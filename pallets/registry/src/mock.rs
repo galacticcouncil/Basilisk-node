@@ -88,6 +88,54 @@ impl Config for Test {
 }
 pub type AssetRegistryPallet = crate::Pallet<Test>;
 
+pub struct ExtBuilder {
+	assets: Vec<Vec<u8>>,
+	native_asset_name: Option<Vec<u8>>,
+}
+
+impl Default for ExtBuilder {
+	fn default() -> Self {
+		Self {
+			assets: vec![],
+			native_asset_name: None,
+		}
+	}
+}
+
+impl ExtBuilder {
+	pub fn with_assets(mut self, assets: Vec<Vec<u8>>) -> Self {
+		self.assets = assets;
+		self
+	}
+
+	pub fn with_native_asset_name(mut self, name: Vec<u8>) -> Self {
+		self.native_asset_name = Some(name);
+		self
+	}
+
+	pub fn build(self) -> sp_io::TestExternalities {
+		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+
+		if let Some(name) = self.native_asset_name {
+			crate::GenesisConfig {
+				asset_names: self.assets,
+				native_asset_name: name,
+			}
+		} else {
+			crate::GenesisConfig {
+				asset_names: self.assets,
+				..Default::default()
+			}
+		}
+		.assimilate_storage::<Test>(&mut t)
+		.unwrap();
+
+		t.into()
+	}
+}
+
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	system::GenesisConfig::default().build_storage::<Test>().unwrap().into()
+	let mut ext = ExtBuilder::default().build();
+	ext.execute_with(|| System::set_block_number(1));
+	ext
 }
