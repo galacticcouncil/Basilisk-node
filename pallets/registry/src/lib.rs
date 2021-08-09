@@ -126,26 +126,25 @@ pub mod pallet {
 		StorageMap<_, Blake2_128Concat, T::AssetId, AssetMetadata<BoundedVec<u8, T::StringLimit>>, OptionQuery>;
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig<T: Config> {
-		pub asset_ids: Vec<(Vec<u8>, T::AssetId)>,
+	pub struct GenesisConfig {
+		pub asset_names: Vec<Vec<u8>>,
 	}
 
 	#[cfg(feature = "std")]
-	impl<T: Config> Default for GenesisConfig<T> {
+	impl Default for GenesisConfig {
 		fn default() -> Self {
-			GenesisConfig { asset_ids: vec![] }
+			GenesisConfig { asset_names: vec![] }
 		}
 	}
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			self.asset_ids.iter().for_each(|(name, asset_id)| {
-				let bounded_name: BoundedVec<u8, T::StringLimit> = name
-					.clone()
-					.try_into()
+			self.asset_names.iter().for_each(|name| {
+				let bounded_name = Pallet::<T>::to_bounded_name(name.to_vec())
 					.map_err(|_| panic!("Invalid asset name!"))
 					.unwrap();
-				AssetIds::<T>::insert(bounded_name, asset_id);
+				let _ = Pallet::<T>::register_asset(bounded_name, AssetType::Token)
+					.map_err(|_| panic!("Failed to register asset"));
 			})
 		}
 	}
