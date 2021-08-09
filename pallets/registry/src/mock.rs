@@ -84,6 +84,7 @@ impl Config for Test {
 	type AssetNativeLocation = MultiLocation;
 	type StringLimit = RegistryStringLimit;
 	type NativeAssetId = NativeAssetId;
+	type WeightInfo = ();
 }
 pub type AssetRegistryPallet = crate::Pallet<Test>;
 

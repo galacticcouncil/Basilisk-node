@@ -418,6 +418,7 @@ impl pallet_registry::Config for Runtime {
 	type AssetNativeLocation = polkadot_xcm::v0::MultiLocation;
 	type StringLimit = RegistryStrLimit;
 	type NativeAssetId = NativeAssetId;
+	type WeightInfo = ();
 }
 
 parameter_types! {

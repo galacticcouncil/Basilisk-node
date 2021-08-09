@@ -33,6 +33,9 @@ mod mock;
 mod tests;
 
 mod types;
+mod weights;
+
+use weights::WeightInfo;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 use crate::types::{AssetDetails, AssetMetadata, AssetType};
@@ -62,6 +65,9 @@ pub mod pallet {
 		/// Native Asset Id
 		#[pallet::constant]
 		type NativeAssetId: Get<Self::AssetId>;
+
+		/// Weight information for the extrinsics
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::pallet]
@@ -177,7 +183,7 @@ pub mod pallet {
 		/// Adds mapping between `name` and assigned `asset_id` so asset id can be retrieved by name too (Note: this approach is used in AMM implementation (xyk))
 		///
 		/// Emits 'Registered` event when successful.
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::register())]
 		#[transactional]
 		pub fn register(origin: OriginFor<T>, name: Vec<u8>, asset_type: AssetType<T::AssetId>) -> DispatchResult {
 			T::RegistryOrigin::ensure_origin(origin)?;
@@ -199,7 +205,7 @@ pub mod pallet {
 		/// Updates also mapping between name and asset id if provided name is different than currently registered.
 		///
 		/// Emits `Updated` event when successful.
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::update())]
 		#[transactional]
 		pub fn update(
 			origin: OriginFor<T>,
@@ -239,7 +245,7 @@ pub mod pallet {
 		/// - `decimals`: The number of decimals this asset uses to represent one unit.
 		///
 		/// Emits `MetedataSet` event when successful.
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_metadata())]
 		#[transactional]
 		pub fn set_metadata(
 			origin: OriginFor<T>,
@@ -272,9 +278,9 @@ pub mod pallet {
 		/// Mainly used in XCM.
 		///
 		/// Emits `LocationSet` event when successful.
-		#[pallet::weight(0)]
+		#[pallet::weight(<T as Config>::WeightInfo::set_location())]
 		#[transactional]
-		pub fn set_asset_location(
+		pub fn set_location(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 			location: T::AssetNativeLocation,

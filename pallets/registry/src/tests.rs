@@ -110,7 +110,7 @@ fn location_mapping_works() {
 
 		let asset_location = X3(Parent, Parachain(200), GeneralKey(asset_id.encode()));
 
-		assert_ok!(AssetRegistryPallet::set_asset_location(
+		assert_ok!(AssetRegistryPallet::set_location(
 			Origin::signed(1),
 			asset_id,
 			asset_location.clone()
