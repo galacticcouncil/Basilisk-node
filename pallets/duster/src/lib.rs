@@ -57,6 +57,16 @@ pub mod pallet {
 	/// Accounts excluded from dusting.
 	pub type AccountBlacklist<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, (), OptionQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn reward_account)]
+	/// Account to take reward from.
+	pub type RewardAccount<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn dust_dest_account)]
+	/// Account to send dust to.
+	pub type DustAccount<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
+
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
@@ -98,14 +108,6 @@ pub mod pallet {
 		/// The minimum amount required to keep an account.
 		type MinCurrencyDeposits: GetByKey<Self::CurrencyId, Self::Balance>;
 
-		/// Account to send dust to.
-		#[pallet::constant]
-		type DustAccount: Get<Self::AccountId>;
-
-		/// Account to take reward from.
-		#[pallet::constant]
-		type RewardAccount: Get<Self::AccountId>;
-
 		/// Reward amount
 		#[pallet::constant]
 		type Reward: Get<Self::Balance>;
@@ -121,6 +123,8 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub account_blacklist: Vec<T::AccountId>,
+		pub reward_account: T::AccountId,
+		pub dust_account: T::AccountId,
 	}
 
 	#[cfg(feature = "std")]
@@ -128,6 +132,8 @@ pub mod pallet {
 		fn default() -> Self {
 			GenesisConfig {
 				account_blacklist: vec![],
+				reward_account: Default::default(),
+				dust_account: Default::default(),
 			}
 		}
 	}
@@ -137,7 +143,18 @@ pub mod pallet {
 		fn build(&self) {
 			self.account_blacklist.iter().for_each(|account_id| {
 				AccountBlacklist::<T>::insert(account_id, ());
-			})
+			});
+
+			if self.reward_account == Default::default() {
+				panic!("Reward account is not set in genesis config");
+			}
+
+			if self.dust_account == Default::default() {
+				panic!("Dust account is not set in genesis config");
+			}
+
+			RewardAccount::<T>::put(&self.reward_account);
+			DustAccount::<T>::put(&self.dust_account);
 		}
 	}
 
@@ -192,7 +209,7 @@ pub mod pallet {
 
 			ensure!(dustable, Error::<T>::BalanceSufficient);
 
-			Self::transfer_dust(&account, &T::DustAccount::get(), currency_id, dust)?;
+			Self::transfer_dust(&account, &Self::dust_dest_account(), currency_id, dust)?;
 
 			if currency_id == T::NativeCurrencyId::get() {
 				// When dusting native currency, in order to make sure that account is killed,
@@ -257,7 +274,7 @@ impl<T: Config> Pallet<T> {
 
 	/// Send reward to account which ddid the dusting.
 	fn reward_duster(_duster: &T::AccountId, _currency_id: T::CurrencyId, _dust: T::Balance) -> DispatchResult {
-		let reserve_account = T::RewardAccount::get();
+		let reserve_account = Self::reward_account();
 		let reward = T::Reward::get();
 
 		T::MultiCurrency::transfer(T::NativeCurrencyId::get(), &reserve_account, _duster, reward)?;

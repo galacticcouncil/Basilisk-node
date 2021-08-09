@@ -65,5 +65,5 @@ std = [
   'orml-traits/std',
   'primitives/std',
   'lazy_static/spin_no_std',
-  'pallet-balances/default',
+  'pallet-balances/std',
 ]

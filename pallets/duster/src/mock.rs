@@ -127,8 +127,6 @@ impl Config for Test {
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currencies;
 	type MinCurrencyDeposits = MinDeposits;
-	type DustAccount = TreasuryAccount;
-	type RewardAccount = TreasuryAccount;
 	type Reward = Reward;
 	type NativeCurrencyId = NativeCurrencyId;
 	type WeightInfo = ();
@@ -205,6 +203,8 @@ impl ExtBuilder {
 
 		duster::GenesisConfig::<Test> {
 			account_blacklist: vec![*TREASURY],
+			reward_account: *TREASURY,
+			dust_account: *TREASURY,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
