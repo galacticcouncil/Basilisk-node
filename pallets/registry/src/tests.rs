@@ -17,7 +17,7 @@
 
 use super::Error;
 use crate::mock::*;
-use crate::types::{AssetDetails, AssetType};
+use crate::types::{AssetDetails, AssetMetadata, AssetType};
 use codec::Encode;
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use polkadot_xcm::v0::{Junction::*, MultiLocation::*};
@@ -145,5 +145,57 @@ fn genesis_config_works() {
 
 			let one: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"ONE".to_vec().try_into().unwrap();
 			assert_eq!(AssetRegistryPallet::asset_ids(one).unwrap(), 1u32);
+		});
+}
+
+#[test]
+fn set_metadata_works() {
+	ExtBuilder::default()
+		.with_assets(vec![b"DOT".to_vec()])
+		.build()
+		.execute_with(|| {
+			let dot: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"DOT".to_vec().try_into().unwrap();
+			let dot_id = AssetRegistryPallet::asset_ids(dot).unwrap();
+			let b_symbol: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"xDOT".to_vec().try_into().unwrap();
+
+			assert_ok!(AssetRegistryPallet::set_metadata(
+				Origin::signed(1),
+				dot_id,
+				b"xDOT".to_vec(),
+				12u8
+			));
+
+			assert_eq!(
+				AssetRegistryPallet::asset_metadata(dot_id).unwrap(),
+				AssetMetadata {
+					decimals: 12u8,
+					symbol: b_symbol.clone(),
+				}
+			);
+
+			assert_ok!(AssetRegistryPallet::set_metadata(
+				Origin::signed(1),
+				dot_id,
+				b"xDOT".to_vec(),
+				30u8
+			));
+
+			assert_eq!(
+				AssetRegistryPallet::asset_metadata(dot_id).unwrap(),
+				AssetMetadata {
+					decimals: 30u8,
+					symbol: b_symbol
+				}
+			);
+
+			assert_noop!(
+				AssetRegistryPallet::set_metadata(Origin::signed(1), dot_id, b"JUST_TOO_LONG".to_vec(), 30u8),
+				Error::<Test>::BadMetadata
+			);
+
+			assert_noop!(
+				AssetRegistryPallet::set_metadata(Origin::signed(1), 100, b"NONE".to_vec(), 30u8),
+				Error::<Test>::AssetNotFound
+			);
 		});
 }
