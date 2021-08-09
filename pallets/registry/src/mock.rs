@@ -79,6 +79,7 @@ impl system::Config for Test {
 }
 impl Config for Test {
 	type Event = Event;
+	type RegistryOrigin = frame_system::EnsureSigned<u64>;
 	type AssetId = u32;
 	type AssetNativeLocation = MultiLocation;
 	type StringLimit = RegistryStringLimit;

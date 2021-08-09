@@ -47,10 +47,13 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
+		/// The origin which can work with registry.
+		type RegistryOrigin: EnsureOrigin<Self::Origin>;
+
 		/// Asset type
 		type AssetId: Parameter + Member + Default + Copy + BaseArithmetic + MaybeSerializeDeserialize + MaxEncodedLen;
 
-		/// Asset origin type
+		/// Asset location type
 		type AssetNativeLocation: Parameter + Member;
 
 		/// The maximum length of a name or symbol stored on-chain.
@@ -73,7 +76,7 @@ pub mod pallet {
 		NoIdAvailable,
 
 		/// Invalid asset name or symbol.
-		AsseTNotFound,
+		AssetNotFound,
 
 		/// Invalid asset name or symbol.
 		BadMetadata,
@@ -83,9 +86,6 @@ pub mod pallet {
 
 		/// Asset is already registered.
 		AssetAlreadyRegistered,
-
-		/// Setting metadata for incorrect asset.
-		AssetMismatch,
 	}
 
 	#[pallet::storage]
@@ -156,6 +156,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Asset was registered. \[asset_id, name, type\]
 		Registered(T::AssetId, BoundedVec<u8, T::StringLimit>, AssetType<T::AssetId>),
+
 		/// Asset was updated. \[asset_id, name, type\]
 		Updated(T::AssetId, BoundedVec<u8, T::StringLimit>, AssetType<T::AssetId>),
 
@@ -180,7 +181,7 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		#[transactional]
 		pub fn register(origin: OriginFor<T>, name: Vec<u8>, asset_type: AssetType<T::AssetId>) -> DispatchResult {
-			let _ = ensure_signed(origin)?;
+			T::RegistryOrigin::ensure_origin(origin)?;
 
 			let bounded_name = Self::to_bounded_name(name)?;
 
@@ -207,10 +208,10 @@ pub mod pallet {
 			name: Vec<u8>,
 			asset_type: AssetType<T::AssetId>,
 		) -> DispatchResult {
-			let _ = ensure_signed(origin)?;
+			T::RegistryOrigin::ensure_origin(origin)?;
 
 			Assets::<T>::try_mutate(asset_id, |maybe_detail| -> DispatchResult {
-				let mut detail = maybe_detail.as_mut().ok_or(Error::<T>::AsseTNotFound)?;
+				let mut detail = maybe_detail.as_mut().ok_or(Error::<T>::AssetNotFound)?;
 
 				let bn = Self::to_bounded_name(name)?;
 
@@ -247,9 +248,9 @@ pub mod pallet {
 			symbol: Vec<u8>,
 			decimals: u8,
 		) -> DispatchResult {
-			let _ = ensure_signed(origin)?;
+			T::RegistryOrigin::ensure_origin(origin)?;
 
-			ensure!(Self::assets(asset_id).is_some(), Error::<T>::AsseTNotFound);
+			ensure!(Self::assets(asset_id).is_some(), Error::<T>::AssetNotFound);
 
 			let b_symbol = Self::to_bounded_name(symbol)?;
 
@@ -279,7 +280,7 @@ pub mod pallet {
 			asset_id: T::AssetId,
 			location: T::AssetNativeLocation,
 		) -> DispatchResult {
-			let _ = ensure_signed(origin)?;
+			T::RegistryOrigin::ensure_origin(origin)?;
 
 			ensure!(Self::assets(asset_id).is_some(), Error::<T>::AssetNotRegistered);
 
