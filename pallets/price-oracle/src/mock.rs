@@ -154,6 +154,7 @@ impl orml_tokens::Config for Test {
 
 impl Config for Test {
 	type Event = Event;
+	type WeightInfo = ();
 }
 
 pub struct ExtBuilder;

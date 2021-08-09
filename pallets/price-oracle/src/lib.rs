@@ -17,7 +17,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::dispatch::DispatchResult;
+use frame_support::dispatch::{DispatchError, DispatchResult};
 use frame_support::sp_runtime::traits::Zero;
 use primitives::{
 	asset::AssetPair,
@@ -26,6 +26,7 @@ use primitives::{
 };
 use sp_std::marker::PhantomData;
 use sp_std::prelude::*;
+use sp_std::convert::TryInto;
 
 #[cfg(test)]
 mod mock;
@@ -35,6 +36,9 @@ mod tests;
 
 mod types;
 pub use types::*;
+
+pub mod weights;
+use weights::WeightInfo;
 
 mod benchmarking;
 
@@ -54,11 +58,15 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+
+		/// Weight information for the extrinsics.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
 	pub enum Error<T> {
 		PriceComputationError,
+		UpdateDataOverflow,
 	}
 
 	#[pallet::event]
@@ -83,11 +91,11 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
 		fn on_initialize(_n: T::BlockNumber) -> Weight {
-			Self::update_data();
+			let (num_of_processed_buckets, num_of_processed_trades) = Self::update_data().unwrap_or_else(|_| (0, 0));
 
 			PriceBuffer::<T>::remove_all(None);
 
-			Weight::zero() // TODO
+			T::WeightInfo::on_initialize_multiple_entries_multiple_tokens(num_of_processed_buckets, num_of_processed_trades) // TODO: rebenchmark
 		}
 	}
 
@@ -107,13 +115,16 @@ impl<T: Config> Pallet<T> {
 		PriceBuffer::<T>::append(asset_pair.name(), price_entry);
 	}
 
-	fn update_data() -> DispatchResult {
-		// TODO: maybe create a separate storage for liquidity_data and process it separately
+	fn update_data() -> Result<(u32, u32), DispatchError> {
+		let mut num_of_processed_buckets = 0u32;
+		let mut num_of_processed_trades = 0u32;
 
 		PriceDataTen::<T>::mutate(|data_ten| -> DispatchResult {
 			for (asset_pair_id, data) in data_ten.iter_mut() {
 				let maybe_price = <PriceBuffer<T>>::try_get(asset_pair_id);
 				let result = if let Ok(prices) = maybe_price {
+					num_of_processed_buckets.checked_add(1).ok_or(Error::<T>::UpdateDataOverflow)?;
+					num_of_processed_trades.checked_add(prices.len().try_into().map_err(|_| Error::<T>::UpdateDataOverflow)?).ok_or(Error::<T>::UpdateDataOverflow)?;
 					PriceInfo::calculate_price_info(prices.as_slice()).ok_or(Error::<T>::PriceComputationError)?
 				} else {
 					PriceInfo::default()
@@ -127,7 +138,7 @@ impl<T: Config> Pallet<T> {
 
 		let now = <frame_system::Pallet<T>>::block_number();
 		if now.is_zero() {
-			return Ok(());
+			return Ok((num_of_processed_buckets, num_of_processed_trades));
 		} // TODO: delete me. It is here just to make testing easier.
 
 		if (now % T::BlockNumber::from(BUCKET_SIZE)) == T::BlockNumber::from(BUCKET_SIZE - 1) {
@@ -156,7 +167,7 @@ impl<T: Config> Pallet<T> {
 			}
 		}
 
-		Ok(())
+		Ok((num_of_processed_buckets, num_of_processed_trades))
 	}
 }
 
