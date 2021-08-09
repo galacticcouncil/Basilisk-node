@@ -31,6 +31,16 @@ fn create_class_fails() {
 			),
 			BadOrigin
 		);
+
+		assert_noop!(
+			NFTModule::create_class(
+				Origin::signed(ALICE),
+				vec![1; METADATA_MAX_LENGTH + 1],
+				ClassData { is_pool: true },
+				TEST_PRICE
+			),
+			Error::<Test>::MetadataTooLong
+		);
 	})
 }
 
@@ -85,6 +95,34 @@ fn mint_fails() {
 				TEST_QUANTITY,
 			),
 			Error::<Test>::NotClassOwner
+		);
+
+		assert_noop!(
+			NFTModule::mint(
+				Origin::signed(ALICE),
+				0,
+				vec![1; METADATA_MAX_LENGTH + 1],
+				TokenData {
+					locked: false,
+					emote: EMOTE.as_bytes().to_vec()
+				},
+				TEST_QUANTITY,
+			),
+			Error::<Test>::MetadataTooLong
+		);
+
+		assert_noop!(
+			NFTModule::mint(
+				Origin::signed(ALICE),
+				0,
+				"a token".as_bytes().to_vec(),
+				TokenData {
+					locked: false,
+					emote: vec![1; METADATA_MAX_LENGTH + 1]
+				},
+				TEST_QUANTITY,
+			),
+			Error::<Test>::EmoteTooLong
 		);
 	});
 }

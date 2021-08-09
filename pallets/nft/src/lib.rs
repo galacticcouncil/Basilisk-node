@@ -97,8 +97,8 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
-			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
 			ensure!(metadata.len() <= METADATA_MAX_LENGTH, Error::<T>::MetadataTooLong);
+			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
 			ClassItemPrice::<T>::insert(class_id, price);
 
