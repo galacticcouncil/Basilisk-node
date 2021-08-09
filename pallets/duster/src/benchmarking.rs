@@ -46,7 +46,7 @@ benchmarks! {
 	verify {
 		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &to_dust_account), 0u32.into());
 		assert_eq!(T::MultiCurrency::free_balance(0u32.into(), &caller), 10_000u32.into());
-		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &T::DustAccount::get()), 1000u32.into());
+		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &crate::Pallet::<T>::dust_dest_account()), 1000u32.into());
 	}
 }
 
