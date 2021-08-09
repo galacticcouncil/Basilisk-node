@@ -413,6 +413,7 @@ impl pallet_asset_registry::Config for Runtime {
 
 impl pallet_registry::Config for Runtime {
 	type Event = Event;
+	type RegistryOrigin = EnsureRoot<AccountId>;
 	type AssetId = AssetId;
 	type AssetNativeLocation = polkadot_xcm::v0::MultiLocation;
 	type StringLimit = RegistryStrLimit;
