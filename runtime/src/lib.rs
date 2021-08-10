@@ -217,6 +217,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::DmpQueue(_)
 			| Call::PolkadotXcm(_)
 			| Call::Registry(_)
+			| Call::Duster(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -441,6 +442,22 @@ impl pallet_exchange::Config for Runtime {
 	type Resolver = Exchange;
 	type Currency = Currencies;
 	type WeightInfo = weights::exchange::HydraWeight<Runtime>;
+}
+
+parameter_types! {
+	pub const DustingReward: u128 = 0;
+}
+
+impl pallet_duster::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type MinCurrencyDeposits = ExistentialDeposits;
+	type Reward = DustingReward;
+	type NativeCurrencyId = NativeAssetId;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -871,6 +888,7 @@ construct_runtime!(
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
 		Registry: pallet_registry::{Pallet, Call, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
+		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},

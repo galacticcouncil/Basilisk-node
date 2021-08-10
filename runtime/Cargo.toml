@@ -38,6 +38,7 @@ pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", opti
 pallet-asset-registry = {path = "../pallets/asset-registry",default-features=false}
 pallet-registry = {path = "../pallets/registry",default-features=false}
 pallet-xyk = { path = "../pallets/xyk",default-features=false}
+pallet-duster= { path = "../pallets/duster",default-features=false}
 pallet-xyk-rpc-runtime-api = {path = "../pallets/xyk/rpc/runtime-api",default-features=false}
 pallet-nft = { path = '../pallets/nft', default-features = false }
 pallet-lbp = { path = '../pallets/lbp', default-features = false }
@@ -165,6 +166,7 @@ std = [
     'orml-nft/std',
     'parachain-info/std',
     'pallet-xyk/std',
+    'pallet-duster/std',
     'pallet-xyk-rpc-runtime-api/std',
     'pallet-asset-registry/std',
     'pallet-registry/std',
