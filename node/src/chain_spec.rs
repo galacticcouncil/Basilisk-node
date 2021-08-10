@@ -2,9 +2,9 @@
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig, SessionConfig,
-	Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX, CORE_ASSET_ID,
-	WASM_BINARY,
+	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
+	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
+	CORE_ASSET_ID, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -276,6 +276,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
 				para_id,
@@ -479,6 +480,11 @@ fn parachain_genesis(
 		vesting: VestingConfig { vesting: vec![] },
 		parachain_info: ParachainInfoConfig { parachain_id }, //TODO
 		aura_ext: Default::default(),
+		duster: DusterConfig {
+			account_blacklist: vec![hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()],
+			reward_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
+			dust_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
+		},
 	}
 }
 
@@ -584,5 +590,10 @@ fn testnet_parachain_genesis(
 		},
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
+		duster: DusterConfig {
+			account_blacklist: vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
+			reward_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
+			dust_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
+		},
 	}
 }
