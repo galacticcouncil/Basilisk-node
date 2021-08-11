@@ -24,9 +24,9 @@ use primitives::{
 	traits::{AMMHandlers, AMMTransfer},
 	AssetId, Balance,
 };
+use sp_std::convert::TryInto;
 use sp_std::marker::PhantomData;
 use sp_std::prelude::*;
-use sp_std::convert::TryInto;
 
 #[cfg(test)]
 mod mock;
@@ -95,7 +95,10 @@ pub mod pallet {
 
 			PriceBuffer::<T>::remove_all(None);
 
-			T::WeightInfo::on_initialize_multiple_entries_multiple_tokens(num_of_processed_buckets, num_of_processed_trades) // TODO: rebenchmark
+			T::WeightInfo::on_initialize_multiple_entries_multiple_tokens(
+				num_of_processed_buckets,
+				num_of_processed_trades,
+			) // TODO: rebenchmark
 		}
 	}
 
@@ -123,11 +126,15 @@ impl<T: Config> Pallet<T> {
 			for (asset_pair_id, data) in data_ten.iter_mut() {
 				let maybe_price = <PriceBuffer<T>>::try_get(asset_pair_id);
 				let result = if let Ok(prices) = maybe_price {
-					num_of_processed_buckets.checked_add(1).ok_or(Error::<T>::UpdateDataOverflow)?;
-					num_of_processed_trades.checked_add(prices.len().try_into().map_err(|_| Error::<T>::UpdateDataOverflow)?).ok_or(Error::<T>::UpdateDataOverflow)?;
+					num_of_processed_buckets
+						.checked_add(1)
+						.ok_or(Error::<T>::UpdateDataOverflow)?;
+					num_of_processed_trades
+						.checked_add(prices.len().try_into().map_err(|_| Error::<T>::UpdateDataOverflow)?)
+						.ok_or(Error::<T>::UpdateDataOverflow)?;
 					PriceInfo::calculate_price_info(prices.as_slice()).ok_or(Error::<T>::PriceComputationError)?
 				} else {
-					PriceInfo::default()
+					data.get_last()
 				};
 
 				data.update_last(result);
@@ -144,11 +151,7 @@ impl<T: Config> Pallet<T> {
 		if (now % T::BlockNumber::from(BUCKET_SIZE)) == T::BlockNumber::from(BUCKET_SIZE - 1) {
 			for element_from_ten in PriceDataTen::<T>::get().iter() {
 				PriceDataHundred::<T>::mutate(element_from_ten.0.clone(), |data| -> DispatchResult {
-					data.update_last(
-						element_from_ten
-							.1
-							.calculate_average()
-					);
+					data.update_last(element_from_ten.1.calculate_average());
 					Ok(())
 				})?;
 			}
@@ -157,11 +160,7 @@ impl<T: Config> Pallet<T> {
 		if (now % T::BlockNumber::from(BUCKET_SIZE.pow(2))) == T::BlockNumber::from(BUCKET_SIZE.pow(2) - 1) {
 			for element_from_hundred in PriceDataHundred::<T>::iter() {
 				PriceDataThousand::<T>::mutate(element_from_hundred.0.clone(), |data| -> DispatchResult {
-					data.update_last(
-						element_from_hundred
-							.1
-							.calculate_average()
-					);
+					data.update_last(element_from_hundred.1.calculate_average());
 					Ok(())
 				})?;
 			}

@@ -421,3 +421,83 @@ fn continuous_trades_should_work() {
 		}
 	})
 }
+
+
+#[test]
+fn stable_price_should_work() {
+	new_test_ext().execute_with(|| {
+		let num_of_iters = BucketQueue::BUCKET_SIZE.pow(3);
+		PriceOracle::on_create_pool(ASSET_PAIR_A);
+
+		for i in 0 .. num_of_iters {
+			System::set_block_number(i.into());
+			PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);
+			PriceOracle::on_initialize(i.into());
+		}
+
+		let data_ten = PriceOracle::price_data_ten()
+			.iter()
+			.find(|&x| x.0 == ASSET_PAIR_A.name())
+			.unwrap()
+			.1;
+		let data_hundred = PriceOracle::price_data_hundred(ASSET_PAIR_A.name());
+		let data_thousand = PriceOracle::price_data_thousand(ASSET_PAIR_A.name());
+
+		assert_eq!(
+			data_ten.get_last(),
+			PriceInfo {
+				avg_price: 2.into(),
+				volume: 1_000
+			}
+		);
+		assert_eq!(
+			data_hundred.get_last(),
+			PriceInfo {
+				avg_price: 2.into(),
+				volume: 1_000
+			}
+		);
+		assert_eq!(
+			data_thousand.get_last(),
+			PriceInfo {
+				avg_price: 2.into(),
+				volume: 1_000
+			}
+		);
+
+		for i in num_of_iters .. 2 * num_of_iters {
+			System::set_block_number(i.into());
+			PriceOracle::on_initialize(i.into());
+		}
+
+		let data_ten_a = PriceOracle::price_data_ten()
+			.iter()
+			.find(|&x| x.0 == ASSET_PAIR_A.name())
+			.unwrap()
+			.1;
+		let data_hundred = PriceOracle::price_data_hundred(ASSET_PAIR_A.name());
+		let data_thousand = PriceOracle::price_data_thousand(ASSET_PAIR_A.name());
+
+		assert_eq!(
+			data_ten.get_last(),
+			PriceInfo {
+				avg_price: 2.into(),
+				volume: 1_000
+			}
+		);
+		assert_eq!(
+			data_hundred.get_last(),
+			PriceInfo {
+				avg_price: 2.into(),
+				volume: 1_000
+			}
+		);
+		assert_eq!(
+			data_thousand.get_last(),
+			PriceInfo {
+				avg_price: 2.into(),
+				volume: 1_000
+			}
+		);
+	});
+}

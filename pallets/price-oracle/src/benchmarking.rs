@@ -103,6 +103,54 @@ benchmarks! {
 		assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::from(2), volume: a as u128 * 1_000});
 	}
 
+	on_initialize_multiple_entries_one_token_all_bucket_levels {
+		let block_num: u32 = BUCKET_SIZE.pow(3);
+		let a in 1 .. NUM_OF_ITERS; // trade_num
+		PriceOracle::<T>::on_create_pool(ASSET_PAIR_A);
+		frame_system::Pallet::<T>::set_block_number(Zero::zero());
+
+		let mut vec = Vec::new();
+		for i in 0 .. a {
+			PriceOracle::<T>::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);
+			vec.push(PRICE_ENTRY_1);
+		}
+
+		assert_eq!(PriceBuffer::<T>::try_get(ASSET_PAIR_A.name()), Ok(vec));
+		let price_data = PriceOracle::<T>::price_data_ten();
+		let bucket_queue = price_data.iter().find(|&x| x.0 == ASSET_PAIR_A.name()).unwrap().1;
+		assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::zero(), volume: 0});
+
+		for round in 1.. block_num {
+			frame_system::Pallet::<T>::set_block_number((round - 1) .into());
+			PriceOracle::<T>::on_initialize((round - 1).into());
+
+			let mut vec = Vec::new();
+			for i in 0 .. a {
+				PriceOracle::<T>::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);
+				vec.push(PRICE_ENTRY_1);
+			}
+
+			assert_eq!(PriceBuffer::<T>::try_get(ASSET_PAIR_A.name()), Ok(vec));
+
+			let price_data = PriceOracle::<T>::price_data_ten();
+			let bucket_queue = price_data.iter().find(|&x| x.0 == ASSET_PAIR_A.name()).unwrap().1;
+			assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::from(2), volume: a as u128 * 1_000});
+		}
+
+		frame_system::Pallet::<T>::set_block_number(block_num.into());
+
+	}: { PriceOracle::<T>::on_initialize(block_num.into()); }
+	verify {
+		assert_eq!(PriceBuffer::<T>::contains_key(ASSET_PAIR_A.name()), false);
+		let bucket_queue = PriceOracle::<T>::price_data_hundred(ASSET_PAIR_A.name());
+		for i in 0 .. BucketQueue::BUCKET_SIZE {
+			assert_eq!(bucket_queue[i as usize].volume, a as u128 * 1_000);
+		}
+
+		let bucket_queue = PriceOracle::<T>::price_data_thousand(ASSET_PAIR_A.name());
+		assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::from(2), volume: a as u128 * 1_000});
+	}
+
 	on_initialize_one_entry_multiple_tokens {
 		let block_num: u32 = 5;
 		let b in 1 .. NUM_OF_ITERS; // token num
@@ -247,7 +295,9 @@ mod tests {
 			assert_ok!(test_benchmark_on_initialize_no_entry::<Test>());
 			assert_ok!(test_benchmark_on_initialize_one_entry::<Test>());
 			assert_ok!(test_benchmark_on_initialize_multiple_entries_one_token::<Test>());
+			assert_ok!(test_benchmark_on_initialize_multiple_entries_one_token_all_bucket_levels::<Test>());
 			assert_ok!(test_benchmark_on_initialize_one_entry_multiple_tokens::<Test>());
+			assert_ok!(test_benchmark_on_initialize_multiple_entries_multiple_tokens::<Test>());
 			assert_ok!(test_benchmark_on_initialize_uniform_distribution::<Test>());
 			assert_ok!(test_benchmark_on_initialize_nonuniform_distribution::<Test>());
 		});
