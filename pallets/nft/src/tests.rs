@@ -35,7 +35,7 @@ fn create_class_fails() {
 		assert_noop!(
 			NFTModule::create_class(
 				Origin::signed(ALICE),
-				vec![1; METADATA_MAX_LENGTH + 1],
+				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
 				ClassData { is_pool: true },
 				TEST_PRICE
 			),
@@ -101,7 +101,7 @@ fn mint_fails() {
 			NFTModule::mint(
 				Origin::signed(ALICE),
 				0,
-				vec![1; METADATA_MAX_LENGTH + 1],
+				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
 				TokenData {
 					locked: false,
 					emote: EMOTE.as_bytes().to_vec()
@@ -118,7 +118,7 @@ fn mint_fails() {
 				"a token".as_bytes().to_vec(),
 				TokenData {
 					locked: false,
-					emote: vec![1; METADATA_MAX_LENGTH + 1]
+					emote: vec![1; <Test as crate::Config>::MaxEmoteLength::get() as usize + 1],
 				},
 				TEST_QUANTITY,
 			),

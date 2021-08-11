@@ -31,9 +31,6 @@ pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system:
 pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
 pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
 
-pub const METADATA_MAX_LENGTH: usize = 1024;
-pub const EMOTE_MAX_LENGTH: usize = 1024;
-
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
 pub struct ClassData {
@@ -84,6 +81,12 @@ pub mod pallet {
 		// Maximum amount of minted NFTs in a collection
 		#[pallet::constant]
 		type MintMaxQuantity: Get<u32>;
+		// Maximum length of metadata
+		#[pallet::constant]
+		type MaxMetadataLength: Get<u32>;
+		// Maximum length of emote
+		#[pallet::constant]
+		type MaxEmoteLength: Get<u32>;
 	}
 
 	#[pallet::call]
@@ -97,7 +100,10 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
-			ensure!(metadata.len() <= METADATA_MAX_LENGTH, Error::<T>::MetadataTooLong);
+			ensure!(
+				metadata.len() <= (T::MaxMetadataLength::get() as usize),
+				Error::<T>::MetadataTooLong
+			);
 			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
 			ClassItemPrice::<T>::insert(class_id, price);
@@ -125,8 +131,14 @@ pub mod pallet {
 				quantity > Zero::zero() && T::MintMaxQuantity::get() >= quantity,
 				Error::<T>::InvalidQuantity
 			);
-			ensure!(metadata.len() <= METADATA_MAX_LENGTH, Error::<T>::MetadataTooLong);
-			ensure!(token_data.emote.len() <= EMOTE_MAX_LENGTH, Error::<T>::EmoteTooLong);
+			ensure!(
+				metadata.len() <= (T::MaxMetadataLength::get() as usize),
+				Error::<T>::MetadataTooLong
+			);
+			ensure!(
+				token_data.emote.len() <= (T::MaxEmoteLength::get() as usize),
+				Error::<T>::EmoteTooLong
+			);
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			let data = token_data;

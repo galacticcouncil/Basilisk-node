@@ -4,7 +4,7 @@ use super::*;
 
 use crate as NFT;
 use frame_benchmarking::{account, benchmarks};
-use frame_support::traits::OnFinalize;
+use frame_support::traits::{Get, OnFinalize};
 use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::vec;
@@ -29,7 +29,7 @@ fn dollar(d: u32) -> u128 {
 benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; METADATA_MAX_LENGTH];
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
 		let class_metadata = big_vec.clone();
 		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
@@ -41,9 +41,10 @@ benchmarks! {
 
 	mint {
 		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; METADATA_MAX_LENGTH];
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
+		let big_emote = vec![1; T::MaxEmoteLength::get() as usize];
 		let class_metadata = big_vec.clone();
-		let token_data = TokenData { locked:false, emote:big_vec };
+		let token_data = TokenData { locked:false, emote:big_emote };
 		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::next_token_id(class_id);
@@ -56,10 +57,11 @@ benchmarks! {
 	transfer {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
-		let big_vec = vec![1; METADATA_MAX_LENGTH];
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
+		let big_emote = vec![1; T::MaxEmoteLength::get() as usize];
 		let class_metadata = big_vec.clone();
 		let class_data = ClassData { is_pool:true };
-		let token_data = TokenData { locked:false, emote:big_vec };
+		let token_data = TokenData { locked:false, emote:big_emote };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
@@ -71,7 +73,7 @@ benchmarks! {
 
 	destroy_class {
 		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; METADATA_MAX_LENGTH];
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
 		let class_metadata = big_vec.clone();
 		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
@@ -82,10 +84,11 @@ benchmarks! {
 
 	burn {
 		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; METADATA_MAX_LENGTH];
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
+		let big_emote = vec![1; T::MaxEmoteLength::get() as usize];
 		let class_metadata = big_vec.clone();
 		let class_data = ClassData { is_pool:true };
-		let token_data = TokenData { locked:false, emote:big_vec };
+		let token_data = TokenData { locked:false, emote:big_emote };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
@@ -97,10 +100,11 @@ benchmarks! {
 	buy_from_pool {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
-		let big_vec = vec![1; METADATA_MAX_LENGTH];
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
+		let big_emote = vec![1; T::MaxEmoteLength::get() as usize];
 		let class_metadata = big_vec.clone();
 		let class_data = ClassData { is_pool:true };
-		let token_data = TokenData { locked:false, emote:big_vec };
+		let token_data = TokenData { locked:false, emote:big_emote };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);
@@ -113,10 +117,11 @@ benchmarks! {
 	sell_to_pool {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
-		let big_vec = vec![1; METADATA_MAX_LENGTH];
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
+		let big_emote = vec![1; T::MaxEmoteLength::get() as usize];
 		let class_metadata = big_vec.clone();
 		let class_data = ClassData { is_pool:true };
-		let token_data = TokenData { locked:false, emote:big_vec };
+		let token_data = TokenData { locked:false, emote:big_emote };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
 		let token = (class_id, token_id);

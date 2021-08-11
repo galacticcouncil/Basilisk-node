@@ -37,6 +37,8 @@ parameter_types! {
 	pub ClassBondAmount: Balance = 100;
 	pub ClassBondDuration: u32 = 10;
 	pub MintMaxQuantity: u32 = 100_000;
+	pub MaxMetadataLength: u32 = 256;
+	pub MaxEmoteLength: u32 = 256;
 }
 
 impl pallet_nft::Config for Test {
@@ -46,6 +48,8 @@ impl pallet_nft::Config for Test {
 	type ClassBondAmount = ClassBondAmount;
 	type ClassBondDuration = ClassBondDuration;
 	type MintMaxQuantity = MintMaxQuantity;
+	type MaxMetadataLength = MaxMetadataLength;
+	type MaxEmoteLength = MaxEmoteLength;
 }
 
 impl orml_nft::Config for Test {
