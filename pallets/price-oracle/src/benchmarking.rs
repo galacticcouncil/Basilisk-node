@@ -31,8 +31,8 @@ pub const ASSET_PAIR_A: AssetPair = AssetPair {
 
 pub const PRICE_ENTRY_1: PriceEntry = PriceEntry {
 	price: Price::from_inner(2000000000000000000),
-	amount: 1_000,
-	liq_amount: 2_000,
+	trade_amount: 1_000,
+	liquidity_amount: 2_000,
 };
 
 pub const NUM_OF_ITERS: u32 = 100;

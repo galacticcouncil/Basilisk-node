@@ -65,7 +65,10 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
+		/// Calculation error occurred while calculating average price
 		PriceComputationError,
+
+		/// An unexpected overflow occurred
 		UpdateDataOverflow,
 	}
 
@@ -191,8 +194,8 @@ impl<T: Config> AMMHandlers<T::AccountId, AssetId, AssetPair, Balance> for Price
 
 		let price_entry = PriceEntry {
 			price,
-			amount,
-			liq_amount,
+			trade_amount: amount,
+			liquidity_amount: liq_amount,
 		};
 
 		Pallet::<T>::on_trade(amm_transfer.assets, price_entry);

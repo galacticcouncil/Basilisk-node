@@ -16,11 +16,11 @@
 // limitations under the License.
 
 use codec::{Decode, Encode};
-use frame_support::sp_runtime::traits::{CheckedDiv, Zero};
+use frame_support::sp_runtime::traits::{CheckedDiv, CheckedMul, Zero};
 use frame_support::sp_runtime::RuntimeDebug;
 pub use primitives::{Balance, Price};
 use sp_std::iter::Sum;
-use sp_std::ops::{Add, Index, IndexMut, Mul};
+use sp_std::ops::{Add, Index, IndexMut};
 use sp_std::prelude::*;
 
 #[cfg(feature = "std")]
@@ -30,8 +30,8 @@ use serde::{Deserialize, Serialize};
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
 pub struct PriceEntry {
 	pub price: Price,
-	pub amount: Balance,
-	pub liq_amount: Balance,
+	pub trade_amount: Balance,
+	pub liquidity_amount: Balance,
 }
 
 impl Add for PriceEntry {
@@ -39,8 +39,8 @@ impl Add for PriceEntry {
 	fn add(self, other: Self) -> Self {
 		Self {
 			price: self.price.add(other.price),
-			amount: self.amount.add(other.amount),
-			liq_amount: self.liq_amount.add(other.liq_amount),
+			trade_amount: self.trade_amount.add(other.trade_amount),
+			liquidity_amount: self.liquidity_amount.add(other.liquidity_amount),
 		}
 	}
 }
@@ -49,8 +49,8 @@ impl Zero for PriceEntry {
 	fn zero() -> Self {
 		Self {
 			price: Price::zero(),
-			amount: Balance::zero(),
-			liq_amount: Balance::zero(),
+			trade_amount: Balance::zero(),
+			liquidity_amount: Balance::zero(),
 		}
 	}
 
@@ -64,8 +64,8 @@ impl Add for &PriceEntry {
 	fn add(self, other: Self) -> Self::Output {
 		PriceEntry {
 			price: self.price.add(other.price),
-			amount: self.amount.add(other.amount),
-			liq_amount: self.liq_amount.add(other.liq_amount),
+			trade_amount: self.trade_amount.add(other.trade_amount),
+			liquidity_amount: self.liquidity_amount.add(other.liquidity_amount),
 		}
 	}
 }
@@ -78,8 +78,8 @@ impl<'a> Sum<&'a Self> for PriceEntry {
 		iter.fold(
 			PriceEntry {
 				price: Price::zero(),
-				amount: Balance::zero(),
-				liq_amount: Balance::zero(),
+				trade_amount: Balance::zero(),
+				liquidity_amount: Balance::zero(),
 			},
 			|a, b| &a + b,
 		)
@@ -139,18 +139,21 @@ impl PriceInfoCalculation<PriceInfo> for PriceInfo {
 	fn calculate_price_info(entries: &[PriceEntry]) -> Option<PriceInfo> {
 		let intermediate_result: Vec<PriceEntry> = entries
 			.iter()
-			.map(|x| PriceEntry {
-				price: x.price.mul(Price::from(x.liq_amount)),
-				amount: x.amount,
-				liq_amount: x.liq_amount,
+			.map(|x| -> Option<PriceEntry> {
+				let price = x.price.checked_mul(&Price::from(x.liquidity_amount))?;
+				Some(PriceEntry {
+					price,
+					 trade_amount: x.trade_amount,
+					 liquidity_amount: x.liquidity_amount,
+				})
 			})
-			.collect();
+			.collect::<Option<Vec<PriceEntry>>>()?;
 
 		let sum = intermediate_result.iter().sum::<PriceEntry>();
-		let weighted_avg_price = sum.price.checked_div(&Price::from(sum.liq_amount as u128))?;
+		let weighted_avg_price = sum.price.checked_div(&Price::from(sum.liquidity_amount as u128))?;
 		Some(PriceInfo {
 			avg_price: weighted_avg_price,
-			volume: sum.amount,
+			volume: sum.trade_amount,
 		})
 	}
 }

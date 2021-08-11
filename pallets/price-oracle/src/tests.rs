@@ -254,8 +254,8 @@ fn update_data_with_incorrect_input_should_not_work() {
 
 		PriceOracle::on_trade(ASSET_PAIR_A, PriceEntry {
 			price: Price::from(1),
-			amount: Zero::zero(),
-			liq_amount: Zero::zero(),
+			trade_amount: Zero::zero(),
+			liquidity_amount: Zero::zero(),
 		});
 
 		assert_noop!(PriceOracle::update_data(),
@@ -395,8 +395,8 @@ fn continuous_trades_should_work() {
 				ASSET_PAIR_A,
 				PriceEntry {
 					price: Price::from((i + 1) as u128),
-					amount: (i * 1_000).into(),
-					liq_amount: 1u128,
+					trade_amount: (i * 1_000).into(),
+					liquidity_amount: 1u128,
 				},
 			);
 
