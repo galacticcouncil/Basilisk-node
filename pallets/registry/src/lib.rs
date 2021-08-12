@@ -204,7 +204,7 @@ pub mod pallet {
 		/// Metadata set for an asset. \[asset_id, symbol, decimals\]
 		MetadataSet(T::AssetId, BoundedVec<u8, T::StringLimit>, u8),
 
-		/// Native location set for an asset. \[asset_id, symbol, decimals\]
+		/// Native location set for an asset. \[asset_id, location\]
 		LocationSet(T::AssetId, T::AssetNativeLocation),
 	}
 
