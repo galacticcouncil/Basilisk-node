@@ -341,7 +341,7 @@ impl<T: Config> Pallet<T> {
 		name.try_into().map_err(|_| Error::<T>::BadMetadata)
 	}
 
-	///Register new asset.
+	/// Register new asset.
 	///
 	/// Does not perform any  check whether an asset for given name already exists. This has to be prior to calling this function.
 	fn register_asset(
