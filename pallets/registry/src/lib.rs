@@ -280,7 +280,7 @@ pub mod pallet {
 		/// - `symbol`: The exchange symbol for this asset. Limited in length by `StringLimit`.
 		/// - `decimals`: The number of decimals this asset uses to represent one unit.
 		///
-		/// Emits `MetedataSet` event when successful.
+		/// Emits `MetadataSet` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::set_metadata())]
 		#[transactional]
 		pub fn set_metadata(
