@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -21,12 +21,25 @@ use super::*;
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
+use polkadot_xcm::v0::Junction::GeneralKey;
+use polkadot_xcm::v0::Junction::Parachain;
+use polkadot_xcm::v0::Junction::Parent;
+use polkadot_xcm::v0::MultiLocation;
+use polkadot_xcm::v0::MultiLocation::X3;
+use sp_std::convert::From;
 
 const SEED: u32 = 1;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 	caller
+}
+
+fn get_location<T: Config>(asset_id: T::AssetId) -> T::AssetNativeLocation
+where
+	T::AssetNativeLocation: From<MultiLocation>,
+{
+	X3(Parent, Parachain(200), GeneralKey(asset_id.encode())).into()
 }
 
 benchmarks! {
@@ -44,6 +57,66 @@ benchmarks! {
 		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
 		assert_eq!(crate::Pallet::<T>::asset_ids(bname), Some(T::AssetId::from(1u8)));
 	}
+
+	update{
+		let caller = funded_account::<T>("caller", 0);
+
+		let name = b"NAME".to_vec();
+		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
+		let _ = crate::Pallet::<T>::register(RawOrigin::Signed(caller.clone()).into(), name.clone(), AssetType::Token);
+
+		let new_name =b"NEW_NAME".to_vec();
+
+		let asset_id = T::AssetId::from(1u8);
+
+	}: _(RawOrigin::Signed(caller.clone()), asset_id, new_name.clone(), AssetType::PoolShare(T::AssetId::from(10u8),T::AssetId::from(20u8)))
+	verify {
+		let bname = crate::Pallet::<T>::to_bounded_name(new_name).unwrap();
+		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(T::AssetId::from(1u8)));
+		assert_eq!(crate::Pallet::<T>::assets(asset_id), Some(AssetDetails{
+			asset_type: AssetType::PoolShare(T::AssetId::from(10u8), T::AssetId::from(20u8)),
+			locked: false,
+			name: bname,
+		}));
+	}
+
+	set_metadata{
+		let caller = funded_account::<T>("caller", 0);
+
+		let name = b"NAME".to_vec();
+		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
+		let _ = crate::Pallet::<T>::register(RawOrigin::Signed(caller.clone()).into(), name.clone(), AssetType::Token);
+
+		let asset_id = T::AssetId::from(1u8);
+
+	}: _(RawOrigin::Signed(caller.clone()), asset_id, b"SYMBOL".to_vec(), 10u8)
+	verify {
+		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
+		let bsymbol= crate::Pallet::<T>::to_bounded_name(b"SYMBOL".to_vec()).unwrap();
+		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(T::AssetId::from(1u8)));
+		assert_eq!(crate::Pallet::<T>::asset_metadata(asset_id), Some(AssetMetadata{
+			symbol: bsymbol,
+			decimals: 10u8
+		}));
+	}
+
+	set_location{
+		let caller = funded_account::<T>("caller", 0);
+
+		let name = b"NAME".to_vec();
+		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
+		let _ = crate::Pallet::<T>::register(RawOrigin::Signed(caller.clone()).into(), name.clone(), AssetType::Token);
+
+		let asset_id = T::AssetId::from(1u8);
+
+	}: _(RawOrigin::Signed(caller.clone()), asset_id, Default::default())
+	verify {
+		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
+		let bsymbol= crate::Pallet::<T>::to_bounded_name(b"SYMBOL".to_vec()).unwrap();
+		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(T::AssetId::from(1u8)));
+		assert_eq!(crate::Pallet::<T>::locations(asset_id), Some(Default::default()));
+		assert_eq!(crate::Pallet::<T>::location_assets(T::AssetNativeLocation::default()), Some(asset_id));
+	}
 }
 
 #[cfg(test)]
@@ -57,6 +130,9 @@ mod tests {
 	fn test_benchmarks() {
 		ExtBuilder::default().build().execute_with(|| {
 			assert_ok!(test_benchmark_register::<Test>());
+			assert_ok!(test_benchmark_update::<Test>());
+			assert_ok!(test_benchmark_set_metadata::<Test>());
+			assert_ok!(test_benchmark_set_location::<Test>());
 		});
 	}
 }

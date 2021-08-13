@@ -77,11 +77,23 @@ impl system::Config for Test {
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 }
+
+use codec::{Decode, Encode};
+
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq)]
+pub struct AssetLocation(pub MultiLocation);
+
+impl Default for AssetLocation {
+	fn default() -> Self {
+		AssetLocation(MultiLocation::Null)
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type RegistryOrigin = frame_system::EnsureSigned<u64>;
 	type AssetId = u32;
-	type AssetNativeLocation = MultiLocation;
+	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStringLimit;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();

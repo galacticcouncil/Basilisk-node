@@ -166,7 +166,13 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 				Parachain(ParachainInfo::get().into()),
 				GeneralKey(id.encode()),
 			)),
-			_ => Registry::asset_to_location(id),
+			_ => {
+				if let Some(loc) = Registry::asset_to_location(id) {
+					Some(loc.0)
+				} else {
+					None
+				}
+			}
 		}
 	}
 }
@@ -188,7 +194,7 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 				}
 			}
 			// delegate to registry
-			_ => Registry::location_to_asset(location),
+			_ => Registry::location_to_asset(AssetLocation(location)),
 		}
 	}
 }
