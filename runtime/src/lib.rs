@@ -412,11 +412,22 @@ impl pallet_asset_registry::Config for Runtime {
 	type AssetId = AssetId;
 }
 
+use codec::{Decode, Encode};
+
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq)]
+pub struct AssetLocation(pub polkadot_xcm::v0::MultiLocation);
+
+impl Default for AssetLocation {
+	fn default() -> Self {
+		AssetLocation(polkadot_xcm::v0::MultiLocation::Null)
+	}
+}
+
 impl pallet_registry::Config for Runtime {
 	type Event = Event;
 	type RegistryOrigin = EnsureRoot<AccountId>;
 	type AssetId = AssetId;
-	type AssetNativeLocation = polkadot_xcm::v0::MultiLocation;
+	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();

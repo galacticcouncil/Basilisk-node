@@ -32,6 +32,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+mod benchmarking;
 mod types;
 mod weights;
 
@@ -57,7 +58,7 @@ pub mod pallet {
 		type AssetId: Parameter + Member + Default + Copy + BaseArithmetic + MaybeSerializeDeserialize + MaxEncodedLen;
 
 		/// Asset location type
-		type AssetNativeLocation: Parameter + Member;
+		type AssetNativeLocation: Parameter + Member + Default;
 
 		/// The maximum length of a name or symbol stored on-chain.
 		type StringLimit: Get<u32>;

@@ -37,12 +37,22 @@ sp-runtime = {default-features = false, version = '3.0.0'}
 sp-std = {default-features = false, version = '3.0.0'}
 max-encoded-len = {default-features = false, version = '3.0.0'}
 
-[dev-dependencies]
+# Optionals
+frame-system-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
+frame-benchmarking = {default-features = false, optional = true, version = '3.1.0'}
 polkadot-xcm = {package = "xcm", version = '0.9.8', default-features = false}
+
+[dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
+sp-api = {default-features = false, version = '3.0.0'}
 
 [features]
 default = ['std']
+runtime-benchmarks = [
+  "frame-benchmarking",
+  "frame-system/runtime-benchmarks",
+  "frame-support/runtime-benchmarks",
+]
 std = [
   'serde/std',
   'codec/std',
@@ -54,4 +64,7 @@ std = [
   'primitives/std',
   'max-encoded-len/std',
   'polkadot-xcm/std',
+  'sp-api/std',
+
+  'frame-benchmarking/std'
 ]
