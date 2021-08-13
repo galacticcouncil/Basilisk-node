@@ -467,7 +467,7 @@ pub mod pallet {
 		/// `max_limit` - minimum amount of `asset_out` / amount of asset_out to be obtained from the pool in exchange for `asset_in`.
 		///
 		/// Emits `SellExecuted` when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::sell())]
+		#[pallet::weight(<T as Config>::WeightInfo::sell() + <T as Config>::AMMHandler::on_trade_weight())]
 		pub fn sell(
 			origin: OriginFor<T>,
 			asset_in: AssetId,

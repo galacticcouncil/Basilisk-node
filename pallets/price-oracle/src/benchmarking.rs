@@ -41,20 +41,8 @@ pub const NUM_OF_NESTED_ITERS: u32 = 100;
 benchmarks! {
 	on_initialize_no_entry {
 		let block_num: u32 = 5;
-		PriceOracle::<T>::on_create_pool(ASSET_PAIR_A);
-
-		assert_eq!(PriceBuffer::<T>::contains_key(ASSET_PAIR_A.name()), false);
-
-		let price_data = PriceOracle::<T>::price_data_ten();
-		let bucket_queue = price_data.iter().find(|&x| x.0 == ASSET_PAIR_A.name()).unwrap().1;
-		assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::zero(), volume: 0});
-
 	}: { PriceOracle::<T>::on_initialize(block_num.into()); }
 	verify {
-		assert_eq!(PriceBuffer::<T>::contains_key(ASSET_PAIR_A.name()), false);
-		let price_data = PriceOracle::<T>::price_data_ten();
-		let bucket_queue = price_data.iter().find(|&x| x.0 == ASSET_PAIR_A.name()).unwrap().1;
-		assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::zero(), volume: 0});
 	}
 
 	on_initialize_one_entry {

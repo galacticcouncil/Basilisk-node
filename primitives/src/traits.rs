@@ -18,7 +18,8 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::dispatch;
-use frame_support::sp_runtime::{FixedPointNumber, traits::CheckedDiv};
+use frame_support::sp_runtime::{FixedPointNumber, traits::{CheckedDiv, Zero}};
+use frame_support::weights::Weight;
 use sp_std::vec::Vec;
 use crate::{Balance, Price};
 use crate::asset::AssetPair;
@@ -136,11 +137,15 @@ pub trait AMMHandlers<AccountId, AssetId, AssetPair, Balance>
 	// fn on_add_liquidity(asset_pair: AssetPair, amount: Balance);
 	// fn on_remove_liquidity(asset_pair: AssetPair, amount: Balance);
 	fn on_trade(amm_transfer: &AMMTransfer<AccountId, AssetId, AssetPair, Balance>, liq_amount: Balance);
+	fn on_trade_weight() -> Weight;
 }
 
 impl<AccountId, AssetId, AssetPair, Balance> AMMHandlers<AccountId, AssetId, AssetPair, Balance> for () {
 	fn on_create_pool(_asset_pair: AssetPair) {}
 	fn on_trade(_amm_transfer: &AMMTransfer<AccountId, AssetId, AssetPair, Balance>, _liq_amount: Balance) {}
+	fn on_trade_weight() -> Weight {
+		Weight::zero()
+	}
 }
 
 pub trait AssetPairAccountIdFor<AssetId: Sized, AccountId: Sized> {
