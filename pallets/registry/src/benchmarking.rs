@@ -21,12 +21,6 @@ use super::*;
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
-use polkadot_xcm::v0::Junction::GeneralKey;
-use polkadot_xcm::v0::Junction::Parachain;
-use polkadot_xcm::v0::Junction::Parent;
-use polkadot_xcm::v0::MultiLocation;
-use polkadot_xcm::v0::MultiLocation::X3;
-use sp_std::convert::From;
 
 const SEED: u32 = 1;
 
@@ -35,18 +29,11 @@ fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	caller
 }
 
-fn get_location<T: Config>(asset_id: T::AssetId) -> T::AssetNativeLocation
-where
-	T::AssetNativeLocation: From<MultiLocation>,
-{
-	X3(Parent, Parachain(200), GeneralKey(asset_id.encode())).into()
-}
-
 benchmarks! {
 	register{
 		let caller = funded_account::<T>("caller", 0);
 
-		let name = b"NAME".to_vec();
+		let name = vec![1; T::StringLimit::get() as usize];
 
 		// This makes sure that next asset id is equal to native asset id
 		// In such case, one additional operation is performed to skip the id (aka worst case)
@@ -65,7 +52,7 @@ benchmarks! {
 		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
 		let _ = crate::Pallet::<T>::register(RawOrigin::Signed(caller.clone()).into(), name.clone(), AssetType::Token);
 
-		let new_name =b"NEW_NAME".to_vec();
+		let new_name= vec![1; T::StringLimit::get() as usize];
 
 		let asset_id = T::AssetId::from(1u8);
 
@@ -89,10 +76,12 @@ benchmarks! {
 
 		let asset_id = T::AssetId::from(1u8);
 
-	}: _(RawOrigin::Signed(caller.clone()), asset_id, b"SYMBOL".to_vec(), 10u8)
+		let max_symbol = vec![1; T::StringLimit::get() as usize];
+
+	}: _(RawOrigin::Signed(caller.clone()), asset_id, max_symbol.clone(), 10u8)
 	verify {
 		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
-		let bsymbol= crate::Pallet::<T>::to_bounded_name(b"SYMBOL".to_vec()).unwrap();
+		let bsymbol= crate::Pallet::<T>::to_bounded_name(max_symbol).unwrap();
 		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(T::AssetId::from(1u8)));
 		assert_eq!(crate::Pallet::<T>::asset_metadata(asset_id), Some(AssetMetadata{
 			symbol: bsymbol,
