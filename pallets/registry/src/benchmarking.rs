@@ -24,10 +24,7 @@ use frame_system::RawOrigin;
 
 const SEED: u32 = 1;
 
-fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId
-where
-	<T as pallet::Config>::CurrencyId: From<u32>,
-{
+fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 	caller
 }
@@ -38,9 +35,14 @@ benchmarks! {
 
 		let name = b"NAME".to_vec();
 
-	}: _(RawOrigin::Signed(caller.clone()), name, AssetType::Token)
+		// This makes sure that next asset id is equal to native asset id
+		// In such case, one additional operation is performed to skip the id (aka worst case)
+		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
+
+	}: _(RawOrigin::Signed(caller.clone()), name.clone(), AssetType::Token)
 	verify {
-		assert!(crate::Pallet::<Test>::asset_ids(&name).is_some());
+		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
+		assert_eq!(crate::Pallet::<T>::asset_ids(bname), Some(T::AssetId::from(1u8)));
 	}
 }
 

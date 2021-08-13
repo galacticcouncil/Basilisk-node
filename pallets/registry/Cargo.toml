@@ -39,11 +39,12 @@ max-encoded-len = {default-features = false, version = '3.0.0'}
 
 # Optionals
 frame-system-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
-frame-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
-sp-io = {default-features = false, version = '3.0.0'}
+frame-benchmarking = {default-features = false, optional = true, version = '3.1.0'}
 
 [dev-dependencies]
 polkadot-xcm = {package = "xcm", version = '0.9.8', default-features = false}
+sp-io = {default-features = false, version = '3.0.0'}
+sp-api = {default-features = false, version = '3.0.0'}
 
 [features]
 default = ['std']
@@ -63,4 +64,7 @@ std = [
   'primitives/std',
   'max-encoded-len/std',
   'polkadot-xcm/std',
+  'sp-api/std',
+
+  'frame-benchmarking/std'
 ]

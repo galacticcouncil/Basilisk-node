@@ -5853,13 +5853,16 @@ dependencies = [
 name = "pallet-registry"
 version = "0.1.0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "frame-system-benchmarking",
  "max-encoded-len",
  "parity-scale-codec 2.2.0",
  "primitive-types 0.8.0",
  "primitives",
  "serde",
+ "sp-api",
  "sp-arithmetic",
  "sp-core",
  "sp-io",

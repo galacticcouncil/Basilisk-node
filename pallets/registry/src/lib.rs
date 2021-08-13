@@ -32,6 +32,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+mod benchmarking;
 mod types;
 mod weights;
 
