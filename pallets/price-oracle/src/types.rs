@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use codec::{Decode, Encode};
-use frame_support::sp_runtime::traits::{CheckedDiv, CheckedMul, Zero};
+use frame_support::sp_runtime::traits::{CheckedAdd, CheckedDiv, CheckedMul, Zero};
 use frame_support::sp_runtime::RuntimeDebug;
 pub use primitives::{Balance, Price};
 use sp_std::iter::Sum;
@@ -86,6 +86,25 @@ impl<'a> Sum<&'a Self> for PriceEntry {
 	}
 }
 
+impl PriceEntry {
+	pub fn calculate_new_price_entry(&self, previous_price_entry: &Self) -> Option<Self> {
+		let total_liquidity = previous_price_entry
+			.liquidity_amount
+			.checked_add(self.liquidity_amount)?;
+		let product_of_old_values = previous_price_entry
+			.price
+			.checked_mul(&Price::from_inner(previous_price_entry.liquidity_amount))?;
+		let product_of_new_values = self.price.checked_mul(&Price::from_inner(self.liquidity_amount))?;
+		Some(Self {
+			price: product_of_old_values
+				.checked_add(&product_of_new_values)?
+				.checked_div(&Price::from_inner(total_liquidity))?,
+			trade_amount: previous_price_entry.trade_amount.checked_add(self.trade_amount)?,
+			liquidity_amount: total_liquidity,
+		})
+	}
+}
+
 pub const BUCKET_SIZE: u32 = 10;
 
 pub type Bucket = [PriceInfo; BUCKET_SIZE as usize];
@@ -143,8 +162,8 @@ impl PriceInfoCalculation<PriceInfo> for PriceInfo {
 				let price = x.price.checked_mul(&Price::from(x.liquidity_amount))?;
 				Some(PriceEntry {
 					price,
-					 trade_amount: x.trade_amount,
-					 liquidity_amount: x.liquidity_amount,
+					trade_amount: x.trade_amount,
+					liquidity_amount: x.liquidity_amount,
 				})
 			})
 			.collect::<Option<Vec<PriceEntry>>>()?;
@@ -198,8 +217,14 @@ impl BucketQueueT for BucketQueue {
 	fn calculate_average(&self) -> PriceInfo {
 		let sum = self.bucket.iter().sum::<PriceInfo>();
 		PriceInfo {
-			avg_price: sum.avg_price.checked_div(&Price::from(Self::BUCKET_SIZE as u128)).expect("avg_price is valid value; BUCKET_SIZE is non-zero integer; qed"),
-			volume: sum.volume.checked_div(Self::BUCKET_SIZE as u128).expect("avg_price is valid value; BUCKET_SIZE is non-zero integer; qed"),
+			avg_price: sum
+				.avg_price
+				.checked_div(&Price::from(Self::BUCKET_SIZE as u128))
+				.expect("avg_price is valid value; BUCKET_SIZE is non-zero integer; qed"),
+			volume: sum
+				.volume
+				.checked_div(Self::BUCKET_SIZE as u128)
+				.expect("avg_price is valid value; BUCKET_SIZE is non-zero integer; qed"),
 		}
 	}
 }

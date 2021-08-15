@@ -18,7 +18,6 @@
 use crate as price_oracle;
 use crate::Config;
 use frame_support::parameter_types;
-use frame_support::traits::OnInitialize;
 use frame_system;
 use orml_traits::parameter_type_with_key;
 use price_oracle::{PriceEntry, PriceOracleHandler};
@@ -31,7 +30,6 @@ use sp_runtime::{
 };
 
 pub type Amount = i128;
-pub type AccountId = u64;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -164,9 +162,4 @@ impl ExtBuilder {
 		let storage = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 		sp_io::TestExternalities::from(storage)
 	}
-}
-
-fn next_block() {
-	System::set_block_number(System::block_number() + 1);
-	PriceOracle::on_initialize(System::block_number());
 }
