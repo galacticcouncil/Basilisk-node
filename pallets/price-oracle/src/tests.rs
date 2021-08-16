@@ -30,11 +30,14 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 #[test]
 fn add_new_asset_pair_should_work() {
 	new_test_ext().execute_with(|| {
+		assert_eq!(PriceOracle::num_of_assets(), 0);
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			false
 		);
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
+
+		assert_eq!(PriceOracle::num_of_assets(), 1);
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			true

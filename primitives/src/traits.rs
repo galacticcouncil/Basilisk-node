@@ -136,7 +136,7 @@ pub trait Resolver<AccountId, Intention, E> {
 
 /// AMM handlers used by AMM pools to indicate various events.
 pub trait AMMHandlers<AccountId, AssetId, AssetPair, Balance> {
-	/// Register an asset to by handled by price-oracle pallet.
+	/// Register an asset to be handled by price-oracle pallet.
 	/// If an asset is not registered, calling `on_trade` results in populating the price buffer in the price oracle pallet,
 	/// but the entries are ignored and the average price for the asset is not calculated.
 	fn on_create_pool(asset_pair: AssetPair);
