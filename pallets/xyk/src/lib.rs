@@ -490,7 +490,7 @@ pub mod pallet {
 		/// `max_limit` - maximum amount of `asset_in` to be sold in exchange for `asset_out`.
 		///
 		/// Emits `BuyExecuted` when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::buy())]
+		#[pallet::weight(<T as Config>::WeightInfo::buy() + <T as Config>::AMMHandler::on_trade_weight())]
 		pub fn buy(
 			origin: OriginFor<T>,
 			asset_out: AssetId,

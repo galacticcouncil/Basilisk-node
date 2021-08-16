@@ -17,12 +17,15 @@
 
 #![allow(clippy::upper_case_acronyms)]
 
+use crate::asset::AssetPair;
+use crate::{Balance, Price};
 use frame_support::dispatch;
-use frame_support::sp_runtime::{FixedPointNumber, traits::{CheckedDiv, Zero}};
+use frame_support::sp_runtime::{
+	traits::{CheckedDiv, Zero},
+	FixedPointNumber,
+};
 use frame_support::weights::Weight;
 use sp_std::vec::Vec;
-use crate::{Balance, Price};
-use crate::asset::AssetPair;
 
 /// Hold information to perform amm transfer
 /// Contains also exact amount which will be sold/bought
@@ -38,9 +41,9 @@ pub struct AMMTransfer<AccountId, AssetId, AssetPair, Balance> {
 
 impl<AccountId, AssetId> AMMTransfer<AccountId, AssetId, AssetPair, Balance>
 where
-	Balance: Copy
+	Balance: Copy,
 {
-    /// Calculate price from ordered assets
+	/// Calculate price from ordered assets
 	pub fn normalize_price(&self) -> Option<(Price, Balance)> {
 		let ordered_asset_pair = self.assets.ordered_pair();
 		let (balance_a, balance_b) = if ordered_asset_pair.0 == self.assets.asset_in {
@@ -49,10 +52,10 @@ where
 			(self.amount_out, self.amount)
 		};
 
-        let price_a = Price::checked_from_integer(balance_a)?;
+		let price_a = Price::checked_from_integer(balance_a)?;
 		let price_b = Price::checked_from_integer(balance_b)?;
 		let price = price_a.checked_div(&price_b);
-        price.map(|p| (p, balance_a))
+		price.map(|p| (p, balance_a))
 	}
 }
 
@@ -123,7 +126,7 @@ pub trait AMM<AccountId, AssetId, AssetPair, Amount> {
 }
 
 pub trait Resolver<AccountId, Intention, E> {
-	/// Resolve an intention directl via AMM pool.
+	/// Resolve an intention directly via AMM pool.
 	fn resolve_single_intention(intention: &Intention);
 
 	/// Resolve intentions by either directly trading with each other or via AMM pool.
@@ -131,12 +134,15 @@ pub trait Resolver<AccountId, Intention, E> {
 	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[Intention]);
 }
 
-pub trait AMMHandlers<AccountId, AssetId, AssetPair, Balance>
-{
+/// AMM handlers used by AMM pools to indicate various events.
+pub trait AMMHandlers<AccountId, AssetId, AssetPair, Balance> {
+	/// Register an asset to by handled by price-oracle pallet.
+	/// If an asset is not registered, calling `on_trade` results in populating the price buffer in the price oracle pallet,
+	/// but the entries are ignored and the average price for the asset is not calculated.
 	fn on_create_pool(asset_pair: AssetPair);
-	// fn on_add_liquidity(asset_pair: AssetPair, amount: Balance);
-	// fn on_remove_liquidity(asset_pair: AssetPair, amount: Balance);
+	/// Include a trade in the average price calculation of the price-oracle pallet.
 	fn on_trade(amm_transfer: &AMMTransfer<AccountId, AssetId, AssetPair, Balance>, liq_amount: Balance);
+	/// Known `on_trade` overhead. Needs to be specified here if we don't want to make AMM pools tightly coupled with the price oracle pallet.
 	fn on_trade_weight() -> Weight;
 }
 

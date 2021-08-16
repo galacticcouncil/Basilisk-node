@@ -82,14 +82,19 @@ pub mod pallet {
 	#[pallet::getter(fn price_accumulator)]
 	pub type PriceDataAccumulator<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, PriceEntry, ValueQuery>;
 
+	/// The last ten average values corresponding to the last ten blocks.
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_ten)]
 	pub type PriceDataTen<T: Config> = StorageValue<_, Vec<(AssetPairId, BucketQueue)>, ValueQuery>;
 
+	/// The last ten average values corresponding to the last hundred blocks.
+	/// Each average value corresponds to an interval of length ten blocks.
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_hundred)]
 	pub type PriceDataHundred<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, BucketQueue, ValueQuery>;
 
+	/// The last ten average values corresponding to the last thousand blocks.
+	/// Each average value corresponds to an interval of length hundred blocks.
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_thousand)]
 	pub type PriceDataThousand<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, BucketQueue, ValueQuery>;
@@ -97,8 +102,11 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
 		fn on_initialize(_n: T::BlockNumber) -> Weight {
+			// update average values in the storage
 			Self::update_data();
+			// clear the price buffer
 			PriceDataAccumulator::<T>::remove_all(None);
+
 			T::WeightInfo::on_initialize_no_entry()
 		}
 	}
@@ -151,6 +159,7 @@ impl<T: Config> Pallet<T> {
 			// return Ok((num_of_processed_buckets, num_of_processed_trades));
 		} // TODO: delete me. It is here just to make testing easier.
 
+		// check if it's time to update "hundred" values
 		if (now % T::BlockNumber::from(BUCKET_SIZE)) == T::BlockNumber::from(BUCKET_SIZE - 1) {
 			for element_from_ten in PriceDataTen::<T>::get().iter() {
 				PriceDataHundred::<T>::mutate(element_from_ten.0.clone(), |data| {
@@ -159,6 +168,7 @@ impl<T: Config> Pallet<T> {
 			}
 		}
 
+		// check if it's time to update "thousand" values
 		if (now % T::BlockNumber::from(BUCKET_SIZE.pow(2))) == T::BlockNumber::from(BUCKET_SIZE.pow(2) - 1) {
 			for element_from_hundred in PriceDataHundred::<T>::iter() {
 				PriceDataThousand::<T>::mutate(element_from_hundred.0.clone(), |data| {

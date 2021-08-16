@@ -26,6 +26,7 @@ use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
+/// A type representing data produced by a trade.
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
 pub struct PriceEntry {
@@ -87,6 +88,7 @@ impl<'a> Sum<&'a Self> for PriceEntry {
 }
 
 impl PriceEntry {
+	/// Updates the previous average value with a new entry.
 	pub fn calculate_new_price_entry(&self, previous_price_entry: &Self) -> Option<Self> {
 		let total_liquidity = previous_price_entry
 			.liquidity_amount
@@ -108,10 +110,6 @@ impl PriceEntry {
 pub const BUCKET_SIZE: u32 = 10;
 
 pub type Bucket = [PriceInfo; BUCKET_SIZE as usize];
-
-pub trait PriceInfoCalculation<PriceInfo> {
-	fn calculate_price_info(entries: &[PriceEntry]) -> Option<PriceInfo>;
-}
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
@@ -154,29 +152,7 @@ impl<'a> Sum<&'a Self> for PriceInfo {
 	}
 }
 
-impl PriceInfoCalculation<PriceInfo> for PriceInfo {
-	fn calculate_price_info(entries: &[PriceEntry]) -> Option<PriceInfo> {
-		let intermediate_result: Vec<PriceEntry> = entries
-			.iter()
-			.map(|x| -> Option<PriceEntry> {
-				let price = x.price.checked_mul(&Price::from(x.liquidity_amount))?;
-				Some(PriceEntry {
-					price,
-					trade_amount: x.trade_amount,
-					liquidity_amount: x.liquidity_amount,
-				})
-			})
-			.collect::<Option<Vec<PriceEntry>>>()?;
-
-		let sum = intermediate_result.iter().sum::<PriceEntry>();
-		let weighted_avg_price = sum.price.checked_div(&Price::from(sum.liquidity_amount as u128))?;
-		Some(PriceInfo {
-			avg_price: weighted_avg_price,
-			volume: sum.trade_amount,
-		})
-	}
-}
-
+/// A circular buffer storing average prices and volumes
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
 pub struct BucketQueue {
@@ -205,15 +181,18 @@ pub trait BucketQueueT {
 }
 
 impl BucketQueueT for BucketQueue {
+	/// Add new entry to the front and remove the oldest entry.
 	fn update_last(&mut self, price_info: PriceInfo) {
 		self.last = (self.last + 1) % Self::BUCKET_SIZE;
 		self.bucket[self.last as usize] = price_info;
 	}
 
+	/// Get the last entry added
 	fn get_last(&self) -> PriceInfo {
 		self.bucket[self.last as usize]
 	}
 
+	/// Calculate average price and volume from all the entries.
 	fn calculate_average(&self) -> PriceInfo {
 		let sum = self.bucket.iter().sum::<PriceInfo>();
 		PriceInfo {
