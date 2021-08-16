@@ -167,7 +167,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			// Register first native asset
+			// Register native asset first
 			// It is to make sure that native is registered as any other asset
 			let native_asset_name = Pallet::<T>::to_bounded_name(self.native_asset_name.to_vec())
 				.map_err(|_| panic!("Invalid native asset name!"))
@@ -255,21 +255,21 @@ pub mod pallet {
 			Assets::<T>::try_mutate(asset_id, |maybe_detail| -> DispatchResult {
 				let mut detail = maybe_detail.as_mut().ok_or(Error::<T>::AssetNotFound)?;
 
-				let bn = Self::to_bounded_name(name)?;
+				let bounded_name = Self::to_bounded_name(name)?;
 
-				if bn != detail.name {
+				if bounded_name != detail.name {
 					// Make sure that there is no such name already registered
-					ensure!(Self::asset_ids(&bn).is_none(), Error::<T>::AssetAlreadyRegistered);
+					ensure!(Self::asset_ids(&bounded_name).is_none(), Error::<T>::AssetAlreadyRegistered);
 
 					// update also name map - remove old one first
 					AssetIds::<T>::remove(&detail.name);
-					AssetIds::<T>::insert(&bn, asset_id);
+					AssetIds::<T>::insert(&bounded_name, asset_id);
 				}
 
-				detail.name = bn.clone();
+				detail.name = bounded_name.clone();
 				detail.asset_type = asset_type;
 
-				Self::deposit_event(Event::Updated(asset_id, bn, asset_type));
+				Self::deposit_event(Event::Updated(asset_id, bounded_name, asset_type));
 
 				Ok(())
 			})
