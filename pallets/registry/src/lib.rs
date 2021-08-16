@@ -86,7 +86,7 @@ pub mod pallet {
 		AssetNotFound,
 
 		/// Invalid asset name or symbol.
-		BadMetadata,
+		TooLong,
 
 		/// Asset ID is not registered in the registry.
 		AssetNotRegistered,
@@ -337,9 +337,9 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	/// Convert Vec<u8> to BoundedVec so it respects the max set limit, otherwise return BadMetadata error
+	/// Convert Vec<u8> to BoundedVec so it respects the max set limit, otherwise return TooLong error
 	fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
-		name.try_into().map_err(|_| Error::<T>::BadMetadata)
+		name.try_into().map_err(|_| Error::<T>::TooLong)
 	}
 
 	/// Register new asset.

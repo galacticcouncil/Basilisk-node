@@ -27,6 +27,12 @@ use sp_std::convert::TryInto;
 #[test]
 fn register_asset_works() {
 	new_test_ext().execute_with(|| {
+		let too_long = [1u8; <Test as crate::Config>::StringLimit::get() as usize + 1];
+		assert_noop!(
+			AssetRegistryPallet::register(Origin::signed(1), too_long.to_vec(), AssetType::Token),
+			Error::<Test>::TooLong
+		);
+
 		let name: Vec<u8> = b"HDX".to_vec();
 
 		assert_ok!(AssetRegistryPallet::register(
@@ -36,6 +42,7 @@ fn register_asset_works() {
 		));
 
 		let bn = AssetRegistryPallet::to_bounded_name(name.clone()).unwrap();
+
 		assert_eq!(AssetRegistryPallet::asset_ids(&bn).unwrap(), 1u32);
 		assert_eq!(
 			AssetRegistryPallet::assets(1u32).unwrap(),
@@ -190,7 +197,7 @@ fn set_metadata_works() {
 
 			assert_noop!(
 				AssetRegistryPallet::set_metadata(Origin::signed(1), dot_id, b"JUST_TOO_LONG".to_vec(), 30u8),
-				Error::<Test>::BadMetadata
+				Error::<Test>::TooLong
 			);
 
 			assert_noop!(
