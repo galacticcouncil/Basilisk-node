@@ -166,9 +166,6 @@ impl<T: Config> Pallet<T> {
 		});
 
 		let now = <frame_system::Pallet<T>>::block_number();
-		if now.is_zero() {
-			return;
-		} // TODO: delete me. It is here just to make testing easier.
 
 		// check if it's time to update "hundred" values
 		if (now % T::BlockNumber::from(BUCKET_SIZE)) == T::BlockNumber::from(BUCKET_SIZE - 1) {
