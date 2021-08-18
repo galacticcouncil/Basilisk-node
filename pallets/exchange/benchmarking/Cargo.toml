@@ -26,7 +26,7 @@ serde = {features = ['derive'], optional = true, version = '1.0.101'}
 
 # Local dependencies
 pallet-xyk = {path = '../../xyk', default-features = false}
-pallet-asset-registry = {path = '../../asset-registry', default-features = false}
+pallet-registry = {path = '../../registry', default-features = false}
 pallet-exchange = {path = '../../exchange', default-features = false}
 primitives = {path = '../../../primitives', default-features = false}
 
@@ -58,6 +58,6 @@ std = [
   'sp-runtime/std',
   'primitives/std',
   'pallet-exchange/std',
-  'pallet-asset-registry/std',
+  'pallet-registry/std',
   'frame-benchmarking/std',
 ]

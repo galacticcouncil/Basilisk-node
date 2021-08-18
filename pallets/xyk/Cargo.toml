@@ -43,10 +43,11 @@ sp-core = {default-features = false, version = '3.0.0'}
 sp-runtime = {default-features = false, version = '3.0.0'}
 sp-std = {default-features = false, version = '3.0.0'}
 
+orml-tokens = {default-features = false, optional = true, version = "0.4.1-dev"}
+
 [dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
 pallet-registry = {path = '../registry', default-features = false}
-orml-tokens = {default-features = false, version = "0.4.1-dev"}
 sp-api = {default-features = false, version = '3.0.0'}
 
 [features]
@@ -64,11 +65,9 @@ std = [
   'sp-runtime/std',
   'sp-core/std',
   'sp-std/std',
-  'orml-tokens/std',
   'orml-traits/std',
   'primitives/std',
 
-  # The following two are needed to run tests with "runtime-benchmarks" features
-  'sp-api/std',
+  'orml-tokens/std',
   'frame-benchmarking/std',
 ]

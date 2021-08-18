@@ -27,11 +27,10 @@ serde = {features = ['derive'], optional = true, version = '1.0.101'}
 
 # Local dependencies
 pallet-xyk = {path = '../xyk', default-features = false}
-pallet-asset-registry = {path = '../asset-registry', default-features = false}
+pallet-registry = {path = '../registry', default-features = false}
 primitives = {path = '../../primitives', default-features = false}
 
 # ORML dependencies
-orml-tokens = {default-features = false, version = "0.4.1-dev"}
 orml-traits = {default-features = false, version = "0.4.1-dev"}
 
 # Substrate dependencies
@@ -41,6 +40,8 @@ sp-std = {default-features = false, version = '3.0.0'}
 
 sp-core = {default-features = false, version = '3.0.0'}
 sp-runtime = {default-features = false, version = '3.0.0'}
+
+orml-tokens = {default-features = false, optional = true, version = "0.4.1-dev"}
 
 [dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
@@ -58,5 +59,5 @@ std = [
   'orml-tokens/std',
   'orml-traits/std',
   'pallet-xyk/std',
-  'pallet-asset-registry/std',
+  'pallet-registry/std',
 ]
