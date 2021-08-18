@@ -4,7 +4,7 @@ use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
 	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	CORE_ASSET_ID, WASM_BINARY,
+	WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -440,9 +440,8 @@ fn parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			core_asset_id: CORE_ASSET_ID,
-			asset_ids: vec![],
-			next_asset_id: 1,
+			asset_names: vec![],
+			native_asset_name: b"BSX".to_vec(),
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
@@ -541,14 +540,8 @@ fn testnet_parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			core_asset_id: CORE_ASSET_ID,
-			asset_ids: vec![
-				(b"hKSM".to_vec(), 1),
-				(b"hDOT".to_vec(), 2),
-				(b"hETH".to_vec(), 3),
-				(b"hUSDT".to_vec(), 4),
-			],
-			next_asset_id: 5,
+			asset_names: vec![b"hKSM".to_vec(), b"hDOT".to_vec(), b"hETH".to_vec(), b"hUSDT".to_vec()],
+			native_asset_name: b"BSX".to_vec(),
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],

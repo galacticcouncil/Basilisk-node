@@ -14,6 +14,7 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::{Decode, Encode};
 use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
@@ -64,8 +65,6 @@ use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
 
 pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
-
-pub use pallet_asset_registry;
 
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
@@ -201,7 +200,6 @@ impl Filter<Call> for BaseFilter {
 			| Call::CollatorSelection(_)
 			| Call::Session(_)
 			| Call::Balances(_)
-			| Call::AssetRegistry(_)
 			| Call::Currencies(_)
 			| Call::Exchange(_)
 			| Call::MultiTransactionPayment(_)
@@ -216,7 +214,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::XcmpQueue(_)
 			| Call::DmpQueue(_)
 			| Call::PolkadotXcm(_)
-			| Call::Registry(_)
+			| Call::AssetRegistry(_)
 			| Call::Duster(_)
 			| Call::Sudo(_) => true,
 
@@ -408,12 +406,6 @@ impl orml_currencies::Config for Runtime {
 
 /// Basilisk Pallets configurations
 
-impl pallet_asset_registry::Config for Runtime {
-	type AssetId = AssetId;
-}
-
-use codec::{Decode, Encode};
-
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Eq)]
 pub struct AssetLocation(pub polkadot_xcm::v0::MultiLocation);
 
@@ -440,6 +432,7 @@ parameter_types! {
 
 impl pallet_xyk::Config for Runtime {
 	type Event = Event;
+	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
@@ -896,8 +889,7 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
-		Registry: pallet_registry::{Pallet, Call, Storage, Event<T>},
+		AssetRegistry: pallet_registry::{Pallet, Call, Config, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},

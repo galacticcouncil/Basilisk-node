@@ -566,7 +566,6 @@ dependencies = [
  "orml-vesting",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -5214,23 +5213,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ff55baddef9e4ad00f88b6c743a2a8062d4c6ade126c2a528644b8e444d52ce"
 dependencies = [
  "stable_deref_trait",
-]
-
-[[package]]
-name = "pallet-asset-registry"
-version = "3.1.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec 2.2.0",
- "primitive-types 0.8.0",
- "primitives",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]

@@ -167,7 +167,7 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 				GeneralKey(id.encode()),
 			)),
 			_ => {
-				if let Some(loc) = Registry::asset_to_location(id) {
+				if let Some(loc) = AssetRegistry::asset_to_location(id) {
 					Some(loc.0)
 				} else {
 					None
@@ -194,7 +194,7 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 				}
 			}
 			// delegate to registry
-			_ => Registry::location_to_asset(AssetLocation(location)),
+			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
 		}
 	}
 }
