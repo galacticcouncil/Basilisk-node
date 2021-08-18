@@ -65,6 +65,5 @@ std = [
   'max-encoded-len/std',
   'polkadot-xcm/std',
   'sp-api/std',
-
   'frame-benchmarking/std'
 ]

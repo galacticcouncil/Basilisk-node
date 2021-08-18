@@ -38,10 +38,14 @@ mod weights;
 
 use weights::WeightInfo;
 
+pub use types::AssetType;
+
 // Re-export pallet items so that they can be accessed from the crate namespace.
-use crate::types::{AssetDetails, AssetMetadata, AssetType};
-use frame_support::BoundedVec;
 pub use pallet::*;
+
+use crate::types::{AssetDetails, AssetMetadata};
+use frame_support::BoundedVec;
+use primitives::traits::{Registry, ShareTokenRegistry};
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -93,6 +97,9 @@ pub mod pallet {
 
 		/// Asset is already registered.
 		AssetAlreadyRegistered,
+
+		/// Incorrect number of assets provided to create shared asset.
+		InvalidSharedAssetLen,
 	}
 
 	#[pallet::storage]
@@ -259,7 +266,10 @@ pub mod pallet {
 
 				if bounded_name != detail.name {
 					// Make sure that there is no such name already registered
-					ensure!(Self::asset_ids(&bounded_name).is_none(), Error::<T>::AssetAlreadyRegistered);
+					ensure!(
+						Self::asset_ids(&bounded_name).is_none(),
+						Error::<T>::AssetAlreadyRegistered
+					);
 
 					// update also name map - remove old one first
 					AssetIds::<T>::remove(&detail.name);
@@ -403,5 +413,35 @@ impl<T: Config> Pallet<T> {
 	/// Return asset for given loation.
 	pub fn location_to_asset(location: T::AssetNativeLocation) -> Option<T::AssetId> {
 		Self::location_assets(location)
+	}
+}
+
+impl<T: Config> Registry<T::AssetId, Vec<u8>, DispatchError> for Pallet<T> {
+	fn exists(asset_id: T::AssetId) -> bool {
+		Assets::<T>::contains_key(&asset_id)
+	}
+
+	fn retrieve_asset(name: &Vec<u8>) -> Result<T::AssetId, DispatchError> {
+		let bounded_name = Self::to_bounded_name(name.clone())?;
+		if let Some(asset_id) = AssetIds::<T>::get(&bounded_name) {
+			Ok(asset_id)
+		} else {
+			Err(Error::<T>::AssetNotFound.into())
+		}
+	}
+
+	fn create_asset(name: &Vec<u8>) -> Result<T::AssetId, DispatchError> {
+		Self::get_or_create_asset(name.clone(), AssetType::Token)
+	}
+}
+
+impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, DispatchError> for Pallet<T> {
+	fn retrieve_shared_asset(name: &Vec<u8>, _assets: &Vec<T::AssetId>) -> Result<T::AssetId, DispatchError> {
+		Self::retrieve_asset(name)
+	}
+
+	fn create_shared_asset(name: &Vec<u8>, assets: &Vec<T::AssetId>) -> Result<T::AssetId, DispatchError> {
+		ensure!(assets.len() == 2, Error::<T>::InvalidSharedAssetLen);
+		Self::get_or_create_asset(name.clone(), AssetType::PoolShare(assets[0], assets[1]))
 	}
 }

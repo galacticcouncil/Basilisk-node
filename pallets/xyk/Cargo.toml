@@ -28,11 +28,9 @@ serde = {features = ['derive'], optional = true, version = '1.0.101'}
 hydra-dx-math = {default-features = false, version = "3.3.0"}
 
 # Local dependencies
-pallet-asset-registry = {path = '../asset-registry', default-features = false}
 primitives = {path = '../../primitives', default-features = false}
 
 # ORML dependencies
-orml-tokens = {default-features = false, version = "0.4.1-dev"}
 orml-traits = {default-features = false, version = "0.4.1-dev"}
 orml-utilities = {default-features = false, version = "0.4.1-dev"}
 
@@ -47,6 +45,9 @@ sp-std = {default-features = false, version = '3.0.0'}
 
 [dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
+pallet-registry = {path = '../registry', default-features = false}
+orml-tokens = {default-features = false, version = "0.4.1-dev"}
+sp-api = {default-features = false, version = '3.0.0'}
 
 [features]
 default = ['std']
@@ -66,4 +67,8 @@ std = [
   'orml-tokens/std',
   'orml-traits/std',
   'primitives/std',
+
+  # The following two are needed to run tests with "runtime-benchmarks" features
+  'sp-api/std',
+  'frame-benchmarking/std',
 ]

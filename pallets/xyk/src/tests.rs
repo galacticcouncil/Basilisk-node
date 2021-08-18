@@ -17,9 +17,12 @@
 
 use super::*;
 pub use crate::mock::{Currency, Event as TestEvent, ExtBuilder, Origin, System, Test, ACA, ALICE, BOB, DOT, HDX, XYK};
+use frame_support::BoundedVec;
 use frame_support::{assert_noop, assert_ok};
 use hydra_dx_math::MathError;
+use pallet_registry::AssetType;
 use primitives::traits::AMM as AmmPool;
+use sp_std::convert::TryInto;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -854,8 +857,12 @@ fn discount_sell_fees_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &user_1), 954_990);
 		assert_eq!(Currency::free_balance(HDX, &user_1), 989_980);
 
+		let name: Vec<u8> = vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0];
+		let bounded_name: BoundedVec<u8, <Test as pallet_registry::Config>::StringLimit> = name.try_into().unwrap();
+
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, HDX, 10_000).into(),
+			pallet_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, asset_b)).into(),
 			frame_system::Event::NewAccount(pair_account).into(),
 			orml_tokens::Event::Endowed(asset_a, pair_account, 30000).into(),
 			orml_tokens::Event::Endowed(asset_b, pair_account, 60000).into(),
@@ -1099,8 +1106,12 @@ fn single_buy_with_discount_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 960_223_995_197);
 		assert_eq!(Currency::free_balance(HDX, &user_1), 999_899_552_000_008);
 
+		let name: Vec<u8> = vec![232, 3, 0, 0, 72, 68, 84, 184, 11, 0, 0];
+		let bounded_name: BoundedVec<u8, <Test as pallet_registry::Config>::StringLimit> = name.try_into().unwrap();
+
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, asset_b, 640_000_000_000).into(),
+			pallet_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, HDX)).into(),
 			frame_system::Event::NewAccount(native_pair_account).into(),
 			orml_tokens::Event::Endowed(asset_a, 1003000, 50000000000).into(),
 			orml_tokens::Event::Endowed(1000, 1003000, 100000000000).into(),

@@ -144,4 +144,5 @@ members = [
   'pallets/xyk',
   'pallets/exchange',
   'pallets/registry',
+  'pallets/xyk',
 ]
