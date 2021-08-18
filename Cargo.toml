@@ -143,6 +143,6 @@ members = [
   'runtime',
   'pallets/xyk',
   'pallets/exchange',
-  'pallets/registry',
+    'pallets/asset-registry',
   'pallets/xyk',
 ]

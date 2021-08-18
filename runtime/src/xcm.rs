@@ -193,7 +193,7 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 					None
 				}
 			}
-			// delegate to registry
+			// delegate to asset-registry
 			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
 		}
 	}

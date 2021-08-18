@@ -47,7 +47,7 @@ orml-tokens = {default-features = false, optional = true, version = "0.4.1-dev"}
 
 [dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
-pallet-registry = {path = '../registry', default-features = false}
+pallet-asset-registry = {path = '../asset-registry', default-features = false}
 sp-api = {default-features = false, version = '3.0.0'}
 
 [features]

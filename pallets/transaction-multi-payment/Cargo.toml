@@ -43,7 +43,7 @@ sp-std = {default-features = false, version = '3.0.0'}
 pallet-transaction-payment = {default-features = false, version = '3.0.0'}
 
 # These 2 dependencies are for testing only. But need to be here for benchmarking pallet - could not figure out why yet
-pallet-registry = {path = '../registry', default-features = false}
+pallet-asset-registry = {path = '../asset-registry', default-features = false}
 pallet-balances = {default-features = false, version = '3.0.0'}
 
 [dev-dependencies]
@@ -64,5 +64,5 @@ std = [
   'orml-tokens/std',
   'orml-traits/std',
   'pallet-balances/std',
-  'pallet-registry/std',
+  'pallet-asset-registry/std',
 ]

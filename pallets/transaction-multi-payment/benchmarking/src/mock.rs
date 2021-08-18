@@ -69,7 +69,7 @@ frame_support::construct_runtime!(
 				 Balances: pallet_balances::{Pallet,Call, Storage,Config<T>, Event<T>},
 				 Currencies: orml_currencies::{Pallet, Event<T>},
 				 Tokens: orml_tokens::{Pallet, Event<T>},
-				 AssetRegistry: pallet_registry::{Pallet, Storage, Event<T>},
+				 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
 				 TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		 }
 
@@ -124,7 +124,7 @@ impl pallet_transaction_multi_payment::Config for Test {
 	type WeightToFee = IdentityFee<Balance>;
 }
 
-impl pallet_registry::Config for Test {
+impl pallet_asset_registry::Config for Test {
 	type Event = Event;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;

@@ -566,6 +566,7 @@ dependencies = [
  "orml-vesting",
  "orml-xcm-support",
  "orml-xtokens",
+ "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -581,7 +582,6 @@ dependencies = [
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-randomness-collective-flip",
- "pallet-registry",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
@@ -5216,6 +5216,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-asset-registry"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "max-encoded-len",
+ "parity-scale-codec 2.2.0",
+ "primitive-types 0.8.0",
+ "primitives",
+ "serde",
+ "sp-api",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder 3.0.0",
+ "xcm",
+]
+
+[[package]]
 name = "pallet-aura"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.8#74101dc21cfffb4c2d014fcc28edc166d5ca1b16"
@@ -5466,7 +5489,7 @@ dependencies = [
  "frame-system",
  "orml-tokens",
  "orml-traits",
- "pallet-registry",
+ "pallet-asset-registry",
  "pallet-xyk",
  "parity-scale-codec 2.2.0",
  "primitive-types 0.8.0",
@@ -5489,8 +5512,8 @@ dependencies = [
  "frame-system-benchmarking",
  "orml-tokens",
  "orml-traits",
+ "pallet-asset-registry",
  "pallet-exchange",
- "pallet-registry",
  "pallet-xyk",
  "parity-scale-codec 2.2.0",
  "primitives",
@@ -5688,8 +5711,8 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
+ "pallet-asset-registry",
  "pallet-balances",
- "pallet-registry",
  "pallet-transaction-multi-payment",
  "pallet-transaction-payment",
  "pallet-xyk",
@@ -5829,29 +5852,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-registry"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "max-encoded-len",
- "parity-scale-codec 2.2.0",
- "primitive-types 0.8.0",
- "primitives",
- "serde",
- "sp-api",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder 3.0.0",
- "xcm",
 ]
 
 [[package]]
@@ -6018,8 +6018,8 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
+ "pallet-asset-registry",
  "pallet-balances",
- "pallet-registry",
  "pallet-transaction-payment",
  "pallet-xyk",
  "parity-scale-codec 2.2.0",
@@ -6150,7 +6150,7 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
- "pallet-registry",
+ "pallet-asset-registry",
  "parity-scale-codec 2.2.0",
  "primitive-types 0.8.0",
  "primitives",

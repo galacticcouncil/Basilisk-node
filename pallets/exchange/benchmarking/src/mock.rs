@@ -59,7 +59,7 @@ frame_support::construct_runtime!(
 				 Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 				 XYKPallet: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 				 Currency: orml_tokens::{Pallet, Event<T>},
-				 AssetRegistry: pallet_registry::{Pallet, Storage, Event<T>},
+				 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
 		 }
 
 );
@@ -129,7 +129,7 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 	}
 }
 
-impl pallet_registry::Config for Test {
+impl pallet_asset_registry::Config for Test {
 	type Event = Event;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;

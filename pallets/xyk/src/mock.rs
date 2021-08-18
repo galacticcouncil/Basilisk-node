@@ -54,7 +54,7 @@ frame_support::construct_runtime!(
 		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		 XYK: xyk::{Pallet, Call, Storage, Event<T>},
 		 Currency: orml_tokens::{Pallet, Event<T>},
-		 AssetRegistry: pallet_registry::{Pallet, Storage, Event<T>},
+		 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
 	 }
 
 );
@@ -78,7 +78,7 @@ parameter_types! {
 	pub RegistryStringLimit: u32 = 100;
 }
 
-impl pallet_registry::Config for Test {
+impl pallet_asset_registry::Config for Test {
 	type Event = Event;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;

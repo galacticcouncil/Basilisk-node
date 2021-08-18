@@ -415,7 +415,7 @@ impl Default for AssetLocation {
 	}
 }
 
-impl pallet_registry::Config for Runtime {
+impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
 	type RegistryOrigin = EnsureRoot<AccountId>;
 	type AssetId = AssetId;
@@ -889,7 +889,7 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
-		AssetRegistry: pallet_registry::{Pallet, Call, Config, Storage, Event<T>},
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
