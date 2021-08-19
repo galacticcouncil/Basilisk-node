@@ -427,7 +427,7 @@ impl pallet_asset_registry::Config for Runtime {
 
 parameter_types! {
 	pub ExchangeFee: fee::Fee = fee::Fee::default();
-	pub RegistryStrLimit: u32 = 10;
+	pub RegistryStrLimit: u32 = 32;
 }
 
 impl pallet_xyk::Config for Runtime {
