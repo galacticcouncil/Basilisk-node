@@ -44,6 +44,7 @@ fn expect_events(e: Vec<TestEvent>) {
 #[test]
 fn add_new_asset_pair_should_work() {
 	new_test_ext().execute_with(|| {
+		System::set_block_number(3);
 		assert_eq!(PriceOracle::num_of_assets(), 0);
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
@@ -63,13 +64,14 @@ fn add_new_asset_pair_should_work() {
 #[test]
 fn add_existing_asset_pair_should_not_work() {
 	new_test_ext().execute_with(|| {
+		System::set_block_number(3);
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			false
 		);
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 		assert_storage_noop!(PriceOracle::on_create_pool(ASSET_PAIR_A));
-		expect_events(vec![Event::PoolRegistered(ASSET_PAIR_A).into()]);
+		expect_events(vec![]);
 	});
 }
 
