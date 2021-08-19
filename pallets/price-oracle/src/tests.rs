@@ -27,6 +27,20 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
+fn last_events(n: usize) -> Vec<TestEvent> {
+	frame_system::Pallet::<Test>::events()
+		.into_iter()
+		.rev()
+		.take(n)
+		.rev()
+		.map(|e| e.event)
+		.collect()
+}
+
+fn expect_events(e: Vec<TestEvent>) {
+	assert_eq!(last_events(e.len()), e);
+}
+
 #[test]
 fn add_new_asset_pair_should_work() {
 	new_test_ext().execute_with(|| {
@@ -42,6 +56,7 @@ fn add_new_asset_pair_should_work() {
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			true
 		);
+		expect_events(vec![Event::PoolRegistered(ASSET_PAIR_A).into()]);
 	});
 }
 
@@ -54,6 +69,7 @@ fn add_existing_asset_pair_should_not_work() {
 		);
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 		assert_storage_noop!(PriceOracle::on_create_pool(ASSET_PAIR_A));
+		expect_events(vec![Event::PoolRegistered(ASSET_PAIR_A).into()]);
 	});
 }
 

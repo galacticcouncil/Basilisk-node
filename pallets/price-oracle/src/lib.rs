@@ -72,7 +72,11 @@ pub mod pallet {
 	}
 
 	#[pallet::event]
-	pub enum Event<T: Config> {}
+	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
+	pub enum Event<T: Config> {
+		/// Pool was registered. [AssetPair]
+		PoolRegistered(AssetPair),
+	}
 
 	/// The number of assets registered and handled by this pallet.
 	#[pallet::storage]
@@ -127,11 +131,14 @@ impl<T: Config> Pallet<T> {
 			let incremented_asset_count = if let Some(count) = Self::num_of_assets().checked_add(1) {
 				count
 			} else {
+				// We don't want to throw an error here because this method is used in different extrinsics.
+				// We also do not expect to have more than 2^32 assets registered.
 				return
 			};
 			<NumOfTrackedAssets<T>>::put(incremented_asset_count);
 
 			PriceDataTen::<T>::append((asset_pair.name(), BucketQueue::default()));
+			Self::deposit_event(Event::PoolRegistered(asset_pair));
 		}
 	}
 
@@ -143,6 +150,7 @@ impl<T: Config> Pallet<T> {
 			PriceEntry::default()
 		};
 
+		// Invalid values are ignored and not added to the queue.
 		if let Some(new_entry) = previous_entry.calculate_new_price_entry(&price_entry) {
 			PriceDataAccumulator::<T>::insert(asset_pair.name(), new_entry);
 		}
@@ -197,11 +205,13 @@ impl<T: Config> AMMHandlers<T::AccountId, AssetId, AssetPair, Balance> for Price
 		let (price, amount) = if let Some(price_tuple) = amm_transfer.normalize_price() {
 			price_tuple
 		} else {
+			// We don't want to throw an error here because this method is used in different extrinsics.
+			// Invalid prices are ignored and not added to the queue.
 			return;
 		};
 
-		// we assume that zero prices are not valid
-		// zero values are ignored and not added to the queue
+		// We assume that zero values are not valid.
+		// Zero values are ignored and not added to the queue.
 		if price.is_zero() || amount.is_zero() || liq_amount.is_zero() {
 			return;
 		}
