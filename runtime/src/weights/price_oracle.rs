@@ -32,7 +32,7 @@
 // compiled
 // --pallet
 // pallet-price-oracle
-// --steps=10
+// --steps=100
 // --repeat=20
 // --extrinsic
 // *
@@ -56,40 +56,31 @@ use pallet_price_oracle::weights::WeightInfo;
 pub struct HydraWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn on_initialize_no_entry() -> Weight {
-		(38_000_000 as Weight)
+		(29_000_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn on_initialize_one_entry() -> Weight {
-		(43_000_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+	fn on_initialize_one_token() -> Weight {
+		(48_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn on_initialize_multiple_entries_one_token(t: u32, ) -> Weight {
-		(43_629_000 as Weight)
-			// Standard Error: 6_000
-			.saturating_add((294_000 as Weight).saturating_mul(t as Weight))
+	fn on_initialize_multiple_tokens_all_bucket_levels(a: u32, ) -> Weight {
+		(44_809_000 as Weight)
+			// Standard Error: 18_000
+			.saturating_add((14_885_000 as Weight).saturating_mul(a as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-	}
-	fn on_initialize_one_entry_multiple_tokens(t: u32, ) -> Weight {
-		(0 as Weight)
-			// Standard Error: 203_000
-			.saturating_add((17_566_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(a as Weight)))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(a as Weight)))
 	}
-	fn on_initialize_multiple_entries_multiple_tokens(t: u32, u: u32, ) -> Weight {
-		(0 as Weight)
-			// Standard Error: 655_000
-			.saturating_add((48_711_000 as Weight).saturating_mul(t as Weight))
-			// Standard Error: 655_000
-			.saturating_add((31_923_000 as Weight).saturating_mul(u as Weight))
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(t as Weight)))
+	fn on_initialize_multiple_tokens(b: u32, ) -> Weight {
+		(31_504_000 as Weight)
+			// Standard Error: 17_000
+			.saturating_add((14_850_000 as Weight).saturating_mul(b as Weight))
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(b as Weight)))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(b as Weight)))
 	}
 }

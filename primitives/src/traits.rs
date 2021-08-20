@@ -134,20 +134,29 @@ pub trait Resolver<AccountId, Intention, E> {
 	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[Intention]);
 }
 
-/// AMM handlers used by AMM pools to indicate various events.
-pub trait AMMHandlers<AccountId, AssetId, AssetPair, Balance> {
+/// Handler used by AMM pools to perform some tasks when a new pool is created.
+pub trait OnCreatePoolHandler<AssetPair> {
 	/// Register an asset to be handled by price-oracle pallet.
 	/// If an asset is not registered, calling `on_trade` results in populating the price buffer in the price oracle pallet,
 	/// but the entries are ignored and the average price for the asset is not calculated.
 	fn on_create_pool(asset_pair: AssetPair);
+}
+
+impl<AssetPair> OnCreatePoolHandler<AssetPair> for () {
+	fn on_create_pool(_asset_pair: AssetPair) {}
+}
+
+/// Handler used by AMM pools to perform some tasks when a trade is executed.
+pub trait OnTradeHandler<AccountId, AssetId, AssetPair, Balance> {
 	/// Include a trade in the average price calculation of the price-oracle pallet.
 	fn on_trade(amm_transfer: &AMMTransfer<AccountId, AssetId, AssetPair, Balance>, liq_amount: Balance);
-	/// Known `on_trade` overhead. Needs to be specified here if we don't want to make AMM pools tightly coupled with the price oracle pallet.
+	/// Known overhead for a trade in `on_initialize/on_finalize`.
+	/// Needs to be specified here if we don't want to make AMM pools tightly coupled with the price oracle pallet, otherwise we can't access the weight.
+	/// Add this weight to an extrinsic from which you call `on_trade`.
 	fn on_trade_weight() -> Weight;
 }
 
-impl<AccountId, AssetId, AssetPair, Balance> AMMHandlers<AccountId, AssetId, AssetPair, Balance> for () {
-	fn on_create_pool(_asset_pair: AssetPair) {}
+impl<AccountId, AssetId, AssetPair, Balance> OnTradeHandler<AccountId, AssetId, AssetPair, Balance> for () {
 	fn on_trade(_amm_transfer: &AMMTransfer<AccountId, AssetId, AssetPair, Balance>, _liq_amount: Balance) {}
 	fn on_trade_weight() -> Weight {
 		Weight::zero()

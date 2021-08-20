@@ -36,7 +36,7 @@ use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional
 use frame_system::ensure_signed;
 use primitives::{
 	asset::AssetPair, fee, traits::AMM, AssetId, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY,
-	MIN_TRADING_LIMIT, traits::AMMHandlers,
+	MIN_TRADING_LIMIT, traits::{OnCreatePoolHandler, OnTradeHandler},
 };
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
@@ -67,6 +67,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
+	use primitives::traits::{OnTradeHandler};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -96,7 +97,7 @@ pub mod pallet {
 		type GetExchangeFee: Get<fee::Fee>;
 
 		/// AMM handlers
-		type AMMHandler: AMMHandlers<Self::AccountId, AssetId, AssetPair, Balance>;
+		type AMMHandler: OnCreatePoolHandler<AssetPair> + OnTradeHandler<Self::AccountId, AssetId, AssetPair, Balance>;
 	}
 
 	#[pallet::error]
