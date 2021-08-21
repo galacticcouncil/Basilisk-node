@@ -5375,24 +5375,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-incentives"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "parity-scale-codec 2.1.3",
- "primitive-types 0.8.0",
- "primitives",
- "serde",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder 3.0.0",
-]
-
-[[package]]
 name = "pallet-indices"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.7#9c572625f6557dfdb19f47474369a0327d51dfbc"
@@ -5649,6 +5631,25 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-rewards"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "parity-scale-codec 2.1.3",
+ "primitive-types 0.8.0",
+ "primitives",
+ "serde",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder 3.0.0",
 ]
 
 [[package]]

@@ -4,7 +4,7 @@ description = 'Rewards Pallet'
 edition = '2018'
 homepage = 'https://github.com/galacticcouncil/basilisk-node'
 license = 'Apache 2.0'
-name = 'pallet-incentives'
+name = 'pallet-rewards'
 repository = 'https://github.com/galacticcouncil/basilisk-node'
 version = '0.1.0'
 
@@ -19,6 +19,7 @@ codec = { package = "parity-scale-codec", version = "2.0.0", default-features = 
 serde = {features = ['derive'], optional = true, version = '1.0.101'}
 primitive-types = {default-features = false, version = '0.8.0'}
 sp-runtime = {default-features = false, version = '3.0.0'}
+sp-arithmetics = { package = "sp-arithmetic", version = '3.0.0', default-features = false }
 
 # Local dependencies
 primitives = {path = '../../primitives', default-features = false}
@@ -49,4 +50,5 @@ std = [
   'sp-std/std',
   'primitives/std',
   'sp-runtime/std',
+  'sp-arithmetics/std',
 ]

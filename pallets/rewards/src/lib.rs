@@ -24,8 +24,6 @@
 
 //TODO:
 //  * add overview comment
-//  * claim
-//  * remove_shares
 //  * replace unwrap() - may panic
 //  * remove dependencies on our types
 
@@ -44,8 +42,10 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+use frame_support::traits::Get;
 use primitives::Balance as LoyaltyWeight;
 use primitives::Balance as Share;
+use sp_arithmetics::Perbill;
 pub type PoolId<T> = <T as frame_system::Config>::AccountId;
 pub type PeriodIndex = u128;
 
@@ -66,14 +66,15 @@ pub struct LpInfo {
 
 #[frame_support::pallet]
 pub mod pallet {
-	use std::convert::TryInto;
-
 	use super::*;
-	use frame_support::{pallet_prelude::*, traits::Get, Twox64Concat};
+	use frame_support::{pallet_prelude::*, Twox64Concat};
 	use frame_system::pallet_prelude::BlockNumberFor;
 	use sp_runtime::traits::Zero;
+	use std::convert::TryInto;
 
-	/// Configure the pallet by specifying the parameters and types on which it depends.
+	#[pallet::pallet]
+	pub struct Pallet<T>(_);
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Number of blocks per snapshot. Rewards are acumulated for each snaphot
@@ -97,8 +98,7 @@ pub mod pallet {
 		///LoyaltyWeight slash for claiming rewards - e.g 2 LW = LWc / 2;
 		///LW - loyalty weight
 		///LWc - loyalty weight current
-		#[pallet::constant]
-		type LoyaltySlash: Get<u32>;
+		type LoyaltySlash: Get<Perbill>;
 	}
 
 	#[pallet::error]
@@ -106,9 +106,6 @@ pub mod pallet {
 		/// Math owerflow error
 		Overflow,
 	}
-
-	#[pallet::pallet]
-	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
 	#[pallet::getter(fn snapshots)]
@@ -120,8 +117,8 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn liquidity_providers)]
-	pub(super) type LiquidityProvides<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, PoolId<T>, Twox64Concat, T::AccountId, LpInfo, ValueQuery>;
+	pub(super) type LiquidityProviders<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, PoolId<T>, Twox64Concat, T::AccountId, LpInfo, OptionQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
@@ -131,19 +128,29 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		/// New liquidity added. Rewards will be conting from next period
-		pub fn add_shares(who: &T::AccountId, pool_id: PoolId<T>, amount: Share, now: PeriodIndex) {
+		pub fn add_shares(
+			who: &T::AccountId,
+			pool_id: PoolId<T>,
+			amount: Share,
+			now: PeriodIndex,
+		) -> Result<(), Error<T>> {
 			if amount.is_zero() {
-				return;
+				return Ok(());
 			}
 
 			let claimable_period = now + 1;
-			let w = Self::get_loyalty_weight_in(now, claimable_period, T::LoyaltyWeightIncrement::get()).unwrap();
-			let s_weighted = Self::get_weighted_shares(amount, w).unwrap();
-			CurrentState::<T>::mutate(pool_id.clone(), |cs| {
-				cs.total_weighted_shares = cs.total_weighted_shares.checked_add(s_weighted).unwrap();
-			});
+			let w = Self::get_loyalty_weight_in(now, claimable_period, T::LoyaltyWeightIncrement::get())?;
+			let s_weighted = Self::get_weighted_shares(amount, w)?;
+			CurrentState::<T>::try_mutate(pool_id.clone(), |cs| -> Result<(), Error<T>> {
+				if let Some(v) = cs.total_weighted_shares.checked_add(s_weighted) {
+					cs.total_weighted_shares = v;
+					Ok(())
+				} else {
+					return Err(Error::<T>::Overflow);
+				}
+			})?;
 
-			LiquidityProvides::<T>::insert(
+			LiquidityProviders::<T>::insert(
 				pool_id,
 				who,
 				LpInfo {
@@ -152,11 +159,13 @@ pub mod pallet {
 					claim_from: claimable_period,
 				},
 			);
+
+			Ok(())
 		}
 
-		pub fn claim_rewards(who: &T::AccountId, pool_id: PoolId<T>, now: PeriodIndex) {
-			LiquidityProvides::<T>::mutate(pool_id.clone(), who, |lp| {
-				let mut snapshots = Snapshots::<T>::try_get(pool_id.clone()).unwrap();
+		pub fn claim_rewards(who: &T::AccountId, pool_id: PoolId<T>, now: PeriodIndex) -> Result<(), Error<T>> {
+			LiquidityProviders::<T>::try_mutate(pool_id.clone(), who, |lp| -> Result<(), Error<T>> {
+				let mut snapshots = Snapshots::<T>::try_get(pool_id.clone()).unwrap_or_default();
 
 				let offset: usize = sp_std::cmp::max(snapshots.len().try_into().unwrap_or(0) - lp.claim_from, 0)
 					.try_into()
@@ -164,43 +173,58 @@ pub mod pallet {
 
 				let mut acc_rewards: Balance = 0;
 				//TODO: ckeck math if some period is not skipped
-				let weight = Self::get_loyalty_weight_in(now, lp.claim_from, T::LoyaltyWeightIncrement::get()).unwrap();
-				snapshots.iter_mut().skip(offset).for_each(|s| {
-					let ws = Self::get_weighted_shares(lp.shares, weight).unwrap();
-					let mut reward = Self::get_weighted_rewards(ws, s.rewards, s.total_weighted_shares).unwrap();
+				let weight = Self::get_loyalty_weight_in(now, lp.claim_from, T::LoyaltyWeightIncrement::get())?;
+				snapshots
+					.iter_mut()
+					.skip(offset)
+					.try_for_each(|s| -> Result<(), Error<T>> {
+						let ws = Self::get_weighted_shares(lp.shares, weight)?;
+						let mut reward = Self::get_weighted_rewards(ws, s.rewards, s.total_weighted_shares)?;
 
-					reward = if reward >= s.rewards { s.rewards } else { reward };
+						reward = if reward >= s.rewards { s.rewards } else { reward };
 
-					acc_rewards += reward;
-					s.rewards = s.rewards - reward;
-				});
+						acc_rewards += reward;
+						s.rewards -= reward;
+						Ok(())
+					})?;
 
 				Snapshots::<T>::insert(pool_id, snapshots);
-				//TODO: make better slashing for claiming
-				lp.claim_from = lp.claim_from
-					+ (now - lp.claim_from)
-						.checked_div(T::LoyaltySlash::get().into())
-						.unwrap();
-			});
+				lp.claim_from = Self::slash_loyalty_weight(lp.claim_from, now);
+
+				Ok(())
+			})?;
 
 			//TODO: add reward handler
+			Ok(())
 		}
 
-		pub fn remove_shares(who: &T::AccountId, pool_id: PoolId<T>, now: PeriodIndex) {
+		pub fn remove_shares(who: &T::AccountId, pool_id: PoolId<T>, now: PeriodIndex) -> Result<(), Error<T>> {
 			//TODO: First check if user is in pool
-			let lp = LiquidityProvides::<T>::take(pool_id.clone(), who.clone());
+			let lp = LiquidityProviders::<T>::take(pool_id.clone(), who.clone());
+            
+            
 
-			Self::claim_rewards(who, pool_id.clone(), now);
+			Self::claim_rewards(who, pool_id.clone(), now)?;
 
-			CurrentState::<T>::mutate(pool_id.clone(), |cs| {
+			CurrentState::<T>::try_mutate(pool_id.clone(), |cs| -> Result<(), Error<T>> {
 				//this will work if loyalty weight change is 1 bettween period
 				//FIXME: calculate with different loyalty weight change
-				cs.total_weighted_shares = cs.total_weighted_shares.checked_sub(lp.shares).unwrap();
-			});
+
+				if let Some(v) = cs.total_weighted_shares.checked_sub(lp.shares) {
+					cs.total_weighted_shares = v;
+				} else {
+					return Err(Error::<T>::Overflow);
+				}
+
+				Ok(())
+			})?;
+
+			Ok(())
 		}
 
 		/// Create snapshot from "current state" and reward it. It will initialize new "current
 		/// state"
+		/// NOTE: this should never fail (on_initialize)
 		pub fn snapshot_and_reward(pool_id: PoolId<T>, i: PeriodIndex, rewards: Balance) {
 			CurrentState::<T>::mutate(pool_id.clone(), |cs| {
 				cs.rewards = rewards;
@@ -214,9 +238,9 @@ pub mod pallet {
 					//move rewards from discarded snapshot to next oldest
 					snapshots[0].rewards = snapshots[0].rewards.checked_add(removed_s.rewards).unwrap();
 				}
+				cs.period = i;
 				snapshots.push(cs.clone());
 
-				cs.period = i;
 				*cs = new_current_state;
 			});
 		}
@@ -224,6 +248,12 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	/// This function calculate new index used to calculate loyalty weight.
+	/// calculation of new claim from: floor(lolaylty-slash * (now - current-claim-from))
+	pub fn slash_loyalty_weight(claim_from: PeriodIndex, now: PeriodIndex) -> PeriodIndex {
+		claim_from + T::LoyaltySlash::get().mul_floor(now - claim_from)
+	}
+
 	fn get_loyalty_weight_in(
 		now_index: PeriodIndex,
 		claimable_index: PeriodIndex,
