@@ -563,6 +563,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-democracy",
+ "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
@@ -607,7 +608,7 @@ dependencies = [
  "sp-trie",
  "sp-version",
  "substrate-build-script-utils 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
  "tracing-core",
  "trie-db",
  "xcm",
@@ -1090,6 +1091,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0226944a63d1bf35a3b5f948dd7c59e263db83695c9e8bffc4037de02e30f1d7"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "cargo_metadata"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7714a157da7991e23d90686b9524b9e12e0407a108647f52e9328f4b3d51ac7f"
+dependencies = [
+ "cargo-platform",
+ "semver 0.11.0",
+ "semver-parser 0.10.2",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3828,7 +3842,7 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "static_assertions",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
  "xcm",
  "xcm-builder",
  "xcm-executor",
@@ -5212,7 +5226,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -5398,6 +5412,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-duster"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "lazy_static",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "parity-scale-codec 2.2.0",
+ "primitives",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder 3.0.0",
+]
+
+[[package]]
 name = "pallet-election-provider-multi-phase"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.8#74101dc21cfffb4c2d014fcc28edc166d5ca1b16"
@@ -5453,7 +5490,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -5476,7 +5513,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -5697,7 +5734,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -6005,7 +6042,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -6133,7 +6170,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -6150,7 +6187,7 @@ dependencies = [
  "sp-blockchain",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -6162,7 +6199,7 @@ dependencies = [
  "sp-api",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -7311,7 +7348,7 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "static_assertions",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -7599,7 +7636,7 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -7731,7 +7768,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
 ]
 
 [[package]]
@@ -8353,7 +8390,7 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
  "xcm",
  "xcm-builder",
  "xcm-executor",
@@ -10906,7 +10943,7 @@ dependencies = [
  "sp-transaction-pool",
  "sp-trie",
  "sp-version",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
  "trie-db",
 ]
 
@@ -10933,13 +10970,29 @@ dependencies = [
 
 [[package]]
 name = "substrate-wasm-builder"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79091baab813855ddf65b191de9fe53e656b6b67c1e9bd23fdcbff8788164684"
+dependencies = [
+ "ansi_term 0.12.1",
+ "atty",
+ "build-helper",
+ "cargo_metadata 0.12.3",
+ "tempfile",
+ "toml",
+ "walkdir",
+ "wasm-gc-api",
+]
+
+[[package]]
+name = "substrate-wasm-builder"
 version = "4.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.8#74101dc21cfffb4c2d014fcc28edc166d5ca1b16"
 dependencies = [
  "ansi_term 0.12.1",
  "atty",
  "build-helper",
- "cargo_metadata",
+ "cargo_metadata 0.13.1",
  "sp-maybe-compressed-blob",
  "tempfile",
  "toml",
@@ -12320,7 +12373,7 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "static_assertions",
- "substrate-wasm-builder",
+ "substrate-wasm-builder 4.0.0",
  "xcm",
  "xcm-builder",
  "xcm-executor",
