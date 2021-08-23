@@ -211,6 +211,7 @@ impl Filter<Call> for BaseFilter {
 			| Call::Utility(_)
 			| Call::Vesting(_)
 			| Call::NFT(_)
+			| Call::Marketplace(_)
 			| Call::CumulusXcm(_)
 			| Call::XTokens(_)
 			| Call::XcmpQueue(_)
@@ -813,6 +814,12 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
+impl pallet_marketplace::Config for Runtime {
+	type Currency = Balances;
+	type Event = Event;
+	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -868,6 +875,7 @@ construct_runtime!(
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
+		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage},
 	}
 );
 
@@ -1074,6 +1082,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
 			add_benchmark!(params, batches, pallet_nft, NFT);
+			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
 			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 

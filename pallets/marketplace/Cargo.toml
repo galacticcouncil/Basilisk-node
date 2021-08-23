@@ -1,0 +1,51 @@
+[package]
+name = 'pallet-marketplace'
+authors = ['GalacticCoucil']
+description = 'The marketplace for trading NFTs'
+edition = '2018'
+homepage = 'https://github.com/galacticcouncil/Basilisk-node'
+license = 'Unlicense'
+repository = 'https://github.com/galacticcouncil/Basilisk-node'
+version = '1.0.0'
+
+[package.metadata.docs.rs]
+targets = ['x86_64-unknown-linux-gnu']
+
+[dependencies]
+codec = { default-features = false, features = ['derive'], package = 'parity-scale-codec', version = '2.0.0' }
+frame-benchmarking = { version = "3.1.0", default-features = false, optional = true }
+frame-support = { default-features = false, version = '3.0.0' }
+frame-system = { default-features = false, version = '3.0.0' }
+orml-utilities = { default-features = false, version = '0.4.1-dev' }
+serde = { version = "1.0.111", optional = true, features = ["derive"] }
+sp-runtime = { default-features = false, version = '3.0.0' }
+sp-std = { default-features = false, version = '3.0.0' }
+pallet-nft = { path = '../nft', default-features = false, version = '1.0.0' }
+orml-nft = { default-features = false, version = '0.4.0' }
+
+# local dependency
+primitives = { default-features = false, path = "../../primitives" }
+
+[dev-dependencies]
+pallet-balances = { version = "3.0.0" }
+sp-core = { default-features = false, version = '3.0.0' }
+sp-io = { default-features = false, version = '3.0.0' }
+sp-runtime = { default-features = false, version = '3.0.0' }
+
+[features]
+default = ['std']
+std = [
+    'serde/std',
+    'codec/std',
+    'frame-support/std',
+    'frame-system/std',
+    'sp-std/std',
+    'sp-runtime/std',
+    'pallet-nft/std',
+    'orml-nft/std',
+]
+runtime-benchmarks = [
+	"frame-benchmarking",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+] 

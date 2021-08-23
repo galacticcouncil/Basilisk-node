@@ -5,7 +5,7 @@ homepage = 'https://github.com/galacticcouncil/Basilisk-node'
 license = 'Apache 2.0'
 name = 'basilisk-runtime'
 repository = 'https://github.com/galacticcouncil/Basilisk-node'
-version = '14.0.0'
+version = '15.0.0'
 
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
@@ -40,6 +40,7 @@ pallet-xyk = { path = "../pallets/xyk",default-features=false}
 pallet-xyk-rpc-runtime-api = {path = "../pallets/xyk/rpc/runtime-api",default-features=false}
 pallet-nft = { path = '../pallets/nft', default-features = false }
 pallet-lbp = { path = '../pallets/lbp', default-features = false }
+pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
 
 primitives = { default-features = false, path = "../primitives" }
 
@@ -129,6 +130,7 @@ runtime-benchmarks = [
     'pallet-timestamp/runtime-benchmarks',
     'pallet-multi-payment-benchmarking',
     'pallet-nft/runtime-benchmarks',
+    'pallet-marketplace/runtime-benchmarks',
     "pallet-xyk/runtime-benchmarks",
     "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
@@ -172,6 +174,7 @@ std = [
     'pallet-elections-phragmen/std',
     'pallet-grandpa/std',
     'pallet-nft/std',
+    'pallet-marketplace/std',
     'pallet-randomness-collective-flip/std',
     'pallet-session/std',
     'pallet-sudo/std',
