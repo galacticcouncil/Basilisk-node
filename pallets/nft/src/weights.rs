@@ -48,9 +48,11 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_nft.
 pub trait WeightInfo {
 	fn create_class() -> Weight;
+	fn create_pool() -> Weight;
 	fn mint(i: u32) -> Weight;
 	fn transfer() -> Weight;
 	fn destroy_class() -> Weight;
+	fn destroy_pool() -> Weight;
 	fn burn() -> Weight;
 	fn buy_from_pool() -> Weight;
 	fn sell_to_pool() -> Weight;
@@ -62,6 +64,11 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_class() -> Weight {
+		(66_848_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+	}
+	fn create_pool() -> Weight {
 		(66_848_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
@@ -79,6 +86,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn destroy_class() -> Weight {
+		(40_885_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn destroy_pool() -> Weight {
 		(40_885_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
@@ -111,6 +123,11 @@ impl WeightInfo for () {
             .saturating_add(RocksDbWeight::get().reads(2 as Weight))
             .saturating_add(RocksDbWeight::get().writes(5 as Weight))
     }
+	fn create_pool() -> Weight {
+        (66_848_000 as Weight)
+            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
+            .saturating_add(RocksDbWeight::get().writes(5 as Weight))
+    }
     fn mint(i: u32) -> Weight {
 		(0 as Weight)
 			.saturating_add((63_220_000 as Weight).saturating_mul(i as Weight))
@@ -124,6 +141,11 @@ impl WeightInfo for () {
             .saturating_add(RocksDbWeight::get().writes(3 as Weight))
     }
     fn destroy_class() -> Weight {
+        (40_885_000 as Weight)
+            .saturating_add(RocksDbWeight::get().reads(1 as Weight))
+            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
+    }
+	fn destroy_pool() -> Weight {
         (40_885_000 as Weight)
             .saturating_add(RocksDbWeight::get().reads(1 as Weight))
             .saturating_add(RocksDbWeight::get().writes(3 as Weight))

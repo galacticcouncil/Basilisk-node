@@ -12,7 +12,6 @@ fn create_class_works() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -27,7 +26,6 @@ fn create_class_fails() {
 				Origin::none(),
 				"some metadata about token".as_bytes().to_vec(),
 				ClassData { is_pool: true },
-				TEST_PRICE
 			),
 			BadOrigin
 		);
@@ -37,7 +35,45 @@ fn create_class_fails() {
 				Origin::signed(ALICE),
 				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
 				ClassData { is_pool: true },
-				TEST_PRICE
+			),
+			Error::<Test>::MetadataTooLong
+		);
+	})
+}
+
+#[test]
+fn create_pool_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NFTModule::create_pool(
+			Origin::signed(ALICE),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
+			TEST_PRICE,
+		));
+		let event = Event::NFT(crate::Event::NFTTokenPoolCreated(ALICE, CLASS_ID));
+		assert_eq!(last_event(), event);
+	})
+}
+
+#[test]
+fn create_pool_fails() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			NFTModule::create_pool(
+				Origin::none(),
+				"some metadata about token".as_bytes().to_vec(),
+				ClassData { is_pool: true },
+				TEST_PRICE,
+			),
+			BadOrigin
+		);
+
+		assert_noop!(
+			NFTModule::create_pool(
+				Origin::signed(ALICE),
+				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
+				ClassData { is_pool: true },
+				TEST_PRICE,
 			),
 			Error::<Test>::MetadataTooLong
 		);
@@ -51,7 +87,6 @@ fn mint_works() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -78,7 +113,6 @@ fn mint_fails() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
@@ -134,7 +168,6 @@ fn transfer_works() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -161,7 +194,6 @@ fn transfer_fails() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -194,7 +226,6 @@ fn burn_works() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -221,7 +252,6 @@ fn burn_fails() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -249,7 +279,6 @@ fn destroy_class_works() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::destroy_class(Origin::signed(ALICE), CLASS_ID));
@@ -263,7 +292,6 @@ fn destroy_class_fails() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -285,13 +313,54 @@ fn destroy_class_fails() {
 }
 
 #[test]
+fn destroy_pool_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NFTModule::create_pool(
+			Origin::signed(ALICE),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
+			TEST_PRICE,
+		));
+
+		assert_ok!(NFTModule::destroy_pool(Origin::signed(ALICE), CLASS_ID));
+	});
+}
+
+#[test]
+fn destroy_pool_fails() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NFTModule::create_pool(
+			Origin::signed(ALICE),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
+			TEST_PRICE,
+		));
+
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData {
+				locked: false,
+				emote: EMOTE.as_bytes().to_vec()
+			},
+			TEST_QUANTITY,
+		));
+
+		assert_noop!(
+			NFTModule::destroy_pool(Origin::signed(ALICE), CLASS_ID),
+			Error::<Test>::NonZeroIssuance
+		);
+	});
+}
+
+#[test]
 fn toggle_lock_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NFTModule::create_class(
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -318,7 +387,6 @@ fn toggle_lock_fails() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -342,11 +410,11 @@ fn toggle_lock_fails() {
 #[test]
 fn buy_from_pool_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTModule::create_class(
+		assert_ok!(NFTModule::create_pool(
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
+			TEST_PRICE,
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -369,11 +437,11 @@ fn buy_from_pool_works() {
 #[test]
 fn buy_from_pool_fails() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTModule::create_class(
+		assert_ok!(NFTModule::create_pool(
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
+			TEST_PRICE,
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -410,7 +478,6 @@ fn buy_from_pool_fails_notapool() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: false },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -438,7 +505,6 @@ fn sell_to_pool_works() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(
@@ -467,7 +533,6 @@ fn sell_to_pool_fails() {
 			Origin::signed(ALICE),
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
-			TEST_PRICE
 		));
 
 		assert_ok!(NFTModule::mint(

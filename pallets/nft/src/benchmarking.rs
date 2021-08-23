@@ -6,6 +6,7 @@ use crate as NFT;
 use frame_benchmarking::{account, benchmarks};
 use frame_support::traits::{Get, OnFinalize};
 use frame_system::RawOrigin;
+use orml_nft::ClassInfo;
 use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::vec;
 
@@ -31,12 +32,25 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
 		let class_metadata = big_vec.clone();
+		let class_data = ClassData { is_pool:false };
+		let class_id = orml_nft::Pallet::<T>::next_class_id();
+	}: _(RawOrigin::Signed(caller.clone()), class_metadata.clone(), class_data.clone())
+	verify {
+		let new_class = ClassInfo { metadata: class_metadata, total_issuance: 1u32.into(), owner: caller, data: class_data };
+		assert_eq!(orml_nft::Pallet::<T>::classes(class_id), Some(new_class));
+	}
+
+	create_pool {
+		let caller = create_account::<T>("caller", 0);
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
+		let class_metadata = big_vec.clone();
 		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
-		let price: BalanceOf<T> = 666_u32.into();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, price)
+		let price: BalanceOf<T> = u32::MAX.into();
+	}: _(RawOrigin::Signed(caller.clone()), class_metadata.clone(), class_data.clone(), price)
 	verify {
-		assert_eq!(ClassItemPrice::<T>::get(class_id), price);
+		let new_class = ClassInfo { metadata: class_metadata, total_issuance: 1u32.into(), owner: caller, data: class_data };
+		assert_eq!(orml_nft::Pallet::<T>::classes(class_id), Some(new_class));
 	}
 
 	mint {
@@ -45,7 +59,7 @@ benchmarks! {
 		let big_emote = vec![1; T::MaxEmoteLength::get() as usize];
 		let class_metadata = big_vec.clone();
 		let token_data = TokenData { locked:false, emote:big_emote };
-		let class_data = ClassData { is_pool:true };
+		let class_data = ClassData { is_pool:false };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::next_token_id(class_id);
 		let token = (class_id, token_id);
@@ -60,7 +74,7 @@ benchmarks! {
 		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
 		let big_emote = vec![1; T::MaxEmoteLength::get() as usize];
 		let class_metadata = big_vec.clone();
-		let class_data = ClassData { is_pool:true };
+		let class_data = ClassData { is_pool:false };
 		let token_data = TokenData { locked:false, emote:big_emote };
 		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
 		let token_id = orml_nft::Pallet::<T>::mint(&caller, class_id, class_metadata, token_data).unwrap_or_default();
@@ -72,6 +86,17 @@ benchmarks! {
 	}
 
 	destroy_class {
+		let caller = create_account::<T>("caller", 0);
+		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
+		let class_metadata = big_vec.clone();
+		let class_data = ClassData { is_pool:true };
+		let class_id = orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data).unwrap_or_default();
+	}: _(RawOrigin::Signed(caller.clone()), class_id)
+	verify {
+		assert_eq!(orml_nft::Pallet::<T>::classes(class_id), None);
+	}
+
+	destroy_pool {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; T::MaxMetadataLength::get() as usize];
 		let class_metadata = big_vec.clone();

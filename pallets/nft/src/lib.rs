@@ -58,8 +58,8 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn class_item_price)]
-	/// Stores prices for each NFT class
-	pub type ClassItemPrice<T: Config> = StorageMap<_, Blake2_128Concat, ClassIdOf<T>, BalanceOf<T>, ValueQuery>;
+	/// Stores prices for NFT pools
+	pub type PoolItemPrice<T: Config> = StorageMap<_, Blake2_128Concat, ClassIdOf<T>, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn class_bond_until)]
@@ -91,12 +91,18 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		
+		///////////////////////////////////////////////////
+		//
+		// Generic methods for NFT handling
+		//
+		///////////////////////////////////////////////////
+
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		pub fn create_class(
 			origin: OriginFor<T>,
 			metadata: Vec<u8>,
 			data: T::ClassData,
-			price: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
@@ -106,7 +112,6 @@ pub mod pallet {
 			);
 			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
-			ClassItemPrice::<T>::insert(class_id, price);
 
 			ClassBondUntil::<T>::insert(
 				<frame_system::Pallet<T>>::block_number() + T::ClassBondDuration::get().into(),
@@ -183,10 +188,59 @@ pub mod pallet {
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
 			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
-			ClassItemPrice::<T>::remove(class_id);
 			Self::deposit_event(Event::NFTTokenClassDestroyed(sender, class_id));
 			Ok(().into())
 		}
+
+		///////////////////////////////////////////////////
+		//
+		// Basilisk-specific methods for NFT handling
+		//
+		///////////////////////////////////////////////////
+
+		/// Similar method to create_/destroy_class
+		/// The difference between a pool and a class in this case is that
+		/// a price has to be specified for each pool. Any NFT within this class
+		/// will have this exact constant price
+
+		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
+		pub fn create_pool(
+			origin: OriginFor<T>,
+			metadata: Vec<u8>,
+			data: T::ClassData,
+			price: BalanceOf<T>,
+		) -> DispatchResultWithPostInfo {
+			let sender = ensure_signed(origin)?;
+
+			ensure!(
+				metadata.len() <= (T::MaxMetadataLength::get() as usize),
+				Error::<T>::MetadataTooLong
+			);
+			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
+			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
+			PoolItemPrice::<T>::insert(class_id, price);
+
+			ClassBondUntil::<T>::insert(
+				<frame_system::Pallet<T>>::block_number() + T::ClassBondDuration::get().into(),
+				class_id,
+				(),
+			);
+			Self::deposit_event(Event::NFTTokenPoolCreated(sender, class_id));
+			Ok(().into())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
+		pub fn destroy_pool(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResultWithPostInfo {
+			let sender = ensure_signed(origin)?;
+			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
+			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
+			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
+			PoolItemPrice::<T>::remove(class_id);
+			Self::deposit_event(Event::NFTTokenPoolDestroyed(sender, class_id));
+			Ok(().into())
+		}
+		
+		/// NFTs can be bought from a pool for a constant price
 
 		#[pallet::weight(<T as Config>::WeightInfo::buy_from_pool())]
 		pub fn buy_from_pool(origin: OriginFor<T>, token: (ClassIdOf<T>, TokenIdOf<T>)) -> DispatchResult {
@@ -206,6 +260,8 @@ pub mod pallet {
 				Ok(())
 			})
 		}
+
+		/// Owned NFTs can be sold back to the pool for the original price
 
 		#[pallet::weight(<T as Config>::WeightInfo::sell_to_pool())]
 		pub fn sell_to_pool(origin: OriginFor<T>, token: (ClassIdOf<T>, TokenIdOf<T>)) -> DispatchResult {
@@ -250,6 +306,8 @@ pub mod pallet {
 		NFTTokenClassDestroyed(T::AccountId, T::ClassId),
 		NFTBoughtFromPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
 		NFTSoldToPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
+		NFTTokenPoolCreated(T::AccountId, T::ClassId),
+		NFTTokenPoolDestroyed(T::AccountId, T::ClassId),
 	}
 
 	#[pallet::error]
