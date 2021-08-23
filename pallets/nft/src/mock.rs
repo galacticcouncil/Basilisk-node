@@ -46,11 +46,18 @@ impl pallet_nft::Config for Test {
 	type ClassBondDuration = ClassBondDuration;
 }
 
+parameter_types! {
+	pub const MaxClassMetadata: u32 = 1024;
+	pub const MaxTokenMetadata: u32 = 1024;
+}
+
 impl orml_nft::Config for Test {
 	type ClassId = u64;
 	type TokenId = u64;
 	type ClassData = pallet_nft::ClassData;
 	type TokenData = pallet_nft::TokenData;
+	type MaxClassMetadata = MaxClassMetadata;
+	type MaxTokenMetadata = MaxTokenMetadata;
 }
 
 parameter_types! {

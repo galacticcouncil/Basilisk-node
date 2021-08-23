@@ -1,68 +1,62 @@
 [package]
-authors = ['GalacticCoucil']
-description = 'Transaction multi currency payment support module'
-edition = '2018'
-homepage = 'https://github.com/galacticcouncil/basilisk-node'
-license = 'Apache 2.0'
-name = 'pallet-transaction-multi-payment'
-repository = 'https://github.com/galacticcouncil/basilisk-node'
-version = '4.1.0'
+name = "pallet-transaction-multi-payment"
+version = "4.1.0"
+description = "Transaction multi currency payment support module"
+authors = ["GalacticCoucil"]
+edition = "2018"
+homepage = "https://github.com/galacticcouncil/basilisk-node"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/basilisk-node"
 
 [package.metadata.docs.rs]
-targets = ['x86_64-unknown-linux-gnu']
+targets = ["x86_64-unknown-linux-gnu"]
 
 [build-dependencies]
-substrate-wasm-builder = '4.0.0'
-
-# alias "parity-scale-code" to "codec"
-[dependencies.codec]
-default-features = false
-features = ['derive']
-package = 'parity-scale-codec'
-version = '2.0.0'
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
 [dependencies]
-primitive-types = {default-features = false, version = '0.8.0'}
-serde = {features = ['derive'], optional = true, version = '1.0.101'}
+codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "2.0.0" }
+primitive-types = { default-features = false, version = "0.8.0" }
+serde = { features = ["derive"], optional = true, version = "1.0.101" }
 
 # Local dependecies
-primitives = {path = '../../primitives', default-features = false}
+primitives = { path = "../../primitives", default-features = false }
 
 # ORML dependencies
-orml-tokens = {default-features = false, version = "0.4.1-dev"}
-orml-traits = {default-features = false, version = "0.4.1-dev"}
-orml-utilities = {default-features = false, version = "0.4.1-dev"}
+orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
+orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
+orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
 
 # Substrate dependencies
-frame-support = {default-features = false, version = '3.0.0'}
-frame-system = {default-features = false, version = '3.0.0'}
-sp-api = {default-features = false, version = '3.0.0'}
-sp-core = {default-features = false, version = '3.0.0'}
-sp-runtime = {default-features = false, version = '3.0.0'}
-sp-std = {default-features = false, version = '3.0.0'}
-pallet-transaction-payment = {default-features = false, version = '3.0.0'}
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 
 # These 2 dependencies are for testing only. But need to be here for benchmarking pallet - could not figure out why yet
-pallet-asset-registry = {path = '../asset-registry', default-features = false}
-pallet-balances = {default-features = false, version = '3.0.0'}
+pallet-asset-registry = { path = "../asset-registry", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 
 [dev-dependencies]
-orml-currencies = {default-features = false, version = "0.4.1-dev"}
-pallet-xyk = {path = '../xyk', default-features = false}
-sp-io = {default-features = false, version = '3.0.0'}
+orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
+pallet-xyk = { path = "../xyk", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 
 [features]
-default = ['std']
+default = ["std"]
 std = [
-  'serde/std',
-  'codec/std',
-  'sp-core/std',
-  'sp-api/std',
-  'frame-support/std',
-  'frame-system/std',
-  'sp-runtime/std',
-  'orml-tokens/std',
-  'orml-traits/std',
-  'pallet-balances/std',
-  'pallet-asset-registry/std',
+    "serde/std",
+    "codec/std",
+    "sp-core/std",
+    "sp-api/std",
+    "frame-support/std",
+    "frame-system/std",
+    "sp-runtime/std",
+    "orml-tokens/std",
+    "orml-traits/std",
+    "pallet-balances/std",
+    "pallet-asset-registry/std",
 ]

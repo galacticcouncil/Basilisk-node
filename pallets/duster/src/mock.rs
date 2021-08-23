@@ -1,7 +1,7 @@
 use crate as duster;
 
 use frame_support::parameter_types;
-use frame_support::traits::{GenesisBuild, OnKilledAccount};
+use frame_support::traits::{Nothing, GenesisBuild, OnKilledAccount};
 
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
@@ -141,6 +141,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
+	type DustRemovalWhitelist = Nothing;
 }
 
 impl orml_currencies::Config for Test {

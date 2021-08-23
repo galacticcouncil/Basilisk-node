@@ -35,7 +35,7 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{EnsureOrigin, Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote},
+	traits::{EnsureOrigin, Contains, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote, Nothing},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
@@ -118,7 +118,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 13,
+	spec_version: 14,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -185,41 +185,11 @@ pub fn native_version() -> NativeVersion {
 }
 
 pub struct BaseFilter;
-impl Filter<Call> for BaseFilter {
-	fn filter(call: &Call) -> bool {
+impl Contains<Call> for BaseFilter {
+	fn contains(call: &Call) -> bool {
 		match call {
-			Call::System(_)
-			| Call::Timestamp(_)
-			| Call::ParachainSystem(_)
-			| Call::Elections(_)
-			| Call::Democracy(_)
-			| Call::Scheduler(_)
-			| Call::Council(_)
-			| Call::TechnicalCommittee(_)
-			| Call::Treasury(_)
-			| Call::Authorship(_)
-			| Call::CollatorSelection(_)
-			| Call::Session(_)
-			| Call::Balances(_)
-			| Call::AssetRegistry(_)
-			| Call::Currencies(_)
-			| Call::Exchange(_)
-			| Call::MultiTransactionPayment(_)
-			| Call::Tokens(_)
-			| Call::Tips(_)
-			| Call::LBP(_)
-			| Call::Utility(_)
-			| Call::Vesting(_)
-			| Call::NFT(_)
-			| Call::CumulusXcm(_)
-			| Call::XTokens(_)
-			| Call::XcmpQueue(_)
-			| Call::DmpQueue(_)
-			| Call::PolkadotXcm(_)
-			| Call::Duster(_)
-			| Call::Sudo(_) => true,
-
 			Call::XYK(_) => false,
+			_ => true,
 		}
 	}
 }
@@ -395,6 +365,7 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = MaxLocks;
+	type DustRemovalWhitelist = Nothing;
 }
 
 impl orml_currencies::Config for Runtime {
@@ -483,6 +454,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 
 impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
+	type DisabledValidators = ();
 }
 
 impl parachain_info::Config for Runtime {}
@@ -504,11 +476,18 @@ impl pallet_nft::Config for Runtime {
 	type ClassBondDuration = ClassBondDuration;
 }
 
+parameter_types! {
+	pub const MaxClassMetadata: u32 = 1024;
+	pub const MaxTokenMetadata: u32 = 1024;
+}
+
 impl orml_nft::Config for Runtime {
 	type ClassId = u64;
 	type TokenId = u64;
 	type ClassData = pallet_nft::ClassData;
 	type TokenData = pallet_nft::TokenData;
+	type MaxClassMetadata = MaxClassMetadata;
+	type MaxTokenMetadata = MaxTokenMetadata;
 }
 
 parameter_types! {
@@ -848,7 +827,7 @@ construct_runtime!(
 		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
 
 		// Parachain
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
 
 		// XCM

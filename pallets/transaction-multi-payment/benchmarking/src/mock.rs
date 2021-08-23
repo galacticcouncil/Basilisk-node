@@ -69,7 +69,7 @@ frame_support::construct_runtime!(
 				 Currencies: orml_currencies::{Pallet, Event<T>},
 				 Tokens: orml_tokens::{Pallet, Event<T>},
 				 AssetRegistry: pallet_asset_registry::{Pallet, Storage},
-				 transaction_payment: pallet_transaction_payment::{Pallet, Storage},
+				 TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		 }
 
 );
@@ -186,6 +186,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
+	type DustRemovalWhitelist = ();
 }
 
 impl orml_currencies::Config for Test {

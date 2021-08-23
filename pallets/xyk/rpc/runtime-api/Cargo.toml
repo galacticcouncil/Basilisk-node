@@ -1,38 +1,32 @@
 [package]
-authors = ['GalacticCouncil']
-license = 'Apache 2.0'
 name = "pallet-xyk-rpc-runtime-api"
-repository = 'https://github.com/galacticcouncil/basilisk-node'
-version = '3.0.0'
+version = "3.0.0"
+authors = ["GalacticCouncil"]
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/basilisk-node"
 edition = "2018"
 
 [package.metadata.docs.rs]
-targets = ['x86_64-unknown-linux-gnu']
+targets = ["x86_64-unknown-linux-gnu"]
 
 [build-dependencies]
-substrate-wasm-builder = '4.0.0'
-
-# alias "parity-scale-code" to "codec"
-[dependencies.codec]
-default-features = false
-features = ['derive']
-package = 'parity-scale-codec'
-version = '2.0.0'
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
 [dependencies]
-serde = { features = ['derive'], optional = true, version = '1.0.101' }
+codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "2.0.0" }
+serde = { features = ["derive"], optional = true, version = "1.0.101" }
 
 # Substrate dependencies
-sp-std = { default-features = false, version = '3.0.0' }
-sp-api = { default-features = false, version = '3.0.0' }
-sp-runtime = { default-features = false, version = '3.0.0' }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 
 [features]
 default = ["std"]
 std = [
-	"serde",
-	"codec/std",
-	"sp-api/std",
-	"sp-runtime/std",
-	"sp-std/std",
+    "serde",
+    "codec/std",
+    "sp-api/std",
+    "sp-runtime/std",
+    "sp-std/std",
 ]

@@ -133,13 +133,13 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_create_class::<Test>());
-			assert_ok!(test_benchmark_mint::<Test>());
-			assert_ok!(test_benchmark_transfer::<Test>());
-			assert_ok!(test_benchmark_burn::<Test>());
-			assert_ok!(test_benchmark_destroy_class::<Test>());
-			assert_ok!(test_benchmark_buy_from_pool::<Test>());
-			assert_ok!(test_benchmark_sell_to_pool::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_create_class());
+			assert_ok!(Pallet::<Test>::test_benchmark_mint());
+			assert_ok!(Pallet::<Test>::test_benchmark_transfer());
+			assert_ok!(Pallet::<Test>::test_benchmark_burn());
+			assert_ok!(Pallet::<Test>::test_benchmark_destroy_class());
+			assert_ok!(Pallet::<Test>::test_benchmark_buy_from_pool());
+			assert_ok!(Pallet::<Test>::test_benchmark_sell_to_pool());
 		});
 	}
 }
