@@ -20,12 +20,10 @@
 //! ## Overview
 //!
 
-//NOTE:
-
 //TODO:
 //  * add overview comment
-//  * replace unwrap() - may panic
 //  * remove dependencies on our types
+//  * check math (tests)
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -165,6 +163,13 @@ pub mod pallet {
 
 		pub fn claim_rewards(who: &T::AccountId, pool_id: PoolId<T>, now: PeriodIndex) -> Result<(), Error<T>> {
 			LiquidityProviders::<T>::try_mutate(pool_id.clone(), who, |lp| -> Result<(), Error<T>> {
+				let lp = match lp {
+					Some(lp) => lp,
+					None => {
+						return Ok(());
+					}
+				};
+
 				let mut snapshots = Snapshots::<T>::try_get(pool_id.clone()).unwrap_or_default();
 
 				let offset: usize = sp_std::cmp::max(snapshots.len().try_into().unwrap_or(0) - lp.claim_from, 0)
@@ -172,7 +177,6 @@ pub mod pallet {
 					.unwrap_or(0);
 
 				let mut acc_rewards: Balance = 0;
-				//TODO: ckeck math if some period is not skipped
 				let weight = Self::get_loyalty_weight_in(now, lp.claim_from, T::LoyaltyWeightIncrement::get())?;
 				snapshots
 					.iter_mut()
@@ -199,19 +203,21 @@ pub mod pallet {
 		}
 
 		pub fn remove_shares(who: &T::AccountId, pool_id: PoolId<T>, now: PeriodIndex) -> Result<(), Error<T>> {
-			//TODO: First check if user is in pool
-			let lp = LiquidityProviders::<T>::take(pool_id.clone(), who.clone());
-            
-            
+			let lp = match LiquidityProviders::<T>::take(pool_id.clone(), who.clone()) {
+				Some(lp) => lp,
+				None => {
+					return Ok(());
+				}
+			};
 
 			Self::claim_rewards(who, pool_id.clone(), now)?;
 
-			CurrentState::<T>::try_mutate(pool_id.clone(), |cs| -> Result<(), Error<T>> {
+			CurrentState::<T>::try_mutate(pool_id.clone(), |current_state| -> Result<(), Error<T>> {
 				//this will work if loyalty weight change is 1 bettween period
 				//FIXME: calculate with different loyalty weight change
 
-				if let Some(v) = cs.total_weighted_shares.checked_sub(lp.shares) {
-					cs.total_weighted_shares = v;
+				if let Some(v) = current_state.total_weighted_shares.checked_sub(lp.shares) {
+					current_state.total_weighted_shares = v;
 				} else {
 					return Err(Error::<T>::Overflow);
 				}
@@ -222,10 +228,14 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Create snapshot from "current state" and reward it. It will initialize new "current
-		/// state"
-		/// NOTE: this should never fail (on_initialize)
-		pub fn snapshot_and_reward(pool_id: PoolId<T>, i: PeriodIndex, rewards: Balance) {
+		/// Create snapshot from "current state"(running period) and reward it. It will initialize new "current
+		/// state" for pool. Number of stored snapshots is limitted and rewards from discarded
+		/// snapshot will be added to next oldedst snapshot rewards.
+		///
+		/// pool_id - pool id to create snapshot for and reward it
+		/// now_idx - index ending period. This index will be used for crated snapshot
+		/// rewards - rewas for current period
+		pub fn snapshot_and_reward(pool_id: PoolId<T>, now_idx: PeriodIndex, rewards: Balance) {
 			CurrentState::<T>::mutate(pool_id.clone(), |cs| {
 				cs.rewards = rewards;
 				let new_current_state = PoolState::default();
@@ -236,9 +246,9 @@ pub mod pallet {
 					let removed_s = snapshots.remove(0);
 
 					//move rewards from discarded snapshot to next oldest
-					snapshots[0].rewards = snapshots[0].rewards.checked_add(removed_s.rewards).unwrap();
+					snapshots[0].rewards = snapshots[0].rewards.saturating_add(removed_s.rewards);
 				}
-				cs.period = i;
+				cs.period = now_idx;
 				snapshots.push(cs.clone());
 
 				*cs = new_current_state;
