@@ -79,9 +79,8 @@ pub mod pallet {
 		#[pallet::constant]
 		type MaxSnapshots: Get<u16>;
 
-		/// Loyalty bonus for NOT cliaming rewards. This is used in loyalty weight calculation.
-		///
-        /// Loyalty weight calculation: (start_period - end_period) ^ LoyaltyWeightBonus 
+		/// Loyalty bonus(exponent) for NOT cliaming rewards. This vlaue is used in loyalty weight calculation.
+		/// Loyalty weight calculation: (start_period - end_period) ^ LoyaltyWeightBonus
 		#[pallet::constant]
 		type LoyaltyWeightBonus: Get<u32>;
 
@@ -90,6 +89,7 @@ pub mod pallet {
 	}
 
 	#[pallet::error]
+	#[derive(PartialEq)]
 	pub enum Error<T> {
 		/// Math owerflow error
 		Overflow,
@@ -168,9 +168,9 @@ pub mod pallet {
 
 				let mut acc_rewards: Balance = 0;
 				let weight = Self::get_loyalty_weight_for(lp.claim_from, now, T::LoyaltyWeightBonus::get())?;
-                if weight.is_zero() {
-                    return Ok(());
-                }
+				if weight.is_zero() {
+					return Ok(());
+				}
 				snapshots
 					.iter_mut()
 					.skip(offset)
@@ -255,7 +255,7 @@ impl<T: Config> Pallet<T> {
 	/// This will result in lower loyalty weight for reward calulation in the next claim.
 	/// Maximum slash(100%) will result in returning `now` index which means reset to 0.
 	///
-	/// New index calculation: claim_from + floor(slash[%] * (now - claim_from))
+	/// New index calculation: `claim_from + floor(slash[%] * (now - claim_from))`
 	///
 	/// Parameters:
 	/// - `claim_from`: current `claim_from` period index of liquidity provider
@@ -270,7 +270,7 @@ impl<T: Config> Pallet<T> {
 	/// This function calculate and return loyalty weight for periods range e.g from period 10 to
 	/// period 20.
 	///
-	/// Weight calculation: (to - from) ^ weight_increment
+	/// Weight calculation: `(to - from) ^ weight_increment`
 	///
 	/// Parameters:
 	/// - `from`: start of the range to calculate loyalty weight for
@@ -289,19 +289,41 @@ impl<T: Config> Pallet<T> {
 			.ok_or(Error::<T>::Overflow)
 	}
 
+	/// This function compute weighted shares used to calculate amout of reward.
+	///
+	/// Weighted shares calulation: `shares * weight`
+	///
+	/// Parameters:
+	/// - `shares`: amount of shares liquidity provider own
+	/// - `weight`: loyalty weight of liquidity provider for NOT claiming rewards
+	///
+	/// Return weighted shares amount
 	fn get_weighted_shares(shares: Share, weight: LoyaltyWeight) -> Result<Balance, Error<T>> {
 		shares.checked_mul(weight).ok_or(Error::<T>::Overflow)
 	}
 
+	/// This function compute and return amount of rewards account can claim in snapshot based on weighted shares amount.
+	/// This function should be called for every snapshot account is claiming rewards
+	///
+	/// Rewards calculation: `(weighted_shares * totalt_rewards) / total_weighted_shares`
+	///
+	/// Parameters:
+	///
+	/// - `weighted_shares`: amount of weighted shares owend by account
+	/// - `total_rewards`: amount of total rewards accumulated in the pool in snapshot
+	/// - `total_weighted_shares`:  sum of all weighted shares in snapshot
+	///
+	/// Return amount of reward to pay
 	fn get_weighted_rewards(
-		weighted_shares: LoyaltyWeight,
+		weighted_shares: Share,
 		total_rewards: Balance,
 		total_weighted_shares: Balance,
 	) -> Result<Balance, Error<T>> {
-		weighted_shares
+		Ok(weighted_shares
 			.checked_mul(total_rewards)
 			.ok_or(Error::<T>::Overflow)?
 			.checked_div(total_weighted_shares)
-			.ok_or(Error::<T>::Overflow)
+			.ok_or(Error::<T>::Overflow)?
+			.min(total_rewards))
 	}
 }
