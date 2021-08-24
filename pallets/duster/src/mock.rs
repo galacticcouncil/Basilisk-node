@@ -19,7 +19,6 @@ use sp_runtime::{
 
 use frame_support::weights::Weight;
 use primitives::Amount;
-use sp_runtime::traits::Zero;
 use sp_std::cell::RefCell;
 use sp_std::vec::Vec;
 
@@ -106,7 +105,7 @@ impl system::Config for Test {
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		1u128
 	};
 }
 

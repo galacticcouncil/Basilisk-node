@@ -351,7 +351,10 @@ impl pallet_sudo::Config for Runtime {
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		// Dusting is handled by duster pallet.
+		// However, to make sure that account is reaped/killed and storage updated, ED must be > 0
+		// On ED = 0 - accounts are never reaped.
+		1u128
 	};
 }
 
