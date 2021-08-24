@@ -41,6 +41,10 @@ pub const ASSET_PAIR_B: AssetPair = AssetPair {
 	asset_in: 1_000,
 	asset_out: 3_000,
 };
+pub const ASSET_PAIR_C: AssetPair = AssetPair {
+	asset_in: 1_000,
+	asset_out: 4_000,
+};
 
 pub const PRICE_ENTRY_1: PriceEntry = PriceEntry {
 	price: Price::from_inner(2000000000000000000),

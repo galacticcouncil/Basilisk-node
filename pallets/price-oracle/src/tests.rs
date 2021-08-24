@@ -17,10 +17,13 @@
 
 use super::*;
 pub use crate::mock::{
-	Event as TestEvent, ExtBuilder, Origin, PriceOracle, System, Test, ASSET_PAIR_A, ASSET_PAIR_B, PRICE_ENTRY_1,
-	PRICE_ENTRY_2,
+	Event as TestEvent, ExtBuilder, Origin, PriceOracle, System, Test, ASSET_PAIR_A, ASSET_PAIR_B, ASSET_PAIR_C,
+	PRICE_ENTRY_1, PRICE_ENTRY_2,
 };
-use frame_support::{assert_storage_noop, traits::OnInitialize};
+use frame_support::{
+	assert_storage_noop,
+	traits::{OnFinalize, OnInitialize},
+};
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let ext = ExtBuilder.build();
@@ -45,19 +48,75 @@ fn expect_events(e: Vec<TestEvent>) {
 fn add_new_asset_pair_should_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
+		PriceOracle::on_initialize(3);
+
 		assert_eq!(PriceOracle::num_of_assets(), 0);
+		assert_eq!(PriceOracle::new_assets(), vec![AssetPairId::new(); 0]);
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			false
 		);
+
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
+
+		assert_eq!(PriceOracle::num_of_assets(), 0);
+		assert_eq!(PriceOracle::new_assets(), vec![ASSET_PAIR_A.name()]);
+		assert_eq!(
+			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
+			false
+		);
+
+		PriceOracle::on_finalize(3);
+		System::set_block_number(4);
+		PriceOracle::on_initialize(4);
 
 		assert_eq!(PriceOracle::num_of_assets(), 1);
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			true
 		);
-		expect_events(vec![Event::PoolRegistered(ASSET_PAIR_A).into()]);
+
+		assert_eq!(PriceOracle::new_assets(), vec![AssetPairId::new(); 0]);
+
+		PriceOracle::on_create_pool(ASSET_PAIR_B);
+		PriceOracle::on_create_pool(ASSET_PAIR_C);
+
+		assert_eq!(PriceOracle::num_of_assets(), 1);
+
+		let mut vec_assets = vec![ASSET_PAIR_B.name(), ASSET_PAIR_C.name()];
+		vec_assets.sort_unstable();
+
+		assert_eq!(PriceOracle::new_assets(), vec_assets);
+		assert_eq!(
+			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_B.name(), BucketQueue::default())),
+			false
+		);
+		assert_eq!(
+			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_C.name(), BucketQueue::default())),
+			false
+		);
+
+		PriceOracle::on_finalize(4);
+		System::set_block_number(5);
+		PriceOracle::on_initialize(5);
+
+		assert_eq!(PriceOracle::num_of_assets(), 3);
+		assert_eq!(
+			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_B.name(), BucketQueue::default())),
+			true
+		);
+		assert_eq!(
+			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_C.name(), BucketQueue::default())),
+			true
+		);
+
+		assert_eq!(PriceOracle::new_assets(), vec![AssetPairId::new(); 0]);
+
+		expect_events(vec![
+			Event::PoolRegistered(ASSET_PAIR_A).into(),
+			Event::PoolRegistered(ASSET_PAIR_B).into(),
+			Event::PoolRegistered(ASSET_PAIR_C).into(),
+		]);
 	});
 }
 
@@ -65,13 +124,15 @@ fn add_new_asset_pair_should_work() {
 fn add_existing_asset_pair_should_not_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
+		PriceOracle::on_initialize(3);
+
 		assert_eq!(
 			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
 			false
 		);
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 		assert_storage_noop!(PriceOracle::on_create_pool(ASSET_PAIR_A));
-		expect_events(vec![]);
+		expect_events(vec![Event::PoolRegistered(ASSET_PAIR_A).into()]);
 	});
 }
 
@@ -82,7 +143,10 @@ fn on_trade_should_work() {
 		PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);
 		PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_2);
 		let price_entry = PRICE_ENTRY_1.calculate_new_price_entry(&PRICE_ENTRY_2);
-		assert_eq!(<PriceDataAccumulator<Test>>::try_get(ASSET_PAIR_A.name()).ok(), price_entry);
+		assert_eq!(
+			<PriceDataAccumulator<Test>>::try_get(ASSET_PAIR_A.name()).ok(),
+			price_entry
+		);
 	});
 }
 
@@ -101,7 +165,10 @@ fn on_trade_handler_should_work() {
 		};
 
 		PriceOracleHandler::<Test>::on_trade(&amm_transfer, 2_000);
-		assert_eq!(<PriceDataAccumulator<Test>>::try_get(ASSET_PAIR_A.name()), Ok(PRICE_ENTRY_1));
+		assert_eq!(
+			<PriceDataAccumulator<Test>>::try_get(ASSET_PAIR_A.name()),
+			Ok(PRICE_ENTRY_1)
+		);
 	});
 }
 
@@ -217,7 +284,13 @@ fn price_normalization_should_work() {
 			liquidity_amount: 2_000,
 		};
 
-		let result = PriceEntry::default().calculate_new_price_entry(&first_entry).unwrap().calculate_new_price_entry(&second_entry).unwrap().calculate_new_price_entry(&third_entry).unwrap();
+		let result = PriceEntry::default()
+			.calculate_new_price_entry(&first_entry)
+			.unwrap()
+			.calculate_new_price_entry(&second_entry)
+			.unwrap()
+			.calculate_new_price_entry(&third_entry)
+			.unwrap();
 		assert_eq!(price_entry, result);
 	});
 }
@@ -226,15 +299,22 @@ fn price_normalization_should_work() {
 fn update_data_should_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
+		PriceOracle::on_initialize(3);
 
 		PriceOracle::on_create_pool(ASSET_PAIR_B);
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
+
+		PriceOracle::on_finalize(3);
+		System::set_block_number(4);
+		PriceOracle::on_initialize(4);
 
 		PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);
 		PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_2);
 		PriceOracle::on_trade(ASSET_PAIR_B, PRICE_ENTRY_1);
 
-		PriceOracle::update_data();
+		PriceOracle::on_finalize(4);
+		System::set_block_number(5);
+		PriceOracle::on_initialize(5);
 
 		let data_ten_a = PriceOracle::price_data_ten()
 			.iter()
@@ -268,16 +348,26 @@ fn update_data_should_work() {
 fn update_data_with_incorrect_input_should_not_work() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(3);
+		PriceOracle::on_initialize(3);
 
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 
-		PriceOracle::on_trade(ASSET_PAIR_A, PriceEntry {
-			price: Price::from(1),
-			trade_amount: Zero::zero(),
-			liquidity_amount: Zero::zero(),
-		});
+		PriceOracle::on_finalize(3);
+		System::set_block_number(4);
+		PriceOracle::on_initialize(4);
 
-		PriceOracle::update_data();
+		PriceOracle::on_trade(
+			ASSET_PAIR_A,
+			PriceEntry {
+				price: Price::from(1),
+				trade_amount: Zero::zero(),
+				liquidity_amount: Zero::zero(),
+			},
+		);
+
+		PriceOracle::on_finalize(4);
+		System::set_block_number(5);
+		PriceOracle::on_initialize(5);
 
 		let data_ten = PriceOracle::price_data_ten()
 			.iter()
@@ -297,12 +387,12 @@ fn update_data_with_incorrect_input_should_not_work() {
 #[test]
 fn update_empty_data_should_work() {
 	new_test_ext().execute_with(|| {
-
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 
-        for i in 0..1002 {
+		for i in 0..1002 {
+			PriceOracle::on_initialize(i);
 			System::set_block_number(i);
-			PriceOracle::update_data();
+			PriceOracle::on_finalize(i);
 		}
 
 		let data_ten = PriceOracle::price_data_ten()
@@ -452,17 +542,17 @@ fn continuous_trades_should_work() {
 	})
 }
 
-
 #[test]
 fn stable_price_should_work() {
 	new_test_ext().execute_with(|| {
 		let num_of_iters = BucketQueue::BUCKET_SIZE.pow(3);
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 
-		for i in num_of_iters - 2 .. 2 * num_of_iters + 2{
+		for i in num_of_iters - 2..2 * num_of_iters + 2 {
+			PriceOracle::on_initialize(i.into());
 			System::set_block_number(i.into());
 			PriceOracle::on_trade(ASSET_PAIR_A, PRICE_ENTRY_1);
-			PriceOracle::on_initialize(i.into());
+			PriceOracle::on_finalize(i.into());
 		}
 
 		let data_ten = PriceOracle::price_data_ten()
@@ -495,9 +585,10 @@ fn stable_price_should_work() {
 			}
 		);
 
-		for i in num_of_iters .. 2 * num_of_iters {
-			System::set_block_number(i.into());
+		for i in num_of_iters..2 * num_of_iters {
 			PriceOracle::on_initialize(i.into());
+			System::set_block_number(i.into());
+			PriceOracle::on_finalize(i.into());
 		}
 
 		let data_ten = PriceOracle::price_data_ten()
