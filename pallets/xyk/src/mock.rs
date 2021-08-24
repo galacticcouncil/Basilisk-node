@@ -23,7 +23,7 @@ use orml_traits::parameter_type_with_key;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, Zero},
+	traits::{BlakeTwo256, IdentityLookup, One},
 };
 
 use frame_support::traits::{GenesisBuild, Get};
@@ -108,7 +108,7 @@ impl system::Config for Test {
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		One::one()
 	};
 }
 
