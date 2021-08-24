@@ -15,14 +15,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-use crate::{self as incentives, pallet::Config};
-use primitives::BlockNumber;
+use crate::pallet::Config;
 use sp_core::H256;
 use frame_support::parameter_types;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup}, testing::Header,
 };
 use frame_system as system;
+use crate as rewards;
+use sp_arithmetics::Percent;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>; 
@@ -34,13 +35,13 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-        Incentives: incentives::{Pallet, Event<T>},
+        Rewards: rewards::{Pallet, Storage, Call},
 	}
 );
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
-	pub const SS58Prefix: u8 = 42;
+	pub const SS58Prefix: u8 = 63;
 }
 
 impl system::Config for Test {
@@ -65,16 +66,36 @@ impl system::Config for Test {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
-	type SS58Prefix = SS58Prefix;
+	type SS58Prefix = ();
     type OnSetCode = ();
 }
 
 parameter_types! {
-    pub AccumulatePeriod: BlockNumber = 5;
+    pub const MaxSnapshots:u16 = 5;
+    pub const LoyaltyWeightBonus: u32 = 2;
+    pub const LoyaltySlash: Percent = Percent::from_percent(50);
 }
 
 impl Config for Test {
-	type Event = Event;
-    type AccumulatePeriod = AccumulatePeriod;
+    type MaxSnapshots = MaxSnapshots; 
+    type LoyaltyWeightBonus = LoyaltyWeightBonus;
+    type LoyaltySlash = LoyaltySlash;
 }
 
+pub struct ExtBuilder;
+
+impl Default for ExtBuilder {
+    fn default() -> Self {
+        ExtBuilder
+    }
+}
+
+impl ExtBuilder {
+	pub fn build(self) -> sp_io::TestExternalities {
+		let t = frame_system::GenesisConfig::default()
+			.build_storage::<Test>()
+			.unwrap();
+
+		t.into()
+	}
+}

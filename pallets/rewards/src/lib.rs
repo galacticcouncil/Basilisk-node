@@ -22,7 +22,6 @@
 
 //TODO:
 //  * add overview comment
-//  * remove dependencies on our types
 //  * check math (tests)
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -31,7 +30,6 @@ use codec::{Decode, Encode};
 
 pub use pallet::*;
 
-use primitives::Balance;
 use sp_runtime::RuntimeDebug;
 
 #[cfg(test)]
@@ -41,13 +39,14 @@ mod mock;
 mod tests;
 
 use frame_support::traits::Get;
-use primitives::Balance as LoyaltyWeight;
-use primitives::Balance as Share;
-use sp_arithmetics::Perbill;
+use sp_arithmetics::Percent;
 pub type PoolId<T> = <T as frame_system::Config>::AccountId;
 pub type PeriodIndex = u128;
+pub type Balance = u128;
+pub type Share = u128;
+pub type LoyaltyWeight = u128;
 
-/// Pool state at the end of i-th period
+/// Pool state at the end of the i-th period
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, Default)]
 pub struct PoolState {
 	total_weighted_shares: Share,
@@ -75,28 +74,19 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// Number of blocks per snapshot. Rewards are acumulated for each snaphot
-		#[pallet::constant]
-		type SnaphotSize: Get<Self::BlockNumber>;
-
 		/// Maximum snapshots in storage per pool. Oldest snapshtots are destroyed and rewards are
-		/// moved to next oldest snapshot.
+		/// moved to the next oldest snapshot in case of overflow.
 		#[pallet::constant]
 		type MaxSnapshots: Get<u16>;
 
-		/// Increment for loyalty bonus.
-		/// TWi = (CS - i) ^ LWI
-		/// TWi - time weight in snapshot i
-		///  CS - current snapshot number
-		///  i - i-th snapshot number
-		///  LWI - loayalty weight increment
+		/// Loyalty bonus for NOT cliaming rewards. This is used in loyalty weight calculation.
+		///
+        /// Loyalty weight calculation: (start_period - end_period) ^ LoyaltyWeightBonus 
 		#[pallet::constant]
-		type LoyaltyWeightIncrement: Get<u32>;
+		type LoyaltyWeightBonus: Get<u32>;
 
-		///LoyaltyWeight slash for claiming rewards - e.g 2 LW = LWc / 2;
-		///LW - loyalty weight
-		///LWc - loyalty weight current
-		type LoyaltySlash: Get<Perbill>;
+		///LoyaltyWeight percentage slash for claiming rewards [0-100%]
+		type LoyaltySlash: Get<Percent>;
 	}
 
 	#[pallet::error]
@@ -137,11 +127,11 @@ pub mod pallet {
 			}
 
 			let claimable_period = now + 1;
-			let w = Self::get_loyalty_weight_in(now, claimable_period, T::LoyaltyWeightIncrement::get())?;
+			let w = Self::get_loyalty_weight_for(claimable_period, now, T::LoyaltyWeightBonus::get())?;
 			let s_weighted = Self::get_weighted_shares(amount, w)?;
-			CurrentState::<T>::try_mutate(pool_id.clone(), |cs| -> Result<(), Error<T>> {
-				if let Some(v) = cs.total_weighted_shares.checked_add(s_weighted) {
-					cs.total_weighted_shares = v;
+			CurrentState::<T>::try_mutate(pool_id.clone(), |current_state| -> Result<(), Error<T>> {
+				if let Some(v) = current_state.total_weighted_shares.checked_add(s_weighted) {
+					current_state.total_weighted_shares = v;
 					Ok(())
 				} else {
 					return Err(Error::<T>::Overflow);
@@ -177,7 +167,10 @@ pub mod pallet {
 					.unwrap_or(0);
 
 				let mut acc_rewards: Balance = 0;
-				let weight = Self::get_loyalty_weight_in(now, lp.claim_from, T::LoyaltyWeightIncrement::get())?;
+				let weight = Self::get_loyalty_weight_for(lp.claim_from, now, T::LoyaltyWeightBonus::get())?;
+                if weight.is_zero() {
+                    return Ok(());
+                }
 				snapshots
 					.iter_mut()
 					.skip(offset)
@@ -193,7 +186,7 @@ pub mod pallet {
 					})?;
 
 				Snapshots::<T>::insert(pool_id, snapshots);
-				lp.claim_from = Self::slash_loyalty_weight(lp.claim_from, now);
+				lp.claim_from = Self::slash_loyalty_weight(lp.claim_from, now, T::LoyaltySlash::get());
 
 				Ok(())
 			})?;
@@ -236,8 +229,8 @@ pub mod pallet {
 		/// now_idx - index ending period. This index will be used for crated snapshot
 		/// rewards - rewas for current period
 		pub fn snapshot_and_reward(pool_id: PoolId<T>, now_idx: PeriodIndex, rewards: Balance) {
-			CurrentState::<T>::mutate(pool_id.clone(), |cs| {
-				cs.rewards = rewards;
+			CurrentState::<T>::mutate(pool_id.clone(), |current_state| {
+				current_state.rewards = rewards;
 				let new_current_state = PoolState::default();
 
 				let mut snapshots = Snapshots::<T>::get(pool_id);
@@ -248,29 +241,49 @@ pub mod pallet {
 					//move rewards from discarded snapshot to next oldest
 					snapshots[0].rewards = snapshots[0].rewards.saturating_add(removed_s.rewards);
 				}
-				cs.period = now_idx;
-				snapshots.push(cs.clone());
+				current_state.period = now_idx;
+				snapshots.push(current_state.clone());
 
-				*cs = new_current_state;
+				*current_state = new_current_state;
 			});
 		}
 	}
 }
 
 impl<T: Config> Pallet<T> {
-	/// This function calculate new index used to calculate loyalty weight.
-	/// calculation of new claim from: floor(lolaylty-slash * (now - current-claim-from))
-	pub fn slash_loyalty_weight(claim_from: PeriodIndex, now: PeriodIndex) -> PeriodIndex {
-		claim_from + T::LoyaltySlash::get().mul_floor(now - claim_from)
+	/// This function compute and return new index to `claim_from` after claiming rewards.
+	/// This will result in lower loyalty weight for reward calulation in the next claim.
+	/// Maximum slash(100%) will result in returning `now` index which means reset to 0.
+	///
+	/// New index calculation: claim_from + floor(slash[%] * (now - claim_from))
+	///
+	/// Parameters:
+	/// - `claim_from`: current `claim_from` period index of liquidity provider
+	/// - `now`: actual period index
+	/// - `slash`: percentage slash amount [0 - 100%]
+	///
+	/// Return new index to `claim_from`
+	pub fn slash_loyalty_weight(claim_from: PeriodIndex, now: PeriodIndex, slash: Percent) -> PeriodIndex {
+		claim_from + slash.mul_floor(now - claim_from)
 	}
 
-	fn get_loyalty_weight_in(
-		now_index: PeriodIndex,
-		claimable_index: PeriodIndex,
+	/// This function calculate and return loyalty weight for periods range e.g from period 10 to
+	/// period 20.
+	///
+	/// Weight calculation: (to - from) ^ weight_increment
+	///
+	/// Parameters:
+	/// - `from`: start of the range to calculate loyalty weight for
+	/// - `to`: end of the range to calculate loyalty for
+	/// - `weight_increment`: weight increment for each period in range
+	///
+	/// Return loyalty weight
+	fn get_loyalty_weight_for(
+		from: PeriodIndex,
+		to: PeriodIndex,
 		weight_increment: u32,
 	) -> Result<LoyaltyWeight, Error<T>> {
-		now_index
-			.checked_sub(claimable_index)
+		to.checked_sub(from)
 			.ok_or(Error::<T>::Overflow)?
 			.checked_pow(weight_increment)
 			.ok_or(Error::<T>::Overflow)
