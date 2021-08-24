@@ -1433,6 +1433,7 @@ fn remove_liquidity_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
 	});
@@ -1476,6 +1477,7 @@ fn remove_liquidity_from_paused_pool_should_work() {
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::Paused(1, 2003000).into(),
+			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
 	});
@@ -1514,6 +1516,7 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
 
@@ -1570,6 +1573,7 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, HDX_DOT_POOL_ID, HDX, DOT, 1_000_000_000, 2_000_000_000).into(),
+			frame_system::Event::KilledAccount(HDX_DOT_POOL_ID).into(),
 			Event::LiquidityRemoved(HDX_DOT_POOL_ID, HDX, DOT, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
 	});
@@ -1659,6 +1663,7 @@ fn remove_liquidity_from_finalized_pool_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
 	});
