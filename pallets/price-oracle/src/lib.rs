@@ -102,7 +102,7 @@ pub mod pallet {
 	/// The last entry creates the resulting average price and volume.
 	#[pallet::storage]
 	#[pallet::getter(fn price_accumulator)]
-	pub type PriceDataAccumulator<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, PriceEntry, ValueQuery>;
+	pub type PriceDataAccumulator<T: Config> = StorageMap<_, Twox64Concat, AssetPairId, PriceEntry, ValueQuery>;
 
 	/// The last ten average values corresponding to the last ten blocks.
 	#[pallet::storage]
@@ -113,13 +113,13 @@ pub mod pallet {
 	/// Each average value corresponds to an interval of length ten blocks.
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_hundred)]
-	pub type PriceDataHundred<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, BucketQueue, ValueQuery>;
+	pub type PriceDataHundred<T: Config> = StorageMap<_, Twox64Concat, AssetPairId, BucketQueue, ValueQuery>;
 
 	/// The last ten average values corresponding to the last thousand blocks.
 	/// Each average value corresponds to an interval of length hundred blocks.
 	#[pallet::storage]
 	#[pallet::getter(fn price_data_thousand)]
-	pub type PriceDataThousand<T: Config> = StorageMap<_, Blake2_128Concat, AssetPairId, BucketQueue, ValueQuery>;
+	pub type PriceDataThousand<T: Config> = StorageMap<_, Twox64Concat, AssetPairId, BucketQueue, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
