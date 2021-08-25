@@ -35,7 +35,6 @@ frame_support::construct_runtime!(
 
 parameter_types! {
 	pub ClassBondAmount: Balance = 100;
-	pub ClassBondDuration: u32 = 10;
 	pub MintMaxQuantity: u32 = 100_000;
 	pub MaxMetadataLength: u32 = 256;
 	pub MaxEmoteLength: u32 = 256;
@@ -44,12 +43,15 @@ parameter_types! {
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
 	type ClassBondAmount = ClassBondAmount;
-	type ClassBondDuration = ClassBondDuration;
 	type MintMaxQuantity = MintMaxQuantity;
-	type MaxMetadataLength = MaxMetadataLength;
 	type MaxEmoteLength = MaxEmoteLength;
+}
+
+parameter_types! {
+	pub MaxClassMetadata: u32 = 256;
+	pub MaxTokenMetadata: u32 = 256;
 }
 
 impl orml_nft::Config for Test {
@@ -57,6 +59,8 @@ impl orml_nft::Config for Test {
 	type TokenId = u64;
 	type ClassData = pallet_nft::ClassData;
 	type TokenData = pallet_nft::TokenData;
+	type MaxClassMetadata = MaxClassMetadata;
+	type MaxTokenMetadata = MaxTokenMetadata;
 }
 
 parameter_types! {

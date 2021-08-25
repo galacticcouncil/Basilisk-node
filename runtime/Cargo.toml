@@ -55,7 +55,7 @@ pallet-authorship = { default-features = false, version="3.0.0"}
 
 # ORML dependencies
 orml-currencies = { default-features = false, version = "0.4.1-dev" }
-orml-nft = { default-features = false, version = '0.4.0' }
+orml-nft = { default-features = false, version = '0.4.1-dev' }
 orml-tokens = { default-features = false, version = "0.4.1-dev" }
 orml-traits = { default-features = false, version = "0.4.1-dev" }
 orml-vesting = { default-features = false, version = "0.4.1-dev" }

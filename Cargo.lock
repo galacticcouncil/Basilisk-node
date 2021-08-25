@@ -5068,13 +5068,12 @@ dependencies = [
 
 [[package]]
 name = "orml-nft"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6b52928f5bb44f1b87dee2a4bf10356475c79d8a97ab33042aa111d25ba3b5c"
+version = "0.4.1-dev"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=33d9ac0927ba61e15763ee438721ef92d408271a#33d9ac0927ba61e15763ee438721ef92d408271a"
 dependencies = [
  "frame-support",
  "frame-system",
- "funty",
+ "max-encoded-len",
  "parity-scale-codec 2.1.3",
  "serde",
  "sp-runtime",

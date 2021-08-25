@@ -33,10 +33,10 @@ fn create_class_fails() {
 		assert_noop!(
 			NFTModule::create_class(
 				Origin::signed(ALICE),
-				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
+				vec![1; <Test as orml_nft::Config>::MaxClassMetadata::get() as usize + 1],
 				ClassData { is_pool: true },
 			),
-			Error::<Test>::MetadataTooLong
+			orml_nft::Error::<Test>::MaxMetadataExceeded
 		);
 	})
 }
@@ -71,11 +71,11 @@ fn create_pool_fails() {
 		assert_noop!(
 			NFTModule::create_pool(
 				Origin::signed(ALICE),
-				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
+				vec![1; <Test as orml_nft::Config>::MaxClassMetadata::get() as usize + 1],
 				ClassData { is_pool: true },
 				TEST_PRICE,
 			),
-			Error::<Test>::MetadataTooLong
+			orml_nft::Error::<Test>::MaxMetadataExceeded
 		);
 	})
 }
@@ -135,14 +135,14 @@ fn mint_fails() {
 			NFTModule::mint(
 				Origin::signed(ALICE),
 				0,
-				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
+				vec![1; <Test as orml_nft::Config>::MaxTokenMetadata::get() as usize + 1],
 				TokenData {
 					locked: false,
 					emote: EMOTE.as_bytes().to_vec()
 				},
 				TEST_QUANTITY,
 			),
-			Error::<Test>::MetadataTooLong
+			orml_nft::Error::<Test>::MaxMetadataExceeded
 		);
 
 		assert_noop!(

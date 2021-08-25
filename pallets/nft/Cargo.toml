@@ -16,7 +16,7 @@ codec = { default-features = false, features = ['derive'], package = 'parity-sca
 frame-benchmarking = { version = "3.1.0", default-features = false, optional = true }
 frame-support = { default-features = false, version = '3.0.0' }
 frame-system = { default-features = false, version = '3.0.0' }
-orml-nft = { default-features = false, version = '0.4.0' }
+orml-nft = { default-features = false, version = '0.4.1-dev' }
 orml-utilities = { default-features = false, version = '0.4.1-dev' }
 serde = { version = "1.0.111", optional = true, features = ["derive"] }
 sp-runtime = { default-features = false, version = '3.0.0' }
