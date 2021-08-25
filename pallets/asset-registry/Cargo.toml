@@ -1,18 +1,18 @@
 [package]
 authors = ['GalacticCouncil']
-description = 'FRAME Pallet for asset registry management'
+description = 'Pallet for asset registry management'
 edition = '2018'
 homepage = 'https://github.com/galacticcouncil/basilisk-node'
 license = 'Apache 2.0'
 name = 'pallet-asset-registry'
 repository = 'https://github.com/galacticcouncil/basilisk-node'
-version = '3.1.0'
+version = '0.1.0'
 
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
 
 [build-dependencies]
-substrate-wasm-builder = '4.0.0'
+substrate-wasm-builder = {package = 'substrate-wasm-builder', version = '3.0.0'}
 
 # alias "parity-scale-code" to "codec"
 [dependencies.codec]
@@ -32,14 +32,27 @@ primitives = {path = '../../primitives', default-features = false}
 frame-support = {default-features = false, version = '3.0.0'}
 frame-system = {default-features = false, version = '3.0.0'}
 sp-core = {default-features = false, version = '3.0.0'}
+sp-arithmetic = {default-features = false, version = '3.0.0'}
 sp-runtime = {default-features = false, version = '3.0.0'}
 sp-std = {default-features = false, version = '3.0.0'}
+max-encoded-len = {default-features = false, version = '3.0.0'}
+
+# Optionals
+frame-system-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
+frame-benchmarking = {default-features = false, optional = true, version = '3.1.0'}
+sp-api = {default-features = false, optional = true, version = '3.0.0'}
 
 [dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
+polkadot-xcm = {package = "xcm", version = '0.9.8', default-features = false}
 
 [features]
 default = ['std']
+runtime-benchmarks = [
+  "frame-benchmarking",
+  "frame-system/runtime-benchmarks",
+  "frame-support/runtime-benchmarks",
+]
 std = [
   'serde/std',
   'codec/std',
@@ -49,4 +62,7 @@ std = [
   'sp-core/std',
   'sp-std/std',
   'primitives/std',
+  'max-encoded-len/std',
+  'sp-api/std',
+  'frame-benchmarking/std'
 ]
