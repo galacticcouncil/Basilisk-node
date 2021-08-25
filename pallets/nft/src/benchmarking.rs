@@ -6,7 +6,6 @@ use crate as NFT;
 use frame_benchmarking::{account, benchmarks};
 use frame_support::{traits::Get, BoundedVec};
 use frame_system::RawOrigin;
-use orml_nft::ClassInfo;
 use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::{convert::TryInto, vec};
 
@@ -38,8 +37,7 @@ benchmarks! {
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
 	}: _(RawOrigin::Signed(caller.clone()), class_metadata.clone(), class_data.clone())
 	verify {
-		let new_class = ClassInfo { metadata: bounded_metadata, total_issuance: 0u32.into(), owner: caller, data: class_data };
-		assert_eq!(orml_nft::Pallet::<T>::classes(class_id), Some(new_class));
+		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 1);
 	}
 
 	create_pool {
@@ -53,8 +51,7 @@ benchmarks! {
 		let price: BalanceOf<T> = u32::MAX.into();
 	}: _(RawOrigin::Signed(caller.clone()), class_metadata.clone(), class_data.clone(), price)
 	verify {
-		let new_class = ClassInfo { metadata: bounded_metadata, total_issuance: 0u32.into(), owner: caller, data: class_data };
-		assert_eq!(orml_nft::Pallet::<T>::classes(class_id), Some(new_class));
+		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 1);
 	}
 
 	mint {
@@ -101,7 +98,7 @@ benchmarks! {
 		let class_id = 0u32.into();
 	}: _(RawOrigin::Signed(caller.clone()), class_id)
 	verify {
-		assert_eq!(orml_nft::Pallet::<T>::classes(class_id), None);
+		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 0);
 	}
 
 	destroy_pool {
@@ -113,7 +110,7 @@ benchmarks! {
 		let class_id = 0u32.into();
 	}: _(RawOrigin::Signed(caller.clone()), class_id)
 	verify {
-		assert_eq!(orml_nft::Pallet::<T>::classes(class_id), None);
+		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 0);
 	}
 
 	burn {
@@ -130,7 +127,7 @@ benchmarks! {
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), token)
 	verify {
-		assert_eq!(orml_nft::Pallet::<T>::tokens(class_id, token_id), None);
+		assert_eq!(orml_nft::Pallet::<T>::tokens(class_id, token_id).iter().count(), 0);
 	}
 
 	buy_from_pool {
