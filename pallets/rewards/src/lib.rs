@@ -22,7 +22,9 @@
 
 //TODO:
 //  * add overview comment
-//  * check math (tests)
+//  * payout handler
+//
+//  NOTE: weight increment have to be linear. Can't be variable(exponential e.g)
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -49,15 +51,23 @@ pub type LoyaltyWeight = u128;
 /// Pool state at the end of the i-th period
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, Default)]
 pub struct PoolState {
+	/// Sum of all shares in period
+	total_shares: Share,
+	/// Sum of weighted shares for all cccounts in period
 	total_weighted_shares: Share,
+	/// Rewards accumulated for period
 	rewards: Balance,
+	/// Period to which data is snapshoted
 	period: PeriodIndex,
 }
 
+/// Liquidity provider info
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, Default)]
 pub struct LpInfo {
 	shares: Balance,
-	in_snaphost: PeriodIndex,
+	/// Period in which account added shares
+	in_snapshot: PeriodIndex,
+	/// Period from which loyalty weight is calucated. Account can claim from this period.
 	claim_from: PeriodIndex,
 }
 
@@ -74,17 +84,22 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// Maximum snapshots in storage per pool. Oldest snapshtots are destroyed and rewards are
-		/// moved to the next oldest snapshot in case of overflow.
+		/// Maximum number of snapshots saved in storage per pool. Oldest snapshot accumulate
+		/// rewards from discarded snapshot. In case of owerflow, oldest snapshot is destroyed and
+		/// rewards from this snapshot are moved to next oldest snapshot.
 		#[pallet::constant]
 		type MaxSnapshots: Get<u16>;
 
-		/// Loyalty bonus(exponent) for NOT cliaming rewards. This vlaue is used in loyalty weight calculation.
-		/// Loyalty weight calculation: (start_period - end_period) ^ LoyaltyWeightBonus
+		/// Loyalty bonus for leaving shares in pool and not claiming rewards. This value is used
+		/// to calculate loyalty weight.
+		/// Loyalty weight calculation: (end_period - start_period ) * LoyaltyWeightBonus
 		#[pallet::constant]
 		type LoyaltyWeightBonus: Get<u32>;
 
-		///LoyaltyWeight percentage slash for claiming rewards [0-100%]
+		/// Loyalty weight slash[%] for claiming rewards [0-100%].
+		/// `0` is equal to not slash anything. Loyalty weight continue to accumulate as before.
+		/// `100` is same as reset to 0. Loyalty weight will be accumulated from scratch from this
+		/// point.
 		type LoyaltySlash: Get<Percent>;
 	}
 
@@ -101,7 +116,12 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn current_state)]
-	pub(super) type CurrentState<T: Config> = StorageMap<_, Twox64Concat, PoolId<T>, PoolState, ValueQuery>;
+	/// Currently running period. Shares can be added to this state. Snapshot will be created from
+	/// this state at the end of the period. This storage hold tuple `(running_period_state,
+	/// next_period_state)`. `running_period_state` is state of currenlty running period. Shares
+	/// can be only removed from this state. New shares should be added to `next_period_state`.
+	pub(super) type TmpPoolState<T: Config> =
+		StorageMap<_, Twox64Concat, PoolId<T>, (PoolState, PoolState), ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn liquidity_providers)]
@@ -115,7 +135,18 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {}
 
 	impl<T: Config> Pallet<T> {
-		/// New liquidity added. Rewards will be conting from next period
+		/// Add new shares to pool.
+		///
+		/// !!!Warn: Adding more shares for the same account is not supported. This case will
+		/// result in unfair rewards. e.g account will accumulate loyalty weight for 1 share and
+		/// adding more shares later will result in incorrect loaylty weight for locked shares amount.
+		/// Loyalty weight is calculated only for time (finished periods).
+		///
+		/// Parameters:
+		/// - `who`: account adding shares
+		/// - `pool_id`: pool identifier to which shares are added
+		/// - `amount`: amount of shares added to pool
+		/// - `now`: period index of currently running period
 		pub fn add_shares(
 			who: &T::AccountId,
 			pool_id: PoolId<T>,
@@ -126,16 +157,22 @@ pub mod pallet {
 				return Ok(());
 			}
 
+			// claiming rewards is possible from next "whole" period.
 			let claimable_period = now + 1;
 			let w = Self::get_loyalty_weight_for(claimable_period, now, T::LoyaltyWeightBonus::get())?;
-			let s_weighted = Self::get_weighted_shares(amount, w)?;
-			CurrentState::<T>::try_mutate(pool_id.clone(), |current_state| -> Result<(), Error<T>> {
-				if let Some(v) = current_state.total_weighted_shares.checked_add(s_weighted) {
-					current_state.total_weighted_shares = v;
-					Ok(())
-				} else {
-					return Err(Error::<T>::Overflow);
-				}
+			let shares_weighted = Self::get_weighted_shares(amount, w)?;
+			TmpPoolState::<T>::try_mutate(pool_id.clone(), |tmp_states| -> Result<(), Error<T>> {
+				tmp_states.1.total_weighted_shares = tmp_states
+					.1
+					.total_weighted_shares
+					.checked_add(shares_weighted)
+					.ok_or(Error::<T>::Overflow)?;
+				tmp_states.1.total_shares = tmp_states
+					.1
+					.total_shares
+					.checked_add(amount)
+					.ok_or(Error::<T>::Overflow)?;
+				Ok(())
 			})?;
 
 			LiquidityProviders::<T>::insert(
@@ -143,7 +180,7 @@ pub mod pallet {
 				who,
 				LpInfo {
 					shares: amount,
-					in_snaphost: now,
+					in_snapshot: now,
 					claim_from: claimable_period,
 				},
 			);
@@ -151,6 +188,13 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Payoff rewards without removing shares from pool.
+		///
+		/// Parameters:
+		/// - `who`: account claiming shares
+		/// - `pool_id`: pool identifier to claim rewards for
+		/// -`now`: period index of currently running period. Will be used to caculate loyalty
+		/// weight
 		pub fn claim_rewards(who: &T::AccountId, pool_id: PoolId<T>, now: PeriodIndex) -> Result<(), Error<T>> {
 			LiquidityProviders::<T>::try_mutate(pool_id.clone(), who, |lp| -> Result<(), Error<T>> {
 				let lp = match lp {
@@ -160,28 +204,48 @@ pub mod pallet {
 					}
 				};
 
-				let mut snapshots = Snapshots::<T>::try_get(pool_id.clone()).unwrap_or_default();
+				if lp.claim_from < now {
+					return Ok(());
+				}
 
-				let offset: usize = sp_std::cmp::max(snapshots.len().try_into().unwrap_or(0) - lp.claim_from, 0)
+				// rewards to payoff for all snapshots
+				let mut acc_rewards: Balance = 0;
+
+				let mut snapshots = Snapshots::<T>::try_get(pool_id.clone()).unwrap_or_default();
+				// 0 offset is ok, check is in the iterator
+				let offset: usize = (snapshots.len().try_into().unwrap_or(0) - (now - lp.claim_from))
+					.max(0)
 					.try_into()
 					.unwrap_or(0);
 
-				let mut acc_rewards: Balance = 0;
-				let weight = Self::get_loyalty_weight_for(lp.claim_from, now, T::LoyaltyWeightBonus::get())?;
-				if weight.is_zero() {
-					return Ok(());
-				}
 				snapshots
 					.iter_mut()
 					.skip(offset)
 					.try_for_each(|s| -> Result<(), Error<T>> {
-						let ws = Self::get_weighted_shares(lp.shares, weight)?;
-						let mut reward = Self::get_weighted_rewards(ws, s.rewards, s.total_weighted_shares)?;
+						// this should never happen but better safe than sorry
+						if s.period < lp.claim_from {
+							return Ok(());
+						}
 
-						reward = if reward >= s.rewards { s.rewards } else { reward };
+						let lw = Self::get_loyalty_weight_for(lp.claim_from, s.period, T::LoyaltyWeightBonus::get())?;
+						let weighted_shares = Self::get_weighted_shares(lp.shares, lw)?;
+						let reward = Self::get_weighted_rewards(weighted_shares, s.rewards, s.total_weighted_shares)?
+							.min(s.rewards);
 
 						acc_rewards += reward;
 						s.rewards -= reward;
+						s.total_weighted_shares = s
+							.total_weighted_shares
+							.checked_sub(weighted_shares)
+							.ok_or(Error::<T>::Overflow)?
+							.max(0);
+
+						s.total_shares = s
+							.total_shares
+							.checked_sub(lp.shares)
+							.ok_or(Error::<T>::Overflow)?
+							.max(0);
+
 						Ok(())
 					})?;
 
@@ -195,6 +259,13 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Remove shares from pool and payoff rewards.
+		///
+		/// Parameters:
+		/// - `who`: account removing shares
+		/// - `pool_id`: pool identifier to remove shares from
+		/// - `now`: period index of currently running period. Will be used to caculate loyalty
+		/// weight
 		pub fn remove_shares(who: &T::AccountId, pool_id: PoolId<T>, now: PeriodIndex) -> Result<(), Error<T>> {
 			let lp = match LiquidityProviders::<T>::take(pool_id.clone(), who.clone()) {
 				Some(lp) => lp,
@@ -205,14 +276,24 @@ pub mod pallet {
 
 			Self::claim_rewards(who, pool_id.clone(), now)?;
 
-			CurrentState::<T>::try_mutate(pool_id.clone(), |current_state| -> Result<(), Error<T>> {
-				//this will work if loyalty weight change is 1 bettween period
-				//FIXME: calculate with different loyalty weight change
+			TmpPoolState::<T>::try_mutate(pool_id.clone(), |tmp_states| -> Result<(), Error<T>> {
+				let weight_per_one_period = Self::get_loyalty_weight_for(now - 1, now, T::LoyaltyWeightBonus::get())?;
+				let weight_shares_per_one_period = Self::get_weighted_shares(lp.shares, weight_per_one_period)?;
 
-				if let Some(v) = current_state.total_weighted_shares.checked_sub(lp.shares) {
-					current_state.total_weighted_shares = v;
+				if lp.in_snapshot == now {
+					tmp_states.1.total_weighted_shares = tmp_states
+						.1
+						.total_weighted_shares
+						.checked_sub(weight_shares_per_one_period).ok_or(Error::<T>::Overflow)?;
+
+                    tmp_states.1.total_shares = tmp_states.1.total_shares.checked_sub(lp.shares).ok_or(Error::<T>::Overflow)?;
 				} else {
-					return Err(Error::<T>::Overflow);
+					tmp_states.0.total_weighted_shares = tmp_states
+						.0
+						.total_weighted_shares
+						.checked_sub(weight_shares_per_one_period).ok_or(Error::<T>::Overflow)?;
+                    
+                    tmp_states.0.total_shares = tmp_states.0.total_shares.checked_sub(lp.shares).ok_or(Error::<T>::Overflow)?;
 				}
 
 				Ok(())
@@ -221,17 +302,31 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Create snapshot from "current state"(running period) and reward it. It will initialize new "current
-		/// state" for pool. Number of stored snapshots is limitted and rewards from discarded
+		/// Create snapshot from "current state"(running period) reward it, initialize new "current state" 
+        /// from "next state" and reset "next_state". 
+        /// Number of stored snapshots is limitted and rewards from discarded
 		/// snapshot will be added to next oldedst snapshot rewards.
 		///
 		/// pool_id - pool id to create snapshot for and reward it
-		/// now_idx - index ending period. This index will be used for crated snapshot
+		/// now - index ending period. This index will be used for crated snapshot
 		/// rewards - rewas for current period
-		pub fn snapshot_and_reward(pool_id: PoolId<T>, now_idx: PeriodIndex, rewards: Balance) {
-			CurrentState::<T>::mutate(pool_id.clone(), |current_state| {
-				current_state.rewards = rewards;
-				let new_current_state = PoolState::default();
+		pub fn snapshot_and_reward(pool_id: PoolId<T>, now: PeriodIndex, rewards: Balance) {
+			TmpPoolState::<T>::mutate(pool_id.clone(), |tmp_states| {
+				tmp_states.0.rewards = rewards;
+                // This should never overflow with this values
+				let weight_per_one_period =
+					Self::get_loyalty_weight_for(1, 2, T::LoyaltyWeightBonus::get()).unwrap();
+
+				let weighted_shares_per_one_period = match 
+					Self::get_weighted_shares(tmp_states.0.total_shares, weight_per_one_period) {
+                        Ok(v) => v,
+                        Err(_) => {
+                            //NOTE: better handling for this
+                            u128::MAX
+                        }
+                    };
+
+				tmp_states.0.total_weighted_shares += weighted_shares_per_one_period;
 
 				let mut snapshots = Snapshots::<T>::get(pool_id);
 
@@ -241,10 +336,11 @@ pub mod pallet {
 					//move rewards from discarded snapshot to next oldest
 					snapshots[0].rewards = snapshots[0].rewards.saturating_add(removed_s.rewards);
 				}
-				current_state.period = now_idx;
-				snapshots.push(current_state.clone());
 
-				*current_state = new_current_state;
+				tmp_states.0.period = now;
+				snapshots.push(tmp_states.0.clone());
+
+				*tmp_states = (tmp_states.1.clone(), PoolState::default());
 			});
 		}
 	}
@@ -270,7 +366,7 @@ impl<T: Config> Pallet<T> {
 	/// This function calculate and return loyalty weight for periods range e.g from period 10 to
 	/// period 20.
 	///
-	/// Weight calculation: `(to - from) ^ weight_increment`
+	/// Weight calculation: `(to - from) * weight_increment`
 	///
 	/// Parameters:
 	/// - `from`: start of the range to calculate loyalty weight for
@@ -285,7 +381,7 @@ impl<T: Config> Pallet<T> {
 	) -> Result<LoyaltyWeight, Error<T>> {
 		to.checked_sub(from)
 			.ok_or(Error::<T>::Overflow)?
-			.checked_pow(weight_increment)
+			.checked_mul(weight_increment.into())
 			.ok_or(Error::<T>::Overflow)
 	}
 
@@ -327,3 +423,4 @@ impl<T: Config> Pallet<T> {
 			.min(total_rewards))
 	}
 }
+

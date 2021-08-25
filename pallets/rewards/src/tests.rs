@@ -50,7 +50,7 @@ fn get_loyalty_weight_for_should_work() {
 		assert_eq!(Rewards::get_loyalty_weight_for(1, 10, 1).unwrap(), 9);
 
 		//exponential weight
-		assert_eq!(Rewards::get_loyalty_weight_for(1_234, 8_244, 2).unwrap(), 49_140_100);
+		assert_eq!(Rewards::get_loyalty_weight_for(1_234, 8_244, 2).unwrap(), 14_020);
 	});
 }
 
@@ -58,7 +58,7 @@ fn get_loyalty_weight_for_should_work() {
 fn get_loyalty_weight_for_should_not_work() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			Rewards::get_loyalty_weight_for(1, 1_000, 10_000),
+			Rewards::get_loyalty_weight_for(u128::MAX, 1_000, 10_000),
 			Error::<Test>::Overflow
 		);
 	});
@@ -72,6 +72,11 @@ fn get_weighted_shares_should_work() {
 		assert_eq!(
 			Rewards::get_weighted_shares(468_138_468, 106_876_813).unwrap(),
 			50_033_147_502_542_484
+		);
+		
+        assert_eq!(
+			Rewards::get_weighted_shares(468_138_468, 0).unwrap(),
+		    0	
 		);
 	});
 }
