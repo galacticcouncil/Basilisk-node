@@ -28,11 +28,9 @@ serde = {features = ['derive'], optional = true, version = '1.0.101'}
 hydra-dx-math = {default-features = false, version = "3.3.0"}
 
 # Local dependencies
-pallet-asset-registry = {path = '../asset-registry', default-features = false}
 primitives = {path = '../../primitives', default-features = false}
 
 # ORML dependencies
-orml-tokens = {default-features = false, version = "0.4.1-dev"}
 orml-traits = {default-features = false, version = "0.4.1-dev"}
 orml-utilities = {default-features = false, version = "0.4.1-dev"}
 
@@ -45,8 +43,12 @@ sp-core = {default-features = false, version = '3.0.0'}
 sp-runtime = {default-features = false, version = '3.0.0'}
 sp-std = {default-features = false, version = '3.0.0'}
 
+orml-tokens = {default-features = false, optional = true, version = "0.4.1-dev"}
+
 [dev-dependencies]
 sp-io = {default-features = false, version = '3.0.0'}
+pallet-asset-registry = {path = '../asset-registry', default-features = false}
+sp-api = {default-features = false, version = '3.0.0'}
 
 [features]
 default = ['std']
@@ -63,7 +65,9 @@ std = [
   'sp-runtime/std',
   'sp-core/std',
   'sp-std/std',
-  'orml-tokens/std',
   'orml-traits/std',
   'primitives/std',
+
+  'orml-tokens/std',
+  'frame-benchmarking/std',
 ]
