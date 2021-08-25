@@ -4,10 +4,10 @@ use super::*;
 
 use crate as NFT;
 use frame_benchmarking::{account, benchmarks};
-use frame_support::{traits::Get, BoundedVec};
+use frame_support::traits::Get;
 use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
-use sp_std::{convert::TryInto, vec};
+use sp_std::vec;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;
@@ -31,8 +31,6 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
 		let class_metadata = big_vec.clone();
-		let bounded_metadata: BoundedVec<u8, <T as orml_nft::Config>::MaxClassMetadata> =
-			big_vec.try_into().map_err(|_| Error::<T>::MetadataTooLong)?;
 		let class_data = ClassData { is_pool:false };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
 	}: _(RawOrigin::Signed(caller.clone()), class_metadata.clone(), class_data.clone())
@@ -44,8 +42,6 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
 		let class_metadata = big_vec.clone();
-		let bounded_metadata: BoundedVec<u8, <T as orml_nft::Config>::MaxClassMetadata> =
-			big_vec.try_into().map_err(|_| Error::<T>::MetadataTooLong)?;
 		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
 		let price: BalanceOf<T> = u32::MAX.into();

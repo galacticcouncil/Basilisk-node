@@ -101,7 +101,7 @@ pub mod pallet {
 			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
 
-			Self::deposit_event(Event::NFTTokenClassCreated(sender, class_id));
+			Self::deposit_event(Event::TokenClassCreated(sender, class_id));
 			Ok(().into())
 		}
 
@@ -131,7 +131,7 @@ pub mod pallet {
 			for _ in 0..quantity {
 				orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data.clone())?;
 			}
-			Self::deposit_event(Event::NFTTokenMinted(sender, class_id, quantity));
+			Self::deposit_event(Event::TokenMinted(sender, class_id, quantity));
 			Ok(().into())
 		}
 
@@ -151,7 +151,7 @@ pub mod pallet {
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 			orml_nft::Pallet::<T>::transfer(&sender, &to, token)?;
-			Self::deposit_event(Event::NFTTokenTransferred(sender, to, token.0, token.1));
+			Self::deposit_event(Event::TokenTransferred(sender, to, token.0, token.1));
 			Ok(().into())
 		}
 
@@ -164,7 +164,7 @@ pub mod pallet {
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 			orml_nft::Pallet::<T>::burn(&sender, token)?;
-			Self::deposit_event(Event::NFTTokenBurned(sender, token.0, token.1));
+			Self::deposit_event(Event::TokenBurned(sender, token.0, token.1));
 			Ok(().into())
 		}
 
@@ -178,7 +178,7 @@ pub mod pallet {
 			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
 			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
 			T::Currency::unreserve(&sender, T::ClassBondAmount::get());
-			Self::deposit_event(Event::NFTTokenClassDestroyed(sender, class_id));
+			Self::deposit_event(Event::TokenClassDestroyed(sender, class_id));
 			Ok(().into())
 		}
 
@@ -206,7 +206,7 @@ pub mod pallet {
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
 			PoolItemPrice::<T>::insert(class_id, price);
 
-			Self::deposit_event(Event::NFTTokenPoolCreated(sender, class_id));
+			Self::deposit_event(Event::TokenPoolCreated(sender, class_id));
 			Ok(().into())
 		}
 
@@ -221,7 +221,7 @@ pub mod pallet {
 			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
 			PoolItemPrice::<T>::remove(class_id);
 			T::Currency::unreserve(&sender, T::ClassBondAmount::get());
-			Self::deposit_event(Event::NFTTokenPoolDestroyed(sender, class_id));
+			Self::deposit_event(Event::TokenPoolDestroyed(sender, class_id));
 			Ok(().into())
 		}
 		
@@ -241,7 +241,7 @@ pub mod pallet {
 			with_transaction_result(|| {
 				orml_nft::Pallet::<T>::transfer(&token_info.owner, &sender, token)?;
 				T::Currency::transfer(&sender, &token_info.owner, price, ExistenceRequirement::KeepAlive)?;
-				Self::deposit_event(Event::NFTBoughtFromPool(class_info.owner, sender, token.0, token.1));
+				Self::deposit_event(Event::BoughtFromPool(class_info.owner, sender, token.0, token.1));
 				Ok(())
 			})
 		}
@@ -262,7 +262,7 @@ pub mod pallet {
 			with_transaction_result(|| {
 				orml_nft::Pallet::<T>::transfer(&sender, &class_info.owner, token)?;
 				T::Currency::transfer(&class_info.owner, &sender, price, ExistenceRequirement::KeepAlive)?;
-				Self::deposit_event(Event::NFTSoldToPool(sender, class_info.owner, token.0, token.1));
+				Self::deposit_event(Event::SoldToPool(sender, class_info.owner, token.0, token.1));
 				Ok(())
 			})
 		}
@@ -274,16 +274,16 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		NFTTokenClassCreated(T::AccountId, T::ClassId),
-		NFTTokenMinted(T::AccountId, T::ClassId, u32),
-		NFTTokenMintedLockToggled(T::AccountId, T::ClassId, T::TokenId, bool),
-		NFTTokenTransferred(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
-		NFTTokenBurned(T::AccountId, T::ClassId, T::TokenId),
-		NFTTokenClassDestroyed(T::AccountId, T::ClassId),
-		NFTBoughtFromPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
-		NFTSoldToPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
-		NFTTokenPoolCreated(T::AccountId, T::ClassId),
-		NFTTokenPoolDestroyed(T::AccountId, T::ClassId),
+		TokenClassCreated(T::AccountId, T::ClassId),
+		TokenMinted(T::AccountId, T::ClassId, u32),
+		TokenMintedLockToggled(T::AccountId, T::ClassId, T::TokenId, bool),
+		TokenTransferred(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
+		TokenBurned(T::AccountId, T::ClassId, T::TokenId),
+		TokenClassDestroyed(T::AccountId, T::ClassId),
+		BoughtFromPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
+		SoldToPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
+		TokenPoolCreated(T::AccountId, T::ClassId),
+		TokenPoolDestroyed(T::AccountId, T::ClassId),
 	}
 
 	#[pallet::error]
@@ -335,7 +335,7 @@ impl<T: Config> Pallet<T> {
 			if let Some(ref mut token) = token {
 				ensure!(*account == token.owner, Error::<T>::NotTokenOwner);
 				token.data.locked ^= true; // Toggle
-				Self::deposit_event(Event::NFTTokenMintedLockToggled(
+				Self::deposit_event(Event::TokenMintedLockToggled(
 					account.clone(),
 					token_id.0,
 					token_id.1,

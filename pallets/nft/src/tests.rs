@@ -13,7 +13,7 @@ fn create_class_works() {
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
 		));
-		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
+		let event = Event::NFT(crate::Event::TokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
 	})
 }
@@ -50,7 +50,7 @@ fn create_pool_works() {
 			ClassData { is_pool: true },
 			TEST_PRICE,
 		));
-		let event = Event::NFT(crate::Event::NFTTokenPoolCreated(ALICE, CLASS_ID));
+		let event = Event::NFT(crate::Event::TokenPoolCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
 	})
 }
@@ -88,7 +88,7 @@ fn mint_works() {
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
 		));
-		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
+		let event = Event::NFT(crate::Event::TokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
 
 		assert_ok!(NFTModule::mint(
@@ -101,7 +101,7 @@ fn mint_works() {
 			},
 			TEST_QUANTITY,
 		));
-		let event = Event::NFT(crate::Event::NFTTokenMinted(ALICE, CLASS_ID, TEST_QUANTITY));
+		let event = Event::NFT(crate::Event::TokenMinted(ALICE, CLASS_ID, TEST_QUANTITY));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -114,7 +114,7 @@ fn mint_fails() {
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
 		));
-		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
+		let event = Event::NFT(crate::Event::TokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
 
 		assert_noop!(
@@ -182,7 +182,7 @@ fn transfer_works() {
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
-		let event = Event::NFT(crate::Event::NFTTokenTransferred(ALICE, BOB, CLASS_ID, TOKEN_ID));
+		let event = Event::NFT(crate::Event::TokenTransferred(ALICE, BOB, CLASS_ID, TOKEN_ID));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -240,7 +240,7 @@ fn burn_works() {
 		));
 
 		assert_ok!(NFTModule::burn(Origin::signed(ALICE), (CLASS_ID, TOKEN_ID)));
-		let event = Event::NFT(crate::Event::NFTTokenBurned(ALICE, CLASS_ID, TOKEN_ID));
+		let event = Event::NFT(crate::Event::TokenBurned(ALICE, CLASS_ID, TOKEN_ID));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -429,7 +429,7 @@ fn buy_from_pool_works() {
 		));
 
 		assert_ok!(NFTModule::buy_from_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)));
-		let event = Event::NFT(crate::Event::NFTBoughtFromPool(ALICE, BOB, CLASS_ID, TOKEN_ID));
+		let event = Event::NFT(crate::Event::BoughtFromPool(ALICE, BOB, CLASS_ID, TOKEN_ID));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -521,7 +521,7 @@ fn sell_to_pool_works() {
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
 
 		assert_ok!(NFTModule::sell_to_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)));
-		let event = Event::NFT(crate::Event::NFTSoldToPool(BOB, ALICE, CLASS_ID, TOKEN_ID));
+		let event = Event::NFT(crate::Event::SoldToPool(BOB, ALICE, CLASS_ID, TOKEN_ID));
 		assert_eq!(last_event(), event);
 	});
 }
