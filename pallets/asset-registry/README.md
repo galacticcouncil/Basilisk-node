@@ -26,3 +26,4 @@ The registry pallet supports storing of native location of an asset. This can be
 
 ### Interface
 - `get_or_create_asset` - creates new asset id for give asset name. If such asset already exists, it returns the corresponding asset id.
+
