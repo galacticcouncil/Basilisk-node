@@ -124,7 +124,7 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
 		fn on_initialize(_n: T::BlockNumber) -> Weight {
-			T::WeightInfo::on_initialize_multiple_tokens_all_bucket_levels(Self::num_of_assets())
+			T::WeightInfo::on_finalize_multiple_tokens_all_bucket_levels(Self::num_of_assets())
 		}
 
 		fn on_finalize(_n: T::BlockNumber) {
@@ -255,6 +255,6 @@ impl<T: Config> OnTradeHandler<T::AccountId, AssetId, AssetPair, Balance> for Pr
 	}
 
 	fn on_trade_weight() -> Weight {
-		T::WeightInfo::on_initialize_one_token() - T::WeightInfo::on_initialize_no_entry()
+		T::WeightInfo::on_finalize_one_token() - T::WeightInfo::on_finalize_no_entry()
 	}
 }

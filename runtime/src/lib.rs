@@ -464,7 +464,7 @@ impl pallet_lbp::Config for Runtime {
 
 impl pallet_price_oracle::Config for Runtime {
 	type Event = Event;
-	type WeightInfo = weights::price_oracle::HydraWeight<Runtime>;
+	type WeightInfo = pallet_price_oracle::weights::HydraWeight<Runtime>;
 }
 
 parameter_types! {
