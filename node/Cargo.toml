@@ -87,7 +87,6 @@ polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "relea
 polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
-polkadot-test-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 [features]
 default = [
@@ -102,8 +101,6 @@ runtime-benchmarks = [
 [dev-dependencies]
 # Polkadot dependencies
 polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
-polkadot-test-client = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
-polkadot-test-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 # Substrate dependencies
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
