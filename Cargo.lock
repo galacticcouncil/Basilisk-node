@@ -5293,19 +5293,24 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "3.1.0"
+version = "0.1.0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "frame-system-benchmarking",
  "parity-scale-codec 2.2.0",
  "primitive-types 0.8.0",
  "primitives",
  "serde",
+ "sp-api",
+ "sp-arithmetic",
  "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
+ "xcm",
 ]
 
 [[package]]
@@ -6287,6 +6292,7 @@ dependencies = [
  "primitive-types 0.8.0",
  "primitives",
  "serde",
+ "sp-api",
  "sp-core",
  "sp-io",
  "sp-runtime",
