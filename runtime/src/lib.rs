@@ -498,11 +498,6 @@ impl pallet_nft::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaxClassMetadata: u32 = 1024;
-	pub MaxTokenMetadata: u32 = 1024;
-}
-
-parameter_types! {
 	pub const MaxClassMetadata: u32 = 1024;
 	pub const MaxTokenMetadata: u32 = 1024;
 }
