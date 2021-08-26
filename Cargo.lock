@@ -489,14 +489,12 @@ dependencies = [
  "hydra-dx-build-script-utils",
  "jsonrpc-core",
  "log",
- "pallet-sudo",
  "pallet-transaction-payment-rpc",
  "pallet-xyk-rpc",
  "parity-scale-codec 2.2.0",
  "polkadot-cli",
  "polkadot-parachain",
  "polkadot-primitives",
- "polkadot-runtime-common",
  "polkadot-service",
  "primitives",
  "sc-basic-authorship",
@@ -536,8 +534,6 @@ dependencies = [
  "structopt",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
- "substrate-test-client",
- "substrate-test-runtime-client",
 ]
 
 [[package]]
@@ -11007,97 +11003,6 @@ dependencies = [
  "log",
  "prometheus",
  "tokio 0.2.25",
-]
-
-[[package]]
-name = "substrate-test-client"
-version = "2.0.1"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
-dependencies = [
- "async-trait",
- "futures 0.1.31",
- "futures 0.3.16",
- "hash-db",
- "hex",
- "parity-scale-codec 2.2.0",
- "sc-client-api",
- "sc-client-db",
- "sc-consensus",
- "sc-executor",
- "sc-light",
- "sc-offchain",
- "sc-service",
- "serde",
- "serde_json",
- "sp-blockchain",
- "sp-consensus",
- "sp-core",
- "sp-keyring",
- "sp-keystore",
- "sp-runtime",
- "sp-state-machine",
-]
-
-[[package]]
-name = "substrate-test-runtime"
-version = "2.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
-dependencies = [
- "cfg-if 1.0.0",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "log",
- "memory-db",
- "pallet-babe",
- "pallet-timestamp",
- "parity-scale-codec 2.2.0",
- "parity-util-mem",
- "sc-service",
- "serde",
- "sp-api",
- "sp-application-crypto",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-consensus-babe",
- "sp-core",
- "sp-externalities",
- "sp-finality-grandpa",
- "sp-inherents",
- "sp-io",
- "sp-keyring",
- "sp-offchain",
- "sp-runtime",
- "sp-runtime-interface",
- "sp-session",
- "sp-state-machine",
- "sp-std",
- "sp-transaction-pool",
- "sp-trie",
- "sp-version",
- "substrate-wasm-builder",
- "trie-db",
-]
-
-[[package]]
-name = "substrate-test-runtime-client"
-version = "2.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
-dependencies = [
- "futures 0.3.16",
- "parity-scale-codec 2.2.0",
- "sc-block-builder",
- "sc-client-api",
- "sc-consensus",
- "sc-light",
- "sc-service",
- "sp-api",
- "sp-blockchain",
- "sp-consensus",
- "sp-core",
- "sp-runtime",
- "substrate-test-client",
- "substrate-test-runtime",
 ]
 
 [[package]]

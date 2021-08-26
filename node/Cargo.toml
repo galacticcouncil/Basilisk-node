@@ -97,12 +97,3 @@ runtime-benchmarks = [
   "frame-benchmarking-cli",
   "polkadot-service/runtime-benchmarks",
 ]
-
-[dev-dependencies]
-# Polkadot dependencies
-polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
-
-# Substrate dependencies
-pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-substrate-test-client = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
-substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
