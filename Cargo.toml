@@ -74,6 +74,7 @@ substrate-test-runtime-client = { git = 'https://github.com/paritytech/substrate
 pallet-transaction-payment = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.8" }
 pallet-elections-phragmen = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.8" }
 pallet-utility = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.8" }
+max-encoded-len = { git = 'https://github.com/paritytech/substrate', branch = "polkadot-v0.9.8" }
 
 sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.8" }
@@ -139,7 +140,10 @@ members = [
   # 'pallets/proposal', Update this
   'node',
   'pallets/nft',
+  'pallets/duster',
   'runtime',
   'pallets/xyk',
   'pallets/exchange',
+    'pallets/asset-registry',
+  'pallets/xyk',
 ]

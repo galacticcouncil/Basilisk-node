@@ -14,6 +14,7 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::{Decode, Encode};
 use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
@@ -64,8 +65,6 @@ use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
 
 pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
-
-pub use pallet_asset_registry;
 
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
@@ -201,7 +200,6 @@ impl Filter<Call> for BaseFilter {
 			| Call::CollatorSelection(_)
 			| Call::Session(_)
 			| Call::Balances(_)
-			| Call::AssetRegistry(_)
 			| Call::Currencies(_)
 			| Call::Exchange(_)
 			| Call::MultiTransactionPayment(_)
@@ -216,6 +214,8 @@ impl Filter<Call> for BaseFilter {
 			| Call::XcmpQueue(_)
 			| Call::DmpQueue(_)
 			| Call::PolkadotXcm(_)
+			| Call::AssetRegistry(_)
+			| Call::Duster(_)
 			| Call::Sudo(_) => true,
 
 			Call::XYK(_) => false,
@@ -406,16 +406,33 @@ impl orml_currencies::Config for Runtime {
 
 /// Basilisk Pallets configurations
 
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq)]
+pub struct AssetLocation(pub polkadot_xcm::v0::MultiLocation);
+
+impl Default for AssetLocation {
+	fn default() -> Self {
+		AssetLocation(polkadot_xcm::v0::MultiLocation::Null)
+	}
+}
+
 impl pallet_asset_registry::Config for Runtime {
+	type Event = Event;
+	type RegistryOrigin = EnsureRoot<AccountId>;
 	type AssetId = AssetId;
+	type AssetNativeLocation = AssetLocation;
+	type StringLimit = RegistryStrLimit;
+	type NativeAssetId = NativeAssetId;
+	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub ExchangeFee: fee::Fee = fee::Fee::default();
+	pub RegistryStrLimit: u32 = 32;
 }
 
 impl pallet_xyk::Config for Runtime {
 	type Event = Event;
+	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
@@ -429,6 +446,22 @@ impl pallet_exchange::Config for Runtime {
 	type Resolver = Exchange;
 	type Currency = Currencies;
 	type WeightInfo = weights::exchange::HydraWeight<Runtime>;
+}
+
+parameter_types! {
+	pub const DustingReward: u128 = 0;
+}
+
+impl pallet_duster::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type MinCurrencyDeposits = ExistentialDeposits;
+	type Reward = DustingReward;
+	type NativeCurrencyId = NativeAssetId;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -865,8 +898,9 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
+		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
