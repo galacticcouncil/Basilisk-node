@@ -118,10 +118,10 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		ExtBuilder::default().build().execute_with(|| {
-			assert_ok!(test_benchmark_register::<Test>());
-			assert_ok!(test_benchmark_update::<Test>());
-			assert_ok!(test_benchmark_set_metadata::<Test>());
-			assert_ok!(test_benchmark_set_location::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_register());
+			assert_ok!(Pallet::<Test>::test_benchmark_update());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_metadata());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_location());
 		});
 	}
 }
