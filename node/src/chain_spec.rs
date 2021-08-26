@@ -2,8 +2,8 @@
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
-	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
+	ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig, SessionConfig,
+	Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX, CORE_ASSET_ID,
 	WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
@@ -276,7 +276,6 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
 				para_id,
@@ -440,8 +439,9 @@ fn parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			asset_names: vec![],
-			native_asset_name: b"BSX".to_vec(),
+			core_asset_id: CORE_ASSET_ID,
+			asset_ids: vec![],
+			next_asset_id: 1,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
@@ -479,11 +479,6 @@ fn parachain_genesis(
 		vesting: VestingConfig { vesting: vec![] },
 		parachain_info: ParachainInfoConfig { parachain_id }, //TODO
 		aura_ext: Default::default(),
-		duster: DusterConfig {
-			account_blacklist: vec![hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()],
-			reward_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
-			dust_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
-		},
 	}
 }
 
@@ -540,8 +535,14 @@ fn testnet_parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			asset_names: vec![b"hKSM".to_vec(), b"hDOT".to_vec(), b"hETH".to_vec(), b"hUSDT".to_vec()],
-			native_asset_name: b"BSX".to_vec(),
+			core_asset_id: CORE_ASSET_ID,
+			asset_ids: vec![
+				(b"hKSM".to_vec(), 1),
+				(b"hDOT".to_vec(), 2),
+				(b"hETH".to_vec(), 3),
+				(b"hUSDT".to_vec(), 4),
+			],
+			next_asset_id: 5,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
@@ -583,10 +584,5 @@ fn testnet_parachain_genesis(
 		},
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
-		duster: DusterConfig {
-			account_blacklist: vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
-			reward_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
-			dust_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
-		},
 	}
 }

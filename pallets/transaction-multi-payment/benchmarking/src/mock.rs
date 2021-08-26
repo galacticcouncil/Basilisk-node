@@ -38,7 +38,6 @@ use pallet_xyk::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 use frame_benchmarking::frame_support::weights::Pays;
-use frame_system::EnsureSigned;
 use primitives::fee;
 
 pub type AccountId = u64;
@@ -69,8 +68,8 @@ frame_support::construct_runtime!(
 				 Balances: pallet_balances::{Pallet,Call, Storage,Config<T>, Event<T>},
 				 Currencies: orml_currencies::{Pallet, Event<T>},
 				 Tokens: orml_tokens::{Pallet, Event<T>},
-				 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
-				 TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+				 AssetRegistry: pallet_asset_registry::{Pallet, Storage},
+				 transaction_payment: pallet_transaction_payment::{Pallet, Storage},
 		 }
 
 );
@@ -84,7 +83,6 @@ parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
 	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
 	pub PayForSetCurrency : Pays = Pays::No;
-	pub const RegistryStringLimit: u32 = 100;
 }
 
 impl system::Config for Test {
@@ -125,13 +123,7 @@ impl pallet_transaction_multi_payment::Config for Test {
 }
 
 impl pallet_asset_registry::Config for Test {
-	type Event = Event;
-	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
-	type AssetNativeLocation = u8;
-	type StringLimit = RegistryStringLimit;
-	type NativeAssetId = HdxAssetId;
-	type WeightInfo = ();
 }
 
 impl pallet_balances::Config for Test {
@@ -172,7 +164,6 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 
 impl pallet_xyk::Config for Test {
 	type Event = Event;
-	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currencies;
 	type NativeAssetId = HdxAssetId;
@@ -251,6 +242,14 @@ impl ExtBuilder {
 		buf.extend_from_slice(&core_asset.to_le_bytes());
 		buf.extend_from_slice(b"HDT");
 		buf.extend_from_slice(&core_asset.to_le_bytes());
+
+		pallet_asset_registry::GenesisConfig::<Test> {
+			core_asset_id: 0,
+			next_asset_id: 2,
+			asset_ids: vec![(buf.to_vec(), 1)],
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
 
 		pallet_transaction_multi_payment::GenesisConfig::<Test> {
 			currencies: vec![],

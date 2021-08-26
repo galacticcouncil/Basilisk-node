@@ -67,7 +67,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-	use primitives::traits::ShareTokenRegistry;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -76,11 +75,8 @@ pub mod pallet {
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + pallet_asset_registry::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-
-		/// Registry support
-		type AssetRegistry: ShareTokenRegistry<AssetId, Vec<u8>, DispatchError>;
 
 		/// Share token support
 		type AssetPairAccountId: AssetPairAccountIdFor<AssetId, Self::AccountId>;
@@ -262,7 +258,7 @@ pub mod pallet {
 
 			let token_name = asset_pair.name();
 
-			let share_token = T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b])?;
+			let share_token = <pallet_asset_registry::Pallet<T>>::get_or_create_asset(token_name)?.into();
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
