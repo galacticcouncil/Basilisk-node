@@ -3,11 +3,11 @@ panic = 'unwind'
 
 [workspace]
 members = [
-  # 'pallets/proposal', Update this
   'node',
+  'runtime',
   'pallets/nft',
   'pallets/duster',
-  'runtime',
   'pallets/xyk',
   'pallets/exchange',
+  'pallets/asset-registry',
 ]

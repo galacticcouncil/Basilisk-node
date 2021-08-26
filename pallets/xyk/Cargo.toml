@@ -22,8 +22,7 @@ serde = { features = ['derive'], optional = true, version = '1.0.101' }
 hydra-dx-math = { default-features = false, version = "3.3.0" }
 
 # Local dependencies
-pallet-asset-registry = { path = '../asset-registry', default-features = false }
-primitives = { path = '../../primitives', default-features = false }
+primitives = {path = '../../primitives', default-features = false}
 
 # ORML dependencies
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
@@ -41,6 +40,8 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+pallet-asset-registry = {path = '../asset-registry', default-features = false}
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
 [features]
 default = ['std']
@@ -57,7 +58,8 @@ std = [
     'sp-runtime/std',
     'sp-core/std',
     'sp-std/std',
-    'orml-tokens/std',
     'orml-traits/std',
     'primitives/std',
+    'orml-tokens/std',
+    'frame-benchmarking/std',
 ]

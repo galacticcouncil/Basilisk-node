@@ -14,6 +14,7 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use codec::{Decode, Encode};
 use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
@@ -64,8 +65,6 @@ use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
 
 pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
-
-pub use pallet_asset_registry;
 
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
@@ -381,16 +380,33 @@ impl orml_currencies::Config for Runtime {
 
 /// Basilisk Pallets configurations
 
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq)]
+pub struct AssetLocation(pub polkadot_xcm::v0::MultiLocation);
+
+impl Default for AssetLocation {
+	fn default() -> Self {
+		AssetLocation(polkadot_xcm::v0::MultiLocation::Null)
+	}
+}
+
 impl pallet_asset_registry::Config for Runtime {
+	type Event = Event;
+	type RegistryOrigin = EnsureRoot<AccountId>;
 	type AssetId = AssetId;
+	type AssetNativeLocation = AssetLocation;
+	type StringLimit = RegistryStrLimit;
+	type NativeAssetId = NativeAssetId;
+	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub ExchangeFee: fee::Fee = fee::Fee::default();
+	pub RegistryStrLimit: u32 = 32;
 }
 
 impl pallet_xyk::Config for Runtime {
 	type Event = Event;
+	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
@@ -468,15 +484,22 @@ impl pallet_randomness_collective_flip::Config for Runtime {}
 
 parameter_types! {
 	pub ClassBondAmount: Balance = 10_000 * BSX;
-	pub ClassBondDuration: u32 = 7 * DAYS;
+	pub MintMaxQuantity: u32 = 10_000;
+	pub MaxEmoteLength: u32 = 1024;
 }
 
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+	type WeightInfo = pallet_nft::weights::HydraWeight<Runtime>;
 	type ClassBondAmount = ClassBondAmount;
-	type ClassBondDuration = ClassBondDuration;
+	type MintMaxQuantity = MintMaxQuantity;
+	type MaxEmoteLength = MaxEmoteLength;
+}
+
+parameter_types! {
+	pub MaxClassMetadata: u32 = 1024;
+	pub MaxTokenMetadata: u32 = 1024;
 }
 
 parameter_types! {
@@ -855,7 +878,7 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Config<T>},
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
