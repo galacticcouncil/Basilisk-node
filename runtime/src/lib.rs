@@ -117,7 +117,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 13,
+	spec_version: 14,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -509,15 +509,22 @@ impl pallet_randomness_collective_flip::Config for Runtime {}
 
 parameter_types! {
 	pub ClassBondAmount: Balance = 10_000 * BSX;
-	pub ClassBondDuration: u32 = 7 * DAYS;
+	pub MintMaxQuantity: u32 = 10_000;
+	pub MaxEmoteLength: u32 = 1024;
 }
 
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+	type WeightInfo = pallet_nft::weights::HydraWeight<Runtime>;
 	type ClassBondAmount = ClassBondAmount;
-	type ClassBondDuration = ClassBondDuration;
+	type MintMaxQuantity = MintMaxQuantity;
+	type MaxEmoteLength = MaxEmoteLength;
+}
+
+parameter_types! {
+	pub MaxClassMetadata: u32 = 1024;
+	pub MaxTokenMetadata: u32 = 1024;
 }
 
 impl orml_nft::Config for Runtime {
@@ -525,6 +532,8 @@ impl orml_nft::Config for Runtime {
 	type TokenId = u64;
 	type ClassData = pallet_nft::ClassData;
 	type TokenData = pallet_nft::TokenData;
+	type MaxClassMetadata = MaxClassMetadata;
+	type MaxTokenMetadata = MaxTokenMetadata;
 }
 
 parameter_types! {

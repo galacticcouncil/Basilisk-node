@@ -86,6 +86,7 @@ pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", bra
 orml-xcm-support = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '33d9ac0927ba61e15763ee438721ef92d408271a' }
 orml-xtokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '33d9ac0927ba61e15763ee438721ef92d408271a' }
 orml-unknown-tokens = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '33d9ac0927ba61e15763ee438721ef92d408271a' }
+orml-nft = { git = 'https://github.com/open-web3-stack/open-runtime-module-library', rev = '33d9ac0927ba61e15763ee438721ef92d408271a' }
 
 xcm = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.8" }
 pallet-xcm = { git = 'https://github.com/paritytech/polkadot', branch = "release-v0.9.8" }
