@@ -10,7 +10,6 @@ use frame_support::{
 	transactional,
 };
 use frame_system::ensure_signed;
-use orml_utilities::with_transaction_result;
 use sp_runtime::{
 	traits::{StaticLookup, Zero},
 	RuntimeDebug,
@@ -79,7 +78,6 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		
 		///////////////////////////////////////////////////
 		//
 		// Generic methods for NFT handling
@@ -91,11 +89,7 @@ pub mod pallet {
 		/// An amount X (ClassBondAmount) is reserved
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(
-			origin: OriginFor<T>,
-			metadata: Vec<u8>,
-			data: T::ClassData,
-		) -> DispatchResultWithPostInfo {
+		pub fn create_class(origin: OriginFor<T>, metadata: Vec<u8>, data: T::ClassData) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
 			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
@@ -224,7 +218,7 @@ pub mod pallet {
 			Self::deposit_event(Event::TokenPoolDestroyed(sender, class_id));
 			Ok(().into())
 		}
-		
+
 		/// NFTs can be bought from a pool for a constant price
 		#[pallet::weight(<T as Config>::WeightInfo::buy_from_pool())]
 		#[transactional]
@@ -238,12 +232,10 @@ pub mod pallet {
 			ensure!(sender != token_info.owner, Error::<T>::CannotBuyOwnToken);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 
-			with_transaction_result(|| {
-				orml_nft::Pallet::<T>::transfer(&token_info.owner, &sender, token)?;
-				T::Currency::transfer(&sender, &token_info.owner, price, ExistenceRequirement::KeepAlive)?;
-				Self::deposit_event(Event::BoughtFromPool(class_info.owner, sender, token.0, token.1));
-				Ok(())
-			})
+			orml_nft::Pallet::<T>::transfer(&token_info.owner, &sender, token)?;
+			T::Currency::transfer(&sender, &token_info.owner, price, ExistenceRequirement::KeepAlive)?;
+			Self::deposit_event(Event::BoughtFromPool(class_info.owner, sender, token.0, token.1));
+			Ok(())
 		}
 
 		/// Owned NFTs can be sold back to the pool for the original price
@@ -259,12 +251,10 @@ pub mod pallet {
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 
-			with_transaction_result(|| {
-				orml_nft::Pallet::<T>::transfer(&sender, &class_info.owner, token)?;
-				T::Currency::transfer(&class_info.owner, &sender, price, ExistenceRequirement::KeepAlive)?;
-				Self::deposit_event(Event::SoldToPool(sender, class_info.owner, token.0, token.1));
-				Ok(())
-			})
+			orml_nft::Pallet::<T>::transfer(&sender, &class_info.owner, token)?;
+			T::Currency::transfer(&class_info.owner, &sender, price, ExistenceRequirement::KeepAlive)?;
+			Self::deposit_event(Event::SoldToPool(sender, class_info.owner, token.0, token.1));
+			Ok(())
 		}
 	}
 
