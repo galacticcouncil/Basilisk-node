@@ -2,12 +2,12 @@ use super::*;
 
 use codec::{Decode, Encode};
 use cumulus_primitives_core::ParaId;
-use frame_support::traits::All;
+use frame_support::traits::{Everything, Nothing};
 pub use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::opaque::v0::Error;
-use polkadot_xcm::v0::{Junction::*, MultiAsset, MultiLocation, MultiLocation::*, NetworkId, Xcm};
+use polkadot_xcm::v0::{Junction::*, MultiAsset, MultiLocation, MultiLocation::*, NetworkId};
 use sp_runtime::traits::Convert;
 use xcm_builder::{
 	AccountId32Aliases, AllowTopLevelPaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds, LocationInverter,
@@ -19,7 +19,7 @@ use xcm_executor::{Assets, Config, XcmExecutor};
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
-pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<All<MultiLocation>>);
+pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
 parameter_types! {
 	pub SelfLocation: MultiLocation = X2(Parent, Parachain(ParachainInfo::get().into()));
@@ -148,11 +148,12 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = All<(MultiLocation, Xcm<Call>)>;
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = ();
-	type XcmReserveTransferFilter = All<(MultiLocation, Vec<MultiAsset>)>;
+	type XcmReserveTransferFilter = Nothing;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type LocationInverter = LocationInverter<Ancestry>;
 }
 
 pub struct CurrencyIdConvert;

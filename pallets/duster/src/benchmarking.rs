@@ -60,7 +60,7 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		ExtBuilder::default().build().execute_with(|| {
-			assert_ok!(test_benchmark_dust_account::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_dust_account());
 		});
 	}
 }

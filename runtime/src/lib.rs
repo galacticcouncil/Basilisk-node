@@ -23,7 +23,7 @@ use sp_core::{
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify, Zero},
+	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, MultiSignature,
 };
@@ -36,7 +36,7 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{EnsureOrigin, Filter, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote},
+	traits::{EnsureOrigin, Contains, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote, Nothing},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
@@ -184,41 +184,11 @@ pub fn native_version() -> NativeVersion {
 }
 
 pub struct BaseFilter;
-impl Filter<Call> for BaseFilter {
-	fn filter(call: &Call) -> bool {
+impl Contains<Call> for BaseFilter {
+	fn contains(call: &Call) -> bool {
 		match call {
-			Call::System(_)
-			| Call::Timestamp(_)
-			| Call::ParachainSystem(_)
-			| Call::Elections(_)
-			| Call::Democracy(_)
-			| Call::Scheduler(_)
-			| Call::Council(_)
-			| Call::TechnicalCommittee(_)
-			| Call::Treasury(_)
-			| Call::Authorship(_)
-			| Call::CollatorSelection(_)
-			| Call::Session(_)
-			| Call::Balances(_)
-			| Call::Currencies(_)
-			| Call::Exchange(_)
-			| Call::MultiTransactionPayment(_)
-			| Call::Tokens(_)
-			| Call::Tips(_)
-			| Call::LBP(_)
-			| Call::Utility(_)
-			| Call::Vesting(_)
-			| Call::NFT(_)
-			| Call::CumulusXcm(_)
-			| Call::XTokens(_)
-			| Call::XcmpQueue(_)
-			| Call::DmpQueue(_)
-			| Call::PolkadotXcm(_)
-			| Call::AssetRegistry(_)
-			| Call::Duster(_)
-			| Call::Sudo(_) => true,
-
 			Call::XYK(_) => false,
+			_ => true,
 		}
 	}
 }
@@ -380,7 +350,10 @@ impl pallet_sudo::Config for Runtime {
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		// Dusting is handled by duster pallet.
+		// However, to make sure that account is reaped/killed and storage updated, ED must be > 0
+		// On ED = 0 - accounts are never reaped.
+		1u128
 	};
 }
 
@@ -394,6 +367,7 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = MaxLocks;
+	type DustRemovalWhitelist = Nothing;
 }
 
 impl orml_currencies::Config for Runtime {
@@ -499,6 +473,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 
 impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
+	type DisabledValidators = ();
 }
 
 impl parachain_info::Config for Runtime {}
@@ -523,8 +498,8 @@ impl pallet_nft::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaxClassMetadata: u32 = 1024;
-	pub MaxTokenMetadata: u32 = 1024;
+	pub const MaxClassMetadata: u32 = 1024;
+	pub const MaxTokenMetadata: u32 = 1024;
 }
 
 impl orml_nft::Config for Runtime {
@@ -873,7 +848,7 @@ construct_runtime!(
 		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
 
 		// Parachain
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
 
 		// XCM
@@ -1074,6 +1049,35 @@ impl_runtime_apis! {
 
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {
+		fn benchmark_metadata(extra: bool) -> (
+			Vec<frame_benchmarking::BenchmarkList>,
+			Vec<frame_support::traits::StorageInfo>,
+		) {
+			use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+			use frame_support::traits::StorageInfoTrait;
+
+			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
+			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_multi_payment_benchmarking::Pallet as MultiBench;
+
+			let mut list = Vec::<BenchmarkList>::new();
+
+			list_benchmark!(list, extra, xyk, XYK);
+			list_benchmark!(list, extra, lbp, LBP);
+			list_benchmark!(list, extra, transaction_multi_payment, MultiBench::<Runtime>);
+			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
+			list_benchmark!(list, extra, exchange, ExchangeBench::<Runtime>);
+			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_balances, Balances);
+			list_benchmark!(list, extra, pallet_nft, NFT);
+			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
+			list_benchmark!(list, extra, transaction_multi_payment, MultiBench::<Runtime>);
+
+			let storage_info = AllPalletsWithSystem::storage_info();
+
+			return (list, storage_info)
+		}
+
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {

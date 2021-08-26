@@ -1,69 +1,63 @@
 [package]
-authors = ['GalacticCouncil']
-description = 'HydraDX Liquidity Bootstrapping Pool Pallet'
-edition = '2018'
-homepage = 'https://github.com/galacticcouncil/Basilisk-node'
-license = 'Apache 2.0'
-name = 'pallet-lbp'
-repository = 'https://github.com/galacticcouncil/Basilisk-node'
-version = '1.0.0'
+name = "pallet-lbp"
+version = "1.0.0"
+description = "HydraDX Liquidity Bootstrapping Pool Pallet"
+authors = ["GalacticCouncil"]
+edition = "2018"
+homepage = "https://github.com/galacticcouncil/Basilisk-node"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [package.metadata.docs.rs]
-targets = ['x86_64-unknown-linux-gnu']
+targets = ["x86_64-unknown-linux-gnu"]
 
 [build-dependencies]
-wasm-builder-runner = {package = 'substrate-wasm-builder-runner', version = '1.0.5'}
-
-# alias "parity-scale-code" to "codec"
-[dependencies.codec]
-default-features = false
-features = ['derive']
-package = 'parity-scale-codec'
-version = '2.0.0'
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
 [dependencies]
-primitive-types = {default-features = false, version = '0.8.0'}
-serde = {features = ['derive'], optional = true, version = '1.0.101'}
+codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "2.0.0" }
+primitive-types = { default-features = false, version = "0.8.0" }
+serde = { features = ["derive"], optional = true, version = "1.0.101" }
 
-hydra-dx-math = {default-features = false, version = "3.3.0"}
+hydra-dx-math = { default-features = false, version = "3.3.0" }
 
 ## Local dependencies
 primitives = { default-features = false, path = "../../primitives" }
 
 ## ORML dependencies
-orml-traits = {default-features = false, version = "0.4.1-dev"}
+orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
 
 ## Substrate dependencies
-frame-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
-frame-support = {default-features = false, version = '3.0.0'}
-frame-system = {default-features = false, version = '3.0.0'}
-frame-system-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
-sp-std = {default-features = false, version = '3.0.0'}
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false, optional = true }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false, optional = true }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 
 # Needed for benchmarks
-orml-tokens = {default-features = false, version = "0.4.1-dev"}
-sp-core = {default-features = false, version = '3.0.0'}
-sp-runtime = {default-features = false, version = '3.0.0'}
+orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 
 [dev-dependencies]
-sp-io = {default-features = false, version = '3.0.0'}
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 
 [features]
-default = ['std']
+default = ["std"]
 runtime-benchmarks = [
-  "frame-benchmarking",
-  "frame-system/runtime-benchmarks",
-  "frame-support/runtime-benchmarks",
+    "frame-benchmarking",
+    "frame-system/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
 ]
 std = [
-  'serde',
-  'codec/std',
-  'frame-support/std',
-  'frame-system/std',
-  'orml-tokens/std',
-  'orml-traits/std',
-  'sp-runtime/std',
-  'sp-core/std',
-  'sp-std/std',
-  'primitives/std',
+    "serde",
+    "codec/std",
+    "frame-support/std",
+    "frame-system/std",
+    "orml-tokens/std",
+    "orml-traits/std",
+    "sp-runtime/std",
+    "sp-core/std",
+    "sp-std/std",
+    "primitives/std",
 ]

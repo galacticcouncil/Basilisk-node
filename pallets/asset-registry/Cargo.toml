@@ -1,68 +1,60 @@
 [package]
-authors = ['GalacticCouncil']
-description = 'Pallet for asset registry management'
-edition = '2018'
-homepage = 'https://github.com/galacticcouncil/basilisk-node'
-license = 'Apache 2.0'
-name = 'pallet-asset-registry'
-repository = 'https://github.com/galacticcouncil/basilisk-node'
-version = '0.1.0'
+name = "pallet-asset-registry"
+version = "0.1.0"
+description = "Pallet for asset registry management"
+authors = ["GalacticCouncil"]
+edition = "2018"
+homepage = "https://github.com/galacticcouncil/basilisk-node"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/basilisk-node"
 
 [package.metadata.docs.rs]
-targets = ['x86_64-unknown-linux-gnu']
+targets = ["x86_64-unknown-linux-gnu"]
 
 [build-dependencies]
-substrate-wasm-builder = {package = 'substrate-wasm-builder', version = '3.0.0'}
-
-# alias "parity-scale-code" to "codec"
-[dependencies.codec]
-default-features = false
-features = ['derive']
-package = 'parity-scale-codec'
-version = '2.0.0'
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 
 [dependencies]
-primitive-types = {default-features = false, version = '0.8.0'}
-serde = {features = ['derive'], optional = true, version = '1.0.101'}
+codec = { default-features = false, features = ["derive", "max-encoded-len"], package = "parity-scale-codec", version = "2.2.0" }
+primitive-types = { default-features = false, version = "0.8.0" }
+serde = { features = ["derive"], optional = true, version = "1.0.101" }
 
 # Local dependencies
-primitives = {path = '../../primitives', default-features = false}
+primitives = { path = "../../primitives", default-features = false }
 
 # Substrate dependencies
-frame-support = {default-features = false, version = '3.0.0'}
-frame-system = {default-features = false, version = '3.0.0'}
-sp-core = {default-features = false, version = '3.0.0'}
-sp-arithmetic = {default-features = false, version = '3.0.0'}
-sp-runtime = {default-features = false, version = '3.0.0'}
-sp-std = {default-features = false, version = '3.0.0'}
-max-encoded-len = {default-features = false, version = '3.0.0'}
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 
 # Optionals
-frame-system-benchmarking = {default-features = false, optional = true, version = '3.0.0'}
-frame-benchmarking = {default-features = false, optional = true, version = '3.1.0'}
-sp-api = {default-features = false, optional = true, version = '3.0.0'}
+frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false, optional = true }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false, optional = true }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false, optional = true }
 
 [dev-dependencies]
-sp-io = {default-features = false, version = '3.0.0'}
-polkadot-xcm = {package = "xcm", version = '0.9.8', default-features = false}
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9", default-features = false }
 
 [features]
-default = ['std']
+default = ["std"]
 runtime-benchmarks = [
   "frame-benchmarking",
   "frame-system/runtime-benchmarks",
   "frame-support/runtime-benchmarks",
 ]
 std = [
-  'serde/std',
-  'codec/std',
-  'frame-support/std',
-  'frame-system/std',
-  'sp-runtime/std',
-  'sp-core/std',
-  'sp-std/std',
-  'primitives/std',
-  'max-encoded-len/std',
-  'sp-api/std',
-  'frame-benchmarking/std'
+  "serde/std",
+  "codec/std",
+  "frame-support/std",
+  "frame-system/std",
+  "sp-runtime/std",
+  "sp-core/std",
+  "sp-std/std",
+  "primitives/std",
+  "sp-api/std",
+  "frame-benchmarking/std"
 ]

@@ -142,12 +142,12 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		ExtBuilder::default().base_weight(5).build().execute_with(|| {
-			assert_ok!(test_benchmark_swap_currency::<Test>());
-			assert_ok!(test_benchmark_set_currency::<Test>());
-			assert_ok!(test_benchmark_add_currency::<Test>());
-			assert_ok!(test_benchmark_remove_currency::<Test>());
-			assert_ok!(test_benchmark_add_member::<Test>());
-			assert_ok!(test_benchmark_remove_member::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_swap_currency());
+			assert_ok!(Pallet::<Test>::test_benchmark_set_currency());
+			assert_ok!(Pallet::<Test>::test_benchmark_add_currency());
+			assert_ok!(Pallet::<Test>::test_benchmark_remove_currency());
+			assert_ok!(Pallet::<Test>::test_benchmark_add_member());
+			assert_ok!(Pallet::<Test>::test_benchmark_remove_member());
 		});
 	}
 }
