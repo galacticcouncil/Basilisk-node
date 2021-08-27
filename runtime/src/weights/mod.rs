@@ -5,3 +5,5 @@ pub mod timestamp;
 pub mod xyk;
 pub mod lbp;
 pub mod nft;
+pub mod asset_registry;
+pub mod duster;

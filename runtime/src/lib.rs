@@ -402,7 +402,7 @@ impl pallet_asset_registry::Config for Runtime {
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = ();
+	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -441,7 +441,7 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = DusterExistentialDeposits;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
-	type WeightInfo = ();
+	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
