@@ -410,7 +410,7 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::xyk::HydraWeight<Runtime>;
+	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 }
 
@@ -419,7 +419,7 @@ impl pallet_exchange::Config for Runtime {
 	type AMMPool = XYK;
 	type Resolver = Exchange;
 	type Currency = Currencies;
-	type WeightInfo = weights::exchange::HydraWeight<Runtime>;
+	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -449,7 +449,7 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = EnsureRoot<AccountId>; // TODO: change to governance membership
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
-	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
