@@ -1064,7 +1064,7 @@ impl_runtime_apis! {
 
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
-			list_benchmark!(list, extra, pallet-transaction_multi_payment, MultiBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 
