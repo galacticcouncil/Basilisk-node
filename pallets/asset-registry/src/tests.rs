@@ -29,14 +29,14 @@ fn register_asset_works() {
 	new_test_ext().execute_with(|| {
 		let too_long = [1u8; <Test as crate::Config>::StringLimit::get() as usize + 1];
 		assert_noop!(
-			AssetRegistryPallet::register(Origin::signed(1), too_long.to_vec(), AssetType::Token),
+			AssetRegistryPallet::register(Origin::root(), too_long.to_vec(), AssetType::Token),
 			Error::<Test>::TooLong
 		);
 
 		let name: Vec<u8> = b"HDX".to_vec();
 
 		assert_ok!(AssetRegistryPallet::register(
-			Origin::signed(1),
+			Origin::root(),
 			name.clone(),
 			AssetType::Token,
 		));
@@ -54,7 +54,7 @@ fn register_asset_works() {
 		);
 
 		assert_noop!(
-			AssetRegistryPallet::register(Origin::signed(1), name.clone(), AssetType::Token),
+			AssetRegistryPallet::register(Origin::root(), name.clone(), AssetType::Token),
 			Error::<Test>::AssetAlreadyRegistered
 		);
 	});
@@ -118,7 +118,7 @@ fn location_mapping_works() {
 		let asset_location = AssetLocation(X3(Parent, Parachain(200), GeneralKey(asset_id.encode())));
 
 		assert_ok!(AssetRegistryPallet::set_location(
-			Origin::signed(1),
+			Origin::root(),
 			asset_id,
 			asset_location.clone()
 		));
@@ -166,7 +166,7 @@ fn set_metadata_works() {
 			let b_symbol: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"xDOT".to_vec().try_into().unwrap();
 
 			assert_ok!(AssetRegistryPallet::set_metadata(
-				Origin::signed(1),
+				Origin::root(),
 				dot_id,
 				b"xDOT".to_vec(),
 				12u8
@@ -181,7 +181,7 @@ fn set_metadata_works() {
 			);
 
 			assert_ok!(AssetRegistryPallet::set_metadata(
-				Origin::signed(1),
+				Origin::root(),
 				dot_id,
 				b"xDOT".to_vec(),
 				30u8
@@ -196,12 +196,12 @@ fn set_metadata_works() {
 			);
 
 			assert_noop!(
-				AssetRegistryPallet::set_metadata(Origin::signed(1), dot_id, b"JUST_TOO_LONG".to_vec(), 30u8),
+				AssetRegistryPallet::set_metadata(Origin::root(), dot_id, b"JUST_TOO_LONG".to_vec(), 30u8),
 				Error::<Test>::TooLong
 			);
 
 			assert_noop!(
-				AssetRegistryPallet::set_metadata(Origin::signed(1), 100, b"NONE".to_vec(), 30u8),
+				AssetRegistryPallet::set_metadata(Origin::root(), 100, b"NONE".to_vec(), 30u8),
 				Error::<Test>::AssetNotFound
 			);
 		});

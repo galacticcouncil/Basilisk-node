@@ -91,7 +91,7 @@ impl Default for AssetLocation {
 
 impl Config for Test {
 	type Event = Event;
-	type RegistryOrigin = frame_system::EnsureSigned<u64>;
+	type RegistryOrigin = frame_system::EnsureRoot<u64>;
 	type AssetId = u32;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStringLimit;
