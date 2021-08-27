@@ -520,8 +520,8 @@ parameter_types! {
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	pub const PreimageByteDeposit: Balance = CENTS;
 	pub const InstantAllowed: bool = true;
-	pub const MaxVotes: u32 = 30;
-	pub const MaxProposals: u32 = 30;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
