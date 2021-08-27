@@ -288,7 +288,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
+	pub const NativeExistentialDeposit: u128 = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -300,7 +300,7 @@ impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type Event = Event;
 	type DustRemoval = ();
-	type ExistentialDeposit = ExistentialDeposit;
+	type ExistentialDeposit = NativeExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
@@ -349,11 +349,17 @@ impl pallet_sudo::Config for Runtime {
 }
 
 parameter_type_with_key! {
-	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
+	pub TokensExistentialDeposits: |_currency_id: AssetId| -> Balance {
 		// Dusting is handled by duster pallet.
 		// However, to make sure that account is reaped/killed and storage updated, ED must be > 0
 		// On ED = 0 - accounts are never reaped.
 		1u128
+	};
+}
+
+parameter_type_with_key! {
+	pub DusterExistentialDeposits: |_currency_id: AssetId| -> Balance {
+		1_000u128
 	};
 }
 
@@ -364,7 +370,7 @@ impl orml_tokens::Config for Runtime {
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
-	type ExistentialDeposits = ExistentialDeposits;
+	type ExistentialDeposits = TokensExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
@@ -432,7 +438,7 @@ impl pallet_duster::Config for Runtime {
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currencies;
-	type MinCurrencyDeposits = ExistentialDeposits;
+	type MinCurrencyDeposits = DusterExistentialDeposits;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
 	type WeightInfo = ();
