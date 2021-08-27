@@ -1062,16 +1062,15 @@ impl_runtime_apis! {
 
 			let mut list = Vec::<BenchmarkList>::new();
 
-			list_benchmark!(list, extra, xyk, XYK);
-			list_benchmark!(list, extra, lbp, LBP);
-			list_benchmark!(list, extra, transaction_multi_payment, MultiBench::<Runtime>);
-			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-			list_benchmark!(list, extra, exchange, ExchangeBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_xyk, XYK);
+			list_benchmark!(list, extra, pallet_lbp, LBP);
+			list_benchmark!(list, extra, pallet-transaction_multi_payment, MultiBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_nft, NFT);
+
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
-			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
-			list_benchmark!(list, extra, transaction_multi_payment, MultiBench::<Runtime>);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
