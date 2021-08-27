@@ -491,7 +491,7 @@ parameter_types! {
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type ClassBondAmount = ClassBondAmount;
 	type MintMaxQuantity = MintMaxQuantity;
 	type MaxEmoteLength = MaxEmoteLength;

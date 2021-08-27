@@ -4,3 +4,4 @@ pub mod system;
 pub mod timestamp;
 pub mod xyk;
 pub mod lbp;
+pub mod nft;
