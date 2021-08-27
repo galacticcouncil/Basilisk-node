@@ -40,7 +40,6 @@ pub struct ClassData {
 #[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
 pub struct TokenData {
 	pub locked: bool,
-	pub emote: Vec<u8>,
 }
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
@@ -71,9 +70,6 @@ pub mod pallet {
 		// Maximum amount of minted NFTs in a collection
 		#[pallet::constant]
 		type MintMaxQuantity: Get<u32>;
-		// Maximum length of emote
-		#[pallet::constant]
-		type MaxEmoteLength: Get<u32>;
 	}
 
 	#[pallet::call]
@@ -114,10 +110,6 @@ pub mod pallet {
 			ensure!(
 				quantity > Zero::zero() && T::MintMaxQuantity::get() >= quantity,
 				Error::<T>::InvalidQuantity
-			);
-			ensure!(
-				token_data.emote.len() <= (T::MaxEmoteLength::get() as usize),
-				Error::<T>::EmoteTooLong
 			);
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
@@ -304,8 +296,6 @@ pub mod pallet {
 		NotAPool,
 		/// Metadata exceed the allowed length
 		MetadataTooLong,
-		/// Emote exceed the allowed length
-		EmoteTooLong,
 	}
 }
 

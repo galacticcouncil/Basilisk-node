@@ -95,10 +95,7 @@ fn mint_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 		let event = Event::NFT(crate::Event::TokenMinted(ALICE, CLASS_ID, TEST_QUANTITY));
@@ -122,10 +119,7 @@ fn mint_fails() {
 				Origin::signed(BOB),
 				0,
 				"a token".as_bytes().to_vec(),
-				TokenData {
-					locked: false,
-					emote: EMOTE.as_bytes().to_vec()
-				},
+				TokenData { locked: false },
 				TEST_QUANTITY,
 			),
 			Error::<Test>::NotClassOwner
@@ -136,27 +130,10 @@ fn mint_fails() {
 				Origin::signed(ALICE),
 				0,
 				vec![1; <Test as orml_nft::Config>::MaxTokenMetadata::get() as usize + 1],
-				TokenData {
-					locked: false,
-					emote: EMOTE.as_bytes().to_vec()
-				},
+				TokenData { locked: false },
 				TEST_QUANTITY,
 			),
 			orml_nft::Error::<Test>::MaxMetadataExceeded
-		);
-
-		assert_noop!(
-			NFTModule::mint(
-				Origin::signed(ALICE),
-				0,
-				"a token".as_bytes().to_vec(),
-				TokenData {
-					locked: false,
-					emote: vec![1; <Test as crate::Config>::MaxEmoteLength::get() as usize + 1],
-				},
-				TEST_QUANTITY,
-			),
-			Error::<Test>::EmoteTooLong
 		);
 	});
 }
@@ -174,10 +151,7 @@ fn transfer_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -200,10 +174,7 @@ fn transfer_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -232,10 +203,7 @@ fn burn_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -258,10 +226,7 @@ fn burn_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -298,10 +263,7 @@ fn destroy_class_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -340,10 +302,7 @@ fn destroy_pool_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -367,10 +326,7 @@ fn toggle_lock_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -393,10 +349,7 @@ fn toggle_lock_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -421,10 +374,7 @@ fn buy_from_pool_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -448,10 +398,7 @@ fn buy_from_pool_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -484,10 +431,7 @@ fn buy_from_pool_fails_notapool() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -511,10 +455,7 @@ fn sell_to_pool_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
@@ -539,10 +480,7 @@ fn sell_to_pool_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
+			TokenData { locked: false },
 			TEST_QUANTITY,
 		));
 
