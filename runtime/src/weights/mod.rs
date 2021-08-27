@@ -7,3 +7,7 @@ pub mod lbp;
 pub mod nft;
 pub mod asset_registry;
 pub mod duster;
+pub mod democracy;
+pub mod scheduler;
+pub mod treasury;
+pub mod utility;
