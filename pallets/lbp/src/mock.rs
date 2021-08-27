@@ -25,7 +25,7 @@ use primitives::{AssetId, Balance, CORE_ASSET_ID, traits::AssetPairAccountIdFor}
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, Zero},
+	traits::{BlakeTwo256, IdentityLookup, One},
 };
 
 pub type Amount = i128;
@@ -93,7 +93,7 @@ impl frame_system::Config for Test {
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		One::one()
 	};
 }
 
@@ -106,6 +106,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
+	type DustRemovalWhitelist = ();
 }
 
 pub struct AssetPairPoolIdTest();

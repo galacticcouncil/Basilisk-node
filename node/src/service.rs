@@ -41,7 +41,7 @@ pub fn new_partial(
 		TFullClient<Block, RuntimeApi, Executor>,
 		TFullBackend<Block>,
 		(),
-		sp_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
+		sc_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, TFullClient<Block, RuntimeApi, Executor>>,
 		(Option<Telemetry>, Option<TelemetryWorkerHandle>),
 	>,
@@ -160,13 +160,14 @@ where
 		import_queue: import_queue.clone(),
 		on_demand: None,
 		block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
+		warp_sync: None,
 	})?;
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 
-		Box::new(move |deny_unsafe, _| {
+		Box::new(move |deny_unsafe, _| -> crate::rpc::RpcExtension {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
@@ -248,7 +249,7 @@ pub fn parachain_build_import_queue(
 	config: &Configuration,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
-) -> Result<sp_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>, sc_service::Error> {
+) -> Result<sc_consensus::DefaultImportQueue<Block, TFullClient<Block, RuntimeApi, Executor>>, sc_service::Error> {
 	let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client)?;
 
 	cumulus_client_consensus_aura::import_queue::<sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _>(

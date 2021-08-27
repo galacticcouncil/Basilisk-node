@@ -23,12 +23,13 @@ use orml_traits::parameter_type_with_key;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, Zero},
+	traits::{BlakeTwo256, IdentityLookup, One},
 };
 
 use frame_support::traits::{GenesisBuild, Get};
 use primitives::{fee, AssetId, Balance, traits::AssetPairAccountIdFor};
 
+use frame_system::EnsureSigned;
 use std::cell::RefCell;
 
 pub type Amount = i128;
@@ -53,7 +54,7 @@ frame_support::construct_runtime!(
 		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		 XYK: xyk::{Pallet, Call, Storage, Event<T>},
 		 Currency: orml_tokens::{Pallet, Event<T>},
-		 AssetRegistry: pallet_asset_registry::{Pallet, Storage},
+		 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
 	 }
 
 );
@@ -74,10 +75,17 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 63;
 	pub const NativeAssetId: AssetId = HDX;
 	pub ExchangeFeeRate: fee::Fee = ExchangeFee::get();
+	pub RegistryStringLimit: u32 = 100;
 }
 
 impl pallet_asset_registry::Config for Test {
+	type Event = Event;
+	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
+	type AssetNativeLocation = u8;
+	type StringLimit = RegistryStringLimit;
+	type NativeAssetId = NativeAssetId;
+	type WeightInfo = ();
 }
 
 impl system::Config for Test {
@@ -108,7 +116,7 @@ impl system::Config for Test {
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		One::one()
 	};
 }
 
@@ -121,6 +129,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
+	type DustRemovalWhitelist = ();
 }
 
 pub struct AssetPairAccountIdTest();
@@ -140,6 +149,7 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 
 impl Config for Test {
 	type Event = Event;
+	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
 	type NativeAssetId = NativeAssetId;

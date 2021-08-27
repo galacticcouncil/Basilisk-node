@@ -195,10 +195,10 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_on_finalize_no_entry::<Test>());
-			assert_ok!(test_benchmark_on_finalize_one_token::<Test>());
-			assert_ok!(test_benchmark_on_finalize_multiple_tokens_all_bucket_levels::<Test>());
-			assert_ok!(test_benchmark_on_finalize_multiple_tokens::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize_no_entry());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize_one_token());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize_multiple_tokens_all_bucket_levels());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize_multiple_tokens());
 		});
 	}
 }

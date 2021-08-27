@@ -29,6 +29,7 @@ use sp_runtime::{
 };
 
 use primitives::{fee, AssetId, Balance, traits::AssetPairAccountIdFor};
+use frame_system::EnsureSigned;
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -57,7 +58,7 @@ frame_support::construct_runtime!(
 				 Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 				 XYKPallet: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 				 Currency: orml_tokens::{Pallet, Event<T>},
-				 AssetRegistry: pallet_asset_registry::{Pallet, Storage},
+				 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
 		 }
 
 );
@@ -66,6 +67,7 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const HDXAssetId: AssetId = HDX;
 	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub RegistryStringLimit: u32 = 100;
 }
 
 impl system::Config for Test {
@@ -109,6 +111,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
+	type DustRemovalWhitelist = ();
 }
 
 pub struct AssetPairAccountIdTest();
@@ -127,11 +130,18 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 }
 
 impl pallet_asset_registry::Config for Test {
+	type Event = Event;
+	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
+	type AssetNativeLocation = u8;
+	type StringLimit = RegistryStringLimit;
+	type NativeAssetId = HDXAssetId;
+	type WeightInfo = ();
 }
 
 impl pallet_xyk::Config for Test {
 	type Event = Event;
+	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
 	type NativeAssetId = HDXAssetId;

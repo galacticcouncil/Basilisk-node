@@ -18,6 +18,7 @@
 use crate as price_oracle;
 use crate::Config;
 use frame_support::parameter_types;
+use frame_support::traits::Get;
 use frame_system;
 use orml_traits::parameter_type_with_key;
 use price_oracle::{PriceEntry, PriceOracleHandler};
@@ -28,10 +29,15 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup, Zero},
 };
+use std::cell::RefCell;
 
 pub type Amount = i128;
+pub type AccountId = u64;
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
+
+pub const HDX: AssetId = 1000;
 
 pub const ASSET_PAIR_A: AssetPair = AssetPair {
 	asset_in: 1_000,
@@ -67,14 +73,13 @@ frame_support::construct_runtime!(
 		 PriceOracle: price_oracle::{Pallet, Call, Storage, Event<T>},
 		 XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		 Currency: orml_tokens::{Pallet, Event<T>},
-		 AssetRegistry: pallet_asset_registry::{Pallet, Storage},
+		 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
 	 }
 
 );
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
-	pub const SS58Prefix: u8 = 63;
 }
 
 impl frame_system::Config for Test {
@@ -118,24 +123,44 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 	}
 }
 
+thread_local! {
+		static EXCHANGE_FEE: RefCell<fee::Fee> = RefCell::new(fee::Fee::default());
+}
+
+struct ExchangeFee;
+impl Get<fee::Fee> for ExchangeFee {
+	fn get() -> fee::Fee {
+		EXCHANGE_FEE.with(|v| *v.borrow())
+	}
+}
+
 parameter_types! {
-	pub const HdxAssetId: u32 = 0;
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub const NativeAssetId: AssetId = HDX;
+	pub ExchangeFeeRate: fee::Fee = ExchangeFee::get();
+	pub RegistryStringLimit: u32 = 100;
+}
+
+impl pallet_asset_registry::Config for Test {
+	type Event = Event;
+	type RegistryOrigin = frame_system::EnsureSigned<AccountId>;
+	type AssetId = AssetId;
+	type AssetNativeLocation = u8;
+	type StringLimit = RegistryStringLimit;
+	type NativeAssetId = NativeAssetId;
+	type WeightInfo = ();
 }
 
 impl pallet_xyk::Config for Test {
 	type Event = Event;
+	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
-	type NativeAssetId = HdxAssetId;
+	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
 	type AMMHandler = PriceOracleHandler<Test>;
 }
 
-impl pallet_asset_registry::Config for Test {
-	type AssetId = AssetId;
-}
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
@@ -152,6 +177,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
+	type DustRemovalWhitelist = ();
 }
 
 impl Config for Test {

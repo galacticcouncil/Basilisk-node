@@ -1,26 +1,25 @@
 use super::*;
 
+use codec::{Decode, Encode};
 use cumulus_primitives_core::ParaId;
-use frame_support::traits::All;
+use frame_support::traits::{Everything, Nothing};
 pub use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
-use polkadot_xcm::v0::{Junction::*, MultiAsset, MultiLocation, MultiLocation::*, NetworkId, Xcm};
+use polkadot_xcm::opaque::v0::Error;
+use polkadot_xcm::v0::{Junction::*, MultiAsset, MultiLocation, MultiLocation::*, NetworkId};
 use sp_runtime::traits::Convert;
 use xcm_builder::{
-	AccountId32Aliases, AllowTopLevelPaidExecutionFrom, EnsureXcmOrigin,
-	FixedWeightBounds, LocationInverter, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
-	TakeWeightCredit,
+	AccountId32Aliases, AllowTopLevelPaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds, LocationInverter,
+	ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
-use xcm_executor::{Config, XcmExecutor, Assets};
-use codec::Encode;
 use xcm_executor::traits::WeightTrader;
-use polkadot_xcm::opaque::v0::Error;
+use xcm_executor::{Assets, Config, XcmExecutor};
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
-pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<All<MultiLocation>>);
+pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
 parameter_types! {
 	pub SelfLocation: MultiLocation = X2(Parent, Parachain(ParachainInfo::get().into()));
@@ -149,11 +148,12 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
-	type XcmExecuteFilter = All<(MultiLocation, Xcm<Call>)>;
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = ();
-	type XcmReserveTransferFilter = All<(MultiLocation, Vec<MultiAsset>)>;
+	type XcmReserveTransferFilter = Nothing;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type LocationInverter = LocationInverter<Ancestry>;
 }
 
 pub struct CurrencyIdConvert;
@@ -162,9 +162,18 @@ pub struct CurrencyIdConvert;
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
 		match id {
-			0 => Some(X3(Parent, Parachain(ParachainInfo::get().into()), GeneralKey(id.encode()))),
-			1 => Some(X1(Parent)), // KSM for now has currency id 1 ( will be handled by asset registry
-			_ => None,
+			0 => Some(X3(
+				Parent,
+				Parachain(ParachainInfo::get().into()),
+				GeneralKey(id.encode()),
+			)),
+			_ => {
+				if let Some(loc) = AssetRegistry::asset_to_location(id) {
+					Some(loc.0)
+				} else {
+					None
+				}
+			}
 		}
 	}
 }
@@ -173,13 +182,20 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
-			X1(Parent) => Some(1), // KSM
-			X3(Parent, Parachain(id), GeneralKey(_key)) if ParaId::from(id) == ParachainInfo::get() => {
-				// Need to decoded the key and check
-				// for now return 0
-				Some(0)
-			},
-			_ => None,
+			X3(Parent, Parachain(id), GeneralKey(key)) if ParaId::from(id) == ParachainInfo::get() => {
+				// Handling native asset for this parachain
+				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
+					// we currently have only one native asset
+					match currency_id {
+						0 => Some(currency_id),
+						_ => None,
+					}
+				} else {
+					None
+				}
+			}
+			// delegate to asset-registry
+			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
 		}
 	}
 }
