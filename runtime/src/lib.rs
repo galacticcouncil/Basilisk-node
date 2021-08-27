@@ -1107,16 +1107,17 @@ impl_runtime_apis! {
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 
-			add_benchmark!(params, batches, xyk, XYK);
-			add_benchmark!(params, batches, lbp, LBP);
-			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
-			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);
+			// Basilisk pallets
+			add_benchmark!(params, batches, pallet_xyk, XYK);
+			add_benchmark!(params, batches, pallet_lbp, LBP);
+			add_benchmark!(params, batches, pallet_transaction_multi_payment, MultiBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_nft, NFT);
+
+			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
-			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
-			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
