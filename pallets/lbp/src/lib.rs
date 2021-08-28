@@ -756,6 +756,11 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::ZeroWeight
 		);
 
+		ensure!(
+			!pool_data.fee.denominator.is_zero(),
+			Error::<T>::FeeAmountInvalid
+		);
+
 		Ok(())
 	}
 

@@ -2343,6 +2343,7 @@ fn sell_should_work() {
 
 		//start sale
 		run_to_block(11);
+
 		assert_ok!(LBPPallet::sell(
 			Origin::signed(who),
 			asset_in,
@@ -2386,9 +2387,44 @@ fn sell_should_work() {
 }
 
 #[test]
-fn invalid_fee_should_not_work() {
+fn zero_fee_should_work() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			LBPAssetInfo {
+				id: ACA,
+				amount: 1_000_000_000,
+				initial_weight: 20,
+				final_weight: 90,
+			},
+			LBPAssetInfo {
+				id: DOT,
+				amount: 2_000_000_000,
+				initial_weight: 80,
+				final_weight: 10,
+			},
+			(10u64, 20u64),
+			WeightCurveType::Linear,
+			true,
+			Fee {
+				numerator: 0,
+				denominator: 100,
+			},
+			CHARLIE,
+		));
+
+		//start sale
+		run_to_block(11);
+
+		assert_ok!(LBPPallet::sell(Origin::signed(ALICE), ACA, DOT, 1_000, 1,));
+	});
+}
+
+#[test]
+fn invalid_fee_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
 			LBPAssetInfo {
@@ -2411,17 +2447,7 @@ fn invalid_fee_should_not_work() {
 				denominator: 0,
 			},
 			CHARLIE,
-		));
-
-		//start sale
-		run_to_block(11);
-		assert_noop!(
-			LBPPallet::sell(Origin::signed(ALICE), ACA, DOT, 1_000, 1,),
-			Error::<Test>::FeeAmountInvalid
-		);
-
-		assert_noop!(
-			LBPPallet::buy(Origin::signed(ALICE), DOT, ACA, 1_000, 1_000_000,),
+			),
 			Error::<Test>::FeeAmountInvalid
 		);
 	});
