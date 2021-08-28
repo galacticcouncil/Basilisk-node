@@ -35,7 +35,6 @@ frame_support::construct_runtime!(
 
 parameter_types! {
 	pub ClassBondAmount: Balance = 100;
-	pub MintMaxQuantity: u32 = 100_000;
 	pub MaxMetadataLength: u32 = 256;
 }
 
@@ -44,7 +43,6 @@ impl pallet_nft::Config for Test {
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
 	type ClassBondAmount = ClassBondAmount;
-	type MintMaxQuantity = MintMaxQuantity;
 }
 
 parameter_types! {
@@ -115,7 +113,6 @@ pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const CLASS_ID: <Test as orml_nft::Config>::ClassId = 0;
-pub const TEST_QUANTITY: u32 = 99;
 pub const TEST_PRICE: Balance = 99;
 pub const TOKEN_ID: <Test as orml_nft::Config>::TokenId = 0;
 

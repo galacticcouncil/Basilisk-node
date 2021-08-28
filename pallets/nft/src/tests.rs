@@ -96,9 +96,8 @@ fn mint_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
 		));
-		let event = Event::NFT(crate::Event::TokenMinted(ALICE, CLASS_ID, TEST_QUANTITY));
+		let event = Event::NFT(crate::Event::TokenMinted(ALICE, CLASS_ID, 0u32.into()));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -120,7 +119,7 @@ fn mint_fails() {
 				0,
 				"a token".as_bytes().to_vec(),
 				TokenData { locked: false },
-				TEST_QUANTITY,
+
 			),
 			Error::<Test>::NotClassOwner
 		);
@@ -131,7 +130,7 @@ fn mint_fails() {
 				0,
 				vec![1; <Test as orml_nft::Config>::MaxTokenMetadata::get() as usize + 1],
 				TokenData { locked: false },
-				TEST_QUANTITY,
+
 			),
 			orml_nft::Error::<Test>::MaxMetadataExceeded
 		);
@@ -152,7 +151,7 @@ fn transfer_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
@@ -175,7 +174,7 @@ fn transfer_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_noop!(
@@ -204,7 +203,7 @@ fn burn_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_ok!(NFTModule::burn(Origin::signed(ALICE), (CLASS_ID, TOKEN_ID)));
@@ -227,7 +226,7 @@ fn burn_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_noop!(
@@ -264,7 +263,7 @@ fn destroy_class_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_noop!(
@@ -303,7 +302,7 @@ fn destroy_pool_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_noop!(
@@ -327,7 +326,7 @@ fn toggle_lock_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_ok!(NFTModule::toggle_lock(&ALICE, (CLASS_ID, TOKEN_ID)));
@@ -350,7 +349,7 @@ fn toggle_lock_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_noop!(
@@ -375,7 +374,7 @@ fn buy_from_pool_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_ok!(NFTModule::buy_from_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)));
@@ -399,7 +398,7 @@ fn buy_from_pool_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
@@ -432,7 +431,7 @@ fn buy_from_pool_fails_notapool() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_noop!(
@@ -456,7 +455,7 @@ fn sell_to_pool_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
@@ -481,7 +480,7 @@ fn sell_to_pool_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-			TEST_QUANTITY,
+
 		));
 
 		assert_noop!(
