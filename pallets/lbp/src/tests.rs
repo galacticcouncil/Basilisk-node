@@ -587,8 +587,7 @@ fn update_pool_data_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
-			Some(15),
-			Some(18),
+			Some((15, 18)),
 			Some(((ACA, 10), (DOT, 90))),
 			Some(((ACA, 80), (DOT, 20))),
 			Some(Fee {
@@ -619,8 +618,7 @@ fn update_pool_data_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
-			None,
-			Some(30),
+			Some((15, 30)),
 			None,
 			None,
 			None,
@@ -646,7 +644,6 @@ fn update_pool_data_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
-			None,
 			None,
 			Some(((ACA, 10), (DOT, 70))),
 			None,
@@ -677,7 +674,6 @@ fn update_pool_data_should_work() {
 			None,
 			None,
 			None,
-			None,
 			Some(ALICE),
 		));
 
@@ -700,8 +696,7 @@ fn update_pool_data_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
-			None,
-			Some(18),
+			Some((15, 18)),
 			Some(((ACA, 10), (DOT, 90))),
 			None,
 			Some(Fee {
@@ -743,8 +738,7 @@ fn update_non_existing_pool_data_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
-				Some(15),
-				Some(18),
+				Some((15, 18)),
 				Some(((ACA, 10), (DOT, 90))),
 				Some(((ACA, 80), (DOT, 20))),
 				Some(Fee {
@@ -765,8 +759,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
-				Some(20),
-				Some(10), // reversed interval, the end precedes the beginning
+				Some((20, 10)), // reversed interval, the end precedes the beginning
 				Some(((ACA, 10), (DOT, 90))),
 				Some(((ACA, 80), (DOT, 20))),
 				Some(Fee {
@@ -784,8 +777,39 @@ fn update_pool_with_invalid_data_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
-				Some(5),
-				Some(20),
+				Some((5, 20)),
+				Some(((ACA, 10), (DOT, 90))),
+				Some(((ACA, 80), (DOT, 20))),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100,
+				}),
+				None,
+			),
+			Error::<Test>::InvalidBlockNumber
+		);
+
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some((0, 20)),
+				Some(((ACA, 10), (DOT, 90))),
+				Some(((ACA, 80), (DOT, 20))),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100,
+				}),
+				None,
+			),
+			Error::<Test>::InvalidBlockNumber
+		);
+
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some((5, 0)),
 				Some(((ACA, 10), (DOT, 90))),
 				Some(((ACA, 80), (DOT, 20))),
 				Some(Fee {
@@ -811,7 +835,6 @@ fn update_pool_data_without_changes_should_not_work() {
 				None,
 				None,
 				None,
-				None,
 			),
 			Error::<Test>::NothingToUpdate
 		);
@@ -825,8 +848,7 @@ fn update_pool_data_by_non_owner_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(BOB),
 				ACA_DOT_POOL_ID,
-				Some(15),
-				None,
+				Some((15, 20)),
 				Some(((ACA, 10), (DOT, 90))),
 				None,
 				None,
@@ -847,8 +869,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
-				Some(15),
-				None,
+				Some((15, 20)),
 				Some(((ACA, 10), (DOT, 90))),
 				None,
 				Some(Fee {
@@ -880,7 +901,6 @@ fn update_pool_data_with_wrong_asset_should_not_work() {
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
 				None,
-				None,
 				Some(((HDX, 10), (DOT, 90))),
 				None,
 				None,
@@ -888,6 +908,76 @@ fn update_pool_data_with_wrong_asset_should_not_work() {
 			),
 			Error::<Test>::InvalidAsset
 		);
+	});
+}
+
+#[test]
+fn update_pool_interval_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			LBPAssetInfo {
+				id: ACA,
+				amount: 1_000_000_000,
+				initial_weight: 20,
+				final_weight: 90,
+			},
+			LBPAssetInfo {
+				id: DOT,
+				amount: 2_000_000_000,
+				initial_weight: 80,
+				final_weight: 10,
+			},
+			(0u64, 0u64),
+			WeightCurveType::Linear,
+			true,
+			Fee::default(),
+			CHARLIE,
+		));
+
+		System::set_block_number(15);
+
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some((16, 0)),
+				None,
+				None,
+				None,
+				None,
+			),
+			Error::<Test>::InvalidBlockNumber
+		);
+
+		assert_ok!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some((16, 20)),
+				None,
+				None,
+				None,
+				None,
+			));
+
+		// verify changes
+		let updated_pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_eq!(updated_pool_data.start, 16);
+		assert_eq!(updated_pool_data.end, 20);
+
+		expect_events(vec![
+			Event::PoolCreated(
+			ALICE,
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+			).into(),
+			Event::PoolUpdated(1, 2003000).into(),
+		]);
 	});
 }
 
@@ -1890,8 +1980,7 @@ fn zero_weight_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
-				Some(15),
-				Some(18),
+				Some((15, 18)),
 				Some(((ACA, 0), (DOT, 90))),
 				Some(((ACA, 80), (DOT, 20))),
 				Some(Fee {

@@ -7,7 +7,7 @@
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
-	traits::{AtLeast32BitUnsigned, Hash, Zero},
+	traits::{AtLeast32BitUnsigned, Hash, Zero, Saturating},
 	DispatchError, RuntimeDebug,
 };
 use frame_support::{
@@ -392,8 +392,7 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `pool_id`: The identifier of the pool to be updated.
-		/// - `start`: The new starting time of the sale. This parameter is optional.
-		/// - `end`: The new ending time of the sale. This parameter is optional.
+		/// - `duration`: The new starting and ending time of the sale. This parameter is optional.
 		/// - `initial_weights`: The new initial weights. This parameter is optional.
 		/// - `final_weights`: The new final weights. This parameter is optional.
 		/// - `fee`: The new trading fee charged on every trade. This parameter is optional.
@@ -405,8 +404,7 @@ pub mod pallet {
 		pub fn update_pool_data(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T>,
-			start: Option<T::BlockNumber>,
-			end: Option<T::BlockNumber>,
+			duration: Option<(T::BlockNumber, T::BlockNumber)>,
 			initial_weights: Option<((AssetId, LBPWeight), (AssetId, LBPWeight))>,
 			final_weights: Option<((AssetId, LBPWeight), (AssetId, LBPWeight))>,
 			fee: Option<Fee>,
@@ -417,6 +415,11 @@ pub mod pallet {
 			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResultWithPostInfo {
 				// check existence of the pool
 				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
+
+				let (start, end) = match duration {
+					Some((start, end)) => (Some(start), Some(end)),
+					_ => (None, None)
+				};
 
 				ensure!(
 					start.is_some()
@@ -732,18 +735,16 @@ impl<T: Config> Pallet<T> {
 
 	fn validate_pool_data(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> DispatchResult {
 		let now = <frame_system::Pallet<T>>::block_number();
+
 		ensure!(
-			pool_data.start.is_zero() || now <= pool_data.start,
+			(pool_data.start.is_zero() && pool_data.end.is_zero()) || (now <= pool_data.start && pool_data.start < pool_data.end),
 			Error::<T>::InvalidBlockNumber
 		);
-		ensure!(
-			pool_data.end.is_zero() || pool_data.start < pool_data.end,
-			Error::<T>::InvalidBlockNumber
-		);
+
 		// this restriction is based on the AtLeast32Bit trait of the frame_system::Balance type
 		// and is expected by the calculate_linear_weights function
 		ensure!(
-			pool_data.end - pool_data.start <= u32::MAX.into(),
+			pool_data.end.saturating_sub(pool_data.start) <= u32::MAX.into(),
 			Error::<T>::MaxSaleDurationExceeded
 		);
 
