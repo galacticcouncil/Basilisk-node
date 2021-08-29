@@ -106,3 +106,33 @@ pub trait Resolver<AccountId, Intention, E> {
 	/// Intention ```intention``` must be validated prior to call this function.
 	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[Intention]);
 }
+
+pub trait Registry<AssetId, AssetName, Error> {
+	fn exists(name: AssetId) -> bool;
+
+	fn retrieve_asset(name: &AssetName) -> Result<AssetId, Error>;
+
+	fn create_asset(name: &AssetName) -> Result<AssetId, Error>;
+
+	fn get_or_create_asset(name: AssetName) -> Result<AssetId, Error> {
+		if let Ok(asset_id) = Self::retrieve_asset(&name) {
+			Ok(asset_id)
+		} else {
+			Self::create_asset(&name)
+		}
+	}
+}
+
+pub trait ShareTokenRegistry<AssetId, AssetName, Error>: Registry<AssetId, AssetName, Error> {
+	fn retrieve_shared_asset(name: &AssetName, assets: &Vec<AssetId>) -> Result<AssetId, Error>;
+
+	fn create_shared_asset(name: &AssetName, assets: &Vec<AssetId>) -> Result<AssetId, Error>;
+
+	fn get_or_create_shared_asset(name: AssetName, assets: Vec<AssetId>) -> Result<AssetId, Error> {
+		if let Ok(asset_id) = Self::retrieve_shared_asset(&name, &assets) {
+			Ok(asset_id)
+		} else {
+			Self::create_shared_asset(&name, &assets)
+		}
+	}
+}

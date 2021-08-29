@@ -47,7 +47,7 @@ npm link
 Starts local testnet with 4 relay chain validators and Basilisk as parachain
 
 ```
-cd rococo-local
+cd ../rococo-local
 polkadot-launch config.json
 ```
 
@@ -96,10 +96,6 @@ Then open settings screen -> developer and paste
   },
   "CurrencyId": "AssetId",
   "CurrencyIdOf": "AssetId",
-  "Fee": {
-    "numerator": "u32",
-    "denominator": "u32"
-  },
   "Intention": {
     "who": "AccountId",
     "asset_sell": "AssetId",
@@ -124,7 +120,6 @@ Then open settings screen -> developer and paste
   },
   "TokenData": {
     "locked": "bool",
-    "emote": "Vec<u8>"
   },
   "CID": "Vec<u8>",
   "ClassInfo": {
@@ -141,9 +136,8 @@ Then open settings screen -> developer and paste
   "ClassInfoOf": "ClassInfo",
   "TokenInfoOf": "TokenInfo",
   "ClassIdOf": "ClassId",
-  "TokenIdOf": "TokenId"
+  "TokenIdOf": "TokenId",
   "OrderedSet": "Vec<AssetId>",
-  "Price": "Balance",
   "VestingSchedule": {
     "start": "BlockNumber",
     "period": "BlockNumber",

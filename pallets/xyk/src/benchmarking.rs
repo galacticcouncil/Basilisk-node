@@ -135,11 +135,11 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_create_pool::<Test>());
-			assert_ok!(test_benchmark_add_liquidity::<Test>());
-			assert_ok!(test_benchmark_remove_liquidity::<Test>());
-			assert_ok!(test_benchmark_sell::<Test>());
-			assert_ok!(test_benchmark_buy::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_create_pool());
+			assert_ok!(Pallet::<Test>::test_benchmark_add_liquidity());
+			assert_ok!(Pallet::<Test>::test_benchmark_remove_liquidity());
+			assert_ok!(Pallet::<Test>::test_benchmark_sell());
+			assert_ok!(Pallet::<Test>::test_benchmark_buy());
 		});
 	}
 }

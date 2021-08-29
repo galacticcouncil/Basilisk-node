@@ -1,0 +1,63 @@
+[package]
+name = "pallet-duster"
+version = "1.0.0"
+description = "Account duster"
+authors = ["GalacticCouncil"]
+edition = "2018"
+homepage = "https://github.com/galacticcouncil/Basilisk-node"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/Basilisk-node"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[build-dependencies]
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+
+[dependencies]
+codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "2.0.0" }
+serde = { features = ["derive"], optional = true, version = "1.0.101" }
+
+# ORML dependencies
+orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
+
+# Substrate dependencies
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+
+# Optionals
+frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false, optional = true }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false, optional = true }
+
+[dev-dependencies]
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
+orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
+primitives = { path = "../../primitives", default-features = false }
+lazy_static = { features = ["spin_no_std"], version = "1.4.0" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
+
+[features]
+default = ["std"]
+runtime-benchmarks = [
+    "frame-benchmarking",
+    "frame-system/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+]
+std = [
+    "serde",
+    "codec/std",
+    "frame-support/std",
+    "frame-system/std",
+    "sp-runtime/std",
+    "sp-core/std",
+    "sp-std/std",
+    "orml-tokens/std",
+    "orml-traits/std",
+    "primitives/std",
+    "lazy_static/spin_no_std",
+    "pallet-balances/std",
+]

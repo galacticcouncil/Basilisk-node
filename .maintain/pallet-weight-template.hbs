@@ -46,9 +46,9 @@ pub trait WeightInfo {
 {{~/each}}
 }
 
-/// Weights for {{pallet}} using the hack.hydraDX node and recommended hardware.
-pub struct HydraWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
+pub struct BasiliskWeight<T>(PhantomData<T>);
+
+impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	{{~#each benchmarks as |benchmark|}}
 	fn {{benchmark.name~}}
 	(
