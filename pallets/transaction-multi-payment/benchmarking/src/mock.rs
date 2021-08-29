@@ -83,7 +83,7 @@ parameter_types! {
 	pub const MaxLocks: u32 = 50;
 	pub const TransactionByteFee: Balance = 1;
 	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
-	pub PayForSetCurrency : Pays = Pays::No;
+	pub PayForSetCurrency : Pays = Pays::Yes;
 	pub const RegistryStringLimit: u32 = 100;
 }
 

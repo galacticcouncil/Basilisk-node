@@ -39,6 +39,7 @@ fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_servic
 	Ok(match id {
 		"" => Box::new(chain_spec::basilisk_parachain_config()?),
 		"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
+		"benchmarks" => Box::new(chain_spec::benchmarks_development_config(para_id)?),
 		"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 		"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
 		"staging" => Box::new(chain_spec::kusama_staging_parachain_config(para_id)?),
@@ -76,6 +77,7 @@ impl SubstrateCli for Cli {
 		Ok(match id {
 			"" => Box::new(chain_spec::basilisk_parachain_config()?),
 			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
+			"benchmarks" => Box::new(chain_spec::benchmarks_development_config(para_id)?),
 			"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
 			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
 			"staging" => Box::new(chain_spec::kusama_staging_parachain_config(para_id)?),
