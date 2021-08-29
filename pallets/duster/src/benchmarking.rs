@@ -37,16 +37,23 @@ benchmarks! {
 		let caller = funded_account::<T>("caller", 0);
 		let to_dust_account = funded_account::<T>("dust", 0);
 
-		let dust_amount : T::Amount = 1_000u32.into();
+		let asset_id: T::CurrencyId = T::CurrencyId::from(1u32);
+		let reward = T::Reward::get();
 
-		T::MultiCurrency::update_balance(1u32.into(), &to_dust_account, dust_amount).unwrap();
-		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &to_dust_account), 1000u32.into());
+		let min_deposit = T::MinCurrencyDeposits::get(&asset_id);
+
+		let dust_amount : T::Amount = T::Amount::try_from(min_deposit).ok().unwrap() - T::Amount::from(1u32);
+
+		T::MultiCurrency::update_balance(asset_id, &to_dust_account, dust_amount).unwrap();
+		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &to_dust_account), dust_amount.try_into().ok().unwrap());
+
+		let current_balance = T::MultiCurrency::free_balance(asset_id, &crate::Pallet::<T>::dust_dest_account());
 
 	}: _(RawOrigin::Signed(caller.clone()), to_dust_account.clone(),1u32.into())
 	verify {
 		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &to_dust_account), 0u32.into());
-		assert_eq!(T::MultiCurrency::free_balance(0u32.into(), &caller), 10_000u32.into());
-		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &crate::Pallet::<T>::dust_dest_account()), 1000u32.into());
+		assert_eq!(T::MultiCurrency::free_balance(0u32.into(), &caller), reward);
+		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &crate::Pallet::<T>::dust_dest_account()), current_balance + dust_amount.try_into().ok().unwrap());
 	}
 }
 

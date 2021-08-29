@@ -288,7 +288,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
+	pub const NativeExistentialDeposit: u128 = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -300,7 +300,7 @@ impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type Event = Event;
 	type DustRemoval = ();
-	type ExistentialDeposit = ExistentialDeposit;
+	type ExistentialDeposit = NativeExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
@@ -338,7 +338,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type Currency = Balances;
 	type MultiCurrency = Currencies;
 	type AMMPool = XYK;
-	type WeightInfo = weights::payment::HydraWeight<Runtime>;
+	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
 }
@@ -349,11 +349,17 @@ impl pallet_sudo::Config for Runtime {
 }
 
 parameter_type_with_key! {
-	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
+	pub TokensExistentialDeposits: |_currency_id: AssetId| -> Balance {
 		// Dusting is handled by duster pallet.
 		// However, to make sure that account is reaped/killed and storage updated, ED must be > 0
 		// On ED = 0 - accounts are never reaped.
 		1u128
+	};
+}
+
+parameter_type_with_key! {
+	pub DusterExistentialDeposits: |_currency_id: AssetId| -> Balance {
+		1_000u128
 	};
 }
 
@@ -364,7 +370,7 @@ impl orml_tokens::Config for Runtime {
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
-	type ExistentialDeposits = ExistentialDeposits;
+	type ExistentialDeposits = TokensExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
@@ -396,7 +402,7 @@ impl pallet_asset_registry::Config for Runtime {
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = ();
+	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -410,7 +416,7 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::xyk::HydraWeight<Runtime>;
+	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 }
 
@@ -419,7 +425,7 @@ impl pallet_exchange::Config for Runtime {
 	type AMMPool = XYK;
 	type Resolver = Exchange;
 	type Currency = Currencies;
-	type WeightInfo = weights::exchange::HydraWeight<Runtime>;
+	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -432,10 +438,10 @@ impl pallet_duster::Config for Runtime {
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currencies;
-	type MinCurrencyDeposits = ExistentialDeposits;
+	type MinCurrencyDeposits = DusterExistentialDeposits;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
-	type WeightInfo = ();
+	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -449,7 +455,7 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = EnsureRoot<AccountId>; // TODO: change to governance membership
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
-	type WeightInfo = pallet_lbp::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -491,7 +497,7 @@ parameter_types! {
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type ClassBondAmount = ClassBondAmount;
 	type MintMaxQuantity = MintMaxQuantity;
 	type MaxEmoteLength = MaxEmoteLength;
@@ -520,8 +526,8 @@ parameter_types! {
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	pub const PreimageByteDeposit: Balance = CENTS;
 	pub const InstantAllowed: bool = true;
-	pub const MaxVotes: u32 = 30;
-	pub const MaxProposals: u32 = 30;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
@@ -586,7 +592,7 @@ impl pallet_democracy::Config for Runtime {
 	type Scheduler = Scheduler;
 	type PalletsOrigin = OriginCaller;
 	type MaxVotes = MaxVotes;
-	type WeightInfo = ();
+	type WeightInfo = weights::democracy::BasiliskWeight<Runtime>;
 	type MaxProposals = MaxProposals;
 }
 
@@ -682,7 +688,7 @@ impl pallet_treasury::Config for Runtime {
 	type SpendPeriod = SpendPeriod;
 	type Burn = Burn;
 	type BurnDestination = ();
-	type WeightInfo = ();
+	type WeightInfo = weights::treasury::BasiliskWeight<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
 }
@@ -700,13 +706,13 @@ impl pallet_scheduler::Config for Runtime {
 	type MaximumWeight = MaximumSchedulerWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
-	type WeightInfo = ();
+	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
 }
 
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
-	type WeightInfo = ();
+	type WeightInfo = weights::utility::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1062,16 +1068,22 @@ impl_runtime_apis! {
 
 			let mut list = Vec::<BenchmarkList>::new();
 
-			list_benchmark!(list, extra, xyk, XYK);
-			list_benchmark!(list, extra, lbp, LBP);
-			list_benchmark!(list, extra, transaction_multi_payment, MultiBench::<Runtime>);
-			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-			list_benchmark!(list, extra, exchange, ExchangeBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_xyk, XYK);
+			list_benchmark!(list, extra, pallet_lbp, LBP);
+			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_nft, NFT);
+			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_duster, Duster);
+
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
-			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
-			list_benchmark!(list, extra, transaction_multi_payment, MultiBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_democracy, Democracy);
+			list_benchmark!(list, extra, pallet_treasury, Treasury);
+			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
+			list_benchmark!(list, extra, pallet_utility, Utility);
+			list_benchmark!(list, extra, pallet_tips, Tips);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1107,16 +1119,24 @@ impl_runtime_apis! {
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 
-			add_benchmark!(params, batches, xyk, XYK);
-			add_benchmark!(params, batches, lbp, LBP);
-			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
-			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);
+			// Basilisk pallets
+			add_benchmark!(params, batches, pallet_xyk, XYK);
+			add_benchmark!(params, batches, pallet_lbp, LBP);
+			add_benchmark!(params, batches, pallet_transaction_multi_payment, MultiBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_nft, NFT);
+			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_duster, Duster);
+
+			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
-			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
-			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_democracy, Democracy);
+			add_benchmark!(params, batches, pallet_treasury, Treasury);
+			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
+			add_benchmark!(params, batches, pallet_utility, Utility);
+			add_benchmark!(params, batches, pallet_tips, Tips);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
