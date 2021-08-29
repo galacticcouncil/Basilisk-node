@@ -1,3 +1,5 @@
+// TODO: What is the purpose of this?
+
 #![allow(unknown_lints)]
 #![allow(clippy::all)]
 use codec::{Decode, Encode};

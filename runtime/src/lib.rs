@@ -4,7 +4,6 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
-#![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::from_over_into)]
 
 #[cfg(test)]
@@ -188,6 +187,8 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		match call {
 			Call::XYK(_) => false,
+			Call::NFT(_) => false,
+			Call::Exchange(_) => false,
 			_ => true,
 		}
 	}
@@ -288,6 +289,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
+	// TODO: Shouldn't this be at least 1?
 	pub const NativeExistentialDeposit: u128 = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
@@ -353,6 +355,8 @@ parameter_type_with_key! {
 		// Dusting is handled by duster pallet.
 		// However, to make sure that account is reaped/killed and storage updated, ED must be > 0
 		// On ED = 0 - accounts are never reaped.
+
+		// We might want to set this to the same thing as duster e.g. 1000 for everything as a base
 		1u128
 	};
 }
@@ -397,6 +401,7 @@ impl Default for AssetLocation {
 
 impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
+	// TODO: Add council
 	type RegistryOrigin = EnsureRoot<AccountId>;
 	type AssetId = AssetId;
 	type AssetNativeLocation = AssetLocation;
@@ -429,6 +434,7 @@ impl pallet_exchange::Config for Runtime {
 }
 
 parameter_types! {
+	// Is this ok?
 	pub const DustingReward: u128 = 0;
 }
 
@@ -445,14 +451,15 @@ impl pallet_duster::Config for Runtime {
 }
 
 parameter_types! {
-	pub LBPExchangeFee: fee::Fee  = fee::Fee::default();
+	pub LBPExchangeFee: fee::Fee = fee::Fee::default();
 }
 
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type CreatePoolOrigin = EnsureRoot<AccountId>; // TODO: change to governance membership
+	// TODO: change to governance membership
+	type CreatePoolOrigin = EnsureRoot<AccountId>; 
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
@@ -486,8 +493,6 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-impl pallet_randomness_collective_flip::Config for Runtime {}
-
 parameter_types! {
 	pub ClassBondAmount: Balance = 10_000 * BSX;
 }
@@ -518,9 +523,10 @@ parameter_types! {
 	pub const VotingPeriod: BlockNumber = 7 * DAYS;
 	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
 	pub const MinimumDeposit: Balance = 1000 * DOLLARS;
-	pub const EnactmentPeriod: BlockNumber = 6 * DAYS;
+	pub const EnactmentPeriod: BlockNumber = 7 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const PreimageByteDeposit: Balance = CENTS;
+	// $10,000 / MB
+	pub const PreimageByteDeposit: Balance = 10 * MILLICENTS;
 	pub const InstantAllowed: bool = true;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
@@ -593,12 +599,12 @@ impl pallet_democracy::Config for Runtime {
 }
 
 parameter_types! {
-	// Bond for candidacy into governance
-	pub const CandidacyBond: Balance = 100_000_000_000 * BSX;
+	// Bond for candidacy into governance 
+	pub const CandidacyBond: Balance = 10_000 * DOLLARS;
 	// 1 storage item created, key size is 32 bytes, value size is 16+16.
-	pub const VotingBondBase: Balance = CENTS;
+	pub const VotingBondBase: Balance = 1 * DOLLARS;
 	// additional data per vote is 32 bytes (account id).
-	pub const VotingBondFactor: Balance = CENTS;
+	pub const VotingBondFactor: Balance = 50 * CENTS;
 	pub const TermDuration: BlockNumber = 7 * DAYS;
 	pub const DesiredMembers: u32 = 1;
 	pub const DesiredRunnersUp: u32 = 0;
@@ -624,9 +630,8 @@ impl pallet_elections_phragmen::Config for Runtime {
 }
 
 parameter_types! {
-	pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
-	pub const CouncilMaxProposals: u32 = 20;
-	pub const ProposalVotesRequired: u32 = 1;
+	pub const CouncilMotionDuration: BlockNumber = 4 * DAYS;
+	pub const CouncilMaxProposals: u32 = 100;
 	pub const CouncilMaxMembers: u32 = 1;
 }
 
@@ -643,7 +648,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 }
 
 parameter_types! {
-	pub const TechnicalMotionDuration: BlockNumber = 5 * DAYS;
+	pub const TechnicalMotionDuration: BlockNumber = 4 * DAYS;
 	pub const TechnicalMaxProposals: u32 = 20;
 	pub const TechnicalMaxMembers: u32 = 10;
 }
@@ -662,8 +667,8 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
-	pub const SpendPeriod: BlockNumber = DAYS;
+	pub const ProposalBondMinimum: Balance = 10 * DOLLARS;
+	pub const SpendPeriod: BlockNumber = 3 * DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
 	pub const MaxApprovals: u32 =  100;
@@ -678,7 +683,7 @@ impl pallet_treasury::Config for Runtime {
 	type ApproveOrigin = ManageOrigin;
 	type RejectOrigin = ManageOrigin;
 	type Event = Event;
-	type OnSlash = ();
+	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
 	type SpendPeriod = SpendPeriod;
@@ -724,14 +729,14 @@ impl pallet_authorship::Config for Runtime {
 
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const MaxCandidates: u32 = 20;             // only for benchmarking
-	pub const MinCandidates: u32 = 0;
+	pub const MaxCandidates: u32 = 20;
+	pub const MinCandidates: u32 = 4;
 	pub const MaxInvulnerables: u32 = 10;
 }
 
 parameter_types! {
 	pub const DataDepositPerByte: Balance = CENTS;
-	pub const TipCountdown: BlockNumber = 4 * HOURS;
+	pub const TipCountdown: BlockNumber = 24 * HOURS;
 	pub const TipFindersFee: Percent = Percent::from_percent(1);
 	pub const TipReportDepositBase: Balance = 10 * DOLLARS;
 	pub const TipReportDepositPerByte: Balance = CENTS;
@@ -834,11 +839,9 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>},
@@ -882,6 +885,9 @@ construct_runtime!(
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
+
+		// TEMPORARY
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 	}
 );
 
