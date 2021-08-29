@@ -25,7 +25,7 @@ mod mock;
 mod tests;
 
 mod benchmarking;
-mod weights;
+pub mod weights;
 
 use frame_support::{dispatch::DispatchResult, traits::Get};
 
