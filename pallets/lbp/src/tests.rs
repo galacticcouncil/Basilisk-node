@@ -2280,22 +2280,22 @@ fn sell_with_insufficient_balance_should_not_work() {
 		let who = BOB;
 		let asset_in = ACA;
 		let asset_out = ETH;
-		let amount = 800_000_u128;
+		let amount = 1_000_000_u128;
 
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
-			who,
+			ALICE,
 			LBPAssetInfo {
 				id: asset_in,
-				amount: INITIAL_BALANCE,
-				initial_weight: 20,
-				final_weight: 90,
+				amount: 1_000_000_000,
+				initial_weight: 50,
+				final_weight: 50,
 			},
 			LBPAssetInfo {
 				id: asset_out,
-				amount: 10_000,
-				initial_weight: 80,
-				final_weight: 10,
+				amount: 1_000_000_000,
+				initial_weight: 50,
+				final_weight: 50,
 			},
 			(30u64, 40u64),
 			WeightCurveType::Linear,
@@ -2304,11 +2304,14 @@ fn sell_with_insufficient_balance_should_not_work() {
 			CHARLIE,
 		));
 
+		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_999_900_000));
+		assert_eq!(Currency::free_balance(asset_in, &who), 100_000);
+
 		//start sale
 		run_to_block(31);
 		assert_noop!(
-			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, 2_u128),
-			Error::<Test>::InsufficientAssetBalance
+			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, 800_000_u128),
+			orml_tokens::Error::<Test>::BalanceTooLow
 		);
 	});
 }
@@ -2319,22 +2322,22 @@ fn buy_with_insufficient_balance_should_not_work() {
 		let who = BOB;
 		let asset_in = ACA;
 		let asset_out = ETH;
-		let amount = 800_000_u128;
+		let amount = 1_000_000_u128;
 
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
-			who,
+			ALICE,
 			LBPAssetInfo {
 				id: asset_in,
-				amount: INITIAL_BALANCE,
-				initial_weight: 20,
-				final_weight: 90,
+				amount: 1_000_000_000,
+				initial_weight: 50,
+				final_weight: 50,
 			},
 			LBPAssetInfo {
 				id: asset_out,
-				amount: 10_000,
-				initial_weight: 80,
-				final_weight: 10,
+				amount: 1_000_000_000,
+				initial_weight: 50,
+				final_weight: 50,
 			},
 			(30u64, 40u64),
 			WeightCurveType::Linear,
@@ -2342,6 +2345,9 @@ fn buy_with_insufficient_balance_should_not_work() {
 			Fee::default(),
 			CHARLIE,
 		));
+
+		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_999_900_000));
+		assert_eq!(Currency::free_balance(asset_in, &who), 100_000);
 
 		//start sale
 		run_to_block(31);
@@ -2351,9 +2357,9 @@ fn buy_with_insufficient_balance_should_not_work() {
 				asset_out,
 				asset_in,
 				amount,
-				2_000_000_000_000_000_000_000_u128
+				2_000_000_u128
 			),
-			Error::<Test>::InsufficientAssetBalance
+			orml_tokens::Error::<Test>::BalanceTooLow
 		);
 	});
 }
@@ -2366,8 +2372,10 @@ fn buy_should_work() {
 		let asset_out = DOT;
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
-		assert_eq!(Currency::free_balance(asset_in, &who), 1_000_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_000_000_000);
+		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_985_546_560));
+		assert_eq!(Currency::free_balance(asset_in, &who), 14_453_440);
+		assert_ok!(Currency::withdraw(asset_out, &who, 1_000_000_000_000_000));
+		assert_eq!(Currency::free_balance(asset_out, &who), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000_u128);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000_u128);
@@ -2403,16 +2411,74 @@ fn buy_should_work() {
 			pool
 		);
 
-		assert_eq!(Currency::free_balance(asset_in, &who), 999_999_985_546_560);
-		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_010_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &who), 0);
+		assert_eq!(Currency::free_balance(asset_out, &who), 10_000_000);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_014_424_591);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
 
-		expect_events(vec![Event::BuyExecuted(
-			who, asset_out, asset_in, 14_424_591, 10_000_000, asset_in, 28_849,
-		)
-		.into()]);
+		// test buy where the amount_in is less than the amount_out
+		let asset_in = HDX;
+		let asset_out = ETH;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			LBPAssetInfo {
+				id: HDX,
+				amount: 1_000_000_000,
+				initial_weight: 80,
+				final_weight: 10,
+			},
+			LBPAssetInfo {
+				id: ETH,
+				amount: 2_000_000_000,
+				initial_weight: 20,
+				final_weight: 90,
+			},
+			(20u64, 30u64),
+			WeightCurveType::Linear,
+			true,
+			Fee::default(),
+			CHARLIE,
+		));
+
+		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_990_000_001));
+		// assert_ok!(Currency::withdraw(asset_in, &who, 999_999_998_240_561));
+		// assert_eq!(Currency::free_balance(asset_in, &who), 1_759_439);
+		// assert_ok!(Currency::withdraw(asset_out, &who, 1_000_000_000_000_000));
+		// assert_eq!(Currency::free_balance(asset_out, &who), 0);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000_u128);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000_u128);
+
+		//start sale
+		run_to_block(21);
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(who),
+			asset_out,
+			asset_in,
+			10_000_000_u128,
+			2_000_000_000_u128
+		));
+
+		// assert_eq!(Currency::free_balance(asset_in, &who), 0);//8_240_561
+		// assert_eq!(Currency::free_balance(asset_out, &who), 10_000_000);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_001_755_928);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
+
+		expect_events(vec![
+			Event::BuyExecuted(
+			who, DOT, ACA, 14_424_591, 10_000_000, ACA, 28_849,
+		).into(),
+			frame_system::Event::NewAccount(4000).into(),
+			orml_tokens::Event::Endowed(0, 4000, 1000000000).into(),
+			orml_tokens::Event::Endowed(4000, 4000, 2000000000).into(),
+			Event::PoolCreated(1, 4000, 0, 4000, 1000000000, 2000000000).into(),
+			orml_tokens::Event::Endowed(0, 3, 3511).into(),
+			Event::BuyExecuted(2, 4000, 0, 1755928, 10000000, 0, 3511).into(),
+		]);
 	});
 }
 
@@ -2425,7 +2491,8 @@ fn sell_should_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		assert_eq!(Currency::free_balance(asset_in, &who), 1_000_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_000_000_000);
+		assert_ok!(Currency::withdraw(asset_out, &who, 1_000_000_000_000_000));
+		assert_eq!(Currency::free_balance(asset_out, &who), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000_u128);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000_u128);
@@ -2463,7 +2530,7 @@ fn sell_should_work() {
 		);
 
 		assert_eq!(Currency::free_balance(asset_in, &who), INITIAL_BALANCE - 10_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &who), 1_000_000_006_939_210);
+		assert_eq!(Currency::free_balance(asset_out, &who), 6_939_210);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_993_046_884);

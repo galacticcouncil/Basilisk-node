@@ -1062,16 +1062,14 @@ impl_runtime_apis! {
 
 			let mut list = Vec::<BenchmarkList>::new();
 
-			list_benchmark!(list, extra, xyk, XYK);
-			list_benchmark!(list, extra, lbp, LBP);
-			list_benchmark!(list, extra, transaction_multi_payment, MultiBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_xyk, XYK);
+			list_benchmark!(list, extra, pallet_lbp, LBP);
+			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-			list_benchmark!(list, extra, exchange, ExchangeBench::<Runtime>);
-			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
-			list_benchmark!(list, extra, transaction_multi_payment, MultiBench::<Runtime>);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1107,16 +1105,14 @@ impl_runtime_apis! {
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 
-			add_benchmark!(params, batches, xyk, XYK);
-			add_benchmark!(params, batches, lbp, LBP);
-			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_xyk, XYK);
+			add_benchmark!(params, batches, pallet_lbp, LBP);
+			add_benchmark!(params, batches, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-			add_benchmark!(params, batches, exchange, ExchangeBench::<Runtime>);
-			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
-			add_benchmark!(params, batches, transaction_multi_payment, MultiBench::<Runtime>);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

@@ -795,11 +795,6 @@ impl<T: Config> Pallet<T> {
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
-		ensure!(
-			T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount,
-			Error::<T>::InsufficientAssetBalance
-		);
-
 		let pool_id = Self::get_pair_id(assets);
 		let mut pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
