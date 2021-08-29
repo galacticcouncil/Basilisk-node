@@ -26,7 +26,7 @@ const TELEMETRY_URLS: [&str; 2] = [
 	"wss://telemetry.hydradx.io:9000/submit/",
 ];
 //Kusama parachain id
-const PARA_ID: u32 = 2082;
+const PARA_ID: u32 = 2090;
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
