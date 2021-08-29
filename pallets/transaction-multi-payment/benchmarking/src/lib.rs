@@ -24,9 +24,12 @@ use sp_std::vec;
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
-use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use orml_traits::MultiCurrencyExtended;
 use pallet_transaction_multi_payment::Pallet as MultiPaymentModule;
 use primitives::{Amount, AssetId, Balance, Price};
+
+#[cfg(test)]
+use orml_traits::MultiCurrency;
 
 use frame_support::dispatch;
 use pallet_xyk as xykpool;
@@ -48,8 +51,8 @@ where
 {
 	let caller: T::AccountId = account(name, index, SEED);
 
-	T::MultiCurrency::update_balance(ASSET_ID, &caller, 10_000).unwrap();
-	T::MultiCurrency::update_balance(HDX, &caller, 10_000).unwrap();
+	T::MultiCurrency::update_balance(ASSET_ID, &caller, 10_000_000_000_000).unwrap();
+	T::MultiCurrency::update_balance(HDX, &caller, 10_000_000_000_000).unwrap();
 
 	caller
 }
@@ -67,7 +70,7 @@ fn initialize_pool<T: Config>(
 benchmarks! {
 	swap_currency {
 		let maker = funded_account::<T>("maker", 1);
-		initialize_pool::<T>(maker.clone(), ASSET_ID, 10000, Price::from(1))?;
+		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
 		MultiPaymentModule::<T>::add_new_member(&maker);
 		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID, Price::from(10))?;
 
@@ -77,11 +80,13 @@ benchmarks! {
 	}: { MultiPaymentModule::<T>::swap_currency(&caller, 1000)? }
 	verify{
 		assert_eq!(MultiPaymentModule::<T>::get_currency(caller.clone()), Some(ASSET_ID));
-		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID, &caller), 8886 );
+		#[cfg(test)]
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID, &caller), 9999689661666);
 	}
 
 	set_currency {
 		let maker = funded_account::<T>("maker", 1);
+		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
 		MultiPaymentModule::<T>::add_new_member(&maker);
 		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID, Price::from(10))?;
 
