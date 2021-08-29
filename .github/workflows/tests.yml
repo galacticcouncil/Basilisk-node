@@ -183,7 +183,7 @@ jobs:
       - run: ./install_polkadot_launch.sh
         name: Setup polkadot launch
         working-directory: scripts
-      - run: npm start ../../rococo-local/config.json
+      - run: npm start ../../rococo-local/config.json &
         name: Launch rococo local
         working-directory: scripts/polkadot-launch
       - run: npm install && npm start 200
