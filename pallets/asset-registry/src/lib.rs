@@ -107,7 +107,7 @@ pub mod pallet {
 	/// Details of an asset.
 	pub type Assets<T: Config> = StorageMap<
 		_,
-		Blake2_128Concat,
+		Twox64Concat,
 		T::AssetId,
 		AssetDetails<T::AssetId, BoundedVec<u8, T::StringLimit>>,
 		OptionQuery,
@@ -121,7 +121,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn asset_ids)]
 	/// Mapping between asset name and asset id.
-	pub type AssetIds<T: Config> = StorageMap<_, Twox64Concat, BoundedVec<u8, T::StringLimit>, T::AssetId, OptionQuery>;
+	pub type AssetIds<T: Config> = StorageMap<_, Blake2_128Concat, BoundedVec<u8, T::StringLimit>, T::AssetId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn locations)]
@@ -131,13 +131,13 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn location_assets)]
 	/// Local asset for native location.
-	pub type LocationAssets<T: Config> = StorageMap<_, Twox64Concat, T::AssetNativeLocation, T::AssetId, OptionQuery>;
+	pub type LocationAssets<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetNativeLocation, T::AssetId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn asset_metadata)]
 	/// Metadata of an asset.
 	pub type AssetMetadataMap<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AssetId, AssetMetadata<BoundedVec<u8, T::StringLimit>>, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::AssetId, AssetMetadata<BoundedVec<u8, T::StringLimit>>, OptionQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig {
