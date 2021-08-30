@@ -868,7 +868,6 @@ impl<T: Config> Pallet<T> {
 			(token_amount_in, amount, assets.asset_in, transfer_fee)
 		};
 
-		// TODO: check if user has enough tokens in? 
 		if trade_type == TradeType::Buy {
 			ensure!(
 				T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount_in,
