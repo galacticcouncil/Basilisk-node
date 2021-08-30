@@ -208,3 +208,54 @@ fn set_metadata_works() {
 			);
 		});
 }
+
+#[test]
+fn update_asset() {
+	new_test_ext().execute_with(|| {
+
+		let btc_asset_id: AssetId = AssetRegistryPallet::get_or_create_asset(b"BTC".to_vec(), AssetType::Token).unwrap();
+		let usd_asset_id: AssetId = AssetRegistryPallet::get_or_create_asset(b"USD".to_vec(), AssetType::Token).unwrap();
+		
+		let next_asset_id = AssetRegistryPallet::next_asset_id();
+
+		// set a new name and type for an existing asset
+		assert_ok!(AssetRegistryPallet::update(
+			Origin::root(),
+			btc_asset_id,
+			b"superBTC".to_vec(),
+			AssetType::Token
+		));
+
+		// cannot set existing name for an existing asset
+		assert_noop!((AssetRegistryPallet::update(
+			Origin::root(),
+			usd_asset_id,
+			b"superBTC".to_vec(),
+			AssetType::Token
+		)), Error::<Test>::AssetAlreadyRegistered);
+
+		// cannot set a new name for a non-existent asset
+		assert_noop!((AssetRegistryPallet::update(
+			Origin::root(),
+			next_asset_id,
+			b"VOID".to_vec(),
+			AssetType::Token
+		)), Error::<Test>::AssetNotFound);
+
+		// corner case: change the name and also the type for an existing asset (token -> pool share)
+		assert_ok!(AssetRegistryPallet::update(
+			Origin::root(),
+			btc_asset_id,
+			b"BTCUSD".to_vec(),
+			AssetType::PoolShare(btc_asset_id, usd_asset_id)
+		));
+
+		// corner case: change the name and also the type for an existing asset (pool share -> token)
+		assert_ok!(AssetRegistryPallet::update(
+			Origin::root(),
+			btc_asset_id,
+			b"superBTC".to_vec(),
+			AssetType::Token
+		));
+	});
+}
