@@ -55,6 +55,24 @@ benchmarks! {
 		assert_eq!(T::MultiCurrency::free_balance(0u32.into(), &caller), reward);
 		assert_eq!(T::MultiCurrency::free_balance(1u32.into(), &crate::Pallet::<T>::dust_dest_account()), current_balance + dust_amount.try_into().ok().unwrap());
 	}
+
+	add_nondustable_account{
+		let caller = funded_account::<T>("caller", 0);
+		let nondustable_account = funded_account::<T>("dust", 0);
+	}: _(RawOrigin::Root, nondustable_account.clone())
+	verify {
+		assert!(crate::Pallet::<T>::blacklisted(&nondustable_account).is_some());
+	}
+
+	remove_nondustable_account{
+		let caller = funded_account::<T>("caller", 0);
+		let nondustable_account = funded_account::<T>("dust", 0);
+		let _ = crate::Pallet::<T>::add_nondustable_account(RawOrigin::Root.into(), nondustable_account.clone());
+
+	}: _(RawOrigin::Root, nondustable_account.clone())
+	verify {
+		assert!(crate::Pallet::<T>::blacklisted(&nondustable_account).is_none());
+	}
 }
 
 #[cfg(test)]
@@ -68,6 +86,8 @@ mod tests {
 	fn test_benchmarks() {
 		ExtBuilder::default().build().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_dust_account());
+			assert_ok!(Pallet::<Test>::test_benchmark_add_nondustable_account());
+			assert_ok!(Pallet::<Test>::test_benchmark_remove_nondustable_account());
 		});
 	}
 }
