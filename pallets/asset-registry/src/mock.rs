@@ -19,12 +19,14 @@
 
 use frame_support::parameter_types;
 use frame_system as system;
-use primitives::AssetId;
+use primitives::{AssetId, Balance};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
+
+use frame_support::traits::GenesisBuild;
 
 use polkadot_xcm::v0::MultiLocation;
 
@@ -93,6 +95,7 @@ impl Config for Test {
 	type Event = Event;
 	type RegistryOrigin = frame_system::EnsureRoot<u64>;
 	type AssetId = u32;
+	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStringLimit;
 	type NativeAssetId = NativeAssetId;
@@ -101,7 +104,7 @@ impl Config for Test {
 pub type AssetRegistryPallet = crate::Pallet<Test>;
 
 pub struct ExtBuilder {
-	assets: Vec<Vec<u8>>,
+	assets: Vec<(Vec<u8>, Balance)>,
 	native_asset_name: Option<Vec<u8>>,
 }
 
@@ -115,7 +118,7 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-	pub fn with_assets(mut self, assets: Vec<Vec<u8>>) -> Self {
+	pub fn with_assets(mut self, assets: Vec<(Vec<u8>, Balance)>) -> Self {
 		self.assets = assets;
 		self
 	}
@@ -129,19 +132,19 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		if let Some(name) = self.native_asset_name {
-			crate::GenesisConfig {
+			crate::GenesisConfig::<Test> {
 				asset_names: self.assets,
 				native_asset_name: name,
+				native_existential_deposit: 1_000_000u128,
 			}
 		} else {
-			crate::GenesisConfig {
+			crate::GenesisConfig::<Test> {
 				asset_names: self.assets,
 				..Default::default()
 			}
 		}
-		.assimilate_storage::<Test>(&mut t)
+		.assimilate_storage(&mut t)
 		.unwrap();
-
 		t.into()
 	}
 }

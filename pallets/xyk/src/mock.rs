@@ -82,6 +82,7 @@ impl pallet_asset_registry::Config for Test {
 	type Event = Event;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
+	type Balance = Balance;
 	type AssetNativeLocation = u8;
 	type StringLimit = RegistryStringLimit;
 	type NativeAssetId = NativeAssetId;

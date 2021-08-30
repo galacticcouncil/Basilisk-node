@@ -12,11 +12,13 @@ pub enum AssetType<AssetId> {
 
 #[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub struct AssetDetails<AssetId, BoundedString> {
+pub struct AssetDetails<AssetId, Balance, BoundedString> {
 	/// The name of this asset. Limited in length by `StringLimit`.
 	pub(super) name: BoundedString,
 
 	pub(super) asset_type: AssetType<AssetId>,
+
+	pub(super) existential_deposit: Balance,
 
 	pub(super) locked: bool,
 }
