@@ -456,6 +456,7 @@ pub mod pallet {
 
 				Self::validate_pool_data(&pool)?;
 
+				// TODO: add details
 				Self::deposit_event(Event::PoolUpdated(who, pool_id));
 				Ok(().into())
 			})
