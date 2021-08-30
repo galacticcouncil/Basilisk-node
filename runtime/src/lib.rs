@@ -372,7 +372,7 @@ impl orml_tokens::Config for Runtime {
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
 	type ExistentialDeposits = TokensExistentialDeposits;
-	type OnDust = Treasury;
+	type OnDust = ();
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
 }
