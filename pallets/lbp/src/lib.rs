@@ -62,7 +62,7 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub owner: AccountId,
 	pub start: BlockNumber,
 	pub end: BlockNumber,
-	// assets should be stored ordered by id // TODO: Which ID? Sorted from left to right?
+	// assets should be stored in increasing order (from left to right) by AssetId
 	pub assets: (AssetId, AssetId),
 	pub initial_weights: (LBPWeight, LBPWeight),
 	pub final_weights: (LBPWeight, LBPWeight),
@@ -73,6 +73,14 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub paused: bool,
 	pub fee: Fee,
 	pub fee_receiver: AccountId,
+}
+
+fn get_sorted_assets(asset_a: LBPAssetInfo<Balance>, asset_b: LBPAssetInfo<Balance>) -> (LBPAssetInfo<Balance>, LBPAssetInfo<Balance>) {
+	if asset_a.id < asset_b.id {
+		(asset_a, asset_b)
+	} else {
+		(asset_b, asset_a)
+	}
 }
 
 impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockNumber> {
@@ -86,12 +94,7 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 		fee: Fee,
 		fee_receiver: AccountId,
 	) -> Self {
-		// TODO: extract to function?
-		let (asset_one, asset_two) = if asset_a.id < asset_b.id {
-			(asset_a, asset_b)
-		} else {
-			(asset_b, asset_a)
-		};
+		let (asset_one, asset_two) = get_sorted_assets(asset_a, asset_b);
 
 		Pool {
 			owner: pool_owner,
@@ -244,13 +247,11 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		// TODO: Pool
-		/// Pool was created by the `CreatePool` origin. [who, pool_id, asset_a, asset_b, amount_a, amount_b]
-		PoolCreated(T::AccountId, PoolId<T>, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Pool was created by the `CreatePool` origin. [pool_id, pool_data]
+		PoolCreated(PoolId<T>, Pool<T::AccountId, T::BlockNumber>),
 
-		// TODO: Pool
-		/// Pool data were updated. [who, pool_id]
-		PoolUpdated(T::AccountId, PoolId<T>),
+		/// Pool data were updated. [pool_id, pool_data]
+		PoolUpdated(PoolId<T>, Pool<T::AccountId, T::BlockNumber>),
 
 		/// New liquidity was provided to the pool. [who, asset_a, asset_b, amount_a, amount_b]
 		LiquidityAdded(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
@@ -375,15 +376,7 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_a.id, &pool_owner, &pool_id, asset_a.amount)?;
 			T::MultiCurrency::transfer(asset_b.id, &pool_owner, &pool_id, asset_b.amount)?;
 
-			// TODO: sort assets?
-			Self::deposit_event(Event::PoolCreated(
-				pool_owner,
-				pool_id,
-				asset_a.id,
-				asset_b.id,
-				asset_a.amount,
-				asset_b.amount,
-			));
+			Self::deposit_event(Event::PoolCreated(pool_id, pool_data));
 
 			Ok(().into())
 		}
@@ -454,8 +447,7 @@ pub mod pallet {
 
 				Self::validate_pool_data(&pool)?;
 
-				// TODO: add details
-				Self::deposit_event(Event::PoolUpdated(who, pool_id));
+				Self::deposit_event(Event::PoolUpdated(pool_id, (*pool).clone()));
 				Ok(().into())
 			})
 		}
@@ -542,14 +534,15 @@ pub mod pallet {
 			amount_a: (AssetId, BalanceOf<T>),
 			amount_b: (AssetId, BalanceOf<T>),
 		) -> DispatchResultWithPostInfo {
-			// TODO: Add option to restrict for initial LP
 			let who = ensure_signed(origin)?;
 
 			let (asset_a, asset_b) = (amount_a.0, amount_b.0);
 			let (amount_a, amount_b) = (amount_a.1, amount_b.1);
 
 			let pool_id = T::AssetPairPoolId::from_assets(asset_a, asset_b);
-			ensure!(<PoolData<T>>::contains_key(&pool_id), Error::<T>::PoolNotFound);
+			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+
+			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
 
 			ensure!(
 				!amount_a.is_zero() || !amount_b.is_zero(),
@@ -804,6 +797,13 @@ impl<T: Config> Pallet<T> {
 		// TODO: looks like this would benefit from splitting to sell | buy and extracting common stuff to functions
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
+		if trade_type == TradeType::Sell {
+			ensure!(
+				T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount,
+				Error::<T>::InsufficientAssetBalance
+			);
+		}
+
 		let pool_id = Self::get_pair_id(assets);
 		let mut pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
@@ -869,6 +869,12 @@ impl<T: Config> Pallet<T> {
 		};
 
 		// TODO: check if user has enough tokens in? 
+		if trade_type == TradeType::Buy {
+			ensure!(
+				T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount_in,
+				Error::<T>::InsufficientAssetBalance
+			);
+		}
 
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_out, &pool_id) >= amount_out,
