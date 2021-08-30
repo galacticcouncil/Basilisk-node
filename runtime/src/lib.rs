@@ -362,6 +362,7 @@ parameter_type_with_key! {
 }
 
 parameter_type_with_key! {
+	// TODO: Dynamic existential deposits for tokens
 	pub DusterExistentialDeposits: |_currency_id: AssetId| -> Balance {
 		1_000u128
 	};

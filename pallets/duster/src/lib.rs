@@ -211,6 +211,7 @@ pub mod pallet {
 
 			Self::transfer_dust(&account, &Self::dust_dest_account(), currency_id, dust)?;
 
+			// TODO: we should set minimum deposit to something and then we might be able to ditch this?
 			if currency_id == T::NativeCurrencyId::get() {
 				// When dusting native currency, in order to make sure that account is killed,
 				// we need to decrease providers count.
@@ -272,7 +273,7 @@ impl<T: Config> Pallet<T> {
 		(total < ed, total)
 	}
 
-	/// Send reward to account which ddid the dusting.
+	/// Send reward to account which did the dusting.
 	fn reward_duster(_duster: &T::AccountId, _currency_id: T::CurrencyId, _dust: T::Balance) -> DispatchResult {
 		let reserve_account = Self::reward_account();
 		let reward = T::Reward::get();

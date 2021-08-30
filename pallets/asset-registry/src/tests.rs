@@ -24,6 +24,8 @@ use polkadot_xcm::v0::{Junction::*, MultiLocation::*};
 use primitives::AssetId;
 use sp_std::convert::TryInto;
 
+// TODO: Partial data tests
+// TODO: more unhappy tests -> empty strings, zeroes...
 #[test]
 fn register_asset_works() {
 	new_test_ext().execute_with(|| {

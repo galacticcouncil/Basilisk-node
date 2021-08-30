@@ -249,6 +249,8 @@ pub mod pallet {
 		/// Updates also mapping between name and asset id if provided name is different than currently registered.
 		///
 		/// Emits `Updated` event when successful.
+
+		// TODO: No tests
 		#[pallet::weight(<T as Config>::WeightInfo::update())]
 		#[transactional]
 		pub fn update(

@@ -62,7 +62,7 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub owner: AccountId,
 	pub start: BlockNumber,
 	pub end: BlockNumber,
-	// assets should be stored ordered by id
+	// assets should be stored ordered by id // TODO: Which ID? Sorted from left to right?
 	pub assets: (AssetId, AssetId),
 	pub initial_weights: (LBPWeight, LBPWeight),
 	pub final_weights: (LBPWeight, LBPWeight),
@@ -86,7 +86,8 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 		fee: Fee,
 		fee_receiver: AccountId,
 	) -> Self {
-		let ordered_assets = if asset_a.id < asset_b.id {
+		// TODO: extract to function?
+		let (asset_one, asset_two) = if asset_a.id < asset_b.id {
 			(asset_a, asset_b)
 		} else {
 			(asset_b, asset_a)
@@ -96,11 +97,11 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 			owner: pool_owner,
 			start: sale_duration.0,
 			end: sale_duration.1,
-			assets: (ordered_assets.0.id, ordered_assets.1.id),
-			initial_weights: (ordered_assets.0.initial_weight, ordered_assets.1.initial_weight),
-			final_weights: (ordered_assets.0.final_weight, ordered_assets.1.final_weight),
+			assets: (asset_one.id, asset_two.id),
+			initial_weights: (asset_one.initial_weight, asset_two.initial_weight),
+			final_weights: (asset_one.final_weight, asset_two.final_weight),
 			last_weight_update: Zero::zero(),
-			last_weights: (ordered_assets.0.initial_weight, ordered_assets.1.initial_weight),
+			last_weights: (asset_one.initial_weight, asset_two.initial_weight),
 			weight_curve,
 			pausable,
 			paused: false,
@@ -110,6 +111,7 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 	}
 }
 
+// TODO: From reading the code, this seems like it makes the code harder to read than help.
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
 pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq> {
@@ -334,6 +336,7 @@ pub mod pallet {
 
 			ensure!(asset_a.id != asset_b.id, Error::<T>::CannotCreatePoolWithSameAssets);
 
+			// TODO: are u sure AssetPair is right? Maybe goes back to the AMM to the trait
 			let asset_pair = AssetPair {
 				asset_in: asset_a.id,
 				asset_out: asset_b.id,
@@ -370,6 +373,7 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_a.id, &pool_owner, &pool_id, asset_a.amount)?;
 			T::MultiCurrency::transfer(asset_b.id, &pool_owner, &pool_id, asset_b.amount)?;
 
+			// TODO: sort assets?
 			Self::deposit_event(Event::PoolCreated(
 				pool_owner,
 				pool_id,
@@ -429,9 +433,13 @@ pub mod pallet {
 					Error::<T>::NothingToUpdate
 				);
 
+				// TODO: check if end is after start maybe add max length?
+
 				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
 				ensure!(Self::is_prior_sale_or_uninitialized(&pool), Error::<T>::SaleStarted);
+
+				// TODO: check if start is before end
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
@@ -535,6 +543,7 @@ pub mod pallet {
 			amount_a: (AssetId, BalanceOf<T>),
 			amount_b: (AssetId, BalanceOf<T>),
 		) -> DispatchResultWithPostInfo {
+			// TODO: Add option to restrict for initial LP
 			let who = ensure_signed(origin)?;
 
 			let (asset_a, asset_b) = (amount_a.0, amount_b.0);
@@ -793,6 +802,7 @@ impl<T: Config> Pallet<T> {
 		limit: BalanceOf<T>,
 		trade_type: TradeType,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
+		// TODO: looks like this would benefit from splitting to sell | buy and extracting common stuff to functions
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
 		let pool_id = Self::get_pair_id(assets);
@@ -803,6 +813,7 @@ impl<T: Config> Pallet<T> {
 		// update weights or reuse the last if update is not necessary
 		let (weight_in, weight_out) = match Self::update_weights(&pool_id, &mut pool_data) {
 			Ok(weights) => {
+				// TODO: use consistent ordering
 				if assets.asset_in == pool_data.assets.0 {
 					(weights.0, weights.1)
 				} else {
@@ -838,7 +849,6 @@ impl<T: Config> Pallet<T> {
 			.map_err(|_| Error::<T>::Overflow)?;
 
 			let transfer_fee = Self::calculate_fees(&pool_data, token_amount_out)?;
-
 			let amount_out_without_fee = token_amount_out.checked_sub(transfer_fee).ok_or(Error::<T>::Overflow)?;
 
 			ensure!(limit <= amount_out_without_fee, Error::<T>::AssetBalanceLimitExceeded);
@@ -857,9 +867,10 @@ impl<T: Config> Pallet<T> {
 			let amount_in_with_fee = token_amount_in.checked_add(transfer_fee).ok_or(Error::<T>::Overflow)?;
 
 			ensure!(limit >= amount_in_with_fee, Error::<T>::AssetBalanceLimitExceeded);
-
 			(token_amount_in, amount, assets.asset_in, transfer_fee)
 		};
+
+		// TODO: check if user has enough tokens in? 
 
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_out, &pool_id) >= amount_out,
