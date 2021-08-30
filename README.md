@@ -94,6 +94,7 @@ Then open settings screen -> developer and paste
     "genesisHash": "Vec<u8>",
     "lastBlockHash": "Vec<u8>"
   },
+  "Currency": "AssetId",
   "CurrencyId": "AssetId",
   "CurrencyIdOf": "AssetId",
   "Intention": {
@@ -143,7 +144,64 @@ Then open settings screen -> developer and paste
     "period_count": "u32",
     "per_period": "Compact<Balance>"
   },
-  "VestingScheduleOf": "VestingSchedule"
+  "VestingScheduleOf": "VestingSchedule",
+   "LBPAssetInfo": {
+    "id": "AssetId",
+    "amount": "Balance",
+    "initial_weight": "LBPWeight",
+    "final_weight": "LBPWeight"
+  },
+  "LBPWeight": "u128",
+  "WeightCurveType": {
+    "_enum": [
+      "Linear"
+    ]
+  },
+  "PoolId": "AccountId",
+  "BalanceOf": "Balance",
+  "AssetType": {
+    "_enum": [
+      "TOKEN"
+    ]
+  },
+  "Pool": {
+    "owner": "AccountId",
+    "start": "BlockNumber",
+    "end": "BlockNumber",
+    "assets": {
+      "asset_a": "AssetId",
+      "asset_b": "AssetId"
+    },
+    "initial_weights": {
+      "weight_a": "LBPWeight",
+      "weight_b": "LBPWeight"
+    },
+    "final_weights": {
+      "weight_a": "LBPWeight",
+      "weight_b": "LBPWeight"
+    },
+    "last_weight_update": "BlockNumber",
+    "last_weights": {
+      "weight_a": "LBPWeight",
+      "weight_b": "LBPWeight"
+    },
+    "weight_curve": "WeightCurveType",
+    "pausable": "bool",
+    "paused": "bool",
+    "fee": "Fee",
+    "fee_receiver": "AccountId"
+  },
+  "AssetType": {"_enum": ["Token"]},
+  "AssetNativeLocation":"MultiLocation",
+  "AssetDetails": {
+    "name": "Vec<u8>",
+    "asset_type": "AssetType",
+    "locked": "bool"
+  },
+  "AssetMetadata": {
+    "symbol":"Vec<u8>",
+    "decimals": "u8"
+  }
 }
 ```
 
