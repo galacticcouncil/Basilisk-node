@@ -133,6 +133,7 @@ pub const BSX: Balance = 1_000_000_000_000;
 pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
 pub const CENTS: Balance = DOLLARS / 100; // 1 BSX ~= 1 cent
 pub const MILLICENTS: Balance = CENTS / 1_000;
+pub const NATIVE_EXISTENTIAL_DEPOSIT: Balance = CENTS;
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
@@ -288,7 +289,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
-	pub const NativeExistentialDeposit: u128 = 1 * CENTS;
+	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }

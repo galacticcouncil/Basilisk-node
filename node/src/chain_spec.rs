@@ -4,7 +4,7 @@ use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
 	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	WASM_BINARY,
+	WASM_BINARY, NATIVE_EXISTENTIAL_DEPOSIT
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -531,7 +531,7 @@ fn parachain_genesis(
 		asset_registry: AssetRegistryConfig {
 			asset_names: vec![],
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
-			native_existential_deposit: 1_000_000u128,
+			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
@@ -633,7 +633,7 @@ fn testnet_parachain_genesis(
 		asset_registry: AssetRegistryConfig {
 			asset_names: registered_assets,
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
-			native_existential_deposit: 1_000_000u128,
+			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
