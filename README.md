@@ -119,7 +119,7 @@ Then open settings screen -> developer and paste
     "is_pool": "bool"
   },
   "TokenData": {
-    "locked": "bool",
+    "locked": "bool"
   },
   "CID": "Vec<u8>",
   "ClassInfo": {
