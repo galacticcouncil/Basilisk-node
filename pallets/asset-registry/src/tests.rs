@@ -212,11 +212,8 @@ fn set_metadata_works() {
 #[test]
 fn update_asset() {
 	new_test_ext().execute_with(|| {
-
-		let btc_asset_id: AssetId = AssetRegistryPallet::get_or_create_asset(b"BTC".to_vec(), AssetType::Token).unwrap();
-		let usd_asset_id: AssetId = AssetRegistryPallet::get_or_create_asset(b"USD".to_vec(), AssetType::Token).unwrap();
-		
-		let next_asset_id = AssetRegistryPallet::next_asset_id();
+		let btc_asset_id: AssetId =
+			AssetRegistryPallet::get_or_create_asset(b"BTC".to_vec(), AssetType::Token).unwrap();
 
 		// set a new name and type for an existing asset
 		assert_ok!(AssetRegistryPallet::update(
@@ -226,21 +223,33 @@ fn update_asset() {
 			AssetType::Token
 		));
 
+		let new_btc_name: BoundedVec<u8, <Test as crate::Config>::StringLimit> =
+			b"superBTC".to_vec().try_into().unwrap();
+		assert_eq!(AssetRegistryPallet::asset_ids(new_btc_name).unwrap(), 1u32);
+
+		let usd_asset_id: AssetId =
+			AssetRegistryPallet::get_or_create_asset(b"USD".to_vec(), AssetType::Token).unwrap();
+
 		// cannot set existing name for an existing asset
-		assert_noop!((AssetRegistryPallet::update(
-			Origin::root(),
-			usd_asset_id,
-			b"superBTC".to_vec(),
-			AssetType::Token
-		)), Error::<Test>::AssetAlreadyRegistered);
+		assert_noop!(
+			(AssetRegistryPallet::update(Origin::root(), usd_asset_id, b"superBTC".to_vec(), AssetType::Token)),
+			Error::<Test>::AssetAlreadyRegistered
+		);
+
+		let usd_name: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"USD".to_vec().try_into().unwrap();
+
+		assert_eq!(AssetRegistryPallet::asset_ids(usd_name).unwrap(), 2u32);
+
+		let next_asset_id = AssetRegistryPallet::next_asset_id();
 
 		// cannot set a new name for a non-existent asset
-		assert_noop!((AssetRegistryPallet::update(
-			Origin::root(),
-			next_asset_id,
-			b"VOID".to_vec(),
-			AssetType::Token
-		)), Error::<Test>::AssetNotFound);
+		assert_noop!(
+			(AssetRegistryPallet::update(Origin::root(), next_asset_id, b"VOID".to_vec(), AssetType::Token)),
+			Error::<Test>::AssetNotFound
+		);
+
+		let void_name: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"VOID".to_vec().try_into().unwrap();
+		assert_eq!(AssetRegistryPallet::asset_ids(void_name), None);
 
 		// corner case: change the name and also the type for an existing asset (token -> pool share)
 		assert_ok!(AssetRegistryPallet::update(
@@ -250,6 +259,17 @@ fn update_asset() {
 			AssetType::PoolShare(btc_asset_id, usd_asset_id)
 		));
 
+		let btcusd_name: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"BTCUSD".to_vec().try_into().unwrap();
+		assert_eq!(AssetRegistryPallet::asset_ids(btcusd_name.clone()).unwrap(), 1u32);
+		assert_eq!(
+			AssetRegistryPallet::assets(1u32).unwrap(),
+			AssetDetails {
+				name: btcusd_name,
+				asset_type: AssetType::PoolShare(btc_asset_id, usd_asset_id),
+				locked: false
+			}
+		);
+
 		// corner case: change the name and also the type for an existing asset (pool share -> token)
 		assert_ok!(AssetRegistryPallet::update(
 			Origin::root(),
@@ -257,5 +277,17 @@ fn update_asset() {
 			b"superBTC".to_vec(),
 			AssetType::Token
 		));
+
+		let superbtc_name: BoundedVec<u8, <Test as crate::Config>::StringLimit> =
+			b"superBTC".to_vec().try_into().unwrap();
+
+		assert_eq!(
+			AssetRegistryPallet::assets(1u32).unwrap(),
+			AssetDetails {
+				name: superbtc_name,
+				asset_type: AssetType::Token,
+				locked: false
+			}
+		);
 	});
 }
