@@ -53,8 +53,6 @@ pub use sp_runtime::{FixedPointNumber, Perbill, Percent, Permill, Perquintill};
 
 use primitives::fee;
 
-mod currency;
-
 mod weights;
 mod xcm;
 
