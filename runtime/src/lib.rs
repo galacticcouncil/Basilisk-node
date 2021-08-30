@@ -428,7 +428,6 @@ impl pallet_exchange::Config for Runtime {
 }
 
 parameter_types! {
-	// Is this ok?
 	pub const DustingReward: u128 = 0;
 }
 
