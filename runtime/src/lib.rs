@@ -35,7 +35,9 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{EnsureOrigin, Contains, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote, Nothing},
+	traits::{
+		Contains, EnsureOrigin, Get, KeyOwnerProofSystem, LockIdentifier, Nothing, Randomness, U128CurrencyToVote,
+	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
@@ -59,7 +61,6 @@ mod xcm;
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
-use orml_traits::parameter_type_with_key;
 
 pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
 
@@ -132,6 +133,7 @@ pub const BSX: Balance = 1_000_000_000_000;
 pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
 pub const CENTS: Balance = DOLLARS / 100; // 1 BSX ~= 1 cent
 pub const MILLICENTS: Balance = CENTS / 1_000;
+pub const NATIVE_EXISTENTIAL_DEPOSIT: Balance = CENTS;
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
@@ -287,7 +289,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
-	pub const NativeExistentialDeposit: u128 = 1 * CENTS;
+	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -298,7 +300,7 @@ impl pallet_balances::Config for Runtime {
 	type Balance = Balance;
 	/// The ubiquitous event type.
 	type Event = Event;
-	type DustRemoval = ();
+	type DustRemoval = Treasury;
 	type ExistentialDeposit = NativeExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
@@ -347,23 +349,6 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
-parameter_type_with_key! {
-	pub TokensExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		// Dusting is handled by duster pallet.
-		// However, to make sure that account is reaped/killed and storage updated, ED must be > 0
-		// On ED = 0 - accounts are never reaped.
-
-		// We might want to set this to the same thing as duster e.g. 1000 for everything as a base
-		1_000_000u128
-	};
-}
-
-parameter_type_with_key! {
-	pub DusterExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		1_000_000u128
-	};
-}
-
 /// Tokens Configurations
 impl orml_tokens::Config for Runtime {
 	type Event = Event;
@@ -371,8 +356,8 @@ impl orml_tokens::Config for Runtime {
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
-	type ExistentialDeposits = TokensExistentialDeposits;
-	type OnDust = ();
+	type ExistentialDeposits = AssetRegistry;
+	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
 }
@@ -391,7 +376,7 @@ impl pallet_duster::Config for Runtime {
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currencies;
-	type MinCurrencyDeposits = DusterExistentialDeposits;
+	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
 	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
@@ -410,9 +395,9 @@ impl Default for AssetLocation {
 
 impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
-	// TODO: Add council
-	type RegistryOrigin = EnsureRoot<AccountId>;
+	type RegistryOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type AssetId = AssetId;
+	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
 	type NativeAssetId = NativeAssetId;
@@ -443,7 +428,6 @@ impl pallet_exchange::Config for Runtime {
 }
 
 parameter_types! {
-	// Is this ok?
 	pub const DustingReward: u128 = 0;
 }
 
@@ -874,7 +858,7 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config, Storage, Event<T>},
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},

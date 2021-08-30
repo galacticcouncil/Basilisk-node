@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -60,14 +60,14 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn approve_proposal(p: u32, ) -> Weight {
+	fn approve_proposal(p: u32) -> Weight {
 		(12_833_000 as Weight)
 			// Standard Error: 2_000
 			.saturating_add((110_000 as Weight).saturating_mul(p as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn on_initialize_proposals(p: u32, ) -> Weight {
+	fn on_initialize_proposals(p: u32) -> Weight {
 		(38_711_000 as Weight)
 			// Standard Error: 16_000
 			.saturating_add((4_985_000 as Weight).saturating_mul(p as Weight))

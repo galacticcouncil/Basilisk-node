@@ -27,12 +27,13 @@ use sp_std::vec;
 benchmarks! {
 	register{
 		let name = vec![1; T::StringLimit::get() as usize];
+		let ed = T::Balance::from(1_000_000u32);
 
 		// This makes sure that next asset id is equal to native asset id
 		// In such case, one additional operation is performed to skip the id (aka worst case)
 		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
 
-	}: _(RawOrigin::Root, name.clone(), AssetType::Token)
+	}: _(RawOrigin::Root, name.clone(), AssetType::Token, ed)
 	verify {
 		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
 		assert_eq!(crate::Pallet::<T>::asset_ids(bname), Some(T::AssetId::from(1u8)));
@@ -40,14 +41,17 @@ benchmarks! {
 
 	update{
 		let name = b"NAME".to_vec();
+		let ed = T::Balance::from(1_000_000u32);
 		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
-		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token);
+		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token, ed);
 
 		let new_name= vec![1; T::StringLimit::get() as usize];
 
 		let asset_id = T::AssetId::from(1u8);
 
-	}: _(RawOrigin::Root, asset_id, new_name.clone(), AssetType::PoolShare(T::AssetId::from(10u8),T::AssetId::from(20u8)))
+		let new_ed = T::Balance::from(2_000_000u32);
+
+	}: _(RawOrigin::Root, asset_id, new_name.clone(), AssetType::PoolShare(T::AssetId::from(10u8),T::AssetId::from(20u8)), Some(new_ed))
 	verify {
 		let bname = crate::Pallet::<T>::to_bounded_name(new_name).unwrap();
 		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(T::AssetId::from(1u8)));
@@ -60,17 +64,20 @@ benchmarks! {
 		let expected = AssetDetails{
 			asset_type: AssetType::PoolShare(T::AssetId::from(10u8), T::AssetId::from(20u8)),
 			locked: false,
+			existential_deposit: new_ed,
 			name: bname.clone(),};
 
 		assert_eq!(stored.asset_type, expected.asset_type);
 		assert_eq!(stored.locked, expected.locked);
+		assert_eq!(stored.existential_deposit, expected.existential_deposit);
 		assert_eq!(stored.name.to_vec(), expected.name.to_vec());
 	}
 
 	set_metadata{
 		let name = b"NAME".to_vec();
+		let ed = T::Balance::from(1_000_000u32);
 		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
-		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token);
+		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token, ed);
 
 		let asset_id = T::AssetId::from(1u8);
 
@@ -99,8 +106,9 @@ benchmarks! {
 
 	set_location{
 		let name = b"NAME".to_vec();
+		let ed = T::Balance::from(1_000_000u32);
 		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
-		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token);
+		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token, ed);
 
 		let asset_id = T::AssetId::from(1u8);
 

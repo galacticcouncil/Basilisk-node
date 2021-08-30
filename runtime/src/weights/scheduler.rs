@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -50,28 +50,28 @@ use pallet_scheduler::weights::WeightInfo;
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
-	fn schedule(s: u32, ) -> Weight {
+	fn schedule(s: u32) -> Weight {
 		(34_956_000 as Weight)
 			// Standard Error: 4_000
 			.saturating_add((109_000 as Weight).saturating_mul(s as Weight))
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn cancel(s: u32, ) -> Weight {
+	fn cancel(s: u32) -> Weight {
 		(32_341_000 as Weight)
 			// Standard Error: 68_000
 			.saturating_add((8_380_000 as Weight).saturating_mul(s as Weight))
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn schedule_named(s: u32, ) -> Weight {
+	fn schedule_named(s: u32) -> Weight {
 		(39_845_000 as Weight)
 			// Standard Error: 5_000
 			.saturating_add((134_000 as Weight).saturating_mul(s as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn cancel_named(s: u32, ) -> Weight {
+	fn cancel_named(s: u32) -> Weight {
 		(32_186_000 as Weight)
 			// Standard Error: 68_000
 			.saturating_add((8_402_000 as Weight).saturating_mul(s as Weight))
