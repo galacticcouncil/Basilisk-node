@@ -289,8 +289,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
-	// TODO: Shouldn't this be at least 1?
-	pub const NativeExistentialDeposit: u128 = 0;
+	pub const NativeExistentialDeposit: u128 = 1 * CENTS;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -357,18 +356,17 @@ parameter_type_with_key! {
 		// On ED = 0 - accounts are never reaped.
 
 		// We might want to set this to the same thing as duster e.g. 1000 for everything as a base
-		1u128
+		1_000_000u128
 	};
 }
 
 parameter_type_with_key! {
-	// TODO: Dynamic existential deposits for tokens
 	pub DusterExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		1_000u128
+		1_000_000u128
 	};
 }
 
-/// ORML Configurations
+/// Tokens Configurations
 impl orml_tokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -376,7 +374,7 @@ impl orml_tokens::Config for Runtime {
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
 	type ExistentialDeposits = TokensExistentialDeposits;
-	type OnDust = ();
+	type OnDust = Treasury;
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
 }
@@ -387,6 +385,18 @@ impl orml_currencies::Config for Runtime {
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = ();
+}
+
+impl pallet_duster::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type MinCurrencyDeposits = DusterExistentialDeposits;
+	type Reward = DustingReward;
+	type NativeCurrencyId = NativeAssetId;
+	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
 }
 
 /// Basilisk Pallets configurations
@@ -439,18 +449,6 @@ parameter_types! {
 	pub const DustingReward: u128 = 0;
 }
 
-impl pallet_duster::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = AssetId;
-	type MultiCurrency = Currencies;
-	type MinCurrencyDeposits = DusterExistentialDeposits;
-	type Reward = DustingReward;
-	type NativeCurrencyId = NativeAssetId;
-	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
-}
-
 parameter_types! {
 	pub LBPExchangeFee: fee::Fee = fee::Fee::default();
 }
@@ -459,8 +457,7 @@ impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	// TODO: change to governance membership
-	type CreatePoolOrigin = EnsureRoot<AccountId>;
+	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot<AccountId>;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
