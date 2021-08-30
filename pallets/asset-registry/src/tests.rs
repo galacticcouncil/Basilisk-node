@@ -168,7 +168,16 @@ fn genesis_config_works() {
 			assert_eq!(AssetRegistryPallet::asset_ids(bsx).unwrap(), 0u32);
 
 			let one: BoundedVec<u8, <Test as crate::Config>::StringLimit> = b"ONE".to_vec().try_into().unwrap();
-			assert_eq!(AssetRegistryPallet::asset_ids(one).unwrap(), 1u32);
+			assert_eq!(AssetRegistryPallet::asset_ids(one.clone()).unwrap(), 1u32);
+			assert_eq!(
+				AssetRegistryPallet::assets(1u32).unwrap(),
+				AssetDetails {
+					name: one,
+					asset_type: AssetType::Token,
+					existential_deposit: 1_000u128,
+					locked: false
+				}
+			);
 		});
 }
 
@@ -244,6 +253,17 @@ fn update_asset() {
 			AssetType::Token,
 			None
 		));
+		let bn = AssetRegistryPallet::to_bounded_name(b"superBTC".to_vec()).unwrap();
+
+		assert_eq!(
+			AssetRegistryPallet::assets(btc_asset_id).unwrap(),
+			AssetDetails {
+				name: bn,
+				asset_type: AssetType::Token,
+				existential_deposit: ed,
+				locked: false
+			}
+		);
 
 		// cannot set existing name for an existing asset
 		assert_noop!(
@@ -272,6 +292,27 @@ fn update_asset() {
 			None
 		));
 
+		// Update ED
+		assert_ok!(AssetRegistryPallet::update(
+			Origin::root(),
+			btc_asset_id,
+			b"BTCUSD".to_vec(),
+			AssetType::PoolShare(btc_asset_id, usd_asset_id),
+			Some(1_234_567u128)
+		));
+
+		let bn = AssetRegistryPallet::to_bounded_name(b"BTCUSD".to_vec()).unwrap();
+
+		assert_eq!(
+			AssetRegistryPallet::assets(btc_asset_id).unwrap(),
+			AssetDetails {
+				name: bn,
+				asset_type: AssetType::PoolShare(btc_asset_id, usd_asset_id),
+				existential_deposit: 1_234_567u128,
+				locked: false
+			}
+		);
+
 		// corner case: change the name and also the type for an existing asset (pool share -> token)
 		assert_ok!(AssetRegistryPallet::update(
 			Origin::root(),
@@ -281,4 +322,20 @@ fn update_asset() {
 			None
 		));
 	});
+}
+
+use orml_traits::GetByKey;
+
+#[test]
+fn get_ed_by_key_works() {
+	ExtBuilder::default()
+		.with_native_asset_name(b"NATIVE".to_vec())
+		.with_assets(vec![(b"ONE".to_vec(), 1_000u128), (b"TWO".to_vec(), 2_000u128)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(AssetRegistryPallet::get(&1u32), 1_000u128);
+			assert_eq!(AssetRegistryPallet::get(&2u32), 2_000u128);
+			assert_eq!(AssetRegistryPallet::get(&0u32), 1_000_000u128);
+			assert_eq!(AssetRegistryPallet::get(&1000u32), 0u128); // Non-existing should return default value
+		});
 }
