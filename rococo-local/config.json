@@ -33,6 +33,7 @@
       }
     }
   },
+  "simpleParachains": [],
   "parachains": [
     {
       "bin": "../target/release/basilisk",
