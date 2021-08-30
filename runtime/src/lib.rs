@@ -372,7 +372,7 @@ impl orml_tokens::Config for Runtime {
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
 	type ExistentialDeposits = TokensExistentialDeposits;
-	type OnDust = Treasury;
+	type OnDust = ();
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
 }
@@ -455,7 +455,7 @@ impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot<AccountId>;
+	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
