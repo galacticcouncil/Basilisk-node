@@ -24,8 +24,6 @@ use polkadot_xcm::v0::{Junction::*, MultiLocation::*};
 use primitives::{AssetId, Balance};
 use sp_std::convert::TryInto;
 
-// TODO: Partial data tests
-// TODO: more unhappy tests -> empty strings, zeroes...
 #[test]
 fn register_asset_works() {
 	new_test_ext().execute_with(|| {
@@ -265,6 +263,10 @@ fn update_asset() {
 			}
 		);
 
+		let new_btc_name: BoundedVec<u8, <Test as crate::Config>::StringLimit> =
+			b"superBTC".to_vec().try_into().unwrap();
+		assert_eq!(AssetRegistryPallet::asset_ids(new_btc_name).unwrap(), 1u32);
+
 		// cannot set existing name for an existing asset
 		assert_noop!(
 			(AssetRegistryPallet::update(
@@ -301,12 +303,12 @@ fn update_asset() {
 			Some(1_234_567u128)
 		));
 
-		let bn = AssetRegistryPallet::to_bounded_name(b"BTCUSD".to_vec()).unwrap();
+		let btcusd = AssetRegistryPallet::to_bounded_name(b"BTCUSD".to_vec()).unwrap();
 
 		assert_eq!(
 			AssetRegistryPallet::assets(btc_asset_id).unwrap(),
 			AssetDetails {
-				name: bn,
+				name: btcusd,
 				asset_type: AssetType::PoolShare(btc_asset_id, usd_asset_id),
 				existential_deposit: 1_234_567u128,
 				locked: false
@@ -321,6 +323,19 @@ fn update_asset() {
 			AssetType::Token,
 			None
 		));
+
+		let superbtc_name: BoundedVec<u8, <Test as crate::Config>::StringLimit> =
+			b"superBTC".to_vec().try_into().unwrap();
+
+		assert_eq!(
+			AssetRegistryPallet::assets(1u32).unwrap(),
+			AssetDetails {
+				name: superbtc_name,
+				asset_type: AssetType::Token,
+				locked: false,
+				existential_deposit: 1_234_567u128
+			}
+		);
 	});
 }
 
