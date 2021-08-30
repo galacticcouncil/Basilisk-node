@@ -244,9 +244,11 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
+		// TODO: Pool
 		/// Pool was created by the `CreatePool` origin. [who, pool_id, asset_a, asset_b, amount_a, amount_b]
 		PoolCreated(T::AccountId, PoolId<T>, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
 
+		// TODO: Pool
 		/// Pool data were updated. [who, pool_id]
 		PoolUpdated(T::AccountId, PoolId<T>),
 
@@ -336,7 +338,6 @@ pub mod pallet {
 
 			ensure!(asset_a.id != asset_b.id, Error::<T>::CannotCreatePoolWithSameAssets);
 
-			// TODO: are u sure AssetPair is right? Maybe goes back to the AMM to the trait
 			let asset_pair = AssetPair {
 				asset_in: asset_a.id,
 				asset_out: asset_b.id,
@@ -364,6 +365,7 @@ pub mod pallet {
 				fee,
 				fee_receiver,
 			);
+			
 			Self::validate_pool_data(&pool_data)?;
 
 			let pool_id = Self::get_pair_id(asset_pair);
@@ -433,13 +435,9 @@ pub mod pallet {
 					Error::<T>::NothingToUpdate
 				);
 
-				// TODO: check if end is after start maybe add max length?
-
 				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
 				ensure!(Self::is_prior_sale_or_uninitialized(&pool), Error::<T>::SaleStarted);
-
-				// TODO: check if start is before end
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
@@ -827,19 +825,13 @@ impl<T: Config> Pallet<T> {
 
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
-		if trade_type == TradeType::Sell {
+
+		let (amount_in, amount_out, fee_asset, fee_amount) = if trade_type == TradeType::Sell {
 			ensure!(
 				amount <= asset_in_reserve / MAX_IN_RATIO,
 				Error::<T>::MaxInRatioExceeded
 			);
-		} else {
-			ensure!(
-				amount <= asset_out_reserve / MAX_OUT_RATIO,
-				Error::<T>::MaxOutRatioExceeded
-			);
-		}
-
-		let (amount_in, amount_out, fee_asset, fee_amount) = if trade_type == TradeType::Sell {
+			
 			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
 				asset_out_reserve,
@@ -855,6 +847,11 @@ impl<T: Config> Pallet<T> {
 			ensure!(limit <= amount_out_without_fee, Error::<T>::AssetBalanceLimitExceeded);
 			(amount, amount_out_without_fee, assets.asset_out, transfer_fee)
 		} else {
+			ensure!(
+				amount <= asset_out_reserve / MAX_OUT_RATIO,
+				Error::<T>::MaxOutRatioExceeded
+			);
+
 			let token_amount_in = hydra_dx_math::lbp::calculate_in_given_out(
 				asset_in_reserve,
 				asset_out_reserve,

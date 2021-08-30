@@ -121,7 +121,6 @@ Then open settings screen -> developer and paste
   "TokenData": {
     "locked": "bool"
   },
-  "CID": "Vec<u8>",
   "ClassInfo": {
     "metadata": "Vec<u8>",
     "total_issuance": "TokenId",
