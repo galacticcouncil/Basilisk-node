@@ -116,7 +116,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 14,
+	spec_version: 15,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -460,7 +460,7 @@ impl pallet_lbp::Config for Runtime {
 	type MultiCurrency = Currencies;
 	type NativeAssetId = NativeAssetId;
 	// TODO: change to governance membership
-	type CreatePoolOrigin = EnsureRoot<AccountId>; 
+	type CreatePoolOrigin = EnsureRoot<AccountId>;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
@@ -600,7 +600,7 @@ impl pallet_democracy::Config for Runtime {
 }
 
 parameter_types! {
-	// Bond for candidacy into governance 
+	// Bond for candidacy into governance
 	pub const CandidacyBond: Balance = 10_000 * DOLLARS;
 	// 1 storage item created, key size is 32 bytes, value size is 16+16.
 	pub const VotingBondBase: Balance = 1 * DOLLARS;
