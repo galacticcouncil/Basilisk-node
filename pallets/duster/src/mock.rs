@@ -1,7 +1,7 @@
 use crate as duster;
 
 use frame_support::parameter_types;
-use frame_support::traits::{Nothing, GenesisBuild, OnKilledAccount};
+use frame_support::traits::{GenesisBuild, Nothing, OnKilledAccount};
 
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
@@ -60,7 +60,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 63;
 	pub const MaxLocks: u32 = 50;
 
-	pub const NativeExistentialDeposit: u128 = 0;
+	pub const NativeExistentialDeposit: u128 = 100;
 
 	pub NativeCurrencyId: AssetId = 0;
 	pub Reward: Balance = 10_000;
