@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -55,21 +55,21 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
-	fn second(s: u32, ) -> Weight {
+	fn second(s: u32) -> Weight {
 		(41_540_000 as Weight)
 			// Standard Error: 2_000
 			.saturating_add((226_000 as Weight).saturating_mul(s as Weight))
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn vote_new(r: u32, ) -> Weight {
+	fn vote_new(r: u32) -> Weight {
 		(45_456_000 as Weight)
 			// Standard Error: 2_000
 			.saturating_add((316_000 as Weight).saturating_mul(r as Weight))
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
-	fn vote_existing(r: u32, ) -> Weight {
+	fn vote_existing(r: u32) -> Weight {
 		(45_363_000 as Weight)
 			// Standard Error: 2_000
 			.saturating_add((313_000 as Weight).saturating_mul(r as Weight))
@@ -81,14 +81,14 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn blacklist(p: u32, ) -> Weight {
+	fn blacklist(p: u32) -> Weight {
 		(69_983_000 as Weight)
 			// Standard Error: 70_000
 			.saturating_add((998_000 as Weight).saturating_mul(p as Weight))
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
-	fn external_propose(v: u32, ) -> Weight {
+	fn external_propose(v: u32) -> Weight {
 		(14_079_000 as Weight)
 			// Standard Error: 0
 			.saturating_add((110_000 as Weight).saturating_mul(v as Weight))
@@ -96,26 +96,24 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	fn external_propose_majority() -> Weight {
-		(3_720_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		(3_720_000 as Weight).saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	fn external_propose_default() -> Weight {
-		(3_789_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		(3_789_000 as Weight).saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	fn fast_track() -> Weight {
 		(28_837_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
-	fn veto_external(v: u32, ) -> Weight {
+	fn veto_external(v: u32) -> Weight {
 		(29_284_000 as Weight)
 			// Standard Error: 1_000
 			.saturating_add((169_000 as Weight).saturating_mul(v as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn cancel_proposal(p: u32, ) -> Weight {
+	fn cancel_proposal(p: u32) -> Weight {
 		(73_374_000 as Weight)
 			// Standard Error: 9_000
 			.saturating_add((571_000 as Weight).saturating_mul(p as Weight))
@@ -123,24 +121,23 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn cancel_referendum() -> Weight {
-		(17_895_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		(17_895_000 as Weight).saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn cancel_queued(r: u32, ) -> Weight {
+	fn cancel_queued(r: u32) -> Weight {
 		(23_116_000 as Weight)
 			// Standard Error: 117_000
 			.saturating_add((9_239_000 as Weight).saturating_mul(r as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn on_initialize_base(r: u32, ) -> Weight {
+	fn on_initialize_base(r: u32) -> Weight {
 		(8_519_000 as Weight)
 			// Standard Error: 15_000
 			.saturating_add((4_890_000 as Weight).saturating_mul(r as Weight))
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(r as Weight)))
 	}
-	fn delegate(r: u32, ) -> Weight {
+	fn delegate(r: u32) -> Weight {
 		(57_998_000 as Weight)
 			// Standard Error: 19_000
 			.saturating_add((7_102_000 as Weight).saturating_mul(r as Weight))
@@ -149,7 +146,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(r as Weight)))
 	}
-	fn undelegate(r: u32, ) -> Weight {
+	fn undelegate(r: u32) -> Weight {
 		(30_723_000 as Weight)
 			// Standard Error: 18_000
 			.saturating_add((7_030_000 as Weight).saturating_mul(r as Weight))
@@ -159,52 +156,51 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(r as Weight)))
 	}
 	fn clear_public_proposals() -> Weight {
-		(3_045_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		(3_045_000 as Weight).saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn note_preimage(b: u32, ) -> Weight {
+	fn note_preimage(b: u32) -> Weight {
 		(36_841_000 as Weight)
 			// Standard Error: 0
 			.saturating_add((5_000 as Weight).saturating_mul(b as Weight))
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn note_imminent_preimage(b: u32, ) -> Weight {
+	fn note_imminent_preimage(b: u32) -> Weight {
 		(29_904_000 as Weight)
 			// Standard Error: 0
 			.saturating_add((4_000 as Weight).saturating_mul(b as Weight))
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn reap_preimage(b: u32, ) -> Weight {
+	fn reap_preimage(b: u32) -> Weight {
 		(35_975_000 as Weight)
 			// Standard Error: 0
 			.saturating_add((3_000 as Weight).saturating_mul(b as Weight))
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn unlock_remove(r: u32, ) -> Weight {
+	fn unlock_remove(r: u32) -> Weight {
 		(39_241_000 as Weight)
 			// Standard Error: 2_000
 			.saturating_add((115_000 as Weight).saturating_mul(r as Weight))
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
-	fn unlock_set(r: u32, ) -> Weight {
+	fn unlock_set(r: u32) -> Weight {
 		(37_333_000 as Weight)
 			// Standard Error: 8_000
 			.saturating_add((258_000 as Weight).saturating_mul(r as Weight))
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
-	fn remove_vote(r: u32, ) -> Weight {
+	fn remove_vote(r: u32) -> Weight {
 		(19_575_000 as Weight)
 			// Standard Error: 3_000
 			.saturating_add((299_000 as Weight).saturating_mul(r as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn remove_other_vote(r: u32, ) -> Weight {
+	fn remove_other_vote(r: u32) -> Weight {
 		(19_224_000 as Weight)
 			// Standard Error: 2_000
 			.saturating_add((301_000 as Weight).saturating_mul(r as Weight))

@@ -5290,6 +5290,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
+ "orml-traits",
  "parity-scale-codec 2.2.0",
  "primitive-types 0.8.0",
  "primitives",

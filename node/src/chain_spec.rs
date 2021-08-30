@@ -4,7 +4,7 @@ use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
 	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	WASM_BINARY,
+	WASM_BINARY, NATIVE_EXISTENTIAL_DEPOSIT
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -210,7 +210,12 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
 				vec![].into(),
-				vec![b"hKSM".to_vec(), b"hDOT".to_vec(), b"hETH".to_vec(), b"hUSDT".to_vec()],
+				vec![
+					(b"hKSM".to_vec(), 1_000u128),
+					(b"hDOT".to_vec(), 1_000u128),
+					(b"hETH".to_vec(), 1_000u128),
+					(b"hUSDT".to_vec(), 1_000u128),
+				],
 			)
 		},
 		// Bootnodes
@@ -293,7 +298,12 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
-				vec![b"hKSM".to_vec(), b"hDOT".to_vec(), b"hETH".to_vec(), b"hUSDT".to_vec()],
+				vec![
+					(b"hKSM".to_vec(), 1_000u128),
+					(b"hDOT".to_vec(), 1_000u128),
+					(b"hETH".to_vec(), 1_000u128),
+					(b"hUSDT".to_vec(), 1_000u128),
+				],
 			)
 		},
 		// Bootnodes
@@ -437,7 +447,12 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
-				vec![b"hKSM".to_vec(), b"hDOT".to_vec(), b"hETH".to_vec(), b"hUSDT".to_vec()],
+				vec![
+					(b"hKSM".to_vec(), 1_000u128),
+					(b"hDOT".to_vec(), 1_000u128),
+					(b"hETH".to_vec(), 1_000u128),
+					(b"hUSDT".to_vec(), 1_000u128),
+				],
 			)
 		},
 		// Bootnodes
@@ -516,6 +531,7 @@ fn parachain_genesis(
 		asset_registry: AssetRegistryConfig {
 			asset_names: vec![],
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
+			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
@@ -572,7 +588,7 @@ fn testnet_parachain_genesis(
 	tech_committee_members: Vec<AccountId>,
 	tx_fee_payment_account: AccountId,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
-	registered_assets: Vec<Vec<u8>>,
+	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -617,6 +633,7 @@ fn testnet_parachain_genesis(
 		asset_registry: AssetRegistryConfig {
 			asset_names: registered_assets,
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
+			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
