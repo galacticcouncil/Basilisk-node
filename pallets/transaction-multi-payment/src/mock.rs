@@ -40,7 +40,6 @@ use std::cell::RefCell;
 
 use frame_support::traits::{GenesisBuild, Get};
 use frame_system::EnsureSigned;
-use primitives::fee;
 
 pub type AccountId = u64;
 

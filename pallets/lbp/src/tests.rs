@@ -2072,7 +2072,7 @@ fn sell_zero_amount_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(BOB), ACA, DOT, 0_u128, 200_000_u128),
-			Error::<Test>::InsufficientTradingAmount
+			Error::<Test>::ZeroAmount
 		);
 	});
 }
@@ -2082,7 +2082,7 @@ fn buy_zero_amount_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
 			LBPPallet::buy(Origin::signed(BOB), ACA, DOT, 0_u128, 200_000_u128),
-			Error::<Test>::InsufficientTradingAmount
+			Error::<Test>::ZeroAmount
 		);
 	});
 }

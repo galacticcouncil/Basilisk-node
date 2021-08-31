@@ -23,7 +23,7 @@ use primitives::traits::{AMMTransfer, AMM};
 use primitives::{
 	asset::AssetPair,
 	fee::{Fee, WithFee},
-	Amount, AssetId, Balance,
+	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
 };
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
@@ -872,21 +872,10 @@ impl<T: Config> Pallet<T> {
 
 		let (amount_in, amount_out, fee_asset, fee_amount) = if trade_type == TradeType::Sell {
 			ensure!(
-				amount <= asset_in_reserve / T::MaxInRatio::get(),
+				amount <= asset_in_reserve / MAX_IN_RATIO,
 				Error::<T>::MaxInRatioExceeded
 			);
-<<<<<<< HEAD
-		} else {
-			ensure!(
-				amount <= asset_out_reserve / T::MaxOutRatio::get(),
-				Error::<T>::MaxOutRatioExceeded
-			);
-		}
 
-		let (amount_in, amount_out, fee_asset, fee_amount) = if trade_type == TradeType::Sell {
-=======
-			
->>>>>>> master
 			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
 				asset_out_reserve,
