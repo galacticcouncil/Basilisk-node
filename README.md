@@ -47,7 +47,7 @@ npm link
 Starts local testnet with 4 relay chain validators and Basilisk as parachain
 
 ```
-cd rococo-local
+cd ../rococo-local
 polkadot-launch config.json
 ```
 
@@ -70,87 +70,138 @@ Then open settings screen -> developer and paste
 
 ```
 {
-  "AssetPair": {
-    "asset_in": "AssetId",
-    "asset_out": "AssetId"
+  "alias":{
+    "tokens":{
+      "AccountData":"OrmlAccountData"
+    }
   },
-  "Amount": "i128",
-  "AmountOf": "Amount",
-  "Address": "AccountId",
-  "OrmlAccountData": {
-    "free": "Balance",
-    "frozen": "Balance",
-    "reserved": "Balance"
-  },
-  "Fee": {
-    "numerator": "u32",
-    "denominator": "u32"
-  },
-  "BalanceInfo": {
-    "amount": "Balance",
-    "assetId": "AssetId"
-  },
-  "Chain": {
-    "genesisHash": "Vec<u8>",
-    "lastBlockHash": "Vec<u8>"
-  },
-  "CurrencyId": "AssetId",
-  "CurrencyIdOf": "AssetId",
-  "Fee": {
-    "numerator": "u32",
-    "denominator": "u32"
-  },
-  "Intention": {
-    "who": "AccountId",
-    "asset_sell": "AssetId",
-    "asset_buy": "AssetId",
-    "amount": "Balance",
-    "discount": "bool",
-    "sell_or_buy": "IntentionType"
-  },
-  "IntentionId": "Hash",
-  "IntentionType": {
-    "_enum": [
-      "SELL",
-      "BUY"
-    ]
-  },
-  "LookupSource": "AccountId",
-  "Price": "Balance",
-  "ClassId": "u64",
-  "TokenId": "u64",
-  "ClassData": {
-    "is_pool": "bool"
-  },
-  "TokenData": {
-    "locked": "bool",
-    "emote": "Vec<u8>"
-  },
-  "CID": "Vec<u8>",
-  "ClassInfo": {
-    "metadata": "Vec<u8>",
-    "total_issuance": "TokenId",
-    "owner": "AccountId",
-    "data": "ClassData"
-  },
-  "TokenInfo": {
-    "metadata": "Vec<u8>",
-    "owner": "AccountId",
-    "data": "TokenData"
-  },
-  "ClassInfoOf": "ClassInfo",
-  "TokenInfoOf": "TokenInfo",
-  "ClassIdOf": "ClassId",
-  "TokenIdOf": "TokenId"
-  "OrderedSet": "Vec<AssetId>",
-  "Price": "Balance",
-  "VestingSchedule": {
-    "start": "BlockNumber",
-    "period": "BlockNumber",
-    "period_count": "u32",
-    "per_period": "Compact<Balance>"
-  },
-  "VestingScheduleOf": "VestingSchedule"
+  "types":[
+    {
+      "AssetPair":{
+        "asset_in":"AssetId",
+        "asset_out":"AssetId"
+      },
+      "Amount":"i128",
+      "AmountOf":"Amount",
+      "Address":"AccountId",
+      "OrmlAccountData":{
+        "free":"Balance",
+        "frozen":"Balance",
+        "reserved":"Balance"
+      },
+      "Fee":{
+        "numerator":"u32",
+        "denominator":"u32"
+      },
+      "BalanceInfo":{
+        "amount":"Balance",
+        "assetId":"AssetId"
+      },
+      "Chain":{
+        "genesisHash":"Vec<u8>",
+        "lastBlockHash":"Vec<u8>"
+      },
+      "Currency":"AssetId",
+      "CurrencyId":"AssetId",
+      "CurrencyIdOf":"AssetId",
+      "Intention":{
+        "who":"AccountId",
+        "asset_sell":"AssetId",
+        "asset_buy":"AssetId",
+        "amount":"Balance",
+        "discount":"bool",
+        "sell_or_buy":"IntentionType"
+      },
+      "IntentionId":"Hash",
+      "IntentionType":{
+        "_enum":[
+          "SELL",
+          "BUY"
+        ]
+      },
+      "LookupSource":"AccountId",
+      "Price":"Balance",
+      "ClassId":"u64",
+      "TokenId":"u64",
+      "ClassData":{
+        "is_pool":"bool"
+      },
+      "TokenData":{
+        "locked":"bool"
+      },
+      "ClassInfo":{
+        "metadata":"Vec<u8>",
+        "total_issuance":"TokenId",
+        "owner":"AccountId",
+        "data":"ClassData"
+      },
+      "TokenInfo":{
+        "metadata":"Vec<u8>",
+        "owner":"AccountId",
+        "data":"TokenData"
+      },
+      "ClassInfoOf":"ClassInfo",
+      "TokenInfoOf":"TokenInfo",
+      "ClassIdOf":"ClassId",
+      "TokenIdOf":"TokenId",
+      "OrderedSet":"Vec<AssetId>",
+      "VestingSchedule":{
+        "start":"BlockNumber",
+        "period":"BlockNumber",
+        "period_count":"u32",
+        "per_period":"Compact<Balance>"
+      },
+      "VestingScheduleOf":"VestingSchedule",
+      "LBPAssetInfo":{
+        "id":"AssetId",
+        "amount":"Balance",
+        "initial_weight":"LBPWeight",
+        "final_weight":"LBPWeight"
+      },
+      "LBPWeight":"u128",
+      "WeightPair":{
+        "weight_a":"LBPWeight",
+        "weight_b":"LBPWeight"
+      },
+      "WeightCurveType":{
+        "_enum":[
+          "Linear"
+        ]
+      },
+      "PoolId":"AccountId",
+      "BalanceOf":"Balance",
+      "AssetType":{
+        "_enum":[
+          "Token"
+        ]
+      },
+      "Pool":{
+        "owner":"AccountId",
+        "start":"BlockNumber",
+        "end":"BlockNumber",
+        "assets":"AssetPair",
+        "initial_weights":"WeightPair",
+        "final_weights":"WeightPair",
+        "last_weight_update":"BlockNumber",
+        "last_weights":"WeightPair",
+        "weight_curve":"WeightCurveType",
+        "pausable":"bool",
+        "paused":"bool",
+        "fee":"Fee",
+        "fee_receiver":"AccountId"
+      },
+      "AssetNativeLocation":"MultiLocation",
+      "AssetDetails":{
+        "name":"Vec<u8>",
+        "asset_type":"AssetType",
+        "locked":"bool"
+      },
+      "AssetMetadata":{
+        "symbol":"Vec<u8>",
+        "decimals":"u8"
+      }
+    }
+  ]
 }
 ```
 

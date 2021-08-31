@@ -1,7 +1,7 @@
 use crate as duster;
 
 use frame_support::parameter_types;
-use frame_support::traits::{GenesisBuild, OnKilledAccount};
+use frame_support::traits::{GenesisBuild, Nothing, OnKilledAccount};
 
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
@@ -19,7 +19,6 @@ use sp_runtime::{
 
 use frame_support::weights::Weight;
 use primitives::Amount;
-use sp_runtime::traits::Zero;
 use sp_std::cell::RefCell;
 use sp_std::vec::Vec;
 
@@ -61,7 +60,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 63;
 	pub const MaxLocks: u32 = 50;
 
-	pub const NativeExistentialDeposit: u128 = 0;
+	pub const NativeExistentialDeposit: u128 = 100;
 
 	pub NativeCurrencyId: AssetId = 0;
 	pub Reward: Balance = 10_000;
@@ -106,7 +105,7 @@ impl system::Config for Test {
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		1u128
 	};
 }
 
@@ -141,6 +140,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
+	type DustRemovalWhitelist = Nothing;
 }
 
 impl orml_currencies::Config for Test {

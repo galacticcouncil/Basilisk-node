@@ -40,7 +40,7 @@ use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
 use primitives::traits::AMMTransfer;
 
-use frame_support::sp_runtime::offchain::storage_lock::BlockNumberProvider;
+use frame_support::sp_runtime::traits::BlockNumberProvider;
 use frame_support::sp_runtime::traits::Hash;
 
 #[cfg(test)]

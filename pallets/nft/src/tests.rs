@@ -13,7 +13,7 @@ fn create_class_works() {
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
 		));
-		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
+		let event = Event::NFT(crate::Event::TokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
 	})
 }
@@ -33,10 +33,10 @@ fn create_class_fails() {
 		assert_noop!(
 			NFTModule::create_class(
 				Origin::signed(ALICE),
-				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
+				vec![1; <Test as orml_nft::Config>::MaxClassMetadata::get() as usize + 1],
 				ClassData { is_pool: true },
 			),
-			Error::<Test>::MetadataTooLong
+			orml_nft::Error::<Test>::MaxMetadataExceeded
 		);
 	})
 }
@@ -50,7 +50,7 @@ fn create_pool_works() {
 			ClassData { is_pool: true },
 			TEST_PRICE,
 		));
-		let event = Event::NFT(crate::Event::NFTTokenPoolCreated(ALICE, CLASS_ID));
+		let event = Event::NFT(crate::Event::TokenPoolCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
 	})
 }
@@ -71,11 +71,11 @@ fn create_pool_fails() {
 		assert_noop!(
 			NFTModule::create_pool(
 				Origin::signed(ALICE),
-				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
+				vec![1; <Test as orml_nft::Config>::MaxClassMetadata::get() as usize + 1],
 				ClassData { is_pool: true },
 				TEST_PRICE,
 			),
-			Error::<Test>::MetadataTooLong
+			orml_nft::Error::<Test>::MaxMetadataExceeded
 		);
 	})
 }
@@ -88,20 +88,16 @@ fn mint_works() {
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
 		));
-		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
+		let event = Event::NFT(crate::Event::TokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
 
 		assert_ok!(NFTModule::mint(
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
 		));
-		let event = Event::NFT(crate::Event::NFTTokenMinted(ALICE, CLASS_ID, TEST_QUANTITY));
+		let event = Event::NFT(crate::Event::TokenMinted(ALICE, CLASS_ID, 0u32.into()));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -114,7 +110,7 @@ fn mint_fails() {
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
 		));
-		let event = Event::NFT(crate::Event::NFTTokenClassCreated(ALICE, CLASS_ID));
+		let event = Event::NFT(crate::Event::TokenClassCreated(ALICE, CLASS_ID));
 		assert_eq!(last_event(), event);
 
 		assert_noop!(
@@ -122,11 +118,8 @@ fn mint_fails() {
 				Origin::signed(BOB),
 				0,
 				"a token".as_bytes().to_vec(),
-				TokenData {
-					locked: false,
-					emote: EMOTE.as_bytes().to_vec()
-				},
-				TEST_QUANTITY,
+				TokenData { locked: false },
+
 			),
 			Error::<Test>::NotClassOwner
 		);
@@ -135,28 +128,11 @@ fn mint_fails() {
 			NFTModule::mint(
 				Origin::signed(ALICE),
 				0,
-				vec![1; <Test as crate::Config>::MaxMetadataLength::get() as usize + 1],
-				TokenData {
-					locked: false,
-					emote: EMOTE.as_bytes().to_vec()
-				},
-				TEST_QUANTITY,
-			),
-			Error::<Test>::MetadataTooLong
-		);
+				vec![1; <Test as orml_nft::Config>::MaxTokenMetadata::get() as usize + 1],
+				TokenData { locked: false },
 
-		assert_noop!(
-			NFTModule::mint(
-				Origin::signed(ALICE),
-				0,
-				"a token".as_bytes().to_vec(),
-				TokenData {
-					locked: false,
-					emote: vec![1; <Test as crate::Config>::MaxEmoteLength::get() as usize + 1],
-				},
-				TEST_QUANTITY,
 			),
-			Error::<Test>::EmoteTooLong
+			orml_nft::Error::<Test>::MaxMetadataExceeded
 		);
 	});
 }
@@ -174,15 +150,12 @@ fn transfer_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
-		let event = Event::NFT(crate::Event::NFTTokenTransferred(ALICE, BOB, CLASS_ID, TOKEN_ID));
+		let event = Event::NFT(crate::Event::TokenTransferred(ALICE, BOB, CLASS_ID, TOKEN_ID));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -200,11 +173,8 @@ fn transfer_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_noop!(
@@ -232,15 +202,12 @@ fn burn_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_ok!(NFTModule::burn(Origin::signed(ALICE), (CLASS_ID, TOKEN_ID)));
-		let event = Event::NFT(crate::Event::NFTTokenBurned(ALICE, CLASS_ID, TOKEN_ID));
+		let event = Event::NFT(crate::Event::TokenBurned(ALICE, CLASS_ID, TOKEN_ID));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -258,11 +225,8 @@ fn burn_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_noop!(
@@ -298,11 +262,8 @@ fn destroy_class_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_noop!(
@@ -340,11 +301,8 @@ fn destroy_pool_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_noop!(
@@ -367,11 +325,8 @@ fn toggle_lock_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_ok!(NFTModule::toggle_lock(&ALICE, (CLASS_ID, TOKEN_ID)));
@@ -393,11 +348,8 @@ fn toggle_lock_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_noop!(
@@ -421,15 +373,12 @@ fn buy_from_pool_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_ok!(NFTModule::buy_from_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)));
-		let event = Event::NFT(crate::Event::NFTBoughtFromPool(ALICE, BOB, CLASS_ID, TOKEN_ID));
+		let event = Event::NFT(crate::Event::BoughtFromPool(ALICE, BOB, CLASS_ID, TOKEN_ID));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -448,11 +397,8 @@ fn buy_from_pool_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
@@ -484,11 +430,8 @@ fn buy_from_pool_fails_notapool() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_noop!(
@@ -511,17 +454,14 @@ fn sell_to_pool_works() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
 
 		assert_ok!(NFTModule::sell_to_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)));
-		let event = Event::NFT(crate::Event::NFTSoldToPool(BOB, ALICE, CLASS_ID, TOKEN_ID));
+		let event = Event::NFT(crate::Event::SoldToPool(BOB, ALICE, CLASS_ID, TOKEN_ID));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -539,11 +479,8 @@ fn sell_to_pool_fails() {
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
-			TokenData {
-				locked: false,
-				emote: EMOTE.as_bytes().to_vec()
-			},
-			TEST_QUANTITY,
+			TokenData { locked: false },
+
 		));
 
 		assert_noop!(

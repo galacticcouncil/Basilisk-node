@@ -380,16 +380,16 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_known_overhead_for_on_finalize::<Test>());
-			assert_ok!(test_benchmark_sell_intention::<Test>());
-			assert_ok!(test_benchmark_buy_intention::<Test>());
-			assert_ok!(test_benchmark_on_finalize::<Test>());
-			assert_ok!(test_benchmark_on_finalize_buys_no_matches::<Test>());
-			assert_ok!(test_benchmark_on_finalize_sells_no_matches::<Test>());
-			assert_ok!(test_benchmark_sell_extrinsic::<Test>());
-			assert_ok!(test_benchmark_on_finalize_for_one_sell_extrinsic::<Test>());
-			assert_ok!(test_benchmark_buy_extrinsic::<Test>());
-			assert_ok!(test_benchmark_on_finalize_for_one_buy_extrinsic::<Test>());
+			assert_ok!(Pallet::<Test>::test_benchmark_known_overhead_for_on_finalize());
+			assert_ok!(Pallet::<Test>::test_benchmark_sell_intention());
+			assert_ok!(Pallet::<Test>::test_benchmark_buy_intention());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize_buys_no_matches());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize_sells_no_matches());
+			assert_ok!(Pallet::<Test>::test_benchmark_sell_extrinsic());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize_for_one_sell_extrinsic());
+			assert_ok!(Pallet::<Test>::test_benchmark_buy_extrinsic());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_finalize_for_one_buy_extrinsic());
 		});
 	}
 }

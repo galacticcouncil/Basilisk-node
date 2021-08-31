@@ -4,7 +4,7 @@ use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
 	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	CORE_ASSET_ID, WASM_BINARY,
+	WASM_BINARY, NATIVE_EXISTENTIAL_DEPOSIT
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -25,6 +25,8 @@ const TELEMETRY_URLS: [&str; 2] = [
 	"wss://telemetry.polkadot.io/submit/",
 	"wss://telemetry.hydradx.io:9000/submit/",
 ];
+//Kusama parachain id
+const PARA_ID: u32 = 2090;
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -86,7 +88,7 @@ pub fn basilisk_parachain_config() -> Result<ChainSpec, String> {
 	ChainSpec::from_json_bytes(&include_bytes!("../res/basilisk.json")[..])
 }
 
-pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -129,7 +131,7 @@ pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, Str
 				// Pre-funded accounts
 				vec![],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//technical committee
 				hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(), // TREASURY - Fallback for multi tx payment
 			)
@@ -161,7 +163,7 @@ pub fn kusama_staging_parachain_config(para_id: ParaId) -> Result<ChainSpec, Str
 		// Extensions
 		Extensions {
 			relay_chain: "kusama".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
@@ -208,6 +210,12 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
 				vec![].into(),
+				vec![
+					(b"hKSM".to_vec(), 1_000u128),
+					(b"hDOT".to_vec(), 1_000u128),
+					(b"hETH".to_vec(), 1_000u128),
+					(b"hUSDT".to_vec(), 1_000u128),
+				],
 			)
 		},
 		// Bootnodes
@@ -290,6 +298,81 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
+				vec![
+					(b"hKSM".to_vec(), 1_000u128),
+					(b"hDOT".to_vec(), 1_000u128),
+					(b"hETH".to_vec(), 1_000u128),
+					(b"hUSDT".to_vec(), 1_000u128),
+				],
+			)
+		},
+		// Bootnodes
+		vec![],
+		// Telemetry
+		None,
+		// Protocol ID
+		Some(PROTOCOL_ID),
+		// Properties
+		Some(properties),
+		// Extensions
+		Extensions {
+			relay_chain: "rococo-dev".into(),
+			para_id: para_id.into(),
+		},
+	))
+}
+
+// This is used when benchmarking pallets
+// Originally dev config was used - but benchmarking needs empty asset registry
+pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, String> {
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+	let mut properties = Map::new();
+	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
+	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
+
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"Basilisk Benchmarks",
+		// ID
+		"benchmarks",
+		ChainType::Development,
+		move || {
+			testnet_parachain_genesis(
+				wasm_binary,
+				// Sudo account
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				//initial authorities & invulnerables
+				vec![
+					(
+						get_account_id_from_seed::<sr25519::Public>("Alice"),
+						get_from_seed::<AuraId>("Alice"),
+					),
+					(
+						get_account_id_from_seed::<sr25519::Public>("Bob"),
+						get_from_seed::<AuraId>("Bob"),
+					),
+				],
+				// Pre-funded accounts
+				vec![
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+					get_account_id_from_seed::<sr25519::Public>("Duster"),
+				],
+				true,
+				para_id,
+				//council
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
+				//technical_committe
+				vec![
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
+					get_account_id_from_seed::<sr25519::Public>("Bob"),
+					get_account_id_from_seed::<sr25519::Public>("Eve"),
+				],
+				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
+				get_vesting_config_for_test(),
+				vec![],
 			)
 		},
 		// Bootnodes
@@ -364,6 +447,12 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
+				vec![
+					(b"hKSM".to_vec(), 1_000u128),
+					(b"hDOT".to_vec(), 1_000u128),
+					(b"hETH".to_vec(), 1_000u128),
+					(b"hUSDT".to_vec(), 1_000u128),
+				],
 			)
 		},
 		// Bootnodes
@@ -440,9 +529,9 @@ fn parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			core_asset_id: CORE_ASSET_ID,
-			asset_ids: vec![],
-			next_asset_id: 1,
+			asset_names: vec![],
+			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
+			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
@@ -478,7 +567,7 @@ fn parachain_genesis(
 			tokens: Default::default(),
 		},
 		vesting: VestingConfig { vesting: vec![] },
-		parachain_info: ParachainInfoConfig { parachain_id }, //TODO
+		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 		duster: DusterConfig {
 			account_blacklist: vec![hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()],
@@ -499,6 +588,7 @@ fn testnet_parachain_genesis(
 	tech_committee_members: Vec<AccountId>,
 	tx_fee_payment_account: AccountId,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
+	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -541,14 +631,9 @@ fn testnet_parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			core_asset_id: CORE_ASSET_ID,
-			asset_ids: vec![
-				(b"hKSM".to_vec(), 1),
-				(b"hDOT".to_vec(), 2),
-				(b"hETH".to_vec(), 3),
-				(b"hUSDT".to_vec(), 4),
-			],
-			next_asset_id: 5,
+			asset_names: registered_assets,
+			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
+			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
