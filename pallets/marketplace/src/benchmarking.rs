@@ -63,9 +63,9 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>test_benchmark_buy());
-			assert_ok!(Pallet::<Test>test_benchmark_allow_sell());
-			assert_ok!(Pallet::<Test>test_benchmark_withdraw_from_market());
+			assert_ok!(Pallet::<Test>::test_benchmark_buy());
+			assert_ok!(Pallet::<Test>::test_benchmark_allow_sell());
+			assert_ok!(Pallet::<Test>::test_benchmark_withdraw_from_market());
 		});
 	}
 }
