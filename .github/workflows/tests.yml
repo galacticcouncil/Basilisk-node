@@ -87,7 +87,7 @@ jobs:
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage
-        run: cargo tarpaulin --all-features --workspace --locked  --exclude-files node/* --exclude-files runtime/* --exclude-files infrastructure/* --exclude-files **/weights.rs --ignore-tests -o Xml -o lcov
+        run: cargo tarpaulin --avoid-cfg-tarpaulin --all-features --workspace --locked  --exclude-files node/* --exclude-files runtime/* --exclude-files infrastructure/* --exclude-files **/weights.rs --ignore-tests -o Xml -o lcov
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
@@ -104,8 +104,8 @@ jobs:
       - name: Upload release wasm
         uses: actions/upload-artifact@v2
         with:
-          name: basilisk_runtime.wasm
-          path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.wasm
+          name: basilisk_runtime.compact.compressed.wasm
+          path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
 
   destroy-runner-instance:
     name: destroy infra
@@ -166,7 +166,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: v0.9.3
+          tag: v0.9.9-1
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version

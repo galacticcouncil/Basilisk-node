@@ -35,15 +35,19 @@ frame_support::construct_runtime!(
 
 parameter_types! {
 	pub ClassBondAmount: Balance = 100;
-	pub ClassBondDuration: u32 = 10;
+	pub MaxMetadataLength: u32 = 256;
 }
 
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
 	type ClassBondAmount = ClassBondAmount;
-	type ClassBondDuration = ClassBondDuration;
+}
+
+parameter_types! {
+	pub const MaxClassMetadata: u32 = 1024;
+	pub const MaxTokenMetadata: u32 = 1024;
 }
 
 impl orml_nft::Config for Test {
@@ -51,6 +55,8 @@ impl orml_nft::Config for Test {
 	type TokenId = u64;
 	type ClassData = pallet_nft::ClassData;
 	type TokenData = pallet_nft::TokenData;
+	type MaxClassMetadata = MaxClassMetadata;
+	type MaxTokenMetadata = MaxTokenMetadata;
 }
 
 parameter_types! {
@@ -107,8 +113,6 @@ pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const CLASS_ID: <Test as orml_nft::Config>::ClassId = 0;
-pub const EMOTE: &str = "RMRK::EMOTE::RMRK1.0.0::0aff6865bed3a66b-VALHELLO-POTION_HEAL-0000000000000001::1F389";
-pub const TEST_QUANTITY: u32 = 99;
 pub const TEST_PRICE: Balance = 99;
 pub const TOKEN_ID: <Test as orml_nft::Config>::TokenId = 0;
 

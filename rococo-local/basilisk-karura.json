@@ -1,0 +1,127 @@
+{
+	"relaychain": {
+		"bin": "../../polkadot/target/release/polkadot",
+		"chain": "rococo-local",
+		"nodes": [
+			{
+				"name": "alice",
+				"wsPort": 9944,
+				"port": 30444,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "bob",
+				"wsPort": 9955,
+				"port": 30555,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "charlie",
+				"wsPort": 9966,
+				"port": 30666,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "dave",
+				"wsPort": 9967,
+				"port": 30667,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "ferdie",
+				"wsPort": 9968,
+				"port": 30668,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			}
+		],
+		"genesis": {
+			"runtime": {
+				"runtime_genesis_config": {
+					"parachainsConfiguration": {
+						"config": {
+							"validation_upgrade_frequency": 1,
+							"validation_upgrade_delay": 1
+						}
+					}
+				}
+			}
+		}
+	},
+	"simpleParachains": [],
+	"parachains": [
+		{
+			"bin": "../target/release/basilisk",
+			"id": "2084",
+			"chain":"dev",
+			"nodes": [
+				{
+					"wsPort": 9988,
+					"port": 31200,
+					"name": "alice",
+					"flags": [
+						"--unsafe-ws-external",
+						"--unsafe-rpc-external",
+						"--rpc-cors=all",
+						"--",
+						"--execution=wasm"
+					]
+				}
+			]
+		},
+		{
+			"bin": "../../Acala/target/release/acala",
+			"id": "2000",
+			"chain": "karura-dev",
+			"nodes": [
+				{
+					"wsPort": 9999,
+					"port": 31300,
+					"name": "alice",
+					"flags": [
+						"--unsafe-ws-external",
+						"--unsafe-rpc-external",
+						"--rpc-cors=all",
+						"--",
+						"--execution=wasm"
+					]
+				}
+			]
+		}
+	],
+	"hrmpChannels": [
+		{
+			"sender": 2084,
+			"recipient": 2000,
+			"maxCapacity": 8,
+			"maxMessageSize": 1024
+		},
+		{
+			"sender": 2000,
+			"recipient": 2084,
+			"maxCapacity": 8,
+			"maxMessageSize": 1024
+		}
+	],
+	"types": {},
+	"finalization": false
+}

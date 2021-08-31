@@ -12,7 +12,7 @@ pub use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-use sp_transaction_pool::TransactionPool;
+use sc_transaction_pool_api::TransactionPool;
 
 /// Full client dependencies.
 pub struct FullDeps<C, P> {
@@ -24,17 +24,20 @@ pub struct FullDeps<C, P> {
 	pub deny_unsafe: DenyUnsafe,
 }
 
+/// RPC Extension Builder
+pub type RpcExtension = Result<jsonrpc_core::IoHandler<sc_rpc::Metadata>, sc_service::Error>;
+
 /// Instantiate all full RPC extensions.
-pub fn create_full<C, P>(deps: FullDeps<C, P>) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
+pub fn create_full<C, P>(deps: FullDeps<C, P>) -> RpcExtension
 where
 	C: ProvideRuntimeApi<Block>,
-	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
+	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError>,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: pallet_xyk_rpc::XYKRuntimeApi<Block, AccountId, AssetId, Balance>,
 	C::Api: BlockBuilder<Block>,
-	P: TransactionPool + 'static,
+	P: TransactionPool + Sync + Send + 'static,
 {
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use pallet_xyk_rpc::{XYKApi, XYK};
@@ -64,5 +67,5 @@ where
 
 	io.extend_with(XYKApi::to_delegate(XYK::new(client)));
 
-	io
+	Ok(io)
 }

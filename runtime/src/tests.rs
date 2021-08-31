@@ -2,7 +2,6 @@
 
 use crate::*;
 use codec::Encode;
-use frame_support::storage::StorageValue;
 use frame_support::weights::{DispatchClass, GetDispatchInfo, WeightToFeePolynomial};
 use sp_runtime::traits::Convert;
 use sp_runtime::FixedPointNumber;
@@ -15,9 +14,11 @@ fn full_block_cost() {
 
 	let max_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap_or(1);
 	let weight_fee = WeightToFee::calc(&max_weight);
-	assert_eq!(weight_fee, 47_349_441_402_750);
+	assert_eq!(weight_fee, 47647303225875);
 
-	let target_fee = 393 * DOLLARS + 68_950_233_386_750;
+	//let target_fee = 393 * DOLLARS + 68_950_233_386_750;
+	let target_fee = 39369248090258875;
+
 	assert_eq!(ExtrinsicBaseWeight::get() as u128 + length_fee + weight_fee, target_fee);
 }
 
@@ -31,7 +32,7 @@ fn extrinsic_base_fee_is_correct() {
 }
 
 #[test]
-#[ignore]
+// Useful to calculate how much single transfer costs in native currency with fee components breakdown
 fn transfer_cost() {
 	let call = <pallet_balances::Call<Runtime>>::transfer(Default::default(), Default::default());
 	let info = call.get_dispatch_info();
@@ -41,7 +42,7 @@ fn transfer_cost() {
 
 	let mut ext = sp_io::TestExternalities::new_empty();
 	ext.execute_with(|| {
-		pallet_transaction_payment::NextFeeMultiplier::put(Multiplier::saturating_from_integer(1));
+		pallet_transaction_payment::NextFeeMultiplier::<Runtime>::put(Multiplier::saturating_from_integer(1));
 		let fee_raw = TransactionPayment::compute_fee_details(len, &info, 0);
 		let fee = fee_raw.final_fee();
 		println!(

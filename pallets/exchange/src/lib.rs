@@ -40,7 +40,7 @@ use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
 use primitives::traits::AMMTransfer;
 
-use frame_support::sp_runtime::offchain::storage_lock::BlockNumberProvider;
+use frame_support::sp_runtime::traits::BlockNumberProvider;
 use frame_support::sp_runtime::traits::Hash;
 
 #[cfg(test)]
@@ -95,8 +95,8 @@ pub mod pallet {
 				Self::process_exchange_intentions(&pair_account, &asset_a_ins, &asset_b_ins);
 			}
 
-			ExchangeAssetsIntentionCount::<T>::remove_all();
-			ExchangeAssetsIntentions::<T>::remove_all();
+			ExchangeAssetsIntentionCount::<T>::remove_all(None);
+			ExchangeAssetsIntentions::<T>::remove_all(None);
 		}
 
 		fn on_initialize(_n: T::BlockNumber) -> Weight {
