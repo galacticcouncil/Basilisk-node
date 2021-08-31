@@ -52,19 +52,19 @@ pub mod pallet {
 			// 1. Get NFT by id from storage from NFT pallet
 			// 2. Get it's current price from this pallet storage (NULL = not for sale? automatically set with every new buy)
 			// 3. Call transfer of funds buyer->seller and transfer of token seller->buyer (transactionally)
-			todo! {}
+			Ok(())
 		}
 
 		// Set trading price for an NFT and allow sell
 		#[pallet::weight(<T as Config>::WeightInfo::allow_sell())]
 		pub fn allow_sell(origin: OriginFor<T>) -> DispatchResult {
-			todo! {}
+			Ok(())
 		}
 
 		// Set trading price to NULL and thus disallow trading
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_from_market())]
 		pub fn withdraw_from_market(origin: OriginFor<T>) -> DispatchResult {
-			todo! {}
+			Ok(())
 		}
 	}
 
@@ -85,6 +85,6 @@ pub mod pallet {
 impl<T: Config> Pallet<T> {
 	// Set a price for an NFT, can be done only if owner wants to sell
 	fn set_price() -> DispatchResult {
-		todo! {}
+		Ok(())
 	}
 }
