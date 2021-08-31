@@ -211,16 +211,6 @@ pub mod pallet {
 
 			Self::transfer_dust(&account, &Self::dust_dest_account(), currency_id, dust)?;
 
-			if currency_id == T::NativeCurrencyId::get() {
-				// When dusting native currency, in order to make sure that account is killed,
-				// we need to decrease providers count.
-				// It is due to the fact that the balances pallet has set its existential deposit to 0,
-				// therefore it will never do it.
-				//
-				// Not sure if we should fail here?
-				let _ = frame_system::Pallet::<T>::dec_providers(&account);
-			}
-
 			Self::deposit_event(Event::Dusted(account, dust));
 
 			// Ignore the result, it fails - no problem.
@@ -272,7 +262,7 @@ impl<T: Config> Pallet<T> {
 		(total < ed, total)
 	}
 
-	/// Send reward to account which ddid the dusting.
+	/// Send reward to account which did the dusting.
 	fn reward_duster(_duster: &T::AccountId, _currency_id: T::CurrencyId, _dust: T::Balance) -> DispatchResult {
 		let reserve_account = Self::reward_account();
 		let reward = T::Reward::get();
@@ -290,5 +280,13 @@ impl<T: Config> Pallet<T> {
 		dust: T::Balance,
 	) -> DispatchResult {
 		T::MultiCurrency::transfer(currency_id, from, dest, dust)
+	}
+}
+
+use orml_traits::OnDust;
+
+impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
+	fn on_dust(who: &T::AccountId, currency_id: T::CurrencyId, amount: T::Balance) {
+		let _ = Self::transfer_dust(&who, &Self::dust_dest_account(), currency_id, amount);
 	}
 }

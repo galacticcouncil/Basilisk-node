@@ -52,20 +52,6 @@ fn dust_account_with_exact_dust_fails() {
 }
 
 #[test]
-fn dust_account_with_zero_fails() {
-	ExtBuilder::default()
-		.with_native_balance(*ALICE, 0)
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				Duster::dust_account(Origin::signed(*DUSTER), *ALICE, 0),
-				Error::<Test>::ZeroBalance
-			);
-			assert_eq!(Tokens::free_balance(1, &*TREASURY), 0);
-		});
-}
-
-#[test]
 fn dust_nonexisting_account_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
@@ -125,11 +111,11 @@ fn dust_account_native_works() {
 		}
 
 		expect_events(vec![
+			// system
+			frame_system::Event::KilledAccount(*ALICE).into(),
 			// dust transfer
 			pallet_balances::Event::Transfer(*ALICE, *TREASURY, 500).into(),
 			orml_currencies::Event::Transferred(currency_id, *ALICE, *TREASURY, 500).into(),
-			// system
-			frame_system::Event::KilledAccount(*ALICE).into(),
 			// duster
 			Event::Dusted(*ALICE, 500).into(),
 			//reward transfer

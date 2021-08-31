@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -50,7 +50,7 @@ use pallet_utility::weights::WeightInfo;
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
-	fn batch(c: u32, ) -> Weight {
+	fn batch(c: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 30_000
 			.saturating_add((15_362_000 as Weight).saturating_mul(c as Weight))
@@ -58,7 +58,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn as_derivative() -> Weight {
 		(9_866_000 as Weight)
 	}
-	fn batch_all(c: u32, ) -> Weight {
+	fn batch_all(c: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 31_000
 			.saturating_add((16_328_000 as Weight).saturating_mul(c as Weight))

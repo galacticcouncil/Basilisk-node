@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -51,8 +51,7 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn known_overhead_for_on_finalize() -> Weight {
-		(11_074_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+		(11_074_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
 	}
 	fn sell_intention() -> Weight {
 		(99_807_000 as Weight)
@@ -64,7 +63,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn on_finalize(t: u32, ) -> Weight {
+	fn on_finalize(t: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 77_000
 			.saturating_add((112_124_000 as Weight).saturating_mul(t as Weight))
@@ -73,7 +72,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
 	}
-	fn on_finalize_buys_no_matches(t: u32, ) -> Weight {
+	fn on_finalize_buys_no_matches(t: u32) -> Weight {
 		(7_040_000 as Weight)
 			// Standard Error: 76_000
 			.saturating_add((109_282_000 as Weight).saturating_mul(t as Weight))
@@ -82,7 +81,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
 	}
-	fn on_finalize_sells_no_matches(t: u32, ) -> Weight {
+	fn on_finalize_sells_no_matches(t: u32) -> Weight {
 		(5_934_000 as Weight)
 			// Standard Error: 94_000
 			.saturating_add((95_955_000 as Weight).saturating_mul(t as Weight))

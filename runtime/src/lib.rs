@@ -4,7 +4,6 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
-#![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::from_over_into)]
 
 #[cfg(test)]
@@ -36,7 +35,9 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{EnsureOrigin, Contains, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote, Nothing},
+	traits::{
+		Contains, EnsureOrigin, Get, KeyOwnerProofSystem, LockIdentifier, Nothing, Randomness, U128CurrencyToVote,
+	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
@@ -54,15 +55,12 @@ pub use sp_runtime::{FixedPointNumber, Perbill, Percent, Permill, Perquintill};
 
 use primitives::fee;
 
-mod currency;
-
 mod weights;
 mod xcm;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
-use orml_traits::parameter_type_with_key;
 
 pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
 
@@ -117,7 +115,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 14,
+	spec_version: 16,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -135,6 +133,7 @@ pub const BSX: Balance = 1_000_000_000_000;
 pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
 pub const CENTS: Balance = DOLLARS / 100; // 1 BSX ~= 1 cent
 pub const MILLICENTS: Balance = CENTS / 1_000;
+pub const NATIVE_EXISTENTIAL_DEPOSIT: Balance = CENTS;
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
@@ -188,6 +187,8 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		match call {
 			Call::XYK(_) => false,
+			Call::NFT(_) => false,
+			Call::Exchange(_) => false,
 			_ => true,
 		}
 	}
@@ -288,7 +289,7 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
-	pub const NativeExistentialDeposit: u128 = 0;
+	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -299,7 +300,7 @@ impl pallet_balances::Config for Runtime {
 	type Balance = Balance;
 	/// The ubiquitous event type.
 	type Event = Event;
-	type DustRemoval = ();
+	type DustRemoval = Treasury;
 	type ExistentialDeposit = NativeExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
@@ -348,30 +349,15 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
-parameter_type_with_key! {
-	pub TokensExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		// Dusting is handled by duster pallet.
-		// However, to make sure that account is reaped/killed and storage updated, ED must be > 0
-		// On ED = 0 - accounts are never reaped.
-		1u128
-	};
-}
-
-parameter_type_with_key! {
-	pub DusterExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		1_000u128
-	};
-}
-
-/// ORML Configurations
+/// Tokens Configurations
 impl orml_tokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
-	type ExistentialDeposits = TokensExistentialDeposits;
-	type OnDust = ();
+	type ExistentialDeposits = AssetRegistry;
+	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
 }
@@ -382,6 +368,18 @@ impl orml_currencies::Config for Runtime {
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = ();
+}
+
+impl pallet_duster::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type MinCurrencyDeposits = AssetRegistry;
+	type Reward = DustingReward;
+	type NativeCurrencyId = NativeAssetId;
+	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
 }
 
 /// Basilisk Pallets configurations
@@ -397,8 +395,9 @@ impl Default for AssetLocation {
 
 impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
-	type RegistryOrigin = EnsureRoot<AccountId>;
+	type RegistryOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type AssetId = AssetId;
+	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
 	type NativeAssetId = NativeAssetId;
@@ -432,27 +431,15 @@ parameter_types! {
 	pub const DustingReward: u128 = 0;
 }
 
-impl pallet_duster::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = AssetId;
-	type MultiCurrency = Currencies;
-	type MinCurrencyDeposits = DusterExistentialDeposits;
-	type Reward = DustingReward;
-	type NativeCurrencyId = NativeAssetId;
-	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
-}
-
 parameter_types! {
-	pub LBPExchangeFee: fee::Fee  = fee::Fee::default();
+	pub LBPExchangeFee: fee::Fee = fee::Fee::default();
 }
 
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type CreatePoolOrigin = EnsureRoot<AccountId>; // TODO: change to governance membership
+	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
@@ -486,8 +473,6 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-impl pallet_randomness_collective_flip::Config for Runtime {}
-
 parameter_types! {
 	pub ClassBondAmount: Balance = 10_000 * BSX;
 }
@@ -518,9 +503,10 @@ parameter_types! {
 	pub const VotingPeriod: BlockNumber = 7 * DAYS;
 	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
 	pub const MinimumDeposit: Balance = 1000 * DOLLARS;
-	pub const EnactmentPeriod: BlockNumber = 6 * DAYS;
+	pub const EnactmentPeriod: BlockNumber = 7 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	pub const PreimageByteDeposit: Balance = CENTS;
+	// $10,000 / MB
+	pub const PreimageByteDeposit: Balance = 10 * MILLICENTS;
 	pub const InstantAllowed: bool = true;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
@@ -594,11 +580,11 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	// Bond for candidacy into governance
-	pub const CandidacyBond: Balance = 100_000_000_000 * BSX;
+	pub const CandidacyBond: Balance = 10_000 * DOLLARS;
 	// 1 storage item created, key size is 32 bytes, value size is 16+16.
-	pub const VotingBondBase: Balance = CENTS;
+	pub const VotingBondBase: Balance = 1 * DOLLARS;
 	// additional data per vote is 32 bytes (account id).
-	pub const VotingBondFactor: Balance = CENTS;
+	pub const VotingBondFactor: Balance = 50 * CENTS;
 	pub const TermDuration: BlockNumber = 7 * DAYS;
 	pub const DesiredMembers: u32 = 1;
 	pub const DesiredRunnersUp: u32 = 0;
@@ -624,9 +610,8 @@ impl pallet_elections_phragmen::Config for Runtime {
 }
 
 parameter_types! {
-	pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
-	pub const CouncilMaxProposals: u32 = 20;
-	pub const ProposalVotesRequired: u32 = 1;
+	pub const CouncilMotionDuration: BlockNumber = 4 * DAYS;
+	pub const CouncilMaxProposals: u32 = 100;
 	pub const CouncilMaxMembers: u32 = 1;
 }
 
@@ -643,7 +628,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 }
 
 parameter_types! {
-	pub const TechnicalMotionDuration: BlockNumber = 5 * DAYS;
+	pub const TechnicalMotionDuration: BlockNumber = 4 * DAYS;
 	pub const TechnicalMaxProposals: u32 = 20;
 	pub const TechnicalMaxMembers: u32 = 10;
 }
@@ -662,8 +647,8 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
-	pub const SpendPeriod: BlockNumber = DAYS;
+	pub const ProposalBondMinimum: Balance = 10 * DOLLARS;
+	pub const SpendPeriod: BlockNumber = 3 * DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
 	pub const MaxApprovals: u32 =  100;
@@ -678,7 +663,7 @@ impl pallet_treasury::Config for Runtime {
 	type ApproveOrigin = ManageOrigin;
 	type RejectOrigin = ManageOrigin;
 	type Event = Event;
-	type OnSlash = ();
+	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
 	type SpendPeriod = SpendPeriod;
@@ -724,14 +709,14 @@ impl pallet_authorship::Config for Runtime {
 
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const MaxCandidates: u32 = 20;             // only for benchmarking
-	pub const MinCandidates: u32 = 0;
+	pub const MaxCandidates: u32 = 20;
+	pub const MinCandidates: u32 = 4;
 	pub const MaxInvulnerables: u32 = 10;
 }
 
 parameter_types! {
 	pub const DataDepositPerByte: Balance = CENTS;
-	pub const TipCountdown: BlockNumber = 4 * HOURS;
+	pub const TipCountdown: BlockNumber = 24 * HOURS;
 	pub const TipFindersFee: Percent = Percent::from_percent(1);
 	pub const TipReportDepositBase: Balance = 10 * DOLLARS;
 	pub const TipReportDepositPerByte: Balance = CENTS;
@@ -834,11 +819,9 @@ construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>},
@@ -875,13 +858,16 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config, Storage, Event<T>},
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
+
+		// TEMPORARY
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 	}
 );
 
