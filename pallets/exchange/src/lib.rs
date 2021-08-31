@@ -29,7 +29,6 @@ use sp_std::vec::Vec;
 
 use primitives::{
 	asset::AssetPair,
-	traits::{Resolver, AMM},
 	Amount, AssetId, Balance, ExchangeIntention, IntentionType, MIN_TRADING_LIMIT,
 };
 use sp_std::borrow::ToOwned;
@@ -38,7 +37,7 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency}
 
 use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
-use primitives::traits::AMMTransfer;
+use basilisk_traits::{AMM, AMMTransfer, Resolver};
 
 use frame_support::sp_runtime::traits::BlockNumberProvider;
 use frame_support::sp_runtime::traits::Hash;

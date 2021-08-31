@@ -27,7 +27,6 @@ use serde::{Deserialize, Serialize};
 use frame_support::sp_runtime::FixedU128;
 
 pub mod asset;
-pub mod traits;
 
 /// An index to a block.
 pub type BlockNumber = u32;

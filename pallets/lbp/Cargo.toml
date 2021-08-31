@@ -23,6 +23,7 @@ hydra-dx-math = { default-features = false, version = "3.3.0" }
 
 ## Local dependencies
 primitives = { default-features = false, path = "../../primitives" }
+basilisk-traits = { path = "../../basilisk-traits", default-features = false }
 
 ## ORML dependencies
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
@@ -60,4 +61,5 @@ std = [
     "sp-core/std",
     "sp-std/std",
     "primitives/std",
+    "basilisk-traits/std",
 ]

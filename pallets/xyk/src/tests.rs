@@ -21,7 +21,7 @@ use frame_support::BoundedVec;
 use frame_support::{assert_noop, assert_ok};
 use hydra_dx_math::MathError;
 use pallet_asset_registry::AssetType;
-use primitives::traits::AMM as AmmPool;
+use basilisk_traits::AMM as AmmPool;
 use sp_std::convert::TryInto;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

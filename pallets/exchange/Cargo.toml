@@ -23,6 +23,7 @@ serde = { features = ["derive"], optional = true, version = "1.0.101" }
 pallet-xyk = { path = "../xyk", default-features = false }
 pallet-asset-registry = { path = "../asset-registry", default-features = false }
 primitives = { path = "../../primitives", default-features = false }
+basilisk-traits = { path = "../../basilisk-traits", default-features = false }
 
 # ORML dependencies
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
@@ -49,6 +50,7 @@ std = [
     "sp-std/std",
     "sp-runtime/std",
     "primitives/std",
+    "basilisk-traits/std",
     "orml-tokens/std",
     "orml-traits/std",
     "pallet-xyk/std",

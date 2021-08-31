@@ -37,7 +37,7 @@ pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-f
 pallet-nft = { path = "../pallets/nft", default-features = false }
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
 
-primitives = { default-features = false, path = "../primitives" }
+primitives = { path = "../primitives", default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }

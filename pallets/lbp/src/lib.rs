@@ -19,7 +19,7 @@ use frame_support::{
 use frame_system::ensure_signed;
 use hydra_dx_math::lbp::Weight as LBPWeight;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
-use primitives::traits::{AMMTransfer, AMM};
+use basilisk_traits::{AMMTransfer, AMM};
 use primitives::{
 	asset::AssetPair,
 	fee::{Fee, WithFee},

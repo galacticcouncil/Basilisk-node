@@ -45,7 +45,7 @@ pub use pallet::*;
 
 use crate::types::{AssetDetails, AssetMetadata};
 use frame_support::BoundedVec;
-use primitives::traits::{Registry, ShareTokenRegistry};
+use basilisk_traits::{Registry, ShareTokenRegistry};
 
 #[frame_support::pallet]
 pub mod pallet {

@@ -625,6 +625,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "basilisk-traits"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec 2.2.0",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
 name = "beef"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5286,6 +5300,7 @@ dependencies = [
 name = "pallet-asset-registry"
 version = "0.1.0"
 dependencies = [
+ "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -5614,6 +5629,7 @@ dependencies = [
 name = "pallet-exchange"
 version = "4.1.0"
 dependencies = [
+ "basilisk-traits",
  "frame-support",
  "frame-system",
  "orml-tokens",
@@ -5744,6 +5760,7 @@ dependencies = [
 name = "pallet-lbp"
 version = "1.0.0"
 dependencies = [
+ "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -6127,6 +6144,7 @@ dependencies = [
 name = "pallet-transaction-multi-payment"
 version = "4.1.0"
 dependencies = [
+ "basilisk-traits",
  "frame-support",
  "frame-system",
  "orml-currencies",
@@ -6258,6 +6276,7 @@ dependencies = [
 name = "pallet-xyk"
 version = "1.3.0"
 dependencies = [
+ "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
