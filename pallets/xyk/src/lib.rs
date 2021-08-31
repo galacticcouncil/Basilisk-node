@@ -80,7 +80,7 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Registry support
-		type AssetRegistry: ShareTokenRegistry<AssetId, Vec<u8>, DispatchError>;
+		type AssetRegistry: ShareTokenRegistry<AssetId, Vec<u8>, Balance, DispatchError>;
 
 		/// Share token support
 		type AssetPairAccountId: AssetPairAccountIdFor<AssetId, Self::AccountId>;
@@ -265,7 +265,7 @@ pub mod pallet {
 
 			let token_name = asset_pair.name();
 
-			let share_token = T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b])?;
+			let share_token = T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], MIN_POOL_LIQUIDITY)?;
 
 			T::AMMHandler::on_create_pool(asset_pair);
 

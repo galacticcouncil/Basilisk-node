@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "14.0.0"
+version = "16.0.0"
 authors = ["GalacticCouncil"]
 edition = "2018"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -91,8 +91,6 @@ frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate"
 pallet-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
-pallet-grandpa = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
-pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 pallet-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
@@ -135,6 +133,13 @@ runtime-benchmarks = [
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
     "xcm-builder/runtime-benchmarks",
+    "pallet-asset-registry/runtime-benchmarks",
+    "pallet-duster/runtime-benchmarks",
+    "pallet-democracy/runtime-benchmarks",
+    "pallet-treasury/runtime-benchmarks",
+    "pallet-scheduler/runtime-benchmarks",
+    "pallet-utility/runtime-benchmarks",
+    "pallet-tips/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -170,9 +175,7 @@ std = [
     "pallet-aura/std",
     "pallet-balances/std",
     "pallet-elections-phragmen/std",
-    "pallet-grandpa/std",
     "pallet-nft/std",
-    "pallet-randomness-collective-flip/std",
     "pallet-session/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",

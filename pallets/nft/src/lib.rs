@@ -33,14 +33,13 @@ pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
 pub struct ClassData {
-	pub is_pool: bool,
+	pub is_pool: bool, // NFT pools for tokenized merch
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
 pub struct TokenData {
-	pub locked: bool,
-	pub emote: Vec<u8>,
+	pub locked: bool, // token locking will be used in the nft auctions
 }
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
@@ -68,12 +67,6 @@ pub mod pallet {
 		// How much will be bonded
 		#[pallet::constant]
 		type ClassBondAmount: Get<BalanceOf<Self>>;
-		// Maximum amount of minted NFTs in a collection
-		#[pallet::constant]
-		type MintMaxQuantity: Get<u32>;
-		// Maximum length of emote
-		#[pallet::constant]
-		type MaxEmoteLength: Get<u32>;
 	}
 
 	#[pallet::call]
@@ -87,6 +80,10 @@ pub mod pallet {
 		/// Creates an NFT class
 		/// This is necessary as the first step, because tokens will be minted as part of this class
 		/// An amount X (ClassBondAmount) is reserved
+		///
+		/// Parameters:
+		/// - `metadata`: Arbitrary info/description of a class
+		/// - `data`: Field(s) defined in the ClassData struct
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
 		pub fn create_class(origin: OriginFor<T>, metadata: Vec<u8>, data: T::ClassData) -> DispatchResultWithPostInfo {
@@ -99,38 +96,37 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// A particular amount (quantity) of NFTs are minted in the specified class
-		/// The weight is increased linearly for each minted token
-		#[pallet::weight(<T as Config>::WeightInfo::mint(*quantity))]
+		/// NFT is minted in the specified class
+		///
+		/// Parameters:
+		/// - `class_id`: identificator of a class
+		/// - `metadata`: Arbitrary info/description of a token
+		/// - `data`: Field(s) defined in the TokenData struct
+		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
 		pub fn mint(
 			origin: OriginFor<T>,
 			class_id: ClassIdOf<T>,
 			metadata: Vec<u8>,
-			token_data: TokenData,
-			quantity: u32,
+			token_data: TokenData
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			ensure!(
-				quantity > Zero::zero() && T::MintMaxQuantity::get() >= quantity,
-				Error::<T>::InvalidQuantity
-			);
-			ensure!(
-				token_data.emote.len() <= (T::MaxEmoteLength::get() as usize),
-				Error::<T>::EmoteTooLong
-			);
+
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			let data = token_data;
-			for _ in 0..quantity {
-				orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data.clone())?;
-			}
-			Self::deposit_event(Event::TokenMinted(sender, class_id, quantity));
+			let token_id = orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data.clone())?;
+
+			Self::deposit_event(Event::TokenMinted(sender, class_id, token_id));
 			Ok(().into())
 		}
 
 		/// Transfers NFT from account A to account B
 		/// Only the owner can send their NFT to another account
+		///
+		/// Parameters:
+		/// - `dest`: The destination account a token will be sent to
+		/// - `token`: unique identificator of a token
 		#[pallet::weight(<T as Config>::WeightInfo::transfer())]
 		#[transactional]
 		pub fn transfer(
@@ -150,6 +146,9 @@ pub mod pallet {
 		}
 
 		/// Removes a token from existence
+		///
+		/// Parameters:
+		/// - `token`: unique identificator of a token
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
 		pub fn burn(origin: OriginFor<T>, token: (T::ClassId, T::TokenId)) -> DispatchResultWithPostInfo {
@@ -164,6 +163,9 @@ pub mod pallet {
 
 		/// Removes a class from existence
 		/// Returns the bond amount
+		///
+		/// Parameters:
+		/// - `class_id`: unique identificator of a class
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		#[transactional]
 		pub fn destroy_class(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResultWithPostInfo {
@@ -186,6 +188,11 @@ pub mod pallet {
 		/// The difference between a pool and a class in this case is that
 		/// a price has to be specified for each pool. Any NFT within this class
 		/// will have this exact constant price
+		///
+		/// Parameters:
+		/// - `metadata`: Arbitrary info/description of a pool
+		/// - `data`: Field(s) defined in the ClassData struct
+		/// - `price`: Price of each individual NFT
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		#[transactional]
 		pub fn create_pool(
@@ -206,6 +213,9 @@ pub mod pallet {
 
 		/// Removes a pool from existence
 		/// Returns the bond amount
+		///
+		/// Parameters:
+		/// - `class_id`: unique identificator of a class
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		#[transactional]
 		pub fn destroy_pool(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResultWithPostInfo {
@@ -220,6 +230,9 @@ pub mod pallet {
 		}
 
 		/// NFTs can be bought from a pool for a constant price
+		///
+		/// Parameters:
+		/// - `token`: unique identificator of a token
 		#[pallet::weight(<T as Config>::WeightInfo::buy_from_pool())]
 		#[transactional]
 		pub fn buy_from_pool(origin: OriginFor<T>, token: (ClassIdOf<T>, TokenIdOf<T>)) -> DispatchResult {
@@ -239,6 +252,9 @@ pub mod pallet {
 		}
 
 		/// Owned NFTs can be sold back to the pool for the original price
+		///
+		/// Parameters:
+		/// - `token`: unique identificator of a token
 		#[pallet::weight(<T as Config>::WeightInfo::sell_to_pool())]
 		#[transactional]
 		pub fn sell_to_pool(origin: OriginFor<T>, token: (ClassIdOf<T>, TokenIdOf<T>)) -> DispatchResult {
@@ -265,7 +281,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		TokenClassCreated(T::AccountId, T::ClassId),
-		TokenMinted(T::AccountId, T::ClassId, u32),
+		TokenMinted(T::AccountId, T::ClassId, T::TokenId),
 		TokenMintedLockToggled(T::AccountId, T::ClassId, T::TokenId, bool),
 		TokenTransferred(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
 		TokenBurned(T::AccountId, T::ClassId, T::TokenId),
@@ -290,8 +306,6 @@ pub mod pallet {
 		NonZeroIssuance,
 		/// Token is currently locked
 		TokenLocked,
-		/// Quantity has to be greater than zero
-		InvalidQuantity,
 		/// A token can not be transferred to self
 		CannotSendToSelf,
 		/// A user cannot buy already owned token
@@ -304,8 +318,6 @@ pub mod pallet {
 		NotAPool,
 		/// Metadata exceed the allowed length
 		MetadataTooLong,
-		/// Emote exceed the allowed length
-		EmoteTooLong,
 	}
 }
 

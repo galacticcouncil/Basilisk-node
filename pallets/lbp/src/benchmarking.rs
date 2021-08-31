@@ -90,7 +90,7 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, duration, WeightCurveType::Linear, true, Fee { numerator: 5, denominator: 1000 }, caller.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-	}: _(RawOrigin::Signed(caller), pool_id.clone(), Some(new_duration.0), Some(new_duration.1), Some(new_initial_weights), Some(new_final_weights), Some(Fee::default()), Some(fee_receiver))
+	}: _(RawOrigin::Signed(caller), pool_id.clone(), Some((new_duration.0, new_duration.1)), Some(new_initial_weights), Some(new_final_weights), Some(Fee::default()), Some(fee_receiver))
 	verify {
 		let pool_data = LBP::<T>::pool_data(pool_id);
 		assert_eq!(pool_data.start, new_duration.0);

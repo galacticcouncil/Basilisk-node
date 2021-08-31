@@ -58,12 +58,10 @@ match_type! {
 	pub type JustTheParent: impl Contains<MultiLocation> = { X1(Parent) };
 }
 
-//TODO: investigate this Trader part further
+//TODO: investigate this Trader part further << let's resolve this
 pub fn ksm_per_second() -> u128 {
 	let base_weight = Balance::from(ExtrinsicBaseWeight::get());
 	let base_tx_per_second = (WEIGHT_PER_SECOND as u128) / base_weight;
-	//let kar_per_second = base_tx_per_second * base_tx_in_kar();
-	//kar_per_second / 100
 	base_tx_per_second / 100
 }
 

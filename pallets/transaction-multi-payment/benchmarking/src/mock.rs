@@ -82,7 +82,7 @@ parameter_types! {
 	pub const MaxLocks: u32 = 50;
 	pub const TransactionByteFee: Balance = 1;
 	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
-	pub PayForSetCurrency : Pays = Pays::No;
+	pub PayForSetCurrency : Pays = Pays::Yes;
 	pub const RegistryStringLimit: u32 = 100;
 }
 
@@ -127,6 +127,7 @@ impl pallet_asset_registry::Config for Test {
 	type Event = Event;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
+	type Balance = Balance;
 	type AssetNativeLocation = u8;
 	type StringLimit = RegistryStringLimit;
 	type NativeAssetId = HdxAssetId;

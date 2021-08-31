@@ -34,7 +34,7 @@ mod tests;
 
 mod benchmarking;
 mod types;
-mod weights;
+pub mod weights;
 
 use weights::WeightInfo;
 
@@ -50,6 +50,7 @@ use primitives::traits::{Registry, ShareTokenRegistry};
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -60,6 +61,9 @@ pub mod pallet {
 
 		/// Asset type
 		type AssetId: Parameter + Member + Default + Copy + BaseArithmetic + MaybeSerializeDeserialize + MaxEncodedLen;
+
+		/// Balance type
+		type Balance: Parameter + Member + AtLeast32BitUnsigned + Default + Copy + MaybeSerializeDeserialize;
 
 		/// Asset location type
 		type AssetNativeLocation: Parameter + Member + Default;
@@ -107,9 +111,9 @@ pub mod pallet {
 	/// Details of an asset.
 	pub type Assets<T: Config> = StorageMap<
 		_,
-		Blake2_128Concat,
+		Twox64Concat,
 		T::AssetId,
-		AssetDetails<T::AssetId, BoundedVec<u8, T::StringLimit>>,
+		AssetDetails<T::AssetId, T::Balance, BoundedVec<u8, T::StringLimit>>,
 		OptionQuery,
 	>;
 
@@ -121,7 +125,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn asset_ids)]
 	/// Mapping between asset name and asset id.
-	pub type AssetIds<T: Config> = StorageMap<_, Twox64Concat, BoundedVec<u8, T::StringLimit>, T::AssetId, OptionQuery>;
+	pub type AssetIds<T: Config> =
+		StorageMap<_, Blake2_128Concat, BoundedVec<u8, T::StringLimit>, T::AssetId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn locations)]
@@ -131,48 +136,34 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn location_assets)]
 	/// Local asset for native location.
-	pub type LocationAssets<T: Config> = StorageMap<_, Twox64Concat, T::AssetNativeLocation, T::AssetId, OptionQuery>;
+	pub type LocationAssets<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AssetNativeLocation, T::AssetId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn asset_metadata)]
 	/// Metadata of an asset.
 	pub type AssetMetadataMap<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AssetId, AssetMetadata<BoundedVec<u8, T::StringLimit>>, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::AssetId, AssetMetadata<BoundedVec<u8, T::StringLimit>>, OptionQuery>;
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig {
-		pub asset_names: Vec<Vec<u8>>,
+	pub struct GenesisConfig<T: Config> {
+		pub asset_names: Vec<(Vec<u8>, T::Balance)>,
 		pub native_asset_name: Vec<u8>,
+		pub native_existential_deposit: T::Balance,
 	}
 
 	#[cfg(feature = "std")]
-	impl Default for GenesisConfig {
+	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
-			GenesisConfig {
+			GenesisConfig::<T> {
 				asset_names: vec![],
 				native_asset_name: b"BSX".to_vec(),
+				native_existential_deposit: Default::default(),
 			}
 		}
 	}
-	#[cfg(feature = "std")]
-	impl GenesisConfig {
-		/// Direct implementation of `GenesisBuild::build_storage`.
-		///
-		/// Kept in order not to break dependency.
-		pub fn build_storage<T: Config>(&self) -> Result<sp_runtime::Storage, String> {
-			<Self as GenesisBuild<T>>::build_storage(self)
-		}
-
-		/// Direct implementation of `GenesisBuild::assimilate_storage`.
-		///
-		/// Kept in order not to break dependency.
-		pub fn assimilate_storage<T: Config>(&self, storage: &mut sp_runtime::Storage) -> Result<(), String> {
-			<Self as GenesisBuild<T>>::assimilate_storage(self, storage)
-		}
-	}
-
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
 			// Register native asset first
 			// It is to make sure that native is registered as any other asset
@@ -184,16 +175,17 @@ pub mod pallet {
 			let details = AssetDetails {
 				name: native_asset_name,
 				asset_type: AssetType::Token,
+				existential_deposit: self.native_existential_deposit,
 				locked: false,
 			};
 
 			Assets::<T>::insert(T::NativeAssetId::get(), details);
 
-			self.asset_names.iter().for_each(|name| {
+			self.asset_names.iter().for_each(|(name, ed)| {
 				let bounded_name = Pallet::<T>::to_bounded_name(name.to_vec())
 					.map_err(|_| panic!("Invalid asset name!"))
 					.unwrap();
-				let _ = Pallet::<T>::register_asset(bounded_name, AssetType::Token)
+				let _ = Pallet::<T>::register_asset(bounded_name, AssetType::Token, *ed)
 					.map_err(|_| panic!("Failed to register asset"));
 			})
 		}
@@ -229,7 +221,12 @@ pub mod pallet {
 		/// Emits 'Registered` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::register())]
 		#[transactional]
-		pub fn register(origin: OriginFor<T>, name: Vec<u8>, asset_type: AssetType<T::AssetId>) -> DispatchResult {
+		pub fn register(
+			origin: OriginFor<T>,
+			name: Vec<u8>,
+			asset_type: AssetType<T::AssetId>,
+			existential_deposit: T::Balance,
+		) -> DispatchResult {
 			T::RegistryOrigin::ensure_origin(origin)?;
 
 			let bounded_name = Self::to_bounded_name(name)?;
@@ -239,7 +236,7 @@ pub mod pallet {
 				Error::<T>::AssetAlreadyRegistered
 			);
 
-			Self::register_asset(bounded_name, asset_type)?;
+			Self::register_asset(bounded_name, asset_type, existential_deposit)?;
 
 			Ok(())
 		}
@@ -249,6 +246,8 @@ pub mod pallet {
 		/// Updates also mapping between name and asset id if provided name is different than currently registered.
 		///
 		/// Emits `Updated` event when successful.
+
+		// TODO: No tests
 		#[pallet::weight(<T as Config>::WeightInfo::update())]
 		#[transactional]
 		pub fn update(
@@ -256,6 +255,7 @@ pub mod pallet {
 			asset_id: T::AssetId,
 			name: Vec<u8>,
 			asset_type: AssetType<T::AssetId>,
+			existential_deposit: Option<T::Balance>,
 		) -> DispatchResult {
 			T::RegistryOrigin::ensure_origin(origin)?;
 
@@ -278,6 +278,7 @@ pub mod pallet {
 
 				detail.name = bounded_name.clone();
 				detail.asset_type = asset_type;
+				detail.existential_deposit = existential_deposit.unwrap_or(detail.existential_deposit);
 
 				Self::deposit_event(Event::Updated(asset_id, bounded_name, asset_type));
 
@@ -358,6 +359,7 @@ impl<T: Config> Pallet<T> {
 	fn register_asset(
 		name: BoundedVec<u8, T::StringLimit>,
 		asset_type: AssetType<T::AssetId>,
+		existential_deposit: T::Balance,
 	) -> Result<T::AssetId, DispatchError> {
 		NextAssetId::<T>::mutate(|value| -> Result<T::AssetId, DispatchError> {
 			// Check if current id does not clash with CORE ASSET ID.
@@ -377,6 +379,7 @@ impl<T: Config> Pallet<T> {
 			let details = AssetDetails {
 				name: name.clone(),
 				asset_type,
+				existential_deposit,
 				locked: false,
 			};
 
@@ -395,13 +398,17 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Create asset for given name or return existing AssetId if such asset already exists.
-	pub fn get_or_create_asset(name: Vec<u8>, asset_type: AssetType<T::AssetId>) -> Result<T::AssetId, DispatchError> {
+	pub fn get_or_create_asset(
+		name: Vec<u8>,
+		asset_type: AssetType<T::AssetId>,
+		existential_deposit: T::Balance,
+	) -> Result<T::AssetId, DispatchError> {
 		let bounded_name: BoundedVec<u8, T::StringLimit> = Self::to_bounded_name(name)?;
 
 		if let Some(asset_id) = AssetIds::<T>::get(&bounded_name) {
 			Ok(asset_id)
 		} else {
-			Self::register_asset(bounded_name, asset_type)
+			Self::register_asset(bounded_name, asset_type, existential_deposit)
 		}
 	}
 
@@ -416,7 +423,7 @@ impl<T: Config> Pallet<T> {
 	}
 }
 
-impl<T: Config> Registry<T::AssetId, Vec<u8>, DispatchError> for Pallet<T> {
+impl<T: Config> Registry<T::AssetId, Vec<u8>, T::Balance, DispatchError> for Pallet<T> {
 	fn exists(asset_id: T::AssetId) -> bool {
 		Assets::<T>::contains_key(&asset_id)
 	}
@@ -430,18 +437,40 @@ impl<T: Config> Registry<T::AssetId, Vec<u8>, DispatchError> for Pallet<T> {
 		}
 	}
 
-	fn create_asset(name: &Vec<u8>) -> Result<T::AssetId, DispatchError> {
-		Self::get_or_create_asset(name.clone(), AssetType::Token)
+	fn create_asset(name: &Vec<u8>, existential_deposit: T::Balance) -> Result<T::AssetId, DispatchError> {
+		Self::get_or_create_asset(name.clone(), AssetType::Token, existential_deposit)
 	}
 }
 
-impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, DispatchError> for Pallet<T> {
+impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, T::Balance, DispatchError> for Pallet<T> {
 	fn retrieve_shared_asset(name: &Vec<u8>, _assets: &Vec<T::AssetId>) -> Result<T::AssetId, DispatchError> {
 		Self::retrieve_asset(name)
 	}
 
-	fn create_shared_asset(name: &Vec<u8>, assets: &Vec<T::AssetId>) -> Result<T::AssetId, DispatchError> {
+	fn create_shared_asset(
+		name: &Vec<u8>,
+		assets: &Vec<T::AssetId>,
+		existential_deposit: T::Balance,
+	) -> Result<T::AssetId, DispatchError> {
 		ensure!(assets.len() == 2, Error::<T>::InvalidSharedAssetLen);
-		Self::get_or_create_asset(name.clone(), AssetType::PoolShare(assets[0], assets[1]))
+		Self::get_or_create_asset(
+			name.clone(),
+			AssetType::PoolShare(assets[0], assets[1]),
+			existential_deposit,
+		)
+	}
+}
+
+use orml_traits::GetByKey;
+
+// Return Existential deposit of an asset
+impl<T: Config> GetByKey<T::AssetId, T::Balance> for Pallet<T> {
+	fn get(k: &T::AssetId) -> T::Balance {
+		if let Some(details) = Self::assets(k) {
+			details.existential_deposit
+		} else {
+			// Asset does not exists, so it does not really matter.
+			Default::default()
+		}
 	}
 }
