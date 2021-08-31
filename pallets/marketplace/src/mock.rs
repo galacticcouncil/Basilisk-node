@@ -43,11 +43,18 @@ impl pallet_marketplace::Config for Test {
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Test>;
 }
 
+parameter_types! {
+	pub const MaxClassMetadata: u32 = 256;
+	pub const MaxTokenMetadata: u32 = 256;
+}
+
 impl orml_nft::Config for Test {
 	type ClassId = u64;
 	type TokenId = u64;
 	type ClassData = pallet_nft::ClassData;
 	type TokenData = pallet_nft::TokenData;
+	type MaxClassMetadata = MaxClassMetadata;
+	type MaxTokenMetadata = MaxTokenMetadata;
 }
 
 pub const BSX: Balance = 100_000_000_000;
@@ -63,12 +70,8 @@ parameter_types! {
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
 	type ClassBondAmount = ClassBondAmount;
-	type ClassBondDuration = ClassBondDuration;
-	type MintMaxQuantity = MintMaxQuantity;
-	type MaxMetadataLength = MaxMetadataLength;
-	type MaxEmoteLength = MaxEmoteLength;
 }
 
 parameter_types! {
