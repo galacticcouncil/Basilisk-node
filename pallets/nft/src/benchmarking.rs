@@ -159,19 +159,6 @@ benchmarks! {
 		let sold_token = orml_nft::Pallet::<T>::tokens(class_id, token_id);
 		assert_eq!(sold_token.unwrap().owner, caller);
 	}
-
-	on_finalize {
-		let caller = create_account::<T>("caller", 0);
-		let class_metadata = "just some regular metadata about a class".as_bytes().to_vec();
-		let class_data = ClassData { is_pool:true };
-		for idx in 0..1000 {
-			orml_nft::Pallet::<T>::create_class(&caller, class_metadata.clone(), class_data.clone()).unwrap_or_default();
-		}
-	}: { NFT::Pallet::<T>::on_finalize(1u32.into()); }
-	verify {
-		assert_eq!(<T as NFT::Config>::Currency::reserved_balance(&caller), 0u32.into());
-	}
-
 }
 
 #[cfg(test)]

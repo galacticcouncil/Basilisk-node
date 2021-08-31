@@ -89,10 +89,6 @@ pub mod pallet {
 		pub fn create_class(origin: OriginFor<T>, metadata: Vec<u8>, data: T::ClassData) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
-			ensure!(
-				metadata.len() <= (T::MaxMetadataLength::get() as usize),
-				Error::<T>::MetadataTooLong
-			);
 			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
 
@@ -115,6 +111,7 @@ pub mod pallet {
 			token_data: TokenData
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
+
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			let data = token_data;
