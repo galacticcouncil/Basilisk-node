@@ -811,7 +811,6 @@ impl orml_vesting::Config for Runtime {
 }
 
 impl pallet_marketplace::Config for Runtime {
-	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
 }

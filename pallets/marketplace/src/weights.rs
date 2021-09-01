@@ -48,7 +48,7 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_marketplace.
 pub trait WeightInfo {
 	fn buy() -> Weight;
-	fn allow_sell() -> Weight;
+	fn set_price() -> Weight;
 	fn withdraw_from_market() -> Weight;
 }
 
@@ -61,7 +61,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
-	fn allow_sell() -> Weight {
+	fn set_price() -> Weight {
 		(66_848_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
@@ -80,7 +80,7 @@ impl WeightInfo for () {
             .saturating_add(RocksDbWeight::get().reads(2 as Weight))
             .saturating_add(RocksDbWeight::get().writes(5 as Weight))
     }
-	fn allow_sell() -> Weight {
+	fn set_price() -> Weight {
         (66_848_000 as Weight)
             .saturating_add(RocksDbWeight::get().reads(2 as Weight))
             .saturating_add(RocksDbWeight::get().writes(5 as Weight))
