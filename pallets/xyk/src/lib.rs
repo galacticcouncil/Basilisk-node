@@ -177,11 +177,11 @@ pub mod pallet {
 		/// Liquidity was removed from the pool. [who, asset a, asset b, shares]
 		LiquidityRemoved(T::AccountId, AssetId, AssetId, Balance),
 
-		/// Pool was created. [who, asset a, asset b, initial shares amount]
-		PoolCreated(T::AccountId, AssetId, AssetId, Balance),
+		/// Pool was created. [who, asset a, asset b, initial shares amount, share token, pool account id]
+		PoolCreated(T::AccountId, AssetId, AssetId, Balance, AssetId, T::AccountId),
 
-		/// Pool was destroyed. [who, asset a, asset b]
-		PoolDestroyed(T::AccountId, AssetId, AssetId),
+		/// Pool was destroyed. [who, asset a, asset b, share token, pool account id]
+		PoolDestroyed(T::AccountId, AssetId, AssetId, AssetId, T::AccountId),
 
 		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
 		SellExecuted(T::AccountId, AssetId, AssetId, Balance, Balance, AssetId, Balance),
@@ -274,7 +274,7 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, shares_added);
 
-			Self::deposit_event(Event::PoolCreated(who, asset_a, asset_b, shares_added));
+			Self::deposit_event(Event::PoolCreated(who, asset_a, asset_b, shares_added, share_token, pair_account));
 
 			Ok(().into())
 		}
@@ -453,7 +453,7 @@ pub mod pallet {
 				<ShareToken<T>>::remove(&pair_account);
 				<PoolAssets<T>>::remove(&pair_account);
 
-				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b));
+				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b, share_token, pair_account));
 			}
 
 			Ok(().into())
