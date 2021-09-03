@@ -49,7 +49,6 @@ use sp_std::marker::PhantomData;
 pub trait WeightInfo {
 	fn buy() -> Weight;
 	fn set_price() -> Weight;
-	fn withdraw_from_market() -> Weight;
 }
 
 /// Weights for pallet_marketplace using the Basilisk node and recommended hardware.
@@ -66,11 +65,6 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
-	fn withdraw_from_market() -> Weight {
-		(66_848_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
-	}
 }
 
 // For backwards compatibility and tests
@@ -81,11 +75,6 @@ impl WeightInfo for () {
             .saturating_add(RocksDbWeight::get().writes(5 as Weight))
     }
 	fn set_price() -> Weight {
-        (66_848_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(5 as Weight))
-    }
-	fn withdraw_from_market() -> Weight {
         (66_848_000 as Weight)
             .saturating_add(RocksDbWeight::get().reads(2 as Weight))
             .saturating_add(RocksDbWeight::get().writes(5 as Weight))

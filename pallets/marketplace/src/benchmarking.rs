@@ -2,7 +2,6 @@
 
 use super::*;
 
-//use crate as MARKET;
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
@@ -40,12 +39,6 @@ benchmarks! {
 		
 	}
 
-	withdraw_from_market {
-		let caller = create_account::<T>("caller", 0);
-	}: _(RawOrigin::Signed(caller.clone()))
-	verify {
-		
-	}
 }
 
 #[cfg(test)]
@@ -66,7 +59,6 @@ mod tests {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_buy());
 			assert_ok!(Pallet::<Test>::test_benchmark_set_price());
-			assert_ok!(Pallet::<Test>::test_benchmark_withdraw_from_market());
 		});
 	}
 }

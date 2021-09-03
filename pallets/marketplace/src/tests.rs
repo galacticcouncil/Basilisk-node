@@ -6,6 +6,7 @@ use mock::{Event, *};
 type NFTModule = Pallet<Test>;
 
 #[test]
-fn buy_works() {
-	
-}
+fn buy_works() {}
+
+#[test]
+fn set_price_works() {}

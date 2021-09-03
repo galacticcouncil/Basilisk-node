@@ -149,6 +149,7 @@ std = [
     "frame-system/std",
     "frame-system-rpc-runtime-api/std",
     "orml-currencies/std",
+    "orml-nft/std",
     "orml-tokens/std",
     "orml-traits/std",
     "orml-vesting/std",
