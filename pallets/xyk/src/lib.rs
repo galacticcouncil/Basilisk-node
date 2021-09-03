@@ -38,7 +38,7 @@ use primitives::{
 	asset::AssetPair, fee, AssetId, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY,
 	MIN_TRADING_LIMIT,
 };
-use basilisk_traits::{AMM, AMMTransfer};
+use hydra_dx_traits::{AMM, AMMTransfer};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 use frame_support::sp_runtime::app_crypto::sp_core::crypto::UncheckedFrom;
@@ -67,7 +67,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-	use basilisk_traits::ShareTokenRegistry;
+	use hydra_dx_traits::ShareTokenRegistry;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);

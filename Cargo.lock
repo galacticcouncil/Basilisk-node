@@ -625,20 +625,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "basilisk-traits"
-version = "1.0.0"
-dependencies = [
- "frame-support",
- "parity-scale-codec 2.2.0",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
 name = "beef"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3352,6 +3338,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydra-dx-traits"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/hydradx-traits#74a05937965b90d542c28b231d96e09f7f3c40d2"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec 2.2.0",
+ "serde",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
 name = "hyper"
 version = "0.12.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5300,11 +5298,11 @@ dependencies = [
 name = "pallet-asset-registry"
 version = "0.1.0"
 dependencies = [
- "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
+ "hydra-dx-traits",
  "orml-traits",
  "parity-scale-codec 2.2.0",
  "primitive-types 0.8.0",
@@ -5629,9 +5627,9 @@ dependencies = [
 name = "pallet-exchange"
 version = "4.1.0"
 dependencies = [
- "basilisk-traits",
  "frame-support",
  "frame-system",
+ "hydra-dx-traits",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5760,12 +5758,12 @@ dependencies = [
 name = "pallet-lbp"
 version = "1.0.0"
 dependencies = [
- "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math",
+ "hydra-dx-traits",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec 2.2.0",
@@ -6144,9 +6142,9 @@ dependencies = [
 name = "pallet-transaction-multi-payment"
 version = "4.1.0"
 dependencies = [
- "basilisk-traits",
  "frame-support",
  "frame-system",
+ "hydra-dx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -6276,12 +6274,12 @@ dependencies = [
 name = "pallet-xyk"
 version = "1.3.0"
 dependencies = [
- "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math",
+ "hydra-dx-traits",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",

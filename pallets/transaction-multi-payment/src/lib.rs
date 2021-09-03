@@ -51,7 +51,7 @@ use frame_support::sp_runtime::FixedPointNumber;
 use frame_support::weights::{Pays, Weight};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::asset::AssetPair;
-use basilisk_traits::AMM;
+use hydra_dx_traits::AMM;
 use primitives::{Amount, AssetId, Balance, CORE_ASSET_ID};
 
 use codec::{Decode, Encode};

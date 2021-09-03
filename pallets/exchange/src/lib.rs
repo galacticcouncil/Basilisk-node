@@ -37,7 +37,7 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency}
 
 use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
-use basilisk_traits::{AMM, AMMTransfer, Resolver};
+use hydra_dx_traits::{AMM, AMMTransfer, Resolver};
 
 use frame_support::sp_runtime::traits::BlockNumberProvider;
 use frame_support::sp_runtime::traits::Hash;

@@ -45,7 +45,7 @@ pub use pallet::*;
 
 use crate::types::{AssetDetails, AssetMetadata};
 use frame_support::BoundedVec;
-use basilisk_traits::{Registry, ShareTokenRegistry};
+use hydra_dx_traits::{Registry, ShareTokenRegistry};
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -443,13 +443,13 @@ impl<T: Config> Registry<T::AssetId, Vec<u8>, T::Balance, DispatchError> for Pal
 }
 
 impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, T::Balance, DispatchError> for Pallet<T> {
-	fn retrieve_shared_asset(name: &Vec<u8>, _assets: &Vec<T::AssetId>) -> Result<T::AssetId, DispatchError> {
+	fn retrieve_shared_asset(name: &Vec<u8>, _assets: &[T::AssetId]) -> Result<T::AssetId, DispatchError> {
 		Self::retrieve_asset(name)
 	}
 
 	fn create_shared_asset(
 		name: &Vec<u8>,
-		assets: &Vec<T::AssetId>,
+		assets: &[T::AssetId],
 		existential_deposit: T::Balance,
 	) -> Result<T::AssetId, DispatchError> {
 		ensure!(assets.len() == 2, Error::<T>::InvalidSharedAssetLen);

@@ -19,9 +19,11 @@ codec = { default-features = false, features = ["derive", "max-encoded-len"], pa
 primitive-types = { default-features = false, version = "0.8.0" }
 serde = { features = ["derive"], optional = true, version = "1.0.101" }
 
+# HydraDX dependencies
+hydra-dx-traits = { git = "https://github.com/galacticcouncil/hydradx-traits", default-features = false }
+
 # Local dependencies
 primitives = { path = "../../primitives", default-features = false }
-basilisk-traits = { path = "../../basilisk-traits", default-features = false }
 
 # ORML dependencies
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8d5432c3458702a7df14b374bddde43a2a20aa43", default-features = false }
@@ -59,7 +61,7 @@ std = [
   "sp-core/std",
   "sp-std/std",
   "primitives/std",
-  "basilisk-traits/std",
+  "hydra-dx-traits/std",
   "sp-api/std",
   "frame-benchmarking/std"
 ]
