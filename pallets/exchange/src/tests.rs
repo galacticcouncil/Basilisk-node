@@ -25,7 +25,7 @@ use frame_support::sp_runtime::FixedPointNumber;
 use frame_support::traits::OnFinalize;
 use frame_support::{assert_noop, assert_ok};
 use frame_system::InitKind;
-use basilisk_traits::Resolver;
+use hydra_dx_traits::Resolver;
 use primitives::Price;
 use sp_runtime::DispatchError;
 

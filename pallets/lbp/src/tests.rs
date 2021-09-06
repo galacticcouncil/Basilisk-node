@@ -31,7 +31,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 }
 
 use primitives::{asset::AssetPair, fee::Fee, MAX_IN_RATIO, MAX_OUT_RATIO};
-use basilisk_traits::AMMTransfer;
+use hydra_dx_traits::AMMTransfer;
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
