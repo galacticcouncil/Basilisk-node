@@ -392,7 +392,7 @@ impl<T: Config> Pallet<T> {
 
 			while let Some(matched) = b_copy.pop() {
 				bvec.push(matched.clone());
-				total += matched.amount_in;
+				total += matched.amount_out;
 
 				if total >= intention.amount_in {
 					break;
