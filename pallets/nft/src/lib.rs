@@ -115,7 +115,7 @@ pub mod pallet {
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
 			let data = token_data;
-			let token_id = orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data.clone())?;
+			let token_id = orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data)?;
 
 			Self::deposit_event(Event::TokenMinted(sender, class_id, token_id));
 			Ok(().into())

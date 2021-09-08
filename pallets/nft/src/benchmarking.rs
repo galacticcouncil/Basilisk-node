@@ -30,10 +30,10 @@ benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let class_data = ClassData { is_pool:false };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata.clone(), class_data.clone())
+	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data)
 	verify {
 		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 1);
 	}
@@ -41,11 +41,11 @@ benchmarks! {
 	create_pool {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let class_data = ClassData { is_pool:true };
 		let class_id = orml_nft::Pallet::<T>::next_class_id();
 		let price: BalanceOf<T> = u32::MAX.into();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata.clone(), class_data.clone(), price)
+	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, price)
 	verify {
 		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 1);
 	}
@@ -53,7 +53,7 @@ benchmarks! {
 	mint {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let token_data = TokenData { locked:false };
 		let class_data = ClassData { is_pool:false };
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
@@ -62,19 +62,19 @@ benchmarks! {
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data)
 	verify {
-		assert_eq!(orml_nft::Pallet::<T>::tokens_by_owner((caller, token.0, token.1)), ());
+		assert!(orml_nft::TokensByOwner::<T>::contains_key((caller, token.0, token.1)));
 	}
 
 	transfer {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let class_data = ClassData { is_pool:false };
 		let token_data = TokenData { locked:false };
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
 		let class_id = 0u32.into();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata.clone(), token_data).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata, token_data).unwrap_or_default();
 		let token_id = 0u32.into();
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), T::Lookup::unlookup(caller2.clone()), token)
@@ -86,9 +86,9 @@ benchmarks! {
 	destroy_class {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let class_data = ClassData { is_pool:true };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
+		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata, class_data).unwrap_or_default();
 		let class_id = 0u32.into();
 	}: _(RawOrigin::Signed(caller.clone()), class_id)
 	verify {
@@ -98,9 +98,9 @@ benchmarks! {
 	destroy_pool {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let class_data = ClassData { is_pool:true };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
+		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata, class_data).unwrap_or_default();
 		let class_id = 0u32.into();
 	}: _(RawOrigin::Signed(caller.clone()), class_id)
 	verify {
@@ -110,12 +110,12 @@ benchmarks! {
 	burn {
 		let caller = create_account::<T>("caller", 0);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let class_data = ClassData { is_pool:true };
 		let token_data = TokenData { locked:false };
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
 		let class_id = 0u32.into();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata.clone(), token_data).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata, token_data).unwrap_or_default();
 		let token_id = 0u32.into();
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller.clone()), token)
@@ -127,12 +127,12 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let class_data = ClassData { is_pool:true };
 		let token_data = TokenData { locked:false };
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
 		let class_id = 0u32.into();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata.clone(), token_data).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller).into(), class_id, class_metadata, token_data).unwrap_or_default();
 		let token_id = 0u32.into();
 		let token = (class_id, token_id);
 	}: _(RawOrigin::Signed(caller2.clone()), token)
@@ -145,12 +145,12 @@ benchmarks! {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec.clone();
+		let class_metadata = big_vec;
 		let class_data = ClassData { is_pool:true };
 		let token_data = TokenData { locked:false };
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
 		let class_id = 0u32.into();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata.clone(), token_data).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata, token_data).unwrap_or_default();
 		let token_id = 0u32.into();
 		let token = (class_id, token_id);
 		NFT::Pallet::<T>::transfer(RawOrigin::Signed(caller.clone()).into(), T::Lookup::unlookup(caller2.clone()), token).unwrap_or_default();

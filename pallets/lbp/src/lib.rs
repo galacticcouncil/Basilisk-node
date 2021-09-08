@@ -36,6 +36,8 @@ mod mock;
 mod tests;
 
 mod benchmarking;
+
+#[allow(clippy::all)]
 pub mod weights;
 use weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
@@ -430,7 +432,7 @@ pub mod pallet {
 
 				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
-				ensure!(Self::is_prior_sale_or_uninitialized(&pool), Error::<T>::SaleStarted);
+				ensure!(Self::is_prior_sale_or_uninitialized(pool), Error::<T>::SaleStarted);
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
@@ -445,7 +447,7 @@ pub mod pallet {
 				pool.fee = fee.unwrap_or(pool.fee);
 				pool.fee_receiver = fee_receiver.unwrap_or_else(|| pool.fee_receiver.clone());
 
-				Self::validate_pool_data(&pool)?;
+				Self::validate_pool_data(pool)?;
 
 				Self::deposit_event(Event::PoolUpdated(pool_id, (*pool).clone()));
 				Ok(().into())
@@ -475,7 +477,7 @@ pub mod pallet {
 				ensure!(pool.pausable, Error::<T>::PoolIsNotPausable);
 				ensure!(!pool.paused, Error::<T>::CannotPausePausedPool);
 
-				ensure!(Self::is_after_sale(&pool), Error::<T>::CannotPauseEndedPool);
+				ensure!(Self::is_after_sale(pool), Error::<T>::CannotPauseEndedPool);
 
 				pool.paused = true;
 
@@ -506,7 +508,7 @@ pub mod pallet {
 
 				ensure!(pool.paused, Error::<T>::PoolIsNotPaused);
 
-				ensure!(Self::is_after_sale(&pool), Error::<T>::CannotUnpauseEndedPool);
+				ensure!(Self::is_after_sale(pool), Error::<T>::CannotUnpauseEndedPool);
 
 				pool.paused = false;
 
@@ -799,7 +801,7 @@ impl<T: Config> Pallet<T> {
 
 		if trade_type == TradeType::Sell {
 			ensure!(
-				T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount,
+				T::MultiCurrency::free_balance(assets.asset_in, who) >= amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 		}
@@ -870,7 +872,7 @@ impl<T: Config> Pallet<T> {
 
 		if trade_type == TradeType::Buy {
 			ensure!(
-				T::MultiCurrency::free_balance(assets.asset_in, &who) >= amount_in,
+				T::MultiCurrency::free_balance(assets.asset_in, who) >= amount_in,
 				Error::<T>::InsufficientAssetBalance
 			);
 		}
