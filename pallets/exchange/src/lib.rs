@@ -617,7 +617,7 @@ impl<T: Config> Resolver<T::AccountId, Intention<T>, Error<T>> for Pallet<T> {
 
 						intention_copy.trade_limit = match intention_copy.sell_or_buy {
 							IntentionType::SELL => intention_copy.trade_limit.saturating_sub(amount_b_in),
-							IntentionType::BUY => intention_copy.trade_limit - amount_b_in,
+							IntentionType::BUY => intention_copy.trade_limit - amount_b_out,
 						};
 					}
 					false => {
