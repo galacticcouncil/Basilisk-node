@@ -3695,7 +3695,7 @@ fn process_invalid_intention_should_work() {
 		let mut intentions_a = Vec::<Intention<Test>>::new();
 		intentions_a.push(main_intention);
 
-		Exchange::process_exchange_intentions(&pair_account, &intentions_a, &Vec::<Intention<Test>>::new());
+		Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut Vec::<Intention<Test>>::new());
 
 		assert_eq!(Currency::free_balance(asset_a, &user), 99_000_000_000_000_000);
 		assert_eq!(Currency::free_balance(asset_b, &user), 98_000_000_000_000_000);
@@ -3756,7 +3756,7 @@ fn main_intention_greater_than_matched_should_work() {
 		let mut intentions_b = Vec::<Intention<Test>>::new();
 		intentions_b.push(matched_intention);
 
-		Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b);
+		Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000_000_002_000_000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1_999_999_996_014_000);
@@ -3815,13 +3815,13 @@ fn in_out_calculations_error_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_a = Vec::<Intention<Test>>::new();
-		intentions_a.push(main_intention);
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
-
 		let maybe_error = std::panic::catch_unwind(|| {
-			Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b)
+			let mut intentions_a = Vec::<Intention<Test>>::new();
+			intentions_a.push(main_intention);
+			let mut intentions_b = Vec::<Intention<Test>>::new();
+			intentions_b.push(matched_intention);
+
+			Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b)
 		});
 		assert!(maybe_error.is_err());
 
@@ -3854,13 +3854,13 @@ fn in_out_calculations_error_should_work() {
 			intention_id: generate_intention_id(&user_2, 3),
 		};
 
-		let mut intentions_a = Vec::<Intention<Test>>::new();
-		intentions_a.push(main_intention);
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
-
 		let maybe_error = std::panic::catch_unwind(|| {
-			Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b)
+			let mut intentions_a = Vec::<Intention<Test>>::new();
+			intentions_a.push(main_intention);
+			let mut intentions_b = Vec::<Intention<Test>>::new();
+			intentions_b.push(matched_intention);
+
+			Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b)
 		});
 		assert!(maybe_error.is_err());
 	});

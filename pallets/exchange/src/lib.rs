@@ -28,14 +28,12 @@ use frame_system::{self as system, ensure_signed};
 use codec::Encode;
 use sp_std::vec::Vec;
 
+use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::{
 	asset::AssetPair,
 	traits::{Resolver, AMM},
 	Amount, AssetId, Balance, ExchangeIntention, IntentionType, MIN_TRADING_LIMIT,
 };
-use sp_std::borrow::ToOwned;
-
-use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 
 use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
@@ -88,12 +86,12 @@ pub mod pallet {
 
 				let pair_account = T::AMMPool::get_pair_id(pair);
 
-				let asset_a_ins = <ExchangeAssetsIntentions<T>>::get((asset_2, asset_1));
-				let asset_b_ins = <ExchangeAssetsIntentions<T>>::get((asset_1, asset_2));
+				let mut asset_a_ins = <ExchangeAssetsIntentions<T>>::get((asset_2, asset_1));
+				let mut asset_b_ins = <ExchangeAssetsIntentions<T>>::get((asset_1, asset_2));
 
 				//TODO: we can short circuit here if nothing in asset_b_sells and just resolve asset_a sells.
 
-				Self::process_exchange_intentions(&pair_account, &asset_a_ins, &asset_b_ins);
+				Self::process_exchange_intentions(&pair_account, &mut asset_a_ins, &mut asset_b_ins);
 			}
 
 			ExchangeAssetsIntentionCount::<T>::remove_all(None);
@@ -372,26 +370,23 @@ impl<T: Config> Pallet<T> {
 	/// Intention A must be valid - that means that it is verified first by validating if it was possible to do AMM trade.
 	fn process_exchange_intentions(
 		pair_account: &T::AccountId,
-		a_in_intentions: &[Intention<T>],
-		b_in_intentions: &[Intention<T>],
+		a_in_intentions: &mut [Intention<T>],
+		b_in_intentions: &mut [Intention<T>],
 	) {
-		let mut b_copy = b_in_intentions.to_owned();
-		let mut a_copy = a_in_intentions.to_owned();
-
-		b_copy.sort_by(|a, b| b.amount_in.cmp(&a.amount_in));
-		a_copy.sort_by(|a, b| b.amount_in.cmp(&a.amount_in));
+		b_in_intentions.sort_by(|a, b| b.amount_in.cmp(&a.amount_in));
+		a_in_intentions.sort_by(|a, b| b.amount_in.cmp(&a.amount_in));
 
 		// indication of how many have been already matched
 		let mut to_skip: usize = 0;
 
-		for intention in a_copy {
+		for intention in a_in_intentions {
 			if !Self::verify_intention(&intention) {
 				continue;
 			}
 
 			let mut total_left = intention.amount_in;
 
-			let matched_intentions: Vec<&Intention<T>> = b_copy
+			let matched_intentions: Vec<&Intention<T>> = b_in_intentions
 				.iter()
 				.skip(to_skip)
 				.take_while(|x| {
@@ -412,7 +407,7 @@ impl<T: Config> Pallet<T> {
 		}
 
 		// If something left in b_in_intentions, just run it through AMM.
-		b_copy.iter().skip(to_skip).for_each(|x| {
+		b_in_intentions.iter().skip(to_skip).for_each(|x| {
 			T::Resolver::resolve_single_intention(x);
 		});
 	}
