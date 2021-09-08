@@ -104,7 +104,7 @@ pub trait Resolver<AccountId, Intention, E> {
 
 	/// Resolve intentions by either directly trading with each other or via AMM pool.
 	/// Intention ```intention``` must be validated prior to call this function.
-	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[Intention]);
+	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[&Intention]);
 }
 
 pub trait Registry<AssetId, AssetName, Balance, Error> {

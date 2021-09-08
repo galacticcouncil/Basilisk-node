@@ -20,6 +20,7 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::unnecessary_wraps)]
+#![feature(drain_filter)]
 
 use frame_support::{dispatch, ensure};
 use frame_system::{self as system, ensure_signed};
@@ -380,32 +381,40 @@ impl<T: Config> Pallet<T> {
 		b_copy.sort_by(|a, b| b.amount_in.cmp(&a.amount_in));
 		a_copy.sort_by(|a, b| b.amount_in.cmp(&a.amount_in));
 
-		b_copy.reverse();
+		// indication of how many have been already matched
+		let mut to_skip: usize = 0;
 
 		for intention in a_copy {
 			if !Self::verify_intention(&intention) {
 				continue;
 			}
 
-			let mut bvec = Vec::<Intention<T>>::new();
-			let mut total = 0;
+			let mut total_left = intention.amount_in;
 
-			while let Some(matched) = b_copy.pop() {
-				bvec.push(matched.clone());
-				total += matched.amount_out;
+			let matched_intentions: Vec<&Intention<T>> = b_copy
+				.iter()
+				.skip(to_skip)
+				.take_while(|x| {
+					if total_left > 0 {
+						total_left = total_left.saturating_sub(x.amount_out);
+						true
+					} else {
+						false
+					}
+				})
+				.collect();
 
-				if total >= intention.amount_in {
-					break;
-				}
-			}
+			// We need to remember how many we already resolved so for next A intention,
+			// we skip those
+			to_skip += matched_intentions.len();
 
-			T::Resolver::resolve_matched_intentions(pair_account, &intention, &bvec);
+			T::Resolver::resolve_matched_intentions(pair_account, &intention, &matched_intentions);
 		}
 
 		// If something left in b_in_intentions, just run it through AMM.
-		while let Some(b_intention) = b_copy.pop() {
-			T::Resolver::resolve_single_intention(&b_intention);
-		}
+		b_copy.iter().skip(to_skip).for_each(|x| {
+			T::Resolver::resolve_single_intention(x);
+		});
 	}
 
 	/// Execute AMM trade.
@@ -549,7 +558,7 @@ impl<T: Config> Resolver<T::AccountId, Intention<T>, Error<T>> for Pallet<T> {
 	///
 	/// For each matched intention - work out how much can be traded directly and rest is AMM traded.
 	/// If there is anything left in the main intention - it is AMM traded.
-	fn resolve_matched_intentions(pair_account: &T::AccountId, intention: &Intention<T>, matched: &[Intention<T>]) {
+	fn resolve_matched_intentions(pair_account: &T::AccountId, intention: &Intention<T>, matched: &[&Intention<T>]) {
 		let mut intention_copy = intention.clone();
 
 		for matched_intention in matched.iter() {
