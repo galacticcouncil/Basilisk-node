@@ -25,7 +25,6 @@ pub type NftTokenIdOf<T> = pallet_nft::TokenIdOf<T>;
 ***/
 pub type NftClassIdOf<T> = <T as pallet_uniques::Config>::ClassId;
 pub type NftTokenIdOf<T> = <T as pallet_uniques::Config>::InstanceId;
-pub type CurrencyOf<T> = <T as pallet_nft::Config>::Currency;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;

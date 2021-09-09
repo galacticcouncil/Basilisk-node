@@ -121,7 +121,7 @@ Then open settings screen -> developer and paste
       },
       "LookupSource":"AccountId",
       "Price":"Balance",
-      "ClassId":"u64",
+      "ClassId":"u32",
       "TokenId":"u64",
       "ClassData":{
         "is_pool":"bool"
@@ -199,7 +199,10 @@ Then open settings screen -> developer and paste
       "AssetMetadata":{
         "symbol":"Vec<u8>",
         "decimals":"u8"
-      }
+      },
+      "InstanceId":"u32",
+      "NftClassIdOf":"u32",
+      "NftTokenIdOf":"u32"
     }
   ]
 }
