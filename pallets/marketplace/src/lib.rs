@@ -18,8 +18,14 @@ mod tests;
 
 pub type BalanceOf<T> =
 	<<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+/*** temporary change
 pub type NftClassIdOf<T> = pallet_nft::ClassIdOf<T>;
 pub type NftTokenIdOf<T> = pallet_nft::TokenIdOf<T>;
+***/
+pub type NftClassIdOf<T> = <T as pallet_uniques::Config>::ClassId;
+pub type NftTokenIdOf<T> = <T as pallet_uniques::Config>::InstanceId;
+pub type CurrencyOf<T> = <T as pallet_nft::Config>::Currency;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -40,7 +46,7 @@ pub mod pallet {
 		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftTokenIdOf<T>, BalanceOf<T>, OptionQuery>;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_nft::Config {
+	pub trait Config: frame_system::Config + pallet_nft::Config + pallet_uniques::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 	}
@@ -68,12 +74,12 @@ pub mod pallet {
 			TokenPrices::<T>::try_mutate_exists(token.0, token.1, |price| -> DispatchResult {
 				let price = price.take().ok_or(Error::<T>::NotForSale)?;
 
-				T::Currency::transfer(&sender, &owner, price, ExistenceRequirement::KeepAlive)?;
+				<T as pallet_nft::Config>::Currency::transfer(&sender, &owner, price, ExistenceRequirement::KeepAlive)?;
 
 				let from = T::Origin::from(RawOrigin::Signed(owner.clone()));
 				let to = T::Lookup::unlookup(sender.clone());
 
-				pallet_nft::Pallet::<T>::transfer(from, to, token)?;
+				pallet_uniques::Pallet::<T>::transfer(from, token.0, token.1, to)?;
 
 				Self::deposit_event(Event::TokenSold(owner, sender, token.0, token.1, price));
 				Ok(())
@@ -96,7 +102,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(
-				pallet_nft::Pallet::<T>::is_owner(&sender, token),
+				pallet_uniques::Pallet::<T>::owner(token.0, token.1) == Some(sender.clone()),
 				Error::<T>::NotTheTokenOwner
 			);
 

@@ -583,6 +583,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
@@ -5760,6 +5761,7 @@ dependencies = [
  "orml-utilities",
  "pallet-balances",
  "pallet-nft",
+ "pallet-uniques",
  "parity-scale-codec 2.2.0",
  "primitives",
  "serde",
@@ -6212,6 +6214,20 @@ dependencies = [
  "pallet-balances",
  "parity-scale-codec 2.2.0",
  "serde",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-uniques"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.9#91061a7d925b5bc597804293da283477512ba4ff"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec 2.2.0",
+ "sp-core",
  "sp-runtime",
  "sp-std",
 ]
