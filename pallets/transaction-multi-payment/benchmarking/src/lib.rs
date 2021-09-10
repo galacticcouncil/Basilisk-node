@@ -54,8 +54,8 @@ where
 {
 	let caller: T::AccountId = account(name, index, SEED);
 
-	let HDX: AssetId = 0u32;
-	let ASSET_ID: AssetId = 0u32;
+	let HDX: AssetIdOf<T> = 0u32;
+	let ASSET_ID: AssetIdOf<T> = 0u32;
 	T::MultiCurrency::update_balance(ASSET_ID, &caller, 10_000_000_000_000).unwrap();
 	T::MultiCurrency::update_balance(HDX, &caller, 10_000_000_000_000).unwrap();
 
