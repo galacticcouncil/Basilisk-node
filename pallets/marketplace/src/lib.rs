@@ -39,7 +39,7 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
-	#[pallet::getter(fn class_item_price)]
+	#[pallet::getter(fn token_prices)]
 	/// Stores prices for NFT pools
 	pub type TokenPrices<T: Config> =
 		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftTokenIdOf<T>, BalanceOf<T>, OptionQuery>;
@@ -64,13 +64,14 @@ pub mod pallet {
 		pub fn buy(
 			origin: OriginFor<T>,
 			owner: T::AccountId,
-			token: (NftClassIdOf<T>, NftTokenIdOf<T>),
+			class_id: NftClassIdOf<T>,
+			token_id: NftTokenIdOf<T>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
 			ensure!(sender != owner, Error::<T>::BuyFromSelf);
 
-			TokenPrices::<T>::try_mutate_exists(token.0, token.1, |price| -> DispatchResult {
+			TokenPrices::<T>::try_mutate_exists(class_id, token_id, |price| -> DispatchResult {
 				let price = price.take().ok_or(Error::<T>::NotForSale)?;
 
 				<T as pallet_nft::Config>::Currency::transfer(&sender, &owner, price, ExistenceRequirement::KeepAlive)?;
@@ -78,9 +79,9 @@ pub mod pallet {
 				let from = T::Origin::from(RawOrigin::Signed(owner.clone()));
 				let to = T::Lookup::unlookup(sender.clone());
 
-				pallet_uniques::Pallet::<T>::transfer(from, token.0, token.1, to)?;
+				pallet_uniques::Pallet::<T>::transfer(from, class_id, token_id, to)?;
 
-				Self::deposit_event(Event::TokenSold(owner, sender, token.0, token.1, price));
+				Self::deposit_event(Event::TokenSold(owner, sender, class_id, token_id, price));
 				Ok(())
 			})
 		}
@@ -95,19 +96,20 @@ pub mod pallet {
 		#[transactional]
 		pub fn set_price(
 			origin: OriginFor<T>,
-			token: (NftClassIdOf<T>, NftTokenIdOf<T>),
+			class_id: NftClassIdOf<T>,
+			token_id: NftTokenIdOf<T>,
 			new_price: Option<BalanceOf<T>>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(
-				pallet_uniques::Pallet::<T>::owner(token.0, token.1) == Some(sender.clone()),
+				pallet_uniques::Pallet::<T>::owner(class_id, token_id) == Some(sender.clone()),
 				Error::<T>::NotTheTokenOwner
 			);
 
-			TokenPrices::<T>::mutate_exists(token.0, token.1, |price| *price = new_price);
+			TokenPrices::<T>::mutate_exists(class_id, token_id, |price| *price = new_price);
 
-			Self::deposit_event(Event::TokenPriceUpdated(sender, token.0, token.1, new_price));
+			Self::deposit_event(Event::TokenPriceUpdated(sender, class_id, token_id, new_price));
 
 			Ok(())
 		}
@@ -135,13 +137,9 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// Account is not the owner of the token
 		NotTheTokenOwner,
-		/// Trying to buy under the current price
-		PriceTooLow,
 		/// Cannot buy a token from yourself
 		BuyFromSelf,
 		/// Token is currently not for sale
 		NotForSale,
 	}
 }
-
-impl<T: Config> Pallet<T> {}

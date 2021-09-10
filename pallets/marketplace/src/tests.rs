@@ -1,12 +1,72 @@
-use frame_support::{assert_noop, assert_ok, error::BadOrigin};
+use frame_support::{assert_noop, assert_ok};
 
 use super::*;
 use mock::{Event, *};
 
-type NFTModule = Pallet<Test>;
+type Market = Pallet<Test>;
+
+fn new_test_ext() -> sp_io::TestExternalities {
+	let mut ext = ExtBuilder::default().build();
+	ext.execute_with(|| System::set_block_number(1));
+	ext
+}
 
 #[test]
-fn buy_works() {}
+fn set_price_works() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(Uniques::create(Origin::signed(ALICE), 0, ALICE));
+		assert_ok!(Uniques::mint(Origin::signed(ALICE), 0, 0, ALICE));
+
+		assert_noop!(
+			Market::set_price(Origin::signed(BOB), 0, 0, Some(10)),
+			Error::<Test>::NotTheTokenOwner
+		);
+
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(10)));
+
+		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(ALICE, 0, 0, Some(10)));
+		assert_eq!(last_event(), event);
+
+		assert_eq!(Market::token_prices(0, 0), Some(10));
+
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, None));
+		assert_eq!(TokenPrices::<Test>::contains_key(0, 0), false);
+
+		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(ALICE, 0, 0, None));
+		assert_eq!(last_event(), event);
+	});
+}
 
 #[test]
-fn set_price_works() {}
+fn buy_works() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(Uniques::create(Origin::signed(ALICE), 0, ALICE));
+		assert_ok!(Uniques::mint(Origin::signed(ALICE), 0, 0, ALICE));
+
+		assert_noop!(
+			Market::buy(Origin::signed(ALICE), ALICE, 0, 0),
+			Error::<Test>::BuyFromSelf
+		);
+		assert_noop!(Market::buy(Origin::signed(BOB), ALICE, 1, 0), Error::<Test>::NotForSale);
+		assert_noop!(Market::buy(Origin::signed(BOB), ALICE, 0, 0), Error::<Test>::NotForSale);
+
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(2222 * BSX)));
+
+		assert_noop!(
+			Market::buy(Origin::signed(BOB), ALICE, 0, 0),
+			pallet_balances::Error::<Test, _>::InsufficientBalance
+		);
+
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(1111 * BSX)));
+
+		assert_ok!(Market::buy(Origin::signed(BOB), ALICE, 0, 0));
+
+		assert_eq!(TokenPrices::<Test>::contains_key(0, 0), false);
+
+		assert_eq!(Balances::free_balance(ALICE), 11111 * BSX);
+		assert_eq!(Balances::free_balance(BOB), 889 * BSX);
+
+		let event = Event::Marketplace(crate::Event::TokenSold(ALICE, BOB, 0, 0, 1111 * BSX));
+		assert_eq!(last_event(), event);
+	});
+}
