@@ -62,3 +62,49 @@ impl AssetPair {
 		buf
 	}
 }
+
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+pub struct AssetPairT<AssetId> {
+	pub asset_in: AssetId,
+	pub asset_out: AssetId,
+}
+
+impl<AssetId: Encode> AssetPairT<AssetId> {
+
+}
+
+impl<AssetId: Encode + Copy> AssetPairT<AssetId> {
+	pub fn new(asset_in: AssetId, asset_out: AssetId) -> Self {
+		Self { asset_in, asset_out }
+	}
+	/// Return ordered asset tuple (A,B) where A < B
+	/// Used in storage
+	pub fn ordered_pair(&self) -> (AssetId, AssetId) {
+		match self.asset_in.encode() <= self.asset_out.encode() {
+			true => (self.asset_in, self.asset_out),
+			false => (self.asset_out, self.asset_in),
+		}
+	}
+
+	/// Return share token name
+	pub fn name(&self) -> Vec<u8> {
+		let mut buf: Vec<u8> = Vec::new();
+
+		let (asset_a, asset_b) = self.ordered_pair();
+
+		buf.extend_from_slice(&asset_a.encode());
+		buf.extend_from_slice(b"HDT");
+		buf.extend_from_slice(&asset_b.encode());
+
+		buf
+	}
+
+	pub fn is_sorted(&self) -> bool {
+		if self.asset_in.encode() < self.asset_out.encode() {
+			true
+		} else {
+			false
+		}
+	}
+}

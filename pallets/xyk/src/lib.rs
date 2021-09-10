@@ -32,10 +32,10 @@ use frame_support::sp_runtime::{
 	traits::{Hash, Zero},
 	DispatchError,
 };
-use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
+use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional, pallet_prelude::Encode};
 use frame_system::ensure_signed;
 use primitives::{
-	asset::AssetPair, fee, traits::AMM, AssetId, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY,
+	asset::AssetPairT, fee, traits::AMM, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY,
 	MIN_TRADING_LIMIT,
 };
 use sp_std::{marker::PhantomData, vec, vec::Vec};
@@ -75,22 +75,27 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
 
+	pub type AssetIdOf<T> =
+	<<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::CurrencyId;
+
+	pub type AssetPair<T> = AssetPairT<AssetIdOf<T>>;
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Registry support
-		type AssetRegistry: ShareTokenRegistry<AssetId, Vec<u8>, Balance, DispatchError>;
+		type AssetRegistry: ShareTokenRegistry<AssetIdOf<Self>, Vec<u8>, Balance, DispatchError>;
 
 		/// Share token support
-		type AssetPairAccountId: AssetPairAccountIdFor<AssetId, Self::AccountId>;
+		type AssetPairAccountId: AssetPairAccountIdFor<AssetIdOf<Self>, Self::AccountId>;
 
 		/// Multi currency for transfer of currencies
-		type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>;
+		type Currency: MultiCurrencyExtended<Self::AccountId, Balance = Balance, Amount = Amount>;
 
 		/// Native Asset Id
 		#[pallet::constant]
-		type NativeAssetId: Get<AssetId>;
+		type NativeAssetId: Get<AssetIdOf<Self>>;
 
 		/// Weight information for the extrinsics.
 		type WeightInfo: WeightInfo;
@@ -172,28 +177,28 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// New liquidity was provided to the pool. [who, asset a, asset b, amount a, amount b]
-		LiquidityAdded(T::AccountId, AssetId, AssetId, Balance, Balance),
+		LiquidityAdded(T::AccountId, AssetIdOf<T>, AssetIdOf<T>, Balance, Balance),
 
 		/// Liquidity was removed from the pool. [who, asset a, asset b, shares]
-		LiquidityRemoved(T::AccountId, AssetId, AssetId, Balance),
+		LiquidityRemoved(T::AccountId, AssetIdOf<T>, AssetIdOf<T>, Balance),
 
 		/// Pool was created. [who, asset a, asset b, initial shares amount]
-		PoolCreated(T::AccountId, AssetId, AssetId, Balance),
+		PoolCreated(T::AccountId, AssetIdOf<T>, AssetIdOf<T>, Balance),
 
 		/// Pool was destroyed. [who, asset a, asset b]
-		PoolDestroyed(T::AccountId, AssetId, AssetId),
+		PoolDestroyed(T::AccountId, AssetIdOf<T>, AssetIdOf<T>),
 
 		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
-		SellExecuted(T::AccountId, AssetId, AssetId, Balance, Balance, AssetId, Balance),
+		SellExecuted(T::AccountId, AssetIdOf<T>, AssetIdOf<T>, Balance, Balance, AssetIdOf<T>, Balance),
 
 		/// Asset purchase executed. [who, asset out, asset in, amount, buy price, fee asset, fee amount]
-		BuyExecuted(T::AccountId, AssetId, AssetId, Balance, Balance, AssetId, Balance),
+		BuyExecuted(T::AccountId, AssetIdOf<T>, AssetIdOf<T>, Balance, Balance, AssetIdOf<T>, Balance),
 	}
 
 	/// Asset id storage for shared pool tokens
 	#[pallet::storage]
 	#[pallet::getter(fn share_token)]
-	pub type ShareToken<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, AssetId, ValueQuery>;
+	pub type ShareToken<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, AssetIdOf<T>, OptionQuery>;
 
 	/// Total liquidity in a pool.
 	#[pallet::storage]
@@ -203,7 +208,7 @@ pub mod pallet {
 	/// Asset pair in a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_assets)]
-	pub type PoolAssets<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, (AssetId, AssetId), ValueQuery>;
+	pub type PoolAssets<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, (AssetIdOf<T>, AssetIdOf<T>), OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -220,8 +225,8 @@ pub mod pallet {
 		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
-			asset_a: AssetId,
-			asset_b: AssetId,
+			asset_a: AssetIdOf<T>,
+			asset_b: AssetIdOf<T>,
 			amount: Balance,
 			initial_price: Price,
 		) -> DispatchResultWithPostInfo {
@@ -233,7 +238,7 @@ pub mod pallet {
 
 			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
 
-			let asset_pair = AssetPair {
+			let asset_pair = AssetPair::<T> {
 				asset_in: asset_a,
 				asset_out: asset_b,
 			};
@@ -246,7 +251,7 @@ pub mod pallet {
 
 			ensure!(asset_b_amount >= MIN_POOL_LIQUIDITY, Error::<T>::InsufficientLiquidity);
 
-			let shares_added = if asset_a < asset_b { amount } else { asset_b_amount };
+			let shares_added = if asset_pair.is_sorted() { amount } else { asset_b_amount };
 
 			ensure!(
 				T::Currency::free_balance(asset_a, &who) >= amount,
@@ -288,19 +293,21 @@ pub mod pallet {
 		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
-			asset_a: AssetId,
-			asset_b: AssetId,
+			asset_a: AssetIdOf<T>,
+			asset_b: AssetIdOf<T>,
 			amount_a: Balance,
 			amount_b_max_limit: Balance,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			let asset_pair = AssetPair {
+			let asset_pair = AssetPair::<T> {
 				asset_in: asset_a,
 				asset_out: asset_b,
 			};
 
-			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
+			let pair_account = Self::get_pair_id(asset_pair);
+
+			let share_token = Self::share_token(&pair_account).ok_or(Error::<T>::TokenPoolNotFound)?;
 
 			ensure!(amount_a >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
 
@@ -316,10 +323,6 @@ pub mod pallet {
 				Error::<T>::InsufficientAssetBalance
 			);
 
-			let pair_account = Self::get_pair_id(asset_pair);
-
-			let share_token = Self::share_token(&pair_account);
-
 			let account_shares = T::Currency::free_balance(share_token, &who);
 
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
@@ -330,7 +333,7 @@ pub mod pallet {
 				hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
 					.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
 
-			let shares_added = if asset_a < asset_b { amount_a } else { amount_b_required };
+			let shares_added = if asset_pair.is_sorted() { amount_a } else { amount_b_required };
 
 			ensure!(
 				amount_b_required <= amount_b_max_limit,
@@ -380,24 +383,22 @@ pub mod pallet {
 		#[transactional]
 		pub fn remove_liquidity(
 			origin: OriginFor<T>,
-			asset_a: AssetId,
-			asset_b: AssetId,
+			asset_a: AssetIdOf<T>,
+			asset_b: AssetIdOf<T>,
 			liquidity_amount: Balance,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			let asset_pair = AssetPair {
+			let asset_pair = AssetPair::<T> {
 				asset_in: asset_a,
 				asset_out: asset_b,
 			};
 
 			ensure!(!liquidity_amount.is_zero(), Error::<T>::ZeroLiquidity);
 
-			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
-
 			let pair_account = Self::get_pair_id(asset_pair);
 
-			let share_token = Self::share_token(&pair_account);
+			let share_token = Self::share_token(&pair_account).ok_or(Error::<T>::TokenPoolNotFound)?;
 
 			let total_shares = Self::total_liquidity(&pair_account);
 
@@ -469,15 +470,15 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]
 		pub fn sell(
 			origin: OriginFor<T>,
-			asset_in: AssetId,
-			asset_out: AssetId,
+			asset_in: AssetIdOf<T>,
+			asset_out: AssetIdOf<T>,
 			amount: Balance,
 			max_limit: Balance,
 			discount: bool,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
+			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair::<T> { asset_in, asset_out }, amount, max_limit, discount)?;
 
 			Ok(().into())
 		}
@@ -492,15 +493,15 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
 		pub fn buy(
 			origin: OriginFor<T>,
-			asset_out: AssetId,
-			asset_in: AssetId,
+			asset_out: AssetIdOf<T>,
+			asset_in: AssetIdOf<T>,
 			amount: Balance,
 			max_limit: Balance,
 			discount: bool,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
+			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair::<T> { asset_in, asset_out }, amount, max_limit, discount)?;
 
 			Ok(().into())
 		}
@@ -513,19 +514,23 @@ pub trait AssetPairAccountIdFor<AssetId: Sized, AccountId: Sized> {
 
 pub struct AssetPairAccountId<T: Config>(PhantomData<T>);
 
-impl<T: Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
+impl<T: Config> AssetPairAccountIdFor<AssetIdOf<T>, T::AccountId> for AssetPairAccountId<T>
 where
 	T::AccountId: UncheckedFrom<T::Hash> + AsRef<[u8]>,
+	AssetIdOf<T>: Encode + Copy,
 {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> T::AccountId {
+	fn from_assets(asset_a: AssetIdOf<T>, asset_b: AssetIdOf<T>) -> T::AccountId {
 		let mut buf = Vec::new();
 		buf.extend_from_slice(b"hydradx");
-		if asset_a < asset_b {
-			buf.extend_from_slice(&asset_a.to_le_bytes());
-			buf.extend_from_slice(&asset_b.to_le_bytes());
+
+		let asset_pair = AssetPairT::<AssetIdOf<T>>::new(asset_a, asset_b);
+
+		if asset_pair.is_sorted() {
+			buf.extend_from_slice(&asset_a.encode());
+			buf.extend_from_slice(&asset_b.encode());
 		} else {
-			buf.extend_from_slice(&asset_b.to_le_bytes());
-			buf.extend_from_slice(&asset_a.to_le_bytes());
+			buf.extend_from_slice(&asset_b.encode());
+			buf.extend_from_slice(&asset_a.encode());
 		}
 		T::AccountId::unchecked_from(T::Hashing::hash(&buf[..]))
 	}
@@ -533,7 +538,7 @@ where
 
 impl<T: Config> Pallet<T> {
 	/// Return balance of each asset in selected liquidity pool.
-	pub fn get_pool_balances(pool_address: T::AccountId) -> Option<Vec<(AssetId, Balance)>> {
+	pub fn get_pool_balances(pool_address: T::AccountId) -> Option<Vec<(AssetIdOf<T>, Balance)>> {
 		let mut balances = Vec::new();
 
 		if let Some(assets) = Self::get_pool_assets(&pool_address) {
@@ -560,28 +565,22 @@ impl<T: Config> Pallet<T> {
 }
 
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
-impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
-	fn exists(assets: AssetPair) -> bool {
+impl<T: Config> AMM<T::AccountId, AssetIdOf<T>, AssetPair<T>, Balance> for Pallet<T> {
+	fn exists(assets: AssetPair<T>) -> bool {
 		let pair_account = T::AssetPairAccountId::from_assets(assets.asset_in, assets.asset_out);
 		<ShareToken<T>>::contains_key(&pair_account)
 	}
 
-	fn get_pair_id(assets: AssetPair) -> T::AccountId {
+	fn get_pair_id(assets: AssetPair<T>) -> T::AccountId {
 		T::AssetPairAccountId::from_assets(assets.asset_in, assets.asset_out)
 	}
 
-	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {
-		match <PoolAssets<T>>::contains_key(pool_account_id) {
-			true => {
-				let assets = Self::pool_assets(pool_account_id);
-				Some(vec![assets.0, assets.1])
-			}
-			false => None,
-		}
+	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetIdOf<T>>> {
+		Self::pool_assets(pool_account_id).map(|asset_pair| vec![asset_pair.0, asset_pair.1])
 	}
 
-	fn get_spot_price_unchecked(asset_a: AssetId, asset_b: AssetId, amount: Balance) -> Balance {
-		let pair_account = Self::get_pair_id(AssetPair {
+	fn get_spot_price_unchecked(asset_a: AssetIdOf<T>, asset_b: AssetIdOf<T>, amount: Balance) -> Balance {
+		let pair_account = Self::get_pair_id(AssetPair::<T> {
 			asset_out: asset_a,
 			asset_in: asset_b,
 		});
@@ -599,11 +598,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Return `AMMTransfer` with all info needed to execute the transaction.
 	fn validate_sell(
 		who: &T::AccountId,
-		assets: AssetPair,
+		assets: AssetPair<T>,
 		amount: Balance,
 		min_bought: Balance,
 		discount: bool,
-	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, sp_runtime::DispatchError> {
+	) -> Result<AMMTransfer<T::AccountId, AssetIdOf<T>, AssetPair<T>, Balance>, sp_runtime::DispatchError> {
 		ensure!(amount >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
 
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
@@ -616,7 +615,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		// If discount, pool for Sell asset and native asset must exist
 		if discount {
 			ensure!(
-				Self::exists(AssetPair {
+				Self::exists(AssetPair::<T> {
 					asset_in: assets.asset_in,
 					asset_out: T::NativeAssetId::get()
 				}),
@@ -657,7 +656,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let discount_fee = if discount {
 			let native_asset = T::NativeAssetId::get();
 
-			let native_pair_account = Self::get_pair_id(AssetPair {
+			let native_pair_account = Self::get_pair_id(AssetPair::<T> {
 				asset_in: assets.asset_in,
 				asset_out: native_asset,
 			});
@@ -696,7 +695,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Perform necessary storage/state changes.
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
-	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
+	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetIdOf<T>, AssetPair<T>, Balance>) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
 		if transfer.discount && transfer.discount_amount > 0u128 {
@@ -736,11 +735,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Return `AMMTransfer` with all info needed to execute the transaction.
 	fn validate_buy(
 		who: &T::AccountId,
-		assets: AssetPair,
+		assets: AssetPair<T>,
 		amount: Balance,
 		max_limit: Balance,
 		discount: bool,
-	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
+	) -> Result<AMMTransfer<T::AccountId, AssetIdOf<T>, AssetPair<T>, Balance>, DispatchError> {
 		ensure!(amount >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
 
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
@@ -760,7 +759,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		// If discount, pool for Sell asset and native asset must exist
 		if discount {
 			ensure!(
-				Self::exists(AssetPair {
+				Self::exists(AssetPair::<T> {
 					asset_in: assets.asset_out,
 					asset_out: T::NativeAssetId::get()
 				}),
@@ -791,7 +790,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let discount_fee = if discount {
 			let native_asset = T::NativeAssetId::get();
 
-			let native_pair_account = Self::get_pair_id(AssetPair {
+			let native_pair_account = Self::get_pair_id(AssetPair::<T> {
 				asset_in: assets.asset_out,
 				asset_out: native_asset,
 			});
@@ -829,7 +828,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Perform necessary storage/state changes.
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
-	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
+	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetIdOf<T>, AssetPair<T>, Balance>) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
 		if transfer.discount && transfer.discount_amount > 0 {

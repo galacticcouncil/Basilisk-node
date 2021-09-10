@@ -78,7 +78,7 @@ frame_support::construct_runtime!(
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 
-	pub const HdxAssetId: u32 = 0;
+	pub const HdxAssetId: AssetId = 0;
 	pub const ExistentialDeposit: u128 = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const TransactionByteFee: Balance = 1;
@@ -119,6 +119,7 @@ impl pallet_transaction_multi_payment::Config for Test {
 	type Currency = Balances;
 	type MultiCurrency = Currencies;
 	type AMMPool = XYKPallet;
+	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;
 	type WeightToFee = IdentityFee<Balance>;
@@ -247,7 +248,7 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		let core_asset: u32 = 0;
+		let core_asset: AssetId = 0;
 		let mut buf: Vec<u8> = Vec::new();
 
 		buf.extend_from_slice(&core_asset.to_le_bytes());
