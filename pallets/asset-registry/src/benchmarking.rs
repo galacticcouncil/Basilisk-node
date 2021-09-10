@@ -43,7 +43,7 @@ benchmarks! {
 		let name = b"NAME".to_vec();
 		let ed = T::Balance::from(1_000_000u32);
 		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
-		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token, ed);
+		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name, AssetType::Token, ed);
 
 		let new_name= vec![1; T::StringLimit::get() as usize];
 
@@ -65,7 +65,7 @@ benchmarks! {
 			asset_type: AssetType::PoolShare(T::AssetId::from(10u8), T::AssetId::from(20u8)),
 			locked: false,
 			existential_deposit: new_ed,
-			name: bname.clone(),};
+			name: bname,};
 
 		assert_eq!(stored.asset_type, expected.asset_type);
 		assert_eq!(stored.locked, expected.locked);

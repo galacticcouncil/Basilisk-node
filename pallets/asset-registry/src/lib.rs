@@ -52,6 +52,8 @@ pub mod pallet {
 	use super::*;
 	use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 
+	pub type AssetDetailsT<T> = AssetDetails<<T as Config>::AssetId, <T as Config>::Balance, BoundedVec<u8, <T as Config>::StringLimit>>;
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
@@ -113,7 +115,7 @@ pub mod pallet {
 		_,
 		Twox64Concat,
 		T::AssetId,
-		AssetDetails<T::AssetId, T::Balance, BoundedVec<u8, T::StringLimit>>,
+		AssetDetailsT<T>,
 		OptionQuery,
 	>;
 
@@ -443,13 +445,13 @@ impl<T: Config> Registry<T::AssetId, Vec<u8>, T::Balance, DispatchError> for Pal
 }
 
 impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, T::Balance, DispatchError> for Pallet<T> {
-	fn retrieve_shared_asset(name: &Vec<u8>, _assets: &Vec<T::AssetId>) -> Result<T::AssetId, DispatchError> {
+	fn retrieve_shared_asset(name: &Vec<u8>, _assets: &[T::AssetId]) -> Result<T::AssetId, DispatchError> {
 		Self::retrieve_asset(name)
 	}
 
 	fn create_shared_asset(
 		name: &Vec<u8>,
-		assets: &Vec<T::AssetId>,
+		assets: &[T::AssetId],
 		existential_deposit: T::Balance,
 	) -> Result<T::AssetId, DispatchError> {
 		ensure!(assets.len() == 2, Error::<T>::InvalidSharedAssetLen);
