@@ -131,8 +131,8 @@ pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 pub const FORTUNE: Balance = u128::MAX;
 pub const BSX: Balance = 1_000_000_000_000;
-pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
-pub const CENTS: Balance = DOLLARS / 100; // 1 BSX ~= 1 cent
+pub const UNIT: Balance = BSX * 100; // 100 BSX ~= 1 $
+pub const CENTS: Balance = UNIT / 100; // 1 BSX ~= 1 cent
 pub const MILLICENTS: Balance = CENTS / 1_000;
 pub const NATIVE_EXISTENTIAL_DEPOSIT: Balance = CENTS;
 
@@ -504,7 +504,7 @@ parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 7 * DAYS;
 	pub const VotingPeriod: BlockNumber = 7 * DAYS;
 	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
-	pub const MinimumDeposit: Balance = 1000 * DOLLARS;
+	pub const MinimumDeposit: Balance = 1000 * UNIT;
 	pub const EnactmentPeriod: BlockNumber = 7 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	// $10,000 / MB
@@ -582,9 +582,9 @@ impl pallet_democracy::Config for Runtime {
 
 parameter_types! {
 	// Bond for candidacy into governance
-	pub const CandidacyBond: Balance = 10_000 * DOLLARS;
+	pub const CandidacyBond: Balance = 10_000 * UNIT;
 	// 1 storage item created, key size is 32 bytes, value size is 16+16.
-	pub const VotingBondBase: Balance = DOLLARS;
+	pub const VotingBondBase: Balance = UNIT;
 	// additional data per vote is 32 bytes (account id).
 	pub const VotingBondFactor: Balance = 50 * CENTS;
 	pub const TermDuration: BlockNumber = 7 * DAYS;
@@ -649,7 +649,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 10 * DOLLARS;
+	pub const ProposalBondMinimum: Balance = 10 * UNIT;
 	pub const SpendPeriod: BlockNumber = 3 * DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
@@ -720,7 +720,7 @@ parameter_types! {
 	pub const DataDepositPerByte: Balance = CENTS;
 	pub const TipCountdown: BlockNumber = 24 * HOURS;
 	pub const TipFindersFee: Percent = Percent::from_percent(1);
-	pub const TipReportDepositBase: Balance = 10 * DOLLARS;
+	pub const TipReportDepositBase: Balance = 10 * UNIT;
 	pub const TipReportDepositPerByte: Balance = CENTS;
 	pub const MaximumReasonLength: u32 = 1024;
 }

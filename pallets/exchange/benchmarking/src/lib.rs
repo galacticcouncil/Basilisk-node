@@ -48,7 +48,7 @@ const MAX_INTENTIONS_IN_BLOCK: u32 = 1000;
 const SEED: u32 = 0;
 pub const MILLICENTS: Balance = 1_000_000_000;
 pub const CENTS: Balance = 1_000 * MILLICENTS;
-pub const DOLLARS: Balance = 100 * CENTS;
+pub const UNIT: Balance = 100 * CENTS;
 
 pub struct Pallet<T: Config>(Exchange<T>);
 
@@ -147,8 +147,8 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance =  DOLLARS;
-		let limit : Balance =  DOLLARS;
+		let amount : Balance =  UNIT;
+		let limit : Balance =  UNIT;
 
 		initialize_pool::<T>(caller.clone(), asset_a, asset_b, amount, Price::from(10))?;
 
@@ -166,8 +166,8 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = DOLLARS;
-		let limit : Balance = DOLLARS;
+		let amount : Balance = UNIT;
+		let limit : Balance = UNIT;
 
 		let nbr_intentions_appended: u32  = MAX_INTENTIONS_IN_BLOCK;
 
