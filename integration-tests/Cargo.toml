@@ -111,6 +111,7 @@ polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch =
 
 basilisk-runtime = { path = "../runtime", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+karura-runtime = { git = "https::/github.com/AcalaNetwork/Acala", branch = "master", features = "with-karura-runtime" }
 
 [features]
 default = ["std"]
