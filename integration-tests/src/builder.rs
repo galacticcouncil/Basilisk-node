@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 pub use basilisk_runtime::{
 	AccountId, AssetId, AssetLocation, AssetRegistry, Balance, Balances, Origin, Runtime, System, Tokens, XTokens, BSX,
 };
@@ -59,6 +61,14 @@ impl ExtBuilder {
 			native_existential_deposit: existential_deposit,
 		}
 		.assimilate_storage(&mut t)
+		.unwrap();
+
+		<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&parachain_info::GenesisConfig {
+				parachain_id: 2000.into(),
+			},
+			&mut t,
+		)
 		.unwrap();
 
 		let mut ext = sp_io::TestExternalities::new(t);

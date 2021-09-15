@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use crate::builder::*;
 use crate::kusama_test_net::*;
 
@@ -9,7 +11,9 @@ use polkadot_xcm::v0::{
 	NetworkId,
 };
 
+use cumulus_primitives_core::ParaId;
 use orml_traits::MultiCurrency;
+use sp_runtime::traits::AccountIdConversion;
 use xcm_emulator::TestExt;
 
 #[test]
@@ -35,6 +39,11 @@ fn transfer_from_relay_chain() {
 			}],
 			1_600_000_000
 		));
+
+		assert_eq!(
+			kusama_runtime::Balances::free_balance(&ParaId::from(2000).into_account()),
+			13 * BSX
+		);
 	});
 
 	Basilisk::execute_with(|| {
@@ -50,8 +59,6 @@ fn transfer_to_relay_chain() {
 			1,
 			AssetLocation(X1(Parent,))
 		));
-
-		assert_eq!(Tokens::free_balance(1, &AccountId::from(ALICE)), 200 * BSX);
 
 		assert_ok!(XTokens::transfer(
 			Origin::signed(ALICE.into()),
@@ -70,10 +77,9 @@ fn transfer_to_relay_chain() {
 	});
 
 	Kusama::execute_with(|| {
-		/*          assert_eq!(
-					  kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
-					  10 * BSX
-				  );
-		*/
+		assert_eq!(
+			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			2989344000666 // 3 - fee
+		);
 	});
 }

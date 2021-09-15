@@ -1,4 +1,4 @@
-//! Relay chain and parachains emulation.
+#![cfg(test)]
 
 use crate::builder::*;
 
@@ -83,7 +83,7 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
 			(AccountId::from(ALICE), 2002 * BSX),
-			(ParaId::from(2000).into_account(), 2 * BSX),
+			(ParaId::from(2000).into_account(), 10 * BSX),
 		],
 	}
 	.assimilate_storage(&mut t)
