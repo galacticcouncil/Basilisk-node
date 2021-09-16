@@ -107,7 +107,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 
 xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", branch = "polkadot-v0.9.9" }
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
- polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
+polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }
 
 basilisk-runtime = { path = "../runtime", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.9" }

@@ -72,7 +72,7 @@ fn transfer_to_relay_chain() {
 					network: NetworkId::Any,
 				}
 			),
-			399_600_000_000
+			3_600_000_000
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
@@ -83,7 +83,7 @@ fn transfer_to_relay_chain() {
 	Kusama::execute_with(|| {
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			2989344000666 // 3 - fee
+			2999904000006 // 3 * BSX - fee
 		);
 	});
 }
