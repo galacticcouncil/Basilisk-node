@@ -480,21 +480,6 @@ impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
-	type ClassBondAmount = ClassBondAmount;
-}
-
-parameter_types! {
-	pub const MaxClassMetadata: u32 = 1024;
-	pub const MaxTokenMetadata: u32 = 1024;
-}
-
-impl orml_nft::Config for Runtime {
-	type ClassId = u64;
-	type TokenId = u64;
-	type ClassData = pallet_nft::ClassData;
-	type TokenData = pallet_nft::TokenData;
-	type MaxClassMetadata = MaxClassMetadata;
-	type MaxTokenMetadata = MaxTokenMetadata;
 }
 
 parameter_types! {
@@ -886,7 +871,6 @@ construct_runtime!(
 
 		// ORML related modules
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
-		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
 		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 

@@ -19,13 +19,6 @@ mod tests;
 pub type BalanceOf<T> =
 	<<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-/*** temporary change
-pub type NftClassIdOf<T> = pallet_nft::ClassIdOf<T>;
-pub type NftTokenIdOf<T> = pallet_nft::TokenIdOf<T>;
-***/
-pub type NftClassIdOf<T> = <T as pallet_uniques::Config>::ClassId;
-pub type NftTokenIdOf<T> = <T as pallet_uniques::Config>::InstanceId;
-
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -42,10 +35,10 @@ pub mod pallet {
 	#[pallet::getter(fn token_prices)]
 	/// Stores prices for NFT pools
 	pub type TokenPrices<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftTokenIdOf<T>, BalanceOf<T>, OptionQuery>;
+		StorageDoubleMap<_, Twox64Concat, T::ClassId, Twox64Concat, T::InstanceId, BalanceOf<T>, OptionQuery>;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_nft::Config + pallet_uniques::Config {
+	pub trait Config: frame_system::Config + pallet_nft::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 	}
@@ -64,8 +57,8 @@ pub mod pallet {
 		pub fn buy(
 			origin: OriginFor<T>,
 			owner: T::AccountId,
-			class_id: NftClassIdOf<T>,
-			token_id: NftTokenIdOf<T>,
+			class_id: T::ClassId,
+			token_id: T::InstanceId,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
@@ -96,8 +89,8 @@ pub mod pallet {
 		#[transactional]
 		pub fn set_price(
 			origin: OriginFor<T>,
-			class_id: NftClassIdOf<T>,
-			token_id: NftTokenIdOf<T>,
+			class_id: T::ClassId,
+			token_id: T::InstanceId,
 			new_price: Option<BalanceOf<T>>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
@@ -122,13 +115,13 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// The price for a token was updated
-		TokenPriceUpdated(T::AccountId, NftClassIdOf<T>, NftTokenIdOf<T>, Option<BalanceOf<T>>),
+		TokenPriceUpdated(T::AccountId, T::ClassId, T::InstanceId, Option<BalanceOf<T>>),
 		/// Token was sold to a new owner
 		TokenSold(
 			T::AccountId,
 			T::AccountId,
-			NftClassIdOf<T>,
-			NftTokenIdOf<T>,
+			T::ClassId,
+			T::InstanceId,
 			BalanceOf<T>,
 		),
 	}

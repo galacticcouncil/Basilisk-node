@@ -48,14 +48,10 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_nft.
 pub trait WeightInfo {
     fn create_class() -> Weight;
-    fn create_pool() -> Weight;
     fn mint() -> Weight;
     fn transfer() -> Weight;
     fn destroy_class() -> Weight;
-    fn destroy_pool() -> Weight;
     fn burn() -> Weight;
-    fn buy_from_pool() -> Weight;
-    fn sell_to_pool() -> Weight;
 }
 
 /// Weights for pallet_nft using the hack.hydraDX node and recommended hardware.
@@ -65,11 +61,6 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 		(51_994_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
-	}
-	fn create_pool() -> Weight {
-		(53_214_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn mint() -> Weight {
 		(54_707_000 as Weight)
@@ -86,24 +77,9 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
-	fn destroy_pool() -> Weight {
-		(61_089_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
-	}
 	fn burn() -> Weight {
 		(53_629_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
-	}
-	fn buy_from_pool() -> Weight {
-		(63_974_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
-	}
-	fn sell_to_pool() -> Weight {
-		(63_613_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 }
@@ -114,11 +90,6 @@ impl WeightInfo for () {
         (51_994_000 as Weight)
             .saturating_add(RocksDbWeight::get().reads(2 as Weight))
             .saturating_add(RocksDbWeight::get().writes(3 as Weight))
-    }
-    fn create_pool() -> Weight {
-        (53_214_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(4 as Weight))
     }
     fn mint() -> Weight {
         (54_707_000 as Weight)
@@ -135,24 +106,9 @@ impl WeightInfo for () {
             .saturating_add(RocksDbWeight::get().reads(2 as Weight))
             .saturating_add(RocksDbWeight::get().writes(3 as Weight))
     }
-    fn destroy_pool() -> Weight {
-        (61_089_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(4 as Weight))
-    }
     fn burn() -> Weight {
         (53_629_000 as Weight)
             .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
-    }
-    fn buy_from_pool() -> Weight {
-        (63_974_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(3 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
-    }
-    fn sell_to_pool() -> Weight {
-        (63_613_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(3 as Weight))
             .saturating_add(RocksDbWeight::get().writes(3 as Weight))
     }
 }

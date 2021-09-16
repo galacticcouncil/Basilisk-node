@@ -28,8 +28,8 @@ benchmarks! {
 	set_price {
 		let caller = create_account::<T>("caller", 0);
 
-		pallet_uniques::Pallet::<T>::create(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()))?;
-		pallet_uniques::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()))?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()))?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()))?;
 
 	}: _(RawOrigin::Signed(caller.clone()), Default::default(), 0u16.into(), Some(1u32.into()))
 	verify {
@@ -39,8 +39,8 @@ benchmarks! {
 	buy {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 0);
-		pallet_uniques::Pallet::<T>::create(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()))?;
-		pallet_uniques::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()))?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()))?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()))?;
 
 	}: _(RawOrigin::Signed(caller2.clone()), caller, Default::default(), 0u16.into())
 	verify {
