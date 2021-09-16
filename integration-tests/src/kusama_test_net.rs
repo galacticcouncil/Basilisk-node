@@ -1,6 +1,11 @@
 #![cfg(test)]
+pub use basilisk_runtime::AccountId;
+use primitives::Balance;
 
-use crate::builder::*;
+pub const ALICE: [u8; 32] = [4u8; 32];
+pub const BOB: [u8; 32] = [5u8; 32];
+
+pub const BSX: Balance = 1_000_000_000_000;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
@@ -20,9 +25,17 @@ decl_test_relay_chain! {
 
 decl_test_parachain! {
 	pub struct Basilisk{
-		Runtime = Runtime,
-		Origin = Origin,
+		Runtime = basilisk_runtime::Runtime,
+		Origin = basilisk_runtime::Origin,
 		new_ext = basilisk_ext(),
+	}
+}
+
+decl_test_parachain! {
+	pub struct Hydra{
+		Runtime = basilisk_runtime::Runtime,
+		Origin = basilisk_runtime::Origin,
+		new_ext = hydra_ext(),
 	}
 }
 
@@ -31,6 +44,7 @@ decl_test_network! {
 		relay_chain = Kusama,
 		parachains = vec![
 			(2000, Basilisk),
+			(3000, Hydra),
 		],
 	}
 }
@@ -100,11 +114,69 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 	ext
 }
 
+pub fn hydra_ext() -> sp_io::TestExternalities {
+	use basilisk_runtime::{Runtime, System};
+
+	let mut t = frame_system::GenesisConfig::default()
+		.build_storage::<Runtime>()
+		.unwrap();
+
+	pallet_balances::GenesisConfig::<Runtime> {
+		balances: vec![(AccountId::from(ALICE), 200 * BSX)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+		&parachain_info::GenesisConfig {
+			parachain_id: 3000.into(),
+		},
+		&mut t,
+	)
+	.unwrap();
+
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| System::set_block_number(1));
+	ext
+}
+
 pub fn basilisk_ext() -> sp_io::TestExternalities {
-	ExtBuilder::default()
-		.balances(vec![
-			(AccountId::from(ALICE), 0, 200 * 1_000_000_000_000),
-			(AccountId::from(ALICE), 1, 200 * 1_000_000_000_000),
-		])
-		.build()
+	use basilisk_runtime::{NativeExistentialDeposit, Runtime, System};
+
+	let existential_deposit = NativeExistentialDeposit::get();
+
+	let mut t = frame_system::GenesisConfig::default()
+		.build_storage::<Runtime>()
+		.unwrap();
+
+	pallet_balances::GenesisConfig::<Runtime> {
+		balances: vec![(AccountId::from(ALICE), 200 * 1_000_000_000_000)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	pallet_asset_registry::GenesisConfig::<Runtime> {
+		asset_names: vec![(b"KSM".to_vec(), 1u128)],
+		native_asset_name: b"BSX".to_vec(),
+		native_existential_deposit: existential_deposit,
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+		&parachain_info::GenesisConfig {
+			parachain_id: 2000.into(),
+		},
+		&mut t,
+	)
+	.unwrap();
+	orml_tokens::GenesisConfig::<Runtime> {
+		balances: vec![(AccountId::from(ALICE), 1, 200 * 1_000_000_000_000)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| System::set_block_number(1));
+	ext
 }
