@@ -2,12 +2,19 @@
 
 use super::*;
 
-use frame_benchmarking::{account, benchmarks};
+use frame_benchmarking::{account, benchmarks, vec};
 use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
+use sp_std::convert::TryInto;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;
+
+macro_rules! bvec {
+	($( $x:tt )*) => {
+		vec![$( $x )*].try_into().unwrap()
+	}
+}
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
@@ -28,8 +35,8 @@ benchmarks! {
 	set_price {
 		let caller = create_account::<T>("caller", 0);
 
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()))?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()))?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()), bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()), 10u8, bvec![0])?;
 
 	}: _(RawOrigin::Signed(caller.clone()), Default::default(), 0u16.into(), Some(1u32.into()))
 	verify {
@@ -39,8 +46,8 @@ benchmarks! {
 	buy {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()))?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()))?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()), bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()), 10u8, bvec![0])?;
 
 	}: _(RawOrigin::Signed(caller2.clone()), caller, Default::default(), 0u16.into())
 	verify {
