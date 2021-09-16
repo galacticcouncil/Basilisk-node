@@ -207,6 +207,8 @@ pub mod pallet {
 
 			pallet_uniques::Pallet::<T>::destroy(origin, class_id, witness)?;
 
+			InstanceCount::<T>::remove(class_id);
+
 			Ok(())
 		}
 	}
