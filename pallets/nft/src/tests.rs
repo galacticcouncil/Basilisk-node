@@ -1,7 +1,7 @@
 use frame_support::{assert_noop, assert_ok};
 
 use super::*;
-use mock::{Event, *};
+use mock::*;
 
 type NFTModule = Pallet<Test>;
 
