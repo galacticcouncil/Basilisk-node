@@ -84,6 +84,11 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
           default: true
+      - name: Install clippy
+        run: rustup component add clippy
+      - name: Run clippy
+        run: cargo clippy --release --all-targets --all-features -- -D warnings
+        
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage
@@ -92,8 +97,11 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
-      - name: Build release
-        run: time cargo build --release --quiet --locked
+      - name: Build runtime
+        run: cargo build --release --locked
+        working-directory: runtime
+      - name: Build node
+        run: cargo build --release --locked
       - name: Version info
         run: ./target/release/basilisk --version
       - name: Upload release binary

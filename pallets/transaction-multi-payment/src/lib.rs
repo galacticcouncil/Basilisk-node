@@ -358,7 +358,7 @@ impl<T: Config> Pallet<T> {
 		// If not native currency, let's buy CORE asset first and then pay with that.
 		if fee_currency != CORE_ASSET_ID {
 			T::AMMPool::buy(
-				&who,
+				who,
 				AssetPair {
 					asset_out: CORE_ASSET_ID,
 					asset_in: fee_currency,
@@ -399,7 +399,7 @@ impl<T: Config> Pallet<T> {
 
 	fn check_balance(account: &T::AccountId, currency: AssetId) -> Result<(), Error<T>> {
 		if T::MultiCurrency::free_balance(currency, account) == Balance::zero() {
-			return Err(Error::<T>::ZeroBalance.into());
+			return Err(Error::<T>::ZeroBalance);
 		};
 		Ok(())
 	}
@@ -475,7 +475,7 @@ where
 			WithdrawReasons::TRANSACTION_PAYMENT | WithdrawReasons::TIP
 		};
 
-		if let Ok(detail) = SW::swap(&who, fee.into()) {
+		if let Ok(detail) = SW::swap(who, fee.into()) {
 			match detail {
 				PaymentSwapResult::Transferred => Ok(None),
 				PaymentSwapResult::Native | PaymentSwapResult::Swapped => {
@@ -511,7 +511,7 @@ where
 			// account might have dropped below the existential balance. In
 			// that case we don't refund anything.
 			let refund_imbalance =
-				C::deposit_into_existing(&who, refund_amount).unwrap_or_else(|_| C::PositiveImbalance::zero());
+				C::deposit_into_existing(who, refund_amount).unwrap_or_else(|_| C::PositiveImbalance::zero());
 			// merge the imbalance caused by paying the fees and refunding parts of it again.
 			let adjusted_paid = paid
 				.offset(refund_imbalance)

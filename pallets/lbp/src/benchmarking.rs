@@ -44,7 +44,7 @@ benchmarks! {
 
 	}: _(RawOrigin::Root, caller.clone(), asset_a, asset_b, duration, WeightCurveType::Linear, true, Fee::default(), caller)
 	verify {
-		assert_eq!(PoolData::<T>::contains_key(&pool_id), true);
+		assert!(PoolData::<T>::contains_key(&pool_id));
 	}
 
 	update_pool_data {
@@ -104,12 +104,12 @@ benchmarks! {
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
 		let pool_data = LBP::<T>::pool_data(&pool_id);
-		assert_eq!(pool_data.paused, false);
+		assert!(!pool_data.paused);
 
 	}: _(RawOrigin::Signed(caller), pool_id.clone())
 	verify {
 		let pool_data = LBP::<T>::pool_data(pool_id);
-		assert_eq!(pool_data.paused, true);
+		assert!(pool_data.paused);
 	}
 
 	unpause_pool {
@@ -134,12 +134,12 @@ benchmarks! {
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 		LBP::<T>::pause_pool(RawOrigin::Signed(caller.clone()).into(), pool_id.clone())?;
 		let pool_data = LBP::<T>::pool_data(&pool_id);
-		assert_eq!(pool_data.paused, true);
+		assert!(pool_data.paused);
 
 	}: _(RawOrigin::Signed(caller), pool_id.clone())
 	verify {
 		let pool_data = LBP::<T>::pool_data(pool_id);
-		assert_eq!(pool_data.paused, false);
+		assert!(!pool_data.paused);
 	}
 
 	add_liquidity {
@@ -194,7 +194,7 @@ benchmarks! {
 
 	}: _(RawOrigin::Signed(caller.clone()), pool_id.clone())
 	verify {
-		assert_eq!(PoolData::<T>::contains_key(&pool_id), false);
+		assert!(!PoolData::<T>::contains_key(&pool_id));
 		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID_A, &caller), 1000000000000000);
 		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID_B, &caller), 1000000000000000);
 	}
@@ -227,7 +227,7 @@ benchmarks! {
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
 		let pool_data = LBP::<T>::pool_data(&pool_id);
-		assert_eq!(pool_data.paused, false);
+		assert!(!pool_data.paused);
 
 		System::<T>::set_block_number(12u32.into());
 
@@ -266,7 +266,7 @@ benchmarks! {
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
 		let pool_data = LBP::<T>::pool_data(&pool_id);
-		assert_eq!(pool_data.paused, false);
+		assert!(!pool_data.paused);
 
 		System::<T>::set_block_number(12u32.into());
 

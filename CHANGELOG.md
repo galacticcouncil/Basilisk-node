@@ -1,3 +1,43 @@
+# v4.0.0 (Tue Aug 31 2021)
+
+#### 🚀 Enhancement
+
+- chore: launch code review [#144](https://github.com/galacticcouncil/Basilisk-node/pull/144) ([@jak-pan](https://github.com/jak-pan) [@lumir-mrkva](https://github.com/lumir-mrkva) [@green-jay](https://github.com/green-jay) [@enthusiastmartin](https://github.com/enthusiastmartin) [@Roznovjak](https://github.com/Roznovjak))
+- feat: existential deposits in asset registry [#146](https://github.com/galacticcouncil/Basilisk-node/pull/146) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@jak-pan](https://github.com/jak-pan))
+- feat: NFT builder's program refactoring [#125](https://github.com/galacticcouncil/Basilisk-node/pull/125) ([@green-jay](https://github.com/green-jay) [@fakirAyoub](https://github.com/fakirAyoub) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: asset registry refactored [#124](https://github.com/galacticcouncil/Basilisk-node/pull/124) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@jak-pan](https://github.com/jak-pan) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: basilisk + karura launch config [#127](https://github.com/galacticcouncil/Basilisk-node/pull/127) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: duster pallet [#104](https://github.com/galacticcouncil/Basilisk-node/pull/104) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: balance check as signed extension [#115](https://github.com/galacticcouncil/Basilisk-node/pull/115) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: xcm reintroduced [#114](https://github.com/galacticcouncil/Basilisk-node/pull/114) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### 🐛 Bug Fix
+
+- fix: fix json configs to work with latest polkadot-launch [#139](https://github.com/galacticcouncil/Basilisk-node/pull/139) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: parachain id for kusama [#103](https://github.com/galacticcouncil/Basilisk-node/pull/103) ([@martinfridrich](https://github.com/martinfridrich) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: lbp [#142](https://github.com/galacticcouncil/Basilisk-node/pull/142) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: rebench nft weights [#143](https://github.com/galacticcouncil/Basilisk-node/pull/143) ([@green-jay](https://github.com/green-jay))
+- fix: nft bench + remove emote [#138](https://github.com/galacticcouncil/Basilisk-node/pull/138) ([@green-jay](https://github.com/green-jay) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: benchmarks and weights update [#140](https://github.com/galacticcouncil/Basilisk-node/pull/140) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: updated to polkadot 0.9.9-1 [#133](https://github.com/galacticcouncil/Basilisk-node/pull/133) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@enthusiastmartin](https://github.com/enthusiastmartin) [@Roznovjak](https://github.com/Roznovjak))
+- ci: fix runner image [#134](https://github.com/galacticcouncil/Basilisk-node/pull/134) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix(vesting): fix benchmarking [#123](https://github.com/galacticcouncil/Basilisk-node/pull/123) ([@Roznovjak](https://github.com/Roznovjak))
+- chore: Update to polkadot 0.9.8 [#105](https://github.com/galacticcouncil/Basilisk-node/pull/105) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: fix codecov yml [#121](https://github.com/galacticcouncil/Basilisk-node/pull/121) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- ci: add codecov yml to adjust thresholds [#119](https://github.com/galacticcouncil/Basilisk-node/pull/119) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### Authors: 7
+
+- [@green-jay](https://github.com/green-jay)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Ayoub Fakir ([@fakirAyoub](https://github.com/fakirAyoub))
+- Jakub Pánik ([@jak-pan](https://github.com/jak-pan))
+- martin fridrich ([@martinfridrich](https://github.com/martinfridrich))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
 # v3.0.0 (Mon Jul 12 2021)
 
 #### 🐛 Bug Fix
