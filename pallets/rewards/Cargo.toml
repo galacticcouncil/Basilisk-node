@@ -20,6 +20,7 @@ serde = {features = ['derive'], optional = true, version = '1.0.101'}
 primitive-types = {default-features = false, version = '0.8.0'}
 sp-runtime = {default-features = false, version = '3.0.0'}
 sp-arithmetics = { package = "sp-arithmetic", version = '3.0.0', default-features = false }
+orml-traits = { package = "orml-traits", version = '0.4.1-dev', default-features = false }
 
 # Local dependencies
 primitives = {path = '../../primitives', default-features = false}
