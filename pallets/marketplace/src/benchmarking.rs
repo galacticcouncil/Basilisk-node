@@ -6,6 +6,7 @@ use frame_benchmarking::{account, benchmarks, vec};
 use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::convert::TryInto;
+use crate::Pallet as Marketplace;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;
@@ -48,7 +49,7 @@ benchmarks! {
 		let caller2 = create_account::<T>("caller2", 0);
 		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()), bvec![0])?;
 		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()), 10u8, bvec![0])?;
-		pallet_nft::Pallet::<T>::set_price(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), Some(111u32.into()));
+		Marketplace::<T>::set_price(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), Some(111u32.into()))?;
 
 	}: _(RawOrigin::Signed(caller2.clone()), caller, Default::default(), 0u16.into())
 	verify {
