@@ -58,6 +58,7 @@ use primitives::fee;
 #[allow(clippy::all)]
 mod weights;
 mod xcm;
+mod impls;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 

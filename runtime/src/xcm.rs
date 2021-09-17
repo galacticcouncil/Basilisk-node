@@ -12,10 +12,11 @@ use sp_runtime::traits::Convert;
 use xcm_builder::{
 	AccountId32Aliases, AllowTopLevelPaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds, LocationInverter,
 	ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents
 };
 use xcm_executor::traits::WeightTrader;
 use xcm_executor::{Assets, Config, XcmExecutor};
+use crate::impls::ToAuthor;
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
@@ -66,8 +67,16 @@ pub fn ksm_per_second() -> u128 {
 }
 
 parameter_types! {
+	/// The amount of weight an XCM operation takes. This is a safe overestimate.
+	pub const BaseXcmWeight: Weight = 100_000_000;
+
+	 /// The location of the BSX token, from the context of this chain. Since this token is native to this
+	 /// chain, we make it synonymous with it and thus it is the `Null` location, which means "equivalent to
+     /// the context".
+	 pub const BsxLocation: MultiLocation = MultiLocation::Null;
+
 	// One XCM operation is 1_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = 400_000_000;
+	pub UnitWeightCost: Weight = 100_000_000;
 
 	pub KsmPerSecond: (MultiLocation, u128) = (X1(Parent), ksm_per_second());
 }
@@ -97,10 +106,9 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
 
-	//type Trader = FixedRateOfConcreteFungible<KsmPerSecond, ()>;
-	type Trader = TradePassthrough;
+	type Trader = UsingComponents<WeightToFee, BsxLocation, AccountId, Balances, ToAuthor<Runtime>>;
 	type ResponseHandler = (); // Don't handle responses for now.
 }
 
@@ -119,10 +127,6 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
-}
-
-parameter_types! {
-		pub const BaseXcmWeight: Weight = 100_000_000;
 }
 
 impl orml_xtokens::Config for Runtime {
@@ -180,6 +184,7 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
+			MultiLocation::Null  => Some(NativeAssetId::get()),
 			X3(Parent, Parachain(id), GeneralKey(key)) if ParaId::from(id) == ParachainInfo::get() => {
 				// Handling native asset for this parachain
 				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
