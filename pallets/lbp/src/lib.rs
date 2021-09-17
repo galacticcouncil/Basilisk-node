@@ -830,7 +830,7 @@ impl<T: Config> Pallet<T> {
 
 		let (amount_in, amount_out, fee_asset, fee_amount) = if trade_type == TradeType::Sell {
 			ensure!(
-				amount <= asset_in_reserve / MAX_IN_RATIO,
+				amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxInRatioExceeded
 			);
 			
@@ -850,7 +850,7 @@ impl<T: Config> Pallet<T> {
 			(amount, amount_out_without_fee, assets.asset_out, transfer_fee)
 		} else {
 			ensure!(
-				amount <= asset_out_reserve / MAX_OUT_RATIO,
+				amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxOutRatioExceeded
 			);
 
