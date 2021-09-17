@@ -30,7 +30,7 @@ fn set_price_works() {
 		assert_eq!(Market::token_prices(0, 0), Some(10));
 
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, None));
-		assert_eq!(TokenPrices::<Test>::contains_key(0, 0), false);
+		assert!(!TokenPrices::<Test>::contains_key(0, 0));
 
 		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(ALICE, 0, 0, None));
 		assert_eq!(last_event(), event);
@@ -61,7 +61,7 @@ fn buy_works() {
 
 		assert_ok!(Market::buy(Origin::signed(BOB), ALICE, 0, 0));
 
-		assert_eq!(TokenPrices::<Test>::contains_key(0, 0), false);
+		assert!(!TokenPrices::<Test>::contains_key(0, 0));
 
 		assert_eq!(Balances::free_balance(ALICE), 11111 * BSX);
 		assert_eq!(Balances::free_balance(BOB), 889 * BSX);

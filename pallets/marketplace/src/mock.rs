@@ -109,7 +109,7 @@ parameter_types! {
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = 100 * BSX;
 	pub const AttributeDepositBase: Balance = 10 * BSX;
-	pub const DepositPerByte: Balance = 1 * BSX;
+	pub const DepositPerByte: Balance = BSX;
 	pub const UniquesStringLimit: u32 = 128;
 }
 
