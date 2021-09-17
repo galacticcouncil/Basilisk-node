@@ -24,7 +24,7 @@ use primitives::fee::{Fee, WithFee};
 pub struct Transfer<'a, T: Config> {
 	pub from: &'a T::AccountId,
 	pub to: &'a T::AccountId,
-	pub asset: AssetIdOf<T>,
+	pub asset: AssetId,
 	pub amount: Balance,
 	pub fee_transfer: bool,
 }
@@ -254,7 +254,7 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 	}
 
 	/// Send pallet event in case of insufficient balance.
-	fn send_insufficient_balance_event(intention: &Intention<T>, asset: AssetIdOf<T>) {
+	fn send_insufficient_balance_event(intention: &Intention<T>, asset: AssetId) {
 		Pallet::<T>::deposit_event(Event::InsufficientAssetBalanceEvent(
 			intention.who.clone(),
 			asset,
@@ -269,7 +269,7 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 		from: &T::AccountId,
 		intention: &Intention<T>,
 		to: &T::AccountId,
-		asset: AssetIdOf<T>,
+		asset: AssetId,
 		amount: Balance,
 	) {
 		Pallet::<T>::deposit_event(Event::IntentionResolvedDirectTradeFees(
@@ -294,7 +294,7 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 	}
 
 	/// Reserve amount.
-	fn reserve_if_can(asset: AssetIdOf<T>, who: &T::AccountId, amount: Balance) -> bool {
+	fn reserve_if_can(asset: AssetId, who: &T::AccountId, amount: Balance) -> bool {
 		T::Currency::reserve(asset, who, amount).is_ok()
 	}
 }

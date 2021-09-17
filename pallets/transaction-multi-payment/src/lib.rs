@@ -50,9 +50,9 @@ use sp_std::marker::PhantomData;
 use frame_support::sp_runtime::FixedPointNumber;
 use frame_support::weights::{Pays, Weight};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
-use primitives::asset::AssetPairT;
+use primitives::asset::AssetPair;
 use primitives::traits::AMM;
-use primitives::{Amount, Balance, CORE_ASSET_ID};
+use primitives::{Amount, AssetId, Balance, CORE_ASSET_ID};
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::traits::SignedExtension;
@@ -76,11 +76,6 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
 
-	pub(crate) type AssetIdOf<T> =
-		<<T as Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::CurrencyId;
-
-	pub type AssetPair<T> = AssetPairT<AssetIdOf<T>>;
-
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
@@ -90,14 +85,11 @@ pub mod pallet {
 		type Currency: Currency<Self::AccountId> + Send + Sync;
 
 		/// Multi Currency
-		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, Balance = Balance, Amount = Amount>;
+		type MultiCurrency: MultiCurrency<Self::AccountId>
+			+ MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>;
 
 		/// AMM pool to swap for native currency
-		type AMMPool: AMM<Self::AccountId, AssetIdOf<Self>, AssetPair<Self>, Balance>;
-
-		/// Native Asset Id
-		#[pallet::constant]
-		type NativeAssetId: Get<AssetIdOf<Self>>;
+		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
 
 		/// Weight information for the extrinsics.
 		type WeightInfo: WeightInfo;
@@ -114,15 +106,15 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// CurrencySet
 		/// [who, currency]
-		CurrencySet(T::AccountId, AssetIdOf<T>),
+		CurrencySet(T::AccountId, AssetId),
 
 		/// New accepted currency added
 		/// [who, currency]
-		CurrencyAdded(T::AccountId, AssetIdOf<T>),
+		CurrencyAdded(T::AccountId, AssetId),
 
 		/// Accepted currency removed
 		/// [who, currency]
-		CurrencyRemoved(T::AccountId, AssetIdOf<T>),
+		CurrencyRemoved(T::AccountId, AssetId),
 
 		/// Member added
 		/// [who]
@@ -169,12 +161,12 @@ pub mod pallet {
 	/// Account currency map
 	#[pallet::storage]
 	#[pallet::getter(fn get_currency)]
-	pub type AccountCurrencyMap<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, AssetIdOf<T>, OptionQuery>;
+	pub type AccountCurrencyMap<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, AssetId, OptionQuery>;
 
 	/// Curated list of currencies which fees can be paid with
 	#[pallet::storage]
 	#[pallet::getter(fn currencies)]
-	pub type AcceptedCurrencies<T: Config> = StorageMap<_, Twox64Concat, AssetIdOf<T>, Price, OptionQuery>;
+	pub type AcceptedCurrencies<T: Config> = StorageMap<_, Twox64Concat, AssetId, Price, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn authorities)]
@@ -187,7 +179,7 @@ pub mod pallet {
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
-		pub currencies: Vec<(AssetIdOf<T>, Price)>,
+		pub currencies: Vec<(AssetId, Price)>,
 		pub authorities: Vec<T::AccountId>,
 		pub fallback_account: T::AccountId,
 	}
@@ -233,10 +225,10 @@ pub mod pallet {
 		/// Emits `CurrencySet` event when successful.
 		#[pallet::weight((<T as Config>::WeightInfo::set_currency(), DispatchClass::Normal, Pays::No))]
 		#[transactional]
-		pub fn set_currency(origin: OriginFor<T>, currency: AssetIdOf<T>) -> DispatchResultWithPostInfo {
+		pub fn set_currency(origin: OriginFor<T>, currency: AssetId) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			if currency == T::NativeAssetId::get() || AcceptedCurrencies::<T>::contains_key(&currency) {
+			if currency == CORE_ASSET_ID || AcceptedCurrencies::<T>::contains_key(&currency) {
 				if T::MultiCurrency::free_balance(currency, &who) == Balance::zero() {
 					return Err(Error::<T>::ZeroBalance.into());
 				}
@@ -263,10 +255,10 @@ pub mod pallet {
 		///
 		/// Emits `CurrencyAdded` event when successful.
 		#[pallet::weight((<T as Config>::WeightInfo::add_currency(), DispatchClass::Normal, Pays::No))]
-		pub fn add_currency(origin: OriginFor<T>, currency: AssetIdOf<T>, price: Price) -> DispatchResultWithPostInfo {
+		pub fn add_currency(origin: OriginFor<T>, currency: AssetId, price: Price) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(currency != T::NativeAssetId::get(), Error::<T>::CoreAssetNotAllowed);
+			ensure!(currency != CORE_ASSET_ID, Error::<T>::CoreAssetNotAllowed);
 
 			// Only selected accounts can perform this action
 			ensure!(Self::authorities().contains(&who), Error::<T>::NotAllowed);
@@ -289,10 +281,10 @@ pub mod pallet {
 		///
 		/// Emits `CurrencyRemoved` when successful.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_currency(), DispatchClass::Normal, Pays::No))]
-		pub fn remove_currency(origin: OriginFor<T>, currency: AssetIdOf<T>) -> DispatchResultWithPostInfo {
+		pub fn remove_currency(origin: OriginFor<T>, currency: AssetId) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(currency != T::NativeAssetId::get(), Error::<T>::CoreAssetNotAllowed);
+			ensure!(currency != CORE_ASSET_ID, Error::<T>::CoreAssetNotAllowed);
 
 			// Only selected accounts can perform this action
 			ensure!(Self::authorities().contains(&who), Error::<T>::NotAllowed);
@@ -351,8 +343,8 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn account_currency(who: &T::AccountId) -> AssetIdOf<T> {
-		Pallet::<T>::get_currency(who).unwrap_or(T::NativeAssetId::get())
+	fn account_currency(who: &T::AccountId) -> AssetId {
+		Pallet::<T>::get_currency(who).unwrap_or(CORE_ASSET_ID)
 	}
 
 	/// Execute a trade to buy HDX and sell selected currency.
@@ -360,15 +352,15 @@ impl<T: Config> Pallet<T> {
 		// Let's determine currency in which user would like to pay the fee
 		let fee_currency = match Pallet::<T>::get_currency(who) {
 			Some(c) => c,
-			_ => T::NativeAssetId::get(),
+			_ => CORE_ASSET_ID,
 		};
 
 		// If not native currency, let's buy CORE asset first and then pay with that.
-		if fee_currency != T::NativeAssetId::get() {
+		if fee_currency != CORE_ASSET_ID {
 			T::AMMPool::buy(
 				&who,
-				AssetPair::<T> {
-					asset_out: T::NativeAssetId::get(),
+				AssetPair {
+					asset_out: CORE_ASSET_ID,
 					asset_in: fee_currency,
 				},
 				fee,
@@ -393,7 +385,7 @@ impl<T: Config> Pallet<T> {
 		match result {
 			PaymentSwapResult::Transferred => Ok(()),
 			PaymentSwapResult::Native | PaymentSwapResult::Swapped => {
-				T::MultiCurrency::withdraw(T::NativeAssetId::get(), who, fee)
+				T::MultiCurrency::withdraw(CORE_ASSET_ID, who, fee)
 			}
 		}
 	}
@@ -405,7 +397,7 @@ impl<T: Config> Pallet<T> {
 		<T as Config>::WeightToFee::calc(&capped_weight)
 	}
 
-	fn check_balance(account: &T::AccountId, currency: AssetIdOf<T>) -> Result<(), Error<T>> {
+	fn check_balance(account: &T::AccountId, currency: AssetId) -> Result<(), Error<T>> {
 		if T::MultiCurrency::free_balance(currency, account) == Balance::zero() {
 			return Err(Error::<T>::ZeroBalance.into());
 		};
@@ -419,26 +411,26 @@ use traits::CurrencySwap;
 
 impl<T: Config> CurrencySwap<<T as frame_system::Config>::AccountId, Balance> for Pallet<T> {
 	fn swap(who: &T::AccountId, fee: u128) -> Result<PaymentSwapResult, DispatchError> {
-		let currency = Self::account_currency(who);
+		match Self::account_currency(who) {
+			CORE_ASSET_ID => Ok(PaymentSwapResult::Native),
+			currency => {
+				if T::AMMPool::exists(AssetPair {
+					asset_in: currency,
+					asset_out: CORE_ASSET_ID,
+				}) {
+					Self::swap_currency(who, fee)?;
+					Ok(PaymentSwapResult::Swapped)
+				} else {
+					// If pool does not exists, let's use the currency fixed price
 
-		if currency == T::NativeAssetId::get() {
-			Ok(PaymentSwapResult::Native)
-		} else {
-			if T::AMMPool::exists(AssetPair::<T> {
-				asset_in: currency,
-				asset_out: T::NativeAssetId::get(),
-			}) {
-				Self::swap_currency(who, fee)?;
-				Ok(PaymentSwapResult::Swapped)
-			} else {
-				// If pool does not exists, let's use the currency fixed price
-				let price = Self::currencies(currency).ok_or(Error::<T>::FallbackPriceNotFound)?;
+					let price = Self::currencies(currency).ok_or(Error::<T>::FallbackPriceNotFound)?;
 
-				let amount = price.checked_mul_int(fee).ok_or(Error::<T>::Overflow)?;
+					let amount = price.checked_mul_int(fee).ok_or(Error::<T>::Overflow)?;
 
-				T::MultiCurrency::transfer(currency, who, &Self::fallback_account(), amount)?;
+					T::MultiCurrency::transfer(currency, who, &Self::fallback_account(), amount)?;
 
-				Ok(PaymentSwapResult::Transferred)
+					Ok(PaymentSwapResult::Transferred)
+				}
 			}
 		}
 	}

@@ -24,7 +24,7 @@ use sp_std::vec;
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
-use orml_traits::{MultiCurrencyExtended, MultiCurrency};
+use orml_traits::MultiCurrencyExtended;
 use pallet_transaction_multi_payment::Pallet as MultiPaymentModule;
 use primitives::{Amount, AssetId, Balance, Price};
 
@@ -42,20 +42,15 @@ pub trait Config:
 }
 
 const SEED: u32 = 0;
-// const ASSET_ID: AssetId = 3;
-// const HDX: AssetIdOf<T> = 0;
-
-pub type AssetIdOf<T> =
-<<T as pallet_transaction_multi_payment::Config>::MultiCurrency as MultiCurrency<<T as frame_system::Config>::AccountId>>::CurrencyId;
+const ASSET_ID: u32 = 3;
+const HDX: u32 = 0;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId
 where
-	T::MultiCurrency: MultiCurrencyExtended<T::AccountId, Balance = Balance, Amount = Amount>,
+	T::MultiCurrency: MultiCurrencyExtended<T::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>,
 {
 	let caller: T::AccountId = account(name, index, SEED);
 
-	let HDX: AssetId = 0u32;
-	let ASSET_ID: AssetId = 0u32;
 	T::MultiCurrency::update_balance(ASSET_ID, &caller, 10_000_000_000_000).unwrap();
 	T::MultiCurrency::update_balance(HDX, &caller, 10_000_000_000_000).unwrap();
 
@@ -68,7 +63,6 @@ fn initialize_pool<T: Config>(
 	amount: Balance,
 	price: Price,
 ) -> dispatch::DispatchResultWithPostInfo {
-	let HDX: AssetIdOf<T> = 0;
 	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), HDX, asset, amount, price)?;
 	Ok(().into())
 }
@@ -76,7 +70,6 @@ fn initialize_pool<T: Config>(
 benchmarks! {
 	swap_currency {
 		let maker = funded_account::<T>("maker", 1);
-		let ASSET_ID: AssetIdOf<T> = 0;
 		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
 		MultiPaymentModule::<T>::add_new_member(&maker);
 		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID, Price::from(10))?;
@@ -93,14 +86,13 @@ benchmarks! {
 
 	set_currency {
 		let maker = funded_account::<T>("maker", 1);
-		let ASSET_ID: AssetIdOf<T> = 0;
 		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
 		MultiPaymentModule::<T>::add_new_member(&maker);
 		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID, Price::from(10))?;
 
 		let caller = funded_account::<T>("caller", 123);
 
-		let currency_id: AssetId = ASSET_ID;
+		let currency_id: u32 = ASSET_ID;
 
 	}: { MultiPaymentModule::<T>::set_currency(RawOrigin::Signed(caller.clone()).into(), currency_id)? }
 	verify{
