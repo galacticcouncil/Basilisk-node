@@ -16,7 +16,6 @@ use xcm_builder::{
 };
 use xcm_executor::traits::WeightTrader;
 use xcm_executor::{Assets, Config, XcmExecutor};
-use crate::impls::ToAuthor;
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
@@ -59,26 +58,9 @@ match_type! {
 	pub type JustTheParent: impl Contains<MultiLocation> = { X1(Parent) };
 }
 
-//TODO: investigate this Trader part further << let's resolve this
-pub fn ksm_per_second() -> u128 {
-	let base_weight = Balance::from(ExtrinsicBaseWeight::get());
-	let base_tx_per_second = (WEIGHT_PER_SECOND as u128) / base_weight;
-	base_tx_per_second / 100
-}
-
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is a safe overestimate.
 	pub const BaseXcmWeight: Weight = 100_000_000;
-
-	 /// The location of the BSX token, from the context of this chain. Since this token is native to this
-	 /// chain, we make it synonymous with it and thus it is the `Null` location, which means "equivalent to
-     /// the context".
-	 pub const BsxLocation: MultiLocation = MultiLocation::Null;
-
-	// One XCM operation is 1_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = 100_000_000;
-
-	pub KsmPerSecond: (MultiLocation, u128) = (X1(Parent), ksm_per_second());
 }
 
 pub struct TradePassthrough();
@@ -104,11 +86,11 @@ impl Config for XcmConfig {
 
 	type IsTeleporter = (); // disabled
 	type LocationInverter = LocationInverter<Ancestry>;
+
 	type Barrier = Barrier;
-
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
+	type Trader = TradePassthrough;
 
-	type Trader = UsingComponents<WeightToFee, BsxLocation, AccountId, Balances, ToAuthor<Runtime>>;
 	type ResponseHandler = (); // Don't handle responses for now.
 }
 
@@ -137,7 +119,7 @@ impl orml_xtokens::Config for Runtime {
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type SelfLocation = SelfLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
 	type BaseXcmWeight = BaseXcmWeight;
 }
 
@@ -154,7 +136,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = ();
 	type XcmReserveTransferFilter = Nothing;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 
