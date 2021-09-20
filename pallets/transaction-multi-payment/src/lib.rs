@@ -364,7 +364,7 @@ impl<T: Config> Pallet<T> {
 					asset_in: fee_currency,
 				},
 				fee,
-				2u128 * fee,
+				2u128.checked_mul(fee).ok_or(Error::<T>::Overflow)?,
 				false,
 			)?;
 		}
