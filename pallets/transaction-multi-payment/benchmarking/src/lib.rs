@@ -79,7 +79,7 @@ benchmarks! {
 
 	}: { MultiPaymentModule::<T>::swap_currency(&caller, 1000)? }
 	verify{
-		assert_eq!(MultiPaymentModule::<T>::get_currency(caller.clone()), Some(ASSET_ID.into()));
+		assert_eq!(MultiPaymentModule::<T>::get_currency(&caller), Some(ASSET_ID.into()));
 		#[cfg(test)]
 		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID.into(), &caller), 9999689661666);
 	}

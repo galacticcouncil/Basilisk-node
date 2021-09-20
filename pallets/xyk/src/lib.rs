@@ -169,6 +169,9 @@ pub mod pallet {
 		MaxOutRatioExceeded,
 		/// Max fraction of pool to sell in single transaction has been exceeded.
 		MaxInRatioExceeded,
+
+		/// Overflow
+		Overflow,
 	}
 
 	#[pallet::event]
@@ -180,11 +183,11 @@ pub mod pallet {
 		/// Liquidity was removed from the pool. [who, asset a, asset b, shares]
 		LiquidityRemoved(T::AccountId, T::AssetId, T::AssetId, Balance),
 
-		/// Pool was created. [who, asset a, asset b, initial shares amount]
-		PoolCreated(T::AccountId, T::AssetId, T::AssetId, Balance),
+		/// Pool was created. [who, asset a, asset b, initial shares amount, share token, pool account id]
+		PoolCreated(T::AccountId, T::AssetId, T::AssetId, Balance, T::AssetId, T::AccountId),
 
-		/// Pool was destroyed. [who, asset a, asset b]
-		PoolDestroyed(T::AccountId, T::AssetId, T::AssetId),
+		/// Pool was destroyed. [who, asset a, asset b, share token, pool account id]
+		PoolDestroyed(T::AccountId, T::AssetId, T::AssetId, T::AssetId, T::AccountId),
 
 		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
 		SellExecuted(T::AccountId, T::AssetId, T::AssetId, Balance, Balance, T::AssetId, Balance),
@@ -277,7 +280,7 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, shares_added);
 
-			Self::deposit_event(Event::PoolCreated(who, asset_a, asset_b, shares_added));
+			Self::deposit_event(Event::PoolCreated(who, asset_a, asset_b, shares_added, share_token, pair_account));
 
 			Ok(().into())
 		}
@@ -456,7 +459,7 @@ pub mod pallet {
 				<ShareToken<T>>::remove(&pair_account);
 				<PoolAssets<T>>::remove(&pair_account);
 
-				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b));
+				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b, share_token, pair_account));
 			}
 
 			Ok(().into())
@@ -633,7 +636,7 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 
 		ensure!(
-			amount <= asset_in_reserve / MAX_IN_RATIO,
+			amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxInRatioExceeded
 		);
 
@@ -756,7 +759,7 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
 
 		ensure!(
-			amount <= asset_out_reserve / MAX_OUT_RATIO,
+			amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxOutRatioExceeded
 		);
 

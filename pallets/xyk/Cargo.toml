@@ -1,6 +1,6 @@
 [package]
 name = 'pallet-xyk'
-version = '1.3.0'
+version = '1.4.0'
 description = 'XYK automated market maker'
 authors = ['GalacticCouncil']
 edition = '2018'
@@ -19,7 +19,7 @@ codec = { default-features = false, features = ["derive"], package = "parity-sca
 primitive-types = { default-features = false, version = '0.8.0' }
 serde = { features = ['derive'], optional = true, version = '1.0.101' }
 
-hydra-dx-math = { default-features = false, version = "3.3.0" }
+hydra-dx-math = { default-features = false, version = "3.4.0" }
 
 # Local dependencies
 primitives = {path = '../../primitives', default-features = false}
