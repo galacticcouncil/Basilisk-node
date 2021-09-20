@@ -1044,7 +1044,6 @@ fn buy_trade_limits_respected_for_matched_intention() {
 }
 
 #[test]
-#[ignore = "Recent fix changes the behaviour of this test - needs to be adjusted"] // Needs to be adjusted so it tests what it is supposed to.
 fn sell_test_single_multiple_sells() {
 	new_test_ext().execute_with(|| {
 		let user_1 = ALICE;
@@ -1125,11 +1124,14 @@ fn sell_test_single_multiple_sells() {
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_999000000000000);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_4), 99_999000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_4), 100001991034974080);
+		assert_eq!(Currency::free_balance(asset_b, &user_4), 100001996000000000);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_5), 100000499000000000);
+		assert_eq!(Currency::free_balance(asset_b, &user_5), 99_999000000000000);
 
 		// Check final pool balances
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100001522538342);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200012965025920);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100004000000000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200008000000000);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -1237,40 +1239,33 @@ fn sell_test_single_multiple_sells() {
 				1000000000,
 			)
 			.into(),
-			xyk::Event::SellExecuted(
+			orml_tokens::Event::Reserved(asset_a, 4, 500000000000).into(),
+			orml_tokens::Event::Reserved(asset_b, 5, 1000000000000).into(),
+			orml_tokens::Event::Reserved(asset_b, 4, 2000000000).into(),
+			orml_tokens::Event::Reserved(asset_a, 5, 1000000000).into(),
+			Event::IntentionResolvedDirectTrade(
 				user_4,
-				asset_a,
-				asset_b,
-				500000000000,
-				993034974080,
-				asset_b,
-				1990050048,
-			)
-			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_4,
-				IntentionType::SELL,
+				user_5,
 				user_4_sell_intention_id,
-				500000000000,
-				995025024128,
-			)
-			.into(),
-			xyk::Event::SellExecuted(
-				user_5,
-				asset_b,
-				asset_a,
-				1000000000000,
-				501477461658,
-				asset_a,
-				1004964853,
-			)
-			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_5,
-				IntentionType::SELL,
 				user_5_sell_intention_id,
+				500000000000,
 				1000000000000,
-				502482426511,
+			)
+			.into(),
+			Event::IntentionResolvedDirectTradeFees(
+				user_4,
+				user_4_sell_intention_id,
+				pair_account,
+				asset_b,
+				2000000000,
+			)
+			.into(),
+			Event::IntentionResolvedDirectTradeFees(
+				user_5,
+				user_5_sell_intention_id,
+				pair_account,
+				asset_a,
+				1000000000,
 			)
 			.into(),
 		]);

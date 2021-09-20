@@ -230,7 +230,9 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 				transfer.to,
 				transfer.amount,
 				BalanceStatus::Free,
-			).is_err() {
+			)
+			.is_err()
+			{
 				return false;
 			}
 
