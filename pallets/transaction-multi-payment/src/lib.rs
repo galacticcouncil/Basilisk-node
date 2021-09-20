@@ -235,7 +235,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			if currency == T::NativeAssetId::get() || AcceptedCurrencies::<T>::contains_key(&currency) {
-				if T::MultiCurrency::free_balance(currency.into(), &who) == Balance::zero() {
+				if T::MultiCurrency::free_balance(currency, &who) == Balance::zero() {
 					return Err(Error::<T>::ZeroBalance.into());
 				}
 
@@ -350,7 +350,7 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	fn account_currency(who: &T::AccountId) -> T::AssetId {
-		Pallet::<T>::get_currency(who).unwrap_or(T::NativeAssetId::get())
+		Pallet::<T>::get_currency(who).unwrap_or_else(|| {T::NativeAssetId::get()})
 	}
 
 	/// Execute a trade to buy HDX and sell selected currency.
@@ -420,8 +420,7 @@ impl<T: Config> CurrencySwap<<T as frame_system::Config>::AccountId, Balance> fo
 		let currency = Self::account_currency(who);
 		if currency == T::NativeAssetId::get() {
 			Ok(PaymentSwapResult::Native)
-		} else {
-			if T::AMMPool::exists(AssetPairT::<T::AssetId> {
+		} else if T::AMMPool::exists(AssetPairT::<T::AssetId> {
 					asset_in: currency,
 					asset_out: T::NativeAssetId::get(),
 				}) {
@@ -438,7 +437,6 @@ impl<T: Config> CurrencySwap<<T as frame_system::Config>::AccountId, Balance> fo
 
 					Ok(PaymentSwapResult::Transferred)
 			    }
-		}
 	}
 }
 
