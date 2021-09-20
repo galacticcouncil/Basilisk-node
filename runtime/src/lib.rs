@@ -1021,15 +1021,15 @@ impl_runtime_apis! {
 		) -> Vec<xyk_rpc::BalanceInfo<AssetId, Balance>> {
 			let mut vec = Vec::new();
 
-			let pool_balances = XYK::get_pool_balances(pool_address).unwrap();
+			if let Some(pool_balances) = XYK::get_pool_balances(pool_address){
+				for b in pool_balances {
+					let item  = xyk_rpc::BalanceInfo{
+					 asset: Some(b.0),
+						amount: b.1
+					};
 
-			for b in pool_balances {
-				let item  = xyk_rpc::BalanceInfo{
-				 asset: Some(b.0),
-					amount: b.1
-				};
-
-				vec.push(item);
+					vec.push(item);
+				}
 			}
 
 			vec
