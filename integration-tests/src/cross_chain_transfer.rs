@@ -128,3 +128,45 @@ fn transfer_from_hydra() {
 		);
 	});
 }
+
+#[test]
+fn transfer_insufficient_amount_should_fail() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			1,
+			basilisk_runtime::AssetLocation(X3(Parent, Parachain(3000), GeneralKey(vec![0, 0, 0, 0])))
+		));
+	});
+
+	Hydra::execute_with(|| {
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			0,
+			1_000_000 - 1,
+			X3(
+				Parent,
+				Junction::Parachain(2000),
+				Junction::AccountId32 {
+					id: BOB,
+					network: NetworkId::Any,
+				}
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			199999999000001
+		);
+	});
+
+	Basilisk::execute_with(|| {
+		// Xcm should fail therefore nothing should be deposit into beneficiary account
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			0
+		);
+	});
+}
