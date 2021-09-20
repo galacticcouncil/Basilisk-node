@@ -48,8 +48,8 @@
         },
         {
           "wsPort": 9989,
-          "port": 31200,
-          "flags": ["--alice", "--rpc-cors=all", "--", "--execution=wasm"]
+          "port": 31201,
+          "flags": ["--bob", "--rpc-cors=all", "--", "--execution=wasm"]
         }
       ]
     }
