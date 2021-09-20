@@ -1543,7 +1543,7 @@ fn sell_test_mixed_buy_sells() {
 			asset_b,
 			asset_a,
 			3_000_000_000_000,
-			1400_000_000_000,
+			1_400_000_000_000,
 			false,
 		));
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
@@ -1552,7 +1552,7 @@ fn sell_test_mixed_buy_sells() {
 			asset_a,
 			asset_b,
 			10_000_000_000_000,
-			2000_000_000_000,
+			2_000_000_000_000,
 			false,
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
@@ -1708,7 +1708,7 @@ fn discount_tests_no_discount() {
 			asset_b,
 			asset_a,
 			3_000_000_000_000,
-			1400_000_000_000,
+			1_400_000_000_000,
 			false,
 		));
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
@@ -1717,7 +1717,7 @@ fn discount_tests_no_discount() {
 			asset_a,
 			asset_b,
 			10_000_000_000_000,
-			2000_000_000_000,
+			2_000_000_000_000,
 			false,
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
@@ -1876,7 +1876,7 @@ fn discount_tests_with_discount() {
 			asset_b,
 			asset_a,
 			3_000_000_000_000,
-			1400_000_000_000,
+			1_400_000_000_000,
 			true,
 		));
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
@@ -1885,7 +1885,7 @@ fn discount_tests_with_discount() {
 			asset_a,
 			asset_b,
 			10_000_000_000_000,
-			2000_000_000_000,
+			2_000_000_000_000,
 			true,
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
@@ -2888,7 +2888,7 @@ fn single_buy_intention_test() {
 			asset_a,
 			asset_b,
 			2_000_000_000_000,
-			15000_000_000_000,
+			15_000_000_000_000,
 			false,
 		));
 
@@ -3692,8 +3692,7 @@ fn process_invalid_intention_should_work() {
 			intention_id: generate_intention_id(&user, 0),
 		};
 
-		let mut intentions_a = Vec::<Intention<Test>>::new();
-		intentions_a.push(main_intention);
+		let mut intentions_a = vec![main_intention];
 
 		Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut Vec::<Intention<Test>>::new());
 
@@ -3751,10 +3750,8 @@ fn main_intention_greater_than_matched_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_a = Vec::<Intention<Test>>::new();
-		intentions_a.push(main_intention);
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
+		let mut intentions_a = vec![main_intention];
+		let mut intentions_b = vec![matched_intention];
 
 		Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b);
 
