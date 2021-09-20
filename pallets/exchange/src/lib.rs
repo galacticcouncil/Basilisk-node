@@ -28,9 +28,9 @@ use codec::Encode;
 use sp_std::vec::Vec;
 
 use primitives::{
-	asset::AssetPair,
+	asset::AssetPairT,
 	traits::{Resolver, AMM},
-	Amount, AssetId, Balance, ExchangeIntention, IntentionType, MIN_TRADING_LIMIT,
+	Amount, Balance, ExchangeIntention, IntentionType, MIN_TRADING_LIMIT,
 };
 use sp_std::borrow::ToOwned;
 
@@ -56,7 +56,7 @@ mod tests;
 
 /// Intention alias
 type IntentionId<T> = <T as system::Config>::Hash;
-pub type Intention<T> = ExchangeIntention<<T as system::Config>::AccountId, Balance, IntentionId<T>>;
+pub type Intention<T> = ExchangeIntention<<T as system::Config>::AccountId, AssetPairT<<T as Config>::AssetId>, Balance, IntentionId<T>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -80,7 +80,7 @@ pub mod pallet {
 				if count == 0u32 {
 					continue;
 				}
-				let pair = AssetPair {
+				let pair = AssetPairT::<T::AssetId> {
 					asset_in: asset_1,
 					asset_out: asset_2,
 				};
@@ -109,14 +109,17 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// AMM pool implementation
-		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
+		type AMMPool: AMM<Self::AccountId, Self::AssetId, AssetPairT<Self::AssetId>, Balance>;
 
 		/// Intention resolver
 		type Resolver: Resolver<Self::AccountId, Intention<Self>, Error<Self>>;
 
 		/// Currency for transfers
-		type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
+		type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = Self::AssetId, Balance = Balance, Amount = Amount>
 			+ MultiReservableCurrency<Self::AccountId>;
+
+		/// Asset type
+		type AssetId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + Default + From<u32>;
 
 		/// Weight information for the extrinsics.
 		type WeightInfo: WeightInfo;
@@ -127,7 +130,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Intention registered event
 		/// who, asset a, asset b, amount, intention type, intention id
-		IntentionRegistered(T::AccountId, AssetId, AssetId, Balance, IntentionType, IntentionId<T>),
+		IntentionRegistered(T::AccountId, T::AssetId, T::AssetId, Balance, IntentionType, IntentionId<T>),
 
 		/// Intention resolved as AMM Trade
 		/// who, intention type, intention id, amount, amount sold/bought
@@ -150,13 +153,13 @@ pub mod pallet {
 		/// who - account which paid feed
 		/// intention id - intention which was resolved
 		/// account paid to, asset, amount
-		IntentionResolvedDirectTradeFees(T::AccountId, IntentionId<T>, T::AccountId, AssetId, Balance),
+		IntentionResolvedDirectTradeFees(T::AccountId, IntentionId<T>, T::AccountId, T::AssetId, Balance),
 
 		/// Error event - insuficient balance of specified asset
 		/// who, asset, intention type, intention id, error detail
 		InsufficientAssetBalanceEvent(
 			T::AccountId,
-			AssetId,
+			T::AssetId,
 			IntentionType,
 			IntentionId<T>,
 			dispatch::DispatchError,
@@ -166,7 +169,7 @@ pub mod pallet {
 		/// who, assets, sell or buy, intention id, error detail
 		IntentionResolveErrorEvent(
 			T::AccountId,
-			AssetPair,
+			AssetPairT<T::AssetId>,
 			IntentionType,
 			IntentionId<T>,
 			dispatch::DispatchError,
@@ -198,14 +201,14 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn get_intentions_count)]
 	pub type ExchangeAssetsIntentionCount<T: Config> =
-		StorageMap<_, Blake2_128Concat, (AssetId, AssetId), u32, ValueQuery>;
+		StorageMap<_, Blake2_128Concat, (T::AssetId, T::AssetId), u32, ValueQuery>;
 
 	/// Registered intentions for current block
 	/// Stored as ( asset_a, asset_b ) combination where asset_a is meant to be exchanged for asset_b ( asset_a < asset_b)
 	#[pallet::storage]
 	#[pallet::getter(fn get_intentions)]
 	pub type ExchangeAssetsIntentions<T: Config> =
-		StorageMap<_, Blake2_128Concat, (AssetId, AssetId), Vec<Intention<T>>, ValueQuery>;
+		StorageMap<_, Blake2_128Concat, (T::AssetId, T::AssetId), Vec<Intention<T>>, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -214,8 +217,8 @@ pub mod pallet {
 		#[pallet::weight(< T as Config >::WeightInfo::sell_intention() + < T as Config >::WeightInfo::on_finalize_for_one_sell_extrinsic() - < T as Config >::WeightInfo::known_overhead_for_on_finalize())]
 		pub fn sell(
 			origin: OriginFor<T>,
-			asset_sell: AssetId,
-			asset_buy: AssetId,
+			asset_sell: T::AssetId,
+			asset_buy: T::AssetId,
 			amount_sell: Balance,
 			min_bought: Balance,
 			discount: bool,
@@ -227,7 +230,7 @@ pub mod pallet {
 				Error::<T>::MinimumTradeLimitNotReached
 			};
 
-			let assets = AssetPair {
+			let assets = AssetPairT::<T::AssetId> {
 				asset_in: asset_sell,
 				asset_out: asset_buy,
 			};
@@ -261,8 +264,8 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::buy_intention() + <T as Config>::WeightInfo::on_finalize_for_one_buy_extrinsic() -  <T as Config>::WeightInfo::known_overhead_for_on_finalize())]
 		pub fn buy(
 			origin: OriginFor<T>,
-			asset_buy: AssetId,
-			asset_sell: AssetId,
+			asset_buy: T::AssetId,
+			asset_sell: T::AssetId,
 			amount_buy: Balance,
 			max_sold: Balance,
 			discount: bool,
@@ -274,7 +277,7 @@ pub mod pallet {
 				Error::<T>::MinimumTradeLimitNotReached
 			};
 
-			let assets = AssetPair {
+			let assets = AssetPairT::<T::AssetId> {
 				asset_in: asset_sell,
 				asset_out: asset_buy,
 			};
@@ -311,7 +314,7 @@ impl<T: Config> Pallet<T> {
 	fn register_intention(
 		who: &T::AccountId,
 		intention_type: IntentionType,
-		assets: AssetPair,
+		assets: AssetPairT<T::AssetId>,
 		amount_in: Balance,
 		amount_out: Balance,
 		limit: Balance,
@@ -414,7 +417,7 @@ impl<T: Config> Pallet<T> {
 	fn execute_amm_transfer(
 		amm_tranfer_type: IntentionType,
 		intention_id: IntentionId<T>,
-		transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>,
+		transfer: &AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance>,
 	) -> dispatch::DispatchResult {
 		match amm_tranfer_type {
 			IntentionType::SELL => {
@@ -506,9 +509,10 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	fn generate_intention_id(account: &T::AccountId, c: u32, assets: &AssetPair) -> IntentionId<T> {
+	fn generate_intention_id(account: &T::AccountId, c: u32, assets: &AssetPairT<T::AssetId>) -> IntentionId<T> {
 		let b = <system::Pallet<T>>::current_block_number();
-		(c, &account, b, assets.ordered_pair().0, assets.ordered_pair().1).using_encoded(T::Hashing::hash)
+		let ordered_pair = assets.ordered_pair();
+		(c, &account, b, ordered_pair.0, ordered_pair.1).using_encoded(T::Hashing::hash)
 	}
 }
 

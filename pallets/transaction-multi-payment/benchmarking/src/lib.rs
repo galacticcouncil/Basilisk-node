@@ -47,12 +47,12 @@ const HDX: u32 = 0;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId
 where
-	T::MultiCurrency: MultiCurrencyExtended<T::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>,
+	T::MultiCurrency: MultiCurrencyExtended<T::AccountId, Balance = Balance, Amount = Amount>,
 {
 	let caller: T::AccountId = account(name, index, SEED);
 
-	T::MultiCurrency::update_balance(ASSET_ID, &caller, 10_000_000_000_000).unwrap();
-	T::MultiCurrency::update_balance(HDX, &caller, 10_000_000_000_000).unwrap();
+	T::MultiCurrency::update_balance(ASSET_ID.into(), &caller, 10_000_000_000_000).unwrap();
+	T::MultiCurrency::update_balance(HDX.into(), &caller, 10_000_000_000_000).unwrap();
 
 	caller
 }
@@ -63,7 +63,7 @@ fn initialize_pool<T: Config>(
 	amount: Balance,
 	price: Price,
 ) -> dispatch::DispatchResultWithPostInfo {
-	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), HDX, asset, amount, price)?;
+	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), HDX.into(), asset.into(), amount, price)?;
 	Ok(().into())
 }
 
@@ -72,31 +72,31 @@ benchmarks! {
 		let maker = funded_account::<T>("maker", 1);
 		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
 		MultiPaymentModule::<T>::add_new_member(&maker);
-		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID, Price::from(10))?;
+		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID.into(), Price::from(10))?;
 
 		let caller = funded_account::<T>("caller", 2);
-		MultiPaymentModule::<T>::set_currency(RawOrigin::Signed(caller.clone()).into(), ASSET_ID)?;
+		MultiPaymentModule::<T>::set_currency(RawOrigin::Signed(caller.clone()).into(), ASSET_ID.into())?;
 
 	}: { MultiPaymentModule::<T>::swap_currency(&caller, 1000)? }
 	verify{
-		assert_eq!(MultiPaymentModule::<T>::get_currency(caller.clone()), Some(ASSET_ID));
+		assert_eq!(MultiPaymentModule::<T>::get_currency(caller.clone()), Some(ASSET_ID.into()));
 		#[cfg(test)]
-		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID, &caller), 9999689661666);
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID.into(), &caller), 9999689661666);
 	}
 
 	set_currency {
 		let maker = funded_account::<T>("maker", 1);
 		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
 		MultiPaymentModule::<T>::add_new_member(&maker);
-		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID, Price::from(10))?;
+		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID.into(), Price::from(10))?;
 
 		let caller = funded_account::<T>("caller", 123);
 
 		let currency_id: u32 = ASSET_ID;
 
-	}: { MultiPaymentModule::<T>::set_currency(RawOrigin::Signed(caller.clone()).into(), currency_id)? }
+	}: { MultiPaymentModule::<T>::set_currency(RawOrigin::Signed(caller.clone()).into(), currency_id.into())? }
 	verify{
-		assert_eq!(MultiPaymentModule::<T>::get_currency(caller), Some(currency_id));
+		assert_eq!(MultiPaymentModule::<T>::get_currency(caller), Some(currency_id.into()));
 	}
 
 	add_currency {
@@ -105,21 +105,21 @@ benchmarks! {
 
 		let price = Price::from(10);
 
-	}: { MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(caller.clone()).into(), 10, price)? }
+	}: { MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(caller.clone()).into(), 10.into(), price)? }
 	verify {
-		assert_eq!(MultiPaymentModule::<T>::currencies(10), Some(price));
+		assert_eq!(MultiPaymentModule::<T>::currencies(<T as pallet_transaction_multi_payment::Config>::AssetId::from(10)), Some(price));
 	}
 
 	remove_currency {
 		let caller = funded_account::<T>("maker", 1);
 		MultiPaymentModule::<T>::add_new_member(&caller);
-		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(caller.clone()).into(), 10, Price::from(2))?;
+		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(caller.clone()).into(), 10.into(), Price::from(2))?;
 
-		assert_eq!(MultiPaymentModule::<T>::currencies(10), Some(Price::from(2)));
+		assert_eq!(MultiPaymentModule::<T>::currencies(<T as pallet_transaction_multi_payment::Config>::AssetId::from(10)), Some(Price::from(2)));
 
-	}: { MultiPaymentModule::<T>::remove_currency(RawOrigin::Signed(caller.clone()).into(), 10)? }
+	}: { MultiPaymentModule::<T>::remove_currency(RawOrigin::Signed(caller.clone()).into(), 10.into())? }
 	verify {
-		assert_eq!(MultiPaymentModule::<T>::currencies(10), None)
+		assert_eq!(MultiPaymentModule::<T>::currencies(<T as pallet_transaction_multi_payment::Config>::AssetId::from(10)), None)
 	}
 
 	add_member{

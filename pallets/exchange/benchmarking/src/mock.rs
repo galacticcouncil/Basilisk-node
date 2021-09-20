@@ -146,6 +146,7 @@ impl pallet_xyk::Config for Test {
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
+	type AssetId = AssetId;
 	type NativeAssetId = HDXAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
@@ -155,6 +156,7 @@ impl pallet_exchange::Config for Test {
 	type Event = Event;
 	type AMMPool = XYKPallet;
 	type Currency = Currency;
+	type AssetId = AssetId;
 	type Resolver = pallet_exchange::Pallet<Test>;
 	type WeightInfo = ();
 }

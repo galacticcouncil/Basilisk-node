@@ -31,6 +31,8 @@ use sp_runtime::DispatchError;
 
 use pallet_xyk as xyk;
 
+type AssetPair = AssetPairT<<Test as Config>::AssetId>;
+
 fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
 	ext.execute_with(|| System::set_block_number(1));
@@ -61,7 +63,12 @@ fn expect_events(e: Vec<TestEvent>) {
 
 fn generate_intention_id(account: &<Test as system::Config>::AccountId, c: u32) -> crate::IntentionId<Test> {
 	let b = <system::Pallet<Test>>::current_block_number();
-	(c, &account, b, DOT, ETH).using_encoded(<Test as system::Config>::Hashing::hash)
+	let asset_pair = AssetPair{
+		asset_in: DOT,
+		asset_out: ETH,
+	};
+	let ordered_pair = asset_pair.ordered_pair();
+	(c, &account, b, ordered_pair.0, ordered_pair.1).using_encoded(<Test as system::Config>::Hashing::hash)
 }
 
 /// HELPER FOR INITIALIZING POOLS
@@ -82,10 +89,11 @@ fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: P
 
 	expect_event(xyk::Event::PoolCreated(user, asset_a, asset_b, shares));
 
-	let pair_account = XYKPallet::get_pair_id(AssetPair {
+	let asset_pair = AssetPair {
 		asset_in: asset_a,
 		asset_out: asset_b,
-	});
+	};
+	let pair_account = XYKPallet::get_pair_id(asset_pair);
 	let share_token = XYKPallet::share_token(pair_account);
 
 	let amount_b = price.saturating_mul_int(amount);
@@ -114,14 +122,15 @@ fn no_intentions_should_work() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -132,7 +141,7 @@ fn no_intentions_should_work() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100_000_000_000_000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200_000_000_000_000);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 	});
 }
 
@@ -147,10 +156,11 @@ fn sell_test_pool_finalization_states() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -176,7 +186,7 @@ fn sell_test_pool_finalization_states() {
 
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 2);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 2);
 
 		// Balance should not change yet
 		assert_eq!(Currency::free_balance(asset_a, &user_2), ENDOWED_AMOUNT);
@@ -261,7 +271,7 @@ fn sell_test_pool_finalization_states() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 101000000000000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 198029703089109);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 	});
 }
 
@@ -276,10 +286,11 @@ fn sell_test_standard() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -304,7 +315,7 @@ fn sell_test_standard() {
 
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 2);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 2);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -322,7 +333,7 @@ fn sell_test_standard() {
 
 		// TODO: check if final transferred balances add up to initial balance
 		// No tokens should be created or lost
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -396,10 +407,11 @@ fn sell_test_inverse_standard() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -425,7 +437,7 @@ fn sell_test_inverse_standard() {
 
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 2);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 2);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -444,7 +456,7 @@ fn sell_test_inverse_standard() {
 		// TODO: check if final transferred balances add up to initial balance
 		// No tokens should be created or lost
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -518,10 +530,11 @@ fn sell_test_exact_match() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -547,7 +560,7 @@ fn sell_test_exact_match() {
 
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 2);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 2);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -563,7 +576,7 @@ fn sell_test_exact_match() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100002000000000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200004000000000);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -628,10 +641,11 @@ fn sell_test_single_eth_sells() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -655,7 +669,7 @@ fn sell_test_single_eth_sells() {
 
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 2);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 2);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -671,7 +685,7 @@ fn sell_test_single_eth_sells() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 103_000_000_000_000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 194_186_331_772_320);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -743,10 +757,11 @@ fn sell_test_single_dot_sells() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -771,7 +786,7 @@ fn sell_test_single_dot_sells() {
 
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 2);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 2);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -787,7 +802,7 @@ fn sell_test_single_dot_sells() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 98525113417549);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 203_000_000_000_000);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 		expect_events(vec![
 			Event::IntentionRegistered(
 				user_2,
@@ -1050,10 +1065,11 @@ fn sell_test_single_multiple_sells() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -1103,7 +1119,7 @@ fn sell_test_single_multiple_sells() {
 		));
 		let user_6_sell_intention_id = generate_intention_id(&user_6, 4);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 5);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 5);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -1122,7 +1138,7 @@ fn sell_test_single_multiple_sells() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100001522538342);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200012965025920);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -1281,10 +1297,11 @@ fn sell_test_group_sells() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -1316,7 +1333,7 @@ fn sell_test_group_sells() {
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 3);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 3);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -1335,7 +1352,7 @@ fn sell_test_group_sells() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 106008000000000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 188717835635046);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -1513,10 +1530,11 @@ fn sell_test_mixed_buy_sells() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -1548,7 +1566,7 @@ fn sell_test_mixed_buy_sells() {
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 3);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 3);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -1566,7 +1584,7 @@ fn sell_test_mixed_buy_sells() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 111533622551048);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 179369096891330);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -1678,10 +1696,11 @@ fn discount_tests_no_discount() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -1713,7 +1732,7 @@ fn discount_tests_no_discount() {
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 3);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 3);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -1732,7 +1751,7 @@ fn discount_tests_no_discount() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 111533622551048);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 179369096891330);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -1844,10 +1863,11 @@ fn discount_tests_with_discount() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 		initialize_pool(asset_a, HDX, user_2, pool_amount, initial_price);
@@ -1881,7 +1901,7 @@ fn discount_tests_with_discount() {
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 3);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 3);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -1904,7 +1924,7 @@ fn discount_tests_with_discount() {
 		assert_eq!(Currency::free_balance(HDX, &user_2), 99799995765116332);
 		assert_eq!(Currency::free_balance(HDX, &user_3), 99_800000000000000);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -2014,10 +2034,11 @@ fn buy_test_exact_match() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2040,7 +2061,7 @@ fn buy_test_exact_match() {
 		));
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 2);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 2);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -2056,7 +2077,7 @@ fn buy_test_exact_match() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100002000000000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200004000000000);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -2123,10 +2144,11 @@ fn buy_test_group_buys() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2158,7 +2180,7 @@ fn buy_test_group_buys() {
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 3);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 3);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -2177,7 +2199,7 @@ fn buy_test_group_buys() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 93808909744163);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 213258648648649);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -2289,10 +2311,11 @@ fn discount_tests_with_error() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2324,7 +2347,7 @@ fn discount_tests_with_error() {
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 3);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 3);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -2347,7 +2370,7 @@ fn discount_tests_with_error() {
 		assert_eq!(Currency::free_balance(HDX, &user_2), ENDOWED_AMOUNT);
 		assert_eq!(Currency::free_balance(HDX, &user_3), ENDOWED_AMOUNT);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -2437,10 +2460,11 @@ fn simple_sell_sell() {
 		let pool_amount = 100_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2528,10 +2552,11 @@ fn simple_buy_buy() {
 		let pool_amount = 100_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2619,10 +2644,11 @@ fn simple_sell_buy() {
 		let pool_amount = 100_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2711,10 +2737,11 @@ fn simple_buy_sell() {
 		let pool_amount = 100_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2802,10 +2829,11 @@ fn single_sell_intention_test() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2819,7 +2847,7 @@ fn single_sell_intention_test() {
 		));
 		let user_2_sell_intention_id = generate_intention_id(&user_2, 0);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 1);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 1);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -2832,7 +2860,7 @@ fn single_sell_intention_test() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 102000000000000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 196086274509804);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -2867,10 +2895,11 @@ fn single_buy_intention_test() {
 		let pool_amount = 100_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -2885,7 +2914,7 @@ fn single_buy_intention_test() {
 
 		let user_2_sell_intention_id = generate_intention_id(&user_2, 0);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 1);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 1);
 
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
@@ -2898,7 +2927,7 @@ fn single_buy_intention_test() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 98000000000000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 204089795918368);
 
-		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
+		assert_eq!(Exchange::get_intentions_count(asset_pair.ordered_pair()), 0);
 
 		expect_events(vec![
 			Event::IntentionRegistered(
@@ -2934,10 +2963,11 @@ fn simple_sell_sell_with_error_should_not_pass() {
 		let pool_amount = 100_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3042,10 +3072,11 @@ fn matching_limits_buy_buy_should_work() {
 		let pool_amount = 1000 * one;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3168,10 +3199,11 @@ fn matching_limits_sell_buy_should_work() {
 		let pool_amount = 1000 * one;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3294,10 +3326,11 @@ fn exact_match_limit_should_work() {
 		let pool_amount = 1000 * one;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3405,10 +3438,11 @@ fn matching_limit_scenario_2() {
 		let pool_amount = 1000 * one;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3534,10 +3568,11 @@ fn matching_limit_scenario_3() {
 		let pool_amount = 1000 * one;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3662,10 +3697,11 @@ fn process_invalid_intention_should_work() {
 		let pool_amount = 1000 * one;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
 
@@ -3707,10 +3743,11 @@ fn main_intention_greater_than_matched_should_work() {
 		let pool_amount = 1_000_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3770,10 +3807,11 @@ fn in_out_calculations_error_should_work() {
 		let pool_amount = 1_000_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3867,10 +3905,11 @@ fn revert_invalid_direct_trades_should_work() {
 		let pool_amount = 1_000_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -3999,10 +4038,11 @@ fn invalid_transfers_in_resolver_should_not_work() {
 		let pool_amount = 1_000_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 
@@ -4062,10 +4102,11 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 		let pool_amount = 1_000_000_000_000_000;
 		let initial_price = Price::from(2);
 
-		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		let asset_pair = AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
-		});
+		};
+		let pair_account = XYKPallet::get_pair_id(asset_pair);
 
 		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
 

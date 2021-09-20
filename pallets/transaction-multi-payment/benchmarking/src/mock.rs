@@ -119,6 +119,8 @@ impl pallet_transaction_multi_payment::Config for Test {
 	type Currency = Balances;
 	type MultiCurrency = Currencies;
 	type AMMPool = XYKPallet;
+	type AssetId = AssetId;
+	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;
 	type WeightToFee = IdentityFee<Balance>;
@@ -176,6 +178,7 @@ impl pallet_xyk::Config for Test {
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currencies;
+	type AssetId = AssetId;
 	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;

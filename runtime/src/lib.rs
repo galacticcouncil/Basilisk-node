@@ -339,6 +339,8 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type Currency = Balances;
 	type MultiCurrency = Currencies;
 	type AMMPool = XYK;
+	type AssetId = AssetId;
+	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
@@ -414,6 +416,7 @@ impl pallet_xyk::Config for Runtime {
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
 	type Currency = Currencies;
+	type AssetId = AssetId;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
@@ -424,6 +427,7 @@ impl pallet_exchange::Config for Runtime {
 	type AMMPool = XYK;
 	type Resolver = Exchange;
 	type Currency = Currencies;
+	type AssetId = AssetId;
 	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
 }
 

@@ -153,6 +153,7 @@ impl Config for Test {
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
+	type AssetId = AssetId;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;

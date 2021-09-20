@@ -142,6 +142,7 @@ impl xyk::Config for Test {
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
+	type AssetId = AssetId;
 	type NativeAssetId = HDXAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
@@ -152,6 +153,7 @@ impl Config for Test {
 	type AMMPool = XYK;
 	type Currency = Currency;
 	type Resolver = exchange::Pallet<Test>;
+	type AssetId = AssetId;
 	type WeightInfo = ();
 }
 

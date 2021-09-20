@@ -24,6 +24,8 @@ use pallet_asset_registry::AssetType;
 use primitives::traits::AMM as AmmPool;
 use sp_std::convert::TryInto;
 
+type AssetPair = AssetPairT<<Test as Config>::AssetId>;
+
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
 	ext.execute_with(|| System::set_block_number(1));

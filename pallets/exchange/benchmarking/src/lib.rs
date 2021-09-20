@@ -55,12 +55,14 @@ pub struct Pallet<T: Config>(Exchange<T>);
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 
-	<T as xykpool::Config>::Currency::update_balance(1, &caller, 1_000_000_000_000_000).unwrap();
+	<T as xykpool::Config>::Currency::update_balance(1.into(), &caller, 1_000_000_000_000_000).unwrap();
 
-	<T as xykpool::Config>::Currency::update_balance(2, &caller, 1_000_000_000_000_000).unwrap();
+	<T as xykpool::Config>::Currency::update_balance(2.into(), &caller, 1_000_000_000_000_000).unwrap();
 
 	caller
 }
+
+pub type ExchangeAssetId<T> = <T as pallet_exchange::Config>::AssetId;
 
 fn initialize_pool<T: Config>(
 	caller: T::AccountId,
@@ -69,7 +71,7 @@ fn initialize_pool<T: Config>(
 	amount: Balance,
 	price: Price,
 ) -> dispatch::DispatchResultWithPostInfo {
-	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, asset_b, amount, price)?;
+	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a.into(), asset_b.into(), amount, price)?;
 
 	Ok(().into())
 }
@@ -89,8 +91,8 @@ fn feed_intentions<T: Config>(
 		let user = funded_account::<T>("user", idx + 2);
 		pallet_exchange::Pallet::<T>::sell(
 			RawOrigin::Signed(user.clone()).into(),
-			asset_a,
-			asset_b,
+			asset_a.into(),
+			asset_b.into(),
 			amounts[idx as usize] as u128,
 			SELL_INTENTION_LIMIT,
 			false,
@@ -99,8 +101,8 @@ fn feed_intentions<T: Config>(
 		let buyer = funded_account::<T>("user", idx + number + 1);
 		pallet_exchange::Pallet::<T>::buy(
 			RawOrigin::Signed(buyer.clone()).into(),
-			asset_a,
-			asset_b,
+			asset_a.into(),
+			asset_b.into(),
 			amounts[idx as usize] as u128,
 			amounts[idx as usize] as u128 * 2u128,
 			false,
@@ -119,13 +121,13 @@ fn validate_finalize<T: Config>(
 	for idx in 0..number / 2 {
 		let user: T::AccountId = account("user", idx + 2, SEED);
 		assert_eq!(
-			<T as xykpool::Config>::Currency::free_balance(asset_a, &user),
+			<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &user),
 			INITIAL_ASSET_BALANCE - amounts[idx as usize] as u128
 		);
 
 		let buyer: T::AccountId = account("user", idx + number + 1, SEED);
 		assert_eq!(
-			<T as xykpool::Config>::Currency::free_balance(asset_a, &buyer),
+			<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &buyer),
 			INITIAL_ASSET_BALANCE + amounts[idx as usize] as u128
 		);
 	}
@@ -154,11 +156,11 @@ benchmarks! {
 
 		feed_intentions::<T>(asset_a, asset_b, nbr_intentions_appended, &INTENTION_AMOUNTS)?;
 
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), nbr_intentions_appended);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), nbr_intentions_appended);
 
-	}: {  Exchange::<T>::sell(RawOrigin::Signed(caller.clone()).into(), asset_a, asset_b, amount ,limit, false)? }
+	}: {  Exchange::<T>::sell(RawOrigin::Signed(caller.clone()).into(), ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b), amount ,limit, false)? }
 	verify{
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), nbr_intentions_appended + 1);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), nbr_intentions_appended + 1);
 	}
 
 	buy_intention {
@@ -175,11 +177,11 @@ benchmarks! {
 
 		feed_intentions::<T>(asset_a, asset_b, nbr_intentions_appended, &INTENTION_AMOUNTS)?;
 
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), nbr_intentions_appended);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), nbr_intentions_appended);
 
-	}: {  Exchange::<T>::buy(RawOrigin::Signed(caller.clone()).into(), asset_a, asset_b, amount / 10 ,limit, false)? }
+	}: {  Exchange::<T>::buy(RawOrigin::Signed(caller.clone()).into(), ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b), amount / 10 ,limit, false)? }
 	verify{
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), nbr_intentions_appended + 1);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), nbr_intentions_appended + 1);
 	}
 
 	on_finalize {
@@ -199,11 +201,11 @@ benchmarks! {
 
 		feed_intentions::<T>(asset_a, asset_b, t, &INTENTION_AMOUNTS)?;
 
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), t);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), t);
 
 	}: {  Exchange::<T>::on_finalize(t.into()); }
 	verify {
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), 0);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
 		validate_finalize::<T>(asset_a, asset_b, t, &INTENTION_AMOUNTS)?;
 	}
 
@@ -221,22 +223,22 @@ benchmarks! {
 			let user = funded_account::<T>("user", idx + 100);
 			pallet_exchange::Pallet::<T>::buy(
 				RawOrigin::Signed(user.clone()).into(),
-				asset_a,
-				asset_b,
+				asset_a.into(),
+				asset_b.into(),
 				BUY_INTENTION_AMOUNT,
 				BUY_INTENTION_LIMIT,
 				false,
 			)?;
 		}
 
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), t);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), t);
 
 	}: {  Exchange::<T>::on_finalize(t.into()); }
 	verify {
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), 0);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
 		for idx in 0..t  {
 			let user: T::AccountId = account("user", idx + 100, SEED);
-			assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a, &user), INITIAL_ASSET_BALANCE + SELL_INTENTION_AMOUNT);
+			assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &user), INITIAL_ASSET_BALANCE + SELL_INTENTION_AMOUNT);
 		}
 	}
 
@@ -254,22 +256,22 @@ benchmarks! {
 			let user = funded_account::<T>("user", idx + 100);
 			pallet_exchange::Pallet::<T>::sell(
 				RawOrigin::Signed(user.clone()).into(),
-				asset_a,
-				asset_b,
+				asset_a.into(),
+				asset_b.into(),
 				SELL_INTENTION_AMOUNT,
 				SELL_INTENTION_LIMIT,
 				false,
 			)?;
 		}
 
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), t);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), t);
 
 	}: {  Exchange::<T>::on_finalize(t.into()); }
 	verify {
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), 0);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
 		for idx in 0..t  {
 			let user: T::AccountId = account("user", idx + 100, SEED);
-			assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a, &user), INITIAL_ASSET_BALANCE - SELL_INTENTION_AMOUNT);
+			assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &user), INITIAL_ASSET_BALANCE - SELL_INTENTION_AMOUNT);
 		}
 	}
 
@@ -285,10 +287,10 @@ benchmarks! {
 
 		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
 
-	}: { xykpool::Pallet::<T>::sell(RawOrigin::Signed(seller.clone()).into(), asset_a, asset_b, 1_000_000_000, min_bought, false)?; }
+	}: { xykpool::Pallet::<T>::sell(RawOrigin::Signed(seller.clone()).into(), asset_a.into(), asset_b.into(), 1_000_000_000, min_bought, false)?; }
 	verify {
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a, &seller), 999_999_000_000_000);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b, &seller), 1000000907272728);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &seller), 999_999_000_000_000);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &seller), 1000000907272728);
 	}
 
 	on_finalize_for_one_sell_extrinsic {
@@ -304,20 +306,20 @@ benchmarks! {
 
 		pallet_exchange::Pallet::<T>::sell(
 			RawOrigin::Signed(seller.clone()).into(),
-			asset_a,
-			asset_b,
+			asset_a.into(),
+			asset_b.into(),
 			SELL_INTENTION_AMOUNT,
 			SELL_INTENTION_LIMIT,
 			false,
 		)?;
 
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), 1);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 1);
 
 	}: {  Exchange::<T>::on_finalize(1u32.into()); }
 	verify {
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), 0);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a, &seller), 999_999_000_000_000);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b, &seller), 1000000907272728);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &seller), 999_999_000_000_000);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &seller), 1000000907272728);
 	}
 
 	buy_extrinsic {
@@ -332,10 +334,10 @@ benchmarks! {
 
 		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
 
-	}: { xykpool::Pallet::<T>::buy(RawOrigin::Signed(buyer.clone()).into(), asset_a, asset_b, 1_000_000_000, max_sold, false)?; }
+	}: { xykpool::Pallet::<T>::buy(RawOrigin::Signed(buyer.clone()).into(), asset_a.into(), asset_b.into(), 1_000_000_000, max_sold, false)?; }
 	verify {
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a, &buyer), 1000001000000000);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b, &buyer), 999998886666666);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &buyer), 1000001000000000);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &buyer), 999998886666666);
 	}
 
 	on_finalize_for_one_buy_extrinsic {
@@ -354,20 +356,20 @@ benchmarks! {
 
 		pallet_exchange::Pallet::<T>::buy(
 			RawOrigin::Signed(buyer.clone()).into(),
-			asset_a,
-			asset_b,
+			asset_a.into(),
+			asset_b.into(),
 			1_000_000_000,
 			max_sold,
 			false,
 		)?;
 
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), 1);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 1);
 
 	}: {  Exchange::<T>::on_finalize(t.into()); }
 	verify {
-		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), 0);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a, &buyer), 1000001000000000);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b, &buyer), 999998886666666);
+		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &buyer), 1000001000000000);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &buyer), 999998886666666);
 	}
 }
 
