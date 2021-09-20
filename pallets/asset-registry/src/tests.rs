@@ -59,7 +59,7 @@ fn register_asset_works() {
 		);
 
 		assert_noop!(
-			AssetRegistryPallet::register(Origin::root(), name.clone(), AssetType::Token, ed),
+			AssetRegistryPallet::register(Origin::root(), name, AssetType::Token, ed),
 			Error::<Test>::AssetAlreadyRegistered
 		);
 	});

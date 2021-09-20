@@ -9,7 +9,7 @@ use sp_runtime::FixedPointNumber;
 #[test]
 fn full_block_cost() {
 	let max_bytes = *BlockLength::get().max.get(DispatchClass::Normal) as u128;
-	let length_fee = max_bytes * &TransactionByteFee::get();
+	let length_fee = max_bytes * TransactionByteFee::get();
 	assert_eq!(length_fee, 39_321_600_000_000_000);
 
 	let max_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap_or(1);
@@ -59,7 +59,7 @@ fn transfer_cost() {
 
 fn run_with_system_weight<F>(w: Weight, mut assertions: F)
 where
-	F: FnMut() -> (),
+	F: FnMut(),
 {
 	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
 		.build_storage::<Runtime>()

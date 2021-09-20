@@ -55,6 +55,7 @@ pub use sp_runtime::{FixedPointNumber, Perbill, Percent, Permill, Perquintill};
 
 use primitives::fee;
 
+#[allow(clippy::all)]
 mod weights;
 mod xcm;
 
@@ -186,6 +187,7 @@ pub fn native_version() -> NativeVersion {
 pub struct BaseFilter;
 impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
+		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::XYK(_) => false,
 			Call::NFT(_) => false,
@@ -583,7 +585,7 @@ parameter_types! {
 	// Bond for candidacy into governance
 	pub const CandidacyBond: Balance = 10_000 * DOLLARS;
 	// 1 storage item created, key size is 32 bytes, value size is 16+16.
-	pub const VotingBondBase: Balance = 1 * DOLLARS;
+	pub const VotingBondBase: Balance = DOLLARS;
 	// additional data per vote is 32 bytes (account id).
 	pub const VotingBondFactor: Balance = 50 * CENTS;
 	pub const TermDuration: BlockNumber = 7 * DAYS;
@@ -1071,7 +1073,7 @@ impl_runtime_apis! {
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
-			return (list, storage_info)
+			(list, storage_info)
 		}
 
 		fn dispatch_benchmark(
@@ -1147,7 +1149,7 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 		.create_inherent_data()
 		.expect("Could not create the timestamp inherent data");
 
-		inherent_data.check_extrinsics(&block)
+		inherent_data.check_extrinsics(block)
 	}
 }
 
