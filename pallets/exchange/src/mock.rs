@@ -204,9 +204,9 @@ impl ExtBuilder {
 				.iter()
 				.flat_map(|x| {
 					vec![
-						(x.clone(), HDX, token_amount),
-						(x.clone(), ETH, token_amount),
-						(x.clone(), DOT, token_amount),
+						(*x, HDX, token_amount),
+						(*x, ETH, token_amount),
+						(*x, DOT, token_amount),
 					]
 				})
 				.collect(),

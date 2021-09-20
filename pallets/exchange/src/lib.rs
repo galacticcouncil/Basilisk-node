@@ -380,7 +380,7 @@ impl<T: Config> Pallet<T> {
 		let mut to_skip: usize = 0;
 
 		for intention in a_in_intentions {
-			if !Self::verify_intention(&intention) {
+			if !Self::verify_intention(intention) {
 				continue;
 			}
 
@@ -403,7 +403,7 @@ impl<T: Config> Pallet<T> {
 			// we skip those
 			to_skip += matched_intentions.len();
 
-			T::Resolver::resolve_matched_intentions(pair_account, &intention, &matched_intentions);
+			T::Resolver::resolve_matched_intentions(pair_account, intention, &matched_intentions);
 		}
 
 		// If something left in b_in_intentions, just run it through AMM.

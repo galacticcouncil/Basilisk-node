@@ -3808,10 +3808,8 @@ fn in_out_calculations_error_should_work() {
 		};
 
 		let maybe_error = std::panic::catch_unwind(|| {
-			let mut intentions_a = Vec::<Intention<Test>>::new();
-			intentions_a.push(main_intention);
-			let mut intentions_b = Vec::<Intention<Test>>::new();
-			intentions_b.push(matched_intention);
+			let mut intentions_a = vec![main_intention];
+			let mut intentions_b = vec![matched_intention];
 
 			Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b)
 		});
@@ -3847,10 +3845,8 @@ fn in_out_calculations_error_should_work() {
 		};
 
 		let maybe_error = std::panic::catch_unwind(|| {
-			let mut intentions_a = Vec::<Intention<Test>>::new();
-			intentions_a.push(main_intention);
-			let mut intentions_b = Vec::<Intention<Test>>::new();
-			intentions_b.push(matched_intention);
+			let mut intentions_a = vec![main_intention];
+			let mut intentions_b = vec![matched_intention];
 
 			Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b)
 		});
@@ -3906,8 +3902,7 @@ fn revert_invalid_direct_trades_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<&Intention<Test>>::new();
-		intentions_b.push(&matched_intention);
+		let intentions_b = vec![&matched_intention];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
 
@@ -3940,8 +3935,7 @@ fn revert_invalid_direct_trades_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<&Intention<Test>>::new();
-		intentions_b.push(&matched_intention);
+		let intentions_b = vec![&matched_intention];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
 
@@ -3974,8 +3968,7 @@ fn revert_invalid_direct_trades_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<&Intention<Test>>::new();
-		intentions_b.push(&matched_intention);
+		let intentions_b = vec![&matched_intention];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
 
@@ -4037,8 +4030,7 @@ fn invalid_transfers_in_resolver_should_not_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<&Intention<Test>>::new();
-		intentions_b.push(&matched_intention);
+		let intentions_b = vec![&matched_intention];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
 
@@ -4100,8 +4092,7 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<&Intention<Test>>::new();
-		intentions_b.push(&matched_intention_1);
+		let intentions_b = vec![&matched_intention_1];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_1, &intentions_b);
 
@@ -4149,8 +4140,7 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<&Intention<Test>>::new();
-		intentions_b.push(&matched_intention_3);
+		let intentions_b = vec![&matched_intention_3];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_3, &intentions_b);
 
@@ -4168,8 +4158,7 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<&Intention<Test>>::new();
-		intentions_b.push(&matched_intention_4);
+		let intentions_b = vec![&matched_intention_4];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_3, &intentions_b);
 
@@ -4193,7 +4182,7 @@ fn correct_matching() {
 		let asset_a = HDX;
 		let asset_b = DOT;
 		let pool_amount = 139_637_976_727_557;
-		let initial_price = Price::from_float(0.072057594037927936);
+		let initial_price = Price::from_float(0.072_057_594_037_927_94);
 
 		initialize_pool(asset_b, asset_a, user_1, pool_amount, initial_price);
 
@@ -4236,7 +4225,7 @@ fn trade_limit_test() {
 			let asset_a = HDX;
 			let asset_b = DOT;
 			let pool_amount = 139637976727557;
-			let initial_price = Price::from_float(4722.438541558899802112);
+			let initial_price = Price::from_float(4_722.438_541_558_899_5);
 
 			initialize_pool(asset_b, asset_a, user_1, pool_amount, initial_price);
 
