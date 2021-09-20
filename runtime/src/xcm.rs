@@ -58,18 +58,9 @@ match_type! {
 	pub type JustTheParent: impl Contains<MultiLocation> = { X1(Parent) };
 }
 
-//TODO: investigate this Trader part further << let's resolve this
-pub fn ksm_per_second() -> u128 {
-	let base_weight = Balance::from(ExtrinsicBaseWeight::get());
-	let base_tx_per_second = (WEIGHT_PER_SECOND as u128) / base_weight;
-	base_tx_per_second / 100
-}
-
 parameter_types! {
-	// One XCM operation is 1_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = 400_000_000;
-
-	pub KsmPerSecond: (MultiLocation, u128) = (X1(Parent), ksm_per_second());
+	/// The amount of weight an XCM operation takes. This is a safe overestimate.
+	pub const BaseXcmWeight: Weight = 100_000_000;
 }
 
 pub struct TradePassthrough();
@@ -95,12 +86,11 @@ impl Config for XcmConfig {
 
 	type IsTeleporter = (); // disabled
 	type LocationInverter = LocationInverter<Ancestry>;
+
 	type Barrier = Barrier;
-
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
-
-	//type Trader = FixedRateOfConcreteFungible<KsmPerSecond, ()>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
 	type Trader = TradePassthrough;
+
 	type ResponseHandler = (); // Don't handle responses for now.
 }
 
@@ -121,10 +111,6 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-parameter_types! {
-		pub const BaseXcmWeight: Weight = 100_000_000;
-}
-
 impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -133,7 +119,7 @@ impl orml_xtokens::Config for Runtime {
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type SelfLocation = SelfLocation;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
 	type BaseXcmWeight = BaseXcmWeight;
 }
 
@@ -150,7 +136,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = ();
 	type XcmReserveTransferFilter = Nothing;
-	type Weigher = FixedWeightBounds<UnitWeightCost, Call>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
 	type LocationInverter = LocationInverter<Ancestry>;
 }
 
@@ -180,6 +166,7 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
+			MultiLocation::Null  => Some(NativeAssetId::get()),
 			X3(Parent, Parachain(id), GeneralKey(key)) if ParaId::from(id) == ParachainInfo::get() => {
 				// Handling native asset for this parachain
 				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {

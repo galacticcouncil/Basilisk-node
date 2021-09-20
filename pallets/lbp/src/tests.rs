@@ -322,11 +322,11 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.initial_weights, (20, 80));
 		assert_eq!(pool_data.final_weights, (90, 10));
 		assert_eq!(pool_data.weight_curve, WeightCurveType::Linear);
-		assert_eq!(pool_data.pausable, true);
+		assert!(pool_data.pausable);
 		// verify that `last_weight_update`, `last_weights` and `paused` fields are correctly initialized
 		assert_eq!(pool_data.last_weight_update, 0);
 		assert_eq!(pool_data.last_weights, (20, 80));
-		assert_eq!(pool_data.paused, false);
+		assert!(!pool_data.paused);
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_receiver, CHARLIE);
 
@@ -989,7 +989,7 @@ fn update_pool_interval_should_work() {
 		expect_events(vec![
 			Event::PoolCreated(
 			ACA_DOT_POOL_ID,
-			pool_data.clone(),
+			pool_data,
 			).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data).into(),
 		]);
@@ -1524,7 +1524,7 @@ fn remove_liquidity_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+		assert!(!<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID));
 
 		expect_events(vec![
 			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
@@ -1566,7 +1566,7 @@ fn remove_liquidity_from_paused_pool_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+		assert!(!<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID));
 
 
 		expect_events(vec![
@@ -1606,7 +1606,7 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+		assert!(!<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID));
 
 		expect_events(vec![
 			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
@@ -1662,7 +1662,7 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		assert_eq!(<PoolData<Test>>::contains_key(HDX_DOT_POOL_ID), false);
+		assert!(!<PoolData<Test>>::contains_key(HDX_DOT_POOL_ID));
 
 		expect_events(vec![
 			frame_system::Event::KilledAccount(HDX_DOT_POOL_ID).into(),
@@ -1741,7 +1741,7 @@ fn remove_liquidity_from_finalized_pool_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		assert_eq!(<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID), false);
+		assert!(!<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID));
 
 		expect_events(vec![
 			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
@@ -2618,9 +2618,9 @@ fn amm_trait_should_work() {
 			asset_out: HDX,
 		};
 
-		assert_eq!(LBPPallet::exists(asset_pair), true);
-		assert_eq!(LBPPallet::exists(reversed_asset_pair), true);
-		assert_eq!(LBPPallet::exists(non_existing_asset_pair), false);
+		assert!(LBPPallet::exists(asset_pair));
+		assert!(LBPPallet::exists(reversed_asset_pair));
+		assert!(!LBPPallet::exists(non_existing_asset_pair));
 
 		assert_eq!(LBPPallet::get_pair_id(asset_pair), ACA_DOT_POOL_ID);
 		assert_eq!(LBPPallet::get_pair_id(reversed_asset_pair), ACA_DOT_POOL_ID);

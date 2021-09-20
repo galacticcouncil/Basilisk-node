@@ -113,7 +113,7 @@ pub trait Resolver<AccountId, Intention, E> {
 
 	/// Resolve intentions by either directly trading with each other or via AMM pool.
 	/// Intention ```intention``` must be validated prior to call this function.
-	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[Intention]);
+	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[&Intention]);
 }
 
 pub trait Registry<AssetId, AssetName, Balance, Error> {
@@ -133,9 +133,9 @@ pub trait Registry<AssetId, AssetName, Balance, Error> {
 }
 
 pub trait ShareTokenRegistry<AssetId, AssetName, Balance, Error>: Registry<AssetId, AssetName, Balance, Error> {
-	fn retrieve_shared_asset(name: &AssetName, assets: &Vec<AssetId>) -> Result<AssetId, Error>;
+	fn retrieve_shared_asset(name: &AssetName, assets: &[AssetId]) -> Result<AssetId, Error>;
 
-	fn create_shared_asset(name: &AssetName, assets: &Vec<AssetId>, existential_deposit: Balance) -> Result<AssetId, Error>;
+	fn create_shared_asset(name: &AssetName, assets: &[AssetId], existential_deposit: Balance) -> Result<AssetId, Error>;
 
 	fn get_or_create_shared_asset(name: AssetName, assets: Vec<AssetId>, existential_deposit: Balance) -> Result<AssetId, Error> {
 		if let Ok(asset_id) = Self::retrieve_shared_asset(&name, &assets) {

@@ -224,14 +224,17 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 		self.send_direct_trade_resolve_event();
 
 		for transfer in &self.transfers {
-			T::Currency::repatriate_reserved(
+			if T::Currency::repatriate_reserved(
 				transfer.asset,
 				transfer.from,
 				transfer.to,
 				transfer.amount,
 				BalanceStatus::Free,
 			)
-			.expect("Cannot fail. Checks should have been done prior to this.");
+			.is_err()
+			{
+				return false;
+			}
 
 			if transfer.fee_transfer {
 				let intention = if transfer.from == &self.intention_a.who {
