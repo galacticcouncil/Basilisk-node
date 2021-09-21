@@ -2,8 +2,9 @@ use frame_support::{assert_noop, assert_ok};
 
 use super::*;
 use mock::*;
+use pallet_uniques as UNQ;
 
-type NFTModule = Pallet<Test>;
+type NFTPallet = Pallet<Test>;
 
 macro_rules! bvec {
 	($( $x:tt )*) => {
@@ -14,19 +15,24 @@ macro_rules! bvec {
 #[test]
 fn create_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTModule::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
+
+		assert_noop!(
+			NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]),
+			UNQ::Error::<Test>::InUse		
+		);
 	})
 }
 
 #[test]
 fn mint_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTModule::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
-		assert_ok!(NFTModule::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, ALICE, 10, bvec![0]));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, ALICE, 10, bvec![0]));
 
 		assert_noop!(
-			NFTModule::mint(Origin::signed(CHARLIE), CLASS_ID, 999, BOB, 10, bvec![0]),
-			pallet_uniques::Error::<Test>::NoPermission
+			NFTPallet::mint(Origin::signed(CHARLIE), CLASS_ID, 999, BOB, 10, bvec![0]),
+			UNQ::Error::<Test>::NoPermission
 		);
 	});
 }
@@ -34,14 +40,14 @@ fn mint_works() {
 #[test]
 fn transfer_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTModule::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
-		assert_ok!(NFTModule::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, ALICE, 10, bvec![0]));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, ALICE, 10, bvec![0]));
 
-		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, BOB));
+		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, BOB));
 
 		assert_noop!(
-			NFTModule::transfer(Origin::signed(CHARLIE), CLASS_ID, TOKEN_ID, ALICE),
-			pallet_uniques::Error::<Test>::NoPermission
+			NFTPallet::transfer(Origin::signed(CHARLIE), CLASS_ID, TOKEN_ID, ALICE),
+			UNQ::Error::<Test>::NoPermission
 		);
 	});
 }
@@ -49,26 +55,26 @@ fn transfer_works() {
 #[test]
 fn burn_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTModule::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
-		assert_ok!(NFTModule::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, ALICE, 10, bvec![0]));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, ALICE, 10, bvec![0]));
 
 		assert_noop!(
-			NFTModule::burn(Origin::signed(BOB), CLASS_ID, TOKEN_ID, Some(ALICE)),
-			pallet_uniques::Error::<Test>::NoPermission
+			NFTPallet::burn(Origin::signed(BOB), CLASS_ID, TOKEN_ID, Some(ALICE)),
+			UNQ::Error::<Test>::NoPermission
 		);
 
-		assert_ok!(NFTModule::burn(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, Some(ALICE)));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, Some(ALICE)));
 	});
 }
 
 #[test]
 fn destroy_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTModule::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ALICE, bvec![0]));
 
 		/* Currently there is no public constructor for DestroyWitness struct
 		assert_noop!(
-			NFTModule::destroy_class(
+			NFTPallet::destroy_class(
 				Origin::signed(ALICE),
 				CLASS_ID,
 				DestroyWitness {
@@ -77,10 +83,10 @@ fn destroy_class_works() {
 					attributes: 3,
 				}
 				),
-				pallet_uniques::Error::<Test>::BadWitness
+				UNQ::Error::<Test>::BadWitness
 		);
 
-		assert_ok!(NFTModule::destroy_class(
+		assert_ok!(NFTPallet::destroy_class(
 			Origin::signed(ALICE),
 			CLASS_ID,
 			DestroyWitness {
@@ -89,7 +95,7 @@ fn destroy_class_works() {
 				attributes: 0
 			}
 		));
-		let event = Event::Uniques(pallet_uniques::Event::Destroyed(CLASS_ID));
+		let event = Event::Uniques(UNQ::Event::Destroyed(CLASS_ID));
 		assert_eq!(last_event(), event);
 		*/
 	});

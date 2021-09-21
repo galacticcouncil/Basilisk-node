@@ -1,4 +1,5 @@
 #![cfg(feature = "runtime-benchmarks")]
+#![allow(clippy::useless_conversion)]
 
 use super::*;
 
@@ -41,7 +42,7 @@ benchmarks! {
 
 	}: _(RawOrigin::Signed(caller.clone()), Default::default(), 0u16.into(), Some(1u32.into()))
 	verify {
-
+		assert_eq!(Marketplace::<T>::token_prices(T::ClassId::from(Default::default()), T::InstanceId::from(0u16.into())), Some(1u32.into()))
 	}
 
 	buy {
@@ -53,7 +54,7 @@ benchmarks! {
 
 	}: _(RawOrigin::Signed(caller2.clone()), caller, Default::default(), 0u16.into())
 	verify {
-
+		assert_eq!(pallet_uniques::Pallet::<T>::owner(T::ClassId::from(Default::default()), T::InstanceId::from(0u16.into())), Some(caller2))
 	}
 }
 
