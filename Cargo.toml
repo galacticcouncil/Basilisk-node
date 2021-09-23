@@ -10,5 +10,6 @@ members = [
   'pallets/xyk',
   'pallets/exchange',
   'pallets/marketplace',
+  'pallets/auctions',
   'pallets/asset-registry',
 ]

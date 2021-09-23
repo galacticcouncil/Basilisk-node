@@ -4,7 +4,7 @@
 
 use frame_support::{
 	dispatch::DispatchResult,
-	traits::{Currency, ReservableCurrency},
+	traits::{tokens::nonfungibles::Inspect, Currency, ReservableCurrency},
 	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
@@ -167,6 +167,9 @@ pub mod pallet {
 		) -> DispatchResult {
 			ensure_signed(origin.clone())?;
 
+			let is_transferrable = pallet_uniques::Pallet::<T>::can_transfer(&class_id, &instance_id);
+			ensure!(is_transferrable, Error::<T>::TokenFrozen);
+
 			InstanceCount::<T>::try_mutate(class_id, |id| -> DispatchResult {
 				*id = id.checked_sub(One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
 				Ok(())
@@ -228,5 +231,7 @@ pub mod pallet {
 		NotInRange,
 		/// Count of instances overflown
 		NoAvailableInstanceId,
+		/// Token is frozen from transfers
+		TokenFrozen,
 	}
 }

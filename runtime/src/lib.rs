@@ -116,7 +116,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 17,
+	spec_version: 18,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -830,6 +830,15 @@ impl pallet_uniques::Config for Runtime {
 	type WeightInfo = ();
 }
 
+impl pallet_auctions::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AuctionId = u64;
+	type Currency = Balances;
+	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Runtime>;
+	type CurrencyBalance = Balance;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -885,6 +894,7 @@ construct_runtime!(
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage},
+		Auctions: pallet_auctions::{Pallet, Call, Storage, Event<T>},
 
 		// TEMPORARY
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
@@ -1078,6 +1088,8 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_duster, Duster);
+			list_benchmark!(list, extra, pallet_auctions, Auctions);
+
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
@@ -1133,6 +1145,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_duster, Duster);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
+			add_benchmark!(params, batches, pallet_auctions, Auctions);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
