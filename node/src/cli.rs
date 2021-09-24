@@ -1,6 +1,72 @@
 use crate::chain_spec;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use std::{fmt, str::FromStr};
+
+#[derive(Debug, Clone)]
+pub struct RuntimeInstanceError(String);
+
+impl fmt::Display for RuntimeInstanceError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		let RuntimeInstanceError(message) = self;
+        write!(f, "RuntimeInstanceError: {}", message)
+    }
+}
+
+#[derive(Debug, StructOpt)]
+pub enum RuntimeInstance {
+	Basilisk,
+	Testing,
+}
+
+impl RuntimeInstance {
+	fn variants() -> [&'static str; 2] {
+        ["basilisk", "testing"]
+    }
+
+	pub fn is_testing_runtime(&self) -> bool {
+		match self {
+			Self::Basilisk => false,
+			Self::Testing => true,
+		}
+	}
+}
+
+impl fmt::Display for RuntimeInstance {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+			Self::Basilisk => write!(f, "basilisk"),
+			Self::Testing => write!(f, "testing"),
+		}
+    }
+}
+
+impl Default for RuntimeInstance {
+	fn default() -> Self { RuntimeInstance::Basilisk }
+}
+
+impl FromStr for RuntimeInstance {
+	type Err = RuntimeInstanceError;
+
+	fn from_str(input: &str) -> Result<Self, Self::Err> {
+		let input_lower = input.to_lowercase();
+		match input_lower.as_str() {
+			"testing" => Ok( RuntimeInstance::Testing ),
+			"basilisk" | "" => Ok( RuntimeInstance::Basilisk ),
+			other => Err(RuntimeInstanceError( format!("Invalid variant: `{}`", other)))
+		}
+	}
+}
+
+#[derive(Debug, StructOpt)]
+pub struct RunCmd {
+	#[structopt(flatten)]
+	pub base: cumulus_client_cli::RunCmd,
+
+	/// Specify the runtime used by the node.
+	#[structopt(default_value, long, possible_values = &RuntimeInstance::variants(), case_insensitive = true)]
+	pub runtime: RuntimeInstance,
+}
 
 #[derive(Debug, StructOpt)]
 #[structopt(settings = &[
@@ -13,7 +79,7 @@ pub struct Cli {
 	pub subcommand: Option<Subcommand>,
 
 	#[structopt(flatten)]
-	pub run: cumulus_client_cli::RunCmd,
+	pub run: RunCmd,
 
 	/// Relaychain arguments
 	#[structopt(raw = true)]

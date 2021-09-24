@@ -35,9 +35,6 @@ pub type BlockNumber = u32;
 /// Type used for expressing timestamp.
 pub type Moment = u64;
 
-/// Core asset id
-pub const CORE_ASSET_ID: AssetId = 0;
-
 /// Type for storing the id of an asset.
 pub type AssetId = u32;
 
@@ -49,18 +46,6 @@ pub type Amount = i128;
 
 /// Price
 pub type Price = FixedU128;
-
-/// Max fraction of pool to buy in single transaction
-pub const MAX_OUT_RATIO: u128 = 3;
-
-/// Max fraction of pool to sell in single transaction
-pub const MAX_IN_RATIO: u128 = 3;
-
-/// Trading limit
-pub const MIN_TRADING_LIMIT: Balance = 1000;
-
-/// Minimum pool liquidity
-pub const MIN_POOL_LIQUIDITY: Balance = 1000;
 
 /// Scaled Unsigned of Balance
 pub type HighPrecisionBalance = U256;

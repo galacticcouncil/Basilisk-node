@@ -1,5 +1,5 @@
 [package]
-name = "basilisk-runtime"
+name = "testing-basilisk-runtime"
 version = "16.0.0"
 authors = ["GalacticCouncil"]
 edition = "2018"
@@ -26,18 +26,18 @@ trie-db = { version = "0.22.6", default-features = false }
 smallvec = "1.6.1"
 
 # local dependencies
-pallet-transaction-multi-payment = { path = "../pallets/transaction-multi-payment", default-features = false}
-pallet-multi-payment-benchmarking = { path = "../pallets/transaction-multi-payment/benchmarking", optional = true, default-features = false}
-pallet-exchange = { path = "../pallets/exchange", default-features=false}
-pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
-pallet-asset-registry = { path = "../pallets/asset-registry",default-features = false}
-pallet-xyk = { path = "../pallets/xyk",default-features = false}
-pallet-duster= { path = "../pallets/duster",default-features = false}
-pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
-pallet-nft = { path = "../pallets/nft", default-features = false }
-pallet-lbp = { path = "../pallets/lbp", default-features = false }
-
-primitives = { default-features = false, path = "../primitives" }
+primitives = { default-features = false, path = "../../primitives" }
+common-runtime = { path = '../common', default-features = false }
+pallet-transaction-multi-payment = { path = "../../pallets/transaction-multi-payment", default-features = false}
+pallet-multi-payment-benchmarking = { path = "../../pallets/transaction-multi-payment/benchmarking", optional = true, default-features = false}
+pallet-exchange = { path = "../../pallets/exchange", default-features=false}
+pallet-exchange-benchmarking = { path = "../../pallets/exchange/benchmarking", optional = true, default-features = false}
+pallet-asset-registry = { path = "../../pallets/asset-registry",default-features = false}
+pallet-xyk = { path = "../../pallets/xyk",default-features = false}
+pallet-duster= { path = "../../pallets/duster",default-features = false}
+pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",default-features = false}
+pallet-nft = { path = "../../pallets/nft", default-features = false }
+pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", default-features = false }

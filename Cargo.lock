@@ -474,6 +474,7 @@ name = "basilisk"
 version = "3.2.0"
 dependencies = [
  "basilisk-runtime",
+ "common-runtime",
  "cumulus-client-cli",
  "cumulus-client-collator",
  "cumulus-client-consensus-aura",
@@ -485,12 +486,16 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "frame-system-rpc-runtime-api",
  "hex-literal",
  "hydra-dx-build-script-utils",
  "jsonrpc-core",
  "log",
+ "pallet-grandpa",
  "pallet-transaction-payment-rpc",
+ "pallet-transaction-payment-rpc-runtime-api",
  "pallet-xyk-rpc",
+ "pallet-xyk-rpc-runtime-api",
  "parity-scale-codec 2.2.0",
  "polkadot-cli",
  "polkadot-parachain",
@@ -517,10 +522,12 @@ dependencies = [
  "serde",
  "serde_json",
  "sp-api",
+ "sp-authority-discovery",
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-aura",
+ "sp-consensus-babe",
  "sp-core",
  "sp-finality-grandpa",
  "sp-inherents",
@@ -528,18 +535,21 @@ dependencies = [
  "sp-offchain",
  "sp-runtime",
  "sp-session",
+ "sp-storage",
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",
  "structopt",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
+ "testing-basilisk-runtime",
 ]
 
 [[package]]
 name = "basilisk-runtime"
 version = "16.0.0"
 dependencies = [
+ "common-runtime",
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
@@ -1316,6 +1326,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
 dependencies = [
  "bitflags",
+]
+
+[[package]]
+name = "common-runtime"
+version = "16.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-transaction-payment",
+ "parity-scale-codec 2.2.0",
+ "primitives",
+ "sp-core",
+ "sp-npos-elections",
+ "sp-runtime",
+ "substrate-wasm-builder",
 ]
 
 [[package]]
@@ -5614,6 +5639,7 @@ dependencies = [
 name = "pallet-exchange"
 version = "4.1.0"
 dependencies = [
+ "common-runtime",
  "frame-support",
  "frame-system",
  "orml-tokens",
@@ -5744,6 +5770,7 @@ dependencies = [
 name = "pallet-lbp"
 version = "1.0.0"
 dependencies = [
+ "common-runtime",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -6127,6 +6154,7 @@ dependencies = [
 name = "pallet-transaction-multi-payment"
 version = "4.1.0"
 dependencies = [
+ "common-runtime",
  "frame-support",
  "frame-system",
  "orml-currencies",
@@ -6258,6 +6286,7 @@ dependencies = [
 name = "pallet-xyk"
 version = "1.4.0"
 dependencies = [
+ "common-runtime",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -11083,6 +11112,95 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dfed899f0eb03f32ee8c6a0aabdb8a7949659e3466561fc0adf54e26d88c5f4"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "testing-basilisk-runtime"
+version = "16.0.0"
+dependencies = [
+ "common-runtime",
+ "cumulus-pallet-aura-ext",
+ "cumulus-pallet-dmp-queue",
+ "cumulus-pallet-parachain-system",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-timestamp",
+ "cumulus-primitives-utility",
+ "frame-benchmarking",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "frame-system-rpc-runtime-api",
+ "getrandom 0.2.3",
+ "hash-db",
+ "hex-literal",
+ "memory-db",
+ "orml-currencies",
+ "orml-nft",
+ "orml-tokens",
+ "orml-traits",
+ "orml-unknown-tokens",
+ "orml-vesting",
+ "orml-xcm-support",
+ "orml-xtokens",
+ "pallet-asset-registry",
+ "pallet-aura",
+ "pallet-authorship",
+ "pallet-balances",
+ "pallet-collator-selection",
+ "pallet-collective",
+ "pallet-democracy",
+ "pallet-duster",
+ "pallet-elections-phragmen",
+ "pallet-exchange",
+ "pallet-exchange-benchmarking",
+ "pallet-lbp",
+ "pallet-multi-payment-benchmarking",
+ "pallet-nft",
+ "pallet-scheduler",
+ "pallet-session",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-tips",
+ "pallet-transaction-multi-payment",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-treasury",
+ "pallet-utility",
+ "pallet-xcm",
+ "pallet-xyk",
+ "pallet-xyk-rpc-runtime-api",
+ "parachain-info",
+ "parity-scale-codec 2.2.0",
+ "polkadot-parachain",
+ "primitives",
+ "serde",
+ "smallvec 1.6.1",
+ "sp-api",
+ "sp-block-builder",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-externalities",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-staking",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-trie",
+ "sp-version",
+ "substrate-build-script-utils",
+ "substrate-wasm-builder",
+ "tracing-core",
+ "trie-db",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
 ]
 
 [[package]]

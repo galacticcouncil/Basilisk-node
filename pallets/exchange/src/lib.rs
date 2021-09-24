@@ -31,13 +31,12 @@ use sp_std::vec::Vec;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::{
 	asset::AssetPair,
-	traits::{Resolver, AMM},
-	Amount, AssetId, Balance, ExchangeIntention, IntentionType, MIN_TRADING_LIMIT,
+	traits::{Resolver, AMM, AMMTransfer},
+	Amount, AssetId, Balance, ExchangeIntention, IntentionType
 };
-
+use common_runtime::MIN_TRADING_LIMIT;
 use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
-use primitives::traits::AMMTransfer;
 
 use frame_support::sp_runtime::traits::BlockNumberProvider;
 use frame_support::sp_runtime::traits::Hash;

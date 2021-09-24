@@ -23,8 +23,10 @@ use primitives::traits::{AMMTransfer, AMM};
 use primitives::{
 	asset::AssetPair,
 	fee::{Fee, WithFee},
-	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
+	Amount, AssetId, Balance
 };
+use common_runtime::{MAX_IN_RATIO, MAX_OUT_RATIO};
+
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
