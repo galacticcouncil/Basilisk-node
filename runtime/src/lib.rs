@@ -330,7 +330,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for Runtime {
-	type OnChargeTransaction = MultiCurrencyAdapter<Currencies, (), MultiTransactionPayment>;
+	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), MultiTransactionPayment>;
 	type TransactionByteFee = TransactionByteFee;
 	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
@@ -338,7 +338,8 @@ impl pallet_transaction_payment::Config for Runtime {
 
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
-	type Currencies =  Currencies;
+	type AcceptedCurrencyOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type Currencies = Currencies;
 	type AMMPool = XYK;
 	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;

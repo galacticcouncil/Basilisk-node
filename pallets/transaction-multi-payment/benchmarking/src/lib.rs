@@ -20,7 +20,6 @@
 mod mock;
 
 use sp_std::prelude::*;
-use sp_std::vec;
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
@@ -71,8 +70,7 @@ benchmarks! {
 	swap_currency {
 		let maker = funded_account::<T>("maker", 1);
 		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
-		MultiPaymentModule::<T>::add_new_member(&maker);
-		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID, Price::from(10))?;
+		MultiPaymentModule::<T>::add_currency(RawOrigin::Root.into(), ASSET_ID, Price::from(10))?;
 
 		let caller = funded_account::<T>("caller", 2);
 		MultiPaymentModule::<T>::set_currency(RawOrigin::Signed(caller.clone()).into(), ASSET_ID)?;
@@ -87,8 +85,7 @@ benchmarks! {
 	set_currency {
 		let maker = funded_account::<T>("maker", 1);
 		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
-		MultiPaymentModule::<T>::add_new_member(&maker);
-		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(maker).into(), ASSET_ID, Price::from(10))?;
+		MultiPaymentModule::<T>::add_currency(RawOrigin::Root.into(), ASSET_ID, Price::from(10))?;
 
 		let caller = funded_account::<T>("caller", 123);
 
@@ -100,41 +97,21 @@ benchmarks! {
 	}
 
 	add_currency {
-		let caller = funded_account::<T>("maker", 1);
-		MultiPaymentModule::<T>::add_new_member(&caller);
-
 		let price = Price::from(10);
 
-	}: { MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(caller.clone()).into(), 10, price)? }
+	}: { MultiPaymentModule::<T>::add_currency(RawOrigin::Root.into(), 10, price)? }
 	verify {
 		assert_eq!(MultiPaymentModule::<T>::currencies(10), Some(price));
 	}
 
 	remove_currency {
-		let caller = funded_account::<T>("maker", 1);
-		MultiPaymentModule::<T>::add_new_member(&caller);
-		MultiPaymentModule::<T>::add_currency(RawOrigin::Signed(caller.clone()).into(), 10, Price::from(2))?;
+		MultiPaymentModule::<T>::add_currency(RawOrigin::Root.into(), 10, Price::from(2))?;
 
 		assert_eq!(MultiPaymentModule::<T>::currencies(10), Some(Price::from(2)));
 
-	}: { MultiPaymentModule::<T>::remove_currency(RawOrigin::Signed(caller.clone()).into(), 10)? }
+	}: { MultiPaymentModule::<T>::remove_currency(RawOrigin::Root.into(), 10)? }
 	verify {
 		assert_eq!(MultiPaymentModule::<T>::currencies(10), None)
-	}
-
-	add_member{
-		let member = funded_account::<T>("newmember", 10);
-	}: { MultiPaymentModule::<T>::add_member(RawOrigin::Root.into(), member.clone())? }
-	verify {
-		assert_eq!(MultiPaymentModule::<T>::authorities(), vec![member]);
-	}
-
-	remove_member{
-		let member = funded_account::<T>("newmember", 10);
-		MultiPaymentModule::<T>::add_new_member(&member);
-	}: { MultiPaymentModule::<T>::remove_member(RawOrigin::Root.into(), member.clone())? }
-	verify {
-		assert_eq!(MultiPaymentModule::<T>::authorities(), vec![]);
 	}
 }
 
@@ -151,8 +128,6 @@ mod tests {
 			assert_ok!(Pallet::<Test>::test_benchmark_set_currency());
 			assert_ok!(Pallet::<Test>::test_benchmark_add_currency());
 			assert_ok!(Pallet::<Test>::test_benchmark_remove_currency());
-			assert_ok!(Pallet::<Test>::test_benchmark_add_member());
-			assert_ok!(Pallet::<Test>::test_benchmark_remove_member());
 		});
 	}
 }
