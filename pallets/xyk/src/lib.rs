@@ -166,6 +166,9 @@ pub mod pallet {
 		MaxOutRatioExceeded,
 		/// Max fraction of pool to sell in single transaction has been exceeded.
 		MaxInRatioExceeded,
+
+		/// Overflow
+		Overflow,
 	}
 
 	#[pallet::event]
@@ -630,7 +633,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 
 		ensure!(
-			amount <= asset_in_reserve / MAX_IN_RATIO,
+			amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxInRatioExceeded
 		);
 
@@ -753,7 +756,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
 
 		ensure!(
-			amount <= asset_out_reserve / MAX_OUT_RATIO,
+			amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxOutRatioExceeded
 		);
 

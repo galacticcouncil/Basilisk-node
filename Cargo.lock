@@ -3314,9 +3314,9 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "3.3.0"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d3e888afffec5ef6e72c083fbfbc188a85f652155dbdbad68374e36e6dc551a"
+checksum = "992b2f7cab8392a1ec26e7e48a8882137f66634839bd09f4669e5f50e40eaa47"
 dependencies = [
  "fixed",
  "lazy_static",
