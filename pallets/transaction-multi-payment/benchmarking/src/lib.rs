@@ -69,7 +69,7 @@ fn initialize_pool<T: Config>(
 benchmarks! {
 	swap_currency {
 		let maker = funded_account::<T>("maker", 1);
-		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
+		initialize_pool::<T>(maker, ASSET_ID, 1_000_000_000_000, Price::from(1))?;
 		MultiPaymentModule::<T>::add_currency(RawOrigin::Root.into(), ASSET_ID, Price::from(10))?;
 
 		let caller = funded_account::<T>("caller", 2);
@@ -84,7 +84,7 @@ benchmarks! {
 
 	set_currency {
 		let maker = funded_account::<T>("maker", 1);
-		initialize_pool::<T>(maker.clone(), ASSET_ID, 1_000_000_000_000, Price::from(1))?;
+		initialize_pool::<T>(maker, ASSET_ID, 1_000_000_000_000, Price::from(1))?;
 		MultiPaymentModule::<T>::add_currency(RawOrigin::Root.into(), ASSET_ID, Price::from(10))?;
 
 		let caller = funded_account::<T>("caller", 123);
