@@ -116,8 +116,7 @@ impl Config for Test {}
 
 impl pallet_transaction_multi_payment::Config for Test {
 	type Event = Event;
-	type Currency = Balances;
-	type MultiCurrency = Currencies;
+	type Currencies = Currencies;
 	type AMMPool = XYKPallet;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;

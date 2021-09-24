@@ -47,12 +47,12 @@ const HDX: u32 = 0;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId
 where
-	T::MultiCurrency: MultiCurrencyExtended<T::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>,
+	T::Currencies: MultiCurrencyExtended<T::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>,
 {
 	let caller: T::AccountId = account(name, index, SEED);
 
-	T::MultiCurrency::update_balance(ASSET_ID, &caller, 10_000_000_000_000).unwrap();
-	T::MultiCurrency::update_balance(HDX, &caller, 10_000_000_000_000).unwrap();
+	T::Currencies::update_balance(ASSET_ID, &caller, 10_000_000_000_000).unwrap();
+	T::Currencies::update_balance(HDX, &caller, 10_000_000_000_000).unwrap();
 
 	caller
 }
@@ -81,7 +81,7 @@ benchmarks! {
 	verify{
 		assert_eq!(MultiPaymentModule::<T>::get_currency(&caller), Some(ASSET_ID));
 		#[cfg(test)]
-		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID, &caller), 9999689661666);
+		assert_eq!(T::Currencies::free_balance(ASSET_ID, &caller), 9999689661666);
 	}
 
 	set_currency {

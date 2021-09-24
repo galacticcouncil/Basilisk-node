@@ -147,8 +147,7 @@ impl system::Config for Test {
 
 impl Config for Test {
 	type Event = Event;
-	type Currency = Balances;
-	type MultiCurrency = Currencies;
+	type Currencies = Currencies;
 	type AMMPool = XYKPallet;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;

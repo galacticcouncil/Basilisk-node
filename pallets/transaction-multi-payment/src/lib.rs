@@ -81,12 +81,13 @@ pub mod pallet {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
-		/// The currency type in which fees will be paid.
-		type Currency: Currency<Self::AccountId> + Send + Sync;
-
 		/// Multi Currency
-		type MultiCurrency: MultiCurrency<Self::AccountId>
-			+ MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>;
+		type Currencies: MultiCurrencyExtended<
+			Self::AccountId,
+			CurrencyId = AssetId,
+			Balance = Balance,
+			Amount = Amount,
+		>;
 
 		/// AMM pool to swap for native currency
 		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
@@ -229,7 +230,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			if currency == CORE_ASSET_ID || AcceptedCurrencies::<T>::contains_key(&currency) {
-				if T::MultiCurrency::free_balance(currency, &who) == Balance::zero() {
+				if T::Currencies::free_balance(currency, &who) == Balance::zero() {
 					return Err(Error::<T>::ZeroBalance.into());
 				}
 
@@ -384,9 +385,7 @@ impl<T: Config> Pallet<T> {
 		let result = Self::swap(who, fee)?;
 		match result {
 			PaymentSwapResult::Transferred => Ok(()),
-			PaymentSwapResult::Native | PaymentSwapResult::Swapped => {
-				T::MultiCurrency::withdraw(CORE_ASSET_ID, who, fee)
-			}
+			PaymentSwapResult::Native | PaymentSwapResult::Swapped => T::Currencies::withdraw(CORE_ASSET_ID, who, fee),
 		}
 	}
 
@@ -398,7 +397,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn check_balance(account: &T::AccountId, currency: AssetId) -> Result<(), Error<T>> {
-		if T::MultiCurrency::free_balance(currency, account) == Balance::zero() {
+		if T::Currencies::free_balance(currency, account) == Balance::zero() {
 			return Err(Error::<T>::ZeroBalance);
 		};
 		Ok(())
@@ -427,7 +426,7 @@ impl<T: Config> CurrencySwap<<T as frame_system::Config>::AccountId, Balance> fo
 
 					let amount = price.checked_mul_int(fee).ok_or(Error::<T>::Overflow)?;
 
-					T::MultiCurrency::transfer(currency, who, &Self::fallback_account(), amount)?;
+					T::Currencies::transfer(currency, who, &Self::fallback_account(), amount)?;
 
 					Ok(PaymentSwapResult::Transferred)
 				}
