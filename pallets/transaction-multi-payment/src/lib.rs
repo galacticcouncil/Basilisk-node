@@ -235,7 +235,7 @@ pub mod pallet {
 		/// Emits `CurrencyAdded` event when successful.
 		#[pallet::weight((<T as Config>::WeightInfo::add_currency(), DispatchClass::Normal, Pays::No))]
 		pub fn add_currency(origin: OriginFor<T>, currency: AssetId, price: Price) -> DispatchResultWithPostInfo {
-			T::AcceptedCurrencyOrigin::ensure_origin(origin.clone())?;
+			T::AcceptedCurrencyOrigin::ensure_origin(origin)?;
 
 			ensure!(currency != CORE_ASSET_ID, Error::<T>::CoreAssetNotAllowed);
 
@@ -258,7 +258,7 @@ pub mod pallet {
 		/// Emits `CurrencyRemoved` when successful.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_currency(), DispatchClass::Normal, Pays::No))]
 		pub fn remove_currency(origin: OriginFor<T>, currency: AssetId) -> DispatchResultWithPostInfo {
-			T::AcceptedCurrencyOrigin::ensure_origin(origin.clone())?;
+			T::AcceptedCurrencyOrigin::ensure_origin(origin)?;
 
 			ensure!(currency != CORE_ASSET_ID, Error::<T>::CoreAssetNotAllowed);
 
