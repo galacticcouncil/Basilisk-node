@@ -116,8 +116,8 @@ impl Config for Test {}
 
 impl pallet_transaction_multi_payment::Config for Test {
 	type Event = Event;
-	type Currency = Balances;
-	type MultiCurrency = Currencies;
+	type AcceptedCurrencyOrigin = frame_system::EnsureRoot<u64>;
+	type Currencies = Currencies;
 	type AMMPool = XYKPallet;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;
@@ -254,7 +254,6 @@ impl ExtBuilder {
 
 		pallet_transaction_multi_payment::GenesisConfig::<Test> {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: 1000,
 		}
 		.assimilate_storage(&mut t)
