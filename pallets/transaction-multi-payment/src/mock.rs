@@ -148,8 +148,8 @@ impl system::Config for Test {
 
 impl Config for Test {
 	type Event = Event;
-	type Currency = Balances;
-	type MultiCurrency = Currencies;
+	type AcceptedCurrencyOrigin = frame_system::EnsureRoot<u64>;
+	type Currencies = Currencies;
 	type AMMPool = XYKPallet;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;
@@ -251,14 +251,12 @@ pub struct ExtBuilder {
 	base_weight: u64,
 	native_balances: Vec<(AccountId, Balance)>,
 	endowed_accounts: Vec<(AccountId, AssetId, Balance)>,
-	payment_authority: AccountId,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> Self {
 		Self {
 			base_weight: 0,
-			payment_authority: BOB,
 			native_balances: vec![(ALICE, INITIAL_BALANCE), (BOB, 0)],
 			endowed_accounts: vec![
 				(ALICE, HDX, INITIAL_BALANCE),
@@ -313,7 +311,6 @@ impl ExtBuilder {
 				(SUPPORTED_CURRENCY_NO_BALANCE, Price::from(1)),
 				(SUPPORTED_CURRENCY_WITH_BALANCE, Price::from_float(1.5)),
 			],
-			authorities: vec![self.payment_authority],
 			fallback_account: FALLBACK_ACCOUNT,
 		}
 		.assimilate_storage(&mut t)

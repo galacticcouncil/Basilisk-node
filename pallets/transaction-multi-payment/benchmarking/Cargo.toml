@@ -1,6 +1,6 @@
 [package]
 name = "pallet-multi-payment-benchmarking"
-version = "4.0.0"
+version = "5.0.0"
 description = "Transaction Payment Benchmarking Module"
 authors = ["GalacticCouncil"]
 edition = "2018"
