@@ -435,7 +435,7 @@ pub mod pallet {
 
 			// Account's liquidity left should be either 0 or at least MinPoolLiquidity
 			ensure!(
-				(account_shares.saturating_sub(liquidity_amount)) >= MIN_POOL_LIQUIDITY
+				(account_shares.saturating_sub(liquidity_amount)) >= T::MinPoolLiquidity::get()
 					|| (account_shares == liquidity_amount),
 				Error::<T>::InsufficientLiquidity
 			);
@@ -781,7 +781,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		ensure!(
 			amount
 				<= asset_out_reserve
-					.checked_div(MAX_OUT_RATIO)
+					.checked_div(T::MaxOutRatio::get())
 					.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxOutRatioExceeded
 		);
