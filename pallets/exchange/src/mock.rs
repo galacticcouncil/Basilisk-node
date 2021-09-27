@@ -30,9 +30,11 @@ use sp_runtime::{
 use pallet_xyk as xyk;
 
 use frame_support::traits::GenesisBuild;
+use frame_support::traits::Get;
 use frame_system::EnsureSigned;
 use pallet_xyk::AssetPairAccountIdFor;
 use primitives::{fee, AssetId, Balance};
+use std::cell::RefCell;
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -48,7 +50,16 @@ pub const HDX: AssetId = 1000;
 pub const DOT: AssetId = 2000;
 pub const ETH: AssetId = 3000;
 
-pub const ENDOWED_AMOUNT: u128 = 100_000_000_000_000_000;
+thread_local! {
+		static ENDOWED_AMOUNT: RefCell<u128> = RefCell::new( 100_000_000_000_000_000u128 );
+}
+
+pub struct EndowedAmount;
+impl Get<u128> for EndowedAmount {
+	fn get() -> u128 {
+		ENDOWED_AMOUNT.with(|v| *v.borrow())
+	}
+}
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -165,44 +176,40 @@ impl pallet_asset_registry::Config for Test {
 }
 
 pub struct ExtBuilder {
-	endowed_accounts: Vec<(AccountId, AssetId, Balance)>,
+	endowed_accounts: Vec<AccountId>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> Self {
 		Self {
-			endowed_accounts: vec![
-				(ALICE, HDX, ENDOWED_AMOUNT),
-				(BOB, HDX, ENDOWED_AMOUNT),
-				(CHARLIE, HDX, ENDOWED_AMOUNT),
-				(DAVE, HDX, ENDOWED_AMOUNT),
-				(FERDIE, HDX, ENDOWED_AMOUNT),
-				(GEORGE, HDX, ENDOWED_AMOUNT),
-				(ALICE, ETH, ENDOWED_AMOUNT),
-				(BOB, ETH, ENDOWED_AMOUNT),
-				(CHARLIE, ETH, ENDOWED_AMOUNT),
-				(DAVE, ETH, ENDOWED_AMOUNT),
-				(FERDIE, ETH, ENDOWED_AMOUNT),
-				(GEORGE, ETH, ENDOWED_AMOUNT),
-				(ALICE, DOT, ENDOWED_AMOUNT),
-				(BOB, DOT, ENDOWED_AMOUNT),
-				(CHARLIE, DOT, ENDOWED_AMOUNT),
-				(DAVE, DOT, ENDOWED_AMOUNT),
-				(FERDIE, DOT, ENDOWED_AMOUNT),
-				(GEORGE, DOT, ENDOWED_AMOUNT),
-			],
+			endowed_accounts: vec![ALICE, BOB, CHARLIE, FERDIE, DAVE, GEORGE],
 		}
 	}
 }
 
 impl ExtBuilder {
-	// builds genesis config
+	pub fn with_endowed_amount(self, value: u128) -> Self {
+		ENDOWED_AMOUNT.with(|v| *v.borrow_mut() = value);
+		self
+	}
 
 	pub fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
+		let token_amount: Balance = EndowedAmount::get();
+
 		orml_tokens::GenesisConfig::<Test> {
-			balances: self.endowed_accounts,
+			balances: self
+				.endowed_accounts
+				.iter()
+				.flat_map(|x| {
+					vec![
+						(*x, HDX, token_amount),
+						(*x, ETH, token_amount),
+						(*x, DOT, token_amount),
+					]
+				})
+				.collect(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
