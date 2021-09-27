@@ -287,6 +287,6 @@ use orml_traits::OnDust;
 
 impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
 	fn on_dust(who: &T::AccountId, currency_id: T::CurrencyId, amount: T::Balance) {
-		let _ = Self::transfer_dust(&who, &Self::dust_dest_account(), currency_id, amount);
+		let _ = Self::transfer_dust(who, &Self::dust_dest_account(), currency_id, amount);
 	}
 }

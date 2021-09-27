@@ -30,7 +30,7 @@ use sp_runtime::{
 
 use frame_system::EnsureSigned;
 use pallet_xyk::AssetPairAccountIdFor;
-use primitives::{fee, AssetId, Balance};
+use primitives::{fee, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -122,11 +122,9 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
-			let tmp = a;
-			a = b;
-			b = tmp;
+			std::mem::swap(&mut a, &mut b)
 		}
-		return (a * 1000 + b) as u64;
+		(a * 1000 + b) as u64
 	}
 }
 
@@ -141,6 +139,13 @@ impl pallet_asset_registry::Config for Test {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+}
+
 impl pallet_xyk::Config for Test {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
@@ -149,6 +154,10 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HDXAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 impl pallet_exchange::Config for Test {
@@ -169,24 +178,24 @@ impl Default for ExtBuilder {
 	fn default() -> Self {
 		Self {
 			endowed_accounts: vec![
-				(ALICE, HDX, 1000_000_000_000_000u128),
-				(BOB, HDX, 1000_000_000_000_000u128),
-				(CHARLIE, HDX, 1000_000_000_000_000u128),
-				(DAVE, HDX, 1000_000_000_000_000u128),
-				(FERDIE, HDX, 1000_000_000_000_000u128),
-				(GEORGE, HDX, 1000_000_000_000_000u128),
-				(ALICE, ETH, 1000_000_000_000_000u128),
-				(BOB, ETH, 1000_000_000_000_000u128),
-				(CHARLIE, ETH, 1000_000_000_000_000u128),
-				(DAVE, ETH, 1000_000_000_000_000u128),
-				(FERDIE, ETH, 1000_000_000_000_000u128),
-				(GEORGE, ETH, 1000_000_000_000_000u128),
-				(ALICE, DOT, 1000_000_000_000_000u128),
-				(BOB, DOT, 1000_000_000_000_000u128),
-				(CHARLIE, DOT, 1000_000_000_000_000u128),
-				(DAVE, DOT, 1000_000_000_000_000u128),
-				(FERDIE, DOT, 1000_000_000_000_000u128),
-				(GEORGE, DOT, 1000_000_000_000_000u128),
+				(ALICE, HDX, 1_000_000_000_000_000u128),
+				(BOB, HDX, 1_000_000_000_000_000u128),
+				(CHARLIE, HDX, 1_000_000_000_000_000u128),
+				(DAVE, HDX, 1_000_000_000_000_000u128),
+				(FERDIE, HDX, 1_000_000_000_000_000u128),
+				(GEORGE, HDX, 1_000_000_000_000_000u128),
+				(ALICE, ETH, 1_000_000_000_000_000u128),
+				(BOB, ETH, 1_000_000_000_000_000u128),
+				(CHARLIE, ETH, 1_000_000_000_000_000u128),
+				(DAVE, ETH, 1_000_000_000_000_000u128),
+				(FERDIE, ETH, 1_000_000_000_000_000u128),
+				(GEORGE, ETH, 1_000_000_000_000_000u128),
+				(ALICE, DOT, 1_000_000_000_000_000u128),
+				(BOB, DOT, 1_000_000_000_000_000u128),
+				(CHARLIE, DOT, 1_000_000_000_000_000u128),
+				(DAVE, DOT, 1_000_000_000_000_000u128),
+				(FERDIE, DOT, 1_000_000_000_000_000u128),
+				(GEORGE, DOT, 1_000_000_000_000_000u128),
 			],
 		}
 	}

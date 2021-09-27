@@ -70,7 +70,15 @@ fn create_pool_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000000);
 
-		expect_events(vec![Event::PoolCreated(ALICE, asset_a, asset_b, 100000000000000, share_token, pair_account).into()]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			asset_a,
+			asset_b,
+			100000000000000,
+			share_token,
+			pair_account,
+		)
+		.into()]);
 	});
 }
 
@@ -99,7 +107,15 @@ fn create_same_pool_should_not_work() {
 		});
 		let share_token = XYK::share_token(pair_account);
 
-		expect_events(vec![Event::PoolCreated(ALICE, asset_b, asset_a, 2000, share_token, pair_account).into()]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			asset_b,
+			asset_a,
+			2000,
+			share_token,
+			pair_account,
+		)
+		.into()]);
 	});
 }
 
@@ -362,7 +378,7 @@ fn remove_liquidity_from_reduced_pool_should_not_work() {
 
 		assert_noop!(
 			XYK::remove_liquidity(Origin::signed(user), asset_a, asset_b, 200_000_000),
-			Error::<Test>::InsufficientAssetBalance
+			Error::<Test>::InsufficientLiquidity
 		);
 
 		// return it back to the pool
@@ -382,7 +398,7 @@ fn remove_liquidity_from_reduced_pool_should_not_work() {
 
 		assert_noop!(
 			XYK::remove_liquidity(Origin::signed(user), asset_a, asset_b, 200_000_000),
-			Error::<Test>::InsufficientAssetBalance
+			Error::<Test>::InsufficientLiquidity
 		);
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -744,12 +760,12 @@ fn work_flow_happy_path_should_work() {
 #[test]
 fn sell_with_correct_fees_should_work() {
 	let accounts = vec![
-		(ALICE, HDX, 1000_000_000_000_000u128),
-		(BOB, HDX, 1000_000_000_000_000u128),
-		(ALICE, ACA, 1000_000_000_000_000u128),
-		(BOB, ACA, 1000_000_000_000_000u128),
-		(ALICE, DOT, 1000_000_000_000_000u128),
-		(BOB, DOT, 1000_000_000_000_000u128),
+		(ALICE, HDX, 1_000_000_000_000_000u128),
+		(BOB, HDX, 1_000_000_000_000_000u128),
+		(ALICE, ACA, 1_000_000_000_000_000u128),
+		(BOB, ACA, 1_000_000_000_000_000u128),
+		(ALICE, DOT, 1_000_000_000_000_000u128),
+		(BOB, DOT, 1_000_000_000_000_000u128),
 	];
 
 	let mut ext: sp_io::TestExternalities = ExtBuilder::default().with_accounts(accounts).build();
@@ -872,7 +888,8 @@ fn discount_sell_fees_should_work() {
 		assert_eq!(Currency::free_balance(HDX, &user_1), 989_980);
 
 		let name: Vec<u8> = vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0];
-		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> = name.try_into().unwrap();
+		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> =
+			name.try_into().unwrap();
 
 		let share_token = XYK::share_token(pair_account);
 		let share_token_native = XYK::share_token(native_pair_account);
@@ -1125,7 +1142,8 @@ fn single_buy_with_discount_should_work() {
 		assert_eq!(Currency::free_balance(HDX, &user_1), 999_899_552_000_008);
 
 		let name: Vec<u8> = vec![232, 3, 0, 0, 72, 68, 84, 184, 11, 0, 0];
-		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> = name.try_into().unwrap();
+		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> =
+			name.try_into().unwrap();
 
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, asset_b, 640_000_000_000, share_token, pair_account).into(),
@@ -1134,7 +1152,15 @@ fn single_buy_with_discount_should_work() {
 			orml_tokens::Event::Endowed(asset_a, 1003000, 50000000000).into(),
 			orml_tokens::Event::Endowed(1000, 1003000, 100000000000).into(),
 			orml_tokens::Event::Endowed(1, 1, 100000000000).into(),
-			Event::PoolCreated(user_1, asset_a, HDX, 100_000_000_000, share_token_native, native_pair_account).into(),
+			Event::PoolCreated(
+				user_1,
+				asset_a,
+				HDX,
+				100_000_000_000,
+				share_token_native,
+				native_pair_account,
+			)
+			.into(),
 			Event::BuyExecuted(
 				user_1,
 				asset_a,
@@ -1272,7 +1298,15 @@ fn create_pool_small_fixed_point_amount_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000000);
 
-		expect_events(vec![Event::PoolCreated(ALICE, asset_a, asset_b, 100000000000000, share_token, pair_account).into()]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			asset_a,
+			asset_b,
+			100000000000000,
+			share_token,
+			pair_account,
+		)
+		.into()]);
 	});
 }
 
@@ -1302,7 +1336,15 @@ fn create_pool_fixed_point_amount_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000);
 
-		expect_events(vec![Event::PoolCreated(ALICE, asset_a, asset_b, 100000000000, share_token, pair_account).into()]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			asset_a,
+			asset_b,
+			100000000000,
+			share_token,
+			pair_account,
+		)
+		.into()]);
 	});
 }
 
@@ -1329,7 +1371,7 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 		let pair_account = XYK::get_pair_id(asset_pair);
 		let share_token = XYK::share_token(pair_account);
 
-		assert_eq!(XYK::exists(asset_pair), true);
+		assert!(XYK::exists(asset_pair));
 
 		assert_ok!(XYK::remove_liquidity(
 			Origin::signed(user),
@@ -1340,7 +1382,7 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 
 		assert_eq!(XYK::total_liquidity(&pair_account), 0);
 
-		assert_eq!(XYK::exists(asset_pair), false);
+		assert!(!XYK::exists(asset_pair));
 
 		// It should be possible to recreate the pool again
 

@@ -2,9 +2,8 @@ use crate as lbp;
 use crate::{AssetPairPoolIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::GenesisBuild;
-use frame_system;
 use orml_traits::parameter_type_with_key;
-use primitives::{AssetId, Balance, CORE_ASSET_ID};
+use primitives::{AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -99,16 +98,18 @@ impl AssetPairPoolIdFor<AssetId, u64> for AssetPairPoolIdTest {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
-			let tmp = a;
-			a = b;
-			b = tmp;
+			std::mem::swap(&mut a, &mut b);
 		}
-		return (a * 1000 + b) as u64;
+		(a * 1000 + b) as u64
 	}
 }
 
 parameter_types! {
 	pub const NativeAssetId: AssetId = CORE_ASSET_ID;
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 }
 
 impl Config for Test {
@@ -119,6 +120,10 @@ impl Config for Test {
 	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type WeightInfo = ();
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 pub struct ExtBuilder {

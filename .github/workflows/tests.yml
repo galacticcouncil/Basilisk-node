@@ -84,6 +84,11 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
           default: true
+      - name: Install clippy
+        run: rustup component add clippy
+      - name: Run clippy
+        run: cargo clippy --release --all-targets --all-features -- -D warnings
+        
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage

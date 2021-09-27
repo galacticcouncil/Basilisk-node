@@ -27,7 +27,7 @@ use sp_runtime::{
 };
 
 use frame_support::traits::{GenesisBuild, Get};
-use primitives::{fee, AssetId, Balance};
+use primitives::{fee, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
 
 use frame_system::EnsureSigned;
 use std::cell::RefCell;
@@ -140,12 +140,17 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
-			let tmp = a;
-			a = b;
-			b = tmp;
+			std::mem::swap(&mut a, &mut b)
 		}
-		return (a * 1000 + b) as u64;
+		(a * 1000 + b) as u64
 	}
+}
+
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 }
 
 impl Config for Test {
@@ -156,6 +161,10 @@ impl Config for Test {
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 pub struct ExtBuilder {
@@ -167,12 +176,12 @@ impl Default for ExtBuilder {
 	fn default() -> Self {
 		Self {
 			endowed_accounts: vec![
-				(ALICE, HDX, 1000_000_000_000_000u128),
-				(BOB, HDX, 1000_000_000_000_000u128),
-				(ALICE, ACA, 1000_000_000_000_000u128),
-				(BOB, ACA, 1000_000_000_000_000u128),
-				(ALICE, DOT, 1000_000_000_000_000u128),
-				(BOB, DOT, 1000_000_000_000_000u128),
+				(ALICE, HDX, 1_000_000_000_000_000u128),
+				(BOB, HDX, 1_000_000_000_000_000u128),
+				(ALICE, ACA, 1_000_000_000_000_000u128),
+				(BOB, ACA, 1_000_000_000_000_000u128),
+				(ALICE, DOT, 1_000_000_000_000_000u128),
+				(BOB, DOT, 1_000_000_000_000_000u128),
 			],
 		}
 	}

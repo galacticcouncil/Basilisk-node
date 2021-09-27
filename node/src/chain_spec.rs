@@ -1,4 +1,5 @@
 #![allow(clippy::or_fun_call)]
+#![allow(clippy::too_many_arguments)]
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
@@ -209,7 +210,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
-				vec![].into(),
+				vec![],
 				vec![
 					(b"hKSM".to_vec(), 1_000u128),
 					(b"hDOT".to_vec(), 1_000u128),
@@ -535,7 +536,6 @@ fn parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
 		tokens: TokensConfig { balances: vec![] },
@@ -637,7 +637,6 @@ fn testnet_parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
 		tokens: TokensConfig {
