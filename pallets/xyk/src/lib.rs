@@ -265,7 +265,8 @@ pub mod pallet {
 
 			let token_name = asset_pair.name();
 
-			let share_token = T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], MIN_POOL_LIQUIDITY)?;
+			let share_token =
+				T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], MIN_POOL_LIQUIDITY)?;
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
@@ -277,7 +278,14 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, shares_added);
 
-			Self::deposit_event(Event::PoolCreated(who, asset_a, asset_b, shares_added, share_token, pair_account));
+			Self::deposit_event(Event::PoolCreated(
+				who,
+				asset_a,
+				asset_b,
+				shares_added,
+				share_token,
+				pair_account,
+			));
 
 			Ok(().into())
 		}
@@ -406,14 +414,14 @@ pub mod pallet {
 
 			let account_shares = T::Currency::free_balance(share_token, &who);
 
-			ensure!(total_shares >= liquidity_amount, Error::<T>::InsufficientAssetBalance);
+			ensure!(total_shares >= liquidity_amount, Error::<T>::InsufficientLiquidity);
 
 			ensure!(account_shares >= liquidity_amount, Error::<T>::InsufficientAssetBalance);
 
 			// Account's liquidity left should be either 0 or at least MIN_POOL_LIQUIDITY
 			ensure!(
-				(account_shares - liquidity_amount) >= MIN_POOL_LIQUIDITY
-					|| (account_shares - liquidity_amount).is_zero(),
+				(account_shares.saturating_sub(liquidity_amount)) >= MIN_POOL_LIQUIDITY
+					|| (account_shares == liquidity_amount),
 				Error::<T>::InsufficientLiquidity
 			);
 
@@ -455,6 +463,7 @@ pub mod pallet {
 			if liquidity_left == 0 {
 				<ShareToken<T>>::remove(&pair_account);
 				<PoolAssets<T>>::remove(&pair_account);
+				<TotalLiquidity<T>>::remove(&pair_account);
 
 				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b, share_token, pair_account));
 			}
@@ -565,8 +574,7 @@ impl<T: Config> Pallet<T> {
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
 impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
-		let pair_account = T::AssetPairAccountId::from_assets(assets.asset_in, assets.asset_out);
-		<ShareToken<T>>::contains_key(&pair_account)
+		<ShareToken<T>>::contains_key(&Self::get_pair_id(assets))
 	}
 
 	fn get_pair_id(assets: AssetPair) -> T::AccountId {
@@ -756,7 +764,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
 
 		ensure!(
-			amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+			amount
+				<= asset_out_reserve
+					.checked_div(MAX_OUT_RATIO)
+					.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxOutRatioExceeded
 		);
 

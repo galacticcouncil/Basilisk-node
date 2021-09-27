@@ -166,7 +166,7 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
-			MultiLocation::Null  => Some(NativeAssetId::get()),
+			MultiLocation::Null => Some(NativeAssetId::get()),
 			X3(Parent, Parachain(id), GeneralKey(key)) if ParaId::from(id) == ParachainInfo::get() => {
 				// Handling native asset for this parachain
 				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
