@@ -27,7 +27,7 @@ use sp_runtime::{
 };
 
 use frame_support::traits::{GenesisBuild, Get};
-use primitives::{fee, AssetId, Balance};
+use primitives::{fee, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
 
 use frame_system::EnsureSigned;
 use std::cell::RefCell;
@@ -146,6 +146,13 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 	}
 }
 
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+}
+
 impl Config for Test {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
@@ -154,6 +161,10 @@ impl Config for Test {
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 pub struct ExtBuilder {
