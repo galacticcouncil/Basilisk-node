@@ -201,7 +201,7 @@ Then open settings screen -> developer and paste
         "symbol":"Vec<u8>",
         "decimals":"u8"
       },
-      "AssettInstance": "AssetInstanceV0",
+      "AssetInstance": "AssetInstanceV0",
       "MultiLocation": "MultiLocationV0",
       "AssetNativeLocation": "MultiLocation",
       "MultiAsset": "MultiAssetV0",
