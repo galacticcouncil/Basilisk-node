@@ -195,8 +195,10 @@ Then open settings screen -> developer and paste
       "AssetDetails":{
         "name":"Vec<u8>",
         "asset_type":"AssetType",
+        "existential_deposit":"Balance",
         "locked":"bool"
       },
+      "AssetDetailsT": "AssetDetails",
       "AssetMetadata":{
         "symbol":"Vec<u8>",
         "decimals":"u8"
