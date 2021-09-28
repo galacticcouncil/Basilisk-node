@@ -36,7 +36,7 @@ use sp_version::RuntimeVersion;
 pub use frame_support::{
 	construct_runtime, match_type, parameter_types,
 	traits::{
-		Contains, EnsureOrigin, Get, KeyOwnerProofSystem, LockIdentifier, Nothing, Randomness, U128CurrencyToVote,
+		Contains, EnsureOrigin, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -364,7 +364,7 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = AssetRegistry;
 	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
-	type DustRemovalWhitelist = Nothing;
+	type DustRemovalWhitelist = Duster;
 }
 
 impl orml_currencies::Config for Runtime {

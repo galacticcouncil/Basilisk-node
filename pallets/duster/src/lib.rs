@@ -27,7 +27,7 @@ mod tests;
 mod benchmarking;
 pub mod weights;
 
-use frame_support::{dispatch::DispatchResult, traits::Get};
+use frame_support::{dispatch::DispatchResult, traits::Contains, traits::Get};
 
 use orml_traits::{
 	arithmetic::{Signed, SimpleArithmetic},
@@ -288,5 +288,11 @@ use orml_traits::OnDust;
 impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
 	fn on_dust(who: &T::AccountId, currency_id: T::CurrencyId, amount: T::Balance) {
 		let _ = Self::transfer_dust(who, &Self::dust_dest_account(), currency_id, amount);
+	}
+}
+
+impl<T: Config> Contains<T::AccountId> for Pallet<T> {
+	fn contains(t: &T::AccountId) -> bool {
+		AccountBlacklist::<T>::contains_key(t)
 	}
 }
