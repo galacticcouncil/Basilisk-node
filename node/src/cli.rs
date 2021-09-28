@@ -169,6 +169,10 @@ pub struct ExportGenesisStateCommand {
 	/// The name of the chain for that the genesis state should be exported.
 	#[structopt(long)]
 	pub chain: Option<String>,
+
+	/// Specify the runtime used by the node.
+	#[structopt(default_value, long, possible_values = &RuntimeInstance::variants(), case_insensitive = true)]
+	pub runtime: RuntimeInstance,
 }
 
 /// Command for exporting the genesis wasm file.
@@ -185,4 +189,8 @@ pub struct ExportGenesisWasmCommand {
 	/// The name of the chain for that the genesis wasm file should be exported.
 	#[structopt(long)]
 	pub chain: Option<String>,
+
+	/// Specify the runtime used by the node.
+	#[structopt(default_value, long, possible_values = &RuntimeInstance::variants(), case_insensitive = true)]
+	pub runtime: RuntimeInstance,
 }
