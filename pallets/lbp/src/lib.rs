@@ -7,7 +7,7 @@
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
-	traits::{AtLeast32BitUnsigned, Hash, Zero, Saturating},
+	traits::{AtLeast32BitUnsigned, Hash, Saturating, Zero},
 	DispatchError, RuntimeDebug,
 };
 use frame_support::{
@@ -77,7 +77,10 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub fee_receiver: AccountId,
 }
 
-fn get_sorted_assets(asset_a: LBPAssetInfo<Balance>, asset_b: LBPAssetInfo<Balance>) -> (LBPAssetInfo<Balance>, LBPAssetInfo<Balance>) {
+fn get_sorted_assets(
+	asset_a: LBPAssetInfo<Balance>,
+	asset_b: LBPAssetInfo<Balance>,
+) -> (LBPAssetInfo<Balance>, LBPAssetInfo<Balance>) {
 	if asset_a.id < asset_b.id {
 		(asset_a, asset_b)
 	} else {
@@ -412,7 +415,7 @@ pub mod pallet {
 				fee,
 				fee_receiver,
 			);
-			
+
 			Self::validate_pool_data(&pool_data)?;
 
 			let pool_id = Self::get_pair_id(asset_pair);
@@ -463,7 +466,7 @@ pub mod pallet {
 
 				let (start, end) = match duration {
 					Some((start, end)) => (Some(start), Some(end)),
-					_ => (None, None)
+					_ => (None, None),
 				};
 
 				ensure!(
@@ -784,7 +787,8 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		ensure!(
-			(pool_data.start.is_zero() && pool_data.end.is_zero()) || (now <= pool_data.start && pool_data.start < pool_data.end),
+			(pool_data.start.is_zero() && pool_data.end.is_zero())
+				|| (now <= pool_data.start && pool_data.start < pool_data.end),
 			Error::<T>::InvalidBlockNumber
 		);
 
@@ -804,10 +808,7 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::ZeroWeight
 		);
 
-		ensure!(
-			!pool_data.fee.denominator.is_zero(),
-			Error::<T>::FeeAmountInvalid
-		);
+		ensure!(!pool_data.fee.denominator.is_zero(), Error::<T>::FeeAmountInvalid);
 
 		Ok(())
 	}
