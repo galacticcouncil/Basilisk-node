@@ -485,6 +485,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "frame-try-runtime",
  "hex-literal",
  "hydra-dx-build-script-utils",
  "jsonrpc-core",
@@ -534,6 +535,7 @@ dependencies = [
  "structopt",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
+ "try-runtime-cli",
 ]
 
 [[package]]
@@ -555,6 +557,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",
@@ -5612,7 +5615,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "4.1.0"
+version = "4.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5742,7 +5745,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7858,7 +7861,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "4.2.0"
+version = "4.3.0"
 dependencies = [
  "frame-support",
  "frame-system",

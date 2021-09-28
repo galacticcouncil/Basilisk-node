@@ -63,7 +63,9 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
 
-pub use primitives::{Amount, AssetId, Balance, Moment, CORE_ASSET_ID};
+pub use primitives::{
+	Amount, AssetId, Balance, Moment, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+};
 
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
@@ -373,6 +375,10 @@ impl orml_currencies::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const DustingReward: u128 = 0;
+}
+
 impl pallet_duster::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -409,7 +415,11 @@ impl pallet_asset_registry::Config for Runtime {
 
 parameter_types! {
 	pub ExchangeFee: fee::Fee = fee::Fee::default();
-	pub RegistryStrLimit: u32 = 32;
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	pub const RegistryStrLimit: u32 = 32;
 }
 
 impl pallet_xyk::Config for Runtime {
@@ -420,6 +430,10 @@ impl pallet_xyk::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 impl pallet_exchange::Config for Runtime {
@@ -428,10 +442,6 @@ impl pallet_exchange::Config for Runtime {
 	type Resolver = Exchange;
 	type Currency = Currencies;
 	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
-}
-
-parameter_types! {
-	pub const DustingReward: u128 = 0;
 }
 
 parameter_types! {
@@ -445,6 +455,10 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 }
 
@@ -988,6 +1002,16 @@ impl_runtime_apis! {
 			ParachainSystem::collect_collation_info()
 		}
 	}
+
+		#[cfg(feature = "try-runtime")]
+	impl frame_try_runtime::TryRuntime<Block> for Runtime {
+		fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+			//log::info!("try-runtime::on_runtime_upgrade.");
+			let weight = Executive::try_runtime_upgrade()?;
+			Ok((weight, BlockWeights::get().max_block))
+		}
+	}
+
 
 	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 		fn account_nonce(account: AccountId) -> Index {
