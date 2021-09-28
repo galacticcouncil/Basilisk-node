@@ -170,10 +170,11 @@ Then open settings screen -> developer and paste
       },
       "PoolId":"AccountId",
       "BalanceOf":"Balance",
-      "AssetType":{
-        "_enum":[
-          "Token"
-        ]
+      "AssetType": {
+        "_enum": {
+		  "Token": "Null",
+		  "PoolShare": "(AssetId,AssetId)"
+	    }
       },
       "Pool":{
         "owner":"AccountId",
@@ -199,7 +200,13 @@ Then open settings screen -> developer and paste
       "AssetMetadata":{
         "symbol":"Vec<u8>",
         "decimals":"u8"
-      }
+      },
+      "AssettInstance": "AssetInstanceV0",
+      "MultiLocation": "MultiLocationV0",
+      "AssetNativeLocation": "MultiLocation",
+      "MultiAsset": "MultiAssetV0",
+      "Xcm": "XcmV0",
+      "XcmOrder": "XcmOrderV0"
     }
   ]
 }
