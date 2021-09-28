@@ -485,6 +485,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "frame-try-runtime",
  "hex-literal",
  "hydra-dx-build-script-utils",
  "jsonrpc-core",
@@ -534,6 +535,7 @@ dependencies = [
  "structopt",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
+ "try-runtime-cli",
 ]
 
 [[package]]
@@ -555,6 +557,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",

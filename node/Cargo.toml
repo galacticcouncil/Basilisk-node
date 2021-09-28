@@ -70,6 +70,8 @@ sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polka
 sp-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+frame-try-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", optional = true }
+try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9", optional = true }
 
 # Cumulus dependencies
 cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.9" }
@@ -97,3 +99,11 @@ runtime-benchmarks = [
   "frame-benchmarking-cli",
   "polkadot-service/runtime-benchmarks",
 ]
+cli = [
+    'try-runtime-cli',
+]
+try-runtime = [
+    "basilisk-runtime/try-runtime",
+    "try-runtime-cli",
+]
+
