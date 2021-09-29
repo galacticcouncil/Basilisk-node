@@ -38,7 +38,7 @@ use sp_core::{
 	OpaqueMetadata,
 };
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	create_runtime_str, generic, impl_opaque_keys, Perbill,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
@@ -53,7 +53,7 @@ use sp_version::RuntimeVersion;
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
 	traits::{
-		EnsureOrigin, Get, Nothing, U128CurrencyToVote,
+		Contains, EnsureOrigin, Get, Nothing, U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
@@ -63,7 +63,6 @@ use frame_support::{
 };
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_runtime::{Perbill};
 
 #[allow(clippy::all)]
 mod weights;
@@ -115,6 +114,18 @@ pub fn native_version() -> NativeVersion {
 	NativeVersion {
 		runtime_version: VERSION,
 		can_author_with: Default::default(),
+	}
+}
+pub struct BaseFilter;
+impl Contains<Call> for BaseFilter {
+	fn contains(call: &Call) -> bool {
+		#[allow(clippy::match_like_matches_macro)]
+		match call {
+			Call::XYK(_) => false,
+			Call::NFT(_) => false,
+			Call::Exchange(_) => false,
+			_ => true,
+		}
 	}
 }
 
@@ -175,7 +186,7 @@ parameter_types! {
 
 impl frame_system::Config for Runtime {
 	/// The basic call filter to use in dispatchable.
-	type BaseCallFilter = ();
+	type BaseCallFilter = BaseFilter;
 	type BlockWeights = BlockWeights;
 	type BlockLength = BlockLength;
 	/// The ubiquitous origin type.
