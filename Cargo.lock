@@ -5639,7 +5639,6 @@ dependencies = [
 name = "pallet-exchange"
 version = "4.1.0"
 dependencies = [
- "common-runtime",
  "frame-support",
  "frame-system",
  "orml-tokens",
@@ -5770,7 +5769,6 @@ dependencies = [
 name = "pallet-lbp"
 version = "1.0.0"
 dependencies = [
- "common-runtime",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -6154,7 +6152,6 @@ dependencies = [
 name = "pallet-transaction-multi-payment"
 version = "4.1.0"
 dependencies = [
- "common-runtime",
  "frame-support",
  "frame-system",
  "orml-currencies",
@@ -6286,7 +6283,6 @@ dependencies = [
 name = "pallet-xyk"
 version = "1.4.0"
 dependencies = [
- "common-runtime",
  "frame-benchmarking",
  "frame-support",
  "frame-system",

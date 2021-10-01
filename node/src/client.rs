@@ -2,7 +2,7 @@
 
 #![allow(clippy::upper_case_acronyms)]
 
-use crate::service::{FullBackend, FullClient, BasiliskExecutor, TestingBasiliskExecutor};
+use crate::service::{BasiliskExecutor, FullBackend, FullClient, TestingBasiliskExecutor};
 use common_runtime::{AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};

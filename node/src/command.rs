@@ -17,7 +17,7 @@
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
 use crate::service::IdentifyVariant;
-use crate::{chain_spec, testing_chain_spec, service};
+use crate::{chain_spec, service, testing_chain_spec};
 
 use basilisk_runtime::Block;
 use codec::Encode;
@@ -29,33 +29,35 @@ use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams, NetworkParams, Result,
 	RuntimeVersion, SharedParams, SubstrateCli,
 };
-use sc_service::{
-	config::{BasePath, PrometheusConfig},
-};
+use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as BlockT;
 use std::{io::Write, net::SocketAddr};
 
 const DEFAULT_PARA_ID: u32 = 200;
 
-fn load_spec(id: &str, para_id: ParaId, is_testing: bool) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+fn load_spec(
+	id: &str,
+	para_id: ParaId,
+	is_testing: bool,
+) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	if is_testing {
 		Ok(match id {
-			 "dev" => Box::new(testing_chain_spec::parachain_development_config(para_id)?),
-			 "local" => Box::new(testing_chain_spec::local_parachain_config(para_id)?),
-			 path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
-				  std::path::PathBuf::from(path),
-			 )?),
+			"dev" => Box::new(testing_chain_spec::parachain_development_config(para_id)?),
+			"local" => Box::new(testing_chain_spec::local_parachain_config(para_id)?),
+			path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
+				std::path::PathBuf::from(path),
+			)?),
 		})
 	} else {
 		Ok(match id {
-			 "" => Box::new(chain_spec::basilisk_parachain_config()?),
-			 "dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-			 "benchmarks" => Box::new(chain_spec::benchmarks_development_config(para_id)?),
-			 "testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
-			 "local" => Box::new(chain_spec::local_parachain_config(para_id)?),
-			 "staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
-			 path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+			"" => Box::new(chain_spec::basilisk_parachain_config()?),
+			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
+			"benchmarks" => Box::new(chain_spec::benchmarks_development_config(para_id)?),
+			"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
+			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
+			"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
+			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
 	}
 }
@@ -95,11 +97,7 @@ impl SubstrateCli for Cli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		let para_id: ParaId = self.run.base.parachain_id.unwrap_or(DEFAULT_PARA_ID).into();
 
-		let id = if id.is_empty() {
-			"basilisk"
-		} else {
-			id
-		};
+		let id = if id.is_empty() { "basilisk" } else { id };
 
 		let is_testing_runtime = if get_exec_name().unwrap_or_default().starts_with("testing") {
 			true
@@ -193,39 +191,28 @@ pub fn run() -> sc_cli::Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (
-					client,
-					_backend,
-					import_queue,
-					task_manager,
-				) = service::new_partial(&mut config)?;
+				let (client, _backend, import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (
-					client, _backend, _import_queue, task_manager
-				) = service::new_partial(&mut config)?;
+				let (client, _backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (
-					client, _backend, _import_queue, task_manager
-				) = service::new_partial(&mut config)?;
+				let (client, _backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (
-					client, _backend, import_queue, task_manager
-				) = service::new_partial(&mut config)?;
+				let (client, _backend, import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -249,12 +236,7 @@ pub fn run() -> sc_cli::Result<()> {
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
-				let (
-					client,
-					backend,
-					_import_queue,
-					task_manager,
-				) = service::new_partial(&mut config)?;
+				let (client, backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -283,7 +265,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let block: Block = generate_genesis_block(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
 				params.parachain_id.into(),
-				is_testing_runtime
+				is_testing_runtime,
 			)?)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {
@@ -315,7 +297,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let raw_wasm_blob = extract_genesis_wasm(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
 				para_id,
-				is_testing_runtime
+				is_testing_runtime,
 			)?)?;
 			let output_buf = if params.raw {
 				raw_wasm_blob
@@ -346,7 +328,8 @@ pub fn run() -> sc_cli::Result<()> {
 
 				let para_id = ParaId::from(cli.run.base.parachain_id.or(para_id).unwrap_or(DEFAULT_PARA_ID));
 
-				let parachain_account = AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&para_id);
+				let parachain_account =
+					AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&para_id);
 
 				let block: Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));

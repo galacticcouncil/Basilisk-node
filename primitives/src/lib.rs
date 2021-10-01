@@ -28,6 +28,7 @@ use frame_support::sp_runtime::FixedU128;
 
 pub mod asset;
 pub mod traits;
+pub mod constants;
 
 /// An index to a block.
 pub type BlockNumber = u32;

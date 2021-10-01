@@ -3,7 +3,7 @@ use crate::{AssetPairPoolIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::GenesisBuild;
 use orml_traits::parameter_type_with_key;
-use common_runtime::{AssetId, Balance, CORE_ASSET_ID};
+use primitives::constants::chain::{AssetId, Balance, CORE_ASSET_ID};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,

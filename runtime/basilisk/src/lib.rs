@@ -38,10 +38,10 @@ use sp_core::{
 	OpaqueMetadata,
 };
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys, Perbill,
+	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
+	ApplyExtrinsicResult, Perbill,
 };
 use sp_std::convert::From;
 use sp_std::prelude::*;
@@ -52,13 +52,10 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, match_type, parameter_types,
-	traits::{
-		Contains, EnsureOrigin, Get, Nothing, U128CurrencyToVote,
-	},
+	traits::{Contains, EnsureOrigin, Get, Nothing, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
-		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 };
 use pallet_transaction_payment::TargetedFeeAdjustment;
@@ -365,7 +362,6 @@ impl pallet_lbp::Config for Runtime {
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 }
-
 
 // Parachain Config
 

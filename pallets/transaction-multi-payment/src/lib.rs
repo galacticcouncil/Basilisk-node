@@ -52,8 +52,7 @@ use frame_support::weights::{Pays, Weight};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::asset::AssetPair;
 use primitives::traits::AMM;
-use primitives::{Amount, AssetId, Balance};
-use common_runtime::CORE_ASSET_ID;
+use primitives::{Amount, AssetId, Balance, constants::chain::CORE_ASSET_ID};
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::traits::SignedExtension;

@@ -32,9 +32,9 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency}
 use primitives::{
 	asset::AssetPair,
 	traits::{Resolver, AMM, AMMTransfer},
+	constants::chain::MIN_TRADING_LIMIT,
 	Amount, AssetId, Balance, ExchangeIntention, IntentionType
 };
-use common_runtime::MIN_TRADING_LIMIT;
 use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
 

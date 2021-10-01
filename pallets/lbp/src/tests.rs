@@ -13,8 +13,9 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-use primitives::{asset::AssetPair, fee::Fee, traits::AMMTransfer};
-use common_runtime::{MAX_IN_RATIO, MAX_OUT_RATIO};
+use primitives::{asset::AssetPair, fee::Fee, traits::AMMTransfer,
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO}
+};
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();

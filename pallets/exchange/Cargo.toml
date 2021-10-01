@@ -17,7 +17,6 @@ substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", bran
 [dependencies]
 codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "2.0.0" }
 primitive-types = { default-features = false, version = "0.8.0" }
-common-runtime = {path = '../../runtime/common', default-features = false}
 serde = { features = ["derive"], optional = true, version = "1.0.101" }
 
 # Local dependencies

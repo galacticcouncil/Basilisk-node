@@ -17,23 +17,15 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub mod constants;
-pub use constants::{chain::*, currency::*, time::*};
+use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId};
+pub use pallet_transaction_payment::Multiplier;
+pub use primitives::constants::{chain::*, currency::*, time::*};
 pub use primitives::{fee, Amount, AssetId, Balance};
 use sp_runtime::{
 	generic,
 	traits::{BlakeTwo256, IdentifyAccount, Verify},
-	MultiSignature,
+	FixedPointNumber, MultiSignature, Perbill, Percent, Permill, Perquintill,
 };
-pub use sp_runtime::{
-	transaction_validity::TransactionPriority, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
-};
-use frame_support::{
-	parameter_types, PalletId,
-    traits::LockIdentifier,
-    weights::Pays
-};
-pub use pallet_transaction_payment::Multiplier;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -66,6 +58,13 @@ pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 
 /// Block type.
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+
+/// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
+/// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
+pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
+/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
+/// by  Operational  extrinsics.
+pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 // frame system
 parameter_types! {

@@ -22,7 +22,7 @@ use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
 	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	WASM_BINARY, NATIVE_EXISTENTIAL_DEPOSIT
+	NATIVE_EXISTENTIAL_DEPOSIT, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;

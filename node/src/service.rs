@@ -31,15 +31,15 @@ use cumulus_primitives_core::{CollectCollationInfo, ParaId};
 use sc_client_api::ExecutorProvider;
 use sc_executor::{native_executor_instance, NativeExecutionDispatch};
 use sc_network::NetworkService;
-use sc_service::{ChainSpec, Configuration, PartialComponents, Role, TFullClient, TFullBackend, TaskManager};
+use sc_service::{ChainSpec, Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
+use sp_api::ConstructRuntimeApi;
 use sp_consensus::SlotData;
 use sp_keystore::SyncCryptoStorePtr;
-use std::sync::Arc;
-use substrate_prometheus_endpoint::Registry;
-use sp_api::ConstructRuntimeApi;
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
+use std::sync::Arc;
+use substrate_prometheus_endpoint::Registry;
 type Hash = sp_core::H256;
 
 // native executor instance.
@@ -150,12 +150,7 @@ pub fn new_partial(
 			task_manager,
 			..
 		} = new_partial_impl::<basilisk_runtime::RuntimeApi, BasiliskExecutor>(config)?;
-		Ok((
-			Arc::new(Client::Basilisk(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
+		Ok((Arc::new(Client::Basilisk(client)), backend, import_queue, task_manager))
 	}
 }
 
@@ -376,7 +371,7 @@ where
 
 	start_network.start_network();
 
-	Ok(NewFull {client, task_manager})
+	Ok(NewFull { client, task_manager })
 }
 
 pub struct NewFull<C> {
@@ -480,88 +475,88 @@ pub async fn start_node(
 				}))
 			},
 		)
-			.await
-			.map(|full| full.with_client(Client::TestingBasilisk))
+		.await
+		.map(|full| full.with_client(Client::TestingBasilisk))
 	} else {
 		start_node_impl::<basilisk_runtime::RuntimeApi, BasiliskExecutor, _>(
-		parachain_config,
-		polkadot_config,
-		para_id,
-		|client,
-		 prometheus_registry,
-		 telemetry,
-		 task_manager,
-		 relay_chain_node,
-		 transaction_pool,
-		 sync_oracle,
-		 keystore,
-		 force_authoring| {
-			let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client)?;
+			parachain_config,
+			polkadot_config,
+			para_id,
+			|client,
+			 prometheus_registry,
+			 telemetry,
+			 task_manager,
+			 relay_chain_node,
+			 transaction_pool,
+			 sync_oracle,
+			 keystore,
+			 force_authoring| {
+				let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client)?;
 
-			let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
-				task_manager.spawn_handle(),
-				client.clone(),
-				transaction_pool,
-				prometheus_registry.clone(),
-				telemetry.clone(),
-			);
+				let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+					task_manager.spawn_handle(),
+					client.clone(),
+					transaction_pool,
+					prometheus_registry.clone(),
+					telemetry.clone(),
+				);
 
-			let relay_chain_backend = relay_chain_node.backend.clone();
-			let relay_chain_client = relay_chain_node.client.clone();
-			Ok(build_aura_consensus::<
-				sp_consensus_aura::sr25519::AuthorityPair,
-				_,
-				_,
-				_,
-				_,
-				_,
-				_,
-				_,
-				_,
-				_,
-			>(BuildAuraConsensusParams {
-				proposer_factory,
-				create_inherent_data_providers: move |_, (relay_parent, validation_data)| {
-					let parachain_inherent =
-						cumulus_primitives_parachain_inherent::ParachainInherentData::create_at_with_client(
-							relay_parent,
-							&relay_chain_client,
-							&*relay_chain_backend,
-							&validation_data,
-							para_id,
-						);
-					async move {
-						let time = sp_timestamp::InherentDataProvider::from_system_time();
+				let relay_chain_backend = relay_chain_node.backend.clone();
+				let relay_chain_client = relay_chain_node.client.clone();
+				Ok(build_aura_consensus::<
+					sp_consensus_aura::sr25519::AuthorityPair,
+					_,
+					_,
+					_,
+					_,
+					_,
+					_,
+					_,
+					_,
+					_,
+				>(BuildAuraConsensusParams {
+					proposer_factory,
+					create_inherent_data_providers: move |_, (relay_parent, validation_data)| {
+						let parachain_inherent =
+							cumulus_primitives_parachain_inherent::ParachainInherentData::create_at_with_client(
+								relay_parent,
+								&relay_chain_client,
+								&*relay_chain_backend,
+								&validation_data,
+								para_id,
+							);
+						async move {
+							let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-						let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_duration(
-							*time,
-							slot_duration.slot_duration(),
-						);
+							let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_duration(
+								*time,
+								slot_duration.slot_duration(),
+							);
 
-						let parachain_inherent = parachain_inherent.ok_or_else(|| {
-							Box::<dyn std::error::Error + Send + Sync>::from("Failed to create parachain inherent")
-						})?;
-						Ok((time, slot, parachain_inherent))
-					}
-				},
-				block_import: client.clone(),
-				relay_chain_client: relay_chain_node.client.clone(),
-				relay_chain_backend: relay_chain_node.backend.clone(),
-				para_client: client.clone(),
-				backoff_authoring_blocks: Option::<()>::None,
-				sync_oracle,
-				keystore,
-				force_authoring,
-				slot_duration,
-				// We got around 500ms for proposing
-				block_proposal_slot_portion: SlotProportion::new(1f32 / 24f32),
-				// And a maximum of 750ms if slots are skipped
-				max_block_proposal_slot_portion: Some(SlotProportion::new(1f32 / 16f32)),
-				telemetry,
-			}))
-		},
-	)
-	.await
-	.map(|full| full.with_client(Client::Basilisk))
+							let parachain_inherent = parachain_inherent.ok_or_else(|| {
+								Box::<dyn std::error::Error + Send + Sync>::from("Failed to create parachain inherent")
+							})?;
+							Ok((time, slot, parachain_inherent))
+						}
+					},
+					block_import: client.clone(),
+					relay_chain_client: relay_chain_node.client.clone(),
+					relay_chain_backend: relay_chain_node.backend.clone(),
+					para_client: client.clone(),
+					backoff_authoring_blocks: Option::<()>::None,
+					sync_oracle,
+					keystore,
+					force_authoring,
+					slot_duration,
+					// We got around 500ms for proposing
+					block_proposal_slot_portion: SlotProportion::new(1f32 / 24f32),
+					// And a maximum of 750ms if slots are skipped
+					max_block_proposal_slot_portion: Some(SlotProportion::new(1f32 / 16f32)),
+					telemetry,
+				}))
+			},
+		)
+		.await
+		.map(|full| full.with_client(Client::Basilisk))
 	}
 }

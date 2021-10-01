@@ -18,12 +18,6 @@
 #![allow(clippy::or_fun_call)]
 #![allow(clippy::too_many_arguments)]
 
-use testing_basilisk_runtime::{
-	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
-	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	WASM_BINARY, NATIVE_EXISTENTIAL_DEPOSIT
-};
 use cumulus_primitives_core::ParaId;
 use primitives::BlockNumber;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
@@ -32,6 +26,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use testing_basilisk_runtime::{
+	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
+	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
+	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
+	NATIVE_EXISTENTIAL_DEPOSIT, WASM_BINARY,
+};
 
 const TOKEN_DECIMALS: u8 = 12;
 const TOKEN_SYMBOL: &str = "BSX";
@@ -288,8 +288,8 @@ fn testnet_parachain_genesis(
 				.cloned()
 				.map(|(acc, aura)| {
 					(
-						acc.clone(),                                    // account id
-						acc,                                            // validator id
+						acc.clone(),                                            // account id
+						acc,                                                    // validator id
 						testing_basilisk_runtime::opaque::SessionKeys { aura }, // session keys
 					)
 				})
