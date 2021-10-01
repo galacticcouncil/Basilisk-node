@@ -464,6 +464,7 @@ impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, T::Balance, DispatchErro
 }
 
 use orml_traits::GetByKey;
+use sp_arithmetic::traits::Bounded;
 
 // Return Existential deposit of an asset
 impl<T: Config> GetByKey<T::AssetId, T::Balance> for Pallet<T> {
@@ -471,8 +472,8 @@ impl<T: Config> GetByKey<T::AssetId, T::Balance> for Pallet<T> {
 		if let Some(details) = Self::assets(k) {
 			details.existential_deposit
 		} else {
-			// Asset does not exists, so it does not really matter.
-			Default::default()
+			// Asset does not exist - not supported
+			T::Balance::max_value()
 		}
 	}
 }
