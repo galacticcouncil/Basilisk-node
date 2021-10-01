@@ -103,6 +103,7 @@ default = [
 ]
 runtime-benchmarks = [
   "basilisk-runtime/runtime-benchmarks",
+  "testing-basilisk-runtime/runtime-benchmarks",
   "frame-benchmarking-cli",
   "polkadot-service/runtime-benchmarks",
 ]
