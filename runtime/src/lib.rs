@@ -364,7 +364,7 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = AssetRegistry;
 	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
-	type DustRemovalWhitelist = Duster;
+	type DustRemovalWhitelist = pallet_duster::DusterWhitelist<Runtime>;
 }
 
 impl orml_currencies::Config for Runtime {

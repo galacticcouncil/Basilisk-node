@@ -285,13 +285,16 @@ impl<T: Config> Pallet<T> {
 
 use orml_traits::OnDust;
 
+use sp_std::marker::PhantomData;
+pub struct DusterWhitelist<T>(PhantomData<T>);
+
 impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
 	fn on_dust(who: &T::AccountId, currency_id: T::CurrencyId, amount: T::Balance) {
 		let _ = Self::transfer_dust(who, &Self::dust_dest_account(), currency_id, amount);
 	}
 }
 
-impl<T: Config> Contains<T::AccountId> for Pallet<T> {
+impl<T: Config> Contains<T::AccountId> for DusterWhitelist<T> {
 	fn contains(t: &T::AccountId) -> bool {
 		AccountBlacklist::<T>::contains_key(t)
 	}
