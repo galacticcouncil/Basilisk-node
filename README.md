@@ -62,7 +62,7 @@ multitail 99*.log
 There is also an option to run the testing runtime with less restrictive settings to facilitate testing of new features.
 The following command starts a dev chain, and the testing runtime is used as a runtime for our node.
 ```bash
-./target/release/hydra-dx --dev --runtime=testing
+./target/release/basilisk --dev --runtime=testing
 ```
 The testing runtime currently supports only two chain specifications: _dev_ and _local_ testnet.
 Both runtimes store blockchain data in the same directories( e.g. the _dev_ directory is shared for both runtimes 
