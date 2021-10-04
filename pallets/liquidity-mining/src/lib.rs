@@ -62,26 +62,34 @@ use frame_support::sp_runtime::RuntimeDebug;
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
 pub struct LmPool<Balance, CurrencyId, Period> {
-	accumulated_reward_per_share: Balance,
+	accumulated_reward_per_share: FixedU128,
 	total_locked_shares: Balance,
 	share_id: CurrencyId,
 	updated_at: Period,
 	unpaid_rewards: Balance,
-	paid_rewareds: Balance,
+	paid_rewards: Balance,
 	canceled: bool,
-    loyalty_curve: LoyaltyCurve
+	loyalty_curve: LoyaltyCurve,
 }
 
+impl Default for LoyaltyCurve {
+	fn default() -> Self {
+		Self {
+			b: FixedU128::from_inner(500_000_000_000_000_000),
+			scale_coef: 100,
+		}
+	}
+}
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
 pub struct LoyaltyCurve {
-    b: FixedU128,
-    scale_coef: u32
+	b: FixedU128,
+	scale_coef: u32,
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, Default)]
 pub struct LpInfo<Balance: HasCompact> {
-	acc_reward_per_share: Balance,
+	reward_per_share: FixedU128,
 	locked_shares: Balance,
 	claimed_rewards: Balance, //Rewards claim till now
 }
@@ -89,7 +97,8 @@ pub struct LpInfo<Balance: HasCompact> {
 pub const LM_LOCK_ID: LockIdentifier = *b"LM_LOCK_";
 
 use frame_support::pallet_prelude::*;
-use sp_std::convert::{From, Into};
+use frame_support::sp_runtime::{FixedPointNumber, FixedPointOperand};
+use sp_std::convert::{From, Into, TryInto};
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -111,10 +120,12 @@ pub mod pallet {
 		/// Balance type
 		type Balance: Parameter
 			+ From<u128>
+			+ Into<u128>
 			+ From<Self::BlockNumber>
-			+ From<FixedU128>
+			//+ From<FixedU128>
 			+ Member
 			+ AtLeast32BitUnsigned
+			+ FixedPointOperand
 			+ Default
 			+ Copy
 			+ MaybeSerializeDeserialize
@@ -239,7 +250,7 @@ pub mod pallet {
 						Error::<T>::InsufficientShareBalance
 					);
 
-					Self::update_pool_values(pool_id.clone(), lm_pool)?;
+					Self::update_pool(pool_id.clone(), lm_pool)?;
 
 					lm_pool.total_locked_shares = lm_pool
 						.total_locked_shares
@@ -247,7 +258,7 @@ pub mod pallet {
 						.ok_or(Error::<T>::Overflow)?;
 
 					*lp = Some(LpInfo {
-						acc_reward_per_share: lm_pool.accumulated_reward_per_share,
+						reward_per_share: lm_pool.accumulated_reward_per_share,
 						locked_shares: amount,
 						claimed_rewards: T::Balance::default(),
 					});
@@ -272,7 +283,7 @@ pub mod pallet {
 
 					ensure!(!pool.canceled, Error::<T>::PoolCanceled);
 
-					Self::update_pool_values(pool_id.clone(), pool)?;
+					Self::update_pool(pool_id.clone(), pool)?;
 
 					claimed_rewards = Self::do_claim_rewards(who.clone(), lp, pool)?;
 
@@ -299,7 +310,7 @@ pub mod pallet {
 				Pools::<T>::try_mutate(&pool_id, |lm_pool| -> DispatchResult {
 					let pool = lm_pool.as_mut().unwrap();
 
-					Self::update_pool_values(pool_id.clone(), pool)?;
+					Self::update_pool(pool_id.clone(), pool)?;
 
 					claimed_rewards = Self::do_claim_rewards(who.clone(), lp, pool)?;
 
@@ -336,7 +347,7 @@ pub mod pallet {
 
 				ensure!(!pool.canceled, Error::<T>::PoolCanceled);
 
-				Self::update_pool_values(pool_id.clone(), pool)?;
+				Self::update_pool(pool_id.clone(), pool)?;
 
 				pool.canceled = true;
 
@@ -373,7 +384,12 @@ pub mod pallet {
 
 		#[pallet::weight(1000)]
 		#[transactional]
-		pub fn create_pool(origin: OriginFor<T>, pool_id: PoolId<T>, currency_id: T::CurrencyId) -> DispatchResult {
+		pub fn create_pool(
+			origin: OriginFor<T>,
+			pool_id: PoolId<T>,
+			currency_id: T::CurrencyId,
+			loyalty_curve: Option<LoyaltyCurve>,
+		) -> DispatchResult {
 			T::AdminOrigin::ensure_origin(origin)?;
 
 			Pools::<T>::try_mutate(&pool_id, |lm_pool| -> DispatchResult {
@@ -382,19 +398,20 @@ pub mod pallet {
 				let now_period =
 					Self::get_period_number(<frame_system::Pallet<T>>::block_number(), T::AccumulatePeriod::get())?;
 
-                //TODO: parametrize loyalty curve
+				let loyalty_curve = match loyalty_curve {
+					Some(v) => v,
+					None => LoyaltyCurve::default(),
+				};
+
 				*lm_pool = Some(LmPool {
-					accumulated_reward_per_share: T::Balance::default(),
+					accumulated_reward_per_share: FixedU128::default(),
 					total_locked_shares: T::Balance::default(),
 					share_id: currency_id,
 					updated_at: now_period,
 					unpaid_rewards: T::Balance::default(),
-					paid_rewareds: T::Balance::default(),
+					paid_rewards: T::Balance::default(),
 					canceled: false,
-                    loyalty_curve: LoyaltyCurve {
-                        b: FixedU128::from_inner(500_000_000_000_000_000),
-                        scale_coef: 100
-                    }
+					loyalty_curve,
 				});
 
 				Ok(())
@@ -412,9 +429,9 @@ impl<T: Config> Pallet<T> {
 		lp: &mut LpInfo<T::Balance>,
 		pool: &mut LmPool<T::Balance, T::CurrencyId, T::BlockNumber>,
 	) -> Result<T::Balance, DispatchError> {
-		let lp_reward = Self::calculare_reward(lp, pool.accumulated_reward_per_share, &pool.loyalty_curve)?;
+		let lp_reward = Self::calculate_rewards(lp, pool.accumulated_reward_per_share, &pool.loyalty_curve)?;
 
-		pool.paid_rewareds = pool.paid_rewareds.checked_add(&lp_reward).ok_or(Error::<T>::Overflow)?;
+		pool.paid_rewards = pool.paid_rewards.checked_add(&lp_reward).ok_or(Error::<T>::Overflow)?;
 		pool.unpaid_rewards = pool
 			.unpaid_rewards
 			.checked_sub(&lp_reward)
@@ -430,33 +447,32 @@ impl<T: Config> Pallet<T> {
 
 	/// reward calculation:
 	/// (pool_accumulated_reward_per_share - lp_reward_per_share) * lp_shares * lp_loyalty_multiplier - lp_claimed_reward_til_now
-	pub fn calculare_reward(
+	pub fn calculate_rewards(
 		lp: &LpInfo<T::Balance>,
-		global_accumulated_reward_per_share: T::Balance,
-        loyalty_curve_opts: &LoyaltyCurve,
+		global_accumulated_reward_per_share: FixedU128,
+		loyalty_curve_opts: &LoyaltyCurve,
 	) -> Result<T::Balance, Error<T>> {
 		let now = <frame_system::Pallet<T>>::block_number();
 		let period_now = Self::get_period_number(now, T::AccumulatePeriod::get())?;
 
-		let loyalty_multiplier = Self::get_loyalty_weight(period_now, loyalty_curve_opts)?;
+		let loyalty_multiplier = Self::get_loyalty_multiplier(period_now, loyalty_curve_opts)?;
 
-		let reward = global_accumulated_reward_per_share
-			.checked_sub(&lp.acc_reward_per_share)
+		//(global_accumulated_reward_per_share - reward_per_share) * loyalty_weight * locked_shares - already_claimed_rewards
+		global_accumulated_reward_per_share
+			.checked_sub(&lp.reward_per_share)
 			.ok_or(Error::<T>::Overflow)?
-			.checked_mul(&lp.locked_shares)
+			.checked_mul(&loyalty_multiplier)
 			.ok_or(Error::<T>::Overflow)?
-			.checked_mul(&T::Balance::from(loyalty_multiplier))
-			.ok_or(Error::<T>::Overflow)?;
-
-		//remove already claimed rewards
-		reward.checked_sub(&lp.claimed_rewards).ok_or(Error::<T>::Overflow)
+			.checked_mul_int(lp.locked_shares)
+			.ok_or(Error::<T>::Overflow)?
+			.checked_sub(&lp.claimed_rewards)
+			.ok_or(Error::<T>::Overflow)
 	}
 
-	pub fn update_pool_values(
+	pub fn update_pool(
 		pool_id: PoolId<T>,
 		pool: &mut LmPool<T::Balance, T::CurrencyId, T::BlockNumber>,
 	) -> Result<(), Error<T>> {
-		//don't update rewards and values if pool is canceled
 		if pool.canceled {
 			return Ok(());
 		}
@@ -476,21 +492,23 @@ impl<T: Config> Pallet<T> {
 
 		pool.unpaid_rewards = pool.unpaid_rewards.checked_add(&rewards).ok_or(Error::<T>::Overflow)?;
 
-		pool.accumulated_reward_per_share = Self::get_accumulated_rewards_per_share(&pool, rewards)?;
+		pool.accumulated_reward_per_share = Self::get_accumulated_reward_per_share(&pool, rewards)?;
+
+		pool.updated_at = period_now;
 
 		Ok(())
 	}
 
-	pub fn get_accumulated_rewards_per_share(
+	pub fn get_accumulated_reward_per_share(
 		pool: &LmPool<T::Balance, T::CurrencyId, T::BlockNumber>,
 		reward: T::Balance,
-	) -> Result<T::Balance, Error<T>> {
+	) -> Result<FixedU128, Error<T>> {
 		let reward_per_share = reward
 			.checked_div(&pool.total_locked_shares)
 			.ok_or(Error::<T>::Overflow)?;
 
 		pool.accumulated_reward_per_share
-			.checked_add(&reward_per_share)
+			.checked_add(&FixedU128::from(Into::<u128>::into(reward_per_share)))
 			.ok_or(Error::<T>::Overflow)
 	}
 
@@ -506,7 +524,7 @@ impl<T: Config> Pallet<T> {
 
 		let claimed_rewards = pool
 			.unpaid_rewards
-			.checked_add(&pool.paid_rewareds)
+			.checked_add(&pool.paid_rewards)
 			.ok_or(Error::<T>::Overflow)?;
 
 		let planned_rewards = Self::get_total_planned_rewards(pool_id)?;
@@ -526,17 +544,15 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_total_planned_rewards(_pool_id: PoolId<T>) -> Result<T::Balance, Error<T>> {
 		//TODO: add real compuation
-		Ok(T::Balance::from(1_000_000_000_u128))
+		Ok(T::Balance::from(1_000_000u128))
 	}
 
-	// TODO: this method shoul call real reward function
+	// TODO: this method should call real reward function
 	pub fn get_accumulated_reward_for_periods(periods_count: T::BlockNumber) -> Result<T::Balance, Error<T>> {
 		let p = T::Balance::from(periods_count);
 
 		//TODO: add real computation
-		T::Balance::from(1_000_000_u128)
-			.checked_mul(&p)
-			.ok_or(Error::<T>::Overflow)
+		T::Balance::from(1_000_u128).checked_mul(&p).ok_or(Error::<T>::Overflow)
 	}
 
 	pub fn get_period_number(
@@ -551,20 +567,20 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Loyalty ponus function
-	pub fn get_loyalty_weight(period: T::BlockNumber, curve_opts: &LoyaltyCurve) -> Result<FixedU128, Error<T>> {
+	pub fn get_loyalty_multiplier(period: T::BlockNumber, curve_opts: &LoyaltyCurve) -> Result<FixedU128, Error<T>> {
 		let denom = curve_opts.b.checked_add(&1.into()).ok_or(Error::<T>::Overflow)?;
-		let t = FixedU128::from(&period.into())
-			.checked_div(&denom)
-			.ok_or(Error::<T>::Overflow)?;
+		let p: u128 = period.try_into().map_err(|_e| Error::<T>::Overflow)?;
+
+		let t = FixedU128::from(p).checked_div(&denom).ok_or(Error::<T>::Overflow)?;
 
 		let tb = t.checked_mul(&curve_opts.b).ok_or(Error::<T>::Overflow)?;
 
-        let t_add_tb = t.checked_add(&tb).ok_or(Error::<T>::Overflow)?;
+		let t_add_tb = t.checked_add(&tb).ok_or(Error::<T>::Overflow)?;
 
 		let num = t_add_tb.checked_add(&curve_opts.b).ok_or(Error::<T>::Overflow)?;
 
-        let denom = t_add_tb.checked_add(&1.into()).ok_or(Error::<T>::Overflow)?;
+		let denom = t_add_tb.checked_add(&1.into()).ok_or(Error::<T>::Overflow)?;
 
-        num.checked_div(&denom).ok_or(Error::<T>::Overflow)
+		num.checked_div(&denom).ok_or(Error::<T>::Overflow)
 	}
 }
