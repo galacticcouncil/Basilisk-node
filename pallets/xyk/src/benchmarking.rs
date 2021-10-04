@@ -31,8 +31,8 @@ const SEED: u32 = 1;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
-	T::Currency::update_balance(1, &caller, 1_000_000_000_000_000).unwrap();
-	T::Currency::update_balance(2, &caller, 1_000_000_000_000_000).unwrap();
+	T::Currency::update_balance(1.into(), &caller, 1_000_000_000_000_000).unwrap();
+	T::Currency::update_balance(2.into(), &caller, 1_000_000_000_000_000).unwrap();
 	caller
 }
 
@@ -45,9 +45,9 @@ benchmarks! {
 		let amount : Balance = 10 * 1_000_000_000;
 		let initial_price : Price = Price::from(2);
 
-	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, initial_price)
+	}: _(RawOrigin::Signed(caller.clone()), asset_a.into(), asset_b.into(), amount, initial_price)
 	verify {
-		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999990000000000);
+		assert_eq!(T::Currency::free_balance(asset_a.into(), &caller), 999990000000000);
 	}
 
 	add_liquidity {
@@ -59,12 +59,12 @@ benchmarks! {
 		let amount : Balance = 10 * 1_000_000_000;
 		let max_limit : Balance = 10 * 1_000_000_000_000;
 
-		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a,asset_b, 1_000_000_000, Price::from(1))?;
+		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a.into(),asset_b.into(), 1_000_000_000, Price::from(1))?;
 
-	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, max_limit)
+	}: _(RawOrigin::Signed(caller.clone()), asset_a.into(), asset_b.into(), amount, max_limit)
 	verify {
-		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999990000000000);
-		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999990000000000);
+		assert_eq!(T::Currency::free_balance(asset_a.into(), &caller), 999990000000000);
+		assert_eq!(T::Currency::free_balance(asset_b.into(), &caller), 999990000000000);
 	}
 
 	remove_liquidity {
@@ -75,16 +75,16 @@ benchmarks! {
 		let asset_b: AssetId = 2;
 		let amount : Balance = 1_000_000_000;
 
-		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), 1, 2, 10_000_000_000, Price::from(2))?;
-		XYK::<T>::add_liquidity(RawOrigin::Signed(caller.clone()).into(), 1, 2, 5_000_000_000, 10_000_000_000)?;
+		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), 1.into(), 2.into(), 10_000_000_000, Price::from(2))?;
+		XYK::<T>::add_liquidity(RawOrigin::Signed(caller.clone()).into(), 1.into(), 2.into(), 5_000_000_000, 10_000_000_000)?;
 
-		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999995000000000);
-		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999990000000000);
+		assert_eq!(T::Currency::free_balance(asset_a.into(), &caller), 999995000000000);
+		assert_eq!(T::Currency::free_balance(asset_b.into(), &caller), 999990000000000);
 
-	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount)
+	}: _(RawOrigin::Signed(caller.clone()), asset_a.into(), asset_b.into(), amount)
 	verify {
-		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999996000000000);
-		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999992000000000);
+		assert_eq!(T::Currency::free_balance(asset_a.into(), &caller), 999996000000000);
+		assert_eq!(T::Currency::free_balance(asset_b.into(), &caller), 999992000000000);
 	}
 
 	sell {
@@ -98,12 +98,12 @@ benchmarks! {
 
 		let min_bought: Balance = 10 * 1_000;
 
-		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a, asset_b, 1_000_000_000_000, Price::from(3))?;
+		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a.into(), asset_b.into(), 1_000_000_000_000, Price::from(3))?;
 
-	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, min_bought, discount)
+	}: _(RawOrigin::Signed(caller.clone()), asset_a.into(), asset_b.into(), amount, min_bought, discount)
 	verify{
-		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999999000000000);
-		assert_eq!(T::Currency::free_balance(asset_b, &caller), 1000002991008992);
+		assert_eq!(T::Currency::free_balance(asset_a.into(), &caller), 999999000000000);
+		assert_eq!(T::Currency::free_balance(asset_b.into(), &caller), 1000002991008992);
 	}
 
 	buy {
@@ -117,12 +117,12 @@ benchmarks! {
 
 		let max_sold: Balance = 6_000_000_000;
 
-		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a, asset_b, 1_000_000_000_000, Price::from(3))?;
+		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a.into(), asset_b.into(), 1_000_000_000_000, Price::from(3))?;
 
-	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, max_sold, discount)
+	}: _(RawOrigin::Signed(caller.clone()), asset_a.into(), asset_b.into(), amount, max_sold, discount)
 	verify{
-		assert_eq!(T::Currency::free_balance(asset_a, &caller), 1000001000000000);
-		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999996990990990);
+		assert_eq!(T::Currency::free_balance(asset_a.into(), &caller), 1000001000000000);
+		assert_eq!(T::Currency::free_balance(asset_b.into(), &caller), 999996990990990);
 	}
 }
 
