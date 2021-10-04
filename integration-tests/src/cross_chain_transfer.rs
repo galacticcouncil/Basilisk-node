@@ -2,12 +2,9 @@
 use crate::kusama_test_net::*;
 
 use frame_support::assert_ok;
-use polkadot_xcm::v0::{
-	Junction::{self, GeneralKey, Parachain, Parent},
-	MultiAsset::*,
-	MultiLocation::*,
-	NetworkId,
-};
+
+use polkadot_xcm::latest::prelude::*;
+use polkadot_xcm::{VersionedMultiAssets, VersionedMultiLocation};
 
 use cumulus_primitives_core::ParaId;
 use orml_traits::currency::MultiCurrency;
@@ -20,22 +17,23 @@ fn transfer_from_relay_chain() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(X1(Parent,))
+			basilisk_runtime::AssetLocation(MultiLocation::parent())
 		));
 	});
-	Kusama::execute_with(|| {
+	KusamaRelay::execute_with(|| {
 		assert_ok!(kusama_runtime::XcmPallet::reserve_transfer_assets(
 			kusama_runtime::Origin::signed(ALICE.into()),
-			X1(Parachain(2000)),
-			X1(Junction::AccountId32 {
-				id: BOB,
-				network: NetworkId::Any
-			}),
-			vec![ConcreteFungible {
-				id: Null,
-				amount: 3 * BSX
-			}],
-			1_600_000_000
+			Box::new(VersionedMultiLocation::V1(X1(Parachain(2000)).into())),
+			Box::new(VersionedMultiLocation::V1(
+				X1(Junction::AccountId32 {
+					id: BOB,
+					network: NetworkId::Any
+				})
+				.into()
+			)),
+			Box::new(VersionedMultiAssets::V1((Here, 3 * BSX).into(),)),
+			0,
+			600_000_000
 		));
 
 		assert_eq!(
@@ -58,20 +56,20 @@ fn transfer_to_relay_chain() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(X1(Parent,))
+			basilisk_runtime::AssetLocation(MultiLocation::parent())
 		));
 
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			1,
 			3 * BSX,
-			X2(
-				Parent,
-				Junction::AccountId32 {
+			Box::new(MultiLocation::new(
+				1,
+				X1(Junction::AccountId32 {
 					id: BOB,
 					network: NetworkId::Any,
-				}
-			),
+				})
+			)),
 			3_600_000_000
 		));
 		assert_eq!(
@@ -80,7 +78,7 @@ fn transfer_to_relay_chain() {
 		);
 	});
 
-	Kusama::execute_with(|| {
+	KusamaRelay::execute_with(|| {
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
 			2999904000006 // 3 * BSX - fee
@@ -96,7 +94,7 @@ fn transfer_from_hydra() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(X3(Parent, Parachain(3000), GeneralKey(vec![0, 0, 0, 0])))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralKey(vec![0, 0, 0, 0]))))
 		));
 	});
 
@@ -105,14 +103,16 @@ fn transfer_from_hydra() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			3 * BSX,
-			X3(
-				Parent,
-				Junction::Parachain(2000),
-				Junction::AccountId32 {
-					id: BOB,
-					network: NetworkId::Any,
-				}
-			),
+			Box::new(MultiLocation::new(
+				1,
+				X2(
+					Junction::Parachain(2000),
+					Junction::AccountId32 {
+						id: BOB,
+						network: NetworkId::Any,
+					}
+				)
+			)),
 			399_600_000_000
 		));
 		assert_eq!(
@@ -128,7 +128,6 @@ fn transfer_from_hydra() {
 		);
 	});
 }
-
 #[test]
 fn transfer_insufficient_amount_should_fail() {
 	TestNet::reset();
@@ -137,7 +136,7 @@ fn transfer_insufficient_amount_should_fail() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(X3(Parent, Parachain(3000), GeneralKey(vec![0, 0, 0, 0])))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralKey(vec![0, 0, 0, 0]))))
 		));
 	});
 
@@ -146,14 +145,16 @@ fn transfer_insufficient_amount_should_fail() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			1_000_000 - 1,
-			X3(
-				Parent,
-				Junction::Parachain(2000),
-				Junction::AccountId32 {
-					id: BOB,
-					network: NetworkId::Any,
-				}
-			),
+			Box::new(MultiLocation::new(
+				1,
+				X2(
+					Junction::Parachain(2000),
+					Junction::AccountId32 {
+						id: BOB,
+						network: NetworkId::Any,
+					}
+				)
+			)),
 			399_600_000_000
 		));
 		assert_eq!(
@@ -164,9 +165,6 @@ fn transfer_insufficient_amount_should_fail() {
 
 	Basilisk::execute_with(|| {
 		// Xcm should fail therefore nothing should be deposit into beneficiary account
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			0
-		);
+		assert_eq!(basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)), 0);
 	});
 }

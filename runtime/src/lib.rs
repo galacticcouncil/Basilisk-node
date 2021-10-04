@@ -394,11 +394,11 @@ impl pallet_duster::Config for Runtime {
 /// Basilisk Pallets configurations
 
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Eq)]
-pub struct AssetLocation(pub polkadot_xcm::v0::MultiLocation);
+pub struct AssetLocation(pub polkadot_xcm::v1::MultiLocation);
 
 impl Default for AssetLocation {
 	fn default() -> Self {
-		AssetLocation(polkadot_xcm::v0::MultiLocation::Null)
+		AssetLocation(polkadot_xcm::v1::MultiLocation::here())
 	}
 }
 
