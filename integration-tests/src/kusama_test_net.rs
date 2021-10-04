@@ -16,7 +16,7 @@ use sp_runtime::traits::AccountIdConversion;
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 decl_test_relay_chain! {
-	pub struct Kusama {
+	pub struct KusamaRelay {
 		Runtime = kusama_runtime::Runtime,
 		XcmConfig = kusama_runtime::XcmConfig,
 		new_ext = kusama_ext(),
@@ -41,7 +41,7 @@ decl_test_parachain! {
 
 decl_test_network! {
 	pub struct TestNet {
-		relay_chain = Kusama,
+		relay_chain = KusamaRelay,
 		parachains = vec![
 			(2000, Basilisk),
 			(3000, Hydra),
@@ -66,7 +66,6 @@ fn default_parachains_host_configuration() -> HostConfiguration<BlockNumber> {
 		ump_service_total_weight: 4 * 1_000_000_000,
 		max_upward_message_size: 1024 * 1024,
 		max_upward_message_num_per_candidate: 5,
-		hrmp_open_request_ttl: 5,
 		hrmp_sender_deposit: 0,
 		hrmp_recipient_deposit: 0,
 		hrmp_channel_max_capacity: 8,
