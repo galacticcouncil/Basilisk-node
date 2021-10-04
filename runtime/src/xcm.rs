@@ -1,4 +1,4 @@
-use super::{*, AssetId};
+use super::{AssetId, *};
 
 use codec::{Decode, Encode};
 use cumulus_primitives_core::ParaId;
@@ -6,7 +6,8 @@ use frame_support::traits::{Everything, Nothing};
 pub use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
-use polkadot_xcm::latest::{prelude::*, Error};
+use polkadot_xcm::latest::prelude::*;
+use polkadot_xcm::latest::Error;
 use sp_runtime::traits::Convert;
 use xcm_builder::{
 	AccountId32Aliases, AllowTopLevelPaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds, LocationInverter,
@@ -21,7 +22,7 @@ pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNet
 pub type Barrier = (TakeWeightCredit, AllowTopLevelPaidExecutionFrom<Everything>);
 
 parameter_types! {
-	pub SelfLocation: MultiLocation = X2(Parent, Parachain(ParachainInfo::get().into()));
+	pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::get().into())));
 }
 
 parameter_types! {
@@ -52,10 +53,6 @@ pub type XcmOriginToCallOrigin = (
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<Origin>,
 );
-
-match_type! {
-	pub type JustTheParent: impl Contains<MultiLocation> = { X1(Parent) };
-}
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is a safe overestimate.
@@ -148,10 +145,9 @@ pub struct CurrencyIdConvert;
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
 		match id {
-			0 => Some(X3(
-				Parent,
-				Parachain(ParachainInfo::get().into()),
-				GeneralKey(id.encode()),
+			0 => Some(MultiLocation::new(
+				1,
+				X2(Parachain(ParachainInfo::get().into()), GeneralKey(id.encode())),
 			)),
 			_ => {
 				if let Some(loc) = AssetRegistry::asset_to_location(id) {
@@ -164,12 +160,13 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	}
 }
 
-// Note: stub implementation
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
-			MultiLocation::Null => Some(NativeAssetId::get()),
-			X3(Parent, Parachain(id), GeneralKey(key)) if ParaId::from(id) == ParachainInfo::get() => {
+			MultiLocation {
+				parents,
+				interior: X2(Parachain(id), GeneralKey(key)),
+			} if parents == 1 && ParaId::from(id) == ParachainInfo::get() => {
 				// Handling native asset for this parachain
 				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
 					// we currently have only one native asset
@@ -187,11 +184,13 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	}
 }
 
-// Note: stub implementation
 impl Convert<MultiAsset, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(asset: MultiAsset) -> Option<AssetId> {
-		if let MultiAsset::ConcreteFungible { id, amount: _ } = asset {
-			Self::convert(id)
+		if let MultiAsset {
+			id: Concrete(location), ..
+		} = asset
+		{
+			Self::convert(location)
 		} else {
 			None
 		}
@@ -205,6 +204,7 @@ impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
 			network: NetworkId::Any,
 			id: account.into(),
 		})
+		.into()
 	}
 }
 
