@@ -4,8 +4,6 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::too_many_arguments)]
 
-use std::char::MAX;
-
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
@@ -66,52 +64,32 @@ pub const MAX_WEIGHT: u32 = 100_000_000;
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
-	// owner of the pool after council creates it
+	/// owner of the pool after council creates it
 	pub owner: AccountId,
-	// start block
+
+	/// start block
 	pub start: BlockNumber,
-	// end block
+	
+	/// end block
 	pub end: BlockNumber,
-	// assets should be stored in increasing order (asset_a, asset_b) by AssetId
+	
+	/// assets should be stored in increasing order (asset_a, asset_b) by AssetId
 	pub assets: (AssetId, AssetId),
-	// initial weight of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
+	
+	/// initial weight of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
 	pub initial_weight: u32,
-	// final weights of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
+	
+	/// final weights of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
 	pub final_weight: u32,
-	// weight curve
+	
+	/// weight curve
 	pub weight_curve: WeightCurveType,
-	// pool is pausable
-	pub pausable: bool,
-	// pool is paused
-	pub paused: bool,
-	// current fee
+	
+	/// current fee
 	pub fee: Fee,
-	// person that receives the fee
+	
+	/// person that receives the fee
 	pub fee_collector: AccountId,
-}
-
-fn get_sorted_assets(
-	asset_a: LBPAssetInfo<Balance>,
-	asset_b: LBPAssetInfo<Balance>,
-) -> (LBPAssetInfo<Balance>, LBPAssetInfo<Balance>) {
-	if asset_a.id < asset_b.id {
-		(asset_a, asset_b)
-	} else {
-		(asset_b, asset_a)
-	}
-}
-
-fn get_weights_for_assets(
-	asset_a: LBPAssetInfo<Balance>,
-	asset_b: LBPAssetInfo<Balance>,
-	initial_weight: u32,
-	final_weight: u32,
-) -> (u32, u32) {
-	if asset_a.id < asset_b.id {
-		(initial_weight, final_weight)
-	} else {
-		(MAX_WEIGHT.saturating_sub(initial_weight), MAX_WEIGHT.saturating_sub(final_weight))
-	}
 }
 
 impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockNumber> {
@@ -119,27 +97,20 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 		pool_owner: AccountId,
 		asset_a: LBPAssetInfo<Balance>,
 		asset_b: LBPAssetInfo<Balance>,
-		duration: BlockNumber,
 		initial_weight: u32,
 		final_weight: u32,
 		weight_curve: WeightCurveType,
-		pausable: bool,
 		fee: Fee,
 		fee_collector: AccountId,
 	) -> Self {
-		let (asset_one, asset_two) = get_sorted_assets(asset_a, asset_b);
-		let (weight_one, weight_two) = get_weights_for_assets(asset_a, asset_b, initial_weight, final_weight);
-
 		Pool {
 			owner: pool_owner,
 			start: Zero::zero(),
-			end: duration,
-			assets: (asset_one.id, asset_two.id),
-			initial_weight: weight_one,
-			final_weight: weight_two,
+			end: Zero::zero(),
+			assets: (asset_a.id, asset_b.id),
+			initial_weight,
+			final_weight,
 			weight_curve,
-			pausable,
-			paused: false,
 			fee,
 			fee_collector,
 		}
@@ -181,7 +152,7 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*};
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -247,21 +218,6 @@ pub mod pallet {
 
 		/// Sale is not running
 		SaleIsNotRunning,
-
-		/// Sale already ended
-		CannotPauseEndedPool,
-
-		/// Sale already ended
-		CannotUnpauseEndedPool,
-
-		/// Sale is already paused
-		CannotPausePausedPool,
-
-		/// Pool cannot be paused
-		PoolIsNotPausable,
-
-		/// Pool is not paused
-		PoolIsNotPaused,
 
 		/// Sale duration is too long
 		MaxSaleDurationExceeded,
@@ -353,12 +309,6 @@ pub mod pallet {
 			AssetId,
 			BalanceOf<T>,
 		),
-
-		/// Pool was paused. [who, pool_id]
-		Paused(T::AccountId, PoolId<T>),
-
-		/// Pool was unpaused. [who, pool_id]
-		Unpaused(T::AccountId, PoolId<T>),
 	}
 
 	/// Details of a pool.
@@ -386,11 +336,8 @@ pub mod pallet {
 		/// - `asset_a`: { asset_id, amount } Asset ID and initial liquidity amount.
 		/// - `asset_b`: { asset_id, amount } Asset ID and initial liquidity amount.
 		/// - `initial_weight`: Initial weight of an asset. 1_000_000 corresponding to 1% and 100_000_000 to 100%  
-		/// - `duration`: The LBP event duration in blocks.
 		/// - `weight_curve`: The weight function used to update the LBP weights. Currently,
 		/// there is only one weight function implemented, the linear function.
-		/// - `pausable`: If the `pausable` option is set to `true`, the pool owner is allowed
-		/// to pause the pool during the sale.
 		/// - `fee`: The trading fee charged on every trade distributed to `fee_collector`.
 		/// - `fee_collector`: The account to which trading fees will be transferred.
 		///
@@ -404,9 +351,7 @@ pub mod pallet {
 			asset_b: LBPAssetInfo<BalanceOf<T>>,
 			initial_weight: u32,
 			final_weight: u32,
-			duration: T::BlockNumber,
 			weight_curve: WeightCurveType,
-			pausable: bool,
 			fee: Fee,
 			fee_collector: T::AccountId,
 		) -> DispatchResultWithPostInfo {
@@ -440,11 +385,9 @@ pub mod pallet {
 				pool_owner.clone(),
 				asset_a,
 				asset_b,
-				duration,
 				initial_weight,
 				final_weight,
 				weight_curve,
-				pausable,
 				fee,
 				fee_collector,
 			);
@@ -473,9 +416,10 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `pool_id`: The identifier of the pool to be updated.
-		/// - `duration`: The new starting and ending time of the sale. This parameter is optional.
-		/// - `initial_weight`: The new initial weights. This parameter is optional.
-		/// - `final_weight`: The new final weights. This parameter is optional.
+		/// - `start`: The new starting time of the sale. This parameter is optional.
+		/// - `end`: The new ending time of the sale. This parameter is optional.
+		/// - `initial_weight`: The new initial weight. This parameter is optional.
+		/// - `final_weight`: The new final weight. This parameter is optional.
 		/// - `fee`: The new trading fee charged on every trade. This parameter is optional.
 		/// - `fee_collector`: The new receiver of trading fees. This parameter is optional.
 		///
@@ -485,7 +429,8 @@ pub mod pallet {
 		pub fn update_pool_data(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T>,
-			duration: Option<(T::BlockNumber, T::BlockNumber)>,
+			start: Option<T::BlockNumber>,
+			end: Option<T::BlockNumber>,
 			initial_weight: Option<u32>,
 			final_weight: Option<u32>,
 			fee: Option<Fee>,
@@ -496,11 +441,6 @@ pub mod pallet {
 			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResultWithPostInfo {
 				// check existence of the pool
 				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
-
-				let (start, end) = match duration {
-					Some((start, end)) => (Some(start), Some(end)),
-					_ => (None, None),
-				};
 
 				ensure!(
 					start.is_some()
@@ -529,69 +469,6 @@ pub mod pallet {
 				Self::validate_pool_data(pool)?;
 
 				Self::deposit_event(Event::PoolUpdated(pool_id, (*pool).clone()));
-				Ok(().into())
-			})
-		}
-
-		/// Pause a pool and disallow buy and sell operations on the pool.
-		///
-		/// Only a pool with the `pausable` option set to `true` can be paused.
-		///
-		/// The dispatch origin for this call must be signed by the pool owner.
-		///
-		/// Parameters:
-		/// - `pool_id`: The identifier of the pool
-		///
-		/// Emits `Paused` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::pause_pool())]
-		pub fn pause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
-			let who = ensure_signed(origin)?;
-
-			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResultWithPostInfo {
-				// check existence of the pool
-				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
-
-				ensure!(who == pool.owner, Error::<T>::NotOwner);
-
-				ensure!(pool.pausable, Error::<T>::PoolIsNotPausable);
-				ensure!(!pool.paused, Error::<T>::CannotPausePausedPool);
-
-				ensure!(Self::is_after_sale(pool), Error::<T>::CannotPauseEndedPool);
-
-				pool.paused = true;
-
-				Self::deposit_event(Event::Paused(who, pool_id));
-				Ok(().into())
-			})
-		}
-
-		/// Unpause a pool and allow token buy and sell operations on the pool.
-		///
-		/// A pool needs to be in the paused state prior this call.
-		///
-		/// The dispatch origin for this call must be signed by the pool owner.
-		///
-		/// Parameters:
-		/// - `pool_id`: The identifier of the pool
-		///
-		/// Emits `Unpaused` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::unpause_pool())]
-		pub fn unpause_pool(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
-			let who = ensure_signed(origin)?;
-
-			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResultWithPostInfo {
-				// check existence of the pool
-				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
-
-				ensure!(who == pool.owner, Error::<T>::NotOwner);
-
-				ensure!(pool.paused, Error::<T>::PoolIsNotPaused);
-
-				ensure!(Self::is_after_sale(pool), Error::<T>::CannotUnpauseEndedPool);
-
-				pool.paused = false;
-
-				Self::deposit_event(Event::Unpaused(who, pool_id));
 				Ok(().into())
 			})
 		}
@@ -808,16 +685,17 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	/// return true if now is in interval <pool.start, pool.end> WARN: pool.paused DOESN'T MATTER
+	/// return true if now is in interval <pool.start, pool.end>
 	fn is_pool_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
 		pool_data.start <= now && now <= pool_data.end
 	}
 
-	/// return true if now is in interval <pool.start, pool.end> and POOL IS NOT PAUSED
+	/// return true if now is in interval <pool.start, pool.end>
 	fn is_sale_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
-		Self::is_pool_running(pool_data) && !pool_data.paused
+		Self::is_pool_running(pool_data)
 	}
+
 	/// return true if the LBP event has not yet started, or the beginning is not set
 	fn is_prior_sale_or_uninitialized(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();

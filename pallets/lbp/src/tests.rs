@@ -33,9 +33,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			},
 			80_000_000,
 			10_000_000,
-			10,
 			WeightCurveType::Linear,
-			true,
 			Fee::default(),
 			CHARLIE,
 		));
@@ -50,8 +48,6 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				initial_weight: 20_000_000,
 				final_weight: 90_000_000,
 				weight_curve: WeightCurveType::Linear,
-				pausable: true,
-				paused: false,
 				fee: Fee::default(),
 				fee_collector: CHARLIE,
 			}
@@ -86,8 +82,6 @@ fn validate_pool_data_should_work() {
 			initial_weight: 20_000_000,
 			final_weight: 90_000_000,
 			weight_curve: WeightCurveType::Linear,
-			pausable: true,
-			paused: false,
 			fee: Fee::default(),
 			fee_collector: CHARLIE,
 		};
@@ -102,8 +96,6 @@ fn validate_pool_data_should_work() {
 			initial_weight: 20_000_000,
 			final_weight: 90_000_000,
 			weight_curve: WeightCurveType::Linear,
-			pausable: true,
-			paused: false,
 			fee: Fee::default(),
 			fee_collector: CHARLIE,
 		};
@@ -117,8 +109,6 @@ fn validate_pool_data_should_work() {
 			initial_weight: 20_000_000,
 			final_weight: 90_000_000,
 			weight_curve: WeightCurveType::Linear,
-			pausable: true,
-			paused: false,
 			fee: Fee::default(),
 			fee_collector: CHARLIE,
 		};
@@ -135,8 +125,6 @@ fn validate_pool_data_should_work() {
 			initial_weight: 20_000_000,
 			final_weight: 90_000_000,
 			weight_curve: WeightCurveType::Linear,
-			pausable: true,
-			paused: false,
 			fee: Fee::default(),
 			fee_collector: CHARLIE,
 		};
@@ -158,8 +146,6 @@ fn calculate_weights_should_work() {
 			initial_weight: 50_000_000,
 			final_weight: 33_333_333,
 			weight_curve: WeightCurveType::Linear,
-			pausable: true,
-			paused: false,
 			fee: Fee::default(),
 			fee_collector: CHARLIE,
 		};
@@ -223,9 +209,7 @@ fn create_pool_should_work() {
 			},
 			20_000_000u32,
 			90_000_000u32,
-			10,
 			WeightCurveType::Linear,
-			true,
 			Fee::default(),
 			CHARLIE,
 		));
@@ -244,14 +228,12 @@ fn create_pool_should_work() {
 		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 		assert_eq!(pool_data.owner, ALICE);
 		assert_eq!(pool_data.start, 0u64);
-		assert_eq!(pool_data.end, 10u64);
+		assert_eq!(pool_data.end, 0u64);
 		assert_eq!(pool_data.assets, (ACA, DOT));
 		assert_eq!(pool_data.initial_weight, 20_000_000);
 		assert_eq!(pool_data.final_weight, 90_000_000);
 		assert_eq!(pool_data.weight_curve, WeightCurveType::Linear);
-		assert!(pool_data.pausable);
-		// verify that `last_weight_update`, `last_weights` and `paused` fields are correctly initialized
-		assert!(!pool_data.paused);
+		// verify that `last_weight_update` and `last_weights` fields are correctly initialized
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
@@ -277,9 +259,7 @@ fn create_pool_from_basic_origin_should_not_work() {
 				},
 				80_000_000u32,
 				10_000_000u32,
-				10,
 				WeightCurveType::Linear,
-				true,
 				Fee::default(),
 				CHARLIE,
 			),
@@ -304,9 +284,7 @@ fn create_same_pool_should_not_work() {
 			},
 			80_000_000u32,
 			10_000_000u32,
-			10,
 			WeightCurveType::Linear,
-			true,
 			Fee::default(),
 			CHARLIE,
 		));
@@ -325,9 +303,7 @@ fn create_same_pool_should_not_work() {
 				},
 				80_000_000u32,
 				10_000_000u32,
-				10,
 				WeightCurveType::Linear,
-				true,
 				Fee::default(),
 				CHARLIE,
 			),
@@ -357,9 +333,7 @@ fn create_pool_with_same_assets_should_not_work() {
 				},
 				80_000_000u32,
 				10_000_000u32,
-				10,
 				WeightCurveType::Linear,
-				true,
 				Fee::default(),
 				CHARLIE,
 			),
@@ -385,9 +359,7 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 				},
 				80_000_000u32,
 				10_000_000u32,
-				10,
 				WeightCurveType::Linear,
-				true,
 				Fee::default(),
 				CHARLIE,
 			),
@@ -408,9 +380,7 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 				},
 				80_000_000u32,
 				10_000_000u32,
-				10,
 				WeightCurveType::Linear,
-				true,
 				Fee::default(),
 				CHARLIE,
 			),
@@ -431,9 +401,7 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 				},
 				80_000_000u32,
 				10_000_000u32,
-				10,
 				WeightCurveType::Linear,
-				true,
 				Fee::default(),
 				CHARLIE,
 			),
@@ -459,9 +427,7 @@ fn create_pool_with_insufficient_balance_should_not_work() {
 				},
 				80_000_000u32,
 				10_000_000u32,
-				10,
 				WeightCurveType::Linear,
-				true,
 				Fee::default(),
 				CHARLIE,
 			),
@@ -470,154 +436,154 @@ fn create_pool_with_insufficient_balance_should_not_work() {
 	});
 }
 
-#[test]
-fn update_pool_data_should_work() {
-	predefined_test_ext().execute_with(|| {
-		// update all parameters
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			Some((15, 18)),
-			Some((10_000_000)),
-			Some((80_000_000)),
-			Some(Fee {
-				numerator: 5,
-				denominator: 100,
-			}),
-			Some(BOB),
-		));
+// #[test]
+// fn update_pool_data_should_work() {
+// 	predefined_test_ext().execute_with(|| {
+// 		// update all parameters
+// 		assert_ok!(LBPPallet::update_pool_data(
+// 			Origin::signed(ALICE),
+// 			ACA_DOT_POOL_ID,
+// 			Some((15, 18)),
+// 			Some((10_000_000)),
+// 			Some((80_000_000)),
+// 			Some(Fee {
+// 				numerator: 5,
+// 				denominator: 100,
+// 			}),
+// 			Some(BOB),
+// 		));
 
-		// verify changes
-		let updated_pool_data_1 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-		assert_eq!(updated_pool_data_1.start, 15);
-		assert_eq!(updated_pool_data_1.end, 18);
-		assert_eq!(updated_pool_data_1.initial_weight, 10_000_000);
-		assert_eq!(updated_pool_data_1.final_weight, 80_000_000);
-		assert_eq!(
-			updated_pool_data_1.fee,
-			Fee {
-				numerator: 5,
-				denominator: 100
-			}
-		);
-		assert_eq!(updated_pool_data_1.fee_collector, BOB);
+// 		// verify changes
+// 		let updated_pool_data_1 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+// 		assert_eq!(updated_pool_data_1.start, 15);
+// 		assert_eq!(updated_pool_data_1.end, 18);
+// 		assert_eq!(updated_pool_data_1.initial_weight, 10_000_000);
+// 		assert_eq!(updated_pool_data_1.final_weight, 80_000_000);
+// 		assert_eq!(
+// 			updated_pool_data_1.fee,
+// 			Fee {
+// 				numerator: 5,
+// 				denominator: 100
+// 			}
+// 		);
+// 		assert_eq!(updated_pool_data_1.fee_collector, BOB);
 
-		// update only one parameter
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			Some((15, 30)),
-			None,
-			None,
-			None,
-			None,
-		));
+// 		// update only one parameter
+// 		assert_ok!(LBPPallet::update_pool_data(
+// 			Origin::signed(ALICE),
+// 			ACA_DOT_POOL_ID,
+// 			Some((15, 30)),
+// 			None,
+// 			None,
+// 			None,
+// 			None,
+// 		));
 
-		// verify changes
-		let updated_pool_data_2 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-		assert_eq!(updated_pool_data_2.start, 15);
-		assert_eq!(updated_pool_data_2.end, 30);
-		assert_eq!(updated_pool_data_2.initial_weight, 10_000_000);
-		assert_eq!(updated_pool_data_2.final_weight, 80_000_000);
-		assert_eq!(
-			updated_pool_data_2.fee,
-			Fee {
-				numerator: 5,
-				denominator: 100
-			}
-		);
-		assert_eq!(updated_pool_data_2.fee_collector, BOB);
+// 		// verify changes
+// 		let updated_pool_data_2 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+// 		assert_eq!(updated_pool_data_2.start, 15);
+// 		assert_eq!(updated_pool_data_2.end, 30);
+// 		assert_eq!(updated_pool_data_2.initial_weight, 10_000_000);
+// 		assert_eq!(updated_pool_data_2.final_weight, 80_000_000);
+// 		assert_eq!(
+// 			updated_pool_data_2.fee,
+// 			Fee {
+// 				numerator: 5,
+// 				denominator: 100
+// 			}
+// 		);
+// 		assert_eq!(updated_pool_data_2.fee_collector, BOB);
 
-		// update only one parameter
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			None,
-			Some(((ACA, 10), (DOT, 70))),
-			None,
-			None,
-			None,
-		));
+// 		// update only one parameter
+// 		assert_ok!(LBPPallet::update_pool_data(
+// 			Origin::signed(ALICE),
+// 			ACA_DOT_POOL_ID,
+// 			None,
+// 			Some(((ACA, 10), (DOT, 70))),
+// 			None,
+// 			None,
+// 			None,
+// 		));
 
-		// verify changes
-		let updated_pool_data_3 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-		assert_eq!(updated_pool_data_3.start, 15);
-		assert_eq!(updated_pool_data_3.end, 30);
-		assert_eq!(updated_pool_data_3.initial_weightß, 12_500_000);
-		assert_eq!(updated_pool_data_3.final_weight, 80_000_000);
-		assert_eq!(
-			updated_pool_data_3.fee,
-			Fee {
-				numerator: 5,
-				denominator: 100
-			}
-		);
-		assert_eq!(updated_pool_data_3.fee_collector, BOB);
+// 		// verify changes
+// 		let updated_pool_data_3 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+// 		assert_eq!(updated_pool_data_3.start, 15);
+// 		assert_eq!(updated_pool_data_3.end, 30);
+// 		assert_eq!(updated_pool_data_3.initial_weightß, 12_500_000);
+// 		assert_eq!(updated_pool_data_3.final_weight, 80_000_000);
+// 		assert_eq!(
+// 			updated_pool_data_3.fee,
+// 			Fee {
+// 				numerator: 5,
+// 				denominator: 100
+// 			}
+// 		);
+// 		assert_eq!(updated_pool_data_3.fee_collector, BOB);
 
-		// update only one parameter
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			None,
-			None,
-			None,
-			None,
-			Some(ALICE),
-		));
+// 		// update only one parameter
+// 		assert_ok!(LBPPallet::update_pool_data(
+// 			Origin::signed(ALICE),
+// 			ACA_DOT_POOL_ID,
+// 			None,
+// 			None,
+// 			None,
+// 			None,
+// 			Some(ALICE),
+// 		));
 
-		// verify changes
-		let updated_pool_data_4 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-		assert_eq!(updated_pool_data_4.start, 15);
-		assert_eq!(updated_pool_data_4.end, 30);
-		assert_eq!(updated_pool_data_4.initial_weights, (10, 70));
-		assert_eq!(updated_pool_data_4.final_weights, (80, 20));
-		assert_eq!(
-			updated_pool_data_4.fee,
-			Fee {
-				numerator: 5,
-				denominator: 100
-			}
-		);
-		assert_eq!(updated_pool_data_4.fee_collector, ALICE);
+// 		// verify changes
+// 		let updated_pool_data_4 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+// 		assert_eq!(updated_pool_data_4.start, 15);
+// 		assert_eq!(updated_pool_data_4.end, 30);
+// 		assert_eq!(updated_pool_data_4.initial_weights, (10, 70));
+// 		assert_eq!(updated_pool_data_4.final_weights, (80, 20));
+// 		assert_eq!(
+// 			updated_pool_data_4.fee,
+// 			Fee {
+// 				numerator: 5,
+// 				denominator: 100
+// 			}
+// 		);
+// 		assert_eq!(updated_pool_data_4.fee_collector, ALICE);
 
-		// mix
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			Some((15, 18)),
-			Some(((ACA, 10), (DOT, 90))),
-			None,
-			Some(Fee {
-				numerator: 6,
-				denominator: 1_000
-			}),
-			None,
-		));
+// 		// mix
+// 		assert_ok!(LBPPallet::update_pool_data(
+// 			Origin::signed(ALICE),
+// 			ACA_DOT_POOL_ID,
+// 			Some((15, 18)),
+// 			Some(((ACA, 10), (DOT, 90))),
+// 			None,
+// 			Some(Fee {
+// 				numerator: 6,
+// 				denominator: 1_000
+// 			}),
+// 			None,
+// 		));
 
-		// verify changes
-		let updated_pool_data_5 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-		assert_eq!(updated_pool_data_5.start, 15);
-		assert_eq!(updated_pool_data_5.end, 18);
-		assert_eq!(updated_pool_data_5.initial_weights, (10, 90));
-		assert_eq!(updated_pool_data_5.final_weights, (80, 20));
-		assert_eq!(
-			updated_pool_data_5.fee,
-			Fee {
-				numerator: 6,
-				denominator: 1_000
-			}
-		);
-		assert_eq!(updated_pool_data_5.fee_collector, ALICE);
+// 		// verify changes
+// 		let updated_pool_data_5 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+// 		assert_eq!(updated_pool_data_5.start, 15);
+// 		assert_eq!(updated_pool_data_5.end, 18);
+// 		assert_eq!(updated_pool_data_5.initial_weights, (10, 90));
+// 		assert_eq!(updated_pool_data_5.final_weights, (80, 20));
+// 		assert_eq!(
+// 			updated_pool_data_5.fee,
+// 			Fee {
+// 				numerator: 6,
+// 				denominator: 1_000
+// 			}
+// 		);
+// 		assert_eq!(updated_pool_data_5.fee_collector, ALICE);
 
-		expect_events(vec![
-			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_1).into(),
-			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_2).into(),
-			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_3).into(),
-			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_4).into(),
-			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_5).into(),
-		]);
-	});
-}
+// 		expect_events(vec![
+// 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_1).into(),
+// 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_2).into(),
+// 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_3).into(),
+// 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_4).into(),
+// 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_5).into(),
+// 		]);
+// 	});
+// }
 
 // #[test]
 // fn update_non_existing_pool_data_should_not_work() {
@@ -801,7 +767,6 @@ fn update_pool_data_should_work() {
 // 			},
 // 			(0u64, 0u64),
 // 			WeightCurveType::Linear,
-// 			true,
 // 			Fee::default(),
 // 			CHARLIE,
 // 		));
@@ -842,248 +807,6 @@ fn update_pool_data_should_work() {
 // 			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
 // 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data).into(),
 // 		]);
-// 	});
-// }
-
-// #[test]
-// fn pause_pool_should_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID));
-
-// 		let paused_pool = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-// 		assert_eq!(
-// 			paused_pool,
-// 			Pool {
-// 				owner: ALICE,
-// 				start: 10u64,
-// 				end: 20u64,
-// 				assets: (ACA, DOT),
-// 				initial_weight: 20_000_000,
-// 				final_weight: 90_000_000,
-// 				weight_curve: WeightCurveType::Linear,
-// 				pausable: true,
-// 				paused: true,
-// 				fee: Fee::default(),
-// 				fee_collector: CHARLIE,
-// 			}
-// 		);
-
-// 		expect_events(vec![Event::Paused(ALICE, ACA_DOT_POOL_ID).into()]);
-// 	});
-// }
-
-// #[test]
-// fn pause_non_existing_pool_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		let non_existing_id = 25486;
-// 		assert_noop!(
-// 			LBPPallet::pause_pool(Origin::signed(ALICE), non_existing_id),
-// 			Error::<Test>::PoolNotFound
-// 		);
-// 	});
-// }
-
-// #[test]
-// fn pause_pool_by_non_owner_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		//user is not pool owner
-// 		let not_owner = BOB;
-// 		assert_noop!(
-// 			LBPPallet::pause_pool(Origin::signed(not_owner), ACA_DOT_POOL_ID),
-// 			Error::<Test>::NotOwner
-// 		);
-// 	});
-// }
-
-// #[test]
-// fn pause_non_pausable_pool_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		//pool is not pausable
-// 		assert_ok!(LBPPallet::create_pool(
-// 			Origin::root(),
-// 			BOB,
-// 			LBPAssetInfo {
-// 				id: ACA,
-// 				amount: 1_000_000_000,
-// 			},
-// 			LBPAssetInfo {
-// 				id: ETH,
-// 				amount: 2_000_000_000,
-// 			},
-// 			(200u64, 400u64),
-// 			WeightCurveType::Linear,
-// 			false,
-// 			Fee::default(),
-// 			CHARLIE,
-// 		));
-
-// 		assert_noop!(
-// 			LBPPallet::pause_pool(Origin::signed(BOB), 2_004_000),
-// 			Error::<Test>::PoolIsNotPausable
-// 		);
-// 	});
-// }
-
-// #[test]
-// fn pause_paused_pool_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		assert_ok!(LBPPallet::create_pool(
-// 			Origin::root(),
-// 			BOB,
-// 			LBPAssetInfo {
-// 				id: DOT,
-// 				amount: 1_000_000_000,
-// 			},
-// 			LBPAssetInfo {
-// 				id: ETH,
-// 				amount: 2_000_000_000,
-// 			},
-// 			(200u64, 400u64),
-// 			WeightCurveType::Linear,
-// 			true,
-// 			Fee::default(),
-// 			CHARLIE,
-// 		));
-
-// 		//pause the pool - pool is created as unpaused by default
-// 		assert_ok!(LBPPallet::pause_pool(Origin::signed(BOB), 3_004_000));
-
-// 		assert_noop!(
-// 			LBPPallet::pause_pool(Origin::signed(BOB), 3_004_000),
-// 			Error::<Test>::CannotPausePausedPool
-// 		);
-// 	});
-// }
-
-// #[test]
-// fn pause_non_running_pool_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		//pool is ended or ending in current block
-// 		assert_ok!(LBPPallet::create_pool(
-// 			Origin::root(),
-// 			ALICE,
-// 			LBPAssetInfo {
-// 				id: DOT,
-// 				amount: 1_000_000_000,
-// 			},
-// 			LBPAssetInfo {
-// 				id: HDX,
-// 				amount: 2_000_000_000,
-// 			},
-// 			(200u64, 400u64),
-// 			WeightCurveType::Linear,
-// 			true,
-// 			Fee::default(),
-// 			CHARLIE,
-// 		));
-
-// 		run_to_block(401);
-// 		assert_noop!(
-// 			LBPPallet::pause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID),
-// 			Error::<Test>::CannotPauseEndedPool
-// 		);
-// 	});
-// }
-
-// #[test]
-// fn unpause_pool_should_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		assert_ok!(LBPPallet::create_pool(
-// 			Origin::root(),
-// 			ALICE,
-// 			LBPAssetInfo {
-// 				id: DOT,
-// 				amount: 1_000_000_000,
-// 			},
-// 			LBPAssetInfo {
-// 				id: HDX,
-// 				amount: 2_000_000_000,
-// 			},
-// 			(200u64, 400u64),
-// 			WeightCurveType::Linear,
-// 			true,
-// 			Fee::default(),
-// 			CHARLIE,
-// 		));
-
-// 		//pool is created as unpaused by default
-// 		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID));
-// 		assert_ok!(LBPPallet::unpause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID,));
-
-// 		let unpaused_pool = LBPPallet::pool_data(HDX_DOT_POOL_ID);
-// 		assert_eq!(
-// 			unpaused_pool,
-// 			Pool {
-// 				owner: ALICE,
-// 				start: 200_u64,
-// 				end: 400_u64,
-// 				assets: (HDX, DOT),
-// 				initial_weight: 80_000_000u32,
-// 				final_weight: 60_000_000,
-// 				weight_curve: WeightCurveType::Linear,
-// 				pausable: true,
-// 				paused: false,
-// 				fee: Fee::default(),
-// 				fee_collector: CHARLIE,
-// 			}
-// 		);
-
-// 		expect_events(vec![
-// 			Event::Paused(ALICE, HDX_DOT_POOL_ID).into(),
-// 			Event::Unpaused(ALICE, HDX_DOT_POOL_ID).into(),
-// 		]);
-// 	});
-// }
-
-// #[test]
-// fn unpause_pool_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		//user is not pool owner
-// 		let not_owner = BOB;
-// 		assert_noop!(
-// 			LBPPallet::unpause_pool(Origin::signed(not_owner), ACA_DOT_POOL_ID),
-// 			Error::<Test>::NotOwner
-// 		);
-
-// 		//pool is not found
-// 		assert_noop!(
-// 			LBPPallet::unpause_pool(Origin::signed(ALICE), 24568),
-// 			Error::<Test>::PoolNotFound
-// 		);
-
-// 		//predefined_test_ext pool is unpaused
-// 		assert_noop!(
-// 			LBPPallet::unpause_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID),
-// 			Error::<Test>::PoolIsNotPaused
-// 		);
-
-// 		//pool is ended or ending in current block - pool is unpaused by default
-// 		assert_ok!(LBPPallet::create_pool(
-// 			Origin::root(),
-// 			ALICE,
-// 			LBPAssetInfo {
-// 				id: DOT,
-// 				amount: 1_000_000_000,
-// 			},
-// 			LBPAssetInfo {
-// 				id: HDX,
-// 				amount: 2_000_000_000,
-// 			},
-// 			(200u64, 400u64),
-// 			WeightCurveType::Linear,
-// 			true,
-// 			Fee::default(),
-// 			CHARLIE,
-// 		));
-
-// 		// pause the pool before trying to unpause it
-// 		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID,));
-
-// 		run_to_block(401);
-// 		assert_noop!(
-// 			LBPPallet::unpause_pool(Origin::signed(ALICE), HDX_DOT_POOL_ID),
-// 			Error::<Test>::CannotUnpauseEndedPool
-// 		);
 // 	});
 // }
 
@@ -1350,49 +1073,6 @@ fn update_pool_data_should_work() {
 // }
 
 // #[test]
-// fn remove_liquidity_from_paused_pool_should_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		System::set_block_number(11);
-// 		assert_ok!(LBPPallet::pause_pool(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
-// 		System::set_block_number(21);
-
-// 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
-// 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
-
-// 		let pool_balance_a_before = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
-// 		let pool_balance_b_before = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
-
-// 		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
-
-// 		let pool_balance_a_after = Currency::free_balance(ACA, &ACA_DOT_POOL_ID);
-// 		let pool_balance_b_after = Currency::free_balance(DOT, &ACA_DOT_POOL_ID);
-
-// 		assert_eq!(pool_balance_a_after, 0);
-// 		assert_eq!(pool_balance_b_after, 0);
-
-// 		let user_balance_a_after = Currency::free_balance(ACA, &ALICE);
-// 		assert_eq!(
-// 			user_balance_a_after,
-// 			user_balance_a_before.saturating_add(pool_balance_a_before)
-// 		);
-
-// 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
-// 		assert_eq!(
-// 			user_balance_b_after,
-// 			user_balance_b_before.saturating_add(pool_balance_b_before)
-// 		);
-
-// 		assert!(!<PoolData<Test>>::contains_key(ACA_DOT_POOL_ID));
-
-// 		expect_events(vec![
-// 			Event::Paused(1, 2003000).into(),
-// 			frame_system::Event::KilledAccount(ACA_DOT_POOL_ID).into(),
-// 			Event::LiquidityRemoved(ACA_DOT_POOL_ID, ACA, DOT, pool_balance_a_before, pool_balance_b_before).into(),
-// 		]);
-// 	});
-// }
-
-// #[test]
 // fn remove_liquidity_from_not_started_pool_should_work() {
 // 	predefined_test_ext().execute_with(|| {
 // 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
@@ -1442,7 +1122,6 @@ fn update_pool_data_should_work() {
 // 			},
 // 			(0u64, 0u64),
 // 			WeightCurveType::Linear,
-// 			true,
 // 			Fee::default(),
 // 			CHARLIE,
 // 		));
@@ -1767,7 +1446,6 @@ fn update_pool_data_should_work() {
 // 				},
 // 				(10u64, 20u64),
 // 				WeightCurveType::Linear,
-// 				true,
 // 				Fee::default(),
 // 				CHARLIE,
 // 			),
@@ -2025,7 +1703,6 @@ fn update_pool_data_should_work() {
 // 			},
 // 			(30u64, 40u64),
 // 			WeightCurveType::Linear,
-// 			true,
 // 			Fee::default(),
 // 			CHARLIE,
 // 		));
@@ -2089,7 +1766,6 @@ fn update_pool_data_should_work() {
 // 			},
 // 			(30u64, 40u64),
 // 			WeightCurveType::Linear,
-// 			true,
 // 			Fee::default(),
 // 			CHARLIE,
 // 		));
@@ -2127,7 +1803,6 @@ fn update_pool_data_should_work() {
 // 			},
 // 			(30u64, 40u64),
 // 			WeightCurveType::Linear,
-// 			true,
 // 			Fee::default(),
 // 			CHARLIE,
 // 		));
@@ -2212,7 +1887,6 @@ fn update_pool_data_should_work() {
 // 			},
 // 			(20u64, 30u64),
 // 			WeightCurveType::Linear,
-// 			true,
 // 			Fee::default(),
 // 			CHARLIE,
 // 		));
@@ -2330,7 +2004,6 @@ fn update_pool_data_should_work() {
 // 			},
 // 			(10u64, 20u64),
 // 			WeightCurveType::Linear,
-// 			true,
 // 			Fee {
 // 				numerator: 0,
 // 				denominator: 100,
@@ -2362,7 +2035,6 @@ fn update_pool_data_should_work() {
 // 				},
 // 				(10u64, 20u64),
 // 				WeightCurveType::Linear,
-// 				true,
 // 				Fee {
 // 					numerator: 10,
 // 					denominator: 0,
