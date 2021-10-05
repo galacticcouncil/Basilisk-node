@@ -30,7 +30,7 @@ use sp_runtime::{
 
 use frame_system::EnsureSigned;
 use pallet_xyk::AssetPairAccountIdFor;
-use primitives::{fee, AssetId, Balance};
+use primitives::{fee, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -139,6 +139,13 @@ impl pallet_asset_registry::Config for Test {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+}
+
 impl pallet_xyk::Config for Test {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
@@ -147,6 +154,10 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HDXAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 impl pallet_exchange::Config for Test {
