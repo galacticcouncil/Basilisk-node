@@ -452,7 +452,7 @@ pub mod pallet {
 
 				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
-				ensure!(Self::is_prior_sale_or_uninitialized(pool), Error::<T>::SaleStarted);
+				ensure!(!Self::is_pool_running(pool), Error::<T>::SaleStarted);
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
@@ -691,22 +691,6 @@ impl<T: Config> Pallet<T> {
 		pool_data.start <= now && now <= pool_data.end
 	}
 
-	/// return true if now is in interval <pool.start, pool.end>
-	fn is_sale_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
-		Self::is_pool_running(pool_data)
-	}
-
-	/// return true if the LBP event has not yet started, or the beginning is not set
-	fn is_prior_sale_or_uninitialized(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
-		let now = <frame_system::Pallet<T>>::block_number();
-		pool_data.start.is_zero() || now < pool_data.start
-	}
-
-	fn is_after_sale(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
-		let now = <frame_system::Pallet<T>>::block_number();
-		pool_data.end >= now
-	}
-
 	fn validate_trade(
 		who: &T::AccountId,
 		assets: AssetPair,
@@ -726,7 +710,7 @@ impl<T: Config> Pallet<T> {
 		let pool_id = Self::get_pair_id(assets);
 		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
-		ensure!(Self::is_sale_running(&pool_data), Error::<T>::SaleIsNotRunning);
+		ensure!(Self::is_pool_running(&pool_data), Error::<T>::SaleIsNotRunning);
 
 		let now = <frame_system::Pallet<T>>::block_number();
 
