@@ -4,6 +4,8 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::too_many_arguments)]
 
+use std::char::MAX;
+
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
@@ -58,23 +60,34 @@ impl Default for WeightCurveType {
 	}
 }
 
+/// Max weight corresponds to 100%
+pub const MAX_WEIGHT: u32 = 100_000_000;
+
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
+	// owner of the pool after council creates it
 	pub owner: AccountId,
+	// start block
 	pub start: BlockNumber,
+	// end block
 	pub end: BlockNumber,
-	// assets should be stored in increasing order (from left to right) by AssetId
+	// assets should be stored in increasing order (asset_a, asset_b) by AssetId
 	pub assets: (AssetId, AssetId),
-	pub initial_weights: (LBPWeight, LBPWeight),
-	pub final_weights: (LBPWeight, LBPWeight),
-	pub last_weight_update: BlockNumber,
-	pub last_weights: (LBPWeight, LBPWeight),
+	// initial weight of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
+	pub initial_weight: u32,
+	// final weights of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
+	pub final_weight: u32,
+	// weight curve
 	pub weight_curve: WeightCurveType,
+	// pool is pausable
 	pub pausable: bool,
+	// pool is paused
 	pub paused: bool,
+	// current fee
 	pub fee: Fee,
-	pub fee_receiver: AccountId,
+	// person that receives the fee
+	pub fee_collector: AccountId,
 }
 
 fn get_sorted_assets(
@@ -88,45 +101,56 @@ fn get_sorted_assets(
 	}
 }
 
+fn get_weights_for_assets(
+	asset_a: LBPAssetInfo<Balance>,
+	asset_b: LBPAssetInfo<Balance>,
+	initial_weight: u32,
+	final_weight: u32,
+) -> (u32, u32) {
+	if asset_a.id < asset_b.id {
+		(initial_weight, final_weight)
+	} else {
+		(MAX_WEIGHT.saturating_sub(initial_weight), MAX_WEIGHT.saturating_sub(final_weight))
+	}
+}
+
 impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockNumber> {
 	fn new(
 		pool_owner: AccountId,
 		asset_a: LBPAssetInfo<Balance>,
 		asset_b: LBPAssetInfo<Balance>,
-		sale_duration: (BlockNumber, BlockNumber),
+		duration: BlockNumber,
+		initial_weight: u32,
+		final_weight: u32,
 		weight_curve: WeightCurveType,
 		pausable: bool,
 		fee: Fee,
-		fee_receiver: AccountId,
+		fee_collector: AccountId,
 	) -> Self {
 		let (asset_one, asset_two) = get_sorted_assets(asset_a, asset_b);
+		let (weight_one, weight_two) = get_weights_for_assets(asset_a, asset_b, initial_weight, final_weight);
 
 		Pool {
 			owner: pool_owner,
-			start: sale_duration.0,
-			end: sale_duration.1,
+			start: Zero::zero(),
+			end: duration,
 			assets: (asset_one.id, asset_two.id),
-			initial_weights: (asset_one.initial_weight, asset_two.initial_weight),
-			final_weights: (asset_one.final_weight, asset_two.final_weight),
-			last_weight_update: Zero::zero(),
-			last_weights: (asset_one.initial_weight, asset_two.initial_weight),
+			initial_weight: weight_one,
+			final_weight: weight_two,
 			weight_curve,
 			pausable,
 			paused: false,
 			fee,
-			fee_receiver,
+			fee_collector,
 		}
 	}
 }
 
-// TODO: From reading the code, this seems like it makes the code harder to read than help.
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
 pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq> {
 	pub id: AssetId,
-	pub amount: Balance,
-	pub initial_weight: LBPWeight,
-	pub final_weight: LBPWeight,
+	pub amount: Balance
 }
 
 pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
@@ -134,8 +158,8 @@ pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 		weight_curve: WeightCurveType,
 		start: BlockNumber,
 		end: BlockNumber,
-		initial_weight: LBPWeight,
-		final_weight: LBPWeight,
+		initial_weight: u32,
+		final_weight: u32,
 		at: BlockNumber,
 	) -> Option<LBPWeight>;
 }
@@ -146,8 +170,8 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 		_weight_curve: WeightCurveType,
 		start: BlockNumber,
 		end: BlockNumber,
-		initial_weight: LBPWeight,
-		final_weight: LBPWeight,
+		initial_weight: u32,
+		final_weight: u32,
 		at: BlockNumber,
 	) -> Option<LBPWeight> {
 		hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at).ok()
@@ -256,14 +280,14 @@ pub mod pallet {
 		/// Pool does not contain the asset
 		InvalidAsset,
 
-		/// Invalid block number
-		InvalidBlockNumber,
+		/// Invalid block range
+		InvalidBlockRange,
 
 		/// Calculation error
 		WeightCalculationError,
 
-		/// Weight should be non-zero
-		ZeroWeight,
+		/// Weight set is out of range
+		InvalidWeight,
 
 		/// Can not perform a trade with zero amount
 		ZeroAmount,
@@ -351,19 +375,24 @@ pub mod pallet {
 		///
 		/// The dispatch origin for this call must be `T::CreatePoolOrigin`.
 		/// The pool is created with initial liquidity provided by the `pool_owner` who must have
-		/// sufficient funds free.
+		/// sufficient funds free. 
+		/// 
+		/// The pool starts uninitialized and update_pool call should be called once created to set the start block.
+		/// 
+		/// This function should be dispatched from governing entity `T::CreatePoolOrigin`
 		///
 		/// Parameters:
-		/// - `pool_owner`: the owner of the new pool.
-		/// - `asset`: The asset ID, the initial liquidity amount and the starting and ending weight.
-		/// - `sale_duration`: The LBP event duration is determined by the starting and ending block number,
-		/// or uninitialized if both values are set to zero.
+		/// - `pool_owner`: the future owner of the new pool.
+		/// - `asset_a`: { asset_id, amount } Asset ID and initial liquidity amount.
+		/// - `asset_b`: { asset_id, amount } Asset ID and initial liquidity amount.
+		/// - `initial_weight`: Initial weight of an asset. 1_000_000 corresponding to 1% and 100_000_000 to 100%  
+		/// - `duration`: The LBP event duration in blocks.
 		/// - `weight_curve`: The weight function used to update the LBP weights. Currently,
 		/// there is only one weight function implemented, the linear function.
 		/// - `pausable`: If the `pausable` option is set to `true`, the pool owner is allowed
 		/// to pause the pool during the sale.
-		/// - `fee`: The trading fee charged on every trade distributed to `fee_receiver`.
-		/// - `fee_receiver`: The account to which trading fees will be transferred.
+		/// - `fee`: The trading fee charged on every trade distributed to `fee_collector`.
+		/// - `fee_collector`: The account to which trading fees will be transferred.
 		///
 		/// Emits `PoolCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
@@ -373,11 +402,13 @@ pub mod pallet {
 			pool_owner: T::AccountId,
 			asset_a: LBPAssetInfo<BalanceOf<T>>,
 			asset_b: LBPAssetInfo<BalanceOf<T>>,
-			sale_duration: (T::BlockNumber, T::BlockNumber),
+			initial_weight: u32,
+			final_weight: u32,
+			duration: T::BlockNumber,
 			weight_curve: WeightCurveType,
 			pausable: bool,
 			fee: Fee,
-			fee_receiver: T::AccountId,
+			fee_collector: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
@@ -409,11 +440,13 @@ pub mod pallet {
 				pool_owner.clone(),
 				asset_a,
 				asset_b,
-				sale_duration,
+				duration,
+				initial_weight,
+				final_weight,
 				weight_curve,
 				pausable,
 				fee,
-				fee_receiver,
+				fee_collector,
 			);
 
 			Self::validate_pool_data(&pool_data)?;
@@ -441,10 +474,10 @@ pub mod pallet {
 		/// Parameters:
 		/// - `pool_id`: The identifier of the pool to be updated.
 		/// - `duration`: The new starting and ending time of the sale. This parameter is optional.
-		/// - `initial_weights`: The new initial weights. This parameter is optional.
-		/// - `final_weights`: The new final weights. This parameter is optional.
+		/// - `initial_weight`: The new initial weights. This parameter is optional.
+		/// - `final_weight`: The new final weights. This parameter is optional.
 		/// - `fee`: The new trading fee charged on every trade. This parameter is optional.
-		/// - `fee_receiver`: The new receiver of trading fees. This parameter is optional.
+		/// - `fee_collector`: The new receiver of trading fees. This parameter is optional.
 		///
 		/// Emits `PoolUpdated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::update_pool_data())]
@@ -453,10 +486,10 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			pool_id: PoolId<T>,
 			duration: Option<(T::BlockNumber, T::BlockNumber)>,
-			initial_weights: Option<((AssetId, LBPWeight), (AssetId, LBPWeight))>,
-			final_weights: Option<((AssetId, LBPWeight), (AssetId, LBPWeight))>,
+			initial_weight: Option<u32>,
+			final_weight: Option<u32>,
 			fee: Option<Fee>,
-			fee_receiver: Option<T::AccountId>,
+			fee_collector: Option<T::AccountId>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -471,9 +504,9 @@ pub mod pallet {
 
 				ensure!(
 					start.is_some()
-						|| end.is_some() || initial_weights.is_some()
-						|| final_weights.is_some()
-						|| fee.is_some() || fee_receiver.is_some(),
+						|| end.is_some() || initial_weight.is_some()
+						|| final_weight.is_some()
+						|| fee.is_some() || fee_collector.is_some(),
 					Error::<T>::NothingToUpdate
 				);
 
@@ -484,15 +517,14 @@ pub mod pallet {
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
 
-				pool.initial_weights =
-					initial_weights.map_or(Ok(pool.initial_weights), |w| Self::get_weights_in_order(pool, w))?;
-				pool.last_weights = pool.initial_weights;
+				pool.initial_weight =
+					initial_weight.unwrap_or(pool.initial_weight);
 
-				pool.final_weights =
-					final_weights.map_or(Ok(pool.final_weights), |w| Self::get_weights_in_order(pool, w))?;
+				pool.final_weight =
+					final_weight.unwrap_or(pool.final_weight);
 
 				pool.fee = fee.unwrap_or(pool.fee);
-				pool.fee_receiver = fee_receiver.unwrap_or_else(|| pool.fee_receiver.clone());
+				pool.fee_collector = fee_collector.unwrap_or_else(|| pool.fee_collector.clone());
 
 				Self::validate_pool_data(pool)?;
 
@@ -662,7 +694,7 @@ pub mod pallet {
 		/// Executes a swap of `asset_in` for `asset_out`. Price is determined by the pool and is
 		/// affected by the amount and proportion of the pool assets and the weights.
 		///
-		/// Trading `fee` is distributed to the `fee_receiver`.
+		/// Trading `fee` is distributed to the `fee_collector`.
 		///
 		/// Parameters:
 		/// - `asset_in`: The identifier of the asset being transferred from the account to the pool.
@@ -692,7 +724,7 @@ pub mod pallet {
 		/// Executes a swap of `asset_in` for `asset_out`. Price is determined by the pool and is
 		/// affected by the amount and the proportion of the pool assets and the weights.
 		///
-		/// Trading `fee` is distributed to the `fee_receiver`.
+		/// Trading `fee` is distributed to the `fee_collector`.
 		///
 		/// Parameters:
 		/// - `asset_in`: The identifier of the asset being transferred from the account to the pool.
@@ -735,61 +767,24 @@ impl<T: Config> Pallet<T> {
 			pool_data.weight_curve,
 			pool_data.start,
 			pool_data.end,
-			pool_data.initial_weights.0,
-			pool_data.final_weights.0,
+			pool_data.initial_weight,
+			pool_data.final_weight,
 			at,
 		)
 		.ok_or(Error::<T>::WeightCalculationError)?;
 
-		let weight_b = T::LBPWeightFunction::calculate_weight(
-			pool_data.weight_curve,
-			pool_data.start,
-			pool_data.end,
-			pool_data.initial_weights.1,
-			pool_data.final_weights.1,
-			at,
-		)
-		.ok_or(Error::<T>::WeightCalculationError)?;
+		let weight_b = MAX_WEIGHT.saturating_sub(weight_a);
 
 		Ok((weight_a, weight_b))
-	}
-
-	fn get_actual_weights(
-		pool_data: &Pool<T::AccountId, T::BlockNumber>,
-	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
-		let now = <frame_system::Pallet<T>>::block_number();
-
-		if now != pool_data.last_weight_update {
-			return Self::calculate_weights(pool_data, now);
-		}
-
-		Ok(pool_data.last_weights)
-	}
-
-	fn update_weights(
-		pool_id: &PoolId<T>,
-		pool_data: &mut Pool<T::AccountId, T::BlockNumber>,
-	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
-		let now = <frame_system::Pallet<T>>::block_number();
-
-		if now != pool_data.last_weight_update {
-			pool_data.last_weight_update = now;
-			pool_data.last_weights = Self::calculate_weights(&*pool_data, now)?;
-
-			let pool_data = &*pool_data;
-			<PoolData<T>>::insert(&pool_id, &pool_data);
-		}
-
-		Ok(pool_data.last_weights)
 	}
 
 	fn validate_pool_data(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> DispatchResult {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		ensure!(
-			(pool_data.start.is_zero() && pool_data.end.is_zero())
+			(pool_data.start.is_zero())
 				|| (now <= pool_data.start && pool_data.start < pool_data.end),
-			Error::<T>::InvalidBlockNumber
+			Error::<T>::InvalidBlockRange
 		);
 
 		// this restriction is based on the AtLeast32Bit trait of the frame_system::Balance type
@@ -801,11 +796,11 @@ impl<T: Config> Pallet<T> {
 
 		// zero weight at the beginning or at the end of a sale may cause a problem in the price calculation
 		ensure!(
-			!pool_data.initial_weights.0.is_zero()
-				&& !pool_data.initial_weights.1.is_zero()
-				&& !pool_data.final_weights.0.is_zero()
-				&& !pool_data.final_weights.1.is_zero(),
-			Error::<T>::ZeroWeight
+			!pool_data.initial_weight.is_zero()
+				&& !(MAX_WEIGHT < pool_data.initial_weight)
+				&& !pool_data.final_weight.is_zero()
+				&& !(MAX_WEIGHT < pool_data.final_weight),
+			Error::<T>::InvalidWeight
 		);
 
 		ensure!(!pool_data.fee.denominator.is_zero(), Error::<T>::FeeAmountInvalid);
@@ -834,14 +829,13 @@ impl<T: Config> Pallet<T> {
 		pool_data.end >= now
 	}
 
-	fn update_weights_and_validate_trade(
+	fn validate_trade(
 		who: &T::AccountId,
 		assets: AssetPair,
 		amount: BalanceOf<T>,
 		limit: BalanceOf<T>,
 		trade_type: TradeType,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-		// TODO: looks like this would benefit from splitting to sell | buy and extracting common stuff to functions
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
 		if trade_type == TradeType::Sell {
@@ -852,23 +846,14 @@ impl<T: Config> Pallet<T> {
 		}
 
 		let pool_id = Self::get_pair_id(assets);
-		let mut pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
 		ensure!(Self::is_sale_running(&pool_data), Error::<T>::SaleIsNotRunning);
 
+		let now = <frame_system::Pallet<T>>::block_number();
+
 		// update weights or reuse the last if update is not necessary
-		let (weight_in, weight_out) = match Self::update_weights(&pool_id, &mut pool_data) {
-			Ok(weights) => {
-				// TODO: use consistent ordering
-				if assets.asset_in == pool_data.assets.0 {
-					(weights.0, weights.1)
-				} else {
-					// swap weights if assets are in different order
-					(weights.1, weights.0)
-				}
-			}
-			Err(_) => return Err(<Error<T>>::Overflow.into()),
-		};
+		let (weight_in, weight_out) = Self::calculate_weights(&pool_data, now)?;
 
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
@@ -882,8 +867,8 @@ impl<T: Config> Pallet<T> {
 			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
 				asset_out_reserve,
-				weight_in,
-				weight_out,
+				weight_in as u128,
+				weight_out as u128,
 				amount,
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
@@ -902,8 +887,8 @@ impl<T: Config> Pallet<T> {
 			let token_amount_in = hydra_dx_math::lbp::calculate_in_given_out(
 				asset_in_reserve,
 				asset_out_reserve,
-				weight_in,
-				weight_out,
+				weight_in as u128,
+				weight_out as u128,
 				amount,
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
@@ -955,11 +940,11 @@ impl<T: Config> Pallet<T> {
 			T::MultiCurrency::transfer(
 				transfer.fee.0,
 				&transfer.origin,
-				&pool_data.fee_receiver,
+				&pool_data.fee_collector,
 				transfer.fee.1,
 			)?;
 		} else {
-			T::MultiCurrency::transfer(transfer.fee.0, &pool_id, &pool_data.fee_receiver, transfer.fee.1)?;
+			T::MultiCurrency::transfer(transfer.fee.0, &pool_id, &pool_data.fee_collector, transfer.fee.1)?;
 		}
 
 		Ok(())
@@ -972,19 +957,6 @@ impl<T: Config> Pallet<T> {
 		Ok(amount
 			.just_fee(pool_data.fee)
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
-	}
-
-	fn get_weights_in_order(
-		pool_data: &Pool<T::AccountId, T::BlockNumber>,
-		weight_data: ((AssetId, LBPWeight), (AssetId, LBPWeight)),
-	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
-		if pool_data.assets == (weight_data.0 .0, weight_data.1 .0) {
-			Ok((weight_data.0 .1, weight_data.1 .1))
-		} else if pool_data.assets == (weight_data.1 .0, weight_data.0 .0) {
-			Ok((weight_data.1 .1, weight_data.0 .1))
-		} else {
-			Err(Error::<T>::InvalidAsset.into())
-		}
 	}
 }
 
@@ -1050,8 +1022,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			Err(_) => return BalanceOf::<T>::zero(),
 		};
 
+		let now = <frame_system::Pallet<T>>::block_number();
+
 		// calculate actual weights or reuse the last if calculation is not necessary
-		let (weight_in, weight_out) = match Self::get_actual_weights(&pool_data) {
+		let (weight_in, weight_out) = match Self::calculate_weights(&pool_data, now) {
 			Ok(weights) => {
 				if asset_a == pool_data.assets.0 {
 					(weights.0, weights.1)
@@ -1063,7 +1037,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			Err(_) => return BalanceOf::<T>::zero(),
 		};
 
-		hydra_dx_math::lbp::calculate_spot_price(asset_a_reserve, asset_b_reserve, weight_in, weight_out, amount)
+		hydra_dx_math::lbp::calculate_spot_price(asset_a_reserve, asset_b_reserve, weight_in as u128, weight_out as u128, amount)
 			.unwrap_or_else(|_| BalanceOf::<T>::zero())
 	}
 
@@ -1075,7 +1049,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		min_bought: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, BalanceOf<T>>, DispatchError> {
-		Self::update_weights_and_validate_trade(who, assets, amount, min_bought, TradeType::Sell)
+		Self::validate_trade(who, assets, amount, min_bought, TradeType::Sell)
 	}
 
 	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
@@ -1102,7 +1076,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		max_limit: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, BalanceOf<T>>, DispatchError> {
-		Self::update_weights_and_validate_trade(who, assets, amount, max_limit, TradeType::Buy)
+		Self::validate_trade(who, assets, amount, max_limit, TradeType::Buy)
 	}
 
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, BalanceOf<T>>) -> DispatchResult {

@@ -189,7 +189,7 @@ Then open settings screen -> developer and paste
         "pausable":"bool",
         "paused":"bool",
         "fee":"Fee",
-        "fee_receiver":"AccountId"
+        "fee_collector":"AccountId"
       },
       "AssetNativeLocation":"MultiLocation",
       "AssetDetails":{

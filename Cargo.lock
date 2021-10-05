@@ -3293,6 +3293,16 @@ dependencies = [
 [[package]]
 name = "hydra-dx-math"
 version = "3.4.0"
+dependencies = [
+ "fixed",
+ "lazy_static",
+ "num-traits",
+ "primitive-types 0.8.0",
+]
+
+[[package]]
+name = "hydra-dx-math"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "992b2f7cab8392a1ec26e7e48a8882137f66634839bd09f4669e5f50e40eaa47"
 dependencies = [
@@ -5735,7 +5745,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math",
+ "hydra-dx-math 3.4.0",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec 2.3.1",
@@ -6249,7 +6259,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math",
+ "hydra-dx-math 3.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
