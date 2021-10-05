@@ -1,4 +1,4 @@
-# DONT MERGE
+# Basilisk node
 
 ## Local Development
 
