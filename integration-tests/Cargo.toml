@@ -44,7 +44,6 @@ pallet-authorship = { git = "https://github.com/paritytech/substrate", branch = 
 
 # ORML dependencies
 orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
-orml-nft = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
 orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
@@ -138,7 +137,6 @@ std = [
     "xcm-builder/std",
     "xcm-executor/std",
     "pallet-xcm/std",
-    "orml-nft/std",
     "parachain-info/std",
     "pallet-xyk/std",
     "pallet-duster/std",

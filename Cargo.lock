@@ -5144,19 +5144,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "orml-nft"
-version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=37e42936c41dbdbaf0117c628c9eab0e06044844#37e42936c41dbdbaf0117c628c9eab0e06044844"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec 2.3.1",
- "serde",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=37e42936c41dbdbaf0117c628c9eab0e06044844#37e42936c41dbdbaf0117c628c9eab0e06044844"
@@ -8580,7 +8567,6 @@ dependencies = [
  "kusama-runtime",
  "memory-db",
  "orml-currencies",
- "orml-nft",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
