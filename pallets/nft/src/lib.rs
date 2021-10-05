@@ -30,7 +30,7 @@ pub use pallet::*;
 pub mod pallet {
 
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*, traits::tokens::nonfungibles::Destroy};
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -197,19 +197,19 @@ pub mod pallet {
 		/// correct.
 		/// Emits `Destroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
-		#[transactional]
 		pub fn destroy_class(
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
-			witness: pallet_uniques::DestroyWitness,
-		) -> DispatchResult {
+		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin.clone())?;
 
+			let witness = pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id).unwrap();
+			
 			pallet_uniques::Pallet::<T>::destroy(origin, class_id, witness)?;
 
 			InstanceCount::<T>::remove(class_id);
 
-			Ok(())
+			Ok(().into())
 		}
 	}
 
@@ -228,5 +228,7 @@ pub mod pallet {
 		NotInRange,
 		/// Count of instances overflown
 		NoAvailableInstanceId,
+		/// Witness not available
+		WitnessUnavailable
 	}
 }
