@@ -7,7 +7,7 @@
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
-	traits::{AtLeast32BitUnsigned, Hash, Zero, Saturating},
+	traits::{AtLeast32BitUnsigned, Hash, Saturating, Zero},
 	DispatchError, RuntimeDebug,
 };
 use frame_support::{
@@ -77,7 +77,10 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub fee_receiver: AccountId,
 }
 
-fn get_sorted_assets(asset_a: LBPAssetInfo<Balance>, asset_b: LBPAssetInfo<Balance>) -> (LBPAssetInfo<Balance>, LBPAssetInfo<Balance>) {
+fn get_sorted_assets(
+	asset_a: LBPAssetInfo<Balance>,
+	asset_b: LBPAssetInfo<Balance>,
+) -> (LBPAssetInfo<Balance>, LBPAssetInfo<Balance>) {
 	if asset_a.id < asset_b.id {
 		(asset_a, asset_b)
 	} else {
@@ -183,6 +186,22 @@ pub mod pallet {
 
 		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
+
+		/// Minimum trading limit
+		#[pallet::constant]
+		type MinTradingLimit: Get<Balance>;
+
+		/// Minimum pool liquidity
+		#[pallet::constant]
+		type MinPoolLiquidity: Get<Balance>;
+
+		/// Max fraction of pool to sell in single transaction
+		#[pallet::constant]
+		type MaxInRatio: Get<u128>;
+
+		/// Max fraction of pool to buy in single transaction
+		#[pallet::constant]
+		type MaxOutRatio: Get<u128>;
 	}
 
 	#[pallet::hooks]
@@ -192,58 +211,86 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// Pool assets can not be the same
 		CannotCreatePoolWithSameAssets,
-		/// Initial liquidity should be non-zero
-		CannotCreatePoolWithZeroLiquidity,
+
 		/// Account is not a pool owner
 		NotOwner,
+
 		/// Sale already started
 		SaleStarted,
+
 		/// Sale is still in progress
 		SaleNotEnded,
+
 		/// Sale is not running
 		SaleIsNotRunning,
+
 		/// Sale already ended
 		CannotPauseEndedPool,
+
 		/// Sale already ended
 		CannotUnpauseEndedPool,
+
 		/// Sale is already paused
 		CannotPausePausedPool,
+
 		/// Pool cannot be paused
 		PoolIsNotPausable,
+
 		/// Pool is not paused
 		PoolIsNotPaused,
+
 		/// Sale duration is too long
 		MaxSaleDurationExceeded,
+
 		/// Liquidity being added should not be zero
 		CannotAddZeroLiquidity,
 		/// Asset balance too low
 		InsufficientAssetBalance,
+
 		/// Pool does not exist
 		PoolNotFound,
+
 		/// Pool has been already created
 		PoolAlreadyExists,
+
 		/// Pool does not contain the asset
 		InvalidAsset,
+
 		/// Invalid block number
 		InvalidBlockNumber,
+
 		/// Calculation error
 		WeightCalculationError,
+
 		/// Weight should be non-zero
 		ZeroWeight,
+
 		/// Can not perform a trade with zero amount
 		ZeroAmount,
+
 		/// Trade amount is too high
 		MaxInRatioExceeded,
+
 		/// Trade amount is too high
 		MaxOutRatioExceeded,
+
 		/// Invalid fee amount
 		FeeAmountInvalid,
+
 		/// Trading limit reached
 		AssetBalanceLimitExceeded,
+
 		/// An unexpected integer overflow occurred
 		Overflow, // no tests
+
 		/// Nothing to update
 		NothingToUpdate,
+
+		/// Liquidity has not reached the required minimum.
+		InsufficientLiquidity,
+
+		/// Amount is less than minimum trading limit.
+		InsufficientTradingAmount,
 	}
 
 	#[pallet::event]
@@ -335,8 +382,8 @@ pub mod pallet {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				!asset_a.amount.is_zero() && !asset_b.amount.is_zero(),
-				Error::<T>::CannotCreatePoolWithZeroLiquidity
+				asset_a.amount >= T::MinPoolLiquidity::get() && asset_b.amount >= T::MinPoolLiquidity::get(),
+				Error::<T>::InsufficientLiquidity
 			);
 
 			ensure!(asset_a.id != asset_b.id, Error::<T>::CannotCreatePoolWithSameAssets);
@@ -368,7 +415,7 @@ pub mod pallet {
 				fee,
 				fee_receiver,
 			);
-			
+
 			Self::validate_pool_data(&pool_data)?;
 
 			let pool_id = Self::get_pair_id(asset_pair);
@@ -419,7 +466,7 @@ pub mod pallet {
 
 				let (start, end) = match duration {
 					Some((start, end)) => (Some(start), Some(end)),
-					_ => (None, None)
+					_ => (None, None),
 				};
 
 				ensure!(
@@ -740,7 +787,8 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		ensure!(
-			(pool_data.start.is_zero() && pool_data.end.is_zero()) || (now <= pool_data.start && pool_data.start < pool_data.end),
+			(pool_data.start.is_zero() && pool_data.end.is_zero())
+				|| (now <= pool_data.start && pool_data.start < pool_data.end),
 			Error::<T>::InvalidBlockNumber
 		);
 
@@ -760,10 +808,7 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::ZeroWeight
 		);
 
-		ensure!(
-			!pool_data.fee.denominator.is_zero(),
-			Error::<T>::FeeAmountInvalid
-		);
+		ensure!(!pool_data.fee.denominator.is_zero(), Error::<T>::FeeAmountInvalid);
 
 		Ok(())
 	}
@@ -833,7 +878,7 @@ impl<T: Config> Pallet<T> {
 				amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxInRatioExceeded
 			);
-			
+
 			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
 				asset_out_reserve,
@@ -1073,5 +1118,21 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			transfer.fee.1,
 		));
 		Ok(())
+	}
+
+	fn get_min_trading_limit() -> Balance {
+		T::MinTradingLimit::get()
+	}
+
+	fn get_min_pool_liquidity() -> Balance {
+		T::MinPoolLiquidity::get()
+	}
+
+	fn get_max_in_ratio() -> u128 {
+		T::MaxInRatio::get()
+	}
+
+	fn get_max_out_ratio() -> u128 {
+		T::MaxOutRatio::get()
 	}
 }
