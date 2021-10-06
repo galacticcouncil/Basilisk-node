@@ -17,7 +17,7 @@ use frame_support::{
 	transactional,
 };
 use frame_system::ensure_signed;
-use hydra_dx_math::lbp::Weight as LBPWeight;
+use hydra_dx_math::types::LBPWeight;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::traits::{AMMTransfer, AMM};
 use primitives::{
@@ -726,8 +726,8 @@ impl<T: Config> Pallet<T> {
 			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
 				asset_out_reserve,
-				weight_in as u128,
-				weight_out as u128,
+				weight_in,
+				weight_out,
 				amount,
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
@@ -746,8 +746,8 @@ impl<T: Config> Pallet<T> {
 			let token_amount_in = hydra_dx_math::lbp::calculate_in_given_out(
 				asset_in_reserve,
 				asset_out_reserve,
-				weight_in as u128,
-				weight_out as u128,
+				weight_in,
+				weight_out,
 				amount,
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
@@ -896,8 +896,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			Err(_) => return BalanceOf::<T>::zero(),
 		};
 
-		hydra_dx_math::lbp::calculate_spot_price(asset_a_reserve, asset_b_reserve, weight_in as u128, weight_out as u128, amount)
-			.unwrap_or_else(|_| BalanceOf::<T>::zero())
+		hydra_dx_math::lbp::calculate_spot_price(
+			asset_a_reserve,
+			asset_b_reserve,
+			weight_in,
+			weight_out,
+			amount
+		)
+		.unwrap_or_else(|_| BalanceOf::<T>::zero())
 	}
 
 	/// Validate a sell trade and update pool weights if necessary
