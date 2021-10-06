@@ -31,7 +31,7 @@ use sp_runtime::{
 use frame_support::weights::IdentityFee;
 use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
-use primitives::{Amount, AssetId, Balance};
+use primitives::{fee, Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
 
 use frame_support::traits::Get;
 use pallet_xyk::AssetPairAccountIdFor;
@@ -39,7 +39,6 @@ use std::cell::RefCell;
 
 use frame_benchmarking::frame_support::weights::Pays;
 use frame_system::EnsureSigned;
-use primitives::fee;
 
 pub type AccountId = u64;
 
@@ -116,8 +115,8 @@ impl Config for Test {}
 
 impl pallet_transaction_multi_payment::Config for Test {
 	type Event = Event;
-	type Currency = Balances;
-	type MultiCurrency = Currencies;
+	type AcceptedCurrencyOrigin = frame_system::EnsureRoot<u64>;
+	type Currencies = Currencies;
 	type AMMPool = XYKPallet;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;
@@ -169,6 +168,13 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 	}
 }
 
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+}
+
 impl pallet_xyk::Config for Test {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
@@ -177,6 +183,10 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 parameter_type_with_key! {
@@ -254,7 +264,6 @@ impl ExtBuilder {
 
 		pallet_transaction_multi_payment::GenesisConfig::<Test> {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: 1000,
 		}
 		.assimilate_storage(&mut t)

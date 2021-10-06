@@ -51,8 +51,10 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 use frame_support::{
-	construct_runtime, match_type, parameter_types,
-	traits::{Contains, EnsureOrigin, Get, Nothing, U128CurrencyToVote},
+	construct_runtime, parameter_types,
+	traits::{
+		Contains, EnsureOrigin, Get, U128CurrencyToVote,
+	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -70,7 +72,6 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 use orml_currencies::BasicCurrencyAdapter;
 
 pub use common_runtime::*;
-
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -95,14 +96,15 @@ pub mod opaque {
 	}
 }
 
+#[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
-	authoring_version: RUNTIME_AUTHORING_VERSION,
-	spec_version: RUNTIME_SPEC_VERSION,
-	impl_version: RUNTIME_IMPL_VERSION,
+	authoring_version: 1,
+	spec_version: 17,
+	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: RUNTIME_TRANSACTION_VERSION,
+	transaction_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -111,19 +113,6 @@ pub fn native_version() -> NativeVersion {
 	NativeVersion {
 		runtime_version: VERSION,
 		can_author_with: Default::default(),
-	}
-}
-
-pub struct BaseFilter;
-impl Contains<Call> for BaseFilter {
-	fn contains(call: &Call) -> bool {
-		#[allow(clippy::match_like_matches_macro)]
-		match call {
-			Call::XYK(_) => false,
-			Call::NFT(_) => false,
-			Call::Exchange(_) => false,
-			_ => true,
-		}
 	}
 }
 
@@ -184,7 +173,7 @@ parameter_types! {
 
 impl frame_system::Config for Runtime {
 	/// The basic call filter to use in dispatchable.
-	type BaseCallFilter = BaseFilter;
+	type BaseCallFilter = ();
 	type BlockWeights = BlockWeights;
 	type BlockLength = BlockLength;
 	/// The ubiquitous origin type.
@@ -254,7 +243,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 /// Parameterized slow adjusting fee updated based on
-/// https://w3f-research.readthedocs.io/en/latest/polkadot/Token%20Economics.html#-2.-slow-adjusting-mechanism
+/// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html?highlight=token%20economics#-2.-slow-adjusting-mechanism
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
@@ -267,8 +256,8 @@ impl pallet_transaction_payment::Config for Runtime {
 
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
-	type Currency = Balances;
-	type MultiCurrency = Currencies;
+	type AcceptedCurrencyOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type Currencies = Currencies;
 	type AMMPool = XYK;
 	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
@@ -290,7 +279,7 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = AssetRegistry;
 	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
-	type DustRemovalWhitelist = Nothing;
+	type DustRemovalWhitelist = pallet_duster::DusterWhitelist<Runtime>;
 }
 
 impl orml_currencies::Config for Runtime {
@@ -316,11 +305,11 @@ impl pallet_duster::Config for Runtime {
 /// Basilisk Pallets configurations
 
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Eq)]
-pub struct AssetLocation(pub polkadot_xcm::v0::MultiLocation);
+pub struct AssetLocation(pub polkadot_xcm::v1::MultiLocation);
 
 impl Default for AssetLocation {
 	fn default() -> Self {
-		AssetLocation(polkadot_xcm::v0::MultiLocation::Null)
+		AssetLocation(polkadot_xcm::v1::MultiLocation::here())
 	}
 }
 
@@ -343,6 +332,10 @@ impl pallet_xyk::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 impl pallet_exchange::Config for Runtime {
@@ -360,6 +353,10 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 }
 
@@ -815,6 +812,16 @@ impl_runtime_apis! {
 			ParachainSystem::collect_collation_info()
 		}
 	}
+
+		#[cfg(feature = "try-runtime")]
+	impl frame_try_runtime::TryRuntime<Block> for Runtime {
+		fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+			//log::info!("try-runtime::on_runtime_upgrade.");
+			let weight = Executive::try_runtime_upgrade()?;
+			Ok((weight, BlockWeights::get().max_block))
+		}
+	}
+
 
 	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 		fn account_nonce(account: AccountId) -> Index {

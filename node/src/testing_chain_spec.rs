@@ -306,7 +306,6 @@ fn testnet_parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
 		tokens: TokensConfig {

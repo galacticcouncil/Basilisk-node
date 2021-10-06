@@ -106,7 +106,11 @@ parameter_types! {
 // pallet xyk
 parameter_types! {
 	pub ExchangeFee: fee::Fee = fee::Fee::default();
-	pub RegistryStrLimit: u32 = 32;
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	pub const RegistryStrLimit: u32 = 32;
 }
 
 // pallet duster

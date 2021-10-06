@@ -12,4 +12,5 @@ members = [
   'pallets/xyk',
   'pallets/exchange',
   'pallets/asset-registry',
+  'integration-tests',
 ]

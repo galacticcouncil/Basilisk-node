@@ -106,6 +106,10 @@ impl AssetPairPoolIdFor<AssetId, u64> for AssetPairPoolIdTest {
 
 parameter_types! {
 	pub const NativeAssetId: AssetId = CORE_ASSET_ID;
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 }
 
 impl Config for Test {
@@ -116,6 +120,10 @@ impl Config for Test {
 	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type WeightInfo = ();
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 pub struct ExtBuilder {

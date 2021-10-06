@@ -205,6 +205,30 @@ pub mod pallet {
 	pub type ExchangeAssetsIntentions<T: Config> =
 		StorageMap<_, Blake2_128Concat, (AssetId, AssetId), Vec<Intention<T>>, ValueQuery>;
 
+	#[allow(dead_code)]
+	#[pallet::extra_constants]
+	impl<T: Config> Pallet<T> {
+		fn min_trading_limit() -> Balance { T::AMMPool::get_min_trading_limit() }
+	}
+
+	#[allow(dead_code)]
+	#[pallet::extra_constants]
+	impl<T: Config> Pallet<T> {
+		fn min_pool_liquidity() -> Balance { T::AMMPool::get_min_pool_liquidity() }
+	}
+
+	#[allow(dead_code)]
+	#[pallet::extra_constants]
+	impl<T: Config> Pallet<T> {
+		fn max_in_ratio() -> u128 { T::AMMPool::get_max_in_ratio() }
+	}
+
+	#[allow(dead_code)]
+	#[pallet::extra_constants]
+	impl<T: Config> Pallet<T> {
+		fn max_out_ratio() -> u128 { T::AMMPool::get_max_out_ratio() }
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Create sell intention

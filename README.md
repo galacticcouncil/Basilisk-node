@@ -186,10 +186,11 @@ Then open settings screen -> developer and paste
       },
       "PoolId":"AccountId",
       "BalanceOf":"Balance",
-      "AssetType":{
-        "_enum":[
-          "Token"
-        ]
+      "AssetType": {
+        "_enum": {
+		  "Token": "Null",
+		  "PoolShare": "(AssetId,AssetId)"
+	    }
       },
       "Pool":{
         "owner":"AccountId",
@@ -210,12 +211,20 @@ Then open settings screen -> developer and paste
       "AssetDetails":{
         "name":"Vec<u8>",
         "asset_type":"AssetType",
+        "existential_deposit":"Balance",
         "locked":"bool"
       },
+      "AssetDetailsT": "AssetDetails",
       "AssetMetadata":{
         "symbol":"Vec<u8>",
         "decimals":"u8"
-      }
+      },
+      "AssetInstance": "AssetInstanceV0",
+      "MultiLocation": "MultiLocationV0",
+      "AssetNativeLocation": "MultiLocation",
+      "MultiAsset": "MultiAssetV0",
+      "Xcm": "XcmV0",
+      "XcmOrder": "XcmOrderV0"
     }
   ]
 }
