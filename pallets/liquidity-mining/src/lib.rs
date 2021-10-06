@@ -479,19 +479,20 @@ impl<T: Config> Pallet<T> {
 
 		let now = <frame_system::Pallet<T>>::block_number();
 		let period_now = Self::get_period_number(now, T::AccumulatePeriod::get())?;
-
-		// Do nothing if pool was udpated in this period
+		
+        // Do nothing if pool was udpated in this period
 		if pool.updated_at == period_now {
 			return Ok(());
 		}
 
 		//count number of periods since last update
 		let periods = period_now - pool.updated_at;
+        println!("period now: {:?}", period_now);
 		//get rewards for all "untouched" periods
 		let rewards = Self::compute_rewards(pool_id, pool, periods)?;
 
 		pool.unpaid_rewards = pool.unpaid_rewards.checked_add(&rewards).ok_or(Error::<T>::Overflow)?;
-
+println!("acc reward {:?}", Self::get_accumulated_reward_per_share(&pool, rewards).unwrap());
 		pool.accumulated_reward_per_share = Self::get_accumulated_reward_per_share(&pool, rewards)?;
 
 		pool.updated_at = period_now;
@@ -503,12 +504,14 @@ impl<T: Config> Pallet<T> {
 		pool: &LmPool<T::Balance, T::CurrencyId, T::BlockNumber>,
 		reward: T::Balance,
 	) -> Result<FixedU128, Error<T>> {
-		let reward_per_share = reward
-			.checked_div(&pool.total_locked_shares)
+		let reward_per_share = FixedU128::from(Into::<u128>::into(reward))
+			.checked_div(&FixedU128::from(Into::<u128>::into(pool.total_locked_shares)))
 			.ok_or(Error::<T>::Overflow)?;
+       
+        println!("reward: {:?}, total_locked: {:?}", reward, pool.total_locked_shares);
 
 		pool.accumulated_reward_per_share
-			.checked_add(&FixedU128::from(Into::<u128>::into(reward_per_share)))
+			.checked_add(&reward_per_share)
 			.ok_or(Error::<T>::Overflow)
 	}
 
@@ -522,18 +525,22 @@ impl<T: Config> Pallet<T> {
 	) -> Result<T::Balance, Error<T>> {
 		let outstanding_rewards = Self::get_accumulated_reward_for_periods(periods_count)?;
 
+println!("periods: {:?}, outstanding_rewards: {:?}", periods_count, outstanding_rewards);
+
 		let claimed_rewards = pool
 			.unpaid_rewards
 			.checked_add(&pool.paid_rewards)
 			.ok_or(Error::<T>::Overflow)?;
-
+println!("claimed_rewards: {:?}", claimed_rewards);
 		let planned_rewards = Self::get_total_planned_rewards(pool_id)?;
-
-		let claimed_rewards = claimed_rewards
+println!("planned_rewards: {:?}", planned_rewards);
+		let total_rewards = claimed_rewards
 			.checked_add(&outstanding_rewards)
 			.ok_or(Error::<T>::Overflow)?;
 
-		if claimed_rewards > planned_rewards {
+println!("total_rewards: {:?}", total_rewards);
+		if total_rewards > planned_rewards {
+            //TODO: add abs
 			claimed_rewards
 				.checked_sub(&planned_rewards)
 				.ok_or(Error::<T>::Overflow)
@@ -544,7 +551,7 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_total_planned_rewards(_pool_id: PoolId<T>) -> Result<T::Balance, Error<T>> {
 		//TODO: add real compuation
-		Ok(T::Balance::from(1_000_000u128))
+		Ok(T::Balance::from(1_000_000_000_000_000_000_000_000u128))
 	}
 
 	// TODO: this method should call real reward function
@@ -552,7 +559,7 @@ impl<T: Config> Pallet<T> {
 		let p = T::Balance::from(periods_count);
 
 		//TODO: add real computation
-		T::Balance::from(1_000_u128).checked_mul(&p).ok_or(Error::<T>::Overflow)
+		T::Balance::from(2_000_000_000_000_000_u128).checked_mul(&p).ok_or(Error::<T>::Overflow)
 	}
 
 	pub fn get_period_number(

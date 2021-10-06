@@ -47,7 +47,7 @@ pub const BSX_ACA_SHARE_ID: AssetId = 100;
 pub const BSX_ETH_SHARE_ID: AssetId = 101;
 pub const BSX_DOT_SHARE_ID: AssetId = 102;
 
-pub const DECIMALS:u64 = 1_000_000_000_000;
+pub const DECIMALS:u128 = 1_000_000_000_000;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -98,7 +98,7 @@ parameter_types! {
 	pub NativeCurrencyId: AssetId = 0;
 
 	pub LmAccount: AccountId = 2_000;
-    pub AccumulatePeriod: BlockNumber = 1_000;
+    pub AccumulatePeriod: BlockNumber = 10; //10 blockov
 	pub const MaxLocks: u32 = 1;
     pub PayoutCurrencyId: AssetId = CORE_ASSET_ID;
 }

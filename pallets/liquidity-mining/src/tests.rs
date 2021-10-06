@@ -19,7 +19,7 @@ fn create_pool_should_work() {
 	ext.execute_with(|| {
 		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL), None);
 
-		mock::run_to_block(81_324);
+		mock::run_to_block(812);
 		//default loyalty cureve params
 		assert_ok!(LiquidityMining::create_pool(
 			Origin::root(),
@@ -34,7 +34,7 @@ fn create_pool_should_work() {
 			get_default_pool(BSX_ACA_SHARE_ID, 81_u64, None),
 		);
 
-		mock::run_to_block(92_324);
+		mock::run_to_block(925);
 		assert_eq!(LiquidityMining::pool(BSX_ETH_POOL), None);
 		assert_ok!(LiquidityMining::create_pool(
 			Origin::root(),
@@ -65,7 +65,7 @@ fn create_pool_should_work() {
 fn create_pool_should_not_work() {
 	let mut ext = new_test_ext();
 	ext.execute_with(|| {
-		mock::run_to_block(1000);
+		mock::run_to_block(10);
 
 		let mut orig_pool = get_default_pool(BSX_ACA_SHARE_ID, 1, None);
 		orig_pool.accumulated_reward_per_share = FixedU128::from(2);
@@ -94,51 +94,94 @@ fn create_pool_should_not_work() {
 fn update_pool_should_work() {
 	let mut ext = new_test_ext();
 	ext.execute_with(|| {
-		mock::run_to_block(1_000);
-		let orig_pool = get_default_pool(BSX_ACA_SHARE_ID, 1, None);
+		mock::run_to_block(10);
+		let mut orig_pool = get_default_pool(BSX_ACA_SHARE_ID, 0, None);
+        
+        orig_pool.total_locked_shares = 1_000_u128 * DECIMALS;
+
 		let pool = &mut orig_pool.clone();
 
-		//nothing should change in the same period
-		assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
-
-		assert_eq!(orig_pool, *pool);
-
-		mock::run_to_block(2_000);
-		//+1_000 shasres locked
-		pool.total_locked_shares = 1_000;
 		assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
 		assert_eq!(
 			*pool,
 			LmPool {
-				accumulated_reward_per_share: FixedU128::from(1),
-				total_locked_shares: 1_000_u128,
+				accumulated_reward_per_share: FixedU128::from_float(2.0),
+				total_locked_shares: 1_000_u128 * DECIMALS,
 				share_id: BSX_ACA_SHARE_ID,
-				updated_at: 2_u64,
-				unpaid_rewards: 1_000_u128,
+				updated_at: 1_u64,
+				unpaid_rewards: 2_000_u128 * DECIMALS,
 				paid_rewards: 0_u128,
 				canceled: false,
 				loyalty_curve: LoyaltyCurve::default(),
 			}
 		);
-       
-        //nothing happend for few periods
-		mock::run_to_block(5_000);  
-		pool.total_locked_shares += 1_000_000; //lock additional shares
+        
+        //nothing should change in same period
 		assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
-		/*assert_eq!(
+		assert_eq!(
 			*pool,
 			LmPool {
-				accumulated_reward_per_share: 1_u128,
-				total_locked_shares: 1_000_u128,
+				accumulated_reward_per_share: FixedU128::from_float(2.0),
+				total_locked_shares: 1_000_u128 * DECIMALS,
 				share_id: BSX_ACA_SHARE_ID,
-				updated_at: 2_u64,
-				unpaid_rewards: 1_000_u128,
+				updated_at: 1_u64,
+				unpaid_rewards: 2_000_u128 * DECIMALS,
+				paid_rewards: 0_u128,
+				canceled: false,
+				loyalty_curve: LoyaltyCurve::default(),
+			}
+		);
+		
+        mock::run_to_block(200);
+        pool.total_locked_shares = 2_000_u128 * DECIMALS;
+        assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
+		assert_eq!(
+			*pool,
+			LmPool {
+				accumulated_reward_per_share: FixedU128::from_float(21.0),
+				total_locked_shares: 2_000_u128 * DECIMALS,
+				share_id: BSX_ACA_SHARE_ID,
+				updated_at: 20_u64,
+				unpaid_rewards: 40_000_u128 * DECIMALS,
+				paid_rewards: 0_u128,
+				canceled: false,
+				loyalty_curve: LoyaltyCurve::default(),
+			}
+		);
+
+        mock::run_to_block(5_000);
+        pool.total_locked_shares = 4_563_u128 * DECIMALS;
+        assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
+		assert_eq!(
+			*pool,
+			LmPool {
+				accumulated_reward_per_share: FixedU128::from_float(231.387_902_695_595_003_287),
+				total_locked_shares: 4_563_u128 * DECIMALS,
+				share_id: BSX_ACA_SHARE_ID,
+				updated_at: 500_u64,
+				unpaid_rewards: 100_000_u128 * DECIMALS,
+				paid_rewards: 0_u128,
+				canceled: false,
+				loyalty_curve: LoyaltyCurve::default(),
+			}
+		);
+/*
+        mock::run_to_block(5_100);
+        pool.total_locked_shares = 4_000_u128 * DECIMALS;
+        assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
+		assert_eq!(
+			*pool,
+			LmPool {
+				accumulated_reward_per_share: FixedU128::from_float(236.3879027),
+				total_locked_shares: 4_000_u128 * DECIMALS,
+				share_id: BSX_ACA_SHARE_ID,
+				updated_at: 510_u64,
+				unpaid_rewards: 102_000_u128 * DECIMALS,
 				paid_rewards: 0_u128,
 				canceled: false,
 				loyalty_curve: LoyaltyCurve::default(),
 			}
 		);*/
-        
 	});
 }
 /*
