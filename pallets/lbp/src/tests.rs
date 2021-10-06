@@ -590,171 +590,178 @@ fn update_pool_data_should_work() {
 	});
 }
 
-// #[test]
-// fn update_non_existing_pool_data_should_not_work() {
-// 	new_test_ext().execute_with(|| {
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(
-// 				Origin::signed(ALICE),
-// 				ACA_DOT_POOL_ID,
-// 				Some((15, 18)),
-// 				Some(((ACA, 10), (DOT, 90))),
-// 				Some(((ACA, 80), (DOT, 20))),
-// 				Some(Fee {
-// 					numerator: 5,
-// 					denominator: 100,
-// 				}),
-// 				None,
-// 			),
-// 			Error::<Test>::PoolNotFound
-// 		);
-// 	});
-// }
+#[test]
+fn update_non_existing_pool_data_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some(15),
+				Some(18),
+				Some(10_000_000),
+				Some(80_000_000),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100,
+				}),
+				None,
+			),
+			Error::<Test>::PoolNotFound
+		);
+	});
+}
 
-// #[test]
-// fn update_pool_with_invalid_data_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(
-// 				Origin::signed(ALICE),
-// 				ACA_DOT_POOL_ID,
-// 				Some((20, 10)), // reversed interval, the end precedes the beginning
-// 				Some(((ACA, 10), (DOT, 90))),
-// 				Some(((ACA, 80), (DOT, 20))),
-// 				Some(Fee {
-// 					numerator: 5,
-// 					denominator: 100,
-// 				}),
-// 				None,
-// 			),
-// 			Error::<Test>::InvalidBlockRange
-// 		);
+#[test]
+fn update_pool_with_invalid_data_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				// reversed interval, the end precedes the beginning
+				Some(20),
+				Some(10),
+				Some(10_000_000),
+				Some(80_000_000),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100,
+				}),
+				None,
+			),
+			Error::<Test>::InvalidBlockRange
+		);
 
-// 		run_to_block(6);
+		run_to_block(6);
 
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(
-// 				Origin::signed(ALICE),
-// 				ACA_DOT_POOL_ID,
-// 				Some((5, 20)),
-// 				Some(((ACA, 10), (DOT, 90))),
-// 				Some(((ACA, 80), (DOT, 20))),
-// 				Some(Fee {
-// 					numerator: 5,
-// 					denominator: 100,
-// 				}),
-// 				None,
-// 			),
-// 			Error::<Test>::InvalidBlockRange
-// 		);
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some(5),
+				Some(20),
+				Some(10_000_000),
+				Some(80_000_000),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100,
+				}),
+				None,
+			),
+			Error::<Test>::InvalidBlockRange
+		);
 
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(
-// 				Origin::signed(ALICE),
-// 				ACA_DOT_POOL_ID,
-// 				Some((0, 20)),
-// 				Some(((ACA, 10), (DOT, 90))),
-// 				Some(((ACA, 80), (DOT, 20))),
-// 				Some(Fee {
-// 					numerator: 5,
-// 					denominator: 100,
-// 				}),
-// 				None,
-// 			),
-// 			Error::<Test>::InvalidBlockRange
-// 		);
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some(0),
+				Some(20),
+				Some(10_000_000),
+				Some(80_000_000),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100,
+				}),
+				None,
+			),
+			Error::<Test>::InvalidBlockRange
+		);
 
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(
-// 				Origin::signed(ALICE),
-// 				ACA_DOT_POOL_ID,
-// 				Some((5, 0)),
-// 				Some(((ACA, 10), (DOT, 90))),
-// 				Some(((ACA, 80), (DOT, 20))),
-// 				Some(Fee {
-// 					numerator: 5,
-// 					denominator: 100,
-// 				}),
-// 				None,
-// 			),
-// 			Error::<Test>::InvalidBlockRange
-// 		);
-// 	});
-// }
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some(5),
+				Some(0),
+				Some(10_000_000),
+				Some(80_000_000),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100,
+				}),
+				None,
+			),
+			Error::<Test>::InvalidBlockRange
+		);
+	});
+}
 
-// #[test]
-// fn update_pool_data_without_changes_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(Origin::signed(ALICE), ACA_DOT_POOL_ID, None, None, None, None, None,),
-// 			Error::<Test>::NothingToUpdate
-// 		);
-// 	});
-// }
+#[test]
+fn update_pool_data_without_changes_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::update_pool_data(Origin::signed(ALICE), ACA_DOT_POOL_ID, None, None, None, None, None, None,),
+			Error::<Test>::NothingToUpdate
+		);
+	});
+}
 
-// #[test]
-// fn update_pool_data_by_non_owner_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(
-// 				Origin::signed(BOB),
-// 				ACA_DOT_POOL_ID,
-// 				Some((15, 20)),
-// 				Some(((ACA, 10), (DOT, 90))),
-// 				None,
-// 				None,
-// 				None,
-// 			),
-// 			Error::<Test>::NotOwner
-// 		);
-// 	});
-// }
+#[test]
+fn update_pool_data_by_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(BOB),
+				ACA_DOT_POOL_ID,
+				Some(15),
+				Some(20),
+				Some(10_000_000),
+				Some(80_000_000),
+				None,
+				None,
+			),
+			Error::<Test>::NotOwner
+		);
+	});
+}
 
-// #[test]
-// fn update_pool_data_for_running_lbp_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		System::set_block_number(16);
+#[test]
+fn update_pool_data_for_running_lbp_should_not_work() {
+	predefined_test_ext().execute_with(|| {
 
-// 		// update starting block and final weights
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(
-// 				Origin::signed(ALICE),
-// 				ACA_DOT_POOL_ID,
-// 				Some((15, 20)),
-// 				Some(((ACA, 10), (DOT, 90))),
-// 				None,
-// 				Some(Fee {
-// 					numerator: 5,
-// 					denominator: 100
-// 				}),
-// 				Some(BOB),
-// 			),
-// 			Error::<Test>::SaleStarted
-// 		);
+		let pool_data1 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
-// 		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			Some(15),
+			Some(20),
+			None,
+			None,
+			None,
+			None,
+		));
 
-// 		expect_events(vec![Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into()]);
-// 	});
-// }
+		System::set_block_number(16);
 
-// #[test]
-// fn update_pool_data_with_wrong_asset_should_not_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		assert_noop!(
-// 			LBPPallet::update_pool_data(
-// 				Origin::signed(ALICE),
-// 				ACA_DOT_POOL_ID,
-// 				None,
-// 				Some(((HDX, 10), (DOT, 90))),
-// 				None,
-// 				None,
-// 				None,
-// 			),
-// 			Error::<Test>::InvalidAsset
-// 		);
-// 	});
-// }
+		// update starting block and final weights
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some(15),
+				Some(30),
+				Some(10_000_000),
+				Some(80_000_000),
+				Some(Fee {
+					numerator: 5,
+					denominator: 100
+				}),
+				Some(BOB),
+			),
+			Error::<Test>::SaleStarted
+		);
+
+		let pool_data2 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+
+		expect_events(vec![
+			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data1).into(),
+			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into()
+		]);
+	});
+}
 
 // #[test]
 // fn update_pool_interval_should_work() {

@@ -233,9 +233,6 @@ pub mod pallet {
 		/// Pool has been already created
 		PoolAlreadyExists,
 
-		/// Pool does not contain the asset
-		InvalidAsset,
-
 		/// Invalid block range
 		InvalidBlockRange,
 
@@ -452,7 +449,7 @@ pub mod pallet {
 
 				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
-				ensure!(!Self::is_pool_running(pool), Error::<T>::SaleStarted);
+				ensure!(!Self::is_pool_running(&pool), Error::<T>::SaleStarted);
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
@@ -659,7 +656,7 @@ impl<T: Config> Pallet<T> {
 		let now = <frame_system::Pallet<T>>::block_number();
 
 		ensure!(
-			(pool_data.start.is_zero())
+			(pool_data.start.is_zero() && pool_data.end.is_zero())
 				|| (now <= pool_data.start && pool_data.start < pool_data.end),
 			Error::<T>::InvalidBlockRange
 		);
