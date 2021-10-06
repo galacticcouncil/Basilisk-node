@@ -88,7 +88,7 @@ jobs:
         run: rustup component add clippy
       - name: Run clippy
         run: cargo clippy --release --all-targets --all-features -- -D warnings
-        
+
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage
@@ -191,9 +191,9 @@ jobs:
       - run: ./install_polkadot_launch.sh
         name: Setup polkadot launch
         working-directory: scripts
-      - run: npm start ../../rococo-local/config.json &
-        name: Launch rococo local
-        working-directory: scripts/polkadot-launch
-      - run: npm install && npm start 200
-        name: Wait for parachain inclusion
+      - run: npm install
+        name: Setup wait script
         working-directory: scripts/wait-for-inclusion
+      - run: npm start ../../rococo-local/config.json & ../wait-for-inclusion && npm start 200
+        name: Launch rococo local & wait for inclusion
+        working-directory: scripts/polkadot-launch
