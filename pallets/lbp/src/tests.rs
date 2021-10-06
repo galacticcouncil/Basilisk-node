@@ -445,8 +445,8 @@ fn update_pool_data_should_work() {
 			ACA_DOT_POOL_ID,
 			Some(15),
 			Some(18),
-			Some((10_000_000)),
-			Some((80_000_000)),
+			Some(10_000_000),
+			Some(80_000_000),
 			Some(Fee {
 				numerator: 5,
 				denominator: 100,

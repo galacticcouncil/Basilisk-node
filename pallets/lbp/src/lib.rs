@@ -59,7 +59,7 @@ impl Default for WeightCurveType {
 }
 
 /// Max weight corresponds to 100%
-pub const MAX_WEIGHT: u32 = 100_000_000;
+pub const MAX_WEIGHT: LBPWeight = 100_000_000;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default)]
@@ -77,10 +77,10 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub assets: (AssetId, AssetId),
 	
 	/// initial weight of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
-	pub initial_weight: u32,
+	pub initial_weight: LBPWeight,
 	
 	/// final weights of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
-	pub final_weight: u32,
+	pub final_weight: LBPWeight,
 	
 	/// weight curve
 	pub weight_curve: WeightCurveType,
@@ -97,8 +97,8 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 		pool_owner: AccountId,
 		asset_a: LBPAssetInfo<Balance>,
 		asset_b: LBPAssetInfo<Balance>,
-		initial_weight: u32,
-		final_weight: u32,
+		initial_weight: LBPWeight,
+		final_weight: LBPWeight,
 		weight_curve: WeightCurveType,
 		fee: Fee,
 		fee_collector: AccountId,
@@ -129,8 +129,8 @@ pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
 		weight_curve: WeightCurveType,
 		start: BlockNumber,
 		end: BlockNumber,
-		initial_weight: u32,
-		final_weight: u32,
+		initial_weight: LBPWeight,
+		final_weight: LBPWeight,
 		at: BlockNumber,
 	) -> Option<LBPWeight>;
 }
@@ -141,8 +141,8 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 		_weight_curve: WeightCurveType,
 		start: BlockNumber,
 		end: BlockNumber,
-		initial_weight: u32,
-		final_weight: u32,
+		initial_weight: LBPWeight,
+		final_weight: LBPWeight,
 		at: BlockNumber,
 	) -> Option<LBPWeight> {
 		hydra_dx_math::lbp::calculate_linear_weights(start, end, initial_weight, final_weight, at).ok()
@@ -346,8 +346,8 @@ pub mod pallet {
 			pool_owner: T::AccountId,
 			asset_a: LBPAssetInfo<BalanceOf<T>>,
 			asset_b: LBPAssetInfo<BalanceOf<T>>,
-			initial_weight: u32,
-			final_weight: u32,
+			initial_weight: LBPWeight,
+			final_weight: LBPWeight,
 			weight_curve: WeightCurveType,
 			fee: Fee,
 			fee_collector: T::AccountId,
@@ -428,8 +428,8 @@ pub mod pallet {
 			pool_id: PoolId<T>,
 			start: Option<T::BlockNumber>,
 			end: Option<T::BlockNumber>,
-			initial_weight: Option<u32>,
-			final_weight: Option<u32>,
+			initial_weight: Option<LBPWeight>,
+			final_weight: Option<LBPWeight>,
 			fee: Option<Fee>,
 			fee_collector: Option<T::AccountId>,
 		) -> DispatchResultWithPostInfo {
