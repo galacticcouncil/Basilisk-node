@@ -325,7 +325,7 @@ pub fn run() -> sc_cli::Result<()> {
 					registry,
 				).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
 
-				Ok((cmd.run::<Block, service::Executor>(config), task_manager))
+				Ok((cmd.run::<Block, service::BasiliskExecutor>(config), task_manager))
 			})
 		}
 		#[cfg(not(feature = "try-runtime"))]

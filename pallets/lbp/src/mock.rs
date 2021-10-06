@@ -3,7 +3,9 @@ use crate::{AssetPairPoolIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::GenesisBuild;
 use orml_traits::parameter_type_with_key;
-use primitives::constants::chain::{AssetId, Balance, CORE_ASSET_ID};
+use primitives::constants::chain::{
+	AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
