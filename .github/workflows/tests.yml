@@ -118,7 +118,7 @@ jobs:
   destroy-runner-instance:
     name: destroy infra
     runs-on: ubuntu-latest
-    needs: build
+    needs: test-inclusion
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -158,8 +158,8 @@ jobs:
         continue-on-error: false
 
   test-inclusion:
-    needs: build
-    runs-on: ubuntu-latest
+    needs: [pop-runner-instance, build]
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     steps:
       - uses: actions/checkout@v2
         with:
