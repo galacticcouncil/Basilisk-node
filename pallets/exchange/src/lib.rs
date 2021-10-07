@@ -28,16 +28,15 @@ use frame_system::{self as system, ensure_signed};
 use codec::Encode;
 use sp_std::vec::Vec;
 
+use direct::{DirectTradeData, Transfer};
+use frame_support::weights::Weight;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::{
 	asset::AssetPair,
-	traits::{Resolver, AMM},
-	Amount, AssetId, Balance, ExchangeIntention, IntentionType, MIN_TRADING_LIMIT,
+	constants::chain::MIN_TRADING_LIMIT,
+	traits::{AMMTransfer, Resolver, AMM},
+	Amount, AssetId, Balance, ExchangeIntention, IntentionType,
 };
-
-use direct::{DirectTradeData, Transfer};
-use frame_support::weights::Weight;
-use primitives::traits::AMMTransfer;
 
 use frame_support::sp_runtime::traits::BlockNumberProvider;
 use frame_support::sp_runtime::traits::Hash;
@@ -123,19 +122,25 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub (crate) fn deposit_event)]
+	#[pallet::metadata(T::AccountId = "AccountId", IntentionId<T> = "IntentionId")]
 	pub enum Event<T: Config> {
 		/// Intention registered event
-		/// who, asset a, asset b, amount, intention type, intention id
+		/// [who, asset a, asset b, amount, intention type, intention id]
 		IntentionRegistered(T::AccountId, AssetId, AssetId, Balance, IntentionType, IntentionId<T>),
 
 		/// Intention resolved as AMM Trade
-		/// who, intention type, intention id, amount, amount sold/bought
-		IntentionResolvedAMMTrade(T::AccountId, IntentionType, IntentionId<T>, Balance, Balance),
+		/// [who, intention type, intention id, amount, amount sold/bought, pool account id]
+		IntentionResolvedAMMTrade(
+			T::AccountId,
+			IntentionType,
+			IntentionId<T>,
+			Balance,
+			Balance,
+			T::AccountId,
+		),
 
 		/// Intention resolved as Direct Trade
-		/// who, who - account between which direct trade happens
-		/// intention id, intention id - intentions which are being resolved ( fully or partially )
-		/// Balance, Balance  - corresponding amounts
+		/// [account A, account B, intention id A, intention id B, amount A, amount B]
 		IntentionResolvedDirectTrade(
 			T::AccountId,
 			T::AccountId,
@@ -146,12 +151,10 @@ pub mod pallet {
 		),
 
 		/// Paid fees event
-		/// who - account which paid feed
-		/// intention id - intention which was resolved
-		/// account paid to, asset, amount
+		/// [who, intention id, fee receiver, asset id, fee amount]
 		IntentionResolvedDirectTradeFees(T::AccountId, IntentionId<T>, T::AccountId, AssetId, Balance),
 
-		/// Error event - insuficient balance of specified asset
+		/// Error event - insufficient balance of specified asset
 		/// who, asset, intention type, intention id, error detail
 		InsufficientAssetBalanceEvent(
 			T::AccountId,
@@ -161,7 +164,7 @@ pub mod pallet {
 			dispatch::DispatchError,
 		),
 
-		/// Intetion Error Event
+		/// Intention Error Event
 		/// who, assets, sell or buy, intention id, error detail
 		IntentionResolveErrorEvent(
 			T::AccountId,
@@ -209,25 +212,33 @@ pub mod pallet {
 	#[allow(dead_code)]
 	#[pallet::extra_constants]
 	impl<T: Config> Pallet<T> {
-		fn min_trading_limit() -> Balance { T::AMMPool::get_min_trading_limit() }
+		fn min_trading_limit() -> Balance {
+			T::AMMPool::get_min_trading_limit()
+		}
 	}
 
 	#[allow(dead_code)]
 	#[pallet::extra_constants]
 	impl<T: Config> Pallet<T> {
-		fn min_pool_liquidity() -> Balance { T::AMMPool::get_min_pool_liquidity() }
+		fn min_pool_liquidity() -> Balance {
+			T::AMMPool::get_min_pool_liquidity()
+		}
 	}
 
 	#[allow(dead_code)]
 	#[pallet::extra_constants]
 	impl<T: Config> Pallet<T> {
-		fn max_in_ratio() -> u128 { T::AMMPool::get_max_in_ratio() }
+		fn max_in_ratio() -> u128 {
+			T::AMMPool::get_max_in_ratio()
+		}
 	}
 
 	#[allow(dead_code)]
 	#[pallet::extra_constants]
 	impl<T: Config> Pallet<T> {
-		fn max_out_ratio() -> u128 { T::AMMPool::get_max_out_ratio() }
+		fn max_out_ratio() -> u128 {
+			T::AMMPool::get_max_out_ratio()
+		}
 	}
 
 	#[pallet::call]
@@ -454,6 +465,7 @@ impl<T: Config> Pallet<T> {
 					intention_id,
 					transfer.amount,
 					transfer.amount_out + transfer.fee.1,
+					T::AMMPool::get_pair_id(transfer.assets),
 				));
 			}
 			IntentionType::BUY => {
@@ -465,6 +477,7 @@ impl<T: Config> Pallet<T> {
 					intention_id,
 					transfer.amount,
 					transfer.amount_out + transfer.fee.1,
+					T::AMMPool::get_pair_id(transfer.assets),
 				));
 			}
 		};

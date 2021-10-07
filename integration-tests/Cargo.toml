@@ -109,7 +109,7 @@ xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", branch = "pol
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.10" }
 polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.10" }
 
-basilisk-runtime = { path = "../runtime", default-features = false}
+basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.10" }
 
 [features]

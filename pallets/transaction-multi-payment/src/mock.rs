@@ -32,7 +32,8 @@ use frame_support::weights::IdentityFee;
 use frame_support::weights::Weight;
 use orml_currencies::BasicCurrencyAdapter;
 use primitives::{
-	fee, Amount, AssetId, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	fee, Amount, AssetId, Balance, Price,
 };
 
 use pallet_xyk::AssetPairAccountIdFor;

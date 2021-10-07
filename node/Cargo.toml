@@ -1,6 +1,6 @@
 [package]
 name = "basilisk"
-version = "3.2.0"
+version = "3.3.0"
 description = "Basilisk node"
 authors = ["GalacticCouncil"]
 edition = "2018"
@@ -28,8 +28,11 @@ serde_json = "1.0.64"
 structopt = "0.3.8"
 
 # local dependencies
-basilisk-runtime = { path = "../runtime" }
+common-runtime = { path = "../runtime/common" }
+basilisk-runtime = { path = "../runtime/basilisk" }
+testing-basilisk-runtime = { path = "../runtime/testing-basilisk" }
 pallet-xyk-rpc = { path="../pallets/xyk/rpc" }
+pallet-xyk-rpc-runtime-api = {path = '../pallets/xyk/rpc/runtime-api', default-features = false}
 primitives = { path = "../primitives" }
 
 # Substrate dependencies
@@ -57,6 +60,7 @@ sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "
 sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-consensus-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
+sp-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
@@ -64,12 +68,17 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
+sp-storage = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
+pallet-grandpa = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
+frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
+sp-authority-discovery = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 frame-try-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", optional = true }
 try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", optional = true }
 
@@ -96,6 +105,7 @@ default = [
 ]
 runtime-benchmarks = [
   "basilisk-runtime/runtime-benchmarks",
+  "testing-basilisk-runtime/runtime-benchmarks",
   "frame-benchmarking-cli",
   "polkadot-service/runtime-benchmarks",
 ]
