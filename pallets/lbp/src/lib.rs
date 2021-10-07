@@ -5,11 +5,11 @@
 #![allow(clippy::too_many_arguments)]
 
 use codec::{Decode, Encode};
-use frame_support::sp_runtime::{
+use frame_support::{sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
 	traits::{AtLeast32BitUnsigned, Hash, Saturating, Zero},
 	DispatchError, RuntimeDebug,
-};
+}};
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
@@ -682,6 +682,20 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	fn get_sorted_weight(asset_in:AssetId, now:T::BlockNumber, pool_data:&Pool<T::AccountId, T::BlockNumber>)->Result<(LBPWeight, LBPWeight), Error<T>>{
+		match Self::calculate_weights(&pool_data, now) {
+			Ok(weights) => {
+				if asset_in == pool_data.assets.0 {
+					Ok((weights.0, weights.1))
+				} else {
+					// swap weights if assets are in different order
+					Ok((weights.1, weights.0))
+				}
+			}
+			Err(_) => Err(Error::<T>::InvalidWeight)
+		}
+	}
+
 	/// return true if now is in interval <pool.start, pool.end>
 	fn is_pool_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = <frame_system::Pallet<T>>::block_number();
@@ -711,8 +725,7 @@ impl<T: Config> Pallet<T> {
 
 		let now = <frame_system::Pallet<T>>::block_number();
 
-		// update weights or reuse the last if update is not necessary
-		let (weight_in, weight_out) = Self::calculate_weights(&pool_data, now)?;
+		let (weight_in, weight_out) = Self::get_sorted_weight(assets.asset_in, now, &pool_data)?;
 
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
@@ -883,19 +896,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 
 		let now = <frame_system::Pallet<T>>::block_number();
 
-		// calculate actual weights or reuse the last if calculation is not necessary
-		let (weight_in, weight_out) = match Self::calculate_weights(&pool_data, now) {
-			Ok(weights) => {
-				if asset_a == pool_data.assets.0 {
-					(weights.0, weights.1)
-				} else {
-					// swap weights if assets are in different order
-					(weights.1, weights.0)
-				}
-			}
+		// We need to sort weights here if asset_in is not the first asset
+		let (weight_in, weight_out) = match Self::get_sorted_weight(asset_a, now, &pool_data) {
+			Ok(weights) => weights,
 			Err(_) => return BalanceOf::<T>::zero(),
 		};
-
+		
 		hydra_dx_math::lbp::calculate_spot_price(
 			asset_a_reserve,
 			asset_b_reserve,
