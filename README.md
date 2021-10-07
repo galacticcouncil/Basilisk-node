@@ -33,7 +33,7 @@ cargo build --release
 ### Rococo local testnet
 
 Relay chain repository (polkadot) has to be built in `../polkadot`
-Uses `polkadot-launch` utility that has to installed from latest sources
+and uses `polkadot-launch` utility that has to be installed from the latest sources.
 
 ```
 git clone https://github.com/paritytech/polkadot-launch.git
@@ -44,7 +44,7 @@ chmod +x dist/index.js
 npm link
 ```
 
-Starts local testnet with 4 relay chain validators and Basilisk as parachain
+Starts local testnet with 4 relay chain validators and Basilisk as a parachain.
 
 ```
 cd ../rococo-local
@@ -56,6 +56,22 @@ Observe Basilisk logs
 ```
 multitail 99*.log
 ```
+
+### Testing Runtime
+
+There is also an option to run the testing runtime with less restrictive settings to facilitate testing of new features.
+The following command starts a dev chain, and the testing runtime is used as a runtime for our node.
+```bash
+./target/release/basilisk --dev --runtime=testing
+```
+The testing runtime currently supports only two chain specifications: _dev_ and _local_ testnet.
+Both runtimes store blockchain data in the same directories( e.g. the _dev_ directory is shared for both runtimes 
+started with the `--dev` parameter. That's why it is important to purge chain data when switching to different runtime( note: `--runtime` parameter can't be used when purging chain data)
+
+In the case of starting a testnet using the `polkadot-launch` tool, 
+we don't have an option to communicate to its internal commands that we would like to use the testing runtime.
+To overcome this limitation, rename the binary so it starts with the `testing` prefix, e.g. `testing-basilisk`.
+Such a binary always uses the testing runtime, even if the `--runtime testing` option is not specified.
 
 ### Interaction with the node
 

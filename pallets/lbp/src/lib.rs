@@ -22,9 +22,11 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency}
 use primitives::traits::{AMMTransfer, AMM};
 use primitives::{
 	asset::AssetPair,
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 	fee::{Fee, WithFee},
-	Amount, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO,
+	Amount, AssetId, Balance
 };
+
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};

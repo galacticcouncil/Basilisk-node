@@ -30,7 +30,10 @@ use sp_runtime::{
 
 use frame_system::EnsureSigned;
 use pallet_xyk::AssetPairAccountIdFor;
-use primitives::{fee, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
+use primitives::{
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	fee, AssetId, Balance,
+};
 
 pub type Amount = i128;
 pub type AccountId = u64;

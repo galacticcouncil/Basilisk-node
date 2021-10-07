@@ -1,11 +1,18 @@
 [package]
-name = "runtime-integration-tests"
-version = "0.1.0"
+name = "basilisk-runtime"
+version = "18.0.0"
 authors = ["GalacticCouncil"]
 edition = "2018"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[build-dependencies]
+substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10" }
 
 [dependencies]
 getrandom = { version = "0.2.3", features = ["js"] }
@@ -19,18 +26,18 @@ trie-db = { version = "0.22.6", default-features = false }
 smallvec = "1.6.1"
 
 # local dependencies
-pallet-transaction-multi-payment = { path = "../pallets/transaction-multi-payment", default-features = false}
-pallet-multi-payment-benchmarking = { path = "../pallets/transaction-multi-payment/benchmarking", optional = true, default-features = false}
-pallet-exchange = { path = "../pallets/exchange", default-features=false}
-pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
-pallet-asset-registry = { path = "../pallets/asset-registry",default-features = false}
-pallet-xyk = { path = "../pallets/xyk",default-features = false}
-pallet-duster= { path = "../pallets/duster",default-features = false}
-pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
-pallet-nft = { path = "../pallets/nft", default-features = false }
-pallet-lbp = { path = "../pallets/lbp", default-features = false }
-
-primitives = { default-features = false, path = "../primitives" }
+primitives = { default-features = false, path = "../../primitives" }
+common-runtime = { path = '../common', default-features = false }
+pallet-transaction-multi-payment = { path = "../../pallets/transaction-multi-payment", default-features = false}
+pallet-multi-payment-benchmarking = { path = "../../pallets/transaction-multi-payment/benchmarking", optional = true, default-features = false}
+pallet-exchange = { path = "../../pallets/exchange", default-features=false}
+pallet-exchange-benchmarking = { path = "../../pallets/exchange/benchmarking", optional = true, default-features = false}
+pallet-asset-registry = { path = "../../pallets/asset-registry",default-features = false}
+pallet-xyk = { path = "../../pallets/xyk",default-features = false}
+pallet-duster= { path = "../../pallets/duster",default-features = false}
+pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",default-features = false}
+pallet-nft = { path = "../../pallets/nft", default-features = false }
+pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
@@ -77,9 +84,10 @@ polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot"
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false, optional = true }
 frame-executive = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false}
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false, optional = true }
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
+frame-try-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false, optional = true}
 pallet-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
 pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
@@ -105,15 +113,33 @@ sp-staking = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
 
-xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", branch = "polkadot-v0.9.10" }
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.10" }
-polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.10" }
-
-basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
-kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.10" }
-
 [features]
 default = ["std"]
+runtime-benchmarks = [
+    "frame-benchmarking",
+    "frame-support/runtime-benchmarks",
+    "frame-system-benchmarking",
+    "frame-system/runtime-benchmarks",
+    "pallet-balances/runtime-benchmarks",
+    "pallet-collective/runtime-benchmarks",
+    "pallet-timestamp/runtime-benchmarks",
+    "pallet-multi-payment-benchmarking",
+    "pallet-nft/runtime-benchmarks",
+    "pallet-xyk/runtime-benchmarks",
+    "pallet-exchange-benchmarking",
+    "pallet-lbp/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
+    "pallet-collator-selection/runtime-benchmarks",
+    "pallet-xcm/runtime-benchmarks",
+    "xcm-builder/runtime-benchmarks",
+    "pallet-asset-registry/runtime-benchmarks",
+    "pallet-duster/runtime-benchmarks",
+    "pallet-democracy/runtime-benchmarks",
+    "pallet-treasury/runtime-benchmarks",
+    "pallet-scheduler/runtime-benchmarks",
+    "pallet-utility/runtime-benchmarks",
+    "pallet-tips/runtime-benchmarks",
+]
 std = [
     "codec/std",
     "serde",
@@ -121,6 +147,7 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "frame-system-rpc-runtime-api/std",
+    "frame-try-runtime/std",
     "orml-currencies/std",
     "orml-tokens/std",
     "orml-traits/std",
@@ -178,5 +205,9 @@ std = [
     "pallet-tips/std",
     "pallet-collator-selection/std",
     "pallet-authorship/std",
-    "basilisk-runtime/std",
+]
+try-runtime= [
+    "frame-try-runtime",
+    "frame-executive/try-runtime",
+    "frame-system/try-runtime",
 ]

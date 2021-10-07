@@ -1,3 +1,20 @@
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
@@ -22,9 +39,9 @@ use sp_core::{
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentifyAccount, IdentityLookup, Verify},
+	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature,
+	ApplyExtrinsicResult, Perbill,
 };
 use sp_std::convert::From;
 use sp_std::prelude::*;
@@ -33,27 +50,16 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
-pub use frame_support::{
-	construct_runtime, match_type, parameter_types,
-	traits::{
-		Contains, EnsureOrigin, Get, KeyOwnerProofSystem, LockIdentifier, Randomness, U128CurrencyToVote,
-	},
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{Contains, EnsureOrigin, Get, U128CurrencyToVote},
 	weights::{
-		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, IdentityFee, Pays, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		constants::{BlockExecutionWeight, RocksDbWeight},
+		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
-	PalletId, StorageValue,
 };
-pub use pallet_balances::Call as BalancesCall;
-pub use pallet_timestamp::Call as TimestampCall;
-pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
+use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-#[cfg(any(feature = "std", test))]
-pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{FixedPointNumber, Perbill, Percent, Permill, Perquintill};
-
-use primitives::fee;
 
 #[allow(clippy::all)]
 mod weights;
@@ -63,34 +69,8 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
 
-pub use primitives::{
-	Amount, AssetId, Balance, Moment, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
-};
-
+pub use common_runtime::*;
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
-
-/// An index to a block.
-pub type BlockNumber = u32;
-
-/// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-pub type Signature = MultiSignature;
-
-/// Some way of identifying an account on the chain. We intentionally make it equivalent
-/// to the public key of our transaction signing scheme.
-pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
-
-/// The type for looking up accounts. We don't expect more than 4 billion of them, but you
-/// never know...
-pub type AccountIndex = u32;
-
-/// Index of a transaction in the chain.
-pub type Index = u32;
-
-/// A hash of some data used by the chain.
-pub type Hash = sp_core::H256;
-
-/// Digest item type.
-pub type DigestItem = generic::DigestItem<Hash>;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -119,37 +99,35 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 17,
+	spec_version: 18,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
-pub const MILLISECS_PER_BLOCK: u64 = 12000;
 
-pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
+/// The version information used to identify this runtime when compiled natively.
+#[cfg(feature = "std")]
+pub fn native_version() -> NativeVersion {
+	NativeVersion {
+		runtime_version: VERSION,
+		can_author_with: Default::default(),
+	}
+}
 
-// Time is measured by number of blocks.
-pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
-pub const HOURS: BlockNumber = MINUTES * 60;
-pub const DAYS: BlockNumber = HOURS * 24;
-pub const FORTUNE: Balance = u128::MAX;
-pub const BSX: Balance = 1_000_000_000_000;
-pub const DOLLARS: Balance = BSX * 100; // 100 BSX ~= 1 $
-pub const CENTS: Balance = DOLLARS / 100; // 1 BSX ~= 1 cent
-pub const MILLICENTS: Balance = CENTS / 1_000;
-pub const NATIVE_EXISTENTIAL_DEPOSIT: Balance = CENTS;
-
-/// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
-/// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
-pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
-/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
-/// by  Operational  extrinsics.
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-/// We allow for
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+pub struct BaseFilter;
+impl Contains<Call> for BaseFilter {
+	fn contains(call: &Call) -> bool {
+		#[allow(clippy::match_like_matches_macro)]
+		match call {
+			Call::XYK(_) => false,
+			Call::NFT(_) => false,
+			Call::Exchange(_) => false,
+			_ => true,
+		}
+	}
+}
 
 use smallvec::smallvec;
-
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
@@ -177,34 +155,8 @@ impl WeightToFeePolynomial for WeightToFee {
 	}
 }
 
-/// The version information used to identify this runtime when compiled natively.
-#[cfg(feature = "std")]
-pub fn native_version() -> NativeVersion {
-	NativeVersion {
-		runtime_version: VERSION,
-		can_author_with: Default::default(),
-	}
-}
-
-pub struct BaseFilter;
-impl Contains<Call> for BaseFilter {
-	fn contains(call: &Call) -> bool {
-		#[allow(clippy::match_like_matches_macro)]
-		match call {
-			Call::XYK(_) => false,
-			Call::NFT(_) => false,
-			Call::Exchange(_) => false,
-			_ => true,
-		}
-	}
-}
-
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 250;
 	pub const Version: RuntimeVersion = VERSION;
-	/// Maximum length of block. Up to 5MB.
-	pub BlockLength: frame_system::limits::BlockLength =
-		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	/// Block weights base values and limits.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights::builder()
 		.base_block(BlockExecutionWeight::get())
@@ -226,7 +178,6 @@ parameter_types! {
 		.build_or_panic();
 	pub ExtrinsicPaymentExtraWeight: Weight =  <Runtime as pallet_transaction_multi_payment::Config>::WeightInfo::swap_currency();
 	pub ExtrinsicBaseWeight: Weight = frame_support::weights::constants::ExtrinsicBaseWeight::get() + ExtrinsicPaymentExtraWeight::get();
-	pub const SS58Prefix: u16 = 10041;
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -280,23 +231,12 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 }
 
-parameter_types! {
-	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
-	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
-}
-
 impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = weights::timestamp::HydraWeight<Runtime>;
-}
-
-parameter_types! {
-	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
-	pub const MaxLocks: u32 = 50;
-	pub const MaxReserves: u32 = 50;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -311,20 +251,6 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
-}
-
-parameter_types! {
-	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
-	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
-	/// than this will decrease the weight and more will increase.
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
-	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
-	/// change the fees more rapidly.
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(6, 100_000);
-	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
-	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
-	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
 }
 
 /// Parameterized slow adjusting fee updated based on
@@ -375,10 +301,6 @@ impl orml_currencies::Config for Runtime {
 	type WeightInfo = ();
 }
 
-parameter_types! {
-	pub const DustingReward: u128 = 0;
-}
-
 impl pallet_duster::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -413,15 +335,6 @@ impl pallet_asset_registry::Config for Runtime {
 	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
 }
 
-parameter_types! {
-	pub ExchangeFee: fee::Fee = fee::Fee::default();
-	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
-	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
-	pub const MaxInRatio: u128 = MAX_IN_RATIO;
-	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
-	pub const RegistryStrLimit: u32 = 32;
-}
-
 impl pallet_xyk::Config for Runtime {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
@@ -444,10 +357,6 @@ impl pallet_exchange::Config for Runtime {
 	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
 }
 
-parameter_types! {
-	pub LBPExchangeFee: fee::Fee = fee::Fee::default();
-}
-
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
@@ -462,12 +371,12 @@ impl pallet_lbp::Config for Runtime {
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 }
 
+// Parachain Config
+
 parameter_types! {
 	pub ReservedXcmpWeight: Weight = BlockWeights::get().max_block / 4;
 	pub ReservedDmpWeight: Weight = BlockWeights::get().max_block / 4;
 }
-
-/// Parachain Config
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
@@ -490,20 +399,11 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-parameter_types! {
-	pub ClassBondAmount: Balance = 10_000 * BSX;
-}
-
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type ClassBondAmount = ClassBondAmount;
-}
-
-parameter_types! {
-	pub const MaxClassMetadata: u32 = 1024;
-	pub const MaxTokenMetadata: u32 = 1024;
 }
 
 impl orml_nft::Config for Runtime {
@@ -513,20 +413,6 @@ impl orml_nft::Config for Runtime {
 	type TokenData = pallet_nft::TokenData;
 	type MaxClassMetadata = MaxClassMetadata;
 	type MaxTokenMetadata = MaxTokenMetadata;
-}
-
-parameter_types! {
-	pub const LaunchPeriod: BlockNumber = 7 * DAYS;
-	pub const VotingPeriod: BlockNumber = 7 * DAYS;
-	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
-	pub const MinimumDeposit: Balance = 1000 * DOLLARS;
-	pub const EnactmentPeriod: BlockNumber = 7 * DAYS;
-	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
-	// $10,000 / MB
-	pub const PreimageByteDeposit: Balance = 10 * MILLICENTS;
-	pub const InstantAllowed: bool = true;
-	pub const MaxVotes: u32 = 100;
-	pub const MaxProposals: u32 = 100;
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
@@ -595,19 +481,6 @@ impl pallet_democracy::Config for Runtime {
 	type MaxProposals = MaxProposals;
 }
 
-parameter_types! {
-	// Bond for candidacy into governance
-	pub const CandidacyBond: Balance = 10_000 * DOLLARS;
-	// 1 storage item created, key size is 32 bytes, value size is 16+16.
-	pub const VotingBondBase: Balance = DOLLARS;
-	// additional data per vote is 32 bytes (account id).
-	pub const VotingBondFactor: Balance = 50 * CENTS;
-	pub const TermDuration: BlockNumber = 7 * DAYS;
-	pub const DesiredMembers: u32 = 1;
-	pub const DesiredRunnersUp: u32 = 0;
-	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
-}
-
 impl pallet_elections_phragmen::Config for Runtime {
 	type Event = Event;
 	type PalletId = ElectionsPhragmenPalletId;
@@ -626,12 +499,6 @@ impl pallet_elections_phragmen::Config for Runtime {
 	type WeightInfo = ();
 }
 
-parameter_types! {
-	pub const CouncilMotionDuration: BlockNumber = 4 * DAYS;
-	pub const CouncilMaxProposals: u32 = 100;
-	pub const CouncilMaxMembers: u32 = 1;
-}
-
 type CouncilCollective = pallet_collective::Instance1;
 impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type Origin = Origin;
@@ -644,12 +511,6 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type WeightInfo = ();
 }
 
-parameter_types! {
-	pub const TechnicalMotionDuration: BlockNumber = 4 * DAYS;
-	pub const TechnicalMaxProposals: u32 = 20;
-	pub const TechnicalMaxMembers: u32 = 10;
-}
-
 type TechnicalCollective = pallet_collective::Instance2;
 impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type Origin = Origin;
@@ -660,15 +521,6 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type MaxMembers = TechnicalMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
 	type WeightInfo = ();
-}
-
-parameter_types! {
-	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 10 * DOLLARS;
-	pub const SpendPeriod: BlockNumber = 3 * DAYS;
-	pub const Burn: Permill = Permill::from_percent(0);
-	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const MaxApprovals: u32 =  100;
 }
 
 type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
@@ -713,31 +565,11 @@ impl pallet_utility::Config for Runtime {
 	type WeightInfo = weights::utility::BasiliskWeight<Runtime>;
 }
 
-parameter_types! {
-	pub const UncleGenerations: u32 = 0;
-}
-
 impl pallet_authorship::Config for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
 	type UncleGenerations = UncleGenerations;
 	type FilterUncle = ();
 	type EventHandler = (CollatorSelection,);
-}
-
-parameter_types! {
-	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const MaxCandidates: u32 = 20;
-	pub const MinCandidates: u32 = 4;
-	pub const MaxInvulnerables: u32 = 10;
-}
-
-parameter_types! {
-	pub const DataDepositPerByte: Balance = CENTS;
-	pub const TipCountdown: BlockNumber = 24 * HOURS;
-	pub const TipFindersFee: Percent = Percent::from_percent(1);
-	pub const TipReportDepositBase: Balance = 10 * DOLLARS;
-	pub const TipReportDepositPerByte: Balance = CENTS;
-	pub const MaximumReasonLength: u32 = 1024;
 }
 
 impl pallet_tips::Config for Runtime {
@@ -766,12 +598,6 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
 	type WeightInfo = ();
-}
-
-parameter_types! {
-	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(33);
-	pub const Period: u32 = 4 * HOURS;
-	pub const Offset: u32 = 0;
 }
 
 impl pallet_session::Config for Runtime {
@@ -811,11 +637,6 @@ impl EnsureOrigin<Origin> for EnsureRootOrTreasury {
 	fn successful_origin() -> Origin {
 		Origin::from(RawOrigin::Signed(Default::default()))
 	}
-}
-
-parameter_types! {
-	pub MinVestedTransfer: Balance = 100_000 * BSX;
-	pub const MaxVestingSchedules: u32 = 100;
 }
 
 impl orml_vesting::Config for Runtime {
