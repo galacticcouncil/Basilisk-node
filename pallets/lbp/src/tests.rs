@@ -1841,7 +1841,7 @@ fn buy_should_work() {
 
 		// test buy where the amount_in is less than the amount_out
 		let asset_in = HDX;
-		let asset_out = ETH;
+		let asset_out = DOT;
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
@@ -1851,7 +1851,7 @@ fn buy_should_work() {
 				amount: 1_000_000_000,
 			},
 			LBPAssetInfo {
-				id: ETH,
+				id: DOT,
 				amount: 2_000_000_000,
 			},
 			80_000_000u32, 
@@ -1861,7 +1861,7 @@ fn buy_should_work() {
 			CHARLIE,
 		));
 
-		assert_ok!(LBPPallet::update_pool_data(Origin::signed(ALICE), ACA_DOT_POOL_ID, Some(20), Some(30), None, None, None, None));
+		assert_ok!(LBPPallet::update_pool_data(Origin::signed(ALICE), HDX_DOT_POOL_ID, Some(20), Some(30), None, None, None, None));
 
 		let pool_data = LBPPallet::pool_data(4000);
 
@@ -1887,7 +1887,7 @@ fn buy_should_work() {
 		// assert_eq!(Currency::free_balance(asset_in, &who), 0);//8_240_561
 		// assert_eq!(Currency::free_balance(asset_out, &who), 10_000_000);
 
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_001_755_928);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_001_855_672);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
 
 		expect_events(vec![
@@ -1897,7 +1897,7 @@ fn buy_should_work() {
 			orml_tokens::Event::Endowed(4000, 4000, 2000000000).into(),
 			Event::PoolCreated(4000, pool_data).into(),
 			orml_tokens::Event::Endowed(0, 3, 3511).into(),
-			Event::BuyExecuted(2, 4000, 0, 1755928, 10000000, 0, 3511).into(),
+			Event::BuyExecuted(2, 4000, 0, 1_001_855_672, 10000000, 0, 3511).into(),
 		]);
 	});
 }
