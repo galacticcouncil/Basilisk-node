@@ -246,7 +246,17 @@ fn sell_test_pool_finalization_states() {
 				4000000000,
 			)
 			.into(),
-			xyk::Event::SellExecuted(user_2, 3000, 2000, 1000000000000, 1976296910891, 2000, 3960514851).into(),
+			xyk::Event::SellExecuted(
+				user_2,
+				3000,
+				2000,
+				1000000000000,
+				1976296910891,
+				2000,
+				3960514851,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
@@ -381,7 +391,17 @@ fn sell_test_standard() {
 				4000000000,
 			)
 			.into(),
-			xyk::Event::SellExecuted(user_2, 3000, 2000, 1000000000000, 1976296910891, 2000, 3960514851).into(),
+			xyk::Event::SellExecuted(
+				user_2,
+				3000,
+				2000,
+				1000000000000,
+				1976296910891,
+				2000,
+				3960514851,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
@@ -479,7 +499,17 @@ fn sell_test_inverse_standard() {
 			orml_tokens::Event::Reserved(asset_b, 3, 2000000000000).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 4000000000).into(),
 			orml_tokens::Event::Reserved(asset_a, 3, 2000000000).into(),
-			xyk::Event::SellExecuted(3, 2000, 3000, 2000000000000, 988118811881, 3000, 1980198019).into(),
+			xyk::Event::SellExecuted(
+				3,
+				2000,
+				3000,
+				2000000000000,
+				988118811881,
+				3000,
+				1980198019,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_3,
 				IntentionType::SELL,
@@ -711,6 +741,7 @@ fn sell_test_single_eth_sells() {
 				3913725490196,
 				asset_b,
 				7843137254,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -730,6 +761,7 @@ fn sell_test_single_eth_sells() {
 				1899942737484,
 				asset_b,
 				3807500475,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -828,6 +860,7 @@ fn sell_test_single_dot_sells() {
 				988118811881,
 				asset_a,
 				1980198019,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -847,6 +880,7 @@ fn sell_test_single_dot_sells() {
 				486767770570,
 				asset_a,
 				975486514,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -947,6 +981,7 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				1976237623762,
 				asset_b,
 				3960396039,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1047,6 +1082,7 @@ fn buy_trade_limits_respected_for_matched_intention() {
 				502512562815,
 				asset_a,
 				1005025125,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1454,6 +1490,7 @@ fn sell_test_group_sells() {
 				11298164364954,
 				asset_b,
 				22641611953,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1657,6 +1694,7 @@ fn sell_test_mixed_buy_sells() {
 				15636903108670,
 				asset_b,
 				31336479175,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1676,6 +1714,7 @@ fn sell_test_mixed_buy_sells() {
 				3024573404240,
 				asset_a,
 				6049146808,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1825,6 +1864,7 @@ fn discount_tests_no_discount() {
 				15636903108670,
 				asset_b,
 				31336479175,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1844,6 +1884,7 @@ fn discount_tests_no_discount() {
 				3024573404240,
 				asset_a,
 				6049146808,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1999,6 +2040,7 @@ fn discount_tests_with_discount() {
 				15657271820134,
 				asset_b,
 				10967767711,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -2018,6 +2060,7 @@ fn discount_tests_with_discount() {
 				3024916906330,
 				asset_a,
 				2117441834,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -2249,6 +2292,7 @@ fn buy_test_group_buys() {
 				16216216216217,
 				asset_b,
 				32432432432,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -2293,6 +2337,7 @@ fn buy_test_group_buys() {
 				1301307129904,
 				asset_a,
 				2602614259,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -2543,7 +2588,7 @@ fn simple_sell_sell() {
 			.into(),
 			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 2).into(),
 			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_a, 1).into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2994, 2000, 5).into(),
+			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2994, 2000, 5, pair_account).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
@@ -2631,7 +2676,7 @@ fn simple_buy_buy() {
 			orml_tokens::Event::Reserved(asset_b, 2, 1000).into(),
 			orml_tokens::Event::Reserved(asset_a, 3, 1).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 2).into(),
-			xyk::Event::BuyExecuted(2, 3000, 2000, 1500, 3001, 2000, 6).into(),
+			xyk::Event::BuyExecuted(2, 3000, 2000, 1500, 3001, 2000, 6, pair_account).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::BUY,
@@ -2742,7 +2787,7 @@ fn simple_sell_buy() {
 			.into(),
 			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 2).into(),
 			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_b, 4).into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1000, 1996, 2000, 3).into(),
+			xyk::Event::SellExecuted(2, 3000, 2000, 1000, 1996, 2000, 3, pair_account).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
@@ -2831,7 +2876,7 @@ fn simple_buy_sell() {
 			orml_tokens::Event::Reserved(asset_b, 2, 2000).into(),
 			orml_tokens::Event::Reserved(asset_b, 3, 2).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 4).into(),
-			xyk::Event::BuyExecuted(user_2, 3000, 2000, 1000, 2001, 2000, 4).into(),
+			xyk::Event::BuyExecuted(user_2, 3000, 2000, 1000, 2001, 2000, 4, pair_account).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::BUY,
@@ -2908,7 +2953,17 @@ fn single_sell_intention_test() {
 				user_2_sell_intention_id,
 			)
 			.into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 2000000000000, 3913725490196, 2000, 7843137254).into(),
+			xyk::Event::SellExecuted(
+				2,
+				3000,
+				2000,
+				2000000000000,
+				3913725490196,
+				2000,
+				7843137254,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
@@ -2975,7 +3030,17 @@ fn single_buy_intention_test() {
 				user_2_sell_intention_id,
 			)
 			.into(),
-			xyk::Event::BuyExecuted(2, 3000, 2000, 2000000000000, 4081632653062, 2000, 8163265306).into(),
+			xyk::Event::BuyExecuted(
+				2,
+				3000,
+				2000,
+				2000000000000,
+				4081632653062,
+				2000,
+				8163265306,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::BUY,
@@ -3183,6 +3248,7 @@ fn matching_limits_buy_buy_should_work() {
 				10101010101011,
 				asset_a,
 				20202020202,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -3310,6 +3376,7 @@ fn matching_limits_sell_buy_should_work() {
 				39137254901960,
 				asset_b,
 				78431372549,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -3576,6 +3643,7 @@ fn matching_limit_scenario_2() {
 				20201983477752,
 				asset_b,
 				40403966955,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -3706,6 +3774,7 @@ fn matching_limit_scenario_3() {
 				105262050094717,
 				asset_b,
 				210524100189,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
