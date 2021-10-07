@@ -1,6 +1,6 @@
 [package]
 name = "testing-basilisk-runtime"
-version = "17.0.1"
+version = "18.0.0"
 authors = ["GalacticCouncil"]
 edition = "2018"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
