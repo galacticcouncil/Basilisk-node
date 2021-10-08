@@ -1,3 +1,47 @@
+# v4.1.0 (Fri Oct 08 2021)
+
+#### 🚀 Enhancement
+
+- feat: update xyk/exchange events with pool id [#187](https://github.com/galacticcouncil/Basilisk-node/pull/187) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: create testing runtime [#171](https://github.com/galacticcouncil/Basilisk-node/pull/171) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: create makefile [#183](https://github.com/galacticcouncil/Basilisk-node/pull/183) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat(lbp): add simulation test [#160](https://github.com/galacticcouncil/Basilisk-node/pull/160) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: try-runtime integration [#151](https://github.com/galacticcouncil/Basilisk-node/pull/151) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: access amm constants from exchange api [#95](https://github.com/galacticcouncil/Basilisk-node/pull/95) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: Integration tests - xcm transfers [#161](https://github.com/galacticcouncil/Basilisk-node/pull/161) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: update xyk events [#150](https://github.com/galacticcouncil/Basilisk-node/pull/150) ([@Roznovjak](https://github.com/Roznovjak))
+
+#### 🐛 Bug Fix
+
+- ci: fix inclusion test [#167](https://github.com/galacticcouncil/Basilisk-node/pull/167) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: update README - xcm v1 types [#184](https://github.com/galacticcouncil/Basilisk-node/pull/184) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: update orml-tokens whitelist accounts [#175](https://github.com/galacticcouncil/Basilisk-node/pull/175) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: upgrade to polkadot-v0.9.10 [#178](https://github.com/galacticcouncil/Basilisk-node/pull/178) ([@green-jay](https://github.com/green-jay) [@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: set ED to max value for unsupported assets [#177](https://github.com/galacticcouncil/Basilisk-node/pull/177) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: update asset details type in readme [#174](https://github.com/galacticcouncil/Basilisk-node/pull/174) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: asset instance type ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: checked runtime upgrade [#152](https://github.com/galacticcouncil/Basilisk-node/pull/152) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@jak-pan](https://github.com/jak-pan))
+- refactor: improve multi payment (builder review) [#170](https://github.com/galacticcouncil/Basilisk-node/pull/170) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: builder review final changes [#172](https://github.com/galacticcouncil/Basilisk-node/pull/172) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix(exchange): fix matching algorithm [#155](https://github.com/galacticcouncil/Basilisk-node/pull/155) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@jak-pan](https://github.com/jak-pan))
+- chore: Added an extra node to the rococo-local config [#165](https://github.com/galacticcouncil/Basilisk-node/pull/165) (matej.sima@stove-labs.com [@maht0rz](https://github.com/maht0rz) [@jak-pan](https://github.com/jak-pan))
+- fix: base xcm weight [#163](https://github.com/galacticcouncil/Basilisk-node/pull/163) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: audit changes [#162](https://github.com/galacticcouncil/Basilisk-node/pull/162) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- ci: add clippy [#156](https://github.com/galacticcouncil/Basilisk-node/pull/156) ([@Roznovjak](https://github.com/Roznovjak))
+- fix: duster dependencies [#153](https://github.com/galacticcouncil/Basilisk-node/pull/153) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### Authors: 7
+
+- [@green-jay](https://github.com/green-jay)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Jakub Pánik ([@jak-pan](https://github.com/jak-pan))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Matej Šima ([@maht0rz](https://github.com/maht0rz))
+- Matej Sima (matej.sima@stove-labs.com)
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
 # v4.0.0 (Tue Aug 31 2021)
 
 #### 🚀 Enhancement
