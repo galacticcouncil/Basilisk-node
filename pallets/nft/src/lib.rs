@@ -4,15 +4,17 @@
 
 use frame_support::{
 	dispatch::DispatchResult,
-	traits::{Currency, ReservableCurrency},
+	traits::{tokens::nonfungibles::*, Currency, ReservableCurrency},
 	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
-use sp_runtime::traits::{One, StaticLookup};
+use pallet_uniques::DestroyWitness;
+use sp_runtime::traits::StaticLookup;
 use sp_std::{convert::TryInto, vec::Vec};
 use weights::WeightInfo;
 
 mod benchmarking;
+pub mod types;
 pub mod weights;
 
 #[cfg(test)]
@@ -30,16 +32,11 @@ pub use pallet::*;
 pub mod pallet {
 
 	use super::*;
-	use frame_support::{pallet_prelude::*, traits::tokens::nonfungibles::Destroy};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
-
-	#[pallet::storage]
-	#[pallet::getter(fn instance_count)]
-	/// Stores count of minted NFTs in each class
-	pub type InstanceCount<T: Config> = StorageMap<_, Twox64Concat, T::ClassId, u16, ValueQuery>;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_uniques::Config {
@@ -65,12 +62,29 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
 			admin: <T::Lookup as StaticLookup>::Source,
-			metadata: BoundedVec<u8, T::StringLimit>,
+			class_type: types::ClassType,
 		) -> DispatchResult {
 			ensure_signed(origin.clone())?;
 
 			pallet_uniques::Pallet::<T>::create(origin.clone(), class_id, admin)?;
-			pallet_uniques::Pallet::<T>::set_class_metadata(origin, class_id, metadata, false)?;
+
+			let attribute1: Vec<u8> = b"type".to_vec();
+
+			let attribute1_bounded: BoundedVec<u8, T::KeyLimit> =
+				attribute1.try_into().map_err(|_| Error::<T>::TooLong)?;
+
+			let type_bounded: BoundedVec<u8, T::ValueLimit> =
+				class_type.encode().try_into().map_err(|_| Error::<T>::TooLong)?;
+
+			pallet_uniques::Pallet::<T>::set_attribute(
+				origin.clone(),
+				class_id,
+				None,
+				attribute1_bounded,
+				type_bounded,
+			)?;
+
+			//pallet_uniques::Pallet::<T>::freeze_class(origin.clone(), class_id)?;
 
 			Ok(())
 		}
@@ -93,35 +107,10 @@ pub mod pallet {
 			class_id: T::ClassId,
 			instance_id: T::InstanceId,
 			owner: <T::Lookup as StaticLookup>::Source,
-			royalty: u8,
-			metadata: BoundedVec<u8, T::StringLimit>,
 		) -> DispatchResult {
 			ensure_signed(origin.clone())?;
 
-			ensure!(royalty < 100, Error::<T>::NotInRange);
-
-			InstanceCount::<T>::try_mutate(class_id, |id| -> DispatchResult {
-				*id = id.checked_add(One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
-				Ok(())
-			})?;
-
-			let royalty_bounded: BoundedVec<u8, T::ValueLimit> =
-				royalty.encode().try_into().map_err(|_| Error::<T>::TooLong)?;
-
-			let attribute1: Vec<u8> = b"royalty".to_vec();
-
-			let attribute1_bounded: BoundedVec<u8, T::KeyLimit> =
-				attribute1.try_into().map_err(|_| Error::<T>::TooLong)?;
-
 			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, owner)?;
-			pallet_uniques::Pallet::<T>::set_attribute(
-				origin.clone(),
-				class_id,
-				Some(instance_id),
-				attribute1_bounded,
-				royalty_bounded,
-			)?;
-			pallet_uniques::Pallet::<T>::set_metadata(origin, class_id, instance_id, metadata, false)?;
 
 			Ok(())
 		}
@@ -167,23 +156,11 @@ pub mod pallet {
 		) -> DispatchResult {
 			ensure_signed(origin.clone())?;
 
-			InstanceCount::<T>::try_mutate(class_id, |id| -> DispatchResult {
-				*id = id.checked_sub(One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
-				Ok(())
-			})?;
+			ensure!(
+				pallet_uniques::Pallet::<T>::can_transfer(&class_id, &instance_id),
+				Error::<T>::TokenFrozen
+			);
 
-			let attribute1: Vec<u8> = b"royalty".to_vec();
-
-			let attribute1_bounded: BoundedVec<u8, T::KeyLimit> =
-				attribute1.try_into().map_err(|_| Error::<T>::TooLong)?;
-
-			pallet_uniques::Pallet::<T>::clear_metadata(origin.clone(), class_id, instance_id)?;
-			pallet_uniques::Pallet::<T>::clear_attribute(
-				origin.clone(),
-				class_id,
-				Some(instance_id),
-				attribute1_bounded,
-			)?;
 			pallet_uniques::Pallet::<T>::burn(origin, class_id, instance_id, check_owner)?;
 
 			Ok(())
@@ -197,17 +174,20 @@ pub mod pallet {
 		/// correct.
 		/// Emits `Destroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
-		pub fn destroy_class(
-			origin: OriginFor<T>,
-			class_id: T::ClassId,
-		) -> DispatchResultWithPostInfo {
+		pub fn destroy_class(origin: OriginFor<T>, class_id: T::ClassId) -> DispatchResultWithPostInfo {
 			ensure_signed(origin.clone())?;
 
-			let witness = pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id).unwrap();
+			let count = pallet_uniques::Pallet::<T>::instances(&class_id).peekable().peek().is_some();
+			Self::deposit_event(Event::Count(count));
 			
-			pallet_uniques::Pallet::<T>::destroy(origin, class_id, witness)?;
+			ensure!(
+				pallet_uniques::Pallet::<T>::instances(&class_id).peekable().peek().is_none(),
+				Error::<T>::TokenClassNotEmpty
+			);
 
-			InstanceCount::<T>::remove(class_id);
+			let witness = Self::get_witness(class_id)?;
+
+			pallet_uniques::Pallet::<T>::destroy(origin, class_id, witness)?;
 
 			Ok(().into())
 		}
@@ -217,18 +197,34 @@ pub mod pallet {
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
 
 	#[pallet::event]
-	// Uncomment when there are events: #[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {}
+	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
+	pub enum Event<T: Config> {
+		Count(bool),
+	}
 
 	#[pallet::error]
 	pub enum Error<T> {
 		/// String exceeds allowed length
 		TooLong,
-		/// Royalty not in 0-99 range
-		NotInRange,
 		/// Count of instances overflown
 		NoAvailableInstanceId,
 		/// Witness not available
-		WitnessUnavailable
+		WitnessUnavailable,
+		/// Cannot burn token if frozen
+		TokenFrozen,
+		/// No witness found for given class
+		NoWitness,
+		/// Class still contains minted tokens
+		TokenClassNotEmpty,
+	}
+}
+
+impl<T: Config> Pallet<T> {
+	fn get_witness(class_id: T::ClassId) -> Result<DestroyWitness, Error<T>> {
+		if let Some(witness) = pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id) {
+			Ok(witness)
+		} else {
+			Err(Error::<T>::NoWitness.into())
+		}
 	}
 }

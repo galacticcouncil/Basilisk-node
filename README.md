@@ -121,29 +121,6 @@ Then open settings screen -> developer and paste
       },
       "LookupSource":"AccountId",
       "Price":"Balance",
-      "ClassId":"u32",
-      "TokenId":"u64",
-      "ClassData":{
-        "is_pool":"bool"
-      },
-      "TokenData":{
-        "locked":"bool"
-      },
-      "ClassInfo":{
-        "metadata":"Vec<u8>",
-        "total_issuance":"TokenId",
-        "owner":"AccountId",
-        "data":"ClassData"
-      },
-      "TokenInfo":{
-        "metadata":"Vec<u8>",
-        "owner":"AccountId",
-        "data":"TokenData"
-      },
-      "ClassInfoOf":"ClassInfo",
-      "TokenInfoOf":"TokenInfo",
-      "ClassIdOf":"ClassId",
-      "TokenIdOf":"TokenId",
       "OrderedSet":"Vec<AssetId>",
       "VestingSchedule":{
         "start":"BlockNumber",
@@ -172,9 +149,9 @@ Then open settings screen -> developer and paste
       "BalanceOf":"Balance",
       "AssetType": {
         "_enum": {
-		  "Token": "Null",
-		  "PoolShare": "(AssetId,AssetId)"
-	    }
+		      "Token": "Null",
+		      "PoolShare": "(AssetId,AssetId)"
+	      }
       },
       "Pool":{
         "owner":"AccountId",
@@ -203,9 +180,22 @@ Then open settings screen -> developer and paste
         "symbol":"Vec<u8>",
         "decimals":"u8"
       },
+      "ClassId":"u32",
       "InstanceId":"u32",
       "NftClassIdOf":"u32",
-      "NftTokenIdOf":"u32"
+      "NftTokenIdOf":"u32",
+      "ClassType":{
+        "_enum":[
+          "Art",
+          "PoolShare"
+        ]
+      },
+      "TokenInfo":{
+        "author":"AccountId",
+        "royalty":"u8",
+        "price":"Option<Balance>"
+      },
+      "TokenInfoOf":"TokenInfo",
       "AssetInstance": "AssetInstanceV0",
       "MultiLocation": "MultiLocationV0",
       "AssetNativeLocation": "MultiLocation",
