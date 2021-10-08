@@ -55,6 +55,7 @@ orml-nft = { git = "https://github.com/open-web3-stack/open-runtime-module-libra
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
 orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
+orml-benchmarking = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false , optional = true}
 
 # orml XCM support
 orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
@@ -139,6 +140,7 @@ runtime-benchmarks = [
     "pallet-scheduler/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
     "pallet-tips/runtime-benchmarks",
+    "orml-benchmarking",
 ]
 std = [
     "codec/std",
@@ -155,6 +157,7 @@ std = [
     "orml-xtokens/std",
     "orml-xcm-support/std",
     "orml-unknown-tokens/std",
+    "orml-benchmarking/std",
     "cumulus-pallet-parachain-system/std",
     "cumulus-pallet-aura-ext/std",
     "cumulus-pallet-xcm/std",
