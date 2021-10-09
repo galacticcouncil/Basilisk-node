@@ -15,8 +15,11 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-use primitives::{asset::AssetPair, fee::Fee, traits::AMMTransfer,
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO}
+use primitives::{
+	asset::AssetPair,
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
+	fee::Fee,
+	traits::AMMTransfer,
 };
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
@@ -40,7 +43,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			CHARLIE,
 		));
 
-		assert_ok!(LBPPallet::update_pool_data(Origin::signed(ALICE), ACA_DOT_POOL_ID, Some(10), Some(20), None, None, None, None));
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			Some(10),
+			Some(20),
+			None,
+			None,
+			None,
+			None
+		));
 
 		let pool_data1 = Pool {
 			owner: ALICE,
@@ -66,14 +78,11 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			fee_collector: CHARLIE,
 		};
 
-		assert_eq!(
-			<PoolData<Test>>::get(ACA_DOT_POOL_ID),
-			pool_data2
-		);
+		assert_eq!(<PoolData<Test>>::get(ACA_DOT_POOL_ID), pool_data2);
 
 		expect_events(vec![
 			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data1).into(),
-			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into()
+			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into(),
 		]);
 	});
 	ext
@@ -92,7 +101,6 @@ fn last_events(n: usize) -> Vec<TestEvent> {
 fn expect_events(e: Vec<TestEvent>) {
 	assert_eq!(last_events(e.len()), e);
 }
-
 
 #[test]
 fn validate_pool_data_should_work() {
@@ -256,7 +264,6 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.initial_weight, 20_000_000);
 		assert_eq!(pool_data.final_weight, 90_000_000);
 		assert_eq!(pool_data.weight_curve, WeightCurveType::Linear);
-		// verify that `last_weight_update` and `last_weights` fields are correctly initialized
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
@@ -372,14 +379,8 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo {
-					id: HDX,
-					amount: 0,
-				},
-				LBPAssetInfo {
-					id: DOT,
-					amount: 0,
-				},
+				LBPAssetInfo { id: HDX, amount: 0 },
+				LBPAssetInfo { id: DOT, amount: 0 },
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -393,10 +394,7 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo {
-					id: HDX,
-					amount: 0,
-				},
+				LBPAssetInfo { id: HDX, amount: 0 },
 				LBPAssetInfo {
 					id: DOT,
 					amount: 2_000_000_000,
@@ -414,14 +412,8 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo {
-					id: HDX,
-					amount: 100,
-				},
-				LBPAssetInfo {
-					id: DOT,
-					amount: 100,
-				},
+				LBPAssetInfo { id: HDX, amount: 100 },
+				LBPAssetInfo { id: DOT, amount: 100 },
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -603,12 +595,30 @@ fn update_pool_data_should_work() {
 		);
 		assert_eq!(updated_pool_data_5.fee_collector, ALICE);
 
+		// update and reuse ended pool
+		System::set_block_number(100);
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			Some(120),
+			Some(150),
+			Some(10_000_000),
+			Some(80_000_000),
+			Some(Fee {
+				numerator: 6,
+				denominator: 1_000
+			}),
+			None,
+		));
+		let updated_pool_data_6 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+
 		expect_events(vec![
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_1).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_2).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_3).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_4).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_5).into(),
+			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_6).into(),
 		]);
 	});
 }
@@ -715,7 +725,16 @@ fn update_pool_with_invalid_data_should_not_work() {
 fn update_pool_data_without_changes_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LBPPallet::update_pool_data(Origin::signed(ALICE), ACA_DOT_POOL_ID, None, None, None, None, None, None,),
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				None,
+				None,
+				None,
+				None,
+				None,
+				None,
+			),
 			Error::<Test>::NothingToUpdate
 		);
 	});
@@ -776,9 +795,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 
 		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
-		expect_events(vec![
-			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data).into()
-		]);
+		expect_events(vec![Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data).into()]);
 	});
 }
 
@@ -962,8 +979,6 @@ fn add_zero_liquidity_should_not_work() {
 		let user_balance_b_after = Currency::free_balance(DOT, &ALICE);
 		assert_eq!(user_balance_a_after, user_balance_a_before);
 		assert_eq!(user_balance_b_after, user_balance_b_before);
-
-		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
 		// No new events expected
 		expect_events(vec![]);
@@ -1645,13 +1660,13 @@ fn exceed_max_in_ratio_should_not_work() {
 			Error::<Test>::MaxInRatioExceeded
 		);
 
-		//1/2 should not work
+		// 1/2 should not work
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(BOB), ACA, DOT, 1_000_000_000 / 2, 200_000_u128),
 			Error::<Test>::MaxInRatioExceeded
 		);
 
-		//max ratio should work
+		// max ratio should work
 		assert_ok!(LBPPallet::sell(
 			Origin::signed(BOB),
 			ACA,
@@ -1667,7 +1682,7 @@ fn exceed_max_out_ratio_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		run_to_block(11); //start sale
 
-		//max_ratio_out + 1 should not work
+		// max_ratio_out + 1 should not work
 		assert_noop!(
 			LBPPallet::buy(
 				Origin::signed(BOB),
@@ -1679,13 +1694,13 @@ fn exceed_max_out_ratio_should_not_work() {
 			Error::<Test>::MaxOutRatioExceeded
 		);
 
-		//1/2 should not work
+		// 1/2 should not work
 		assert_noop!(
 			LBPPallet::buy(Origin::signed(BOB), ACA, DOT, 1_000_000_000 / 2, 200_000_u128),
 			Error::<Test>::MaxOutRatioExceeded
 		);
 
-		//max ratio should work
+		// max ratio should work
 		assert_ok!(LBPPallet::buy(
 			Origin::signed(BOB),
 			ACA,
@@ -1796,55 +1811,30 @@ fn buy_with_insufficient_balance_should_not_work() {
 #[test]
 fn buy_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let who = BOB;
+		let buyer = BOB;
 		let asset_in = ACA;
 		let asset_out = DOT;
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
-		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_985_602_548));
-		assert_eq!(Currency::free_balance(asset_in, &who), 14_397_452);
-		assert_ok!(Currency::withdraw(asset_out, &who, 1_000_000_000_000_000));
-		assert_eq!(Currency::free_balance(asset_out, &who), 0);
-
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000_u128);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000_u128);
-
 		//start sale
 		run_to_block(11);
 		assert_ok!(LBPPallet::buy(
-			Origin::signed(who),
+			Origin::signed(buyer),
 			asset_out,
 			asset_in,
 			10_000_000_u128,
 			2_000_000_000_u128
 		));
 
-		let pool = <PoolData<Test>>::get(pool_id);
-
-		assert_eq!(
-			Pool {
-				owner: ALICE,
-				start: 10u64,
-				end: 20u64,
-				assets: (asset_in, asset_out),
-				initial_weight: 20_000_000,
-				final_weight: 80_000_000,
-				weight_curve: WeightCurveType::Linear,
-				fee: Fee::default(),
-				fee_collector: CHARLIE,
-			},
-			pool
-		);
-
-		assert_eq!(Currency::free_balance(asset_in, &who), 0);
-		assert_eq!(Currency::free_balance(asset_out, &who), 10_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_985_602_548);
+		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_010_000_000);
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_014_368_715);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
 
 		// test buy where the amount_in is less than the amount_out
 		let asset_in = HDX;
 		let asset_out = DOT;
-		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+		let pool_id2 = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
@@ -1856,446 +1846,758 @@ fn buy_should_work() {
 				id: DOT,
 				amount: 2_000_000_000,
 			},
-			80_000_000u32, 
+			80_000_000u32,
 			10_000_000u32,
 			WeightCurveType::Linear,
 			Fee::default(),
 			CHARLIE,
 		));
 
-		assert_ok!(LBPPallet::update_pool_data(Origin::signed(ALICE), HDX_DOT_POOL_ID, Some(20), Some(30), None, None, None, None));
+		let pool_data1 = LBPPallet::pool_data(pool_id2);
 
-		let pool_data = LBPPallet::pool_data(4000);
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			HDX_DOT_POOL_ID,
+			Some(20),
+			Some(30),
+			None,
+			None,
+			None,
+			None
+		));
 
-		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_990_000_001));
-		// assert_ok!(Currency::withdraw(asset_in, &who, 999_999_998_240_561));
-		// assert_eq!(Currency::free_balance(asset_in, &who), 1_759_439);
-		// assert_ok!(Currency::withdraw(asset_out, &who, 1_000_000_000_000_000));
-		// assert_eq!(Currency::free_balance(asset_out, &who), 0);
-
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000_u128);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000_u128);
+		let pool_data2 = LBPPallet::pool_data(pool_id2);
 
 		//start sale
 		run_to_block(21);
 		assert_ok!(LBPPallet::buy(
-			Origin::signed(who),
+			Origin::signed(buyer),
 			asset_out,
 			asset_in,
 			10_000_000_u128,
 			2_000_000_000_u128
 		));
 
-		// assert_eq!(Currency::free_balance(asset_in, &who), 0);//8_240_561
-		// assert_eq!(Currency::free_balance(asset_out, &who), 10_000_000);
-
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_001_855_672);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_998_140_617);
+		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_020_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id2), 1_001_855_672);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id2), 1_990_000_000);
 
 		expect_events(vec![
-			Event::BuyExecuted(who, DOT, ACA, 14_424_591, 10_000_000, ACA, 28_849).into(),
-			frame_system::Event::NewAccount(4000).into(),
-			orml_tokens::Event::Endowed(0, 4000, 1000000000).into(),
-			orml_tokens::Event::Endowed(4000, 4000, 2000000000).into(),
-			Event::PoolCreated(4000, pool_data).into(),
-			orml_tokens::Event::Endowed(0, 3, 3511).into(),
-			Event::BuyExecuted(2, 4000, 0, 1_001_855_672, 10000000, 0, 3511).into(),
+			orml_tokens::Event::Endowed(ACA, CHARLIE, 28_737).into(),
+			Event::BuyExecuted(buyer, DOT, ACA, 14_368_715, 10_000_000, ACA, 28_737).into(),
+			frame_system::Event::NewAccount(pool_id2).into(),
+			orml_tokens::Event::Endowed(HDX, pool_id2, 1_000_000_000).into(),
+			orml_tokens::Event::Endowed(DOT, pool_id2, 2_000_000_000).into(),
+			Event::PoolCreated(pool_id2, pool_data1).into(),
+			Event::PoolUpdated(pool_id2, pool_data2).into(),
+			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3711).into(),
+			Event::BuyExecuted(buyer, asset_out, asset_in, 1_855_672, 10_000_000, 0, 3711).into(),
 		]);
 	});
 }
 
-// #[test]
-// fn sell_should_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		let who = BOB;
-// 		let asset_in = ACA;
-// 		let asset_out = DOT;
-// 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+#[test]
+fn trade_in_renewed_pool_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let buyer = BOB;
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
-// 		assert_eq!(Currency::free_balance(asset_in, &who), 1_000_000_000_000_000);
-// 		assert_ok!(Currency::withdraw(asset_out, &who, 1_000_000_000_000_000));
-// 		assert_eq!(Currency::free_balance(asset_out, &who), 0);
+		//start sale
+		run_to_block(11);
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(buyer),
+			asset_out,
+			asset_in,
+			10_000_000_u128,
+			2_000_000_000_u128
+		));
 
-// 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_000_000_000_u128);
-// 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000_u128);
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_985_602_548);
+		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_010_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_014_368_715);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 28_737);
 
-// 		//start sale
-// 		run_to_block(11);
+		run_to_block(30);
 
-// 		assert_ok!(LBPPallet::sell(
-// 			Origin::signed(who),
-// 			asset_in,
-// 			asset_out,
-// 			10_000_000_u128,
-// 			2_000_u128
-// 		));
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			Some(50),
+			Some(60),
+			None,
+			None,
+			None,
+			None
+		));
 
-// 		let pool = <PoolData<Test>>::get(pool_id);
+		let pool_data2 = LBPPallet::pool_data(pool_id);
 
-// 		assert_eq!(
-// 			Pool {
-// 				owner: ALICE,
-// 				start: 10u64,
-// 				end: 20u64,
-// 				assets: (asset_in, asset_out),
-// 				initial_weight: 20_000_000,
-// 				final_weight: 90_000_000,
-// 				weight_curve: WeightCurveType::Linear,
-// 				pausable: true,
-// 				paused: false,
-// 				fee: Fee::default(),
-// 				fee_collector: CHARLIE,
-// 			},
-// 			pool
-// 		);
+		//start sale
+		run_to_block(51);
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(buyer),
+			asset_out,
+			asset_in,
+			10_000_000_u128,
+			2_000_000_000_u128
+		));
 
-// 		assert_eq!(Currency::free_balance(asset_in, &who), INITIAL_BALANCE - 10_000_000);
-// 		assert_eq!(Currency::free_balance(asset_out, &who), 6_939_210);
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_970_924_119);
+		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_020_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_029_017_846);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 58_035);
 
-// 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000);
-// 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_993_046_884);
+		expect_events(vec![
+			Event::BuyExecuted(buyer, DOT, ACA, 14_368_715, 10_000_000, ACA, 28_737).into(),
+			Event::PoolUpdated(pool_id, pool_data2).into(),
+			Event::BuyExecuted(buyer, asset_out, asset_in, 14649131, 10_000_000, ACA, 29298).into(),
+		]);
+	});
+}
 
-// 		expect_events(vec![Event::SellExecuted(
-// 			who, asset_in, asset_out, 10_000_000, 6_939_210, asset_out, 13_906,
-// 		)
-// 		.into()]);
-// 	});
-// }
+#[test]
+fn sell_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let buyer = BOB;
+		let asset_in = ACA;
+		let asset_out = DOT;
+		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
-// #[test]
-// fn zero_fee_should_work() {
-// 	new_test_ext().execute_with(|| {
-// 		assert_ok!(LBPPallet::create_pool(
-// 			Origin::root(),
-// 			ALICE,
-// 			LBPAssetInfo {
-// 				id: ACA,
-// 				amount: 1_000_000_000,
-// 			},
-// 			LBPAssetInfo {
-// 				id: DOT,
-// 				amount: 2_000_000_000,
-// 			},
-// 			(10u64, 20u64),
-// 			WeightCurveType::Linear,
-// 			Fee {
-// 				numerator: 0,
-// 				denominator: 100,
-// 			},
-// 			CHARLIE,
-// 		));
+		//start sale
+		run_to_block(11);
 
-// 		//start sale
-// 		run_to_block(11);
+		assert_ok!(LBPPallet::sell(
+			Origin::signed(buyer),
+			asset_in,
+			asset_out,
+			10_000_000_u128,
+			2_000_u128
+		));
 
-// 		assert_ok!(LBPPallet::sell(Origin::signed(ALICE), ACA, DOT, 1_000, 1,));
-// 	});
-// }
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_990_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_006_965_956);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_993_020_085);
 
-// #[test]
-// fn invalid_fee_should_not_work() {
-// 	new_test_ext().execute_with(|| {
-// 		assert_noop!(
-// 			LBPPallet::create_pool(
-// 				Origin::root(),
-// 				ALICE,
-// 				LBPAssetInfo {
-// 					id: ACA,
-// 					amount: 1_000_000_000,
-// 				},
-// 				LBPAssetInfo {
-// 					id: DOT,
-// 					amount: 2_000_000_000,
-// 				},
-// 				(10u64, 20u64),
-// 				WeightCurveType::Linear,
-// 				Fee {
-// 					numerator: 10,
-// 					denominator: 0,
-// 				},
-// 				CHARLIE,
-// 			),
-// 			Error::<Test>::FeeAmountInvalid
-// 		);
-// 	});
-// }
+		// test buy where the amount_in is less than the amount_out
+		let asset_in = HDX;
+		let asset_out = DOT;
+		let pool_id2 = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			LBPAssetInfo {
+				id: HDX,
+				amount: 1_000_000_000,
+			},
+			LBPAssetInfo {
+				id: DOT,
+				amount: 2_000_000_000,
+			},
+			80_000_000u32,
+			10_000_000u32,
+			WeightCurveType::Linear,
+			Fee::default(),
+			CHARLIE,
+		));
 
-// #[test]
-// fn amm_trait_should_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		let asset_pair = AssetPair {
-// 			asset_in: ACA,
-// 			asset_out: DOT,
-// 		};
-// 		let reversed_asset_pair = AssetPair {
-// 			asset_in: DOT,
-// 			asset_out: ACA,
-// 		};
-// 		let non_existing_asset_pair = AssetPair {
-// 			asset_in: DOT,
-// 			asset_out: HDX,
-// 		};
+		let pool_data1 = LBPPallet::pool_data(pool_id2);
 
-// 		assert!(LBPPallet::exists(asset_pair));
-// 		assert!(LBPPallet::exists(reversed_asset_pair));
-// 		assert!(!LBPPallet::exists(non_existing_asset_pair));
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			HDX_DOT_POOL_ID,
+			Some(20),
+			Some(30),
+			None,
+			None,
+			None,
+			None
+		));
 
-// 		assert_eq!(LBPPallet::get_pair_id(asset_pair), ACA_DOT_POOL_ID);
-// 		assert_eq!(LBPPallet::get_pair_id(reversed_asset_pair), ACA_DOT_POOL_ID);
+		let pool_data2 = LBPPallet::pool_data(pool_id2);
 
-// 		assert_eq!(LBPPallet::get_pool_assets(&ACA_DOT_POOL_ID), Some(vec![ACA, DOT]));
-// 		assert_eq!(LBPPallet::get_pool_assets(&HDX_DOT_POOL_ID), None);
+		//start sale
+		run_to_block(21);
+		assert_ok!(LBPPallet::sell(
+			Origin::signed(buyer),
+			asset_out,
+			asset_in,
+			10_000_000_u128,
+			2_000_u128
+		));
 
-// 		// TODO: test all methods from the AMM trait
-// 	});
-// }
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 1_000_000_001_839_319);
+		assert_eq!(Currency::free_balance(asset_out, &buyer), 999_999_996_965_956);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id2), 998_156_995);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id2), 2_010_000_000);
 
-// #[test]
-// fn get_spot_price_should_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		System::set_block_number(10);
+		expect_events(vec![
+			orml_tokens::Event::Endowed(DOT, CHARLIE, 13_959).into(),
+			Event::SellExecuted(buyer, ACA, DOT, 10_000_000, 6_965_956, DOT, 13_959).into(),
+			frame_system::Event::NewAccount(pool_id2).into(),
+			orml_tokens::Event::Endowed(asset_in, pool_id2, 1_000_000_000).into(),
+			orml_tokens::Event::Endowed(asset_out, pool_id2, 2_000_000_000).into(),
+			Event::PoolCreated(pool_id2, pool_data1).into(),
+			Event::PoolUpdated(pool_id2, pool_data2).into(),
+			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3_686).into(),
+			Event::SellExecuted(buyer, asset_out, asset_in, 10_000_000, 1_839_319, 0, 3_686).into(),
+		]);
+	});
+}
 
-// 		let price = hydra_dx_math::lbp::calculate_spot_price(
-// 			1_000_000_000_u128,
-// 			2_000_000_000_u128,
-// 			20_u128,
-// 			80_u128,
-// 			1_000_000_u128,
-// 		)
-// 		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
+#[test]
+fn zero_fee_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			LBPAssetInfo {
+				id: ACA,
+				amount: 1_000_000_000,
+			},
+			LBPAssetInfo {
+				id: DOT,
+				amount: 2_000_000_000,
+			},
+			20_000_000,
+			80_000_000,
+			WeightCurveType::Linear,
+			Fee {
+				numerator: 0,
+				denominator: 100,
+			},
+			CHARLIE,
+		));
 
-// 		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000_u128), price);
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			Some(10),
+			Some(20),
+			None,
+			None,
+			None,
+			None
+		));
 
-// 		// swap assets
-// 		let price = hydra_dx_math::lbp::calculate_spot_price(
-// 			2_000_000_000_u128,
-// 			1_000_000_000_u128,
-// 			80_u128,
-// 			20_u128,
-// 			1_000_000_u128,
-// 		)
-// 		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
+		//start sale
+		run_to_block(11);
 
-// 		assert_eq!(LBPPallet::get_spot_price_unchecked(DOT, ACA, 1_000_000_u128), price);
+		assert_ok!(LBPPallet::sell(Origin::signed(ALICE), ACA, DOT, 1_000, 1,));
+	});
+}
 
-// 		// change weights
-// 		System::set_block_number(20);
+#[test]
+fn invalid_fee_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				LBPAssetInfo {
+					id: ACA,
+					amount: 1_000_000_000,
+				},
+				LBPAssetInfo {
+					id: DOT,
+					amount: 2_000_000_000,
+				},
+				20_000_000,
+				80_000_000,
+				WeightCurveType::Linear,
+				Fee {
+					numerator: 10,
+					denominator: 0,
+				},
+				CHARLIE,
+			),
+			Error::<Test>::FeeAmountInvalid
+		);
+	});
+}
 
-// 		let price = hydra_dx_math::lbp::calculate_spot_price(
-// 			1_000_000_000_u128,
-// 			2_000_000_000_u128,
-// 			90_u128,
-// 			10_u128,
-// 			1_000_000_u128,
-// 		)
-// 		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
+#[test]
+fn amm_trait_should_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			Some(10),
+			Some(20),
+			None,
+			None,
+			None,
+			None
+		));
 
-// 		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000), price);
+		let asset_pair = AssetPair {
+			asset_in: ACA,
+			asset_out: DOT,
+		};
+		let reversed_asset_pair = AssetPair {
+			asset_in: DOT,
+			asset_out: ACA,
+		};
+		let non_existing_asset_pair = AssetPair {
+			asset_in: DOT,
+			asset_out: HDX,
+		};
 
-// 		// pool does not exist
-// 		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, HDX, 1_000_000), 0);
+		assert_noop!(
+			LBPPallet::validate_sell(&BOB, asset_pair, 1_000_000, 100_000, false),
+			Error::<Test>::SaleIsNotRunning
+		);
 
-// 		// overflow
-// 		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, u128::MAX), 0);
+		System::set_block_number(11);
 
-// 		// sale ended
-// 		System::set_block_number(21);
-// 		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000), 0);
-// 	});
-// }
+		assert!(LBPPallet::exists(asset_pair));
+		assert!(LBPPallet::exists(reversed_asset_pair));
+		assert!(!LBPPallet::exists(non_existing_asset_pair));
 
-// #[test]
-// fn simulate_lbp_event_should_work() {
-// 	new_test_ext().execute_with(|| {
-// 		// setup
-// 		let pool_owner = BOB;
-// 		let lbp_participant = CHARLIE;
+		assert_eq!(LBPPallet::get_pair_id(asset_pair), ACA_DOT_POOL_ID);
+		assert_eq!(LBPPallet::get_pair_id(reversed_asset_pair), ACA_DOT_POOL_ID);
 
-// 		let asset_in = DOT;
-// 		let asset_in_pool_reserve: u128 = 1_000_000;
-// 		let owner_initial_asset_in_balance: u128 = 1_000_000_000_000;
-// 		let lbp_participant_initial_asset_in_balance: u128 = 1_000_000_000_000;
+		assert_eq!(LBPPallet::get_pool_assets(&ACA_DOT_POOL_ID), Some(vec![ACA, DOT]));
+		assert_eq!(LBPPallet::get_pool_assets(&HDX_DOT_POOL_ID), None);
 
-// 		let asset_in_initial_weight = 400;
-// 		let asset_in_final_weight = 3_000;
+		// calculate_spot_price is tested in get_spot_price_should_work
+		// execute_sell and execute_buy is tested in execute_sell_should_work and execute_buy_should_work
 
-// 		let asset_out = HDX;
-// 		let asset_out_pool_reserve: u128 = 500_000_000;
-// 		let owner_initial_asset_out_balance: u128 = 1_000_000_000_000;
-// 		let lbp_participant_initial_asset_out_balance: u128 = 1_000_000_000_000;
+		let who = BOB;
+		let amount_in = 1_000_000;
+		let sell_limit = 100_000;
+		let t_sell = AMMTransfer {
+			origin: who,
+			assets: asset_pair,
+			amount: amount_in,
+			amount_out: 700_822,
+			discount: false,
+			discount_amount: 0_u128,
+			fee: (asset_pair.asset_out, 1_404),
+		};
+		assert_eq!(
+			LBPPallet::validate_sell(&who, asset_pair, amount_in, sell_limit, false).unwrap(),
+			t_sell
+		);
 
-// 		let asset_out_initial_weight = 3_600;
-// 		let asset_out_final_weight = 1_000;
+		let amount_out = 1_000_000;
+		let buy_limit = 10_000_000;
+		let t_buy = AMMTransfer {
+			origin: who,
+			assets: asset_pair,
+			amount: 1_424_443,
+			amount_out: amount_out,
+			discount: false,
+			discount_amount: 0_u128,
+			fee: (asset_pair.asset_in, 2_848),
+		};
+		assert_eq!(
+			LBPPallet::validate_buy(&who, asset_pair, amount_in, buy_limit, false).unwrap(),
+			t_buy
+		);
 
-// 		let sale_start: u64 = 1_000;
-// 		let sale_end: u64 = 22_600; // in blocks; 3 days
+		// zero amount
+		assert_noop!(
+			LBPPallet::validate_sell(&who, asset_pair, 0, sell_limit, false),
+			Error::<Test>::ZeroAmount
+		);
 
-// 		let mut trades = BTreeMap::new();
-// 		let intervals: u64 = 72;
+		// pool does not exist
+		assert_noop!(
+			LBPPallet::validate_sell(
+				&who,
+				AssetPair {
+					asset_in: ACA,
+					asset_out: ETH
+				},
+				amount_in,
+				sell_limit,
+				false
+			),
+			Error::<Test>::PoolNotFound
+		);
 
-// 		let sale_rate = 200_000_000;	// asset_out per day
-// 		let buy_amount = sale_rate / 24;
-// 		let sell_amount = 100_000_000 / 24;
+		// insufficient balance
+		assert_ok!(Currency::withdraw(asset_pair.asset_in, &who, INITIAL_BALANCE));
+		assert_noop!(
+			LBPPallet::validate_sell(&who, asset_pair, amount_in, sell_limit, false),
+			Error::<Test>::InsufficientAssetBalance
+		);
+		assert_noop!(
+			LBPPallet::validate_buy(&who, asset_pair, amount_in, buy_limit, false),
+			Error::<Test>::InsufficientAssetBalance
+		);
+		Currency::set_balance(Origin::root(), who, asset_pair.asset_in, INITIAL_BALANCE, 0).unwrap();
 
-// 		let skip = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-// 		let sells = vec![19, 20, 21, 33, 34, 35, 48, 49, 50, 62, 63, 64];
-// 		for i in 0..=intervals {
-// 			let block_num = sale_start + (i * ((sale_end - sale_start) / intervals));
+		// max in/out ratio exceeded
+		assert_noop!(
+			LBPPallet::validate_sell(&who, asset_pair, 1_000_000_000, sell_limit, false),
+			Error::<Test>::MaxInRatioExceeded
+		);
+		assert_noop!(
+			LBPPallet::validate_buy(&who, asset_pair, 1_000_000_000, buy_limit, false),
+			Error::<Test>::MaxOutRatioExceeded
+		);
 
-// 			if skip.contains(&i) {
-// 				continue;
-// 			}
+		// transfer fee > token amount in
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			LBPAssetInfo {
+				id: ACA,
+				amount: 1_000_000_000,
+			},
+			LBPAssetInfo {
+				id: HDX,
+				amount: 2_000_000_000,
+			},
+			20_000_000,
+			80_000_000,
+			WeightCurveType::Linear,
+			Fee {
+				numerator: 10,
+				denominator: 1
+			},
+			CHARLIE,
+		));
+		let pool_id2 = LBPPallet::get_pair_id(AssetPair {
+			asset_in: ACA,
+			asset_out: HDX,
+		});
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			pool_id2,
+			Some(12),
+			Some(20),
+			None,
+			None,
+			None,
+			None
+		));
+		System::set_block_number(15);
+		assert_noop!(
+			LBPPallet::validate_sell(
+				&who,
+				AssetPair {
+					asset_in: ACA,
+					asset_out: HDX
+				},
+				amount_in,
+				sell_limit,
+				false
+			),
+			Error::<Test>::Overflow
+		);
 
-// 			let (is_buy, amount) = if sells.contains(&i) {
-// 				(false, sell_amount)
-// 			} else {
-// 				(true, buy_amount)
-// 			};
+		// trading limit exceeded
+		assert_noop!(
+			LBPPallet::validate_sell(&who, asset_pair, amount_in, 10_000_000, false),
+			Error::<Test>::AssetBalanceLimitExceeded
+		);
+		assert_noop!(
+			LBPPallet::validate_buy(&who, asset_pair, amount_in, 1_000, false),
+			Error::<Test>::AssetBalanceLimitExceeded
+		);
 
-// 			trades.insert(block_num, (is_buy, amount));
-// 		}
+		assert_eq!(
+			LBPPallet::get_min_trading_limit(),
+			<Test as Config>::MinTradingLimit::get()
+		);
+		assert_eq!(
+			LBPPallet::get_min_pool_liquidity(),
+			<Test as Config>::MinPoolLiquidity::get()
+		);
+		assert_eq!(LBPPallet::get_max_in_ratio(), <Test as Config>::MaxInRatio::get());
+		assert_eq!(LBPPallet::get_max_out_ratio(), <Test as Config>::MaxOutRatio::get());
+	});
+}
 
-// 		let fee = Fee {
-// 			numerator: 9,
-// 			denominator: 1_000,
-// 		};
+#[test]
+fn get_spot_price_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			LBPAssetInfo {
+				id: ACA,
+				amount: 1_000_000_000,
+			},
+			LBPAssetInfo {
+				id: DOT,
+				amount: 2_000_000_000,
+			},
+			20_000_000,
+			90_000_000,
+			WeightCurveType::Linear,
+			Fee::default(),
+			CHARLIE,
+		));
 
-// 		let fee_collector = ALICE;
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			Some(10),
+			Some(20),
+			None,
+			None,
+			None,
+			None
+		));
 
-// 		let pausable = true;
+		System::set_block_number(10);
 
-// 		let trade_limit_factor: u128 = 1_000;
+		let price = hydra_dx_math::lbp::calculate_spot_price(
+			1_000_000_000_u128,
+			2_000_000_000_u128,
+			20_u32,
+			80_u32,
+			1_000_000_u128,
+		)
+		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
 
-// 		// preparations
-// 		let asset_pair = AssetPair { asset_in, asset_out };
-// 		let pool_account = LBPPallet::get_pair_id(asset_pair);
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000_u128), price);
 
-// 		Currency::set_balance(Origin::root(), fee_collector, asset_in, 0, 0).unwrap();
-// 		Currency::set_balance(Origin::root(), fee_collector, asset_out, 0, 0).unwrap();
+		// swap assets
+		let price = hydra_dx_math::lbp::calculate_spot_price(
+			2_000_000_000_u128,
+			1_000_000_000_u128,
+			80_u32,
+			20_u32,
+			1_000_000_u128,
+		)
+		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
 
-// 		Currency::set_balance(Origin::root(), pool_owner, asset_in, 0, 0).unwrap();
-// 		Currency::set_balance(Origin::root(), pool_owner, asset_out, 0, 0).unwrap();
+		assert_eq!(LBPPallet::get_spot_price_unchecked(DOT, ACA, 1_000_000_u128), price);
 
-// 		Currency::set_balance(
-// 			Origin::root(),
-// 			pool_owner,
-// 			asset_in,
-// 			owner_initial_asset_in_balance
-// 				.checked_add(asset_in_pool_reserve)
-// 				.unwrap(),
-// 			0,
-// 		)
-// 		.unwrap();
-// 		Currency::set_balance(
-// 			Origin::root(),
-// 			pool_owner,
-// 			asset_out,
-// 			owner_initial_asset_out_balance
-// 				.checked_add(asset_out_pool_reserve)
-// 				.unwrap(),
-// 			0,
-// 		)
-// 		.unwrap();
+		// change weights
+		System::set_block_number(20);
 
-// 		<Test as Config>::MultiCurrency::update_balance(
-// 			asset_in,
-// 			&lbp_participant,
-// 			lbp_participant_initial_asset_in_balance.try_into().unwrap(),
-// 		)
-// 		.unwrap();
-// 		<Test as Config>::MultiCurrency::update_balance(
-// 			asset_out,
-// 			&lbp_participant,
-// 			lbp_participant_initial_asset_out_balance.try_into().unwrap(),
-// 		)
-// 		.unwrap();
+		let price = hydra_dx_math::lbp::calculate_spot_price(
+			1_000_000_000_u128,
+			2_000_000_000_u128,
+			90_u32,
+			10_u32,
+			1_000_000_u128,
+		)
+		.unwrap_or_else(|_| BalanceOf::<Test>::zero());
 
-// 		assert_ok!(LBPPallet::create_pool(
-// 			Origin::root(),
-// 			pool_owner,
-// 			LBPAssetInfo {
-// 				id: asset_in,
-// 				amount: asset_in_pool_reserve,
-// 			},
-// 			LBPAssetInfo {
-// 				id: asset_out,
-// 				amount: asset_out_pool_reserve,
-// 			},
-// 			(sale_start, sale_end),
-// 			WeightCurveType::Linear,
-// 			pausable,
-// 			fee,
-// 			fee_collector,
-// 		));
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000), price);
 
-// 		System::set_block_number(sale_start.checked_sub(1).unwrap());
+		// pool does not exist
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, HDX, 1_000_000), 0);
 
-// 		// start LBP
-// 		for block_num in sale_start..=sale_end {
-// 			System::set_block_number(block_num);
+		// overflow
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, u128::MAX), 0);
 
-// 			if let Some((is_buy, amount)) = trades.get(&block_num) {
-// 				if *is_buy {
-// 					assert_ok!(LBPPallet::buy(
-// 						Origin::signed(lbp_participant),
-// 						asset_out,
-// 						asset_in,
-// 						*amount,
-// 						amount.saturating_mul(trade_limit_factor)
-// 					));
-// 				} else {
-// 					assert_ok!(LBPPallet::sell(
-// 						Origin::signed(lbp_participant),
-// 						asset_out,
-// 						asset_in,
-// 						*amount,
-// 						amount.checked_div(trade_limit_factor).unwrap()
-// 					));
-// 				}
-// 			}
-// 		}
+		// sale ended
+		System::set_block_number(21);
+		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000), 0);
+	});
+}
 
-// 		// end LBP and consolidate results
-// 		System::set_block_number(sale_end.checked_add(1).unwrap());
+#[test]
+fn simulate_lbp_event_should_work() {
+	new_test_ext().execute_with(|| {
+		// setup
+		let pool_owner = BOB;
+		let lbp_participant = CHARLIE;
 
-// 		let pool_account_result_asset_in = Currency::free_balance(asset_in, &pool_account);
-// 		let pool_account_result_asset_out = Currency::free_balance(asset_out, &pool_account);
+		let asset_in = DOT;
+		let asset_in_pool_reserve: u128 = 1_000_000;
+		let owner_initial_asset_in_balance: u128 = 1_000_000_000_000;
+		let lbp_participant_initial_asset_in_balance: u128 = 1_000_000_000_000;
 
-// 		assert_eq!(
-// 			Currency::free_balance(asset_in, &pool_owner),
-// 			owner_initial_asset_in_balance
-// 		);
-// 		assert_eq!(
-// 			Currency::free_balance(asset_out, &pool_owner),
-// 			owner_initial_asset_out_balance
-// 		);
+		let asset_in_initial_weight = 10_000_000; // 10%
+		let asset_in_final_weight = 75_000_000; // 75%
 
-// 		assert_eq!(Currency::free_balance(asset_in, &pool_account), 4_973_509);
-// 		assert_eq!(Currency::free_balance(asset_out, &pool_account), 125_000_009);
+		let asset_out = HDX;
+		let asset_out_pool_reserve: u128 = 500_000_000;
+		let owner_initial_asset_out_balance: u128 = 1_000_000_000_000;
+		let lbp_participant_initial_asset_out_balance: u128 = 1_000_000_000_000;
 
-// 		assert_eq!(Currency::free_balance(asset_in, &lbp_participant), 999_995_981_161);
-// 		assert_eq!(Currency::free_balance(asset_out, &lbp_participant), 1_000_374_999_991);
+		let sale_start: u64 = 1_000;
+		let sale_end: u64 = 22_600; // in blocks; 3 days
 
-// 		// remove liquidity from the pool
-// 		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(pool_owner), pool_account));
+		let mut trades = BTreeMap::new();
+		let intervals: u64 = 72;
 
-// 		assert_eq!(Currency::free_balance(asset_in, &pool_account), 0);
-// 		assert_eq!(Currency::free_balance(asset_out, &pool_account), 0);
+		let sale_rate = 200_000_000; // asset_out per day
+		let buy_amount = sale_rate / 24;
+		let sell_amount = 100_000_000 / 24;
 
-// 		assert_eq!(
-// 			Currency::free_balance(asset_in, &pool_owner),
-// 			owner_initial_asset_in_balance
-// 				.checked_add(pool_account_result_asset_in)
-// 				.unwrap()
-// 		);
-// 		assert_eq!(
-// 			Currency::free_balance(asset_out, &pool_owner),
-// 			owner_initial_asset_out_balance
-// 				.checked_add(pool_account_result_asset_out)
-// 				.unwrap()
-// 		);
+		let skip = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+		let sells = vec![19, 20, 21, 33, 34, 35, 48, 49, 50, 62, 63, 64];
+		for i in 0..=intervals {
+			let block_num = sale_start + (i * ((sale_end - sale_start) / intervals));
 
-// 		assert_eq!(Currency::free_balance(asset_in, &fee_collector), 45_330);
-// 		assert_eq!(Currency::free_balance(asset_out, &fee_collector), 0);
-// 	});
-// }
+			if skip.contains(&i) {
+				continue;
+			}
+
+			let (is_buy, amount) = if sells.contains(&i) {
+				(false, sell_amount)
+			} else {
+				(true, buy_amount)
+			};
+
+			trades.insert(block_num, (is_buy, amount));
+		}
+
+		let fee = Fee {
+			numerator: 9,
+			denominator: 1_000,
+		};
+
+		let fee_collector = ALICE;
+
+		let trade_limit_factor: u128 = 1_000;
+
+		// preparations
+		let asset_pair = AssetPair { asset_in, asset_out };
+		let pool_account = LBPPallet::get_pair_id(asset_pair);
+
+		Currency::set_balance(Origin::root(), fee_collector, asset_in, 0, 0).unwrap();
+		Currency::set_balance(Origin::root(), fee_collector, asset_out, 0, 0).unwrap();
+
+		Currency::set_balance(Origin::root(), pool_owner, asset_in, 0, 0).unwrap();
+		Currency::set_balance(Origin::root(), pool_owner, asset_out, 0, 0).unwrap();
+
+		Currency::set_balance(
+			Origin::root(),
+			pool_owner,
+			asset_in,
+			owner_initial_asset_in_balance
+				.checked_add(asset_in_pool_reserve)
+				.unwrap(),
+			0,
+		)
+		.unwrap();
+		Currency::set_balance(
+			Origin::root(),
+			pool_owner,
+			asset_out,
+			owner_initial_asset_out_balance
+				.checked_add(asset_out_pool_reserve)
+				.unwrap(),
+			0,
+		)
+		.unwrap();
+
+		<Test as Config>::MultiCurrency::update_balance(
+			asset_in,
+			&lbp_participant,
+			lbp_participant_initial_asset_in_balance.try_into().unwrap(),
+		)
+		.unwrap();
+		<Test as Config>::MultiCurrency::update_balance(
+			asset_out,
+			&lbp_participant,
+			lbp_participant_initial_asset_out_balance.try_into().unwrap(),
+		)
+		.unwrap();
+
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			pool_owner,
+			LBPAssetInfo {
+				id: asset_in,
+				amount: asset_in_pool_reserve,
+			},
+			LBPAssetInfo {
+				id: asset_out,
+				amount: asset_out_pool_reserve,
+			},
+			asset_in_initial_weight,
+			asset_in_final_weight,
+			WeightCurveType::Linear,
+			fee,
+			fee_collector,
+		));
+
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(pool_owner),
+			pool_account,
+			Some(sale_start),
+			Some(sale_end),
+			None,
+			None,
+			None,
+			None
+		));
+
+		System::set_block_number(sale_start.checked_sub(1).unwrap());
+
+		// start LBP
+		for block_num in sale_start..=sale_end {
+			System::set_block_number(block_num);
+
+			if let Some((is_buy, amount)) = trades.get(&block_num) {
+				if *is_buy {
+					assert_ok!(LBPPallet::buy(
+						Origin::signed(lbp_participant),
+						asset_out,
+						asset_in,
+						*amount,
+						amount.saturating_mul(trade_limit_factor)
+					));
+				} else {
+					assert_ok!(LBPPallet::sell(
+						Origin::signed(lbp_participant),
+						asset_out,
+						asset_in,
+						*amount,
+						amount.checked_div(trade_limit_factor).unwrap()
+					));
+				}
+			}
+		}
+
+		// end LBP and consolidate results
+		System::set_block_number(sale_end.checked_add(1).unwrap());
+
+		let pool_account_result_asset_in = Currency::free_balance(asset_in, &pool_account);
+		let pool_account_result_asset_out = Currency::free_balance(asset_out, &pool_account);
+
+		assert_eq!(
+			Currency::free_balance(asset_in, &pool_owner),
+			owner_initial_asset_in_balance
+		);
+		assert_eq!(
+			Currency::free_balance(asset_out, &pool_owner),
+			owner_initial_asset_out_balance
+		);
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_account), 4_970_435);
+		assert_eq!(Currency::free_balance(asset_out, &pool_account), 125_000_009);
+
+		assert_eq!(Currency::free_balance(asset_in, &lbp_participant), 999_995_984_267);
+		assert_eq!(Currency::free_balance(asset_out, &lbp_participant), 1_000_374_999_991);
+
+		// remove liquidity from the pool
+		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(pool_owner), pool_account));
+
+		assert_eq!(Currency::free_balance(asset_in, &pool_account), 0);
+		assert_eq!(Currency::free_balance(asset_out, &pool_account), 0);
+
+		assert_eq!(
+			Currency::free_balance(asset_in, &pool_owner),
+			owner_initial_asset_in_balance
+				.checked_add(pool_account_result_asset_in)
+				.unwrap()
+		);
+		assert_eq!(
+			Currency::free_balance(asset_out, &pool_owner),
+			owner_initial_asset_out_balance
+				.checked_add(pool_account_result_asset_out)
+				.unwrap()
+		);
+
+		assert_eq!(Currency::free_balance(asset_in, &fee_collector), 45_298);
+		assert_eq!(Currency::free_balance(asset_out, &fee_collector), 0);
+	});
+}

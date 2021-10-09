@@ -334,7 +334,8 @@ pub mod pallet {
 		/// - `pool_owner`: the future owner of the new pool.
 		/// - `asset_a`: { asset_id, amount } Asset ID and initial liquidity amount.
 		/// - `asset_b`: { asset_id, amount } Asset ID and initial liquidity amount.
-		/// - `initial_weight`: Initial weight of an asset. 1_000_000 corresponding to 1% and 100_000_000 to 100%  
+		/// - `initial_weight`: Initial weight of the asset_a. 1_000_000 corresponding to 1% and 100_000_000 to 100%
+		/// - `final_weight`: Final weight of the asset_a. 1_000_000 corresponding to 1% and 100_000_000 to 100%
 		/// - `weight_curve`: The weight function used to update the LBP weights. Currently,
 		/// there is only one weight function implemented, the linear function.
 		/// - `fee`: The trading fee charged on every trade distributed to `fee_collector`.
