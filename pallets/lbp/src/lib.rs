@@ -452,7 +452,7 @@ pub mod pallet {
 
 				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
-				ensure!(!Self::is_pool_running(&pool), Error::<T>::SaleStarted);
+				ensure!(!Self::is_pool_running(pool), Error::<T>::SaleStarted);
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
@@ -686,7 +686,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn get_sorted_weight(asset_in:AssetId, now:T::BlockNumber, pool_data:&Pool<T::AccountId, T::BlockNumber>)->Result<(LBPWeight, LBPWeight), Error<T>>{
-		match Self::calculate_weights(&pool_data, now) {
+		match Self::calculate_weights(pool_data, now) {
 			Ok(weights) => {
 				if asset_in == pool_data.assets.0 {
 					Ok((weights.0, weights.1))

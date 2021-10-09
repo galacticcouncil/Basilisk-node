@@ -2191,7 +2191,7 @@ fn amm_trait_should_work() {
 			origin: who,
 			assets: asset_pair,
 			amount: 1_424_443,
-			amount_out: amount_out,
+			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_pair.asset_in, 2_848),
