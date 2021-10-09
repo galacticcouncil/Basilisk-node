@@ -157,6 +157,13 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, initial_weight, final_weight, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
+		System::<T>::set_block_number(1u32.into());
+
+		let start = T::BlockNumber::from(10u32);
+		let end = T::BlockNumber::from(20u32);
+
+		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id.clone(), Some(start), Some(end), None, None, None, None)?;
+
 		let pool_data = LBP::<T>::pool_data(&pool_id);
 
 		System::<T>::set_block_number(12u32.into());
@@ -164,8 +171,8 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), asset_in, asset_out, amount, max_limit)
 	verify{
 		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999998900000000);
-		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999998092888673);
-		assert_eq!(T::MultiCurrency::free_balance(asset_out, &fee_collector), 1000000000186149);
+		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999998095634958);
+		assert_eq!(T::MultiCurrency::free_balance(asset_out, &fee_collector), 1000000000191653);
 	}
 
 	buy {
@@ -193,6 +200,13 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, initial_weight, final_weight, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
+		System::<T>::set_block_number(1u32.into());
+
+		let start = T::BlockNumber::from(10u32);
+		let end = T::BlockNumber::from(20u32);
+
+		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id.clone(), Some(start), Some(end), None, None, None, None)?;
+
 		let pool_data = LBP::<T>::pool_data(&pool_id);
 
 		System::<T>::set_block_number(12u32.into());
@@ -200,8 +214,8 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), asset_out, asset_in, amount, max_limit)
 	verify{
 		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999999100000000);
-		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999997891598523);
-		assert_eq!(T::MultiCurrency::free_balance(asset_in, &fee_collector), 1000000000216370);
+		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999997888223653);
+		assert_eq!(T::MultiCurrency::free_balance(asset_in, &fee_collector), 1000000000223106);
 	}
 }
 
