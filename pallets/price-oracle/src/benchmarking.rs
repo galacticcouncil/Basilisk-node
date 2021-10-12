@@ -20,7 +20,7 @@
 use super::*;
 
 use frame_benchmarking::benchmarks;
-use frame_support::traits::{OnInitialize, OnFinalize};
+use frame_support::traits::{OnFinalize, OnInitialize};
 
 use crate::Pallet as PriceOracle;
 
@@ -64,7 +64,7 @@ benchmarks! {
 
 	}: { PriceOracle::<T>::on_finalize(block_num.into()); }
 	verify {
-		assert_eq!(PriceDataAccumulator::<T>::contains_key(ASSET_PAIR_A.name()), false);
+		assert!(!PriceDataAccumulator::<T>::contains_key(ASSET_PAIR_A.name()));
 		let price_data = PriceOracle::<T>::price_data_ten();
 		let bucket_queue = price_data.iter().find(|&x| x.0 == ASSET_PAIR_A.name()).unwrap().1;
 		assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::from(2), volume: 1_000});
@@ -117,7 +117,7 @@ benchmarks! {
 	}: { PriceOracle::<T>::on_finalize((2 * block_num - 1).into()); }
 	verify {
 		let asset_pair = AssetPair {asset_in: 1_000, asset_out: 2_000};
-		assert_eq!(PriceDataAccumulator::<T>::contains_key(asset_pair.name()), false);
+		assert!(!PriceDataAccumulator::<T>::contains_key(asset_pair.name()));
 		let price_data = PriceOracle::<T>::price_data_ten();
 		for i in 0 .. BucketQueue::BUCKET_SIZE {
 			for j in 0 .. a {
@@ -178,7 +178,7 @@ benchmarks! {
 	verify {
 		for i in 0 .. b {
 			let asset_pair = AssetPair {asset_in: i * 1_000, asset_out: i * 2_000};
-			assert_eq!(PriceDataAccumulator::<T>::contains_key(asset_pair.name()), false);
+			assert!(!PriceDataAccumulator::<T>::contains_key(asset_pair.name()));
 			let price_data = PriceOracle::<T>::price_data_ten();
 			let bucket_queue = price_data.iter().find(|&x| x.0 == asset_pair.name()).unwrap().1;
 			assert_eq!(bucket_queue.get_last(), PriceInfo{ avg_price: Price::from(2), volume: 1_000});

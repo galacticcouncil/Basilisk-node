@@ -19,7 +19,6 @@ use crate as price_oracle;
 use crate::Config;
 use frame_support::parameter_types;
 use frame_support::traits::Get;
-use frame_system;
 use orml_traits::parameter_type_with_key;
 use price_oracle::{PriceEntry, PriceOracleHandler};
 use primitives::asset::AssetPair;
@@ -116,11 +115,9 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
-			let tmp = a;
-			a = b;
-			b = tmp;
+			std::mem::swap(&mut a, &mut b);
 		}
-		return (a * 1000 + b) as u64;
+		(a * 1000 + b) as u64
 	}
 }
 

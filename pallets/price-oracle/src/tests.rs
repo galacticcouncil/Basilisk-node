@@ -26,8 +26,7 @@ use frame_support::{
 };
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let ext = ExtBuilder.build();
-	ext
+	ExtBuilder.build()
 }
 
 fn last_events(n: usize) -> Vec<TestEvent> {
@@ -52,29 +51,20 @@ fn add_new_asset_pair_should_work() {
 
 		assert_eq!(PriceOracle::num_of_assets(), 0);
 		assert_eq!(PriceOracle::new_assets(), vec![AssetPairId::new(); 0]);
-		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
-			false
-		);
+		assert!(!<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())));
 
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 
 		assert_eq!(PriceOracle::num_of_assets(), 0);
 		assert_eq!(PriceOracle::new_assets(), vec![ASSET_PAIR_A.name()]);
-		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
-			false
-		);
+		assert!(!<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())));
 
 		PriceOracle::on_finalize(3);
 		System::set_block_number(4);
 		PriceOracle::on_initialize(4);
 
 		assert_eq!(PriceOracle::num_of_assets(), 1);
-		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
-			true
-		);
+		assert!(<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())));
 
 		assert_eq!(PriceOracle::new_assets(), vec![AssetPairId::new(); 0]);
 
@@ -87,28 +77,16 @@ fn add_new_asset_pair_should_work() {
 		vec_assets.sort_unstable();
 
 		assert_eq!(PriceOracle::new_assets(), vec_assets);
-		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_B.name(), BucketQueue::default())),
-			false
-		);
-		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_C.name(), BucketQueue::default())),
-			false
-		);
+		assert!(!<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_B.name(), BucketQueue::default())));
+		assert!(!<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_C.name(), BucketQueue::default())));
 
 		PriceOracle::on_finalize(4);
 		System::set_block_number(5);
 		PriceOracle::on_initialize(5);
 
 		assert_eq!(PriceOracle::num_of_assets(), 3);
-		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_B.name(), BucketQueue::default())),
-			true
-		);
-		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_C.name(), BucketQueue::default())),
-			true
-		);
+		assert!(<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_B.name(), BucketQueue::default())));
+		assert!(<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_C.name(), BucketQueue::default())));
 
 		assert_eq!(PriceOracle::new_assets(), vec![AssetPairId::new(); 0]);
 
@@ -126,10 +104,7 @@ fn add_existing_asset_pair_should_not_work() {
 		System::set_block_number(3);
 		PriceOracle::on_initialize(3);
 
-		assert_eq!(
-			<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())),
-			false
-		);
+		assert!(!<PriceDataTen<Test>>::get().contains(&(ASSET_PAIR_A.name(), BucketQueue::default())));
 		PriceOracle::on_create_pool(ASSET_PAIR_A);
 		assert_storage_noop!(PriceOracle::on_create_pool(ASSET_PAIR_A));
 		expect_events(vec![Event::PoolRegistered(ASSET_PAIR_A).into()]);

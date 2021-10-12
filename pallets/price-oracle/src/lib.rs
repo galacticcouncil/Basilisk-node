@@ -37,6 +37,7 @@ mod tests;
 mod types;
 pub use types::*;
 
+#[allow(clippy::all)]
 pub mod weights;
 use weights::WeightInfo;
 
