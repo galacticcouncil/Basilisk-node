@@ -24,6 +24,7 @@ use primitive_types::U256;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
+use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 use frame_support::sp_runtime::FixedU128;
 
 pub mod asset;
@@ -57,10 +58,10 @@ pub const MAX_OUT_RATIO: u128 = 3;
 pub const MAX_IN_RATIO: u128 = 3;
 
 /// Trading limit
-pub const MIN_TRADING_LIMIT: Balance = 1000;
+pub const MIN_TRADING_LIMIT: u32 = 1000;
 
 /// Minimum pool liquidity
-pub const MIN_POOL_LIQUIDITY: Balance = 1000;
+pub const MIN_POOL_LIQUIDITY: u32 = 1000;
 
 /// Scaled Unsigned of Balance
 pub type HighPrecisionBalance = U256;
@@ -121,20 +122,23 @@ pub mod fee {
 		fn discounted_fee(&self) -> Option<Self>;
 	}
 
-	impl WithFee for Balance {
+	impl<T> WithFee for T
+	where
+		T: AtLeast32BitUnsigned,
+	{
 		fn with_fee(&self, fee: Fee) -> Option<Self> {
-			self.checked_mul((fee.denominator as Self).checked_add(fee.numerator as Self)?)?
-				.checked_div(fee.denominator as Self)
+			self.checked_mul(&T::from(fee.denominator).checked_add(&T::from(fee.numerator))?)?
+				.checked_div(&T::from(fee.denominator))
 		}
 
 		fn without_fee(&self, fee: Fee) -> Option<Self> {
-			self.checked_mul(fee.denominator as Self)?
-				.checked_div((fee.denominator as Self).checked_add(fee.numerator as Self)?)
+			self.checked_mul(&T::from(fee.denominator))?
+				.checked_div(&T::from(fee.denominator).checked_add(&T::from(fee.numerator))?)
 		}
 
 		fn just_fee(&self, fee: Fee) -> Option<Self> {
-			self.checked_mul(fee.numerator as Self)?
-				.checked_div(fee.denominator as Self)
+			self.checked_mul(&T::from(fee.numerator))?
+				.checked_div(&T::from(fee.denominator))
 		}
 
 		fn discounted_fee(&self) -> Option<Self> {
@@ -154,14 +158,14 @@ mod tests {
 	#[test]
 	// This function tests that fee calculations return correct amounts
 	fn fee_calculations_should_work() {
-		let fee = Fee{
+		let fee = Fee {
 			numerator: 2,
 			denominator: 1_000,
 		};
 
-		assert_eq!(1_000.with_fee(fee), Some(1_002));
-		assert_eq!(1_002.without_fee(fee), Some(1_000));
-		assert_eq!(1_000.just_fee(fee), Some(2));
-		assert_eq!(1_000_000.discounted_fee(), Some(700));
+		assert_eq!(1_000_u32.with_fee(fee), Some(1_002));
+		assert_eq!(1_002_u32.without_fee(fee), Some(1_000));
+		assert_eq!(1_000_u32.just_fee(fee), Some(2));
+		assert_eq!(1_000_000_u32.discounted_fee(), Some(700));
 	}
 }

@@ -72,7 +72,15 @@ fn create_pool_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000000);
 
-		expect_events(vec![Event::PoolCreated(ALICE, asset_a, asset_b, 100000000000000, share_token, pair_account).into()]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			asset_a,
+			asset_b,
+			100000000000000,
+			share_token,
+			pair_account,
+		)
+		.into()]);
 	});
 }
 
@@ -101,7 +109,15 @@ fn create_same_pool_should_not_work() {
 		});
 		let share_token = XYK::share_token(pair_account);
 
-		expect_events(vec![Event::PoolCreated(ALICE, asset_b, asset_a, 2000, share_token, pair_account).into()]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			asset_b,
+			asset_a,
+			2000,
+			share_token,
+			pair_account,
+		)
+		.into()]);
 	});
 }
 
@@ -874,7 +890,8 @@ fn discount_sell_fees_should_work() {
 		assert_eq!(Currency::free_balance(HDX, &user_1), 989_980);
 
 		let name: Vec<u8> = vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0];
-		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> = name.try_into().unwrap();
+		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> =
+			name.try_into().unwrap();
 
 		let share_token = XYK::share_token(pair_account);
 		let share_token_native = XYK::share_token(native_pair_account);
@@ -1127,7 +1144,8 @@ fn single_buy_with_discount_should_work() {
 		assert_eq!(Currency::free_balance(HDX, &user_1), 999_899_552_000_008);
 
 		let name: Vec<u8> = vec![232, 3, 0, 0, 72, 68, 84, 184, 11, 0, 0];
-		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> = name.try_into().unwrap();
+		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> =
+			name.try_into().unwrap();
 
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, asset_b, 640_000_000_000, share_token, pair_account).into(),
@@ -1136,7 +1154,15 @@ fn single_buy_with_discount_should_work() {
 			orml_tokens::Event::Endowed(asset_a, 1003000, 50000000000).into(),
 			orml_tokens::Event::Endowed(1000, 1003000, 100000000000).into(),
 			orml_tokens::Event::Endowed(1, 1, 100000000000).into(),
-			Event::PoolCreated(user_1, asset_a, HDX, 100_000_000_000, share_token_native, native_pair_account).into(),
+			Event::PoolCreated(
+				user_1,
+				asset_a,
+				HDX,
+				100_000_000_000,
+				share_token_native,
+				native_pair_account,
+			)
+			.into(),
 			Event::BuyExecuted(
 				user_1,
 				asset_a,
@@ -1274,7 +1300,15 @@ fn create_pool_small_fixed_point_amount_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000000);
 
-		expect_events(vec![Event::PoolCreated(ALICE, asset_a, asset_b, 100000000000000, share_token, pair_account).into()]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			asset_a,
+			asset_b,
+			100000000000000,
+			share_token,
+			pair_account,
+		)
+		.into()]);
 	});
 }
 
@@ -1304,7 +1338,15 @@ fn create_pool_fixed_point_amount_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000);
 
-		expect_events(vec![Event::PoolCreated(ALICE, asset_a, asset_b, 100000000000, share_token, pair_account).into()]);
+		expect_events(vec![Event::PoolCreated(
+			ALICE,
+			asset_a,
+			asset_b,
+			100000000000,
+			share_token,
+			pair_account,
+		)
+		.into()]);
 	});
 }
 
@@ -1564,9 +1606,9 @@ fn single_sell_more_than_ratio_in_should_not_work() {
 #[test]
 fn test_calculate_out_given_in() {
 	ExtBuilder::default().build().execute_with(|| {
-		let in_reserve: Balance = 10000000000000;
-		let out_reserve: Balance = 100000;
-		let in_amount: Balance = 100000000000;
+		let in_reserve: u128 = 10000000000000;
+		let out_reserve: u128 = 100000;
+		let in_amount: u128 = 100000000000;
 		let result = hydra_dx_math::xyk::calculate_out_given_in(in_reserve, out_reserve, in_amount);
 		assert_eq!(result, Ok(990));
 	});
@@ -1575,9 +1617,9 @@ fn test_calculate_out_given_in() {
 #[test]
 fn test_calculate_out_given_in_invalid() {
 	ExtBuilder::default().build().execute_with(|| {
-		let in_reserve: Balance = 0;
-		let out_reserve: Balance = 1000;
-		let in_amount: Balance = 0;
+		let in_reserve: u128 = 0;
+		let out_reserve: u128 = 1000;
+		let in_amount: u128 = 0;
 		let result = hydra_dx_math::xyk::calculate_out_given_in(in_reserve, out_reserve, in_amount);
 		assert_eq!(result, Ok(0));
 	});
@@ -1586,9 +1628,9 @@ fn test_calculate_out_given_in_invalid() {
 #[test]
 fn test_calculate_in_given_out_insufficient_pool_balance() {
 	ExtBuilder::default().build().execute_with(|| {
-		let in_reserve: Balance = 10000000000000;
-		let out_reserve: Balance = 100000;
-		let out_amount: Balance = 100000000000;
+		let in_reserve: u128 = 10000000000000;
+		let out_reserve: u128 = 100000;
+		let out_amount: u128 = 100000000000;
 		let result = hydra_dx_math::xyk::calculate_in_given_out(out_reserve, in_reserve, out_amount);
 		assert_eq!(result, Err(MathError::InsufficientOutReserve));
 	});
@@ -1597,9 +1639,9 @@ fn test_calculate_in_given_out_insufficient_pool_balance() {
 #[test]
 fn test_calculate_in_given_out() {
 	ExtBuilder::default().build().execute_with(|| {
-		let in_reserve: Balance = 10000000000000;
-		let out_reserve: Balance = 10000000;
-		let out_amount: Balance = 1000000;
+		let in_reserve: u128 = 10000000000000;
+		let out_reserve: u128 = 10000000;
+		let out_amount: u128 = 1000000;
 		let result = hydra_dx_math::xyk::calculate_in_given_out(out_reserve, in_reserve, out_amount);
 		assert_eq!(result, Ok(1111111111112));
 	});

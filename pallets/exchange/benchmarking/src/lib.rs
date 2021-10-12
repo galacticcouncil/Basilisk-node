@@ -21,6 +21,7 @@
 mod amounts;
 mod mock;
 
+use sp_std::convert::TryInto;
 use sp_std::prelude::*;
 
 use pallet_exchange::Pallet as Exchange;
@@ -71,7 +72,13 @@ fn initialize_pool<T: Config>(
 	amount: Balance,
 	price: Price,
 ) -> dispatch::DispatchResultWithPostInfo {
-	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a.into(), asset_b.into(), amount, price)?;
+	xykpool::Pallet::<T>::create_pool(
+		RawOrigin::Signed(caller).into(),
+		asset_a.into(),
+		asset_b.into(),
+		amount.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?,
+		price,
+	)?;
 
 	Ok(().into())
 }
@@ -122,13 +129,17 @@ fn validate_finalize<T: Config>(
 		let user: T::AccountId = account("user", idx + 2, SEED);
 		assert_eq!(
 			<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &user),
-			INITIAL_ASSET_BALANCE - amounts[idx as usize] as u128
+			(INITIAL_ASSET_BALANCE - amounts[idx as usize] as u128)
+				.try_into()
+				.map_err(|_| xykpool::Error::<T>::Overflow)?
 		);
 
 		let buyer: T::AccountId = account("user", idx + number + 1, SEED);
 		assert_eq!(
 			<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &buyer),
-			INITIAL_ASSET_BALANCE + amounts[idx as usize] as u128
+			(INITIAL_ASSET_BALANCE + amounts[idx as usize] as u128)
+				.try_into()
+				.map_err(|_| xykpool::Error::<T>::Overflow)?
 		);
 	}
 
@@ -238,7 +249,7 @@ benchmarks! {
 		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
 		for idx in 0..t  {
 			let user: T::AccountId = account("user", idx + 100, SEED);
-			assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &user), INITIAL_ASSET_BALANCE + SELL_INTENTION_AMOUNT);
+			assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &user), (INITIAL_ASSET_BALANCE + SELL_INTENTION_AMOUNT).try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
 		}
 	}
 
@@ -271,7 +282,7 @@ benchmarks! {
 		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
 		for idx in 0..t  {
 			let user: T::AccountId = account("user", idx + 100, SEED);
-			assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &user), INITIAL_ASSET_BALANCE - SELL_INTENTION_AMOUNT);
+			assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &user), (INITIAL_ASSET_BALANCE - SELL_INTENTION_AMOUNT).try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
 		}
 	}
 
@@ -287,10 +298,10 @@ benchmarks! {
 
 		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
 
-	}: { xykpool::Pallet::<T>::sell(RawOrigin::Signed(seller.clone()).into(), asset_a.into(), asset_b.into(), 1_000_000_000, min_bought, false)?; }
+	}: { xykpool::Pallet::<T>::sell(RawOrigin::Signed(seller.clone()).into(), asset_a.into(), asset_b.into(), 1_000_000_000_u32.into(), min_bought.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?, false)?; }
 	verify {
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &seller), 999_999_000_000_000);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &seller), 1000000907272728);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &seller), 999_999_000_000_000_u128.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &seller), 1000000907272728_u128.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
 	}
 
 	on_finalize_for_one_sell_extrinsic {
@@ -318,8 +329,8 @@ benchmarks! {
 	}: {  Exchange::<T>::on_finalize(1u32.into()); }
 	verify {
 		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &seller), 999_999_000_000_000);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &seller), 1000000907272728);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &seller), 999_999_000_000_000_u128.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &seller), 1000000907272728_u128.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
 	}
 
 	buy_extrinsic {
@@ -334,10 +345,10 @@ benchmarks! {
 
 		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
 
-	}: { xykpool::Pallet::<T>::buy(RawOrigin::Signed(buyer.clone()).into(), asset_a.into(), asset_b.into(), 1_000_000_000, max_sold, false)?; }
+	}: { xykpool::Pallet::<T>::buy(RawOrigin::Signed(buyer.clone()).into(), asset_a.into(), asset_b.into(), 1_000_000_000_u32.into(), max_sold.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?, false)?; }
 	verify {
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &buyer), 1000001000000000);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &buyer), 999998886666666);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &buyer), 1000001000000000_u128.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &buyer), 999998886666666_u128.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
 	}
 
 	on_finalize_for_one_buy_extrinsic {
@@ -368,8 +379,8 @@ benchmarks! {
 	}: {  Exchange::<T>::on_finalize(t.into()); }
 	verify {
 		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((ExchangeAssetId::<T>::from(asset_a), ExchangeAssetId::<T>::from(asset_b))), 0);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &buyer), 1000001000000000);
-		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &buyer), 999998886666666);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_a.into(), &buyer), 1000001000000000_u128.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
+		assert_eq!(<T as xykpool::Config>::Currency::free_balance(asset_b.into(), &buyer), 999998886666666_u128.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?);
 	}
 }
 

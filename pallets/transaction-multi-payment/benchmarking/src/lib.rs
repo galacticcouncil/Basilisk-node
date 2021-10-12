@@ -19,6 +19,7 @@
 
 mod mock;
 
+use sp_std::convert::TryInto;
 use sp_std::prelude::*;
 use sp_std::vec;
 
@@ -63,7 +64,13 @@ fn initialize_pool<T: Config>(
 	amount: Balance,
 	price: Price,
 ) -> dispatch::DispatchResultWithPostInfo {
-	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), HDX.into(), asset.into(), amount, price)?;
+	xykpool::Pallet::<T>::create_pool(
+		RawOrigin::Signed(caller).into(),
+		HDX.into(),
+		asset.into(),
+		amount.try_into().map_err(|_| xykpool::Error::<T>::Overflow)?,
+		price,
+	)?;
 	Ok(().into())
 }
 

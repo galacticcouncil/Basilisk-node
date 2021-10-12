@@ -56,7 +56,8 @@ mod tests;
 
 /// Intention alias
 type IntentionId<T> = <T as system::Config>::Hash;
-pub type Intention<T> = ExchangeIntention<<T as system::Config>::AccountId, AssetPairT<<T as Config>::AssetId>, Balance, IntentionId<T>>;
+pub type Intention<T> =
+	ExchangeIntention<<T as system::Config>::AccountId, AssetPairT<<T as Config>::AssetId>, Balance, IntentionId<T>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -130,7 +131,14 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Intention registered event
 		/// who, asset a, asset b, amount, intention type, intention id
-		IntentionRegistered(T::AccountId, T::AssetId, T::AssetId, Balance, IntentionType, IntentionId<T>),
+		IntentionRegistered(
+			T::AccountId,
+			T::AssetId,
+			T::AssetId,
+			Balance,
+			IntentionType,
+			IntentionId<T>,
+		),
 
 		/// Intention resolved as AMM Trade
 		/// who, intention type, intention id, amount, amount sold/bought
@@ -226,7 +234,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			ensure! {
-				amount_sell >= MIN_TRADING_LIMIT,
+				amount_sell >= Into::<u128>::into(MIN_TRADING_LIMIT),
 				Error::<T>::MinimumTradeLimitNotReached
 			};
 
@@ -273,7 +281,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			ensure! {
-				amount_buy >= MIN_TRADING_LIMIT,
+				amount_buy >= Into::<u128>::into(MIN_TRADING_LIMIT),
 				Error::<T>::MinimumTradeLimitNotReached
 			};
 

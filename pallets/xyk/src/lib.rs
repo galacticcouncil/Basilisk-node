@@ -30,16 +30,15 @@
 #![allow(clippy::type_complexity)]
 
 use frame_support::sp_runtime::{
-	traits::{Hash, Zero},
+	traits::{CheckedAdd, CheckedDiv, CheckedSub, Hash, Zero},
 	DispatchError,
 };
-use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional, pallet_prelude::Encode};
+use frame_support::{dispatch::DispatchResult, ensure, pallet_prelude::Encode, traits::Get, transactional};
 use frame_system::ensure_signed;
 use primitives::{
-	asset::AssetPairT, fee, traits::AMM, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY,
-	MIN_TRADING_LIMIT,
+	asset::AssetPairT, fee, traits::AMM, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
 };
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_std::{convert::TryInto, marker::PhantomData, vec, vec::Vec};
 
 use frame_support::sp_runtime::app_crypto::sp_core::crypto::UncheckedFrom;
 use frame_support::sp_runtime::FixedPointNumber;
@@ -63,6 +62,20 @@ use weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
+#[macro_export]
+macro_rules! to_u128_result {
+	 ($($x:expr),+) => (
+		 {($(TryInto::<u128>::try_into($x).map_err(|_| Error::<T>::Overflow)),+)}
+	 );
+}
+
+#[macro_export]
+macro_rules! to_balance_result {
+	 ($($x:expr),+) => (
+		 {($($x.try_into().map_err(|_| Error::<T>::Overflow)),+)}
+	 );
+}
+
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
@@ -76,18 +89,20 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
 
+	pub type BalanceOf<T> = <<T as Config>::Currency as MultiCurrency<<T as frame_system::Config>::AccountId>>::Balance;
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Registry support
-		type AssetRegistry: ShareTokenRegistry<Self::AssetId, Vec<u8>, Balance, DispatchError>;
+		type AssetRegistry: ShareTokenRegistry<Self::AssetId, Vec<u8>, BalanceOf<Self>, DispatchError>;
 
 		/// Share token support
 		type AssetPairAccountId: AssetPairAccountIdFor<Self::AssetId, Self::AccountId>;
 
 		/// Multi currency for transfer of currencies
-		type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = Self::AssetId, Balance = Balance, Amount = Amount>;
+		type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = Self::AssetId, Amount = Amount>;
 
 		/// Asset type
 		type AssetId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + Default + From<u32>;
@@ -179,22 +194,45 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// New liquidity was provided to the pool. [who, asset a, asset b, amount a, amount b]
-		LiquidityAdded(T::AccountId, T::AssetId, T::AssetId, Balance, Balance),
+		LiquidityAdded(T::AccountId, T::AssetId, T::AssetId, BalanceOf<T>, BalanceOf<T>),
 
 		/// Liquidity was removed from the pool. [who, asset a, asset b, shares]
-		LiquidityRemoved(T::AccountId, T::AssetId, T::AssetId, Balance),
+		LiquidityRemoved(T::AccountId, T::AssetId, T::AssetId, BalanceOf<T>),
 
 		/// Pool was created. [who, asset a, asset b, initial shares amount, share token, pool account id]
-		PoolCreated(T::AccountId, T::AssetId, T::AssetId, Balance, T::AssetId, T::AccountId),
+		PoolCreated(
+			T::AccountId,
+			T::AssetId,
+			T::AssetId,
+			BalanceOf<T>,
+			T::AssetId,
+			T::AccountId,
+		),
 
 		/// Pool was destroyed. [who, asset a, asset b, share token, pool account id]
 		PoolDestroyed(T::AccountId, T::AssetId, T::AssetId, T::AssetId, T::AccountId),
 
 		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
-		SellExecuted(T::AccountId, T::AssetId, T::AssetId, Balance, Balance, T::AssetId, Balance),
+		SellExecuted(
+			T::AccountId,
+			T::AssetId,
+			T::AssetId,
+			BalanceOf<T>,
+			BalanceOf<T>,
+			T::AssetId,
+			BalanceOf<T>,
+		),
 
 		/// Asset purchase executed. [who, asset out, asset in, amount, buy price, fee asset, fee amount]
-		BuyExecuted(T::AccountId, T::AssetId, T::AssetId, Balance, Balance, T::AssetId, Balance),
+		BuyExecuted(
+			T::AccountId,
+			T::AssetId,
+			T::AssetId,
+			BalanceOf<T>,
+			BalanceOf<T>,
+			T::AssetId,
+			BalanceOf<T>,
+		),
 	}
 
 	/// Asset id storage for shared pool tokens
@@ -205,12 +243,13 @@ pub mod pallet {
 	/// Total liquidity in a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn total_liquidity)]
-	pub type TotalLiquidity<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Balance, ValueQuery>;
+	pub type TotalLiquidity<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
 	/// Asset pair in a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_assets)]
-	pub type PoolAssets<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, (T::AssetId, T::AssetId), ValueQuery>;
+	pub type PoolAssets<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, (T::AssetId, T::AssetId), ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -229,12 +268,12 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			asset_a: T::AssetId,
 			asset_b: T::AssetId,
-			amount: Balance,
+			amount: BalanceOf<T>,
 			initial_price: Price,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(amount >= MIN_POOL_LIQUIDITY, Error::<T>::InsufficientLiquidity);
+			ensure!(amount >= MIN_POOL_LIQUIDITY.into(), Error::<T>::InsufficientLiquidity);
 
 			ensure!(!(initial_price == Price::zero()), Error::<T>::ZeroInitialPrice);
 
@@ -247,11 +286,18 @@ pub mod pallet {
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::TokenPoolAlreadyExists);
 
-			let asset_b_amount = initial_price
-				.checked_mul_int(amount)
-				.ok_or(Error::<T>::CreatePoolAssetAmountInvalid)?;
+			let amount_u128 = to_u128_result!(amount)?;
 
-			ensure!(asset_b_amount >= MIN_POOL_LIQUIDITY, Error::<T>::InsufficientLiquidity);
+			let asset_b_amount = initial_price
+				.checked_mul_int(amount_u128)
+				.ok_or(Error::<T>::CreatePoolAssetAmountInvalid)?
+				.try_into()
+				.map_err(|_| Error::<T>::Overflow)?;
+
+			ensure!(
+				asset_b_amount >= MIN_POOL_LIQUIDITY.into(),
+				Error::<T>::InsufficientLiquidity
+			);
 
 			let shares_added = if asset_a < asset_b { amount } else { asset_b_amount };
 
@@ -269,7 +315,11 @@ pub mod pallet {
 
 			let token_name = asset_pair.name();
 
-			let share_token = T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], MIN_POOL_LIQUIDITY)?;
+			let share_token = T::AssetRegistry::get_or_create_shared_asset(
+				token_name,
+				vec![asset_a, asset_b],
+				MIN_POOL_LIQUIDITY.into(),
+			)?;
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
@@ -281,7 +331,14 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, shares_added);
 
-			Self::deposit_event(Event::PoolCreated(who, asset_a, asset_b, shares_added, share_token, pair_account));
+			Self::deposit_event(Event::PoolCreated(
+				who,
+				asset_a,
+				asset_b,
+				shares_added,
+				share_token,
+				pair_account,
+			));
 
 			Ok(().into())
 		}
@@ -297,8 +354,8 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			asset_a: T::AssetId,
 			asset_b: T::AssetId,
-			amount_a: Balance,
-			amount_b_max_limit: Balance,
+			amount_a: BalanceOf<T>,
+			amount_b_max_limit: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -309,7 +366,10 @@ pub mod pallet {
 
 			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
 
-			ensure!(amount_a >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
+			ensure!(
+				amount_a >= MIN_TRADING_LIMIT.into(),
+				Error::<T>::InsufficientTradingAmount
+			);
 
 			ensure!(!amount_b_max_limit.is_zero(), Error::<T>::ZeroLiquidity);
 
@@ -330,12 +390,20 @@ pub mod pallet {
 			let account_shares = T::Currency::free_balance(share_token, &who);
 
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
+			let asset_a_reserve = to_u128_result!(asset_a_reserve)?;
+
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
+			let asset_b_reserve = to_u128_result!(asset_b_reserve)?;
+
 			let total_liquidity = Self::total_liquidity(&pair_account);
 
-			let amount_b_required =
-				hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
-					.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
+			let amount_a_u128 = to_u128_result!(amount_a).map_err(|_| Error::<T>::CreatePoolAssetAmountInvalid)?;
+
+			let amount_b_required: BalanceOf<T> =
+				hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a_u128)
+					.map_err(|_| Error::<T>::AddAssetAmountInvalid)?
+					.try_into()
+					.map_err(|_| Error::<T>::Overflow)?;
 
 			let shares_added = if asset_a < asset_b { amount_a } else { amount_b_required };
 
@@ -349,14 +417,14 @@ pub mod pallet {
 			// Make sure that account share liquidity is at least MIN_POOL_LIQUIDITY
 			ensure!(
 				account_shares
-					.checked_add(shares_added)
+					.checked_add(&shares_added)
 					.ok_or(Error::<T>::InvalidMintedLiquidity)?
-					>= MIN_POOL_LIQUIDITY,
+					>= MIN_POOL_LIQUIDITY.into(),
 				Error::<T>::InsufficientLiquidity
 			);
 
 			let liquidity_amount = total_liquidity
-				.checked_add(shares_added)
+				.checked_add(&shares_added)
 				.ok_or(Error::<T>::InvalidLiquidityAmount)?;
 
 			T::Currency::transfer(asset_a, &who, &pair_account, amount_a)?;
@@ -389,7 +457,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			asset_a: T::AssetId,
 			asset_b: T::AssetId,
-			liquidity_amount: Balance,
+			liquidity_amount: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -416,7 +484,7 @@ pub mod pallet {
 
 			// Account's liquidity left should be either 0 or at least MIN_POOL_LIQUIDITY
 			ensure!(
-				(account_shares - liquidity_amount) >= MIN_POOL_LIQUIDITY
+				(account_shares - liquidity_amount) >= MIN_POOL_LIQUIDITY.into()
 					|| (account_shares - liquidity_amount).is_zero(),
 				Error::<T>::InsufficientLiquidity
 			);
@@ -425,14 +493,15 @@ pub mod pallet {
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
 
 			let liquidity_out = hydra_dx_math::xyk::calculate_liquidity_out(
-				asset_a_reserve,
-				asset_b_reserve,
-				liquidity_amount,
-				total_shares,
+				to_u128_result!(asset_a_reserve)?,
+				to_u128_result!(asset_b_reserve)?,
+				to_u128_result!(liquidity_amount)?,
+				to_u128_result!(total_shares)?,
 			)
 			.map_err(|_| Error::<T>::RemoveAssetAmountInvalid)?;
 
-			let (remove_amount_a, remove_amount_b) = liquidity_out;
+			let remove_amount_a = to_balance_result!(liquidity_out.0)?;
+			let remove_amount_b = to_balance_result!(liquidity_out.1)?;
 
 			ensure!(
 				T::Currency::free_balance(asset_a, &pair_account) >= remove_amount_a,
@@ -444,7 +513,7 @@ pub mod pallet {
 			);
 
 			let liquidity_left = total_shares
-				.checked_sub(liquidity_amount)
+				.checked_sub(&liquidity_amount)
 				.ok_or(Error::<T>::InvalidLiquidityAmount)?;
 
 			T::Currency::transfer(asset_a, &pair_account, &who, remove_amount_a)?;
@@ -456,7 +525,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::LiquidityRemoved(who.clone(), asset_a, asset_b, liquidity_amount));
 
-			if liquidity_left == 0 {
+			if liquidity_left == 0u32.into() {
 				<ShareToken<T>>::remove(&pair_account);
 				<PoolAssets<T>>::remove(&pair_account);
 
@@ -478,13 +547,19 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
-			amount: Balance,
-			max_limit: Balance,
+			amount: BalanceOf<T>,
+			max_limit: BalanceOf<T>,
 			discount: bool,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _>>::sell(&who, AssetPairT::<T::AssetId> { asset_in, asset_out }, amount, max_limit, discount)?;
+			<Self as AMM<_, _, _, _>>::sell(
+				&who,
+				AssetPairT::<T::AssetId> { asset_in, asset_out },
+				amount,
+				max_limit,
+				discount,
+			)?;
 
 			Ok(().into())
 		}
@@ -501,13 +576,19 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			asset_out: T::AssetId,
 			asset_in: T::AssetId,
-			amount: Balance,
-			max_limit: Balance,
+			amount: BalanceOf<T>,
+			max_limit: BalanceOf<T>,
 			discount: bool,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _>>::buy(&who, AssetPairT::<T::AssetId> { asset_in, asset_out }, amount, max_limit, discount)?;
+			<Self as AMM<_, _, _, _>>::buy(
+				&who,
+				AssetPairT::<T::AssetId> { asset_in, asset_out },
+				amount,
+				max_limit,
+				discount,
+			)?;
 
 			Ok(().into())
 		}
@@ -540,7 +621,7 @@ where
 
 impl<T: Config> Pallet<T> {
 	/// Return balance of each asset in selected liquidity pool.
-	pub fn get_pool_balances(pool_address: T::AccountId) -> Option<Vec<(T::AssetId, Balance)>> {
+	pub fn get_pool_balances(pool_address: T::AccountId) -> Option<Vec<(T::AssetId, BalanceOf<T>)>> {
 		let mut balances = Vec::new();
 
 		if let Some(assets) = Self::get_pool_assets(&pool_address) {
@@ -552,14 +633,14 @@ impl<T: Config> Pallet<T> {
 		Some(balances)
 	}
 	/// Calculate discounted trade fee
-	fn calculate_discounted_fee(amount: Balance) -> Result<Balance, DispatchError> {
+	fn calculate_discounted_fee(amount: BalanceOf<T>) -> Result<BalanceOf<T>, DispatchError> {
 		Ok(amount
 			.discounted_fee()
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 
 	/// Calculate trade fee
-	fn calculate_fee(amount: Balance) -> Result<Balance, DispatchError> {
+	fn calculate_fee(amount: BalanceOf<T>) -> Result<BalanceOf<T>, DispatchError> {
 		Ok(amount
 			.just_fee(T::GetExchangeFee::get())
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
@@ -567,7 +648,7 @@ impl<T: Config> Pallet<T> {
 }
 
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
-impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> for Pallet<T> {
+impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, BalanceOf<T>> for Pallet<T> {
 	fn exists(assets: AssetPairT<T::AssetId>) -> bool {
 		let pair_account = T::AssetPairAccountId::from_assets(assets.asset_in, assets.asset_out);
 		<ShareToken<T>>::contains_key(&pair_account)
@@ -587,17 +668,24 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 		}
 	}
 
-	fn get_spot_price_unchecked(asset_a: T::AssetId, asset_b: T::AssetId, amount: Balance) -> Balance {
+	fn get_spot_price_unchecked(asset_a: T::AssetId, asset_b: T::AssetId, amount: BalanceOf<T>) -> BalanceOf<T> {
 		let pair_account = Self::get_pair_id(AssetPairT::<T::AssetId> {
 			asset_out: asset_a,
 			asset_in: asset_b,
 		});
 
-		let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
-		let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
+		let asset_a_reserve = to_u128_result!(T::Currency::free_balance(asset_a, &pair_account)).unwrap_or(0u128);
+		let asset_b_reserve = to_u128_result!(T::Currency::free_balance(asset_b, &pair_account)).unwrap_or(0u128);
 
-		hydra_dx_math::xyk::calculate_spot_price(asset_a_reserve, asset_b_reserve, amount)
-			.unwrap_or_else(|_| Balance::zero())
+		hydra_dx_math::xyk::calculate_spot_price(
+			asset_a_reserve,
+			asset_b_reserve,
+			TryInto::<u128>::try_into(amount).unwrap_or(0u128),
+		)
+		.map_or_else(
+			|_| BalanceOf::<T>::zero(),
+			|value| value.try_into().unwrap_or_else(|_| BalanceOf::<T>::zero()),
+		)
 	}
 
 	/// Validate a sell. Perform all necessary checks and calculations.
@@ -607,11 +695,15 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 	fn validate_sell(
 		who: &T::AccountId,
 		assets: AssetPairT<T::AssetId>,
-		amount: Balance,
-		min_bought: Balance,
+		amount: BalanceOf<T>,
+		min_bought: BalanceOf<T>,
 		discount: bool,
-	) -> Result<AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance>, sp_runtime::DispatchError> {
-		ensure!(amount >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
+	) -> Result<AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, BalanceOf<T>>, sp_runtime::DispatchError>
+	{
+		ensure!(
+			amount >= MIN_TRADING_LIMIT.into(),
+			Error::<T>::InsufficientTradingAmount
+		);
 
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
@@ -633,16 +725,20 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 
 		let pair_account = Self::get_pair_id(assets);
 
-		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
-		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
+		let asset_in_reserve: u128 = to_u128_result!(T::Currency::free_balance(assets.asset_in, &pair_account))?;
+		let asset_out_reserve: u128 = to_u128_result!(T::Currency::free_balance(assets.asset_out, &pair_account))?;
+		let amount_u128: u128 = to_u128_result!(amount)?;
 
 		ensure!(
-			amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
+			amount_u128 <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxInRatioExceeded
 		);
 
-		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount)
-			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
+		let amount_out_u128 =
+			hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_u128)
+				.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
+
+		let amount_out = amount_out_u128.try_into().map_err(|_| Error::<T>::Overflow)?;
 
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(amount_out)?
@@ -651,10 +747,13 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 		};
 
 		let amount_out_without_fee = amount_out
-			.checked_sub(transfer_fee)
+			.checked_sub(&transfer_fee)
 			.ok_or(Error::<T>::SellAssetAmountInvalid)?;
 
-		ensure!(asset_out_reserve > amount_out, Error::<T>::InsufficientAssetBalance);
+		ensure!(
+			asset_out_reserve > amount_out_u128,
+			Error::<T>::InsufficientAssetBalance
+		);
 
 		ensure!(
 			min_bought <= amount_out_without_fee,
@@ -669,12 +768,18 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 				asset_out: native_asset,
 			});
 
-			let native_reserve = T::Currency::free_balance(native_asset, &native_pair_account);
-			let asset_reserve = T::Currency::free_balance(assets.asset_in, &native_pair_account);
+			let native_reserve = T::Currency::free_balance(native_asset, &native_pair_account)
+				.try_into()
+				.map_err(|_| Error::<T>::Overflow)?;
+			let asset_reserve = T::Currency::free_balance(assets.asset_in, &native_pair_account)
+				.try_into()
+				.map_err(|_| Error::<T>::Overflow)?;
 
 			let native_fee_spot_price =
-				hydra_dx_math::xyk::calculate_spot_price(asset_reserve, native_reserve, transfer_fee)
-					.map_err(|_| Error::<T>::CannotApplyDiscount)?;
+				hydra_dx_math::xyk::calculate_spot_price(asset_reserve, native_reserve, to_u128_result!(transfer_fee)?)
+					.map_err(|_| Error::<T>::CannotApplyDiscount)?
+					.try_into()
+					.map_err(|_| Error::<T>::Overflow)?;
 
 			ensure!(
 				T::Currency::free_balance(native_asset, who) >= native_fee_spot_price,
@@ -683,7 +788,7 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 
 			native_fee_spot_price
 		} else {
-			Balance::zero()
+			BalanceOf::<T>::zero()
 		};
 
 		let transfer = AMMTransfer {
@@ -703,10 +808,12 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 	/// Perform necessary storage/state changes.
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
-	fn execute_sell(transfer: &AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance>) -> DispatchResult {
+	fn execute_sell(
+		transfer: &AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, BalanceOf<T>>,
+	) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
-		if transfer.discount && transfer.discount_amount > 0u128 {
+		if transfer.discount && transfer.discount_amount > BalanceOf::<T>::zero() {
 			let native_asset = T::NativeAssetId::get();
 			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
 		}
@@ -744,11 +851,14 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 	fn validate_buy(
 		who: &T::AccountId,
 		assets: AssetPairT<T::AssetId>,
-		amount: Balance,
-		max_limit: Balance,
+		amount: BalanceOf<T>,
+		max_limit: BalanceOf<T>,
 		discount: bool,
-	) -> Result<AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance>, DispatchError> {
-		ensure!(amount >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
+	) -> Result<AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, BalanceOf<T>>, DispatchError> {
+		ensure!(
+			amount >= MIN_TRADING_LIMIT.into(),
+			Error::<T>::InsufficientTradingAmount
+		);
 
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
@@ -760,7 +870,10 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
 
 		ensure!(
-			amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+			amount
+				<= asset_out_reserve
+					.checked_div(&to_balance_result!(MAX_OUT_RATIO)?)
+					.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxOutRatioExceeded
 		);
 
@@ -775,8 +888,14 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 			);
 		}
 
-		let buy_price = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount)
-			.map_err(|_| Error::<T>::BuyAssetAmountInvalid)?;
+		let buy_price = hydra_dx_math::xyk::calculate_in_given_out(
+			to_u128_result!(asset_out_reserve)?,
+			to_u128_result!(asset_in_reserve)?,
+			to_u128_result!(amount)?,
+		)
+		.map_err(|_| Error::<T>::BuyAssetAmountInvalid)?
+		.try_into()
+		.map_err(|_| Error::<T>::Overflow)?;
 
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(buy_price)?
@@ -785,7 +904,7 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 		};
 
 		let buy_price_with_fee = buy_price
-			.checked_add(transfer_fee)
+			.checked_add(&transfer_fee)
 			.ok_or(Error::<T>::BuyAssetAmountInvalid)?;
 
 		ensure!(max_limit >= buy_price_with_fee, Error::<T>::AssetAmountExceededLimit);
@@ -806,9 +925,14 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 			let native_reserve = T::Currency::free_balance(native_asset, &native_pair_account);
 			let asset_reserve = T::Currency::free_balance(assets.asset_out, &native_pair_account);
 
-			let native_fee_spot_price =
-				hydra_dx_math::xyk::calculate_spot_price(asset_reserve, native_reserve, transfer_fee)
-					.map_err(|_| Error::<T>::CannotApplyDiscount)?;
+			let native_fee_spot_price = hydra_dx_math::xyk::calculate_spot_price(
+				to_u128_result!(asset_reserve)?,
+				to_u128_result!(native_reserve)?,
+				to_u128_result!(transfer_fee)?,
+			)
+			.map_err(|_| Error::<T>::CannotApplyDiscount)?
+			.try_into()
+			.map_err(|_| Error::<T>::Overflow)?;
 
 			ensure!(
 				T::Currency::free_balance(native_asset, who) >= native_fee_spot_price,
@@ -816,7 +940,7 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 			);
 			native_fee_spot_price
 		} else {
-			Balance::zero()
+			BalanceOf::<T>::zero()
 		};
 
 		let transfer = AMMTransfer {
@@ -836,10 +960,12 @@ impl<T: Config> AMM<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance> f
 	/// Perform necessary storage/state changes.
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
-	fn execute_buy(transfer: &AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, Balance>) -> DispatchResult {
+	fn execute_buy(
+		transfer: &AMMTransfer<T::AccountId, T::AssetId, AssetPairT<T::AssetId>, BalanceOf<T>>,
+	) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
-		if transfer.discount && transfer.discount_amount > 0 {
+		if transfer.discount && transfer.discount_amount > BalanceOf::<T>::zero() {
 			let native_asset = T::NativeAssetId::get();
 			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
 		}
