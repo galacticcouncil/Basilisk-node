@@ -17,11 +17,12 @@
 
 use super::*;
 pub use crate::mock::{
-	Currency, Event as TestEvent, Exchange, ExtBuilder, Origin, System, Test, ALICE, BOB, CHARLIE, DAVE, DOT,
-	ENDOWED_AMOUNT, ETH, FERDIE, GEORGE, HDX, XYK as XYKPallet,
+	Currency, EndowedAmount, Event as TestEvent, Exchange, ExtBuilder, Origin, System, Test, ALICE, BOB, CHARLIE, DAVE,
+	DOT, ETH, FERDIE, GEORGE, HDX, XYK as XYKPallet,
 };
 use frame_support::sp_runtime::traits::Hash;
 use frame_support::sp_runtime::FixedPointNumber;
+use frame_support::traits::Get;
 use frame_support::traits::OnFinalize;
 use frame_support::{assert_noop, assert_ok};
 use frame_system::InitKind;
@@ -80,19 +81,26 @@ fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: P
 		price.checked_mul_int(amount).unwrap()
 	};
 
-	expect_event(xyk::Event::PoolCreated(user, asset_a, asset_b, shares));
-
 	let pair_account = XYKPallet::get_pair_id(AssetPair {
 		asset_in: asset_a,
 		asset_out: asset_b,
 	});
 	let share_token = XYKPallet::share_token(pair_account);
 
+	expect_event(xyk::Event::PoolCreated(
+		user,
+		asset_a,
+		asset_b,
+		shares,
+		share_token,
+		pair_account,
+	));
+
 	let amount_b = price.saturating_mul_int(amount);
 
 	// Check users state
-	assert_eq!(Currency::free_balance(asset_a, &user), ENDOWED_AMOUNT - amount);
-	assert_eq!(Currency::free_balance(asset_b, &user), ENDOWED_AMOUNT - amount_b);
+	assert_eq!(Currency::free_balance(asset_a, &user), EndowedAmount::get() - amount);
+	assert_eq!(Currency::free_balance(asset_b, &user), EndowedAmount::get() - amount_b);
 
 	// Check initial state of the pool
 	assert_eq!(Currency::free_balance(asset_a, &pair_account), amount);
@@ -179,11 +187,11 @@ fn sell_test_pool_finalization_states() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 2);
 
 		// Balance should not change yet
-		assert_eq!(Currency::free_balance(asset_a, &user_2), ENDOWED_AMOUNT);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), ENDOWED_AMOUNT);
+		assert_eq!(Currency::free_balance(asset_a, &user_2), EndowedAmount::get());
+		assert_eq!(Currency::free_balance(asset_b, &user_2), EndowedAmount::get());
 
-		assert_eq!(Currency::free_balance(asset_a, &user_3), ENDOWED_AMOUNT);
-		assert_eq!(Currency::free_balance(asset_b, &user_3), ENDOWED_AMOUNT);
+		assert_eq!(Currency::free_balance(asset_a, &user_3), EndowedAmount::get());
+		assert_eq!(Currency::free_balance(asset_b, &user_3), EndowedAmount::get());
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100_000_000_000_000);
 
@@ -238,13 +246,24 @@ fn sell_test_pool_finalization_states() {
 				4000000000,
 			)
 			.into(),
-			xyk::Event::SellExecuted(user_2, 3000, 2000, 1000000000000, 1976296910891, 2000, 3960514851).into(),
+			xyk::Event::SellExecuted(
+				user_2,
+				3000,
+				2000,
+				1000000000000,
+				1976296910891,
+				2000,
+				3960514851,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				1000000000000,
 				1980257425742,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -372,13 +391,24 @@ fn sell_test_standard() {
 				4000000000,
 			)
 			.into(),
-			xyk::Event::SellExecuted(user_2, 3000, 2000, 1000000000000, 1976296910891, 2000, 3960514851).into(),
+			xyk::Event::SellExecuted(
+				user_2,
+				3000,
+				2000,
+				1000000000000,
+				1976296910891,
+				2000,
+				3960514851,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				1000000000000,
 				1980257425742,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -469,13 +499,24 @@ fn sell_test_inverse_standard() {
 			orml_tokens::Event::Reserved(asset_b, 3, 2000000000000).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 4000000000).into(),
 			orml_tokens::Event::Reserved(asset_a, 3, 2000000000).into(),
-			xyk::Event::SellExecuted(3, 2000, 3000, 2000000000000, 988118811881, 3000, 1980198019).into(),
+			xyk::Event::SellExecuted(
+				3,
+				2000,
+				3000,
+				2000000000000,
+				988118811881,
+				3000,
+				1980198019,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_3,
 				IntentionType::SELL,
 				user_3_sell_intention_id,
 				2000000000000,
 				990099009900,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedDirectTrade(
@@ -700,6 +741,7 @@ fn sell_test_single_eth_sells() {
 				3913725490196,
 				asset_b,
 				7843137254,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -708,6 +750,7 @@ fn sell_test_single_eth_sells() {
 				user_3_sell_intention_id,
 				2000000000000,
 				3921568627450,
+				pair_account,
 			)
 			.into(),
 			xyk::Event::SellExecuted(
@@ -718,6 +761,7 @@ fn sell_test_single_eth_sells() {
 				1899942737484,
 				asset_b,
 				3807500475,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -726,6 +770,7 @@ fn sell_test_single_eth_sells() {
 				user_2_sell_intention_id,
 				1000000000000,
 				1903750237959,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -815,6 +860,7 @@ fn sell_test_single_dot_sells() {
 				988118811881,
 				asset_a,
 				1980198019,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -823,6 +869,7 @@ fn sell_test_single_dot_sells() {
 				user_3_sell_intention_id,
 				2000000000000,
 				990099009900,
+				pair_account,
 			)
 			.into(),
 			xyk::Event::SellExecuted(
@@ -833,6 +880,7 @@ fn sell_test_single_dot_sells() {
 				486767770570,
 				asset_a,
 				975486514,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -841,6 +889,7 @@ fn sell_test_single_dot_sells() {
 				user_2_sell_intention_id,
 				1000000000000,
 				487743257084,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -885,6 +934,11 @@ fn sell_trade_limits_respected_for_matched_intention() {
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
 
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
 		expect_events(vec![
 			Event::IntentionRegistered(
 				user_2,
@@ -927,6 +981,7 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				1976237623762,
 				asset_b,
 				3960396039,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -935,6 +990,7 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				user_2_sell_intention_id,
 				1000000000000,
 				1980198019801,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -979,6 +1035,11 @@ fn buy_trade_limits_respected_for_matched_intention() {
 		// Finalize block
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
 
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
 		expect_events(vec![
 			Event::IntentionRegistered(
 				user_2,
@@ -1021,6 +1082,7 @@ fn buy_trade_limits_respected_for_matched_intention() {
 				502512562815,
 				asset_a,
 				1005025125,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1029,6 +1091,7 @@ fn buy_trade_limits_respected_for_matched_intention() {
 				user_2_buy_intention_id,
 				1000000000000,
 				503517587940,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -1116,11 +1179,14 @@ fn sell_test_single_multiple_sells() {
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_999000000000000);
 
 		assert_eq!(Currency::free_balance(asset_a, &user_4), 99_999000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_4), 100001991034974080);
+		assert_eq!(Currency::free_balance(asset_b, &user_4), 100001996000000000);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_5), 100000499000000000);
+		assert_eq!(Currency::free_balance(asset_b, &user_5), 99_999000000000000);
 
 		// Check final pool balances
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100001522538342);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200012965025920);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100004000000000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200008000000000);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -1228,40 +1294,33 @@ fn sell_test_single_multiple_sells() {
 				1000000000,
 			)
 			.into(),
-			xyk::Event::SellExecuted(
+			orml_tokens::Event::Reserved(asset_a, 4, 500000000000).into(),
+			orml_tokens::Event::Reserved(asset_b, 5, 1000000000000).into(),
+			orml_tokens::Event::Reserved(asset_b, 4, 2000000000).into(),
+			orml_tokens::Event::Reserved(asset_a, 5, 1000000000).into(),
+			Event::IntentionResolvedDirectTrade(
 				user_4,
-				asset_a,
-				asset_b,
-				500000000000,
-				993034974080,
-				asset_b,
-				1990050048,
-			)
-			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_4,
-				IntentionType::SELL,
+				user_5,
 				user_4_sell_intention_id,
-				500000000000,
-				995025024128,
-			)
-			.into(),
-			xyk::Event::SellExecuted(
-				user_5,
-				asset_b,
-				asset_a,
-				1000000000000,
-				501477461658,
-				asset_a,
-				1004964853,
-			)
-			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_5,
-				IntentionType::SELL,
 				user_5_sell_intention_id,
+				500000000000,
 				1000000000000,
-				502482426511,
+			)
+			.into(),
+			Event::IntentionResolvedDirectTradeFees(
+				user_4,
+				user_4_sell_intention_id,
+				pair_account,
+				asset_b,
+				2000000000,
+			)
+			.into(),
+			Event::IntentionResolvedDirectTradeFees(
+				user_5,
+				user_5_sell_intention_id,
+				pair_account,
+				asset_a,
+				1000000000,
 			)
 			.into(),
 		]);
@@ -1431,6 +1490,7 @@ fn sell_test_group_sells() {
 				11298164364954,
 				asset_b,
 				22641611953,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1439,6 +1499,7 @@ fn sell_test_group_sells() {
 				user_4_sell_intention_id,
 				6000000000000,
 				11320805976907,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -1488,13 +1549,13 @@ fn sell_more_than_owner_should_not_work() {
 
 		// With SELL
 		assert_noop!(
-			Exchange::sell(Origin::signed(ALICE), HDX, ETH, 10 * ENDOWED_AMOUNT, 1, false),
+			Exchange::sell(Origin::signed(ALICE), HDX, ETH, 10 * EndowedAmount::get(), 1, false),
 			Error::<Test>::InsufficientAssetBalance
 		);
 
 		// With BUY
 		assert_noop!(
-			Exchange::buy(Origin::signed(ALICE), ETH, HDX, 10 * ENDOWED_AMOUNT, 1, false),
+			Exchange::buy(Origin::signed(ALICE), ETH, HDX, 10 * EndowedAmount::get(), 1, false),
 			Error::<Test>::InsufficientAssetBalance
 		);
 	});
@@ -1534,7 +1595,7 @@ fn sell_test_mixed_buy_sells() {
 			asset_b,
 			asset_a,
 			3_000_000_000_000,
-			1400_000_000_000,
+			1_400_000_000_000,
 			false,
 		));
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
@@ -1543,7 +1604,7 @@ fn sell_test_mixed_buy_sells() {
 			asset_a,
 			asset_b,
 			10_000_000_000_000,
-			2000_000_000_000,
+			2_000_000_000_000,
 			false,
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
@@ -1633,6 +1694,7 @@ fn sell_test_mixed_buy_sells() {
 				15636903108670,
 				asset_b,
 				31336479175,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1641,6 +1703,7 @@ fn sell_test_mixed_buy_sells() {
 				user_4_sell_intention_id,
 				8500000000000,
 				15668239587845,
+				pair_account,
 			)
 			.into(),
 			xyk::Event::BuyExecuted(
@@ -1651,6 +1714,7 @@ fn sell_test_mixed_buy_sells() {
 				3024573404240,
 				asset_a,
 				6049146808,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1659,6 +1723,7 @@ fn sell_test_mixed_buy_sells() {
 				user_2_sell_intention_id,
 				5000000000000,
 				3030622551048,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -1699,7 +1764,7 @@ fn discount_tests_no_discount() {
 			asset_b,
 			asset_a,
 			3_000_000_000_000,
-			1400_000_000_000,
+			1_400_000_000_000,
 			false,
 		));
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
@@ -1708,7 +1773,7 @@ fn discount_tests_no_discount() {
 			asset_a,
 			asset_b,
 			10_000_000_000_000,
-			2000_000_000_000,
+			2_000_000_000_000,
 			false,
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
@@ -1799,6 +1864,7 @@ fn discount_tests_no_discount() {
 				15636903108670,
 				asset_b,
 				31336479175,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1807,6 +1873,7 @@ fn discount_tests_no_discount() {
 				user_4_sell_intention_id,
 				8500000000000,
 				15668239587845,
+				pair_account,
 			)
 			.into(),
 			xyk::Event::BuyExecuted(
@@ -1817,6 +1884,7 @@ fn discount_tests_no_discount() {
 				3024573404240,
 				asset_a,
 				6049146808,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1825,6 +1893,7 @@ fn discount_tests_no_discount() {
 				user_2_sell_intention_id,
 				5000000000000,
 				3030622551048,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -1867,7 +1936,7 @@ fn discount_tests_with_discount() {
 			asset_b,
 			asset_a,
 			3_000_000_000_000,
-			1400_000_000_000,
+			1_400_000_000_000,
 			true,
 		));
 		let user_3_sell_intention_id = generate_intention_id(&user_3, 1);
@@ -1876,7 +1945,7 @@ fn discount_tests_with_discount() {
 			asset_a,
 			asset_b,
 			10_000_000_000_000,
-			2000_000_000_000,
+			2_000_000_000_000,
 			true,
 		));
 		let user_4_sell_intention_id = generate_intention_id(&user_4, 2);
@@ -1971,6 +2040,7 @@ fn discount_tests_with_discount() {
 				15657271820134,
 				asset_b,
 				10967767711,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1979,6 +2049,7 @@ fn discount_tests_with_discount() {
 				user_4_sell_intention_id,
 				8500000000000,
 				15668239587845,
+				pair_account,
 			)
 			.into(),
 			xyk::Event::BuyExecuted(
@@ -1989,6 +2060,7 @@ fn discount_tests_with_discount() {
 				3024916906330,
 				asset_a,
 				2117441834,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -1997,6 +2069,7 @@ fn discount_tests_with_discount() {
 				user_2_sell_intention_id,
 				5000000000000,
 				3027034348164,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -2219,6 +2292,7 @@ fn buy_test_group_buys() {
 				16216216216217,
 				asset_b,
 				32432432432,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -2227,6 +2301,7 @@ fn buy_test_group_buys() {
 				user_4_sell_intention_id,
 				7500000000000,
 				16248648648649,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedDirectTrade(
@@ -2262,6 +2337,7 @@ fn buy_test_group_buys() {
 				1301307129904,
 				asset_a,
 				2602614259,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -2270,6 +2346,7 @@ fn buy_test_group_buys() {
 				user_3_sell_intention_id,
 				3000000000000,
 				1303909744163,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -2343,9 +2420,9 @@ fn discount_tests_with_error() {
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100000000000000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200000000000000);
 
-		assert_eq!(Currency::free_balance(HDX, &user_4), ENDOWED_AMOUNT);
-		assert_eq!(Currency::free_balance(HDX, &user_2), ENDOWED_AMOUNT);
-		assert_eq!(Currency::free_balance(HDX, &user_3), ENDOWED_AMOUNT);
+		assert_eq!(Currency::free_balance(HDX, &user_4), EndowedAmount::get());
+		assert_eq!(Currency::free_balance(HDX, &user_2), EndowedAmount::get());
+		assert_eq!(Currency::free_balance(HDX, &user_3), EndowedAmount::get());
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -2511,8 +2588,16 @@ fn simple_sell_sell() {
 			.into(),
 			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 2).into(),
 			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_a, 1).into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2994, 2000, 5).into(),
-			Event::IntentionResolvedAMMTrade(user_2, IntentionType::SELL, user_2_sell_intention_id, 1500, 2999).into(),
+			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2994, 2000, 5, pair_account).into(),
+			Event::IntentionResolvedAMMTrade(
+				user_2,
+				IntentionType::SELL,
+				user_2_sell_intention_id,
+				1500,
+				2999,
+				pair_account,
+			)
+			.into(),
 		]);
 	});
 }
@@ -2591,8 +2676,16 @@ fn simple_buy_buy() {
 			orml_tokens::Event::Reserved(asset_b, 2, 1000).into(),
 			orml_tokens::Event::Reserved(asset_a, 3, 1).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 2).into(),
-			xyk::Event::BuyExecuted(2, 3000, 2000, 1500, 3001, 2000, 6).into(),
-			Event::IntentionResolvedAMMTrade(user_2, IntentionType::BUY, user_2_sell_intention_id, 1500, 3007).into(),
+			xyk::Event::BuyExecuted(2, 3000, 2000, 1500, 3001, 2000, 6, pair_account).into(),
+			Event::IntentionResolvedAMMTrade(
+				user_2,
+				IntentionType::BUY,
+				user_2_sell_intention_id,
+				1500,
+				3007,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_3,
 				user_2,
@@ -2694,8 +2787,16 @@ fn simple_sell_buy() {
 			.into(),
 			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 2).into(),
 			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_b, 4).into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1000, 1996, 2000, 3).into(),
-			Event::IntentionResolvedAMMTrade(user_2, IntentionType::SELL, user_2_sell_intention_id, 1000, 1999).into(),
+			xyk::Event::SellExecuted(2, 3000, 2000, 1000, 1996, 2000, 3, pair_account).into(),
+			Event::IntentionResolvedAMMTrade(
+				user_2,
+				IntentionType::SELL,
+				user_2_sell_intention_id,
+				1000,
+				1999,
+				pair_account,
+			)
+			.into(),
 		]);
 	});
 }
@@ -2775,8 +2876,16 @@ fn simple_buy_sell() {
 			orml_tokens::Event::Reserved(asset_b, 2, 2000).into(),
 			orml_tokens::Event::Reserved(asset_b, 3, 2).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 4).into(),
-			xyk::Event::BuyExecuted(user_2, 3000, 2000, 1000, 2001, 2000, 4).into(),
-			Event::IntentionResolvedAMMTrade(user_2, IntentionType::BUY, user_2_sell_intention_id, 1000, 2005).into(),
+			xyk::Event::BuyExecuted(user_2, 3000, 2000, 1000, 2001, 2000, 4, pair_account).into(),
+			Event::IntentionResolvedAMMTrade(
+				user_2,
+				IntentionType::BUY,
+				user_2_sell_intention_id,
+				1000,
+				2005,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_3,
 				user_2,
@@ -2844,13 +2953,24 @@ fn single_sell_intention_test() {
 				user_2_sell_intention_id,
 			)
 			.into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 2000000000000, 3913725490196, 2000, 7843137254).into(),
+			xyk::Event::SellExecuted(
+				2,
+				3000,
+				2000,
+				2000000000000,
+				3913725490196,
+				2000,
+				7843137254,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::SELL,
 				user_2_sell_intention_id,
 				2000000000000,
 				3921568627450,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -2879,7 +2999,7 @@ fn single_buy_intention_test() {
 			asset_a,
 			asset_b,
 			2_000_000_000_000,
-			15000_000_000_000,
+			15_000_000_000_000,
 			false,
 		));
 
@@ -2910,13 +3030,24 @@ fn single_buy_intention_test() {
 				user_2_sell_intention_id,
 			)
 			.into(),
-			xyk::Event::BuyExecuted(2, 3000, 2000, 2000000000000, 4081632653062, 2000, 8163265306).into(),
+			xyk::Event::BuyExecuted(
+				2,
+				3000,
+				2000,
+				2000000000000,
+				4081632653062,
+				2000,
+				8163265306,
+				pair_account,
+			)
+			.into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
 				IntentionType::BUY,
 				user_2_sell_intention_id,
 				2000000000000,
 				4089795918368,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -3117,6 +3248,7 @@ fn matching_limits_buy_buy_should_work() {
 				10101010101011,
 				asset_a,
 				20202020202,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -3125,6 +3257,7 @@ fn matching_limits_buy_buy_should_work() {
 				user_3_sell_intention_id,
 				20_000_000_000_000,
 				10121212121213,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedDirectTrade(
@@ -3243,6 +3376,7 @@ fn matching_limits_sell_buy_should_work() {
 				39137254901960,
 				asset_b,
 				78431372549,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -3251,6 +3385,7 @@ fn matching_limits_sell_buy_should_work() {
 				user_3_sell_intention_id,
 				20_000_000_000_000,
 				39215686274509,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedDirectTrade(
@@ -3508,6 +3643,7 @@ fn matching_limit_scenario_2() {
 				20201983477752,
 				asset_b,
 				40403966955,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -3516,6 +3652,7 @@ fn matching_limit_scenario_2() {
 				user_2_sell_intention_id,
 				10_000_000_000_000,
 				20242387444707,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -3637,6 +3774,7 @@ fn matching_limit_scenario_3() {
 				105262050094717,
 				asset_b,
 				210524100189,
+				pair_account,
 			)
 			.into(),
 			Event::IntentionResolvedAMMTrade(
@@ -3645,6 +3783,7 @@ fn matching_limit_scenario_3() {
 				user_2_sell_intention_id,
 				50_000_000_000_000,
 				105472574194906,
+				pair_account,
 			)
 			.into(),
 		]);
@@ -3683,10 +3822,9 @@ fn process_invalid_intention_should_work() {
 			intention_id: generate_intention_id(&user, 0),
 		};
 
-		let mut intentions_a = Vec::<Intention<Test>>::new();
-		intentions_a.push(main_intention);
+		let mut intentions_a = vec![main_intention];
 
-		Exchange::process_exchange_intentions(&pair_account, &intentions_a, &Vec::<Intention<Test>>::new());
+		Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut Vec::<Intention<Test>>::new());
 
 		assert_eq!(Currency::free_balance(asset_a, &user), 99_000_000_000_000_000);
 		assert_eq!(Currency::free_balance(asset_b, &user), 98_000_000_000_000_000);
@@ -3742,12 +3880,10 @@ fn main_intention_greater_than_matched_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_a = Vec::<Intention<Test>>::new();
-		intentions_a.push(main_intention);
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
+		let mut intentions_a = vec![main_intention];
+		let mut intentions_b = vec![matched_intention];
 
-		Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b);
+		Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000_000_002_000_000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1_999_999_996_014_000);
@@ -3806,13 +3942,11 @@ fn in_out_calculations_error_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_a = Vec::<Intention<Test>>::new();
-		intentions_a.push(main_intention);
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
-
 		let maybe_error = std::panic::catch_unwind(|| {
-			Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b)
+			let mut intentions_a = vec![main_intention];
+			let mut intentions_b = vec![matched_intention];
+
+			Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b)
 		});
 		assert!(maybe_error.is_err());
 
@@ -3845,13 +3979,11 @@ fn in_out_calculations_error_should_work() {
 			intention_id: generate_intention_id(&user_2, 3),
 		};
 
-		let mut intentions_a = Vec::<Intention<Test>>::new();
-		intentions_a.push(main_intention);
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
-
 		let maybe_error = std::panic::catch_unwind(|| {
-			Exchange::process_exchange_intentions(&pair_account, &intentions_a, &intentions_b)
+			let mut intentions_a = vec![main_intention];
+			let mut intentions_b = vec![matched_intention];
+
+			Exchange::process_exchange_intentions(&pair_account, &mut intentions_a, &mut intentions_b)
 		});
 		assert!(maybe_error.is_err());
 	});
@@ -3905,8 +4037,7 @@ fn revert_invalid_direct_trades_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
+		let intentions_b = vec![&matched_intention];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
 
@@ -3939,8 +4070,7 @@ fn revert_invalid_direct_trades_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
+		let intentions_b = vec![&matched_intention];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
 
@@ -3973,8 +4103,7 @@ fn revert_invalid_direct_trades_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
+		let intentions_b = vec![&matched_intention];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
 
@@ -4036,8 +4165,7 @@ fn invalid_transfers_in_resolver_should_not_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention);
+		let intentions_b = vec![&matched_intention];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention, &intentions_b);
 
@@ -4099,8 +4227,7 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention_1);
+		let intentions_b = vec![&matched_intention_1];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_1, &intentions_b);
 
@@ -4148,8 +4275,7 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention_3);
+		let intentions_b = vec![&matched_intention_3];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_3, &intentions_b);
 
@@ -4167,8 +4293,7 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 			intention_id: generate_intention_id(&user_2, 1),
 		};
 
-		let mut intentions_b = Vec::<Intention<Test>>::new();
-		intentions_b.push(matched_intention_4);
+		let intentions_b = vec![&matched_intention_4];
 
 		<Exchange as Resolver<<Test as system::Config>::AccountId, Intention<Test>, Error<Test>>>::resolve_matched_intentions(&pair_account, &main_intention_3, &intentions_b);
 
@@ -4181,4 +4306,86 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 100_000_000_000_000_000);
 		assert_eq!(Currency::free_balance(asset_b, &user_2), 198_000_000_000_000_000);
 	});
+}
+
+#[test]
+fn correct_matching() {
+	new_test_ext().execute_with(|| {
+		// Note: this test scenario came from dynamic testing where it led to panic
+		// This was due to incorrect matching of some intentions.
+		let user_1 = ALICE;
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 139_637_976_727_557;
+		let initial_price = Price::from_float(0.072_057_594_037_927_94);
+
+		initialize_pool(asset_b, asset_a, user_1, pool_amount, initial_price);
+
+		assert_ok!(Exchange::sell(Origin::signed(3), asset_b, asset_a, 1048577, 0, false,));
+
+		assert_ok!(Exchange::buy(
+			Origin::signed(4),
+			asset_b,
+			asset_a,
+			7602433,
+			4722366482869645213696,
+			false,
+		));
+
+		assert_ok!(Exchange::buy(
+			Origin::signed(6),
+			asset_b,
+			asset_a,
+			65536,
+			4722366482869645213696,
+			false,
+		));
+
+		assert_eq!(Exchange::get_intentions_count((asset_a, asset_b)), 3);
+
+		<Exchange as OnFinalize<u64>>::on_finalize(9);
+
+		assert_eq!(Exchange::get_intentions_count((asset_a, asset_b)), 0);
+	});
+}
+
+#[test]
+fn trade_limit_test() {
+	ExtBuilder::default()
+		.with_endowed_amount(10_000_000_000_000_000_000)
+		.build()
+		.execute_with(|| {
+			System::set_block_number(1);
+			let user_1 = ALICE;
+			let asset_a = HDX;
+			let asset_b = DOT;
+			let pool_amount = 139637976727557;
+			let initial_price = Price::from_float(4_722.438_541_558_899_5);
+
+			initialize_pool(asset_b, asset_a, user_1, pool_amount, initial_price);
+
+			assert_ok!(Exchange::buy(
+				Origin::signed(4),
+				asset_a,
+				asset_b,
+				281474976710656,
+				127547660566528,
+				false,
+			));
+
+			assert_ok!(Exchange::sell(
+				Origin::signed(5),
+				asset_a,
+				asset_b,
+				190275657924608,
+				12075401216,
+				false,
+			));
+
+			assert_eq!(Exchange::get_intentions_count((asset_a, asset_b)), 2);
+
+			<Exchange as OnFinalize<u64>>::on_finalize(9);
+
+			assert_eq!(Exchange::get_intentions_count((asset_a, asset_b)), 0);
+		});
 }

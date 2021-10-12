@@ -1,10 +1,28 @@
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![allow(clippy::or_fun_call)]
+#![allow(clippy::too_many_arguments)]
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
 	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	WASM_BINARY, NATIVE_EXISTENTIAL_DEPOSIT
+	NATIVE_EXISTENTIAL_DEPOSIT, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -209,7 +227,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
-				vec![].into(),
+				vec![],
 				vec![
 					(b"hKSM".to_vec(), 1_000u128),
 					(b"hDOT".to_vec(), 1_000u128),
@@ -535,7 +553,6 @@ fn parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
 		tokens: TokensConfig { balances: vec![] },
@@ -637,22 +654,9 @@ fn testnet_parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
-		tokens: TokensConfig {
-			balances: endowed_accounts
-				.iter()
-				.flat_map(|x| {
-					vec![
-						(x.clone(), 1, 1_000_000_000u128 * BSX),
-						(x.clone(), 2, 1_000_000_000u128 * BSX),
-						(x.clone(), 3, 1_000_000_000u128 * BSX),
-						(x.clone(), 4, 1_000_000_000u128 * BSX),
-					]
-				})
-				.collect(),
-		},
+		tokens: TokensConfig { balances: vec![] },
 		treasury: Default::default(),
 		elections: ElectionsConfig {
 			// Intergalactic elections

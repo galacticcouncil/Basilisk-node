@@ -35,8 +35,10 @@ use frame_support::sp_runtime::{
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use primitives::{
-	asset::AssetPair, fee, traits::AMM, AssetId, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY,
-	MIN_TRADING_LIMIT, traits::{OnCreatePoolHandler, OnTradeHandler},
+	AssetId, Balance, Price,
+	asset::AssetPair,
+	traits::{OnCreatePoolHandler, OnTradeHandler, fee, AMM},
+	constants::chain::{MIN_TRADING_LIMIT, MIN_POOL_LIQUIDITY, MAX_IN_RATIO, MAX_OUT_RATIO},
 };
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
@@ -101,6 +103,22 @@ pub mod pallet {
 
 		/// AMM handlers
 		type AMMHandler: OnCreatePoolHandler<AssetPair> + OnTradeHandler<Self::AccountId, AssetId, AssetPair, Balance>;
+
+		/// Minimum trading limit
+		#[pallet::constant]
+		type MinTradingLimit: Get<Balance>;
+
+		/// Minimum pool liquidity
+		#[pallet::constant]
+		type MinPoolLiquidity: Get<Balance>;
+
+		/// Max fraction of pool to sell in single transaction
+		#[pallet::constant]
+		type MaxInRatio: Get<u128>;
+
+		/// Max fraction of pool to buy in single transaction
+		#[pallet::constant]
+		type MaxOutRatio: Get<u128>;
 	}
 
 	#[pallet::error]
@@ -169,10 +187,14 @@ pub mod pallet {
 		MaxOutRatioExceeded,
 		/// Max fraction of pool to sell in single transaction has been exceeded.
 		MaxInRatioExceeded,
+
+		/// Overflow
+		Overflow,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
+	#[pallet::metadata(T::AccountId = "AccountId")]
 	pub enum Event<T: Config> {
 		/// New liquidity was provided to the pool. [who, asset a, asset b, amount a, amount b]
 		LiquidityAdded(T::AccountId, AssetId, AssetId, Balance, Balance),
@@ -180,17 +202,35 @@ pub mod pallet {
 		/// Liquidity was removed from the pool. [who, asset a, asset b, shares]
 		LiquidityRemoved(T::AccountId, AssetId, AssetId, Balance),
 
-		/// Pool was created. [who, asset a, asset b, initial shares amount]
-		PoolCreated(T::AccountId, AssetId, AssetId, Balance),
+		/// Pool was created. [who, asset a, asset b, initial shares amount, share token, pool account id]
+		PoolCreated(T::AccountId, AssetId, AssetId, Balance, AssetId, T::AccountId),
 
-		/// Pool was destroyed. [who, asset a, asset b]
-		PoolDestroyed(T::AccountId, AssetId, AssetId),
+		/// Pool was destroyed. [who, asset a, asset b, share token, pool account id]
+		PoolDestroyed(T::AccountId, AssetId, AssetId, AssetId, T::AccountId),
 
 		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
-		SellExecuted(T::AccountId, AssetId, AssetId, Balance, Balance, AssetId, Balance),
+		SellExecuted(
+			T::AccountId,
+			AssetId,
+			AssetId,
+			Balance,
+			Balance,
+			AssetId,
+			Balance,
+			T::AccountId,
+		),
 
 		/// Asset purchase executed. [who, asset out, asset in, amount, buy price, fee asset, fee amount]
-		BuyExecuted(T::AccountId, AssetId, AssetId, Balance, Balance, AssetId, Balance),
+		BuyExecuted(
+			T::AccountId,
+			AssetId,
+			AssetId,
+			Balance,
+			Balance,
+			AssetId,
+			Balance,
+			T::AccountId,
+		),
 	}
 
 	/// Asset id storage for shared pool tokens
@@ -230,7 +270,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(amount >= MIN_POOL_LIQUIDITY, Error::<T>::InsufficientLiquidity);
+			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
 
 			ensure!(!(initial_price == Price::zero()), Error::<T>::ZeroInitialPrice);
 
@@ -247,7 +287,10 @@ pub mod pallet {
 				.checked_mul_int(amount)
 				.ok_or(Error::<T>::CreatePoolAssetAmountInvalid)?;
 
-			ensure!(asset_b_amount >= MIN_POOL_LIQUIDITY, Error::<T>::InsufficientLiquidity);
+			ensure!(
+				asset_b_amount >= T::MinPoolLiquidity::get(),
+				Error::<T>::InsufficientLiquidity
+			);
 
 			let shares_added = if asset_a < asset_b { amount } else { asset_b_amount };
 
@@ -265,7 +308,8 @@ pub mod pallet {
 
 			let token_name = asset_pair.name();
 
-			let share_token = T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], MIN_POOL_LIQUIDITY)?;
+			let share_token =
+				T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], MIN_POOL_LIQUIDITY)?;
 
 			T::AMMHandler::on_create_pool(asset_pair);
 
@@ -279,7 +323,14 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, shares_added);
 
-			Self::deposit_event(Event::PoolCreated(who, asset_a, asset_b, shares_added));
+			Self::deposit_event(Event::PoolCreated(
+				who,
+				asset_a,
+				asset_b,
+				shares_added,
+				share_token,
+				pair_account,
+			));
 
 			Ok(().into())
 		}
@@ -307,7 +358,10 @@ pub mod pallet {
 
 			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
 
-			ensure!(amount_a >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
+			ensure!(
+				amount_a >= T::MinTradingLimit::get(),
+				Error::<T>::InsufficientTradingAmount
+			);
 
 			ensure!(!amount_b_max_limit.is_zero(), Error::<T>::ZeroLiquidity);
 
@@ -344,12 +398,12 @@ pub mod pallet {
 
 			ensure!(!shares_added.is_zero(), Error::<T>::InvalidMintedLiquidity);
 
-			// Make sure that account share liquidity is at least MIN_POOL_LIQUIDITY
+			// Make sure that account share liquidity is at least MinPoolLiquidity
 			ensure!(
 				account_shares
 					.checked_add(shares_added)
 					.ok_or(Error::<T>::InvalidMintedLiquidity)?
-					>= MIN_POOL_LIQUIDITY,
+					>= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientLiquidity
 			);
 
@@ -408,14 +462,14 @@ pub mod pallet {
 
 			let account_shares = T::Currency::free_balance(share_token, &who);
 
-			ensure!(total_shares >= liquidity_amount, Error::<T>::InsufficientAssetBalance);
+			ensure!(total_shares >= liquidity_amount, Error::<T>::InsufficientLiquidity);
 
 			ensure!(account_shares >= liquidity_amount, Error::<T>::InsufficientAssetBalance);
 
-			// Account's liquidity left should be either 0 or at least MIN_POOL_LIQUIDITY
+			// Account's liquidity left should be either 0 or at least MinPoolLiquidity
 			ensure!(
-				(account_shares - liquidity_amount) >= MIN_POOL_LIQUIDITY
-					|| (account_shares - liquidity_amount).is_zero(),
+				(account_shares.saturating_sub(liquidity_amount)) >= T::MinPoolLiquidity::get()
+					|| (account_shares == liquidity_amount),
 				Error::<T>::InsufficientLiquidity
 			);
 
@@ -457,8 +511,9 @@ pub mod pallet {
 			if liquidity_left == 0 {
 				<ShareToken<T>>::remove(&pair_account);
 				<PoolAssets<T>>::remove(&pair_account);
+				<TotalLiquidity<T>>::remove(&pair_account);
 
-				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b));
+				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b, share_token, pair_account));
 			}
 
 			Ok(().into())
@@ -563,8 +618,7 @@ impl<T: Config> Pallet<T> {
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
 impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
-		let pair_account = T::AssetPairAccountId::from_assets(assets.asset_in, assets.asset_out);
-		<ShareToken<T>>::contains_key(&pair_account)
+		<ShareToken<T>>::contains_key(&Self::get_pair_id(assets))
 	}
 
 	fn get_pair_id(assets: AssetPair) -> T::AccountId {
@@ -605,7 +659,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		min_bought: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, sp_runtime::DispatchError> {
-		ensure!(amount >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
 
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
@@ -631,7 +688,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 
 		ensure!(
-			amount <= asset_in_reserve / MAX_IN_RATIO,
+			amount
+				<= asset_in_reserve
+					.checked_div(T::MaxInRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxInRatioExceeded
 		);
 
@@ -729,6 +789,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_out,
 			transfer.fee.0,
 			transfer.fee.1,
+			pair_account,
 		));
 
 		Ok(())
@@ -745,7 +806,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		max_limit: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-		ensure!(amount >= MIN_TRADING_LIMIT, Error::<T>::InsufficientTradingAmount);
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
 
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
@@ -757,7 +821,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
 
 		ensure!(
-			amount <= asset_out_reserve / MAX_OUT_RATIO,
+			amount
+				<= asset_out_reserve
+					.checked_div(T::MaxOutRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxOutRatioExceeded
 		);
 
@@ -865,8 +932,25 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_out,
 			transfer.fee.0,
 			transfer.fee.1,
+			pair_account,
 		));
 
 		Ok(())
+	}
+
+	fn get_min_trading_limit() -> Balance {
+		T::MinTradingLimit::get()
+	}
+
+	fn get_min_pool_liquidity() -> Balance {
+		T::MinPoolLiquidity::get()
+	}
+
+	fn get_max_in_ratio() -> u128 {
+		T::MaxInRatio::get()
+	}
+
+	fn get_max_out_ratio() -> u128 {
+		T::MaxOutRatio::get()
 	}
 }

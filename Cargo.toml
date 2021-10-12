@@ -4,10 +4,13 @@ panic = 'unwind'
 [workspace]
 members = [
   'node',
-  'runtime',
+  'runtime/common',
+  'runtime/basilisk',
+  'runtime/testing-basilisk',
   'pallets/nft',
   'pallets/duster',
   'pallets/xyk',
   'pallets/exchange',
   'pallets/asset-registry',
+  'integration-tests',
 ]

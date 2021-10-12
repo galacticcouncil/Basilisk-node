@@ -59,7 +59,7 @@ fn register_asset_works() {
 		);
 
 		assert_noop!(
-			AssetRegistryPallet::register(Origin::root(), name.clone(), AssetType::Token, ed),
+			AssetRegistryPallet::register(Origin::root(), name, AssetType::Token, ed),
 			Error::<Test>::AssetAlreadyRegistered
 		);
 	});
@@ -351,6 +351,6 @@ fn get_ed_by_key_works() {
 			assert_eq!(AssetRegistryPallet::get(&1u32), 1_000u128);
 			assert_eq!(AssetRegistryPallet::get(&2u32), 2_000u128);
 			assert_eq!(AssetRegistryPallet::get(&0u32), 1_000_000u128);
-			assert_eq!(AssetRegistryPallet::get(&1000u32), 0u128); // Non-existing should return default value
+			assert_eq!(AssetRegistryPallet::get(&1000u32), Balance::MAX); // Non-existing assets are not supported
 		});
 }

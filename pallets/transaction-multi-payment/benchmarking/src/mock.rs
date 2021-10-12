@@ -31,14 +31,17 @@ use sp_runtime::{
 use frame_support::weights::IdentityFee;
 use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
-use primitives::{Amount, AssetId, Balance, traits::AssetPairAccountIdFor};
+use primitives::{
+	Amount, AssetId, Balance,
+	traits::{fee, AssetPairAccountIdFor},
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+};
 
 use frame_support::traits::Get;
 use std::cell::RefCell;
 
 use frame_benchmarking::frame_support::weights::Pays;
 use frame_system::EnsureSigned;
-use primitives::fee;
 
 pub type AccountId = u64;
 
@@ -115,8 +118,8 @@ impl Config for Test {}
 
 impl pallet_transaction_multi_payment::Config for Test {
 	type Event = Event;
-	type Currency = Balances;
-	type MultiCurrency = Currencies;
+	type AcceptedCurrencyOrigin = frame_system::EnsureRoot<u64>;
+	type Currencies = Currencies;
 	type AMMPool = XYKPallet;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;
@@ -162,12 +165,17 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
-			let tmp = a;
-			a = b;
-			b = tmp;
+			std::mem::swap(&mut a, &mut b)
 		}
-		return (a * 1000 + b) as u64;
+		(a * 1000 + b) as u64
 	}
+}
+
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 }
 
 impl pallet_xyk::Config for Test {
@@ -178,7 +186,14 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+<<<<<<< HEAD
 	type AMMHandler = ();
+=======
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
+>>>>>>> master
 }
 
 parameter_type_with_key! {
@@ -256,7 +271,6 @@ impl ExtBuilder {
 
 		pallet_transaction_multi_payment::GenesisConfig::<Test> {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: 1000,
 		}
 		.assimilate_storage(&mut t)

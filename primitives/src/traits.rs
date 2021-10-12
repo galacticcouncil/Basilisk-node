@@ -60,7 +60,7 @@ where
 }
 
 /// Traits for handling AMM Pool trades.
-pub trait AMM<AccountId, AssetId, AssetPair, Amount> {
+pub trait AMM<AccountId, AssetId, AssetPair, Amount: Zero> {
 	/// Check if both assets exist in a pool.
 	fn exists(assets: AssetPair) -> bool;
 
@@ -123,6 +123,14 @@ pub trait AMM<AccountId, AssetId, AssetPair, Amount> {
 		Self::execute_buy(&Self::validate_buy(origin, assets, amount, max_limit, discount)?)?;
 		Ok(())
 	}
+
+	fn get_min_trading_limit() -> Amount;
+
+	fn get_min_pool_liquidity() -> Amount;
+
+	fn get_max_in_ratio() -> u128;
+
+	fn get_max_out_ratio() -> u128;
 }
 
 pub trait Resolver<AccountId, Intention, E> {
@@ -131,7 +139,7 @@ pub trait Resolver<AccountId, Intention, E> {
 
 	/// Resolve intentions by either directly trading with each other or via AMM pool.
 	/// Intention ```intention``` must be validated prior to call this function.
-	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[Intention]);
+	fn resolve_matched_intentions(pair_account: &AccountId, intention: &Intention, matched: &[&Intention]);
 }
 
 /// Handler used by AMM pools to perform some tasks when a new pool is created.
@@ -184,9 +192,9 @@ pub trait Registry<AssetId, AssetName, Balance, Error> {
 }
 
 pub trait ShareTokenRegistry<AssetId, AssetName, Balance, Error>: Registry<AssetId, AssetName, Balance, Error> {
-	fn retrieve_shared_asset(name: &AssetName, assets: &Vec<AssetId>) -> Result<AssetId, Error>;
+	fn retrieve_shared_asset(name: &AssetName, assets: &[AssetId]) -> Result<AssetId, Error>;
 
-	fn create_shared_asset(name: &AssetName, assets: &Vec<AssetId>, existential_deposit: Balance) -> Result<AssetId, Error>;
+	fn create_shared_asset(name: &AssetName, assets: &[AssetId], existential_deposit: Balance) -> Result<AssetId, Error>;
 
 	fn get_or_create_shared_asset(name: AssetName, assets: Vec<AssetId>, existential_deposit: Balance) -> Result<AssetId, Error> {
 		if let Ok(asset_id) = Self::retrieve_shared_asset(&name, &assets) {
