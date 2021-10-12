@@ -26,7 +26,7 @@ use primitives::{fee, traits::AssetPairAccountIdFor, AssetId, Balance, Price};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, Zero},
+	traits::{BlakeTwo256, IdentityLookup},
 };
 use std::cell::RefCell;
 
@@ -174,7 +174,7 @@ impl pallet_xyk::Config for Test {
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		1_000_000
 	};
 }
 

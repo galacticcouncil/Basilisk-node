@@ -77,11 +77,7 @@ impl<'a> Sum<&'a Self> for PriceEntry {
 		I: Iterator<Item = &'a Self>,
 	{
 		iter.fold(
-			PriceEntry {
-				price: Price::zero(),
-				trade_amount: Balance::zero(),
-				liquidity_amount: Balance::zero(),
-			},
+			PriceEntry::default(),
 			|a, b| &a + b,
 		)
 	}
@@ -112,19 +108,10 @@ pub const BUCKET_SIZE: u32 = 10;
 pub type Bucket = [PriceInfo; BUCKET_SIZE as usize];
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
 pub struct PriceInfo {
 	pub avg_price: Price,
 	pub volume: Balance,
-}
-
-impl Default for PriceInfo {
-	fn default() -> Self {
-		Self {
-			avg_price: Price::zero(),
-			volume: Zero::zero(),
-		}
-	}
 }
 
 impl Add for &PriceInfo {
@@ -143,10 +130,7 @@ impl<'a> Sum<&'a Self> for PriceInfo {
 		I: Iterator<Item = &'a Self>,
 	{
 		iter.fold(
-			PriceInfo {
-				avg_price: Price::zero(),
-				volume: Balance::zero(),
-			},
+			PriceInfo::default(),
 			|a, b| &a + b,
 		)
 	}
