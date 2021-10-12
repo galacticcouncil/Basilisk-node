@@ -35,10 +35,9 @@ use frame_support::sp_runtime::{
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use primitives::{
-	AssetId, Balance, Price,
+	AssetId, Balance, Price, fee,
 	asset::AssetPair,
-	traits::{OnCreatePoolHandler, OnTradeHandler, fee, AMM},
-	constants::chain::{MIN_TRADING_LIMIT, MIN_POOL_LIQUIDITY, MAX_IN_RATIO, MAX_OUT_RATIO},
+	traits::{OnCreatePoolHandler, OnTradeHandler, AMM},
 };
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
@@ -309,7 +308,7 @@ pub mod pallet {
 			let token_name = asset_pair.name();
 
 			let share_token =
-				T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], MIN_POOL_LIQUIDITY)?;
+				T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], T::MinPoolLiquidity::get())?;
 
 			T::AMMHandler::on_create_pool(asset_pair);
 

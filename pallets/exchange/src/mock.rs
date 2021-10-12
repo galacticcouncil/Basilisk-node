@@ -32,10 +32,9 @@ use pallet_xyk as xyk;
 use frame_support::traits::GenesisBuild;
 use frame_support::traits::Get;
 use frame_system::EnsureSigned;
-use pallet_xyk::AssetPairAccountIdFor;
 use primitives::{
-	AssetId, Balance,
-	traits::{fee, AssetPairAccountIdFor},
+	AssetId, Balance, fee,
+	traits::AssetPairAccountIdFor,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 };
 use std::cell::RefCell;
@@ -165,14 +164,11 @@ impl xyk::Config for Test {
 	type NativeAssetId = HDXAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
-<<<<<<< HEAD
 	type AMMHandler = ();
-=======
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
->>>>>>> master
 }
 
 impl Config for Test {

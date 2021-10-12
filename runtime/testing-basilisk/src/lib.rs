@@ -52,7 +52,7 @@ use sp_version::RuntimeVersion;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOrigin, Get, U128CurrencyToVote},
+	traits::{EnsureOrigin, Get, U128CurrencyToVote, Everything},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -95,8 +95,8 @@ pub mod opaque {
 }
 
 mod testing {
-	use super::{parameter_types, BlockNumber, MINUTES};
-	pub type BaseFilter = ();
+	use super::{parameter_types, BlockNumber, Everything, MINUTES};
+	pub type BaseFilter = Everything;
 
 	parameter_types! {
 		pub const LaunchPeriod: BlockNumber = MINUTES;

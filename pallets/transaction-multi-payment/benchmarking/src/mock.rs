@@ -32,8 +32,8 @@ use frame_support::weights::IdentityFee;
 use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
 use primitives::{
-	Amount, AssetId, Balance,
-	traits::{fee, AssetPairAccountIdFor},
+	Amount, AssetId, Balance, fee,
+	traits::AssetPairAccountIdFor,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 };
 
@@ -186,14 +186,11 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
-<<<<<<< HEAD
 	type AMMHandler = ();
-=======
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
->>>>>>> master
 }
 
 parameter_type_with_key! {

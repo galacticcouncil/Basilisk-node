@@ -308,19 +308,7 @@ fn testnet_parachain_genesis(
 			currencies: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
-		tokens: TokensConfig {
-			balances: endowed_accounts
-				.iter()
-				.flat_map(|x| {
-					vec![
-						(x.clone(), 1, 1_000_000_000u128 * BSX),
-						(x.clone(), 2, 1_000_000_000u128 * BSX),
-						(x.clone(), 3, 1_000_000_000u128 * BSX),
-						(x.clone(), 4, 1_000_000_000u128 * BSX),
-					]
-				})
-				.collect(),
-		},
+		tokens: TokensConfig { balances: vec![] },
 		treasury: Default::default(),
 		elections: ElectionsConfig {
 			// Intergalactic elections

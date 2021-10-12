@@ -28,8 +28,8 @@ use sp_runtime::{
 
 use frame_support::traits::{GenesisBuild, Get};
 use primitives::{
-	AssetId, Balance,
-	traits::{fee, AssetId, Balance, AssetPairAccountIdFor},
+	AssetId, Balance, fee,
+	traits::AssetPairAccountIdFor,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 };
 

@@ -36,6 +36,7 @@ pub type AccountId = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
+use primitives::constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
 
 pub const HDX: AssetId = 1000;
 
@@ -151,6 +152,13 @@ impl pallet_asset_registry::Config for Test {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+}
+
 impl pallet_xyk::Config for Test {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
@@ -160,6 +168,10 @@ impl pallet_xyk::Config for Test {
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
 	type AMMHandler = PriceOracleHandler<Test>;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
 }
 
 

@@ -29,10 +29,9 @@ use sp_runtime::{
 };
 
 use frame_system::EnsureSigned;
-use pallet_xyk::AssetPairAccountIdFor;
 use primitives::{
-	AssetId, Balance,
-	traits::{fee, traits::AssetPairAccountIdFor};
+	AssetId, Balance, fee,
+	traits::AssetPairAccountIdFor,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 };
 
@@ -158,14 +157,11 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HDXAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
-<<<<<<< HEAD
 	type AMMHandler = ();
-=======
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
->>>>>>> master
 }
 
 impl pallet_exchange::Config for Test {
