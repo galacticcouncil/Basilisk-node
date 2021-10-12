@@ -183,11 +183,11 @@ pub mod pallet {
 		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
 
-		/// Minimum trading limit
+		/// Minimum trading limit, sole purpose of this is to keep the math working
 		#[pallet::constant]
 		type MinTradingLimit: Get<Balance>;
 
-		/// Minimum pool liquidity
+		/// Minimum pool liquidity, sole purpose of this is to keep the math working
 		#[pallet::constant]
 		type MinPoolLiquidity: Get<Balance>;
 
