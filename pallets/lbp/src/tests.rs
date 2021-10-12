@@ -28,14 +28,10 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			ACA,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			20_000_000,
 			80_000_000,
 			WeightCurveType::Linear,
@@ -230,14 +226,10 @@ fn create_pool_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			ACA,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			20_000_000u32,
 			90_000_000u32,
 			WeightCurveType::Linear,
@@ -279,14 +271,10 @@ fn create_pool_from_basic_origin_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::signed(ALICE),
 				ALICE,
-				LBPAssetInfo {
-					id: HDX,
-					amount: 1_000_000_000,
-				},
-				LBPAssetInfo {
-					id: DOT,
-					amount: 2_000_000_000,
-				},
+				HDX,
+				1_000_000_000,
+				DOT,
+				2_000_000_000,
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -304,14 +292,10 @@ fn create_same_pool_should_not_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			ACA,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			80_000_000u32,
 			10_000_000u32,
 			WeightCurveType::Linear,
@@ -323,14 +307,10 @@ fn create_same_pool_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo {
-					id: ACA,
-					amount: 10_000_000_000,
-				},
-				LBPAssetInfo {
-					id: DOT,
-					amount: 20_000_000_000,
-				},
+				ACA,
+				10_000_000_000,
+				DOT,
+				20_000_000_000,
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -353,14 +333,10 @@ fn create_pool_with_same_assets_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo {
-					id: ACA,
-					amount: 1_000_000_000,
-				},
-				LBPAssetInfo {
-					id: ACA,
-					amount: 2_000_000_000,
-				},
+				ACA,
+				1_000_000_000,
+				ACA,
+				2_000_000_000,
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -379,8 +355,10 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo { id: HDX, amount: 0 },
-				LBPAssetInfo { id: DOT, amount: 0 },
+				HDX,
+				0,
+				DOT,
+				0,
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -394,11 +372,10 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo { id: HDX, amount: 0 },
-				LBPAssetInfo {
-					id: DOT,
-					amount: 2_000_000_000,
-				},
+				HDX,
+				0,
+				DOT,
+				2_000_000_000,
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -412,8 +389,10 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo { id: HDX, amount: 100 },
-				LBPAssetInfo { id: DOT, amount: 100 },
+				HDX,
+				100,
+				DOT,
+				100,
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -432,14 +411,10 @@ fn create_pool_with_insufficient_balance_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo {
-					id: ACA,
-					amount: 2_000_000_000_000_000,
-				},
-				LBPAssetInfo {
-					id: DOT,
-					amount: 2_000_000_000_000_000,
-				},
+				ACA,
+				2_000_000_000_000_000,
+				DOT,
+				2_000_000_000_000_000,
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
@@ -805,14 +780,10 @@ fn update_pool_interval_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			ACA,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			10_000_000,
 			10_000_000,
 			WeightCurveType::Linear,
@@ -1162,14 +1133,10 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: HDX,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			HDX,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			10_000_000,
 			90_000_000,
 			WeightCurveType::Linear,
@@ -1487,14 +1454,10 @@ fn zero_weight_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo {
-					id: ACA,
-					amount: 1_000_000_000,
-				},
-				LBPAssetInfo {
-					id: ETH,
-					amount: 2_000_000_000,
-				},
+				ACA,
+				1_000_000_000,
+				ETH,
+				2_000_000_000,
 				0u32,
 				20u32,
 				WeightCurveType::Linear,
@@ -1838,14 +1801,10 @@ fn buy_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: HDX,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			HDX,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			80_000_000u32,
 			10_000_000u32,
 			WeightCurveType::Linear,
@@ -1991,14 +1950,10 @@ fn sell_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: HDX,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			HDX,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			80_000_000u32,
 			10_000_000u32,
 			WeightCurveType::Linear,
@@ -2056,14 +2011,10 @@ fn zero_fee_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			ACA,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			20_000_000,
 			80_000_000,
 			WeightCurveType::Linear,
@@ -2099,14 +2050,10 @@ fn invalid_fee_should_not_work() {
 			LBPPallet::create_pool(
 				Origin::root(),
 				ALICE,
-				LBPAssetInfo {
-					id: ACA,
-					amount: 1_000_000_000,
-				},
-				LBPAssetInfo {
-					id: DOT,
-					amount: 2_000_000_000,
-				},
+				ACA,
+				1_000_000_000,
+				DOT,
+				2_000_000_000,
 				20_000_000,
 				80_000_000,
 				WeightCurveType::Linear,
@@ -2248,14 +2195,10 @@ fn amm_trait_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: HDX,
-				amount: 2_000_000_000,
-			},
+			ACA,
+			1_000_000_000,
+			HDX,
+			2_000_000_000,
 			20_000_000,
 			80_000_000,
 			WeightCurveType::Linear,
@@ -2323,14 +2266,10 @@ fn get_spot_price_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			LBPAssetInfo {
-				id: ACA,
-				amount: 1_000_000_000,
-			},
-			LBPAssetInfo {
-				id: DOT,
-				amount: 2_000_000_000,
-			},
+			ACA,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
 			20_000_000,
 			90_000_000,
 			WeightCurveType::Linear,
@@ -2504,14 +2443,10 @@ fn simulate_lbp_event_should_work() {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			pool_owner,
-			LBPAssetInfo {
-				id: asset_in,
-				amount: asset_in_pool_reserve,
-			},
-			LBPAssetInfo {
-				id: asset_out,
-				amount: asset_out_pool_reserve,
-			},
+			asset_in,
+			asset_in_pool_reserve,
+			asset_out,
+			asset_out_pool_reserve,
 			asset_in_initial_weight,
 			asset_in_final_weight,
 			WeightCurveType::Linear,

@@ -5,11 +5,11 @@
 #![allow(clippy::too_many_arguments)]
 
 use codec::{Decode, Encode};
-use frame_support::{sp_runtime::{
+use frame_support::sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
-	traits::{BlockNumberProvider, AtLeast32BitUnsigned, Hash, Saturating, Zero},
+	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Hash, Saturating, Zero},
 	DispatchError, RuntimeDebug,
-}};
+};
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
@@ -24,7 +24,7 @@ use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 	fee::{Fee, WithFee},
-	Amount, AssetId, Balance
+	Amount, AssetId, Balance,
 };
 
 #[cfg(feature = "std")]
@@ -71,24 +71,24 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 
 	/// start block
 	pub start: BlockNumber,
-	
+
 	/// end block
 	pub end: BlockNumber,
-	
+
 	pub assets: (AssetId, AssetId),
-	
+
 	/// initial weight of the asset_a where the minimum value is 0 (equivalent to 0% weight), and the maximum value is 100_000_000 (equivalent to 100% weight)
 	pub initial_weight: LBPWeight,
-	
+
 	/// final weights of the asset_a where the minimum value is 0 (equivalent to 0% weight), and the maximum value is 100_000_000 (equivalent to 100% weight)
 	pub final_weight: LBPWeight,
-	
+
 	/// weight curve
 	pub weight_curve: WeightCurveType,
-	
+
 	/// current fee
 	pub fee: Fee,
-	
+
 	/// person that receives the fee
 	pub fee_collector: AccountId,
 }
@@ -96,8 +96,8 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockNumber> {
 	fn new(
 		pool_owner: AccountId,
-		asset_a: LBPAssetInfo<Balance>,
-		asset_b: LBPAssetInfo<Balance>,
+		asset_a: AssetId,
+		asset_b: AssetId,
 		initial_weight: LBPWeight,
 		final_weight: LBPWeight,
 		weight_curve: WeightCurveType,
@@ -108,7 +108,7 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 			owner: pool_owner,
 			start: Zero::zero(),
 			end: Zero::zero(),
-			assets: (asset_a.id, asset_b.id),
+			assets: (asset_a, asset_b),
 			initial_weight,
 			final_weight,
 			weight_curve,
@@ -122,7 +122,7 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 #[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
 pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq> {
 	pub id: AssetId,
-	pub amount: Balance
+	pub amount: Balance,
 }
 
 pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
@@ -153,7 +153,7 @@ impl<BlockNumber: AtLeast32BitUnsigned> LBPWeightCalculation<BlockNumber> for LB
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{pallet_prelude::*};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -326,10 +326,10 @@ pub mod pallet {
 		///
 		/// The dispatch origin for this call must be `T::CreatePoolOrigin`.
 		/// The pool is created with initial liquidity provided by the `pool_owner` who must have
-		/// sufficient funds free. 
-		/// 
+		/// sufficient funds free.
+		///
 		/// The pool starts uninitialized and update_pool call should be called once created to set the start block.
-		/// 
+		///
 		/// This function should be dispatched from governing entity `T::CreatePoolOrigin`
 		///
 		/// Parameters:
@@ -349,8 +349,10 @@ pub mod pallet {
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			pool_owner: T::AccountId,
-			asset_a: LBPAssetInfo<BalanceOf<T>>,
-			asset_b: LBPAssetInfo<BalanceOf<T>>,
+			asset_a: AssetId,
+			asset_a_amount: Balance,
+			asset_b: AssetId,
+			asset_b_amount: Balance,
 			initial_weight: LBPWeight,
 			final_weight: LBPWeight,
 			weight_curve: WeightCurveType,
@@ -360,26 +362,26 @@ pub mod pallet {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				asset_a.amount >= T::MinPoolLiquidity::get() && asset_b.amount >= T::MinPoolLiquidity::get(),
+				asset_a_amount >= T::MinPoolLiquidity::get() && asset_b_amount >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientLiquidity
 			);
 
-			ensure!(asset_a.id != asset_b.id, Error::<T>::CannotCreatePoolWithSameAssets);
+			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
 
 			let asset_pair = AssetPair {
-				asset_in: asset_a.id,
-				asset_out: asset_b.id,
+				asset_in: asset_a,
+				asset_out: asset_b,
 			};
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::PoolAlreadyExists);
 
 			ensure!(
-				T::MultiCurrency::free_balance(asset_a.id, &pool_owner) >= asset_a.amount,
+				T::MultiCurrency::free_balance(asset_a, &pool_owner) >= asset_a_amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 
 			ensure!(
-				T::MultiCurrency::free_balance(asset_b.id, &pool_owner) >= asset_b.amount,
+				T::MultiCurrency::free_balance(asset_b, &pool_owner) >= asset_b_amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 
@@ -400,8 +402,8 @@ pub mod pallet {
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
-			T::MultiCurrency::transfer(asset_a.id, &pool_owner, &pool_id, asset_a.amount)?;
-			T::MultiCurrency::transfer(asset_b.id, &pool_owner, &pool_id, asset_b.amount)?;
+			T::MultiCurrency::transfer(asset_a, &pool_owner, &pool_id, asset_a_amount)?;
+			T::MultiCurrency::transfer(asset_b, &pool_owner, &pool_id, asset_b_amount)?;
 
 			Self::deposit_event(Event::PoolCreated(pool_id, pool_data));
 
@@ -459,11 +461,9 @@ pub mod pallet {
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
 
-				pool.initial_weight =
-					initial_weight.unwrap_or(pool.initial_weight);
+				pool.initial_weight = initial_weight.unwrap_or(pool.initial_weight);
 
-				pool.final_weight =
-					final_weight.unwrap_or(pool.final_weight);
+				pool.final_weight = final_weight.unwrap_or(pool.final_weight);
 
 				pool.fee = fee.unwrap_or(pool.fee);
 				pool.fee_collector = fee_collector.unwrap_or_else(|| pool.fee_collector.clone());
@@ -687,7 +687,11 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn get_sorted_weight(asset_in:AssetId, now:T::BlockNumber, pool_data:&Pool<T::AccountId, T::BlockNumber>)->Result<(LBPWeight, LBPWeight), Error<T>>{
+	fn get_sorted_weight(
+		asset_in: AssetId,
+		now: T::BlockNumber,
+		pool_data: &Pool<T::AccountId, T::BlockNumber>,
+	) -> Result<(LBPWeight, LBPWeight), Error<T>> {
 		match Self::calculate_weights(pool_data, now) {
 			Ok(weights) => {
 				if asset_in == pool_data.assets.0 {
@@ -697,7 +701,7 @@ impl<T: Config> Pallet<T> {
 					Ok((weights.1, weights.0))
 				}
 			}
-			Err(_) => Err(Error::<T>::InvalidWeight)
+			Err(_) => Err(Error::<T>::InvalidWeight),
 		}
 	}
 
@@ -757,7 +761,10 @@ impl<T: Config> Pallet<T> {
 			(amount, amount_out_without_fee, assets.asset_out, transfer_fee)
 		} else {
 			ensure!(
-				amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+				amount
+					<= asset_out_reserve
+						.checked_div(MAX_OUT_RATIO)
+						.ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxOutRatioExceeded
 			);
 
@@ -906,15 +913,9 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			Ok(weights) => weights,
 			Err(_) => return BalanceOf::<T>::zero(),
 		};
-		
-		hydra_dx_math::lbp::calculate_spot_price(
-			asset_a_reserve,
-			asset_b_reserve,
-			weight_in,
-			weight_out,
-			amount
-		)
-		.unwrap_or_else(|_| BalanceOf::<T>::zero())
+
+		hydra_dx_math::lbp::calculate_spot_price(asset_a_reserve, asset_b_reserve, weight_in, weight_out, amount)
+			.unwrap_or_else(|_| BalanceOf::<T>::zero())
 	}
 
 	/// Validate a sell trade and update pool weights if necessary
