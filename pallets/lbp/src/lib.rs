@@ -66,7 +66,7 @@ pub const MAX_WEIGHT: LBPWeight = 100_000_000;
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
-	/// owner of the pool after council creates it
+	/// owner of the pool after `CreatePoolOrigin` creates it
 	pub owner: AccountId,
 
 	/// start block
@@ -75,13 +75,12 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	/// end block
 	pub end: BlockNumber,
 	
-	/// assets should be stored in increasing order (asset_a, asset_b) by AssetId
 	pub assets: (AssetId, AssetId),
 	
-	/// initial weight of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
+	/// initial weight of the asset_a where the minimum value is 0 (equivalent to 0% weight), and the maximum value is 100_000_000 (equivalent to 100% weight)
 	pub initial_weight: LBPWeight,
 	
-	/// final weights of the asset_a where 100 000 000 means 100% (min 0 max 99 999 999)
+	/// final weights of the asset_a where the minimum value is 0 (equivalent to 0% weight), and the maximum value is 100_000_000 (equivalent to 100% weight)
 	pub final_weight: LBPWeight,
 	
 	/// weight curve
@@ -674,9 +673,9 @@ impl<T: Config> Pallet<T> {
 		// zero weight at the beginning or at the end of a sale may cause a problem in the price calculation
 		ensure!(
 			!pool_data.initial_weight.is_zero()
-				&& !(MAX_WEIGHT < pool_data.initial_weight)
+				&& pool_data.initial_weight < MAX_WEIGHT
 				&& !pool_data.final_weight.is_zero()
-				&& !(MAX_WEIGHT < pool_data.final_weight),
+				&& pool_data.final_weight < MAX_WEIGHT,
 			Error::<T>::InvalidWeight
 		);
 
