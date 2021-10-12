@@ -7,7 +7,7 @@
 use codec::{Decode, Encode};
 use frame_support::{sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
-	traits::{AtLeast32BitUnsigned, Hash, Saturating, Zero},
+	traits::{BlockNumberProvider, AtLeast32BitUnsigned, Hash, Saturating, Zero},
 	DispatchError, RuntimeDebug,
 }};
 use frame_support::{
@@ -198,6 +198,9 @@ pub mod pallet {
 		/// Max fraction of pool to buy in single transaction
 		#[pallet::constant]
 		type MaxOutRatio: Get<u128>;
+
+		/// The block number provider
+		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 	}
 
 	#[pallet::hooks]
@@ -655,7 +658,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn validate_pool_data(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> DispatchResult {
-		let now = <frame_system::Pallet<T>>::block_number();
+		let now = T::BlockNumberProvider::current_block_number();
 
 		ensure!(
 			(pool_data.start.is_zero() && pool_data.end.is_zero())
@@ -700,7 +703,7 @@ impl<T: Config> Pallet<T> {
 
 	/// return true if now is in interval <pool.start, pool.end>
 	fn is_pool_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
-		let now = <frame_system::Pallet<T>>::block_number();
+		let now = T::BlockNumberProvider::current_block_number();
 		pool_data.start <= now && now <= pool_data.end
 	}
 
@@ -725,7 +728,7 @@ impl<T: Config> Pallet<T> {
 
 		ensure!(Self::is_pool_running(&pool_data), Error::<T>::SaleIsNotRunning);
 
-		let now = <frame_system::Pallet<T>>::block_number();
+		let now = T::BlockNumberProvider::current_block_number();
 
 		let (weight_in, weight_out) = Self::get_sorted_weight(assets.asset_in, now, &pool_data)?;
 
@@ -896,7 +899,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			Err(_) => return BalanceOf::<T>::zero(),
 		};
 
-		let now = <frame_system::Pallet<T>>::block_number();
+		let now = T::BlockNumberProvider::current_block_number();
 
 		// We need to sort weights here if asset_in is not the first asset
 		let (weight_in, weight_out) = match Self::get_sorted_weight(asset_a, now, &pool_data) {

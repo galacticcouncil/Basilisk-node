@@ -11,7 +11,7 @@ use sp_std::convert::TryInto;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
-	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| run_to_block(1));
 	ext
 }
 
@@ -596,7 +596,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_5.fee_collector, ALICE);
 
 		// update and reuse ended pool
-		System::set_block_number(100);
+		run_to_block(100);
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
@@ -773,7 +773,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 			None,
 		));
 
-		System::set_block_number(16);
+		run_to_block(16);
 
 		// update starting block and final weights
 		assert_noop!(
@@ -822,7 +822,7 @@ fn update_pool_interval_should_work() {
 
 		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
-		System::set_block_number(15);
+		run_to_block(15);
 
 		assert_noop!(
 			LBPPallet::update_pool_data(
@@ -1012,7 +1012,7 @@ fn add_liquidity_with_insufficient_balance_should_not_work() {
 #[test]
 fn add_liquidity_after_sale_started_should_work() {
 	predefined_test_ext().execute_with(|| {
-		System::set_block_number(15);
+		run_to_block(15);
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
@@ -1039,7 +1039,7 @@ fn add_liquidity_after_sale_started_should_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(1_000));
 
 		// sale ended at the block number 20
-		System::set_block_number(30);
+		run_to_block(30);
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
@@ -1085,7 +1085,7 @@ fn add_liquidity_to_non_existing_pool_should_not_work() {
 #[test]
 fn remove_liquidity_should_work() {
 	predefined_test_ext().execute_with(|| {
-		System::set_block_number(21);
+		run_to_block(21);
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
@@ -1225,7 +1225,7 @@ fn remove_liquidity_from_non_existing_pool_should_not_work() {
 #[test]
 fn remove_liquidity_from_not_finalized_pool_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		System::set_block_number(15);
+		run_to_block(15);
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
@@ -1254,7 +1254,7 @@ fn remove_liquidity_from_not_finalized_pool_should_not_work() {
 #[test]
 fn remove_liquidity_from_finalized_pool_should_work() {
 	predefined_test_ext().execute_with(|| {
-		System::set_block_number(21);
+		run_to_block(21);
 
 		let user_balance_a_before = Currency::free_balance(ACA, &ALICE);
 		let user_balance_b_before = Currency::free_balance(DOT, &ALICE);
@@ -2153,7 +2153,7 @@ fn amm_trait_should_work() {
 			Error::<Test>::SaleIsNotRunning
 		);
 
-		System::set_block_number(11);
+		run_to_block(11);
 
 		assert!(LBPPallet::exists(asset_pair));
 		assert!(LBPPallet::exists(reversed_asset_pair));
@@ -2279,7 +2279,7 @@ fn amm_trait_should_work() {
 			None,
 			None
 		));
-		System::set_block_number(15);
+		run_to_block(15);
 		assert_noop!(
 			LBPPallet::validate_sell(
 				&who,
@@ -2349,7 +2349,7 @@ fn get_spot_price_should_work() {
 			None
 		));
 
-		System::set_block_number(10);
+		run_to_block(10);
 
 		let price = hydra_dx_math::lbp::calculate_spot_price(
 			1_000_000_000_u128,
@@ -2375,7 +2375,7 @@ fn get_spot_price_should_work() {
 		assert_eq!(LBPPallet::get_spot_price_unchecked(DOT, ACA, 1_000_000_u128), price);
 
 		// change weights
-		System::set_block_number(20);
+		run_to_block(20);
 
 		let price = hydra_dx_math::lbp::calculate_spot_price(
 			1_000_000_000_u128,
@@ -2395,7 +2395,7 @@ fn get_spot_price_should_work() {
 		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, u128::MAX), 0);
 
 		// sale ended
-		System::set_block_number(21);
+		run_to_block(21);
 		assert_eq!(LBPPallet::get_spot_price_unchecked(ACA, DOT, 1_000_000), 0);
 	});
 }
@@ -2530,11 +2530,11 @@ fn simulate_lbp_event_should_work() {
 			None
 		));
 
-		System::set_block_number(sale_start.checked_sub(1).unwrap());
+		run_to_block(sale_start.checked_sub(1).unwrap());
 
 		// start LBP
 		for block_num in sale_start..=sale_end {
-			System::set_block_number(block_num);
+			run_to_block(block_num);
 
 			if let Some((is_buy, amount)) = trades.get(&block_num) {
 				if *is_buy {
@@ -2558,7 +2558,7 @@ fn simulate_lbp_event_should_work() {
 		}
 
 		// end LBP and consolidate results
-		System::set_block_number(sale_end.checked_add(1).unwrap());
+		run_to_block(sale_end.checked_add(1).unwrap());
 
 		let pool_account_result_asset_in = Currency::free_balance(asset_in, &pool_account);
 		let pool_account_result_asset_out = Currency::free_balance(asset_out, &pool_account);
