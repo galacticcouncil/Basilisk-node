@@ -4,12 +4,12 @@
 
 use frame_support::{
 	dispatch::DispatchResult,
-	traits::{tokens::nonfungibles::*, Currency, ReservableCurrency},
+	traits::{tokens::nonfungibles::*, BalanceStatus::Reserved, Currency, ReservableCurrency},
 	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
 use pallet_uniques::DestroyWitness;
-use sp_runtime::traits::StaticLookup;
+use sp_runtime::traits::{StaticLookup, CheckedAdd, One, Saturating};
 use sp_std::{convert::TryInto, vec::Vec};
 use weights::WeightInfo;
 
@@ -42,8 +42,21 @@ pub mod pallet {
 	pub trait Config: frame_system::Config + pallet_uniques::Config {
 		type Currency: ReservableCurrency<Self::AccountId>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		/// Amount that must be reserved for each minted NFT
+		#[pallet::constant]
+		type TokenDeposit: Get<BalanceOf<Self>>;
 		type WeightInfo: WeightInfo;
 	}
+
+	/// Next available class ID.
+	#[pallet::storage]
+	#[pallet::getter(fn next_class_id)]
+	pub type NextClassId<T: Config> = StorageValue<_, T::ClassId, ValueQuery>;
+
+	/// Next available token ID.
+	#[pallet::storage]
+	#[pallet::getter(fn next_token_id)]
+	pub type NextTokenId<T: Config> = StorageMap<_, Twox64Concat, T::ClassId, T::InstanceId, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -61,12 +74,31 @@ pub mod pallet {
 		pub fn create_class(
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
-			admin: <T::Lookup as StaticLookup>::Source,
 			class_type: types::ClassType,
 		) -> DispatchResult {
-			ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin.clone())?;
 
-			pallet_uniques::Pallet::<T>::create(origin.clone(), class_id, admin)?;
+			let admin = T::Lookup::unlookup(sender.clone());
+
+			// TODO: finish incremental counter to create class and instance problem = Class ID not arithmetical
+			/* let class_id = NextClassId::<T>::try_mutate(|id| -> Result<T::ClassId, DispatchError> {
+				let current_id = *id;
+				*id = id.saturating_add(&One::one()).ok_or(Error::<T>::NoAvailableClassId)?;
+				Ok(current_id)
+			})?; */
+
+			pallet_uniques::Pallet::<T>::create(origin.clone(), class_id, admin.clone())?;
+			// Set free_holding to true and handle reserve separately
+			pallet_uniques::Pallet::<T>::force_asset_status(
+				origin.clone(),
+				class_id,
+				admin.clone(),
+				admin.clone(),
+				admin.clone(),
+				admin.clone(),
+				true,
+				false,
+			)?;
 
 			let attribute1: Vec<u8> = b"type".to_vec();
 
@@ -96,8 +128,6 @@ pub mod pallet {
 		/// - `class_id`: The class of the asset to be minted.
 		/// - `instance_id`: The instance value of the asset to be minted.
 		/// - `owner`: The initial owner of the minted asset.
-		/// - `royalty`: The general information of this asset. Limited in length by `ValueLimit`.
-		/// - `metadata`: The general information of this asset. Limited in length by `StringLimit`.
 		///
 		/// Emits `Issued` and `AttributeSet` and `MetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
@@ -106,11 +136,13 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
 			instance_id: T::InstanceId,
-			owner: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
-			ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin.clone())?;
 
-			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, owner)?;
+			let owner = T::Lookup::unlookup(sender.clone());
+
+			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, owner.clone())?;
+			<T as Config>::Currency::reserve(&sender, T::TokenDeposit::get())?;
 
 			Ok(())
 		}
@@ -130,7 +162,13 @@ pub mod pallet {
 			instance_id: T::InstanceId,
 			dest: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
-			ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin.clone())?;
+
+			let dest_account = T::Lookup::lookup(dest.clone())?;
+
+			// Move the deposit to the new owner.
+			<T as Config>::Currency::reserve(&dest_account, T::TokenDeposit::get())?;
+			<T as Config>::Currency::unreserve(&sender, T::TokenDeposit::get());
 
 			pallet_uniques::Pallet::<T>::transfer(origin, class_id, instance_id, dest)?;
 
@@ -152,16 +190,16 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
 			instance_id: T::InstanceId,
-			check_owner: Option<<T::Lookup as StaticLookup>::Source>,
 		) -> DispatchResult {
-			ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin.clone())?;
 
 			ensure!(
 				pallet_uniques::Pallet::<T>::can_transfer(&class_id, &instance_id),
 				Error::<T>::TokenFrozen
 			);
 
-			pallet_uniques::Pallet::<T>::burn(origin, class_id, instance_id, check_owner)?;
+			pallet_uniques::Pallet::<T>::burn(origin, class_id, instance_id, None)?;
+			<T as Config>::Currency::unreserve(&sender, T::TokenDeposit::get());
 
 			Ok(())
 		}
@@ -170,20 +208,20 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `class_id`: The identifier of the asset class to be destroyed.
-		/// - `witness`: Information on the instances minted in the asset class. This must be
-		/// correct.
+		///
 		/// Emits `Destroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		pub fn destroy_class(origin: OriginFor<T>, class_id: T::ClassId) -> DispatchResultWithPostInfo {
 			ensure_signed(origin.clone())?;
 
-			let count = pallet_uniques::Pallet::<T>::instances(&class_id).peekable().peek().is_some();
-			Self::deposit_event(Event::Count(count));
-			
+			/* TODO:
+			The following does not work, how to check efficiently if there are no instances minted in class?
+
 			ensure!(
 				pallet_uniques::Pallet::<T>::instances(&class_id).peekable().peek().is_none(),
 				Error::<T>::TokenClassNotEmpty
-			);
+
+			); */
 
 			let witness = Self::get_witness(class_id)?;
 
@@ -216,6 +254,8 @@ pub mod pallet {
 		NoWitness,
 		/// Class still contains minted tokens
 		TokenClassNotEmpty,
+		/// Number of classes reached the limit
+		NoAvailableClassId
 	}
 }
 

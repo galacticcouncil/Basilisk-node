@@ -72,10 +72,13 @@ pub mod pallet {
 		pub fn buy(origin: OriginFor<T>, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
-			let owner = Self::get_owner(class_id, instance_id)?;
+			let owner = pallet_uniques::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::Unknown)?;
 			let to = T::Lookup::unlookup(sender.clone());
 			let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
-			pallet_uniques::Pallet::<T>::thaw(owner_origin.clone(), class_id, instance_id)?;
+			let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::Unknown)?;
+			let class_owner_origin = T::Origin::from(RawOrigin::Signed(class_owner.clone()));
+
+			pallet_uniques::Pallet::<T>::thaw(class_owner_origin.clone(), class_id, instance_id)?;
 
 			ensure!(sender != owner, Error::<T>::BuyFromSelf);
 
@@ -102,9 +105,9 @@ pub mod pallet {
 				// Send the net price from current to the previous owner
 				<T as pallet_nft::Config>::Currency::transfer(&sender, &owner, price, ExistenceRequirement::KeepAlive)?;
 
-				pallet_uniques::Pallet::<T>::transfer(owner_origin.clone(), class_id, instance_id, to)?;
+				pallet_nft::Pallet::<T>::transfer(owner_origin.clone(), class_id, instance_id, to)?;
 
-				pallet_uniques::Pallet::<T>::freeze(owner_origin, class_id, instance_id)?;
+				pallet_uniques::Pallet::<T>::freeze(class_owner_origin, class_id, instance_id)?;
 
 				Self::deposit_event(Event::TokenSold(owner, sender, class_id, instance_id, price));
 				Ok(())
@@ -260,14 +263,6 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn get_owner(class_id: T::ClassId, instance_id: T::InstanceId) -> Result<T::AccountId, Error<T>> {
-		if let Some(owner) = pallet_uniques::Pallet::<T>::owner(class_id, instance_id) {
-			Ok(owner)
-		} else {
-			Err(Error::<T>::NotTheTokenOwner.into())
-		}
-	}
-
 	fn get_class_type(class_id: T::ClassId) -> Result<ClassType, Error<T>> {
 		let mut class_type_vec: &[u8] =
 			&pallet_uniques::Pallet::<T>::class_attribute(&class_id, b"type").unwrap_or(b"Unknown".to_vec());

@@ -14,7 +14,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
+use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin, EnsureSigned};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -489,13 +489,10 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-parameter_types! {
-	pub ClassBondAmount: Balance = 10_000 * BSX;
-}
-
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
+	type TokenDeposit = InstanceDeposit;
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 }
 
@@ -834,7 +831,7 @@ impl pallet_uniques::Config for Runtime {
 	type ClassId = u32;
 	type InstanceId = u32;
 	type Currency = Balances;
-	type ForceOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = EnsureSigned<AccountId>;
 	type ClassDeposit = ClassDeposit;
 	type InstanceDeposit = InstanceDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
