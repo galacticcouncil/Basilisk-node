@@ -14,8 +14,8 @@ fn new_test_ext() -> sp_io::TestExternalities {
 #[test]
 fn set_price_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(Nft::create_class(Origin::signed(ALICE), 0, ALICE, ClassType::Art));
-		assert_ok!(Nft::mint(Origin::signed(ALICE), 0, 0, ALICE));
+		assert_ok!(Nft::create_class(Origin::signed(ALICE), 0, ClassType::Art));
+		assert_ok!(Nft::mint(Origin::signed(ALICE), 0, 0));
 
 		assert_noop!(
 			Market::set_price(Origin::signed(BOB), 0, 0, Some(10)),
@@ -68,5 +68,26 @@ fn buy_works() {
 
 		let event = Event::Marketplace(crate::Event::TokenSold(ALICE, BOB, 0, 0, 1111 * BSX));
 		assert_eq!(last_event(), event);
+	});
+}
+
+#[test]
+fn list_works() {
+	new_test_ext().execute_with(|| {
+		
+	});
+}
+
+#[test]
+fn unlist_works() {
+	new_test_ext().execute_with(|| {
+		
+	});
+}
+
+#[test]
+fn free_trading_works() {
+	new_test_ext().execute_with(|| {
+		
 	});
 }

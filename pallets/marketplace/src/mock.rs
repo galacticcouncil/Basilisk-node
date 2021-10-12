@@ -45,18 +45,11 @@ impl pallet_marketplace::Config for Test {
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Test>;
 }
 
-parameter_types! {
-	pub ClassBondAmount: Balance = 100_000 * BSX;
-	pub ClassBondDuration: u32 =  365 * 100 * 5;
-	pub MintMaxQuantity: u32 = 100_000;
-	pub MaxMetadataLength: u32 = 256;
-	pub MaxEmoteLength: u32 = 256;
-}
-
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
+	type TokenDeposit = InstanceDeposit;
 }
 
 parameter_types! {
@@ -146,7 +139,7 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 20_000 * BSX), (BOB, 2_000 * BSX)],
+			balances: vec![(ALICE, 20_000 * BSX), (BOB, 15_000 * BSX)],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

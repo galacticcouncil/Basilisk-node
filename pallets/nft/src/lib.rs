@@ -4,7 +4,7 @@
 
 use frame_support::{
 	dispatch::DispatchResult,
-	traits::{tokens::nonfungibles::*, BalanceStatus::Reserved, Currency, ReservableCurrency},
+	traits::{tokens::nonfungibles::*, Currency, ReservableCurrency},
 	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
@@ -100,20 +100,15 @@ pub mod pallet {
 				false,
 			)?;
 
-			let attribute1: Vec<u8> = b"type".to_vec();
-
-			let attribute1_bounded: BoundedVec<u8, T::KeyLimit> =
-				attribute1.try_into().map_err(|_| Error::<T>::TooLong)?;
-
-			let type_bounded: BoundedVec<u8, T::ValueLimit> =
-				class_type.encode().try_into().map_err(|_| Error::<T>::TooLong)?;
+			let key1_bounded = Self::to_bounded_key(b"type".to_vec())?;
+			let value1_bounded = Self::to_bounded_value(class_type.encode())?;
 
 			pallet_uniques::Pallet::<T>::set_attribute(
 				origin.clone(),
 				class_id,
 				None,
-				attribute1_bounded,
-				type_bounded,
+				key1_bounded,
+				value1_bounded,
 			)?;
 
 			//pallet_uniques::Pallet::<T>::freeze_class(origin.clone(), class_id)?;
@@ -136,13 +131,26 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
 			instance_id: T::InstanceId,
+			ipfs_hash: BoundedVec<u8, T::ValueLimit>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
 			let owner = T::Lookup::unlookup(sender.clone());
 
+			let key1_bounded = Self::to_bounded_key(b"ipfs_hash".to_vec())?;
+
+			pallet_uniques::Pallet::<T>::set_attribute(
+				origin.clone(),
+				class_id,
+				Some(instance_id),
+				key1_bounded,
+				ipfs_hash,
+			)?;
+
 			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, owner.clone())?;
 			<T as Config>::Currency::reserve(&sender, T::TokenDeposit::get())?;
+
+			// TODO: Increase counter
 
 			Ok(())
 		}
@@ -236,9 +244,7 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {
-		Count(bool),
-	}
+	pub enum Event<T: Config> {}
 
 	#[pallet::error]
 	pub enum Error<T> {
@@ -266,5 +272,13 @@ impl<T: Config> Pallet<T> {
 		} else {
 			Err(Error::<T>::NoWitness.into())
 		}
+	}
+
+	fn to_bounded_key(name: Vec<u8>) -> Result<BoundedVec<u8, T::KeyLimit>, Error<T>> {
+		name.try_into().map_err(|_| Error::<T>::TooLong)
+	}
+
+	fn to_bounded_value(name: Vec<u8>) -> Result<BoundedVec<u8, T::ValueLimit>, Error<T>> {
+		name.try_into().map_err(|_| Error::<T>::TooLong)
 	}
 }
