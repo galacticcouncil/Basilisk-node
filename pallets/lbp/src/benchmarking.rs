@@ -12,35 +12,27 @@ use crate::Pallet as LBP;
 const SEED: u32 = 1;
 
 const ASSET_HDX: AssetId = 0;
-const ASSET_ID_A: AssetId = 1;
-const ASSET_ID_B: AssetId = 2;
+const ASSET_A_ID: AssetId = 1;
+const ASSET_B_ID: AssetId = 2;
+const ASSET_A_AMOUNT: Balance = 1_000_000_000;
+const ASSET_B_AMOUNT: Balance = 2_000_000_000;
+const INITIAL_WEIGHT: LBPWeight = 20_000_000;
+const FINAL_WEIGHT: LBPWeight = 90_000_000;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 	T::MultiCurrency::update_balance(ASSET_HDX, &caller, 1_000_000_000_000_000).unwrap();
-	T::MultiCurrency::update_balance(ASSET_ID_A, &caller, 1_000_000_000_000_000).unwrap();
-	T::MultiCurrency::update_balance(ASSET_ID_B, &caller, 1_000_000_000_000_000).unwrap();
+	T::MultiCurrency::update_balance(ASSET_A_ID, &caller, 1_000_000_000_000_000).unwrap();
+	T::MultiCurrency::update_balance(ASSET_B_ID, &caller, 1_000_000_000_000_000).unwrap();
 	caller
 }
 
 benchmarks! {
 	create_pool {
 		let caller = funded_account::<T>("caller", 0);
-		let duration = (T::BlockNumber::from(10_u32), T::BlockNumber::from(20_u32));
-		let asset_a = LBPAssetInfo{
-			id: ASSET_ID_A,
-			amount: BalanceOf::<T>::from(1_000_000_000_u32),
-		};
-		let asset_b = LBPAssetInfo{
-			id: ASSET_ID_B,
-			amount: BalanceOf::<T>::from(2_000_000_000_u32),
-		};
+		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
 
-		let pool_id = T::AssetPairPoolId::from_assets(asset_a.id, asset_b.id);
-		let initial_weight = 20_000_000;
-		let final_weight = 90_000_000;
-
-	}: _(RawOrigin::Root, caller.clone(), asset_a, asset_b, initial_weight, final_weight, WeightCurveType::Linear, Fee::default(), caller)
+	}: _(RawOrigin::Root, caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), caller)
 	verify {
 		assert!(PoolData::<T>::contains_key(&pool_id));
 	}
@@ -48,26 +40,13 @@ benchmarks! {
 	update_pool_data {
 		let caller = funded_account::<T>("caller", 0);
 		let fee_collector = funded_account::<T>("fee_collector", 0);
-		let duration = (T::BlockNumber::from(10_u32), T::BlockNumber::from(20_u32));
-		let asset_a = LBPAssetInfo{
-			id: ASSET_ID_A,
-			amount: BalanceOf::<T>::from(1_000_000_000_u32),
-		};
-		let asset_b = LBPAssetInfo{
-			id: ASSET_ID_B,
-			amount: BalanceOf::<T>::from(2_000_000_000_u32),
-		};
-
-		let pool_id = T::AssetPairPoolId::from_assets(asset_a.id, asset_b.id);
-		let initial_weight = 20_000_000;
-		let final_weight = 90_000_000;
-
+		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
 		let new_start = T::BlockNumber::from(50_u32);
 		let new_end = T::BlockNumber::from(100_u32);
 		let new_initial_weight = 45_250_600;
 		let new_final_weight = 55_250_600;
 
-		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, initial_weight, final_weight, WeightCurveType::Linear, Fee { numerator: 5, denominator: 1000 }, caller.clone())?;
+		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee { numerator: 5, denominator: 1000 }, caller.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
 	}: _(RawOrigin::Signed(caller), pool_id.clone(), Some(new_start), Some(new_end), Some(new_initial_weight), Some(new_final_weight), Some(Fee::default()), Some(fee_collector))
@@ -81,46 +60,22 @@ benchmarks! {
 
 	add_liquidity {
 		let caller = funded_account::<T>("caller", 0);
-		let duration = (T::BlockNumber::from(10_u32), T::BlockNumber::from(20_u32));
-		let asset_a = LBPAssetInfo{
-			id: ASSET_ID_A,
-			amount: BalanceOf::<T>::from(1_000_000_000_u32),
-		};
-		let asset_b = LBPAssetInfo{
-			id: ASSET_ID_B,
-			amount: BalanceOf::<T>::from(2_000_000_000_u32),
-		};
+		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
 
-		let pool_id = T::AssetPairPoolId::from_assets(asset_a.id, asset_b.id);
-		let initial_weight = 20_000_000;
-		let final_weight = 90_000_000;
-
-		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, initial_weight, final_weight, WeightCurveType::Linear, Fee::default(), caller.clone())?;
+		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), caller.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-	}: _(RawOrigin::Signed(caller), (asset_a.id, 1_000_000_000_u128), (asset_b.id, 2_000_000_000_u128))
+	}: _(RawOrigin::Signed(caller), (ASSET_A_ID, 1_000_000_000_u128), (ASSET_B_ID, 2_000_000_000_u128))
 	verify {
-		assert_eq!(T::MultiCurrency::free_balance(asset_a.id, &pool_id), 2_000_000_000_u128);
-		assert_eq!(T::MultiCurrency::free_balance(asset_b.id, &pool_id), 4_000_000_000_u128);
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &pool_id), 2_000_000_000_u128);
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &pool_id), 4_000_000_000_u128);
 	}
 
 	remove_liquidity {
 		let caller = funded_account::<T>("caller", 0);
-		let duration = (T::BlockNumber::from(10_u32), T::BlockNumber::from(20_u32));
-		let asset_a = LBPAssetInfo{
-			id: ASSET_ID_A,
-			amount: BalanceOf::<T>::from(1_000_000_000_u32),
-		};
-		let asset_b = LBPAssetInfo{
-			id: ASSET_ID_B,
-			amount: BalanceOf::<T>::from(2_000_000_000_u32),
-		};
+		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
 
-		let pool_id = T::AssetPairPoolId::from_assets(asset_a.id, asset_b.id);
-		let initial_weight = 20_000_000;
-		let final_weight = 90_000_000;
-
-		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, initial_weight, final_weight, WeightCurveType::Linear, Fee::default(), caller.clone())?;
+		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), caller.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
 		System::<T>::set_block_number(21u32.into());
@@ -128,33 +83,21 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), pool_id.clone())
 	verify {
 		assert!(!PoolData::<T>::contains_key(&pool_id));
-		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID_A, &caller), 1000000000000000);
-		assert_eq!(T::MultiCurrency::free_balance(ASSET_ID_B, &caller), 1000000000000000);
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &caller), 1000000000000000);
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &caller), 1000000000000000);
 	}
 
 	sell {
 		let caller = funded_account::<T>("caller", 0);
 		let fee_collector = funded_account::<T>("fee_collector", 0);
-		let duration = (T::BlockNumber::from(10_u32), T::BlockNumber::from(20_u32));
-		let asset_a = LBPAssetInfo{
-			id: ASSET_ID_A,
-			amount: BalanceOf::<T>::from(1_000_000_000_u32),
-		};
-		let asset_b = LBPAssetInfo{
-			id: ASSET_ID_B,
-			amount: BalanceOf::<T>::from(2_000_000_000_u32),
-		};
-
-		let asset_in: AssetId = ASSET_ID_A;
-		let asset_out: AssetId = ASSET_ID_B;
+		let asset_in: AssetId = ASSET_A_ID;
+		let asset_out: AssetId = ASSET_B_ID;
 		let amount : Balance = 100_000_000;
 		let max_limit: Balance = 10_000_000;
 
-		let pool_id = T::AssetPairPoolId::from_assets(asset_a.id, asset_b.id);
-		let initial_weight = 20_000_000;
-		let final_weight = 90_000_000;
+		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
 
-		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, initial_weight, final_weight, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
+		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
 		System::<T>::set_block_number(1u32.into());
@@ -178,26 +121,13 @@ benchmarks! {
 	buy {
 		let caller = funded_account::<T>("caller", 0);
 		let fee_collector = funded_account::<T>("fee_collector", 0);
-		let duration = (T::BlockNumber::from(10_u32), T::BlockNumber::from(20_u32));
-		let asset_a = LBPAssetInfo{
-			id: ASSET_ID_A,
-			amount: BalanceOf::<T>::from(1_000_000_000_u32),
-		};
-		let asset_b = LBPAssetInfo{
-			id: ASSET_ID_B,
-			amount: BalanceOf::<T>::from(2_000_000_000_u32),
-		};
-
-		let asset_out: AssetId = ASSET_ID_A;
-		let asset_in: AssetId = ASSET_ID_B;
+		let asset_out: AssetId = ASSET_A_ID;
+		let asset_in: AssetId = ASSET_B_ID;
 		let amount : Balance = 100_000_000;
 		let max_limit: Balance = 1_000_000_000;
+		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
 
-		let pool_id = T::AssetPairPoolId::from_assets(asset_a.id, asset_b.id);
-		let initial_weight = 20_000_000;
-		let final_weight = 90_000_000;
-
-		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), asset_a, asset_b, initial_weight, final_weight, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
+		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
 		System::<T>::set_block_number(1u32.into());

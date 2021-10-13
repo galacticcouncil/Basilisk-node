@@ -168,10 +168,6 @@ Then open settings screen -> developer and paste
         "per_period":"Compact<Balance>"
       },
       "VestingScheduleOf":"VestingSchedule",
-      "LBPAssetInfo":{
-        "id":"AssetId",
-        "amount":"Balance"
-      },
       "LBPWeight":"u32",
       "WeightCurveType":{
         "_enum":[
