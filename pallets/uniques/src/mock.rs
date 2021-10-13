@@ -114,6 +114,8 @@ impl Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
+	type MintPermission = ();
+	type BurnPermission = ();
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

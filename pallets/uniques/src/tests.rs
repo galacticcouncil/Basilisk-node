@@ -154,7 +154,10 @@ fn transfer_should_work() {
 
 		assert_ok!(Uniques::transfer(Origin::signed(2), 0, 42, 3));
 		assert_eq!(assets(), vec![(3, 0, 42)]);
-		assert_noop!(Uniques::transfer(Origin::signed(2), 0, 42, 4), Error::<Test>::NoPermission);
+		assert_noop!(
+			Uniques::transfer(Origin::signed(2), 0, 42, 4),
+			Error::<Test>::NoPermission
+		);
 
 		assert_ok!(Uniques::approve_transfer(Origin::signed(3), 0, 42, 2));
 		assert_ok!(Uniques::transfer(Origin::signed(2), 0, 42, 4));
@@ -187,11 +190,17 @@ fn origin_guards_should_work() {
 			Uniques::transfer_ownership(Origin::signed(2), 0, 2),
 			Error::<Test>::NoPermission
 		);
-		assert_noop!(Uniques::set_team(Origin::signed(2), 0, 2, 2, 2), Error::<Test>::NoPermission);
+		assert_noop!(
+			Uniques::set_team(Origin::signed(2), 0, 2, 2, 2),
+			Error::<Test>::NoPermission
+		);
 		assert_noop!(Uniques::freeze(Origin::signed(2), 0, 42), Error::<Test>::NoPermission);
 		assert_noop!(Uniques::thaw(Origin::signed(2), 0, 42), Error::<Test>::NoPermission);
 		assert_noop!(Uniques::mint(Origin::signed(2), 0, 69, 2), Error::<Test>::NoPermission);
-		assert_noop!(Uniques::burn(Origin::signed(2), 0, 42, None), Error::<Test>::NoPermission);
+		assert_noop!(
+			Uniques::burn(Origin::signed(2), 0, 42, None),
+			Error::<Test>::NoPermission
+		);
 		let w = Class::<Test>::get(0).unwrap().destroy_witness();
 		assert_noop!(Uniques::destroy(Origin::signed(2), 0, w), Error::<Test>::NoPermission);
 	});
@@ -283,7 +292,10 @@ fn set_class_metadata_should_work() {
 			Uniques::set_class_metadata(Origin::signed(1), 0, bvec![0u8; 15], false),
 			Error::<Test, _>::Frozen,
 		);
-		assert_noop!(Uniques::clear_class_metadata(Origin::signed(1), 0), Error::<Test>::Frozen);
+		assert_noop!(
+			Uniques::clear_class_metadata(Origin::signed(1), 0),
+			Error::<Test>::Frozen
+		);
 
 		// Clear Metadata
 		assert_ok!(Uniques::set_class_metadata(Origin::root(), 0, bvec![0u8; 15], false));
@@ -291,7 +303,10 @@ fn set_class_metadata_should_work() {
 			Uniques::clear_class_metadata(Origin::signed(2), 0),
 			Error::<Test>::NoPermission
 		);
-		assert_noop!(Uniques::clear_class_metadata(Origin::signed(1), 1), Error::<Test>::Unknown);
+		assert_noop!(
+			Uniques::clear_class_metadata(Origin::signed(1), 1),
+			Error::<Test>::Unknown
+		);
 		assert_ok!(Uniques::clear_class_metadata(Origin::signed(1), 0));
 		assert!(!ClassMetadataOf::<Test>::contains_key(0));
 	});
@@ -345,7 +360,10 @@ fn set_instance_metadata_should_work() {
 			Uniques::clear_metadata(Origin::signed(2), 0, 42),
 			Error::<Test>::NoPermission
 		);
-		assert_noop!(Uniques::clear_metadata(Origin::signed(1), 1, 42), Error::<Test>::Unknown);
+		assert_noop!(
+			Uniques::clear_metadata(Origin::signed(1), 1, 42),
+			Error::<Test>::Unknown
+		);
 		assert_ok!(Uniques::clear_metadata(Origin::signed(1), 0, 42));
 		assert!(!InstanceMetadataOf::<Test>::contains_key(0, 42));
 	});
@@ -359,8 +377,20 @@ fn set_attribute_should_work() {
 		assert_ok!(Uniques::force_create(Origin::root(), 0, 1, false));
 
 		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, None, bvec![0], bvec![0]));
-		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, Some(0), bvec![0], bvec![0]));
-		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, Some(0), bvec![1], bvec![0]));
+		assert_ok!(Uniques::set_attribute(
+			Origin::signed(1),
+			0,
+			Some(0),
+			bvec![0],
+			bvec![0]
+		));
+		assert_ok!(Uniques::set_attribute(
+			Origin::signed(1),
+			0,
+			Some(0),
+			bvec![1],
+			bvec![0]
+		));
 		assert_eq!(
 			attributes(0),
 			vec![
@@ -371,7 +401,13 @@ fn set_attribute_should_work() {
 		);
 		assert_eq!(Balances::reserved_balance(1), 9);
 
-		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, None, bvec![0], bvec![0; 10]));
+		assert_ok!(Uniques::set_attribute(
+			Origin::signed(1),
+			0,
+			None,
+			bvec![0],
+			bvec![0; 10]
+		));
 		assert_eq!(
 			attributes(0),
 			vec![
@@ -404,8 +440,20 @@ fn set_attribute_should_respect_freeze() {
 		assert_ok!(Uniques::force_create(Origin::root(), 0, 1, false));
 
 		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, None, bvec![0], bvec![0]));
-		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, Some(0), bvec![0], bvec![0]));
-		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, Some(1), bvec![0], bvec![0]));
+		assert_ok!(Uniques::set_attribute(
+			Origin::signed(1),
+			0,
+			Some(0),
+			bvec![0],
+			bvec![0]
+		));
+		assert_ok!(Uniques::set_attribute(
+			Origin::signed(1),
+			0,
+			Some(1),
+			bvec![0],
+			bvec![0]
+		));
 		assert_eq!(
 			attributes(0),
 			vec![
@@ -418,13 +466,31 @@ fn set_attribute_should_respect_freeze() {
 
 		assert_ok!(Uniques::set_class_metadata(Origin::signed(1), 0, bvec![], true));
 		let e = Error::<Test>::Frozen;
-		assert_noop!(Uniques::set_attribute(Origin::signed(1), 0, None, bvec![0], bvec![0]), e);
-		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, Some(0), bvec![0], bvec![1]));
+		assert_noop!(
+			Uniques::set_attribute(Origin::signed(1), 0, None, bvec![0], bvec![0]),
+			e
+		);
+		assert_ok!(Uniques::set_attribute(
+			Origin::signed(1),
+			0,
+			Some(0),
+			bvec![0],
+			bvec![1]
+		));
 
 		assert_ok!(Uniques::set_metadata(Origin::signed(1), 0, 0, bvec![], true));
 		let e = Error::<Test>::Frozen;
-		assert_noop!(Uniques::set_attribute(Origin::signed(1), 0, Some(0), bvec![0], bvec![1]), e);
-		assert_ok!(Uniques::set_attribute(Origin::signed(1), 0, Some(1), bvec![0], bvec![1]));
+		assert_noop!(
+			Uniques::set_attribute(Origin::signed(1), 0, Some(0), bvec![0], bvec![1]),
+			e
+		);
+		assert_ok!(Uniques::set_attribute(
+			Origin::signed(1),
+			0,
+			Some(1),
+			bvec![0],
+			bvec![1]
+		));
 	});
 }
 
@@ -476,8 +542,14 @@ fn burn_works() {
 		assert_ok!(Uniques::mint(Origin::signed(2), 0, 69, 5));
 		assert_eq!(Balances::reserved_balance(1), 2);
 
-		assert_noop!(Uniques::burn(Origin::signed(0), 0, 42, None), Error::<Test>::NoPermission);
-		assert_noop!(Uniques::burn(Origin::signed(5), 0, 42, Some(6)), Error::<Test>::WrongOwner);
+		assert_noop!(
+			Uniques::burn(Origin::signed(0), 0, 42, None),
+			Error::<Test>::NoPermission
+		);
+		assert_noop!(
+			Uniques::burn(Origin::signed(5), 0, 42, Some(6)),
+			Error::<Test>::WrongOwner
+		);
 
 		assert_ok!(Uniques::burn(Origin::signed(5), 0, 42, Some(5)));
 		assert_ok!(Uniques::burn(Origin::signed(3), 0, 69, Some(5)));
@@ -492,7 +564,10 @@ fn approval_lifecycle_works() {
 		assert_ok!(Uniques::mint(Origin::signed(1), 0, 42, 2));
 		assert_ok!(Uniques::approve_transfer(Origin::signed(2), 0, 42, 3));
 		assert_ok!(Uniques::transfer(Origin::signed(3), 0, 42, 4));
-		assert_noop!(Uniques::transfer(Origin::signed(3), 0, 42, 3), Error::<Test>::NoPermission);
+		assert_noop!(
+			Uniques::transfer(Origin::signed(3), 0, 42, 3),
+			Error::<Test>::NoPermission
+		);
 		assert!(Asset::<Test>::get(0, 42).unwrap().approved.is_none());
 
 		assert_ok!(Uniques::approve_transfer(Origin::signed(4), 0, 42, 2));
@@ -567,8 +642,14 @@ fn cancel_approval_works_with_force() {
 		assert_ok!(Uniques::mint(Origin::signed(1), 0, 42, 2));
 
 		assert_ok!(Uniques::approve_transfer(Origin::signed(2), 0, 42, 3));
-		assert_noop!(Uniques::cancel_approval(Origin::root(), 1, 42, None), Error::<Test>::Unknown);
-		assert_noop!(Uniques::cancel_approval(Origin::root(), 0, 43, None), Error::<Test>::Unknown);
+		assert_noop!(
+			Uniques::cancel_approval(Origin::root(), 1, 42, None),
+			Error::<Test>::Unknown
+		);
+		assert_noop!(
+			Uniques::cancel_approval(Origin::root(), 0, 43, None),
+			Error::<Test>::Unknown
+		);
 		assert_noop!(
 			Uniques::cancel_approval(Origin::root(), 0, 42, Some(4)),
 			Error::<Test>::WrongDelegate

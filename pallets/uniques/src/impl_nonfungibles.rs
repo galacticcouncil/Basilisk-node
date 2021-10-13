@@ -29,10 +29,7 @@ impl<T: Config<I>, I: 'static> Inspect<<T as SystemConfig>::AccountId> for Palle
 	type InstanceId = T::InstanceId;
 	type ClassId = T::ClassId;
 
-	fn owner(
-		class: &Self::ClassId,
-		instance: &Self::InstanceId,
-	) -> Option<<T as SystemConfig>::AccountId> {
+	fn owner(class: &Self::ClassId, instance: &Self::InstanceId) -> Option<<T as SystemConfig>::AccountId> {
 		Asset::<T, I>::get(class, instance).map(|a| a.owner)
 	}
 
@@ -45,11 +42,7 @@ impl<T: Config<I>, I: 'static> Inspect<<T as SystemConfig>::AccountId> for Palle
 	/// When `key` is empty, we return the instance metadata value.
 	///
 	/// By default this is `None`; no attributes are defined.
-	fn attribute(
-		class: &Self::ClassId,
-		instance: &Self::InstanceId,
-		key: &[u8],
-	) -> Option<Vec<u8>> {
+	fn attribute(class: &Self::ClassId, instance: &Self::InstanceId, key: &[u8]) -> Option<Vec<u8>> {
 		if key.is_empty() {
 			// We make the empty key map to the instance metadata value.
 			InstanceMetadataOf::<T, I>::get(class, instance).map(|m| m.data.into())
@@ -87,11 +80,7 @@ impl<T: Config<I>, I: 'static> Inspect<<T as SystemConfig>::AccountId> for Palle
 
 impl<T: Config<I>, I: 'static> Create<<T as SystemConfig>::AccountId> for Pallet<T, I> {
 	/// Create a `class` of nonfungible assets to be owned by `who` and managed by `admin`.
-	fn create_class(
-		class: &Self::ClassId,
-		who: &T::AccountId,
-		admin: &T::AccountId,
-	) -> DispatchResult {
+	fn create_class(class: &Self::ClassId, who: &T::AccountId, admin: &T::AccountId) -> DispatchResult {
 		Self::do_create_class(
 			class.clone(),
 			who.clone(),
@@ -120,11 +109,7 @@ impl<T: Config<I>, I: 'static> Destroy<<T as SystemConfig>::AccountId> for Palle
 }
 
 impl<T: Config<I>, I: 'static> Mutate<<T as SystemConfig>::AccountId> for Pallet<T, I> {
-	fn mint_into(
-		class: &Self::ClassId,
-		instance: &Self::InstanceId,
-		who: &T::AccountId,
-	) -> DispatchResult {
+	fn mint_into(class: &Self::ClassId, instance: &Self::InstanceId, who: &T::AccountId) -> DispatchResult {
 		Self::do_mint(class.clone(), instance.clone(), who.clone(), |_| Ok(()))
 	}
 
@@ -134,11 +119,7 @@ impl<T: Config<I>, I: 'static> Mutate<<T as SystemConfig>::AccountId> for Pallet
 }
 
 impl<T: Config<I>, I: 'static> Transfer<T::AccountId> for Pallet<T, I> {
-	fn transfer(
-		class: &Self::ClassId,
-		instance: &Self::InstanceId,
-		destination: &T::AccountId,
-	) -> DispatchResult {
+	fn transfer(class: &Self::ClassId, instance: &Self::InstanceId, destination: &T::AccountId) -> DispatchResult {
 		Self::do_transfer(class.clone(), instance.clone(), destination.clone(), |_, _| Ok(()))
 	}
 }
@@ -168,10 +149,7 @@ impl<T: Config<I>, I: 'static> InspectEnumerable<T::AccountId> for Pallet<T, I> 
 	/// Returns an iterator of the asset instances of `class` owned by `who`.
 	///
 	/// NOTE: iterating this list invokes a storage read per item.
-	fn owned_in_class(
-		class: &Self::ClassId,
-		who: &T::AccountId,
-	) -> Box<dyn Iterator<Item = Self::InstanceId>> {
+	fn owned_in_class(class: &Self::ClassId, who: &T::AccountId) -> Box<dyn Iterator<Item = Self::InstanceId>> {
 		Box::new(Account::<T, I>::iter_key_prefix((who, class)))
 	}
 }
