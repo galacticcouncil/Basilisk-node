@@ -42,6 +42,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(10),
 			Some(20),
 			None,
@@ -433,6 +434,7 @@ fn update_pool_data_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(15),
 			Some(18),
 			Some(10_000_000),
@@ -464,6 +466,7 @@ fn update_pool_data_should_work() {
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
 			None,
+			None,
 			Some(30),
 			None,
 			None,
@@ -490,6 +493,7 @@ fn update_pool_data_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			None,
 			None,
 			Some(12_500_000),
@@ -522,6 +526,7 @@ fn update_pool_data_should_work() {
 			None,
 			None,
 			None,
+			None,
 			Some(ALICE),
 		));
 
@@ -544,6 +549,7 @@ fn update_pool_data_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			None,
 			Some(18),
 			Some(10_000_000),
@@ -575,6 +581,7 @@ fn update_pool_data_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(120),
 			Some(150),
 			Some(10_000_000),
@@ -605,6 +612,7 @@ fn update_non_existing_pool_data_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
+				None,
 				Some(15),
 				Some(18),
 				Some(10_000_000),
@@ -627,6 +635,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
+				None,
 				// reversed interval, the end precedes the beginning
 				Some(20),
 				Some(10),
@@ -647,6 +656,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
+				None,
 				Some(5),
 				Some(20),
 				Some(10_000_000),
@@ -664,6 +674,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
+				None,
 				Some(0),
 				Some(20),
 				Some(10_000_000),
@@ -681,6 +692,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
+				None,
 				Some(5),
 				Some(0),
 				Some(10_000_000),
@@ -709,6 +721,7 @@ fn update_pool_data_without_changes_should_not_work() {
 				None,
 				None,
 				None,
+				None,
 			),
 			Error::<Test>::NothingToUpdate
 		);
@@ -722,6 +735,7 @@ fn update_pool_data_by_non_owner_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(BOB),
 				ACA_DOT_POOL_ID,
+				None,
 				Some(15),
 				Some(20),
 				Some(10_000_000),
@@ -735,11 +749,54 @@ fn update_pool_data_by_non_owner_should_not_work() {
 }
 
 #[test]
+fn update_pool_owner_by_new_owner_should_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_ok!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				Some(BOB),
+				Some(15),
+				Some(20),
+				Some(10_000_000),
+				Some(80_000_000),
+				None,
+				None,
+			)
+		);
+
+		let pool_data1 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+
+		assert_ok!(
+			LBPPallet::update_pool_data(
+				Origin::signed(BOB),
+				ACA_DOT_POOL_ID,
+				Some(ALICE),
+				Some(15),
+				Some(20),
+				Some(10_000_000),
+				Some(80_000_000),
+				None,
+				None,
+			)
+		);
+
+		let pool_data2 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
+
+		expect_events(vec![
+			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data1).into(),
+			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into()
+		]);
+	});
+}
+
+#[test]
 fn update_pool_data_for_running_lbp_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(15),
 			Some(20),
 			None,
@@ -755,6 +812,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
+				None,
 				Some(15),
 				Some(30),
 				Some(10_000_000),
@@ -799,6 +857,7 @@ fn update_pool_interval_should_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
+				None,
 				Some(16),
 				Some(0),
 				None,
@@ -812,6 +871,7 @@ fn update_pool_interval_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(16),
 			Some(20),
 			None,
@@ -1471,6 +1531,7 @@ fn zero_weight_should_not_work() {
 			LBPPallet::update_pool_data(
 				Origin::signed(ALICE),
 				ACA_DOT_POOL_ID,
+				None,
 				Some(15),
 				Some(18),
 				Some(0),
@@ -1817,6 +1878,7 @@ fn buy_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			HDX_DOT_POOL_ID,
+			None,
 			Some(20),
 			Some(30),
 			None,
@@ -1885,6 +1947,7 @@ fn trade_in_renewed_pool_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(50),
 			Some(60),
 			None,
@@ -1966,6 +2029,7 @@ fn sell_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			HDX_DOT_POOL_ID,
+			None,
 			Some(20),
 			Some(30),
 			None,
@@ -2028,6 +2092,7 @@ fn zero_fee_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(10),
 			Some(20),
 			None,
@@ -2074,6 +2139,7 @@ fn amm_trait_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(10),
 			Some(20),
 			None,
@@ -2215,6 +2281,7 @@ fn amm_trait_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			pool_id2,
+			None,
 			Some(12),
 			Some(20),
 			None,
@@ -2280,6 +2347,7 @@ fn get_spot_price_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
 			ACA_DOT_POOL_ID,
+			None,
 			Some(10),
 			Some(20),
 			None,
@@ -2457,6 +2525,7 @@ fn simulate_lbp_event_should_work() {
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(pool_owner),
 			pool_account,
+			None,
 			Some(sale_start),
 			Some(sale_end),
 			None,

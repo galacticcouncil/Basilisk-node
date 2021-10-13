@@ -433,6 +433,7 @@ pub mod pallet {
 		pub fn update_pool_data(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T>,
+			pool_owner: Option<T::AccountId>,
 			start: Option<T::BlockNumber>,
 			end: Option<T::BlockNumber>,
 			initial_weight: Option<LBPWeight>,
@@ -457,6 +458,8 @@ pub mod pallet {
 				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
 				ensure!(!Self::is_pool_running(pool), Error::<T>::SaleStarted);
+
+				pool.owner = pool_owner.unwrap_or_else(|| pool.owner.clone());
 
 				pool.start = start.unwrap_or(pool.start);
 				pool.end = end.unwrap_or(pool.end);
