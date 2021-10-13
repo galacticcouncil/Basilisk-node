@@ -63,10 +63,8 @@ pub mod pallet {
 		/// Creates an NFT class and sets its metadata
 		///
 		/// Parameters:
-		/// - `class`: The identifier of the new asset class. This must not be currently in use.
-		/// - `admin`: The admin of this class of assets. The admin is the initial address of each
-		/// - `metadata`: The general information of this asset. Limited in length by `StringLimit` and
-		/// frozen against further changes
+		/// - `class_id`: The identifier of the new asset class. This must not be currently in use.
+		/// - `class_type`: The class type determines its purpose and usage
 		///
 		/// Emits `Created` and `ClassMetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
@@ -80,7 +78,7 @@ pub mod pallet {
 
 			let admin = T::Lookup::unlookup(sender.clone());
 
-			// TODO: finish incremental counter to create class and instance problem = Class ID not arithmetical
+			// TODO: finish incremental counter to create class and instance, problem = Class ID not arithmetical
 			/* let class_id = NextClassId::<T>::try_mutate(|id| -> Result<T::ClassId, DispatchError> {
 				let current_id = *id;
 				*id = id.saturating_add(&One::one()).ok_or(Error::<T>::NoAvailableClassId)?;
@@ -88,18 +86,7 @@ pub mod pallet {
 			})?; */
 
 			pallet_uniques::Pallet::<T>::create(origin.clone(), class_id, admin.clone())?;
-			// Set free_holding to true and handle reserve separately
-			pallet_uniques::Pallet::<T>::force_asset_status(
-				origin.clone(),
-				class_id,
-				admin.clone(),
-				admin.clone(),
-				admin.clone(),
-				admin.clone(),
-				true,
-				false,
-			)?;
-
+			
 			let key1_bounded = Self::to_bounded_key(b"type".to_vec())?;
 			let value1_bounded = Self::to_bounded_value(class_type.encode())?;
 
@@ -231,7 +218,7 @@ pub mod pallet {
 
 			); */
 
-			let witness = Self::get_witness(class_id)?;
+			let witness = pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id).ok_or(Error::<T>::NoWitness)?;
 
 			pallet_uniques::Pallet::<T>::destroy(origin, class_id, witness)?;
 
@@ -266,14 +253,6 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn get_witness(class_id: T::ClassId) -> Result<DestroyWitness, Error<T>> {
-		if let Some(witness) = pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id) {
-			Ok(witness)
-		} else {
-			Err(Error::<T>::NoWitness.into())
-		}
-	}
-
 	fn to_bounded_key(name: Vec<u8>) -> Result<BoundedVec<u8, T::KeyLimit>, Error<T>> {
 		name.try_into().map_err(|_| Error::<T>::TooLong)
 	}

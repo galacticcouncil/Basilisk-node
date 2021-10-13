@@ -6,7 +6,7 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use system::EnsureRoot;
+use system::{EnsureRoot, EnsureSigned};
 
 mod marketplace {
 	// Re-export needed for `impl_outer_event!`.
@@ -26,7 +26,7 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Marketplace: pallet_marketplace::{Pallet, Call, Storage, Event<T>},
-		Nft: pallet_nft::{Pallet, Call, Event<T>},
+		Nft: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 	}
@@ -125,6 +125,9 @@ impl pallet_uniques::Config for Test {
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
+pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
+pub const DAVE: AccountId = AccountId::new([4u8; 32]);
+
 pub const BSX: Balance = 100_000_000_000;
 
 pub struct ExtBuilder;
@@ -139,7 +142,7 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 20_000 * BSX), (BOB, 15_000 * BSX)],
+			balances: vec![(ALICE, 20_000 * BSX), (BOB, 15_000 * BSX), (CHARLIE, 150_000 * BSX), (DAVE, 222_222 * BSX)],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

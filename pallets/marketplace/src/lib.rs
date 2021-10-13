@@ -62,7 +62,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Pays a price to the current owner
 		/// Transfers NFT ownership to the buyer
-		/// Unlists the NFT
+		/// Disables automatic sell of the NFT
 		///
 		/// Parameters:
 		/// - `owner`: The destination account a token will be sent to
@@ -73,14 +73,15 @@ pub mod pallet {
 			let sender = ensure_signed(origin.clone())?;
 
 			let owner = pallet_uniques::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::Unknown)?;
+
+			ensure!(sender != owner, Error::<T>::BuyFromSelf);
+
 			let to = T::Lookup::unlookup(sender.clone());
 			let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
 			let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::Unknown)?;
 			let class_owner_origin = T::Origin::from(RawOrigin::Signed(class_owner.clone()));
 
 			pallet_uniques::Pallet::<T>::thaw(class_owner_origin.clone(), class_id, instance_id)?;
-
-			ensure!(sender != owner, Error::<T>::BuyFromSelf);
 
 			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
 				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::Unknown)?;
@@ -179,8 +180,8 @@ pub mod pallet {
 				Error::<T>::NotTheTokenOwner
 			);
 
-			let class_type = Self::get_class_type(class_id)?;
-			// TODO: Check if class type can be decoded to one of available types
+			// Check if class type can be decoded to one of available types
+			Self::get_class_type(class_id)?;
 
 			Tokens::<T>::insert(
 				class_id,
@@ -218,9 +219,12 @@ pub mod pallet {
 				Error::<T>::NotTheTokenOwner
 			);
 
+			let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::Unknown)?;
+			let class_owner_origin = T::Origin::from(RawOrigin::Signed(class_owner.clone()));
+
 			Tokens::<T>::remove(class_id, instance_id);
 
-			pallet_uniques::Pallet::<T>::thaw(origin.clone(), class_id, instance_id)?;
+			pallet_uniques::Pallet::<T>::thaw(class_owner_origin.clone(), class_id, instance_id)?;
 
 			Self::deposit_event(Event::TokenListed(sender, class_id, instance_id));
 

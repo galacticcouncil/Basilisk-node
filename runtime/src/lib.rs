@@ -831,7 +831,7 @@ impl pallet_uniques::Config for Runtime {
 	type ClassId = u32;
 	type InstanceId = u32;
 	type Currency = Balances;
-	type ForceOrigin = EnsureSigned<AccountId>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 	type ClassDeposit = ClassDeposit;
 	type InstanceDeposit = InstanceDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;

@@ -43,6 +43,7 @@ impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
+	type TokenDeposit = InstanceDeposit;
 }
 
 parameter_types! {
@@ -124,8 +125,8 @@ impl pallet_balances::Config for Test {
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
-pub const BSX: Balance = 100_000_000_000;
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
+pub const BSX: Balance = 100_000_000_000;
 pub const CLASS_ID: <Test as pallet_uniques::Config>::ClassId = 0;
 pub const TOKEN_ID: <Test as pallet_uniques::Config>::InstanceId = 0;
 
