@@ -193,7 +193,8 @@ Then open settings screen -> developer and paste
       "TokenInfo":{
         "author":"AccountId",
         "royalty":"u8",
-        "price":"Option<Balance>"
+        "price":"Option<Balance>",
+        "offer":"Option<(AccountId,Balance)>"
       },
       "TokenInfoOf":"TokenInfo",
       "AssetInstance": "AssetInstanceV0",

@@ -255,8 +255,8 @@ pub mod pallet {
 				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::Unknown)?;
 
 				if let Some(current_offer) = &token_info.offer {
-					Self::do_buy(current_offer.0.clone(), class_id, instance_id)?;
 					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &sender, current_offer.1);
+					Self::do_buy(current_offer.0.clone(), class_id, instance_id)?;			
 					token_info.offer = None;
 				}
 
