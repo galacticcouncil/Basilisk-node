@@ -53,7 +53,7 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{FixedPointNumber, Perbill, Percent, Permill, Perquintill};
 
-use primitives::fee;
+use primitives::{fee, ReserveIdentifier};
 
 #[allow(clippy::all)]
 mod weights;
@@ -309,7 +309,7 @@ impl pallet_balances::Config for Runtime {
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = ReserveIdentifier;
 }
 
 parameter_types! {

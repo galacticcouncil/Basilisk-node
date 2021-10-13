@@ -51,6 +51,8 @@ pub trait WeightInfo {
     fn buy() -> Weight;
     fn list() -> Weight;
     fn unlist() -> Weight;
+    fn make_offer() -> Weight;
+    fn accept_offer() -> Weight;
 }
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
@@ -76,6 +78,16 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
+    fn make_offer() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+	}
+    fn accept_offer() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+	}
 }
 
 // For backwards compatibility and tests
@@ -96,6 +108,16 @@ impl WeightInfo for () {
             .saturating_add(RocksDbWeight::get().writes(6 as Weight))
     }
     fn unlist() -> Weight {
+        (101_382_000 as Weight)
+            .saturating_add(RocksDbWeight::get().reads(5 as Weight))
+            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
+    }
+    fn make_offer() -> Weight {
+        (101_382_000 as Weight)
+            .saturating_add(RocksDbWeight::get().reads(5 as Weight))
+            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
+    }
+    fn accept_offer() -> Weight {
         (101_382_000 as Weight)
             .saturating_add(RocksDbWeight::get().reads(5 as Weight))
             .saturating_add(RocksDbWeight::get().writes(6 as Weight))

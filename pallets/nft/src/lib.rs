@@ -4,12 +4,13 @@
 
 use frame_support::{
 	dispatch::DispatchResult,
-	traits::{tokens::nonfungibles::*, Currency, ReservableCurrency},
+	traits::{tokens::nonfungibles::*, Currency, NamedReservableCurrency},
 	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
-use pallet_uniques::DestroyWitness;
-use sp_runtime::traits::{StaticLookup, CheckedAdd, One, Saturating};
+
+use primitives::ReserveIdentifier;
+use sp_runtime::traits::{CheckedAdd, One, Saturating, StaticLookup};
 use sp_std::{convert::TryInto, vec::Vec};
 use weights::WeightInfo;
 
@@ -35,12 +36,15 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 
+	pub const RESERVE_ID: ReserveIdentifier = ReserveIdentifier::Nft;
+
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_uniques::Config {
-		type Currency: ReservableCurrency<Self::AccountId>;
+		/// Currency type for reserve balance.
+		type Currency: NamedReservableCurrency<Self::AccountId, ReserveIdentifier = ReserveIdentifier>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Amount that must be reserved for each minted NFT
 		#[pallet::constant]
@@ -86,17 +90,11 @@ pub mod pallet {
 			})?; */
 
 			pallet_uniques::Pallet::<T>::create(origin.clone(), class_id, admin.clone())?;
-			
+
 			let key1_bounded = Self::to_bounded_key(b"type".to_vec())?;
 			let value1_bounded = Self::to_bounded_value(class_type.encode())?;
 
-			pallet_uniques::Pallet::<T>::set_attribute(
-				origin.clone(),
-				class_id,
-				None,
-				key1_bounded,
-				value1_bounded,
-			)?;
+			pallet_uniques::Pallet::<T>::set_attribute(origin.clone(), class_id, None, key1_bounded, value1_bounded)?;
 
 			//pallet_uniques::Pallet::<T>::freeze_class(origin.clone(), class_id)?;
 
@@ -135,7 +133,7 @@ pub mod pallet {
 			)?;
 
 			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, owner.clone())?;
-			<T as Config>::Currency::reserve(&sender, T::TokenDeposit::get())?;
+			<T as Config>::Currency::reserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get())?;
 
 			// TODO: Increase counter
 
@@ -162,8 +160,8 @@ pub mod pallet {
 			let dest_account = T::Lookup::lookup(dest.clone())?;
 
 			// Move the deposit to the new owner.
-			<T as Config>::Currency::reserve(&dest_account, T::TokenDeposit::get())?;
-			<T as Config>::Currency::unreserve(&sender, T::TokenDeposit::get());
+			<T as Config>::Currency::reserve_named(&RESERVE_ID, &dest_account, T::TokenDeposit::get())?;
+			<T as Config>::Currency::unreserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get());
 
 			pallet_uniques::Pallet::<T>::transfer(origin, class_id, instance_id, dest)?;
 
@@ -181,11 +179,7 @@ pub mod pallet {
 		/// Emits `Burned` with the actual amount burned.
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
-		pub fn burn(
-			origin: OriginFor<T>,
-			class_id: T::ClassId,
-			instance_id: T::InstanceId,
-		) -> DispatchResult {
+		pub fn burn(origin: OriginFor<T>, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
 			ensure!(
@@ -194,7 +188,7 @@ pub mod pallet {
 			);
 
 			pallet_uniques::Pallet::<T>::burn(origin, class_id, instance_id, None)?;
-			<T as Config>::Currency::unreserve(&sender, T::TokenDeposit::get());
+			<T as Config>::Currency::unreserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get());
 
 			Ok(())
 		}
@@ -248,7 +242,7 @@ pub mod pallet {
 		/// Class still contains minted tokens
 		TokenClassNotEmpty,
 		/// Number of classes reached the limit
-		NoAvailableClassId
+		NoAvailableClassId,
 	}
 }
 

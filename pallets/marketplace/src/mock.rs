@@ -1,12 +1,13 @@
 use crate as pallet_marketplace;
 use frame_support::parameter_types;
 use frame_system as system;
+use primitives::ReserveIdentifier;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use system::{EnsureRoot, EnsureSigned};
+use system::EnsureRoot;
 
 mod marketplace {
 	// Re-export needed for `impl_outer_event!`.
@@ -66,7 +67,7 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = ReserveIdentifier;
 }
 
 impl system::Config for Test {

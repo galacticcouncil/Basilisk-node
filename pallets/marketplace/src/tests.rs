@@ -2,6 +2,7 @@ use frame_support::{assert_noop, assert_ok};
 
 use super::*;
 use mock::{Event, *};
+use sp_std::convert::TryInto;
 
 macro_rules! bvec {
 	($( $x:tt )*) => {
@@ -39,7 +40,8 @@ fn set_price_works() {
 			Some(TokenInfo {
 				author: CHARLIE,
 				royalty: 20u8,
-				price: Some(10)
+				price: Some(10),
+				offer: None,
 			})
 		);
 
@@ -49,7 +51,8 @@ fn set_price_works() {
 			Some(TokenInfo {
 				author: CHARLIE,
 				royalty: 20u8,
-				price: None
+				price: None,
+				offer: None,
 			})
 		);
 
@@ -87,7 +90,8 @@ fn buy_works() {
 			Some(TokenInfo {
 				author: DAVE,
 				royalty: 33,
-				price: None
+				price: None,
+				offer: None,
 			})
 		);
 
@@ -217,5 +221,21 @@ fn free_trading_works() {
 		//);
 
 		assert_ok!(Nft::burn(Origin::signed(CHARLIE), 1, 1));
+	});
+}
+
+#[test]
+fn offering_works() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(Nft::create_class(Origin::signed(ALICE), 0, ClassType::Art));
+		assert_ok!(Nft::mint(Origin::signed(ALICE), 0, 0, bvec![0]));
+		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0, CHARLIE, 20));
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
+		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX));
+		assert_ok!(Market::accept_offer(Origin::signed(ALICE), 0, 0));
+		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
+		assert_eq!(Balances::total_balance(&ALICE), 20_080 * BSX);
+		assert_eq!(Balances::total_balance(&BOB), 14_900 * BSX);
+		assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * BSX);
 	});
 }
