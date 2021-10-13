@@ -1,6 +1,6 @@
 {
 	"relaychain": {
-		"bin": "../../polkadot/target/release/polkadot",
+		"bin": "/mnt/data/workspace/sources/polkadot/target/release/polkadot",
 		"chain": "rococo-local",
 		"nodes": [
 			{
@@ -89,7 +89,7 @@
 			]
 		},
 		{
-			"bin": "../../Acala/target/release/acala",
+			"bin": "/mnt/data/workspace/sources/Acala/target/release/acala",
 			"id": "2000",
 			"chain": "karura-dev",
 			"nodes": [

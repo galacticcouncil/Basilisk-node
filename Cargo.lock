@@ -6207,13 +6207,15 @@ dependencies = [
 [[package]]
 name = "pallet-uniques"
 version = "4.0.0-dev"
-source = "git+https://github.com/green-jay//substrate?branch=polkadot-v0.9.10#c23ba88c98ff1caa80aee959e185b456d6a2c908"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "pallet-balances",
  "parity-scale-codec 2.3.1",
+ "scale-info 1.0.0",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]

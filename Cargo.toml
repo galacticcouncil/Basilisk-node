@@ -10,6 +10,7 @@ members = [
   'pallets/xyk',
   'pallets/exchange',
   'pallets/marketplace',
+  'pallets/uniques',
   'pallets/asset-registry',
   'integration-tests',
 ]
@@ -68,7 +69,6 @@ pallet-transaction-payment-rpc = { git = "https://github.com/green-jay//substrat
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/green-jay//substrate", branch = "polkadot-v0.9.10" }
 pallet-treasury = { git = "https://github.com/green-jay//substrate", branch = "polkadot-v0.9.10" }
 pallet-utility = { git = "https://github.com/green-jay//substrate", branch = "polkadot-v0.9.10" }
-pallet-uniques = { git = "https://github.com/green-jay//substrate", branch = "polkadot-v0.9.10" }
 pallet-vesting = { git = "https://github.com/green-jay//substrate", branch = "polkadot-v0.9.10" }
 remote-externalities = { git = "https://github.com/green-jay//substrate", branch = "polkadot-v0.9.10" }
 sc-authority-discovery = { git = "https://github.com/green-jay//substrate", branch = "polkadot-v0.9.10" }
