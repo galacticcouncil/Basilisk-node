@@ -207,7 +207,6 @@ Then open settings screen -> developer and paste
         "fee":"Fee",
         "fee_receiver":"AccountId"
       },
-      "AssetNativeLocation":"MultiLocation",
       "AssetDetails":{
         "name":"Vec<u8>",
         "asset_type":"AssetType",
