@@ -149,10 +149,10 @@ fn free_trading_works() {
 			Nft::transfer(Origin::signed(ALICE), 1, 1, CHARLIE),
 			pallet_uniques::Error::<Test, _>::NoPermission
 		);
-		//assert_noop!(
-		//	Nft::transfer(Origin::signed(ALICE), 0, 1, CHARLIE),
-		//	pallet_uniques::Error::<Test, _>::NoPermission
-		//);
+		assert_noop!(
+			Nft::transfer(Origin::signed(ALICE), 0, 1, CHARLIE),
+			pallet_uniques::Error::<Test, _>::NoPermission
+		);
 
 		// Only class owner or ForceOrigin can destroy their class
 		//assert_ok!(Nft::destroy_class(Origin::signed(CHARLIE), 2));
@@ -233,8 +233,8 @@ fn offering_works() {
 		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX));
 		assert_ok!(Market::accept_offer(Origin::signed(ALICE), 0, 0));
 		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
-		assert_eq!(Balances::total_balance(&ALICE), 20_080 * BSX);
-		assert_eq!(Balances::total_balance(&BOB), 14_900 * BSX);
+		assert_eq!(Balances::total_balance(&ALICE), 20_180 * BSX);
+		assert_eq!(Balances::total_balance(&BOB), 14_800 * BSX);
 		assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * BSX);
 	});
 }

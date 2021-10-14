@@ -59,7 +59,7 @@ pub use weights::WeightInfo;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::traits::{CanBurn, CanDestroyClass, CanMint, InstanceReserve};
+	use crate::traits::{CanBurn, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -124,6 +124,7 @@ pub mod pallet {
 
 		type MintPermission: CanMint;
 		type BurnPermission: CanBurn;
+		type InstanceTransferPermission: CanTransfer;
 		type CanDestroyClass: CanDestroyClass;
 		type InstanceReserveStrategy: InstanceReserve;
 	}
@@ -484,7 +485,17 @@ pub mod pallet {
 			let dest = T::Lookup::lookup(dest)?;
 
 			Self::do_transfer(class, instance, dest, |class_details, details| {
-				if details.owner != origin && class_details.admin != origin {
+				let team = Self::get_team(class_details);
+
+				let result = T::InstanceTransferPermission::can_transfer::<T, I>(
+					origin.clone(),
+					&details.owner,
+					&instance,
+					&class,
+					&team,
+				);
+
+				if result.is_err() {
 					let approved = details.approved.take().map_or(false, |i| i == origin);
 					ensure!(approved, Error::<T, I>::NoPermission);
 				}

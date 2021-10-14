@@ -15,9 +15,9 @@ use sp_runtime::{
 	Percent,
 };
 
-use frame_support::traits::ReservableCurrency;
-use pallet_uniques::traits::{CanBurn, CanDestroyClass, CanMint, InstanceReserve};
-use pallet_uniques::ClassTeam;
+use frame_support::traits::{BalanceStatus, ReservableCurrency};
+use pallet_uniques::traits::{CanBurn, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
+use pallet_uniques::{ClassTeam, DepositBalanceOf};
 
 use types::TokenInfo;
 use weights::WeightInfo;
@@ -396,6 +396,20 @@ impl<P: Config> CanBurn for Pallet<P> {
 	}
 }
 
+impl<P: Config> CanTransfer for Pallet<P> {
+	fn can_transfer<T: pallet_uniques::Config<I>, I: 'static>(
+		origin: T::AccountId,
+		instance_owner: &T::AccountId,
+		_instance_id: &T::InstanceId,
+		_class_id: &T::ClassId,
+		_class_team: &ClassTeam<T::AccountId>,
+	) -> sp_runtime::DispatchResult {
+		let is_permitted = *instance_owner == origin;
+		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
+		Ok(())
+	}
+}
+
 impl<P: Config> InstanceReserve for Pallet<P> {
 	fn reserve<T: pallet_uniques::Config<I>, I>(
 		instance_owner: &T::AccountId,
@@ -416,6 +430,17 @@ impl<P: Config> InstanceReserve for Pallet<P> {
 	) -> sp_runtime::DispatchResult {
 		T::Currency::unreserve(instance_owner, deposit);
 		Ok(())
+	}
+
+	fn repatriate<T: pallet_uniques::Config<I>, I>(
+		dest: &T::AccountId,
+		instance_owner: &T::AccountId,
+		_instance_id: &T::InstanceId,
+		_class_id: &T::ClassId,
+		_class_team: &ClassTeam<T::AccountId>,
+		deposit: DepositBalanceOf<T, I>,
+	) -> sp_runtime::DispatchResult {
+		T::Currency::repatriate_reserved(dest, instance_owner, deposit, BalanceStatus::Reserved).map(|_| ())
 	}
 }
 

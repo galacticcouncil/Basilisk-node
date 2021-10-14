@@ -116,6 +116,7 @@ impl Config for Test {
 	type WeightInfo = ();
 	type MintPermission = ();
 	type BurnPermission = ();
+	type InstanceTransferPermission = ();
 	type CanDestroyClass = ();
 	type InstanceReserveStrategy = ();
 }

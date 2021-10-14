@@ -124,6 +124,7 @@ impl pallet_uniques::Config for Test {
 	type WeightInfo = ();
 	type MintPermission = Marketplace;
 	type BurnPermission = Marketplace;
+	type InstanceTransferPermission = Marketplace;
 	type CanDestroyClass = Marketplace;
 	type InstanceReserveStrategy = Marketplace;
 }

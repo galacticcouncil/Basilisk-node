@@ -1,4 +1,4 @@
-use crate::traits::{CanBurn, CanDestroyClass, CanMint, InstanceReserve};
+use crate::traits::{CanBurn, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
 use crate::{ClassTeam, Config, DepositBalanceOf, Error};
 use frame_support::ensure;
 use frame_support::sp_runtime::DispatchResult;
@@ -55,6 +55,20 @@ impl CanBurn for () {
 	}
 }
 
+impl CanTransfer for () {
+	fn can_transfer<T: Config<I>, I: 'static>(
+		origin: T::AccountId,
+		instance_owner: &T::AccountId,
+		_instance_id: &T::InstanceId,
+		_class_id: &T::ClassId,
+		class_team: &ClassTeam<T::AccountId>,
+	) -> DispatchResult {
+		let is_permitted = class_team.admin == origin || *instance_owner == origin;
+		ensure!(is_permitted, Error::<T, I>::NoPermission);
+		Ok(())
+	}
+}
+
 impl CanDestroyClass for () {
 	fn can_destroy_class<T: Config<I>, I: 'static>(
 		origin: &T::AccountId,
@@ -93,6 +107,20 @@ impl InstanceReserve for () {
 		deposit: DepositBalanceOf<T, I>,
 	) -> DispatchResult {
 		T::Currency::unreserve(&class_team.owner, deposit);
+		Ok(())
+	}
+
+	fn repatriate<T: Config<I>, I>(
+		_dest: &T::AccountId,
+		_instance_owner: &T::AccountId,
+		_instance_id: &T::InstanceId,
+		_class_id: &T::ClassId,
+		_class_team: &ClassTeam<T::AccountId>,
+		_deposit: DepositBalanceOf<T, I>,
+	) -> DispatchResult {
+		// Nothing to do here, because instances reserve are always on class owner
+		// This becomes useful when instance reserve are on instance owner,
+		// and instance is transferred
 		Ok(())
 	}
 }

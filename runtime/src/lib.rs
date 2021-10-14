@@ -843,6 +843,7 @@ impl pallet_uniques::Config for Runtime {
 	type WeightInfo = ();
 	type MintPermission = ();
 	type BurnPermission = ();
+	type InstanceTransferPermission = ();
 	type CanDestroyClass = ();
 	type InstanceReserveStrategy = ();
 }

@@ -18,6 +18,16 @@ pub trait CanBurn {
 	) -> DispatchResult;
 }
 
+pub trait CanTransfer {
+	fn can_transfer<T: crate::pallet::Config<I>, I: 'static>(
+		origin: T::AccountId,
+		instance_owner: &T::AccountId,
+		instance_id: &T::InstanceId,
+		class_id: &T::ClassId,
+		class_team: &ClassTeam<T::AccountId>,
+	) -> DispatchResult;
+}
+
 pub trait CanDestroyClass {
 	fn can_destroy_class<T: crate::pallet::Config<I>, I: 'static>(
 		origin: &T::AccountId,
@@ -42,6 +52,15 @@ pub trait InstanceReserve {
 	) -> DispatchResult;
 
 	fn unreserve<T: crate::pallet::Config<I>, I>(
+		instance_owner: &T::AccountId,
+		instance_id: &T::InstanceId,
+		class_id: &T::ClassId,
+		class_team: &ClassTeam<T::AccountId>,
+		deposit: DepositBalanceOf<T, I>,
+	) -> DispatchResult;
+
+	fn repatriate<T: crate::pallet::Config<I>, I>(
+		dest: &T::AccountId,
 		instance_owner: &T::AccountId,
 		instance_id: &T::InstanceId,
 		class_id: &T::ClassId,
