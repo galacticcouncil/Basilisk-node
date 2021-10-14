@@ -122,6 +122,8 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
+	type MintPermission = Marketplace;
+	type BurnPermission = ();
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);

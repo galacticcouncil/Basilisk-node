@@ -123,7 +123,7 @@ fn free_trading_works() {
 
 		// Anyone can mint a token in any class
 		assert_ok!(Nft::mint(Origin::signed(ALICE), 0, 0, bvec![0]));
-		//assert_ok!(Nft::mint(Origin::signed(ALICE), 1, 0, bvec![0]));
+		assert_ok!(Nft::mint(Origin::signed(ALICE), 1, 0, bvec![0]));
 		//assert_ok!(Nft::mint(Origin::signed(ALICE), 2, 0, bvec![0]));
 		//assert_ok!(Nft::mint(Origin::signed(BOB), 0, 1, bvec![0]));
 		assert_ok!(Nft::mint(Origin::signed(BOB), 1, 1, bvec![0]));

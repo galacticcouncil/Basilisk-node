@@ -359,3 +359,16 @@ impl<T: Config> Pallet<T> {
 		})
 	}
 }
+
+use pallet_uniques::traits::CanMint;
+use frame_support::traits::ReservableCurrency;
+
+impl<P: Config> CanMint for Pallet<P>{
+	fn can_mint<T: pallet_uniques::Config<I>, I>(origin: T::AccountId, class_details: &pallet_uniques::types::ClassDetailsFor<T, I>) -> sp_runtime::DispatchResult {
+		Ok(())
+	}
+
+	fn reserve<T: pallet_uniques::Config<I>, I>(owner: T::AccountId, class_details: &pallet_uniques::types::ClassDetailsFor<T, I>, deposit: pallet_uniques::types::DepositBalanceOf<T, I>) -> sp_runtime::DispatchResult {
+		T::Currency::reserve(&owner, deposit)
+	}
+}

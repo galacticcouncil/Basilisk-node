@@ -38,8 +38,8 @@ pub mod weights;
 mod functions;
 mod impl_nonfungibles;
 mod permissions;
-mod traits;
-mod types;
+pub mod traits;
+pub mod types;
 
 pub use types::*;
 
@@ -891,7 +891,9 @@ pub mod pallet {
 
 			let mut class_details = Class::<T, I>::get(&class).ok_or(Error::<T, I>::Unknown)?;
 			if let Some(check_owner) = &maybe_check_owner {
-				ensure!(check_owner == &class_details.owner, Error::<T, I>::NoPermission);
+				// TODO: revisit later
+				// check disabled for now as nft needs to call this wihtout the owner
+				//ensure!(check_owner == &class_details.owner, Error::<T, I>::NoPermission);
 			}
 			let maybe_is_frozen = match maybe_instance {
 				None => ClassMetadataOf::<T, I>::get(class).map(|v| v.is_frozen),
