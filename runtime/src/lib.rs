@@ -841,6 +841,9 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
+	type MintPermission = ();
+	type BurnPermission = ();
+	type InstanceReserveStrategy = ();
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
