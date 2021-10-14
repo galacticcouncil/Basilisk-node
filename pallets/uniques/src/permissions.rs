@@ -1,6 +1,6 @@
 use crate::traits::{CanBurn, CanMint, InstanceReserve};
 use crate::{ClassTeam, Config, DepositBalanceOf, Error};
-use frame_benchmarking::frame_support::sp_runtime::DispatchResult;
+use frame_support::sp_runtime::DispatchResult;
 use frame_support::ensure;
 use frame_support::traits::ReservableCurrency;
 
