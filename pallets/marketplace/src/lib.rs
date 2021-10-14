@@ -436,7 +436,6 @@ impl<P: Config> CanDestroyClass for Pallet<P> {
 	) -> DispatchResult {
 		// Is called only where are existing instances
 		// Not allowed to destroy calls in such case
-		// Err(pallet_uniques::Error::<T,I>::NoPermission.into())
-		Ok(())
+		Err(pallet_uniques::Error::<T, I>::NoPermission.into())
 	}
 }

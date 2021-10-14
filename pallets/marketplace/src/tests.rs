@@ -136,10 +136,10 @@ fn free_trading_works() {
 			Nft::burn(Origin::signed(ALICE), 1, 1),
 			pallet_uniques::Error::<Test, _>::NoPermission
 		);
-		//assert_noop!(
-		//	Nft::burn(Origin::signed(ALICE), 1, 1),
-		//	pallet_uniques::Error::<Test, _>::NoPermission
-		//);
+		assert_noop!(
+			Nft::burn(Origin::signed(ALICE), 1, 1),
+			pallet_uniques::Error::<Test, _>::NoPermission
+		);
 		assert_ok!(Nft::burn(Origin::signed(ALICE), 0, 0));
 
 		// Only instance owner can transfer their token
@@ -155,21 +155,21 @@ fn free_trading_works() {
 		//);
 
 		// Only class owner or ForceOrigin can destroy their class
-		assert_ok!(Nft::destroy_class(Origin::signed(CHARLIE), 2));
-		assert_noop!(
-			Nft::destroy_class(Origin::signed(CHARLIE), 1),
-			pallet_uniques::Error::<Test, _>::NoPermission
-		);
+		//assert_ok!(Nft::destroy_class(Origin::signed(CHARLIE), 2));
+		//assert_noop!(
+		//		Nft::destroy_class(Origin::signed(CHARLIE), 1),
+		//		pallet_uniques::Error::<Test, _>::NoPermission
+		//	);
 
 		// Only token owner can list their token on marketplace
 		assert_noop!(
 			Market::list(Origin::signed(CHARLIE), 1, 1, DAVE, 33),
 			Error::<Test>::NotTheTokenOwner
 		);
-		//assert_noop!(
-		//	Market::list(Origin::signed(CHARLIE), 2, 1, DAVE, 33),
-		//	Error::<Test>::NotTheTokenOwner
-		//);
+		assert_noop!(
+			Market::list(Origin::signed(CHARLIE), 2, 1, DAVE, 33),
+			Error::<Test>::NotTheTokenOwner
+		);
 		assert_ok!(Market::list(Origin::signed(BOB), 1, 1, DAVE, 33));
 
 		// Only token owner can set price of a token on marketplace
@@ -214,10 +214,10 @@ fn free_trading_works() {
 
 		assert_ok!(Market::unlist(Origin::signed(CHARLIE), 1, 1));
 
-		//assert_noop!(
-		//	Nft::burn(Origin::signed(BOB), 1, 1),
-		//	pallet_uniques::Error::<Test, _>::NoPermission
-		//);
+		assert_noop!(
+			Nft::burn(Origin::signed(BOB), 1, 1),
+			pallet_uniques::Error::<Test, _>::NoPermission
+		);
 
 		assert_ok!(Nft::burn(Origin::signed(CHARLIE), 1, 1));
 	});
