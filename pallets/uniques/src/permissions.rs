@@ -1,7 +1,7 @@
-use crate::traits::{CanBurn, CanMint, InstanceReserve};
+use crate::traits::{CanBurn, CanDestroyClass, CanMint, InstanceReserve};
 use crate::{ClassTeam, Config, DepositBalanceOf, Error};
-use frame_support::sp_runtime::DispatchResult;
 use frame_support::ensure;
+use frame_support::sp_runtime::DispatchResult;
 use frame_support::traits::ReservableCurrency;
 
 pub struct IsIssuer();
@@ -52,6 +52,25 @@ impl CanBurn for () {
 		class_team: &ClassTeam<T::AccountId>,
 	) -> DispatchResult {
 		AdminOrOwner::can_burn::<T, I>(origin, instance_owner, instance_id, class_id, class_team)
+	}
+}
+
+impl CanDestroyClass for () {
+	fn can_destroy_class<T: Config<I>, I: 'static>(
+		origin: &T::AccountId,
+		_class_id: &T::ClassId,
+		class_team: &ClassTeam<T::AccountId>,
+	) -> DispatchResult {
+		ensure!(class_team.owner == *origin, Error::<T, I>::NoPermission);
+		Ok(())
+	}
+
+	fn can_destroy_instances<T: Config<I>, I: 'static>(
+		_origin: &T::AccountId,
+		_class_id: &T::ClassId,
+		_class_team: &ClassTeam<T::AccountId>,
+	) -> DispatchResult {
+		Ok(())
 	}
 }
 

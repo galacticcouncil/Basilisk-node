@@ -18,7 +18,7 @@
 //! Various pieces of common functionality.
 
 use super::*;
-use crate::traits::InstanceReserve;
+use crate::traits::{CanDestroyClass, InstanceReserve};
 use frame_support::{ensure, traits::Get};
 use sp_runtime::{DispatchError, DispatchResult};
 
@@ -86,7 +86,12 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		Class::<T, I>::try_mutate_exists(class, |maybe_details| {
 			let class_details = maybe_details.take().ok_or(Error::<T, I>::Unknown)?;
 			if let Some(check_owner) = maybe_check_owner {
-				ensure!(class_details.owner == check_owner, Error::<T, I>::NoPermission);
+				let team = Self::get_team(&class_details);
+				T::CanDestroyClass::can_destroy_class::<T, I>(&check_owner, &class, &team)?;
+
+				if class_details.instances > 0 {
+					T::CanDestroyClass::can_destroy_instances::<T, I>(&check_owner, &class, &team)?;
+				}
 			}
 			ensure!(class_details.instances == witness.instances, Error::<T, I>::BadWitness);
 			ensure!(

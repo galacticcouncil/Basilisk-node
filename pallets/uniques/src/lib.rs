@@ -59,7 +59,7 @@ pub use weights::WeightInfo;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::traits::{CanBurn, CanMint, InstanceReserve};
+	use crate::traits::{CanBurn, CanDestroyClass, CanMint, InstanceReserve};
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -124,6 +124,7 @@ pub mod pallet {
 
 		type MintPermission: CanMint;
 		type BurnPermission: CanBurn;
+		type CanDestroyClass: CanDestroyClass;
 		type InstanceReserveStrategy: InstanceReserve;
 	}
 

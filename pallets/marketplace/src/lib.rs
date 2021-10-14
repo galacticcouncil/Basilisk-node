@@ -15,6 +15,10 @@ use sp_runtime::{
 	Percent,
 };
 
+use frame_support::traits::ReservableCurrency;
+use pallet_uniques::traits::{CanBurn, CanDestroyClass, CanMint, InstanceReserve};
+use pallet_uniques::ClassTeam;
+
 use types::TokenInfo;
 use weights::WeightInfo;
 
@@ -325,8 +329,9 @@ impl<T: Config> Pallet<T> {
 
 	fn do_buy(buyer: T::AccountId, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
 		ensure!(Tokens::<T>::contains_key(class_id, instance_id), Error::<T>::NotListed);
-		
-		let owner = pallet_uniques::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+
+		let owner =
+			pallet_uniques::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
@@ -369,10 +374,6 @@ impl<T: Config> Pallet<T> {
 	}
 }
 
-use frame_support::traits::ReservableCurrency;
-use pallet_uniques::traits::{CanBurn, CanMint, InstanceReserve};
-use pallet_uniques::ClassTeam;
-
 impl<P: Config> CanMint for Pallet<P> {
 	fn can_mint<T: pallet_uniques::Config<I>, I: 'static>(
 		_origin: T::AccountId,
@@ -414,6 +415,28 @@ impl<P: Config> InstanceReserve for Pallet<P> {
 		deposit: pallet_uniques::DepositBalanceOf<T, I>,
 	) -> sp_runtime::DispatchResult {
 		T::Currency::unreserve(instance_owner, deposit);
+		Ok(())
+	}
+}
+
+impl<P: Config> CanDestroyClass for Pallet<P> {
+	fn can_destroy_class<T: pallet_uniques::Config<I>, I: 'static>(
+		origin: &T::AccountId,
+		_class_id: &T::ClassId,
+		class_team: &ClassTeam<T::AccountId>,
+	) -> DispatchResult {
+		ensure!(class_team.owner == *origin, pallet_uniques::Error::<T, I>::NoPermission);
+		Ok(())
+	}
+
+	fn can_destroy_instances<T: pallet_uniques::Config<I>, I: 'static>(
+		_origin: &T::AccountId,
+		_class_id: &T::ClassId,
+		_class_team: &ClassTeam<T::AccountId>,
+	) -> DispatchResult {
+		// Is called only where are existing instances
+		// Not allowed to destroy calls in such case
+		// Err(pallet_uniques::Error::<T,I>::NoPermission.into())
 		Ok(())
 	}
 }

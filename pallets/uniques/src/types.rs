@@ -53,13 +53,13 @@ pub struct ClassDetails<AccountId, DepositBalance> {
 
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub struct ClassTeam<AccountId> {
-	pub(super) owner: AccountId,
+	pub owner: AccountId,
 	/// Can mint tokens.
-	pub(super) issuer: AccountId,
+	pub issuer: AccountId,
 	/// Can thaw tokens, force transfers and burn tokens from any account.
-	pub(super) admin: AccountId,
+	pub admin: AccountId,
 	/// Can freeze tokens.
-	pub(super) freezer: AccountId,
+	pub freezer: AccountId,
 }
 
 /// Witness data for the destroy transactions.
