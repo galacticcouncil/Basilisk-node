@@ -124,15 +124,13 @@ pub mod pallet {
 
 			let key1_bounded = Self::to_bounded_key(b"ipfs_hash".to_vec())?;
 
-			pallet_uniques::Pallet::<T>::set_attribute(
-				origin.clone(),
-				class_id,
-				Some(instance_id),
-				key1_bounded,
-				ipfs_hash,
-			)?;
-
 			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, owner.clone())?;
+
+			pallet_uniques::Pallet::<T>::set_instance_attribute(class_id,
+																instance_id,
+																key1_bounded.clone(),
+																ipfs_hash.clone())?;
+
 			<T as Config>::Currency::reserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get())?;
 
 			// TODO: Increase counter

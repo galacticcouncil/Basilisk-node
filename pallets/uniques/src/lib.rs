@@ -36,10 +36,11 @@ mod tests;
 pub mod weights;
 
 mod functions;
+pub mod functions_ex;
 mod impl_nonfungibles;
 mod permissions;
 pub mod traits;
-pub mod types;
+mod types;
 
 pub use types::*;
 
@@ -58,7 +59,7 @@ pub use weights::WeightInfo;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::traits::{CanBurn, CanMint};
+	use crate::traits::{CanBurn, CanMint, InstanceReserve};
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -123,6 +124,7 @@ pub mod pallet {
 
 		type MintPermission: CanMint;
 		type BurnPermission: CanBurn;
+		type InstanceReserveStrategy: InstanceReserve;
 	}
 
 	#[pallet::storage]
@@ -416,7 +418,12 @@ pub mod pallet {
 			let owner = T::Lookup::lookup(owner)?;
 
 			Self::do_mint(class, instance, owner, |class_details| {
-				T::MintPermission::can_mint::<T, I>(origin, class_details)
+				T::MintPermission::can_mint::<T, I>(
+					origin,
+					&class_details.owner,
+					&class_details.admin,
+					&class_details.issuer,
+				)
 			})
 		}
 
@@ -444,7 +451,13 @@ pub mod pallet {
 			let check_owner = check_owner.map(T::Lookup::lookup).transpose()?;
 
 			Self::do_burn(class, instance, |class_details, details| {
-				T::BurnPermission::can_burn::<T, I>(origin, class_details, details)?;
+				T::BurnPermission::can_burn::<T, I>(
+					origin,
+					&details.owner,
+					&class_details.owner,
+					&class_details.admin,
+					&class_details.issuer,
+				)?;
 				ensure!(
 					check_owner.map_or(true, |o| o == details.owner),
 					Error::<T, I>::WrongOwner
@@ -891,9 +904,7 @@ pub mod pallet {
 
 			let mut class_details = Class::<T, I>::get(&class).ok_or(Error::<T, I>::Unknown)?;
 			if let Some(check_owner) = &maybe_check_owner {
-				// TODO: revisit later
-				// check disabled for now as nft needs to call this wihtout the owner
-				//ensure!(check_owner == &class_details.owner, Error::<T, I>::NoPermission);
+				ensure!(check_owner == &class_details.owner, Error::<T, I>::NoPermission);
 			}
 			let maybe_is_frozen = match maybe_instance {
 				None => ClassMetadataOf::<T, I>::get(class).map(|v| v.is_frozen),

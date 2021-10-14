@@ -3,11 +3,11 @@
 
 use super::*;
 
+use crate::Pallet as Marketplace;
 use frame_benchmarking::{account, benchmarks, vec};
 use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::convert::TryInto;
-use crate::Pallet as Marketplace;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;

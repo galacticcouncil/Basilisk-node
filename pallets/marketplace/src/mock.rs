@@ -123,7 +123,8 @@ impl pallet_uniques::Config for Test {
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
 	type MintPermission = Marketplace;
-	type BurnPermission = ();
+	type BurnPermission = Marketplace;
+	type InstanceReserveStrategy = Marketplace;
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
@@ -145,7 +146,12 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 20_000 * BSX), (BOB, 15_000 * BSX), (CHARLIE, 150_000 * BSX), (DAVE, 222_222 * BSX)],
+			balances: vec![
+				(ALICE, 20_000 * BSX),
+				(BOB, 15_000 * BSX),
+				(CHARLIE, 150_000 * BSX),
+				(DAVE, 222_222 * BSX),
+			],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

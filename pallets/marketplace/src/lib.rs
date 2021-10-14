@@ -256,7 +256,7 @@ pub mod pallet {
 
 				if let Some(current_offer) = &token_info.offer {
 					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &sender, current_offer.1);
-					Self::do_buy(current_offer.0.clone(), class_id, instance_id)?;			
+					Self::do_buy(current_offer.0.clone(), class_id, instance_id)?;
 					token_info.offer = None;
 				}
 
@@ -360,15 +360,52 @@ impl<T: Config> Pallet<T> {
 	}
 }
 
-use pallet_uniques::traits::CanMint;
 use frame_support::traits::ReservableCurrency;
+use pallet_uniques::traits::{CanBurn, CanMint, InstanceReserve};
 
-impl<P: Config> CanMint for Pallet<P>{
-	fn can_mint<T: pallet_uniques::Config<I>, I>(origin: T::AccountId, class_details: &pallet_uniques::types::ClassDetailsFor<T, I>) -> sp_runtime::DispatchResult {
+impl<P: Config> CanMint for Pallet<P> {
+	fn can_mint<T: pallet_uniques::Config<I>, I: 'static>(
+		_origin: T::AccountId,
+		_class_owner: &T::AccountId,
+		_class_admin: &T::AccountId,
+		_class_issuer: &T::AccountId,
+	) -> DispatchResult {
 		Ok(())
 	}
+}
+impl<P: Config> CanBurn for Pallet<P> {
+	fn can_burn<T: pallet_uniques::Config<I>, I: 'static>(
+		origin: T::AccountId,
+		instance_owner: &T::AccountId,
+		_class_owner: &T::AccountId,
+		_class_admin: &T::AccountId,
+		_class_issuer: &T::AccountId,
+	) -> DispatchResult {
+		let is_permitted = *instance_owner == origin;
+		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
+		Ok(())
+	}
+}
 
-	fn reserve<T: pallet_uniques::Config<I>, I>(owner: T::AccountId, class_details: &pallet_uniques::types::ClassDetailsFor<T, I>, deposit: pallet_uniques::types::DepositBalanceOf<T, I>) -> sp_runtime::DispatchResult {
-		T::Currency::reserve(&owner, deposit)
+impl<P: Config> InstanceReserve for Pallet<P> {
+	fn reserve<T: pallet_uniques::Config<I>, I>(
+		instance_owner: &T::AccountId,
+		_class_owner: &T::AccountId,
+		_admin: &T::AccountId,
+		_issuer: &T::AccountId,
+		deposit: pallet_uniques::DepositBalanceOf<T, I>,
+	) -> sp_runtime::DispatchResult {
+		T::Currency::reserve(instance_owner, deposit)
+	}
+
+	fn unreserve<T: pallet_uniques::Config<I>, I>(
+		instance_owner: &T::AccountId,
+		_class_owner: &T::AccountId,
+		_admin: &T::AccountId,
+		_issuer: &T::AccountId,
+		deposit: pallet_uniques::DepositBalanceOf<T, I>,
+	) -> sp_runtime::DispatchResult {
+		T::Currency::unreserve(instance_owner, deposit);
+		Ok(())
 	}
 }

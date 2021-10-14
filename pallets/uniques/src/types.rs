@@ -23,7 +23,7 @@ use scale_info::TypeInfo;
 
 pub type DepositBalanceOf<T, I = ()> =
 	<<T as Config<I>>::Currency as Currency<<T as SystemConfig>::AccountId>>::Balance;
-pub type ClassDetailsFor<T, I> = ClassDetails<<T as SystemConfig>::AccountId, DepositBalanceOf<T, I>>;
+pub(super) type ClassDetailsFor<T, I> = ClassDetails<<T as SystemConfig>::AccountId, DepositBalanceOf<T, I>>;
 pub(super) type InstanceDetailsFor<T, I> = InstanceDetails<<T as SystemConfig>::AccountId, DepositBalanceOf<T, I>>;
 
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo)]

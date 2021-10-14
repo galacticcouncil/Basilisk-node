@@ -116,6 +116,7 @@ impl Config for Test {
 	type WeightInfo = ();
 	type MintPermission = ();
 	type BurnPermission = ();
+	type InstanceReserveStrategy = ();
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

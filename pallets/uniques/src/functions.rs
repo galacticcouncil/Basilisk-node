@@ -18,7 +18,7 @@
 //! Various pieces of common functionality.
 
 use super::*;
-use crate::traits::{CanBurn, CanMint};
+use crate::traits::InstanceReserve;
 use frame_support::{ensure, traits::Get};
 use sp_runtime::{DispatchError, DispatchResult};
 
@@ -143,7 +143,13 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				false => T::InstanceDeposit::get(),
 			};
 
-			T::MintPermission::reserve::<T, I>(owner.clone(), &class_details, deposit)?;
+			T::InstanceReserveStrategy::reserve::<T, I>(
+				&owner,
+				&class_details.owner,
+				&class_details.admin,
+				&class_details.issuer,
+				deposit,
+			)?;
 
 			class_details.total_deposit += deposit;
 
@@ -174,7 +180,13 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			with_details(&class_details, &details)?;
 
 			// Return the deposit.
-			T::BurnPermission::unreserve::<T, I>(details.owner.clone(), &class_details, details.deposit);
+			T::InstanceReserveStrategy::unreserve::<T, I>(
+				&details.owner,
+				&class_details.owner,
+				&class_details.admin,
+				&class_details.issuer,
+				details.deposit,
+			)?;
 			class_details.total_deposit.saturating_reduce(details.deposit);
 			class_details.instances.saturating_dec();
 			Ok(details.owner)

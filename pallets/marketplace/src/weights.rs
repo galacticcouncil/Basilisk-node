@@ -40,19 +40,19 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_marketplace.
 pub trait WeightInfo {
-    fn set_price() -> Weight;
-    fn buy() -> Weight;
-    fn list() -> Weight;
-    fn unlist() -> Weight;
-    fn make_offer() -> Weight;
-    fn accept_offer() -> Weight;
+	fn set_price() -> Weight;
+	fn buy() -> Weight;
+	fn list() -> Weight;
+	fn unlist() -> Weight;
+	fn make_offer() -> Weight;
+	fn accept_offer() -> Weight;
 }
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
@@ -68,22 +68,22 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
-    fn list() -> Weight {
+	fn list() -> Weight {
 		(101_382_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
-    fn unlist() -> Weight {
+	fn unlist() -> Weight {
 		(101_382_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
-    fn make_offer() -> Weight {
+	fn make_offer() -> Weight {
 		(101_382_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
-    fn accept_offer() -> Weight {
+	fn accept_offer() -> Weight {
 		(101_382_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
@@ -92,34 +92,34 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
-    fn set_price() -> Weight {
-        (32_831_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(1 as Weight))
-    }
-    fn buy() -> Weight {
-        (101_382_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(5 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
-    }
-    fn list() -> Weight {
-        (101_382_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(5 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
-    }
-    fn unlist() -> Weight {
-        (101_382_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(5 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
-    }
-    fn make_offer() -> Weight {
-        (101_382_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(5 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
-    }
-    fn accept_offer() -> Weight {
-        (101_382_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(5 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
-    }
+	fn set_price() -> Weight {
+		(32_831_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
+	fn buy() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	fn list() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	fn unlist() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	fn make_offer() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	fn accept_offer() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
 }

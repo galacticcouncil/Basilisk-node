@@ -124,12 +124,12 @@ fn free_trading_works() {
 		// Anyone can mint a token in any class
 		assert_ok!(Nft::mint(Origin::signed(ALICE), 0, 0, bvec![0]));
 		assert_ok!(Nft::mint(Origin::signed(ALICE), 1, 0, bvec![0]));
-		//assert_ok!(Nft::mint(Origin::signed(ALICE), 2, 0, bvec![0]));
-		//assert_ok!(Nft::mint(Origin::signed(BOB), 0, 1, bvec![0]));
+		assert_ok!(Nft::mint(Origin::signed(ALICE), 2, 0, bvec![0]));
+		assert_ok!(Nft::mint(Origin::signed(BOB), 0, 1, bvec![0]));
 		assert_ok!(Nft::mint(Origin::signed(BOB), 1, 1, bvec![0]));
-		//assert_ok!(Nft::mint(Origin::signed(BOB), 2, 1, bvec![0]));
-		//assert_ok!(Nft::mint(Origin::signed(CHARLIE), 0, 2, bvec![0]));
-		//assert_ok!(Nft::mint(Origin::signed(CHARLIE), 1, 2, bvec![0]));
+		assert_ok!(Nft::mint(Origin::signed(BOB), 2, 1, bvec![0]));
+		assert_ok!(Nft::mint(Origin::signed(CHARLIE), 0, 2, bvec![0]));
+		assert_ok!(Nft::mint(Origin::signed(CHARLIE), 1, 2, bvec![0]));
 		assert_ok!(Nft::mint(Origin::signed(CHARLIE), 2, 2, bvec![0]));
 
 		// Only instance owner can burn their token
@@ -137,10 +137,10 @@ fn free_trading_works() {
 			Nft::burn(Origin::signed(ALICE), 1, 1),
 			pallet_uniques::Error::<Test, _>::NoPermission
 		);
-		//assert_noop!(
-		//	Nft::burn(Origin::signed(ALICE), 1, 1),
-		//	pallet_uniques::Error::<Test, _>::NoPermission
-		//);
+		assert_noop!(
+			Nft::burn(Origin::signed(ALICE), 1, 1),
+			pallet_uniques::Error::<Test, _>::NoPermission
+		);
 		assert_ok!(Nft::burn(Origin::signed(ALICE), 0, 0));
 
 		// Only instance owner can transfer their token
