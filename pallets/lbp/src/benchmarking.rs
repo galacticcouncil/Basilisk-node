@@ -3,7 +3,7 @@
 use super::*;
 
 use frame_benchmarking::{account, benchmarks};
-use frame_system::{Pallet as System, RawOrigin};
+use frame_system::RawOrigin;
 
 use primitives::AssetId;
 
@@ -78,8 +78,6 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), caller.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-		System::<T>::set_block_number(21u32.into());
-
 	}: _(RawOrigin::Signed(caller.clone()), pool_id.clone())
 	verify {
 		assert!(!PoolData::<T>::contains_key(&pool_id));
@@ -100,22 +98,18 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-		System::<T>::set_block_number(1u32.into());
-
-		let start = T::BlockNumber::from(10u32);
-		let end = T::BlockNumber::from(20u32);
+		let start = T::BlockNumber::from(1u32);
+		let end = T::BlockNumber::from(11u32);
 
 		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id.clone(), None, Some(start), Some(end), None, None, None, None)?;
 
 		let pool_data = LBP::<T>::pool_data(&pool_id);
 
-		System::<T>::set_block_number(12u32.into());
-
 	}: _(RawOrigin::Signed(caller.clone()), asset_in, asset_out, amount, max_limit)
 	verify{
 		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999998900000000);
-		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999998095634958);
-		assert_eq!(T::MultiCurrency::free_balance(asset_out, &fee_collector), 1000000000191653);
+		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999998046997637);
+		assert_eq!(T::MultiCurrency::free_balance(asset_out, &fee_collector), 1000000000094183);
 	}
 
 	buy {
@@ -130,22 +124,18 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-		System::<T>::set_block_number(1u32.into());
-
-		let start = T::BlockNumber::from(10u32);
-		let end = T::BlockNumber::from(20u32);
+		let start = T::BlockNumber::from(1u32);
+		let end = T::BlockNumber::from(11u32);
 
 		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id.clone(), None, Some(start), Some(end), None, None, None, None)?;
 
 		let pool_data = LBP::<T>::pool_data(&pool_id);
 
-		System::<T>::set_block_number(12u32.into());
-
 	}: _(RawOrigin::Signed(caller.clone()), asset_out, asset_in, amount, max_limit)
 	verify{
 		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999999100000000);
-		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999997888223653);
-		assert_eq!(T::MultiCurrency::free_balance(asset_in, &fee_collector), 1000000000223106);
+		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999997946513050);
+		assert_eq!(T::MultiCurrency::free_balance(asset_in, &fee_collector), 1000000000106760);
 	}
 }
 
