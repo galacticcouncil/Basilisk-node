@@ -1,7 +1,7 @@
 .PHONY: build
 build:
 	cargo build --release
-	ln -s $(CURDIR)/target/release/basilisk $(CURDIR)/target/release/testing-basilisk
+	ln -sf $(CURDIR)/target/release/basilisk $(CURDIR)/target/release/testing-basilisk
 
 .PHONY: check
 check:
