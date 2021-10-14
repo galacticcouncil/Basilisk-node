@@ -68,10 +68,10 @@ pub mod pallet {
 		/// Disables automatic sell of the NFT
 		///
 		/// Parameters:
-		/// - `owner`: The destination account a token will be sent to
 		/// - `class_id`: The identifier of a non-fungible token class
 		/// - `instance_id`: The instance identifier of a class
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
+		#[transactional]
 		pub fn buy(origin: OriginFor<T>, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
@@ -103,7 +103,7 @@ pub mod pallet {
 			);
 
 			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
-				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::Unknown)?;
+				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
 
 				token_info.price = new_price;
 
@@ -122,6 +122,8 @@ pub mod pallet {
 		/// Parameters:
 		/// - `class_id`: The identifier of a non-fungible token class
 		/// - `instance_id`: The instance identifier of a class
+		/// - `author`: Receiver of the royalty
+		/// - `royalty`: Percentage reward from each trade for the author
 		#[pallet::weight(<T as Config>::WeightInfo::list())]
 		#[transactional]
 		pub fn list(
@@ -183,7 +185,7 @@ pub mod pallet {
 				Error::<T>::NotTheTokenOwner
 			);
 
-			let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::Unknown)?;
+			let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::ClassUnknown)?;
 			let class_owner_origin = T::Origin::from(RawOrigin::Signed(class_owner.clone()));
 
 			Tokens::<T>::remove(class_id, instance_id);
@@ -219,7 +221,7 @@ pub mod pallet {
 			ensure!(amount > Zero::zero(), Error::<T>::InvalidOffer);
 
 			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
-				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::Unknown)?;
+				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
 
 				if let Some(current_offer) = &token_info.offer {
 					if amount > current_offer.1 {
@@ -252,7 +254,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin.clone())?;
 
 			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
-				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::Unknown)?;
+				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
 
 				if let Some(current_offer) = &token_info.offer {
 					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &sender, current_offer.1);
@@ -295,7 +297,13 @@ pub mod pallet {
 		/// Token is not listed on Marketplace
 		NotListed,
 		/// Token info does not exist
-		Unknown,
+		TokenUnknown,
+		/// Token owner does not exist
+		OwnerUnknown,
+		/// Class does not exist
+		ClassUnknown,
+		/// Class or instance does not exist
+		ClassOrInstanceUnknown,
 		/// Token already listed on marketplace
 		AlreadyListed,
 		/// Offer is zero or lower than the current one
@@ -316,19 +324,19 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn do_buy(buyer: T::AccountId, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
-		let owner = pallet_uniques::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::Unknown)?;
-
+		ensure!(Tokens::<T>::contains_key(class_id, instance_id), Error::<T>::NotListed);
+		
+		let owner = pallet_uniques::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
-		let to = T::Lookup::unlookup(buyer.clone());
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
-		let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::Unknown)?;
+		let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::ClassUnknown)?;
 		let class_owner_origin = T::Origin::from(RawOrigin::Signed(class_owner.clone()));
 
 		pallet_uniques::Pallet::<T>::thaw(class_owner_origin.clone(), class_id, instance_id)?;
 
 		Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
-			let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::Unknown)?;
+			let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
 
 			let mut price = token_info.price.take().ok_or(Error::<T>::NotForSale)?;
 
@@ -350,6 +358,7 @@ impl<T: Config> Pallet<T> {
 			// Send the net price from current to the previous owner
 			<T as pallet_nft::Config>::Currency::transfer(&buyer, &owner, price, ExistenceRequirement::KeepAlive)?;
 
+			let to = T::Lookup::unlookup(buyer.clone());
 			pallet_nft::Pallet::<T>::transfer(owner_origin.clone(), class_id, instance_id, to)?;
 
 			pallet_uniques::Pallet::<T>::freeze(class_owner_origin, class_id, instance_id)?;

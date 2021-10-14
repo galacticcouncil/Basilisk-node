@@ -67,19 +67,18 @@ fn buy_works() {
 		assert_ok!(Nft::create_class(Origin::signed(ALICE), 0, ClassType::Art));
 		assert_ok!(Nft::mint(Origin::signed(ALICE), 0, 0, bvec![0]));
 
-		//assert_noop!(Market::buy(Origin::signed(BOB), 0, 0), Error::<Test>::NotListed);
+		assert_noop!(Market::buy(Origin::signed(BOB), 0, 0), Error::<Test>::NotListed);
 
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0, DAVE, 33));
 
-		assert_noop!(Market::buy(Origin::signed(BOB), 1, 0), Error::<Test>::Unknown);
-		//assert_noop!(Market::buy(Origin::signed(BOB), 0, 0), Error::<Test>::NotForSale);
+		assert_noop!(Market::buy(Origin::signed(BOB), 0, 0), Error::<Test>::NotForSale);
 
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(22222 * BSX)));
 
-		//assert_noop!(
-		//	Market::buy(Origin::signed(BOB), 0, 0),
-		//	pallet_balances::Error::<Test, _>::InsufficientBalance
-		//);
+		assert_noop!(
+			Market::buy(Origin::signed(BOB), 0, 0),
+			pallet_balances::Error::<Test, _>::InsufficientBalance
+		);
 
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(1111 * BSX)));
 
@@ -137,10 +136,10 @@ fn free_trading_works() {
 			Nft::burn(Origin::signed(ALICE), 1, 1),
 			pallet_uniques::Error::<Test, _>::NoPermission
 		);
-		assert_noop!(
-			Nft::burn(Origin::signed(ALICE), 1, 1),
-			pallet_uniques::Error::<Test, _>::NoPermission
-		);
+		//assert_noop!(
+		//	Nft::burn(Origin::signed(ALICE), 1, 1),
+		//	pallet_uniques::Error::<Test, _>::NoPermission
+		//);
 		assert_ok!(Nft::burn(Origin::signed(ALICE), 0, 0));
 
 		// Only instance owner can transfer their token
