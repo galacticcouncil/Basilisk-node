@@ -418,12 +418,8 @@ pub mod pallet {
 			let owner = T::Lookup::lookup(owner)?;
 
 			Self::do_mint(class, instance, owner, |class_details| {
-				T::MintPermission::can_mint::<T, I>(
-					origin,
-					&class_details.owner,
-					&class_details.admin,
-					&class_details.issuer,
-				)
+				let team = Self::get_team(class_details);
+				T::MintPermission::can_mint::<T, I>(origin, &team)
 			})
 		}
 
@@ -450,14 +446,9 @@ pub mod pallet {
 			let origin = ensure_signed(origin)?;
 			let check_owner = check_owner.map(T::Lookup::lookup).transpose()?;
 
-			Self::do_burn(class, instance, |class_details, details| {
-				T::BurnPermission::can_burn::<T, I>(
-					origin,
-					&details.owner,
-					&class_details.owner,
-					&class_details.admin,
-					&class_details.issuer,
-				)?;
+			Self::do_burn(class.clone(), instance.clone(), |class_details, details| {
+				let team = Self::get_team(class_details);
+				T::BurnPermission::can_burn::<T, I>(origin, &details.owner, &instance, &class, &team)?;
 				ensure!(
 					check_owner.map_or(true, |o| o == details.owner),
 					Error::<T, I>::WrongOwner

@@ -362,13 +362,12 @@ impl<T: Config> Pallet<T> {
 
 use frame_support::traits::ReservableCurrency;
 use pallet_uniques::traits::{CanBurn, CanMint, InstanceReserve};
+use pallet_uniques::ClassTeam;
 
 impl<P: Config> CanMint for Pallet<P> {
 	fn can_mint<T: pallet_uniques::Config<I>, I: 'static>(
 		_origin: T::AccountId,
-		_class_owner: &T::AccountId,
-		_class_admin: &T::AccountId,
-		_class_issuer: &T::AccountId,
+		_class_team: &ClassTeam<T::AccountId>,
 	) -> DispatchResult {
 		Ok(())
 	}
@@ -377,9 +376,9 @@ impl<P: Config> CanBurn for Pallet<P> {
 	fn can_burn<T: pallet_uniques::Config<I>, I: 'static>(
 		origin: T::AccountId,
 		instance_owner: &T::AccountId,
-		_class_owner: &T::AccountId,
-		_class_admin: &T::AccountId,
-		_class_issuer: &T::AccountId,
+		_instance_id: &T::InstanceId,
+		_class_id: &T::ClassId,
+		_class_team: &ClassTeam<T::AccountId>,
 	) -> DispatchResult {
 		let is_permitted = *instance_owner == origin;
 		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
@@ -390,9 +389,9 @@ impl<P: Config> CanBurn for Pallet<P> {
 impl<P: Config> InstanceReserve for Pallet<P> {
 	fn reserve<T: pallet_uniques::Config<I>, I>(
 		instance_owner: &T::AccountId,
-		_class_owner: &T::AccountId,
-		_admin: &T::AccountId,
-		_issuer: &T::AccountId,
+		_instance_id: &T::InstanceId,
+		_class_id: &T::ClassId,
+		_class_team: &ClassTeam<T::AccountId>,
 		deposit: pallet_uniques::DepositBalanceOf<T, I>,
 	) -> sp_runtime::DispatchResult {
 		T::Currency::reserve(instance_owner, deposit)
@@ -400,9 +399,9 @@ impl<P: Config> InstanceReserve for Pallet<P> {
 
 	fn unreserve<T: pallet_uniques::Config<I>, I>(
 		instance_owner: &T::AccountId,
-		_class_owner: &T::AccountId,
-		_admin: &T::AccountId,
-		_issuer: &T::AccountId,
+		_instance_id: &T::InstanceId,
+		_class_id: &T::ClassId,
+		_class_team: &ClassTeam<T::AccountId>,
 		deposit: pallet_uniques::DepositBalanceOf<T, I>,
 	) -> sp_runtime::DispatchResult {
 		T::Currency::unreserve(instance_owner, deposit);

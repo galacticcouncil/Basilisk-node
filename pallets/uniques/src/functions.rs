@@ -143,13 +143,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 				false => T::InstanceDeposit::get(),
 			};
 
-			T::InstanceReserveStrategy::reserve::<T, I>(
-				&owner,
-				&class_details.owner,
-				&class_details.admin,
-				&class_details.issuer,
-				deposit,
-			)?;
+			let team = Self::get_team(class_details);
+			T::InstanceReserveStrategy::reserve::<T, I>(&owner, &instance, &class, &team, deposit)?;
 
 			class_details.total_deposit += deposit;
 
@@ -179,14 +174,9 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 			let details = Asset::<T, I>::get(&class, &instance).ok_or(Error::<T, I>::Unknown)?;
 			with_details(&class_details, &details)?;
 
+			let team = Self::get_team(class_details);
 			// Return the deposit.
-			T::InstanceReserveStrategy::unreserve::<T, I>(
-				&details.owner,
-				&class_details.owner,
-				&class_details.admin,
-				&class_details.issuer,
-				details.deposit,
-			)?;
+			T::InstanceReserveStrategy::unreserve::<T, I>(&details.owner, &instance, &class, &team, details.deposit)?;
 			class_details.total_deposit.saturating_reduce(details.deposit);
 			class_details.instances.saturating_dec();
 			Ok(details.owner)

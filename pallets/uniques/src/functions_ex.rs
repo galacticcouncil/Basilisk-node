@@ -55,20 +55,22 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		}
 		class_details.total_deposit.saturating_accrue(deposit);
 
+		let team = Self::get_team(&class_details);
+
 		if deposit > old_deposit {
 			T::InstanceReserveStrategy::reserve::<T, I>(
 				&instance_details.owner,
-				&class_details.owner,
-				&class_details.admin,
-				&class_details.issuer,
+				&instance,
+				&class,
+				&team,
 				deposit - old_deposit,
 			)?;
 		} else if deposit < old_deposit {
 			T::InstanceReserveStrategy::unreserve::<T, I>(
 				&instance_details.owner,
-				&class_details.owner,
-				&class_details.admin,
-				&class_details.issuer,
+				&instance,
+				&class,
+				&team,
 				old_deposit - deposit,
 			)?;
 		}
@@ -78,5 +80,14 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		Self::deposit_event(Event::AttributeSet(class, Some(instance), key, value));
 
 		Ok(())
+	}
+
+	pub(super) fn get_team(class_details: &ClassDetailsFor<T, I>) -> ClassTeam<T::AccountId> {
+		ClassTeam::<T::AccountId> {
+			owner: class_details.owner.clone(),
+			admin: class_details.admin.clone(),
+			issuer: class_details.issuer.clone(),
+			freezer: class_details.freezer.clone(),
+		}
 	}
 }
