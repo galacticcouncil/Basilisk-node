@@ -1,7 +1,6 @@
 use frame_support::{assert_err, assert_noop, assert_ok, error::BadOrigin};
 
 use super::*;
-use frame_support::pallet_prelude::*;
 use mock::{Event, *};
 
 type NFTModule = Pallet<Test>;
