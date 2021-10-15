@@ -661,6 +661,9 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 
+		// Basilisk's registry
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
+
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>},
 		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
@@ -696,7 +699,6 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
