@@ -1,6 +1,7 @@
-use frame_support::{assert_noop, assert_ok, error::BadOrigin};
+use frame_support::{assert_err, assert_noop, assert_ok, error::BadOrigin};
 
 use super::*;
+use frame_support::pallet_prelude::*;
 use mock::{Event, *};
 
 type NFTModule = Pallet<Test>;
@@ -37,6 +38,16 @@ fn create_class_fails() {
 				ClassData { is_pool: true },
 			),
 			orml_nft::Error::<Test>::MaxMetadataExceeded
+		);
+
+		orml_nft::NextClassId::<Test>::put(u64::MAX);
+		assert_noop!(
+			NFTModule::create_class(
+				Origin::signed(ALICE),
+				"some metadata about token".as_bytes().to_vec(),
+				ClassData { is_pool: true },
+			),
+			orml_nft::Error::<Test>::NoAvailableClassId
 		);
 	})
 }
@@ -115,11 +126,20 @@ fn mint_fails() {
 
 		assert_noop!(
 			NFTModule::mint(
+				Origin::signed(ALICE),
+				NOT_EXISTING_CLASS_ID,
+				"a token".as_bytes().to_vec(),
+				TokenData { locked: false }
+			),
+			Error::<Test>::ClassNotFound
+		);
+
+		assert_noop!(
+			NFTModule::mint(
 				Origin::signed(BOB),
 				0,
 				"a token".as_bytes().to_vec(),
 				TokenData { locked: false },
-
 			),
 			Error::<Test>::NotClassOwner
 		);
@@ -130,7 +150,6 @@ fn mint_fails() {
 				0,
 				vec![1; <Test as orml_nft::Config>::MaxTokenMetadata::get() as usize + 1],
 				TokenData { locked: false },
-
 			),
 			orml_nft::Error::<Test>::MaxMetadataExceeded
 		);
@@ -151,7 +170,6 @@ fn transfer_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
@@ -174,7 +192,13 @@ fn transfer_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
+		));
 
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: true },
 		));
 
 		assert_noop!(
@@ -185,6 +209,20 @@ fn transfer_fails() {
 		assert_noop!(
 			NFTModule::transfer(Origin::signed(ALICE), ALICE, (CLASS_ID, TOKEN_ID)),
 			Error::<Test>::CannotSendToSelf
+		);
+
+		assert_noop!(
+			NFTModule::transfer(
+				Origin::signed(ALICE),
+				BOB,
+				(NOT_EXISTING_CLASS_ID, NOT_EXISTING_TOKEN_ID)
+			),
+			Error::<Test>::TokenNotFound
+		);
+
+		assert_noop!(
+			NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, 1)),
+			Error::<Test>::TokenLocked
 		);
 	});
 }
@@ -203,7 +241,6 @@ fn burn_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_ok!(NFTModule::burn(Origin::signed(ALICE), (CLASS_ID, TOKEN_ID)));
@@ -226,12 +263,28 @@ fn burn_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
+		));
 
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: true },
 		));
 
 		assert_noop!(
 			NFTModule::burn(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)),
 			Error::<Test>::NotTokenOwner
+		);
+
+		assert_noop!(
+			NFTModule::burn(Origin::signed(ALICE), (NOT_EXISTING_CLASS_ID, NOT_EXISTING_TOKEN_ID)),
+			Error::<Test>::TokenNotFound
+		);
+
+		assert_noop!(
+			NFTModule::burn(Origin::signed(ALICE), (CLASS_ID, 1)),
+			Error::<Test>::TokenLocked
 		);
 	});
 }
@@ -263,12 +316,16 @@ fn destroy_class_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_noop!(
 			NFTModule::destroy_class(Origin::signed(ALICE), CLASS_ID),
 			Error::<Test>::NonZeroIssuance
+		);
+
+		assert_noop!(
+			NFTModule::destroy_class(Origin::signed(ALICE), NOT_EXISTING_CLASS_ID),
+			Error::<Test>::ClassNotFound
 		);
 	});
 }
@@ -302,12 +359,16 @@ fn destroy_pool_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_noop!(
 			NFTModule::destroy_pool(Origin::signed(ALICE), CLASS_ID),
 			Error::<Test>::NonZeroIssuance
+		);
+
+		assert_noop!(
+			NFTModule::destroy_class(Origin::signed(ALICE), NOT_EXISTING_CLASS_ID),
+			Error::<Test>::ClassNotFound
 		);
 	});
 }
@@ -326,7 +387,6 @@ fn toggle_lock_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_ok!(NFTModule::toggle_lock(&ALICE, (CLASS_ID, TOKEN_ID)));
@@ -349,12 +409,16 @@ fn toggle_lock_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_noop!(
 			NFTModule::toggle_lock(&BOB, (CLASS_ID, TOKEN_ID)),
 			Error::<Test>::NotTokenOwner
+		);
+
+		assert_noop!(
+			NFTModule::toggle_lock(&ALICE, (NOT_EXISTING_CLASS_ID, TOKEN_ID)),
+			Error::<Test>::ClassNotFound
 		);
 	});
 }
@@ -374,7 +438,6 @@ fn buy_from_pool_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_ok!(NFTModule::buy_from_pool(Origin::signed(BOB), (CLASS_ID, TOKEN_ID)));
@@ -398,8 +461,29 @@ fn buy_from_pool_fails() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
+
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"locked token".as_bytes().to_vec(),
+			TokenData { locked: true },
+		));
+
+		assert_noop!(
+			NFTModule::buy_from_pool(Origin::signed(ALICE), (NOT_EXISTING_CLASS_ID, TOKEN_ID)),
+			Error::<Test>::ClassNotFound
+		);
+
+		assert_noop!(
+			NFTModule::buy_from_pool(Origin::signed(ALICE), (CLASS_ID, NOT_EXISTING_TOKEN_ID)),
+			Error::<Test>::TokenNotFound
+		);
+
+		assert_noop!(
+			NFTModule::buy_from_pool(Origin::signed(BOB), (CLASS_ID, 1)),
+			Error::<Test>::TokenLocked
+		);
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
 
@@ -431,7 +515,6 @@ fn buy_from_pool_fails_notapool() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_noop!(
@@ -455,7 +538,6 @@ fn sell_to_pool_works() {
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
 
 		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, TOKEN_ID)));
@@ -474,14 +556,56 @@ fn sell_to_pool_fails() {
 			"some metadata about token".as_bytes().to_vec(),
 			ClassData { is_pool: true },
 		));
+		assert_ok!(NFTModule::create_class(
+			Origin::signed(ALICE),
+			"not a pool".as_bytes().to_vec(),
+			ClassData { is_pool: false },
+		));
 
 		assert_ok!(NFTModule::mint(
 			Origin::signed(ALICE),
 			0,
 			"a token".as_bytes().to_vec(),
 			TokenData { locked: false },
-
 		));
+
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+		));
+
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			1,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+		));
+
+		assert_noop!(
+			NFTModule::sell_to_pool(Origin::signed(ALICE), (NOT_EXISTING_CLASS_ID, TOKEN_ID)),
+			Error::<Test>::ClassNotFound
+		);
+
+		assert_noop!(
+			NFTModule::sell_to_pool(Origin::signed(ALICE), (CLASS_ID, NOT_EXISTING_TOKEN_ID)),
+			Error::<Test>::TokenNotFound
+		);
+
+		assert_noop!(
+			NFTModule::sell_to_pool(Origin::signed(ALICE), (1, TOKEN_ID)),
+			Error::<Test>::NotAPool
+		);
+
+		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), BOB, (CLASS_ID, 1)));
+
+		assert_ok!(NFTModule::toggle_lock(&BOB, (CLASS_ID, 1)));
+
+		assert_noop!(
+			NFTModule::sell_to_pool(Origin::signed(BOB), (CLASS_ID, 1)),
+			Error::<Test>::TokenLocked
+		);
 
 		assert_noop!(
 			NFTModule::sell_to_pool(Origin::signed(ALICE), (CLASS_ID, TOKEN_ID)),
@@ -500,3 +624,61 @@ fn sell_to_pool_fails() {
 		);
 	});
 }
+
+#[test]
+fn is_owner_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NFTModule::create_class(
+			Origin::signed(ALICE),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
+		));
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+		));
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+		));
+
+		assert_ok!(NFTModule::transfer(Origin::signed(ALICE), CHARLIE, (CLASS_ID, 1)));
+
+		assert!(NFTModule::is_owner(&ALICE, (CLASS_ID, TOKEN_ID)));
+		assert!(NFTModule::is_owner(&CHARLIE, (CLASS_ID, 1)));
+	});
+}
+
+#[test]
+fn is_locked_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(NFTModule::create_class(
+			Origin::signed(ALICE),
+			"some metadata about token".as_bytes().to_vec(),
+			ClassData { is_pool: true },
+		));
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"a token".as_bytes().to_vec(),
+			TokenData { locked: false },
+		));
+		assert_ok!(NFTModule::mint(
+			Origin::signed(ALICE),
+			0,
+			"locked token".as_bytes().to_vec(),
+			TokenData { locked: true },
+		));
+
+		assert_err!(NFTModule::is_locked((CLASS_ID, 198)), Error::<Test>::TokenNotFound);
+
+		assert!(!NFTModule::is_locked((CLASS_ID, TOKEN_ID)).unwrap());
+		assert!(NFTModule::is_locked((CLASS_ID, 1)).unwrap());
+	});
+}
+
+// TODO: price!
