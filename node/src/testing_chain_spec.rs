@@ -29,7 +29,7 @@ use sp_runtime::traits::{IdentifyAccount, Verify};
 use testing_basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
-	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
+	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, UNITS,
 	NATIVE_EXISTENTIAL_DEPOSIT, WASM_BINARY,
 };
 
@@ -270,7 +270,7 @@ fn testnet_parachain_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1_000_000_000u128 * BSX))
+				.map(|k| (k, 1_000_000_000u128 * UNITS))
 				.collect(),
 		},
 		sudo: SudoConfig {
@@ -313,10 +313,10 @@ fn testnet_parachain_genesis(
 				.iter()
 				.flat_map(|x| {
 					vec![
-						(x.clone(), 1, 1_000_000_000u128 * BSX),
-						(x.clone(), 2, 1_000_000_000u128 * BSX),
-						(x.clone(), 3, 1_000_000_000u128 * BSX),
-						(x.clone(), 4, 1_000_000_000u128 * BSX),
+						(x.clone(), 1, 1_000_000_000u128 * UNITS),
+						(x.clone(), 2, 1_000_000_000u128 * UNITS),
+						(x.clone(), 3, 1_000_000_000u128 * UNITS),
+						(x.clone(), 4, 1_000_000_000u128 * UNITS),
 					]
 				})
 				.collect(),
@@ -326,7 +326,7 @@ fn testnet_parachain_genesis(
 			// Intergalactic elections
 			members: vec![(
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				100_000_000u128 * BSX,
+				100_000_000u128 * UNITS,
 			)],
 		},
 		council: CouncilConfig {
