@@ -661,10 +661,10 @@ fn testnet_parachain_genesis(
 				.iter()
 				.flat_map(|x| {
 					vec![
-						(x.clone(), 1, 1_000_000_000u128 * BSX),
-						(x.clone(), 2, 1_000_000_000u128 * BSX),
-						(x.clone(), 3, 1_000_000_000u128 * BSX),
-						(x.clone(), 4, 1_000_000_000u128 * BSX),
+						(x.clone(), 1, 1_000_000_000u128 * UNITS),
+						(x.clone(), 2, 1_000_000_000u128 * UNITS),
+						(x.clone(), 3, 1_000_000_000u128 * UNITS),
+						(x.clone(), 4, 1_000_000_000u128 * UNITS),
 					]
 				})
 				.collect(),
