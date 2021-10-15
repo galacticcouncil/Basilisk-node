@@ -29,6 +29,9 @@ frame-system = { git = "https://github.com/paritytech/substrate", branch = "polk
 # Optionals
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false, optional = true }
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false, optional = true }
+orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false, optional = true }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false, optional = true }
+orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false, optional = true }
 
 [dev-dependencies]
 lazy_static = { features = ["spin_no_std"], version = "1.4.0" }
@@ -36,9 +39,7 @@ primitives = { path = "../../primitives", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.10", default-features = false }
-orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
-orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "37e42936c41dbdbaf0117c628c9eab0e06044844", default-features = false }
+
 
 [features]
 default = ["std"]
@@ -54,4 +55,7 @@ std = [
     "frame-system/std",
     "sp-std/std",
     "orml-traits/std",
+    "orml-tokens/std",
+    "pallet-balances/std",
+    "orml-currencies/std",
 ]
