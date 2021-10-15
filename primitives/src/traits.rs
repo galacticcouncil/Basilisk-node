@@ -23,6 +23,7 @@ use sp_std::vec::Vec;
 
 /// Hold information to perform amm transfer
 /// Contains also exact amount which will be sold/bought
+#[derive(Debug, PartialEq)]
 pub struct AMMTransfer<AccountId, AssetId, AssetPair, Balance> {
 	pub origin: AccountId,
 	pub assets: AssetPair,
@@ -135,9 +136,17 @@ pub trait Registry<AssetId, AssetName, Balance, Error> {
 pub trait ShareTokenRegistry<AssetId, AssetName, Balance, Error>: Registry<AssetId, AssetName, Balance, Error> {
 	fn retrieve_shared_asset(name: &AssetName, assets: &[AssetId]) -> Result<AssetId, Error>;
 
-	fn create_shared_asset(name: &AssetName, assets: &[AssetId], existential_deposit: Balance) -> Result<AssetId, Error>;
+	fn create_shared_asset(
+		name: &AssetName,
+		assets: &[AssetId],
+		existential_deposit: Balance,
+	) -> Result<AssetId, Error>;
 
-	fn get_or_create_shared_asset(name: AssetName, assets: Vec<AssetId>, existential_deposit: Balance) -> Result<AssetId, Error> {
+	fn get_or_create_shared_asset(
+		name: AssetName,
+		assets: Vec<AssetId>,
+		existential_deposit: Balance,
+	) -> Result<AssetId, Error> {
 		if let Ok(asset_id) = Self::retrieve_shared_asset(&name, &assets) {
 			Ok(asset_id)
 		} else {
