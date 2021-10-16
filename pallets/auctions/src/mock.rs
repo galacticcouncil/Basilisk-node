@@ -38,6 +38,7 @@ pub type Balance = u128;
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
+pub const NFT_CLASS_ID: u32 = 123;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
