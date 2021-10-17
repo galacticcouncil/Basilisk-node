@@ -13,6 +13,10 @@ mod auction {
 	pub use super::super::*;
 }
 
+pub use crate::mock::{
+	Event as TestEvent,
+};
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 type AccountId = AccountId32;
@@ -159,4 +163,8 @@ pub fn last_event() -> Event {
 		.pop()
 		.expect("An event expected")
 		.event
+}
+
+pub fn expect_event<E: Into<TestEvent>>(e: E) {
+	assert_eq!(last_event(), e.into());
 }

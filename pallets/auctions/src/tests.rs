@@ -18,7 +18,7 @@ fn can_create_auction() {
     
     // start before current block
     let auction_info = AuctionInfo {
-      name: "Auction 1s".as_bytes().to_vec(),
+      name: "Auction 1".as_bytes().to_vec(),
       last_bid: None,
       start: 0,
       end: 21u64,
@@ -34,7 +34,7 @@ fn can_create_auction() {
 
     // start before current block
     let auction_info = AuctionInfo {
-      name: "Auction 1s".as_bytes().to_vec(),
+      name: "Auction 1".as_bytes().to_vec(),
       last_bid: None,
       start: 0u64,
       end: 21u64,
@@ -50,7 +50,7 @@ fn can_create_auction() {
 
     // end is zero
     let auction_info = AuctionInfo {
-      name: "Auction 1s".as_bytes().to_vec(),
+      name: "Auction 1".as_bytes().to_vec(),
       last_bid: None,
       start: 1u64,
       end: 0u64,
@@ -66,7 +66,7 @@ fn can_create_auction() {
 
     // duration too short
     let auction_info = AuctionInfo {
-      name: "Auction 1s".as_bytes().to_vec(),
+      name: "Auction 1".as_bytes().to_vec(),
       last_bid: None,
       start: 10u64,
       end: 20u64,
@@ -98,7 +98,7 @@ fn can_create_auction() {
 
     // Caller isn't owner
     let auction_info = AuctionInfo {
-      name: "".as_bytes().to_vec(),
+      name: "Auction 1".as_bytes().to_vec(),
       last_bid: None,
       start: 10u64,
       end: 21u64,
@@ -109,14 +109,14 @@ fn can_create_auction() {
     };
     assert_noop!(
       AuctionsModule::create_auction(Origin::signed(BOB), auction_info),
-      Error::<Test>::EmptyAuctionName
+      Error::<Test>::NotATokenOwner
     );
 
-    // TO DO: test can_transfer
+    // TODO add test for Error::<T>::TokenFrozen
 
     // happy path
     let auction_info = AuctionInfo {
-      name: "Auction 1s".as_bytes().to_vec(),
+      name: "Auction 1".as_bytes().to_vec(),
       last_bid: None,
       start: 10u64,
       end: 21u64,
@@ -130,5 +130,24 @@ fn can_create_auction() {
       Origin::signed(ALICE),
       auction_info,
     ));
+
+    let auction = AuctionsModule::auctions(0).unwrap();
+    assert_eq!(String::from_utf8(auction.name).unwrap(), "Auction 1");
+    assert_eq!(auction.last_bid, None);
+    assert_eq!(auction.start, 10u64);
+    assert_eq!(auction.end, 21u64);
+    assert_eq!(auction.owner, ALICE);
+    assert_eq!(auction.auction_type, AuctionType::English);
+    assert_eq!(auction.token, (NFT_CLASS_ID, 0u16.into()));
+    assert_eq!(auction.minimal_bid, 55);
+
+    assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
+    assert_eq!(AuctionsModule::auction_end_time(21u64, 0).unwrap(), ());
+
+    // TODO add test for token freeze
+
+    expect_event(
+			crate::Event::<Test>::AuctionCreated(ALICE, 0)
+    );
   });
 }
