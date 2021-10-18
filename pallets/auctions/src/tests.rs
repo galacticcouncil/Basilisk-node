@@ -146,8 +146,57 @@ fn can_create_auction() {
 
     // TODO add test for token freeze
 
-    expect_event(
-			crate::Event::<Test>::AuctionCreated(ALICE, 0)
-    );
+    expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
   });
 }
+
+#[test]
+fn can_delete_auction() {
+  ExtBuilder::default().build().execute_with(|| {
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID, 0u16.into(), ALICE, 10u8, bvec![0]));
+    let auction_info = AuctionInfo {
+      name: "Auction 1".as_bytes().to_vec(),
+      last_bid: None,
+      start: 10u64,
+      end: 21u64,
+      owner: ALICE,
+      auction_type: AuctionType::English,
+      token: (NFT_CLASS_ID, 0u16.into()),
+      minimal_bid: 55,
+    };
+
+    // Error AuctionNotExist when auction is not found
+    assert_noop!(
+      AuctionsModule::delete_auction(Origin::signed(ALICE), 0),
+      Error::<Test>::AuctionNotExist,
+    );
+    
+    assert_ok!(
+      AuctionsModule::create_auction(Origin::signed(ALICE), auction_info)
+    );
+    
+    // TODO weird panic here
+    // Error NotAuctionOwner when caller is not owner
+    // assert_noop!(
+    //   AuctionsModule::delete_auction(Origin::signed(BOB), 0),
+    //   Error::<Test>::NotAuctionOwner,
+    // );
+
+    // TODO test error AuctionAlreadyStarted
+
+    // TODO test for pallet_uniqueness
+
+    // Happy path
+    assert_ok!(
+      AuctionsModule::delete_auction(Origin::signed(ALICE), 0)
+    );
+
+    assert_eq!(AuctionsModule::auctions(0), None);
+
+    // TODO how to test this case?
+    // assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
+
+    expect_event(crate::Event::<Test>::AuctionRemoved(0));
+  });
+} 

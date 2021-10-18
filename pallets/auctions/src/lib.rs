@@ -146,6 +146,8 @@ pub mod pallet {
 		NonExistingAuctionType,
 		/// Invalid auction time configuration
 		InvalidTimeConfiguration,
+		/// No permissions to update/delete auction
+		NotAuctionOwner,
 		/// No permission to handle token
 		NotATokenOwner,
 		/// Auction has already ended
@@ -183,9 +185,22 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::delete_auction())]
 		pub fn delete_auction(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResultWithPostInfo {
-			let _sender = ensure_signed(origin)?;
+			let sender = ensure_signed(origin)?;
+			let auction = <Auctions<T>>::take(id).ok_or(Error::<T>::AuctionNotExist)?;
+			ensure!(auction.owner == sender, Error::<T>::NotAuctionOwner);
 
-			Self::remove_auction(id)?;
+			let current_block_number = frame_system::Pallet::<T>::block_number();
+			ensure!(current_block_number < auction.start, Error::<T>::AuctionAlreadyStarted);
+
+			pallet_uniques::Pallet::<T>::thaw(
+				RawOrigin::Signed(auction.owner.clone()).into(),
+				auction.token.0,
+				auction.token.1,
+			)?;
+
+			<AuctionOwnerById<T>>::remove(id);
+			<Auctions<T>>::remove(id);
+
 			Self::deposit_event(Event::AuctionRemoved(id));
 			Ok(().into())
 		}
@@ -278,20 +293,6 @@ impl<T: Config> Auction<T::AccountId, T::BlockNumber, T::ClassId, T::InstanceId>
 			*auction = Some(info);
 			Ok(())
 		})
-	}
-
-	fn remove_auction(id: Self::AuctionId) -> DispatchResult {
-		let auction = <Auctions<T>>::take(id).ok_or(Error::<T>::AuctionNotExist)?;
-		let current_block_number = frame_system::Pallet::<T>::block_number();
-		ensure!(current_block_number < auction.start, Error::<T>::AuctionAlreadyStarted);
-		pallet_uniques::Pallet::<T>::thaw(
-			RawOrigin::Signed(auction.owner.clone()).into(),
-			auction.token.0,
-			auction.token.1,
-		)?;
-		<AuctionOwnerById<T>>::remove(id);
-		<Auctions<T>>::remove(id);
-		Ok(())
 	}
 
 	fn bid(bidder: Self::AccountId, id: Self::AuctionId, value: Self::Balance) -> DispatchResult {

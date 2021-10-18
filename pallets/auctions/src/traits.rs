@@ -70,7 +70,7 @@ pub trait Auction<AccountId, BlockNumber, NftClassId, NftTokenId> {
 		info: AuctionInfo<Self::AccountId, Self::Balance, BlockNumber, NftClassId, NftTokenId>,
 	) -> DispatchResult;
 	/// Remove auction by `id`
-	fn remove_auction(id: Self::AuctionId) -> DispatchResult;
+	// fn remove_auction(id: Self::AuctionId) -> DispatchResult;
 	/// Bid
 	fn bid(bidder: Self::AccountId, id: Self::AuctionId, value: Self::Balance) -> DispatchResult;
 }
