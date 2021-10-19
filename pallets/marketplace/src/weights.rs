@@ -52,6 +52,7 @@ pub trait WeightInfo {
 	fn list() -> Weight;
 	fn unlist() -> Weight;
 	fn make_offer() -> Weight;
+	fn withdraw_offer() -> Weight;
 	fn accept_offer() -> Weight;
 }
 
@@ -79,6 +80,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
 	fn make_offer() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+	}
+	fn withdraw_offer() -> Weight {
 		(101_382_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
@@ -113,6 +119,11 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
 	fn make_offer() -> Weight {
+		(101_382_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	fn withdraw_offer() -> Weight {
 		(101_382_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))

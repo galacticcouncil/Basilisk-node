@@ -33,7 +33,8 @@ mod tests;
 
 pub type BalanceOf<T> =
 	<<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-pub type TokenInfoOf<T> = TokenInfo<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
+pub type TokenInfoOf<T> =
+	TokenInfo<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -213,6 +214,7 @@ pub mod pallet {
 			class_id: T::ClassId,
 			instance_id: T::InstanceId,
 			amount: BalanceOf<T>,
+			expires: T::BlockNumber,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
@@ -226,19 +228,63 @@ pub mod pallet {
 				if let Some(current_offer) = &token_info.offer {
 					if amount > current_offer.1 {
 						<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, amount)?;
-						token_info.offer = Some((sender.clone(), amount))
+						token_info.offer = Some((sender.clone(), amount, expires))
 					} else {
 						return Err(Error::<T>::InvalidOffer.into());
 					}
 				} else {
 					<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, amount)?;
-					token_info.offer = Some((sender.clone(), amount))
+					token_info.offer = Some((sender.clone(), amount, expires))
 				}
 
 				Ok(())
 			})?;
 
 			Self::deposit_event(Event::OfferPlaced(sender, class_id, instance_id, amount));
+
+			Ok(())
+		}
+
+		/// Reverse action to make_offer
+		/// Removes an offer and unreserves funds
+		/// Can be done by the offer maker or owner or the token
+		///
+		/// Parameters:
+		/// - `class_id`: The identifier of a non-fungible token class
+		/// - `instance_id`: The instance identifier of a class
+		#[pallet::weight(<T as Config>::WeightInfo::withdraw_offer())]
+		#[transactional]
+		pub fn withdraw_offer(
+			origin: OriginFor<T>,
+			class_id: T::ClassId,
+			instance_id: T::InstanceId,
+		) -> DispatchResult {
+			let sender = ensure_signed(origin.clone())?;
+
+			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
+				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
+				let owner = pallet_uniques::Pallet::<T>::owner(class_id, instance_id)
+					.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+
+				if let Some(current_offer) = &token_info.offer {
+					if sender == current_offer.0 || sender == owner {
+						<T as pallet_nft::Config>::Currency::unreserve_named(
+							&RESERVE_ID,
+							&current_offer.0,
+							current_offer.1,
+						);
+						token_info.offer = None
+					} else {
+						return Err(Error::<T>::UnknownOffer.into());
+					}
+				} else {
+					return Err(Error::<T>::InvalidOffer.into());
+				}
+
+				Ok(())
+			})?;
+
+			Self::deposit_event(Event::OfferWithdrawn(sender, class_id, instance_id));
 
 			Ok(())
 		}
@@ -257,13 +303,17 @@ pub mod pallet {
 				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
 
 				if let Some(current_offer) = &token_info.offer {
-					<T as pallet_nft::Config>::Currency::unreserve_named(
-						&RESERVE_ID,
-						&current_offer.0,
-						current_offer.1,
-					);
-					Self::do_buy(current_offer.0.clone(), class_id, instance_id, true)?;
-					token_info.offer = None;
+					if current_offer.2 > <frame_system::Pallet<T>>::block_number() {
+						<T as pallet_nft::Config>::Currency::unreserve_named(
+							&RESERVE_ID,
+							&current_offer.0,
+							current_offer.1,
+						);
+						Self::do_buy(current_offer.0.clone(), class_id, instance_id, true)?;
+						token_info.offer = None;
+					} else {
+						return Err(Error::<T>::OfferExpired.into());
+					}
 				} else {
 					return Err(Error::<T>::InvalidOffer.into());
 				}
@@ -290,10 +340,12 @@ pub mod pallet {
 		),
 		/// Token listed on Marketplace \[owner, class_id, instance_id, author royalty\]
 		TokenListed(T::AccountId, T::ClassId, T::InstanceId, T::AccountId, u8),
-		/// Token listed on Marketplace \[owner, class_id, instance_id, author royalty\]
+		/// Token listed on Marketplace \[owner, class_id, instance_id\]
 		TokenUnlisted(T::AccountId, T::ClassId, T::InstanceId),
-		/// Offer was placed on a token \[offerer, class_id, instance_id, offered_price\]
+		/// Offer was placed on a token \[offerer, class_id, instance_id, price\]
 		OfferPlaced(T::AccountId, T::ClassId, T::InstanceId, BalanceOf<T>),
+		/// Offer was placed on a token \[offerer, class_id, instance_id\]
+		OfferWithdrawn(T::AccountId, T::ClassId, T::InstanceId),
 	}
 
 	#[pallet::error]
@@ -324,6 +376,10 @@ pub mod pallet {
 		AlreadyListed,
 		/// Offer is None, zero or lower than the current one
 		InvalidOffer,
+		/// No offer for this token found from the user
+		UnknownOffer,
+		/// Offer is no longer valid
+		OfferExpired,
 	}
 }
 

@@ -37,8 +37,8 @@ benchmarks! {
 	set_price {
 		let caller = create_account::<T>("caller", 0);
 
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()), bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()), 10u8, bvec![0])?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art)?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
 
 	}: _(RawOrigin::Signed(caller.clone()), Default::default(), 0u16.into(), Some(1u32.into()))
 	verify {
@@ -55,7 +55,45 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller2.clone()), caller, Default::default(), 0u16.into())
 	verify {
 		assert_eq!(pallet_uniques::Pallet::<T>::owner(T::ClassId::from(Default::default()), T::InstanceId::from(0u16.into())), Some(caller2))
+	};
+
+	list {
+
+	}:
+	verify {
+		
 	}
+
+	unlist {
+
+	}:
+	verify {
+		
+	}
+
+	make_offer {
+
+	}:
+	verify {
+		
+	}
+
+	withdraw_offer {
+
+	}:
+	verify {
+		
+	}
+
+	accept_offer {
+
+	}:
+	verify {
+		
+	}
+
+
+
 }
 
 #[cfg(test)]

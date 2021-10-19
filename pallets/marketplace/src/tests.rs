@@ -232,7 +232,23 @@ fn offering_works() {
 		assert_ok!(NFT::mint(Origin::signed(ALICE), 0, bvec![0]));
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0, CHARLIE, 20));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
-		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX));
+		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX, 1));
+		assert_noop!(
+			Market::accept_offer(Origin::signed(ALICE), 0, 0),
+			Error::<Test>::OfferExpired
+		);
+		assert_ok!(Market::withdraw_offer(Origin::signed(ALICE), 0, 0));
+		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX, 666));
+		assert_eq!(
+			Market::tokens(0, 0),
+			Some(TokenInfo {
+				author: CHARLIE,
+				royalty: 20,
+				price: Some(100 * BSX),
+				offer: Some((BOB, 50 * BSX, 666)),
+			})
+		);
+		assert_eq!(frame_system::Pallet::<Test>::block_number(), 1);
 		assert_ok!(Market::accept_offer(Origin::signed(ALICE), 0, 0));
 		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
 		assert_eq!(Balances::total_balance(&ALICE), 20_040 * BSX);
