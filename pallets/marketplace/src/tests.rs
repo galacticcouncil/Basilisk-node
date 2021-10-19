@@ -21,7 +21,7 @@ fn new_test_ext() -> sp_io::TestExternalities {
 #[test]
 fn set_price_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), 0, bvec![0]));
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0, CHARLIE, 20));
 
@@ -64,7 +64,7 @@ fn set_price_works() {
 #[test]
 fn buy_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), 0, bvec![0]));
 
 		assert_noop!(Market::buy(Origin::signed(BOB), 0, 0), Error::<Test>::NotListed);
@@ -94,7 +94,7 @@ fn buy_works() {
 			})
 		);
 
-		assert_eq!(Balances::free_balance(ALICE), 10_633 * BSX);
+		assert_eq!(Balances::free_balance(ALICE), 10_614 * BSX);
 		assert_eq!(Balances::free_balance(BOB), 13_976 * BSX);
 		assert_eq!(Balances::free_balance(DAVE), 200_256 * BSX);
 
@@ -114,7 +114,7 @@ fn buy_works() {
 #[test]
 fn buy_works_2() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), 0, bvec![0]));
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0, CHARLIE, 20));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
@@ -130,9 +130,9 @@ fn buy_works_2() {
 fn free_trading_works() {
 	new_test_ext().execute_with(|| {
 		// Anyone can create a class
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art));
-		assert_ok!(NFT::create_class(Origin::signed(BOB), ClassType::Art));
-		assert_ok!(NFT::create_class(Origin::signed(CHARLIE), ClassType::PoolShare));
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
+		assert_ok!(NFT::create_class(Origin::signed(BOB), ClassType::Art, bvec![0]));
+		assert_ok!(NFT::create_class(Origin::signed(CHARLIE), ClassType::PoolShare, bvec![0]));
 
 		// Anyone can mint a token in any class
 		assert_ok!(NFT::mint(Origin::signed(ALICE), 0, bvec![0]));
@@ -228,7 +228,7 @@ fn free_trading_works() {
 #[test]
 fn offering_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), 0, bvec![0]));
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0, CHARLIE, 20));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));

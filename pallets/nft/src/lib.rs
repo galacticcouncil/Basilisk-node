@@ -77,7 +77,11 @@ pub mod pallet {
 		/// Emits `Created` and `ClassMetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(origin: OriginFor<T>, class_type: types::ClassType) -> DispatchResult {
+		pub fn create_class(
+			origin: OriginFor<T>,
+			class_type: types::ClassType,
+			metadata: BoundedVec<u8, T::ValueLimit>,
+		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
 			let admin = T::Lookup::unlookup(sender.clone());
@@ -93,7 +97,10 @@ pub mod pallet {
 			let key1_bounded = Self::to_bounded_key(b"type".to_vec())?;
 			let value1_bounded = Self::to_bounded_value(class_type.encode())?;
 
+			let key2_bounded = Self::to_bounded_key(b"metadata".to_vec())?;
+
 			pallet_uniques::Pallet::<T>::set_attribute(origin.clone(), class_id, None, key1_bounded, value1_bounded)?;
+			pallet_uniques::Pallet::<T>::set_attribute(origin.clone(), class_id, None, key2_bounded, metadata)?;
 
 			Ok(())
 		}

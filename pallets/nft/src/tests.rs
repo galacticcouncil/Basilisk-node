@@ -17,10 +17,10 @@ macro_rules! bvec {
 #[test]
 fn create_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		NextClassId::<Test>::mutate(|id| *id = <Test as UNQ::Config>::ClassId::max_value());
 		assert_noop!(
-			NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art),
+			NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]),
 			Error::<Test>::NoAvailableClassId
 		);
 	})
@@ -29,7 +29,7 @@ fn create_class_works() {
 #[test]
 fn mint_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, bvec![0]));
 		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID, bvec![0]));
 	});
@@ -38,7 +38,7 @@ fn mint_works() {
 #[test]
 fn transfer_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, bvec![0]));
 
 		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, BOB));
@@ -53,7 +53,7 @@ fn transfer_works() {
 #[test]
 fn burn_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, bvec![0]));
 
 		assert_noop!(
@@ -68,7 +68,7 @@ fn burn_works() {
 #[test]
 fn destroy_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
 		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID, bvec![0]));
 
 		assert_noop!(
