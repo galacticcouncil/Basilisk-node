@@ -13,19 +13,19 @@ macro_rules! bvec {
 #[test]
 fn can_create_auction() {
   let valid_auction_info = AuctionInfo {
-    name: "Auction 1".as_bytes().to_vec(),
+    name: "Auction 0".as_bytes().to_vec(),
     last_bid: None,
     start: 10u64,
     end: 21u64,
     owner: ALICE,
     auction_type: AuctionType::English,
-    token: (NFT_CLASS_ID, 0u16.into()),
+    token: (NFT_ID_1, 0u16.into()),
     minimal_bid: 55,
   };
 
   ExtBuilder::default().build().execute_with(|| {
-    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID, ALICE, bvec![0]));
-    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID, 0u16.into(), ALICE, 10u8, bvec![0]));
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
     
     // start before current block
     let mut auction_info = valid_auction_info.clone();
@@ -76,13 +76,13 @@ fn can_create_auction() {
     ));
 
     let auction = AuctionsModule::auctions(0).unwrap();
-    assert_eq!(String::from_utf8(auction.name).unwrap(), "Auction 1");
+    assert_eq!(String::from_utf8(auction.name).unwrap(), "Auction 0");
     assert_eq!(auction.last_bid, None);
     assert_eq!(auction.start, 10u64);
     assert_eq!(auction.end, 21u64);
     assert_eq!(auction.owner, ALICE);
     assert_eq!(auction.auction_type, AuctionType::English);
-    assert_eq!(auction.token, (NFT_CLASS_ID, 0u16.into()));
+    assert_eq!(auction.token, (NFT_ID_1, 0u16.into()));
     assert_eq!(auction.minimal_bid, 55);
 
     assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
@@ -97,16 +97,16 @@ fn can_create_auction() {
 #[test]
 fn can_delete_auction() {
   ExtBuilder::default().build().execute_with(|| {
-    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID, ALICE, bvec![0]));
-    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID, 0u16.into(), ALICE, 10u8, bvec![0]));
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
     let auction_info = AuctionInfo {
-      name: "Auction 1".as_bytes().to_vec(),
+      name: "Auction 0".as_bytes().to_vec(),
       last_bid: None,
       start: 10u64,
       end: 21u64,
       owner: ALICE,
       auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
+      token: (NFT_ID_1, 0u16.into()),
       minimal_bid: 55,
     };
 
@@ -149,16 +149,16 @@ fn can_delete_auction() {
 #[test]
 fn can_update_auction() {
   ExtBuilder::default().build().execute_with(|| {
-    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID, ALICE, bvec![0]));
-    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID, 0u16.into(), ALICE, 10u8, bvec![0]));
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
     let auction_info = AuctionInfo {
-      name: "Auction 1".as_bytes().to_vec(),
+      name: "Auction 0".as_bytes().to_vec(),
       last_bid: None,
       start: 10u64,
       end: 21u64,
       owner: ALICE,
       auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
+      token: (NFT_ID_1, 0u16.into()),
       minimal_bid: 55,
     };
 
@@ -171,7 +171,7 @@ fn can_update_auction() {
       end: 21u64,
       owner: ALICE,
       auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
+      token: (NFT_ID_1, 0u16.into()),
       minimal_bid: 55,
     };
 
@@ -186,5 +186,90 @@ fn can_update_auction() {
 
     let auction = AuctionsModule::auctions(0).unwrap();
     assert_eq!(String::from_utf8(auction.name).unwrap(), "Auction renamed");
+  });
+}
+
+#[test]
+fn can_bid_value() {
+  let auction_0_info = AuctionInfo {
+    name: "Auction 0".as_bytes().to_vec(),
+    last_bid: None,
+    start: 10u64,
+    end: 21u64,
+    owner: ALICE,
+    auction_type: AuctionType::English,
+    token: (NFT_ID_1, 0u16.into()),
+    minimal_bid: 0,
+  };
+
+  ExtBuilder::default().build().execute_with(|| {
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
+
+    // Create auction ID 0 with no minimal_bid and no last_bid
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_0_info));
+
+    // Error BidOnOwnAuction
+    assert_noop!(
+      AuctionsModule::bid_value(Origin::signed(ALICE), 0, BalanceOf::<Test>::from(2_000_u32)),
+      Error::<Test>::BidOnOwnAuction,
+    );
+
+    // Error AuctionNotStarted
+    assert_noop!(
+      AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
+      Error::<Test>::AuctionNotStarted,
+    );
+
+    // Error AuctionAlreadyConcluded
+    System::set_block_number(22);
+    assert_noop!(
+      AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
+      Error::<Test>::AuctionAlreadyConcluded,
+    );
+
+    System::set_block_number(11);
+
+    // Error InvalidBidPrice when bid is zero and auction has no minimal_price
+    assert_noop!(
+      AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::zero()),
+      Error::<Test>::InvalidBidPrice,
+    );
+
+    // Happy path: First highest bidder
+    assert_ok!(AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(1_000_u32)));
+
+    // Tokens of highest bidder are locked
+    assert_noop!(
+      Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX),
+      pallet_balances::Error::<Test>::LiquidityRestrictions
+    );
+
+    // Error InvalidBidPrice when second bid <= last_bid
+    assert_noop!(
+      AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(1_000_u32)),
+      Error::<Test>::InvalidBidPrice,
+    );
+    
+    // Error InvalidBidPrice when second bid < minimal_bid (10% above previous bid)
+    assert_noop!(
+      AuctionsModule::bid_value(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_099_u32)),
+      Error::<Test>::InvalidBidPrice,
+    );
+    
+    // Happy path: Second highest bidder
+    System::set_block_number(12);
+    assert_ok!(AuctionsModule::bid_value(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_100_u32)));
+    expect_event(crate::Event::<Test>::Bid(0, CHARLIE, 1100));
+
+    // Tokens of previous highest bidder are unlocked
+    assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
+
+    let auction = AuctionsModule::auctions(0).unwrap();
+    // Next bid step is updated
+    assert_eq!(auction.minimal_bid, 1210);
+
+    // Auction time is extended with 1 block when end time is less than 10 blocks away
+    assert_eq!(auction.end, 22u64);
   });
 }
