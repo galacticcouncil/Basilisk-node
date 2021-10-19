@@ -14,7 +14,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin, EnsureSigned};
+use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},

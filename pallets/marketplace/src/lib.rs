@@ -15,10 +15,6 @@ use sp_runtime::{
 	Percent,
 };
 
-use frame_support::traits::{BalanceStatus, ReservableCurrency};
-use pallet_uniques::traits::{CanBurn, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
-use pallet_uniques::{ClassTeam, DepositBalanceOf};
-
 use types::TokenInfo;
 use weights::WeightInfo;
 
@@ -79,7 +75,7 @@ pub mod pallet {
 		pub fn buy(origin: OriginFor<T>, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
-			Self::do_buy(sender, class_id, instance_id)
+			Self::do_buy(sender, class_id, instance_id, false)
 		}
 
 		/// Set trading price and allow sell
@@ -156,7 +152,7 @@ pub mod pallet {
 				class_id,
 				instance_id,
 				TokenInfo {
-					author: author,
+					author: author.clone(),
 					royalty: royalty,
 					price: None,
 					offer: None,
@@ -165,7 +161,7 @@ pub mod pallet {
 
 			pallet_uniques::Pallet::<T>::freeze(origin.clone(), class_id, instance_id)?;
 
-			Self::deposit_event(Event::TokenListed(sender, class_id, instance_id));
+			Self::deposit_event(Event::TokenListed(sender, class_id, instance_id, author, royalty));
 
 			Ok(())
 		}
@@ -196,7 +192,7 @@ pub mod pallet {
 
 			pallet_uniques::Pallet::<T>::thaw(class_owner_origin.clone(), class_id, instance_id)?;
 
-			Self::deposit_event(Event::TokenListed(sender, class_id, instance_id));
+			Self::deposit_event(Event::TokenUnlisted(sender, class_id, instance_id));
 
 			Ok(())
 		}
@@ -255,15 +251,17 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::accept_offer())]
 		#[transactional]
 		pub fn accept_offer(origin: OriginFor<T>, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
+			ensure_signed(origin.clone())?;
 
 			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
 				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
 
 				if let Some(current_offer) = &token_info.offer {
-					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &sender, current_offer.1);
-					Self::do_buy(current_offer.0.clone(), class_id, instance_id)?;
+					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &current_offer.0, current_offer.1);
+					Self::do_buy(current_offer.0.clone(), class_id, instance_id, true)?;
 					token_info.offer = None;
+				} else {
+					return Err(Error::<T>::InvalidOffer.into())
 				}
 
 				Ok(())
@@ -274,13 +272,15 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// The price for a token was updated
+		/// The price for a token was updated \[owner, class_id, instance_id, price\]
 		TokenPriceUpdated(T::AccountId, T::ClassId, T::InstanceId, Option<BalanceOf<T>>),
-		/// Token was sold to a new owner
-		TokenSold(T::AccountId, T::AccountId, T::ClassId, T::InstanceId, BalanceOf<T>),
-		/// Token listed on Marketplace
-		TokenListed(T::AccountId, T::ClassId, T::InstanceId),
-		/// Offer was placed on a token
+		/// Token was sold to a new owner \[owner, buyer, class_id, instance_id, price, author, royalty, royalty_amount\]
+		TokenSold(T::AccountId, T::AccountId, T::ClassId, T::InstanceId, BalanceOf<T>, Option<(T::AccountId, u8)>, BalanceOf<T>),
+		/// Token listed on Marketplace \[owner, class_id, instance_id, author royalty\]
+		TokenListed(T::AccountId, T::ClassId, T::InstanceId, T::AccountId, u8),
+		/// Token listed on Marketplace \[owner, class_id, instance_id, author royalty\]
+		TokenUnlisted(T::AccountId, T::ClassId, T::InstanceId),
+		/// Offer was placed on a token \[offerer, class_id, instance_id, offered_price\]
 		OfferPlaced(T::AccountId, T::ClassId, T::InstanceId, BalanceOf<T>),
 	}
 
@@ -310,7 +310,7 @@ pub mod pallet {
 		ClassOrInstanceUnknown,
 		/// Token already listed on marketplace
 		AlreadyListed,
-		/// Offer is zero or lower than the current one
+		/// Offer is None, zero or lower than the current one
 		InvalidOffer,
 	}
 }
@@ -327,7 +327,8 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	fn do_buy(buyer: T::AccountId, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
+	/// Call extrinsic helper function used by `buy` and `accept_offer` functions
+	fn do_buy(buyer: T::AccountId, class_id: T::ClassId, instance_id: T::InstanceId, is_offer: bool) -> DispatchResult {
 		ensure!(Tokens::<T>::contains_key(class_id, instance_id), Error::<T>::NotListed);
 
 		let owner =
@@ -343,12 +344,23 @@ impl<T: Config> Pallet<T> {
 		Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
 			let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
 
-			let mut price = token_info.price.take().ok_or(Error::<T>::NotForSale)?;
+			let mut price;
+
+			if is_offer {
+				if let Some(offer) = &token_info.offer {
+					price = offer.1;
+				} else {
+					return Err(Error::<T>::InvalidOffer.into())
+				}
+			} else {
+				price = token_info.price.take().ok_or(Error::<T>::NotForSale)?;
+			}
 
 			// Calculate royalty and subtract from price if author different from buyer
+			let royalty_perc = Percent::from_percent(token_info.royalty);
+			let royalty_amount = royalty_perc * price;
+
 			if owner != token_info.author && token_info.royalty != 0u8 {
-				let royalty_perc = Percent::from_percent(token_info.royalty);
-				let royalty_amount = royalty_perc * price;
 				price = price.saturating_sub(royalty_amount);
 
 				// Send royalty to author
@@ -368,99 +380,8 @@ impl<T: Config> Pallet<T> {
 
 			pallet_uniques::Pallet::<T>::freeze(class_owner_origin, class_id, instance_id)?;
 
-			Self::deposit_event(Event::TokenSold(owner, buyer, class_id, instance_id, price));
+			Self::deposit_event(Event::TokenSold(owner, buyer, class_id, instance_id, price, Some((token_info.author.clone(), token_info.royalty)), royalty_amount));
 			Ok(())
 		})
-	}
-}
-
-impl<P: Config> CanMint for Pallet<P> {
-	fn can_mint<T: pallet_uniques::Config<I>, I: 'static>(
-		_origin: T::AccountId,
-		_class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		Ok(())
-	}
-}
-impl<P: Config> CanBurn for Pallet<P> {
-	fn can_burn<T: pallet_uniques::Config<I>, I: 'static>(
-		origin: T::AccountId,
-		instance_owner: &T::AccountId,
-		_instance_id: &T::InstanceId,
-		_class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		let is_permitted = *instance_owner == origin;
-		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
-		Ok(())
-	}
-}
-
-impl<P: Config> CanTransfer for Pallet<P> {
-	fn can_transfer<T: pallet_uniques::Config<I>, I: 'static>(
-		origin: T::AccountId,
-		instance_owner: &T::AccountId,
-		_instance_id: &T::InstanceId,
-		_class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-	) -> sp_runtime::DispatchResult {
-		let is_permitted = *instance_owner == origin;
-		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
-		Ok(())
-	}
-}
-
-impl<P: Config> InstanceReserve for Pallet<P> {
-	fn reserve<T: pallet_uniques::Config<I>, I>(
-		instance_owner: &T::AccountId,
-		_instance_id: &T::InstanceId,
-		_class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-		deposit: pallet_uniques::DepositBalanceOf<T, I>,
-	) -> sp_runtime::DispatchResult {
-		T::Currency::reserve(instance_owner, deposit)
-	}
-
-	fn unreserve<T: pallet_uniques::Config<I>, I>(
-		instance_owner: &T::AccountId,
-		_instance_id: &T::InstanceId,
-		_class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-		deposit: pallet_uniques::DepositBalanceOf<T, I>,
-	) -> sp_runtime::DispatchResult {
-		T::Currency::unreserve(instance_owner, deposit);
-		Ok(())
-	}
-
-	fn repatriate<T: pallet_uniques::Config<I>, I>(
-		dest: &T::AccountId,
-		instance_owner: &T::AccountId,
-		_instance_id: &T::InstanceId,
-		_class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-		deposit: DepositBalanceOf<T, I>,
-	) -> sp_runtime::DispatchResult {
-		T::Currency::repatriate_reserved(dest, instance_owner, deposit, BalanceStatus::Reserved).map(|_| ())
-	}
-}
-
-impl<P: Config> CanDestroyClass for Pallet<P> {
-	fn can_destroy_class<T: pallet_uniques::Config<I>, I: 'static>(
-		origin: &T::AccountId,
-		_class_id: &T::ClassId,
-		class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		ensure!(class_team.owner == *origin, pallet_uniques::Error::<T, I>::NoPermission);
-		Ok(())
-	}
-
-	fn can_destroy_instances<T: pallet_uniques::Config<I>, I: 'static>(
-		_origin: &T::AccountId,
-		_class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		// Is called only where are existing instances
-		// Not allowed to destroy calls in such case
-		Err(pallet_uniques::Error::<T, I>::NoPermission.into())
 	}
 }

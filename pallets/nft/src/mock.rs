@@ -72,6 +72,11 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
+	type MintPermission = NFT;
+	type BurnPermission = NFT;
+	type InstanceTransferPermission = NFT;
+	type CanDestroyClass = NFT;
+	type InstanceReserveStrategy = NFT;
 }
 
 parameter_types! {

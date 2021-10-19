@@ -48,7 +48,7 @@ use codec::{Decode, Encode, HasCompact};
 use frame_support::traits::{BalanceStatus::Reserved, Currency, ReservableCurrency};
 use frame_system::Config as SystemConfig;
 use sp_runtime::{
-	traits::{Saturating, StaticLookup, Zero},
+	traits::{Saturating, StaticLookup, Zero, AtLeast32BitUnsigned},
 	ArithmeticError, RuntimeDebug,
 };
 use sp_std::prelude::*;
@@ -74,10 +74,10 @@ pub mod pallet {
 		type Event: From<Event<Self, I>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Identifier for the class of asset.
-		type ClassId: Member + Parameter + Default + Copy + HasCompact;
+		type ClassId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned;
 
 		/// The type used to identify a unique asset within an asset class.
-		type InstanceId: Member + Parameter + Default + Copy + HasCompact + From<u16>;
+		type InstanceId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned;
 
 		/// The currency mechanism, used for paying for reserves.
 		type Currency: ReservableCurrency<Self::AccountId>;

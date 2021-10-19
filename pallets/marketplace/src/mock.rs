@@ -27,7 +27,7 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Marketplace: pallet_marketplace::{Pallet, Call, Storage, Event<T>},
-		Nft: pallet_nft::{Pallet, Call, Event<T>, Storage},
+		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 	}
@@ -122,11 +122,11 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type MintPermission = Marketplace;
-	type BurnPermission = Marketplace;
-	type InstanceTransferPermission = Marketplace;
-	type CanDestroyClass = Marketplace;
-	type InstanceReserveStrategy = Marketplace;
+	type MintPermission = NFT;
+	type BurnPermission = NFT;
+	type InstanceTransferPermission = NFT;
+	type CanDestroyClass = NFT;
+	type InstanceReserveStrategy = NFT;
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
@@ -152,7 +152,7 @@ impl ExtBuilder {
 				(ALICE, 20_000 * BSX),
 				(BOB, 15_000 * BSX),
 				(CHARLIE, 150_000 * BSX),
-				(DAVE, 222_222 * BSX),
+				(DAVE, 200_000 * BSX),
 			],
 		}
 		.assimilate_storage(&mut t)

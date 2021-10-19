@@ -17,11 +17,11 @@ macro_rules! bvec {
 #[test]
 fn create_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ClassType::Art));
-
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		NextClassId::<Test>::mutate(|id| *id = <Test as UNQ::Config>::ClassId::max_value());
 		assert_noop!(
-			NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ClassType::Art),
-			UNQ::Error::<Test>::InUse		
+			NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art),
+			Error::<Test>::NoAvailableClassId
 		);
 	})
 }
@@ -29,21 +29,17 @@ fn create_class_works() {
 #[test]
 fn mint_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ClassType::Art));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, bvec![0]));
-
-		assert_noop!(
-			NFTPallet::mint(Origin::signed(CHARLIE), CLASS_ID, 999, bvec![0]),
-			UNQ::Error::<Test>::NoPermission
-		);
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, bvec![0]));
+		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID, bvec![0]));
 	});
 }
 
 #[test]
 fn transfer_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ClassType::Art));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, bvec![0]));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, bvec![0]));
 
 		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, BOB));
 
@@ -57,8 +53,8 @@ fn transfer_works() {
 #[test]
 fn burn_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ClassType::Art));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, TOKEN_ID, bvec![0]));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID, bvec![0]));
 
 		assert_noop!(
 			NFTPallet::burn(Origin::signed(BOB), CLASS_ID, TOKEN_ID),
@@ -72,33 +68,27 @@ fn burn_works() {
 #[test]
 fn destroy_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), CLASS_ID, ClassType::Art));
-
-		/* Currently there is no public constructor for DestroyWitness struct
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
+		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID, bvec![0]));
+ 
 		assert_noop!(
 			NFTPallet::destroy_class(
 				Origin::signed(ALICE),
-				CLASS_ID,
-				DestroyWitness {
-					instances: 1,
-					instance_metadatas: 2,
-					attributes: 3,
-				}
+				CLASS_ID
 				),
-				UNQ::Error::<Test>::BadWitness
+				UNQ::Error::<Test>::NoPermission
 		);
 
-		assert_ok!(NFTPallet::destroy_class(
-			Origin::signed(ALICE),
-			CLASS_ID,
-			DestroyWitness {
-				instances: 0,
-				instance_metadatas: 0,
-				attributes: 0
-			}
-		));
-		let event = Event::Uniques(UNQ::Event::Destroyed(CLASS_ID));
-		assert_eq!(last_event(), event);
-		*/
+		assert_noop!(
+			NFTPallet::burn(
+				Origin::signed(ALICE),
+				CLASS_ID,
+				0,
+				),
+				UNQ::Error::<Test>::NoPermission
+		);
+
+		assert_ok!(NFTPallet::burn(Origin::signed(BOB), CLASS_ID, 0));
+		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID));		
 	});
 }
