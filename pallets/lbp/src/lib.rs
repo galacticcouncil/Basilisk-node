@@ -27,6 +27,8 @@ use primitives::{
 	Amount, AssetId, Balance
 };
 
+use scale_info::TypeInfo;
+
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
@@ -49,7 +51,7 @@ type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_s
 type PoolId<T> = <T as frame_system::Config>::AccountId;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo)]
 pub enum WeightCurveType {
 	Linear,
 }
@@ -61,7 +63,7 @@ impl Default for WeightCurveType {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default)]
+#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default, TypeInfo)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub owner: AccountId,
 	pub start: BlockNumber,
@@ -123,7 +125,7 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 
 // TODO: From reading the code, this seems like it makes the code harder to read than help.
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default, TypeInfo)]
 pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq> {
 	pub id: AssetId,
 	pub amount: Balance,
