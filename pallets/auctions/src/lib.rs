@@ -59,7 +59,7 @@ pub use pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*};
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -174,6 +174,17 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		#[pallet::weight(<T as Config>::WeightInfo::update_auction())]
+		pub fn update_auction(origin: OriginFor<T>, id: T::AuctionId, auction_info: AuctionInfoOf<T>) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
+			<Auctions<T>>::try_mutate(id, |auction| -> DispatchResult {
+				Self::validate_update_delete(&sender, &auction.as_ref().unwrap().owner, auction.as_ref().unwrap().start)?;
+				ensure!(auction.is_some(), Error::<T>::AuctionNotExist);
+				*auction = Some(auction_info);
+				Ok(())
+			})
+		}
+
 		#[pallet::weight(<T as Config>::WeightInfo::bid_value())]
 		pub fn bid_value(origin: OriginFor<T>, id: T::AuctionId, value: BalanceOf<T>) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
@@ -187,10 +198,7 @@ pub mod pallet {
 		pub fn delete_auction(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 			let auction = <Auctions<T>>::take(id).ok_or(Error::<T>::AuctionNotExist)?;
-			ensure!(auction.owner == sender, Error::<T>::NotAuctionOwner);
-
-			let current_block_number = frame_system::Pallet::<T>::block_number();
-			ensure!(current_block_number < auction.start, Error::<T>::AuctionAlreadyStarted);
+			Self::validate_update_delete(&sender, &auction.owner, auction.start)?;
 
 			pallet_uniques::Pallet::<T>::thaw(
 				RawOrigin::Signed(auction.owner.clone()).into(),
@@ -215,6 +223,19 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	fn validate_update_delete(
+		sender: &<T>::AccountId,
+		auction_owner: &<T>::AccountId,
+		auction_start: <T>::BlockNumber
+	) -> DispatchResult {
+		ensure!(auction_owner == sender, Error::<T>::NotAuctionOwner);
+
+		let current_block_number = frame_system::Pallet::<T>::block_number();
+		ensure!(current_block_number < auction_start, Error::<T>::AuctionAlreadyStarted);
+
+		Ok(())
+	}
+
 	fn conclude_auction(now: T::BlockNumber) {
 		for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
 			if let Some(auction) = Self::auctions(auction_id) {
@@ -285,14 +306,6 @@ impl<T: Config> Auction<T::AccountId, T::BlockNumber, T::ClassId, T::InstanceId>
 		pallet_uniques::Pallet::<T>::freeze(RawOrigin::Signed(info.owner.clone()).into(), info.token.0, info.token.1)?;
 
 		Ok(auction_id)
-	}
-
-	fn update_auction(id: Self::AuctionId, info: AuctionInfoOf<T>) -> DispatchResult {
-		<Auctions<T>>::try_mutate(id, |auction| -> DispatchResult {
-			ensure!(auction.is_some(), Error::<T>::AuctionNotExist);
-			*auction = Some(info);
-			Ok(())
-		})
 	}
 
 	fn bid(bidder: Self::AccountId, id: Self::AuctionId, value: Self::Balance) -> DispatchResult {

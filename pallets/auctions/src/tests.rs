@@ -12,123 +12,67 @@ macro_rules! bvec {
 
 #[test]
 fn can_create_auction() {
+  let valid_auction_info = AuctionInfo {
+    name: "Auction 1".as_bytes().to_vec(),
+    last_bid: None,
+    start: 10u64,
+    end: 21u64,
+    owner: ALICE,
+    auction_type: AuctionType::English,
+    token: (NFT_CLASS_ID, 0u16.into()),
+    minimal_bid: 55,
+  };
+
   ExtBuilder::default().build().execute_with(|| {
     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID, ALICE, bvec![0]));
     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID, 0u16.into(), ALICE, 10u8, bvec![0]));
     
     // start before current block
-    let auction_info = AuctionInfo {
-      name: "Auction 1".as_bytes().to_vec(),
-      last_bid: None,
-      start: 0,
-      end: 21u64,
-      owner: ALICE,
-      auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
-      minimal_bid: 55,
-    };
-    assert_noop!(
-      AuctionsModule::create_auction(Origin::signed(ALICE), auction_info),
-      Error::<Test>::AuctionStartTimeAlreadyPassed
-    );
-
-    // start before current block
-    let auction_info = AuctionInfo {
-      name: "Auction 1".as_bytes().to_vec(),
-      last_bid: None,
-      start: 0u64,
-      end: 21u64,
-      owner: ALICE,
-      auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
-      minimal_bid: 55,
-    };
+    let mut auction_info = valid_auction_info.clone();
+    auction_info.start = 0u64;
     assert_noop!(
       AuctionsModule::create_auction(Origin::signed(ALICE), auction_info),
       Error::<Test>::AuctionStartTimeAlreadyPassed
     );
 
     // end is zero
-    let auction_info = AuctionInfo {
-      name: "Auction 1".as_bytes().to_vec(),
-      last_bid: None,
-      start: 1u64,
-      end: 0u64,
-      owner: ALICE,
-      auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
-      minimal_bid: 55,
-    };
+    auction_info = valid_auction_info.clone();
+    auction_info.end = 0u64;
     assert_noop!(
       AuctionsModule::create_auction(Origin::signed(ALICE), auction_info),
       Error::<Test>::InvalidTimeConfiguration
     );
 
     // duration too short
-    let auction_info = AuctionInfo {
-      name: "Auction 1".as_bytes().to_vec(),
-      last_bid: None,
-      start: 10u64,
-      end: 20u64,
-      owner: ALICE,
-      auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
-      minimal_bid: 55,
-    };
+    auction_info = valid_auction_info.clone();
+    auction_info.end = 20u64;
     assert_noop!(
       AuctionsModule::create_auction(Origin::signed(ALICE), auction_info),
       Error::<Test>::InvalidTimeConfiguration
     );
 
     // auction name empty
-    let auction_info = AuctionInfo {
-      name: "".as_bytes().to_vec(),
-      last_bid: None,
-      start: 10u64,
-      end: 21u64,
-      owner: ALICE,
-      auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
-      minimal_bid: 55,
-    };
+    auction_info = valid_auction_info.clone();
+    auction_info.name = "".as_bytes().to_vec();
     assert_noop!(
       AuctionsModule::create_auction(Origin::signed(ALICE), auction_info),
       Error::<Test>::EmptyAuctionName
     );
 
     // Caller isn't owner
-    let auction_info = AuctionInfo {
-      name: "Auction 1".as_bytes().to_vec(),
-      last_bid: None,
-      start: 10u64,
-      end: 21u64,
-      owner: BOB,
-      auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
-      minimal_bid: 55,
-    };
+    auction_info = valid_auction_info.clone();
+    auction_info.owner = BOB;
     assert_noop!(
-      AuctionsModule::create_auction(Origin::signed(BOB), auction_info),
+      AuctionsModule::create_auction(Origin::signed(ALICE), auction_info),
       Error::<Test>::NotATokenOwner
     );
 
     // TODO add test for Error::<T>::TokenFrozen
 
     // happy path
-    let auction_info = AuctionInfo {
-      name: "Auction 1".as_bytes().to_vec(),
-      last_bid: None,
-      start: 10u64,
-      end: 21u64,
-      owner: ALICE,
-      auction_type: AuctionType::English,
-      token: (NFT_CLASS_ID, 0u16.into()),
-      minimal_bid: 55,
-    };
-
     assert_ok!(AuctionsModule::create_auction(
       Origin::signed(ALICE),
-      auction_info,
+      valid_auction_info.clone(),
     ));
 
     let auction = AuctionsModule::auctions(0).unwrap();
@@ -176,7 +120,7 @@ fn can_delete_auction() {
       AuctionsModule::create_auction(Origin::signed(ALICE), auction_info)
     );
     
-    // TODO weird panic here
+    // TODO weird panic
     // Error NotAuctionOwner when caller is not owner
     // assert_noop!(
     //   AuctionsModule::delete_auction(Origin::signed(BOB), 0),
@@ -199,4 +143,48 @@ fn can_delete_auction() {
 
     expect_event(crate::Event::<Test>::AuctionRemoved(0));
   });
-} 
+
+}
+
+#[test]
+fn can_update_auction() {
+  ExtBuilder::default().build().execute_with(|| {
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID, 0u16.into(), ALICE, 10u8, bvec![0]));
+    let auction_info = AuctionInfo {
+      name: "Auction 1".as_bytes().to_vec(),
+      last_bid: None,
+      start: 10u64,
+      end: 21u64,
+      owner: ALICE,
+      auction_type: AuctionType::English,
+      token: (NFT_CLASS_ID, 0u16.into()),
+      minimal_bid: 55,
+    };
+
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info));
+
+    let update_auction_info = AuctionInfo {
+      name: "Auction renamed".as_bytes().to_vec(),
+      last_bid: None,
+      start: 10u64,
+      end: 21u64,
+      owner: ALICE,
+      auction_type: AuctionType::English,
+      token: (NFT_CLASS_ID, 0u16.into()),
+      minimal_bid: 55,
+    };
+
+    // Error NotAuctionOwner when caller is not owner
+    assert_noop!(
+      AuctionsModule::update_auction(Origin::signed(BOB), 0, update_auction_info.clone()),
+      Error::<Test>::NotAuctionOwner,
+    );
+
+    // Happy path
+    assert_ok!(AuctionsModule::update_auction(Origin::signed(ALICE), 0, update_auction_info.clone()));
+
+    let auction = AuctionsModule::auctions(0).unwrap();
+    assert_eq!(String::from_utf8(auction.name).unwrap(), "Auction renamed");
+  });
+}

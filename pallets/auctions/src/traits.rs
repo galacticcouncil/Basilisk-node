@@ -64,12 +64,14 @@ pub trait Auction<AccountId, BlockNumber, NftClassId, NftTokenId> {
 	fn new_auction(
 		info: AuctionInfo<Self::AccountId, Self::Balance, BlockNumber, NftClassId, NftTokenId>,
 	) -> result::Result<Self::AuctionId, DispatchError>;
+	/// TODO can this be an extrinsic?
 	/// Update the auction info of `id` with `info`
-	fn update_auction(
-		id: Self::AuctionId,
-		info: AuctionInfo<Self::AccountId, Self::Balance, BlockNumber, NftClassId, NftTokenId>,
-	) -> DispatchResult;
-	/// Remove auction by `id`
+	// fn update_auction(
+	// 	id: Self::AuctionId,
+	// 	info: AuctionInfo<Self::AccountId, Self::Balance, BlockNumber, NftClassId, NftTokenId>,
+	// ) -> DispatchResult;
+
+	/// TODO: Remove auction by `id`
 	// fn remove_auction(id: Self::AuctionId) -> DispatchResult;
 	/// Bid
 	fn bid(bidder: Self::AccountId, id: Self::AuctionId, value: Self::Balance) -> DispatchResult;

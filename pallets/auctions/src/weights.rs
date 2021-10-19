@@ -43,6 +43,7 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_auction.
 pub trait WeightInfo {
 	fn create_auction() -> Weight;
+	fn update_auction() -> Weight;
 	fn bid_value() -> Weight;
 	fn delete_auction() -> Weight;
 }
@@ -52,6 +53,11 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_auction() -> Weight {
+		(74_809_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(4 as Weight))
+			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+	}
+	fn update_auction() -> Weight {
 		(74_809_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
@@ -71,6 +77,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn create_auction() -> Weight {
+		(74_809_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
+	}
+	fn update_auction() -> Weight {
 		(74_809_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
