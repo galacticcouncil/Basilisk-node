@@ -48,7 +48,7 @@ use codec::{Decode, Encode, HasCompact};
 use frame_support::traits::{BalanceStatus::Reserved, Currency, ReservableCurrency};
 use frame_system::Config as SystemConfig;
 use sp_runtime::{
-	traits::{Saturating, StaticLookup, Zero, AtLeast32BitUnsigned},
+	traits::{AtLeast32BitUnsigned, Saturating, StaticLookup, Zero},
 	ArithmeticError, RuntimeDebug,
 };
 use sp_std::prelude::*;

@@ -98,7 +98,15 @@ fn buy_works() {
 		assert_eq!(Balances::free_balance(BOB), 13_976 * BSX);
 		assert_eq!(Balances::free_balance(DAVE), 200_256 * BSX);
 
-		let event = Event::Marketplace(crate::Event::TokenSold(ALICE, BOB, 0, 0, 768 * BSX, Some((DAVE, 25)), 256 * BSX));
+		let event = Event::Marketplace(crate::Event::TokenSold(
+			ALICE,
+			BOB,
+			0,
+			0,
+			768 * BSX,
+			Some((DAVE, 25)),
+			256 * BSX,
+		));
 		assert_eq!(last_event(), event);
 	});
 }

@@ -70,25 +70,18 @@ fn destroy_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art));
 		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID, bvec![0]));
- 
+
 		assert_noop!(
-			NFTPallet::destroy_class(
-				Origin::signed(ALICE),
-				CLASS_ID
-				),
-				UNQ::Error::<Test>::NoPermission
+			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID),
+			UNQ::Error::<Test>::NoPermission
 		);
 
 		assert_noop!(
-			NFTPallet::burn(
-				Origin::signed(ALICE),
-				CLASS_ID,
-				0,
-				),
-				UNQ::Error::<Test>::NoPermission
+			NFTPallet::burn(Origin::signed(ALICE), CLASS_ID, 0,),
+			UNQ::Error::<Test>::NoPermission
 		);
 
 		assert_ok!(NFTPallet::burn(Origin::signed(BOB), CLASS_ID, 0));
-		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID));		
+		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID));
 	});
 }

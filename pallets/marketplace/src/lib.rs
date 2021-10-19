@@ -257,11 +257,15 @@ pub mod pallet {
 				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
 
 				if let Some(current_offer) = &token_info.offer {
-					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &current_offer.0, current_offer.1);
+					<T as pallet_nft::Config>::Currency::unreserve_named(
+						&RESERVE_ID,
+						&current_offer.0,
+						current_offer.1,
+					);
 					Self::do_buy(current_offer.0.clone(), class_id, instance_id, true)?;
 					token_info.offer = None;
 				} else {
-					return Err(Error::<T>::InvalidOffer.into())
+					return Err(Error::<T>::InvalidOffer.into());
 				}
 
 				Ok(())
@@ -275,7 +279,15 @@ pub mod pallet {
 		/// The price for a token was updated \[owner, class_id, instance_id, price\]
 		TokenPriceUpdated(T::AccountId, T::ClassId, T::InstanceId, Option<BalanceOf<T>>),
 		/// Token was sold to a new owner \[owner, buyer, class_id, instance_id, price, author, royalty, royalty_amount\]
-		TokenSold(T::AccountId, T::AccountId, T::ClassId, T::InstanceId, BalanceOf<T>, Option<(T::AccountId, u8)>, BalanceOf<T>),
+		TokenSold(
+			T::AccountId,
+			T::AccountId,
+			T::ClassId,
+			T::InstanceId,
+			BalanceOf<T>,
+			Option<(T::AccountId, u8)>,
+			BalanceOf<T>,
+		),
 		/// Token listed on Marketplace \[owner, class_id, instance_id, author royalty\]
 		TokenListed(T::AccountId, T::ClassId, T::InstanceId, T::AccountId, u8),
 		/// Token listed on Marketplace \[owner, class_id, instance_id, author royalty\]
@@ -350,7 +362,7 @@ impl<T: Config> Pallet<T> {
 				if let Some(offer) = &token_info.offer {
 					price = offer.1;
 				} else {
-					return Err(Error::<T>::InvalidOffer.into())
+					return Err(Error::<T>::InvalidOffer.into());
 				}
 			} else {
 				price = token_info.price.take().ok_or(Error::<T>::NotForSale)?;
@@ -380,7 +392,15 @@ impl<T: Config> Pallet<T> {
 
 			pallet_uniques::Pallet::<T>::freeze(class_owner_origin, class_id, instance_id)?;
 
-			Self::deposit_event(Event::TokenSold(owner, buyer, class_id, instance_id, price, Some((token_info.author.clone(), token_info.royalty)), royalty_amount));
+			Self::deposit_event(Event::TokenSold(
+				owner,
+				buyer,
+				class_id,
+				instance_id,
+				price,
+				Some((token_info.author.clone(), token_info.royalty)),
+				royalty_amount,
+			));
 			Ok(())
 		})
 	}

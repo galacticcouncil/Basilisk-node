@@ -3,9 +3,9 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::{
-	ensure,
 	dispatch::DispatchResult,
-	traits::{tokens::nonfungibles::*, Currency, NamedReservableCurrency, ReservableCurrency, BalanceStatus},
+	ensure,
+	traits::{tokens::nonfungibles::*, BalanceStatus, Currency, NamedReservableCurrency, ReservableCurrency},
 	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
@@ -77,10 +77,7 @@ pub mod pallet {
 		/// Emits `Created` and `ClassMetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(
-			origin: OriginFor<T>,
-			class_type: types::ClassType,
-		) -> DispatchResult {
+		pub fn create_class(origin: OriginFor<T>, class_type: types::ClassType) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
 			let admin = T::Lookup::unlookup(sender.clone());
@@ -123,18 +120,21 @@ pub mod pallet {
 
 			let key1_bounded = Self::to_bounded_key(b"ipfs_hash".to_vec())?;
 
-			let instance_id = NextInstanceId::<T>::try_mutate(class_id, |id| -> Result<T::InstanceId, DispatchError> {
-				let current_id = *id;
-				*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
-				Ok(current_id)
-			})?;
+			let instance_id =
+				NextInstanceId::<T>::try_mutate(class_id, |id| -> Result<T::InstanceId, DispatchError> {
+					let current_id = *id;
+					*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
+					Ok(current_id)
+				})?;
 
 			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, owner.clone())?;
 
-			pallet_uniques::Pallet::<T>::set_instance_attribute(class_id,
-																instance_id,
-																key1_bounded.clone(),
-																ipfs_hash.clone())?;
+			pallet_uniques::Pallet::<T>::set_instance_attribute(
+				class_id,
+				instance_id,
+				key1_bounded.clone(),
+				ipfs_hash.clone(),
+			)?;
 
 			<T as Config>::Currency::reserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get())?;
 

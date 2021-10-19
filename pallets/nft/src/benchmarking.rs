@@ -4,13 +4,11 @@ use super::*;
 
 use crate as NFT;
 use frame_benchmarking::{account, benchmarks, vec};
-use frame_support::{
-	traits::{Currency, Get, tokens::nonfungibles::InspectEnumerable},
-};
+use frame_support::traits::{tokens::nonfungibles::InspectEnumerable, Currency, Get};
 use frame_system::RawOrigin;
+use pallet_uniques as UNQ;
 use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::convert::TryInto;
-use pallet_uniques as UNQ;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;

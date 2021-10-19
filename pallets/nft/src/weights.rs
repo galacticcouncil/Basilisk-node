@@ -40,18 +40,18 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_nft.
 pub trait WeightInfo {
-    fn create_class() -> Weight;
-    fn mint() -> Weight;
-    fn transfer() -> Weight;
-    fn destroy_class() -> Weight;
-    fn burn() -> Weight;
+	fn create_class() -> Weight;
+	fn mint() -> Weight;
+	fn transfer() -> Weight;
+	fn destroy_class() -> Weight;
+	fn burn() -> Weight;
 }
 
 /// Weights for pallet_nft using the hack.hydraDX node and recommended hardware.
@@ -86,29 +86,29 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
-    fn create_class() -> Weight {
-        (51_994_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
-    }
-    fn mint() -> Weight {
-        (54_707_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(4 as Weight))
-    }
-    fn transfer() -> Weight {
-        (52_296_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(1 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
-    }
-    fn destroy_class() -> Weight {
-        (58_701_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
-    }
-    fn burn() -> Weight {
-        (53_629_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
-    }
+	fn create_class() -> Weight {
+		(51_994_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn mint() -> Weight {
+		(54_707_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn transfer() -> Weight {
+		(52_296_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn destroy_class() -> Weight {
+		(58_701_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn burn() -> Weight {
+		(53_629_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
 }

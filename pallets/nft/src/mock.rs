@@ -1,8 +1,8 @@
 use super::*;
 use crate as pallet_nft;
 
-use frame_system::EnsureRoot;
 use frame_support::{parameter_types, weights::Weight};
+use frame_system::EnsureRoot;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
