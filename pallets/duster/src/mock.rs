@@ -1,7 +1,7 @@
 use crate as duster;
 
 use frame_support::parameter_types;
-use frame_support::traits::{GenesisBuild, Nothing, OnKilledAccount};
+use frame_support::traits::{Everything, GenesisBuild, Nothing, OnKilledAccount};
 
 use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
@@ -78,7 +78,7 @@ impl OnKilledAccount<u64> for RecordKilled {
 }
 
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type Origin = Origin;

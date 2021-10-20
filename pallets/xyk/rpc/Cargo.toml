@@ -20,9 +20,9 @@ substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", bran
 [dependencies]
 codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "2.3.1" }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
-jsonrpc-core = { default-features = false, version = "15.0.0" }
-jsonrpc-core-client = { default-features = false, version = "15.0.0" }
-jsonrpc-derive = { default-features = false, version = "15.0.0" }
+jsonrpc-core = { default-features = false, version = "18.0.0" }
+jsonrpc-core-client = { default-features = false, version = "18.0.0" }
+jsonrpc-derive = { default-features = false, version = "18.0.0" }
 serde = { features = ["derive"], optional = true, version = "1.0.101" }
 
 # Substrate dependencies

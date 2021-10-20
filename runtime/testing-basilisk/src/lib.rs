@@ -54,7 +54,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOrigin, Get, U128CurrencyToVote, Everything},
+	traits::{EnsureOrigin, Everything, Get, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -664,6 +664,9 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 
+		// Basilisk's registry
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
+
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>},
 		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
@@ -699,7 +702,6 @@ construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
 		// Basilisk related modules
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
 		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
@@ -829,10 +831,14 @@ impl_runtime_apis! {
 
 		#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
-		fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+		fn on_runtime_upgrade() -> (Weight, Weight) {
 			//log::info!("try-runtime::on_runtime_upgrade.");
-			let weight = Executive::try_runtime_upgrade()?;
-			Ok((weight, BlockWeights::get().max_block))
+			let weight = Executive::try_runtime_upgrade().unwrap();
+			(weight, BlockWeights::get().max_block)
+		}
+
+		fn execute_block_no_check(block: Block) -> Weight {
+			Executive::execute_block_no_check(block)
 		}
 	}
 
