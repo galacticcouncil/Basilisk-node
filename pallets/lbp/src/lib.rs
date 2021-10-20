@@ -660,7 +660,7 @@ impl<T: Config> Pallet<T> {
 
 		ensure!(
 			(pool_data.start.is_zero() && pool_data.end.is_zero())
-				|| (now <= pool_data.start && pool_data.start < pool_data.end),
+				|| (now < pool_data.start && pool_data.start < pool_data.end),
 			Error::<T>::InvalidBlockRange
 		);
 
@@ -712,7 +712,7 @@ impl<T: Config> Pallet<T> {
 	/// return true if now is > pool.start and pool has been initialized
 	fn has_pool_started(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = T::BlockNumberProvider::current_block_number();
-		!pool_data.start.is_zero() && pool_data.start <= now 
+		!pool_data.start.is_zero() && pool_data.start <= now
 	}
 
 	fn validate_trade(
