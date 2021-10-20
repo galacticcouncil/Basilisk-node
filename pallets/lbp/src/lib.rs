@@ -29,7 +29,7 @@ use primitives::{
 
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
-use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
+use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -117,13 +117,6 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 			fee_collector,
 		}
 	}
-}
-
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
-pub struct LBPAssetInfo<Balance: Encode + Decode + Copy + Clone + Debug + Eq + PartialEq> {
-	pub id: AssetId,
-	pub amount: Balance,
 }
 
 pub trait LBPWeightCalculation<BlockNumber: AtLeast32BitUnsigned> {
