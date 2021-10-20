@@ -79,6 +79,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 		expect_events(vec![
 			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data1).into(),
+			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into(),
 		]);
 	});
@@ -260,7 +261,10 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
-		expect_events(vec![Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into()]);
+		expect_events(vec![
+			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
+			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+		]);
 	});
 }
 
@@ -323,7 +327,10 @@ fn create_same_pool_should_not_work() {
 
 		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
-		expect_events(vec![Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into()]);
+		expect_events(vec![
+			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
+			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
+		]);
 	});
 }
 
@@ -868,6 +875,7 @@ fn update_pool_interval_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
+			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data).into(),
 		]);
 	});
@@ -1572,7 +1580,7 @@ fn execute_buy_should_work() {
 	});
 }
 
-// // This test ensure storage was not modified on error
+// This test ensures storage was not modified on error
 #[test]
 fn execute_buy_should_not_work() {
 	predefined_test_ext().execute_with(|| {
@@ -1892,6 +1900,7 @@ fn buy_should_work() {
 			orml_tokens::Event::Endowed(HDX, pool_id2, 1_000_000_000).into(),
 			orml_tokens::Event::Endowed(DOT, pool_id2, 2_000_000_000).into(),
 			Event::PoolCreated(pool_id2, pool_data1).into(),
+			Event::LiquidityAdded(pool_id2, HDX, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(pool_id2, pool_data2).into(),
 			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3711).into(),
 			Event::BuyExecuted(buyer, asset_out, asset_in, 1_855_672, 10_000_000, 0, 3711).into(),
@@ -2026,6 +2035,7 @@ fn sell_should_work() {
 			orml_tokens::Event::Endowed(asset_in, pool_id2, 1_000_000_000).into(),
 			orml_tokens::Event::Endowed(asset_out, pool_id2, 2_000_000_000).into(),
 			Event::PoolCreated(pool_id2, pool_data1).into(),
+			Event::LiquidityAdded(pool_id2, HDX, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(pool_id2, pool_data2).into(),
 			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3_686).into(),
 			Event::SellExecuted(buyer, asset_out, asset_in, 10_000_000, 1_839_319, 0, 3_686).into(),

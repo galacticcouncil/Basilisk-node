@@ -399,7 +399,8 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_a, &pool_owner, &pool_id, asset_a_amount)?;
 			T::MultiCurrency::transfer(asset_b, &pool_owner, &pool_id, asset_b_amount)?;
 
-			Self::deposit_event(Event::PoolCreated(pool_id, pool_data));
+			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
+			Self::deposit_event(Event::LiquidityAdded(pool_id, asset_a, asset_b, asset_a_amount, asset_b_amount));
 
 			Ok(().into())
 		}
