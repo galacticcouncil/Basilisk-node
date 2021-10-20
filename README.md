@@ -194,7 +194,7 @@ Then open settings screen -> developer and paste
         "author":"AccountId",
         "royalty":"u8",
         "price":"Option<Balance>",
-        "offer":"Option<(AccountId,Balance)>"
+        "offer":"Option<(AccountId,Balance,BlockNumber)>"
       },
       "TokenInfoOf":"TokenInfo",
       "AssetInstance": "AssetInstanceV0",
