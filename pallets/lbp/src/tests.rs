@@ -576,31 +576,12 @@ fn update_pool_data_should_work() {
 		);
 		assert_eq!(updated_pool_data_5.fee_collector, ALICE);
 
-		// update and reuse ended pool
-		run_to_block(100);
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			None,
-			Some(120),
-			Some(150),
-			Some(10_000_000),
-			Some(80_000_000),
-			Some(Fee {
-				numerator: 6,
-				denominator: 1_000
-			}),
-			None,
-		));
-		let updated_pool_data_6 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-
 		expect_events(vec![
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_1).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_2).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_3).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_4).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_5).into(),
-			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data_6).into(),
 		]);
 	});
 }
@@ -1919,7 +1900,7 @@ fn buy_should_work() {
 }
 
 #[test]
-fn trade_in_renewed_pool_should_work() {
+fn update_pool_data_after_sale_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let buyer = BOB;
 		let asset_in = ACA;
@@ -1944,41 +1925,24 @@ fn trade_in_renewed_pool_should_work() {
 
 		run_to_block(30);
 
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			None,
-			Some(50),
-			Some(60),
-			None,
-			None,
-			None,
-			None
-		));
-
-		let pool_data2 = LBPPallet::pool_data(pool_id);
-
-		//start sale
-		run_to_block(51);
-		assert_ok!(LBPPallet::buy(
-			Origin::signed(buyer),
-			asset_out,
-			asset_in,
-			10_000_000_u128,
-			2_000_000_000_u128
-		));
-
-		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_970_924_119);
-		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_020_000_000);
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_029_017_846);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
-		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 58_035);
-
 		expect_events(vec![
-			Event::BuyExecuted(buyer, DOT, ACA, 14_368_715, 10_000_000, ACA, 28_737).into(),
-			Event::PoolUpdated(pool_id, pool_data2).into(),
-			Event::BuyExecuted(buyer, asset_out, asset_in, 14649131, 10_000_000, ACA, 29298).into(),
+			Event::BuyExecuted(buyer, DOT, ACA, 14_368_715, 10_000_000, ACA, 28_737).into()
 		]);
+
+		assert_noop!(
+			LBPPallet::update_pool_data(
+				Origin::signed(ALICE),
+				ACA_DOT_POOL_ID,
+				None,
+				Some(50),
+				Some(60),
+				None,
+				None,
+				None,
+				None
+			),
+			Error::<Test>::SaleStarted
+		);
 	});
 }
 

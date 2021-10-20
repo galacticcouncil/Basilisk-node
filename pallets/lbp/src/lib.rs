@@ -75,6 +75,7 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	/// end block
 	pub end: BlockNumber,
 
+	/// Asset ids of the tokens (sold asset, accumulating asset)
 	pub assets: (AssetId, AssetId),
 
 	/// initial weight of the asset_a where the minimum value is 0 (equivalent to 0% weight), and the maximum value is 100_000_000 (equivalent to 100% weight)
@@ -457,7 +458,7 @@ pub mod pallet {
 
 				ensure!(who == pool.owner, Error::<T>::NotOwner);
 
-				ensure!(!Self::is_pool_running(pool), Error::<T>::SaleStarted);
+				ensure!(!Self::has_pool_started(pool), Error::<T>::SaleStarted);
 
 				pool.owner = pool_owner.unwrap_or_else(|| pool.owner.clone());
 
@@ -712,6 +713,12 @@ impl<T: Config> Pallet<T> {
 	fn is_pool_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = T::BlockNumberProvider::current_block_number();
 		pool_data.start <= now && now <= pool_data.end
+	}
+
+	/// return true if now is > pool.start and pool has been initialized
+	fn has_pool_started(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
+		let now = T::BlockNumberProvider::current_block_number();
+		!pool_data.start.is_zero() && pool_data.start <= now 
 	}
 
 	fn validate_trade(
