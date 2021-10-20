@@ -168,17 +168,7 @@ Then open settings screen -> developer and paste
         "per_period":"Compact<Balance>"
       },
       "VestingScheduleOf":"VestingSchedule",
-      "LBPAssetInfo":{
-        "id":"AssetId",
-        "amount":"Balance",
-        "initial_weight":"LBPWeight",
-        "final_weight":"LBPWeight"
-      },
-      "LBPWeight":"u128",
-      "WeightPair":{
-        "weight_a":"LBPWeight",
-        "weight_b":"LBPWeight"
-      },
+      "LBPWeight":"u32",
       "WeightCurveType":{
         "_enum":[
           "Linear"
@@ -188,24 +178,20 @@ Then open settings screen -> developer and paste
       "BalanceOf":"Balance",
       "AssetType": {
         "_enum": {
-		  "Token": "Null",
-		  "PoolShare": "(AssetId,AssetId)"
-	    }
+          "Token": "Null",
+          "PoolShare": "(AssetId,AssetId)"
+      }
       },
       "Pool":{
         "owner":"AccountId",
         "start":"BlockNumber",
         "end":"BlockNumber",
         "assets":"AssetPair",
-        "initial_weights":"WeightPair",
-        "final_weights":"WeightPair",
-        "last_weight_update":"BlockNumber",
-        "last_weights":"WeightPair",
+        "initial_weight":"LBPWeight",
+        "final_weight":"LBPWeight",
         "weight_curve":"WeightCurveType",
-        "pausable":"bool",
-        "paused":"bool",
         "fee":"Fee",
-        "fee_receiver":"AccountId"
+        "fee_collector":"AccountId"
       },
       "AssetDetails":{
         "name":"Vec<u8>",
