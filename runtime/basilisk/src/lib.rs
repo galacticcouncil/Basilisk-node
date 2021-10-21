@@ -372,6 +372,7 @@ impl pallet_lbp::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
 // Parachain Config
