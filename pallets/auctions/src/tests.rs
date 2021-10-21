@@ -119,15 +119,22 @@ fn can_delete_auction() {
     assert_ok!(
       AuctionsModule::create_auction(Origin::signed(ALICE), auction_info)
     );
-    
-    // TODO weird panic
-    // Error NotAuctionOwner when caller is not owner
+
+    // TODO The following 2 tests create weird panic
+    // // Error AuctionAlreadyStarted
+    // System::set_block_number(10);
+    // assert_ok!(AuctionsModule::delete_auction(Origin::signed(ALICE), 0));
+    // assert_noop!(
+    //   AuctionsModule::delete_auction(Origin::signed(ALICE), 0),
+    //   Error::<Test>::AuctionAlreadyStarted,
+    // );
+    // System::set_block_number(3);
+
+    // // Error NotAuctionOwner when caller is not owner
     // assert_noop!(
     //   AuctionsModule::delete_auction(Origin::signed(BOB), 0),
     //   Error::<Test>::NotAuctionOwner,
     // );
-
-    // TODO test error AuctionAlreadyStarted
 
     // TODO test for pallet_uniqueness
 
