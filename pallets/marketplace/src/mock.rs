@@ -49,7 +49,7 @@ impl pallet_marketplace::Config for Test {
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type TokenDeposit = InstanceDeposit;
 }
 

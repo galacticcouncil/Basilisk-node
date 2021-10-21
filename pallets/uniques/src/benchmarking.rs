@@ -18,7 +18,7 @@
 //! Assets pallet benchmarking.
 
 #![cfg(feature = "runtime-benchmarks")]
-
+/*
 use super::*;
 use frame_benchmarking::{
 	account, benchmarks_instance_pallet, impl_benchmark_test_suite, whitelist_account, whitelisted_caller,
@@ -35,6 +35,7 @@ use sp_std::{convert::TryInto, prelude::*};
 use crate::Pallet as Uniques;
 
 const SEED: u32 = 0;
+
 
 fn create_class<T: Config<I>, I: 'static>() -> (T::ClassId, T::AccountId, <T::Lookup as StaticLookup>::Source) {
 	let caller: T::AccountId = whitelisted_caller();
@@ -383,3 +384,4 @@ benchmarks_instance_pallet! {
 }
 
 impl_benchmark_test_suite!(Uniques, crate::mock::new_test_ext(), crate::mock::Test);
+*/

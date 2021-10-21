@@ -9,6 +9,7 @@ use frame_system::RawOrigin;
 use pallet_uniques as UNQ;
 use sp_runtime::traits::UniqueSaturatedInto;
 use sp_std::convert::TryInto;
+use crate::types::ClassType;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;
@@ -30,59 +31,52 @@ fn dollar(d: u32) -> u128 {
 benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
-		let caller_lookup = T::Lookup::unlookup(caller.clone());
-		let metadata: BoundedVec<u8, T::StringLimit> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
-	}: _(RawOrigin::Signed(caller.clone()), Default::default(), caller_lookup, metadata)
+		let metadata: BoundedVec<u8, T::ValueLimit> = vec![0; <T as UNQ::Config>::ValueLimit::get() as usize].try_into().unwrap();
+	}: _(RawOrigin::Signed(caller.clone()), ClassType::Art, metadata)
 	verify {
-		assert_eq!(UNQ::Pallet::<T>::classes().count(), 1);
+		assert_eq!(UNQ::Pallet::<T>::class_owner(&T::ClassId::from(0u32)), Some(caller));
 	}
 
 	mint {
 		let caller = create_account::<T>("caller", 0);
 		let caller_lookup = T::Lookup::unlookup(caller.clone());
-		let metadata: BoundedVec<u8, T::StringLimit> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), caller_lookup.clone(), metadata.clone()).unwrap_or_default();
-	}: _(RawOrigin::Signed(caller.clone()), Default::default(), Default::default(), caller_lookup, 10u8, metadata)
+		let metadata: BoundedVec<u8, T::ValueLimit> = vec![0; <T as UNQ::Config>::ValueLimit::get() as usize].try_into().unwrap();
+		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, metadata.clone()).unwrap_or_default();
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), metadata)
 	verify {
-		assert_eq!(UNQ::Pallet::<T>::owned(&caller).count(), 1);
+		assert_eq!(UNQ::Pallet::<T>::owner(T::ClassId::from(0u32), T::InstanceId::from(0u32)), Some(caller));
 	}
 
 	transfer {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 		let caller_lookup = T::Lookup::unlookup(caller.clone());
-		let caller2_lookup = T::Lookup::unlookup(caller.clone());
-		let metadata: BoundedVec<u8, T::StringLimit> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), caller_lookup.clone(), metadata.clone()).unwrap_or_default();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), Default::default(), caller_lookup, 10u8, metadata).unwrap_or_default();
-	}: _(RawOrigin::Signed(caller.clone()), Default::default(), Default::default(), caller2_lookup)
+		let caller2_lookup = T::Lookup::unlookup(caller2.clone());
+		let metadata: BoundedVec<u8, T::ValueLimit> = vec![0; <T as UNQ::Config>::ValueLimit::get() as usize].try_into().unwrap();
+		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, metadata.clone()).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), metadata).unwrap_or_default();
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), caller2_lookup)
 	verify {
-		assert_eq!(UNQ::Pallet::<T>::owned(&caller2).count(), 1);
+		assert_eq!(UNQ::Pallet::<T>::owner(T::ClassId::from(0u32), T::InstanceId::from(0u32)), Some(caller2));
 	}
 
-	/*** Currently there is no public constructor for DestroyWitness struct (Class storage is private as well)
 	destroy_class {
-		let n in 0 .. 1_000;
 		let caller = create_account::<T>("caller", 0);
 		let caller_lookup = T::Lookup::unlookup(caller.clone());
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), caller_lookup.clone()).unwrap_or_default();
-		for i in 0..n {
-			NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), (i as u16).into(), caller_lookup.clone()).unwrap_or_default();
-		}
-		let witness = <pallet_uniques::Class::<T>>::get(Default::default()).unwrap().destroy_witness();
-	}: _(RawOrigin::Signed(caller.clone()), Default::default(), witness)
+		let metadata: BoundedVec<u8, T::ValueLimit> = vec![0; <T as UNQ::Config>::ValueLimit::get() as usize].try_into().unwrap();
+		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, metadata.clone()).unwrap_or_default();
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into())
 	verify {
-		//assert_eq!(UNQ::Pallet::<T>::classes().count(), 0);
+		assert_eq!(UNQ::Pallet::<T>::classes().count(), 0);
 	}
-	***/
 
 	burn {
 		let caller = create_account::<T>("caller", 0);
 		let caller_lookup = T::Lookup::unlookup(caller.clone());
-		let metadata: BoundedVec<u8, T::StringLimit> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), caller_lookup.clone(), metadata.clone()).unwrap_or_default();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), Default::default(), caller_lookup.clone(), 0u8, metadata).unwrap_or_default();
-	}: _(RawOrigin::Signed(caller.clone()), Default::default(), Default::default(), Some(caller_lookup))
+		let metadata: BoundedVec<u8, T::ValueLimit> = vec![0; <T as UNQ::Config>::ValueLimit::get() as usize].try_into().unwrap();
+		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, metadata.clone()).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), metadata).unwrap_or_default();
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::owned(&caller).count(), 0);
 	}
@@ -108,7 +102,7 @@ mod tests {
 			assert_ok!(Pallet::<Test>::test_benchmark_mint());
 			assert_ok!(Pallet::<Test>::test_benchmark_transfer());
 			assert_ok!(Pallet::<Test>::test_benchmark_burn());
-			//assert_ok!(Pallet::<Test>::test_benchmark_destroy_class());
+			assert_ok!(Pallet::<Test>::test_benchmark_destroy_class());
 		});
 	}
 }

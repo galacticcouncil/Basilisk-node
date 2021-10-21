@@ -33,66 +33,96 @@ fn dollar(d: u32) -> u128 {
 }
 
 benchmarks! {
-
-	set_price {
-		let caller = create_account::<T>("caller", 0);
-
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art)?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
-
-	}: _(RawOrigin::Signed(caller.clone()), Default::default(), 0u16.into(), Some(1u32.into()))
-	verify {
-		assert_eq!(Marketplace::<T>::token_prices(T::ClassId::from(Default::default()), T::InstanceId::from(0u16.into())), Some(1u32.into()))
-	}
-
 	buy {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()), bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), T::Lookup::unlookup(caller.clone()), 10u8, bvec![0])?;
-		Marketplace::<T>::set_price(RawOrigin::Signed(caller.clone()).into(), Default::default(), 0u16.into(), Some(111u32.into()))?;
-
-	}: _(RawOrigin::Signed(caller2.clone()), caller, Default::default(), 0u16.into())
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		Marketplace::<T>::set_price(RawOrigin::Signed(caller.clone()).into(), 0u16.into(), 0u16.into(), Some(u32::max_value().into()))?;
+	}: _(RawOrigin::Signed(caller2.clone()), 0u16.into(), 0u16.into())
 	verify {
-		assert_eq!(pallet_uniques::Pallet::<T>::owner(T::ClassId::from(Default::default()), T::InstanceId::from(0u16.into())), Some(caller2))
-	};
+		assert_eq!(pallet_uniques::Pallet::<T>::owner(T::ClassId::from(0u32), T::InstanceId::from(0u32)), Some(caller2))
+	}
+
+	set_price {
+		let caller = create_account::<T>("caller", 0);
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), Some(u32::max_value().into()))
+	verify {
+		assert_eq!(Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)).unwrap().price, Some(u32::max_value().into()))
+	}
 
 	list {
-
-	}:
+		let caller = create_account::<T>("caller", 0);
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), caller.clone(), 20)
 	verify {
-		
+		assert_eq!(
+			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
+			Some(TokenInfo {author: caller, royalty: 20, price: None, offer: None})
+		)
 	}
 
 	unlist {
-
-	}:
+		let caller = create_account::<T>("caller", 0);
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into())
 	verify {
-		
+		assert_eq!(
+			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
+			None
+		)
 	}
 
 	make_offer {
-
-	}:
+		let caller = create_account::<T>("caller", 0);
+		let caller2 = create_account::<T>("caller2", 0);
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), 1000u32.into(), 666u32.into())
 	verify {
-		
+		assert_eq!(
+			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
+			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: Some((caller.clone(), 1000u32.into(), T::BlockNumber::from(666u32)))})
+		)
 	}
 
 	withdraw_offer {
-
-	}:
+		let caller = create_account::<T>("caller", 0);
+		let caller2 = create_account::<T>("caller2", 0);
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), 0u32.into(), 0u32.into(), 1000u32.into(), 666u32.into())?;
+	}: _(RawOrigin::Signed(caller2.clone()), 0u32.into(), 0u32.into())
 	verify {
-		
+		assert_eq!(
+			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
+			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: None})
+		)
 	}
 
 	accept_offer {
-
-	}:
+		let caller = create_account::<T>("caller", 0);
+		let caller2 = create_account::<T>("caller2", 0);
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), 0u32.into(), 0u32.into(), 1000u32.into(), 666u32.into())?;
+	}: _(RawOrigin::Signed(caller2.clone()), 0u32.into(), 0u32.into())
 	verify {
-		
+		assert_eq!(
+			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
+			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: None})
+		)
 	}
-
-
 
 }
 
@@ -113,6 +143,11 @@ mod tests {
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_buy());
+			assert_ok!(Pallet::<Test>::test_benchmark_list());
+			assert_ok!(Pallet::<Test>::test_benchmark_unlist());
+			assert_ok!(Pallet::<Test>::test_benchmark_make_offer());
+			assert_ok!(Pallet::<Test>::test_benchmark_withdraw_offer());
+			assert_ok!(Pallet::<Test>::test_benchmark_accept_offer());
 			assert_ok!(Pallet::<Test>::test_benchmark_set_price());
 		});
 	}
