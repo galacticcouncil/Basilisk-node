@@ -162,18 +162,25 @@ fn can_update_auction() {
       minimal_bid: 55,
     };
 
+    let mut update_auction_info = auction_info.clone();
+    update_auction_info.name = "Auction renamed".as_bytes().to_vec();
+
+    // Error AuctionNotExist
+    assert_noop!(
+      AuctionsModule::update_auction(Origin::signed(ALICE), 0, update_auction_info.clone()),
+      Error::<Test>::AuctionNotExist,
+    );
+
     assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info));
 
-    let update_auction_info = AuctionInfo {
-      name: "Auction renamed".as_bytes().to_vec(),
-      last_bid: None,
-      start: 10u64,
-      end: 21u64,
-      owner: ALICE,
-      auction_type: AuctionType::English,
-      token: (NFT_ID_1, 0u16.into()),
-      minimal_bid: 55,
-    };
+    // Error AuctionAlreadyStarted
+    System::set_block_number(10);
+    assert_noop!(
+      AuctionsModule::update_auction(Origin::signed(ALICE), 0, update_auction_info.clone()),
+      Error::<Test>::AuctionAlreadyStarted,
+    );
+
+    System::set_block_number(3);
 
     // Error NotAuctionOwner when caller is not owner
     assert_noop!(

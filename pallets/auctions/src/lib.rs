@@ -178,10 +178,13 @@ pub mod pallet {
 		pub fn update_auction(origin: OriginFor<T>, id: T::AuctionId, auction_info: AuctionInfoOf<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			<Auctions<T>>::try_mutate(id, |auction| -> DispatchResult {
-				Self::validate_update_delete(&sender, &auction.as_ref().unwrap().owner, auction.as_ref().unwrap().start)?;
-				ensure!(auction.is_some(), Error::<T>::AuctionNotExist);
-				*auction = Some(auction_info);
-				Ok(())
+				if let Some(auction_object) = auction {
+					Self::validate_update_delete(&sender, &auction_object.owner, auction_object.start)?;
+					*auction = Some(auction_info);
+					Ok(())
+				} else {
+					Err(Error::<T>::AuctionNotExist.into())
+				}
 			})
 		}
 
