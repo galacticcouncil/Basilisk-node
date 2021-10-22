@@ -443,7 +443,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "3.3.0"
+version = "4.0.0"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
@@ -5121,7 +5121,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5423,7 +5423,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5489,7 +5489,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "4.3.0"
+version = "5.0.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5626,7 +5626,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "2.0.0"
+version = "3.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5760,7 +5760,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6024,7 +6024,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "5.0.1"
+version = "6.0.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6179,7 +6179,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "1.5.0"
+version = "2.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7696,7 +7696,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "5.0.0"
+version = "6.0.0"
 dependencies = [
  "frame-support",
  "frame-system",
