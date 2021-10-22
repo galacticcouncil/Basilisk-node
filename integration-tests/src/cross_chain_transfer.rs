@@ -4,7 +4,6 @@ use crate::kusama_test_net::*;
 use frame_support::assert_ok;
 
 use polkadot_xcm::latest::prelude::*;
-use polkadot_xcm::{VersionedMultiAssets, VersionedMultiLocation};
 
 use cumulus_primitives_core::ParaId;
 use orml_traits::currency::MultiCurrency;
@@ -34,7 +33,7 @@ fn transfer_from_relay_chain() {
 					network: NetworkId::Any
 				}
 				.into()
-                                .into()
+				.into()
 			),
 			Box::new((Here, 3 * BSX).into()),
 			0,
@@ -85,7 +84,7 @@ fn transfer_to_relay_chain() {
 	KusamaRelay::execute_with(|| {
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			2999904000006 // 3 * BSX - fee
+			2999893333340 // 3 * BSX - fee
 		);
 	});
 }
