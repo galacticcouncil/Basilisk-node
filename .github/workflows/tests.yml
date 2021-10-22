@@ -88,6 +88,7 @@ jobs:
         run: rustup component add clippy
       - name: Run clippy
         run: make clippy
+        continue-on-error: true
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage
