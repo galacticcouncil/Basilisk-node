@@ -530,7 +530,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "18.0.0"
+version = "20.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -3328,6 +3328,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydra-dx-math"
+version = "4.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d88e6565507c334ac7725396365dd0709ccdd8ca8e71d5a87c283cda7b565855"
+dependencies = [
+ "fixed",
+ "lazy_static",
+ "num-traits",
+ "primitive-types 0.8.0",
+]
+
+[[package]]
 name = "hyper"
 version = "0.12.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5754,13 +5766,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "1.1.1"
+version = "2.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math",
+ "hydra-dx-math 4.0.0",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec 2.3.1",
@@ -6274,7 +6286,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math",
+ "hydra-dx-math 3.4.0",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
@@ -11187,7 +11199,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "18.0.0"
+version = "20.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
