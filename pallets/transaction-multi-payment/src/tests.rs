@@ -26,6 +26,7 @@ use frame_support::weights::DispatchInfo;
 use orml_traits::MultiCurrency;
 use pallet_balances::Call as BalancesCall;
 use primitives::Price;
+use sp_runtime::traits::BadOrigin;
 use sp_std::marker::PhantomData;
 
 const CALL: &<Test as frame_system::Config>::Call = &Call::Balances(BalancesCall::transfer(2, 69));
@@ -279,18 +280,14 @@ fn fee_payment_non_native_insufficient_balance() {
 #[test]
 fn add_new_accepted_currency() {
 	ExtBuilder::default().base_weight(5).build().execute_with(|| {
-		assert_ok!(PaymentPallet::add_currency(
-			Origin::signed(BOB),
-			100,
-			Price::from_float(1.1)
-		));
+		assert_ok!(PaymentPallet::add_currency(Origin::root(), 100, Price::from_float(1.1)));
 		assert_eq!(PaymentPallet::currencies(100), Some(Price::from_float(1.1)));
 		assert_noop!(
 			PaymentPallet::add_currency(Origin::signed(ALICE), 1000, Price::from_float(1.2)),
-			Error::<Test>::NotAllowed
+			BadOrigin
 		);
 		assert_noop!(
-			PaymentPallet::add_currency(Origin::signed(BOB), 100, Price::from(10)),
+			PaymentPallet::add_currency(Origin::root(), 100, Price::from(10)),
 			Error::<Test>::AlreadyAccepted
 		);
 		assert_eq!(PaymentPallet::currencies(100), Some(Price::from_float(1.1)));
@@ -300,65 +297,23 @@ fn add_new_accepted_currency() {
 #[test]
 fn removed_accepted_currency() {
 	ExtBuilder::default().base_weight(5).build().execute_with(|| {
-		assert_ok!(PaymentPallet::add_currency(Origin::signed(BOB), 100, Price::from(3)));
+		assert_ok!(PaymentPallet::add_currency(Origin::root(), 100, Price::from(3)));
 		assert_eq!(PaymentPallet::currencies(100), Some(Price::from(3)));
 
-		assert_noop!(
-			PaymentPallet::remove_currency(Origin::signed(ALICE), 100),
-			Error::<Test>::NotAllowed
-		);
+		assert_noop!(PaymentPallet::remove_currency(Origin::signed(ALICE), 100), BadOrigin);
 
 		assert_noop!(
-			PaymentPallet::remove_currency(Origin::signed(BOB), 1000),
+			PaymentPallet::remove_currency(Origin::root(), 1000),
 			Error::<Test>::UnsupportedCurrency
 		);
 
-		assert_ok!(PaymentPallet::remove_currency(Origin::signed(BOB), 100));
+		assert_ok!(PaymentPallet::remove_currency(Origin::root(), 100));
 
 		assert_eq!(PaymentPallet::currencies(100), None);
 
 		assert_noop!(
-			PaymentPallet::remove_currency(Origin::signed(BOB), 100),
+			PaymentPallet::remove_currency(Origin::root(), 100),
 			Error::<Test>::UnsupportedCurrency
-		);
-	});
-}
-
-#[test]
-fn add_member() {
-	ExtBuilder::default().base_weight(5).build().execute_with(|| {
-		const CHARLIE: AccountId = 3;
-		assert_eq!(PaymentPallet::authorities(), vec![BOB]);
-
-		assert_ok!(PaymentPallet::add_member(Origin::root(), CHARLIE));
-
-		assert_eq!(PaymentPallet::authorities(), vec![BOB, CHARLIE]);
-
-		// Non root should not be allowed
-		assert_noop!(
-			PaymentPallet::add_member(Origin::signed(ALICE), CHARLIE),
-			sp_runtime::traits::BadOrigin
-		);
-
-		// Adding existing member should return error
-		assert_noop!(
-			PaymentPallet::add_member(Origin::root(), CHARLIE),
-			Error::<Test>::AlreadyMember
-		);
-
-		// Non root should not be allowed
-		assert_noop!(
-			PaymentPallet::remove_member(Origin::signed(ALICE), CHARLIE),
-			sp_runtime::traits::BadOrigin
-		);
-
-		assert_ok!(PaymentPallet::remove_member(Origin::root(), CHARLIE));
-
-		assert_eq!(PaymentPallet::authorities(), vec![BOB]);
-
-		assert_noop!(
-			PaymentPallet::remove_member(Origin::root(), CHARLIE),
-			Error::<Test>::NotAMember
 		);
 	});
 }

@@ -1,9 +1,14 @@
+#![cfg(test)]
+use super::*;
+
 use crate as lbp;
 use crate::{AssetPairPoolIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::GenesisBuild;
 use orml_traits::parameter_type_with_key;
-use primitives::{AssetId, Balance, CORE_ASSET_ID};
+use primitives::constants::chain::{
+	AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -45,6 +50,15 @@ frame_support::construct_runtime!(
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 63;
+	pub static MockBlockNumberProvider: u64 = 0;
+}
+
+impl BlockNumberProvider for MockBlockNumberProvider {
+	type BlockNumber = u64;
+
+	fn current_block_number() -> Self::BlockNumber {
+		Self::get()
+	}
 }
 
 impl frame_system::Config for Test {
@@ -106,6 +120,10 @@ impl AssetPairPoolIdFor<AssetId, u64> for AssetPairPoolIdTest {
 
 parameter_types! {
 	pub const NativeAssetId: AssetId = CORE_ASSET_ID;
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 }
 
 impl Config for Test {
@@ -116,6 +134,11 @@ impl Config for Test {
 	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairPoolId = AssetPairPoolIdTest;
 	type WeightInfo = ();
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
+	type BlockNumberProvider = MockBlockNumberProvider;
 }
 
 pub struct ExtBuilder {
@@ -154,7 +177,6 @@ impl ExtBuilder {
 }
 
 pub fn run_to_block(n: u64) {
-	while System::block_number() < n {
-		System::set_block_number(System::block_number() + 1);
-	}
+	MockBlockNumberProvider::set(n);
+	System::set_block_number(System::block_number() + 1);
 }
