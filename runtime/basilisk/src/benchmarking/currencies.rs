@@ -86,6 +86,7 @@ runtime_benchmarks! {
 		let amount: Amount = balance.unique_saturated_into();
 		let who: AccountId = account("who", 0, SEED);
 		let who_lookup = lookup_of_account(who.clone());
+		register_asset(b"TST".to_vec(), 1u128);
 	}: update_balance(RawOrigin::Root, who_lookup, NON_NATIVE, amount)
 	verify {
 		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(NON_NATIVE, &who), balance);
