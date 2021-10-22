@@ -21,17 +21,22 @@ fn transfer_from_relay_chain() {
 		));
 	});
 	KusamaRelay::execute_with(|| {
+		assert_ok!(kusama_runtime::XcmPallet::force_default_xcm_version(
+			kusama_runtime::Origin::root(),
+			Some(0)
+		));
 		assert_ok!(kusama_runtime::XcmPallet::reserve_transfer_assets(
 			kusama_runtime::Origin::signed(ALICE.into()),
-			Box::new(VersionedMultiLocation::V1(X1(Parachain(2000)).into())),
-			Box::new(VersionedMultiLocation::V1(
-				X1(Junction::AccountId32 {
+			Box::new(Parachain(2000).into().into()),
+			Box::new(
+				Junction::AccountId32 {
 					id: BOB,
 					network: NetworkId::Any
-				})
+				}
 				.into()
-			)),
-			Box::new(VersionedMultiAssets::V1((Here, 3 * BSX).into(),)),
+                                .into()
+			),
+			Box::new((Here, 3 * BSX).into()),
 			0,
 		));
 
@@ -69,7 +74,7 @@ fn transfer_to_relay_chain() {
 					network: NetworkId::Any,
 				})
 			)),
-			3_600_000_000
+			4_600_000_000
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
