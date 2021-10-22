@@ -2,3 +2,4 @@
 
 pub mod currencies;
 pub mod tokens;
+pub mod vesting;

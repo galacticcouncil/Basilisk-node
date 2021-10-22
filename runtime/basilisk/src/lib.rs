@@ -924,6 +924,7 @@ impl_runtime_apis! {
 
 			orml_list_benchmark!(list, extra, orml_currencies, benchmarking::currencies);
 			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
+			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -983,6 +984,7 @@ impl_runtime_apis! {
 
 			orml_add_benchmark!(params, batches, orml_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
+			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
