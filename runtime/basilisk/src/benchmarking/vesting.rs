@@ -1,5 +1,7 @@
-use crate::{AccountId, AssetId, Balance, NativeAssetId, Runtime, BSX};
+use crate::{AccountId, AssetId, Balance, NativeAssetId, Runtime};
 use crate::{BlockNumber, Currencies, MaxVestingSchedules, MinVestedTransfer, System, Vesting};
+
+use super::BSX;
 
 use common_runtime::TreasuryPalletId;
 

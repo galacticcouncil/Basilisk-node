@@ -1,4 +1,4 @@
-use crate::{AccountId, AssetId, Balance, Runtime, Tokens, BSX};
+use crate::{AccountId, AssetId, Balance, Runtime, Tokens};
 
 use sp_std::prelude::*;
 
@@ -9,6 +9,8 @@ use frame_support::assert_ok;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrency;
 use orml_traits::MultiCurrencyExtended;
+
+use super::*;
 
 use sp_runtime::traits::{SaturatedConversion, StaticLookup};
 
@@ -34,6 +36,8 @@ runtime_benchmarks! {
 	transfer {
 		let amount: Balance = BSX;
 
+		register_asset(b"TST".to_vec(), 1u128);
+
 		let from: AccountId = whitelisted_caller();
 		update_balance(NON_NATIVE, &from, amount);
 
@@ -47,6 +51,8 @@ runtime_benchmarks! {
 	transfer_all {
 		let amount: Balance = BSX;
 
+		register_asset(b"TST".to_vec(), 1u128);
+
 		let from: AccountId = whitelisted_caller();
 		update_balance(NON_NATIVE, &from, amount);
 
@@ -59,6 +65,7 @@ runtime_benchmarks! {
 
 	transfer_keep_alive {
 		let from: AccountId = whitelisted_caller();
+		register_asset(b"TST".to_vec(), 1u128);
 		update_balance(NON_NATIVE, &from, 2 * BSX);
 
 		let to: AccountId = account("to", 0, SEED);
@@ -71,6 +78,7 @@ runtime_benchmarks! {
 	force_transfer {
 		let from: AccountId = account("from", 0, SEED);
 		let from_lookup = lookup_of_account(from.clone());
+		register_asset(b"TST".to_vec(), 1u128);
 		update_balance(NON_NATIVE, &from, 2 * BSX);
 
 		let to: AccountId = account("to", 0, SEED);
@@ -83,6 +91,8 @@ runtime_benchmarks! {
 	set_balance {
 		let who: AccountId = account("who", 0, SEED);
 		let who_lookup = lookup_of_account(who.clone());
+
+		register_asset(b"TST".to_vec(), 1u128);
 
 	}: _(RawOrigin::Root, who_lookup, NON_NATIVE, BSX, BSX)
 	verify {

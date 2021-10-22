@@ -1,4 +1,4 @@
-use crate::{AccountId, Amount, AssetId, Balance, Currencies, NativeAssetId, Runtime, BSX, NATIVE_EXISTENTIAL_DEPOSIT};
+use crate::{AccountId, Amount, AssetId, Balance, Currencies, NativeAssetId, Runtime, NATIVE_EXISTENTIAL_DEPOSIT};
 
 use sp_std::prelude::*;
 
@@ -11,6 +11,8 @@ use frame_support::assert_ok;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrency;
 use orml_traits::MultiCurrencyExtended;
+
+use super::*;
 
 use sp_runtime::traits::{SaturatedConversion, StaticLookup};
 
@@ -37,6 +39,7 @@ runtime_benchmarks! {
 	transfer_non_native_currency {
 		let amount: Balance = 1_000 * BSX;
 		let from: AccountId = whitelisted_caller();
+		register_asset(b"TST".to_vec(), 1u128);
 		set_balance(NON_NATIVE, &from, amount);
 
 		let to: AccountId = account("to", 0, SEED);
