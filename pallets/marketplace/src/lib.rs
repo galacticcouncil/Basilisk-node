@@ -147,7 +147,11 @@ pub mod pallet {
 			);
 
 			// Check if class type can be decoded to one of available types
-			Self::get_class_type(class_id)?;
+			let class_type = Self::get_class_type(class_id)?;
+
+			if class_type != ClassType::Art {
+				return Err(Error::<T>::UnsupportedClassType.into());
+			}
 
 			Tokens::<T>::insert(
 				class_id,
@@ -177,23 +181,21 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::unlist())]
 		#[transactional]
 		pub fn unlist(origin: OriginFor<T>, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
+			// Unlist removes author and royalty from token, hence requires elevated priviledges
+			T::ForceOrigin::ensure_origin(origin.clone())?;
 
 			ensure!(Tokens::<T>::contains_key(class_id, instance_id), Error::<T>::NotListed);
 
-			ensure!(
-				pallet_uniques::Pallet::<T>::owner(class_id, instance_id) == Some(sender.clone()),
-				Error::<T>::NotTheTokenOwner
-			);
-
-			let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::ClassUnknown)?;
-			let class_owner_origin = T::Origin::from(RawOrigin::Signed(class_owner.clone()));
+			// ensure!(
+			// 	pallet_uniques::Pallet::<T>::owner(class_id, instance_id) == Some(sender.clone()),
+			// 	Error::<T>::NotTheTokenOwner
+			// );
 
 			Tokens::<T>::remove(class_id, instance_id);
 
-			pallet_uniques::Pallet::<T>::thaw(class_owner_origin.clone(), class_id, instance_id)?;
+			pallet_uniques::Pallet::<T>::thaw(origin.clone(), class_id, instance_id)?;
 
-			Self::deposit_event(Event::TokenUnlisted(sender, class_id, instance_id));
+			Self::deposit_event(Event::TokenUnlisted(class_id, instance_id));
 
 			Ok(())
 		}
@@ -340,8 +342,8 @@ pub mod pallet {
 		),
 		/// Token listed on Marketplace \[owner, class_id, instance_id, author royalty\]
 		TokenListed(T::AccountId, T::ClassId, T::InstanceId, T::AccountId, u8),
-		/// Token listed on Marketplace \[owner, class_id, instance_id\]
-		TokenUnlisted(T::AccountId, T::ClassId, T::InstanceId),
+		/// Token listed on Marketplace \[class_id, instance_id\]
+		TokenUnlisted(T::ClassId, T::InstanceId),
 		/// Offer was placed on a token \[offerer, class_id, instance_id, price\]
 		OfferPlaced(T::AccountId, T::ClassId, T::InstanceId, BalanceOf<T>),
 		/// Offer was placed on a token \[offerer, class_id, instance_id\]
@@ -404,10 +406,8 @@ impl<T: Config> Pallet<T> {
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
-		let class_owner = pallet_uniques::Pallet::<T>::class_owner(&class_id).ok_or(Error::<T>::ClassUnknown)?;
-		let class_owner_origin = T::Origin::from(RawOrigin::Signed(class_owner.clone()));
 
-		pallet_uniques::Pallet::<T>::thaw(class_owner_origin.clone(), class_id, instance_id)?;
+		pallet_uniques::Pallet::<T>::thaw(owner_origin.clone(), class_id, instance_id)?;
 
 		Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
 			let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
@@ -446,7 +446,11 @@ impl<T: Config> Pallet<T> {
 			let to = T::Lookup::unlookup(buyer.clone());
 			pallet_nft::Pallet::<T>::transfer(owner_origin.clone(), class_id, instance_id, to)?;
 
-			pallet_uniques::Pallet::<T>::freeze(class_owner_origin, class_id, instance_id)?;
+			pallet_uniques::Pallet::<T>::freeze(
+				T::Origin::from(RawOrigin::Signed(buyer.clone())),
+				class_id,
+				instance_id,
+			)?;
 
 			Self::deposit_event(Event::TokenSold(
 				owner,
