@@ -845,6 +845,7 @@ impl pallet_uniques::Config for Runtime {
 	type BurnPermission = ();
 	type InstanceTransferPermission = ();
 	type CanDestroyClass = ();
+	type CanCreateClass = ();
 	type InstanceReserveStrategy = ();
 }
 

@@ -118,6 +118,7 @@ impl Config for Test {
 	type BurnPermission = ();
 	type InstanceTransferPermission = ();
 	type CanDestroyClass = ();
+	type CanCreateClass = ();
 	type InstanceReserveStrategy = ();
 }
 

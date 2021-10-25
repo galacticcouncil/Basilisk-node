@@ -126,6 +126,7 @@ impl pallet_uniques::Config for Test {
 	type BurnPermission = NFT;
 	type InstanceTransferPermission = NFT;
 	type CanDestroyClass = NFT;
+	type CanCreateClass = NFT;
 	type InstanceReserveStrategy = NFT;
 }
 

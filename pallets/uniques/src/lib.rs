@@ -45,7 +45,7 @@ mod types;
 pub use types::*;
 
 use codec::{Decode, Encode, HasCompact};
-use frame_support::traits::{BalanceStatus::Reserved, Currency, ReservableCurrency};
+use frame_support::traits::{BalanceStatus::Reserved, Currency, NamedReservableCurrency, ReservableCurrency};
 use frame_system::Config as SystemConfig;
 use sp_runtime::{
 	traits::{AtLeast32BitUnsigned, Saturating, StaticLookup, Zero},
@@ -59,7 +59,7 @@ pub use weights::WeightInfo;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::traits::{CanBurn, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
+	use crate::traits::{CanBurn, CanCreateClass, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -80,7 +80,7 @@ pub mod pallet {
 		type InstanceId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned;
 
 		/// The currency mechanism, used for paying for reserves.
-		type Currency: ReservableCurrency<Self::AccountId>;
+		type Currency: ReservableCurrency<Self::AccountId> + NamedReservableCurrency<Self::AccountId>;
 
 		/// The origin which may forcibly create or destroy an asset or otherwise alter privileged
 		/// attributes.
@@ -125,6 +125,7 @@ pub mod pallet {
 		type MintPermission: CanMint;
 		type BurnPermission: CanBurn;
 		type InstanceTransferPermission: CanTransfer;
+		type CanCreateClass: CanCreateClass;
 		type CanDestroyClass: CanDestroyClass;
 		type InstanceReserveStrategy: InstanceReserve;
 	}
@@ -414,14 +415,13 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			#[pallet::compact] class: T::ClassId,
 			#[pallet::compact] instance: T::InstanceId,
-			owner: <T::Lookup as StaticLookup>::Source,
+			owner: T::AccountId,
 		) -> DispatchResult {
-			let origin = ensure_signed(origin)?;
-			let owner = T::Lookup::lookup(owner)?;
+			let sender = ensure_signed(origin)?;
 
 			Self::do_mint(class, instance, owner, |class_details| {
 				let team = Self::get_team(class_details);
-				T::MintPermission::can_mint::<T, I>(origin, &team)
+				T::MintPermission::can_mint::<T, I>(sender, &team, &class)
 			})
 		}
 
@@ -481,14 +481,14 @@ pub mod pallet {
 			#[pallet::compact] instance: T::InstanceId,
 			dest: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
-			let origin = ensure_signed(origin)?;
+			let sender = ensure_signed(origin.clone())?;
 			let dest = T::Lookup::lookup(dest)?;
 
 			Self::do_transfer(class, instance, dest, |class_details, details| {
 				let team = Self::get_team(class_details);
 
 				let result = T::InstanceTransferPermission::can_transfer::<T, I>(
-					origin.clone(),
+					sender.clone(),
 					&details.owner,
 					&instance,
 					&class,
@@ -496,7 +496,7 @@ pub mod pallet {
 				);
 
 				if result.is_err() {
-					let approved = details.approved.take().map_or(false, |i| i == origin);
+					let approved = details.approved.take().map_or(false, |i| i == sender);
 					ensure!(approved, Error::<T, I>::NoPermission);
 				}
 				Ok(())
