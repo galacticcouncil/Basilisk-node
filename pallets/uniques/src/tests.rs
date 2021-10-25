@@ -243,8 +243,8 @@ fn set_team_should_work() {
 		assert_ok!(Uniques::set_team(Origin::signed(1), 0, 2, 3, 4));
 
 		assert_ok!(Uniques::mint(Origin::signed(2), 0, 42, 2));
-		assert_ok!(Uniques::freeze(Origin::signed(4), 0, 42));
-		assert_ok!(Uniques::thaw(Origin::signed(3), 0, 42));
+		assert_ok!(Uniques::freeze(Origin::signed(2), 0, 42));
+		assert_ok!(Uniques::thaw(Origin::signed(2), 0, 42));
 		assert_ok!(Uniques::transfer(Origin::signed(3), 0, 42, 3));
 		assert_ok!(Uniques::burn(Origin::signed(3), 0, 42, None));
 	});

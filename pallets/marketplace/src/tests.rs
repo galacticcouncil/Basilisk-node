@@ -42,6 +42,7 @@ fn set_price_works() {
 				royalty: 20u8,
 				price: Some(10),
 				offer: None,
+				is_listed: true,
 			})
 		);
 
@@ -53,6 +54,7 @@ fn set_price_works() {
 				royalty: 20u8,
 				price: None,
 				offer: None,
+				is_listed: true,
 			})
 		);
 
@@ -91,6 +93,7 @@ fn buy_works() {
 				royalty: 25,
 				price: None,
 				offer: None,
+				is_listed: true,
 			})
 		);
 
@@ -184,7 +187,7 @@ fn free_trading_works() {
 		);
 		assert_noop!(
 			Market::list(Origin::signed(CHARLIE), 2, 1, DAVE, 33),
-			Error::<Test>::NotTheTokenOwner
+			Error::<Test>::UnsupportedClassType
 		);
 		assert_ok!(Market::list(Origin::signed(BOB), 1, 1, DAVE, 33));
 
@@ -218,8 +221,7 @@ fn free_trading_works() {
 			pallet_nft::Error::<Test>::TokenFrozen
 		);
 
-		// Y DIS NO WORK?
-		// assert_ok!(Market::unlist(Origin::root(), 1, 1));
+		assert_ok!(Market::unlist(Origin::signed(CHARLIE), 1, 1));
 
 		assert_noop!(
 			NFT::burn(Origin::signed(BOB), 1, 1),
@@ -251,6 +253,7 @@ fn offering_works() {
 				royalty: 20,
 				price: Some(100 * BSX),
 				offer: Some((BOB, 50 * BSX, 666)),
+				is_listed: true,
 			})
 		);
 		assert_eq!(frame_system::Pallet::<Test>::block_number(), 1);
@@ -259,5 +262,53 @@ fn offering_works() {
 		assert_eq!(Balances::total_balance(&ALICE), 20_040 * BSX);
 		assert_eq!(Balances::total_balance(&BOB), 14_950 * BSX);
 		assert_eq!(Balances::total_balance(&CHARLIE), 150_010 * BSX);
+	});
+}
+
+#[test]
+fn relisting_works() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), 0, bvec![0]));
+		assert_eq!(Market::tokens(0, 0), None,);
+		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0, CHARLIE, 20));
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
+		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX, 1000));
+		assert_eq!(
+			Market::tokens(0, 0),
+			Some(TokenInfo {
+				author: CHARLIE,
+				royalty: 20,
+				price: Some(100 * BSX),
+				offer: Some((BOB, 50 * BSX, 1000)),
+				is_listed: true,
+			})
+		);
+		assert_ok!(Market::unlist(Origin::signed(ALICE), 0, 0));
+		assert_eq!(
+			Market::tokens(0, 0),
+			Some(TokenInfo {
+				author: CHARLIE,
+				royalty: 20,
+				price: None,
+				offer: None,
+				is_listed: false,
+			})
+		);
+		assert_noop!(
+			Market::list(Origin::signed(BOB), 0, 0, CHARLIE, 20),
+			Error::<Test>::NotTheTokenOwner
+		);
+		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0, DAVE, 5));
+		assert_eq!(
+			Market::tokens(0, 0),
+			Some(TokenInfo {
+				author: CHARLIE,
+				royalty: 20,
+				price: None,
+				offer: None,
+				is_listed: true,
+			})
+		);
 	});
 }

@@ -136,16 +136,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
-			ensure!(
-				!Tokens::<T>::contains_key(class_id, instance_id),
-				Error::<T>::AlreadyListed
-			);
-
-			ensure!(
-				pallet_uniques::Pallet::<T>::owner(class_id, instance_id) == Some(sender.clone()),
-				Error::<T>::NotTheTokenOwner
-			);
-
 			// Check if class type can be decoded to one of available types
 			let class_type = Self::get_class_type(class_id)?;
 
@@ -153,16 +143,39 @@ pub mod pallet {
 				return Err(Error::<T>::UnsupportedClassType.into());
 			}
 
-			Tokens::<T>::insert(
-				class_id,
-				instance_id,
-				TokenInfo {
-					author: author.clone(),
-					royalty: royalty,
-					price: None,
-					offer: None,
-				},
+			// Only token owner can list
+			ensure!(
+				pallet_uniques::Pallet::<T>::owner(class_id, instance_id) == Some(sender.clone()),
+				Error::<T>::NotTheTokenOwner
 			);
+
+			if let Some(token_info) = Self::tokens(class_id, instance_id) {
+				if token_info.is_listed {
+					return Err(Error::<T>::AlreadyListed.into());
+				} else {
+					Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
+						let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
+
+						token_info.price = None;
+						token_info.offer = None;
+						token_info.is_listed = true;
+
+						Ok(())
+					})?;
+				}
+			} else {
+				Tokens::<T>::insert(
+					class_id,
+					instance_id,
+					TokenInfo {
+						author: author.clone(),
+						royalty: royalty,
+						price: None,
+						offer: None,
+						is_listed: true,
+					},
+				);
+			}
 
 			pallet_uniques::Pallet::<T>::freeze(origin.clone(), class_id, instance_id)?;
 
@@ -181,19 +194,32 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::unlist())]
 		#[transactional]
 		pub fn unlist(origin: OriginFor<T>, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
-			// Unlist removes author and royalty from token, hence requires elevated priviledges
-			T::ForceOrigin::ensure_origin(origin.clone())?;
+			let sender = ensure_signed(origin.clone())?;
 
 			ensure!(Tokens::<T>::contains_key(class_id, instance_id), Error::<T>::NotListed);
 
-			// ensure!(
-			// 	pallet_uniques::Pallet::<T>::owner(class_id, instance_id) == Some(sender.clone()),
-			// 	Error::<T>::NotTheTokenOwner
-			// );
+			ensure!(
+				pallet_uniques::Pallet::<T>::owner(class_id, instance_id) == Some(sender.clone()),
+				Error::<T>::NotTheTokenOwner
+			);
 
-			Tokens::<T>::remove(class_id, instance_id);
+			// Keeps tokeninfo in storage = Relisting not possible (author and royalty)
+			// Tokens::<T>::remove(class_id, instance_id);
 
-			pallet_uniques::Pallet::<T>::thaw(origin.clone(), class_id, instance_id)?;
+			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
+				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
+
+				token_info.price = None;
+				token_info.offer = None;
+				token_info.is_listed = false;
+
+				Ok(())
+			})?;
+
+			let owner =
+				pallet_uniques::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+
+			pallet_uniques::Pallet::<T>::thaw(T::Origin::from(RawOrigin::Signed(owner)), class_id, instance_id)?;
 
 			Self::deposit_event(Event::TokenUnlisted(class_id, instance_id));
 

@@ -14,4 +14,6 @@ pub struct TokenInfo<AccountId, Balance, BlockNumber> {
 	pub(super) price: Option<Balance>,
 	/// Highest offer \[bidder, amount, until\]
 	pub(super) offer: Option<(AccountId, Balance, BlockNumber)>,
+	/// If currently listed on marketplace
+	pub(super) is_listed: bool,
 }
