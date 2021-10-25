@@ -207,4 +207,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
+	fn on_initialize_base_with_launch_period(r: u32) -> Weight {
+		(9_396_000 as Weight)
+			// Standard Error: 4_000
+			.saturating_add((5_604_000 as Weight).saturating_mul(r as Weight))
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(r as Weight)))
+	}
 }

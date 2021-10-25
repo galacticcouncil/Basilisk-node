@@ -186,7 +186,6 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	#[pallet::metadata(T::AccountId = "AccountId")]
 	pub enum Event<T: Config> {
 		/// New liquidity was provided to the pool. [who, asset a, asset b, amount a, amount b]
 		LiquidityAdded(T::AccountId, AssetId, AssetId, Balance, Balance),

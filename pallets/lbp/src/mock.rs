@@ -4,7 +4,7 @@ use super::*;
 use crate as lbp;
 use crate::{AssetPairPoolIdFor, Config};
 use frame_support::parameter_types;
-use frame_support::traits::GenesisBuild;
+use frame_support::traits::{Everything, GenesisBuild};
 use orml_traits::parameter_type_with_key;
 use primitives::constants::chain::{
 	AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
@@ -53,7 +53,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type Origin = Origin;
@@ -93,7 +93,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = ();
+	type DustRemovalWhitelist = Everything;
 }
 
 pub struct AssetPairPoolIdTest();

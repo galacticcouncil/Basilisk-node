@@ -88,6 +88,11 @@ parameter_types! {
 	pub const MaxReserves: u32 = 50;
 }
 
+// pallet aura
+parameter_types! {
+	pub const MaxAuthorities: u32 = 32;
+}
+
 // pallet transaction payment
 parameter_types! {
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
