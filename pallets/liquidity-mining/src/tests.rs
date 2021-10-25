@@ -1,276 +1,17 @@
 use super::*;
-use crate::mock::{
-	Event as TestEvent, ExtBuilder, LiquidityMining, Origin, PoolId, System, Test, ALICE, BOB, BSX_ACA_POOL,
-	BSX_ACA_SHARE_ID, BSX_DOT_POOL, BSX_DOT_SHARE_ID, BSX_ETH_POOL, BSX_ETH_SHARE_ID, CHARLIE, DAVE, DECIMALS
-};
-use frame_support::{assert_noop, assert_ok};
+use crate::mock::{Event as TestEvent, ExtBuilder, LiquidityMining, System, Test};
+
 use primitives::{AssetId, Balance, BlockNumber};
-use sp_runtime::traits::BadOrigin;
+
+use sp_arithmetic::traits::CheckedSub;
+
+use std::cmp::Ordering;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
 	ext.execute_with(|| System::set_block_number(1));
 	ext
 }
-
-#[test]
-fn create_pool_should_work() {
-	let mut ext = new_test_ext();
-	ext.execute_with(|| {
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL), None);
-
-		mock::run_to_block(812);
-		//default loyalty cureve params
-		assert_ok!(LiquidityMining::create_pool(
-			Origin::root(),
-			BSX_ACA_POOL,
-			BSX_ACA_SHARE_ID,
-			None
-		));
-
-		expect_events(vec![Event::PoolCreated(BSX_ACA_POOL).into()]);
-		assert_eq!(
-			LiquidityMining::pool(BSX_ACA_POOL).unwrap(),
-			get_default_pool(BSX_ACA_SHARE_ID, 81_u64, None),
-		);
-
-		mock::run_to_block(925);
-		assert_eq!(LiquidityMining::pool(BSX_ETH_POOL), None);
-		assert_ok!(LiquidityMining::create_pool(
-			Origin::root(),
-			BSX_ETH_POOL,
-			BSX_ETH_SHARE_ID,
-			Some(LoyaltyCurve {
-				b: FixedU128::from_inner(235_000_000_000_000_000),
-				scale_coef: 2,
-			})
-		));
-
-		expect_events(vec![Event::PoolCreated(BSX_ETH_POOL).into()]);
-		assert_eq!(
-			LiquidityMining::pool(BSX_ETH_POOL).unwrap(),
-			get_default_pool(
-				BSX_ETH_SHARE_ID,
-				92_u64,
-				Some(LoyaltyCurve {
-					b: FixedU128::from_inner(235_000_000_000_000_000),
-					scale_coef: 2,
-				})
-			),
-		);
-	});
-}
-
-#[test]
-fn create_pool_should_not_work() {
-	let mut ext = new_test_ext();
-	ext.execute_with(|| {
-		mock::run_to_block(10);
-
-		let mut orig_pool = get_default_pool(BSX_ACA_SHARE_ID, 1, None);
-		orig_pool.accumulated_reward_per_share = FixedU128::from(2);
-		orig_pool.total_locked_shares = Balance::from(100_000_u128);
-		orig_pool.unpaid_rewards = Balance::from(10_000_u128);
-		orig_pool.paid_rewards = Balance::from(5_000_u128);
-
-		Pools::<Test>::insert(BSX_ACA_POOL, &orig_pool);
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL).unwrap(), orig_pool);
-		assert_noop!(
-			LiquidityMining::create_pool(Origin::root(), BSX_ACA_POOL, BSX_ACA_SHARE_ID, None),
-			Error::<Test>::LmPoolExists
-		);
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL).unwrap(), orig_pool);
-
-		assert_eq!(LiquidityMining::pool(BSX_ETH_POOL), None);
-		assert_noop!(
-			LiquidityMining::create_pool(Origin::signed(ALICE), BSX_ETH_POOL, BSX_ETH_SHARE_ID, None),
-			BadOrigin
-		);
-		assert_eq!(LiquidityMining::pool(BSX_ETH_POOL), None);
-	});
-}
-
-#[test]
-fn update_pool_should_work() {
-	let mut ext = new_test_ext();
-	ext.execute_with(|| {
-		mock::run_to_block(10);
-		let mut orig_pool = get_default_pool(BSX_ACA_SHARE_ID, 0, None);
-        
-        orig_pool.total_locked_shares = 1_000_u128 * DECIMALS;
-
-		let pool = &mut orig_pool.clone();
-
-		assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
-		assert_eq!(
-			*pool,
-			LmPool {
-				accumulated_reward_per_share: FixedU128::from_float(2.0),
-				total_locked_shares: 1_000_u128 * DECIMALS,
-				share_id: BSX_ACA_SHARE_ID,
-				updated_at: 1_u64,
-				unpaid_rewards: 2_000_u128 * DECIMALS,
-				paid_rewards: 0_u128,
-				canceled: false,
-				loyalty_curve: LoyaltyCurve::default(),
-			}
-		);
-        
-        //nothing should change in same period
-		assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
-		assert_eq!(
-			*pool,
-			LmPool {
-				accumulated_reward_per_share: FixedU128::from_float(2.0),
-				total_locked_shares: 1_000_u128 * DECIMALS,
-				share_id: BSX_ACA_SHARE_ID,
-				updated_at: 1_u64,
-				unpaid_rewards: 2_000_u128 * DECIMALS,
-				paid_rewards: 0_u128,
-				canceled: false,
-				loyalty_curve: LoyaltyCurve::default(),
-			}
-		);
-		
-        mock::run_to_block(200);
-        pool.total_locked_shares = 2_000_u128 * DECIMALS;
-        assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
-		assert_eq!(
-			*pool,
-			LmPool {
-				accumulated_reward_per_share: FixedU128::from_float(21.0),
-				total_locked_shares: 2_000_u128 * DECIMALS,
-				share_id: BSX_ACA_SHARE_ID,
-				updated_at: 20_u64,
-				unpaid_rewards: 40_000_u128 * DECIMALS,
-				paid_rewards: 0_u128,
-				canceled: false,
-				loyalty_curve: LoyaltyCurve::default(),
-			}
-		);
-
-        mock::run_to_block(5_000);
-        pool.total_locked_shares = 4_563_u128 * DECIMALS;
-        assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
-		assert_eq!(
-			*pool,
-			LmPool {
-				accumulated_reward_per_share: FixedU128::from_float(231.387_902_695_595_003_287),
-				total_locked_shares: 4_563_u128 * DECIMALS,
-				share_id: BSX_ACA_SHARE_ID,
-				updated_at: 500_u64,
-				unpaid_rewards: 100_000_u128 * DECIMALS,
-				paid_rewards: 0_u128,
-				canceled: false,
-				loyalty_curve: LoyaltyCurve::default(),
-			}
-		);
-/*
-        mock::run_to_block(5_100);
-        pool.total_locked_shares = 4_000_u128 * DECIMALS;
-        assert_ok!(LiquidityMining::update_pool(BSX_ACA_POOL, pool));
-		assert_eq!(
-			*pool,
-			LmPool {
-				accumulated_reward_per_share: FixedU128::from_float(236.3879027),
-				total_locked_shares: 4_000_u128 * DECIMALS,
-				share_id: BSX_ACA_SHARE_ID,
-				updated_at: 510_u64,
-				unpaid_rewards: 102_000_u128 * DECIMALS,
-				paid_rewards: 0_u128,
-				canceled: false,
-				loyalty_curve: LoyaltyCurve::default(),
-			}
-		);*/
-	});
-}
-/*
-#[test]
-fn cancel_pool_should_work() {
-	let mut ext = new_test_ext();
-	ext.execute_with(|| {
-		mock::run_to_block(2000);
-
-		let mut pool = get_default_pool(BSX_ACA_SHARE_ID, 2, None);
-		pool.total_locked_shares = 1_000;   //all 1_000 shares was locked in 1th period
-		pool.accumulated_reward_per_share = 1_000;
-		Pools::<Test>::insert(BSX_ACA_POOL, get_default_pool(BSX_ACA_SHARE_ID, 2, None));
-
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL).unwrap().canceled, false);
-
-		//TODO: initialize pool, pool should be updated
-
-		mock::run_to_block(6000);
-		assert_ok!(LiquidityMining::cancel_pool(Origin::root(), BSX_ACA_POOL));
-
-		expect_events(vec![Event::PoolCanceled(BSX_ACA_POOL).into()]);
-
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL).unwrap().accumulated_reward_per_share, 4_000);
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL).unwrap().unpaid_rewards, 4_000);
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL).unwrap().canceled, true);
-
-	});
-
-}
-*/
-/*
-#[test]
-fn deposit_shares_should_work() {
-	let mut ext = new_test_ext();
-	ext.execute_with(|| {
-		let bsx_aca_pool = LmPool {
-			accumulated_reward_per_share: FixedU128::from(0_u128),
-			total_locked_shares: Balance::default(),
-			share_id: BSX_ACA_SHARE_ID,
-			updated_at: 0
-		};
-
-		let bsx_eth_pool = LmPool {
-			accumulated_reward_per_share: FixedU128::from(0_u128),
-			total_locked_shares: Balance::from(0_u128),
-			share_id: BSX_ETH_SHARE_ID,
-			updated_at: 0,
-		};
-
-		let bsx_dot_pool = LmPool {
-			accumulated_reward_per_share: FixedU128::from(1_u128),
-			total_locked_shares: 100,
-			share_id: BSX_DOT_SHARE_ID,
-			updated_at: 0,
-		};
-
-		assert_ok!(LiquidityMining::create_pool(BSX_ACA_POOL, BSX_ACA_SHARE_ID));
-		assert_ok!(LiquidityMining::create_pool(BSX_ETH_POOL, BSX_ETH_SHARE_ID));
-
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL).unwrap(), bsx_aca_pool);
-		assert_eq!(LiquidityMining::pool(BSX_ETH_POOL).unwrap(), bsx_eth_pool);
-
-		Pools::<Test>::insert(BSX_DOT_POOL, &bsx_dot_pool);
-		assert_eq!(LiquidityMining::pool(BSX_DOT_POOL).unwrap(), bsx_dot_pool);
-
-		assert_ok!(LiquidityMining::deposit_shares(
-			Origin::signed(ALICE),
-			BSX_ACA_POOL,
-			1_000_000
-		));
-
-		assert_eq!(LiquidityMining::pool(BSX_ACA_POOL).unwrap(), LmPool {
-			accumulated_reward_per_share: FixedU128::from(0_u128),
-			total_locked_shares: 1_000_000,
-			share_id: BSX_ACA_SHARE_ID,
-			updated_at: 0
-		});
-
-		assert_eq!(LiquidityMining::liq_provider(BSX_ACA_POOL, ALICE).unwrap(), LpInfo {
-			acc_reward_per_share: FixedU128::from(0),
-			locked_shares: 1_000_000
-		});
-	});
-}
-
-//#[test]
-//fn deposit_shares_should_not_work() {}
-*/
 
 #[test]
 fn get_period_number_should_work() {
@@ -305,6 +46,170 @@ fn get_period_number_should_not_work() {
 	);
 }
 
+#[test]
+fn get_loyalty_multiplier_should_work() {
+	let c1 = LoyaltyCurve::default();
+	let c2 = LoyaltyCurve {
+		b: FixedU128::from(1),
+		scale_coef: 50,
+	};
+	let c3 = LoyaltyCurve {
+		b: FixedU128::from_inner(123_580_000_000_000_000), // 0.12358
+		scale_coef: 23,
+	};
+	let c4 = LoyaltyCurve {
+		b: FixedU128::from_inner(0), // 0.12358
+		scale_coef: 15,
+	};
+
+	//vec[(periods, c1-multiplier, c2-multiplier, c3-multiplier, c4-multiplier),...]
+	let results = vec![
+		(
+			0,
+			FixedU128::from_float(0.5_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.12358_f64),
+			FixedU128::from_float(0_f64),
+		),
+		(
+			1,
+			FixedU128::from_float(0.504950495_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.1600975_f64),
+			FixedU128::from_float(0.0625_f64),
+		),
+		(
+			4,
+			FixedU128::from_float(0.5192307692_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.25342_f64),
+			FixedU128::from_float(0.2105263158_f64),
+		),
+		(
+			130,
+			FixedU128::from_float(0.7826086957_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.8682505882_f64),
+			FixedU128::from_float(0.8965517241_f64),
+		),
+		(
+			150,
+			FixedU128::from_float(0.8_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.8834817341_f64),
+			FixedU128::from_float(0.9090909091_f64),
+		),
+		(
+			180,
+			FixedU128::from_float(0.8214285714_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.9007011823_f64),
+			FixedU128::from_float(0.9230769231_f64),
+		),
+		(
+			240,
+			FixedU128::from_float(0.8529411765_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.9233549049_f64),
+			FixedU128::from_float(0.9411764706_f64),
+		),
+		(
+			270,
+			FixedU128::from_float(0.8648648649_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.9312025256_f64),
+			FixedU128::from_float(0.9473684211_f64),
+		),
+		(
+			280,
+			FixedU128::from_float(0.8684210526_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.9334730693_f64),
+			FixedU128::from_float(0.9491525424_f64),
+		),
+		(
+			320,
+			FixedU128::from_float(0.880952381_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.941231312_f64),
+			FixedU128::from_float(0.9552238806_f64),
+		),
+		(
+			380,
+			FixedU128::from_float(0.8958333333_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.9499809926_f64),
+			FixedU128::from_float(0.9620253165_f64),
+		),
+		(
+			390,
+			FixedU128::from_float(0.8979591837_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.9511921065_f64),
+			FixedU128::from_float(0.962962963_f64),
+		),
+		(
+			4000,
+			FixedU128::from_float(0.987804878_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.994989396_f64),
+			FixedU128::from_float(0.99626401_f64),
+		),
+		(
+			4400,
+			FixedU128::from_float(0.9888888889_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.9954425367_f64),
+			FixedU128::from_float(0.9966024915_f64),
+		),
+		(
+			4700,
+			FixedU128::from_float(0.9895833333_f64),
+			FixedU128::from_float(1_f64),
+			FixedU128::from_float(0.995732022_f64),
+			FixedU128::from_float(0.9968186638_f64),
+		),
+	];
+
+	let precission_delta = FixedU128::from_inner(100_000_000); //0.000_000_000_1
+	for t in results.iter() {
+		//1-th curve test
+		let m = LiquidityMining::get_loyalty_multiplier(t.0, &c1).unwrap();
+		assert_eq!(is_approx_eq_fixedu128(m, t.1, precission_delta), true);
+
+		//2-nd curve test
+		let m = LiquidityMining::get_loyalty_multiplier(t.0, &c2).unwrap();
+		assert_eq!(is_approx_eq_fixedu128(m, t.2, precission_delta), true);
+
+		//3-th ucrve test
+		let m = LiquidityMining::get_loyalty_multiplier(t.0, &c3).unwrap();
+		assert_eq!(is_approx_eq_fixedu128(m, t.3, precission_delta), true);
+		
+		//4-th curve test
+		let m = LiquidityMining::get_loyalty_multiplier(t.0, &c4).unwrap();
+		assert_eq!(is_approx_eq_fixedu128(m, t.4, precission_delta), true);
+		
+	}
+}
+
+//NOTE: look at approx pallet - https://github.com/brendanzab/approx
+fn is_approx_eq_fixedu128(num_1: FixedU128, num_2: FixedU128, delta: FixedU128) -> bool {
+	let diff = match num_1.cmp(&num_2) {
+		Ordering::Less => num_2.checked_sub(&num_1).unwrap(),
+		Ordering::Greater => num_1.checked_sub(&num_2).unwrap(),
+		Ordering::Equal => return true,
+	};
+
+	if diff.cmp(&delta) == Ordering::Greater {
+		println!("diff: {:?}; delta: {:?}; n1: {:?}; n2: {:?}", diff, delta, num_1, num_2);
+
+		false
+	} else {
+		true
+	}
+}
+
+/*
 fn last_events(n: usize) -> Vec<TestEvent> {
 	frame_system::Pallet::<Test>::events()
 		.into_iter()
@@ -318,25 +223,4 @@ fn last_events(n: usize) -> Vec<TestEvent> {
 fn expect_events(e: Vec<TestEvent>) {
 	assert_eq!(last_events(e.len()), e);
 }
-
-fn get_default_pool(
-	share_id: AssetId,
-	period: u64,
-	loyalty_curve: Option<LoyaltyCurve>,
-) -> LmPool<Balance, AssetId, u64> {
-	let loyalty_curve = match loyalty_curve {
-		Some(v) => v,
-		None => LoyaltyCurve::default(),
-	};
-
-	LmPool {
-		accumulated_reward_per_share: FixedU128::from(0_u128),
-		total_locked_shares: Balance::default(),
-		updated_at: period,
-		paid_rewards: Balance::default(),
-		unpaid_rewards: Balance::default(),
-		canceled: false,
-		share_id,
-		loyalty_curve,
-	}
-}
+*/

@@ -18,16 +18,15 @@
 use crate as liq_mining;
 use crate::Config;
 use frame_support::parameter_types;
-use frame_support::traits::GenesisBuild;
+use frame_support::traits::{GenesisBuild, Nothing};
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
-use primitives::{Amount, AssetId, Balance, BlockNumber, CORE_ASSET_ID};
+use primitives::{Amount, AssetId, Balance, BlockNumber};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use frame_support::traits::Get;
 
 type AccountId = u64;
 pub type PoolId = u64;
@@ -46,8 +45,6 @@ pub const BSX_DOT_POOL: PoolId = 3;
 pub const BSX_ACA_SHARE_ID: AssetId = 100;
 pub const BSX_ETH_SHARE_ID: AssetId = 101;
 pub const BSX_DOT_SHARE_ID: AssetId = 102;
-
-pub const DECIMALS:u128 = 1_000_000_000_000;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -97,20 +94,15 @@ impl system::Config for Test {
 parameter_types! {
 	pub NativeCurrencyId: AssetId = 0;
 
-	pub LmAccount: AccountId = 2_000;
-    pub AccumulatePeriod: BlockNumber = 10; //10 blockov
+    pub AccumulatePeriod: BlockNumber = 10;     // 10 blocks
 	pub const MaxLocks: u32 = 1;
-    pub PayoutCurrencyId: AssetId = CORE_ASSET_ID;
 }
 
 impl Config for Test {
 	type Event = Event;
 	type Balance = Balance;
 	type CurrencyId = AssetId;
-	type LmAccount = LmAccount;
 	type MultiCurrency = Tokens;
-    type AccumulatePeriod = AccumulatePeriod;
-    type PayoutCurrencyId = PayoutCurrencyId;
     type AdminOrigin = frame_system::EnsureRoot<u64>;
 	type WeightInfo = ();
 }
@@ -130,7 +122,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = MaxLocks;
-	type DustRemovalWhitelist = ();
+	type DustRemovalWhitelist = Nothing;
 }
 
 pub struct ExtBuilder {
