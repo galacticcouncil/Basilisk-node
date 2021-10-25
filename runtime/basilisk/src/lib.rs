@@ -128,6 +128,8 @@ impl Contains<Call> for BaseFilter {
 }
 
 use smallvec::smallvec;
+use sp_runtime::traits::BlockNumberProvider;
+
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
@@ -152,6 +154,34 @@ impl WeightToFeePolynomial for WeightToFee {
 			coeff_frac: Perbill::from_rational(p % q, q),
 			coeff_integer: p / q, // 124
 		}]
+	}
+}
+
+// Relay chain Block number provider.
+// Reason why the implementation is different for benchmarks is that it is possible
+// to set or change the bloch number in a benchmark using parachain system pallet.
+// That's why we revert to using the system pallet.
+pub struct RelayChainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+impl<T: cumulus_pallet_parachain_system::Config> BlockNumberProvider for RelayChainBlockNumberProvider<T> {
+	type BlockNumber = BlockNumber;
+
+	fn current_block_number() -> Self::BlockNumber {
+		cumulus_pallet_parachain_system::Pallet::<T>::validation_data()
+			.map(|d| d.relay_parent_number)
+			.unwrap_or_default()
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: cumulus_pallet_parachain_system::Config + frame_system::Config> BlockNumberProvider
+	for RelayChainBlockNumberProvider<T>
+{
+	type BlockNumber = <T as frame_system::Config>::BlockNumber;
+
+	fn current_block_number() -> Self::BlockNumber {
+		frame_system::Pallet::<T>::current_block_number()
 	}
 }
 
@@ -369,7 +399,7 @@ impl pallet_lbp::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
-	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
 // Parachain Config
@@ -647,7 +677,7 @@ impl orml_vesting::Config for Runtime {
 	type VestedTransferOrigin = EnsureRootOrTreasury;
 	type WeightInfo = ();
 	type MaxVestingSchedules = MaxVestingSchedules;
-	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
