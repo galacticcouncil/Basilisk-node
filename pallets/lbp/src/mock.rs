@@ -50,15 +50,6 @@ frame_support::construct_runtime!(
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 63;
-	pub static MockBlockNumberProvider: u64 = 0;
-}
-
-impl BlockNumberProvider for MockBlockNumberProvider {
-	type BlockNumber = u64;
-
-	fn current_block_number() -> Self::BlockNumber {
-		Self::get()
-	}
 }
 
 impl frame_system::Config for Test {
@@ -138,7 +129,7 @@ impl Config for Test {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
-	type BlockNumberProvider = MockBlockNumberProvider;
+	type BlockNumberProvider = System;
 }
 
 pub struct ExtBuilder {
@@ -176,7 +167,6 @@ impl ExtBuilder {
 	}
 }
 
-pub fn run_to_block(n: u64) {
-	MockBlockNumberProvider::set(n);
-	System::set_block_number(System::block_number() + 1);
+pub fn run_to_block<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
+	frame_system::Pallet::<T>::set_block_number(n);
 }
