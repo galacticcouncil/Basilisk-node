@@ -160,7 +160,7 @@ impl WeightToFeePolynomial for WeightToFee {
 // Relay chain Block number provider.
 // Reason why the implementation is different for benchmarks is that it is not possible
 // to set or change the block number in a benchmark using parachain system pallet.
-// That's why we revert to using the system pallet.
+// That's why we revert to using the system pallet in the benchmark.
 pub struct RelayChainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
 
 #[cfg(not(feature = "runtime-benchmarks"))]
