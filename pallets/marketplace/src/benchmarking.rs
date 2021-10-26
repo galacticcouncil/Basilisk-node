@@ -63,7 +63,7 @@ benchmarks! {
 	verify {
 		assert_eq!(
 			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
-			Some(TokenInfo {author: caller, royalty: 20, price: None, offer: None})
+			Some(TokenInfo {author: caller, royalty: 20, price: None, offer: None, is_listed: true})
 		)
 	}
 
@@ -90,7 +90,7 @@ benchmarks! {
 	verify {
 		assert_eq!(
 			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
-			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: Some((caller.clone(), 1000u32.into(), T::BlockNumber::from(666u32)))})
+			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: Some((caller.clone(), 1000u32.into(), T::BlockNumber::from(666u32))), is_listed: true})
 		)
 	}
 
@@ -105,7 +105,7 @@ benchmarks! {
 	verify {
 		assert_eq!(
 			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
-			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: None})
+			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: None, is_listed: true})
 		)
 	}
 
@@ -120,7 +120,7 @@ benchmarks! {
 	verify {
 		assert_eq!(
 			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
-			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: None})
+			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: None, is_listed: true})
 		)
 	}
 
