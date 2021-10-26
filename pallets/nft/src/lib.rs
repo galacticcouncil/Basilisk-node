@@ -14,6 +14,7 @@ use sp_runtime::{
 	traits::{StaticLookup, Zero},
 	RuntimeDebug,
 };
+use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 use weights::WeightInfo;
 
@@ -31,13 +32,13 @@ pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
 pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
+#[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq, TypeInfo)]
 pub struct ClassData {
 	pub is_pool: bool, // NFT pools for tokenized merch
 }
 
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
+#[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq, TypeInfo)]
 pub struct TokenData {
 	pub locked: bool, // token locking will be used in the nft auctions
 }

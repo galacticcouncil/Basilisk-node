@@ -122,7 +122,6 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub (crate) fn deposit_event)]
-	#[pallet::metadata(T::AccountId = "AccountId", IntentionId<T> = "IntentionId")]
 	pub enum Event<T: Config> {
 		/// Intention registered event
 		/// [who, asset a, asset b, amount, intention type, intention id]

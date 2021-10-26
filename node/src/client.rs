@@ -2,7 +2,7 @@
 
 #![allow(clippy::upper_case_acronyms)]
 
-use crate::service::{BasiliskExecutor, FullBackend, FullClient, TestingBasiliskExecutor};
+use crate::service::{BasiliskExecutorDispatch, FullBackend, FullClient, TestingBasiliskExecutorDispatch};
 use common_runtime::{AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
@@ -125,8 +125,8 @@ pub trait ClientHandle {
 /// See [`ExecuteWithClient`] for more information.
 #[derive(Clone)]
 pub enum Client {
-	Basilisk(Arc<FullClient<basilisk_runtime::RuntimeApi, BasiliskExecutor>>),
-	TestingBasilisk(Arc<FullClient<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutor>>),
+	Basilisk(Arc<FullClient<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>>),
+	TestingBasilisk(Arc<FullClient<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutorDispatch>>),
 }
 
 impl ClientHandle for Client {
