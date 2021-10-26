@@ -739,41 +739,37 @@ fn update_pool_data_by_non_owner_should_not_work() {
 #[test]
 fn update_pool_owner_by_new_owner_should_work() {
 	predefined_test_ext().execute_with(|| {
-		assert_ok!(
-			LBPPallet::update_pool_data(
-				Origin::signed(ALICE),
-				ACA_DOT_POOL_ID,
-				Some(BOB),
-				Some(15),
-				Some(20),
-				Some(10_000_000),
-				Some(80_000_000),
-				None,
-				None,
-			)
-		);
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			Some(BOB),
+			Some(15),
+			Some(20),
+			Some(10_000_000),
+			Some(80_000_000),
+			None,
+			None,
+		));
 
 		let pool_data1 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
-		assert_ok!(
-			LBPPallet::update_pool_data(
-				Origin::signed(BOB),
-				ACA_DOT_POOL_ID,
-				Some(ALICE),
-				Some(15),
-				Some(20),
-				Some(10_000_000),
-				Some(80_000_000),
-				None,
-				None,
-			)
-		);
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(BOB),
+			ACA_DOT_POOL_ID,
+			Some(ALICE),
+			Some(15),
+			Some(20),
+			Some(10_000_000),
+			Some(80_000_000),
+			None,
+			None,
+		));
 
 		let pool_data2 = LBPPallet::pool_data(ACA_DOT_POOL_ID);
 
 		expect_events(vec![
 			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data1).into(),
-			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into()
+			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into(),
 		]);
 	});
 }
@@ -1934,9 +1930,10 @@ fn update_pool_data_after_sale_should_not_work() {
 
 		run_to_block(30);
 
-		expect_events(vec![
-			Event::BuyExecuted(buyer, DOT, ACA, 14_368_715, 10_000_000, ACA, 28_737).into()
-		]);
+		expect_events(vec![Event::BuyExecuted(
+			buyer, DOT, ACA, 14_368_715, 10_000_000, ACA, 28_737,
+		)
+		.into()]);
 
 		assert_noop!(
 			LBPPallet::update_pool_data(
@@ -2713,7 +2710,10 @@ fn get_sorted_weight_should_work() {
 		);
 
 		assert_eq!(
-			LBPPallet::get_sorted_weight(ACA, <Test as frame_system::Config>::BlockNumber::from(30u32), &pool).err().unwrap().as_u8(),
+			LBPPallet::get_sorted_weight(ACA, <Test as frame_system::Config>::BlockNumber::from(30u32), &pool)
+				.err()
+				.unwrap()
+				.as_u8(),
 			12_u8, // InvalidWeight
 		);
 	});
