@@ -17,13 +17,18 @@
 
 #![allow(clippy::upper_case_acronyms)]
 
+use codec::{Decode, Encode};
 use frame_support::dispatch;
 use frame_support::sp_runtime::traits::Zero;
+use frame_support::sp_runtime::RuntimeDebug;
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 use sp_std::vec::Vec;
 
 /// Hold information to perform amm transfer
 /// Contains also exact amount which will be sold/bought
-#[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
 pub struct AMMTransfer<AccountId, AssetId, AssetPair, Balance> {
 	pub origin: AccountId,
 	pub assets: AssetPair,

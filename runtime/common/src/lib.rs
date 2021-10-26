@@ -125,7 +125,7 @@ parameter_types! {
 
 // pallet nft
 parameter_types! {
-	pub ClassBondAmount: Balance = 10_000 * BSX;
+	pub ClassBondAmount: Balance = 10_000 * UNITS;
 }
 
 // pallet orml_nft
@@ -219,6 +219,6 @@ parameter_types! {
 
 // pallet vesting
 parameter_types! {
-	pub MinVestedTransfer: Balance = 100_000 * BSX;
+	pub MinVestedTransfer: Balance = 100_000 * UNITS;
 	pub const MaxVestingSchedules: u32 = 100;
 }

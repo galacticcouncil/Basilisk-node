@@ -1,3 +1,7 @@
+# v5.0.1 (Thu Oct 14 2021)
+
+- fix: enabled XCM
+
 # v5.0.0 (Fri Oct 08 2021)
 
 #### 🚀 Enhancement

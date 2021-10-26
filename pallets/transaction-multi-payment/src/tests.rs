@@ -16,14 +16,13 @@
 // limitations under the License.
 
 pub use crate::{mock::*, Error};
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, assert_storage_noop};
 use pallet_transaction_payment::ChargeTransactionPayment;
 use sp_runtime::traits::SignedExtension;
 
 use crate::traits::{CurrencySwap, PaymentSwapResult};
 use crate::CurrencyBalanceCheck;
 use frame_support::sp_runtime::transaction_validity::{InvalidTransaction, ValidTransaction};
-use frame_support::storage_root;
 use frame_support::weights::DispatchInfo;
 use orml_traits::MultiCurrency;
 use pallet_balances::Call as BalancesCall;
@@ -460,9 +459,7 @@ fn swap_currency_should_work() {
 			Price::from(1)
 		));
 
-		let storage_root_before = storage_root();
-		assert_ok!(PaymentPallet::swap_currency(&ALICE, 10000));
-		assert_eq!(storage_root_before, storage_root());
+		assert_storage_noop!(PaymentPallet::swap_currency(&ALICE, 10000).unwrap());
 
 		assert_ok!(PaymentPallet::set_currency(
 			Origin::signed(ALICE),
@@ -528,6 +525,7 @@ fn weight_to_fee_should_work() {
 	ExtBuilder::default().base_weight(5).build().execute_with(|| {
 		assert_eq!(PaymentPallet::weight_to_fee(1024), 1024);
 		assert_eq!(PaymentPallet::weight_to_fee(1), 1);
+		assert_eq!(PaymentPallet::weight_to_fee(1025), 1024);
 		assert_eq!(PaymentPallet::weight_to_fee(10000), 1024);
 	});
 }
