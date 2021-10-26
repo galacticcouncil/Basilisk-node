@@ -1,6 +1,6 @@
 use super::*;
 use crate::mock::{
-	Currencies, Duster, Event as TestEvent, ExtBuilder, Origin, System, Test, Tokens, ALICE, DUSTER, KILLED,
+	Currencies, Duster, Event as TestEvent, ExtBuilder, Origin, System, Test, Tokens, ALICE, BOB, DUSTER, KILLED,
 	TREASURY,
 };
 use frame_support::{assert_noop, assert_ok};
@@ -31,7 +31,7 @@ fn reward_duster_can_fail() {
 		.with_balance(*ALICE, 1, 100)
 		.build()
 		.execute_with(|| {
-			Tokens::set_balance(Origin::root(), *TREASURY, 0, 0, 0).unwrap();
+			assert_ok!(Currencies::transfer(Origin::signed(*TREASURY), *BOB, 0, 1_000_000));
 
 			assert_ok!(Duster::dust_account(Origin::signed(*DUSTER), *ALICE, 1));
 			assert_eq!(Tokens::free_balance(1, &*TREASURY), 100);

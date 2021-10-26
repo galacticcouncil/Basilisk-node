@@ -4390,8 +4390,6 @@ fn trade_limit_test() {
 		});
 }
 
-// TODO: register_intention, execute_amm_transfer, verify_intention, resolve_single_intention
-
 #[test]
 fn register_intention_should_work() {
 	new_test_ext().execute_with(|| {
@@ -4530,78 +4528,159 @@ fn execute_amm_transfer_should_work() {
 	});
 }
 
-// #[test]
-// fn resolve_single_intention_should_work() {
-// 	new_test_ext().execute_with(|| {
-// 		let asset_a = HDX;
-// 		let asset_b = DOT;
-// 		let pool_amount = 1_000_000_000_000_000;
-// 		let initial_price = Price::from_float(0.072);
-// 		initialize_pool(asset_b, asset_a, ALICE, pool_amount, initial_price);
-//
-// 		let alice_buy_intention_id = generate_intention_id(&ALICE, 0);
-// 		Exchange::resolve_single_intention(
-// 			&ExchangeIntention {
-// 				who: ALICE,
-// 				assets: AssetPair { asset_in: DOT, asset_out: HDX },
-// 				amount_in: 19311912264,
-// 				amount_out: 91199318786048,
-// 				trade_limit: 127507368743512,
-// 				discount: false,
-// 				sell_or_buy: IntentionType::BUY,
-// 				intention_id: alice_buy_intention_id }
-// 		);
-//
-// 		let alice_sell_intention_id = generate_intention_id(&ALICE, 1);
-// 		Exchange::resolve_single_intention(
-// 			&ExchangeIntention {
-// 				who: ALICE,
-// 				assets: AssetPair { asset_in: DOT, asset_out: HDX },
-// 				amount_in: 19311912264,
-// 				amount_out: 91199318786048,
-// 				trade_limit: 127507368743512,
-// 				discount: false,
-// 				sell_or_buy: IntentionType::SELL,
-// 				intention_id: alice_sell_intention_id }
-// 		);
-//
-// 		expect_events(vec![
-// 			xyk::Event::BuyExecuted(
-// 				ALICE,
-// 				DOT,
-// 				HDX,
-// 				1_000_000_000_000,
-// 				1_000_000_000,
-// 				HDX,
-// 				1000000,
-// 			)
-// 				.into(),
-// 			Event::IntentionResolvedAMMTrade(
-// 				ALICE,
-// 				IntentionType::BUY,
-// 				alice_buy_intention_id,
-// 				1_000_000_000_000,
-// 				1_001_000_000,
-// 			)
-// 				.into(),
-// 			xyk::Event::SellExecuted(
-// 				ALICE,
-// 				HDX,
-// 				DOT,
-// 				1_000_000_000_000,
-// 				1_000_000_000,
-// 				HDX,
-// 				1000000,
-// 			)
-// 				.into(),
-// 			Event::IntentionResolvedAMMTrade(
-// 				ALICE,
-// 				IntentionType::SELL,
-// 				alice_sell_intention_id,
-// 				1_000_000_000_000,
-// 				1_001_000_000,
-// 			)
-// 				.into(),
-// 		]);
-// 	});
-// }
+#[test]
+fn resolve_single_intention_should_work() {
+	new_test_ext().execute_with(|| {
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 1_000_000_000_000_000;
+		let initial_price = Price::from_float(0.072);
+		initialize_pool(asset_b, asset_a, ALICE, pool_amount, initial_price);
+
+		let alice_buy_intention_id = generate_intention_id(&ALICE, 0);
+		Exchange::resolve_single_intention(
+			&ExchangeIntention {
+				who: ALICE,
+				assets: AssetPair { asset_in: DOT, asset_out: HDX },
+				amount_in: 150_000_000,
+				amount_out: 2_000_000_000,
+				trade_limit: 1_500_000_000_000,
+				discount: false,
+				sell_or_buy: IntentionType::BUY,
+				intention_id: alice_buy_intention_id }
+		);
+
+		let alice_sell_intention_id = generate_intention_id(&ALICE, 1);
+		Exchange::resolve_single_intention(
+			&ExchangeIntention {
+				who: ALICE,
+				assets: AssetPair { asset_in: DOT, asset_out: HDX },
+				amount_in: 150_000_000,
+				amount_out: 2_000_000_000,
+				trade_limit: 101_000,
+				discount: false,
+				sell_or_buy: IntentionType::SELL,
+				intention_id: alice_sell_intention_id }
+		);
+
+		let pair_account = XYKPallet::get_pair_id(AssetPair {
+		asset_in: asset_a,
+		asset_out: asset_b,
+		});
+
+		expect_events(vec![
+			xyk::Event::BuyExecuted(
+				ALICE,
+				HDX,
+				DOT,
+				2_000_000_000,
+				27_778_549_405,
+				DOT,
+				55_557_098,
+				pair_account
+			)
+				.into(),
+			Event::IntentionResolvedAMMTrade(
+				ALICE,
+				IntentionType::BUY,
+				alice_buy_intention_id,
+				2_000_000_000,
+				27_834_106_503,
+				pair_account
+			)
+				.into(),
+			xyk::Event::SellExecuted(
+				ALICE,
+				DOT,
+				HDX,
+				150000000,
+				10777799,
+				HDX,
+				21598,
+				pair_account
+			)
+				.into(),
+			Event::IntentionResolvedAMMTrade(
+				ALICE,
+				IntentionType::SELL,
+				alice_sell_intention_id,
+				150000000,
+				10799397,
+				pair_account
+			)
+				.into(),
+		]);
+	});
+}
+
+#[test]
+fn verify_intention_should_work() {
+	new_test_ext().execute_with(|| {
+		let user = ALICE;
+		let asset_a = HDX;
+		let asset_b = DOT;
+		let pool_amount = 1_000_000_000_000_000;
+		let initial_price = Price::from_float(2.0);
+		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
+
+		assert_eq!(Exchange::verify_intention(&Intention::<Test> {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000_000,
+			amount_out: 2_000_000_000,
+			trade_limit: 3_000_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user, 0),
+		}),
+			true);
+
+		assert_eq!(Exchange::verify_intention(&Intention::<Test> {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000_000,
+			amount_out: 2_000_000_000,
+			trade_limit: 100_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user, 0),
+		}),
+			true);
+
+		assert_eq!(Exchange::verify_intention(&Intention::<Test> {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000_000,
+			amount_out: 2_000_000_000,
+			trade_limit: 100_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user, 0),
+		}),
+			false);
+
+		assert_eq!(Exchange::verify_intention(&Intention::<Test> {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000_000,
+			amount_out: 2_000_000_000,
+			trade_limit: 10_000_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user, 0),
+		}),
+			false);
+	});
+}

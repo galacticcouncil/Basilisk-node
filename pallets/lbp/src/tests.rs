@@ -2110,18 +2110,6 @@ fn invalid_fee_should_not_work() {
 #[test]
 fn amm_trait_should_work() {
 	predefined_test_ext().execute_with(|| {
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
-			None,
-			Some(10),
-			Some(20),
-			None,
-			None,
-			None,
-			None
-		));
-
 		let asset_pair = AssetPair {
 			asset_in: ACA,
 			asset_out: DOT,
@@ -2134,11 +2122,6 @@ fn amm_trait_should_work() {
 			asset_in: DOT,
 			asset_out: HDX,
 		};
-
-		assert_noop!(
-			LBPPallet::validate_sell(&BOB, asset_pair, 1_000_000, 100_000, false),
-			Error::<Test>::SaleIsNotRunning
-		);
 
 		run_to_block(11);
 
@@ -2186,106 +2169,6 @@ fn amm_trait_should_work() {
 		assert_eq!(
 			LBPPallet::validate_buy(&who, asset_pair, amount_in, buy_limit, false).unwrap(),
 			t_buy
-		);
-
-		// zero amount
-		assert_noop!(
-			LBPPallet::validate_sell(&who, asset_pair, 0, sell_limit, false),
-			Error::<Test>::ZeroAmount
-		);
-
-		// pool does not exist
-		assert_noop!(
-			LBPPallet::validate_sell(
-				&who,
-				AssetPair {
-					asset_in: ACA,
-					asset_out: ETH
-				},
-				amount_in,
-				sell_limit,
-				false
-			),
-			Error::<Test>::PoolNotFound
-		);
-
-		// insufficient balance
-		assert_ok!(Currency::withdraw(asset_pair.asset_in, &who, INITIAL_BALANCE));
-		assert_noop!(
-			LBPPallet::validate_sell(&who, asset_pair, amount_in, sell_limit, false),
-			Error::<Test>::InsufficientAssetBalance
-		);
-		assert_noop!(
-			LBPPallet::validate_buy(&who, asset_pair, amount_in, buy_limit, false),
-			Error::<Test>::InsufficientAssetBalance
-		);
-		Currency::set_balance(Origin::root(), who, asset_pair.asset_in, INITIAL_BALANCE, 0).unwrap();
-
-		// max in/out ratio exceeded
-		assert_noop!(
-			LBPPallet::validate_sell(&who, asset_pair, 1_000_000_000, sell_limit, false),
-			Error::<Test>::MaxInRatioExceeded
-		);
-		assert_noop!(
-			LBPPallet::validate_buy(&who, asset_pair, 1_000_000_000, buy_limit, false),
-			Error::<Test>::MaxOutRatioExceeded
-		);
-
-		// transfer fee > token amount in
-		assert_ok!(LBPPallet::create_pool(
-			Origin::root(),
-			ALICE,
-			ACA,
-			1_000_000_000,
-			HDX,
-			2_000_000_000,
-			20_000_000,
-			80_000_000,
-			WeightCurveType::Linear,
-			Fee {
-				numerator: 10,
-				denominator: 1
-			},
-			CHARLIE,
-		));
-		let pool_id2 = LBPPallet::get_pair_id(AssetPair {
-			asset_in: ACA,
-			asset_out: HDX,
-		});
-		assert_ok!(LBPPallet::update_pool_data(
-			Origin::signed(ALICE),
-			pool_id2,
-			None,
-			Some(12),
-			Some(20),
-			None,
-			None,
-			None,
-			None
-		));
-		run_to_block(15);
-		assert_noop!(
-			LBPPallet::validate_sell(
-				&who,
-				AssetPair {
-					asset_in: ACA,
-					asset_out: HDX
-				},
-				amount_in,
-				sell_limit,
-				false
-			),
-			Error::<Test>::Overflow
-		);
-
-		// trading limit exceeded
-		assert_noop!(
-			LBPPallet::validate_sell(&who, asset_pair, amount_in, 10_000_000, false),
-			Error::<Test>::AssetBalanceLimitExceeded
-		);
-		assert_noop!(
-			LBPPallet::validate_buy(&who, asset_pair, amount_in, 1_000, false),
-			Error::<Test>::AssetBalanceLimitExceeded
 		);
 
 		assert_eq!(
@@ -2760,6 +2643,56 @@ fn validate_trade_should_not_work() {
 				TradeType::Buy,
 			),
 			Error::<Test>::AssetBalanceLimitExceeded
+		);
+
+		Currency::set_balance(Origin::root(), ALICE, ACA, INITIAL_BALANCE, 0).unwrap();
+		Currency::set_balance(Origin::root(), ALICE, HDX, INITIAL_BALANCE, 0).unwrap();
+
+		// transfer fee > token amount in
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			ACA,
+			1_000_000_000,
+			HDX,
+			2_000_000_000,
+			20_000_000,
+			80_000_000,
+			WeightCurveType::Linear,
+			Fee {
+				numerator: 10,
+				denominator: 1
+			},
+			CHARLIE,
+		));
+		let pool_id2 = LBPPallet::get_pair_id(AssetPair {
+			asset_in: ACA,
+			asset_out: HDX,
+		});
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			pool_id2,
+			None,
+			Some(12),
+			Some(20),
+			None,
+			None,
+			None,
+			None
+		));
+		run_to_block(15);
+		assert_noop!(
+			LBPPallet::validate_sell(
+				&ALICE,
+				AssetPair {
+					asset_in: ACA,
+					asset_out: HDX
+				},
+				1_000_000,
+				100_000,
+				false
+			),
+			Error::<Test>::Overflow
 		);
 	});
 }
