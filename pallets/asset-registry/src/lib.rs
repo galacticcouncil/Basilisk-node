@@ -22,6 +22,7 @@ use frame_support::pallet_prelude::*;
 use frame_support::sp_runtime::traits::CheckedAdd;
 use frame_support::transactional;
 use frame_system::pallet_prelude::*;
+use scale_info::TypeInfo;
 use sp_arithmetic::traits::BaseArithmetic;
 use sp_std::convert::TryInto;
 use sp_std::vec::Vec;
@@ -52,7 +53,8 @@ pub mod pallet {
 	use super::*;
 	use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 
-	pub type AssetDetailsT<T> = AssetDetails<<T as Config>::AssetId, <T as Config>::Balance, BoundedVec<u8, <T as Config>::StringLimit>>;
+	pub type AssetDetailsT<T> =
+		AssetDetails<<T as Config>::AssetId, <T as Config>::Balance, BoundedVec<u8, <T as Config>::StringLimit>>;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -62,7 +64,14 @@ pub mod pallet {
 		type RegistryOrigin: EnsureOrigin<Self::Origin>;
 
 		/// Asset type
-		type AssetId: Parameter + Member + Default + Copy + BaseArithmetic + MaybeSerializeDeserialize + MaxEncodedLen;
+		type AssetId: Parameter
+			+ Member
+			+ Default
+			+ Copy
+			+ BaseArithmetic
+			+ MaybeSerializeDeserialize
+			+ MaxEncodedLen
+			+ TypeInfo;
 
 		/// Balance type
 		type Balance: Parameter + Member + AtLeast32BitUnsigned + Default + Copy + MaybeSerializeDeserialize;
@@ -111,13 +120,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn assets)]
 	/// Details of an asset.
-	pub type Assets<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AssetId,
-		AssetDetailsT<T>,
-		OptionQuery,
-	>;
+	pub type Assets<T: Config> = StorageMap<_, Twox64Concat, T::AssetId, AssetDetailsT<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn next_asset_id)]
@@ -195,7 +198,6 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	#[pallet::metadata(T::AccountId = "AccountId", T::AssetId = "AssetId")]
 	pub enum Event<T: Config> {
 		/// Asset was registered. \[asset_id, name, type\]
 		Registered(T::AssetId, BoundedVec<u8, T::StringLimit>, AssetType<T::AssetId>),

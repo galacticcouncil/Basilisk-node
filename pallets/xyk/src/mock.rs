@@ -26,8 +26,11 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, One},
 };
 
-use frame_support::traits::{GenesisBuild, Get};
-use primitives::{fee, AssetId, Balance, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT};
+use frame_support::traits::{Everything, GenesisBuild, Get};
+use primitives::{
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	fee, AssetId, Balance,
+};
 
 use frame_system::EnsureSigned;
 use std::cell::RefCell;
@@ -90,7 +93,7 @@ impl pallet_asset_registry::Config for Test {
 }
 
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type Origin = Origin;
@@ -130,7 +133,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = ();
+	type DustRemovalWhitelist = Everything;
 }
 
 pub struct AssetPairAccountIdTest();

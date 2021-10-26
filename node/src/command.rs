@@ -16,7 +16,9 @@
 // limitations under the License.
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
-use crate::{chain_spec, service};
+use crate::service::IdentifyVariant;
+use crate::{chain_spec, service, testing_chain_spec};
+
 use basilisk_runtime::Block;
 use codec::Encode;
 use cumulus_client_service::genesis::generate_genesis_block;
@@ -27,24 +29,44 @@ use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams, NetworkParams, Result,
 	RuntimeVersion, SharedParams, SubstrateCli,
 };
-use sc_service::{
-	config::{BasePath, PrometheusConfig},
-	PartialComponents,
-};
+use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as BlockT;
 use std::{io::Write, net::SocketAddr};
 
-fn load_spec(id: &str, para_id: ParaId) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-	Ok(match id {
-		"" => Box::new(chain_spec::basilisk_parachain_config()?),
-		"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-		"benchmarks" => Box::new(chain_spec::benchmarks_development_config(para_id)?),
-		"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
-		"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
-		"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
-		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
-	})
+const DEFAULT_PARA_ID: u32 = 200;
+
+fn load_spec(
+	id: &str,
+	para_id: ParaId,
+	is_testing: bool,
+) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+	if is_testing {
+		Ok(match id {
+			"dev" => Box::new(testing_chain_spec::parachain_development_config(para_id)?),
+			"local" => Box::new(testing_chain_spec::local_parachain_config(para_id)?),
+			path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
+				std::path::PathBuf::from(path),
+			)?),
+		})
+	} else {
+		Ok(match id {
+			"" => Box::new(chain_spec::basilisk_parachain_config()?),
+			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
+			"benchmarks" => Box::new(chain_spec::benchmarks_development_config(para_id)?),
+			"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
+			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
+			"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
+			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+		})
+	}
+}
+
+fn get_exec_name() -> Option<String> {
+	std::env::current_exe()
+		.ok()
+		.and_then(|pb| pb.file_name().map(|s| s.to_os_string()))
+		.and_then(|s| s.into_string().ok())
 }
 
 impl SubstrateCli for Cli {
@@ -73,20 +95,43 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		let para_id: ParaId = self.run.parachain_id.unwrap_or(200).into();
-		Ok(match id {
-			"" => Box::new(chain_spec::basilisk_parachain_config()?),
-			"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
-			"benchmarks" => Box::new(chain_spec::benchmarks_development_config(para_id)?),
-			"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
-			"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
-			"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
-			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
-		})
+		let para_id: ParaId = self.run.base.parachain_id.unwrap_or(DEFAULT_PARA_ID).into();
+
+		let id = if id.is_empty() { "basilisk" } else { id };
+
+		let is_testing_runtime = if get_exec_name().unwrap_or_default().starts_with("testing") {
+			true
+		} else {
+			self.run.runtime.is_testing_runtime()
+		};
+
+		if is_testing_runtime {
+			Ok(match id {
+				"dev" => Box::new(testing_chain_spec::parachain_development_config(para_id)?),
+				"local" => Box::new(testing_chain_spec::local_parachain_config(para_id)?),
+				path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
+					std::path::PathBuf::from(path),
+				)?),
+			})
+		} else {
+			Ok(match id {
+				"basilisk" => Box::new(chain_spec::basilisk_parachain_config()?),
+				"dev" => Box::new(chain_spec::parachain_development_config(para_id)?),
+				"benchmarks" => Box::new(chain_spec::benchmarks_development_config(para_id)?),
+				"testnet" => Box::new(chain_spec::testnet_parachain_config(para_id)?),
+				"local" => Box::new(chain_spec::local_parachain_config(para_id)?),
+				"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
+				path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+			})
+		}
 	}
 
-	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&basilisk_runtime::VERSION
+	fn native_runtime_version(spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
+		if spec.is_testing_runtime() {
+			&testing_basilisk_runtime::VERSION
+		} else {
+			&basilisk_runtime::VERSION
+		}
 	}
 }
 
@@ -145,43 +190,29 @@ pub fn run() -> sc_cli::Result<()> {
 		}
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents {
-					client,
-					task_manager,
-					import_queue,
-					..
-				} = service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, _backend, import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents {
-					client, task_manager, ..
-				} = service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, _backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents {
-					client, task_manager, ..
-				} = service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, _backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents {
-					client,
-					task_manager,
-					import_queue,
-					..
-				} = service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, _backend, import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -196,7 +227,7 @@ pub fn run() -> sc_cli::Result<()> {
 				);
 
 				let polkadot_config =
-					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, config.task_executor.clone())
+					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, config.tokio_handle.clone())
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
 				cmd.run(config, polkadot_config)
@@ -204,13 +235,8 @@ pub fn run() -> sc_cli::Result<()> {
 		}
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents {
-					client,
-					task_manager,
-					backend,
-					..
-				} = service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
 				Ok((cmd.run(client, backend), task_manager))
 			})
 		}
@@ -218,7 +244,7 @@ pub fn run() -> sc_cli::Result<()> {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
 
-				runner.sync_run(|config| cmd.run::<Block, service::Executor>(config))
+				runner.sync_run(|config| cmd.run::<Block, service::BasiliskExecutorDispatch>(config))
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`."
@@ -230,9 +256,16 @@ pub fn run() -> sc_cli::Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
+			let is_testing_runtime = if get_exec_name().unwrap_or_default().starts_with("testing") {
+				true
+			} else {
+				params.runtime.is_testing_runtime()
+			};
+
 			let block: Block = generate_genesis_block(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
 				params.parachain_id.into(),
+				is_testing_runtime,
 			)?)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {
@@ -254,7 +287,18 @@ pub fn run() -> sc_cli::Result<()> {
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			let raw_wasm_blob = extract_genesis_wasm(&cli.load_spec(&params.chain.clone().unwrap_or_default())?)?;
+			let is_testing_runtime = if get_exec_name().unwrap_or_default().starts_with("testing") {
+				true
+			} else {
+				params.runtime.is_testing_runtime()
+			};
+
+			let para_id: ParaId = cli.run.base.parachain_id.unwrap_or(DEFAULT_PARA_ID).into();
+			let raw_wasm_blob = extract_genesis_wasm(&load_spec(
+				&params.chain.clone().unwrap_or_default(),
+				para_id,
+				is_testing_runtime,
+			)?)?;
 			let output_buf = if params.raw {
 				raw_wasm_blob
 			} else {
@@ -276,21 +320,21 @@ pub fn run() -> sc_cli::Result<()> {
 				// we don't need any of the components of new_partial, just a runtime, or a task
 				// manager to do `async_run`.
 				let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-				let task_manager = sc_service::TaskManager::new(
-					config.task_executor.clone(),
-					registry,
-				).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
+				let task_manager = sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
+					.map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
 
-				Ok((cmd.run::<Block, service::Executor>(config), task_manager))
+				Ok((
+					cmd.run::<Block, service::BasiliskExecutorDispatch>(config),
+					task_manager,
+				))
 			})
 		}
 		#[cfg(not(feature = "try-runtime"))]
-		Some(Subcommand::TryRuntime) => {
-			Err("TryRuntime wasn't enabled when building the node. \
-                You can enable it with `--features try-runtime`.".into())
-		}
+		Some(Subcommand::TryRuntime) => Err("TryRuntime wasn't enabled when building the node. \
+                You can enable it with `--features try-runtime`."
+			.into()),
 		None => {
-			let runner = cli.create_runner(&cli.run.normalize())?;
+			let runner = cli.create_runner(&cli.run.base.normalize())?;
 
 			runner.run_node_until_exit(|config| async move {
 				let para_id = chain_spec::Extensions::try_get(&config.chain_spec).map(|e| e.para_id);
@@ -302,18 +346,19 @@ pub fn run() -> sc_cli::Result<()> {
 						.chain(cli.relaychain_args.iter()),
 				);
 
-				let id = ParaId::from(cli.run.parachain_id.or(para_id).unwrap_or(200));
+				let para_id = ParaId::from(cli.run.base.parachain_id.or(para_id).unwrap_or(DEFAULT_PARA_ID));
 
-				let parachain_account = AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
+				let parachain_account =
+					AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&para_id);
 
 				let block: Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
-				let task_executor = config.task_executor.clone();
+				let task_executor = config.tokio_handle.clone();
 				let polkadot_config = SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
 					.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
-				info!("Parachain id: {:?}", id);
+				info!("Parachain id: {:?}", para_id);
 				info!("Parachain Account: {}", parachain_account);
 				info!("Parachain genesis state: {}", genesis_state);
 				info!(
@@ -321,9 +366,9 @@ pub fn run() -> sc_cli::Result<()> {
 					if config.role.is_authority() { "yes" } else { "no" }
 				);
 
-				crate::service::start_node(config, polkadot_config, id)
+				crate::service::start_node(config, polkadot_config, para_id)
 					.await
-					.map(|r| r.0)
+					.map(|r| r.task_manager)
 					.map_err(Into::into)
 			})
 		}
@@ -420,10 +465,6 @@ impl CliConfiguration<Self> for RelayChainCli {
 
 	fn rpc_ws_max_connections(&self) -> Result<Option<usize>> {
 		self.base.base.rpc_ws_max_connections()
-	}
-
-	fn rpc_http_threads(&self) -> Result<Option<usize>> {
-		self.base.base.rpc_http_threads()
 	}
 
 	fn rpc_cors(&self, is_dev: bool) -> Result<Option<Vec<String>>> {

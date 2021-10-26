@@ -1,11 +1,28 @@
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![allow(clippy::or_fun_call)]
 #![allow(clippy::too_many_arguments)]
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig,
-	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	WASM_BINARY, NATIVE_EXISTENTIAL_DEPOSIT
+	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, UNITS,
+	NATIVE_EXISTENTIAL_DEPOSIT, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -494,12 +511,12 @@ fn parachain_genesis(
 				(
 					// Intergalactic HDX Tokens 15%
 					hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
-					15_000_000_000u128 * BSX,
+					15_000_000_000u128 * UNITS,
 				),
 				(
 					// Treasury 9%
 					hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
-					9_000_000_000 * BSX,
+					9_000_000_000 * UNITS,
 				),
 			],
 		},
@@ -544,7 +561,7 @@ fn parachain_genesis(
 			// Intergalactic elections
 			members: vec![(
 				hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
-				14_999_900_000u128 * BSX,
+				14_999_900_000u128 * UNITS,
 			)],
 		},
 		council: CouncilConfig {
@@ -598,7 +615,7 @@ fn testnet_parachain_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1_000_000_000u128 * BSX))
+				.map(|k| (k, 1_000_000_000u128 * UNITS))
 				.collect(),
 		},
 		sudo: SudoConfig {
@@ -636,13 +653,26 @@ fn testnet_parachain_genesis(
 			currencies: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
-		tokens: TokensConfig { balances: vec![] },
+		tokens: TokensConfig {
+			balances: endowed_accounts
+				.iter()
+				.flat_map(|x| {
+					vec![
+						(x.clone(), 1, 1_000_000_000u128 * UNITS),
+						(x.clone(), 2, 1_000_000_000u128 * UNITS),
+						(x.clone(), 3, 1_000_000_000u128 * UNITS),
+						(x.clone(), 4, 1_000_000_000u128 * UNITS),
+					]
+				})
+				.collect(),
+		},
+
 		treasury: Default::default(),
 		elections: ElectionsConfig {
 			// Intergalactic elections
 			members: vec![(
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				100_000_000u128 * BSX,
+				100_000_000u128 * UNITS,
 			)],
 		},
 		council: CouncilConfig {

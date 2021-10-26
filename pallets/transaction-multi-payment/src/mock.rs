@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate as multi_payment;
+pub use crate as multi_payment;
 use crate::{Config, MultiCurrencyAdapter};
 use frame_support::{parameter_types, weights::DispatchClass};
 use frame_system as system;
@@ -32,13 +32,14 @@ use frame_support::weights::IdentityFee;
 use frame_support::weights::Weight;
 use orml_currencies::BasicCurrencyAdapter;
 use primitives::{
-	fee, Amount, AssetId, Balance, Price, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	fee, Amount, AssetId, Balance, Price,
 };
 
 use pallet_xyk::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
-use frame_support::traits::{GenesisBuild, Get};
+use frame_support::traits::{Everything, GenesisBuild, Get};
 use frame_system::EnsureSigned;
 
 pub type AccountId = u64;
@@ -121,7 +122,7 @@ parameter_types! {
 }
 
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = RuntimeBlockWeights;
 	type BlockLength = ();
 	type Origin = Origin;
@@ -184,6 +185,7 @@ impl pallet_balances::Config for Test {
 impl pallet_transaction_payment::Config for Test {
 	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), PaymentPallet>;
 	type TransactionByteFee = TransactionByteFee;
+	type OperationalFeeMultiplier = ();
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
 }
@@ -236,7 +238,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = ();
+	type DustRemovalWhitelist = Everything;
 }
 
 impl orml_currencies::Config for Test {

@@ -52,12 +52,14 @@ use frame_support::weights::{Pays, Weight};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::asset::AssetPair;
 use primitives::traits::AMM;
-use primitives::{Amount, AssetId, Balance, CORE_ASSET_ID};
+use primitives::{Amount, AssetId, Balance, constants::chain::CORE_ASSET_ID};
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::traits::SignedExtension;
 use frame_support::sp_runtime::transaction_validity::{TransactionValidity, ValidTransaction};
 use frame_support::traits::IsSubType;
+
+use scale_info::TypeInfo;
 
 type NegativeImbalanceOf<C, T> = <C as Currency<<T as frame_system::Config>::AccountId>>::NegativeImbalance;
 // Re-export pallet items so that they can be accessed from the crate namespace.
@@ -455,7 +457,8 @@ where
 }
 
 /// Signed extension that checks for the `set_currency` call and in that case, it checks the account balance
-#[derive(Encode, Decode, Clone, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+#[scale_info(skip_type_params(T))]
 pub struct CurrencyBalanceCheck<T: Config + Send + Sync>(PhantomData<T>);
 
 impl<T: Config + Send + Sync> sp_std::fmt::Debug for CurrencyBalanceCheck<T> {
@@ -486,7 +489,7 @@ where
 		_len: usize,
 	) -> TransactionValidity {
 		match call.is_sub_type() {
-			Some(Call::set_currency(currency)) => match Pallet::<T>::check_balance(who, *currency) {
+			Some(Call::set_currency{currency}) => match Pallet::<T>::check_balance(who, *currency) {
 				Ok(_) => Ok(ValidTransaction::default()),
 				Err(error) => InvalidTransaction::Custom(error.as_u8()).into(),
 			},

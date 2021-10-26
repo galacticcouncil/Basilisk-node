@@ -15,7 +15,7 @@ use frame_support::{
 use frame_system::{ensure_signed, RawOrigin};
 
 use primitives::ReserveIdentifier;
-use sp_runtime::traits::{CheckedAdd, One, StaticLookup};
+use sp_runtime::{traits::{CheckedAdd, One, StaticLookup}, RuntimeDebug};
 use sp_std::{convert::TryInto, vec::Vec};
 use types::ClassType;
 use weights::WeightInfo;

@@ -34,9 +34,7 @@ use frame_support::sp_runtime::{
 };
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
-use primitives::{
-	asset::AssetPair, fee, traits::AMM, AssetId, Balance, Price, MIN_POOL_LIQUIDITY,
-};
+use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, traits::AMM, AssetId, Balance, Price};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 use frame_support::sp_runtime::app_crypto::sp_core::crypto::UncheckedFrom;
@@ -202,10 +200,28 @@ pub mod pallet {
 		PoolDestroyed(T::AccountId, AssetId, AssetId, AssetId, T::AccountId),
 
 		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
-		SellExecuted(T::AccountId, AssetId, AssetId, Balance, Balance, AssetId, Balance),
+		SellExecuted(
+			T::AccountId,
+			AssetId,
+			AssetId,
+			Balance,
+			Balance,
+			AssetId,
+			Balance,
+			T::AccountId,
+		),
 
 		/// Asset purchase executed. [who, asset out, asset in, amount, buy price, fee asset, fee amount]
-		BuyExecuted(T::AccountId, AssetId, AssetId, Balance, Balance, AssetId, Balance),
+		BuyExecuted(
+			T::AccountId,
+			AssetId,
+			AssetId,
+			Balance,
+			Balance,
+			AssetId,
+			Balance,
+			T::AccountId,
+		),
 	}
 
 	/// Asset id storage for shared pool tokens
@@ -262,7 +278,10 @@ pub mod pallet {
 				.checked_mul_int(amount)
 				.ok_or(Error::<T>::CreatePoolAssetAmountInvalid)?;
 
-			ensure!(asset_b_amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
+			ensure!(
+				asset_b_amount >= T::MinPoolLiquidity::get(),
+				Error::<T>::InsufficientLiquidity
+			);
 
 			let shares_added = if asset_a < asset_b { amount } else { asset_b_amount };
 
@@ -328,7 +347,10 @@ pub mod pallet {
 
 			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
 
-			ensure!(amount_a >= T::MinTradingLimit::get(), Error::<T>::InsufficientTradingAmount);
+			ensure!(
+				amount_a >= T::MinTradingLimit::get(),
+				Error::<T>::InsufficientTradingAmount
+			);
 
 			ensure!(!amount_b_max_limit.is_zero(), Error::<T>::ZeroLiquidity);
 
@@ -630,7 +652,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		min_bought: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, sp_runtime::DispatchError> {
-		ensure!(amount >= T::MinTradingLimit::get(), Error::<T>::InsufficientTradingAmount);
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
 
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
@@ -656,7 +681,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 
 		ensure!(
-			amount <= asset_in_reserve.checked_div(T::MaxInRatio::get()).ok_or(Error::<T>::Overflow)?,
+			amount
+				<= asset_in_reserve
+					.checked_div(T::MaxInRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxInRatioExceeded
 		);
 
@@ -751,6 +779,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_out,
 			transfer.fee.0,
 			transfer.fee.1,
+			pair_account,
 		));
 
 		Ok(())
@@ -767,7 +796,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		max_limit: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-		ensure!(amount >= T::MinTradingLimit::get(), Error::<T>::InsufficientTradingAmount);
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
 
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
@@ -887,6 +919,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_out,
 			transfer.fee.0,
 			transfer.fee.1,
+			pair_account,
 		));
 
 		Ok(())

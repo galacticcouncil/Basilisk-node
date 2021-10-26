@@ -1,5 +1,5 @@
 use crate as pallet_marketplace;
-use frame_support::parameter_types;
+use frame_support::{parameter_types, traits::Everything};
 use frame_system as system;
 use primitives::ReserveIdentifier;
 use sp_core::{crypto::AccountId32, H256};
@@ -71,7 +71,7 @@ impl pallet_balances::Config for Test {
 }
 
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
