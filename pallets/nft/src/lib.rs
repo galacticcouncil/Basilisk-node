@@ -161,16 +161,11 @@ pub mod pallet {
 			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, sender.clone())?;
 
 			if class_type == ClassType::Marketplace {
-				Instances::<T>::try_mutate(class_id, instance_id, |maybe_info| -> DispatchResult {
-					let info = maybe_info.as_mut().ok_or(Error::<T>::InstanceUnknown)?;
-					let metadata_bounded = Self::to_bounded_string(metadata.ok_or(Error::<T>::MetadataNotSet)?)?;
-					
-					info.author = author.ok_or(Error::<T>::AuthorNotSet)?;
-					info.royalty = royalty.ok_or(Error::<T>::RoyaltyNotSet)?;
-					info.metadata = metadata_bounded;
-
-					Ok(())
-				})?;
+				let metadata_bounded = Self::to_bounded_string(metadata.ok_or(Error::<T>::MetadataNotSet)?)?;
+				let author = author.ok_or(Error::<T>::AuthorNotSet)?;
+				let royalty = royalty.ok_or(Error::<T>::RoyaltyNotSet)?;
+				
+				Instances::<T>::insert(class_id, instance_id, InstanceInfo{author: author, royalty: royalty, metadata: metadata_bounded});
 			}
 
 			<T as Config>::Currency::reserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get())?;
@@ -338,6 +333,8 @@ impl<P: Config> CanBurn for Pallet<P> {
 		// 		Ok(())
 		// 	}
 		// }
+		let is_permitted = *instance_owner == sender;
+		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
 		Ok(())
 	}
 }
@@ -365,6 +362,8 @@ impl<P: Config> CanTransfer for Pallet<P> {
 		// 		Ok(())
 		// 	}
 		// }
+		let is_permitted = *instance_owner == sender;
+		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
 		Ok(())
 	}
 }
@@ -410,6 +409,7 @@ impl<P: Config> CanDestroyClass for Pallet<P> {
 		// 		Ok(())
 		// 	}
 		// }
+		ensure!(class_team.owner == *sender, pallet_uniques::Error::<T, I>::NoPermission);
 		Ok(())
 	}
 

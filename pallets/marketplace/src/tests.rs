@@ -15,11 +15,15 @@ fn new_test_ext() -> sp_io::TestExternalities {
 #[test]
 fn set_price_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()));
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
 		assert_ok!(NFT::mint(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
-			Some(ALICE),
+			Some(CHARLIE),
 			Some(20),
 			Some(b"metadata".to_vec())
 		));
@@ -60,12 +64,16 @@ fn set_price_works() {
 #[test]
 fn buy_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()));
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
 		assert_ok!(NFT::mint(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
-			Some(ALICE),
-			Some(20),
+			Some(CHARLIE),
+			Some(25),
 			Some(b"metadata".to_vec())
 		));
 
@@ -94,9 +102,9 @@ fn buy_works() {
 			})
 		);
 
-		assert_eq!(Balances::free_balance(ALICE), 10_614 * BSX);
+		assert_eq!(Balances::free_balance(ALICE), 10_668 * BSX);
 		assert_eq!(Balances::free_balance(BOB), 13_976 * BSX);
-		assert_eq!(Balances::free_balance(DAVE), 200_256 * BSX);
+		assert_eq!(Balances::free_balance(DAVE), 200_000 * BSX);
 
 		let event = Event::Marketplace(crate::Event::TokenSold(
 			ALICE,
@@ -104,7 +112,7 @@ fn buy_works() {
 			0,
 			0,
 			768 * BSX,
-			Some((DAVE, 25)),
+			Some((CHARLIE, 25)),
 			256 * BSX,
 		));
 		assert_eq!(last_event(), event);
@@ -114,11 +122,15 @@ fn buy_works() {
 #[test]
 fn buy_works_2() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()));
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
 		assert_ok!(NFT::mint(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
-			Some(ALICE),
+			Some(CHARLIE),
 			Some(20),
 			Some(b"metadata".to_vec())
 		));
@@ -135,31 +147,87 @@ fn buy_works_2() {
 #[test]
 fn free_trading_works() {
 	new_test_ext().execute_with(|| {
-		// Anyone can create a class
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()));
-		assert_ok!(NFT::create_class(Origin::signed(BOB), ClassType::Marketplace, b"metadata".to_vec()));
+		// Anyone can create a marketplace class
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
+		assert_ok!(NFT::create_class(
+			Origin::signed(BOB),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
 		assert_ok!(NFT::create_class(
 			Origin::signed(CHARLIE),
-			ClassType::PoolShare,
+			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
 
 		// Anyone can mint a token in any class
 		assert_ok!(NFT::mint(
 			Origin::signed(ALICE),
-			CLASS_ID_0,
+			0,
 			Some(ALICE),
 			Some(20),
 			Some(b"metadata".to_vec())
 		));
-		assert_ok!(NFT::mint(Origin::signed(ALICE), 1, Some(DAVE), Some(20), Some(b"metadata".to_vec())));
-		assert_ok!(NFT::mint(Origin::signed(ALICE), 2, Some(DAVE), Some(20), Some(b"metadata".to_vec())));
-		assert_ok!(NFT::mint(Origin::signed(BOB), 0, Some(DAVE), Some(20), Some(b"metadata".to_vec())));
-		assert_ok!(NFT::mint(Origin::signed(BOB), 1, Some(DAVE), Some(20), Some(b"metadata".to_vec())));
-		assert_ok!(NFT::mint(Origin::signed(BOB), 2, Some(DAVE), Some(20), Some(b"metadata".to_vec())));
-		assert_ok!(NFT::mint(Origin::signed(CHARLIE), 0, Some(DAVE), Some(20), Some(b"metadata".to_vec())));
-		assert_ok!(NFT::mint(Origin::signed(CHARLIE), 1, Some(DAVE), Some(20), Some(b"metadata".to_vec())));
-		assert_ok!(NFT::mint(Origin::signed(CHARLIE), 2, Some(DAVE), Some(20), Some(b"metadata".to_vec())));
+		assert_ok!(NFT::mint(
+			Origin::signed(ALICE),
+			1,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
+		assert_ok!(NFT::mint(
+			Origin::signed(ALICE),
+			2,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
+		assert_ok!(NFT::mint(
+			Origin::signed(BOB),
+			0,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
+		assert_ok!(NFT::mint(
+			Origin::signed(BOB),
+			1,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
+		assert_ok!(NFT::mint(
+			Origin::signed(BOB),
+			2,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
+		assert_ok!(NFT::mint(
+			Origin::signed(CHARLIE),
+			0,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
+		assert_ok!(NFT::mint(
+			Origin::signed(CHARLIE),
+			1,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
+		assert_ok!(NFT::mint(
+			Origin::signed(CHARLIE),
+			2,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
 
 		// Only instance owner can burn their token
 		assert_noop!(
@@ -193,10 +261,6 @@ fn free_trading_works() {
 		assert_noop!(
 			Market::list(Origin::signed(CHARLIE), 1, 1),
 			Error::<Test>::NotTheTokenOwner
-		);
-		assert_noop!(
-			Market::list(Origin::signed(CHARLIE), 2, 1),
-			Error::<Test>::UnsupportedClassType
 		);
 		assert_ok!(Market::list(Origin::signed(BOB), 1, 1));
 
@@ -244,7 +308,11 @@ fn free_trading_works() {
 #[test]
 fn offering_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()));
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
 		assert_ok!(NFT::mint(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -280,7 +348,11 @@ fn offering_works() {
 #[test]
 fn relisting_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()));
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
 		assert_ok!(NFT::mint(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -307,10 +379,7 @@ fn relisting_works() {
 				offer: None,
 			})
 		);
-		assert_noop!(
-			Market::list(Origin::signed(BOB), 0, 0),
-			Error::<Test>::NotTheTokenOwner
-		);
+		assert_noop!(Market::list(Origin::signed(BOB), 0, 0), Error::<Test>::NotTheTokenOwner);
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0));
 		assert_eq!(
 			Market::tokens(0, 0),

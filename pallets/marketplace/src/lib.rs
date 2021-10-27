@@ -2,7 +2,6 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 
-use codec::Decode;
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
@@ -138,9 +137,7 @@ pub mod pallet {
 				.map(|c| c.class_type)
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 
-			if class_type != ClassType::Marketplace {
-				return Err(Error::<T>::UnsupportedClassType.into());
-			}
+			ensure!(class_type == ClassType::Marketplace, Error::<T>::UnsupportedClassType);
 
 			let royalty = Instances::<T>::get(class_id, instance_id).map(|i| i.royalty).ok_or(pallet_nft::Error::<T>::RoyaltyNotSet)?;
 			let author = Instances::<T>::get(class_id, instance_id).map(|i| i.author).ok_or(pallet_nft::Error::<T>::AuthorNotSet)?;
