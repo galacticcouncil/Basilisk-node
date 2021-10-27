@@ -58,6 +58,7 @@ pub type Intention<T> = ExchangeIntention<<T as system::Config>::AccountId, Bala
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
+use sp_runtime::DispatchResult;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -193,6 +194,9 @@ pub mod pallet {
 
 		/// Trade amount is too low.
 		MinimumTradeLimitNotReached,
+
+		/// Overflow
+		IntentionCountOverflow
 	}
 
 	/// Intention count for current block
@@ -349,7 +353,7 @@ impl<T: Config> Pallet<T> {
 		amount_out: Balance,
 		limit: Balance,
 		discount: bool,
-	) -> dispatch::DispatchResult {
+	) -> DispatchResult {
 		let intention_count = ExchangeAssetsIntentionCount::<T>::get(assets.ordered_pair());
 
 		let intention_id = Self::generate_intention_id(who, intention_count, &assets);
@@ -364,10 +368,14 @@ impl<T: Config> Pallet<T> {
 			intention_id,
 			trade_limit: limit,
 		};
+
+		ExchangeAssetsIntentionCount::<T>::try_mutate(assets.ordered_pair(), |total| -> DispatchResult {
+			*total = total.checked_add(1).ok_or(Error::<T>::IntentionCountOverflow)?;
+			Ok(().into())
+		})?;
+
 		// Note: cannot use ordered tuple pair, as this must be stored as (in,out) pair
 		<ExchangeAssetsIntentions<T>>::append((assets.asset_in, assets.asset_out), intention);
-
-		ExchangeAssetsIntentionCount::<T>::mutate(assets.ordered_pair(), |total| *total += 1u32);
 
 		match intention_type {
 			IntentionType::SELL => {
@@ -453,7 +461,7 @@ impl<T: Config> Pallet<T> {
 		amm_tranfer_type: IntentionType,
 		intention_id: IntentionId<T>,
 		transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>,
-	) -> dispatch::DispatchResult {
+	) -> DispatchResult {
 		match amm_tranfer_type {
 			IntentionType::SELL => {
 				T::AMMPool::execute_sell(transfer)?;

@@ -4403,3 +4403,16 @@ fn trade_limit_test() {
 			assert_eq!(Exchange::get_intentions_count((asset_a, asset_b)), 0);
 		});
 }
+
+#[test]
+fn register_intention_should_return_error_on_overflow() {
+	new_test_ext().execute_with(|| {
+		ExchangeAssetsIntentionCount::<Test>::insert((HDX, DOT), u32::MAX);
+		assert_eq!(Exchange::get_intentions_count((HDX, DOT)), u32::MAX);
+
+		assert_noop!(
+			Exchange::register_intention(&ALICE, IntentionType::SELL, AssetPair { asset_in: HDX, asset_out: DOT }, 1, 1, 1, false),
+			Error::<Test>::IntentionCountOverflow
+		);
+	});
+}
