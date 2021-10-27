@@ -4631,7 +4631,7 @@ fn verify_intention_should_work() {
 		let initial_price = Price::from_float(2.0);
 		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
 
-		assert_eq!(
+		assert!(
 			Exchange::verify_intention(&Intention::<Test> {
 				who: user,
 				assets: AssetPair {
@@ -4644,11 +4644,10 @@ fn verify_intention_should_work() {
 				discount: false,
 				sell_or_buy: IntentionType::BUY,
 				intention_id: generate_intention_id(&user, 0),
-			}),
-			true
+			})
 		);
 
-		assert_eq!(
+		assert!(
 			Exchange::verify_intention(&Intention::<Test> {
 				who: user,
 				assets: AssetPair {
@@ -4661,12 +4660,11 @@ fn verify_intention_should_work() {
 				discount: false,
 				sell_or_buy: IntentionType::SELL,
 				intention_id: generate_intention_id(&user, 0),
-			}),
-			true
+			})
 		);
 
-		assert_eq!(
-			Exchange::verify_intention(&Intention::<Test> {
+		assert!(
+			!Exchange::verify_intention(&Intention::<Test> {
 				who: user,
 				assets: AssetPair {
 					asset_in: asset_a,
@@ -4678,12 +4676,11 @@ fn verify_intention_should_work() {
 				discount: false,
 				sell_or_buy: IntentionType::BUY,
 				intention_id: generate_intention_id(&user, 0),
-			}),
-			false
+			})
 		);
 
-		assert_eq!(
-			Exchange::verify_intention(&Intention::<Test> {
+		assert!(
+			!Exchange::verify_intention(&Intention::<Test> {
 				who: user,
 				assets: AssetPair {
 					asset_in: asset_a,
@@ -4695,8 +4692,7 @@ fn verify_intention_should_work() {
 				discount: false,
 				sell_or_buy: IntentionType::SELL,
 				intention_id: generate_intention_id(&user, 0),
-			}),
-			false
+			})
 		);
 	});
 }
