@@ -29,8 +29,7 @@ use sp_runtime::{
 
 use pallet_xyk as xyk;
 
-use frame_support::traits::GenesisBuild;
-use frame_support::traits::Get;
+use frame_support::traits::{Everything, GenesisBuild, Get};
 use frame_system::EnsureSigned;
 use pallet_xyk::AssetPairAccountIdFor;
 use primitives::{
@@ -93,7 +92,7 @@ parameter_types! {
 	pub RegistryStringLimit: u32 = 100;
 }
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type Origin = Origin;
@@ -133,7 +132,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = ();
+	type DustRemovalWhitelist = Everything;
 }
 
 pub struct AssetPairAccountIdTest();

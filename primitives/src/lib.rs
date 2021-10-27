@@ -24,6 +24,8 @@ use primitive_types::U256;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
+use scale_info::TypeInfo;
+
 use frame_support::sp_runtime::FixedU128;
 
 pub mod asset;
@@ -53,7 +55,7 @@ pub type HighPrecisionBalance = U256;
 pub type LowPrecisionBalance = u128;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Debug, Encode, Decode, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Encode, Decode, Clone, Copy, PartialEq, Eq, TypeInfo)]
 pub enum IntentionType {
 	SELL,
 	BUY,
@@ -66,7 +68,7 @@ impl Default for IntentionType {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Encode, Decode, Default, Clone, PartialEq)]
+#[derive(Encode, Decode, Default, Clone, PartialEq, TypeInfo)]
 pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 	pub who: AccountId,
 	pub assets: asset::AssetPair,
@@ -82,7 +84,7 @@ pub mod fee {
 	use super::*;
 
 	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-	#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
+	#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo)]
 	pub struct Fee {
 		pub numerator: u32,
 		pub denominator: u32,
