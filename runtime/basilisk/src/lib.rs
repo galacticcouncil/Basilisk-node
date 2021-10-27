@@ -60,7 +60,9 @@ use frame_support::{
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 };
+use pallet_lbp::AssetPairPoolIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
+use pallet_xyk::AssetPairAccountIdFor;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 #[allow(clippy::all)]
@@ -179,9 +181,7 @@ impl<T: cumulus_pallet_parachain_system::Config> BlockNumberProvider for RelayCh
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-impl<T: frame_system::Config> BlockNumberProvider
-	for RelayChainBlockNumberProvider<T>
-{
+impl<T: frame_system::Config> BlockNumberProvider for RelayChainBlockNumberProvider<T> {
 	type BlockNumber = <T as frame_system::Config>::BlockNumber;
 
 	fn current_block_number() -> Self::BlockNumber {
@@ -925,6 +925,19 @@ impl_runtime_apis! {
 			vec
 		}
 
+		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
+			pallet_xyk::AssetPairAccountId::<Runtime>::from_assets(asset_a, asset_b)
+		}
+	}
+
+	impl pallet_lbp_rpc_runtime_api::LBPApi<
+		Block,
+		AccountId,
+		AssetId,
+	> for Runtime {
+		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
+			pallet_lbp::AssetPairPoolId::<Runtime>::from_assets(asset_a, asset_b)
+		}
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
