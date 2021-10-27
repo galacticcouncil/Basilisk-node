@@ -2120,7 +2120,7 @@ fn amm_trait_should_work() {
 			asset_out: HDX,
 		};
 
-		run_to_block(11);
+		run_to_block::<Test>(11);
 
 		assert!(LBPPallet::exists(asset_pair));
 		assert!(LBPPallet::exists(reversed_asset_pair));
@@ -2464,7 +2464,7 @@ fn simulate_lbp_event_should_work() {
 #[test]
 fn validate_trade_should_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block(10);
+		run_to_block::<Test>(10);
 
 		assert_eq!(
 			LBPPallet::validate_trade(
@@ -2523,7 +2523,7 @@ fn validate_trade_should_work() {
 #[test]
 fn validate_trade_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block(9);
+		run_to_block::<Test>(9);
 
 		assert_noop!(
 			LBPPallet::validate_trade(
@@ -2539,7 +2539,7 @@ fn validate_trade_should_not_work() {
 			Error::<Test>::SaleIsNotRunning
 		);
 
-		run_to_block(10);
+		run_to_block::<Test>(10);
 
 		assert_noop!(
 			LBPPallet::validate_trade(
@@ -2678,7 +2678,7 @@ fn validate_trade_should_not_work() {
 			None,
 			None
 		));
-		run_to_block(15);
+		run_to_block::<Test>(15);
 		assert_noop!(
 			LBPPallet::validate_sell(
 				&ALICE,
