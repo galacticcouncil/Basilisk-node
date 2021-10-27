@@ -95,6 +95,7 @@ pub mod pallet {
 		/// Parameters:
 		/// - `class_id`: The identifier of the new asset class. This must not be currently in use.
 		/// - `class_type`: The class type determines its purpose and usage
+		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash
 		///
 		/// Emits `Created` and `ClassMetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
@@ -133,8 +134,10 @@ pub mod pallet {
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be minted.
 		/// - `instance_id`: The instance value of the asset to be minted.
-		/// - `owner`: The initial owner of the minted asset.
-		///
+		/// - `author`: Receiver of the royalty
+		/// - `royalty`: Percentage reward from each trade for the author
+		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash
+		/// 
 		/// Emits `Issued` and `AttributeSet` and `MetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]

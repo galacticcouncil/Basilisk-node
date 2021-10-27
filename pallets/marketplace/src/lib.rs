@@ -122,8 +122,6 @@ pub mod pallet {
 		/// Parameters:
 		/// - `class_id`: The identifier of a non-fungible token class
 		/// - `instance_id`: The instance identifier of a class
-		/// - `author`: Receiver of the royalty
-		/// - `royalty`: Percentage reward from each trade for the author
 		#[pallet::weight(<T as Config>::WeightInfo::list())]
 		#[transactional]
 		pub fn list(

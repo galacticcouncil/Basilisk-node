@@ -188,17 +188,26 @@ Then open settings screen -> developer and paste
       "ClassType":{
         "_enum":[
           "Unknown",
-          "Art",
+          "Marketplace",
           "PoolShare"
         ]
       },
-      "TokenInfo":{
-        "author":"AccountId",
-        "royalty":"u8",
+      "TokenInfo":{"
         "price":"Option<Balance>",
         "offer":"Option<(AccountId,Balance,BlockNumber)>"
       },
       "TokenInfoOf":"TokenInfo",
+      "ClassInfo":{"
+        "class_type":"ClassType",
+        "metadata":"Vec<u8>"
+      },
+      "ClassInfoOf":"ClassInfo",
+      "InstanceInfo":{"
+        "author":"AccountId",
+        "royalty":"u8",
+        "metadata":"Vec<u8>"
+      },
+      "InstanceInfoOf":"InstanceInfo",
       "AssetInstance": "AssetInstanceV1",
       "MultiLocation": "MultiLocationV1",
       "AssetNativeLocation": "MultiLocation",
