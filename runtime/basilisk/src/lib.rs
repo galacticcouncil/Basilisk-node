@@ -707,11 +707,6 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type MintPermission = ();
-	type BurnPermission = ();
-	type InstanceTransferPermission = ();
-	type CanDestroyClass = ();
-	type CanCreateClass = ();
 	type InstanceReserveStrategy = ();
 }
 
