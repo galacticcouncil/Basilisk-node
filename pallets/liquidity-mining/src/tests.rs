@@ -5,6 +5,7 @@ use primitives::{AssetId, Balance, BlockNumber};
 
 use sp_arithmetic::traits::CheckedSub;
 
+use sp_arithmetic::Perquintill;
 use std::cmp::Ordering;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -47,6 +48,7 @@ fn get_period_number_should_not_work() {
 }
 
 #[test]
+/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=432121354
 fn get_loyalty_multiplier_should_work() {
 	let c1 = LoyaltyCurve::default();
 	let c2 = LoyaltyCurve {
@@ -63,7 +65,7 @@ fn get_loyalty_multiplier_should_work() {
 	};
 
 	//vec[(periods, c1-multiplier, c2-multiplier, c3-multiplier, c4-multiplier),...]
-	let results = vec![
+	let testing_values = vec![
 		(
 			0,
 			FixedU128::from_float(0.5_f64),
@@ -172,7 +174,7 @@ fn get_loyalty_multiplier_should_work() {
 	];
 
 	let precission_delta = FixedU128::from_inner(100_000_000); //0.000_000_000_1
-	for t in results.iter() {
+	for t in testing_values.iter() {
 		//1-th curve test
 		let m = LiquidityMining::get_loyalty_multiplier(t.0, &c1).unwrap();
 		assert_eq!(is_approx_eq_fixedu128(m, t.1, precission_delta), true);
@@ -184,12 +186,107 @@ fn get_loyalty_multiplier_should_work() {
 		//3-th ucrve test
 		let m = LiquidityMining::get_loyalty_multiplier(t.0, &c3).unwrap();
 		assert_eq!(is_approx_eq_fixedu128(m, t.3, precission_delta), true);
-		
+
 		//4-th curve test
 		let m = LiquidityMining::get_loyalty_multiplier(t.0, &c4).unwrap();
 		assert_eq!(is_approx_eq_fixedu128(m, t.4, precission_delta), true);
-		
 	}
+}
+
+#[test]
+/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=906912221
+fn get_reward_per_period_should_work() {
+	//vec[(yield_per_period, total_global_farm_shares (spec: Z), max_reward_per_period, reward_per_period),...]
+	let testing_values = vec![
+		(
+			FixedU128::from_float(0.0008333333333),
+			Balance::from(12578954_u128),
+			Balance::from(156789_u128),
+			Balance::from(10482_u128),
+		),
+		(
+			FixedU128::from_float(0.08333333333),
+			Balance::from(1246578_u128),
+			Balance::from(4684789_u128),
+			Balance::from(103881_u128),
+		),
+		(
+			FixedU128::from_float(0.03666666667),
+			Balance::from(3980_u128),
+			Balance::from(488_u128),
+			Balance::from(145_u128),
+		),
+		(
+			FixedU128::from_float(0.1666666667),
+			Balance::from(9897454_u128),
+			Balance::from(1684653_u128),
+			Balance::from(1649575_u128),
+		),
+		(
+			FixedU128::from_float(0.00625),
+			Balance::from(1687_u128),
+			Balance::from(28_u128),
+			Balance::from(10_u128),
+		),
+		(
+			FixedU128::from_float(0.0125),
+			Balance::from(3879_u128),
+			Balance::from(7_u128),
+			Balance::from(7_u128),
+		),
+		(
+			FixedU128::from_float(0.1333333333),
+			Balance::from(35189_u128),
+			Balance::from(468787897_u128),
+			Balance::from(4691_u128),
+		),
+		(
+			FixedU128::from_float(0.003111392405),
+			Balance::from(48954_u128),
+			Balance::from(161_u128),
+			Balance::from(152_u128),
+		),
+		(
+			FixedU128::from_float(0.000375),
+			Balance::from(54789782_u128),
+			Balance::from(3_u128),
+			Balance::from(3_u128),
+		),
+		(
+			FixedU128::from_float(0.1385714286),
+			Balance::from(17989865464312_u128),
+			Balance::from(59898_u128),
+			Balance::from(59898_u128),
+		),
+		(
+			FixedU128::from_float(0.0375),
+			Balance::from(2_u128),
+			Balance::from(7987_u128),
+			Balance::from(0_u128),
+		),
+		(
+			FixedU128::from_float(0.07875),
+			Balance::from(5_u128),
+			Balance::from(498741_u128),
+			Balance::from(0_u128),
+		),
+		(
+			FixedU128::from_float(0.04),
+			Balance::from(5468_u128),
+			Balance::from(8798_u128),
+			Balance::from(218_u128),
+		),
+		(
+			FixedU128::from_float(0.0),
+			Balance::from(68797_u128),
+			Balance::from(789846_u128),
+			Balance::from(0_u128),
+		),
+	];
+
+    for t in testing_values.iter()  {
+        assert_eq!(LiquidityMining::get_reward_per_period(t.0, t.1, t.2).unwrap(), t.3);
+    }
 }
 
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx

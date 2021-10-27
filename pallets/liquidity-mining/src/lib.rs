@@ -72,7 +72,7 @@ pub struct LoyaltyCurve {
 pub const LM_LOCK_ID: LockIdentifier = *b"LM_LOCK_";
 
 use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::FixedPointOperand;
+use frame_support::sp_runtime::{FixedPointOperand, FixedPointNumber};
 use sp_std::convert::{From, Into, TryInto};
 
 #[frame_support::pallet]
@@ -180,6 +180,11 @@ impl<T: Config> Pallet<T> {
 	// loyalty-multiplier = [theta + (theta * b) + b]/[theta + (theta * b) + 1]
 	//
 	pub fn get_loyalty_multiplier(periods: T::BlockNumber, curve: &LoyaltyCurve) -> Result<FixedU128, Error<T>> {
+		//b.is_one() is special case
+		if FixedPointNumber::is_one(&curve.b) {
+			return Ok(1.into());
+		}
+
 		let denom = curve
 			.b
 			.checked_add(&1.into())
@@ -203,5 +208,16 @@ impl<T: Config> Pallet<T> {
 			.ok_or(Error::<T>::Overflow)?;
 
 		num.checked_div(&denom).ok_or(Error::<T>::Overflow)
+	}
+
+	pub fn get_reward_per_period(
+		yield_per_period: FixedU128,
+		total_global_farm_shares: T::Balance,
+		max_reward_per_period: T::Balance,
+	) -> Result<T::Balance, Error<T>> {
+		Ok(yield_per_period
+			.checked_mul_int(total_global_farm_shares)
+			.ok_or(Error::<T>::Overflow)?
+			.min(max_reward_per_period))
 	}
 }
