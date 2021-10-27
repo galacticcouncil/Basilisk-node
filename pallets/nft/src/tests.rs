@@ -5,7 +5,6 @@ use crate::types::ClassType;
 use super::*;
 use mock::*;
 use pallet_uniques as UNQ;
-use sp_runtime::traits::BadOrigin;
 
 type NFTPallet = Pallet<Test>;
 

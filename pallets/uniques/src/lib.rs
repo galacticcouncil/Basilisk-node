@@ -45,10 +45,10 @@ mod types;
 pub use types::*;
 
 use codec::{Decode, Encode, HasCompact};
-use frame_support::traits::{BalanceStatus::Reserved, Currency, NamedReservableCurrency, ReservableCurrency};
+use frame_support::traits::{BalanceStatus::Reserved, Currency, ReservableCurrency};
 use frame_system::Config as SystemConfig;
 use sp_runtime::{
-	traits::{AtLeast32BitUnsigned, Saturating, StaticLookup, Zero},
+	traits::{Saturating, StaticLookup, Zero},
 	ArithmeticError, RuntimeDebug,
 };
 use sp_std::prelude::*;
@@ -59,7 +59,7 @@ pub use weights::WeightInfo;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::traits::{CanBurn, CanCreateClass, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
+	use crate::traits::InstanceReserve;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -74,13 +74,13 @@ pub mod pallet {
 		type Event: From<Event<Self, I>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Identifier for the class of asset.
-		type ClassId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned;
+		type ClassId: Member + Parameter + Default + Copy + HasCompact;
 
 		/// The type used to identify a unique asset within an asset class.
-		type InstanceId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned;
+		type InstanceId: Member + Parameter + Default + Copy + HasCompact + From<u16>;
 
 		/// The currency mechanism, used for paying for reserves.
-		type Currency: ReservableCurrency<Self::AccountId> + NamedReservableCurrency<Self::AccountId>;
+		type Currency: ReservableCurrency<Self::AccountId>;
 
 		/// The origin which may forcibly create or destroy an asset or otherwise alter privileged
 		/// attributes.
@@ -122,11 +122,6 @@ pub mod pallet {
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 
-		type MintPermission: CanMint;
-		type BurnPermission: CanBurn;
-		type InstanceTransferPermission: CanTransfer;
-		type CanCreateClass: CanCreateClass;
-		type CanDestroyClass: CanDestroyClass;
 		type InstanceReserveStrategy: InstanceReserve;
 	}
 
@@ -415,13 +410,14 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			#[pallet::compact] class: T::ClassId,
 			#[pallet::compact] instance: T::InstanceId,
-			owner: T::AccountId,
+			owner: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
+			let origin = ensure_signed(origin)?;
+			let owner = T::Lookup::lookup(owner)?;
 
 			Self::do_mint(class, instance, owner, |class_details| {
-				let team = Self::get_team(class_details);
-				T::MintPermission::can_mint::<T, I>(sender, &team, &class)
+				ensure!(class_details.issuer == origin, Error::<T, I>::NoPermission);
+				Ok(())
 			})
 		}
 
@@ -448,9 +444,9 @@ pub mod pallet {
 			let origin = ensure_signed(origin)?;
 			let check_owner = check_owner.map(T::Lookup::lookup).transpose()?;
 
-			Self::do_burn(class.clone(), instance.clone(), |class_details, details| {
-				let team = Self::get_team(class_details);
-				T::BurnPermission::can_burn::<T, I>(origin, &details.owner, &instance, &class, &team)?;
+			Self::do_burn(class, instance, |class_details, details| {
+				let is_permitted = class_details.admin == origin || details.owner == origin;
+				ensure!(is_permitted, Error::<T, I>::NoPermission);
 				ensure!(
 					check_owner.map_or(true, |o| o == details.owner),
 					Error::<T, I>::WrongOwner
@@ -481,22 +477,12 @@ pub mod pallet {
 			#[pallet::compact] instance: T::InstanceId,
 			dest: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
+			let origin = ensure_signed(origin)?;
 			let dest = T::Lookup::lookup(dest)?;
 
 			Self::do_transfer(class, instance, dest, |class_details, details| {
-				let team = Self::get_team(class_details);
-
-				let result = T::InstanceTransferPermission::can_transfer::<T, I>(
-					sender.clone(),
-					&details.owner,
-					&instance,
-					&class,
-					&team,
-				);
-
-				if result.is_err() {
-					let approved = details.approved.take().map_or(false, |i| i == sender);
+				if details.owner != origin && class_details.admin != origin {
+					let approved = details.approved.take().map_or(false, |i| i == origin);
 					ensure!(approved, Error::<T, I>::NoPermission);
 				}
 				Ok(())
@@ -585,8 +571,8 @@ pub mod pallet {
 			let origin = ensure_signed(origin)?;
 
 			let mut details = Asset::<T, I>::get(&class, &instance).ok_or(Error::<T, I>::Unknown)?;
-			ensure!(Class::<T, I>::contains_key(&class), Error::<T, I>::Unknown);
-			ensure!(details.owner == origin, Error::<T, I>::NoPermission);
+			let class_details = Class::<T, I>::get(&class).ok_or(Error::<T, I>::Unknown)?;
+			ensure!(class_details.freezer == origin, Error::<T, I>::NoPermission);
 
 			details.is_frozen = true;
 			Asset::<T, I>::insert(&class, &instance, &details);
@@ -614,8 +600,8 @@ pub mod pallet {
 			let origin = ensure_signed(origin)?;
 
 			let mut details = Asset::<T, I>::get(&class, &instance).ok_or(Error::<T, I>::Unknown)?;
-			ensure!(Class::<T, I>::contains_key(&class), Error::<T, I>::Unknown);
-			ensure!(details.owner == origin, Error::<T, I>::NoPermission);
+			let class_details = Class::<T, I>::get(&class).ok_or(Error::<T, I>::Unknown)?;
+			ensure!(class_details.admin == origin, Error::<T, I>::NoPermission);
 
 			details.is_frozen = false;
 			Asset::<T, I>::insert(&class, &instance, &details);

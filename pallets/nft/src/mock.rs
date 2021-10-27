@@ -45,6 +45,8 @@ impl pallet_nft::Config for Test {
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type TokenDeposit = InstanceDeposit;
+	type NftClassId = u32;
+	type NftInstanceId = u32;
 }
 
 parameter_types! {
@@ -73,11 +75,6 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type MintPermission = NFT;
-	type BurnPermission = NFT;
-	type InstanceTransferPermission = NFT;
-	type CanDestroyClass = NFT;
-	type CanCreateClass = NFT;
 	type InstanceReserveStrategy = NFT;
 }
 

@@ -2,28 +2,23 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 
-use codec::Decode;
+use codec::HasCompact;
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{
-		tokens::nonfungibles::Inspect, tokens::nonfungibles::*, BalanceStatus, Currency, EnsureOrigin,
-		NamedReservableCurrency, ReservableCurrency,
-	},
+	traits::{tokens::nonfungibles::*, BalanceStatus, Currency, NamedReservableCurrency, ReservableCurrency},
 	transactional, BoundedVec,
 };
-use frame_system::{ensure_signed, RawOrigin};
+use frame_system::ensure_signed;
 
 use primitives::ReserveIdentifier;
-use sp_runtime::{
-	traits::{CheckedAdd, One, StaticLookup},
-	RuntimeDebug,
-};
+use sp_arithmetic::traits::BaseArithmetic;
+use sp_runtime::traits::{CheckedAdd, One, StaticLookup};
 use sp_std::{convert::TryInto, vec::Vec};
 use types::{ClassInfo, ClassType, InstanceInfo};
 use weights::WeightInfo;
 
-use pallet_uniques::traits::{CanBurn, CanCreateClass, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
+use pallet_uniques::traits::InstanceReserve;
 use pallet_uniques::{ClassTeam, DepositBalanceOf};
 
 mod benchmarking;
@@ -65,28 +60,38 @@ pub mod pallet {
 		#[pallet::constant]
 		type TokenDeposit: Get<BalanceOf<Self>>;
 		type WeightInfo: WeightInfo;
+
+		type NftClassId: Member + Parameter + Default + Copy + HasCompact + BaseArithmetic + Into<Self::ClassId>;
+		type NftInstanceId: Member
+			+ Parameter
+			+ Default
+			+ Copy
+			+ HasCompact
+			+ BaseArithmetic
+			+ From<Self::InstanceId>
+			+ Into<Self::InstanceId>;
 	}
 
 	/// Next available class ID.
 	#[pallet::storage]
 	#[pallet::getter(fn next_class_id)]
-	pub type NextClassId<T: Config> = StorageValue<_, T::ClassId, ValueQuery>;
+	pub type NextClassId<T: Config> = StorageValue<_, T::NftClassId, ValueQuery>;
 
 	/// Next available token ID.
 	#[pallet::storage]
 	#[pallet::getter(fn next_token_id)]
-	pub type NextInstanceId<T: Config> = StorageMap<_, Twox64Concat, T::ClassId, T::InstanceId, ValueQuery>;
+	pub type NextInstanceId<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, T::NftInstanceId, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn classes)]
 	/// Stores class info
-	pub type Classes<T: Config> = StorageMap<_, Twox64Concat, T::ClassId, ClassInfoOf<T>>;
+	pub type Classes<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, ClassInfoOf<T>>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn instances)]
 	/// Stores instance info
 	pub type Instances<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::ClassId, Twox64Concat, T::InstanceId, InstanceInfoOf<T>>;
+		StorageDoubleMap<_, Twox64Concat, T::NftClassId, Twox64Concat, T::NftInstanceId, InstanceInfoOf<T>>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -105,7 +110,7 @@ pub mod pallet {
 
 			let admin = T::Lookup::unlookup(sender.clone());
 
-			let class_id = NextClassId::<T>::try_mutate(|id| -> Result<T::ClassId, DispatchError> {
+			let class_id = NextClassId::<T>::try_mutate(|id| -> Result<T::NftClassId, DispatchError> {
 				let current_id = *id;
 				*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableClassId)?;
 				Ok(current_id)
@@ -113,7 +118,7 @@ pub mod pallet {
 
 			let metadata_bounded = Self::to_bounded_string(metadata)?;
 
-			pallet_uniques::Pallet::<T>::create(origin.clone(), class_id, admin.clone())?;
+			pallet_uniques::Pallet::<T>::create(origin.clone(), class_id.into(), admin.clone())?;
 
 			Classes::<T>::insert(
 				class_id,
@@ -137,21 +142,21 @@ pub mod pallet {
 		/// - `author`: Receiver of the royalty
 		/// - `royalty`: Percentage reward from each trade for the author
 		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash
-		/// 
+		///
 		/// Emits `Issued` and `AttributeSet` and `MetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
 		pub fn mint(
 			origin: OriginFor<T>,
-			class_id: T::ClassId,
+			class_id: T::NftClassId,
 			author: Option<T::AccountId>,
 			royalty: Option<u8>,
 			metadata: Option<Vec<u8>>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
-			let instance_id =
-				NextInstanceId::<T>::try_mutate(class_id, |id| -> Result<T::InstanceId, DispatchError> {
+			let instance_id: T::NftInstanceId =
+				NextInstanceId::<T>::try_mutate(class_id, |id| -> Result<T::NftInstanceId, DispatchError> {
 					let current_id = *id;
 					*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
 					Ok(current_id)
@@ -161,14 +166,26 @@ pub mod pallet {
 				.map(|c| c.class_type)
 				.ok_or(Error::<T>::ClassUnknown)?;
 
-			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, sender.clone())?;
+			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), sender.clone(), |_details| {
+				//TODO: implement mint permission
+
+				Ok(())
+			})?;
 
 			if class_type == ClassType::Marketplace {
 				let metadata_bounded = Self::to_bounded_string(metadata.ok_or(Error::<T>::MetadataNotSet)?)?;
 				let author = author.ok_or(Error::<T>::AuthorNotSet)?;
 				let royalty = royalty.ok_or(Error::<T>::RoyaltyNotSet)?;
-				
-				Instances::<T>::insert(class_id, instance_id, InstanceInfo{author: author, royalty: royalty, metadata: metadata_bounded});
+
+				Instances::<T>::insert(
+					class_id,
+					instance_id,
+					InstanceInfo {
+						author: author,
+						royalty: royalty,
+						metadata: metadata_bounded,
+					},
+				);
 			}
 
 			<T as Config>::Currency::reserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get())?;
@@ -189,15 +206,25 @@ pub mod pallet {
 		#[transactional]
 		pub fn transfer(
 			origin: OriginFor<T>,
-			class_id: T::ClassId,
-			instance_id: T::InstanceId,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
 			dest: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
-			ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin.clone())?;
 
-			pallet_uniques::Pallet::<T>::transfer(origin, class_id, instance_id, dest)?;
+			let dest = T::Lookup::lookup(dest)?;
 
-			Ok(())
+			pallet_uniques::Pallet::<T>::do_transfer(
+				class_id.into(),
+				instance_id.into(),
+				dest,
+				|_class_details, instance_details| {
+					//TODO: implement transfer permissions
+					let is_permitted = instance_details.owner == sender;
+					ensure!(is_permitted, pallet_uniques::Error::<T, ()>::NoPermission);
+					Ok(())
+				},
+			)
 		}
 
 		/// Removes a token from existence
@@ -211,15 +238,19 @@ pub mod pallet {
 		/// Emits `Burned` with the actual amount burned.
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
-		pub fn burn(origin: OriginFor<T>, class_id: T::ClassId, instance_id: T::InstanceId) -> DispatchResult {
+		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
-			ensure!(
-				pallet_uniques::Pallet::<T>::can_transfer(&class_id, &instance_id),
-				Error::<T>::TokenFrozen
-			);
-
-			pallet_uniques::Pallet::<T>::burn(origin, class_id, instance_id, None)?;
+			pallet_uniques::Pallet::<T>::do_burn(
+				class_id.into(),
+				instance_id.into(),
+				|_class_details, instance_details| {
+					//TODO: Implement burn permissions
+					let is_permitted = instance_details.owner == sender.clone();
+					ensure!(is_permitted, pallet_uniques::Error::<T, ()>::NoPermission);
+					Ok(())
+				},
+			)?;
 			Instances::<T>::remove(class_id, instance_id);
 			<T as Config>::Currency::unreserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get());
 
@@ -234,12 +265,15 @@ pub mod pallet {
 		/// Emits `Destroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		#[transactional]
-		pub fn destroy_class(origin: OriginFor<T>, class_id: T::ClassId) -> DispatchResultWithPostInfo {
-			ensure_signed(origin.clone())?;
+		pub fn destroy_class(origin: OriginFor<T>, class_id: T::NftClassId) -> DispatchResultWithPostInfo {
+			let caller = ensure_signed(origin.clone())?;
 
-			let witness = pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id).ok_or(Error::<T>::NoWitness)?;
+			let witness =
+				pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::NoWitness)?;
 
-			pallet_uniques::Pallet::<T>::destroy(origin, class_id, witness)?;
+			//TODO: use maybe_check_owner param to check if owner
+			// Need to check if any instance exists somehow still
+			pallet_uniques::Pallet::<T>::do_destroy_class(class_id.into(), witness, Some(caller))?;
 			Classes::<T>::remove(class_id);
 
 			Ok(().into())
@@ -253,9 +287,9 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Class was created \[sender, class_id, class_type\]
-		ClassCreated(T::AccountId, T::ClassId, ClassType),
+		ClassCreated(T::AccountId, T::NftClassId, ClassType),
 		/// An instance was minted \[sender, class_id, instance_id\]
-		InstanceMinted(T::AccountId, T::ClassId, T::InstanceId),
+		InstanceMinted(T::AccountId, T::NftClassId, T::NftInstanceId),
 	}
 
 	#[pallet::error]
@@ -292,138 +326,6 @@ pub mod pallet {
 impl<T: Config> Pallet<T> {
 	fn to_bounded_string(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
 		name.try_into().map_err(|_| Error::<T>::TooLong)
-	}
-}
-
-impl<P: Config> CanMint for Pallet<P> {
-	fn can_mint<T: pallet_uniques::Config<I>, I: 'static>(
-		_sender: T::AccountId,
-		_class_team: &ClassTeam<T::AccountId>,
-		class_id: &T::ClassId,
-	) -> DispatchResult {
-		// let class_type = Classes::get(*class_id).map(|c| c.class_type).ok_or(Error::<T, I>::ClassUnknown)?;
-		// match class_type {
-		// 	ClassType::PoolShare => {
-		// 		//T::ForceOrigin::ensure_origin(origin)?;
-		// 		Ok(())
-		// 	}
-		// 	_ => Ok(()),
-		// }
-		Ok(())
-	}
-}
-
-impl<P: Config> CanBurn for Pallet<P> {
-	fn can_burn<T: pallet_uniques::Config<I>, I: 'static>(
-		sender: T::AccountId,
-		instance_owner: &T::AccountId,
-		_instance_id: &T::InstanceId,
-		class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		// let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		// let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-		// 	.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		// let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		// match class_type_decoded {
-		// 	ClassType::PoolShare => {
-		// 		//T::ForceOrigin::ensure_origin(origin)?;
-		// 		Ok(())
-		// 	}
-		// 	_ => {
-		// 		let is_permitted = *instance_owner == sender;
-		// 		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
-		// 		Ok(())
-		// 	}
-		// }
-		let is_permitted = *instance_owner == sender;
-		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
-		Ok(())
-	}
-}
-
-impl<P: Config> CanTransfer for Pallet<P> {
-	fn can_transfer<T: pallet_uniques::Config<I>, I: 'static>(
-		sender: T::AccountId,
-		instance_owner: &T::AccountId,
-		_instance_id: &T::InstanceId,
-		class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		// let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		// let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-		// 	.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		// let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		// match class_type_decoded {
-		// 	ClassType::PoolShare => {
-		// 		//T::ForceOrigin::ensure_origin(origin)?;
-		// 		Ok(())
-		// 	}
-		// 	_ => {
-		// 		let is_permitted = *instance_owner == sender;
-		// 		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
-		// 		Ok(())
-		// 	}
-		// }
-		let is_permitted = *instance_owner == sender;
-		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
-		Ok(())
-	}
-}
-
-impl<P: Config> CanCreateClass for Pallet<P> {
-	fn can_create_class<T: pallet_uniques::Config<I>, I: 'static>(
-		_sender: &T::AccountId,
-		class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		// let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		// let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-		// 	.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		// let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		// match class_type_decoded {
-		// 	ClassType::PoolShare => {
-		// 		//T::ForceOrigin::ensure_origin(T::Origin::from(RawOrigin::Signed(sender.to_owned())))?;
-		// 		Ok(())
-		// 	}
-		// 	_ => Ok(()),
-		// }
-		Ok(())
-	}
-}
-
-impl<P: Config> CanDestroyClass for Pallet<P> {
-	fn can_destroy_class<T: pallet_uniques::Config<I>, I: 'static>(
-		sender: &T::AccountId,
-		class_id: &T::ClassId,
-		class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		// let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		// let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-		// 	.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		// let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		// match class_type_decoded {
-		// 	ClassType::PoolShare => {
-		// 		//T::ForceOrigin::ensure_origin(T::Origin::from(RawOrigin::Signed(sender.to_owned())))?;
-		// 		Ok(())
-		// 	}
-		// 	_ => {
-		// 		ensure!(class_team.owner == *sender, pallet_uniques::Error::<T, I>::NoPermission);
-		// 		Ok(())
-		// 	}
-		// }
-		ensure!(class_team.owner == *sender, pallet_uniques::Error::<T, I>::NoPermission);
-		Ok(())
-	}
-
-	fn can_destroy_instances<T: pallet_uniques::Config<I>, I: 'static>(
-		_sender: &T::AccountId,
-		_class_id: &T::ClassId,
-		_class_team: &ClassTeam<T::AccountId>,
-	) -> DispatchResult {
-		// Is called only where are existing instances
-		// Not allowed to destroy calls in such case
-		Err(pallet_uniques::Error::<T, I>::NoPermission.into())
 	}
 }
 

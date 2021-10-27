@@ -90,7 +90,7 @@ impl<AccountId, DepositBalance> ClassDetails<AccountId, DepositBalance> {
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, Default, TypeInfo)]
 pub struct InstanceDetails<AccountId, DepositBalance> {
 	/// The owner of this asset.
-	pub(super) owner: AccountId,
+	pub owner: AccountId,
 	/// The approved transferrer of this asset, if one is set.
 	pub(super) approved: Option<AccountId>,
 	/// Whether the asset can be transferred or not.

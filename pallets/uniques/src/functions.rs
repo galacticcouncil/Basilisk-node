@@ -18,12 +18,12 @@
 //! Various pieces of common functionality.
 
 use super::*;
-use crate::traits::{CanDestroyClass, InstanceReserve};
+use crate::traits::InstanceReserve;
 use frame_support::{ensure, traits::Get};
 use sp_runtime::{DispatchError, DispatchResult};
 
 impl<T: Config<I>, I: 'static> Pallet<T, I> {
-	pub(crate) fn do_transfer(
+	pub fn do_transfer(
 		class: T::ClassId,
 		instance: T::InstanceId,
 		dest: T::AccountId,
@@ -89,7 +89,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		Ok(())
 	}
 
-	pub(super) fn do_destroy_class(
+	pub fn do_destroy_class(
 		class: T::ClassId,
 		witness: DestroyWitness,
 		maybe_check_owner: Option<T::AccountId>,
@@ -97,12 +97,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		Class::<T, I>::try_mutate_exists(class, |maybe_details| {
 			let class_details = maybe_details.take().ok_or(Error::<T, I>::Unknown)?;
 			if let Some(check_owner) = maybe_check_owner {
-				let team = Self::get_team(&class_details);
-				T::CanDestroyClass::can_destroy_class::<T, I>(&check_owner, &class, &team)?;
-
-				if class_details.instances > 0 {
-					T::CanDestroyClass::can_destroy_instances::<T, I>(&check_owner, &class, &team)?;
-				}
+				ensure!(class_details.owner == check_owner, Error::<T, I>::NoPermission);
 			}
 			ensure!(class_details.instances == witness.instances, Error::<T, I>::BadWitness);
 			ensure!(
@@ -132,7 +127,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		})
 	}
 
-	pub(super) fn do_mint(
+	pub fn do_mint(
 		class: T::ClassId,
 		instance: T::InstanceId,
 		owner: T::AccountId,
@@ -180,7 +175,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		Ok(())
 	}
 
-	pub(super) fn do_burn(
+	pub fn do_burn(
 		class: T::ClassId,
 		instance: T::InstanceId,
 		with_details: impl FnOnce(&ClassDetailsFor<T, I>, &InstanceDetailsFor<T, I>) -> DispatchResult,

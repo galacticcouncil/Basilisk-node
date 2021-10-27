@@ -21,6 +21,7 @@ orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module
 pallet-uniques = { path = "../uniques", default-features = false }
 serde = { version = "1.0.111", optional = true, features = ["derive"] }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.11", default-features = false }
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.11", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.11", default-features = false }
 
 # local dependency
