@@ -61,6 +61,7 @@ use frame_support::{
 	},
 };
 use pallet_transaction_payment::TargetedFeeAdjustment;
+use pallet_xyk::AssetPairAccountIdFor;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 #[allow(clippy::all)]
@@ -889,6 +890,10 @@ impl_runtime_apis! {
 			}
 
 			vec
+		}
+
+		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
+			pallet_xyk::AssetPairAccountId::<Runtime>::from_assets(asset_a, asset_b)
 		}
 
 	}
