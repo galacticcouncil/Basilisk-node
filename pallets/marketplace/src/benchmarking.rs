@@ -36,9 +36,9 @@ benchmarks! {
 	buy {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
-		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(b"metadata".to_vec()))?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into())?;
 		Marketplace::<T>::set_price(RawOrigin::Signed(caller.clone()).into(), 0u16.into(), 0u16.into(), Some(u32::max_value().into()))?;
 	}: _(RawOrigin::Signed(caller2.clone()), 0u16.into(), 0u16.into())
 	verify {
@@ -47,9 +47,9 @@ benchmarks! {
 
 	set_price {
 		let caller = create_account::<T>("caller", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
-		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(b"metadata".to_vec()))?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into())?;
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), Some(u32::max_value().into()))
 	verify {
 		assert_eq!(Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)).unwrap().price, Some(u32::max_value().into()))
@@ -57,21 +57,21 @@ benchmarks! {
 
 	list {
 		let caller = create_account::<T>("caller", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
-	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), caller.clone(), 20)
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(b"metadata".to_vec()))?;
+	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(
 			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
-			Some(TokenInfo {author: caller, royalty: 20, price: None, offer: None, is_listed: true})
+			Some(TokenInfo {price: None, offer: None})
 		)
 	}
 
 	unlist {
 		let caller = create_account::<T>("caller", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
-		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(b"metadata".to_vec()))?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into())?;
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(
@@ -83,44 +83,44 @@ benchmarks! {
 	make_offer {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
-		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(b"metadata".to_vec()))?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into())?;
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), 1000u32.into(), 666u32.into())
 	verify {
 		assert_eq!(
 			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
-			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: Some((caller.clone(), 1000u32.into(), T::BlockNumber::from(666u32))), is_listed: true})
+			Some(TokenInfo {price: None, offer: Some((caller.clone(), 1000u32.into(), T::BlockNumber::from(666u32)))})
 		)
 	}
 
 	withdraw_offer {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
-		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(b"metadata".to_vec()))?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into())?;
 		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), 0u32.into(), 0u32.into(), 1000u32.into(), 666u32.into())?;
 	}: _(RawOrigin::Signed(caller2.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(
 			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
-			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: None, is_listed: true})
+			Some(TokenInfo {price: None, offer: None})
 		)
 	}
 
 	accept_offer {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 0);
-		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Art, bvec![0])?;
-		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), bvec![0])?;
-		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into(), caller.clone(), 20)?;
+		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, bvec![0])?;
+		pallet_nft::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(b"metadata".to_vec()))?;
+		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into())?;
 		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), 0u32.into(), 0u32.into(), 1000u32.into(), 666u32.into())?;
 	}: _(RawOrigin::Signed(caller2.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(
 			Marketplace::<T>::tokens(T::ClassId::from(0u32), T::InstanceId::from(0u32)),
-			Some(TokenInfo {author: caller.clone(), royalty: 20, price: None, offer: None, is_listed: true})
+			Some(TokenInfo {price: None, offer: None})
 		)
 	}
 

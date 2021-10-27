@@ -374,10 +374,7 @@ fn relisting_works() {
 		assert_ok!(Market::unlist(Origin::signed(ALICE), 0, 0));
 		assert_eq!(
 			Market::tokens(0, 0),
-			Some(TokenInfo {
-				price: None,
-				offer: None,
-			})
+			None
 		);
 		assert_noop!(Market::list(Origin::signed(BOB), 0, 0), Error::<Test>::NotTheTokenOwner);
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0));
