@@ -60,6 +60,7 @@ use frame_support::{
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 };
+use pallet_lbp::AssetPairPoolIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 use pallet_xyk::AssetPairAccountIdFor;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -897,6 +898,17 @@ impl_runtime_apis! {
 		}
 
 	}
+
+	impl pallet_lbp_rpc_runtime_api::LBPApi<
+		Block,
+		AccountId,
+		AssetId,
+	> for Runtime {
+		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
+			pallet_lbp::AssetPairPoolId::<Runtime>::from_assets(asset_a, asset_b)
+		}
+	}
+
 
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {
