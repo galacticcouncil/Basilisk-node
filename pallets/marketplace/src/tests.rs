@@ -316,7 +316,7 @@ fn offering_works() {
 		assert_ok!(NFT::mint(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
-			Some(ALICE),
+			Some(CHARLIE),
 			Some(20),
 			Some(b"metadata".to_vec())
 		));
