@@ -20,45 +20,29 @@
 use codec::Codec;
 use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
 use jsonrpc_derive::rpc;
-use pallet_xyk_rpc_runtime_api::BalanceInfo;
-use serde::{Deserialize, Serialize};
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
-use sp_runtime::{
-	generic::BlockId,
-	traits::{Block as BlockT, MaybeDisplay, MaybeFromStr},
-};
+use sp_runtime::{generic::BlockId, traits::Block as BlockT};
 use std::sync::Arc;
 
-pub use self::gen_client::Client as XYKClient;
-pub use pallet_xyk_rpc_runtime_api::XYKApi as XYKRuntimeApi;
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-pub struct BalanceRequest<Balance> {
-	amount: Balance,
-}
+pub use pallet_lbp_rpc_runtime_api::LBPApi as LBPRuntimeApi;
 
 #[rpc]
-pub trait XYKApi<BlockHash, AccountId, AssetId, Balance, ResponseType> {
-	#[rpc(name = "xyk_getPoolBalances")]
-	fn get_pool_balances(&self, pool_address: AccountId, at: Option<BlockHash>) -> Result<Vec<ResponseType>>;
-
-	#[rpc(name = "xyk_getPoolAccount")]
+pub trait LBPApi<BlockHash, AccountId, AssetId> {
+	#[rpc(name = "lbp_getPoolAccount")]
 	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> Result<AccountId>;
 }
 
 /// A struct that implements the [`XYKApi`].
-pub struct XYK<C, B> {
+pub struct LBP<C, B> {
 	client: Arc<C>,
 	_marker: std::marker::PhantomData<B>,
 }
 
-impl<C, B> XYK<C, B> {
+impl<C, B> LBP<C, B> {
 	/// Create new `XYK` with the given reference to the client.
 	pub fn new(client: Arc<C>) -> Self {
-		XYK {
+		LBP {
 			client,
 			_marker: Default::default(),
 		}
@@ -78,33 +62,14 @@ impl From<Error> for i64 {
 	}
 }
 
-impl<C, Block, AccountId, AssetId, Balance>
-	XYKApi<<Block as BlockT>::Hash, AccountId, AssetId, Balance, BalanceInfo<AssetId, Balance>> for XYK<C, Block>
+impl<C, Block, AccountId, AssetId> LBPApi<<Block as BlockT>::Hash, AccountId, AssetId> for LBP<C, Block>
 where
 	Block: BlockT,
 	C: Send + Sync + 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block>,
-	C::Api: XYKRuntimeApi<Block, AccountId, AssetId, Balance>,
+	C::Api: LBPRuntimeApi<Block, AccountId, AssetId>,
 	AccountId: Codec,
 	AssetId: Codec,
-	Balance: Codec + MaybeDisplay + MaybeFromStr,
 {
-	fn get_pool_balances(
-		&self,
-		pool_address: AccountId,
-		at: Option<<Block as BlockT>::Hash>,
-	) -> Result<Vec<BalanceInfo<AssetId, Balance>>> {
-		let api = self.client.runtime_api();
-		let at = BlockId::hash(at.unwrap_or_else(||
-			// If the block hash is not supplied assume the best block.
-			self.client.info().best_hash));
-
-		api.get_pool_balances(&at, pool_address).map_err(|e| RpcError {
-			code: ErrorCode::ServerError(Error::RuntimeError.into()),
-			message: "Unable to retrieve pool balances.".into(),
-			data: Some(format!("{:?}", e).into()),
-		})
-	}
-
 	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> Result<AccountId> {
 		let api = self.client.runtime_api();
 		let at = BlockId::hash(self.client.info().best_hash);

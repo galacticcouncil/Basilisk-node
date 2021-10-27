@@ -465,6 +465,8 @@ dependencies = [
  "jsonrpc-core",
  "log",
  "pallet-grandpa",
+ "pallet-lbp-rpc",
+ "pallet-lbp-rpc-runtime-api",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-xyk-rpc",
@@ -565,6 +567,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-lbp",
+ "pallet-lbp-rpc-runtime-api",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-scheduler",
@@ -5663,6 +5666,35 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-lbp-rpc"
+version = "1.0.0"
+dependencies = [
+ "jsonrpc-core",
+ "jsonrpc-core-client",
+ "jsonrpc-derive",
+ "pallet-lbp-rpc-runtime-api",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-lbp-rpc-runtime-api"
+version = "1.0.0"
+dependencies = [
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
@@ -10907,6 +10939,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-lbp",
+ "pallet-lbp-rpc-runtime-api",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-scheduler",
