@@ -30,7 +30,7 @@ use primitives::Price;
 use sp_runtime::traits::BadOrigin;
 use sp_std::marker::PhantomData;
 
-const CALL: &<Test as frame_system::Config>::Call = &Call::Balances(BalancesCall::transfer(2, 69));
+const CALL: &<Test as frame_system::Config>::Call = &Call::Balances(BalancesCall::transfer { dest: 2, value: 69 });
 
 #[test]
 fn set_unsupported_currency() {
@@ -400,7 +400,9 @@ fn check_balance_extension_works() {
 		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 1000)
 		.build()
 		.execute_with(|| {
-			let call = <crate::Call<Test>>::set_currency(SUPPORTED_CURRENCY_WITH_BALANCE).into();
+			let call = Call::PaymentPallet(multi_payment::Call::set_currency {
+				currency: SUPPORTED_CURRENCY_WITH_BALANCE,
+			});
 			let info = DispatchInfo::default();
 
 			assert_eq!(
@@ -408,7 +410,10 @@ fn check_balance_extension_works() {
 				Ok(ValidTransaction::default())
 			);
 
-			let call = <crate::Call<Test>>::add_currency(SUPPORTED_CURRENCY_WITH_BALANCE, Price::from(1)).into();
+			let call = Call::PaymentPallet(multi_payment::Call::add_currency {
+				currency: SUPPORTED_CURRENCY_WITH_BALANCE,
+				price: Price::from(1),
+			});
 
 			assert_eq!(
 				CurrencyBalanceCheck::<Test>(PhantomData).validate(&CHARLIE, &call, &info, 150),
@@ -422,7 +427,9 @@ fn check_balance_extension_fails() {
 	const NOT_CHARLIE: AccountId = 6;
 
 	ExtBuilder::default().build().execute_with(|| {
-		let call = <crate::Call<Test>>::set_currency(SUPPORTED_CURRENCY_WITH_BALANCE).into();
+		let call = Call::PaymentPallet(multi_payment::Call::set_currency {
+			currency: SUPPORTED_CURRENCY_WITH_BALANCE,
+		});
 		let info = DispatchInfo::default();
 
 		assert_eq!(

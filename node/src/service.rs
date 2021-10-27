@@ -29,7 +29,7 @@ use cumulus_client_service::{
 };
 use cumulus_primitives_core::{CollectCollationInfo, ParaId};
 use sc_client_api::ExecutorProvider;
-use sc_executor::{native_executor_instance, NativeExecutionDispatch};
+use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
 use sc_network::NetworkService;
 use sc_service::{ChainSpec, Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
@@ -43,23 +43,36 @@ use substrate_prometheus_endpoint::Registry;
 type Hash = sp_core::H256;
 
 // native executor instance.
-native_executor_instance!(
-	pub BasiliskExecutor,
-	basilisk_runtime::api::dispatch,
-	basilisk_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
+pub struct BasiliskExecutorDispatch;
+impl sc_executor::NativeExecutionDispatch for BasiliskExecutorDispatch {
+	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		basilisk_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> NativeVersion {
+		basilisk_runtime::native_version()
+	}
+}
 
 // native testing executor instance.
-native_executor_instance!(
-	pub TestingBasiliskExecutor,
-	testing_basilisk_runtime::api::dispatch,
-	testing_basilisk_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
+pub struct TestingBasiliskExecutorDispatch;
+impl sc_executor::NativeExecutionDispatch for TestingBasiliskExecutorDispatch {
+	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		testing_basilisk_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> NativeVersion {
+		testing_basilisk_runtime::native_version()
+	}
+}
 
 pub type FullBackend = TFullBackend<Block>;
-pub type FullClient<RuntimeApi, Executor> = TFullClient<Block, RuntimeApi, Executor>;
+pub type FullClient<RuntimeApi, ExecutorDispatch> =
+	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
 
 /// Can be called for a `Configuration` to check what node it belongs to.
 pub trait IdentifyVariant {
@@ -135,7 +148,7 @@ pub fn new_partial(
 			import_queue,
 			task_manager,
 			..
-		} = new_partial_impl::<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutor>(config)?;
+		} = new_partial_impl::<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutorDispatch>(config)?;
 		Ok((
 			Arc::new(Client::TestingBasilisk(client)),
 			backend,
@@ -149,7 +162,7 @@ pub fn new_partial(
 			import_queue,
 			task_manager,
 			..
-		} = new_partial_impl::<basilisk_runtime::RuntimeApi, BasiliskExecutor>(config)?;
+		} = new_partial_impl::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>(config)?;
 		Ok((Arc::new(Client::Basilisk(client)), backend, import_queue, task_manager))
 	}
 }
@@ -184,10 +197,18 @@ where
 		})
 		.transpose()?;
 
-	let (client, backend, keystore_container, task_manager) = sc_service::new_full_parts::<Block, RuntimeApi, Executor>(
-		&config,
-		telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
-	)?;
+	let executor = NativeElseWasmExecutor::<Executor>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
+
+	let (client, backend, keystore_container, task_manager) =
+		sc_service::new_full_parts::<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>(
+			config,
+			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
+		)?;
 	let client = Arc::new(client);
 
 	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
@@ -397,7 +418,7 @@ pub async fn start_node(
 	para_id: ParaId,
 ) -> sc_service::error::Result<NewFull<Client>> {
 	if parachain_config.chain_spec.is_testing_runtime() {
-		start_node_impl::<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutor, _>(
+		start_node_impl::<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutorDispatch, _>(
 			parachain_config,
 			polkadot_config,
 			para_id,
@@ -478,7 +499,7 @@ pub async fn start_node(
 		.await
 		.map(|full| full.with_client(Client::TestingBasilisk))
 	} else {
-		start_node_impl::<basilisk_runtime::RuntimeApi, BasiliskExecutor, _>(
+		start_node_impl::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch, _>(
 			parachain_config,
 			polkadot_config,
 			para_id,

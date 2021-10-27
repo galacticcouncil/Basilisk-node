@@ -1,6 +1,7 @@
 use super::*;
 use crate as pallet_nft;
 
+use frame_support::traits::Everything;
 use frame_support::{parameter_types, weights::Weight};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
@@ -67,7 +68,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();

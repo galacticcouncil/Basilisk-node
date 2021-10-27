@@ -49,6 +49,8 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use scale_info::TypeInfo;
+
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -64,6 +66,8 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[allow(clippy::all)]
 mod weights;
 mod xcm;
+
+mod benchmarking;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -128,6 +132,8 @@ impl Contains<Call> for BaseFilter {
 }
 
 use smallvec::smallvec;
+use sp_runtime::traits::BlockNumberProvider;
+
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
@@ -152,6 +158,34 @@ impl WeightToFeePolynomial for WeightToFee {
 			coeff_frac: Perbill::from_rational(p % q, q),
 			coeff_integer: p / q, // 124
 		}]
+	}
+}
+
+// Relay chain Block number provider.
+// Reason why the implementation is different for benchmarks is that it is not possible
+// to set or change the block number in a benchmark using parachain system pallet.
+// That's why we revert to using the system pallet in the benchmark.
+pub struct RelayChainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+impl<T: cumulus_pallet_parachain_system::Config> BlockNumberProvider for RelayChainBlockNumberProvider<T> {
+	type BlockNumber = BlockNumber;
+
+	fn current_block_number() -> Self::BlockNumber {
+		cumulus_pallet_parachain_system::Pallet::<T>::validation_data()
+			.map(|d| d.relay_parent_number)
+			.unwrap_or_default()
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl<T: frame_system::Config> BlockNumberProvider
+	for RelayChainBlockNumberProvider<T>
+{
+	type BlockNumber = <T as frame_system::Config>::BlockNumber;
+
+	fn current_block_number() -> Self::BlockNumber {
+		frame_system::Pallet::<T>::current_block_number()
 	}
 }
 
@@ -261,6 +295,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), MultiTransactionPayment>;
 	type TransactionByteFee = TransactionByteFee;
+	type OperationalFeeMultiplier = ();
 	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
@@ -315,12 +350,12 @@ impl pallet_duster::Config for Runtime {
 
 /// Basilisk Pallets configurations
 
-#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq)]
-pub struct AssetLocation(pub polkadot_xcm::v1::MultiLocation);
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct AssetLocation(pub polkadot_xcm::latest::MultiLocation);
 
 impl Default for AssetLocation {
 	fn default() -> Self {
-		AssetLocation(polkadot_xcm::v1::MultiLocation::here())
+		AssetLocation(polkadot_xcm::latest::MultiLocation::here())
 	}
 }
 
@@ -369,7 +404,7 @@ impl pallet_lbp::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
-	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
 // Parachain Config
@@ -393,6 +428,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 
 impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
+	type MaxAuthorities = MaxAuthorities;
 	type DisabledValidators = ();
 }
 
@@ -480,6 +516,7 @@ impl pallet_democracy::Config for Runtime {
 	type MaxVotes = MaxVotes;
 	type WeightInfo = weights::democracy::BasiliskWeight<Runtime>;
 	type MaxProposals = MaxProposals;
+	type VoteLockingPeriod = EnactmentPeriod;
 }
 
 impl pallet_elections_phragmen::Config for Runtime {
@@ -647,7 +684,7 @@ impl orml_vesting::Config for Runtime {
 	type VestedTransferOrigin = EnsureRootOrTreasury;
 	type WeightInfo = ();
 	type MaxVestingSchedules = MaxVestingSchedules;
-	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -758,7 +795,7 @@ impl_runtime_apis! {
 
 	impl sp_api::Metadata<Block> for Runtime {
 		fn metadata() -> OpaqueMetadata {
-			Runtime::metadata().into()
+			OpaqueMetadata::new(Runtime::metadata().into())
 		}
 	}
 
@@ -817,7 +854,7 @@ impl_runtime_apis! {
 		}
 
 		fn authorities() -> Vec<AuraId> {
-			Aura::authorities()
+			Aura::authorities().into_inner()
 		}
 	}
 
@@ -829,10 +866,14 @@ impl_runtime_apis! {
 
 		#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
-		fn on_runtime_upgrade() -> Result<(Weight, Weight), sp_runtime::RuntimeString> {
+		fn on_runtime_upgrade() -> (Weight, Weight) {
 			//log::info!("try-runtime::on_runtime_upgrade.");
-			let weight = Executive::try_runtime_upgrade()?;
-			Ok((weight, BlockWeights::get().max_block))
+			let weight = Executive::try_runtime_upgrade().unwrap();
+			(weight, BlockWeights::get().max_block)
+		}
+
+		fn execute_block_no_check(block: Block) -> Weight {
+			Executive::execute_block_no_check(block)
 		}
 	}
 
@@ -894,6 +935,7 @@ impl_runtime_apis! {
 		) {
 			use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 			use frame_support::traits::StorageInfoTrait;
+			use orml_benchmarking::list_benchmark as orml_list_benchmark;
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
@@ -919,6 +961,10 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
 
+			orml_list_benchmark!(list, extra, orml_currencies, benchmarking::currencies);
+			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
+			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
+
 			let storage_info = AllPalletsWithSystem::storage_info();
 
 			(list, storage_info)
@@ -928,6 +974,8 @@ impl_runtime_apis! {
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
 			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
+
+			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
@@ -972,6 +1020,10 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
+
+			orml_add_benchmark!(params, batches, orml_currencies, benchmarking::currencies);
+			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
+			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

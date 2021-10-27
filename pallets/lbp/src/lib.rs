@@ -27,6 +27,8 @@ use primitives::{
 	Amount, AssetId, Balance,
 };
 
+use scale_info::TypeInfo;
+
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
@@ -49,7 +51,7 @@ type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_s
 type PoolId<T> = <T as frame_system::Config>::AccountId;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo)]
 pub enum WeightCurveType {
 	Linear,
 }
@@ -64,7 +66,7 @@ impl Default for WeightCurveType {
 pub const MAX_WEIGHT: LBPWeight = 100_000_000;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default)]
+#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default, TypeInfo)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	/// owner of the pool after `CreatePoolOrigin` creates it
 	pub owner: AccountId,
@@ -400,7 +402,13 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_b, &pool_owner, &pool_id, asset_b_amount)?;
 
 			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
-			Self::deposit_event(Event::LiquidityAdded(pool_id, asset_a, asset_b, asset_a_amount, asset_b_amount));
+			Self::deposit_event(Event::LiquidityAdded(
+				pool_id,
+				asset_a,
+				asset_b,
+				asset_a_amount,
+				asset_b_amount,
+			));
 
 			Ok(().into())
 		}
@@ -660,7 +668,7 @@ impl<T: Config> Pallet<T> {
 
 		ensure!(
 			(pool_data.start.is_zero() && pool_data.end.is_zero())
-				|| (now <= pool_data.start && pool_data.start < pool_data.end),
+				|| (now < pool_data.start && pool_data.start < pool_data.end),
 			Error::<T>::InvalidBlockRange
 		);
 
@@ -712,7 +720,7 @@ impl<T: Config> Pallet<T> {
 	/// return true if now is > pool.start and pool has been initialized
 	fn has_pool_started(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = T::BlockNumberProvider::current_block_number();
-		!pool_data.start.is_zero() && pool_data.start <= now 
+		!pool_data.start.is_zero() && pool_data.start <= now
 	}
 
 	fn validate_trade(
