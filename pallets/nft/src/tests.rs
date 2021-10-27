@@ -9,23 +9,21 @@ use sp_runtime::traits::BadOrigin;
 
 type NFTPallet = Pallet<Test>;
 
-macro_rules! bvec {
-	($( $x:tt )*) => {
-		vec![$( $x )*].try_into().unwrap()
-	}
-}
-
 #[test]
 fn create_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		// assert_noop!(
-		// 	NFTPallet::create_class(Origin::signed(ALICE), ClassType::PoolShare, bvec![0]),
+		// 	NFTPallet::create_class(Origin::signed(ALICE), ClassType::PoolShare, b"metadata".to_vec()),
 		// 	UNQ::Error::<Test>::NoPermission
 		// );
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
 		NextClassId::<Test>::mutate(|id| *id = <Test as UNQ::Config>::ClassId::max_value());
 		assert_noop!(
-			NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]),
+			NFTPallet::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()),
 			Error::<Test>::NoAvailableClassId
 		);
 	})
@@ -34,27 +32,53 @@ fn create_class_works() {
 #[test]
 fn mint_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0, bvec![0]));
-		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_0, bvec![0]));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			Some(ALICE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(BOB),
+			CLASS_ID_0,
+			Some(CHARLIE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
 
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(BOB),
 			ClassType::PoolShare,
-			bvec![0]
+			b"metadata".to_vec()
 		));
-		//assert_noop!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_1, bvec![0]), BadOrigin);
-		//assert_noop!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_1, bvec![0]), BadOrigin);
-		//assert_ok!(NFTPallet::mint(Origin::root(), CLASS_ID_1, bvec![0]));
-		//assert_ok!(NFTPallet::create_class(Origin::root(), ClassType::PoolShare, bvec![0]));
+		//assert_noop!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_1, b"metadata".to_vec()), BadOrigin);
+		//assert_noop!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_1, b"metadata".to_vec()), BadOrigin);
+		//assert_ok!(NFTPallet::mint(Origin::root(), CLASS_ID_1, b"metadata".to_vec()));
+		//assert_ok!(NFTPallet::create_class(Origin::root(), ClassType::PoolShare, b"metadata".to_vec()));
 	});
 }
 
 #[test]
 fn transfer_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0, bvec![0]));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			Some(ALICE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
 
 		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID, BOB));
 
@@ -68,8 +92,18 @@ fn transfer_works() {
 #[test]
 fn burn_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0, bvec![0]));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			Some(ALICE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
 
 		assert_noop!(
 			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID),
@@ -83,8 +117,18 @@ fn burn_works() {
 #[test]
 fn destroy_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), ClassType::Art, bvec![0]));
-		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_0, bvec![0]));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			b"metadata".to_vec()
+		));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(BOB),
+			CLASS_ID_0,
+			Some(CHARLIE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
 
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),

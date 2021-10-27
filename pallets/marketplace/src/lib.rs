@@ -18,7 +18,7 @@ use sp_runtime::{
 use types::TokenInfo;
 use weights::WeightInfo;
 
-use pallet_nft::types::ClassType;
+use pallet_nft::{Instances, types::ClassType};
 use primitives::ReserveIdentifier;
 
 mod benchmarking;
@@ -131,51 +131,34 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
 			instance_id: T::InstanceId,
-			author: T::AccountId,
-			royalty: u8,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
-			// Check if class type can be decoded to one of available types
-			let class_type = Self::get_class_type(class_id)?;
+			let class_type = pallet_nft::Classes::<T>::get(class_id)
+				.map(|c| c.class_type)
+				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 
-			if class_type != ClassType::Art {
+			if class_type != ClassType::Marketplace {
 				return Err(Error::<T>::UnsupportedClassType.into());
 			}
+
+			let royalty = Instances::<T>::get(class_id, instance_id).map(|i| i.royalty).ok_or(pallet_nft::Error::<T>::RoyaltyNotSet)?;
+			let author = Instances::<T>::get(class_id, instance_id).map(|i| i.author).ok_or(pallet_nft::Error::<T>::AuthorNotSet)?;
 
 			// Only token owner can list
 			ensure!(
 				pallet_uniques::Pallet::<T>::owner(class_id, instance_id) == Some(sender.clone()),
 				Error::<T>::NotTheTokenOwner
 			);
-
-			if let Some(token_info) = Self::tokens(class_id, instance_id) {
-				if token_info.is_listed {
-					return Err(Error::<T>::AlreadyListed.into());
-				} else {
-					Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
-						let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
-
-						token_info.price = None;
-						token_info.offer = None;
-						token_info.is_listed = true;
-
-						Ok(())
-					})?;
-				}
-			} else {
-				Tokens::<T>::insert(
-					class_id,
-					instance_id,
-					TokenInfo {
-						author: author.clone(),
-						royalty: royalty,
-						price: None,
-						offer: None,
-						is_listed: true,
-					},
-				);
-			}
+			
+			Tokens::<T>::insert(
+				class_id,
+				instance_id,
+				TokenInfo {
+					price: None,
+					offer: None,
+				},
+			);
 
 			pallet_uniques::Pallet::<T>::freeze(origin.clone(), class_id, instance_id)?;
 
@@ -206,15 +189,7 @@ pub mod pallet {
 			// Keeps tokeninfo in storage = Relisting not possible (author and royalty)
 			// Tokens::<T>::remove(class_id, instance_id);
 
-			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
-				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::TokenUnknown)?;
-
-				token_info.price = None;
-				token_info.offer = None;
-				token_info.is_listed = false;
-
-				Ok(())
-			})?;
+			Tokens::<T>::remove(class_id, instance_id);
 
 			let owner =
 				pallet_uniques::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
@@ -412,16 +387,6 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn get_class_type(class_id: T::ClassId) -> Result<ClassType, Error<T>> {
-		let mut class_type_vec: &[u8] =
-			&pallet_uniques::Pallet::<T>::class_attribute(&class_id, b"type").unwrap_or(b"Unknown".to_vec());
-
-		if let Some(class_type) = ClassType::decode(&mut class_type_vec).ok() {
-			Ok(class_type)
-		} else {
-			Err(Error::<T>::UnsupportedClassType)
-		}
-	}
 
 	/// Call extrinsic helper function used by `buy` and `accept_offer` functions
 	fn do_buy(buyer: T::AccountId, class_id: T::ClassId, instance_id: T::InstanceId, is_offer: bool) -> DispatchResult {
@@ -450,17 +415,20 @@ impl<T: Config> Pallet<T> {
 				price = token_info.price.take().ok_or(Error::<T>::NotForSale)?;
 			}
 
+			let royalty = Instances::<T>::get(class_id, instance_id).map(|i| i.royalty).ok_or(pallet_nft::Error::<T>::RoyaltyNotSet)?;
+			let author = Instances::<T>::get(class_id, instance_id).map(|i| i.author).ok_or(pallet_nft::Error::<T>::AuthorNotSet)?;
+
 			// Calculate royalty and subtract from price if author different from buyer
-			let royalty_perc = Percent::from_percent(token_info.royalty);
+			let royalty_perc = Percent::from_percent(royalty);
 			let royalty_amount = royalty_perc * price;
 
-			if owner != token_info.author && token_info.royalty != 0u8 {
+			if owner != author && royalty != 0u8 {
 				price = price.saturating_sub(royalty_amount);
 
 				// Send royalty to author
 				<T as pallet_nft::Config>::Currency::transfer(
 					&buyer,
-					&token_info.author,
+					&author,
 					royalty_amount,
 					ExistenceRequirement::KeepAlive,
 				)?;
@@ -484,7 +452,7 @@ impl<T: Config> Pallet<T> {
 				class_id,
 				instance_id,
 				price,
-				Some((token_info.author.clone(), token_info.royalty)),
+				Some((author.clone(), royalty)),
 				royalty_amount,
 			));
 			Ok(())

@@ -15,9 +15,12 @@ use frame_support::{
 use frame_system::{ensure_signed, RawOrigin};
 
 use primitives::ReserveIdentifier;
-use sp_runtime::{traits::{CheckedAdd, One, StaticLookup}, RuntimeDebug};
+use sp_runtime::{
+	traits::{CheckedAdd, One, StaticLookup},
+	RuntimeDebug,
+};
 use sp_std::{convert::TryInto, vec::Vec};
-use types::ClassType;
+use types::{ClassInfo, ClassType, InstanceInfo};
 use weights::WeightInfo;
 
 use pallet_uniques::traits::{CanBurn, CanCreateClass, CanDestroyClass, CanMint, CanTransfer, InstanceReserve};
@@ -34,6 +37,9 @@ mod mock;
 mod tests;
 
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+pub type ClassInfoOf<T> = ClassInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
+pub type InstanceInfoOf<T> =
+	InstanceInfo<<T as frame_system::Config>::AccountId, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -71,6 +77,17 @@ pub mod pallet {
 	#[pallet::getter(fn next_token_id)]
 	pub type NextInstanceId<T: Config> = StorageMap<_, Twox64Concat, T::ClassId, T::InstanceId, ValueQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn classes)]
+	/// Stores class info
+	pub type Classes<T: Config> = StorageMap<_, Twox64Concat, T::ClassId, ClassInfoOf<T>>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn instances)]
+	/// Stores instance info
+	pub type Instances<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, T::ClassId, Twox64Concat, T::InstanceId, InstanceInfoOf<T>>;
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Creates an NFT class and sets its metadata
@@ -82,11 +99,7 @@ pub mod pallet {
 		/// Emits `Created` and `ClassMetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(
-			origin: OriginFor<T>,
-			class_type: types::ClassType,
-			metadata: BoundedVec<u8, T::ValueLimit>,
-		) -> DispatchResult {
+		pub fn create_class(origin: OriginFor<T>, class_type: types::ClassType, metadata: Vec<u8>) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
 			let admin = T::Lookup::unlookup(sender.clone());
@@ -97,15 +110,19 @@ pub mod pallet {
 				Ok(current_id)
 			})?;
 
+			let metadata_bounded = Self::to_bounded_string(metadata)?;
+
 			pallet_uniques::Pallet::<T>::create(origin.clone(), class_id, admin.clone())?;
 
-			let key1_bounded = Self::to_bounded_key(b"type".to_vec())?;
-			let value1_bounded = Self::to_bounded_value(class_type.encode())?;
+			Classes::<T>::insert(
+				class_id,
+				ClassInfo {
+					class_type: class_type,
+					metadata: metadata_bounded,
+				},
+			);
 
-			let key2_bounded = Self::to_bounded_key(b"metadata".to_vec())?;
-
-			pallet_uniques::Pallet::<T>::set_attribute(origin.clone(), class_id, None, key1_bounded, value1_bounded)?;
-			pallet_uniques::Pallet::<T>::set_attribute(origin.clone(), class_id, None, key2_bounded, metadata)?;
+			Self::deposit_event(Event::ClassCreated(sender, class_id, class_type));
 
 			Ok(())
 		}
@@ -124,11 +141,11 @@ pub mod pallet {
 		pub fn mint(
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
-			ipfs_hash: BoundedVec<u8, T::ValueLimit>,
+			author: Option<T::AccountId>,
+			royalty: Option<u8>,
+			metadata: Option<Vec<u8>>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
-
-			let key1_bounded = Self::to_bounded_key(b"ipfs_hash".to_vec())?;
 
 			let instance_id =
 				NextInstanceId::<T>::try_mutate(class_id, |id| -> Result<T::InstanceId, DispatchError> {
@@ -137,16 +154,28 @@ pub mod pallet {
 					Ok(current_id)
 				})?;
 
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
+
 			pallet_uniques::Pallet::<T>::mint(origin.clone(), class_id, instance_id, sender.clone())?;
 
-			pallet_uniques::Pallet::<T>::set_instance_attribute(
-				class_id,
-				instance_id,
-				key1_bounded.clone(),
-				ipfs_hash.clone(),
-			)?;
+			if class_type == ClassType::Marketplace {
+				Instances::<T>::try_mutate(class_id, instance_id, |maybe_info| -> DispatchResult {
+					let info = maybe_info.as_mut().ok_or(Error::<T>::InstanceUnknown)?;
+					let metadata_bounded = Self::to_bounded_string(metadata.ok_or(Error::<T>::MetadataNotSet)?)?;
+					
+					info.author = author.ok_or(Error::<T>::AuthorNotSet)?;
+					info.royalty = royalty.ok_or(Error::<T>::RoyaltyNotSet)?;
+					info.metadata = metadata_bounded;
+
+					Ok(())
+				})?;
+			}
 
 			<T as Config>::Currency::reserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get())?;
+
+			Self::deposit_event(Event::InstanceMinted(sender, class_id, instance_id));
 
 			Ok(())
 		}
@@ -193,6 +222,7 @@ pub mod pallet {
 			);
 
 			pallet_uniques::Pallet::<T>::burn(origin, class_id, instance_id, None)?;
+			Instances::<T>::remove(class_id, instance_id);
 			<T as Config>::Currency::unreserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get());
 
 			Ok(())
@@ -205,12 +235,14 @@ pub mod pallet {
 		///
 		/// Emits `Destroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
+		#[transactional]
 		pub fn destroy_class(origin: OriginFor<T>, class_id: T::ClassId) -> DispatchResultWithPostInfo {
 			ensure_signed(origin.clone())?;
 
 			let witness = pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id).ok_or(Error::<T>::NoWitness)?;
 
 			pallet_uniques::Pallet::<T>::destroy(origin, class_id, witness)?;
+			Classes::<T>::remove(class_id);
 
 			Ok(().into())
 		}
@@ -220,8 +252,13 @@ pub mod pallet {
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
 
 	#[pallet::event]
-	//#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {}
+	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
+	pub enum Event<T: Config> {
+		/// Class was created \[sender, class_id, class_type\]
+		ClassCreated(T::AccountId, T::ClassId, ClassType),
+		/// An instance was minted \[sender, class_id, instance_id\]
+		InstanceMinted(T::AccountId, T::ClassId, T::InstanceId),
+	}
 
 	#[pallet::error]
 	pub enum Error<T> {
@@ -241,15 +278,21 @@ pub mod pallet {
 		TokenClassNotEmpty,
 		/// This class type is not known
 		UnsupportedClassType,
+		/// Class does not exist
+		ClassUnknown,
+		/// Instance does not exist
+		InstanceUnknown,
+		/// Royalty has to be set for marketplace
+		RoyaltyNotSet,
+		/// Author has to be set for marketplace
+		AuthorNotSet,
+		/// Metadata has to be set for marketplace
+		MetadataNotSet,
 	}
 }
 
 impl<T: Config> Pallet<T> {
-	fn to_bounded_key(name: Vec<u8>) -> Result<BoundedVec<u8, T::KeyLimit>, Error<T>> {
-		name.try_into().map_err(|_| Error::<T>::TooLong)
-	}
-
-	fn to_bounded_value(name: Vec<u8>) -> Result<BoundedVec<u8, T::ValueLimit>, Error<T>> {
+	fn to_bounded_string(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
 		name.try_into().map_err(|_| Error::<T>::TooLong)
 	}
 }
@@ -260,17 +303,15 @@ impl<P: Config> CanMint for Pallet<P> {
 		_class_team: &ClassTeam<T::AccountId>,
 		class_id: &T::ClassId,
 	) -> DispatchResult {
-		let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-			.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		match class_type_decoded {
-			ClassType::PoolShare => {
-				//T::ForceOrigin::ensure_origin(origin)?;
-				Ok(())
-			}
-			_ => Ok(()),
-		}
+		// let class_type = Classes::get(*class_id).map(|c| c.class_type).ok_or(Error::<T, I>::ClassUnknown)?;
+		// match class_type {
+		// 	ClassType::PoolShare => {
+		// 		//T::ForceOrigin::ensure_origin(origin)?;
+		// 		Ok(())
+		// 	}
+		// 	_ => Ok(()),
+		// }
+		Ok(())
 	}
 }
 
@@ -282,21 +323,22 @@ impl<P: Config> CanBurn for Pallet<P> {
 		class_id: &T::ClassId,
 		_class_team: &ClassTeam<T::AccountId>,
 	) -> DispatchResult {
-		let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-			.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		match class_type_decoded {
-			ClassType::PoolShare => {
-				//T::ForceOrigin::ensure_origin(origin)?;
-				Ok(())
-			}
-			_ => {
-				let is_permitted = *instance_owner == sender;
-				ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
-				Ok(())
-			}
-		}
+		// let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
+		// let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
+		// 	.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
+		// let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
+		// match class_type_decoded {
+		// 	ClassType::PoolShare => {
+		// 		//T::ForceOrigin::ensure_origin(origin)?;
+		// 		Ok(())
+		// 	}
+		// 	_ => {
+		// 		let is_permitted = *instance_owner == sender;
+		// 		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
+		// 		Ok(())
+		// 	}
+		// }
+		Ok(())
 	}
 }
 
@@ -308,21 +350,22 @@ impl<P: Config> CanTransfer for Pallet<P> {
 		class_id: &T::ClassId,
 		_class_team: &ClassTeam<T::AccountId>,
 	) -> DispatchResult {
-		let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-			.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		match class_type_decoded {
-			ClassType::PoolShare => {
-				//T::ForceOrigin::ensure_origin(origin)?;
-				Ok(())
-			}
-			_ => {
-				let is_permitted = *instance_owner == sender;
-				ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
-				Ok(())
-			}
-		}
+		// let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
+		// let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
+		// 	.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
+		// let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
+		// match class_type_decoded {
+		// 	ClassType::PoolShare => {
+		// 		//T::ForceOrigin::ensure_origin(origin)?;
+		// 		Ok(())
+		// 	}
+		// 	_ => {
+		// 		let is_permitted = *instance_owner == sender;
+		// 		ensure!(is_permitted, pallet_uniques::Error::<T, I>::NoPermission);
+		// 		Ok(())
+		// 	}
+		// }
+		Ok(())
 	}
 }
 
@@ -332,17 +375,18 @@ impl<P: Config> CanCreateClass for Pallet<P> {
 		class_id: &T::ClassId,
 		_class_team: &ClassTeam<T::AccountId>,
 	) -> DispatchResult {
-		let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-			.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		match class_type_decoded {
-			ClassType::PoolShare => {
-				//T::ForceOrigin::ensure_origin(T::Origin::from(RawOrigin::Signed(sender.to_owned())))?;
-				Ok(())
-			}
-			_ => Ok(()),
-		}
+		// let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
+		// let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
+		// 	.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
+		// let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
+		// match class_type_decoded {
+		// 	ClassType::PoolShare => {
+		// 		//T::ForceOrigin::ensure_origin(T::Origin::from(RawOrigin::Signed(sender.to_owned())))?;
+		// 		Ok(())
+		// 	}
+		// 	_ => Ok(()),
+		// }
+		Ok(())
 	}
 }
 
@@ -352,20 +396,21 @@ impl<P: Config> CanDestroyClass for Pallet<P> {
 		class_id: &T::ClassId,
 		class_team: &ClassTeam<T::AccountId>,
 	) -> DispatchResult {
-		let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
-		let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
-			.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
-		let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
-		match class_type_decoded {
-			ClassType::PoolShare => {
-				//T::ForceOrigin::ensure_origin(T::Origin::from(RawOrigin::Signed(sender.to_owned())))?;
-				Ok(())
-			}
-			_ => {
-				ensure!(class_team.owner == *sender, pallet_uniques::Error::<T, I>::NoPermission);
-				Ok(())
-			}
-		}
+		// let type_bounded = Self::to_bounded_key(b"type".to_vec())?;
+		// let class_type = pallet_uniques::Pallet::<T, I>::class_attribute(class_id, &type_bounded)
+		// 	.ok_or(pallet_uniques::Error::<T, I>::Unknown)?;
+		// let class_type_decoded = ClassType::decode(&mut class_type.as_slice()).unwrap_or(Default::default());
+		// match class_type_decoded {
+		// 	ClassType::PoolShare => {
+		// 		//T::ForceOrigin::ensure_origin(T::Origin::from(RawOrigin::Signed(sender.to_owned())))?;
+		// 		Ok(())
+		// 	}
+		// 	_ => {
+		// 		ensure!(class_team.owner == *sender, pallet_uniques::Error::<T, I>::NoPermission);
+		// 		Ok(())
+		// 	}
+		// }
+		Ok(())
 	}
 
 	fn can_destroy_instances<T: pallet_uniques::Config<I>, I: 'static>(
