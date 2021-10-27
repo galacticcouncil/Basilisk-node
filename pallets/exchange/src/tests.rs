@@ -167,7 +167,7 @@ fn sell_test_pool_finalization_states() {
 			asset_a,
 			asset_b,
 			2_000_000_000_000,
-			20000000000,
+			20_000_000_000,
 			false,
 		));
 
@@ -270,15 +270,14 @@ fn sell_test_pool_finalization_states() {
 
 		// Check final account balances
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_998_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), 100003974296910891);
+		assert_eq!(Currency::free_balance(asset_b, &user_2), 100_003_974_296_910_891);
 
-		assert_eq!(Currency::free_balance(asset_a, &user_3), 100_001000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_997996000000000);
+		assert_eq!(Currency::free_balance(asset_a, &user_3), 100_001_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_997_996_000_000_000);
 
 		// Check final pool balances
-		// TODO: CHECK IF RIGHT
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 101000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 198029703089109);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 101_000_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 198_029_703_089_109);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 	});
@@ -329,17 +328,25 @@ fn sell_test_standard() {
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
 
 		// Check final account balances -> SEEMS LEGIT
-		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_998_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), 100003974296910891);
+		let user_2_balance_a = Currency::free_balance(asset_a, &user_2);
+		let user_2_balance_b = Currency::free_balance(asset_b, &user_2);
+		assert_eq!(user_2_balance_a, 99_998_000_000_000_000);
+		assert_eq!(user_2_balance_b, 100003974296910891);
 
-		assert_eq!(Currency::free_balance(asset_a, &user_3), 100_001000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_997996000000000);
+		let user_3_balance_a = Currency::free_balance(asset_a, &user_3);
+		let user_3_balance_b = Currency::free_balance(asset_b, &user_3);
+		assert_eq!(user_3_balance_a, 100_001000000000000);
+		assert_eq!(user_3_balance_b, 99_997996000000000);
 
 		// Check final pool balances -> SEEMS LEGIT
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 101000000000000);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 198029703089109);
+		let pool_balance_a = Currency::free_balance(asset_a, &pair_account);
+		let pool_balance_b = Currency::free_balance(asset_b, &pair_account);
+		assert_eq!(pool_balance_a, 101_000_000_000_000);
+		assert_eq!(pool_balance_b, 198_029_703_089_109);
 
-		// TODO: check if final transferred balances add up to initial balance
+		assert_eq!(user_2_balance_a + user_3_balance_a + pool_balance_a, 200_100_000_000_000_000);
+		assert_eq!(user_2_balance_b + user_3_balance_b + pool_balance_b, 200_200_000_000_000_000);
+
 		// No tokens should be created or lost
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -461,17 +468,24 @@ fn sell_test_inverse_standard() {
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
 
 		// Check final account balances  -> SEEMS LEGIT
-		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_999_000_000_000_000);
-		assert_eq!(Currency::free_balance(asset_b, &user_2), 100_001996000000000);
+		let user_2_balance_a = Currency::free_balance(asset_a, &user_2);
+		let user_2_balance_b = Currency::free_balance(asset_b, &user_2);
+		assert_eq!(user_2_balance_a, 99_999_000_000_000_000);
+		assert_eq!(user_2_balance_b, 100_001_996_000_000_000);
 
-		assert_eq!(Currency::free_balance(asset_a, &user_3), 100001986118811881);
-		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_996_000_000_000_000);
+		let user_3_balance_a = Currency::free_balance(asset_a, &user_3);
+		let user_3_balance_b = Currency::free_balance(asset_b, &user_3);
+		assert_eq!(user_3_balance_a, 100_001_986_118_811_881);
+		assert_eq!(user_3_balance_b, 99_996_000_000_000_000);
 
 		// Check final pool balances  -> SEEMS LEGIT
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 99_013_881_188_119);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 202004000000000);
+		let pool_balance_a = Currency::free_balance(asset_a, &pair_account);
+		let pool_balance_b = Currency::free_balance(asset_b, &pair_account);
+		assert_eq!(pool_balance_a, 99_013_881_188_119);
+		assert_eq!(pool_balance_b, 202_004_000_000_000);
 
-		// TODO: check if final transferred balances add up to initial balance
+		assert_eq!(user_2_balance_a + user_3_balance_a + pool_balance_a, 200_100_000_000_000_000);
+		assert_eq!(user_2_balance_b + user_3_balance_b + pool_balance_b, 200_200_000_000_000_000);
 		// No tokens should be created or lost
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
@@ -3367,7 +3381,7 @@ fn matching_limits_sell_buy_should_work() {
 			orml_tokens::Event::Reserved(asset_b, 2, 60000000000000).into(),
 			orml_tokens::Event::Reserved(asset_a, 3, 30000000000000).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 120000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 60000000000).into(), //TODO: this is strange ?! should asset_a!!
+			orml_tokens::Event::Reserved(asset_b, 3, 60000000000).into(),
 			xyk::Event::SellExecuted(
 				3,
 				asset_a,
