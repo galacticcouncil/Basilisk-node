@@ -34,7 +34,7 @@ benchmarks! {
 		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
 	}: _(RawOrigin::Signed(caller.clone()), ClassType::Marketplace, metadata)
 	verify {
-		assert_eq!(UNQ::Pallet::<T>::class_owner(&0u32), Some(caller));
+		assert_eq!(UNQ::Pallet::<T>::class_owner(&T::NftClassId::from(0u32).into()), Some(caller));
 	}
 
 	mint {
@@ -44,7 +44,7 @@ benchmarks! {
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata.clone()).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata))
 	verify {
-		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)), Some(caller));
+		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()), Some(caller));
 	}
 
 	transfer {
@@ -57,7 +57,7 @@ benchmarks! {
 		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata)).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), caller2_lookup)
 	verify {
-		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)), Some(caller2));
+		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()), Some(caller2));
 	}
 
 	destroy_class {

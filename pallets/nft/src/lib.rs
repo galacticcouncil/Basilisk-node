@@ -12,8 +12,7 @@ use frame_support::{
 use frame_system::ensure_signed;
 
 use primitives::ReserveIdentifier;
-use sp_arithmetic::traits::BaseArithmetic;
-use sp_runtime::traits::{CheckedAdd, One, StaticLookup};
+use sp_runtime::traits::{CheckedAdd, One, StaticLookup, AtLeast32BitUnsigned};
 use sp_std::{convert::TryInto, vec::Vec};
 use types::{ClassInfo, ClassType, InstanceInfo};
 use weights::WeightInfo;
@@ -61,13 +60,13 @@ pub mod pallet {
 		type TokenDeposit: Get<BalanceOf<Self>>;
 		type WeightInfo: WeightInfo;
 
-		type NftClassId: Member + Parameter + Default + Copy + HasCompact + BaseArithmetic + Into<Self::ClassId>;
+		type NftClassId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned + Into<Self::ClassId>;
 		type NftInstanceId: Member
 			+ Parameter
 			+ Default
 			+ Copy
 			+ HasCompact
-			+ BaseArithmetic
+			+ AtLeast32BitUnsigned
 			+ From<Self::InstanceId>
 			+ Into<Self::InstanceId>;
 	}
