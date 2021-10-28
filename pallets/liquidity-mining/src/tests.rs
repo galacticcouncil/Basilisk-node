@@ -284,9 +284,145 @@ fn get_reward_per_period_should_work() {
 		),
 	];
 
-    for t in testing_values.iter()  {
-        assert_eq!(LiquidityMining::get_reward_per_period(t.0, t.1, t.2).unwrap(), t.3);
-    }
+	for t in testing_values.iter() {
+		assert_eq!(LiquidityMining::get_reward_per_period(t.0, t.1, t.2).unwrap(), t.3);
+	}
+}
+
+#[test]
+/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=478231890
+fn get_new_accumulated_reward_per_share_should_work() {
+	//vec[(AccPRSprevious, total_shares,reward,  newAccRPS),...]
+	let testing_values = vec![
+		(
+			Balance::from(596850065_u128),
+			Balance::from(107097_u128),
+			Balance::from(58245794_u128),
+			Balance::from(596850608_u128),
+		),
+		(
+			Balance::from(610642940_u128),
+			Balance::from(380089_u128),
+			Balance::from(72666449_u128),
+			Balance::from(610643131_u128),
+		),
+		(
+			Balance::from(342873091_u128),
+			Balance::from(328911_u128),
+			Balance::from(32953786_u128),
+			Balance::from(342873191_u128),
+		),
+		(
+			Balance::from(678009825_u128),
+			Balance::from(130956_u128),
+			Balance::from(49126054_u128),
+			Balance::from(678010200_u128),
+		),
+		(
+			Balance::from(579839575_u128),
+			Balance::from(349893_u128),
+			Balance::from(48822879_u128),
+			Balance::from(579839714_u128),
+		),
+		(
+			Balance::from(53648392_u128),
+			Balance::from(191826_u128),
+			Balance::from(5513773_u128),
+			Balance::from(53648420_u128),
+		),
+		(
+			Balance::from(474641194_u128),
+			Balance::from(224569_u128),
+			Balance::from(88288774_u128),
+			Balance::from(474641587_u128),
+		),
+		(
+			Balance::from(323929643_u128),
+			Balance::from(117672_u128),
+			Balance::from(43395220_u128),
+			Balance::from(323930011_u128),
+		),
+		(
+			Balance::from(18684290_u128),
+			Balance::from(293754_u128),
+			Balance::from(84347520_u128),
+			Balance::from(18684577_u128),
+		),
+		(
+			Balance::from(633517462_u128),
+			Balance::from(417543_u128),
+			Balance::from(43648027_u128),
+			Balance::from(633517566_u128),
+		),
+		(
+			Balance::from(899481210_u128),
+			Balance::from(217000_u128),
+			Balance::from(46063156_u128),
+			Balance::from(899481422_u128),
+		),
+		(
+			Balance::from(732260582_u128),
+			Balance::from(120313_u128),
+			Balance::from(91003576_u128),
+			Balance::from(732261338_u128),
+		),
+		(
+			Balance::from(625857089_u128),
+			Balance::from(349989_u128),
+			Balance::from(71595913_u128),
+			Balance::from(625857293_u128),
+		),
+		(
+			Balance::from(567721341_u128),
+			Balance::from(220776_u128),
+			Balance::from(75561456_u128),
+			Balance::from(567721683_u128),
+		),
+		(
+			Balance::from(962034430_u128),
+			Balance::from(196031_u128),
+			Balance::from(40199198_u128),
+			Balance::from(962034635_u128),
+		),
+		(
+			Balance::from(548598381_u128),
+			Balance::from(457172_u128),
+			Balance::from(37345481_u128),
+			Balance::from(548598462_u128),
+		),
+		(
+			Balance::from(869164975_u128),
+			Balance::from(172541_u128),
+			Balance::from(4635196_u128),
+			Balance::from(869165001_u128),
+		),
+		(
+			Balance::from(776275145_u128),
+			Balance::from(419601_u128),
+			Balance::from(32861993_u128),
+			Balance::from(776275223_u128),
+		),
+		(
+			Balance::from(684419217_u128),
+			Balance::from(396975_u128),
+			Balance::from(24222103_u128),
+			Balance::from(684419278_u128),
+		),
+		(
+			Balance::from(967509392_u128),
+			Balance::from(352488_u128),
+			Balance::from(77778911_u128),
+			Balance::from(967509612_u128),
+		),
+	];
+
+	for t in testing_values.iter() {
+		println!("{:?}", t);
+		assert_eq!(
+			LiquidityMining::get_new_accumulated_reward_per_share(t.0, t.1, t.2).unwrap(),
+			t.3
+		);
+	}
 }
 
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx

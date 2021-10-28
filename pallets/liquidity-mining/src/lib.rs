@@ -42,10 +42,14 @@ pub use pallet::*;
 
 type PoolId<T> = <T as frame_system::Config>::AccountId;
 
-use frame_support::{sp_runtime::traits::One, traits::LockIdentifier, transactional};
+use frame_support::{
+	sp_runtime::traits::{One, Zero},
+	traits::LockIdentifier,
+	transactional,
+};
 
 use sp_arithmetic::{
-	traits::{CheckedAdd, CheckedDiv, CheckedMul},
+	traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
 	FixedU128,
 };
 
@@ -64,6 +68,13 @@ impl Default for LoyaltyCurve {
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
+pub struct GlobalPool<Period, Balance> {
+	updated_at: Period,
+	total_shares: Balance,
+	accumulated_reward_per_share: Balance,
+}
+
+#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
 pub struct LoyaltyCurve {
 	b: FixedU128,
 	scale_coef: u32,
@@ -72,7 +83,7 @@ pub struct LoyaltyCurve {
 pub const LM_LOCK_ID: LockIdentifier = *b"LM_LOCK_";
 
 use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::{FixedPointOperand, FixedPointNumber};
+use frame_support::sp_runtime::{FixedPointNumber, FixedPointOperand};
 use sp_std::convert::{From, Into, TryInto};
 
 #[frame_support::pallet]
@@ -219,5 +230,34 @@ impl<T: Config> Pallet<T> {
 			.checked_mul_int(total_global_farm_shares)
 			.ok_or(Error::<T>::Overflow)?
 			.min(max_reward_per_period))
+	}
+
+	pub fn update_global_pool(
+		pool: &mut GlobalPool<T::BlockNumber, T::Balance>,
+		now_period: T::BlockNumber,
+	) -> Result<(), Error<T>> {
+		if pool.updated_at == now_period {
+			return Ok(());
+		}
+
+		if pool.total_shares.is_zero() {
+			return Ok(());
+		}
+
+		let periods_since_last_update = now_period.checked_sub(&pool.updated_at).ok_or(Error::<T>::Overflow)?;
+
+		Err(Error::<T>::NotImplemented)
+	}
+
+	pub fn get_new_accumulated_reward_per_share(
+		accumulated_reward_per_share_now: T::Balance,
+		total_shares: T::Balance,
+		reward: T::Balance,
+	) -> Result<T::Balance, Error<T>> {
+		reward
+			.checked_div(&total_shares)
+			.ok_or(Error::<T>::Overflow)?
+			.checked_add(&accumulated_reward_per_share_now)
+			.ok_or(Error::<T>::Overflow)
 	}
 }
