@@ -16,10 +16,11 @@
 // limitations under the License.
 
 pub use crate::{mock::*, Error};
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, assert_storage_noop};
 use pallet_transaction_payment::ChargeTransactionPayment;
 use sp_runtime::traits::SignedExtension;
 
+use crate::traits::{CurrencySwap, PaymentSwapResult};
 use crate::CurrencyBalanceCheck;
 use frame_support::sp_runtime::transaction_validity::{InvalidTransaction, ValidTransaction};
 use frame_support::weights::DispatchInfo;
@@ -435,5 +436,164 @@ fn check_balance_extension_fails() {
 			CurrencyBalanceCheck::<Test>(PhantomData).validate(&NOT_CHARLIE, &call, &info, 150),
 			InvalidTransaction::Custom(Error::<Test>::ZeroBalance.as_u8()).into()
 		);
+	});
+}
+
+#[test]
+fn account_currency_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(PaymentPallet::account_currency(&ALICE), HDX);
+
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+		assert_eq!(PaymentPallet::account_currency(&ALICE), SUPPORTED_CURRENCY_WITH_BALANCE);
+
+		assert_ok!(PaymentPallet::set_currency(Origin::signed(ALICE), HDX));
+		assert_eq!(PaymentPallet::account_currency(&ALICE), HDX);
+	});
+}
+
+#[test]
+fn swap_currency_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(XYKPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			SUPPORTED_CURRENCY_WITH_BALANCE,
+			100_000,
+			Price::from(1)
+		));
+
+		assert_storage_noop!(PaymentPallet::swap_currency(&ALICE, 10000).unwrap());
+
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+
+		let currency_balance_before = Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE);
+		let hdx_balance_before = Currencies::free_balance(HDX, &ALICE);
+
+		assert_ok!(PaymentPallet::swap_currency(&ALICE, 10000));
+		assert_eq!(
+			currency_balance_before - 11379,
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE)
+		);
+		assert_eq!(hdx_balance_before + 10000, Currencies::free_balance(HDX, &ALICE));
+	});
+}
+
+#[test]
+fn withdraw_set_fee_with_core_asset_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(XYKPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			SUPPORTED_CURRENCY_WITH_BALANCE,
+			100_000,
+			Price::from(1)
+		));
+
+		let hdx_balance_before = Currencies::free_balance(HDX, &ALICE);
+
+		assert_ok!(PaymentPallet::withdraw_set_fee(&ALICE));
+		assert_eq!(hdx_balance_before - 1029, Currencies::free_balance(HDX, &ALICE));
+	});
+}
+
+#[test]
+fn withdraw_set_fee_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+
+		let balance_before = Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE);
+		let fb_acc_balance_before =
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &PaymentPallet::fallback_account());
+
+		assert_ok!(PaymentPallet::withdraw_set_fee(&ALICE));
+		assert_eq!(
+			balance_before - 1543,
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE)
+		);
+		assert_eq!(
+			fb_acc_balance_before + 1543,
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &PaymentPallet::fallback_account())
+		);
+	});
+}
+
+#[test]
+fn weight_to_fee_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_eq!(PaymentPallet::weight_to_fee(1024), 1024);
+		assert_eq!(PaymentPallet::weight_to_fee(1), 1);
+		assert_eq!(PaymentPallet::weight_to_fee(1025), 1024);
+		assert_eq!(PaymentPallet::weight_to_fee(10000), 1024);
+	});
+}
+
+#[test]
+fn check_balance_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(PaymentPallet::check_balance(&ALICE, SUPPORTED_CURRENCY_WITH_BALANCE));
+		assert_eq!(
+			PaymentPallet::check_balance(&ALICE, SUPPORTED_CURRENCY_NO_BALANCE)
+				.err()
+				.unwrap()
+				.as_u8(),
+			1_u8
+		);
+	});
+}
+
+#[test]
+fn swap_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_eq!(PaymentPallet::swap(&ALICE, 1000).unwrap(), PaymentSwapResult::Native);
+
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+		assert_eq!(
+			PaymentPallet::swap(&ALICE, 1000).unwrap(),
+			PaymentSwapResult::Transferred
+		);
+
+		assert_ok!(XYKPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			SUPPORTED_CURRENCY_WITH_BALANCE,
+			100_000,
+			Price::from(1)
+		));
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+		assert_eq!(PaymentPallet::swap(&ALICE, 1000).unwrap(), PaymentSwapResult::Swapped);
+	});
+}
+
+#[test]
+fn swap_should_not_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+
+		assert_noop!(PaymentPallet::swap(&ALICE, u128::MAX), Error::<Test>::Overflow);
+
+		assert_ok!(PaymentPallet::remove_currency(
+			Origin::root(),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+		assert_noop!(PaymentPallet::swap(&ALICE, 1000), Error::<Test>::FallbackPriceNotFound);
 	});
 }
