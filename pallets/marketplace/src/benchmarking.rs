@@ -52,7 +52,7 @@ benchmarks! {
 		Marketplace::<T>::list(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), 0u32.into())?;
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), Some(u32::max_value().into()))
 	verify {
-		assert_eq!(Marketplace::<T>::tokens(T::NftClassId::from(0u32.into()), T::NftClassId::from(0u32.into())).unwrap().price, Some(u32::max_value().into()))
+		assert_eq!(Marketplace::<T>::tokens(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)).unwrap().price, Some(u32::max_value().into()))
 	}
 
 	list {
@@ -62,7 +62,7 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(
-			Marketplace::<T>::tokens(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()),
+			Marketplace::<T>::tokens(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)),
 			Some(TokenInfo {price: None, offer: None})
 		)
 	}
@@ -75,7 +75,7 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(
-			Marketplace::<T>::tokens(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()),
+			Marketplace::<T>::tokens(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)),
 			None
 		)
 	}
@@ -89,7 +89,7 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), 1000u32.into(), 666u32.into())
 	verify {
 		assert_eq!(
-			Marketplace::<T>::tokens(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()),
+			Marketplace::<T>::tokens(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)),
 			Some(TokenInfo {price: None, offer: Some((caller.clone(), 1000u32.into(), T::BlockNumber::from(666u32)))})
 		)
 	}
@@ -104,7 +104,7 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller2.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(
-			Marketplace::<T>::tokens(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()),
+			Marketplace::<T>::tokens(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)),
 			Some(TokenInfo {price: None, offer: None})
 		)
 	}
@@ -119,7 +119,7 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller2.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(
-			Marketplace::<T>::tokens(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()),
+			Marketplace::<T>::tokens(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)),
 			Some(TokenInfo {price: None, offer: None})
 		)
 	}
