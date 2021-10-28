@@ -77,6 +77,8 @@ fn buy_works() {
 			Some(b"metadata".to_vec())
 		));
 
+		assert_noop!(Market::buy(Origin::signed(BOB), 666, 666), Error::<Test>::ClassOrInstanceUnknown);
+
 		assert_noop!(Market::buy(Origin::signed(BOB), 0, 0), Error::<Test>::NotListed);
 
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0));
@@ -163,6 +165,11 @@ fn free_trading_works() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
+		assert_ok!(NFT::create_class(
+			Origin::signed(CHARLIE),
+			ClassType::Unknown,
+			b"metadata".to_vec()
+		));
 
 		// Anyone can mint a token in any class
 		assert_ok!(NFT::mint(
@@ -228,6 +235,13 @@ fn free_trading_works() {
 			Some(20),
 			Some(b"metadata".to_vec())
 		));
+		assert_ok!(NFT::mint(
+			Origin::signed(ALICE),
+			3,
+			Some(DAVE),
+			Some(20),
+			Some(b"metadata".to_vec())
+		));
 
 		// Only instance owner can burn their token
 		assert_noop!(
@@ -263,6 +277,18 @@ fn free_trading_works() {
 			Error::<Test>::NotTheTokenOwner
 		);
 		assert_ok!(Market::list(Origin::signed(BOB), 1, 1));
+
+		// Unknown class
+		assert_noop!(
+			Market::list(Origin::signed(CHARLIE), 4, 0),
+			pallet_nft::Error::<Test>::ClassUnknown
+		);
+		
+		// Unsupported class
+		assert_noop!(
+			Market::list(Origin::signed(CHARLIE), 3, 0),
+			Error::<Test>::UnsupportedClassType
+		);
 
 		// Only token owner can set price of a token on marketplace
 		assert_noop!(
@@ -322,6 +348,14 @@ fn offering_works() {
 		));
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
+		assert_noop!(
+			Market::make_offer(Origin::signed(BOB), 0, 0, 0 * BSX, 1),
+			Error::<Test>::InvalidOffer
+		);
+		assert_noop!(
+			Market::withdraw_offer(Origin::signed(ALICE), 0, 0),
+			Error::<Test>::UnknownOffer
+		);
 		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX, 1));
 		assert_noop!(
 			Market::accept_offer(Origin::signed(ALICE), 0, 0),

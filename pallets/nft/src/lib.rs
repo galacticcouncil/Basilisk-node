@@ -155,6 +155,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
+			if let Some(r) = royalty {
+				ensure!(r < 100, Error::<T>::NotInRange);
+			}
+
 			let instance_id: T::NftInstanceId =
 				NextInstanceId::<T>::try_mutate(class_id, |id| -> Result<T::NftInstanceId, DispatchError> {
 					let current_id = *id;
@@ -241,6 +245,11 @@ pub mod pallet {
 		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
+			ensure!(
+				pallet_uniques::Pallet::<T>::can_transfer(&class_id.into(), &instance_id.into()),
+				Error::<T>::TokenFrozen
+			);
+
 			pallet_uniques::Pallet::<T>::do_burn(
 				class_id.into(),
 				instance_id.into(),
@@ -300,26 +309,22 @@ pub mod pallet {
 		NoAvailableInstanceId,
 		/// Count of classes overflown
 		NoAvailableClassId,
-		/// Witness not available
-		WitnessUnavailable,
-		/// Cannot burn token if frozen
-		TokenFrozen,
 		/// No witness found for given class
 		NoWitness,
 		/// Class still contains minted tokens
 		TokenClassNotEmpty,
-		/// This class type is not known
-		UnsupportedClassType,
 		/// Class does not exist
 		ClassUnknown,
-		/// Instance does not exist
-		InstanceUnknown,
 		/// Royalty has to be set for marketplace
 		RoyaltyNotSet,
 		/// Author has to be set for marketplace
 		AuthorNotSet,
 		/// Metadata has to be set for marketplace
 		MetadataNotSet,
+		/// Cannot burn token if frozen
+		TokenFrozen,
+		/// Royalty not in 0-99 range
+		NotInRange,
 	}
 }
 

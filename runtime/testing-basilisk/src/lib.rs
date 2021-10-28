@@ -407,6 +407,8 @@ impl pallet_nft::Config for Runtime {
 	type Event = Event;
 	type TokenDeposit = InstanceDeposit;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+	type NftClassId = u32;
+	type NftInstanceId = u32;
 }
 
 parameter_types! {

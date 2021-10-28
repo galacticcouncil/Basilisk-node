@@ -20,6 +20,10 @@ fn create_class_works() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
+		assert_noop!(
+			NFTPallet::create_class(Origin::signed(ALICE), ClassType::Marketplace, vec![0; <Test as UNQ::Config>::StringLimit::get() as usize + 1]),
+			Error::<Test>::TooLong
+		);
 		NextClassId::<Test>::mutate(|id| *id = <Test as UNQ::Config>::ClassId::max_value());
 		assert_noop!(
 			NFTPallet::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()),
@@ -56,10 +60,71 @@ fn mint_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
+		assert_noop!(
+			NFTPallet::mint(
+				Origin::signed(ALICE),
+				999, // non existent class id
+				Some(CHARLIE),
+				Some(20),
+				Some(b"metadata".to_vec())
+			),
+			Error::<Test>::ClassUnknown
+		);
+		assert_noop!(
+			NFTPallet::mint(
+				Origin::signed(ALICE),
+				CLASS_ID_0,
+				None,
+				Some(20),
+				Some(b"metadata".to_vec())
+			),
+			Error::<Test>::AuthorNotSet
+		);
+		assert_noop!(
+			NFTPallet::mint(
+				Origin::signed(ALICE),
+				CLASS_ID_0,
+				Some(CHARLIE),
+				None,
+				Some(b"metadata".to_vec())
+			),
+			Error::<Test>::RoyaltyNotSet
+		);
+		assert_noop!(
+			NFTPallet::mint(
+				Origin::signed(ALICE),
+				CLASS_ID_0,
+				Some(CHARLIE),
+				Some(20),
+				None
+			),
+			Error::<Test>::MetadataNotSet
+		);
+		assert_noop!(
+			NFTPallet::mint(
+				Origin::signed(ALICE),
+				CLASS_ID_0,
+				Some(CHARLIE),
+				Some(123),
+				Some(b"metadata".to_vec())
+			),
+			Error::<Test>::NotInRange
+		);
 		//assert_noop!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_1, b"metadata".to_vec()), BadOrigin);
 		//assert_noop!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_1, b"metadata".to_vec()), BadOrigin);
 		//assert_ok!(NFTPallet::mint(Origin::root(), CLASS_ID_1, b"metadata".to_vec()));
 		//assert_ok!(NFTPallet::create_class(Origin::root(), ClassType::PoolShare, b"metadata".to_vec()));
+		NextInstanceId::<Test>::mutate(CLASS_ID_0, |id| *id = <Test as UNQ::Config>::InstanceId::max_value());
+		assert_noop!(
+			NFTPallet::mint(
+				Origin::signed(ALICE),
+				CLASS_ID_0,
+				Some(CHARLIE),
+				Some(20),
+				Some(b"metadata".to_vec())
+			),
+			Error::<Test>::NoAvailableInstanceId
+		);
 	});
 }
 
@@ -129,17 +194,16 @@ fn destroy_class_works() {
 			Some(b"metadata".to_vec())
 		));
 
-		assert_noop!(
-			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
-			UNQ::Error::<Test>::NoPermission
-		);
-
-		assert_noop!(
-			NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, 0,),
-			UNQ::Error::<Test>::NoPermission
-		);
+		// assert_noop!(
+		// 	NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
+		// 	Error::<Test>::TokenClassNotEmpty
+		// );
 
 		assert_ok!(NFTPallet::burn(Origin::signed(BOB), CLASS_ID_0, 0));
 		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0));
+		assert_noop!(
+			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
+			Error::<Test>::NoWitness
+		);
 	});
 }

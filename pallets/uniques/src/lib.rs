@@ -571,8 +571,8 @@ pub mod pallet {
 			let origin = ensure_signed(origin)?;
 
 			let mut details = Asset::<T, I>::get(&class, &instance).ok_or(Error::<T, I>::Unknown)?;
-			let class_details = Class::<T, I>::get(&class).ok_or(Error::<T, I>::Unknown)?;
-			ensure!(class_details.freezer == origin, Error::<T, I>::NoPermission);
+			//let class_details = Class::<T, I>::get(&class).ok_or(Error::<T, I>::Unknown)?;
+			ensure!(details.owner == origin, Error::<T, I>::NoPermission);
 
 			details.is_frozen = true;
 			Asset::<T, I>::insert(&class, &instance, &details);
@@ -600,8 +600,8 @@ pub mod pallet {
 			let origin = ensure_signed(origin)?;
 
 			let mut details = Asset::<T, I>::get(&class, &instance).ok_or(Error::<T, I>::Unknown)?;
-			let class_details = Class::<T, I>::get(&class).ok_or(Error::<T, I>::Unknown)?;
-			ensure!(class_details.admin == origin, Error::<T, I>::NoPermission);
+			//let class_details = Class::<T, I>::get(&class).ok_or(Error::<T, I>::Unknown)?;
+			ensure!(details.owner == origin, Error::<T, I>::NoPermission);
 
 			details.is_frozen = false;
 			Asset::<T, I>::insert(&class, &instance, &details);
