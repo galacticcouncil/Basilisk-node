@@ -16,8 +16,7 @@
 // limitations under the License.
 //
 // Abbr:
-//  - lm - liquidity minign
-//  - lp - liquidity provider
+//  rps - reward per share
 //
 //  TODO:
 //      * weights and benchmarking
@@ -71,7 +70,7 @@ impl Default for LoyaltyCurve {
 pub struct GlobalPool<Period, Balance> {
 	updated_at: Period,
 	total_shares: Balance,
-	accumulated_reward_per_share: Balance,
+	accumulated_rps: Balance,
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
@@ -249,15 +248,45 @@ impl<T: Config> Pallet<T> {
 		Err(Error::<T>::NotImplemented)
 	}
 
-	pub fn get_new_accumulated_reward_per_share(
-		accumulated_reward_per_share_now: T::Balance,
+	pub fn get_new_accumulated_rps(
+		accumulated_rps_now: T::Balance,
 		total_shares: T::Balance,
 		reward: T::Balance,
 	) -> Result<T::Balance, Error<T>> {
 		reward
 			.checked_div(&total_shares)
 			.ok_or(Error::<T>::Overflow)?
-			.checked_add(&accumulated_reward_per_share_now)
+			.checked_add(&accumulated_rps_now)
 			.ok_or(Error::<T>::Overflow)
+	}
+
+	/// (user_rewards, unclaimable_rewards)
+	/// NOTE: claimable_reward and user_rewards is not the same !!!
+	pub fn get_user_reward(
+		user_accumulated_rps: T::Balance,
+		user_shares: T::Balance,
+		accumulated_rps_now: T::Balance,
+		user_accumulated_claimed_rewards: T::Balance,
+		loyalty_multiplier: FixedU128,
+	) -> Result<(T::Balance, T::Balance), Error<T>> {
+		let max_rewards = accumulated_rps_now
+			.checked_sub(&user_accumulated_rps)
+			.ok_or(Error::<T>::Overflow)?
+			.checked_mul(&user_shares)
+			.ok_or(Error::<T>::Overflow)?;
+
+		let claimable_rewards = loyalty_multiplier
+			.checked_mul_int(max_rewards)
+			.ok_or(Error::<T>::Overflow)?;
+
+		let unclaimable_rewards = max_rewards
+			.checked_sub(&claimable_rewards)
+			.ok_or(Error::<T>::Overflow)?;
+
+		let user_rewards = claimable_rewards
+			.checked_sub(&user_accumulated_claimed_rewards)
+			.ok_or(Error::<T>::Overflow)?;
+
+        Ok((user_rewards, unclaimable_rewards))
 	}
 }
