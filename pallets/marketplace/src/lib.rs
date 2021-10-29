@@ -17,7 +17,7 @@ use sp_runtime::{
 use types::TokenInfo;
 use weights::WeightInfo;
 
-use pallet_nft::{Instances, types::ClassType};
+use pallet_nft::{types::ClassType, Instances};
 use primitives::ReserveIdentifier;
 
 mod benchmarking;
@@ -122,29 +122,32 @@ pub mod pallet {
 		/// - `instance_id`: The instance identifier of a class
 		#[pallet::weight(<T as Config>::WeightInfo::list())]
 		#[transactional]
-		pub fn list(
-			origin: OriginFor<T>,
-			class_id: T::NftClassId,
-			instance_id: T::NftInstanceId,
-		) -> DispatchResult {
+		pub fn list(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
 			let class_type = pallet_nft::Classes::<T>::get(class_id)
 				.map(|c| c.class_type)
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 
-			ensure!(!Tokens::<T>::contains_key(class_id, instance_id), Error::<T>::AlreadyListed);
+			ensure!(
+				!Tokens::<T>::contains_key(class_id, instance_id),
+				Error::<T>::AlreadyListed
+			);
 			ensure!(class_type == ClassType::Marketplace, Error::<T>::UnsupportedClassType);
 
-			let royalty = Instances::<T>::get(class_id, instance_id).map(|i| i.royalty).ok_or(pallet_nft::Error::<T>::RoyaltyNotSet)?;
-			let author = Instances::<T>::get(class_id, instance_id).map(|i| i.author).ok_or(pallet_nft::Error::<T>::AuthorNotSet)?;
+			let royalty = Instances::<T>::get(class_id, instance_id)
+				.map(|i| i.royalty)
+				.ok_or(pallet_nft::Error::<T>::RoyaltyNotSet)?;
+			let author = Instances::<T>::get(class_id, instance_id)
+				.map(|i| i.author)
+				.ok_or(pallet_nft::Error::<T>::AuthorNotSet)?;
 
 			// Only token owner can list
 			ensure!(
 				pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into()) == Some(sender.clone()),
 				Error::<T>::NotTheTokenOwner
 			);
-			
+
 			Tokens::<T>::insert(
 				class_id,
 				instance_id,
@@ -182,10 +185,14 @@ pub mod pallet {
 
 			Tokens::<T>::remove(class_id, instance_id);
 
-			let owner =
-				pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into()).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+			let owner = pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
+				.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
-			pallet_uniques::Pallet::<T>::thaw(T::Origin::from(RawOrigin::Signed(owner)), class_id.into(), instance_id.into())?;
+			pallet_uniques::Pallet::<T>::thaw(
+				T::Origin::from(RawOrigin::Signed(owner)),
+				class_id.into(),
+				instance_id.into(),
+			)?;
 
 			Self::deposit_event(Event::TokenUnlisted(class_id, instance_id));
 
@@ -289,7 +296,11 @@ pub mod pallet {
 		/// - `instance_id`: The instance identifier of a class
 		#[pallet::weight(<T as Config>::WeightInfo::accept_offer())]
 		#[transactional]
-		pub fn accept_offer(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
+		pub fn accept_offer(
+			origin: OriginFor<T>,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+		) -> DispatchResult {
 			ensure_signed(origin.clone())?;
 
 			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
@@ -368,10 +379,14 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	// Call extrinsic helper function used by `buy` and `accept_offer` functions
-	fn do_buy(buyer: T::AccountId, class_id: T::NftClassId, instance_id: T::NftInstanceId, is_offer: bool) -> DispatchResult {
-
-		let owner =
-			pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into()).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+	fn do_buy(
+		buyer: T::AccountId,
+		class_id: T::NftClassId,
+		instance_id: T::NftInstanceId,
+		is_offer: bool,
+	) -> DispatchResult {
+		let owner = pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
+			.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
@@ -393,8 +408,12 @@ impl<T: Config> Pallet<T> {
 				price = token_info.price.take().ok_or(Error::<T>::NotForSale)?;
 			}
 
-			let royalty = Instances::<T>::get(class_id, instance_id).map(|i| i.royalty).ok_or(pallet_nft::Error::<T>::RoyaltyNotSet)?;
-			let author = Instances::<T>::get(class_id, instance_id).map(|i| i.author).ok_or(pallet_nft::Error::<T>::AuthorNotSet)?;
+			let royalty = Instances::<T>::get(class_id, instance_id)
+				.map(|i| i.royalty)
+				.ok_or(pallet_nft::Error::<T>::RoyaltyNotSet)?;
+			let author = Instances::<T>::get(class_id, instance_id)
+				.map(|i| i.author)
+				.ok_or(pallet_nft::Error::<T>::AuthorNotSet)?;
 
 			// Calculate royalty and subtract from price if author different from buyer
 			let royalty_perc = Percent::from_percent(royalty);

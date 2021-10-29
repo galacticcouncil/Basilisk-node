@@ -76,7 +76,10 @@ fn buy_works() {
 			Some(b"metadata".to_vec())
 		));
 
-		assert_noop!(Market::buy(Origin::signed(BOB), 666, 666), Error::<Test>::ClassOrInstanceUnknown);
+		assert_noop!(
+			Market::buy(Origin::signed(BOB), 666, 666),
+			Error::<Test>::ClassOrInstanceUnknown
+		);
 
 		assert_noop!(Market::buy(Origin::signed(BOB), 0, 0), Error::<Test>::NotListed);
 
@@ -282,7 +285,7 @@ fn free_trading_works() {
 			Market::list(Origin::signed(CHARLIE), 4, 0),
 			pallet_nft::Error::<Test>::ClassUnknown
 		);
-		
+
 		// Unsupported class
 		assert_noop!(
 			Market::list(Origin::signed(CHARLIE), 3, 0),
@@ -405,10 +408,7 @@ fn relisting_works() {
 			})
 		);
 		assert_ok!(Market::unlist(Origin::signed(ALICE), 0, 0));
-		assert_eq!(
-			Market::tokens(0, 0),
-			None
-		);
+		assert_eq!(Market::tokens(0, 0), None);
 		assert_noop!(Market::list(Origin::signed(BOB), 0, 0), Error::<Test>::NotTheTokenOwner);
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0));
 		assert_eq!(
