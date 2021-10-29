@@ -101,8 +101,6 @@ pub mod pallet {
 		/// - `class_id`: The identifier of the new asset class. This must not be currently in use.
 		/// - `class_type`: The class type determines its purpose and usage
 		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash
-		///
-		/// Emits `Created` and `ClassMetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
 		pub fn create_class(origin: OriginFor<T>, class_type: types::ClassType, metadata: Vec<u8>) -> DispatchResult {
@@ -168,8 +166,6 @@ pub mod pallet {
 		/// - `author`: Receiver of the royalty
 		/// - `royalty`: Percentage reward from each trade for the author
 		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash
-		///
-		/// Emits `Issued` and `AttributeSet` and `MetadataSet` events when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
 		pub fn mint(
@@ -286,8 +282,6 @@ pub mod pallet {
 		/// - `instance_id`: The instance of the asset to be burned.
 		/// - `check_owner`: If `Some` then the operation will fail with `WrongOwner` unless the
 		///   asset is owned by this value.
-		///
-		/// Emits `Burned` with the actual amount burned.
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
 		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
@@ -325,8 +319,6 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `class_id`: The identifier of the asset class to be destroyed.
-		///
-		/// Emits `Destroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		#[transactional]
 		pub fn destroy_class(origin: OriginFor<T>, class_id: T::NftClassId) -> DispatchResultWithPostInfo {
