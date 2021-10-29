@@ -60,38 +60,38 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn buy() -> Weight {
-		(151_951_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+		(203_806_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
 	fn set_price() -> Weight {
-		(37_734_000 as Weight)
+		(33_808_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	fn list() -> Weight {
-		(70_053_000 as Weight)
+		(63_289_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	fn unlist() -> Weight {
-		(61_830_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+		(52_922_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	fn make_offer() -> Weight {
-		(61_774_000 as Weight)
+		(56_115_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn withdraw_offer() -> Weight {
-		(64_220_000 as Weight)
+		(61_286_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn accept_offer() -> Weight {
-		(184_255_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+		(171_998_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(7 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
 }

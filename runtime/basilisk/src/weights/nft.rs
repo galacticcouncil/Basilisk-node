@@ -40,39 +40,38 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
 use pallet_nft::weights::WeightInfo;
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
-
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_class() -> Weight {
-		(166_553_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		(89_643_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn mint() -> Weight {
-		(161_853_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
+		(154_866_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
 			.saturating_add(T::DbWeight::get().writes(7 as Weight))
 	}
 	fn transfer() -> Weight {
-		(52_409_000 as Weight)
+		(71_316_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn destroy_class() -> Weight {
-		(77_480_000 as Weight)
+		(104_415_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn burn() -> Weight {
-		(100_336_000 as Weight)
+		(139_832_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
 }
