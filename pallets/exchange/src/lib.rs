@@ -371,7 +371,7 @@ impl<T: Config> Pallet<T> {
 
 		ExchangeAssetsIntentionCount::<T>::try_mutate(assets.ordered_pair(), |total| -> DispatchResult {
 			*total = total.checked_add(1).ok_or(Error::<T>::IntentionCountOverflow)?;
-			Ok(().into())
+			Ok(())
 		})?;
 
 		// Note: cannot use ordered tuple pair, as this must be stored as (in,out) pair
