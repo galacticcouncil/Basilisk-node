@@ -37,6 +37,7 @@ pallet-asset-registry = { path = "../../pallets/asset-registry",default-features
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",default-features = false}
+pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
@@ -57,6 +58,7 @@ orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-modul
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "dc96605342de9971c27699561723a6de6e2614c2", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "dc96605342de9971c27699561723a6de6e2614c2", default-features = false }
 orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "dc96605342de9971c27699561723a6de6e2614c2", default-features = false }
+orml-benchmarking = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "dc96605342de9971c27699561723a6de6e2614c2", default-features = false, optional = true }
 
 # orml XCM support
 orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "dc96605342de9971c27699561723a6de6e2614c2", default-features = false }
@@ -159,6 +161,7 @@ std = [
     "orml-xtokens/std",
     "orml-xcm-support/std",
     "orml-unknown-tokens/std",
+    "orml-benchmarking/std",
     "cumulus-pallet-parachain-system/std",
     "cumulus-pallet-aura-ext/std",
     "cumulus-pallet-xcm/std",
@@ -173,6 +176,7 @@ std = [
     "pallet-xyk/std",
     "pallet-duster/std",
     "pallet-xyk-rpc-runtime-api/std",
+    "pallet-lbp-rpc-runtime-api/std",
     "pallet-asset-registry/std",
     "pallet-exchange/std",
     "pallet-aura/std",

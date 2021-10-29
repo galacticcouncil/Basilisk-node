@@ -135,6 +135,7 @@ pub const BSX: Balance = 100_000_000_000;
 pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
 pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1;
 pub const TOKEN_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
+pub const NOT_EXISTING_CLASS_ID: <Test as pallet_uniques::Config>::ClassId = 999;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {

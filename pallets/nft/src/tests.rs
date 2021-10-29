@@ -77,7 +77,7 @@ fn mint_works() {
 		assert_noop!(
 			NFTPallet::mint(
 				Origin::signed(ALICE),
-				999, // non existent class id
+				NOT_EXISTING_CLASS_ID,
 				Some(CHARLIE),
 				Some(20),
 				Some(b"metadata".to_vec())
@@ -139,6 +139,11 @@ fn mint_works() {
 				Some(b"metadata".to_vec())
 			),
 			Error::<Test>::NoAvailableInstanceId
+		);
+
+		assert_noop!(
+			NFTPallet::destroy_class(Origin::signed(ALICE), NOT_EXISTING_CLASS_ID),
+			Error::<Test>::NoWitness
 		);
 	});
 }

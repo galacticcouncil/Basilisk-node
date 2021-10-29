@@ -1,6 +1,7 @@
 use super::*;
 use crate::mock::{
-	Currencies, Duster, Event as TestEvent, ExtBuilder, Origin, System, Test, Tokens, ALICE, DUSTER, KILLED, TREASURY,
+	Currencies, Duster, Event as TestEvent, ExtBuilder, Origin, System, Test, Tokens, ALICE, BOB, DUSTER, KILLED,
+	TREASURY,
 };
 use frame_support::{assert_noop, assert_ok};
 use primitives::AssetId;
@@ -23,6 +24,26 @@ fn dust_account_works() {
 			assert_eq!(Currencies::free_balance(0, &*DUSTER), 10_000);
 		});
 }
+
+#[test]
+fn reward_duster_can_fail() {
+	ExtBuilder::default()
+		.with_balance(*ALICE, 1, 100)
+		.build()
+		.execute_with(|| {
+			assert_ok!(Currencies::transfer(Origin::signed(*TREASURY), *BOB, 0, 1_000_000));
+
+			assert_ok!(Duster::dust_account(Origin::signed(*DUSTER), *ALICE, 1));
+			assert_eq!(Tokens::free_balance(1, &*TREASURY), 100);
+
+			for (who, _, _) in orml_tokens::Accounts::<Test>::iter() {
+				assert_ne!(who, *ALICE, "Alice account should have been removed!");
+			}
+
+			assert_eq!(Currencies::free_balance(0, &*DUSTER), 0);
+		});
+}
+
 #[test]
 fn dust_account_with_sufficient_balance_fails() {
 	ExtBuilder::default()

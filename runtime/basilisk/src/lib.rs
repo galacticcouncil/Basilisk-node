@@ -60,12 +60,16 @@ use frame_support::{
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 };
+use pallet_lbp::AssetPairPoolIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
+use pallet_xyk::AssetPairAccountIdFor;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 #[allow(clippy::all)]
 mod weights;
 mod xcm;
+
+mod benchmarking;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -177,9 +181,7 @@ impl<T: cumulus_pallet_parachain_system::Config> BlockNumberProvider for RelayCh
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-impl<T: frame_system::Config> BlockNumberProvider
-	for RelayChainBlockNumberProvider<T>
-{
+impl<T: frame_system::Config> BlockNumberProvider for RelayChainBlockNumberProvider<T> {
 	type BlockNumber = <T as frame_system::Config>::BlockNumber;
 
 	fn current_block_number() -> Self::BlockNumber {
@@ -952,6 +954,19 @@ impl_runtime_apis! {
 			vec
 		}
 
+		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
+			pallet_xyk::AssetPairAccountId::<Runtime>::from_assets(asset_a, asset_b)
+		}
+	}
+
+	impl pallet_lbp_rpc_runtime_api::LBPApi<
+		Block,
+		AccountId,
+		AssetId,
+	> for Runtime {
+		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
+			pallet_lbp::AssetPairPoolId::<Runtime>::from_assets(asset_a, asset_b)
+		}
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
@@ -962,6 +977,7 @@ impl_runtime_apis! {
 		) {
 			use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 			use frame_support::traits::StorageInfoTrait;
+			use orml_benchmarking::list_benchmark as orml_list_benchmark;
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
@@ -989,6 +1005,10 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
 
+			orml_list_benchmark!(list, extra, orml_currencies, benchmarking::currencies);
+			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
+			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
+
 			let storage_info = AllPalletsWithSystem::storage_info();
 
 			(list, storage_info)
@@ -998,6 +1018,8 @@ impl_runtime_apis! {
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
 			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
+
+			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
@@ -1044,6 +1066,10 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
 			//add_benchmark!(params, batches, pallet_uniques, Uniques);
+
+			orml_add_benchmark!(params, batches, orml_currencies, benchmarking::currencies);
+			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
+			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

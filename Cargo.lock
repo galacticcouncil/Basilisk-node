@@ -465,6 +465,8 @@ dependencies = [
  "jsonrpc-core",
  "log",
  "pallet-grandpa",
+ "pallet-lbp-rpc",
+ "pallet-lbp-rpc-runtime-api",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-xyk-rpc",
@@ -544,6 +546,7 @@ dependencies = [
  "hash-db",
  "hex-literal",
  "memory-db",
+ "orml-benchmarking",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -563,6 +566,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-lbp",
+ "pallet-lbp-rpc-runtime-api",
  "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
@@ -4970,6 +4974,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-benchmarking"
+version = "0.4.1-dev"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=dc96605342de9971c27699561723a6de6e2614c2#dc96605342de9971c27699561723a6de6e2614c2"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "log",
+ "parity-scale-codec",
+ "paste",
+ "scale-info",
+ "serde",
+ "sp-api",
+ "sp-io",
+ "sp-runtime",
+ "sp-runtime-interface",
+ "sp-std",
+ "sp-storage",
+]
+
+[[package]]
 name = "orml-currencies"
 version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=dc96605342de9971c27699561723a6de6e2614c2#dc96605342de9971c27699561723a6de6e2614c2"
@@ -5629,6 +5653,35 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-lbp-rpc"
+version = "1.0.0"
+dependencies = [
+ "jsonrpc-core",
+ "jsonrpc-core-client",
+ "jsonrpc-derive",
+ "pallet-lbp-rpc-runtime-api",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-lbp-rpc-runtime-api"
+version = "1.0.0"
+dependencies = [
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
@@ -10910,6 +10963,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-lbp",
+ "pallet-lbp-rpc-runtime-api",
  "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
