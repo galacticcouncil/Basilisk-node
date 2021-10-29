@@ -683,7 +683,7 @@ fn get_user_reward_should_work() {
 }
 
 #[test]
-/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=1775700162
+/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=2010118745
 fn update_global_pool_should_work() {
 	//[(pool.updated_at, pool.total_shares, pool.accumulated_rps, pool.reward_currency,
 	//pool_id, reward_left_to_distribute, period_now, reward_per_period, pool.accumulated_rps),...]
@@ -941,7 +941,7 @@ fn update_global_pool_should_work() {
 
 			assert_eq!(p.accumulated_rps, t.8);
 
-			//NOTE: don't check transef - this function doesn't transfer funds
+			//NOTE: don't check transer - this function doesn't transfer funds
 		});
 	}
 }
