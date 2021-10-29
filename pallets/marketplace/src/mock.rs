@@ -53,6 +53,7 @@ impl pallet_nft::Config for Test {
 	type TokenDeposit = InstanceDeposit;
 	type NftClassId = u32;
 	type NftInstanceId = u32;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {
@@ -135,7 +136,6 @@ pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 
 pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
-pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {

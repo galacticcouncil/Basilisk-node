@@ -441,6 +441,7 @@ impl pallet_nft::Config for Runtime {
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftClassId = u32;
 	type NftInstanceId = u32;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<

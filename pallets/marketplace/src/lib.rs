@@ -5,7 +5,7 @@
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, NamedReservableCurrency},
+	traits::{Currency, ExistenceRequirement, NamedReservableCurrency},
 	transactional,
 };
 use frame_system::{ensure_signed, RawOrigin};
