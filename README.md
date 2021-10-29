@@ -192,17 +192,17 @@ Then open settings screen -> developer and paste
           "PoolShare"
         ]
       },
-      "TokenInfo":{"
+      "TokenInfo":{
         "price":"Option<Balance>",
         "offer":"Option<(AccountId,Balance,BlockNumber)>"
       },
       "TokenInfoOf":"TokenInfo",
-      "ClassInfo":{"
+      "ClassInfo":{
         "class_type":"ClassType",
         "metadata":"Vec<u8>"
       },
       "ClassInfoOf":"ClassInfo",
-      "InstanceInfo":{"
+      "InstanceInfo":{
         "author":"AccountId",
         "royalty":"u8",
         "metadata":"Vec<u8>"
