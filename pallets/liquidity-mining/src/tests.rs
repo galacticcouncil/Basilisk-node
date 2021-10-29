@@ -1,7 +1,10 @@
 use super::*;
-use crate::mock::{Event as TestEvent, ExtBuilder, LiquidityMining, System, Test};
+use crate::mock::{
+	BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, System, Test, Tokens, ACA, BSX, HDX, KSM,
+	TREASURY,
+};
 
-use primitives::{AssetId, Balance, BlockNumber};
+use primitives::{AssetId, Balance};
 
 use sp_arithmetic::traits::CheckedSub;
 
@@ -16,31 +19,31 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 
 #[test]
 fn get_period_number_should_work() {
-	let num_1: BlockNumber = 1_u32;
+	let num_1: BlockNumber = 1_u64;
 	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 1).unwrap(), 1);
 
-	let num_1: BlockNumber = 1_000_u32;
+	let num_1: BlockNumber = 1_000_u64;
 	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 1).unwrap(), 1_000);
 
-	let num_1: BlockNumber = 23_u32;
+	let num_1: BlockNumber = 23_u64;
 	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 15).unwrap(), 1);
 
-	let num_1: BlockNumber = 843_712_398_u32;
+	let num_1: BlockNumber = 843_712_398_u64;
 	assert_eq!(
 		LiquidityMining::get_period_number(num_1.into(), 13_412_341).unwrap(),
 		62
 	);
 
-	let num_1: BlockNumber = 843_u32;
+	let num_1: BlockNumber = 843_u64;
 	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 2_000).unwrap(), 0);
 
-	let num_1: BlockNumber = 10_u32;
+	let num_1: BlockNumber = 10_u64;
 	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 10).unwrap(), 1);
 }
 
 #[test]
 fn get_period_number_should_not_work() {
-	let num_1: BlockNumber = 10_u32;
+	let num_1: BlockNumber = 10_u64;
 	assert_eq!(
 		LiquidityMining::get_period_number(num_1.into(), 0).unwrap_err(),
 		Error::<Test>::Overflow
@@ -422,9 +425,9 @@ fn get_new_accumulated_reward_per_share_should_work() {
 }
 
 #[test]
-/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=478231890
+/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=1775700162
 fn get_user_reward_should_work() {
-	//user_accumulated_claimed_rewards, loyalty_multiplier, user_reward, unclaimable_rewards),...]
+	//[(user_accumulated_claimed_rewards, loyalty_multiplier, user_reward, unclaimable_rewards),...]
 	let testing_values = vec![
 		(
 			Balance::from(79_u128),
@@ -676,6 +679,270 @@ fn get_user_reward_should_work() {
 			LiquidityMining::get_user_reward(t.0, t.1, t.2, t.3, t.4).unwrap(),
 			(t.5, t.6)
 		);
+	}
+}
+
+#[test]
+/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=1775700162
+fn update_global_pool_should_work() {
+	//[(pool.updated_at, pool.total_shares, pool.accumulated_rps, pool.reward_currency,
+	//pool_id, reward_left_to_distribute, period_now, reward_per_period, pool.accumulated_rps),...]
+	let testing_values = vec![
+		(
+			BlockNumber::from(26_u64),
+			Balance::from(25019447565169_u128),
+			Balance::from(259_u128),
+			HDX,
+			11000_u64,
+			Balance::from(48470226114_u128),
+			BlockNumber::from(206_u64),
+			Balance::from(651206_u128),
+			Balance::from(259_u128),
+		),
+		(
+			BlockNumber::from(188_u64),
+			Balance::from(33769488247603_u128),
+			Balance::from(1148_u128),
+			BSX,
+			11000_u64,
+			Balance::from(30080406306_u128),
+			BlockNumber::from(259_u64),
+			Balance::from(1548635_u128),
+			Balance::from(1148_u128),
+		),
+		(
+			BlockNumber::from(195_u64),
+			Balance::from(26098384286056_u128),
+			Balance::from(523_u128),
+			ACA,
+			11000_u64,
+			Balance::from(32055_u128),
+			BlockNumber::from(326_u64),
+			Balance::from(1712797_u128),
+			Balance::from(523_u128),
+		),
+		(
+			BlockNumber::from(181_u64),
+			Balance::from(9894093650144_u128),
+			Balance::from(317_u128),
+			KSM,
+			11000_u64,
+			Balance::from(36806694280_u128),
+			BlockNumber::from(1856_u64),
+			Balance::from(1900156_u128),
+			Balance::from(317_u128),
+		),
+		(
+			BlockNumber::from(196_u64),
+			Balance::from(26886423482043_u128),
+			Balance::from(596_u128),
+			ACA,
+			14000_u64,
+			Balance::from(30560755872_u128),
+			BlockNumber::from(954_u64),
+			Balance::from(78355_u128),
+			Balance::from(596_u128),
+		),
+		(
+			BlockNumber::from(68_u64),
+			Balance::from(11380750657342_u128),
+			Balance::from(4_u128),
+			ACA,
+			12000_u64,
+			Balance::from(38398062768_u128),
+			BlockNumber::from(161_u64),
+			Balance::from(553033_u128),
+			Balance::from(4_u128),
+		),
+		(
+			BlockNumber::from(161_u64),
+			Balance::from(24495534649923_u128),
+			Balance::from(213_u128),
+			KSM,
+			14000_u64,
+			Balance::from(11116735745_u128),
+			BlockNumber::from(448_u64),
+			Balance::from(1884698_u128),
+			Balance::from(213_u128),
+		),
+		(
+			BlockNumber::from(27_u64),
+			Balance::from(22108454336644_u128),
+			Balance::from(970_u128),
+			KSM,
+			13000_u64,
+			Balance::from(8572779460_u128),
+			BlockNumber::from(132_u64),
+			Balance::from(1874081_u128),
+			Balance::from(970_u128),
+		),
+		(
+			BlockNumber::from(97_u64),
+			Balance::from(33115801593208_u128),
+			Balance::from(6_u128),
+			HDX,
+			10000_u64,
+			Balance::from(18440792496_u128),
+			BlockNumber::from(146_u64),
+			Balance::from(741803_u128),
+			Balance::from(6_u128),
+		),
+		(
+			BlockNumber::from(154_u64),
+			Balance::from(27279119649838_u128),
+			Balance::from(713_u128),
+			BSX,
+			10000_u64,
+			Balance::from(28318566664_u128),
+			BlockNumber::from(202_u64),
+			Balance::from(508869_u128),
+			Balance::from(713_u128),
+		),
+		(
+			BlockNumber::from(104_u64),
+			Balance::from(20462312838954_u128),
+			Balance::from(833_u128),
+			BSX,
+			12000_u64,
+			Balance::from(3852003_u128),
+			BlockNumber::from(131_u64),
+			Balance::from(1081636_u128),
+			Balance::from(833_u128),
+		),
+		(
+			BlockNumber::from(90_u64),
+			Balance::from(37650830596054_u128),
+			Balance::from(586_u128),
+			HDX,
+			13000_u64,
+			Balance::from(27990338179_u128),
+			BlockNumber::from(110_u64),
+			Balance::from(758482_u128),
+			Balance::from(586_u128),
+		),
+		(
+			BlockNumber::from(198_u64),
+			Balance::from(31877785441215_u128),
+			Balance::from(251_u128),
+			ACA,
+			10000_u64,
+			Balance::from(3615346492_u128),
+			BlockNumber::from(582_u64),
+			Balance::from(69329_u128),
+			Balance::from(251_u128),
+		),
+		(
+			BlockNumber::from(29_u64),
+			Balance::from(33478250_u128),
+			Balance::from(77_u128),
+			BSX,
+			11000_u64,
+			Balance::from(39174031245_u128),
+			BlockNumber::from(100_u64),
+			Balance::from(1845620_u128),
+			Balance::from(80_u128),
+		),
+		(
+			BlockNumber::from(91_u64),
+			Balance::from(39392283517372_u128),
+			Balance::from(2491_u128),
+			ACA,
+			11000_u64,
+			Balance::from(6348629400_u128),
+			BlockNumber::from(260_u64),
+			Balance::from(1091233_u128),
+			Balance::from(2491_u128),
+		),
+		(
+			BlockNumber::from(67_u64),
+			Balance::from(11290609546422_u128),
+			Balance::from(295_u128),
+			HDX,
+			11000_u64,
+			Balance::from(7492177402_u128),
+			BlockNumber::from(229_u64),
+			Balance::from(1227791_u128),
+			Balance::from(295_u128),
+		),
+		(
+			BlockNumber::from(168_u64),
+			Balance::from(28351324279041_u128),
+			Balance::from(450_u128),
+			ACA,
+			11000_u64,
+			Balance::from(38796364068_u128),
+			BlockNumber::from(361_u64),
+			Balance::from(1015284_u128),
+			Balance::from(450_u128),
+		),
+		(
+			BlockNumber::from(3_u64),
+			Balance::from(17631376575792_u128),
+			Balance::from(82_u128),
+			HDX,
+			13000_u64,
+			Balance::from(20473946880_u128),
+			BlockNumber::from(52_u64),
+			Balance::from(1836345_u128),
+			Balance::from(82_u128),
+		),
+		(
+			BlockNumber::from(49_u64),
+			Balance::from(94059_u128),
+			Balance::from(81_u128),
+			HDX,
+			14000_u64,
+			Balance::from(11126653978_u128),
+			BlockNumber::from(132_u64),
+			Balance::from(1672829_u128),
+			Balance::from(1557_u128),
+		),
+		(
+			BlockNumber::from(38_u64),
+			Balance::from(19307247584085_u128),
+			Balance::from(266_u128),
+			KSM,
+			10000_u64,
+			Balance::from(36115448964_u128),
+			BlockNumber::from(400000_u64),
+			Balance::from(886865_u128),
+			Balance::from(266_u128),
+		),
+		(
+			BlockNumber::from(158_u64),
+			Balance::from(782023762784_u128),
+			Balance::from(129_u128),
+			BSX,
+			11000_u64,
+			Balance::from(21814882774_u128),
+			BlockNumber::from(158_u64),
+			Balance::from(789730_u128),
+			Balance::from(129_u128),
+		),
+	];
+
+	//[(pool.updated_at, pool.total_shares, pool.accumulated_rps, pool.reward_currency,
+	//pool_id, reward_left_to_distribute, period_now, reward_per_period, pool.accumulated_rps),...]
+	for t in testing_values.iter() {
+		let mut p = GlobalPool {
+			updated_at: t.0,
+			total_shares: t.1,
+			accumulated_rps: t.2,
+			reward_currency: t.3,
+		};
+
+		let mut ext = new_test_ext();
+
+		ext.execute_with(|| {
+			let _ = Tokens::transfer(Origin::signed(TREASURY), t.4, t.3, t.5);
+			assert_eq!(Tokens::free_balance(t.3, &t.4), t.5);
+
+			LiquidityMining::update_global_pool(t.4, &mut p, t.6, t.7).unwrap();
+
+			assert_eq!(p.accumulated_rps, t.8);
+
+			//NOTE: don't check transef - this function doesn't transfer funds
+		});
 	}
 }
 

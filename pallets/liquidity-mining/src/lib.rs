@@ -52,7 +52,7 @@ use sp_arithmetic::{
 	FixedU128,
 };
 
-use orml_traits::{MultiCurrencyExtended, MultiLockableCurrency};
+use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::RuntimeDebug;
@@ -67,10 +67,11 @@ impl Default for LoyaltyCurve {
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
-pub struct GlobalPool<Period, Balance> {
+pub struct GlobalPool<Period, Balance, AssetId> {
 	updated_at: Period,
 	total_shares: Balance,
 	accumulated_rps: Balance,
+	reward_currency: AssetId,
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
@@ -232,8 +233,10 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn update_global_pool(
-		pool: &mut GlobalPool<T::BlockNumber, T::Balance>,
+		pool_id: PoolId<T>,
+		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId>,
 		now_period: T::BlockNumber,
+		reward_per_period: T::Balance,
 	) -> Result<(), Error<T>> {
 		if pool.updated_at == now_period {
 			return Ok(());
@@ -243,9 +246,24 @@ impl<T: Config> Pallet<T> {
 			return Ok(());
 		}
 
-		let periods_since_last_update = now_period.checked_sub(&pool.updated_at).ok_or(Error::<T>::Overflow)?;
+		let periods_since_last_update: T::Balance =
+			TryInto::<u128>::try_into(now_period.checked_sub(&pool.updated_at).ok_or(Error::<T>::Overflow)?)
+				.map_err(|_e| Error::<T>::Overflow)?
+				.into();
 
-		Err(Error::<T>::NotImplemented)
+		let reward = periods_since_last_update
+			.checked_mul(&reward_per_period)
+			.ok_or(Error::<T>::Overflow)?
+			.min(T::MultiCurrency::free_balance(
+				pool.reward_currency,
+				&pool_id,
+			));
+
+		if !reward.is_zero() {
+			pool.accumulated_rps = Self::get_new_accumulated_rps(pool.accumulated_rps, pool.total_shares, reward)?;
+		}
+
+		return Ok(());
 	}
 
 	pub fn get_new_accumulated_rps(
@@ -287,6 +305,6 @@ impl<T: Config> Pallet<T> {
 			.checked_sub(&user_accumulated_claimed_rewards)
 			.ok_or(Error::<T>::Overflow)?;
 
-        Ok((user_rewards, unclaimable_rewards))
+		Ok((user_rewards, unclaimable_rewards))
 	}
 }

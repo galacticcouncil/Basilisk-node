@@ -21,7 +21,7 @@ use frame_support::parameter_types;
 use frame_support::traits::{GenesisBuild, Nothing};
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
-use primitives::{Amount, AssetId, Balance, BlockNumber};
+use primitives::{Amount, AssetId, Balance};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -30,21 +30,29 @@ use sp_runtime::{
 
 type AccountId = u64;
 pub type PoolId = u64;
+pub type BlockNumber = u64;
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
 pub const DAVE: AccountId = 4;
+pub const TREASURY: AccountId = 5;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
 pub const BSX_ACA_POOL: PoolId = 1;
-pub const BSX_ETH_POOL: PoolId = 2;
+pub const BSX_KSM_POOL: PoolId = 2;
 pub const BSX_DOT_POOL: PoolId = 3;
 
 pub const BSX_ACA_SHARE_ID: AssetId = 100;
-pub const BSX_ETH_SHARE_ID: AssetId = 101;
+pub const BSX_KSM_SHARE_ID: AssetId = 101;
 pub const BSX_DOT_SHARE_ID: AssetId = 102;
+
+
+pub const BSX: AssetId = 1000;
+pub const HDX: AssetId = 2000;
+pub const ACA: AssetId = 3000;
+pub const KSM: AssetId = 4000;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -73,7 +81,7 @@ impl system::Config for Test {
 	type Origin = Origin;
 	type Call = Call;
 	type Index = u64;
-	type BlockNumber = u64;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
@@ -135,16 +143,20 @@ impl Default for ExtBuilder {
 			endowed_accounts: vec![
 				(ALICE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(ALICE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
-				(ALICE, BSX_ETH_SHARE_ID, INITIAL_BALANCE),
+				(ALICE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
-				(BOB, BSX_ETH_SHARE_ID, INITIAL_BALANCE),
+				(BOB, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
 				(CHARLIE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(CHARLIE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
-				(CHARLIE, BSX_ETH_SHARE_ID, INITIAL_BALANCE),
+				(CHARLIE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
-				(DAVE, BSX_ETH_SHARE_ID, INITIAL_BALANCE),
+				(DAVE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
+                (TREASURY, BSX, 1_000_000_000_000_000_000),
+                (TREASURY, ACA, 1_000_000_000_000_000_000),
+                (TREASURY, HDX, 1_000_000_000_000_000_000),
+                (TREASURY, KSM, 1_000_000_000_000_000_000),
 			],
 		}
 	}
