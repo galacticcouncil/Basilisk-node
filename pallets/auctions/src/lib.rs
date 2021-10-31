@@ -200,7 +200,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::delete_auction())]
 		pub fn delete_auction(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
-			let auction = <Auctions<T>>::take(id).ok_or(Error::<T>::AuctionNotExist)?;
+			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
 			Self::validate_update_delete(&sender, &auction.owner, auction.start)?;
 
 			pallet_uniques::Pallet::<T>::thaw(

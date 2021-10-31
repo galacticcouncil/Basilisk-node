@@ -67,8 +67,6 @@ fn can_create_auction() {
       Error::<Test>::NotATokenOwner
     );
 
-    // TODO add test for Error::<T>::TokenFrozen
-
     // happy path
     assert_ok!(AuctionsModule::create_auction(
       Origin::signed(ALICE),
@@ -88,7 +86,14 @@ fn can_create_auction() {
     assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
     assert_eq!(AuctionsModule::auction_end_time(21u64, 0).unwrap(), ());
 
-    // TODO add test for token freeze
+    // Error::<T>::TokenFrozen
+    assert_noop!(
+      AuctionsModule::create_auction(
+        Origin::signed(ALICE),
+        valid_auction_info.clone(),
+      ),
+      Error::<Test>::TokenFrozen
+    );
 
     expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
   });
@@ -120,14 +125,11 @@ fn can_delete_auction() {
 
     System::set_block_number(3);
 
-    // TODO Help needed with panic
     // Error NotAuctionOwner when caller is not owner
-    // assert_noop!(
-    //   AuctionsModule::delete_auction(Origin::signed(BOB), 0),
-    //   Error::<Test>::NotAuctionOwner,
-    // );
-
-    // TODO test for pallet_uniqueness
+    assert_noop!(
+      AuctionsModule::delete_auction(Origin::signed(BOB), 0),
+      Error::<Test>::NotAuctionOwner,
+    );
 
     // Happy path
     assert_ok!(
@@ -139,17 +141,20 @@ fn can_delete_auction() {
 
     expect_event(crate::Event::<Test>::AuctionRemoved(0));
 
-    // TODO Help needed with panic
+    // NFT can be transferred
+    assert_ok!(Nft::transfer(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), BOB));
+    assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), ALICE));
+
     // Error AuctionAlreadyStarted
-    // assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info.clone()));
-    // System::set_block_number(10);
-    // assert_noop!(
-    //   AuctionsModule::delete_auction(Origin::signed(ALICE), 1),
-    //   Error::<Test>::AuctionAlreadyStarted,
-    // );
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info.clone()));
+    System::set_block_number(10);
+    assert_noop!(
+      AuctionsModule::delete_auction(Origin::signed(ALICE), 1),
+      Error::<Test>::AuctionAlreadyStarted,
+    );
   });
 }
-
+ 
 #[test]
 fn can_update_auction() {
   ExtBuilder::default().build().execute_with(|| {
