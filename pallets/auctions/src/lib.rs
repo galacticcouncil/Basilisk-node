@@ -220,7 +220,7 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
 		fn on_finalize(now: T::BlockNumber) {
-			Self::conclude_auction(now);
+			Self::conclude_auction(now).unwrap_or_default();
 		}
 	}
 }
@@ -239,7 +239,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn conclude_auction(now: T::BlockNumber) {
+	fn conclude_auction(now: T::BlockNumber) -> DispatchResult {
 		for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
 			if let Some(auction) = Self::auctions(auction_id) {
 				pallet_uniques::Pallet::<T>::thaw(
@@ -265,6 +265,8 @@ impl<T: Config> Pallet<T> {
 				}
 			}
 		}
+
+		Ok(())
 	}
 
 	fn check_new_auction(info: &AuctionInfoOf<T>) -> DispatchResult {

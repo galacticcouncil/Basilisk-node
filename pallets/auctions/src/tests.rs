@@ -11,7 +11,7 @@ macro_rules! bvec {
 }
 
 #[test]
-fn can_create_auction() {
+fn can_create_english_auction() {
   let valid_auction_info = AuctionInfo {
     name: "Auction 0".as_bytes().to_vec(),
     last_bid: None,
@@ -27,7 +27,7 @@ fn can_create_auction() {
     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
     
-    // start before current block
+    // Error AuctionStartTimeAlreadyPassed
     let mut auction_info = valid_auction_info.clone();
     auction_info.start = 0u64;
     assert_noop!(
@@ -35,7 +35,7 @@ fn can_create_auction() {
       Error::<Test>::AuctionStartTimeAlreadyPassed
     );
 
-    // end is zero
+    // Error InvalidTimeConfiguration (end is zero)
     auction_info = valid_auction_info.clone();
     auction_info.end = 0u64;
     assert_noop!(
@@ -43,7 +43,7 @@ fn can_create_auction() {
       Error::<Test>::InvalidTimeConfiguration
     );
 
-    // duration too short
+    // Error InvalidTimeConfiguration (duration too short)
     auction_info = valid_auction_info.clone();
     auction_info.end = 20u64;
     assert_noop!(
@@ -51,7 +51,7 @@ fn can_create_auction() {
       Error::<Test>::InvalidTimeConfiguration
     );
 
-    // auction name empty
+    // Error EmptyAuctionName
     auction_info = valid_auction_info.clone();
     auction_info.name = "".as_bytes().to_vec();
     assert_noop!(
@@ -59,7 +59,7 @@ fn can_create_auction() {
       Error::<Test>::EmptyAuctionName
     );
 
-    // Caller isn't owner
+    // Error NotATokenOwner
     auction_info = valid_auction_info.clone();
     auction_info.owner = BOB;
     assert_noop!(
@@ -72,6 +72,8 @@ fn can_create_auction() {
       Origin::signed(ALICE),
       valid_auction_info.clone(),
     ));
+
+    expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
 
     let auction = AuctionsModule::auctions(0).unwrap();
     assert_eq!(String::from_utf8(auction.name).unwrap(), "Auction 0");
@@ -86,7 +88,7 @@ fn can_create_auction() {
     assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
     assert_eq!(AuctionsModule::auction_end_time(21u64, 0).unwrap(), ());
 
-    // Error::<T>::TokenFrozen
+    // Error TokenFrozen
     assert_noop!(
       AuctionsModule::create_auction(
         Origin::signed(ALICE),
@@ -95,12 +97,12 @@ fn can_create_auction() {
       Error::<Test>::TokenFrozen
     );
 
-    expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
+    // TODO test frozen NFT transfer
   });
 }
 
 #[test]
-fn can_delete_auction() {
+fn can_delete_english_auction() {
   ExtBuilder::default().build().execute_with(|| {
     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
@@ -142,8 +144,8 @@ fn can_delete_auction() {
     expect_event(crate::Event::<Test>::AuctionRemoved(0));
 
     // NFT can be transferred
-    assert_ok!(Nft::transfer(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), BOB));
-    assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), ALICE));
+    assert_ok!(Nft::transfer(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
+    assert_ok!(Nft::transfer(Origin::signed(CHARLIE), NFT_CLASS_ID_1, 0u16.into(), ALICE));
 
     // Error AuctionAlreadyStarted
     assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info.clone()));
@@ -156,7 +158,7 @@ fn can_delete_auction() {
 }
  
 #[test]
-fn can_update_auction() {
+fn can_update_english_auction() {
   ExtBuilder::default().build().execute_with(|| {
     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
@@ -206,7 +208,7 @@ fn can_update_auction() {
 }
 
 #[test]
-fn can_bid_value() {
+fn can_bid_value_english_auction() {
   let auction_0_info = AuctionInfo {
     name: "Auction 0".as_bytes().to_vec(),
     last_bid: None,
@@ -287,5 +289,47 @@ fn can_bid_value() {
       AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
       Error::<Test>::AuctionAlreadyConcluded,
     );
+  });
+}
+
+#[test]
+fn can_close_english_auction() {
+  let auction_info = AuctionInfo {
+    name: "Auction 0".as_bytes().to_vec(),
+    last_bid: None,
+    start: 10u64,
+    end: 21u64,
+    owner: ALICE,
+    auction_type: AuctionType::English,
+    token: (NFT_CLASS_ID_1, 0u16.into()),
+    minimal_bid: 0,
+  };
+
+  ExtBuilder::default().build().execute_with(|| {
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
+    
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info));
+    
+    System::set_block_number(11);
+    
+    let bid_value = BalanceOf::<Test>::from(1_000_u32);
+    assert_ok!(AuctionsModule::bid_value(Origin::signed(BOB), 0, bid_value));
+    
+    let alice_balance_before = Balances::free_balance(&ALICE);
+    let bob_balance_before = Balances::free_balance(&BOB);
+    
+    System::set_block_number(21);
+    
+    assert_ok!(AuctionsModule::conclude_auction(21));
+
+    let alice_balance_after = Balances::free_balance(&ALICE);
+    let bob_balance_after = Balances::free_balance(&BOB);
+
+    // NFT can be transferred; Current version of nft pallet has no ownership check
+    assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
+
+    assert_eq!(alice_balance_before.saturating_add(bid_value), alice_balance_after);
+    assert_eq!(bob_balance_before.saturating_sub(bid_value), bob_balance_after);
   });
 }
