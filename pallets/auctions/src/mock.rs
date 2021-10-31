@@ -43,7 +43,7 @@ pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
-pub const NFT_ID_1: u32 = 123;
+pub const NFT_CLASS_ID_1: u32 = 123;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
