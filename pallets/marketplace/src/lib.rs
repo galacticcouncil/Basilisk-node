@@ -226,16 +226,13 @@ pub mod pallet {
 				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::NotListed)?;
 
 				if let Some(current_offer) = &token_info.offer {
-					if amount > current_offer.1 {
-						<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, amount)?;
-						token_info.offer = Some((sender.clone(), amount, expires))
-					} else {
+					if amount < current_offer.1 {
 						return Err(Error::<T>::InvalidOffer.into());
 					}
-				} else {
-					<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, amount)?;
-					token_info.offer = Some((sender.clone(), amount, expires))
 				}
+
+				<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, amount)?;
+				token_info.offer = Some((sender.clone(), amount, expires));
 
 				Ok(())
 			})?;
