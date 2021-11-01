@@ -73,7 +73,8 @@ pub struct GlobalPool<Period, Balance, AssetId> {
 	accumulated_rps_start: Balance,
 	accumulated_rps: Balance,
 	reward_currency: AssetId,
-    accumulated_rewards: Balance,
+	accumulated_rewards: Balance,
+	paid_accumulated_rewards: Balance,
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
@@ -261,10 +262,13 @@ impl<T: Config> Pallet<T> {
 		if !reward.is_zero() {
 			pool.accumulated_rps = Self::get_new_accumulated_rps(pool.accumulated_rps, pool.total_shares, reward)?;
 
-            pool.accumulated_rewards = pool.accumulated_rewards.checked_add(&reward).ok_or(Error::<T>::Overflow)?;
+			pool.accumulated_rewards = pool
+				.accumulated_rewards
+				.checked_add(&reward)
+				.ok_or(Error::<T>::Overflow)?;
 		}
 
-        pool.updated_at = now_period;
+		pool.updated_at = now_period;
 
 		return Ok(());
 	}
@@ -320,11 +324,21 @@ impl<T: Config> Pallet<T> {
 			.checked_sub(&pool.accumulated_rps_start)
 			.ok_or(Error::<T>::Overflow)?
 			.checked_mul(&shares)
+			.ok_or(Error::<T>::Overflow)?
+			.min(pool.accumulated_rewards);
+
+		pool.accumulated_rps_start = pool.accumulated_rps;
+
+		pool.paid_accumulated_rewards = pool
+			.paid_accumulated_rewards
+			.checked_add(&reward)
 			.ok_or(Error::<T>::Overflow)?;
-        
-        pool.accumulated_rps_start = pool.accumulated_rps;
 
+		pool.accumulated_rewards = pool
+			.accumulated_rewards
+			.checked_sub(&reward)
+			.ok_or(Error::<T>::Overflow)?;
 
-		Err(Error::<T>::NotImplemented)
+	    return Ok(reward);	
 	}
 }
