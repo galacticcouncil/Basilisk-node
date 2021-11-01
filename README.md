@@ -187,7 +187,6 @@ Then open settings screen -> developer and paste
       "NftTokenIdOf":"u32",
       "ClassType":{
         "_enum":[
-          "Unknown",
           "Marketplace",
           "PoolShare"
         ]

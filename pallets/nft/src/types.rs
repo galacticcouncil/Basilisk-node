@@ -8,14 +8,13 @@ use scale_info::TypeInfo;
 #[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum ClassType {
-	Unknown = 0,
-	Marketplace = 1,
-	PoolShare = 2,
+	Marketplace = 0,
+	PoolShare = 1,
 }
 
 impl Default for ClassType {
 	fn default() -> Self {
-		ClassType::Unknown
+		ClassType::Marketplace
 	}
 }
 

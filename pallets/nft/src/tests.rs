@@ -242,21 +242,15 @@ fn destroy_class_works() {
 			Some(20),
 			Some(b"metadata".to_vec())
 		));
-		assert_ok!(NFTPallet::mint(
-			Origin::signed(BOB),
-			CLASS_ID_0,
-			Some(CHARLIE),
-			Some(20),
-			Some(b"metadata".to_vec())
-		));
 
-		// assert_noop!(
-		// 	NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
-		// 	Error::<Test>::TokenClassNotEmpty
-		// );
+		assert_noop!(
+			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
+			Error::<Test>::TokenClassNotEmpty
+		);
 
 		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0));
 		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0));
+		assert_ok!(NFTPallet::burn(Origin::root(), CLASS_ID_1, TOKEN_ID_0));
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_1),
 			UNQ::Error::<Test>::NoPermission

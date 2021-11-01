@@ -79,7 +79,7 @@ pub mod pallet {
 
 	/// Next available token ID.
 	#[pallet::storage]
-	#[pallet::getter(fn next_token_id)]
+	#[pallet::getter(fn next_instance_id)]
 	pub type NextInstanceId<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, T::NftInstanceId, ValueQuery>;
 
 	#[pallet::storage]
@@ -185,7 +185,7 @@ pub mod pallet {
 				.ok_or(Error::<T>::ClassUnknown)?;
 
 			match class_type {
-				ClassType::PoolShare | ClassType::Unknown => ensure!(sender.is_none(), Error::<T>::NotPermitted),
+				ClassType::PoolShare => ensure!(sender.is_none(), Error::<T>::NotPermitted),
 				_ => (),
 			}
 
@@ -330,7 +330,7 @@ pub mod pallet {
 			let witness =
 				pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::NoWitness)?;
 
-			// TODO: Need to check if any instance exists somehow still
+			ensure!(witness.instances == 0u32, Error::<T>::TokenClassNotEmpty);
 			pallet_uniques::Pallet::<T>::do_destroy_class(class_id.into(), witness, sender)?;
 			Classes::<T>::remove(class_id);
 

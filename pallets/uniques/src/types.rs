@@ -67,7 +67,7 @@ pub struct ClassTeam<AccountId> {
 pub struct DestroyWitness {
 	/// The total number of outstanding instances of this asset class.
 	#[codec(compact)]
-	pub(super) instances: u32,
+	pub instances: u32,
 	/// The total number of outstanding instance metadata of this asset class.
 	#[codec(compact)]
 	pub(super) instance_metadatas: u32,

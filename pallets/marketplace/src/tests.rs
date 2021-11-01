@@ -168,8 +168,8 @@ fn free_trading_works() {
 			b"metadata".to_vec()
 		));
 		assert_ok!(NFT::create_class(
-			Origin::signed(CHARLIE),
-			ClassType::Unknown,
+			Origin::root(),
+			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
 
@@ -238,7 +238,7 @@ fn free_trading_works() {
 			Some(b"metadata".to_vec())
 		));
 		assert_ok!(NFT::mint(
-			Origin::signed(ALICE),
+			Origin::root(),
 			3,
 			Some(DAVE),
 			Some(20),
@@ -268,9 +268,10 @@ fn free_trading_works() {
 
 		// Only class owner or ForceOrigin can destroy their class
 		assert_ok!(NFT::destroy_class(Origin::signed(CHARLIE), 2));
+		
 		assert_noop!(
 			NFT::destroy_class(Origin::signed(CHARLIE), 1),
-			pallet_uniques::Error::<Test, _>::NoPermission
+			pallet_nft::Error::<Test>::TokenClassNotEmpty
 		);
 
 		// Only token owner can list their token on marketplace
@@ -354,11 +355,11 @@ fn offering_works() {
 			Market::make_offer(Origin::signed(BOB), 0, 0, 0 * BSX, 1),
 			Error::<Test>::InvalidOffer
 		);
+		assert_ok!(Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * BSX, 1));
 		assert_noop!(
-			Market::withdraw_offer(Origin::signed(ALICE), 0, 0),
+			Market::withdraw_offer(Origin::signed(CHARLIE), 0, 0),
 			Error::<Test>::UnknownOffer
 		);
-		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX, 1));
 		assert_noop!(
 			Market::accept_offer(Origin::signed(ALICE), 0, 0),
 			Error::<Test>::OfferExpired
