@@ -70,8 +70,10 @@ impl Default for LoyaltyCurve {
 pub struct GlobalPool<Period, Balance, AssetId> {
 	updated_at: Period,
 	total_shares: Balance,
+	accumulated_rps_start: Balance,
 	accumulated_rps: Balance,
 	reward_currency: AssetId,
+    accumulated_rewards: Balance,
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
@@ -254,14 +256,15 @@ impl<T: Config> Pallet<T> {
 		let reward = periods_since_last_update
 			.checked_mul(&reward_per_period)
 			.ok_or(Error::<T>::Overflow)?
-			.min(T::MultiCurrency::free_balance(
-				pool.reward_currency,
-				&pool_id,
-			));
+			.min(T::MultiCurrency::free_balance(pool.reward_currency, &pool_id));
 
 		if !reward.is_zero() {
 			pool.accumulated_rps = Self::get_new_accumulated_rps(pool.accumulated_rps, pool.total_shares, reward)?;
+
+            pool.accumulated_rewards = pool.accumulated_rewards.checked_add(&reward).ok_or(Error::<T>::Overflow)?;
 		}
+
+        pool.updated_at = now_period;
 
 		return Ok(());
 	}
@@ -306,5 +309,22 @@ impl<T: Config> Pallet<T> {
 			.ok_or(Error::<T>::Overflow)?;
 
 		Ok((user_rewards, unclaimable_rewards))
+	}
+
+	pub fn claim_from_global_pool(
+		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId>,
+		shares: T::Balance,
+	) -> Result<T::Balance, Error<T>> {
+		let reward = pool
+			.accumulated_rps
+			.checked_sub(&pool.accumulated_rps_start)
+			.ok_or(Error::<T>::Overflow)?
+			.checked_mul(&shares)
+			.ok_or(Error::<T>::Overflow)?;
+        
+        pool.accumulated_rps_start = pool.accumulated_rps;
+
+
+		Err(Error::<T>::NotImplemented)
 	}
 }
