@@ -1,3 +1,37 @@
+# v5.0.2 (Mon Nov 01 2021)
+
+#### 🐛 Bug Fix
+
+- chore: additional audit tests [#199](https://github.com/galacticcouncil/Basilisk-node/pull/199) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@Roznovjak](https://github.com/Roznovjak))
+- feat: XYK and LBP rpc to retrieve pool account id [#213](https://github.com/galacticcouncil/Basilisk-node/pull/213) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- test(exchange): resolve todos [#207](https://github.com/galacticcouncil/Basilisk-node/pull/207) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: implement orml benchmarks [#190](https://github.com/galacticcouncil/Basilisk-node/pull/190) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: upgrade v0.9.11 [#202](https://github.com/galacticcouncil/Basilisk-node/pull/202) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: use system blocknum provider in lbp [#211](https://github.com/galacticcouncil/Basilisk-node/pull/211) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: bump xyk and exchange crate versions [#188](https://github.com/galacticcouncil/Basilisk-node/pull/188) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore!: lbp refactor [#185](https://github.com/galacticcouncil/Basilisk-node/pull/185) ([@jak-pan](https://github.com/jak-pan) [@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- refactor: rename BSX to UNITS [#196](https://github.com/galacticcouncil/Basilisk-node/pull/196) ([@Roznovjak](https://github.com/Roznovjak) [@jak-pan](https://github.com/jak-pan))
+- fix!: XCM filter [#200](https://github.com/galacticcouncil/Basilisk-node/pull/200) ([@jak-pan](https://github.com/jak-pan) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: use Everything as a call filter [#192](https://github.com/galacticcouncil/Basilisk-node/pull/192) ([@Roznovjak](https://github.com/Roznovjak) [@jak-pan](https://github.com/jak-pan))
+- fix: revert orml-token accounts in dev chain spec [#191](https://github.com/galacticcouncil/Basilisk-node/pull/191) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@jak-pan](https://github.com/jak-pan))
+- fix: Remove duplicated key AssetNativeLocation [#198](https://github.com/galacticcouncil/Basilisk-node/pull/198) ([@mckrava](https://github.com/mckrava))
+- chore: makefile linking fix [#197](https://github.com/galacticcouncil/Basilisk-node/pull/197) ([@Roznovjak](https://github.com/Roznovjak))
+- fix: LBP benchmarks [#195](https://github.com/galacticcouncil/Basilisk-node/pull/195) ([@Roznovjak](https://github.com/Roznovjak))
+
+#### ⚠️ Pushed to `master`
+
+- spec version parity restored ([@lumir-mrkva](https://github.com/lumir-mrkva))
+
+#### Authors: 5
+
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Jakub Pánik ([@jak-pan](https://github.com/jak-pan))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Max Kravchuk ([@mckrava](https://github.com/mckrava))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
 # v5.0.1 (Thu Oct 14 2021)
 
 - fix: enabled XCM
