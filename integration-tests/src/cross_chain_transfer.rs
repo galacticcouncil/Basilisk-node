@@ -66,13 +66,16 @@ fn transfer_to_relay_chain() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			1,
 			3 * BSX,
-			Box::new(MultiLocation::new(
-				1,
-				X1(Junction::AccountId32 {
-					id: BOB,
-					network: NetworkId::Any,
-				})
-			)),
+			Box::new(
+				MultiLocation::new(
+					1,
+					X1(Junction::AccountId32 {
+						id: BOB,
+						network: NetworkId::Any,
+					})
+				)
+				.into()
+			),
 			4_600_000_000
 		));
 		assert_eq!(
