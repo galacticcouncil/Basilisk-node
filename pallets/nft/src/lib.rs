@@ -233,7 +233,8 @@ pub mod pallet {
 		}
 
 		/// Transfers NFT from account A to account B
-		/// Only the owner can send their NFT to another account
+		/// Only the ProtocolOrigin can send NFT to another account
+		/// This is to prevent creating deposit burden for others
 		///
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be transferred.
@@ -258,14 +259,9 @@ pub mod pallet {
 				class_id.into(),
 				instance_id.into(),
 				dest,
-				|_class_details, instance_details| {
-					if let Some(sender) = sender {
-						let is_permitted = instance_details.owner == sender;
-						ensure!(is_permitted, pallet_uniques::Error::<T, ()>::NoPermission);
-						Ok(())
-					} else {
-						Ok(())
-					}
+				|_class_details, _instance_details| {
+					ensure!(sender.is_none(), pallet_uniques::Error::<T, ()>::NoPermission);
+					Ok(())
 				},
 			)
 		}

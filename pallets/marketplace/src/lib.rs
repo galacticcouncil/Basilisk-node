@@ -5,7 +5,7 @@
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{Currency, ExistenceRequirement, NamedReservableCurrency},
+	traits::{Currency, ExistenceRequirement, NamedReservableCurrency, OriginTrait},
 	transactional,
 };
 use frame_system::{ensure_signed, RawOrigin};
@@ -432,7 +432,7 @@ impl<T: Config> Pallet<T> {
 			<T as pallet_nft::Config>::Currency::transfer(&buyer, &owner, price, ExistenceRequirement::KeepAlive)?;
 
 			let to = T::Lookup::unlookup(buyer.clone());
-			pallet_nft::Pallet::<T>::transfer(owner_origin.clone(), class_id, instance_id, to)?;
+			pallet_nft::Pallet::<T>::transfer(T::Origin::root(), class_id, instance_id, to)?;
 
 			pallet_uniques::Pallet::<T>::freeze(
 				T::Origin::from(RawOrigin::Signed(buyer.clone())),

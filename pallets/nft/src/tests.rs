@@ -175,9 +175,9 @@ fn transfer_works() {
 			NFTPallet::transfer(Origin::signed(CHARLIE), CLASS_ID_0, TOKEN_ID_0, ALICE),
 			UNQ::Error::<Test>::NoPermission
 		);
-		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0, BOB));
+		assert_ok!(NFTPallet::transfer(Origin::root(), CLASS_ID_0, TOKEN_ID_0, BOB));
 		assert_ok!(NFTPallet::transfer(
-			Origin::signed(BOB),
+			Origin::root(),
 			CLASS_ID_0,
 			TOKEN_ID_0,
 			CHARLIE

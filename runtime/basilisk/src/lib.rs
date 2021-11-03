@@ -686,7 +686,7 @@ impl pallet_marketplace::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 10_000 * UNITS; // 10 000 UNITS deposit to create asset class
+	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
 	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
 	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value

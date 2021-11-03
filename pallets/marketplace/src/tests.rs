@@ -270,11 +270,11 @@ fn free_trading_works() {
 		assert_ok!(NFT::burn(Origin::signed(BOB), 2, 1));
 		assert_ok!(NFT::burn(Origin::signed(CHARLIE), 2, 2));
 
-		// Only instance owner can transfer their token
-		assert_ok!(NFT::transfer(Origin::signed(BOB), 1, 1, CHARLIE));
-		assert_ok!(NFT::transfer(Origin::signed(CHARLIE), 1, 1, BOB));
+		// Only Protocol can transfer token
+		assert_ok!(NFT::transfer(Origin::root(), 1, 1, CHARLIE));
+		assert_ok!(NFT::transfer(Origin::root(), 1, 1, BOB));
 		assert_noop!(
-			NFT::transfer(Origin::signed(ALICE), 1, 1, CHARLIE),
+			NFT::transfer(Origin::signed(BOB), 1, 1, CHARLIE),
 			pallet_uniques::Error::<Test, _>::NoPermission
 		);
 
