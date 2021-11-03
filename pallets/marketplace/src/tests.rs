@@ -106,8 +106,12 @@ fn buy_works() {
 			})
 		);
 
-		assert_eq!(Balances::free_balance(ALICE), 10_668 * BSX);
-		assert_eq!(Balances::free_balance(BOB), 13_976 * BSX);
+		// e.g. Alice free balance = Total balance - Class deposit + Price - Royalty
+		// = 20_000 - 10_000 + 1024 - 256 = 10_768 
+		assert_eq!(Balances::free_balance(ALICE), 10_768 * BSX);
+		// BOB now owns NFT so reserved balance should be transferred to him
+		assert_eq!(Balances::free_balance(BOB), 13_876 * BSX);
+		assert_eq!(Balances::free_balance(CHARLIE), 150_256 * BSX);
 		assert_eq!(Balances::free_balance(DAVE), 200_000 * BSX);
 
 		let event = Event::Marketplace(crate::Event::TokenSold(
@@ -145,6 +149,14 @@ fn buy_works_2() {
 		assert_eq!(Balances::total_balance(&ALICE), 20_080 * BSX);
 		assert_eq!(Balances::total_balance(&BOB), 14_900 * BSX);
 		assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * BSX);
+		// Reserved 10_000 for the class
+		assert_eq!(Balances::reserved_balance(&ALICE), 10_000 * BSX);
+		// Reserved 100 for the transferred nft
+		assert_eq!(Balances::reserved_balance(&BOB), 100 * BSX);
+		assert_ok!(Market::unlist(Origin::signed(BOB), 0, 0));
+		assert_ok!(NFT::burn(Origin::signed(CHARLIE), 1, 1));
+
+
 	});
 }
 
@@ -268,7 +280,7 @@ fn free_trading_works() {
 
 		// Only class owner or ForceOrigin can destroy their class
 		assert_ok!(NFT::destroy_class(Origin::signed(CHARLIE), 2));
-		
+
 		assert_noop!(
 			NFT::destroy_class(Origin::signed(CHARLIE), 1),
 			pallet_nft::Error::<Test>::TokenClassNotEmpty
@@ -376,6 +388,7 @@ fn offering_works() {
 		assert_eq!(frame_system::Pallet::<Test>::block_number(), 1);
 		assert_ok!(Market::accept_offer(Origin::signed(ALICE), 0, 0));
 		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
+		// Total = 20_000 + 50 - 10 = 20_040
 		assert_eq!(Balances::total_balance(&ALICE), 20_040 * BSX);
 		assert_eq!(Balances::total_balance(&BOB), 14_950 * BSX);
 		assert_eq!(Balances::total_balance(&CHARLIE), 150_010 * BSX);

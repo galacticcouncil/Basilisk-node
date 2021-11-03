@@ -126,7 +126,6 @@ impl Contains<Call> for BaseFilter {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::XYK(_) => false,
-			Call::NFT(_) => false,
 			Call::Exchange(_) => false,
 			_ => true,
 		}
@@ -712,7 +711,7 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = ();
+	type InstanceReserveStrategy = NFT;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

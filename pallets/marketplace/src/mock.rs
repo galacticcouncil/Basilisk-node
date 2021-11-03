@@ -100,7 +100,7 @@ impl system::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 9_900 * BSX; // 1 UNIT deposit to create asset class
+	pub const ClassDeposit: Balance = 10_000 * BSX; // 1 UNIT deposit to create asset class
 	pub const InstanceDeposit: Balance = 100 * BSX; // 1/100 UNIT deposit to create asset instance
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value

@@ -184,11 +184,6 @@ pub mod pallet {
 				.map(|c| c.class_type)
 				.ok_or(Error::<T>::ClassUnknown)?;
 
-			match class_type {
-				ClassType::PoolShare => ensure!(sender.is_none(), Error::<T>::NotPermitted),
-				_ => (),
-			}
-
 			if let Some(r) = royalty {
 				ensure!(r < 100, Error::<T>::NotInRange);
 			}
@@ -205,8 +200,8 @@ pub mod pallet {
 				instance_id.into(),
 				sender.clone().unwrap_or_default(),
 				|_details| {
-					if let Some(sender) = sender.clone() {
-						<T as Config>::Currency::reserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get())?;
+					if sender.is_some() {
+						ensure!(class_type == ClassType::Marketplace, Error::<T>::NotPermitted)
 					}
 					Ok(())
 				},
@@ -302,7 +297,6 @@ pub mod pallet {
 					if let Some(sender) = sender {
 						let is_permitted = instance_details.owner == sender;
 						ensure!(is_permitted, pallet_uniques::Error::<T, ()>::NoPermission);
-						<T as Config>::Currency::unreserve_named(&RESERVE_ID, &sender, T::TokenDeposit::get());
 						Ok(())
 					} else {
 						Ok(())

@@ -51,8 +51,8 @@ impl pallet_nft::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 100_000 * BSX; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 1_000 * BSX; // 1/100 UNIT deposit to create asset instance
+	pub const ClassDeposit: Balance = 10_000 * BSX; // 1 UNIT deposit to create asset class
+	pub const InstanceDeposit: Balance = 100 * BSX; // 1/100 UNIT deposit to create asset instance
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = 1000 * BSX;
@@ -149,7 +149,11 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 1_000_000 * BSX), (BOB, 6_666_666 * BSX)],
+			balances: vec![
+				(ALICE, 20_000 * BSX),
+				(BOB, 15_000 * BSX),
+				(CHARLIE, 150_000 * BSX),
+			],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
