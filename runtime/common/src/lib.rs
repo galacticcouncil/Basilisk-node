@@ -217,7 +217,6 @@ parameter_types! {
 
 // pallet session
 parameter_types! {
-	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(33);
 	pub const Period: u32 = 4 * HOURS;
 	pub const Offset: u32 = 0;
 }
