@@ -271,8 +271,6 @@ pub mod pallet {
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be burned.
 		/// - `instance_id`: The instance of the asset to be burned.
-		/// - `check_owner`: If `Some` then the operation will fail with `WrongOwner` unless the
-		///   asset is owned by this value.
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
 		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
