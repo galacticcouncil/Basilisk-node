@@ -109,16 +109,19 @@ fn transfer_from_hydra() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			3 * BSX,
-			Box::new(MultiLocation::new(
-				1,
-				X2(
-					Junction::Parachain(2000),
-					Junction::AccountId32 {
-						id: BOB,
-						network: NetworkId::Any,
-					}
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
 				)
-			)),
+				.into()
+			),
 			399_600_000_000
 		));
 		assert_eq!(
@@ -151,16 +154,19 @@ fn transfer_insufficient_amount_should_fail() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			1_000_000 - 1,
-			Box::new(MultiLocation::new(
-				1,
-				X2(
-					Junction::Parachain(2000),
-					Junction::AccountId32 {
-						id: BOB,
-						network: NetworkId::Any,
-					}
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
 				)
-			)),
+				.into()
+			),
 			399_600_000_000
 		));
 		assert_eq!(
