@@ -229,12 +229,10 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
 				vec![],
 				vec![
-					(b"hKSM".to_vec(), 1_000u128),
-					(b"hDOT".to_vec(), 1_000u128),
-					(b"hETH".to_vec(), 1_000u128),
-					(b"hUSDT".to_vec(), 1_000u128),
+					(b"KSM".to_vec(), 1_000u128),
+					(b"KUSD".to_vec(), 1_000u128),
 				],
-				vec![],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
 		// Bootnodes
@@ -318,12 +316,10 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![
-					(b"hKSM".to_vec(), 1_000u128),
-					(b"hDOT".to_vec(), 1_000u128),
-					(b"hETH".to_vec(), 1_000u128),
-					(b"hUSDT".to_vec(), 1_000u128),
+					(b"KSM".to_vec(), 1_000u128),
+					(b"KUSD".to_vec(), 1_000u128),
 				],
-				vec![(1, Price::from_float(0.5)), (2, Price::from(2))],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
 		// Bootnodes
@@ -469,12 +465,10 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![
-					(b"hKSM".to_vec(), 1_000u128),
-					(b"hDOT".to_vec(), 1_000u128),
-					(b"hETH".to_vec(), 1_000u128),
-					(b"hUSDT".to_vec(), 1_000u128),
+					(b"KSM".to_vec(), 1_000u128),
+					(b"KUSD".to_vec(), 1_000u128),
 				],
-				vec![],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
 		// Bootnodes
