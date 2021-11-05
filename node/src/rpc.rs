@@ -40,9 +40,9 @@ where
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
 {
+	use pallet_lbp_rpc::{LBPApi, LBP};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use pallet_xyk_rpc::{XYKApi, XYK};
-	use pallet_lbp_rpc::{LBPApi, LBP};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 
 	let mut io = jsonrpc_core::IoHandler::default();

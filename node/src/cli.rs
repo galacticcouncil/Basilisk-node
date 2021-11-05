@@ -152,13 +152,13 @@ pub enum Subcommand {
 	#[structopt(name = "export-genesis-wasm")]
 	ExportGenesisWasm(ExportGenesisWasmCommand),
 
-    /// Try some command against runtime state.
-    #[cfg(feature = "try-runtime")]
-    TryRuntime(try_runtime_cli::TryRuntimeCmd),
+	/// Try some command against runtime state.
+	#[cfg(feature = "try-runtime")]
+	TryRuntime(try_runtime_cli::TryRuntimeCmd),
 
-    /// Try some command against runtime state. Note: `try-runtime` feature must be enabled.
-    #[cfg(not(feature = "try-runtime"))]
-    TryRuntime,
+	/// Try some command against runtime state. Note: `try-runtime` feature must be enabled.
+	#[cfg(not(feature = "try-runtime"))]
+	TryRuntime,
 }
 
 /// Command for exporting the genesis state of the parachain
