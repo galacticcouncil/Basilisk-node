@@ -94,7 +94,7 @@ pub mod pallet {
 			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
 
 			Self::deposit_event(Event::TokenClassCreated(sender, class_id));
-			Ok(().into())
+			Ok(())
 		}
 
 		/// NFT is minted in the specified class
@@ -119,7 +119,7 @@ pub mod pallet {
 			let token_id = orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data)?;
 
 			Self::deposit_event(Event::TokenMinted(sender, class_id, token_id));
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Transfers NFT from account A to account B
@@ -143,7 +143,7 @@ pub mod pallet {
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 			orml_nft::Pallet::<T>::transfer(&sender, &to, token)?;
 			Self::deposit_event(Event::TokenTransferred(sender, to, token.0, token.1));
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Removes a token from existence
@@ -159,7 +159,7 @@ pub mod pallet {
 			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
 			orml_nft::Pallet::<T>::burn(&sender, token)?;
 			Self::deposit_event(Event::TokenBurned(sender, token.0, token.1));
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Removes a class from existence
@@ -176,7 +176,7 @@ pub mod pallet {
 			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
 			T::Currency::unreserve(&sender, T::ClassBondAmount::get());
 			Self::deposit_event(Event::TokenClassDestroyed(sender, class_id));
-			Ok(().into())
+			Ok(())
 		}
 
 		///////////////////////////////////////////////////
@@ -209,7 +209,7 @@ pub mod pallet {
 			PoolItemPrice::<T>::insert(class_id, price);
 
 			Self::deposit_event(Event::TokenPoolCreated(sender, class_id));
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Removes a pool from existence
@@ -227,7 +227,7 @@ pub mod pallet {
 			PoolItemPrice::<T>::remove(class_id);
 			T::Currency::unreserve(&sender, T::ClassBondAmount::get());
 			Self::deposit_event(Event::TokenPoolDestroyed(sender, class_id));
-			Ok(().into())
+			Ok(())
 		}
 
 		/// NFTs can be bought from a pool for a constant price

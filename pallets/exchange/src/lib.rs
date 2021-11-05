@@ -286,7 +286,7 @@ pub mod pallet {
 				discount,
 			)?;
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Create buy intention
@@ -333,7 +333,7 @@ pub mod pallet {
 				discount,
 			)?;
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }

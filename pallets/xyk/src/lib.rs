@@ -321,7 +321,7 @@ pub mod pallet {
 				pair_account,
 			));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Add liquidity to previously created asset pair pool.
@@ -415,7 +415,7 @@ pub mod pallet {
 				amount_b_required,
 			));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Remove liquidity from specific liquidity pool in the form of burning shares.
@@ -505,7 +505,7 @@ pub mod pallet {
 				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b, share_token, pair_account));
 			}
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade asset in for asset out.
@@ -528,7 +528,7 @@ pub mod pallet {
 
 			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade asset in for asset out.
@@ -551,7 +551,7 @@ pub mod pallet {
 
 			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }

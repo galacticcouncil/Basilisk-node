@@ -71,7 +71,7 @@ fn initialize_pool<T: Config>(
 ) -> dispatch::DispatchResult {
 	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, asset_b, amount, price)?;
 
-	Ok(().into())
+	Ok(())
 }
 
 const SELL_INTENTION_AMOUNT: Balance = 1_000_000_000;
@@ -107,7 +107,7 @@ fn feed_intentions<T: Config>(
 		)?;
 	}
 
-	Ok(().into())
+	Ok(())
 }
 
 fn validate_finalize<T: Config>(

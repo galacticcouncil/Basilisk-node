@@ -410,7 +410,7 @@ pub mod pallet {
 				asset_b_amount,
 			));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Update pool data of a pool.
@@ -477,7 +477,7 @@ pub mod pallet {
 				Self::validate_pool_data(pool)?;
 
 				Self::deposit_event(Event::PoolUpdated(pool_id, (*pool).clone()));
-				Ok(().into())
+				Ok(())
 			})
 		}
 
@@ -534,7 +534,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::LiquidityAdded(pool_id, asset_a, asset_b, amount_a, amount_b));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Transfer all the liquidity from a pool back to the pool owner and destroy the pool.
@@ -571,7 +571,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade `asset_in` for `asset_out`.
@@ -601,7 +601,7 @@ pub mod pallet {
 
 			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade `asset_in` for `asset_out`.
@@ -631,7 +631,7 @@ pub mod pallet {
 
 			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }

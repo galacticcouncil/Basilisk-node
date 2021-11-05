@@ -63,7 +63,7 @@ fn initialize_pool<T: Config>(
 	price: Price,
 ) -> dispatch::DispatchResult {
 	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), HDX, asset, amount, price)?;
-	Ok(().into())
+	Ok(())
 }
 
 benchmarks! {

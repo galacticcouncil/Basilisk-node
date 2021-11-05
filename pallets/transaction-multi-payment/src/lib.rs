@@ -222,7 +222,7 @@ pub mod pallet {
 
 				Self::deposit_event(Event::CurrencySet(who, currency));
 
-				return Ok(().into());
+				return Ok(());
 			}
 
 			Err(Error::<T>::UnsupportedCurrency.into())
@@ -248,7 +248,7 @@ pub mod pallet {
 
 				*maybe_price = Some(price);
 				Self::deposit_event(Event::CurrencyAdded(currency));
-				Ok(().into())
+				Ok(())
 			})
 		}
 
@@ -273,7 +273,7 @@ pub mod pallet {
 
 				Self::deposit_event(Event::CurrencyRemoved(currency));
 
-				Ok(().into())
+				Ok(())
 			})
 		}
 	}

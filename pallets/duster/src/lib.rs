@@ -216,7 +216,7 @@ pub mod pallet {
 			// Ignore the result, it fails - no problem.
 			let _ = Self::reward_duster(&who, currency_id, dust);
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Add account to list of non-dustable account. Account whihc are excluded from udsting.
@@ -230,7 +230,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::Added(account));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Remove account from list of non-dustable accounts. That means account can be dusted again.
@@ -243,12 +243,12 @@ pub mod pallet {
 
 				*maybe_account = None;
 
-				Ok(().into())
+				Ok(())
 			})?;
 
 			Self::deposit_event(Event::Removed(account));
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }
