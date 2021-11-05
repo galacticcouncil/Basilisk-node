@@ -258,7 +258,7 @@ pub mod pallet {
 			asset_b: AssetId,
 			amount: Balance,
 			initial_price: Price,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
@@ -337,7 +337,7 @@ pub mod pallet {
 			asset_b: AssetId,
 			amount_a: Balance,
 			amount_b_max_limit: Balance,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let asset_pair = AssetPair {
@@ -431,7 +431,7 @@ pub mod pallet {
 			asset_a: AssetId,
 			asset_b: AssetId,
 			liquidity_amount: Balance,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let asset_pair = AssetPair {
@@ -523,7 +523,7 @@ pub mod pallet {
 			amount: Balance,
 			max_limit: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
@@ -546,7 +546,7 @@ pub mod pallet {
 			amount: Balance,
 			max_limit: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;

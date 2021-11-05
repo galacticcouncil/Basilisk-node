@@ -4,7 +4,7 @@
 
 use codec::{Decode, Encode};
 use frame_support::{
-	dispatch::{DispatchError, DispatchResult, DispatchResultWithPostInfo},
+	dispatch::{DispatchError, DispatchResult},
 	ensure,
 	traits::{Currency, ExistenceRequirement, ReservableCurrency},
 	transactional,
@@ -87,7 +87,7 @@ pub mod pallet {
 		/// - `data`: Field(s) defined in the ClassData struct
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(origin: OriginFor<T>, metadata: Vec<u8>, data: T::ClassData) -> DispatchResultWithPostInfo {
+		pub fn create_class(origin: OriginFor<T>, metadata: Vec<u8>, data: T::ClassData) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
@@ -110,7 +110,7 @@ pub mod pallet {
 			class_id: ClassIdOf<T>,
 			metadata: Vec<u8>,
 			token_data: TokenData
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
@@ -134,7 +134,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			dest: <T::Lookup as StaticLookup>::Source,
 			token: (ClassIdOf<T>, TokenIdOf<T>),
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			let to: T::AccountId = T::Lookup::lookup(dest)?;
 			ensure!(sender != to, Error::<T>::CannotSendToSelf);
@@ -152,7 +152,7 @@ pub mod pallet {
 		/// - `token`: unique identificator of a token
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
-		pub fn burn(origin: OriginFor<T>, token: (T::ClassId, T::TokenId)) -> DispatchResultWithPostInfo {
+		pub fn burn(origin: OriginFor<T>, token: (T::ClassId, T::TokenId)) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
 			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
@@ -169,7 +169,7 @@ pub mod pallet {
 		/// - `class_id`: unique identificator of a class
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		#[transactional]
-		pub fn destroy_class(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResultWithPostInfo {
+		pub fn destroy_class(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
@@ -201,7 +201,7 @@ pub mod pallet {
 			metadata: Vec<u8>,
 			data: T::ClassData,
 			price: BalanceOf<T>,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
@@ -219,7 +219,7 @@ pub mod pallet {
 		/// - `class_id`: unique identificator of a class
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		#[transactional]
-		pub fn destroy_pool(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResultWithPostInfo {
+		pub fn destroy_pool(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
 			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);

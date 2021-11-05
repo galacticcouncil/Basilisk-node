@@ -252,7 +252,7 @@ pub mod pallet {
 			amount_sell: Balance,
 			min_bought: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure! {
@@ -299,7 +299,7 @@ pub mod pallet {
 			amount_buy: Balance,
 			max_sold: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure! {

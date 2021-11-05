@@ -198,7 +198,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			account: T::AccountId,
 			currency_id: T::CurrencyId,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(Self::blacklisted(&account).is_none(), Error::<T>::AccountBlacklisted);
@@ -223,7 +223,7 @@ pub mod pallet {
 		/// If such account should be dusted - `AccountBlacklisted` error is returned.
 		/// Only root can perform this action.
 		#[pallet::weight((<T as Config>::WeightInfo::add_nondustable_account(), DispatchClass::Normal, Pays::No))]
-		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
+		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 
 			AccountBlacklist::<T>::insert(&account, ());
@@ -235,10 +235,10 @@ pub mod pallet {
 
 		/// Remove account from list of non-dustable accounts. That means account can be dusted again.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_nondustable_account(), DispatchClass::Normal, Pays::No))]
-		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
+		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 
-			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResultWithPostInfo {
+			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResult {
 				ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
 
 				*maybe_account = None;
