@@ -40,14 +40,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		Account::<T, I>::insert((&dest, &class, &instance), ());
 
 		let team = Self::get_team(&class_details);
-		T::InstanceReserveStrategy::repatriate::<T, I>(
-			&dest,
-			&details.owner,
-			&instance,
-			&class,
-			&team,
-			details.deposit,
-		)?;
+		T::InstanceReserveStrategy::unreserve::<T, I>(&details.owner, &instance, &class, &team, details.deposit)?;
+		T::InstanceReserveStrategy::reserve::<T, I>(&dest, &instance, &class, &team, details.deposit)?;
 
 		let origin = details.owner;
 		details.owner = dest;

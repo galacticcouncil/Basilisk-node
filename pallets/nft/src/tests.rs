@@ -162,6 +162,7 @@ fn transfer_works() {
 			b"metadata".to_vec()
 		));
 		assert_ok!(NFTPallet::mint(Origin::root(), CLASS_ID_1, None, None, None));
+		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
 		assert_ok!(NFTPallet::mint(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -169,20 +170,19 @@ fn transfer_works() {
 			Some(20),
 			Some(b"metadata".to_vec())
 		));
+		assert_eq!(Balances::free_balance(ALICE), 99_00 * BSX);
 		assert_ok!(NFTPallet::transfer(Origin::root(), CLASS_ID_1, TOKEN_ID_0, BOB));
 
 		assert_noop!(
 			NFTPallet::transfer(Origin::signed(CHARLIE), CLASS_ID_0, TOKEN_ID_0, ALICE),
 			UNQ::Error::<Test>::NoPermission
 		);
+		assert_eq!(Balances::free_balance(BOB), 15_000 * BSX);
 		assert_ok!(NFTPallet::transfer(Origin::root(), CLASS_ID_0, TOKEN_ID_0, BOB));
-		assert_ok!(NFTPallet::transfer(
-			Origin::root(),
-			CLASS_ID_0,
-			TOKEN_ID_0,
-			CHARLIE
-		));
+		assert_eq!(Balances::free_balance(BOB), 14_900 * BSX);
+		assert_ok!(NFTPallet::transfer(Origin::root(), CLASS_ID_0, TOKEN_ID_0, CHARLIE));
 		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
+		assert_eq!(Balances::free_balance(BOB), 15_000 * BSX);
 		assert_eq!(Balances::free_balance(CHARLIE), 149_900 * BSX);
 	});
 }

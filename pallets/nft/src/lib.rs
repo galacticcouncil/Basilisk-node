@@ -403,6 +403,6 @@ impl<P: Config> InstanceReserve for Pallet<P> {
 		_class_team: &ClassTeam<T::AccountId>,
 		deposit: DepositBalanceOf<T, I>,
 	) -> sp_runtime::DispatchResult {
-		T::Currency::repatriate_reserved(dest, instance_owner, deposit, BalanceStatus::Reserved).map(|_| ())
+		T::Currency::repatriate_reserved(instance_owner, dest, deposit, BalanceStatus::Reserved).map(|_| ())
 	}
 }
