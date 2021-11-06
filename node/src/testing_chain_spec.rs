@@ -28,9 +28,9 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use testing_basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig,
-	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, UNITS,
-	NATIVE_EXISTENTIAL_DEPOSIT, WASM_BINARY,
+	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig, SessionConfig,
+	Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
+	NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
 
 const TOKEN_DECIMALS: u8 = 12;

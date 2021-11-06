@@ -107,7 +107,7 @@ fn buy_works() {
 		);
 
 		// e.g. Alice free balance = Total balance - Class deposit + Price - Royalty
-		// = 20_000 - 10_000 + 1024 - 256 = 10_768 
+		// = 20_000 - 10_000 + 1024 - 256 = 10_768
 		assert_eq!(Balances::free_balance(ALICE), 10_768 * BSX);
 		// BOB now owns NFT so reserved balance should be transferred to him
 		assert_eq!(Balances::free_balance(BOB), 13_876 * BSX);
@@ -157,8 +157,6 @@ fn buy_works_2() {
 		assert_ok!(NFT::burn(Origin::signed(BOB), 0, 0));
 		assert_eq!(Balances::reserved_balance(&ALICE), 10_000 * BSX);
 		assert_eq!(Balances::reserved_balance(&BOB), 0);
-
-
 	});
 }
 

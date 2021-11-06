@@ -218,11 +218,7 @@ pub mod pallet {
 				);
 			}
 
-			Self::deposit_event(Event::InstanceMinted(
-				sender.unwrap_or_default(),
-				class_id,
-				instance_id,
-			));
+			Self::deposit_event(Event::InstanceMinted(sender.unwrap_or_default(), class_id, instance_id));
 
 			Ok(())
 		}
