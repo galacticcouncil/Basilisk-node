@@ -103,8 +103,6 @@ pub type CommonAuctionDataOf<T> = CommonAuctionData<
 >;
 
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-	
-
 
 impl<T: Config> sp_std::fmt::Debug for Auction<T> {
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
@@ -172,9 +170,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn auctions)]
 	/// Stores on-going and future auctions. Closed auction are removed.
-	// TODO: use single Auction storage using double map (auctionId, type)
-	// pub type Auctions<T: Config> = StorageDoubleMap<_, Twox64Concat, T::AuctionId, AuctionType<T>, OptionQuery>;
-	pub type Auctions<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, Auction<T>, OptionQuery>;
+	pub type Auctions<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, AuctionType, Twox64Concat, T::AuctionId, Auction<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auctions_index)]
@@ -244,13 +241,13 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(<T as Config>::WeightInfo::create_auction())]
-		pub fn create_auction(origin: OriginFor<T>, auction_type: Auction<T>) -> DispatchResultWithPostInfo {
+		pub fn create_auction(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
-			match &auction_type {
-				Auction::English(auction) => {
-					Self::validate_common(&auction.common_data)?;
-					Self::handle_auction_create(sender, &auction_type, &auction.common_data)?;
+			match &auction {
+				Auction::English(data) => {
+					Self::validate_common(&data.common_data)?;
+					Self::handle_auction_create(sender, &auction, AuctionType::English, &data.common_data)?;
 				}
 			}
 
@@ -327,7 +324,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn handle_auction_create(sender: <T>::AccountId, auction: &Auction<T>, common_data: &CommonAuctionDataOf<T>) -> DispatchResult {
+	fn handle_auction_create(sender: <T>::AccountId, auction: &Auction<T>, auction_type: AuctionType, common_data: &CommonAuctionDataOf<T>) -> DispatchResult {
 		let auction_id = <NextAuctionId<T>>::try_mutate(|next_id| -> result::Result<<T>::AuctionId, DispatchError> {
 			let current_id = *next_id;
 			*next_id = next_id
@@ -336,7 +333,7 @@ impl<T: Config> Pallet<T> {
 			Ok(current_id)
 		})?;
 
-		<Auctions<T>>::insert(auction_id, auction.clone());
+		<Auctions<T>>::insert(auction_type, auction_id, auction.clone());
 		<AuctionOwnerById<T>>::insert(auction_id, &sender);
 		<AuctionEndTime<T>>::insert(common_data.end, auction_id, ());
 
