@@ -53,7 +53,7 @@ benchmarks! {
 		let caller2_lookup = T::Lookup::unlookup(caller2.clone());
 		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata.clone()).unwrap_or_default();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata)).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller), Some(20), Some(metadata)).unwrap_or_default();
 	}: _(RawOrigin::Root, 0u32.into(), 0u32.into(), caller2_lookup)
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()), Some(caller2));

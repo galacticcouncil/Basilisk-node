@@ -311,10 +311,10 @@ pub mod pallet {
 						Self::deposit_event(Event::OfferAccepted(sender, class_id, instance_id));
 						Ok(())
 					} else {
-						return Err(Error::<T>::OfferExpired.into());
+						Err(Error::<T>::OfferExpired.into())
 					}
 				} else {
-					return Err(Error::<T>::InvalidOffer.into());
+					Err(Error::<T>::InvalidOffer.into())
 				}
 			})
 		}
