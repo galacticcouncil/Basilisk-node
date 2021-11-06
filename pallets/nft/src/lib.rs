@@ -109,9 +109,8 @@ pub mod pallet {
 				Err(origin) => Some(ensure_signed(origin)?),
 			};
 
-			match class_type {
-				ClassType::PoolShare => ensure!(sender.is_none(), Error::<T>::NotPermitted),
-				_ => (),
+			if class_type == ClassType::PoolShare {
+				ensure!(sender.is_none(), Error::<T>::NotPermitted)
 			}
 
 			let class_id = NextClassId::<T>::try_mutate(|id| -> Result<T::NftClassId, DispatchError> {
@@ -143,16 +142,12 @@ pub mod pallet {
 			Classes::<T>::insert(
 				class_id,
 				ClassInfo {
-					class_type: class_type,
+					class_type,
 					metadata: metadata_bounded,
 				},
 			);
 
-			Self::deposit_event(Event::ClassCreated(
-				sender.clone().unwrap_or_default(),
-				class_id,
-				class_type,
-			));
+			Self::deposit_event(Event::ClassCreated(sender.unwrap_or_default(), class_id, class_type));
 
 			Ok(())
 		}
@@ -216,15 +211,15 @@ pub mod pallet {
 					class_id,
 					instance_id,
 					InstanceInfo {
-						author: author,
-						royalty: royalty,
+						author,
+						royalty,
 						metadata: metadata_bounded,
 					},
 				);
 			}
 
 			Self::deposit_event(Event::InstanceMinted(
-				sender.clone().unwrap_or_default(),
+				sender.unwrap_or_default(),
 				class_id,
 				instance_id,
 			));

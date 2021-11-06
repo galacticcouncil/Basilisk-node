@@ -154,7 +154,9 @@ fn buy_works_2() {
 		// Reserved 100 for the transferred nft
 		assert_eq!(Balances::reserved_balance(&BOB), 100 * BSX);
 		assert_ok!(Market::unlist(Origin::signed(BOB), 0, 0));
-		assert_ok!(NFT::burn(Origin::signed(CHARLIE), 1, 1));
+		assert_ok!(NFT::burn(Origin::signed(BOB), 0, 0));
+		assert_eq!(Balances::reserved_balance(&ALICE), 10_000 * BSX);
+		assert_eq!(Balances::reserved_balance(&BOB), 0);
 
 
 	});
@@ -364,7 +366,7 @@ fn offering_works() {
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
 		assert_noop!(
-			Market::make_offer(Origin::signed(BOB), 0, 0, 0 * BSX, 1),
+			Market::make_offer(Origin::signed(BOB), 0, 0, 0, 1),
 			Error::<Test>::InvalidOffer
 		);
 		assert_ok!(Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * BSX, 1));

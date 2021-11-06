@@ -179,7 +179,7 @@ pub mod pallet {
 			ensure!(Tokens::<T>::contains_key(class_id, instance_id), Error::<T>::NotListed);
 
 			ensure!(
-				pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into()) == Some(sender.clone()),
+				pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into()) == Some(sender),
 				Error::<T>::NotTheTokenOwner
 			);
 
@@ -388,7 +388,7 @@ impl<T: Config> Pallet<T> {
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
 
-		pallet_uniques::Pallet::<T>::thaw(owner_origin.clone(), class_id.into(), instance_id.into())?;
+		pallet_uniques::Pallet::<T>::thaw(owner_origin, class_id.into(), instance_id.into())?;
 
 		Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
 			let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::NotListed)?;
@@ -446,7 +446,7 @@ impl<T: Config> Pallet<T> {
 				class_id,
 				instance_id,
 				price,
-				Some((author.clone(), royalty)),
+				Some((author, royalty)),
 				royalty_amount,
 			));
 			Ok(())
