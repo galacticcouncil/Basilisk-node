@@ -270,20 +270,16 @@ pub mod pallet {
 							&current_offer.0,
 							current_offer.1,
 						);
-						token_info.offer = None
+						token_info.offer = None;
+						Self::deposit_event(Event::OfferWithdrawn(sender, class_id, instance_id));
+						Ok(())
 					} else {
-						return Err(Error::<T>::UnknownOffer.into());
+						Err(Error::<T>::UnknownOffer.into())
 					}
 				} else {
-					return Err(Error::<T>::InvalidOffer.into());
+					Err(Error::<T>::InvalidOffer.into())
 				}
-
-				Ok(())
-			})?;
-
-			Self::deposit_event(Event::OfferWithdrawn(sender, class_id, instance_id));
-
-			Ok(())
+			})
 		}
 
 		/// Accept an offer and process the trade
@@ -298,7 +294,7 @@ pub mod pallet {
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
 		) -> DispatchResult {
-			ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin.clone())?;
 
 			Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
 				let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::NotListed)?;
@@ -312,14 +308,14 @@ pub mod pallet {
 						);
 						Self::do_buy(current_offer.0.clone(), class_id, instance_id, true)?;
 						token_info.offer = None;
+						Self::deposit_event(Event::OfferAccepted(sender, class_id, instance_id));
+						Ok(())
 					} else {
-						return Err(Error::<T>::OfferExpired.into());
+						return Err(Error::<T>::OfferExpired.into())
 					}
 				} else {
-					return Err(Error::<T>::InvalidOffer.into());
+					return Err(Error::<T>::InvalidOffer.into())
 				}
-
-				Ok(())
 			})
 		}
 	}
@@ -345,8 +341,10 @@ pub mod pallet {
 		TokenUnlisted(T::NftClassId, T::NftInstanceId),
 		/// Offer was placed on a token \[offerer, class_id, instance_id, price\]
 		OfferPlaced(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>),
-		/// Offer was placed on a token \[offerer, class_id, instance_id\]
+		/// Offer was withdrawn \[sender, class_id, instance_id\]
 		OfferWithdrawn(T::AccountId, T::NftClassId, T::NftInstanceId),
+		/// Offer was accepted \[sender, class_id, instance_id\]
+		OfferAccepted(T::AccountId, T::NftClassId, T::NftInstanceId),
 	}
 
 	#[pallet::error]

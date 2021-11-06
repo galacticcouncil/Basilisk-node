@@ -249,12 +249,16 @@ pub mod pallet {
 			pallet_uniques::Pallet::<T>::do_transfer(
 				class_id.into(),
 				instance_id.into(),
-				dest,
+				dest.clone(),
 				|_class_details, _instance_details| {
 					ensure!(sender.is_none(), pallet_uniques::Error::<T, ()>::NoPermission);
 					Ok(())
-				},
-			)
+				}
+			)?;
+
+			Self::deposit_event(Event::InstanceTransferred(sender.unwrap_or_default(), dest, class_id, instance_id));
+
+			Ok(())
 		}
 
 		/// Removes a token from existence
@@ -279,7 +283,7 @@ pub mod pallet {
 				class_id.into(),
 				instance_id.into(),
 				|_class_details, instance_details| {
-					if let Some(sender) = sender {
+					if let Some(sender) = sender.clone() {
 						let is_permitted = instance_details.owner == sender;
 						ensure!(is_permitted, pallet_uniques::Error::<T, ()>::NoPermission);
 						Ok(())
@@ -290,6 +294,8 @@ pub mod pallet {
 			)?;
 
 			Instances::<T>::remove(class_id, instance_id);
+
+			Self::deposit_event(Event::InstanceBurned(sender.unwrap_or_default(), class_id, instance_id));
 
 			Ok(())
 		}
@@ -310,8 +316,10 @@ pub mod pallet {
 				pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::NoWitness)?;
 
 			ensure!(witness.instances == 0u32, Error::<T>::TokenClassNotEmpty);
-			pallet_uniques::Pallet::<T>::do_destroy_class(class_id.into(), witness, sender)?;
+			pallet_uniques::Pallet::<T>::do_destroy_class(class_id.into(), witness, sender.clone())?;
 			Classes::<T>::remove(class_id);
+
+			Self::deposit_event(Event::ClassDestroyed(sender.unwrap_or_default(), class_id));
 
 			Ok(().into())
 		}
@@ -323,10 +331,16 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Class was created \[sender, class_id, class_type\]
+		/// A class was created \[sender, class_id, class_type\]
 		ClassCreated(T::AccountId, T::NftClassId, ClassType),
 		/// An instance was minted \[sender, class_id, instance_id\]
 		InstanceMinted(T::AccountId, T::NftClassId, T::NftInstanceId),
+		/// An instance was transferred \[from, to, class_id, instance_id\]
+		InstanceTransferred(T::AccountId, T::AccountId, T::NftClassId, T::NftInstanceId),
+		/// An instance was burned \[sender, class_id, instance_id\]
+		InstanceBurned(T::AccountId, T::NftClassId, T::NftInstanceId),
+		/// A class was destroyed \[sender, class_id\]
+		ClassDestroyed(T::AccountId, T::NftClassId),
 	}
 
 	#[pallet::error]
