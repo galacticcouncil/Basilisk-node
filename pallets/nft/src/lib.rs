@@ -253,10 +253,15 @@ pub mod pallet {
 				|_class_details, _instance_details| {
 					ensure!(sender.is_none(), pallet_uniques::Error::<T, ()>::NoPermission);
 					Ok(())
-				}
+				},
 			)?;
 
-			Self::deposit_event(Event::InstanceTransferred(sender.unwrap_or_default(), dest, class_id, instance_id));
+			Self::deposit_event(Event::InstanceTransferred(
+				sender.unwrap_or_default(),
+				dest,
+				class_id,
+				instance_id,
+			));
 
 			Ok(())
 		}
