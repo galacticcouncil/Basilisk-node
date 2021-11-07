@@ -11,6 +11,7 @@ use frame_support::{
 		WithdrawReasons,
 	},
 	Parameter,
+	BoundedVec,
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
@@ -77,9 +78,9 @@ pub struct EnglishAuctionData<T: Config> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
-pub struct CommonAuctionData<AccountId, Balance, BlockNumber, NftClassId, NftTokenId> {
+pub struct CommonAuctionData<AccountId, Balance, BlockNumber, NftClassId, NftTokenId, BoundedVec> {
 	// TODO: Replace Vec with BoundedVec
-	pub name: Vec<u8>,
+	pub name: BoundedVec,
 	pub last_bid: Option<(AccountId, Balance)>,
 	pub start: BlockNumber,
 	pub end: BlockNumber,
@@ -100,6 +101,7 @@ pub type CommonAuctionDataOf<T> = CommonAuctionData<
 	<T as frame_system::Config>::BlockNumber,
 	<T as pallet_uniques::Config>::ClassId,
 	<T as pallet_uniques::Config>::InstanceId,
+	BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>,
 >;
 
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -133,7 +135,7 @@ pub use pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*};
+	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*, BoundedVec};
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -236,6 +238,8 @@ pub mod pallet {
 		TokenFrozen,
 		/// Auction name cannot be empty
 		EmptyAuctionName,
+		/// BoundedVec exceeds limits
+		TooLong,
 	}
 
 	#[pallet::call]

@@ -10,6 +10,10 @@ macro_rules! bvec {
 	}
 }
 
+fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, UniquesStringLimit>, Error<Test>> {
+  name.try_into().map_err(|_| Error::<Test>::TooLong)
+}
+
 #[test]
 fn can_create_english_auction() {
   let english_auction_data = EnglishAuctionData {
@@ -17,12 +21,11 @@ fn can_create_english_auction() {
   };
 
   let valid_common_auction_data = CommonAuctionData {
-    name: "Auction 0".as_bytes().to_vec(),
+    name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
     last_bid: None,
     start: 10u64,
     end: 21u64,
     owner: ALICE,
-    // auction_type: AuctionType::English,
     token: (NFT_CLASS_ID_1, 0u16.into()),
     minimal_bid: 55,
   };
@@ -78,7 +81,7 @@ fn can_create_english_auction() {
 
     // Error EmptyAuctionName
     let mut common_auction_data = valid_common_auction_data.clone();
-    common_auction_data.name = "".as_bytes().to_vec();
+    common_auction_data.name = to_bounded_name("".as_bytes().to_vec()).unwrap();
 
     let auction_data = EnglishAuction {
       common_data: common_auction_data.clone(),
@@ -123,7 +126,7 @@ fn can_create_english_auction() {
     let auction = AuctionsModule::auctions(AuctionType::English, 0);
 
     if let Some(Auction::English(data)) = auction {
-      assert_eq!(String::from_utf8(data.common_data.name).unwrap(), "Auction 0");
+      assert_eq!(String::from_utf8(data.common_data.name.to_vec()).unwrap(), "Auction 0");
       assert_eq!(data.common_data.last_bid, None);
       assert_eq!(data.common_data.start, 10u64);
       assert_eq!(data.common_data.end, 21u64);
