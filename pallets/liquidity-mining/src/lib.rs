@@ -45,6 +45,7 @@ use frame_support::{
 	sp_runtime::traits::{One, Zero},
 	traits::LockIdentifier,
 	transactional,
+    ensure
 };
 
 use sp_arithmetic::{
@@ -75,6 +76,13 @@ pub struct GlobalPool<Period, Balance, AssetId> {
 	reward_currency: AssetId,
 	accumulated_rewards: Balance,
 	paid_accumulated_rewards: Balance,
+}
+
+pub struct Pool< Period, AccountId, Balance> {
+    updated_at: Period,
+    pot: AccountId,     //account with undistributed rewards
+	total_shares: Balance,
+	accumulated_rps: Balance,
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
@@ -140,6 +148,9 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// Math computation overflow
 		Overflow,
+
+        /// Insufficient balance in global pool to transfer rewards to pool
+        InsufficientBalancdInGlobalPool,
 
 		/// Feature is not implemented yet
 		NotImplemented,
@@ -260,7 +271,7 @@ impl<T: Config> Pallet<T> {
 			.min(T::MultiCurrency::free_balance(pool.reward_currency, &pool_id));
 
 		if !reward.is_zero() {
-			pool.accumulated_rps = Self::get_new_accumulated_rps(pool.accumulated_rps, pool.total_shares, reward)?;
+			pool.accumulated_rps = Self::get_accumulated_rps(pool.accumulated_rps, pool.total_shares, reward)?;
 
 			pool.accumulated_rewards = pool
 				.accumulated_rewards
@@ -273,7 +284,7 @@ impl<T: Config> Pallet<T> {
 		return Ok(());
 	}
 
-	pub fn get_new_accumulated_rps(
+	pub fn get_accumulated_rps(
 		accumulated_rps_now: T::Balance,
 		total_shares: T::Balance,
 		reward: T::Balance,
@@ -341,4 +352,26 @@ impl<T: Config> Pallet<T> {
 
 	    return Ok(reward);	
 	}
+
+    pub fn update_pool(pool_id: PoolId<T>, pool: &mut Pool<T::BlockNumber, T::AccountId, T::Balance>, rewards: T::Balance, period_now: T::BlockNumber, global_pool_id: PoolId<T>, reward_currency: T::CurrencyId) -> Result<(), DispatchError> {
+        if pool.updated_at == period_now {
+            return Ok(());
+        }         
+
+        if pool.total_shares.is_zero() {
+            return Ok(());
+        }
+
+        let accumulated_rps = Self::get_accumulated_rps(pool.accumulated_rps, pool.total_shares, rewards)?;
+
+        pool.accumulated_rps = pool.accumulated_rps.checked_add(&accumulated_rps).ok_or(Error::<T>::Overflow)?;
+        pool.updated_at = period_now;
+        
+        let global_pool_balance = T::MultiCurrency::free_balance(reward_currency, &global_pool_id);
+       
+        ensure!(global_pool_balance >= rewards, Error::<T>::InsufficientBalancdInGlobalPool);
+         
+        T::MultiCurrency::transfer(reward_currency, &global_pool_id, &pool_id, rewards)
+    }
+
 }

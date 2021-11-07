@@ -294,7 +294,7 @@ fn get_reward_per_period_should_work() {
 
 #[test]
 /// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=478231890
-fn get_new_accumulated_reward_per_share_should_work() {
+fn get_accumulated_rps_should_work() {
 	//vec[(AccPRSprevious, total_shares,reward,  newAccRPS),...]
 	let testing_values = vec![
 		(
@@ -420,7 +420,7 @@ fn get_new_accumulated_reward_per_share_should_work() {
 	];
 
 	for t in testing_values.iter() {
-		assert_eq!(LiquidityMining::get_new_accumulated_rps(t.0, t.1, t.2).unwrap(), t.3);
+		assert_eq!(LiquidityMining::get_accumulated_rps(t.0, t.1, t.2).unwrap(), t.3);
 	}
 }
 
@@ -969,8 +969,8 @@ fn update_global_pool_should_work() {
 		let mut p = GlobalPool {
 			updated_at: t.0,
 			total_shares: t.1,
-			accumulated_rps_start: 2,     //not modified or used by fn call
-			paid_accumulated_rewards: 10, //not modified or used by fn call
+			accumulated_rps_start: 2,
+			paid_accumulated_rewards: 10,
 			accumulated_rps: t.2,
 			reward_currency: t.3,
 			accumulated_rewards: t.8,
