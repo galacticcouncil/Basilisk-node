@@ -72,12 +72,12 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub owner: AccountId,
 
 	/// start block
-	pub start: BlockNumber,
+	pub start: Option<BlockNumber>, // TODO make optional
 
 	/// end block
-	pub end: BlockNumber,
+	pub end: Option<BlockNumber>, // TODO make optional
 
-	/// Asset ids of the tokens (sold asset, accumulating asset)
+	/// Asset ids of the tokens (accumulating asset, sold asset) // TODO maybe name them accordingly in struct instead of tuple
 	pub assets: (AssetId, AssetId),
 
 	/// initial weight of the asset_a where the minimum value is 0 (equivalent to 0% weight), and the maximum value is 100_000_000 (equivalent to 100% weight)
@@ -94,6 +94,9 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 
 	/// person that receives the fee
 	pub fee_collector: AccountId,
+
+	/// repayment target of the accumulated asset in fee collectors account
+	pub repay_target: Balance,
 }
 
 impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockNumber> {
@@ -106,17 +109,19 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 		weight_curve: WeightCurveType,
 		fee: Fee,
 		fee_collector: AccountId,
+		repay_target: Balance
 	) -> Self {
 		Pool {
 			owner: pool_owner,
-			start: Zero::zero(),
-			end: Zero::zero(),
+			start: None,
+			end: None,
 			assets: (asset_a, asset_b),
 			initial_weight,
 			final_weight,
 			weight_curve,
 			fee,
 			fee_collector,
+			repay_target,
 		}
 	}
 }
@@ -258,7 +263,7 @@ pub mod pallet {
 		AssetBalanceLimitExceeded,
 
 		/// An unexpected integer overflow occurred
-		Overflow, // no tests
+		Overflow,
 
 		/// Nothing to update
 		NothingToUpdate,
@@ -354,6 +359,7 @@ pub mod pallet {
 			weight_curve: WeightCurveType,
 			fee: Fee,
 			fee_collector: T::AccountId,
+			repay_target: Balance,
 		) -> DispatchResultWithPostInfo {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
@@ -390,6 +396,7 @@ pub mod pallet {
 				weight_curve,
 				fee,
 				fee_collector,
+				repay_target,
 			);
 
 			Self::validate_pool_data(&pool_data)?;
@@ -443,6 +450,7 @@ pub mod pallet {
 			final_weight: Option<LBPWeight>,
 			fee: Option<Fee>,
 			fee_collector: Option<T::AccountId>,
+			repay_target: Option<Balance>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -452,9 +460,12 @@ pub mod pallet {
 
 				ensure!(
 					start.is_some()
-						|| end.is_some() || initial_weight.is_some()
+						|| end.is_some()
+						|| initial_weight.is_some()
 						|| final_weight.is_some()
-						|| fee.is_some() || fee_collector.is_some(),
+						|| fee.is_some()
+						|| fee_collector.is_some()
+						|| repay_target.is_some(),
 					Error::<T>::NothingToUpdate
 				);
 
@@ -464,8 +475,8 @@ pub mod pallet {
 
 				pool.owner = pool_owner.unwrap_or_else(|| pool.owner.clone());
 
-				pool.start = start.unwrap_or(pool.start);
-				pool.end = end.unwrap_or(pool.end);
+				pool.start = start.or(pool.start);
+				pool.end = end.or(pool.end);
 
 				pool.initial_weight = initial_weight.unwrap_or(pool.initial_weight);
 
@@ -473,6 +484,7 @@ pub mod pallet {
 
 				pool.fee = fee.unwrap_or(pool.fee);
 				pool.fee_collector = fee_collector.unwrap_or_else(|| pool.fee_collector.clone());
+				pool.repay_target = repay_target.unwrap_or(pool.repay_target);
 
 				Self::validate_pool_data(pool)?;
 
@@ -650,8 +662,8 @@ impl<T: Config> Pallet<T> {
 	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
 		let weight_a = T::LBPWeightFunction::calculate_weight(
 			pool_data.weight_curve,
-			pool_data.start,
-			pool_data.end,
+			pool_data.start.unwrap_or(Zero::zero()),
+			pool_data.end.unwrap_or(Zero::zero()),
 			pool_data.initial_weight,
 			pool_data.final_weight,
 			at,
@@ -667,15 +679,18 @@ impl<T: Config> Pallet<T> {
 		let now = T::BlockNumberProvider::current_block_number();
 
 		ensure!(
-			(pool_data.start.is_zero() && pool_data.end.is_zero())
-				|| (now < pool_data.start && pool_data.start < pool_data.end),
+			match (pool_data.start, pool_data.end) {
+				(Some(start), Some(end)) => now < start && start < end,
+				(None, None) => true,
+				_ => false
+			},
 			Error::<T>::InvalidBlockRange
 		);
 
 		// this restriction is based on the AtLeast32Bit trait of the frame_system::Balance type
 		// and is expected by the calculate_linear_weights function
 		ensure!(
-			pool_data.end.saturating_sub(pool_data.start) <= u32::MAX.into(),
+			pool_data.end.unwrap_or_default().saturating_sub(pool_data.start.unwrap_or_default()) <= u32::MAX.into(),
 			Error::<T>::MaxSaleDurationExceeded
 		);
 
@@ -714,13 +729,23 @@ impl<T: Config> Pallet<T> {
 	/// return true if now is in interval <pool.start, pool.end>
 	fn is_pool_running(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = T::BlockNumberProvider::current_block_number();
-		pool_data.start <= now && now <= pool_data.end
+		match (pool_data.start, pool_data.end) {
+			(Some(start), Some(end)) => start <= now && now <= end,
+			_ => false
+		}
 	}
 
 	/// return true if now is > pool.start and pool has been initialized
 	fn has_pool_started(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
 		let now = T::BlockNumberProvider::current_block_number();
-		!pool_data.start.is_zero() && pool_data.start <= now
+		match pool_data.start {
+			Some(start) => start <= now,
+			_ => false
+		}
+	}
+
+	fn is_repay_fee_applied(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
+		T::MultiCurrency::free_balance(pool_data.assets.1, &pool_data.fee_collector) < pool_data.repay_target
 	}
 
 	fn validate_trade(
@@ -751,13 +776,13 @@ impl<T: Config> Pallet<T> {
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
 
-		let (amount_in, amount_out, fee_asset, fee_amount) = if trade_type == TradeType::Sell {
+		let (amount_in, amount_out) = if trade_type == TradeType::Sell {
 			ensure!(
 				amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxInRatioExceeded
 			);
 
-			let token_amount_out = hydra_dx_math::lbp::calculate_out_given_in(
+			let calculated_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
 				asset_out_reserve,
 				weight_in,
@@ -766,11 +791,8 @@ impl<T: Config> Pallet<T> {
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
 
-			let transfer_fee = Self::calculate_fees(&pool_data, token_amount_out)?;
-			let amount_out_without_fee = token_amount_out.checked_sub(transfer_fee).ok_or(Error::<T>::Overflow)?;
-
-			ensure!(limit <= amount_out_without_fee, Error::<T>::AssetBalanceLimitExceeded);
-			(amount, amount_out_without_fee, assets.asset_out, transfer_fee)
+			ensure!(limit <= calculated_out, Error::<T>::AssetBalanceLimitExceeded);
+			(amount, calculated_out)
 		} else {
 			ensure!(
 				amount
@@ -780,7 +802,7 @@ impl<T: Config> Pallet<T> {
 				Error::<T>::MaxOutRatioExceeded
 			);
 
-			let token_amount_in = hydra_dx_math::lbp::calculate_in_given_out(
+			let calculated_in = hydra_dx_math::lbp::calculate_in_given_out(
 				asset_in_reserve,
 				asset_out_reserve,
 				weight_in,
@@ -789,12 +811,10 @@ impl<T: Config> Pallet<T> {
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
 
-			let transfer_fee = Self::calculate_fees(&pool_data, token_amount_in)?;
-			let amount_in_with_fee = token_amount_in.checked_add(transfer_fee).ok_or(Error::<T>::Overflow)?;
-
-			ensure!(limit >= amount_in_with_fee, Error::<T>::AssetBalanceLimitExceeded);
-			(token_amount_in, amount, assets.asset_in, transfer_fee)
+			ensure!(limit >= calculated_in, Error::<T>::AssetBalanceLimitExceeded);
+			(calculated_in, amount)
 		};
+
 
 		if trade_type == TradeType::Buy {
 			ensure!(
@@ -807,6 +827,25 @@ impl<T: Config> Pallet<T> {
 			T::MultiCurrency::free_balance(assets.asset_out, &pool_id) >= amount_out,
 			Error::<T>::InsufficientAssetBalance
 		);
+
+		let fee_asset = pool_data.assets.0;
+		let fee_amount = if assets.asset_in == fee_asset {
+			Self::calculate_fees(&pool_data, amount_in)?
+		} else {
+			Self::calculate_fees(&pool_data, amount_out)?
+		};
+
+		if fee_asset == assets.asset_in {
+			ensure!(
+				T::MultiCurrency::free_balance(assets.asset_in, &pool_id) >= amount_in + fee_amount,
+				Error::<T>::InsufficientAssetBalance
+			);
+		} else {
+			ensure!(
+				T::MultiCurrency::free_balance(assets.asset_in, who) >= amount_out + fee_amount,
+				Error::<T>::InsufficientAssetBalance
+			);
+		}
 
 		Ok(AMMTransfer {
 			origin: who.clone(),
@@ -835,12 +874,17 @@ impl<T: Config> Pallet<T> {
 		if transfer.fee.0 == transfer.assets.asset_in {
 			T::MultiCurrency::transfer(
 				transfer.fee.0,
-				&transfer.origin,
+				&pool_id,
 				&pool_data.fee_collector,
 				transfer.fee.1,
 			)?;
 		} else {
-			T::MultiCurrency::transfer(transfer.fee.0, &pool_id, &pool_data.fee_collector, transfer.fee.1)?;
+			T::MultiCurrency::transfer(
+				transfer.fee.0,
+				&transfer.origin,
+				&pool_data.fee_collector,
+				transfer.fee.1,
+			)?;
 		}
 
 		Ok(())
@@ -850,9 +894,15 @@ impl<T: Config> Pallet<T> {
 		pool_data: &Pool<T::AccountId, T::BlockNumber>,
 		amount: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, DispatchError> {
-		Ok(amount
-			.just_fee(pool_data.fee)
-			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
+		let fee = if Self::is_repay_fee_applied(&pool_data) {
+			Fee {
+				numerator: 2,
+				denominator: 10
+			}
+		} else {
+			pool_data.fee
+		};
+		Ok(amount.just_fee(fee).ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 }
 
