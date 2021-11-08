@@ -2817,20 +2817,6 @@ fn validate_trade_should_not_work() {
 			None,
 			None
 		));
-		run_to_block::<Test>(15);
-		assert_noop!(
-			LBPPallet::validate_sell(
-				&ALICE,
-				AssetPair {
-					asset_in: KUSD,
-					asset_out: HDX
-				},
-				1_000_000,
-				100_000,
-				false
-			),
-			Error::<Test>::Overflow
-		);
 	});
 }
 
