@@ -72,10 +72,10 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub owner: AccountId,
 
 	/// start block
-	pub start: Option<BlockNumber>, // TODO make optional
+	pub start: Option<BlockNumber>,
 
 	/// end block
-	pub end: Option<BlockNumber>, // TODO make optional
+	pub end: Option<BlockNumber>,
 
 	/// Asset ids of the tokens (accumulating asset, sold asset) // TODO maybe name them accordingly in struct instead of tuple
 	pub assets: (AssetId, AssetId),
