@@ -68,6 +68,7 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[allow(clippy::all)]
 mod weights;
 mod xcm;
+mod adapter;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -114,7 +115,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 20,
+	spec_version: 21,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -130,6 +131,8 @@ pub fn native_version() -> NativeVersion {
 }
 
 use smallvec::smallvec;
+use crate::adapter::OrmlTokensAdapter;
+
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
@@ -298,7 +301,7 @@ impl orml_tokens::Config for Runtime {
 
 impl orml_currencies::Config for Runtime {
 	type Event = Event;
-	type MultiCurrency = Tokens;
+	type MultiCurrency = OrmlTokensAdapter<Runtime>;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = ();
