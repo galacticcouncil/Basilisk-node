@@ -337,6 +337,10 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(&cli.run.base.normalize())?;
 
 			runner.run_node_until_exit(|config| async move {
+				if cfg!(feature = "runtime-benchmarks") && config.role.is_authority() {
+					return Err("It is not allowed to run a collator node with the benchmarking runtime.".into());
+				};
+				
 				let para_id = chain_spec::Extensions::try_get(&config.chain_spec).map(|e| e.para_id);
 
 				let polkadot_cli = RelayChainCli::new(

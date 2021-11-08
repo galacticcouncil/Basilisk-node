@@ -70,6 +70,7 @@ mod weights;
 mod xcm;
 
 mod benchmarking;
+mod adapter;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -133,6 +134,7 @@ impl Contains<Call> for BaseFilter {
 	}
 }
 
+use crate::adapter::OrmlTokensAdapter;
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
 
@@ -170,7 +172,9 @@ impl WeightToFeePolynomial for WeightToFee {
 pub struct RelayChainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
 
 #[cfg(not(feature = "runtime-benchmarks"))]
-impl<T: cumulus_pallet_parachain_system::Config> BlockNumberProvider for RelayChainBlockNumberProvider<T> {
+impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumberProvider
+	for RelayChainBlockNumberProvider<T>
+{
 	type BlockNumber = BlockNumber;
 
 	fn current_block_number() -> Self::BlockNumber {
@@ -330,7 +334,7 @@ impl orml_tokens::Config for Runtime {
 
 impl orml_currencies::Config for Runtime {
 	type Event = Event;
-	type MultiCurrency = Tokens;
+	type MultiCurrency = OrmlTokensAdapter<Runtime>;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = ();
