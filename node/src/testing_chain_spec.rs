@@ -19,7 +19,7 @@
 #![allow(clippy::too_many_arguments)]
 
 use cumulus_primitives_core::ParaId;
-use primitives::BlockNumber;
+use primitives::{BlockNumber, Price, AssetId};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
@@ -143,11 +143,10 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![
-					(b"hKSM".to_vec(), 1_000u128),
-					(b"hDOT".to_vec(), 1_000u128),
-					(b"hETH".to_vec(), 1_000u128),
-					(b"hUSDT".to_vec(), 1_000u128),
+					(b"KSM".to_vec(), 1_000u128),
+					(b"KUSD".to_vec(), 1_000u128),
 				],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
 		// Bootnodes
@@ -223,11 +222,10 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![
-					(b"hKSM".to_vec(), 1_000u128),
-					(b"hDOT".to_vec(), 1_000u128),
-					(b"hETH".to_vec(), 1_000u128),
-					(b"hUSDT".to_vec(), 1_000u128),
+					(b"KSM".to_vec(), 1_000u128),
+					(b"KUSD".to_vec(), 1_000u128),
 				],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
 		// Bootnodes
@@ -258,6 +256,7 @@ fn testnet_parachain_genesis(
 	tx_fee_payment_account: AccountId,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
+	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -305,7 +304,7 @@ fn testnet_parachain_genesis(
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
-			currencies: vec![],
+			currencies: accepted_assets,
 			fallback_account: tx_fee_payment_account,
 		},
 		tokens: TokensConfig {
@@ -315,8 +314,6 @@ fn testnet_parachain_genesis(
 					vec![
 						(x.clone(), 1, 1_000_000_000u128 * UNITS),
 						(x.clone(), 2, 1_000_000_000u128 * UNITS),
-						(x.clone(), 3, 1_000_000_000u128 * UNITS),
-						(x.clone(), 4, 1_000_000_000u128 * UNITS),
 					]
 				})
 				.collect(),
