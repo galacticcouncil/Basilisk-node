@@ -20,7 +20,7 @@ fn can_create_english_auction() {
     reserve_price: 0,
   };
 
-  let valid_common_auction_data = CommonAuctionData {
+  let valid_common_auction_data = GeneralAuctionData {
     name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
     last_bid: None,
     start: 10u64,
@@ -39,7 +39,7 @@ fn can_create_english_auction() {
     common_auction_data.start = 0u64;
 
     let auction_data = EnglishAuction {
-      common_data: common_auction_data.clone(),
+      general_data: common_auction_data.clone(),
       specific_data: english_auction_data.clone(),
     };
     let auction = Auction::English(auction_data);
@@ -54,7 +54,7 @@ fn can_create_english_auction() {
     common_auction_data.end = 0u64;
 
     let auction_data = EnglishAuction {
-      common_data: common_auction_data.clone(),
+      general_data: common_auction_data.clone(),
       specific_data: english_auction_data.clone(),
     };
     let auction = Auction::English(auction_data);
@@ -69,7 +69,7 @@ fn can_create_english_auction() {
     common_auction_data.end = 20u64;
     
     let auction_data = EnglishAuction {
-      common_data: common_auction_data.clone(),
+      general_data: common_auction_data.clone(),
       specific_data: english_auction_data.clone(),
     };
     let auction = Auction::English(auction_data);
@@ -84,7 +84,7 @@ fn can_create_english_auction() {
     common_auction_data.name = to_bounded_name("".as_bytes().to_vec()).unwrap();
 
     let auction_data = EnglishAuction {
-      common_data: common_auction_data.clone(),
+      general_data: common_auction_data.clone(),
       specific_data: english_auction_data.clone(),
     };
     let auction = Auction::English(auction_data);
@@ -99,7 +99,7 @@ fn can_create_english_auction() {
     common_auction_data.owner = BOB;
 
     let auction_data = EnglishAuction {
-      common_data: common_auction_data.clone(),
+      general_data: common_auction_data.clone(),
       specific_data: english_auction_data.clone(),
     };
     let auction = Auction::English(auction_data);
@@ -111,7 +111,7 @@ fn can_create_english_auction() {
 
     // happy path
     let auction_data = EnglishAuction {
-      common_data: valid_common_auction_data.clone(),
+      general_data: valid_common_auction_data.clone(),
       specific_data: english_auction_data.clone(),
     };
     let auction = Auction::English(auction_data);
@@ -123,23 +123,23 @@ fn can_create_english_auction() {
 
     expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
 
-    let auction = AuctionsModule::auctions(AuctionType::English, 0);
+    let auction = AuctionsModule::auctions(0);
 
     if let Some(Auction::English(data)) = auction {
-      assert_eq!(String::from_utf8(data.common_data.name.to_vec()).unwrap(), "Auction 0");
-      assert_eq!(data.common_data.last_bid, None);
-      assert_eq!(data.common_data.start, 10u64);
-      assert_eq!(data.common_data.end, 21u64);
-      assert_eq!(data.common_data.owner, ALICE);
-      assert_eq!(data.common_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-      assert_eq!(data.common_data.minimal_bid, 55);
+      assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+      assert_eq!(data.general_data.last_bid, None);
+      assert_eq!(data.general_data.start, 10u64);
+      assert_eq!(data.general_data.end, 21u64);
+      assert_eq!(data.general_data.owner, ALICE);
+      assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+      assert_eq!(data.general_data.minimal_bid, 55);
     }
     assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
     assert_eq!(AuctionsModule::auction_end_time(21u64, 0).unwrap(), ());
 
     // Error TokenFrozen
     let auction_data = EnglishAuction {
-      common_data: valid_common_auction_data.clone(),
+      general_data: valid_common_auction_data.clone(),
       specific_data: english_auction_data.clone(),
     };
     let auction = Auction::English(auction_data);

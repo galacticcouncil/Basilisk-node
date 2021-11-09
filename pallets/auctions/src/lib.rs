@@ -175,7 +175,7 @@ pub mod pallet {
 	#[pallet::getter(fn auctions)]
 	/// Stores on-going and future auctions. Closed auction are removed.
 	pub type Auctions<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, AuctionType, Twox64Concat, T::AuctionId, Auction<T>, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::AuctionId, Auction<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auctions_index)]
@@ -254,36 +254,36 @@ pub mod pallet {
 				Auction::English(data) => {
 					Self::validate_general_data(&data.general_data)?;
 					Self::validate_auction_create(&data.general_data)?;
-					Self::handle_auction_create(sender, &auction, AuctionType::English, &data.general_data)?;
+					Self::handle_auction_create(sender, &auction, &data.general_data)?;
 				}
 			}
 
 			Ok(().into())
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::update_auction())]
-		pub fn update_auction(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
+		// #[pallet::weight(<T as Config>::WeightInfo::update_auction())]
+		// pub fn update_auction(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
+		// 	let sender = ensure_signed(origin)?;
 
-			match &updated_auction {
-				Auction::English(data) => {
-					let auction = <Auctions<T>>::get(AuctionType::English, id).ok_or(Error::<T>::AuctionNotExist)?;
-					Self::validate_general_data(&data.general_data)?;
-					Self::validate_auction_permissions(sender, auction.general_data)?;
+		// 	match &updated_auction {
+		// 		Auction::English(data) => {
+		// 			let auction = <Auctions<T>>::get(AuctionType::English, id).ok_or(Error::<T>::AuctionNotExist)?;
+		// 			Self::validate_general_data(&data.general_data)?;
+		// 			Self::validate_auction_permissions(sender, auction.general_data)?;
 
-					// Self::handle_auction_update(&sender, AuctionType::English, id, &auction, &data.general_data);
+		// 			// Self::handle_auction_update(&sender, AuctionType::English, id, &auction, &data.general_data);
 
-					// Self::validate_auction_mutation()
+		// 			// Self::validate_auction_mutation()
 
-					// Self::validate_update_delete(&sender,)
+		// 			// Self::validate_update_delete(&sender,)
 
-					// Self::validate_general_data(&data.general_data)?;
-					// Self::validate_create_general_data(&data.general_data)?;
-					// Self::handle_auction_create(sender, &auction, AuctionType::English, &data.general_data)?;
-				}
-			}
-			Ok(())
-		}
+		// 			// Self::validate_general_data(&data.general_data)?;
+		// 			// Self::validate_create_general_data(&data.general_data)?;
+		// 			// Self::handle_auction_create(sender, &auction, AuctionType::English, &data.general_data)?;
+		// 		}
+		// 	}
+		// 	Ok(())
+		// }
 
 		// #[pallet::weight(<T as Config>::WeightInfo::bid_value())]
 		// pub fn bid_value(origin: OriginFor<T>, id: T::AuctionId, value: BalanceOf<T>) -> DispatchResultWithPostInfo {
@@ -345,7 +345,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn handle_auction_create(sender: <T>::AccountId, auction: &Auction<T>, auction_type: AuctionType, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
+	fn handle_auction_create(sender: <T>::AccountId, auction: &Auction<T>, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
 		let auction_id = <NextAuctionId<T>>::try_mutate(|next_id| -> result::Result<<T>::AuctionId, DispatchError> {
 			let current_id = *next_id;
 			*next_id = next_id
@@ -354,7 +354,7 @@ impl<T: Config> Pallet<T> {
 			Ok(current_id)
 		})?;
 
-		<Auctions<T>>::insert(auction_type, auction_id, auction.clone());
+		<Auctions<T>>::insert(auction_id, auction.clone());
 		<AuctionOwnerById<T>>::insert(auction_id, &sender);
 		<AuctionEndTime<T>>::insert(general_data.end, auction_id, ());
 
@@ -377,24 +377,24 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn handle_auction_update(
-		sender: &<T>::AccountId,
-		auction_type: AuctionType,
-		auction_id: T::AuctionId,
-		updated_auction: Auction<T>,
-		general_data: &GeneralAuctionDataOf<T>,
-	) -> DispatchResult {
-		<Auctions<T>>::try_mutate(auction_type, auction_id, |auction_result| -> DispatchResult {
-			if let Some(auction) = auction_result {
-				Self::validate_auction_edit(&sender, &auction.general_data)?;
-				*auction_result = Some(updated_auction);
-				Ok(())
-			} else {
-				Err(Error::<T>::AuctionNotExist.into())
-			}
-		})
+	// fn handle_auction_update(
+	// 	sender: &<T>::AccountId,
+	// 	auction_type: AuctionType,
+	// 	auction_id: T::AuctionId,
+	// 	updated_auction: Auction<T>,
+	// 	general_data: &GeneralAuctionDataOf<T>,
+	// ) -> DispatchResult {
+	// 	<Auctions<T>>::try_mutate(auction_type, auction_id, |auction_result| -> DispatchResult {
+	// 		if let Some(auction) = auction_result {
+	// 			Self::validate_auction_edit(&sender, &auction.general_data)?;
+	// 			*auction_result = Some(updated_auction);
+	// 			Ok(())
+	// 		} else {
+	// 			Err(Error::<T>::AuctionNotExist.into())
+	// 		}
+	// 	})
 		
-	}
+	// }
 
 	// fn conclude_auction(now: T::BlockNumber) -> DispatchResult {
 	// 	for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
