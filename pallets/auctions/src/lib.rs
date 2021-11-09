@@ -57,11 +57,6 @@ pub trait NftAuction<AccountId, BlockNumber, NftClassId, NftTokenId> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
-pub enum AuctionType {
-	English,
-}
-
-#[derive(Encode, Decode, Clone, PartialEq, Eq)]
 pub enum Auction<T: Config> {
 	English(
 		EnglishAuction<T>
@@ -81,19 +76,13 @@ pub struct EnglishAuctionData<T: Config> {
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
 pub struct GeneralAuctionData<AccountId, Balance, BlockNumber, NftClassId, NftTokenId, BoundedVec> {
-	// TODO: Replace Vec with BoundedVec
 	pub name: BoundedVec,
 	pub last_bid: Option<(AccountId, Balance)>,
 	pub start: BlockNumber,
 	pub end: BlockNumber,
 	pub owner: AccountId,
-	// pub auction_type: AuctionType,
 	pub token: (NftClassId, NftTokenId),
 	pub minimal_bid: Balance,
-	// pub no_identity_allowed: bool,
-	// pub starting_price: Balance,
-	// pub private: bool,
-	// pub max_participants: u32,
 }
 
 /// Define type aliases for better readability
@@ -113,18 +102,6 @@ impl<T: Config> sp_std::fmt::Debug for Auction<T> {
 		write!(f, "Auction")
 	}
 }
-
-// impl Display<T: Config> for AuctionType<T> {
-// 	fn fmt(&self, f: &mut Formatter) -> sp_std::fmt::Result {
-// 		write!(f, "{:?}", self)
-// 	}
-// }
-
-// impl Default for AuctionType<T: Config> {
-// 	fn default() -> Self {
-// 		AuctionType::English
-// 	}
-// }
 
 impl<T: Config> NftAuction<T::AccountId, T::BlockNumber, T::ClassId, T::InstanceId> for EnglishAuction<T> {
 	fn validate() -> bool {
@@ -220,8 +197,6 @@ pub mod pallet {
 		NoAvailableAuctionId,
 		/// Auction has already started
 		AuctionStartTimeAlreadyPassed,
-		/// Invalid auction type
-		NonExistingAuctionType,
 		/// Invalid auction time configuration
 		InvalidTimeConfiguration,
 		/// No permissions to update/delete auction
