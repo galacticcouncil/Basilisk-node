@@ -248,6 +248,22 @@ pub mod pallet {
 					Self::handle_auction_update(sender, id, updated_auction.clone(), &data.general_data)?;
 				}
 			}
+
+			Ok(())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::delete_auction())]
+		pub fn delete_auction(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
+			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
+
+			match &auction {
+				Auction::English(data) => {
+					Self::validate_auction_update(sender, &data.general_data)?;
+					Self::handle_auction_delete(id, &data.general_data)?;
+				}
+			}
+
 			Ok(())
 		}
 
@@ -257,25 +273,6 @@ pub mod pallet {
 
 		// 	Self::bid(sender.clone(), id, value)?;
 		// 	Self::deposit_event(Event::Bid(id, sender, value));
-		// 	Ok(().into())
-		// }
-
-		// #[pallet::weight(<T as Config>::WeightInfo::delete_auction())]
-		// pub fn delete_auction(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResultWithPostInfo {
-		// 	let sender = ensure_signed(origin)?;
-		// 	let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
-		// 	Self::validate_update_delete(&sender, &auction.owner, auction.start)?;
-
-		// 	pallet_uniques::Pallet::<T>::thaw(
-		// 		RawOrigin::Signed(auction.owner.clone()).into(),
-		// 		auction.token.0,
-		// 		auction.token.1,
-		// 	)?;
-
-		// 	<AuctionOwnerById<T>>::remove(id);
-		// 	<Auctions<T>>::remove(id);
-
-		// 	Self::deposit_event(Event::AuctionRemoved(id));
 		// 	Ok(().into())
 		// }
 	}
@@ -357,8 +354,25 @@ impl<T: Config> Pallet<T> {
 			} else {
 				Err(Error::<T>::AuctionNotExist.into())
 			}
-		})
-		
+		})	
+	}
+
+	fn handle_auction_delete(
+		auction_id: T::AuctionId,
+		general_data: &GeneralAuctionDataOf<T>,
+	) -> DispatchResult {
+		pallet_uniques::Pallet::<T>::thaw(
+			RawOrigin::Signed(general_data.owner.clone()).into(),
+			general_data.token.0,
+			general_data.token.1,
+		)?;
+
+		<AuctionOwnerById<T>>::remove(auction_id);
+		<Auctions<T>>::remove(auction_id);
+
+		Self::deposit_event(Event::AuctionRemoved(auction_id));
+
+		Ok(())
 	}
 
 	// fn conclude_auction(now: T::BlockNumber) -> DispatchResult {

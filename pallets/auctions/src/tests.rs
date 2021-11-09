@@ -156,62 +156,6 @@ fn can_create_english_auction() {
   });
 }
 
-// #[test]
-// fn can_delete_english_auction() {
-//   ExtBuilder::default().build().execute_with(|| {
-//     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
-//     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
-//     let auction_info = AuctionInfo {
-//       name: "Auction 0".as_bytes().to_vec(),
-//       last_bid: None,
-//       start: 10u64,
-//       end: 21u64,
-//       owner: ALICE,
-//       auction_type: AuctionType::English,
-//       token: (NFT_CLASS_ID_1, 0u16.into()),
-//       minimal_bid: 55,
-//     };
-
-//     // Error AuctionNotExist when auction is not found
-//     assert_noop!(
-//       AuctionsModule::delete_auction(Origin::signed(ALICE), 0),
-//       Error::<Test>::AuctionNotExist,
-//     );
-    
-//     assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info.clone()));
-
-//     System::set_block_number(3);
-
-//     // Error NotAuctionOwner when caller is not owner
-//     assert_noop!(
-//       AuctionsModule::delete_auction(Origin::signed(BOB), 0),
-//       Error::<Test>::NotAuctionOwner,
-//     );
-
-//     // Happy path
-//     assert_ok!(
-//       AuctionsModule::delete_auction(Origin::signed(ALICE), 0)
-//     );
-
-//     assert_eq!(AuctionsModule::auctions(0), None);
-//     assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
-
-//     expect_event(crate::Event::<Test>::AuctionRemoved(0));
-
-//     // NFT can be transferred
-//     assert_ok!(Nft::transfer(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
-//     assert_ok!(Nft::transfer(Origin::signed(CHARLIE), NFT_CLASS_ID_1, 0u16.into(), ALICE));
-
-//     // Error AuctionAlreadyStarted
-//     assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info.clone()));
-//     System::set_block_number(10);
-//     assert_noop!(
-//       AuctionsModule::delete_auction(Origin::signed(ALICE), 1),
-//       Error::<Test>::AuctionAlreadyStarted,
-//     );
-//   });
-// }
- 
 #[test]
 fn can_update_english_auction() {
   let general_auction_data = GeneralAuctionData {
@@ -231,10 +175,6 @@ fn can_update_english_auction() {
   ExtBuilder::default().build().execute_with(|| {
     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
-
-
-    // let mut update_auction_info = auction_info.clone();
-    // update_auction_info.name = "Auction renamed".as_bytes().to_vec();
 
     let auction_data = EnglishAuction {
       general_data: general_auction_data.clone(),
@@ -280,6 +220,72 @@ fn can_update_english_auction() {
     System::set_block_number(10);
     assert_noop!(
       AuctionsModule::update_auction(Origin::signed(ALICE), 0, auction.clone()),
+      Error::<Test>::AuctionAlreadyStarted,
+    );
+  });
+}
+
+#[test]
+fn can_delete_english_auction() {
+  let general_auction_data = GeneralAuctionData {
+    name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+    last_bid: None,
+    start: 10u64,
+    end: 21u64,
+    owner: ALICE,
+    token: (NFT_CLASS_ID_1, 0u16.into()),
+    minimal_bid: 55,
+  };
+
+  let english_auction_data = EnglishAuctionData {
+    reserve_price: 0,
+  };
+
+  ExtBuilder::default().build().execute_with(|| {
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
+
+    let auction_data = EnglishAuction {
+      general_data: general_auction_data.clone(),
+      specific_data: english_auction_data.clone(),
+    };
+    let auction = Auction::English(auction_data);
+
+    // Error AuctionNotExist when auction is not found
+    assert_noop!(
+      AuctionsModule::delete_auction(Origin::signed(ALICE), 0),
+      Error::<Test>::AuctionNotExist,
+    );
+    
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction.clone()));
+
+    System::set_block_number(3);
+
+    // Error NotAuctionOwner when caller is not owner
+    assert_noop!(
+      AuctionsModule::delete_auction(Origin::signed(BOB), 0),
+      Error::<Test>::NotAuctionOwner,
+    );
+
+    // Happy path
+    assert_ok!(
+      AuctionsModule::delete_auction(Origin::signed(ALICE), 0)
+    );
+
+    assert_eq!(AuctionsModule::auctions(0), None);
+    assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
+
+    expect_event(crate::Event::<Test>::AuctionRemoved(0));
+
+    // NFT can be transferred
+    assert_ok!(Nft::transfer(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
+    assert_ok!(Nft::transfer(Origin::signed(CHARLIE), NFT_CLASS_ID_1, 0u16.into(), ALICE));
+
+    // Error AuctionAlreadyStarted
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction.clone()));
+    System::set_block_number(10);
+    assert_noop!(
+      AuctionsModule::delete_auction(Origin::signed(ALICE), 1),
       Error::<Test>::AuctionAlreadyStarted,
     );
   });
