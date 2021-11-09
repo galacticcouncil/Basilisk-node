@@ -70,6 +70,7 @@ mod weights;
 mod xcm;
 
 mod benchmarking;
+mod adapter;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -105,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 21,
+	spec_version: 22,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -133,6 +134,7 @@ impl Contains<Call> for BaseFilter {
 	}
 }
 
+use crate::adapter::OrmlTokensAdapter;
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
 
@@ -170,7 +172,9 @@ impl WeightToFeePolynomial for WeightToFee {
 pub struct RelayChainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
 
 #[cfg(not(feature = "runtime-benchmarks"))]
-impl<T: cumulus_pallet_parachain_system::Config> BlockNumberProvider for RelayChainBlockNumberProvider<T> {
+impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumberProvider
+	for RelayChainBlockNumberProvider<T>
+{
 	type BlockNumber = BlockNumber;
 
 	fn current_block_number() -> Self::BlockNumber {
@@ -330,7 +334,7 @@ impl orml_tokens::Config for Runtime {
 
 impl orml_currencies::Config for Runtime {
 	type Event = Event;
-	type MultiCurrency = Tokens;
+	type MultiCurrency = OrmlTokensAdapter<Runtime>;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = ();
@@ -649,7 +653,6 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but lets be pedantic.
 	type SessionHandler = <opaque::SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = opaque::SessionKeys;
-	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
 	type WeightInfo = ();
 }
 
@@ -720,7 +723,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>},
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} ,
 
 		// Collator support
