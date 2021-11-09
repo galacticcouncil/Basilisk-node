@@ -249,7 +249,6 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
 		expect_events(vec![
-			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 		]);
 	});
@@ -312,10 +311,7 @@ fn create_same_pool_should_not_work() {
 			Error::<Test>::PoolAlreadyExists
 		);
 
-		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-
 		expect_events(vec![
-			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 		]);
 	});
@@ -820,8 +816,6 @@ fn update_pool_interval_should_work() {
 			CHARLIE,
 		));
 
-		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-
 		run_to_block::<Test>(15);
 
 		assert_noop!(
@@ -857,7 +851,6 @@ fn update_pool_interval_should_work() {
 		assert_eq!(updated_pool_data.end, 20);
 
 		expect_events(vec![
-			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data).into(),
 		]);
@@ -1879,10 +1872,10 @@ fn buy_should_work() {
 		expect_events(vec![
 			orml_tokens::Event::Endowed(ACA, CHARLIE, 28_737).into(),
 			Event::BuyExecuted(buyer, DOT, ACA, 14_368_715, 10_000_000, ACA, 28_737).into(),
+			Event::PoolCreated(pool_id2, pool_data1).into(),
 			frame_system::Event::NewAccount(pool_id2).into(),
 			orml_tokens::Event::Endowed(HDX, pool_id2, 1_000_000_000).into(),
 			orml_tokens::Event::Endowed(DOT, pool_id2, 2_000_000_000).into(),
-			Event::PoolCreated(pool_id2, pool_data1).into(),
 			Event::LiquidityAdded(pool_id2, HDX, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(pool_id2, pool_data2).into(),
 			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3711).into(),
@@ -2015,10 +2008,10 @@ fn sell_should_work() {
 		expect_events(vec![
 			orml_tokens::Event::Endowed(DOT, CHARLIE, 13_959).into(),
 			Event::SellExecuted(buyer, ACA, DOT, 10_000_000, 6_965_956, DOT, 13_959).into(),
+			Event::PoolCreated(pool_id2, pool_data1).into(),
 			frame_system::Event::NewAccount(pool_id2).into(),
 			orml_tokens::Event::Endowed(asset_in, pool_id2, 1_000_000_000).into(),
 			orml_tokens::Event::Endowed(asset_out, pool_id2, 2_000_000_000).into(),
-			Event::PoolCreated(pool_id2, pool_data1).into(),
 			Event::LiquidityAdded(pool_id2, HDX, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(pool_id2, pool_data2).into(),
 			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3_686).into(),
