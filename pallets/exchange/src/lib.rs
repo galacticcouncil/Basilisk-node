@@ -58,12 +58,11 @@ pub type Intention<T> = ExchangeIntention<<T as system::Config>::AccountId, Bala
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
-use sp_runtime::DispatchResult;
+use frame_support::pallet_prelude::*;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
