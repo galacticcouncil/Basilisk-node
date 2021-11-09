@@ -242,6 +242,8 @@ pub mod pallet {
 		EmptyAuctionName,
 		/// BoundedVec exceeds limits
 		TooLong,
+		/// Auction type cannot be changed
+		NoChangeOfAuctionType,
 	}
 
 	#[pallet::call]
@@ -261,29 +263,18 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		// #[pallet::weight(<T as Config>::WeightInfo::update_auction())]
-		// pub fn update_auction(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
-		// 	let sender = ensure_signed(origin)?;
+		#[pallet::weight(<T as Config>::WeightInfo::update_auction())]
+		pub fn update_auction(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
 
-		// 	match &updated_auction {
-		// 		Auction::English(data) => {
-		// 			let auction = <Auctions<T>>::get(AuctionType::English, id).ok_or(Error::<T>::AuctionNotExist)?;
-		// 			Self::validate_general_data(&data.general_data)?;
-		// 			Self::validate_auction_permissions(sender, auction.general_data)?;
-
-		// 			// Self::handle_auction_update(&sender, AuctionType::English, id, &auction, &data.general_data);
-
-		// 			// Self::validate_auction_mutation()
-
-		// 			// Self::validate_update_delete(&sender,)
-
-		// 			// Self::validate_general_data(&data.general_data)?;
-		// 			// Self::validate_create_general_data(&data.general_data)?;
-		// 			// Self::handle_auction_create(sender, &auction, AuctionType::English, &data.general_data)?;
-		// 		}
-		// 	}
-		// 	Ok(())
-		// }
+			match &updated_auction {
+				Auction::English(data) => {
+					Self::validate_general_data(&data.general_data)?;
+					Self::handle_auction_update(sender, id, updated_auction.clone(), &data.general_data)?;
+				}
+			}
+			Ok(())
+		}
 
 		// #[pallet::weight(<T as Config>::WeightInfo::bid_value())]
 		// pub fn bid_value(origin: OriginFor<T>, id: T::AuctionId, value: BalanceOf<T>) -> DispatchResultWithPostInfo {
@@ -365,7 +356,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn validate_auction_permissions(
+	fn validate_auction_update(
 		sender: <T>::AccountId,
 		general_data: &GeneralAuctionDataOf<T>,
 	) -> DispatchResult {
@@ -377,24 +368,23 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	// fn handle_auction_update(
-	// 	sender: &<T>::AccountId,
-	// 	auction_type: AuctionType,
-	// 	auction_id: T::AuctionId,
-	// 	updated_auction: Auction<T>,
-	// 	general_data: &GeneralAuctionDataOf<T>,
-	// ) -> DispatchResult {
-	// 	<Auctions<T>>::try_mutate(auction_type, auction_id, |auction_result| -> DispatchResult {
-	// 		if let Some(auction) = auction_result {
-	// 			Self::validate_auction_edit(&sender, &auction.general_data)?;
-	// 			*auction_result = Some(updated_auction);
-	// 			Ok(())
-	// 		} else {
-	// 			Err(Error::<T>::AuctionNotExist.into())
-	// 		}
-	// 	})
+	fn handle_auction_update(
+		sender: <T>::AccountId,
+		auction_id: T::AuctionId,
+		updated_auction: Auction<T>,
+		general_data: &GeneralAuctionDataOf<T>,
+	) -> DispatchResult {
+		<Auctions<T>>::try_mutate( auction_id, |auction_result| -> DispatchResult {
+			if let Some(auction) = auction_result {
+				Self::validate_auction_update(sender, &general_data)?;
+				*auction_result = Some(updated_auction);
+				Ok(())
+			} else {
+				Err(Error::<T>::AuctionNotExist.into())
+			}
+		})
 		
-	// }
+	}
 
 	// fn conclude_auction(now: T::BlockNumber) -> DispatchResult {
 	// 	for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
@@ -434,26 +424,6 @@ impl<T: Config> Pallet<T> {
 // 	type AuctionId = T::AuctionId;
 // 	type Balance = BalanceOf<T>;
 // 	type AccountId = T::AccountId;
-
-// 	fn new_auction(info: AuctionInfoOf<T>) -> result::Result<<T>::AuctionId, DispatchError> {
-// 		// Basic checks before an auction is created
-// 		Self::check_new_auction(&info)?;
-// 		let auction_id = <NextAuctionId<T>>::try_mutate(|next_id| -> result::Result<Self::AuctionId, DispatchError> {
-// 			let current_id = *next_id;
-// 			*next_id = next_id
-// 				.checked_add(&One::one())
-// 				.ok_or(Error::<T>::NoAvailableAuctionId)?;
-// 			Ok(current_id)
-// 		})?;
-
-// 		<Auctions<T>>::insert(auction_id, info.clone());
-// 		<AuctionOwnerById<T>>::insert(auction_id, &info.owner);
-// 		<AuctionEndTime<T>>::insert(info.end, auction_id, ());
-
-// 		pallet_uniques::Pallet::<T>::freeze(RawOrigin::Signed(info.owner.clone()).into(), info.token.0, info.token.1)?;
-
-// 		Ok(auction_id)
-// 	}
 
 // 	fn bid(bidder: Self::AccountId, id: Self::AuctionId, value: Self::Balance) -> DispatchResult {
 // 		<Auctions<T>>::try_mutate_exists(id, |auction| -> DispatchResult {

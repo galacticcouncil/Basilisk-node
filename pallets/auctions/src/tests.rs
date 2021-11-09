@@ -212,55 +212,78 @@ fn can_create_english_auction() {
 //   });
 // }
  
-// #[test]
-// fn can_update_english_auction() {
-//   ExtBuilder::default().build().execute_with(|| {
-//     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
-//     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
-//     let auction_info = AuctionInfo {
-//       name: "Auction 0".as_bytes().to_vec(),
-//       last_bid: None,
-//       start: 10u64,
-//       end: 21u64,
-//       owner: ALICE,
-//       auction_type: AuctionType::English,
-//       token: (NFT_CLASS_ID_1, 0u16.into()),
-//       minimal_bid: 55,
-//     };
+#[test]
+fn can_update_english_auction() {
+  let general_auction_data = GeneralAuctionData {
+    name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+    last_bid: None,
+    start: 10u64,
+    end: 21u64,
+    owner: ALICE,
+    token: (NFT_CLASS_ID_1, 0u16.into()),
+    minimal_bid: 55,
+  };
 
-//     let mut update_auction_info = auction_info.clone();
-//     update_auction_info.name = "Auction renamed".as_bytes().to_vec();
+  let english_auction_data = EnglishAuctionData {
+    reserve_price: 0,
+  };
 
-//     // Error AuctionNotExist
-//     assert_noop!(
-//       AuctionsModule::update_auction(Origin::signed(ALICE), 0, update_auction_info.clone()),
-//       Error::<Test>::AuctionNotExist,
-//     );
+  ExtBuilder::default().build().execute_with(|| {
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
 
-//     assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info));
 
-//     System::set_block_number(3);
+    // let mut update_auction_info = auction_info.clone();
+    // update_auction_info.name = "Auction renamed".as_bytes().to_vec();
 
-//     // Error NotAuctionOwner when caller is not owner
-//     assert_noop!(
-//       AuctionsModule::update_auction(Origin::signed(BOB), 0, update_auction_info.clone()),
-//       Error::<Test>::NotAuctionOwner,
-//     );
+    let auction_data = EnglishAuction {
+      general_data: general_auction_data.clone(),
+      specific_data: english_auction_data.clone(),
+    };
+    let auction = Auction::English(auction_data);
 
-//     // Happy path
-//     assert_ok!(AuctionsModule::update_auction(Origin::signed(ALICE), 0, update_auction_info.clone()));
+    // Error AuctionNotExist
+    assert_noop!(
+      AuctionsModule::update_auction(Origin::signed(ALICE), 0, auction.clone()),
+      Error::<Test>::AuctionNotExist,
+    );
 
-//     let auction = AuctionsModule::auctions(0).unwrap();
-//     assert_eq!(String::from_utf8(auction.name).unwrap(), "Auction renamed");
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction));
 
-//     // Error AuctionAlreadyStarted
-//     System::set_block_number(10);
-//     assert_noop!(
-//       AuctionsModule::update_auction(Origin::signed(ALICE), 0, update_auction_info.clone()),
-//       Error::<Test>::AuctionAlreadyStarted,
-//     );
-//   });
-// }
+    System::set_block_number(3);
+
+    let mut updated_general_data = general_auction_data.clone();
+    updated_general_data.name = to_bounded_name("Auction renamed".as_bytes().to_vec()).unwrap();
+
+    let auction_data = EnglishAuction {
+      general_data: updated_general_data.clone(),
+      specific_data: english_auction_data.clone(),
+    };
+    let auction = Auction::English(auction_data);
+
+
+    // Error NotAuctionOwner when caller is not owner
+    assert_noop!(
+      AuctionsModule::update_auction(Origin::signed(BOB), 0, auction.clone()),
+      Error::<Test>::NotAuctionOwner,
+    );
+
+    // Happy path
+    assert_ok!(AuctionsModule::update_auction(Origin::signed(ALICE), 0, auction.clone()));
+
+    let auction_result = AuctionsModule::auctions(0);
+    if let Some(Auction::English(data)) = auction_result {
+      assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction renamed");
+    }
+
+    // Error AuctionAlreadyStarted
+    System::set_block_number(10);
+    assert_noop!(
+      AuctionsModule::update_auction(Origin::signed(ALICE), 0, auction.clone()),
+      Error::<Test>::AuctionAlreadyStarted,
+    );
+  });
+}
 
 // #[test]
 // fn can_bid_value_english_auction() {
