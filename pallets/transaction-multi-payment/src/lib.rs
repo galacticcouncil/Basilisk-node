@@ -52,7 +52,7 @@ use frame_support::weights::{Pays, Weight};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::asset::AssetPair;
 use primitives::traits::AMM;
-use primitives::{Amount, AssetId, Balance, constants::chain::CORE_ASSET_ID};
+use primitives::{constants::chain::CORE_ASSET_ID, Amount, AssetId, Balance};
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::traits::SignedExtension;
@@ -489,7 +489,7 @@ where
 		_len: usize,
 	) -> TransactionValidity {
 		match call.is_sub_type() {
-			Some(Call::set_currency{currency}) => match Pallet::<T>::check_balance(who, *currency) {
+			Some(Call::set_currency { currency }) => match Pallet::<T>::check_balance(who, *currency) {
 				Ok(_) => Ok(ValidTransaction::default()),
 				Err(error) => InvalidTransaction::Custom(error.as_u8()).into(),
 			},

@@ -344,8 +344,14 @@ fn sell_test_standard() {
 		assert_eq!(pool_balance_a, 101_000_000_000_000);
 		assert_eq!(pool_balance_b, 198_029_703_089_109);
 
-		assert_eq!(user_2_balance_a + user_3_balance_a + pool_balance_a, 200_100_000_000_000_000);
-		assert_eq!(user_2_balance_b + user_3_balance_b + pool_balance_b, 200_200_000_000_000_000);
+		assert_eq!(
+			user_2_balance_a + user_3_balance_a + pool_balance_a,
+			200_100_000_000_000_000
+		);
+		assert_eq!(
+			user_2_balance_b + user_3_balance_b + pool_balance_b,
+			200_200_000_000_000_000
+		);
 
 		// No tokens should be created or lost
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
@@ -484,8 +490,14 @@ fn sell_test_inverse_standard() {
 		assert_eq!(pool_balance_a, 99_013_881_188_119);
 		assert_eq!(pool_balance_b, 202_004_000_000_000);
 
-		assert_eq!(user_2_balance_a + user_3_balance_a + pool_balance_a, 200_100_000_000_000_000);
-		assert_eq!(user_2_balance_b + user_3_balance_b + pool_balance_b, 200_200_000_000_000_000);
+		assert_eq!(
+			user_2_balance_a + user_3_balance_a + pool_balance_a,
+			200_100_000_000_000_000
+		);
+		assert_eq!(
+			user_2_balance_b + user_3_balance_b + pool_balance_b,
+			200_200_000_000_000_000
+		);
 		// No tokens should be created or lost
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
@@ -4631,68 +4643,60 @@ fn verify_intention_should_work() {
 		let initial_price = Price::from_float(2.0);
 		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
 
-		assert!(
-			Exchange::verify_intention(&Intention::<Test> {
-				who: user,
-				assets: AssetPair {
-					asset_in: asset_a,
-					asset_out: asset_b,
-				},
-				amount_in: 1_000_000_000,
-				amount_out: 2_000_000_000,
-				trade_limit: 3_000_000_000,
-				discount: false,
-				sell_or_buy: IntentionType::BUY,
-				intention_id: generate_intention_id(&user, 0),
-			})
-		);
+		assert!(Exchange::verify_intention(&Intention::<Test> {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000_000,
+			amount_out: 2_000_000_000,
+			trade_limit: 3_000_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user, 0),
+		}));
 
-		assert!(
-			Exchange::verify_intention(&Intention::<Test> {
-				who: user,
-				assets: AssetPair {
-					asset_in: asset_a,
-					asset_out: asset_b,
-				},
-				amount_in: 1_000_000_000,
-				amount_out: 2_000_000_000,
-				trade_limit: 100_000_000,
-				discount: false,
-				sell_or_buy: IntentionType::SELL,
-				intention_id: generate_intention_id(&user, 0),
-			})
-		);
+		assert!(Exchange::verify_intention(&Intention::<Test> {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000_000,
+			amount_out: 2_000_000_000,
+			trade_limit: 100_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user, 0),
+		}));
 
-		assert!(
-			!Exchange::verify_intention(&Intention::<Test> {
-				who: user,
-				assets: AssetPair {
-					asset_in: asset_a,
-					asset_out: asset_b,
-				},
-				amount_in: 1_000_000_000,
-				amount_out: 2_000_000_000,
-				trade_limit: 100_000_000,
-				discount: false,
-				sell_or_buy: IntentionType::BUY,
-				intention_id: generate_intention_id(&user, 0),
-			})
-		);
+		assert!(!Exchange::verify_intention(&Intention::<Test> {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000_000,
+			amount_out: 2_000_000_000,
+			trade_limit: 100_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::BUY,
+			intention_id: generate_intention_id(&user, 0),
+		}));
 
-		assert!(
-			!Exchange::verify_intention(&Intention::<Test> {
-				who: user,
-				assets: AssetPair {
-					asset_in: asset_a,
-					asset_out: asset_b,
-				},
-				amount_in: 1_000_000_000,
-				amount_out: 2_000_000_000,
-				trade_limit: 10_000_000_000,
-				discount: false,
-				sell_or_buy: IntentionType::SELL,
-				intention_id: generate_intention_id(&user, 0),
-			})
-		);
+		assert!(!Exchange::verify_intention(&Intention::<Test> {
+			who: user,
+			assets: AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			},
+			amount_in: 1_000_000_000,
+			amount_out: 2_000_000_000,
+			trade_limit: 10_000_000_000,
+			discount: false,
+			sell_or_buy: IntentionType::SELL,
+			intention_id: generate_intention_id(&user, 0),
+		}));
 	});
 }

@@ -29,8 +29,8 @@ use scale_info::TypeInfo;
 use frame_support::sp_runtime::FixedU128;
 
 pub mod asset;
-pub mod traits;
 pub mod constants;
+pub mod traits;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -142,7 +142,7 @@ mod tests {
 	#[test]
 	// This function tests that fee calculations return correct amounts
 	fn fee_calculations_should_work() {
-		let fee = Fee{
+		let fee = Fee {
 			numerator: 2,
 			denominator: 1_000,
 		};
