@@ -69,8 +69,8 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 mod weights;
 mod xcm;
 
-mod benchmarking;
 mod adapter;
+mod benchmarking;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
