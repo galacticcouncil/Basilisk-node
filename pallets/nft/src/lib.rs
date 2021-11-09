@@ -10,11 +10,11 @@ use frame_support::{
 	transactional,
 };
 use frame_system::ensure_signed;
+use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{StaticLookup, Zero},
 	RuntimeDebug,
 };
-use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 use weights::WeightInfo;
 
@@ -109,7 +109,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			class_id: ClassIdOf<T>,
 			metadata: Vec<u8>,
-			token_data: TokenData
+			token_data: TokenData,
 		) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
