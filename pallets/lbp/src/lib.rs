@@ -354,7 +354,7 @@ pub mod pallet {
 			weight_curve: WeightCurveType,
 			fee: Fee,
 			fee_collector: T::AccountId,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			ensure!(
@@ -398,10 +398,11 @@ pub mod pallet {
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 
+			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
+
 			T::MultiCurrency::transfer(asset_a, &pool_owner, &pool_id, asset_a_amount)?;
 			T::MultiCurrency::transfer(asset_b, &pool_owner, &pool_id, asset_b_amount)?;
 
-			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
 			Self::deposit_event(Event::LiquidityAdded(
 				pool_id,
 				asset_a,
@@ -410,7 +411,7 @@ pub mod pallet {
 				asset_b_amount,
 			));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Update pool data of a pool.
@@ -443,10 +444,10 @@ pub mod pallet {
 			final_weight: Option<LBPWeight>,
 			fee: Option<Fee>,
 			fee_collector: Option<T::AccountId>,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResultWithPostInfo {
+			<PoolData<T>>::try_mutate_exists(pool_id.clone(), |maybe_pool| -> DispatchResult {
 				// check existence of the pool
 				let mut pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
 
@@ -477,7 +478,7 @@ pub mod pallet {
 				Self::validate_pool_data(pool)?;
 
 				Self::deposit_event(Event::PoolUpdated(pool_id, (*pool).clone()));
-				Ok(().into())
+				Ok(())
 			})
 		}
 
@@ -499,7 +500,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			amount_a: (AssetId, BalanceOf<T>),
 			amount_b: (AssetId, BalanceOf<T>),
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let (asset_a, asset_b) = (amount_a.0, amount_b.0);
@@ -534,7 +535,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::LiquidityAdded(pool_id, asset_a, asset_b, amount_a, amount_b));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Transfer all the liquidity from a pool back to the pool owner and destroy the pool.
@@ -550,7 +551,7 @@ pub mod pallet {
 		/// Emits 'LiquidityRemoved' when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
 		#[transactional]
-		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResultWithPostInfo {
+		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
@@ -571,7 +572,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade `asset_in` for `asset_out`.
@@ -596,12 +597,12 @@ pub mod pallet {
 			asset_out: AssetId,
 			amount: BalanceOf<T>,
 			max_limit: BalanceOf<T>,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade `asset_in` for `asset_out`.
@@ -626,12 +627,12 @@ pub mod pallet {
 			asset_in: AssetId,
 			amount: BalanceOf<T>,
 			max_limit: BalanceOf<T>,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }

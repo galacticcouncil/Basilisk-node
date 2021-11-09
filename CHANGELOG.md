@@ -1,3 +1,27 @@
+# v5.0.3 (Tue Nov 09 2021)
+
+#### 🐛 Bug Fix
+
+- ci: test inclusion with 0.9.12 [#215](https://github.com/galacticcouncil/Basilisk-node/pull/215) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: add format target [#227](https://github.com/galacticcouncil/Basilisk-node/pull/227) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: use DispatchResult [#226](https://github.com/galacticcouncil/Basilisk-node/pull/226) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: change the order of emitted events on createPool() [#230](https://github.com/galacticcouncil/Basilisk-node/pull/230) ([@dexterslabor](https://github.com/dexterslabor) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: polkadot-v0.9.12 [#222](https://github.com/galacticcouncil/Basilisk-node/pull/222) ([@green-jay](https://github.com/green-jay) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: update testing runtime [#228](https://github.com/galacticcouncil/Basilisk-node/pull/228) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: update registered currencies in dev chainspec [#225](https://github.com/galacticcouncil/Basilisk-node/pull/225) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: disallow collating with benchmarking runtime [#219](https://github.com/galacticcouncil/Basilisk-node/pull/219) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: orml-tokens adapter [#223](https://github.com/galacticcouncil/Basilisk-node/pull/223) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### Authors: 5
+
+- [@dexterslabor](https://github.com/dexterslabor)
+- [@green-jay](https://github.com/green-jay)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
 # v5.0.2 (Mon Nov 01 2021)
 
 #### 🐛 Bug Fix

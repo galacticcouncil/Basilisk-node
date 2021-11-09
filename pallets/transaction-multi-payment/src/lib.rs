@@ -52,7 +52,7 @@ use frame_support::weights::{Pays, Weight};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::asset::AssetPair;
 use primitives::traits::AMM;
-use primitives::{Amount, AssetId, Balance, constants::chain::CORE_ASSET_ID};
+use primitives::{constants::chain::CORE_ASSET_ID, Amount, AssetId, Balance};
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::traits::SignedExtension;
@@ -206,7 +206,7 @@ pub mod pallet {
 		/// Emits `CurrencySet` event when successful.
 		#[pallet::weight((<T as Config>::WeightInfo::set_currency(), DispatchClass::Normal, Pays::No))]
 		#[transactional]
-		pub fn set_currency(origin: OriginFor<T>, currency: AssetId) -> DispatchResultWithPostInfo {
+		pub fn set_currency(origin: OriginFor<T>, currency: AssetId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			if currency == CORE_ASSET_ID || AcceptedCurrencies::<T>::contains_key(&currency) {
@@ -222,7 +222,7 @@ pub mod pallet {
 
 				Self::deposit_event(Event::CurrencySet(who, currency));
 
-				return Ok(().into());
+				return Ok(());
 			}
 
 			Err(Error::<T>::UnsupportedCurrency.into())
@@ -236,19 +236,19 @@ pub mod pallet {
 		///
 		/// Emits `CurrencyAdded` event when successful.
 		#[pallet::weight((<T as Config>::WeightInfo::add_currency(), DispatchClass::Normal, Pays::No))]
-		pub fn add_currency(origin: OriginFor<T>, currency: AssetId, price: Price) -> DispatchResultWithPostInfo {
+		pub fn add_currency(origin: OriginFor<T>, currency: AssetId, price: Price) -> DispatchResult {
 			T::AcceptedCurrencyOrigin::ensure_origin(origin)?;
 
 			ensure!(currency != CORE_ASSET_ID, Error::<T>::CoreAssetNotAllowed);
 
-			AcceptedCurrencies::<T>::try_mutate_exists(currency, |maybe_price| -> DispatchResultWithPostInfo {
+			AcceptedCurrencies::<T>::try_mutate_exists(currency, |maybe_price| -> DispatchResult {
 				if maybe_price.is_some() {
 					return Err(Error::<T>::AlreadyAccepted.into());
 				}
 
 				*maybe_price = Some(price);
 				Self::deposit_event(Event::CurrencyAdded(currency));
-				Ok(().into())
+				Ok(())
 			})
 		}
 
@@ -259,12 +259,12 @@ pub mod pallet {
 		///
 		/// Emits `CurrencyRemoved` when successful.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_currency(), DispatchClass::Normal, Pays::No))]
-		pub fn remove_currency(origin: OriginFor<T>, currency: AssetId) -> DispatchResultWithPostInfo {
+		pub fn remove_currency(origin: OriginFor<T>, currency: AssetId) -> DispatchResult {
 			T::AcceptedCurrencyOrigin::ensure_origin(origin)?;
 
 			ensure!(currency != CORE_ASSET_ID, Error::<T>::CoreAssetNotAllowed);
 
-			AcceptedCurrencies::<T>::try_mutate(currency, |x| -> DispatchResultWithPostInfo {
+			AcceptedCurrencies::<T>::try_mutate(currency, |x| -> DispatchResult {
 				if x.is_none() {
 					return Err(Error::<T>::UnsupportedCurrency.into());
 				}
@@ -273,7 +273,7 @@ pub mod pallet {
 
 				Self::deposit_event(Event::CurrencyRemoved(currency));
 
-				Ok(().into())
+				Ok(())
 			})
 		}
 	}
@@ -489,7 +489,7 @@ where
 		_len: usize,
 	) -> TransactionValidity {
 		match call.is_sub_type() {
-			Some(Call::set_currency{currency}) => match Pallet::<T>::check_balance(who, *currency) {
+			Some(Call::set_currency { currency }) => match Pallet::<T>::check_balance(who, *currency) {
 				Ok(_) => Ok(ValidTransaction::default()),
 				Err(error) => InvalidTransaction::Custom(error.as_u8()).into(),
 			},
