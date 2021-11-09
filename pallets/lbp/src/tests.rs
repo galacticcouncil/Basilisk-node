@@ -51,18 +51,6 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			None
 		));
 
-		let pool_data1 = Pool {
-			owner: ALICE,
-			start: 0u64,
-			end: 0u64,
-			assets: (ACA, DOT),
-			initial_weight: 20_000_000,
-			final_weight: 80_000_000,
-			weight_curve: WeightCurveType::Linear,
-			fee: Fee::default(),
-			fee_collector: CHARLIE,
-		};
-
 		let pool_data2 = Pool {
 			owner: ALICE,
 			start: 10u64,
@@ -78,7 +66,6 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_eq!(<PoolData<Test>>::get(ACA_DOT_POOL_ID), pool_data2);
 
 		expect_events(vec![
-			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data1).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into(),
 		]);
