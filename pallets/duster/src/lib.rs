@@ -198,7 +198,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			account: T::AccountId,
 			currency_id: T::CurrencyId,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(Self::blacklisted(&account).is_none(), Error::<T>::AccountBlacklisted);
@@ -216,39 +216,39 @@ pub mod pallet {
 			// Ignore the result, it fails - no problem.
 			let _ = Self::reward_duster(&who, currency_id, dust);
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Add account to list of non-dustable account. Account whihc are excluded from udsting.
 		/// If such account should be dusted - `AccountBlacklisted` error is returned.
 		/// Only root can perform this action.
 		#[pallet::weight((<T as Config>::WeightInfo::add_nondustable_account(), DispatchClass::Normal, Pays::No))]
-		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
+		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 
 			AccountBlacklist::<T>::insert(&account, ());
 
 			Self::deposit_event(Event::Added(account));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Remove account from list of non-dustable accounts. That means account can be dusted again.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_nondustable_account(), DispatchClass::Normal, Pays::No))]
-		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
+		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 
-			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResultWithPostInfo {
+			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResult {
 				ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
 
 				*maybe_account = None;
 
-				Ok(().into())
+				Ok(())
 			})?;
 
 			Self::deposit_event(Event::Removed(account));
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }
