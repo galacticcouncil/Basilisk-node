@@ -199,7 +199,7 @@ pub mod pallet {
 		/// Pool was destroyed. [who, asset a, asset b, share token, pool account id]
 		PoolDestroyed(T::AccountId, AssetId, AssetId, AssetId, T::AccountId),
 
-		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
+		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount, pool account id]
 		SellExecuted(
 			T::AccountId,
 			AssetId,
