@@ -22,11 +22,9 @@ use sp_runtime::{
 	Permill,
 };
 use sp_std::result;
-pub use traits::*;
 use weights::WeightInfo;
 
 mod benchmarking;
-pub mod traits;
 pub mod weights;
 
 #[cfg(test)]
