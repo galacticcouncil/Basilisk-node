@@ -291,90 +291,101 @@ fn can_delete_english_auction() {
   });
 }
 
-// #[test]
-// fn can_bid_value_english_auction() {
-//   let auction_0_info = AuctionInfo {
-//     name: "Auction 0".as_bytes().to_vec(),
-//     last_bid: None,
-//     start: 10u64,
-//     end: 21u64,
-//     owner: ALICE,
-//     auction_type: AuctionType::English,
-//     token: (NFT_CLASS_ID_1, 0u16.into()),
-//     minimal_bid: 0,
-//   };
+#[test]
+fn can_bid_value_english_auction() {
+  let general_auction_data = GeneralAuctionData {
+    name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+    last_bid: None,
+    start: 10u64,
+    end: 21u64,
+    owner: ALICE,
+    token: (NFT_CLASS_ID_1, 0u16.into()),
+    minimal_bid: 55,
+  };
 
-//   ExtBuilder::default().build().execute_with(|| {
-//     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
-//     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
+  let english_auction_data = EnglishAuctionData {
+    reserve_price: 0,
+  };
 
-//     // Create auction ID 0 with no minimal_bid and no last_bid
-//     assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_0_info));
+  ExtBuilder::default().build().execute_with(|| {
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
 
-//     // Error BidOnOwnAuction
-//     assert_noop!(
-//       AuctionsModule::bid_value(Origin::signed(ALICE), 0, BalanceOf::<Test>::from(2_000_u32)),
-//       Error::<Test>::BidOnOwnAuction,
-//     );
+    let auction_data = EnglishAuction {
+      general_data: general_auction_data.clone(),
+      specific_data: english_auction_data.clone(),
+    };
+    let auction = Auction::English(auction_data);
 
-//     // Error AuctionNotStarted
-//     assert_noop!(
-//       AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
-//       Error::<Test>::AuctionNotStarted,
-//     );
+    // Create auction ID 0 with no minimal_bid and no last_bid
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction));
 
-//     System::set_block_number(11);
+    // Error BidOnOwnAuction
+    assert_noop!(
+      AuctionsModule::bid(Origin::signed(ALICE), 0, BalanceOf::<Test>::from(2_000_u32)),
+      Error::<Test>::BidOnOwnAuction,
+    );
 
-//     // Error InvalidBidPrice when bid is zero and auction has no minimal_price
-//     assert_noop!(
-//       AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::zero()),
-//       Error::<Test>::InvalidBidPrice,
-//     );
+    // Error AuctionNotStarted
+    assert_noop!(
+      AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
+      Error::<Test>::AuctionNotStarted,
+    );
 
-//     // Happy path: First highest bidder
-//     assert_ok!(AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(1_000_u32)));
+    System::set_block_number(11);
 
-//     // Tokens of highest bidder are locked
-//     assert_noop!(
-//       Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX),
-//       pallet_balances::Error::<Test>::LiquidityRestrictions
-//     );
+    // Error InvalidBidPrice when bid is zero and auction has no minimal_price
+    assert_noop!(
+      AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::zero()),
+      Error::<Test>::InvalidBidPrice,
+    );
 
-//     // Error InvalidBidPrice when second bid <= last_bid
-//     assert_noop!(
-//       AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(1_000_u32)),
-//       Error::<Test>::InvalidBidPrice,
-//     );
+    // Happy path: First highest bidder
+    assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(1_000_u32)));
+
+    // Tokens of highest bidder are locked
+    assert_noop!(
+      Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX),
+      pallet_balances::Error::<Test>::LiquidityRestrictions
+    );
+
+    // Error InvalidBidPrice when second bid <= last_bid
+    assert_noop!(
+      AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(1_000_u32)),
+      Error::<Test>::InvalidBidPrice,
+    );
     
-//     // Error InvalidBidPrice when second bid < minimal_bid (10% above previous bid)
-//     assert_noop!(
-//       AuctionsModule::bid_value(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_099_u32)),
-//       Error::<Test>::InvalidBidPrice,
-//     );
+    // Error InvalidBidPrice when second bid < minimal_bid (10% above previous bid)
+    assert_noop!(
+      AuctionsModule::bid(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_099_u32)),
+      Error::<Test>::InvalidBidPrice,
+    );
     
-//     // Happy path: Second highest bidder
-//     System::set_block_number(12);
-//     assert_ok!(AuctionsModule::bid_value(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_100_u32)));
-//     expect_event(crate::Event::<Test>::Bid(0, CHARLIE, 1100));
+    // Happy path: Second highest bidder
+    System::set_block_number(12);
+    assert_ok!(AuctionsModule::bid(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_100_u32)));
+    expect_event(crate::Event::<Test>::Bid(0, CHARLIE, 1100));
 
-//     // Tokens of previous highest bidder are unlocked
-//     assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
+    // Tokens of previous highest bidder are unlocked
+    assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
 
-//     let auction = AuctionsModule::auctions(0).unwrap();
-//     // Next bid step is updated
-//     assert_eq!(auction.minimal_bid, 1210);
+    let auction = AuctionsModule::auctions(0).unwrap();
+    if let Auction::English(data) = auction {
+      // Next bid step is updated
+      assert_eq!(data.general_data.minimal_bid, 1210);
+  
+      // Auction time is extended with 1 block when end time is less than 10 blocks away
+      assert_eq!(data.general_data.end, 22u64);
+    }
 
-//     // Auction time is extended with 1 block when end time is less than 10 blocks away
-//     assert_eq!(auction.end, 22u64);
-
-//     // Error AuctionAlreadyConcluded
-//     System::set_block_number(22);
-//     assert_noop!(
-//       AuctionsModule::bid_value(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
-//       Error::<Test>::AuctionAlreadyConcluded,
-//     );
-//   });
-// }
+    // Error AuctionAlreadyConcluded
+    System::set_block_number(22);
+    assert_noop!(
+      AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
+      Error::<Test>::AuctionAlreadyConcluded,
+    );
+  });
+}
 
 // #[test]
 // fn can_close_english_auction() {
