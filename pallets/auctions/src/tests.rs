@@ -387,44 +387,53 @@ fn can_bid_value_english_auction() {
   });
 }
 
-// #[test]
-// fn can_close_english_auction() {
-//   let auction_info = AuctionInfo {
-//     name: "Auction 0".as_bytes().to_vec(),
-//     last_bid: None,
-//     start: 10u64,
-//     end: 21u64,
-//     owner: ALICE,
-//     auction_type: AuctionType::English,
-//     token: (NFT_CLASS_ID_1, 0u16.into()),
-//     minimal_bid: 0,
-//   };
+#[test]
+fn can_close_english_auction() {
+  let general_auction_data = GeneralAuctionData {
+    name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+    last_bid: None,
+    start: 10u64,
+    end: 21u64,
+    owner: ALICE,
+    token: (NFT_CLASS_ID_1, 0u16.into()),
+    minimal_bid: 55,
+  };
 
-//   ExtBuilder::default().build().execute_with(|| {
-//     assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
-//     assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
-    
-//     assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction_info));
-    
-//     System::set_block_number(11);
-    
-//     let bid_value = BalanceOf::<Test>::from(1_000_u32);
-//     assert_ok!(AuctionsModule::bid_value(Origin::signed(BOB), 0, bid_value));
-    
-//     let alice_balance_before = Balances::free_balance(&ALICE);
-//     let bob_balance_before = Balances::free_balance(&BOB);
-    
-//     System::set_block_number(21);
-    
-//     assert_ok!(AuctionsModule::conclude_auction(21));
+  let english_auction_data = EnglishAuctionData {
+    reserve_price: 0,
+  };
 
-//     let alice_balance_after = Balances::free_balance(&ALICE);
-//     let bob_balance_after = Balances::free_balance(&BOB);
+  ExtBuilder::default().build().execute_with(|| {
+    assert_ok!(Nft::create_class(Origin::signed(ALICE), NFT_CLASS_ID_1, ALICE, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), ALICE, 10u8, bvec![0]));
 
-//     // NFT can be transferred; Current version of nft pallet has no ownership check
-//     assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
+    let auction_data = EnglishAuction {
+      general_data: general_auction_data.clone(),
+      specific_data: english_auction_data.clone(),
+    };
+    let auction = Auction::English(auction_data);
+    
+    assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction));
+    
+    System::set_block_number(11);
+    
+    let bid_value = BalanceOf::<Test>::from(1_000_u32);
+    assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, bid_value));
+    
+    let alice_balance_before = Balances::free_balance(&ALICE);
+    let bob_balance_before = Balances::free_balance(&BOB);
+    
+    System::set_block_number(21);
+    
+    assert_ok!(AuctionsModule::close_auctions(21));
 
-//     assert_eq!(alice_balance_before.saturating_add(bid_value), alice_balance_after);
-//     assert_eq!(bob_balance_before.saturating_sub(bid_value), bob_balance_after);
-//   });
-// }
+    let alice_balance_after = Balances::free_balance(&ALICE);
+    let bob_balance_after = Balances::free_balance(&BOB);
+
+    // NFT can be transferred; Current version of nft pallet has no ownership check
+    assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
+
+    assert_eq!(alice_balance_before.saturating_add(bid_value), alice_balance_after);
+    assert_eq!(bob_balance_before.saturating_sub(bid_value), bob_balance_after);
+  });
+}

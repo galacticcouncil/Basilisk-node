@@ -7,7 +7,7 @@ use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure,
 	traits::{
-		tokens::nonfungibles::Inspect, Currency, LockIdentifier, LockableCurrency,
+		tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, LockIdentifier, LockableCurrency,
 		WithdrawReasons,
 	},
 	Parameter,
@@ -16,7 +16,7 @@ use frame_support::{
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
 	traits::{
-		AtLeast32BitUnsigned, Bounded, CheckedAdd, CheckedSub, MaybeSerializeDeserialize, Member, One,
+		AtLeast32BitUnsigned, Bounded, CheckedAdd, CheckedSub, MaybeSerializeDeserialize, Member, One, StaticLookup,
 		Zero,
 	},
 	Permill,
@@ -30,7 +30,6 @@ use codec::{Decode, Encode};
 
 mod benchmarking;
 pub mod weights;
-
 pub mod traits;
 
 #[cfg(test)]
@@ -47,14 +46,6 @@ const BID_STEP_PERC: u32 = 10;
 const BID_ADD_BLOCKS: u32 = 10;
 /// Minimal auction duration
 const MIN_AUCTION_DUR: u32 = 10;
-
-pub trait NftAuction<AccountId, AuctionId, BalanceOf> {
-	fn bid(
-		bidder: AccountId,
-		auction_id: AuctionId,
-		value: BalanceOf,
-	) -> DispatchResult;
-}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
 pub enum Auction<T: Config> {
@@ -102,8 +93,19 @@ impl<T: Config> sp_std::fmt::Debug for Auction<T> {
 		write!(f, "Auction")
 	}
 }
+pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
+	fn bid(
+		bidder: AccountId,
+		auction_id: AuctionId,
+		value: BalanceOf,
+	) -> DispatchResult;
 
-impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>> for EnglishAuction<T> {
+	fn close(
+		auction: &Self,
+	) -> DispatchResult;
+}
+
+impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for EnglishAuction<T> {
 	fn bid(
 		bidder: <T>::AccountId,
 		auction_id: T::AuctionId,
@@ -136,6 +138,32 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>> for English
 
 			Ok(())
 		})
+	}
+
+	fn close(auction: &EnglishAuction<T>) -> DispatchResult {
+		pallet_uniques::Pallet::<T>::thaw(
+			RawOrigin::Signed(auction.general_data.owner.clone()).into(),
+			auction.general_data.token.0,
+			auction.general_data.token.1,
+		)
+		.unwrap_or_default();
+		// there is a bid so let's determine a winner and transfer tokens
+		if let Some(ref winner) = auction.general_data.last_bid {
+			let dest = T::Lookup::unlookup(winner.0.clone());
+			let source = T::Origin::from(frame_system::RawOrigin::Signed(auction.general_data.owner.clone()));
+			pallet_nft::Pallet::<T>::transfer(source, auction.general_data.token.0, auction.general_data.token.1, dest)
+				.unwrap_or_default();
+			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.0);
+			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+				&winner.0,
+				&auction.general_data.owner,
+				winner.1,
+				ExistenceRequirement::KeepAlive,
+			)
+			.unwrap_or_default();
+		}
+
+		Ok(())
 	}
 }
 
@@ -315,12 +343,13 @@ pub mod pallet {
 		}
 	}
 
-	// #[pallet::hooks]
-	// impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
-	// 	fn on_finalize(now: T::BlockNumber) {
-	// 		Self::conclude_auction(now).unwrap_or_default();
-	// 	}
-	// }
+	// TODO implement a different auction closing mechanism (not in hooks)
+	#[pallet::hooks]
+	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
+		fn on_finalize(now: T::BlockNumber) {
+			Self::close_auctions(now);
+		}
+	}
 }
 
 impl<T: Config> Pallet<T> {
@@ -433,33 +462,17 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	// fn conclude_auction(now: T::BlockNumber) -> DispatchResult {
-	// 	for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&now) {
-	// 		if let Some(auction) = Self::auctions(auction_id) {
-	// 			pallet_uniques::Pallet::<T>::thaw(
-	// 				RawOrigin::Signed(auction.owner.clone()).into(),
-	// 				auction.token.0,
-	// 				auction.token.1,
-	// 			)
-	// 			.unwrap_or_default();
-	// 			// there is a bid so let's determine a winner and transfer tokens
-	// 			if let Some(ref winner) = auction.last_bid {
-	// 				let dest = T::Lookup::unlookup(winner.0.clone());
-	// 				let source = T::Origin::from(frame_system::RawOrigin::Signed(auction.owner.clone()));
-	// 				pallet_nft::Pallet::<T>::transfer(source, auction.token.0, auction.token.1, dest)
-	// 					.unwrap_or_default();
-	// 				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.0);
-	// 				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-	// 					&winner.0,
-	// 					&auction.owner,
-	// 					winner.1,
-	// 					ExistenceRequirement::KeepAlive,
-	// 				)
-	// 				.unwrap_or_default();
-	// 			}
-	// 		}
-	// 	}
+	fn close_auctions(current_block: T::BlockNumber) -> DispatchResult {
+		for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&current_block) {
+			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
 
-	// 	Ok(())
-	// }
+			match &auction {
+				Auction::English(data) => {
+					EnglishAuction::<T>::close(data)?;
+				}
+			}
+		}
+
+		Ok(())
+	}
 }
