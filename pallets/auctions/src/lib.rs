@@ -3,6 +3,7 @@
 #![allow(clippy::upper_case_acronyms)]
 
 // Used for encoding/decoding into scale
+use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure,
@@ -10,8 +11,7 @@ use frame_support::{
 		tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, LockIdentifier, LockableCurrency,
 		WithdrawReasons,
 	},
-	Parameter,
-	BoundedVec,
+	BoundedVec, Parameter,
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
@@ -21,16 +21,13 @@ use sp_runtime::{
 	},
 	Permill,
 };
-use sp_std::{
-	result
-};
+use sp_std::result;
 pub use traits::*;
 use weights::WeightInfo;
-use codec::{Decode, Encode};
 
 mod benchmarking;
-pub mod weights;
 pub mod traits;
+pub mod weights;
 
 #[cfg(test)]
 mod mock;
@@ -49,9 +46,7 @@ const MIN_AUCTION_DUR: u32 = 10;
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
 pub enum Auction<T: Config> {
-	English(
-		EnglishAuction<T>
-	),
+	English(EnglishAuction<T>),
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
@@ -94,47 +89,37 @@ impl<T: Config> sp_std::fmt::Debug for Auction<T> {
 	}
 }
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
-	fn bid(
-		bidder: AccountId,
-		auction_id: AuctionId,
-		value: BalanceOf,
-	) -> DispatchResult;
+	fn bid(bidder: AccountId, auction_id: AuctionId, value: BalanceOf) -> DispatchResult;
 
-	fn close(
-		auction: &Self,
-	) -> DispatchResult;
+	fn close(auction: &Self) -> DispatchResult;
 }
 
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for EnglishAuction<T> {
-	fn bid(
-		bidder: <T>::AccountId,
-		auction_id: T::AuctionId,
-		value: BalanceOf<T>,
-	) -> DispatchResult {
-			<Auctions<T>>::try_mutate_exists(auction_id, |auction| -> DispatchResult {
-				if let Some(Auction::English(data)) = auction {
-					// Lock / Unlock funds
-					if let Some(ref current_bid) = data.general_data.last_bid {
-						<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
-					}
-					<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
-
-					data.general_data.last_bid = Some((bidder, value));
-					// Set next minimal bid
-					let minimal_bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
-					data.general_data.minimal_bid = value.checked_add(&minimal_bid_step).ok_or(Error::<T>::BidOverflow)?;
-
-					// Avoid auction sniping
-					let block_number = <frame_system::Pallet<T>>::block_number();
-					let time_left = data
-						.general_data
-						.end
-						.checked_sub(&block_number)
-						.ok_or(Error::<T>::TimeUnderflow)?;
-					if time_left < BID_ADD_BLOCKS.into() {
-						data.general_data.end = block_number + BID_ADD_BLOCKS.into();
-					}
+	fn bid(bidder: <T>::AccountId, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
+		<Auctions<T>>::try_mutate_exists(auction_id, |auction| -> DispatchResult {
+			if let Some(Auction::English(data)) = auction {
+				// Lock / Unlock funds
+				if let Some(ref current_bid) = data.general_data.last_bid {
+					<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
 				}
+				<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
+
+				data.general_data.last_bid = Some((bidder, value));
+				// Set next minimal bid
+				let minimal_bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
+				data.general_data.minimal_bid = value.checked_add(&minimal_bid_step).ok_or(Error::<T>::BidOverflow)?;
+
+				// Avoid auction sniping
+				let block_number = <frame_system::Pallet<T>>::block_number();
+				let time_left = data
+					.general_data
+					.end
+					.checked_sub(&block_number)
+					.ok_or(Error::<T>::TimeUnderflow)?;
+				if time_left < BID_ADD_BLOCKS.into() {
+					data.general_data.end = block_number + BID_ADD_BLOCKS.into();
+				}
+			}
 
 			Ok(())
 		})
@@ -172,7 +157,7 @@ pub use pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{pallet_prelude::*};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -209,8 +194,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn auctions)]
 	/// Stores on-going and future auctions. Closed auction are removed.
-	pub type Auctions<T: Config> =
-		StorageMap<_, Twox64Concat, T::AuctionId, Auction<T>, OptionQuery>;
+	pub type Auctions<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, Auction<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auctions_index)]
@@ -360,22 +344,31 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::AuctionStartTimeAlreadyPassed
 		);
 		ensure!(
-			general_data.start >= Zero::zero() && general_data.end > Zero::zero() && general_data.end > general_data.start + MIN_AUCTION_DUR.into(),
+			general_data.start >= Zero::zero()
+				&& general_data.end > Zero::zero()
+				&& general_data.end > general_data.start + MIN_AUCTION_DUR.into(),
 			Error::<T>::InvalidTimeConfiguration
 		);
 		ensure!(!general_data.name.is_empty(), Error::<T>::EmptyAuctionName);
 		let token_owner = pallet_uniques::Pallet::<T>::owner(general_data.token.0, general_data.token.1);
-		ensure!(token_owner == Some(general_data.owner.clone()), Error::<T>::NotATokenOwner);
+		ensure!(
+			token_owner == Some(general_data.owner.clone()),
+			Error::<T>::NotATokenOwner
+		);
 		Ok(())
 	}
-	
+
 	fn validate_auction_create(general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
 		let is_transferrable = pallet_uniques::Pallet::<T>::can_transfer(&general_data.token.0, &general_data.token.1);
 		ensure!(is_transferrable, Error::<T>::TokenFrozen);
 		Ok(())
 	}
 
-	fn handle_auction_create(sender: <T>::AccountId, auction: &Auction<T>, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
+	fn handle_auction_create(
+		sender: <T>::AccountId,
+		auction: &Auction<T>,
+		general_data: &GeneralAuctionDataOf<T>,
+	) -> DispatchResult {
 		let auction_id = <NextAuctionId<T>>::try_mutate(|next_id| -> result::Result<<T>::AuctionId, DispatchError> {
 			let current_id = *next_id;
 			*next_id = next_id
@@ -388,21 +381,25 @@ impl<T: Config> Pallet<T> {
 		<AuctionOwnerById<T>>::insert(auction_id, &sender);
 		<AuctionEndTime<T>>::insert(general_data.end, auction_id, ());
 
-		pallet_uniques::Pallet::<T>::freeze(RawOrigin::Signed(sender.clone()).into(), general_data.token.0, general_data.token.1)?;
+		pallet_uniques::Pallet::<T>::freeze(
+			RawOrigin::Signed(sender.clone()).into(),
+			general_data.token.0,
+			general_data.token.1,
+		)?;
 
 		Self::deposit_event(Event::AuctionCreated(sender, auction_id));
 
 		Ok(())
 	}
 
-	fn validate_auction_update(
-		sender: <T>::AccountId,
-		general_data: &GeneralAuctionDataOf<T>,
-	) -> DispatchResult {
+	fn validate_auction_update(sender: <T>::AccountId, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
 		ensure!(general_data.owner == sender, Error::<T>::NotAuctionOwner);
 
 		let current_block_number = frame_system::Pallet::<T>::block_number();
-		ensure!(current_block_number < general_data.start, Error::<T>::AuctionAlreadyStarted);
+		ensure!(
+			current_block_number < general_data.start,
+			Error::<T>::AuctionAlreadyStarted
+		);
 
 		Ok(())
 	}
@@ -413,7 +410,7 @@ impl<T: Config> Pallet<T> {
 		updated_auction: Auction<T>,
 		general_data: &GeneralAuctionDataOf<T>,
 	) -> DispatchResult {
-		<Auctions<T>>::try_mutate( auction_id, |auction_result| -> DispatchResult {
+		<Auctions<T>>::try_mutate(auction_id, |auction_result| -> DispatchResult {
 			if let Some(_auction) = auction_result {
 				Self::validate_auction_update(sender, &general_data)?;
 				*auction_result = Some(updated_auction);
@@ -421,13 +418,10 @@ impl<T: Config> Pallet<T> {
 			} else {
 				Err(Error::<T>::AuctionNotExist.into())
 			}
-		})	
+		})
 	}
 
-	fn handle_auction_delete(
-		auction_id: T::AuctionId,
-		general_data: &GeneralAuctionDataOf<T>,
-	) -> DispatchResult {
+	fn handle_auction_delete(auction_id: T::AuctionId, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
 			RawOrigin::Signed(general_data.owner.clone()).into(),
 			general_data.token.0,
@@ -450,7 +444,10 @@ impl<T: Config> Pallet<T> {
 		let block_number = <frame_system::Pallet<T>>::block_number();
 		ensure!(bidder != &general_auction_data.owner, Error::<T>::BidOnOwnAuction);
 		ensure!(block_number > general_auction_data.start, Error::<T>::AuctionNotStarted);
-		ensure!(block_number < general_auction_data.end, Error::<T>::AuctionAlreadyConcluded);
+		ensure!(
+			block_number < general_auction_data.end,
+			Error::<T>::AuctionAlreadyConcluded
+		);
 		ensure!(value >= general_auction_data.minimal_bid, Error::<T>::InvalidBidPrice);
 
 		if let Some(ref current_bid) = general_auction_data.last_bid {

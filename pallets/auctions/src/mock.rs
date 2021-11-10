@@ -13,9 +13,7 @@ mod auction {
 	pub use super::super::*;
 }
 
-pub use crate::mock::{
-	Event as TestEvent,
-};
+pub use crate::mock::Event as TestEvent;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
