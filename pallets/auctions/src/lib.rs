@@ -89,13 +89,14 @@ impl<T: Config> sp_std::fmt::Debug for Auction<T> {
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
 	fn bid(bidder: AccountId, auction_id: AuctionId, value: BalanceOf) -> DispatchResult;
 
-	fn close(auction: &Self) -> DispatchResult;
+	fn close(&self) -> DispatchResult;
 }
 
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for EnglishAuction<T> {
-	fn bid(bidder: <T>::AccountId, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
-		<Auctions<T>>::try_mutate_exists(auction_id, |auction| -> DispatchResult {
-			if let Some(Auction::English(data)) = auction {
+	fn bid(bidder: T::AccountId, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
+		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+			let Auction::English(data) = auction;
 				// Lock / Unlock funds
 				if let Some(ref current_bid) = data.general_data.last_bid {
 					<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
@@ -117,29 +118,29 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 				if time_left < BID_ADD_BLOCKS.into() {
 					data.general_data.end = block_number + BID_ADD_BLOCKS.into();
 				}
-			}
+			
 
 			Ok(())
 		})
 	}
 
-	fn close(auction: &EnglishAuction<T>) -> DispatchResult {
+	fn close(&self) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
-			RawOrigin::Signed(auction.general_data.owner.clone()).into(),
-			auction.general_data.token.0,
-			auction.general_data.token.1,
+			RawOrigin::Signed(self.general_data.owner.clone()).into(),
+			self.general_data.token.0,
+			self.general_data.token.1,
 		)
 		.unwrap_or_default();
 		// there is a bid so let's determine a winner and transfer tokens
-		if let Some(ref winner) = auction.general_data.last_bid {
+		if let Some(ref winner) = self.general_data.last_bid {
 			let dest = T::Lookup::unlookup(winner.0.clone());
-			let source = T::Origin::from(frame_system::RawOrigin::Signed(auction.general_data.owner.clone()));
-			pallet_nft::Pallet::<T>::transfer(source, auction.general_data.token.0, auction.general_data.token.1, dest)
+			let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
+			pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)
 				.unwrap_or_default();
 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.0);
 			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 				&winner.0,
-				&auction.general_data.owner,
+				&self.general_data.owner,
 				winner.1,
 				ExistenceRequirement::KeepAlive,
 			)
@@ -239,7 +240,7 @@ pub mod pallet {
 		AuctionStartTimeAlreadyPassed,
 		/// Invalid auction time configuration
 		InvalidTimeConfiguration,
-		/// No permissions to update/delete auction
+		/// No permissions to update/destroy auction
 		NotAuctionOwner,
 		/// No permission to handle token
 		NotATokenOwner,
@@ -264,14 +265,14 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(<T as Config>::WeightInfo::create_auction())]
-		pub fn create_auction(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
+		pub fn create(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			match &auction {
 				Auction::English(data) => {
 					Self::validate_general_data(&data.general_data)?;
-					Self::validate_auction_create(&data.general_data)?;
-					Self::handle_auction_create(sender, &auction, &data.general_data)?;
+					Self::validate_create(&data.general_data)?;
+					Self::handle_create(sender, &auction, &data.general_data)?;
 				}
 			}
 
@@ -279,28 +280,28 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::update_auction())]
-		pub fn update_auction(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
+		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			match &updated_auction {
 				Auction::English(data) => {
 					Self::validate_general_data(&data.general_data)?;
-					Self::handle_auction_update(sender, id, updated_auction.clone(), &data.general_data)?;
+					Self::handle_update(sender, id, updated_auction.clone(), &data.general_data)?;
 				}
 			}
 
 			Ok(())
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::delete_auction())]
-		pub fn delete_auction(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_auction())]
+		pub fn destroy(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
 
 			match &auction {
 				Auction::English(data) => {
-					Self::validate_auction_update(sender, &data.general_data)?;
-					Self::handle_auction_delete(id, &data.general_data)?;
+					Self::validate_update(sender, &data.general_data)?;
+					Self::handle_destroy(id, &data.general_data)?;
 				}
 			}
 
@@ -314,7 +315,7 @@ pub mod pallet {
 
 			match &auction {
 				Auction::English(data) => {
-					Self::validate_auction_bid(&bidder, &data.general_data, value)?;
+					Self::validate_bid(&bidder, &data.general_data, value)?;
 					EnglishAuction::<T>::bid(bidder.clone(), auction_id, value)?;
 				}
 			}
@@ -356,13 +357,13 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn validate_auction_create(general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
+	fn validate_create(general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
 		let is_transferrable = pallet_uniques::Pallet::<T>::can_transfer(&general_data.token.0, &general_data.token.1);
 		ensure!(is_transferrable, Error::<T>::TokenFrozen);
 		Ok(())
 	}
 
-	fn handle_auction_create(
+	fn handle_create(
 		sender: <T>::AccountId,
 		auction: &Auction<T>,
 		general_data: &GeneralAuctionDataOf<T>,
@@ -390,7 +391,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn validate_auction_update(sender: <T>::AccountId, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
+	fn validate_update(sender: <T>::AccountId, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
 		ensure!(general_data.owner == sender, Error::<T>::NotAuctionOwner);
 
 		let current_block_number = frame_system::Pallet::<T>::block_number();
@@ -402,7 +403,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn handle_auction_update(
+	fn handle_update(
 		sender: <T>::AccountId,
 		auction_id: T::AuctionId,
 		updated_auction: Auction<T>,
@@ -410,7 +411,7 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		<Auctions<T>>::try_mutate(auction_id, |auction_result| -> DispatchResult {
 			if let Some(_auction) = auction_result {
-				Self::validate_auction_update(sender, &general_data)?;
+				Self::validate_update(sender, &general_data)?;
 				*auction_result = Some(updated_auction);
 				Ok(())
 			} else {
@@ -419,7 +420,7 @@ impl<T: Config> Pallet<T> {
 		})
 	}
 
-	fn handle_auction_delete(auction_id: T::AuctionId, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
+	fn handle_destroy(auction_id: T::AuctionId, general_data: &GeneralAuctionDataOf<T>) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
 			RawOrigin::Signed(general_data.owner.clone()).into(),
 			general_data.token.0,
@@ -434,7 +435,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn validate_auction_bid(
+	fn validate_bid(
 		bidder: &<T>::AccountId,
 		general_auction_data: &GeneralAuctionDataOf<T>,
 		value: BalanceOf<T>,

@@ -65,7 +65,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
-	fn delete_auction() -> Weight {
+	fn destroy_auction() -> Weight {
 		(62_980_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))

@@ -69,7 +69,7 @@ benchmarks! {
 	verify {
 	}
 
-	delete_auction {
+	destroy_auction {
 		let caller = create_account::<T>("caller", 0);
 
 		pallet_nft::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), Default::default(), T::Lookup::unlookup(caller.clone()), bvec![0])?;
@@ -104,7 +104,7 @@ mod tests {
 		new_test_ext().execute_with(|| {
 			assert_ok!(test_benchmark_create_auction::<Test>());
 			assert_ok!(test_benchmark_bid_value::<Test>());
-			assert_ok!(test_benchmark_delete_auction::<Test>());
+			assert_ok!(test_benchmark_destroy_auction::<Test>());
 		});
 	}
 }

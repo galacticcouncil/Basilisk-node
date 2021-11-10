@@ -56,7 +56,7 @@ fn can_create_english_auction() {
 		let auction = Auction::English(auction_data);
 
 		assert_noop!(
-			AuctionsModule::create_auction(Origin::signed(ALICE), auction),
+			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::AuctionStartTimeAlreadyPassed
 		);
 
@@ -71,7 +71,7 @@ fn can_create_english_auction() {
 		let auction = Auction::English(auction_data);
 
 		assert_noop!(
-			AuctionsModule::create_auction(Origin::signed(ALICE), auction),
+			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::InvalidTimeConfiguration
 		);
 
@@ -86,7 +86,7 @@ fn can_create_english_auction() {
 		let auction = Auction::English(auction_data);
 
 		assert_noop!(
-			AuctionsModule::create_auction(Origin::signed(ALICE), auction),
+			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::InvalidTimeConfiguration
 		);
 
@@ -101,7 +101,7 @@ fn can_create_english_auction() {
 		let auction = Auction::English(auction_data);
 
 		assert_noop!(
-			AuctionsModule::create_auction(Origin::signed(ALICE), auction),
+			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::EmptyAuctionName
 		);
 
@@ -116,7 +116,7 @@ fn can_create_english_auction() {
 		let auction = Auction::English(auction_data);
 
 		assert_noop!(
-			AuctionsModule::create_auction(Origin::signed(ALICE), auction),
+			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::NotATokenOwner
 		);
 
@@ -127,7 +127,7 @@ fn can_create_english_auction() {
 		};
 		let auction = Auction::English(auction_data);
 
-		assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction,));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction,));
 
 		expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
 
@@ -153,7 +153,7 @@ fn can_create_english_auction() {
 		let auction = Auction::English(auction_data);
 
 		assert_noop!(
-			AuctionsModule::create_auction(Origin::signed(ALICE), auction,),
+			AuctionsModule::create(Origin::signed(ALICE), auction,),
 			Error::<Test>::TokenFrozen
 		);
 
@@ -199,11 +199,11 @@ fn can_update_english_auction() {
 
 		// Error AuctionNotExist
 		assert_noop!(
-			AuctionsModule::update_auction(Origin::signed(ALICE), 0, auction.clone()),
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()),
 			Error::<Test>::AuctionNotExist,
 		);
 
-		assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		System::set_block_number(3);
 
@@ -218,12 +218,12 @@ fn can_update_english_auction() {
 
 		// Error NotAuctionOwner when caller is not owner
 		assert_noop!(
-			AuctionsModule::update_auction(Origin::signed(BOB), 0, auction.clone()),
+			AuctionsModule::update(Origin::signed(BOB), 0, auction.clone()),
 			Error::<Test>::NotAuctionOwner,
 		);
 
 		// Happy path
-		assert_ok!(AuctionsModule::update_auction(
+		assert_ok!(AuctionsModule::update(
 			Origin::signed(ALICE),
 			0,
 			auction.clone()
@@ -239,14 +239,14 @@ fn can_update_english_auction() {
 		// Error AuctionAlreadyStarted
 		System::set_block_number(10);
 		assert_noop!(
-			AuctionsModule::update_auction(Origin::signed(ALICE), 0, auction.clone()),
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()),
 			Error::<Test>::AuctionAlreadyStarted,
 		);
 	});
 }
 
 #[test]
-fn can_delete_english_auction() {
+fn can_destroy_english_auction() {
 	let general_auction_data = GeneralAuctionData {
 		name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
 		last_bid: None,
@@ -283,22 +283,22 @@ fn can_delete_english_auction() {
 
 		// Error AuctionNotExist when auction is not found
 		assert_noop!(
-			AuctionsModule::delete_auction(Origin::signed(ALICE), 0),
+			AuctionsModule::destroy(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionNotExist,
 		);
 
-		assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction.clone()));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
 
 		System::set_block_number(3);
 
 		// Error NotAuctionOwner when caller is not owner
 		assert_noop!(
-			AuctionsModule::delete_auction(Origin::signed(BOB), 0),
+			AuctionsModule::destroy(Origin::signed(BOB), 0),
 			Error::<Test>::NotAuctionOwner,
 		);
 
 		// Happy path
-		assert_ok!(AuctionsModule::delete_auction(Origin::signed(ALICE), 0));
+		assert_ok!(AuctionsModule::destroy(Origin::signed(ALICE), 0));
 
 		assert_eq!(AuctionsModule::auctions(0), None);
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
@@ -320,10 +320,10 @@ fn can_delete_english_auction() {
 		));
 
 		// Error AuctionAlreadyStarted
-		assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction.clone()));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
 		System::set_block_number(10);
 		assert_noop!(
-			AuctionsModule::delete_auction(Origin::signed(ALICE), 1),
+			AuctionsModule::destroy(Origin::signed(ALICE), 1),
 			Error::<Test>::AuctionAlreadyStarted,
 		);
 	});
@@ -366,7 +366,7 @@ fn can_bid_value_english_auction() {
 		let auction = Auction::English(auction_data);
 
 		// Create auction ID 0 with no next_bid_min and no last_bid
-		assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		// Error BidOnOwnAuction
 		assert_noop!(
@@ -479,7 +479,7 @@ fn can_close_english_auction() {
 		};
 		let auction = Auction::English(auction_data);
 
-		assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		System::set_block_number(11);
 

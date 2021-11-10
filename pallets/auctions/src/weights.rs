@@ -45,7 +45,7 @@ pub trait WeightInfo {
 	fn create_auction() -> Weight;
 	fn update_auction() -> Weight;
 	fn bid_value() -> Weight;
-	fn delete_auction() -> Weight;
+	fn destroy_auction() -> Weight;
 }
 
 /// Weights for pallet_auction using the subauction node and recommended hardware.
@@ -67,7 +67,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn delete_auction() -> Weight {
+	fn destroy_auction() -> Weight {
 		(62_980_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
@@ -91,7 +91,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
-	fn delete_auction() -> Weight {
+	fn destroy_auction() -> Weight {
 		(62_980_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
