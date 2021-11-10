@@ -64,11 +64,11 @@ pub struct EnglishAuctionData<T: Config> {
 pub struct GeneralAuctionData<AccountId, Balance, BlockNumber, NftClassId, NftTokenId, BoundedVec> {
 	pub name: BoundedVec,
 	pub last_bid: Option<(AccountId, Balance)>,
+	pub next_bid_min: Balance,
 	pub start: BlockNumber,
 	pub end: BlockNumber,
 	pub owner: AccountId,
 	pub token: (NftClassId, NftTokenId),
-	pub minimal_bid: Balance,
 }
 
 /// Define type aliases for better readability
@@ -106,8 +106,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 
 				data.general_data.last_bid = Some((bidder, value));
 				// Set next minimal bid
-				let minimal_bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
-				data.general_data.minimal_bid = value.checked_add(&minimal_bid_step).ok_or(Error::<T>::BidOverflow)?;
+				let bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
+				data.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
 
 				// Avoid auction sniping
 				let block_number = <frame_system::Pallet<T>>::block_number();
@@ -448,7 +448,7 @@ impl<T: Config> Pallet<T> {
 			block_number < general_auction_data.end,
 			Error::<T>::AuctionAlreadyConcluded
 		);
-		ensure!(value >= general_auction_data.minimal_bid, Error::<T>::InvalidBidPrice);
+		ensure!(value >= general_auction_data.next_bid_min, Error::<T>::InvalidBidPrice);
 
 		if let Some(ref current_bid) = general_auction_data.last_bid {
 			ensure!(value > current_bid.1, Error::<T>::InvalidBidPrice);

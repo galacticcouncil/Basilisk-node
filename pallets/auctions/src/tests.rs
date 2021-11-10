@@ -26,7 +26,7 @@ fn can_create_english_auction() {
 		end: 21u64,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
-		minimal_bid: 55,
+		next_bid_min: 55,
 	};
 
 	ExtBuilder::default().build().execute_with(|| {
@@ -140,7 +140,7 @@ fn can_create_english_auction() {
 		assert_eq!(data.general_data.end, 21u64);
 		assert_eq!(data.general_data.owner, ALICE);
 		assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-		assert_eq!(data.general_data.minimal_bid, 55);
+		assert_eq!(data.general_data.next_bid_min, 55);
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
 		assert_eq!(AuctionsModule::auction_end_time(21u64, 0).unwrap(), ());
@@ -170,7 +170,7 @@ fn can_update_english_auction() {
 		end: 21u64,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
-		minimal_bid: 55,
+		next_bid_min: 55,
 	};
 
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
@@ -254,7 +254,7 @@ fn can_delete_english_auction() {
 		end: 21u64,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
-		minimal_bid: 55,
+		next_bid_min: 55,
 	};
 
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
@@ -338,7 +338,7 @@ fn can_bid_value_english_auction() {
 		end: 21u64,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
-		minimal_bid: 55,
+		next_bid_min: 55,
 	};
 
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
@@ -365,7 +365,7 @@ fn can_bid_value_english_auction() {
 		};
 		let auction = Auction::English(auction_data);
 
-		// Create auction ID 0 with no minimal_bid and no last_bid
+		// Create auction ID 0 with no next_bid_min and no last_bid
 		assert_ok!(AuctionsModule::create_auction(Origin::signed(ALICE), auction));
 
 		// Error BidOnOwnAuction
@@ -429,7 +429,7 @@ fn can_bid_value_english_auction() {
 		let Auction::English(data) = auction;
 
 		// Next bid step is updated
-		assert_eq!(data.general_data.minimal_bid, 1210);
+		assert_eq!(data.general_data.next_bid_min, 1210);
 
 		// Auction time is extended with 1 block when end time is less than 10 blocks away
 		assert_eq!(data.general_data.end, 22u64);
@@ -452,7 +452,7 @@ fn can_close_english_auction() {
 		end: 21u64,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
-		minimal_bid: 55,
+		next_bid_min: 55,
 	};
 
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
