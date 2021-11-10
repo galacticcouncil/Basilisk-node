@@ -1,9 +1,10 @@
 use super::*;
 use crate::mock::{
-	BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, System, Test, Tokens, ACA, BSX, HDX, KSM,
-	TREASURY,
+	BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, System, Test, Tokens, ACA, BSX,
+	BSX_ACA_LM_POOL, BSX_DOT_LM_POOL, BSX_FARM, BSX_KSM_LM_POOL, HDX, KSM, TREASURY,
 };
 
+use frame_support::assert_ok;
 use primitives::{AssetId, Balance};
 
 use sp_arithmetic::traits::CheckedSub;
@@ -1328,6 +1329,370 @@ fn claim_global_pool_should_work() {
 				paid_accumulated_rewards: t.11,
 			}
 		);
+	}
+}
+
+#[test]
+/// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=1639947555
+fn update_pool_should_work() {
+	//(globaPoolId, PoolId, pool.updated_at, period_now, pool.accRPS,pool.total_shares, globaPool.reward_currency, pool.accRPS-new, pool.updated_at-new, pool.account-balance, global_pool.account-balance)
+	let testing_values = vec![
+		(
+			BSX_FARM,
+			BSX_DOT_LM_POOL,
+			BlockNumber::from(26_u64),
+			BlockNumber::from(206_u64),
+			Balance::from(299_u128),
+			Balance::from(0_u128),
+			Balance::from(2222546480_u128),
+			BSX,
+			Balance::from(299_u128),
+			BlockNumber::from(26_u64),
+			Balance::from(0_u128),
+			Balance::from(9000000000000_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(188_u64),
+			BlockNumber::from(259_u64),
+			Balance::from(1151_u128),
+			Balance::from(33769603_u128),
+			Balance::from(170130593048_u128),
+			BSX,
+			Balance::from(6188_u128),
+			BlockNumber::from(259_u64),
+			Balance::from(170130593048_u128),
+			Balance::from(8829869406952_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_KSM_LM_POOL,
+			BlockNumber::from(195_u64),
+			BlockNumber::from(326_u64),
+			Balance::from(823_u128),
+			Balance::from(2604286056_u128),
+			Balance::from(8414312431200_u128),
+			BSX,
+			Balance::from(4053_u128),
+			BlockNumber::from(326_u64),
+			Balance::from(8414312431200_u128),
+			Balance::from(585687568800_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_KSM_LM_POOL,
+			BlockNumber::from(181_u64),
+			BlockNumber::from(1856_u64),
+			Balance::from(320_u128),
+			Balance::from(8940144_u128),
+			Balance::from(190581342_u128),
+			BSX,
+			Balance::from(341_u128),
+			BlockNumber::from(1856_u64),
+			Balance::from(190581342_u128),
+			Balance::from(8999809418658_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(196_u64),
+			BlockNumber::from(954_u64),
+			Balance::from(5684_u128),
+			Balance::from(282043_u128),
+			Balance::from(15319968_u128),
+			BSX,
+			Balance::from(5738_u128),
+			BlockNumber::from(954_u64),
+			Balance::from(15319968_u128),
+			Balance::from(8999984680032_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_DOT_LM_POOL,
+			BlockNumber::from(68_u64),
+			BlockNumber::from(161_u64),
+			Balance::from(37_u128),
+			Balance::from(1138057342_u128),
+			Balance::from(2345375835_u128),
+			BSX,
+			Balance::from(39_u128),
+			BlockNumber::from(161_u64),
+			Balance::from(2345375835_u128),
+			Balance::from(8997654624165_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(161_u64),
+			BlockNumber::from(448_u64),
+			Balance::from(678_u128),
+			Balance::from(49923_u128),
+			Balance::from(39735180_u128),
+			BSX,
+			Balance::from(1473_u128),
+			BlockNumber::from(448_u64),
+			Balance::from(39735180_u128),
+			Balance::from(8999960264820_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_DOT_LM_POOL,
+			BlockNumber::from(27_u64),
+			BlockNumber::from(132_u64),
+			Balance::from(978_u128),
+			Balance::from(2444_u128),
+			Balance::from(3795224_u128),
+			BSX,
+			Balance::from(2530_u128),
+			BlockNumber::from(132_u64),
+			Balance::from(3795224_u128),
+			Balance::from(8999996204776_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_KSM_LM_POOL,
+			BlockNumber::from(97_u64),
+			BlockNumber::from(146_u64),
+			Balance::from(28_u128),
+			Balance::from(1593208_u128),
+			Balance::from(3249180_u128),
+			BSX,
+			Balance::from(30_u128),
+			BlockNumber::from(146_u64),
+			Balance::from(3249180_u128),
+			Balance::from(8999996750820_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(154_u64),
+			BlockNumber::from(202_u64),
+			Balance::from(876_u128),
+			Balance::from(9838_u128),
+			Balance::from(12385881_u128),
+			BSX,
+			Balance::from(2134_u128),
+			BlockNumber::from(202_u64),
+			Balance::from(12385881_u128),
+			Balance::from(8999987614119_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_DOT_LM_POOL,
+			BlockNumber::from(104_u64),
+			BlockNumber::from(131_u64),
+			Balance::from(8373_u128),
+			Balance::from(2046838954_u128),
+			Balance::from(56708340909_u128),
+			BSX,
+			Balance::from(8400_u128),
+			BlockNumber::from(131_u64),
+			Balance::from(56708340909_u128),
+			Balance::from(8943291659091_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_KSM_LM_POOL,
+			BlockNumber::from(90_u64),
+			BlockNumber::from(110_u64),
+			Balance::from(5886_u128),
+			Balance::from(596054_u128),
+			Balance::from(1685400_u128),
+			BSX,
+			Balance::from(5888_u128),
+			BlockNumber::from(110_u64),
+			Balance::from(1685400_u128),
+			Balance::from(8999998314600_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_DOT_LM_POOL,
+			BlockNumber::from(198_u64),
+			BlockNumber::from(582_u64),
+			Balance::from(2591_u128),
+			Balance::from(377215_u128),
+			Balance::from(67232880_u128),
+			BSX,
+			Balance::from(2769_u128),
+			BlockNumber::from(582_u64),
+			Balance::from(67232880_u128),
+			Balance::from(8999932767120_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_KSM_LM_POOL,
+			BlockNumber::from(29_u64),
+			BlockNumber::from(100_u64),
+			Balance::from(80_u128),
+			Balance::from(8250_u128),
+			Balance::from(79833261_u128),
+			BSX,
+			Balance::from(9756_u128),
+			BlockNumber::from(100_u64),
+			Balance::from(79833261_u128),
+			Balance::from(8999920166739_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(91_u64),
+			BlockNumber::from(260_u64),
+			Balance::from(2537_u128),
+			Balance::from(35172_u128),
+			Balance::from(3914623276_u128),
+			BSX,
+			Balance::from(113836_u128),
+			BlockNumber::from(260_u64),
+			Balance::from(3914623276_u128),
+			Balance::from(8996085376724_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(67_u64),
+			BlockNumber::from(229_u64),
+			Balance::from(471_u128),
+			Balance::from(1126422_u128),
+			Balance::from(63144576_u128),
+			BSX,
+			Balance::from(527_u128),
+			BlockNumber::from(229_u64),
+			Balance::from(63144576_u128),
+			Balance::from(8999936855424_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_DOT_LM_POOL,
+			BlockNumber::from(168_u64),
+			BlockNumber::from(361_u64),
+			Balance::from(952_u128),
+			Balance::from(28279041_u128),
+			Balance::from(179074946_u128),
+			BSX,
+			Balance::from(958_u128),
+			BlockNumber::from(361_u64),
+			Balance::from(179074946_u128),
+			Balance::from(8999820925054_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(3_u64),
+			BlockNumber::from(52_u64),
+			Balance::from(357_u128),
+			Balance::from(2_u128),
+			Balance::from(256455100_u128),
+			BSX,
+			Balance::from(128227907_u128),
+			BlockNumber::from(52_u64),
+			Balance::from(256455100_u128),
+			Balance::from(8999743544900_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_KSM_LM_POOL,
+			BlockNumber::from(49_u64),
+			BlockNumber::from(132_u64),
+			Balance::from(1557_u128),
+			Balance::from(94059_u128),
+			Balance::from(1119404304_u128),
+			BSX,
+			Balance::from(13458_u128),
+			BlockNumber::from(132_u64),
+			Balance::from(1119404304_u128),
+			Balance::from(8998880595696_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(38_u64),
+			BlockNumber::from(38_u64),
+			Balance::from(2564373_u128),
+			Balance::from(14085_u128),
+			Balance::from(13533356746_u128),
+			BSX,
+			Balance::from(2564373_u128),
+			BlockNumber::from(38_u64),
+			Balance::from(0_u128),
+			Balance::from(9000000000000_u128),
+		),
+		(
+			BSX_FARM,
+			BSX_ACA_LM_POOL,
+			BlockNumber::from(158_u64),
+			BlockNumber::from(158_u64),
+			Balance::from(129_u128),
+			Balance::from(762784_u128),
+			Balance::from(179074933_u128),
+			BSX,
+			Balance::from(129_u128),
+			BlockNumber::from(158_u64),
+			Balance::from(0_u128),
+			Balance::from(9000000000000_u128),
+		),
+	];
+
+	for t in testing_values.iter() {
+		let global_p = GlobalPool {
+			updated_at: BlockNumber::from(200_u64),
+			total_shares: Balance::from(1_000_000_u128),
+			accumulated_rps_start: Balance::from(200_u128),
+			accumulated_rps: Balance::from(200_u128),
+			reward_currency: t.7,
+			accumulated_rewards: Balance::from(1_000_000_u128),
+			paid_accumulated_rewards: Balance::from(1_000_000_u128),
+		};
+
+		let mut p = Pool {
+			updated_at: t.2,
+			total_shares: t.5,
+			accumulated_rps: t.4,
+		};
+
+		let mut ext = new_test_ext();
+
+		ext.execute_with(|| {
+			let _ = Tokens::transfer(
+				Origin::signed(TREASURY),
+				t.0,
+				global_p.reward_currency,
+				9_000_000_000_000,
+			);
+			assert_eq!(
+				Tokens::free_balance(global_p.reward_currency, &t.0),
+				9_000_000_000_000_u128
+			);
+
+			assert_eq!(Tokens::free_balance(t.0.try_into().unwrap(), &t.1), 0);
+
+			assert_ok!(LiquidityMining::update_pool(t.1, &mut p, t.6, t.3, t.0, t.7));
+
+			assert_eq!(
+				global_p,
+				GlobalPool {
+					updated_at: BlockNumber::from(200_u64),
+					total_shares: Balance::from(1_000_000_u128),
+					accumulated_rps_start: Balance::from(200_u128),
+					accumulated_rps: Balance::from(200_u128),
+					reward_currency: t.7,
+					accumulated_rewards: Balance::from(1_000_000_u128),
+					paid_accumulated_rewards: Balance::from(1_000_000_u128),
+				}
+			);
+
+			assert_eq!(
+				p,
+				Pool {
+					updated_at: t.9,
+					total_shares: t.5,
+					accumulated_rps: t.8,
+				}
+			);
+
+			assert_eq!(Tokens::free_balance(global_p.reward_currency, &t.0), t.11);
+			assert_eq!(Tokens::free_balance(global_p.reward_currency, &t.1), t.10);
+		});
 	}
 }
 

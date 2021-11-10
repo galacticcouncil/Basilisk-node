@@ -54,6 +54,14 @@ pub const HDX: AssetId = 2000;
 pub const ACA: AssetId = 3000;
 pub const KSM: AssetId = 4000;
 
+pub const BSX_ACA_LM_POOL: PoolId = 12_000;
+pub const BSX_KSM_LM_POOL: PoolId = 12_001;
+pub const BSX_DOT_LM_POOL: PoolId = 12_002;
+
+pub const BSX_FARM: PoolId = 11_000;
+pub const KSM_FARM: PoolId = 11_001;
+pub const ACA_FARM: PoolId = 11_002;
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 frame_support::construct_runtime!(

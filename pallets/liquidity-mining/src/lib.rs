@@ -42,10 +42,10 @@ pub use pallet::*;
 type PoolId<T> = <T as frame_system::Config>::AccountId;
 
 use frame_support::{
+	ensure,
 	sp_runtime::traits::{One, Zero},
 	traits::LockIdentifier,
 	transactional,
-    ensure
 };
 
 use sp_arithmetic::{
@@ -78,9 +78,9 @@ pub struct GlobalPool<Period, Balance, AssetId> {
 	paid_accumulated_rewards: Balance,
 }
 
-pub struct Pool< Period, AccountId, Balance> {
-    updated_at: Period,
-    pot: AccountId,     //account with undistributed rewards
+#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
+pub struct Pool<Period, Balance> {
+	updated_at: Period,
 	total_shares: Balance,
 	accumulated_rps: Balance,
 }
@@ -133,8 +133,7 @@ pub mod pallet {
 		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + From<u32>;
 
 		/// Currency for transfers
-		type MultiCurrency: MultiLockableCurrency<Self::AccountId>
-			+ MultiCurrencyExtended<Self::AccountId, CurrencyId = Self::CurrencyId, Balance = Self::Balance>;
+		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, CurrencyId = Self::CurrencyId, Balance = Self::Balance>;
 
 		/// Administrator able to create liquidity mining program
 		type AdminOrigin: EnsureOrigin<Self::Origin>;
@@ -149,8 +148,8 @@ pub mod pallet {
 		/// Math computation overflow
 		Overflow,
 
-        /// Insufficient balance in global pool to transfer rewards to pool
-        InsufficientBalancdInGlobalPool,
+		/// Insufficient balance in global pool to transfer rewards to pool
+		InsufficientBalancdInGlobalPool,
 
 		/// Feature is not implemented yet
 		NotImplemented,
@@ -350,28 +349,35 @@ impl<T: Config> Pallet<T> {
 			.checked_sub(&reward)
 			.ok_or(Error::<T>::Overflow)?;
 
-	    return Ok(reward);	
+		return Ok(reward);
 	}
 
-    pub fn update_pool(pool_id: PoolId<T>, pool: &mut Pool<T::BlockNumber, T::AccountId, T::Balance>, rewards: T::Balance, period_now: T::BlockNumber, global_pool_id: PoolId<T>, reward_currency: T::CurrencyId) -> Result<(), DispatchError> {
-        if pool.updated_at == period_now {
-            return Ok(());
-        }         
+	pub fn update_pool(
+		pool_id: PoolId<T>,
+		pool: &mut Pool<T::BlockNumber, T::Balance>,
+		rewards: T::Balance,
+		period_now: T::BlockNumber,
+		global_pool_id: PoolId<T>,
+		reward_currency: T::CurrencyId,
+	) -> Result<(), DispatchError> {
+		if pool.updated_at == period_now {
+			return Ok(());
+		}
 
-        if pool.total_shares.is_zero() {
-            return Ok(());
-        }
+		if pool.total_shares.is_zero() {
+			return Ok(());
+		}
 
-        let accumulated_rps = Self::get_accumulated_rps(pool.accumulated_rps, pool.total_shares, rewards)?;
+		pool.accumulated_rps = Self::get_accumulated_rps(pool.accumulated_rps, pool.total_shares, rewards)?;
+		pool.updated_at = period_now;
 
-        pool.accumulated_rps = pool.accumulated_rps.checked_add(&accumulated_rps).ok_or(Error::<T>::Overflow)?;
-        pool.updated_at = period_now;
-        
-        let global_pool_balance = T::MultiCurrency::free_balance(reward_currency, &global_pool_id);
-       
-        ensure!(global_pool_balance >= rewards, Error::<T>::InsufficientBalancdInGlobalPool);
-         
-        T::MultiCurrency::transfer(reward_currency, &global_pool_id, &pool_id, rewards)
-    }
+		let global_pool_balance = T::MultiCurrency::free_balance(reward_currency, &global_pool_id);
 
+		ensure!(
+			global_pool_balance >= rewards,
+			Error::<T>::InsufficientBalancdInGlobalPool
+		);
+
+		T::MultiCurrency::transfer(reward_currency, &global_pool_id, &pool_id, rewards)
+	}
 }
