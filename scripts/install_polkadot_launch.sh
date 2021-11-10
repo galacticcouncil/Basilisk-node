@@ -2,7 +2,7 @@ npm install -g yarn
 npm install -g typescript
 git clone https://github.com/paritytech/polkadot-launch.git
 cd polkadot-launch
-git checkout d696b0e04beca3368ea60f6b496722906abf0afc
+git checkout 6f66f9f0b75fafbf650a79f9aa5d3fdbda28dcda
 yarn
 yarn build
 chmod +x dist/index.js

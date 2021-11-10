@@ -199,7 +199,7 @@ pub mod pallet {
 		/// Pool was destroyed. [who, asset a, asset b, share token, pool account id]
 		PoolDestroyed(T::AccountId, AssetId, AssetId, AssetId, T::AccountId),
 
-		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
+		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount, pool account id]
 		SellExecuted(
 			T::AccountId,
 			AssetId,
@@ -258,7 +258,7 @@ pub mod pallet {
 			asset_b: AssetId,
 			amount: Balance,
 			initial_price: Price,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
@@ -321,7 +321,7 @@ pub mod pallet {
 				pair_account,
 			));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Add liquidity to previously created asset pair pool.
@@ -337,7 +337,7 @@ pub mod pallet {
 			asset_b: AssetId,
 			amount_a: Balance,
 			amount_b_max_limit: Balance,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let asset_pair = AssetPair {
@@ -415,7 +415,7 @@ pub mod pallet {
 				amount_b_required,
 			));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Remove liquidity from specific liquidity pool in the form of burning shares.
@@ -431,7 +431,7 @@ pub mod pallet {
 			asset_a: AssetId,
 			asset_b: AssetId,
 			liquidity_amount: Balance,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let asset_pair = AssetPair {
@@ -505,7 +505,7 @@ pub mod pallet {
 				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b, share_token, pair_account));
 			}
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade asset in for asset out.
@@ -523,12 +523,12 @@ pub mod pallet {
 			amount: Balance,
 			max_limit: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade asset in for asset out.
@@ -546,12 +546,12 @@ pub mod pallet {
 			amount: Balance,
 			max_limit: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }

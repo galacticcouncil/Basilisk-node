@@ -68,6 +68,7 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 #[allow(clippy::all)]
 mod weights;
 mod xcm;
+mod adapter;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -130,6 +131,8 @@ pub fn native_version() -> NativeVersion {
 }
 
 use smallvec::smallvec;
+use crate::adapter::OrmlTokensAdapter;
+
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
@@ -298,7 +301,7 @@ impl orml_tokens::Config for Runtime {
 
 impl orml_currencies::Config for Runtime {
 	type Event = Event;
-	type MultiCurrency = Tokens;
+	type MultiCurrency = OrmlTokensAdapter<Runtime>;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = ();
@@ -617,7 +620,6 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but lets be pedantic.
 	type SessionHandler = <opaque::SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = opaque::SessionKeys;
-	type DisabledValidatorsThreshold = DisabledValidatorsThreshold;
 	type WeightInfo = ();
 }
 

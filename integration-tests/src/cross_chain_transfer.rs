@@ -20,10 +20,6 @@ fn transfer_from_relay_chain() {
 		));
 	});
 	KusamaRelay::execute_with(|| {
-		assert_ok!(kusama_runtime::XcmPallet::force_default_xcm_version(
-			kusama_runtime::Origin::root(),
-			Some(0)
-		));
 		assert_ok!(kusama_runtime::XcmPallet::reserve_transfer_assets(
 			kusama_runtime::Origin::signed(ALICE.into()),
 			Box::new(Parachain(2000).into().into()),
@@ -66,13 +62,16 @@ fn transfer_to_relay_chain() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			1,
 			3 * BSX,
-			Box::new(MultiLocation::new(
-				1,
-				X1(Junction::AccountId32 {
-					id: BOB,
-					network: NetworkId::Any,
-				})
-			)),
+			Box::new(
+				MultiLocation::new(
+					1,
+					X1(Junction::AccountId32 {
+						id: BOB,
+						network: NetworkId::Any,
+					})
+				)
+				.into()
+			),
 			4_600_000_000
 		));
 		assert_eq!(
@@ -106,16 +105,19 @@ fn transfer_from_hydra() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			3 * BSX,
-			Box::new(MultiLocation::new(
-				1,
-				X2(
-					Junction::Parachain(2000),
-					Junction::AccountId32 {
-						id: BOB,
-						network: NetworkId::Any,
-					}
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
 				)
-			)),
+				.into()
+			),
 			399_600_000_000
 		));
 		assert_eq!(
@@ -148,16 +150,19 @@ fn transfer_insufficient_amount_should_fail() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			1_000_000 - 1,
-			Box::new(MultiLocation::new(
-				1,
-				X2(
-					Junction::Parachain(2000),
-					Junction::AccountId32 {
-						id: BOB,
-						network: NetworkId::Any,
-					}
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
 				)
-			)),
+				.into()
+			),
 			399_600_000_000
 		));
 		assert_eq!(
