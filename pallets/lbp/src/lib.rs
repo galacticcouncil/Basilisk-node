@@ -662,8 +662,8 @@ impl<T: Config> Pallet<T> {
 	) -> Result<(LBPWeight, LBPWeight), DispatchError> {
 		let weight_a = T::LBPWeightFunction::calculate_weight(
 			pool_data.weight_curve,
-			pool_data.start.unwrap_or(Zero::zero()),
-			pool_data.end.unwrap_or(Zero::zero()),
+			pool_data.start.unwrap_or_else(Zero::zero),
+			pool_data.end.unwrap_or_else(Zero::zero),
 			pool_data.initial_weight,
 			pool_data.final_weight,
 			at,
@@ -894,7 +894,7 @@ impl<T: Config> Pallet<T> {
 		pool_data: &Pool<T::AccountId, T::BlockNumber>,
 		amount: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, DispatchError> {
-		let fee = if Self::is_repay_fee_applied(&pool_data) {
+		let fee = if Self::is_repay_fee_applied(pool_data) {
 			Fee {
 				numerator: 2,
 				denominator: 10
