@@ -1,6 +1,7 @@
 use super::*;
 use crate::{mock::*};
 use frame_support::{assert_noop, assert_ok};
+use sp_std::convert::TryInto;
 
 pub type AuctionsModule = Pallet<Test>;
 
@@ -123,17 +124,17 @@ fn can_create_english_auction() {
 
     expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
 
-    let auction = AuctionsModule::auctions(0);
+    let auction = AuctionsModule::auctions(0).unwrap();
 
-    if let Some(Auction::English(data)) = auction {
-      assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
-      assert_eq!(data.general_data.last_bid, None);
-      assert_eq!(data.general_data.start, 10u64);
-      assert_eq!(data.general_data.end, 21u64);
-      assert_eq!(data.general_data.owner, ALICE);
-      assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-      assert_eq!(data.general_data.minimal_bid, 55);
-    }
+    let Auction::English(data) = auction;
+    assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+    assert_eq!(data.general_data.last_bid, None);
+    assert_eq!(data.general_data.start, 10u64);
+    assert_eq!(data.general_data.end, 21u64);
+    assert_eq!(data.general_data.owner, ALICE);
+    assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+    assert_eq!(data.general_data.minimal_bid, 55);
+
     assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
     assert_eq!(AuctionsModule::auction_end_time(21u64, 0).unwrap(), ());
 
@@ -211,10 +212,9 @@ fn can_update_english_auction() {
     // Happy path
     assert_ok!(AuctionsModule::update_auction(Origin::signed(ALICE), 0, auction.clone()));
 
-    let auction_result = AuctionsModule::auctions(0);
-    if let Some(Auction::English(data)) = auction_result {
-      assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction renamed");
-    }
+    let auction_result = AuctionsModule::auctions(0).unwrap();
+    let Auction::English(data) = auction_result;
+    assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction renamed");
 
     // Error AuctionAlreadyStarted
     System::set_block_number(10);
@@ -370,13 +370,13 @@ fn can_bid_value_english_auction() {
     assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
 
     let auction = AuctionsModule::auctions(0).unwrap();
-    if let Auction::English(data) = auction {
-      // Next bid step is updated
-      assert_eq!(data.general_data.minimal_bid, 1210);
-  
-      // Auction time is extended with 1 block when end time is less than 10 blocks away
-      assert_eq!(data.general_data.end, 22u64);
-    }
+    let Auction::English(data) = auction;
+
+    // Next bid step is updated
+    assert_eq!(data.general_data.minimal_bid, 1210);
+
+    // Auction time is extended with 1 block when end time is less than 10 blocks away
+    assert_eq!(data.general_data.end, 22u64);
 
     // Error AuctionAlreadyConcluded
     System::set_block_number(22);

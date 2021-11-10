@@ -2,14 +2,12 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 
-use std::fs::remove_file;
-
 // Used for encoding/decoding into scale
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure,
 	traits::{
-		tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, LockIdentifier, LockableCurrency,
+		tokens::nonfungibles::Inspect, Currency, LockIdentifier, LockableCurrency,
 		WithdrawReasons,
 	},
 	Parameter,
@@ -18,14 +16,12 @@ use frame_support::{
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
 	traits::{
-		AtLeast32BitUnsigned, Bounded, CheckedAdd, CheckedSub, MaybeSerializeDeserialize, Member, One, StaticLookup,
+		AtLeast32BitUnsigned, Bounded, CheckedAdd, CheckedSub, MaybeSerializeDeserialize, Member, One,
 		Zero,
 	},
 	Permill,
 };
 use sp_std::{
-	fmt::{Debug,Display, Formatter},
-	convert::TryInto,
 	result
 };
 pub use traits::*;
@@ -52,8 +48,12 @@ const BID_ADD_BLOCKS: u32 = 10;
 /// Minimal auction duration
 const MIN_AUCTION_DUR: u32 = 10;
 
-pub trait NftAuction<AccountId, BlockNumber, NftClassId, NftTokenId> {
-	fn validate() -> bool;
+pub trait NftAuction<AccountId, AuctionId, BalanceOf> {
+	fn bid(
+		bidder: AccountId,
+		auction_id: AuctionId,
+		value: BalanceOf,
+	) -> DispatchResult;
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
@@ -103,9 +103,39 @@ impl<T: Config> sp_std::fmt::Debug for Auction<T> {
 	}
 }
 
-impl<T: Config> NftAuction<T::AccountId, T::BlockNumber, T::ClassId, T::InstanceId> for EnglishAuction<T> {
-	fn validate() -> bool {
-		true
+impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>> for EnglishAuction<T> {
+	fn bid(
+		bidder: <T>::AccountId,
+		auction_id: T::AuctionId,
+		value: BalanceOf<T>,
+	) -> DispatchResult {
+			<Auctions<T>>::try_mutate_exists(auction_id, |auction| -> DispatchResult {
+				if let Some(Auction::English(data)) = auction {
+					// Lock / Unlock funds
+					if let Some(ref current_bid) = data.general_data.last_bid {
+						<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
+					}
+					<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
+
+					data.general_data.last_bid = Some((bidder, value));
+					// Set next minimal bid
+					let minimal_bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
+					data.general_data.minimal_bid = value.checked_add(&minimal_bid_step).ok_or(Error::<T>::BidOverflow)?;
+
+					// Avoid auction sniping
+					let block_number = <frame_system::Pallet<T>>::block_number();
+					let time_left = data
+						.general_data
+						.end
+						.checked_sub(&block_number)
+						.ok_or(Error::<T>::TimeUnderflow)?;
+					if time_left < BID_ADD_BLOCKS.into() {
+						data.general_data.end = block_number + BID_ADD_BLOCKS.into();
+					}
+				}
+
+			Ok(())
+		})
 	}
 }
 
@@ -114,7 +144,7 @@ pub use pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{dispatch::DispatchResultWithPostInfo, pallet_prelude::*, BoundedVec};
+	use frame_support::{pallet_prelude::*};
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -224,7 +254,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(<T as Config>::WeightInfo::create_auction())]
-		pub fn create_auction(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResultWithPostInfo {
+		pub fn create_auction(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			match &auction {
@@ -235,7 +265,7 @@ pub mod pallet {
 				}
 			}
 
-			Ok(().into())
+			Ok(())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::update_auction())]
@@ -268,20 +298,20 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::bid_value())]
-		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResultWithPostInfo {
-			let sender = ensure_signed(origin)?;
+		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
+			let bidder = ensure_signed(origin)?;
 			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
 
 			match &auction {
 				Auction::English(data) => {
-					Self::validate_auction_bid(&sender, &data.general_data, value)?;
-					Self::bid_english_auction(sender.clone(), auction_id, value)?;
+					Self::validate_auction_bid(&bidder, &data.general_data, value)?;
+					EnglishAuction::<T>::bid(bidder.clone(), auction_id, value)?;
 				}
 			}
 
-			Self::deposit_event(Event::Bid(auction_id, sender, value));
+			Self::deposit_event(Event::Bid(auction_id, bidder, value));
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 
@@ -384,12 +414,12 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn validate_auction_bid(
-		sender: &<T>::AccountId,
+		bidder: &<T>::AccountId,
 		general_auction_data: &GeneralAuctionDataOf<T>,
 		value: BalanceOf<T>,
 	) -> DispatchResult {
 		let block_number = <frame_system::Pallet<T>>::block_number();
-		ensure!(sender != &general_auction_data.owner, Error::<T>::BidOnOwnAuction);
+		ensure!(bidder != &general_auction_data.owner, Error::<T>::BidOnOwnAuction);
 		ensure!(block_number > general_auction_data.start, Error::<T>::AuctionNotStarted);
 		ensure!(block_number < general_auction_data.end, Error::<T>::AuctionAlreadyConcluded);
 		ensure!(value >= general_auction_data.minimal_bid, Error::<T>::InvalidBidPrice);
@@ -401,40 +431,6 @@ impl<T: Config> Pallet<T> {
 		}
 
 		Ok(())
-	}
-
-	fn bid_english_auction(
-		bidder: <T>::AccountId,
-		auction_id: T::AuctionId,
-		value: BalanceOf<T>,
-	) -> DispatchResult {
-			<Auctions<T>>::try_mutate_exists(auction_id, |auction| -> DispatchResult {
-				if let Some(Auction::English(data)) = auction {
-					// Lock / Unlock funds
-					if let Some(ref current_bid) = data.general_data.last_bid {
-						<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
-					}
-					<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
-
-					data.general_data.last_bid = Some((bidder, value));
-					// Set next minimal bid
-					let minimal_bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
-					data.general_data.minimal_bid = value.checked_add(&minimal_bid_step).ok_or(Error::<T>::BidOverflow)?;
-
-					// Avoid auction sniping
-					let block_number = <frame_system::Pallet<T>>::block_number();
-					let time_left = data
-						.general_data
-						.end
-						.checked_sub(&block_number)
-						.ok_or(Error::<T>::TimeUnderflow)?;
-					if time_left < BID_ADD_BLOCKS.into() {
-						data.general_data.end = block_number + BID_ADD_BLOCKS.into();
-					}
-				}
-
-			Ok(())
-		})
 	}
 
 	// fn conclude_auction(now: T::BlockNumber) -> DispatchResult {
@@ -467,46 +463,3 @@ impl<T: Config> Pallet<T> {
 	// 	Ok(())
 	// }
 }
-
-// impl<T: Config> Auction<T::AccountId, T::BlockNumber, T::ClassId, T::InstanceId> for Pallet<T> {
-// 	impl<T: Config> Pallet<T> {
-
-// impl<T: Config> Auction
-// 	type AuctionId = T::AuctionId;
-// 	type Balance = BalanceOf<T>;
-// 	type AccountId = T::AccountId;
-
-	// fn bid(bidder: Self::AccountId, id: Self::AuctionId, value: Self::Balance) -> DispatchResult {
-	// 	<Auctions<T>>::try_mutate_exists(id, |auction| -> DispatchResult {
-	// 		// Basic checks before a bid can be made
-	// 		let mut auction = auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
-	// 		let block_number = <frame_system::Pallet<T>>::block_number();
-	// 		ensure!(bidder != auction.owner, Error::<T>::BidOnOwnAuction);
-	// 		ensure!(block_number > auction.start, Error::<T>::AuctionNotStarted);
-	// 		ensure!(block_number < auction.end, Error::<T>::AuctionAlreadyConcluded);
-	// 		ensure!(value >= auction.minimal_bid, Error::<T>::InvalidBidPrice);
-	// 		if let Some(ref current_bid) = auction.last_bid {
-	// 			ensure!(value > current_bid.1, Error::<T>::InvalidBidPrice);
-	// 			// Unlock funds from the previous bid
-	// 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
-	// 		} else {
-	// 			ensure!(!value.is_zero(), Error::<T>::InvalidBidPrice);
-	// 		}
-	// 		// Lock funds
-	// 		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
-	// 		auction.last_bid = Some((bidder, value));
-	// 		// Set next minimal bid
-	// 		let minimal_bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
-	// 		auction.minimal_bid = value.checked_add(&minimal_bid_step).ok_or(Error::<T>::BidOverflow)?;
-	// 		// Avoid auction sniping
-	// 		let time_left = auction
-	// 			.end
-	// 			.checked_sub(&block_number)
-	// 			.ok_or(Error::<T>::TimeUnderflow)?;
-	// 		if time_left < BID_ADD_BLOCKS.into() {
-	// 			auction.end = block_number + BID_ADD_BLOCKS.into();
-	// 		}
-	// 		Ok(())
-	// 	})
-	// }
-// }
