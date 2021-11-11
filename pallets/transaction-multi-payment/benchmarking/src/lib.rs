@@ -41,7 +41,7 @@ pub trait Config:
 }
 
 const SEED: u32 = 0;
-const ASSET_ID: u32 = 3;
+const ASSET_ID: u32 = 2;
 const HDX: u32 = 0;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId
@@ -69,23 +69,21 @@ fn initialize_pool<T: Config>(
 benchmarks! {
 	swap_currency {
 		let maker = funded_account::<T>("maker", 1);
-		initialize_pool::<T>(maker, ASSET_ID, 1_000_000_000_000, Price::from(1))?;
-		MultiPaymentModule::<T>::add_currency(RawOrigin::Root.into(), ASSET_ID, Price::from(10))?;
+		initialize_pool::<T>(maker, ASSET_ID, 10_000_000_000_000, Price::from(1))?;
 
 		let caller = funded_account::<T>("caller", 2);
 		MultiPaymentModule::<T>::set_currency(RawOrigin::Signed(caller.clone()).into(), ASSET_ID)?;
 
-	}: { MultiPaymentModule::<T>::swap_currency(&caller, 1000)? }
+	}: { MultiPaymentModule::<T>::swap_currency(&caller, 1_000_000)? }
 	verify{
 		assert_eq!(MultiPaymentModule::<T>::get_currency(&caller), Some(ASSET_ID));
 		#[cfg(test)]
-		assert_eq!(T::Currencies::free_balance(ASSET_ID, &caller), 9999689661666);
+		assert_eq!(T::Currencies::free_balance(ASSET_ID, &caller), 9999688747087);
 	}
 
 	set_currency {
 		let maker = funded_account::<T>("maker", 1);
-		initialize_pool::<T>(maker, ASSET_ID, 1_000_000_000_000, Price::from(1))?;
-		MultiPaymentModule::<T>::add_currency(RawOrigin::Root.into(), ASSET_ID, Price::from(10))?;
+		initialize_pool::<T>(maker, ASSET_ID, 10_000_000_000_000, Price::from(1))?;
 
 		let caller = funded_account::<T>("caller", 123);
 

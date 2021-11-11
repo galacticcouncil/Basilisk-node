@@ -33,7 +33,7 @@ use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, Amount, AssetId, Balance,
+	fee, Amount, AssetId, Balance, Price,
 };
 
 use frame_support::traits::Get;
@@ -267,7 +267,7 @@ impl ExtBuilder {
 		buf.extend_from_slice(&core_asset.to_le_bytes());
 
 		pallet_transaction_multi_payment::GenesisConfig::<Test> {
-			currencies: vec![],
+			currencies: vec![(2, Price::from(1))],
 			fallback_account: 1000,
 		}
 		.assimilate_storage(&mut t)
