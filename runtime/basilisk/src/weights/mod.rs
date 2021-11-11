@@ -1,4 +1,5 @@
 pub mod asset_registry;
+pub mod balances;
 pub mod currencies;
 pub mod democracy;
 pub mod duster;
@@ -12,4 +13,5 @@ pub mod timestamp;
 pub mod tokens;
 pub mod treasury;
 pub mod utility;
+pub mod vesting;
 pub mod xyk;
