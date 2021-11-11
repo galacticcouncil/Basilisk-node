@@ -45,7 +45,7 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-use orml_vesting::weights::WeightInfo;
+use orml_vesting::WeightInfo;
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
