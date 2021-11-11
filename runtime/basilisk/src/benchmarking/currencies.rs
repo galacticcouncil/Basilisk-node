@@ -7,6 +7,7 @@ use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
 
 use frame_support::assert_ok;
+use frame_benchmarking::BenchmarkError;
 
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrency;
@@ -19,7 +20,7 @@ use sp_runtime::traits::{SaturatedConversion, StaticLookup};
 const SEED: u32 = 0;
 
 const NATIVE: AssetId = NativeAssetId::get();
-const NON_NATIVE: AssetId = 1;
+
 pub fn lookup_of_account(who: AccountId) -> <<Runtime as frame_system::Config>::Lookup as StaticLookup>::Source {
 	<Runtime as frame_system::Config>::Lookup::unlookup(who)
 }
@@ -39,14 +40,14 @@ runtime_benchmarks! {
 	transfer_non_native_currency {
 		let amount: Balance = 1_000 * BSX;
 		let from: AccountId = whitelisted_caller();
-		register_asset(b"TST".to_vec(), 1u128);
-		set_balance(NON_NATIVE, &from, amount);
+		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		set_balance(asset_id, &from, amount);
 
 		let to: AccountId = account("to", 0, SEED);
 		let to_lookup = lookup_of_account(to.clone());
-	}: transfer(RawOrigin::Signed(from), to_lookup, NON_NATIVE, amount)
+	}: transfer(RawOrigin::Signed(from), to_lookup, asset_id, amount)
 	verify {
-		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(NON_NATIVE, &to), amount);
+		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_id, &to), amount);
 	}
 
 	// `transfer` native currency and in worst case
@@ -86,10 +87,10 @@ runtime_benchmarks! {
 		let amount: Amount = balance.unique_saturated_into();
 		let who: AccountId = account("who", 0, SEED);
 		let who_lookup = lookup_of_account(who.clone());
-		register_asset(b"TST".to_vec(), 1u128);
-	}: update_balance(RawOrigin::Root, who_lookup, NON_NATIVE, amount)
+		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+	}: update_balance(RawOrigin::Root, who_lookup, asset_id, amount)
 	verify {
-		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(NON_NATIVE, &who), balance);
+		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_id, &who), balance);
 	}
 
 	// `update_balance` for native currency
