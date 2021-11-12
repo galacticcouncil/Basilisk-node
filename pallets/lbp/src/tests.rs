@@ -248,9 +248,14 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
-		expect_events(vec![
-			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
-		]);
+		expect_events(vec![Event::LiquidityAdded(
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -311,9 +316,14 @@ fn create_same_pool_should_not_work() {
 			Error::<Test>::PoolAlreadyExists
 		);
 
-		expect_events(vec![
-			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
-		]);
+		expect_events(vec![Event::LiquidityAdded(
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 

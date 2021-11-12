@@ -33,11 +33,12 @@ use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, Amount, AssetId, Balance,
+	fee,
+	traits::AssetPairAccountIdFor,
+	Amount, AssetId, Balance,
 };
 
 use frame_support::traits::Get;
-use pallet_xyk::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 use frame_benchmarking::frame_support::weights::Pays;
@@ -162,7 +163,7 @@ impl pallet_transaction_payment::Config for Test {
 pub struct AssetPairAccountIdTest();
 
 impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> u64 {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> u64 {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {

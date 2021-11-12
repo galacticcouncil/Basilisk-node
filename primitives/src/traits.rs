@@ -159,3 +159,7 @@ pub trait ShareTokenRegistry<AssetId, AssetName, Balance, Error>: Registry<Asset
 		}
 	}
 }
+
+pub trait AssetPairAccountIdFor<AssetId, PoolId> {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, identifier: &str) -> PoolId;
+}
