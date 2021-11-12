@@ -579,6 +579,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
+ "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
@@ -5954,6 +5955,20 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-relaychain-info"
+version = "0.1.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=1bde20655a8c1d0c9fbabf46f0cfc1da9328b202#1bde20655a8c1d0c9fbabf46f0cfc1da9328b202"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
  "sp-std",
 ]
 
