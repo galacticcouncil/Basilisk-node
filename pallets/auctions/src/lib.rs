@@ -43,19 +43,37 @@ const BID_ADD_BLOCKS: u32 = 10;
 const MIN_AUCTION_DUR: u32 = 10;
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
-pub enum Auction<T: Config> {
-	English(EnglishAuction<T>),
+pub enum Auction<AccountId, Balance, BlockNumber, NftClassId, NftTokenId, BoundedVec> {
+	English(EnglishAuction<AccountId, Balance, BlockNumber, NftClassId, NftTokenId, BoundedVec>),
+}
+
+pub type AuctionOf<T: Config> = Auction<
+	T::AccountId,
+	BalanceOf<T>,
+	<T as frame_system::Config>::BlockNumber,
+	<T as pallet_uniques::Config>::ClassId,
+	<T as pallet_uniques::Config>::InstanceId,
+	BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>,
+>;
+
+pub type EnglishAuctionOf<T: Config> = EnglishAuction<
+	<T as frame_system::Config>::AccountId,
+	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance,
+	<T as frame_system::Config>::BlockNumber,
+	<T as pallet_uniques::Config>::ClassId,
+	<T as pallet_uniques::Config>::InstanceId,
+	BoundedVec<u8, <T as crate::Config>::StringLimit>,
+>;
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq)]
+pub struct EnglishAuction<AccountId, Balance, BlockNumber, NftClassId, NftTokenId, BoundedVec> {
+	pub general_data: GeneralAuctionData<AccountId, Balance, BlockNumber, NftClassId, NftTokenId, BoundedVec>,
+	pub specific_data: EnglishAuctionData<Balance>,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
-pub struct EnglishAuction<T: Config> {
-	pub general_data: GeneralAuctionDataOf<T>,
-	pub specific_data: EnglishAuctionData<T>,
-}
-
-#[derive(Encode, Decode, Clone, PartialEq, Eq)]
-pub struct EnglishAuctionData<T: Config> {
-	pub reserve_price: BalanceOf<T>,
+pub struct EnglishAuctionData<Balance> {
+	pub reserve_price: Balance,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
@@ -70,9 +88,9 @@ pub struct GeneralAuctionData<AccountId, Balance, BlockNumber, NftClassId, NftTo
 }
 
 /// Define type aliases for better readability
-pub type GeneralAuctionDataOf<T> = GeneralAuctionData<
+pub type GeneralAuctionDataOf<T: Config> = GeneralAuctionData<
 	<T as frame_system::Config>::AccountId,
-	BalanceOf<T>,
+	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance,
 	<T as frame_system::Config>::BlockNumber,
 	<T as pallet_uniques::Config>::ClassId,
 	<T as pallet_uniques::Config>::InstanceId,
@@ -81,44 +99,38 @@ pub type GeneralAuctionDataOf<T> = GeneralAuctionData<
 
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-impl<T: Config> sp_std::fmt::Debug for Auction<T> {
-	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-		write!(f, "Auction")
-	}
-}
-pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
-	fn bid(bidder: AccountId, auction_id: AuctionId, value: BalanceOf) -> DispatchResult;
+pub trait NftAuction<AccountId, AuctionId, Balance> {
+	fn bid(bidder: AccountId, auction_id: AuctionId, value: Balance) -> DispatchResult;
 
 	fn close(&self) -> DispatchResult;
 }
 
-impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for EnglishAuction<T> {
+impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>> for EnglishAuctionOf<T> {
 	fn bid(bidder: T::AccountId, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
 		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
 			let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
 			let Auction::English(data) = auction;
-				// Lock / Unlock funds
-				if let Some(ref current_bid) = data.general_data.last_bid {
-					<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
-				}
-				<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
+			// Lock / Unlock funds
+			if let Some(ref current_bid) = data.general_data.last_bid {
+				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
+			}
+			<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
 
-				data.general_data.last_bid = Some((bidder, value));
-				// Set next minimal bid
-				let bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
-				data.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
+			data.general_data.last_bid = Some((bidder, value));
+			// Set next minimal bid
+			let bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
+			data.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
 
-				// Avoid auction sniping
-				let block_number = <frame_system::Pallet<T>>::block_number();
-				let time_left = data
-					.general_data
-					.end
-					.checked_sub(&block_number)
-					.ok_or(Error::<T>::TimeUnderflow)?;
-				if time_left < BID_ADD_BLOCKS.into() {
-					data.general_data.end = block_number + BID_ADD_BLOCKS.into();
-				}
-			
+			// Avoid auction sniping
+			let block_number = <frame_system::Pallet<T>>::block_number();
+			let time_left = data
+				.general_data
+				.end
+				.checked_sub(&block_number)
+				.ok_or(Error::<T>::TimeUnderflow)?;
+			if time_left < BID_ADD_BLOCKS.into() {
+				data.general_data.end = block_number + BID_ADD_BLOCKS.into();
+			}
 
 			Ok(())
 		})
@@ -185,6 +197,9 @@ pub mod pallet {
 		/// Weights
 		type WeightInfo: WeightInfo;
 
+		/// The maximum length of an auction name
+		type StringLimit: Get<u32>;
+
 		// This type is needed to convert from Currency to Balance
 		type CurrencyBalance: From<Self::Balance>
 			+ Into<<<Self as crate::Config>::Currency as Currency<<Self as frame_system::Config>::AccountId>>::Balance>;
@@ -193,7 +208,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn auctions)]
 	/// Stores on-going and future auctions. Closed auction are removed.
-	pub type Auctions<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, Auction<T>, OptionQuery>;
+	pub type Auctions<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, AuctionOf<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auctions_index)]
@@ -265,7 +280,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(<T as Config>::WeightInfo::create_auction())]
-		pub fn create(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
+		pub fn create(origin: OriginFor<T>, auction: AuctionOf<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			match &auction {
@@ -280,7 +295,7 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::update_auction())]
-		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
+		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: AuctionOf<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			match &updated_auction {
@@ -316,7 +331,7 @@ pub mod pallet {
 			match &auction {
 				Auction::English(data) => {
 					Self::validate_bid(&bidder, &data.general_data, value)?;
-					EnglishAuction::<T>::bid(bidder.clone(), auction_id, value)?;
+					EnglishAuctionOf::T::bid(bidder.clone(), auction_id, value)?;
 				}
 			}
 
@@ -365,7 +380,7 @@ impl<T: Config> Pallet<T> {
 
 	fn handle_create(
 		sender: <T>::AccountId,
-		auction: &Auction<T>,
+		auction: &AuctionOf<T>,
 		general_data: &GeneralAuctionDataOf<T>,
 	) -> DispatchResult {
 		let auction_id = <NextAuctionId<T>>::try_mutate(|next_id| -> result::Result<<T>::AuctionId, DispatchError> {
@@ -406,7 +421,7 @@ impl<T: Config> Pallet<T> {
 	fn handle_update(
 		sender: <T>::AccountId,
 		auction_id: T::AuctionId,
-		updated_auction: Auction<T>,
+		updated_auction: AuctionOf<T>,
 		general_data: &GeneralAuctionDataOf<T>,
 	) -> DispatchResult {
 		<Auctions<T>>::try_mutate(auction_id, |auction_result| -> DispatchResult {
@@ -464,7 +479,7 @@ impl<T: Config> Pallet<T> {
 
 			match &auction {
 				Auction::English(data) => {
-					EnglishAuction::<T>::close(data)?;
+					EnglishAuctionOf::<T>::close(data)?;
 				}
 			}
 		}
