@@ -933,7 +933,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
-			list_benchmark!(list, extra, pallet_duster, Duster);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
@@ -986,7 +985,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			add_benchmark!(params, batches, pallet_duster, Duster);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);

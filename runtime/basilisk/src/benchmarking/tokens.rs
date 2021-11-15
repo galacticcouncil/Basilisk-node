@@ -2,8 +2,8 @@ use crate::{AccountId, AssetId, Balance, Runtime, Tokens};
 
 use sp_std::prelude::*;
 
-use frame_benchmarking::{account, whitelisted_caller};
 use frame_benchmarking::BenchmarkError;
+use frame_benchmarking::{account, whitelisted_caller};
 use frame_system::RawOrigin;
 
 use frame_support::assert_ok;

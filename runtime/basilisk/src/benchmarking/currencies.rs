@@ -6,8 +6,8 @@ use frame_benchmarking::{account, whitelisted_caller};
 use frame_system::RawOrigin;
 use sp_runtime::traits::UniqueSaturatedInto;
 
-use frame_support::assert_ok;
 use frame_benchmarking::BenchmarkError;
+use frame_support::assert_ok;
 
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrency;

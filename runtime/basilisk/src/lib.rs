@@ -965,7 +965,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
-			list_benchmark!(list, extra, pallet_duster, Duster);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
@@ -979,6 +978,7 @@ impl_runtime_apis! {
 			orml_list_benchmark!(list, extra, orml_currencies, benchmarking::currencies);
 			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
 			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
+			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1023,7 +1023,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			add_benchmark!(params, batches, pallet_duster, Duster);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
@@ -1039,6 +1038,7 @@ impl_runtime_apis! {
 			orml_add_benchmark!(params, batches, orml_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
 			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
+			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
