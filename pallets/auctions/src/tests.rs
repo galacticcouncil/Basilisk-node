@@ -20,7 +20,7 @@ fn can_create_english_auction() {
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
 
 	let valid_common_auction_data = GeneralAuctionData {
-		name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
@@ -92,7 +92,7 @@ fn can_create_english_auction() {
 
 		// Error EmptyAuctionName
 		let mut common_auction_data = valid_common_auction_data.clone();
-		common_auction_data.name = to_bounded_name("".as_bytes().to_vec()).unwrap();
+		common_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
 
 		let auction_data = EnglishAuction {
 			general_data: common_auction_data.clone(),
@@ -164,7 +164,7 @@ fn can_create_english_auction() {
 #[test]
 fn can_update_english_auction() {
 	let general_auction_data = GeneralAuctionData {
-		name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
@@ -208,7 +208,7 @@ fn can_update_english_auction() {
 		System::set_block_number(3);
 
 		let mut updated_general_data = general_auction_data.clone();
-		updated_general_data.name = to_bounded_name("Auction renamed".as_bytes().to_vec()).unwrap();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
 
 		let auction_data = EnglishAuction {
 			general_data: updated_general_data.clone(),
@@ -244,7 +244,7 @@ fn can_update_english_auction() {
 #[test]
 fn can_destroy_english_auction() {
 	let general_auction_data = GeneralAuctionData {
-		name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
@@ -328,7 +328,7 @@ fn can_destroy_english_auction() {
 #[test]
 fn can_bid_value_english_auction() {
 	let general_auction_data = GeneralAuctionData {
-		name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
@@ -442,7 +442,7 @@ fn can_bid_value_english_auction() {
 #[test]
 fn can_close_english_auction() {
 	let general_auction_data = GeneralAuctionData {
-		name: to_bounded_name("Auction 0".as_bytes().to_vec()).unwrap(),
+		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
