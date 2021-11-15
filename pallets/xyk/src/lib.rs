@@ -28,20 +28,16 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 
-use frame_support::sp_runtime::{
-	traits::{Hash, Zero},
-	DispatchError,
-};
+use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, traits::AMM, AssetId, Balance, Price};
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_std::{vec, vec::Vec};
 
-use frame_support::sp_runtime::app_crypto::sp_core::crypto::UncheckedFrom;
 use frame_support::sp_runtime::FixedPointNumber;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::fee::WithFee;
-use primitives::traits::AMMTransfer;
+use primitives::traits::{AMMTransfer, AssetPairAccountIdFor};
 use primitives::Amount;
 
 #[cfg(test)]
@@ -556,30 +552,6 @@ pub mod pallet {
 	}
 }
 
-pub trait AssetPairAccountIdFor<AssetId: Sized, AccountId: Sized> {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> AccountId;
-}
-
-pub struct AssetPairAccountId<T: Config>(PhantomData<T>);
-
-impl<T: Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
-where
-	T::AccountId: UncheckedFrom<T::Hash> + AsRef<[u8]>,
-{
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> T::AccountId {
-		let mut buf = Vec::new();
-		buf.extend_from_slice(b"hydradx");
-		if asset_a < asset_b {
-			buf.extend_from_slice(&asset_a.to_le_bytes());
-			buf.extend_from_slice(&asset_b.to_le_bytes());
-		} else {
-			buf.extend_from_slice(&asset_b.to_le_bytes());
-			buf.extend_from_slice(&asset_a.to_le_bytes());
-		}
-		T::AccountId::unchecked_from(T::Hashing::hash(&buf[..]))
-	}
-}
-
 impl<T: Config> Pallet<T> {
 	/// Return balance of each asset in selected liquidity pool.
 	pub fn get_pool_balances(pool_address: T::AccountId) -> Option<Vec<(AssetId, Balance)>> {
@@ -606,6 +578,10 @@ impl<T: Config> Pallet<T> {
 			.just_fee(T::GetExchangeFee::get())
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
+
+	pub fn pair_account_from_assets(asset_a: AssetId, asset_b: AssetId) -> T::AccountId {
+		T::AssetPairAccountId::from_assets(asset_a, asset_b, "xyk")
+	}
 }
 
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
@@ -615,7 +591,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	}
 
 	fn get_pair_id(assets: AssetPair) -> T::AccountId {
-		T::AssetPairAccountId::from_assets(assets.asset_in, assets.asset_out)
+		Self::pair_account_from_assets(assets.asset_in, assets.asset_out)
 	}
 
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {

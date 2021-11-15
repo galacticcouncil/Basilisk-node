@@ -19,7 +19,7 @@
 #![allow(clippy::too_many_arguments)]
 
 use cumulus_primitives_core::ParaId;
-use primitives::{BlockNumber, Price, AssetId};
+use primitives::{AssetId, BlockNumber, Price};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
@@ -142,10 +142,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
-				vec![
-					(b"KSM".to_vec(), 1_000u128),
-					(b"KUSD".to_vec(), 1_000u128),
-				],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
@@ -221,10 +218,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
-				vec![
-					(b"KSM".to_vec(), 1_000u128),
-					(b"KUSD".to_vec(), 1_000u128),
-				],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},

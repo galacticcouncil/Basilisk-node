@@ -57,8 +57,8 @@ type IntentionId<T> = <T as system::Config>::Hash;
 pub type Intention<T> = ExchangeIntention<<T as system::Config>::AccountId, Balance, IntentionId<T>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
-pub use pallet::*;
 use frame_support::pallet_prelude::*;
+pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -195,7 +195,7 @@ pub mod pallet {
 		MinimumTradeLimitNotReached,
 
 		/// Overflow
-		IntentionCountOverflow
+		IntentionCountOverflow,
 	}
 
 	/// Intention count for current block

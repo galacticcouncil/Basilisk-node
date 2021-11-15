@@ -2,7 +2,7 @@
 use super::*;
 
 use crate as lbp;
-use crate::{AssetPairPoolIdFor, Config};
+use crate::{AssetPairAccountIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild};
 use orml_traits::parameter_type_with_key;
@@ -96,10 +96,10 @@ impl orml_tokens::Config for Test {
 	type DustRemovalWhitelist = Everything;
 }
 
-pub struct AssetPairPoolIdTest();
+pub struct AssetPairAccountIdTest();
 
-impl AssetPairPoolIdFor<AssetId, u64> for AssetPairPoolIdTest {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> u64 {
+impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> u64 {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
@@ -123,7 +123,7 @@ impl Config for Test {
 	type NativeAssetId = NativeAssetId;
 	type CreatePoolOrigin = frame_system::EnsureRoot<u64>;
 	type LBPWeightFunction = lbp::LBPWeightFunction;
-	type AssetPairPoolId = AssetPairPoolIdTest;
+	type AssetPairAccountId = AssetPairAccountIdTest;
 	type WeightInfo = ();
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
