@@ -1,10 +1,6 @@
-use codec::{Decode, Encode};
-use frame_support::{
-	dispatch::DispatchResult,
-	traits::Currency,
-	BoundedVec,
-};
 pub use crate::Config;
+use codec::{Decode, Encode};
+use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
 
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
 	fn bid(bidder: AccountId, auction_id: AuctionId, value: BalanceOf) -> DispatchResult;
@@ -30,15 +26,18 @@ pub struct EnglishAuctionData<T: Config> {
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
 pub struct GeneralAuctionData<T: Config> {
-  pub name: BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>,
+	pub name: BoundedVec<u8, <T as crate::Config>::AuctionsStringLimit>,
 	pub last_bid: Option<(<T as frame_system::Config>::AccountId, BalanceOf<T>)>,
 	pub next_bid_min: BalanceOf<T>,
 	pub start: <T as frame_system::Config>::BlockNumber,
 	pub end: <T as frame_system::Config>::BlockNumber,
 	pub owner: <T as frame_system::Config>::AccountId,
-	pub token: (<T as pallet_uniques::Config>::ClassId, <T as pallet_uniques::Config>::InstanceId),
+	pub token: (
+		<T as pallet_uniques::Config>::ClassId,
+		<T as pallet_uniques::Config>::InstanceId,
+	),
 }
-  
+
 /// Define type aliases for better readability
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 

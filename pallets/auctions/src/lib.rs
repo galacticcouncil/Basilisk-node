@@ -7,7 +7,7 @@ use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure,
 	traits::{
-		tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, LockIdentifier, LockableCurrency,
+		tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, Get, LockIdentifier, LockableCurrency,
 		WithdrawReasons,
 	},
 	Parameter,
@@ -36,12 +36,6 @@ mod tests;
 
 /// Identifier for the currency lock on accounts
 const AUCTION_LOCK_ID: LockIdentifier = *b"_auction";
-/// Set in percent how much next bid has to be raised
-const BID_STEP_PERC: u32 = 10;
-/// Increase endtime to avoid sniping
-const BID_ADD_BLOCKS: u32 = 10;
-/// Minimal auction duration
-const MIN_AUCTION_DUR: u32 = 10;
 
 pub use pallet::*;
 
@@ -80,6 +74,18 @@ pub mod pallet {
 		// This type is needed to convert from Currency to Balance
 		type CurrencyBalance: From<Self::Balance>
 			+ Into<<<Self as crate::Config>::Currency as Currency<<Self as frame_system::Config>::AccountId>>::Balance>;
+
+		/// Limit of auction name length
+		type AuctionsStringLimit: Get<u32>;
+
+		/// Increase end time to avoid sniping
+		type BidAddBlocks: Get<u32>;
+
+		/// Next bid step in percent
+		type BidStepPerc: Get<u32>;
+
+		/// Minimum auction duration
+		type MinAuctionDuration: Get<u32>;
 	}
 
 	#[pallet::storage]
@@ -237,7 +243,7 @@ impl<T: Config> Pallet<T> {
 		ensure!(
 			general_data.start >= Zero::zero()
 				&& general_data.end > Zero::zero()
-				&& general_data.end > general_data.start + MIN_AUCTION_DUR.into(),
+				&& general_data.end > general_data.start + T::MinAuctionDuration::get().into(),
 			Error::<T>::InvalidTimeConfiguration
 		);
 		ensure!(!general_data.name.is_empty(), Error::<T>::EmptyAuctionName);
@@ -370,28 +376,27 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
 			let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
 			let Auction::English(data) = auction;
-				// Lock / Unlock funds
-				if let Some(ref current_bid) = data.general_data.last_bid {
-					<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
-				}
-				<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
+			// Lock / Unlock funds
+			if let Some(ref current_bid) = data.general_data.last_bid {
+				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
+			}
+			<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
 
-				data.general_data.last_bid = Some((bidder, value));
-				// Set next minimal bid
-				let bid_step = Permill::from_percent(BID_STEP_PERC).mul_floor(value);
-				data.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
+			data.general_data.last_bid = Some((bidder, value));
+			// Set next minimal bid
+			let bid_step = Permill::from_percent(<T as crate::Config>::BidStepPerc::get()).mul_floor(value);
+			data.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
 
-				// Avoid auction sniping
-				let block_number = <frame_system::Pallet<T>>::block_number();
-				let time_left = data
-					.general_data
-					.end
-					.checked_sub(&block_number)
-					.ok_or(Error::<T>::TimeUnderflow)?;
-				if time_left < BID_ADD_BLOCKS.into() {
-					data.general_data.end = block_number + BID_ADD_BLOCKS.into();
-				}
-			
+			// Avoid auction sniping
+			let block_number = <frame_system::Pallet<T>>::block_number();
+			let time_left = data
+				.general_data
+				.end
+				.checked_sub(&block_number)
+				.ok_or(Error::<T>::TimeUnderflow)?;
+			if time_left < <T as crate::Config>::BidAddBlocks::get().into() {
+				data.general_data.end = block_number + <T as crate::Config>::BidAddBlocks::get().into();
+			}
 
 			Ok(())
 		})

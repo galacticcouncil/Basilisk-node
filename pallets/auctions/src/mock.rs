@@ -54,6 +54,13 @@ impl pallet_nft::Config for Test {
 	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
 }
 
+parameter_types! {
+	pub const AuctionsStringLimit: u32 = 128;
+	pub const BidAddBlocks: u32 = 10;
+	pub const BidStepPerc: u32 = 10;
+	pub const MinAuctionDuration: u32 = 10;
+}
+
 impl pallet_auctions::Config for Test {
 	type Event = Event;
 	type Balance = Balance;
@@ -61,6 +68,10 @@ impl pallet_auctions::Config for Test {
 	type Currency = Balances;
 	type CurrencyBalance = Balance;
 	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Test>;
+	type AuctionsStringLimit = AuctionsStringLimit;
+	type BidAddBlocks = BidAddBlocks;
+	type BidStepPerc = BidStepPerc;
+	type MinAuctionDuration = MinAuctionDuration;
 }
 
 parameter_types! {

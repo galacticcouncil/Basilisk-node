@@ -830,6 +830,13 @@ impl pallet_uniques::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const AuctionsStringLimit: u32 = 128; // limit length of auction name
+	pub const BidAddBlocks: u32 = 10; // Increase end time to avoid sniping
+	pub const BidStepPerc: u32 = 10; // Next bid step in percent
+	pub const MinAuctionDuration: u32 = 10; // Minimum auction duration
+}
+
 impl pallet_auctions::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -837,6 +844,10 @@ impl pallet_auctions::Config for Runtime {
 	type Currency = Balances;
 	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Runtime>;
 	type CurrencyBalance = Balance;
+	type AuctionsStringLimit = AuctionsStringLimit;
+	type BidAddBlocks = BidAddBlocks;
+	type BidStepPerc = BidStepPerc;
+	type MinAuctionDuration = MinAuctionDuration;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

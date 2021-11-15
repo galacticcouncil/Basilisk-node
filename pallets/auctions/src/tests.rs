@@ -11,7 +11,7 @@ macro_rules! bvec {
 	}
 }
 
-fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, UniquesStringLimit>, Error<Test>> {
+fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, AuctionsStringLimit>, Error<Test>> {
 	name.try_into().map_err(|_| Error::<Test>::TooLong)
 }
 
@@ -223,11 +223,7 @@ fn can_update_english_auction() {
 		);
 
 		// Happy path
-		assert_ok!(AuctionsModule::update(
-			Origin::signed(ALICE),
-			0,
-			auction.clone()
-		));
+		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()));
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
 		let Auction::English(data) = auction_result;
