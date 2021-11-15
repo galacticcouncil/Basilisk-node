@@ -167,10 +167,10 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 
 			match &auction {
-				Auction::English(data) => {
-					Self::validate_general_data(&data.general_data)?;
-					Self::validate_create(&data.general_data)?;
-					Self::handle_create(sender, &auction, &data.general_data)?;
+				Auction::English(auction_object) => {
+					Self::validate_general_data(&auction_object.general_data)?;
+					Self::validate_create(&auction_object.general_data)?;
+					Self::handle_create(sender, &auction, &auction_object.general_data)?;
 				}
 			}
 
@@ -182,9 +182,9 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 
 			match &updated_auction {
-				Auction::English(data) => {
-					Self::validate_general_data(&data.general_data)?;
-					Self::handle_update(sender, id, updated_auction.clone(), &data.general_data)?;
+				Auction::English(auction_object) => {
+					Self::validate_general_data(&auction_object.general_data)?;
+					Self::handle_update(sender, id, updated_auction.clone(), &auction_object.general_data)?;
 				}
 			}
 
@@ -197,9 +197,9 @@ pub mod pallet {
 			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
 
 			match &auction {
-				Auction::English(data) => {
-					Self::validate_update(sender, &data.general_data)?;
-					Self::handle_destroy(id, &data.general_data)?;
+				Auction::English(auction_object) => {
+					Self::validate_update(sender, &auction_object.general_data)?;
+					Self::handle_destroy(id, &auction_object.general_data)?;
 				}
 			}
 
@@ -209,13 +209,22 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::bid_value())]
 		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
 			let bidder = ensure_signed(origin)?;
-			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
 
-			match &auction {
-				Auction::English(data) => {
-					Self::validate_bid(&bidder, &data.general_data, value)?;
-					EnglishAuction::<T>::bid(bidder.clone(), auction_id, value)?;
+			let bid = <Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+
+				match auction {
+					Auction::English(auction_object) => {
+						Self::validate_bid(&bidder, &auction_object.general_data, value)?;
+						auction_object.bid(bidder.clone(), value)?;
+					}
 				}
+
+				Ok(())
+			});
+
+			if let Err(err) = bid {
+				return Err(err);
 			}
 
 			Self::deposit_event(Event::Bid(auction_id, bidder, value));
@@ -361,8 +370,8 @@ impl<T: Config> Pallet<T> {
 			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
 
 			match &auction {
-				Auction::English(data) => {
-					EnglishAuction::<T>::close(data)?;
+				Auction::English(auction_object) => {
+					auction_object.close()?;
 				}
 			}
 		}
@@ -372,34 +381,30 @@ impl<T: Config> Pallet<T> {
 }
 
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for EnglishAuction<T> {
-	fn bid(bidder: T::AccountId, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
-		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-			let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
-			let Auction::English(data) = auction;
-			// Lock / Unlock funds
-			if let Some(ref current_bid) = data.general_data.last_bid {
-				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
-			}
-			<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
+	fn bid(&mut self, bidder: T::AccountId, value: BalanceOf<T>) -> DispatchResult {
+		// Lock / Unlock funds
+		if let Some(ref current_bid) = self.general_data.last_bid {
+			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
+		}
+		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
 
-			data.general_data.last_bid = Some((bidder, value));
-			// Set next minimal bid
-			let bid_step = Permill::from_percent(<T as crate::Config>::BidStepPerc::get()).mul_floor(value);
-			data.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
+		self.general_data.last_bid = Some((bidder, value));
+		// Set next minimal bid
+		let bid_step = Permill::from_percent(<T as crate::Config>::BidStepPerc::get()).mul_floor(value);
+		self.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
 
-			// Avoid auction sniping
-			let block_number = <frame_system::Pallet<T>>::block_number();
-			let time_left = data
-				.general_data
-				.end
-				.checked_sub(&block_number)
-				.ok_or(Error::<T>::TimeUnderflow)?;
-			if time_left < <T as crate::Config>::BidAddBlocks::get().into() {
-				data.general_data.end = block_number + <T as crate::Config>::BidAddBlocks::get().into();
-			}
+		// Avoid auction sniping
+		let block_number = <frame_system::Pallet<T>>::block_number();
+		let time_left = self
+			.general_data
+			.end
+			.checked_sub(&block_number)
+			.ok_or(Error::<T>::TimeUnderflow)?;
+		if time_left < <T as crate::Config>::BidAddBlocks::get().into() {
+			self.general_data.end = block_number + <T as crate::Config>::BidAddBlocks::get().into();
+		}
 
-			Ok(())
-		})
+		Ok(())
 	}
 
 	fn close(&self) -> DispatchResult {

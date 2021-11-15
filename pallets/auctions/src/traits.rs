@@ -3,7 +3,7 @@ use codec::{Decode, Encode};
 use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
 
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
-	fn bid(bidder: AccountId, auction_id: AuctionId, value: BalanceOf) -> DispatchResult;
+	fn bid(&mut self, bidder: AccountId, value: BalanceOf) -> DispatchResult;
 
 	fn close(&self) -> DispatchResult;
 }

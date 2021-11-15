@@ -326,7 +326,7 @@ fn can_destroy_english_auction() {
 }
 
 #[test]
-fn can_bid_value_english_auction() {
+fn can_bid_english_auction() {
 	let general_auction_data = GeneralAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		last_bid: None,
