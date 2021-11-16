@@ -28,9 +28,9 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use testing_basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
-	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
-	NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
+	DusterConfig, ElectionsConfig, FaucetConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig,
+	ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig,
+	VestingConfig, NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
 
 const TOKEN_DECIMALS: u8 = 12;
@@ -311,6 +311,11 @@ fn testnet_parachain_genesis(
 					]
 				})
 				.collect(),
+		},
+		faucet: FaucetConfig {
+			rampage: true,
+			mint_limit: 5,
+			mintable_currencies: vec![0, 1, 2],
 		},
 		treasury: Default::default(),
 		elections: ElectionsConfig {
