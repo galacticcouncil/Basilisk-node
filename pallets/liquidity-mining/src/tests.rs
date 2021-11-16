@@ -4,7 +4,7 @@ use crate::mock::{
 	BSX_ACA_LM_POOL, BSX_DOT_LM_POOL, BSX_FARM, BSX_KSM_LM_POOL, HDX, KSM, KSM_FARM, TREASURY,
 };
 
-use frame_support::assert_ok;
+use frame_support::{assert_ok, assert_err};
 use primitives::{AssetId, Balance};
 
 use sp_arithmetic::traits::CheckedSub;
@@ -21,32 +21,32 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 #[test]
 fn get_period_number_should_work() {
 	let num_1: BlockNumber = 1_u64;
-	assert_eq!(LiquidityMining::season(num_1.into(), 1).unwrap(), 1);
+	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 1).unwrap(), 1);
 
 	let num_1: BlockNumber = 1_000_u64;
-	assert_eq!(LiquidityMining::season(num_1.into(), 1).unwrap(), 1_000);
+	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 1).unwrap(), 1_000);
 
 	let num_1: BlockNumber = 23_u64;
-	assert_eq!(LiquidityMining::season(num_1.into(), 15).unwrap(), 1);
+	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 15).unwrap(), 1);
 
 	let num_1: BlockNumber = 843_712_398_u64;
 	assert_eq!(
-		LiquidityMining::season(num_1.into(), 13_412_341).unwrap(),
+		LiquidityMining::get_period_number(num_1.into(), 13_412_341).unwrap(),
 		62
 	);
 
 	let num_1: BlockNumber = 843_u64;
-	assert_eq!(LiquidityMining::season(num_1.into(), 2_000).unwrap(), 0);
+	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 2_000).unwrap(), 0);
 
 	let num_1: BlockNumber = 10_u64;
-	assert_eq!(LiquidityMining::season(num_1.into(), 10).unwrap(), 1);
+	assert_eq!(LiquidityMining::get_period_number(num_1.into(), 10).unwrap(), 1);
 }
 
 #[test]
 fn get_period_number_should_not_work() {
 	let num_1: BlockNumber = 10_u64;
 	assert_eq!(
-		LiquidityMining::season(num_1.into(), 0).unwrap_err(),
+		LiquidityMining::get_period_number(num_1.into(), 0).unwrap_err(),
 		Error::<Test>::Overflow
 	);
 }
@@ -289,7 +289,7 @@ fn get_reward_per_period_should_work() {
 	];
 
 	for t in testing_values.iter() {
-		assert_eq!(LiquidityMining::get_reward_per_season(t.0, t.1, t.2).unwrap(), t.3);
+		assert_eq!(LiquidityMining::get_reward_per_period(t.0, t.1, t.2).unwrap(), t.3);
 	}
 }
 
@@ -1759,13 +1759,33 @@ fn validate_pool_id_should_not_work() {
 
 
 #[test]
-fn valdiate_create_new_farm_data_should_work() {
-    assert_eq!("Not Implemented", "");
+fn validate_create_new_farm_data_should_work() {
+
+    assert_ok!(LiquidityMining::validate_create_new_farm_data(1_000_000, 100, 1));
+
+    assert_ok!(LiquidityMining::validate_create_new_farm_data(9_999_000_000_000, 2_000_000, 500));
+    
+    assert_ok!(LiquidityMining::validate_create_new_farm_data(10_000_000, 101, 16_986_741));
 }
 
 #[test]
-fn valdiate_create_new_farm_data_should_not_work() {
-    assert_eq!("Not Implemented", "");
+fn validate_create_new_farm_data_should_not_work() {
+    // total rawards
+    assert_err!(LiquidityMining::validate_create_new_farm_data(999_999, 100, 1), Error::<Test>::InvalidTotalRewards);
+    
+    assert_err!(LiquidityMining::validate_create_new_farm_data(9, 100, 1), Error::<Test>::InvalidTotalRewards);
+    
+    assert_err!(LiquidityMining::validate_create_new_farm_data(0, 100, 1), Error::<Test>::InvalidTotalRewards);
+
+    //invalid min_farming_periods
+    assert_err!(LiquidityMining::validate_create_new_farm_data(1_000_000, 99, 1), Error::<Test>::InvalidMinFarmingPeriods);
+    
+    assert_err!(LiquidityMining::validate_create_new_farm_data(1_000_000, 0, 1), Error::<Test>::InvalidMinFarmingPeriods);
+    
+    assert_err!(LiquidityMining::validate_create_new_farm_data(1_000_000, 87, 1), Error::<Test>::InvalidMinFarmingPeriods);
+
+    //invalid block per period
+    assert_err!(LiquidityMining::validate_create_new_farm_data(1_000_000, 100, 0), Error::<Test>::InvalidBlocksPerPeriod);
 }
 
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx
