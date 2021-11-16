@@ -17,8 +17,11 @@
 //
 use crate as liq_mining;
 use crate::Config;
-use frame_support::parameter_types;
-use frame_support::traits::{GenesisBuild, Nothing};
+use frame_support::{ 
+    parameter_types, 
+    PalletId,
+    traits::{GenesisBuild, Nothing}
+};
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
 use primitives::{Amount, AssetId, Balance};
@@ -28,8 +31,8 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 
-type AccountId = u64;
-pub type PoolId = u64;
+type AccountId = u128;
+pub type PoolId = crate::PoolId;
 pub type BlockNumber = u64;
 
 pub const ALICE: AccountId = 1;
@@ -112,6 +115,9 @@ parameter_types! {
 
     pub AccumulatePeriod: BlockNumber = 10;     // 10 blocks
 	pub const MaxLocks: u32 = 1;
+    pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
+    pub const MinPeriodsToFarming: BlockNumber = 100;
+    pub const MinTotalFarmRewards: Balance = 1_000_000;
 }
 
 impl Config for Test {
@@ -119,8 +125,12 @@ impl Config for Test {
 	type Balance = Balance;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
-    type AdminOrigin = frame_system::EnsureRoot<u64>;
+    type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();
+    type PalletId = LMPalletId;
+    type MinPeriodsToFarming = MinPeriodsToFarming;
+    type MinTotalFarmRewards = MinTotalFarmRewards;
+
 }
 
 parameter_type_with_key! {

@@ -39,24 +39,24 @@ pub mod weights;
 
 pub use pallet::*;
 
-type PoolId<T> = <T as frame_system::Config>::AccountId;
+type PoolId = u32;
 
 use frame_support::{
 	ensure,
 	sp_runtime::traits::{One, Zero},
 	traits::LockIdentifier,
-	transactional,
+	transactional, PalletId,
 };
 
 use sp_arithmetic::{
 	traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
-	FixedU128,
+	FixedU128, Permill,
 };
 
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 
 use codec::{Decode, Encode};
-use frame_support::sp_runtime::RuntimeDebug;
+use frame_support::sp_runtime::{traits::AccountIdConversion, RuntimeDebug};
 
 impl Default for LoyaltyCurve {
 	fn default() -> Self {
@@ -133,10 +133,22 @@ pub mod pallet {
 		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + From<u32>;
 
 		/// Currency for transfers
-		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, CurrencyId = Self::CurrencyId, Balance = Self::Balance>;
+		type MultiCurrency: MultiCurrencyExtended<
+			Self::AccountId,
+			CurrencyId = Self::CurrencyId,
+			Balance = Self::Balance,
+		>;
 
-		/// Administrator able to create liquidity mining program
-		type AdminOrigin: EnsureOrigin<Self::Origin>;
+		/// The origin account that cat create new liquidity mining program
+		type CreateOrigin: EnsureOrigin<Self::Origin>;
+
+		type PalletId: Get<PalletId>;
+
+		/// Minimum anout of total rewards to create new farm
+		type MinTotalFarmRewards: Get<Self::Balance>;
+
+		/// Minimum number of periods to distribute farm rewards
+		type MinPeriodsToFarming: Get<Self::BlockNumber>;
 
 		/// Weight information for extrinsics in this module.
 		type WeightInfo: WeightInfo;
@@ -151,6 +163,18 @@ pub mod pallet {
 		/// Insufficient balance in global pool to transfer rewards to pool
 		InsufficientBalancdInGlobalPool,
 
+		/// Provide id is not valid. Valid range is [1, u32::MAX)
+		InvalidPoolId,
+
+		/// Provided min_farming_periods is below limit
+		InvalidMinFarmingPeriods,
+
+		/// Provided blocks_per_period can't be 0
+		InvalidBlocksPerPeriod,
+
+		/// Provided total_rewards for farming is bellow min limit
+		InvalidTotalRewards,
+
 		/// Feature is not implemented yet
 		NotImplemented,
 	}
@@ -159,25 +183,38 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {}
 
-	/*
 	#[pallet::storage]
-	#[pallet::getter(fn pool)]
-	pub type Pools<T: Config> =
-		StorageMap<_, Blake2_128Concat, PoolId<T>, LmPool<T::Balance, T::CurrencyId, T::BlockNumber>, OptionQuery>;
-	*/
+	#[pallet::getter(fn pool_id)]
+	pub type PoolIdSeq<T: Config> = StorageValue<_, PoolId, ValueQuery>;
 
 	#[pallet::call]
+
+	///
+	/// Parameters:
+	/// - `origin`:
+	/// - `total_rewards`:
+	/// - `min_farming_periods`: minimum number of periods to distribute rewards. WARN: this is not
+	/// how long will farm run Admin can destroy farm sooner or later
+	/// - `blocks_per_period`:
+	/// - `incetivized_token`
+	/// - `reward_currency`
+	/// - `admin_account`
+	/// - `yield_per_period`
 	impl<T: Config> Pallet<T> {
 		/// Craete new liquidity mining program
 		#[pallet::weight(1000)]
 		#[transactional]
-		pub fn create_new_program(
+		pub fn create_new_farm(
 			origin: OriginFor<T>,
-			pool_id: PoolId<T>,
-			currency_id: T::CurrencyId,
-			loyalty_curve: Option<LoyaltyCurve>,
+			total_rewards: T::Balance,
+			min_farming_periods: T::BlockNumber, //Min number of periods to distribute rewards. This is not how long farm will run. Farm can be destroyed sooner
+			blocks_per_period: T::BlockNumber,
+			incentivized_token: T::CurrencyId,
+			reward_currency: T::CurrencyId,
+			admin_account: T::AccountId,
+			yield_per_period: Permill,
 		) -> DispatchResult {
-			T::AdminOrigin::ensure_origin(origin)?;
+			T::CreateOrigin::ensure_origin(origin)?;
 
 			Ok(())
 		}
@@ -185,6 +222,30 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	pub fn next_id() -> Result<PoolId, Error<T>> {
+		let next_id = PoolIdSeq::<T>::try_mutate(|current_id| {
+			*current_id = current_id.checked_add(1).ok_or(Error::<T>::Overflow)?;
+
+			Ok(*current_id)
+		})?;
+
+		Ok(next_id)
+	}
+
+	/// Account id of pot holding all the shares
+	pub fn account_id() {
+		T::PalletId::get().into_account()
+	}
+
+	/// Return pallet account or pool acocunt from PoolId
+	///
+	/// WARN: pool_id = 0 is same as `T::PalletId::get().into_account()`. 0 is not valid value
+	pub fn pool_account_id(pool_id: PoolId) -> Result<T::AccountId, Error<T>> {
+		Self::validate_pool_id(pool_id)?;
+
+		Ok(T::PalletId::get().into_sub_account(pool_id))
+	}
+
 	/// Return period number from block number now and number of blocks in one period
 	pub fn get_period_number(
 		now: T::BlockNumber,
@@ -246,7 +307,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn update_global_pool(
-		pool_id: PoolId<T>,
+		pool_id: PoolId,
 		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId>,
 		now_period: T::BlockNumber,
 		reward_per_period: T::Balance,
@@ -264,10 +325,11 @@ impl<T: Config> Pallet<T> {
 				.map_err(|_e| Error::<T>::Overflow)?
 				.into();
 
+		let pool_account = Self::pool_account_id(pool_id);
 		let reward = periods_since_last_update
 			.checked_mul(&reward_per_period)
 			.ok_or(Error::<T>::Overflow)?
-			.min(T::MultiCurrency::free_balance(pool.reward_currency, &pool_id));
+			.min(T::MultiCurrency::free_balance(pool.reward_currency, &pool_account?));
 
 		if !reward.is_zero() {
 			pool.accumulated_rps = Self::get_accumulated_rps(pool.accumulated_rps, pool.total_shares, reward)?;
@@ -353,11 +415,11 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn update_pool(
-		pool_id: PoolId<T>,
+		pool_id: PoolId,
 		pool: &mut Pool<T::BlockNumber, T::Balance>,
 		rewards: T::Balance,
 		period_now: T::BlockNumber,
-		global_pool_id: PoolId<T>,
+		global_pool_id: PoolId,
 		reward_currency: T::CurrencyId,
 	) -> Result<(), DispatchError> {
 		if pool.updated_at == period_now {
@@ -371,13 +433,44 @@ impl<T: Config> Pallet<T> {
 		pool.accumulated_rps = Self::get_accumulated_rps(pool.accumulated_rps, pool.total_shares, rewards)?;
 		pool.updated_at = period_now;
 
-		let global_pool_balance = T::MultiCurrency::free_balance(reward_currency, &global_pool_id);
+		let global_pool_balance =
+			T::MultiCurrency::free_balance(reward_currency, &Self::pool_account_id(global_pool_id)?);
 
 		ensure!(
 			global_pool_balance >= rewards,
 			Error::<T>::InsufficientBalancdInGlobalPool
 		);
 
-		T::MultiCurrency::transfer(reward_currency, &global_pool_id, &pool_id, rewards)
+		let global_pool_account = Self::pool_account_id(global_pool_id)?;
+		let pool_account = Self::pool_account_id(pool_id)?;
+		T::MultiCurrency::transfer(reward_currency, &global_pool_account, &pool_account, rewards)
+	}
+
+	pub fn validate_pool_id(pool_id: PoolId) -> Result<(), Error<T>> {
+		if pool_id.le(&Zero::zero()) {
+			return Err(Error::<T>::InvalidPoolId);
+		}
+
+		Ok(())
+	}
+
+	pub fn validate_create_new_farm_data(
+		total_rewads: T::Balance,
+		min_farming_periods: T::BlockNumber,
+		block_per_period: T::BlockNumber,
+	) -> DispatchResult {
+		ensure!(
+			total_rewads >= T::MinTotalFarmRewards::get(),
+			Error::<T>::InvalidTotalRewards
+		);
+
+		ensure!(
+			min_farming_periods >= T::MinPeriodsToFarming::get(),
+			Error::<T>::InvalidMinFarmingPeriods
+		);
+
+		ensure!(!Zero::is_zero(&block_per_period), Error::<T>::InvalidBlocksPerPeriod);
+
+		Ok(())
 	}
 }
