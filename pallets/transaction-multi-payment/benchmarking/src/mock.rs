@@ -34,7 +34,7 @@ use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, Amount, AssetId, Balance,
+	fee, Amount, AssetId, Balance, Price,
 };
 
 use frame_support::traits::Get;
@@ -42,7 +42,6 @@ use std::cell::RefCell;
 
 use frame_benchmarking::frame_support::weights::Pays;
 use frame_system::EnsureSigned;
-use primitives::traits::AssetPairAccountIdFor;
 
 pub type AccountId = u64;
 
