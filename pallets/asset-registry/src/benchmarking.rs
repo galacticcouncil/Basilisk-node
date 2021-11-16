@@ -124,18 +124,9 @@ benchmarks! {
 
 #[cfg(test)]
 mod tests {
-	use super::mock::Test;
-	use super::*;
-	use crate::mock::ExtBuilder;
-	use frame_support::assert_ok;
+	use super::Pallet;
+	use crate::mock::*;
+	use frame_benchmarking::impl_benchmark_test_suite;
 
-	#[test]
-	fn test_benchmarks() {
-		ExtBuilder::default().build().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_register());
-			assert_ok!(Pallet::<Test>::test_benchmark_update());
-			assert_ok!(Pallet::<Test>::test_benchmark_set_metadata());
-			assert_ok!(Pallet::<Test>::test_benchmark_set_location());
-		});
-	}
+	impl_benchmark_test_suite!(Pallet, super::ExtBuilder::default().build(), super::Test);
 }
