@@ -41,6 +41,8 @@ pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",defaul
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="6b399649f0379bc091ff69447b459ce30dd82b00", default-features = false }
+
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }

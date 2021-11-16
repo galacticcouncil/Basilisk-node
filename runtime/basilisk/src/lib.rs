@@ -38,12 +38,14 @@ use sp_core::{
 	OpaqueMetadata,
 };
 use sp_runtime::{
+	app_crypto::sp_core::crypto::UncheckedFrom,
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill,
 };
 use sp_std::convert::From;
+use sp_std::marker::PhantomData;
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -60,9 +62,8 @@ use frame_support::{
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 };
-use pallet_lbp::AssetPairPoolIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
-use pallet_xyk::AssetPairAccountIdFor;
+use primitives::traits::AssetPairAccountIdFor;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 #[allow(clippy::all)]
@@ -178,9 +179,13 @@ impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumb
 	type BlockNumber = BlockNumber;
 
 	fn current_block_number() -> Self::BlockNumber {
-		cumulus_pallet_parachain_system::Pallet::<T>::validation_data()
-			.map(|d| d.relay_parent_number)
-			.unwrap_or_default()
+		let maybe_data = cumulus_pallet_parachain_system::Pallet::<T>::validation_data();
+
+		if let Some(data) = maybe_data {
+			data.relay_parent_number
+		} else {
+			Self::BlockNumber::default()
+		}
 	}
 }
 
@@ -190,6 +195,25 @@ impl<T: frame_system::Config> BlockNumberProvider for RelayChainBlockNumberProvi
 
 	fn current_block_number() -> Self::BlockNumber {
 		frame_system::Pallet::<T>::current_block_number()
+	}
+}
+
+pub struct AssetPairAccountId<T: frame_system::Config>(PhantomData<T>);
+impl<T: frame_system::Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
+where
+	T::AccountId: UncheckedFrom<T::Hash> + AsRef<[u8]>,
+{
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, identifier: &str) -> T::AccountId {
+		let mut buf: Vec<u8> = identifier.as_bytes().to_vec();
+
+		if asset_a < asset_b {
+			buf.extend_from_slice(&asset_a.to_le_bytes());
+			buf.extend_from_slice(&asset_b.to_le_bytes());
+		} else {
+			buf.extend_from_slice(&asset_b.to_le_bytes());
+			buf.extend_from_slice(&asset_a.to_le_bytes());
+		}
+		T::AccountId::unchecked_from(<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(&buf[..]))
 	}
 }
 
@@ -377,7 +401,7 @@ impl pallet_asset_registry::Config for Runtime {
 impl pallet_xyk::Config for Runtime {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
-	type AssetPairAccountId = pallet_xyk::AssetPairAccountId<Self>;
+	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
@@ -402,7 +426,7 @@ impl pallet_lbp::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
-	type AssetPairPoolId = pallet_lbp::AssetPairPoolId<Self>;
+	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
@@ -420,7 +444,7 @@ parameter_types! {
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
-	type OnValidationData = ();
+	type OnValidationData = pallet_relaychain_info::OnValidationDataHandler<Runtime>;
 	type SelfParaId = ParachainInfo;
 
 	type OutboundXcmpMessageSource = XcmpQueue;
@@ -690,6 +714,11 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+impl pallet_relaychain_info::Config for Runtime {
+	type Event = Event;
+	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -701,6 +730,8 @@ construct_runtime!(
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+
+		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>},
 
 		// Basilisk's registry
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
@@ -929,7 +960,7 @@ impl_runtime_apis! {
 		}
 
 		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			pallet_xyk::AssetPairAccountId::<Runtime>::from_assets(asset_a, asset_b)
+			XYK::pair_account_from_assets(asset_a, asset_b)
 		}
 	}
 
@@ -939,7 +970,7 @@ impl_runtime_apis! {
 		AssetId,
 	> for Runtime {
 		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			pallet_lbp::AssetPairPoolId::<Runtime>::from_assets(asset_a, asset_b)
+			LBP::pair_account_from_assets(asset_a, asset_b)
 		}
 	}
 
