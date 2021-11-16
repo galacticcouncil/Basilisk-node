@@ -40,7 +40,7 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="1bde20655a8c1d0c9fbabf46f0cfc1da9328b202", default-features = false }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="6b399649f0379bc091ff69447b459ce30dd82b00", default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -144,7 +144,6 @@ runtime-benchmarks = [
     "pallet-utility/runtime-benchmarks",
     "pallet-tips/runtime-benchmarks",
     "orml-benchmarking",
-    "pallet-relaychain-info/runtime-benchmarks",
 ]
 std = [
     "codec/std",
