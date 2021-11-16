@@ -29,11 +29,12 @@ use sp_runtime::{
 };
 
 use frame_support::weights::IdentityFee;
+use hydradx_traits::AssetPairAccountIdFor;
 use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, Amount, AssetId, Balance, Price,
+	fee, Amount, AssetId, Balance,
 };
 
 use frame_support::traits::Get;

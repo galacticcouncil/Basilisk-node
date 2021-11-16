@@ -28,6 +28,9 @@ orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "ee37b76a7a8cf159e6c41851942758746318bb84", default-features = false }
 orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "ee37b76a7a8cf159e6c41851942758746318bb84", default-features = false }
 
+# HydraDX dependencies
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="32f3a9ab84b86b200d3ad702db762ac7de06b20c", default-features = false }
+
 # Substrate dependencies
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -60,5 +63,6 @@ std = [
     "orml-traits/std",
     "pallet-balances/std",
     "pallet-asset-registry/std",
+    "hydradx-traits/std",
     "scale-info/std",
 ]

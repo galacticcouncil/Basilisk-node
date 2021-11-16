@@ -30,12 +30,11 @@ use sp_runtime::{
 
 use frame_support::weights::IdentityFee;
 use frame_support::weights::Weight;
+use hydradx_traits::AssetPairAccountIdFor;
 use orml_currencies::BasicCurrencyAdapter;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee,
-	traits::AssetPairAccountIdFor,
-	Amount, AssetId, Balance, Price,
+	fee, Amount, AssetId, Balance, Price,
 };
 
 use std::cell::RefCell;
