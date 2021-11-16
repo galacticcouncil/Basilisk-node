@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -31,13 +31,13 @@
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
-use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, traits::AMM, AssetId, Balance, Price};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, AMM};
+use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, AssetId, Balance, Price};
 use sp_std::{vec, vec::Vec};
 
 use frame_support::sp_runtime::FixedPointNumber;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::fee::WithFee;
-use primitives::traits::{AMMTransfer, AssetPairAccountIdFor};
 use primitives::Amount;
 
 #[cfg(test)]
@@ -60,7 +60,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-	use primitives::traits::ShareTokenRegistry;
+	use hydradx_traits::ShareTokenRegistry;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);

@@ -26,7 +26,7 @@ use frame_support::traits::Get;
 use frame_support::traits::OnFinalize;
 use frame_support::{assert_noop, assert_ok};
 use frame_system::InitKind;
-use primitives::traits::Resolver;
+use hydradx_traits::Resolver;
 use primitives::Price;
 use sp_runtime::DispatchError;
 
