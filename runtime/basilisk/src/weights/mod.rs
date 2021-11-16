@@ -1,5 +1,6 @@
 pub mod asset_registry;
 pub mod balances;
+pub mod collator_selection;
 pub mod currencies;
 pub mod democracy;
 pub mod duster;
