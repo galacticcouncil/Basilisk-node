@@ -30,12 +30,10 @@ use sp_std::vec::Vec;
 
 use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
+use hydradx_traits::{AMMTransfer, Resolver, AMM};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::{
-	asset::AssetPair,
-	constants::chain::MIN_TRADING_LIMIT,
-	traits::{AMMTransfer, Resolver, AMM},
-	Amount, AssetId, Balance, ExchangeIntention, IntentionType,
+	asset::AssetPair, constants::chain::MIN_TRADING_LIMIT, Amount, AssetId, Balance, ExchangeIntention, IntentionType,
 };
 
 use frame_support::sp_runtime::traits::BlockNumberProvider;

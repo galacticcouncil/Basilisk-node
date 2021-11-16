@@ -554,6 +554,7 @@ dependencies = [
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",
+ "hydradx-traits",
  "memory-db",
  "orml-benchmarking",
  "orml-currencies",
@@ -3179,6 +3180,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydradx-traits"
+version = "0.1.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=32f3a9ab84b86b200d3ad702db762ac7de06b20c#32f3a9ab84b86b200d3ad702db762ac7de06b20c"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-std",
+]
+
+[[package]]
 name = "hyper"
 version = "0.14.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5194,6 +5207,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
+ "hydradx-traits",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5561,6 +5575,7 @@ version = "5.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5585,6 +5600,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5701,6 +5717,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 4.0.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
@@ -5820,6 +5837,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
+ "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -6139,6 +6157,7 @@ version = "6.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -6297,6 +6316,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 3.4.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
@@ -10974,6 +10994,7 @@ dependencies = [
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",
+ "hydradx-traits",
  "memory-db",
  "orml-currencies",
  "orml-nft",
@@ -11425,7 +11446,7 @@ version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f559b464de2e2bdabcac6a210d12e9b5a5973c251e102c44c585c71d51bd78e"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "rand 0.8.4",
  "static_assertions",
 ]

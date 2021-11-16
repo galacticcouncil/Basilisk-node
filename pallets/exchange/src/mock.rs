@@ -34,9 +34,9 @@ use frame_system::EnsureSigned;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	fee,
-	traits::AssetPairAccountIdFor,
 	AssetId, Balance,
 };
+use hydradx_traits::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 pub type Amount = i128;
