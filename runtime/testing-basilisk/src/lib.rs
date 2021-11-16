@@ -407,7 +407,7 @@ parameter_types! {
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
-	type OnValidationData = ();
+	type OnValidationData = pallet_relaychain_info::OnValidationDataHandler<Runtime>;
 	type SelfParaId = ParachainInfo;
 
 	type OutboundXcmpMessageSource = XcmpQueue;
@@ -677,6 +677,11 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
+impl pallet_relaychain_info::Config for Runtime {
+	type Event = Event;
+	type RelaychainBlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -688,6 +693,8 @@ construct_runtime!(
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+
+		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>},
 
 		// Basilisk's registry
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},

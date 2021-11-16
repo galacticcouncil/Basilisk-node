@@ -5978,10 +5978,10 @@ dependencies = [
 
 [[package]]
 name = "pallet-relaychain-info"
-version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=1bde20655a8c1d0c9fbabf46f0cfc1da9328b202#1bde20655a8c1d0c9fbabf46f0cfc1da9328b202"
+version = "0.2.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=6b399649f0379bc091ff69447b459ce30dd82b00#6b399649f0379bc091ff69447b459ce30dd82b00"
 dependencies = [
- "frame-benchmarking",
+ "cumulus-primitives-core",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -11019,6 +11019,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
+ "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",

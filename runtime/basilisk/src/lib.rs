@@ -179,9 +179,13 @@ impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumb
 	type BlockNumber = BlockNumber;
 
 	fn current_block_number() -> Self::BlockNumber {
-		cumulus_pallet_parachain_system::Pallet::<T>::validation_data()
-			.map(|d| d.relay_parent_number)
-			.unwrap_or_default()
+		let maybe_data = cumulus_pallet_parachain_system::Pallet::<T>::validation_data();
+
+		if let Some(data) = maybe_data {
+			data.relay_parent_number
+		} else {
+			Self::BlockNumber::default()
+		}
 	}
 }
 
@@ -440,7 +444,7 @@ parameter_types! {
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
-	type OnValidationData = ();
+	type OnValidationData = pallet_relaychain_info::OnValidationDataHandler<Runtime>;
 	type SelfParaId = ParachainInfo;
 
 	type OutboundXcmpMessageSource = XcmpQueue;
@@ -713,7 +717,6 @@ impl orml_vesting::Config for Runtime {
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-	type WeightInfo = ();
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -1004,7 +1007,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
-			list_benchmark!(list, extra, pallet_relaychain_info, RelayChainInfo);
 
 			orml_list_benchmark!(list, extra, orml_currencies, benchmarking::currencies);
 			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
@@ -1065,7 +1067,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
-			add_benchmark!(params, batches, pallet_relaychain_info, RelayChainInfo);
 
 			orml_add_benchmark!(params, batches, orml_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
