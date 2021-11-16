@@ -41,6 +41,7 @@ use std::cell::RefCell;
 
 use frame_benchmarking::frame_support::weights::Pays;
 use frame_system::EnsureSigned;
+use primitives::traits::AssetPairAccountIdFor;
 
 pub type AccountId = u64;
 
