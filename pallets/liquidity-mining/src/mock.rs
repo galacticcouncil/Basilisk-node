@@ -28,7 +28,7 @@ use primitives::{Amount, AssetId, Balance};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
+	traits::{BlakeTwo256, IdentityLookup, BlockNumberProvider},
 };
 
 type AccountId = u128;
@@ -40,6 +40,7 @@ pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
 pub const DAVE: AccountId = 4;
 pub const TREASURY: AccountId = 5;
+pub const ACC_1M: AccountId = 6;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
@@ -82,8 +83,16 @@ frame_support::construct_runtime!(
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 63;
+	pub static MockBlockNumberProvider: u64 = 0;
 }
 
+impl BlockNumberProvider for MockBlockNumberProvider {
+	type BlockNumber = u64;
+
+	fn current_block_number() -> Self::BlockNumber {
+		Self::get()
+	}
+}
 impl system::Config for Test {
 	type BaseCallFilter = ();
 	type BlockWeights = ();
@@ -116,7 +125,7 @@ parameter_types! {
     pub AccumulatePeriod: BlockNumber = 10;     // 10 blocks
 	pub const MaxLocks: u32 = 1;
     pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
-    pub const MinPeriodsToFarming: BlockNumber = 100;
+    pub const MinPlannedYieldingPeriods: BlockNumber = 100;
     pub const MinTotalFarmRewards: Balance = 1_000_000;
 }
 
@@ -128,9 +137,9 @@ impl Config for Test {
     type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();
     type PalletId = LMPalletId;
-    type MinPeriodsToFarming = MinPeriodsToFarming;
+    type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
     type MinTotalFarmRewards = MinTotalFarmRewards;
-
+	type BlockNumberProvider = MockBlockNumberProvider;
 }
 
 parameter_type_with_key! {
@@ -162,6 +171,8 @@ impl Default for ExtBuilder {
 				(ALICE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(ALICE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(ALICE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
+				(ALICE, BSX, INITIAL_BALANCE),
+                (ACC_1M, BSX, 1_000_000),
 				(BOB, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
@@ -195,7 +206,6 @@ impl ExtBuilder {
 }
 
 pub fn run_to_block(n: u64) {
-	while System::block_number() < n {
-		System::set_block_number(System::block_number() + 1);
-	}
+	MockBlockNumberProvider::set(n);
+	System::set_block_number(System::block_number() + 1);
 }

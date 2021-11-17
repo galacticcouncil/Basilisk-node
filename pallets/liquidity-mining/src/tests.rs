@@ -1,15 +1,16 @@
 use super::*;
 use crate::mock::{
-	BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, System, Test, Tokens, ACA, ACA_FARM, BSX,
-	BSX_ACA_LM_POOL, BSX_DOT_LM_POOL, BSX_FARM, BSX_KSM_LM_POOL, HDX, KSM, KSM_FARM, TREASURY,
+	run_to_block, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, System, Test, Tokens, ACA,
+	ACA_FARM, ACC_1M, ALICE, BSX, BSX_ACA_LM_POOL, BSX_DOT_LM_POOL, BSX_FARM, BSX_KSM_LM_POOL, HDX, INITIAL_BALANCE,
+	KSM, KSM_FARM, TREASURY,
 };
 
-use frame_support::{assert_ok, assert_err};
+use frame_support::{assert_err, assert_noop, assert_ok};
 use primitives::{AssetId, Balance};
 
 use sp_arithmetic::traits::CheckedSub;
+use sp_runtime::traits::BadOrigin;
 
-use sp_arithmetic::Perquintill;
 use std::cmp::Ordering;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -967,15 +968,28 @@ fn update_global_pool_should_work() {
 	//[(pool.updated_at, pool.total_shares, pool.accumulated_rps, pool.reward_currency,
 	//pool_id, reward_left_to_distribute, period_now, reward_per_period, pool.accumulated_rps),...]
 	for t in testing_values.iter() {
-		let mut p = GlobalPool {
-			updated_at: t.0,
-			total_shares: t.1,
-			accumulated_rps_start: 2,
-			paid_accumulated_rewards: 10,
-			accumulated_rps: t.2,
-			reward_currency: t.3,
-			accumulated_rewards: t.8,
-		};
+		let yield_per_period = Permill::from_percent(50);
+		let planned_yielding_periods = 100;
+		let blocks_per_period = 0;
+		let owner = ALICE;
+		let incentivized_token = BSX;
+
+		let mut p = GlobalPool::new(
+			t.4,
+			t.0,
+			t.3,
+			yield_per_period,
+			planned_yielding_periods,
+			blocks_per_period,
+			owner,
+			incentivized_token,
+		);
+
+		p.total_shares = t.1;
+		p.accumulated_rewards = t.8;
+		p.accumulated_rps = t.2;
+		p.paid_accumulated_rewards = 10;
+		p.accumulated_rps_start = 2;
 
 		let mut ext = new_test_ext();
 
@@ -986,19 +1000,24 @@ fn update_global_pool_should_work() {
 
 			LiquidityMining::update_global_pool(t.4, &mut p, t.6, t.7).unwrap();
 
-			assert_eq!(
-				p,
-				GlobalPool {
-					updated_at: t.6,
-					total_shares: t.1,
-					accumulated_rps_start: 2,
-					paid_accumulated_rewards: 10,
-					reward_currency: t.3,
-					// -- values changed by test
-					accumulated_rps: t.9,
-					accumulated_rewards: t.10,
-				}
+			let mut rhs_p = GlobalPool::new(
+				t.4,
+				t.6,
+				t.3,
+				yield_per_period,
+				planned_yielding_periods,
+				blocks_per_period,
+				owner,
+				incentivized_token,
 			);
+
+			rhs_p.total_shares = t.1;
+			rhs_p.accumulated_rps_start = 2;
+			rhs_p.paid_accumulated_rewards = 10;
+			rhs_p.accumulated_rps = t.9;
+			rhs_p.accumulated_rewards = t.10;
+
+			assert_eq!(p, rhs_p);
 		});
 	}
 }
@@ -1306,30 +1325,50 @@ fn claim_global_pool_should_work() {
 
 	//(pool.updated_at, pool.total_shares, pool.accumulated_rps_start, pool.accumulated_rps, pool.reward_currency, pool.accumululated_rewards, ool.paid_accumularted_rewards, shares , reward, pool.accumulated_rps_start, pool.accumululated_rewards, pool.paid_accumularted_rewards)
 	for t in testing_values.iter() {
-		let mut p = GlobalPool {
-			updated_at: t.0,
-			total_shares: t.1,
-			accumulated_rps_start: t.2,
-			accumulated_rps: t.3,
-			reward_currency: t.4,
-			accumulated_rewards: t.5,
-			paid_accumulated_rewards: t.6,
-		};
+		let pool_id = 1;
+		let yield_per_period = Permill::from_percent(50);
+		let planned_yielding_periods = 100;
+		let blocks_per_period = 1;
+		let owner = ALICE;
+		let incentivized_token = BSX;
+
+		let mut p = GlobalPool::new(
+			pool_id,
+			t.0,
+			t.4,
+			yield_per_period,
+			planned_yielding_periods,
+			blocks_per_period,
+			owner,
+			incentivized_token,
+		);
+
+		p.total_shares = t.1;
+		p.accumulated_rps_start = t.2;
+		p.accumulated_rps = t.3;
+		p.accumulated_rewards = t.5;
+		p.paid_accumulated_rewards = t.6;
 
 		assert_eq!(LiquidityMining::claim_from_global_pool(&mut p, t.7).unwrap(), t.8);
 
-		assert_eq!(
-			p,
-			GlobalPool {
-				updated_at: t.0,
-				total_shares: t.1,
-				accumulated_rps_start: t.9,
-				accumulated_rps: t.3,
-				reward_currency: t.4,
-				accumulated_rewards: t.10,
-				paid_accumulated_rewards: t.11,
-			}
+		let mut rhs_p = GlobalPool::new(
+			pool_id,
+			t.0,
+			t.4,
+			yield_per_period,
+			planned_yielding_periods,
+			blocks_per_period,
+			owner,
+			incentivized_token,
 		);
+
+		rhs_p.total_shares = t.1;
+		rhs_p.accumulated_rps_start = t.9;
+		rhs_p.accumulated_rps = t.3;
+		rhs_p.accumulated_rewards = t.10;
+		rhs_p.paid_accumulated_rewards = t.11;
+
+		assert_eq!(p, rhs_p);
 	}
 }
 
@@ -1635,15 +1674,31 @@ fn update_pool_should_work() {
 	];
 
 	for t in testing_values.iter() {
-		let global_p = GlobalPool {
-			updated_at: BlockNumber::from(200_u64),
-			total_shares: Balance::from(1_000_000_u128),
-			accumulated_rps_start: Balance::from(200_u128),
-			accumulated_rps: Balance::from(200_u128),
-			reward_currency: t.7,
-			accumulated_rewards: Balance::from(1_000_000_u128),
-			paid_accumulated_rewards: Balance::from(1_000_000_u128),
-		};
+		let owner = ALICE;
+		let gid = t.0;
+		let yield_per_period = Permill::from_percent(50);
+		let blocks_per_period = BlockNumber::from(1_u32);
+		let planned_yielding_periods = 100;
+		let incentivized_token = BSX;
+		let updated_at = BlockNumber::from(200_u64);
+		let reward_currency = t.7;
+
+		let mut global_p = GlobalPool::new(
+			gid,
+			updated_at,
+			reward_currency,
+			yield_per_period,
+			planned_yielding_periods,
+			blocks_per_period,
+			owner,
+			incentivized_token,
+		);
+
+		global_p.total_shares = Balance::from(1_000_000_u128);
+		global_p.accumulated_rps_start = Balance::from(200_u128);
+		global_p.accumulated_rps = Balance::from(200_u128);
+		global_p.accumulated_rewards = Balance::from(1_000_000_u128);
+		global_p.paid_accumulated_rewards = Balance::from(1_000_000_u128);
 
 		let mut p = Pool {
 			updated_at: t.2,
@@ -1672,18 +1727,25 @@ fn update_pool_should_work() {
 
 			assert_ok!(LiquidityMining::update_pool(t.1, &mut p, t.6, t.3, t.0, t.7));
 
-			assert_eq!(
-				global_p,
-				GlobalPool {
-					updated_at: BlockNumber::from(200_u64),
-					total_shares: Balance::from(1_000_000_u128),
-					accumulated_rps_start: Balance::from(200_u128),
-					accumulated_rps: Balance::from(200_u128),
-					reward_currency: t.7,
-					accumulated_rewards: Balance::from(1_000_000_u128),
-					paid_accumulated_rewards: Balance::from(1_000_000_u128),
-				}
+			let mut rhs_gp = GlobalPool::new(
+				gid,
+				updated_at,
+				reward_currency,
+				yield_per_period,
+				planned_yielding_periods,
+				blocks_per_period,
+				owner,
+				incentivized_token,
 			);
+
+			rhs_gp.updated_at = BlockNumber::from(200_u64);
+			rhs_gp.total_shares = Balance::from(1_000_000_u128);
+			rhs_gp.accumulated_rps_start = Balance::from(200_u128);
+			rhs_gp.accumulated_rps = Balance::from(200_u128);
+			rhs_gp.accumulated_rewards = Balance::from(1_000_000_u128);
+			rhs_gp.paid_accumulated_rewards = Balance::from(1_000_000_u128);
+
+			assert_eq!(global_p, rhs_gp);
 
 			assert_eq!(
 				p,
@@ -1705,18 +1767,18 @@ fn next_id_should_work() {
 	let mut ext = new_test_ext();
 
 	ext.execute_with(|| {
-        assert_eq!(LiquidityMining::next_id().unwrap(), 1);
-        assert_eq!(LiquidityMining::pool_id(), 1);
+		assert_eq!(LiquidityMining::get_next_id().unwrap(), 1);
+		assert_eq!(LiquidityMining::pool_id(), 1);
 
-        assert_eq!(LiquidityMining::next_id().unwrap(), 2);
-        assert_eq!(LiquidityMining::pool_id(), 2);
+		assert_eq!(LiquidityMining::get_next_id().unwrap(), 2);
+		assert_eq!(LiquidityMining::pool_id(), 2);
 
-        assert_eq!(LiquidityMining::next_id().unwrap(), 3);
-        assert_eq!(LiquidityMining::pool_id(), 3);
+		assert_eq!(LiquidityMining::get_next_id().unwrap(), 3);
+		assert_eq!(LiquidityMining::pool_id(), 3);
 
-        assert_eq!(LiquidityMining::next_id().unwrap(), 4);
-        assert_eq!(LiquidityMining::pool_id(), 4);
-    });
+		assert_eq!(LiquidityMining::get_next_id().unwrap(), 4);
+		assert_eq!(LiquidityMining::pool_id(), 4);
+	});
 }
 
 #[test]
@@ -1757,35 +1819,243 @@ fn validate_pool_id_should_not_work() {
 	);
 }
 
-
 #[test]
 fn validate_create_new_farm_data_should_work() {
+	assert_ok!(LiquidityMining::validate_create_new_farm_data(
+		1_000_000,
+		100,
+		1,
+		Permill::from_percent(50)
+	));
 
-    assert_ok!(LiquidityMining::validate_create_new_farm_data(1_000_000, 100, 1));
+	assert_ok!(LiquidityMining::validate_create_new_farm_data(
+		9_999_000_000_000,
+		2_000_000,
+		500,
+		Permill::from_percent(100)
+	));
 
-    assert_ok!(LiquidityMining::validate_create_new_farm_data(9_999_000_000_000, 2_000_000, 500));
-    
-    assert_ok!(LiquidityMining::validate_create_new_farm_data(10_000_000, 101, 16_986_741));
+	assert_ok!(LiquidityMining::validate_create_new_farm_data(
+		10_000_000,
+		101,
+		16_986_741,
+		Permill::from_perthousand(1)
+	));
 }
 
 #[test]
 fn validate_create_new_farm_data_should_not_work() {
-    // total rawards
-    assert_err!(LiquidityMining::validate_create_new_farm_data(999_999, 100, 1), Error::<Test>::InvalidTotalRewards);
-    
-    assert_err!(LiquidityMining::validate_create_new_farm_data(9, 100, 1), Error::<Test>::InvalidTotalRewards);
-    
-    assert_err!(LiquidityMining::validate_create_new_farm_data(0, 100, 1), Error::<Test>::InvalidTotalRewards);
+	// total rawards
+	assert_err!(
+		LiquidityMining::validate_create_new_farm_data(999_999, 100, 1, Permill::from_percent(50)),
+		Error::<Test>::InvalidTotalRewards
+	);
 
-    //invalid min_farming_periods
-    assert_err!(LiquidityMining::validate_create_new_farm_data(1_000_000, 99, 1), Error::<Test>::InvalidMinFarmingPeriods);
-    
-    assert_err!(LiquidityMining::validate_create_new_farm_data(1_000_000, 0, 1), Error::<Test>::InvalidMinFarmingPeriods);
-    
-    assert_err!(LiquidityMining::validate_create_new_farm_data(1_000_000, 87, 1), Error::<Test>::InvalidMinFarmingPeriods);
+	assert_err!(
+		LiquidityMining::validate_create_new_farm_data(9, 100, 1, Permill::from_percent(50)),
+		Error::<Test>::InvalidTotalRewards
+	);
 
-    //invalid block per period
-    assert_err!(LiquidityMining::validate_create_new_farm_data(1_000_000, 100, 0), Error::<Test>::InvalidBlocksPerPeriod);
+	assert_err!(
+		LiquidityMining::validate_create_new_farm_data(0, 100, 1, Permill::from_percent(50)),
+		Error::<Test>::InvalidTotalRewards
+	);
+
+	//invalid min_farming_periods
+	assert_err!(
+		LiquidityMining::validate_create_new_farm_data(1_000_000, 99, 1, Permill::from_percent(50)),
+		Error::<Test>::InvalidPlannedYieldingPeriods
+	);
+
+	assert_err!(
+		LiquidityMining::validate_create_new_farm_data(1_000_000, 0, 1, Permill::from_percent(50)),
+		Error::<Test>::InvalidPlannedYieldingPeriods
+	);
+
+	assert_err!(
+		LiquidityMining::validate_create_new_farm_data(1_000_000, 87, 1, Permill::from_percent(50)),
+		Error::<Test>::InvalidPlannedYieldingPeriods
+	);
+
+	//invalid block per period
+	assert_err!(
+		LiquidityMining::validate_create_new_farm_data(1_000_000, 100, 0, Permill::from_percent(50)),
+		Error::<Test>::InvalidBlocksPerPeriod
+	);
+
+	//invalid yield per period
+	assert_err!(
+		LiquidityMining::validate_create_new_farm_data(1_000_000, 100, 10, Permill::from_percent(0)),
+		Error::<Test>::InvalidYieldPerPeriod
+	);
+}
+
+#[test]
+fn create_farm_should_work() {
+	new_test_ext().execute_with(|| {
+		let pool_id = 1;
+		let total_rewards = 5_000_0000_000;
+		let reward_currency = BSX;
+		let planned_yielding_periods = 1_000_000_000;
+		let blocks_per_period = 20_000;
+		let incentivized_token = BSX;
+		let owner = ALICE;
+		let yield_per_period = Permill::from_percent(20);
+
+		let created_at_block = 15_896;
+
+		run_to_block(created_at_block);
+
+		let pool_account = LiquidityMining::pool_account_id(pool_id).unwrap();
+
+		assert_eq!(Tokens::free_balance(reward_currency, &pool_account), 0);
+
+		assert_ok!(LiquidityMining::create_farm(
+			Origin::root(),
+			total_rewards,
+			planned_yielding_periods,
+			blocks_per_period,
+			incentivized_token,
+			reward_currency,
+			owner,
+			yield_per_period
+		));
+
+		assert_eq!(Tokens::free_balance(reward_currency, &pool_account), total_rewards);
+		assert_eq!(
+			Tokens::free_balance(reward_currency, &ALICE),
+			(INITIAL_BALANCE - total_rewards)
+		);
+
+		let updated_at = created_at_block / blocks_per_period;
+
+		let global_pool = GlobalPool::new(
+			pool_id,
+			updated_at,
+			reward_currency,
+			yield_per_period,
+			planned_yielding_periods,
+			blocks_per_period,
+			owner,
+			incentivized_token,
+		);
+
+		expect_events(vec![Event::FarmCreated(pool_id, global_pool.clone()).into()]);
+
+		assert_eq!(LiquidityMining::global_pool(pool_id), Some(global_pool));
+	});
+}
+
+#[test]
+fn create_farm_from_basic_origin_should_not_work() {
+	new_test_ext().execute_with(|| {
+		let created_at_block = 15_896;
+
+		run_to_block(created_at_block);
+
+		assert_noop!(
+			LiquidityMining::create_farm(
+				Origin::signed(ALICE),
+				1_000_000,
+				1_000,
+				300,
+				BSX,
+				BSX,
+				ALICE,
+				Permill::from_percent(20)
+			),
+			BadOrigin
+		);
+	});
+}
+
+#[test]
+fn create_farm_invalid_data_should_not_work() {
+	new_test_ext().execute_with(|| {
+		let created_at_block = 15_896;
+
+		run_to_block(created_at_block);
+
+		//total_rewards bellow min.
+		assert_noop!(
+			LiquidityMining::create_farm(
+				Origin::root(),
+				100,
+				1_000,
+				300,
+				BSX,
+				BSX,
+				ALICE,
+				Permill::from_percent(20)
+			),
+			Error::<Test>::InvalidTotalRewards
+		);
+
+		//planned_yielding_periods bellow min.
+		assert_noop!(
+			LiquidityMining::create_farm(
+				Origin::root(),
+				1_000_000,
+				10,
+				300,
+				BSX,
+				BSX,
+				ALICE,
+				Permill::from_percent(20)
+			),
+			Error::<Test>::InvalidPlannedYieldingPeriods
+		);
+
+		//blocks_per_period is 0.
+		assert_noop!(
+			LiquidityMining::create_farm(
+				Origin::root(),
+				1_000_000,
+				1_000,
+				0,
+				BSX,
+				BSX,
+				ALICE,
+				Permill::from_percent(20)
+			),
+			Error::<Test>::InvalidBlocksPerPeriod
+		);
+
+		//yield_per_period is 0.
+		assert_noop!(
+			LiquidityMining::create_farm(
+				Origin::root(),
+				1_000_000,
+				1_000,
+				1,
+				BSX,
+				BSX,
+				ALICE,
+				Permill::from_percent(0)
+			),
+			Error::<Test>::InvalidYieldPerPeriod
+		);
+	});
+}
+
+#[test]
+fn create_farm_with_inssufficient_balance_should_not_work() {
+	//owner accont have 10K bsx
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::create_farm(
+				Origin::root(),
+				1_000_001,
+				1_000,
+				1,
+				BSX,
+				BSX,
+				ACC_1M,
+				Permill::from_percent(20)
+			),
+			Error::<Test>::InsufficientRewardCurrencyBalance
+		);
+	});
 }
 
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx
@@ -1805,7 +2075,6 @@ fn is_approx_eq_fixedu128(num_1: FixedU128, num_2: FixedU128, delta: FixedU128) 
 	}
 }
 
-/*
 fn last_events(n: usize) -> Vec<TestEvent> {
 	frame_system::Pallet::<Test>::events()
 		.into_iter()
@@ -1819,4 +2088,3 @@ fn last_events(n: usize) -> Vec<TestEvent> {
 fn expect_events(e: Vec<TestEvent>) {
 	assert_eq!(last_events(e.len()), e);
 }
-*/

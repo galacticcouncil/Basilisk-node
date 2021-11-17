@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of HydraDXqq.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -43,8 +43,7 @@ type PoolId = u32;
 
 use frame_support::{
 	ensure,
-	sp_runtime::traits::{One, Zero},
-	traits::LockIdentifier,
+	sp_runtime::traits::{BlockNumberProvider, One, Zero},
 	transactional, PalletId,
 };
 
@@ -53,7 +52,7 @@ use sp_arithmetic::{
 	FixedU128, Permill,
 };
 
-use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
+use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{traits::AccountIdConversion, RuntimeDebug};
@@ -68,14 +67,51 @@ impl Default for LoyaltyCurve {
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
-pub struct GlobalPool<Period, Balance, AssetId> {
+pub struct GlobalPool<Period, Balance, AssetId, AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
+	id: PoolId,
+	owner: AccountId,
 	updated_at: Period,
 	total_shares: Balance,
-	accumulated_rps_start: Balance,
 	accumulated_rps: Balance,
+	accumulated_rps_start: Balance,
 	reward_currency: AssetId,
 	accumulated_rewards: Balance,
 	paid_accumulated_rewards: Balance,
+	yield_per_period: Permill,
+	planned_yielding_periods: Period,
+	blocks_per_period: BlockNumber,
+	incentivized_token: AssetId,
+}
+
+impl<Period, Balance: std::default::Default, AssetId, AccountId, BlockNumber: AtLeast32BitUnsigned + Copy>
+	GlobalPool<Period, Balance, AssetId, AccountId, BlockNumber>
+{
+	fn new(
+		id: PoolId,
+		updated_at: Period,
+		reward_currency: AssetId,
+		yield_per_period: Permill,
+		planned_yielding_periods: Period,
+		blocks_per_period: BlockNumber,
+		owner: AccountId,
+		incentivized_token: AssetId,
+	) -> Self {
+		Self {
+			accumulated_rewards: Default::default(),
+			accumulated_rps: Default::default(),
+			accumulated_rps_start: Default::default(),
+			paid_accumulated_rewards: Default::default(),
+			total_shares: Default::default(),
+			id,
+			updated_at,
+			reward_currency,
+			yield_per_period,
+			planned_yielding_periods,
+			blocks_per_period,
+			owner,
+			incentivized_token,
+		}
+	}
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
@@ -91,17 +127,14 @@ pub struct LoyaltyCurve {
 	scale_coef: u32,
 }
 
-pub const LM_LOCK_ID: LockIdentifier = *b"LM_LOCK_";
-
 use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::{FixedPointNumber, FixedPointOperand};
+use frame_support::sp_runtime::{traits::AtLeast32BitUnsigned, FixedPointNumber, FixedPointOperand};
 use sp_std::convert::{From, Into, TryInto};
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
 	use crate::weights::WeightInfo;
-	use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 
 	#[pallet::pallet]
@@ -147,8 +180,11 @@ pub mod pallet {
 		/// Minimum anout of total rewards to create new farm
 		type MinTotalFarmRewards: Get<Self::Balance>;
 
-		/// Minimum number of periods to distribute farm rewards
-		type MinPeriodsToFarming: Get<Self::BlockNumber>;
+		/// Minimalnumber of periods to distribute farm rewards
+		type MinPlannedYieldingPeriods: Get<Self::BlockNumber>;
+
+		/// The block number provider
+		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
 		/// Weight information for extrinsics in this module.
 		type WeightInfo: WeightInfo;
@@ -166,14 +202,20 @@ pub mod pallet {
 		/// Provide id is not valid. Valid range is [1, u32::MAX)
 		InvalidPoolId,
 
-		/// Provided min_farming_periods is below limit
-		InvalidMinFarmingPeriods,
+		/// Provided planed_yielding_periods is below limit
+		InvalidPlannedYieldingPeriods,
 
 		/// Provided blocks_per_period can't be 0
 		InvalidBlocksPerPeriod,
 
+		/// Yield per period can't be 0
+		InvalidYieldPerPeriod,
+
 		/// Provided total_rewards for farming is bellow min limit
 		InvalidTotalRewards,
+
+		/// Reward currency balance too low
+		InsufficientRewardCurrencyBalance,
 
 		/// Feature is not implemented yet
 		NotImplemented,
@@ -181,40 +223,90 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {}
+	pub enum Event<T: Config> {
+		/// New farm was creaated by `CreateOrigin` origin. [pool_id, global_pool]
+		FarmCreated(
+			PoolId,
+			GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
+		),
+	}
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_id)]
 	pub type PoolIdSeq<T: Config> = StorageValue<_, PoolId, ValueQuery>;
 
-	#[pallet::call]
+	#[pallet::storage]
+	#[pallet::getter(fn global_pool)]
+	pub type GlobalPoolData<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		PoolId,
+		GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
+		OptionQuery,
+	>;
 
-	///
-	/// Parameters:
-	/// - `origin`:
-	/// - `total_rewards`:
-	/// - `min_farming_periods`: minimum number of periods to distribute rewards. WARN: this is not
-	/// how long will farm run Admin can destroy farm sooner or later
-	/// - `blocks_per_period`:
-	/// - `incetivized_token`
-	/// - `reward_currency`
-	/// - `admin_account`
-	/// - `yield_per_period`
+	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Craete new liquidity mining program
+		/// Create new liquidity mining program
+		///
+		/// Parameters:
+		/// - `origin`:
+		/// - `total_rewards`:
+		/// - `planned_yielding_periods`: planned number of periods to distribute rewards. WARN: this is not
+		/// how long will farming run.  Owner can destroy farm sooner or liq. mining can run longer
+		/// if all the rewards will not distributed.
+		/// - `blocks_per_period`:
+		/// - `incetivized_token`
+		/// - `reward_currency`
+		/// - `admin_account`
+		/// - `yield_per_period`
 		#[pallet::weight(1000)]
 		#[transactional]
-		pub fn create_new_farm(
+		pub fn create_farm(
 			origin: OriginFor<T>,
 			total_rewards: T::Balance,
-			min_farming_periods: T::BlockNumber, //Min number of periods to distribute rewards. This is not how long farm will run. Farm can be destroyed sooner
+			planned_yielding_periods: T::BlockNumber,
 			blocks_per_period: T::BlockNumber,
 			incentivized_token: T::CurrencyId,
 			reward_currency: T::CurrencyId,
-			admin_account: T::AccountId,
+			owner: T::AccountId,
 			yield_per_period: Permill,
 		) -> DispatchResult {
 			T::CreateOrigin::ensure_origin(origin)?;
+
+			Self::validate_create_new_farm_data(
+				total_rewards,
+				planned_yielding_periods,
+				blocks_per_period,
+				yield_per_period,
+			)?;
+
+			ensure!(
+				T::MultiCurrency::free_balance(reward_currency, &owner) >= total_rewards,
+				Error::<T>::InsufficientRewardCurrencyBalance
+			);
+
+			let now_period =
+				Self::get_period_number(T::BlockNumberProvider::current_block_number(), blocks_per_period)?;
+			let pool_id = Self::get_next_id()?;
+
+			let pool = GlobalPool::new(
+				pool_id,
+				now_period,
+				reward_currency,
+				yield_per_period,
+				planned_yielding_periods,
+				blocks_per_period,
+				owner,
+				incentivized_token,
+			);
+
+			<GlobalPoolData<T>>::insert(&pool.id, &pool);
+
+			let pool_account = Self::pool_account_id(pool.id)?;
+			T::MultiCurrency::transfer(reward_currency, &pool.owner, &pool_account, total_rewards)?;
+
+			Self::deposit_event(Event::FarmCreated(pool.id, pool));
 
 			Ok(())
 		}
@@ -222,7 +314,7 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	pub fn next_id() -> Result<PoolId, Error<T>> {
+	pub fn get_next_id() -> Result<PoolId, Error<T>> {
 		let next_id = PoolIdSeq::<T>::try_mutate(|current_id| {
 			*current_id = current_id.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
@@ -249,13 +341,13 @@ impl<T: Config> Pallet<T> {
 	/// Return period number from block number now and number of blocks in one period
 	pub fn get_period_number(
 		now: T::BlockNumber,
-		accumulate_period: T::BlockNumber,
+		blocks_per_period: T::BlockNumber,
 	) -> Result<T::BlockNumber, Error<T>> {
-		if accumulate_period.is_one() {
+		if blocks_per_period.is_one() {
 			return Ok(now);
 		}
 
-		now.checked_div(&accumulate_period).ok_or(Error::<T>::Overflow)
+		now.checked_div(&blocks_per_period).ok_or(Error::<T>::Overflow)
 	}
 
 	/// Loyalty multiplier  
@@ -308,7 +400,7 @@ impl<T: Config> Pallet<T> {
 
 	pub fn update_global_pool(
 		pool_id: PoolId,
-		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId>,
+		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
 		now_period: T::BlockNumber,
 		reward_per_period: T::Balance,
 	) -> Result<(), Error<T>> {
@@ -388,7 +480,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn claim_from_global_pool(
-		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId>,
+		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
 		shares: T::Balance,
 	) -> Result<T::Balance, Error<T>> {
 		let reward = pool
@@ -456,8 +548,9 @@ impl<T: Config> Pallet<T> {
 
 	pub fn validate_create_new_farm_data(
 		total_rewads: T::Balance,
-		min_farming_periods: T::BlockNumber,
-		block_per_period: T::BlockNumber,
+		planned_yielding_periods: T::BlockNumber,
+		blocks_per_period: T::BlockNumber,
+		yield_per_period: Permill,
 	) -> DispatchResult {
 		ensure!(
 			total_rewads >= T::MinTotalFarmRewards::get(),
@@ -465,11 +558,13 @@ impl<T: Config> Pallet<T> {
 		);
 
 		ensure!(
-			min_farming_periods >= T::MinPeriodsToFarming::get(),
-			Error::<T>::InvalidMinFarmingPeriods
+			planned_yielding_periods >= T::MinPlannedYieldingPeriods::get(),
+			Error::<T>::InvalidPlannedYieldingPeriods
 		);
 
-		ensure!(!Zero::is_zero(&block_per_period), Error::<T>::InvalidBlocksPerPeriod);
+		ensure!(!Zero::is_zero(&blocks_per_period), Error::<T>::InvalidBlocksPerPeriod);
+
+		ensure!(!yield_per_period.is_zero(), Error::<T>::InvalidYieldPerPeriod);
 
 		Ok(())
 	}
