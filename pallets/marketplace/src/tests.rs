@@ -38,22 +38,10 @@ fn set_price_works() {
 		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(ALICE, 0, 0, Some(10)));
 		assert_eq!(last_event(), event);
 
-		assert_eq!(
-			Market::tokens(0, 0),
-			Some(TokenInfo {
-				price: Some(10),
-				offer: None,
-			})
-		);
+		assert_eq!(Market::tokens(0, 0), Some(TokenInfo { price: Some(10) }));
 
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, None));
-		assert_eq!(
-			Market::tokens(0, 0),
-			Some(TokenInfo {
-				price: None,
-				offer: None,
-			})
-		);
+		assert_eq!(Market::tokens(0, 0), Some(TokenInfo { price: None }));
 
 		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(ALICE, 0, 0, None));
 		assert_eq!(last_event(), event);
@@ -98,13 +86,7 @@ fn buy_works() {
 
 		assert_ok!(Market::buy(Origin::signed(BOB), 0, 0));
 
-		assert_eq!(
-			Market::tokens(0, 0),
-			Some(TokenInfo {
-				price: None,
-				offer: None,
-			})
-		);
+		assert_eq!(Market::tokens(0, 0), Some(TokenInfo { price: None }));
 
 		// e.g. Alice free balance = Total balance - Class deposit + Price - Royalty
 		// = 20_000 - 10_000 + 1024 - 256 = 10_768
@@ -365,28 +347,42 @@ fn offering_works() {
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
 		assert_noop!(
 			Market::make_offer(Origin::signed(BOB), 0, 0, 0, 1),
-			Error::<Test>::InvalidOffer
+			Error::<Test>::OfferTooLow
 		);
 		assert_ok!(Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * BSX, 1));
 		assert_noop!(
-			Market::withdraw_offer(Origin::signed(CHARLIE), 0, 0),
+			Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * BSX, 1),
+			Error::<Test>::AlreadyOffered
+		);
+		assert_noop!(
+			Market::withdraw_offer(Origin::signed(CHARLIE), 0, 0, CHARLIE),
 			Error::<Test>::UnknownOffer
 		);
 		assert_noop!(
-			Market::accept_offer(Origin::signed(ALICE), 0, 0),
+			Market::withdraw_offer(Origin::signed(BOB), 0, 0, DAVE),
+			Error::<Test>::WithdrawNotAuthorized
+		);
+		assert_noop!(
+			Market::accept_offer(Origin::signed(ALICE), 0, 0, DAVE),
 			Error::<Test>::OfferExpired
 		);
-		assert_ok!(Market::withdraw_offer(Origin::signed(ALICE), 0, 0));
+		assert_ok!(Market::withdraw_offer(Origin::signed(ALICE), 0, 0, DAVE));
 		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX, 666));
+		assert_noop!(
+			Market::accept_offer(Origin::signed(DAVE), 0, 0, BOB),
+			Error::<Test>::AcceptNotAuthorized
+		);
+		assert_eq!(Market::tokens(0, 0), Some(TokenInfo { price: Some(100 * BSX) }));
 		assert_eq!(
-			Market::tokens(0, 0),
-			Some(TokenInfo {
-				price: Some(100 * BSX),
-				offer: Some((BOB, 50 * BSX, 666)),
+			Market::offers((0, 0), BOB),
+			Some(Offer {
+				maker: BOB,
+				amount: 50 * BSX,
+				expires: 666,
 			})
 		);
 		assert_eq!(frame_system::Pallet::<Test>::block_number(), 1);
-		assert_ok!(Market::accept_offer(Origin::signed(ALICE), 0, 0));
+		assert_ok!(Market::accept_offer(Origin::signed(ALICE), 0, 0, BOB));
 		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
 		// Total = 20_000 + 50 - 10 = 20_040
 		assert_eq!(Balances::total_balance(&ALICE), 20_040 * BSX);
@@ -414,23 +410,20 @@ fn relisting_works() {
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
 		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX, 1000));
+		assert_eq!(Market::tokens(0, 0), Some(TokenInfo { price: Some(100 * BSX) }));
 		assert_eq!(
-			Market::tokens(0, 0),
-			Some(TokenInfo {
-				price: Some(100 * BSX),
-				offer: Some((BOB, 50 * BSX, 1000)),
+			Market::offers((0, 0), BOB),
+			Some(Offer {
+				maker: BOB,
+				amount: 50 * BSX,
+				expires: 1000,
 			})
 		);
 		assert_ok!(Market::unlist(Origin::signed(ALICE), 0, 0));
 		assert_eq!(Market::tokens(0, 0), None);
 		assert_noop!(Market::list(Origin::signed(BOB), 0, 0), Error::<Test>::NotTheTokenOwner);
 		assert_ok!(Market::list(Origin::signed(ALICE), 0, 0));
-		assert_eq!(
-			Market::tokens(0, 0),
-			Some(TokenInfo {
-				price: None,
-				offer: None,
-			})
-		);
+		assert_eq!(Market::tokens(0, 0), Some(TokenInfo { price: None }));
+		assert_eq!(Market::offers((0, 0), BOB), None,);
 	});
 }

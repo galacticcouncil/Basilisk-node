@@ -678,9 +678,14 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
+parameter_types! {
+	pub const MinimumOfferAmount: Balance = 20 * UNITS;
+}
+
 impl pallet_marketplace::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
+	type MinimumOfferAmount = MinimumOfferAmount;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

@@ -680,9 +680,14 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+parameter_types! {
+	pub const MinimumOfferAmount: Balance = 100 * UNITS;
+}
+
 impl pallet_marketplace::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
+	type MinimumOfferAmount = MinimumOfferAmount;
 }
 
 parameter_types! {

@@ -41,9 +41,14 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
+parameter_types! {
+	pub const MinimumOfferAmount: Balance = 20 * BSX;
+}
+
 impl pallet_marketplace::Config for Test {
 	type Event = Event;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Test>;
+	type MinimumOfferAmount = MinimumOfferAmount;
 }
 
 impl pallet_nft::Config for Test {
