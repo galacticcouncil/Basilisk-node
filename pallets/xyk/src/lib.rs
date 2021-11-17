@@ -302,12 +302,12 @@ pub mod pallet {
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
 
 			Self::deposit_event(Event::PoolCreated(
-				who,
+				who.clone(),
 				asset_a,
 				asset_b,
 				shares_added,
 				share_token,
-				pair_account,
+				pair_account.clone(),
 			));
 
 			T::Currency::transfer(asset_a, &who, &pair_account, amount)?;
