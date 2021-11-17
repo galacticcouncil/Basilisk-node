@@ -44,8 +44,9 @@ use sp_std::marker::PhantomData;
 pub trait WeightInfo {
 	fn create_auction() -> Weight;
 	fn update_auction() -> Weight;
-	fn bid_value() -> Weight;
+	fn bid() -> Weight;
 	fn destroy_auction() -> Weight;
+	fn close_auction() -> Weight;
 }
 
 /// Weights for pallet_auction using the subauction node and recommended hardware.
@@ -62,7 +63,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
-	fn bid_value() -> Weight {
+	fn bid() -> Weight {
 		(66_639_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
@@ -71,6 +72,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		(62_980_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn close_auction() -> Weight {
+		(74_809_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(4 as Weight))
+			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
 }
 
@@ -86,7 +92,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
 	}
-	fn bid_value() -> Weight {
+	fn bid() -> Weight {
 		(66_639_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
@@ -95,5 +101,10 @@ impl WeightInfo for () {
 		(62_980_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn close_auction() -> Weight {
+		(74_809_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
 	}
 }

@@ -5,7 +5,7 @@ use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
 	fn bid(&mut self, bidder: AccountId, value: BalanceOf) -> DispatchResult;
 
-	fn close(&self) -> DispatchResult;
+	fn close(&mut self) -> DispatchResult;
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq)]
@@ -31,6 +31,7 @@ pub struct GeneralAuctionData<T: Config> {
 	pub next_bid_min: BalanceOf<T>,
 	pub start: <T as frame_system::Config>::BlockNumber,
 	pub end: <T as frame_system::Config>::BlockNumber,
+  pub closed: bool,
 	pub owner: <T as frame_system::Config>::AccountId,
 	pub token: (
 		<T as pallet_uniques::Config>::ClassId,

@@ -24,6 +24,7 @@ fn can_create_english_auction() {
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
+		closed: false,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
 		next_bid_min: 55,
@@ -105,7 +106,7 @@ fn can_create_english_auction() {
 			Error::<Test>::EmptyAuctionName
 		);
 
-		// // Error NotATokenOwner
+		// Error NotATokenOwner
 		let mut common_auction_data = valid_common_auction_data.clone();
 		common_auction_data.owner = BOB;
 
@@ -118,6 +119,21 @@ fn can_create_english_auction() {
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::NotATokenOwner
+		);
+
+		// Error CannotSetAuctionClosed
+		let mut common_auction_data = valid_common_auction_data.clone();
+		common_auction_data.closed = true;
+
+		let auction_data = EnglishAuction {
+			general_data: common_auction_data.clone(),
+			specific_data: english_auction_data.clone(),
+		};
+		let auction = Auction::English(auction_data);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::CannotSetAuctionClosed
 		);
 
 		// happy path
@@ -168,6 +184,7 @@ fn can_update_english_auction() {
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
+		closed: false,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
 		next_bid_min: 55,
@@ -206,6 +223,21 @@ fn can_update_english_auction() {
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		System::set_block_number(3);
+
+		// Error CannotSetAuctionClosed
+		let mut updated_general_data = general_auction_data.clone();
+		updated_general_data.closed = true;
+
+		let auction_data = EnglishAuction {
+			general_data: updated_general_data.clone(),
+			specific_data: english_auction_data.clone(),
+		};
+		let auction = Auction::English(auction_data);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction.clone()),
+			Error::<Test>::CannotSetAuctionClosed
+		);
 
 		let mut updated_general_data = general_auction_data.clone();
 		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
@@ -248,6 +280,7 @@ fn can_destroy_english_auction() {
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
+		closed: false,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
 		next_bid_min: 55,
@@ -332,6 +365,7 @@ fn can_bid_english_auction() {
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
+		closed: false,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
 		next_bid_min: 55,
@@ -430,11 +464,11 @@ fn can_bid_english_auction() {
 		// Auction time is extended with 1 block when end time is less than 10 blocks away
 		assert_eq!(data.general_data.end, 22u64);
 
-		// Error AuctionAlreadyConcluded
+		// Error AuctionEndTimeReached
 		System::set_block_number(22);
 		assert_noop!(
 			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
-			Error::<Test>::AuctionAlreadyConcluded,
+			Error::<Test>::AuctionEndTimeReached,
 		);
 	});
 }
@@ -446,6 +480,7 @@ fn can_close_english_auction() {
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
+		closed: false,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
 		next_bid_min: 55,
@@ -479,15 +514,22 @@ fn can_close_english_auction() {
 
 		System::set_block_number(11);
 
-		let bid_value = BalanceOf::<Test>::from(1_000_u32);
-		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, bid_value));
+		let bid = BalanceOf::<Test>::from(1_000_u32);
+		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, bid));
 
 		let alice_balance_before = Balances::free_balance(&ALICE);
 		let bob_balance_before = Balances::free_balance(&BOB);
 
+		// Error AuctionEndTimeNotReached
+		assert_noop!(
+			AuctionsModule::close(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionEndTimeNotReached,
+		);
+
+		// Happy path
 		System::set_block_number(21);
 
-		assert_ok!(AuctionsModule::close_auctions(21));
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
 		let alice_balance_after = Balances::free_balance(&ALICE);
 		let bob_balance_after = Balances::free_balance(&BOB);
@@ -495,7 +537,19 @@ fn can_close_english_auction() {
 		// NFT can be transferred; Current version of nft pallet has no ownership check
 		assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
 
-		assert_eq!(alice_balance_before.saturating_add(bid_value), alice_balance_after);
-		assert_eq!(bob_balance_before.saturating_sub(bid_value), bob_balance_after);
+		assert_eq!(alice_balance_before.saturating_add(bid), alice_balance_after);
+		assert_eq!(bob_balance_before.saturating_sub(bid), bob_balance_after);
+
+		let auction = AuctionsModule::auctions(0).unwrap();
+		let Auction::English(data) = auction;
+
+		// Attributed closed is updated
+		assert_eq!(data.general_data.closed, true);
+
+		// Error AuctionClosed
+		assert_noop!(
+			AuctionsModule::close(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionClosed,
+		);
 	});
 }

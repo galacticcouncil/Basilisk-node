@@ -168,7 +168,7 @@ impl ExtBuilder {
 	}
 }
 
-pub fn last_event() -> Event {
+fn last_event() -> Event {
 	frame_system::Pallet::<Test>::events()
 		.pop()
 		.expect("An event expected")

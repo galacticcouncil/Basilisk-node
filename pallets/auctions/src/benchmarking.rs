@@ -45,7 +45,7 @@ benchmarks! {
 	verify {
 	}
 
-	bid_value {
+	bid {
 		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
 
@@ -103,7 +103,7 @@ mod tests {
 	fn test_benchmarks() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(test_benchmark_create_auction::<Test>());
-			assert_ok!(test_benchmark_bid_value::<Test>());
+			assert_ok!(test_benchmark_bid::<Test>());
 			assert_ok!(test_benchmark_destroy_auction::<Test>());
 		});
 	}

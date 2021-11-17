@@ -117,7 +117,7 @@ pub mod pallet {
 		/// A bid is placed
 		Bid(T::AuctionId, T::AccountId, BalanceOf<T>),
 		/// Auction ended
-		AuctionConcluded(T::AuctionId),
+		AuctionClosed(T::AuctionId),
 		/// Auction removed
 		AuctionRemoved(T::AuctionId),
 	}
@@ -130,6 +130,14 @@ pub mod pallet {
 		AuctionNotStarted,
 		/// Auction has already started
 		AuctionAlreadyStarted,
+		/// Auction is already closed
+		AuctionClosed,
+		/// Auction has already ended
+		AuctionEndTimeReached,
+		/// Auction end time has not been reached
+		AuctionEndTimeNotReached,
+		/// Auction closed attribute can only be set via close() extrinsic
+		CannotSetAuctionClosed,
 		/// Bid amount is invalid
 		InvalidBidPrice,
 		/// Auction count has reached it's limit
@@ -142,8 +150,6 @@ pub mod pallet {
 		NotAuctionOwner,
 		/// No permission to handle token
 		NotATokenOwner,
-		/// Auction has already ended
-		AuctionAlreadyConcluded,
 		/// Bid overflow
 		BidOverflow,
 		/// Can't bid on own auction
@@ -206,7 +212,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::bid_value())]
+		#[pallet::weight(<T as Config>::WeightInfo::bid())]
 		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
 			let bidder = ensure_signed(origin)?;
 
@@ -231,13 +237,29 @@ pub mod pallet {
 
 			Ok(())
 		}
-	}
 
-	// TODO implement a different auction closing mechanism (not in hooks)
-	#[pallet::hooks]
-	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {
-		fn on_finalize(now: T::BlockNumber) {
-			Self::close_auctions(now);
+		#[pallet::weight(<T as Config>::WeightInfo::close_auction())]
+		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
+			let close = <Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+
+				match auction {
+					Auction::English(auction_object) => {
+						Self::validate_close(&auction_object.general_data)?;
+						auction_object.close()?;
+					}
+				}
+
+				Ok(())
+			});
+
+			if let Err(err) = close {
+				return Err(err);
+			}
+
+			Self::deposit_event(Event::AuctionRemoved(auction_id));
+
+			Ok(())
 		}
 	}
 }
@@ -261,12 +283,15 @@ impl<T: Config> Pallet<T> {
 			token_owner == Some(general_data.owner.clone()),
 			Error::<T>::NotATokenOwner
 		);
+		ensure!(!&general_data.closed, Error::<T>::CannotSetAuctionClosed);
+
 		Ok(())
 	}
 
 	fn validate_create(general_data: &GeneralAuctionData<T>) -> DispatchResult {
 		let is_transferrable = pallet_uniques::Pallet::<T>::can_transfer(&general_data.token.0, &general_data.token.1);
 		ensure!(is_transferrable, Error::<T>::TokenFrozen);
+
 		Ok(())
 	}
 
@@ -352,7 +377,7 @@ impl<T: Config> Pallet<T> {
 		ensure!(block_number > general_auction_data.start, Error::<T>::AuctionNotStarted);
 		ensure!(
 			block_number < general_auction_data.end,
-			Error::<T>::AuctionAlreadyConcluded
+			Error::<T>::AuctionEndTimeReached
 		);
 		ensure!(value >= general_auction_data.next_bid_min, Error::<T>::InvalidBidPrice);
 
@@ -365,16 +390,10 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn close_auctions(current_block: T::BlockNumber) -> DispatchResult {
-		for (auction_id, _) in <AuctionEndTime<T>>::drain_prefix(&current_block) {
-			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
-
-			match &auction {
-				Auction::English(auction_object) => {
-					auction_object.close()?;
-				}
-			}
-		}
+	fn validate_close(general_auction_data: &GeneralAuctionData<T>) -> DispatchResult {
+		let block_number = <frame_system::Pallet<T>>::block_number();
+		ensure!(!general_auction_data.closed, Error::<T>::AuctionClosed);
+		ensure!(block_number >= general_auction_data.end, Error::<T>::AuctionEndTimeNotReached);
 
 		Ok(())
 	}
@@ -407,7 +426,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 		Ok(())
 	}
 
-	fn close(&self) -> DispatchResult {
+	fn close(&mut self) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
 			RawOrigin::Signed(self.general_data.owner.clone()).into(),
 			self.general_data.token.0,
@@ -426,6 +445,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 				ExistenceRequirement::KeepAlive,
 			)?;
 		}
+
+		self.general_data.closed = true;
 
 		Ok(())
 	}
