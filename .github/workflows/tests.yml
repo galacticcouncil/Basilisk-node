@@ -88,6 +88,7 @@ jobs:
         run: rustup component add clippy
       - name: Run clippy
         run: make clippy
+        continue-on-error: false
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage
@@ -173,7 +174,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: v0.9.10
+          tag: v0.9.12
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version

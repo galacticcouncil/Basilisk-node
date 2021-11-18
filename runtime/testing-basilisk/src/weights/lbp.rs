@@ -60,16 +60,6 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
-	fn pause_pool() -> Weight {
-		(28_036_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
-	}
-	fn unpause_pool() -> Weight {
-		(27_342_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
-	}
 	fn add_liquidity() -> Weight {
 		(95_728_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))

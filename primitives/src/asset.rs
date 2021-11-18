@@ -21,6 +21,8 @@ use codec::{Decode, Encode};
 
 use sp_std::vec::Vec;
 
+use scale_info::TypeInfo;
+
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +32,7 @@ use serde::{Deserialize, Serialize};
 /// asset_in represents asset coming into the pool
 /// asset_out represents asset coming out of the pool
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default, TypeInfo)]
 pub struct AssetPair {
 	pub asset_in: AssetId,
 	pub asset_out: AssetId,

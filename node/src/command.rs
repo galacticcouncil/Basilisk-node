@@ -227,7 +227,7 @@ pub fn run() -> sc_cli::Result<()> {
 				);
 
 				let polkadot_config =
-					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, config.task_executor.clone())
+					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, config.tokio_handle.clone())
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
 				cmd.run(config, polkadot_config)
@@ -244,7 +244,7 @@ pub fn run() -> sc_cli::Result<()> {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
 
-				runner.sync_run(|config| cmd.run::<Block, service::BasiliskExecutor>(config))
+				runner.sync_run(|config| cmd.run::<Block, service::BasiliskExecutorDispatch>(config))
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`."
@@ -320,23 +320,27 @@ pub fn run() -> sc_cli::Result<()> {
 				// we don't need any of the components of new_partial, just a runtime, or a task
 				// manager to do `async_run`.
 				let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-				let task_manager = sc_service::TaskManager::new(
-					config.task_executor.clone(),
-					registry,
-				).map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
+				let task_manager = sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
+					.map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
 
-				Ok((cmd.run::<Block, service::BasiliskExecutor>(config), task_manager))
+				Ok((
+					cmd.run::<Block, service::BasiliskExecutorDispatch>(config),
+					task_manager,
+				))
 			})
 		}
 		#[cfg(not(feature = "try-runtime"))]
-		Some(Subcommand::TryRuntime) => {
-			Err("TryRuntime wasn't enabled when building the node. \
-                You can enable it with `--features try-runtime`.".into())
-		}
+		Some(Subcommand::TryRuntime) => Err("TryRuntime wasn't enabled when building the node. \
+                You can enable it with `--features try-runtime`."
+			.into()),
 		None => {
 			let runner = cli.create_runner(&cli.run.base.normalize())?;
 
 			runner.run_node_until_exit(|config| async move {
+				if cfg!(feature = "runtime-benchmarks") && config.role.is_authority() {
+					return Err("It is not allowed to run a collator node with the benchmarking runtime.".into());
+				};
+
 				let para_id = chain_spec::Extensions::try_get(&config.chain_spec).map(|e| e.para_id);
 
 				let polkadot_cli = RelayChainCli::new(
@@ -354,7 +358,7 @@ pub fn run() -> sc_cli::Result<()> {
 				let block: Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
-				let task_executor = config.task_executor.clone();
+				let task_executor = config.tokio_handle.clone();
 				let polkadot_config = SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
 					.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
@@ -465,10 +469,6 @@ impl CliConfiguration<Self> for RelayChainCli {
 
 	fn rpc_ws_max_connections(&self) -> Result<Option<usize>> {
 		self.base.base.rpc_ws_max_connections()
-	}
-
-	fn rpc_http_threads(&self) -> Result<Option<usize>> {
-		self.base.base.rpc_http_threads()
 	}
 
 	fn rpc_cors(&self, is_dev: bool) -> Result<Option<Vec<String>>> {

@@ -2,7 +2,7 @@
 
 #![allow(clippy::upper_case_acronyms)]
 
-use crate::service::{BasiliskExecutor, FullBackend, FullClient, TestingBasiliskExecutor};
+use crate::service::{BasiliskExecutorDispatch, FullBackend, FullClient, TestingBasiliskExecutorDispatch};
 use common_runtime::{AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
@@ -27,6 +27,7 @@ pub trait RuntimeApiCollection:
 	+ sp_offchain::OffchainWorkerApi<Block>
 	+ sp_session::SessionKeys<Block>
 	+ pallet_xyk_rpc_runtime_api::XYKApi<Block, AccountId, AssetId, Balance>
+	+ pallet_lbp_rpc_runtime_api::LBPApi<Block, AccountId, AssetId>
 where
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
@@ -42,7 +43,8 @@ where
 		+ sp_api::Metadata<Block>
 		+ sp_offchain::OffchainWorkerApi<Block>
 		+ sp_session::SessionKeys<Block>
-		+ pallet_xyk_rpc_runtime_api::XYKApi<Block, AccountId, AssetId, Balance>,
+		+ pallet_xyk_rpc_runtime_api::XYKApi<Block, AccountId, AssetId, Balance>
+		+ pallet_lbp_rpc_runtime_api::LBPApi<Block, AccountId, AssetId>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
 }
@@ -125,8 +127,8 @@ pub trait ClientHandle {
 /// See [`ExecuteWithClient`] for more information.
 #[derive(Clone)]
 pub enum Client {
-	Basilisk(Arc<FullClient<basilisk_runtime::RuntimeApi, BasiliskExecutor>>),
-	TestingBasilisk(Arc<FullClient<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutor>>),
+	Basilisk(Arc<FullClient<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>>),
+	TestingBasilisk(Arc<FullClient<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutorDispatch>>),
 }
 
 impl ClientHandle for Client {

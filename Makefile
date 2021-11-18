@@ -27,6 +27,11 @@ coverage:
 clippy:
 	cargo clippy --release --all-targets --all-features -- -D warnings
 
+
+.PHONY: format
+format:
+	cargo fmt
+
 .PHONY: build-docs
 build-docs:
 	cargo doc --release --target-dir ./Basilisk-dev-docs --no-deps

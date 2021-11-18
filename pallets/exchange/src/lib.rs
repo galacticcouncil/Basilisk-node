@@ -30,12 +30,10 @@ use sp_std::vec::Vec;
 
 use direct::{DirectTradeData, Transfer};
 use frame_support::weights::Weight;
+use hydradx_traits::{AMMTransfer, Resolver, AMM};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::{
-	asset::AssetPair,
-	constants::chain::MIN_TRADING_LIMIT,
-	traits::{AMMTransfer, Resolver, AMM},
-	Amount, AssetId, Balance, ExchangeIntention, IntentionType,
+	asset::AssetPair, constants::chain::MIN_TRADING_LIMIT, Amount, AssetId, Balance, ExchangeIntention, IntentionType,
 };
 
 use frame_support::sp_runtime::traits::BlockNumberProvider;
@@ -57,12 +55,12 @@ type IntentionId<T> = <T as system::Config>::Hash;
 pub type Intention<T> = ExchangeIntention<<T as system::Config>::AccountId, Balance, IntentionId<T>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
+use frame_support::pallet_prelude::*;
 pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -122,7 +120,6 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub (crate) fn deposit_event)]
-	#[pallet::metadata(T::AccountId = "AccountId", IntentionId<T> = "IntentionId")]
 	pub enum Event<T: Config> {
 		/// Intention registered event
 		/// [who, asset a, asset b, amount, intention type, intention id]
@@ -194,6 +191,9 @@ pub mod pallet {
 
 		/// Trade amount is too low.
 		MinimumTradeLimitNotReached,
+
+		/// Overflow
+		IntentionCountOverflow,
 	}
 
 	/// Intention count for current block
@@ -253,7 +253,7 @@ pub mod pallet {
 			amount_sell: Balance,
 			min_bought: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure! {
@@ -287,7 +287,7 @@ pub mod pallet {
 				discount,
 			)?;
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Create buy intention
@@ -300,7 +300,7 @@ pub mod pallet {
 			amount_buy: Balance,
 			max_sold: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure! {
@@ -334,7 +334,7 @@ pub mod pallet {
 				discount,
 			)?;
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }
@@ -350,7 +350,7 @@ impl<T: Config> Pallet<T> {
 		amount_out: Balance,
 		limit: Balance,
 		discount: bool,
-	) -> dispatch::DispatchResult {
+	) -> DispatchResult {
 		let intention_count = ExchangeAssetsIntentionCount::<T>::get(assets.ordered_pair());
 
 		let intention_id = Self::generate_intention_id(who, intention_count, &assets);
@@ -365,10 +365,14 @@ impl<T: Config> Pallet<T> {
 			intention_id,
 			trade_limit: limit,
 		};
+
+		ExchangeAssetsIntentionCount::<T>::try_mutate(assets.ordered_pair(), |total| -> DispatchResult {
+			*total = total.checked_add(1).ok_or(Error::<T>::IntentionCountOverflow)?;
+			Ok(())
+		})?;
+
 		// Note: cannot use ordered tuple pair, as this must be stored as (in,out) pair
 		<ExchangeAssetsIntentions<T>>::append((assets.asset_in, assets.asset_out), intention);
-
-		ExchangeAssetsIntentionCount::<T>::mutate(assets.ordered_pair(), |total| *total += 1u32);
 
 		match intention_type {
 			IntentionType::SELL => {
@@ -454,7 +458,7 @@ impl<T: Config> Pallet<T> {
 		amm_tranfer_type: IntentionType,
 		intention_id: IntentionId<T>,
 		transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>,
-	) -> dispatch::DispatchResult {
+	) -> DispatchResult {
 		match amm_tranfer_type {
 			IntentionType::SELL => {
 				T::AMMPool::execute_sell(transfer)?;
