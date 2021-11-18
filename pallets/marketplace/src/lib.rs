@@ -109,7 +109,7 @@ pub mod pallet {
 		}
 
 		/// Set trading price and allow sell
-		/// Setting to NULL will delist the token
+		/// Setting to NULL will disallow auto sell
 		///
 		/// Parameters:
 		/// - `class_id`: The identifier of a non-fungible token class
