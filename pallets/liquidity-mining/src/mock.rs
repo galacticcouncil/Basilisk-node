@@ -20,7 +20,7 @@ use crate::Config;
 use frame_support::{ 
     parameter_types, 
     PalletId,
-    traits::{GenesisBuild, Nothing}
+    traits::{GenesisBuild, Nothing, Everything}
 };
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
@@ -95,7 +95,7 @@ impl BlockNumberProvider for MockBlockNumberProvider {
 	}
 }
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();

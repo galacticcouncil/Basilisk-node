@@ -1,4 +1,4 @@
-// This file is p art of HydraDXqq.
+// This file is part of HydraDX
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -51,9 +51,10 @@ use sp_arithmetic::{
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 
 use codec::{Decode, Encode};
+use scale_info::TypeInfo;
 use frame_support::sp_runtime::{traits::AccountIdConversion, RuntimeDebug};
 
-#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 pub struct GlobalPool<Period, Balance, AssetId, AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	id: PoolId,
 	owner: AccountId,
@@ -104,7 +105,7 @@ impl<Period, Balance: std::default::Default, AssetId, AccountId, BlockNumber: At
 	}
 }
 
-#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 pub struct LiquidityPool<Period, Balance> {
 	id: PoolId,
 	updated_at: Period,
@@ -129,7 +130,7 @@ impl<Period, Balance: std::default::Default> LiquidityPool<Period, Balance> {
 	}
 }
 
-#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 pub struct LoyaltyCurve {
 	b: FixedU128,
 	scale_coef: u32,
