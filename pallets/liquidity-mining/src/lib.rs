@@ -50,6 +50,7 @@ use sp_arithmetic::{
 
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 
+use hydradx_traits::AMM;
 use codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use frame_support::sp_runtime::{traits::AccountIdConversion, RuntimeDebug};
@@ -143,11 +144,11 @@ impl Default for LoyaltyCurve {
 			scale_coef: 100,
 		}
 	}
-}
-
-use frame_support::pallet_prelude::*;
+} use frame_support::pallet_prelude::*;
 use frame_support::sp_runtime::{traits::AtLeast32BitUnsigned, FixedPointNumber, FixedPointOperand};
 use sp_std::convert::{From, Into, TryInto};
+
+use primitives::asset::AssetPair;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -189,6 +190,9 @@ pub mod pallet {
 			CurrencyId = Self::CurrencyId,
 			Balance = Self::Balance,
 		>;
+
+        /// AMM helper functions
+        type AMM: AMM<Self::AccountId, Self::CurrencyId, AssetPair, Self::Balance>;
 
 		/// The origin account that cat create new liquidity mining program
 		type CreateOrigin: EnsureOrigin<Self::Origin>;
@@ -249,6 +253,9 @@ pub mod pallet {
 
 		/// Loyalty curver b param should be from [0, 1)
 		InvalidLoyaltyCurverParamB,
+
+        /// AMM pool does not exist
+        AmmPoolDoesNotExist,
 
 		/// Feature is not implemented yet
 		NotImplemented,
@@ -386,7 +393,7 @@ pub mod pallet {
 		pub fn add_liquidity_pool(
 			origin: OriginFor<T>,
 			farm_id: PoolId,
-			amm_pool_id: T::AccountId,
+			asset_pair: AssetPair,
 			weight: u32,
 			loyalty_curve: Option<LoyaltyCurve>,
 		) -> DispatchResult {
@@ -400,6 +407,9 @@ pub mod pallet {
 
 				ensure!(who == g_pool.owner, Error::<T>::Forbidden);
 
+                ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist); 
+
+                let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 				ensure!(
 					!<LiquidityPoolData<T>>::contains_key(farm_id, &amm_pool_id),
 					Error::<T>::LiquidityPoolAlreadyExists

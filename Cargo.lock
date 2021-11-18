@@ -5786,6 +5786,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
+ "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
