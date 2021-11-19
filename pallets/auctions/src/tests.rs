@@ -159,7 +159,6 @@ fn can_create_english_auction() {
 		assert_eq!(data.general_data.next_bid_min, 55);
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
-		assert_eq!(AuctionsModule::auction_end_time(21u64, 0).unwrap(), ());
 
 		// Error TokenFrozen
 		let auction_data = EnglishAuction {

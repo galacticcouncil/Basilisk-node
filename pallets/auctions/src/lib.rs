@@ -99,12 +99,6 @@ pub mod pallet {
 	pub type NextAuctionId<T: Config> = StorageValue<_, T::AuctionId, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn auction_end_time)]
-	/// Index auctions by end time.
-	pub type AuctionEndTime<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::BlockNumber, Twox64Concat, T::AuctionId, (), OptionQuery>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
 	/// Auction owner by ID
 	pub type AuctionOwnerById<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, T::AccountId, ValueQuery>;
@@ -310,7 +304,6 @@ impl<T: Config> Pallet<T> {
 
 		<Auctions<T>>::insert(auction_id, auction.clone());
 		<AuctionOwnerById<T>>::insert(auction_id, &sender);
-		<AuctionEndTime<T>>::insert(general_data.end, auction_id, ());
 
 		pallet_uniques::Pallet::<T>::freeze(
 			RawOrigin::Signed(sender.clone()).into(),
