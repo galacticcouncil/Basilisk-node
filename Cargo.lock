@@ -3182,7 +3182,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.2.0"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=main#a5cb40ae5313bb158f8b28e0a78479148be3b9f5"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5#a5cb40ae5313bb158f8b28e0a78479148be3b9f5"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
