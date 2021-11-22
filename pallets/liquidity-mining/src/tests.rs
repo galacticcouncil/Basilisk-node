@@ -1,17 +1,21 @@
 use super::*;
 use crate::mock::{
-	run_to_block, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, System, Test, Tokens, ACA,
-	ACA_FARM, ACC_1M, ALICE, BOB, BSX, BSX_ACA_LM_POOL, BSX_DOT_LM_POOL, BSX_FARM, BSX_KSM_LM_POOL, GC_FARM, HDX,
-	INITIAL_BALANCE, KSM, KSM_FARM, TREASURY,
+	asset_pair_to_map_key, run_to_block, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, Test,
+	Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_DOT_AMM,
+	BSX_DOT_LM_POOL, BSX_ETH_AMM, BSX_FARM, BSX_HDX_AMM, BSX_KSM_AMM, BSX_KSM_LM_POOL, DOT, ETH, HDX, INITIAL_BALANCE,
+	KSM, KSM_FARM, TREASURY,
 };
 
 use frame_support::{assert_err, assert_noop, assert_ok};
-use primitives::{AssetId, Balance};
+use primitives::Balance;
 
 use sp_arithmetic::traits::CheckedSub;
 use sp_runtime::traits::BadOrigin;
 
 use std::cmp::Ordering;
+
+const ALICE_FARM: u32 = 1;
+const BOB_FARM: u32 = 2;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -37,9 +41,9 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::create_farm(
 			Origin::root(),
 			1_000_000_000,
-			5_000,
-			10_000,
-			KSM,
+			BlockNumber::from(5_000_u32),
+			BlockNumber::from(10_000_u32),
+			BSX,
 			KSM,
 			BOB,
 			Permill::from_percent(38),
@@ -67,16 +71,61 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			BlockNumber::from(5_000_u32),
 			BlockNumber::from(10_000_u32),
 			BOB,
-			KSM,
+			BSX,
 			max_reward_per_period_p2,
 		);
 
 		expect_events(vec![
 			Event::FarmCreated(1, p1_data).into(),
-            frame_system::Event::NewAccount(187989685649991564771226578797).into(),
-            orml_tokens::Event::Endowed(4000, 187989685649991564771226578797, 1_000_000_000).into(),
+			frame_system::Event::NewAccount(187989685649991564771226578797).into(),
+			orml_tokens::Event::Endowed(4000, 187989685649991564771226578797, 1_000_000_000).into(),
 			Event::FarmCreated(2, p2_data).into(),
 		]);
+
+		let amm_mock_data = vec![
+			(
+				AssetPair {
+					asset_in: BSX,
+					asset_out: ACA,
+				},
+				BSX_ACA_AMM,
+			),
+			(
+				AssetPair {
+					asset_in: BSX,
+					asset_out: KSM,
+				},
+				BSX_KSM_AMM,
+			),
+			(
+				AssetPair {
+					asset_in: BSX,
+					asset_out: DOT,
+				},
+				BSX_DOT_AMM,
+			),
+			(
+				AssetPair {
+					asset_in: BSX,
+					asset_out: ETH,
+				},
+				BSX_ETH_AMM,
+			),
+			(
+				AssetPair {
+					asset_in: BSX,
+					asset_out: HDX,
+				},
+				BSX_HDX_AMM,
+			),
+		];
+
+		AMM_POOLS.with(|h| {
+			let mut hm = h.borrow_mut();
+			for (k, v) in amm_mock_data {
+				hm.insert(asset_pair_to_map_key(k), v);
+			}
+		})
 	});
 
 	ext
@@ -1881,10 +1930,7 @@ fn pool_account_id_should_not_work() {
 	let ids: Vec<PoolId> = vec![0];
 
 	for id in ids {
-		assert_err!(
-			LiquidityMining::pool_account_id(id),
-			Error::<Test>::InvalidPoolId
-		);
+		assert_err!(LiquidityMining::pool_account_id(id), Error::<Test>::InvalidPoolId);
 	}
 }
 
@@ -2209,9 +2255,157 @@ fn validate_loyalty_curve_should_not_work() {
 
 #[test]
 fn add_liquidity_pool_should_work() {
-	predefined_test_ext().execute_with(|| {
+	//(AssetPair, LiqudityPoo)
+	let test_data = vec![
+		(
+			AssetPair {
+				asset_in: BSX,
+				asset_out: ACA,
+			},
+			LiquidityPool {
+				id: 3,
+				updated_at: 17,
+				total_shares: 0,
+				accumulated_rps: 0,
+				stake_in_global_pool: 0,
+				multiplier: 20_000,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+			},
+		),
+		(
+			AssetPair {
+				asset_in: BSX,
+				asset_out: KSM,
+			},
+			LiquidityPool {
+				id: 4,
+				updated_at: 17,
+				total_shares: 0,
+				accumulated_rps: 0,
+				stake_in_global_pool: 0,
+				multiplier: 10_000,
+				loyalty_curve: None,
+			},
+		),
+		(
+			AssetPair {
+				asset_in: BSX,
+				asset_out: ETH,
+			},
+			LiquidityPool {
+				id: 5,
+				updated_at: 20,
+				total_shares: 0,
+				accumulated_rps: 0,
+				stake_in_global_pool: 0,
+				multiplier: 10_000,
+				loyalty_curve: Some(LoyaltyCurve {
+					b: FixedU128::from_inner(100_000_000_000_000_000),
+					scale_coef: 50,
+				}),
+			},
+		),
+		(
+			AssetPair {
+				asset_in: BSX,
+				asset_out: ETH,
+			},
+			LiquidityPool {
+				id: 6,
+				updated_at: 2,
+				total_shares: 0,
+				accumulated_rps: 0,
+				stake_in_global_pool: 0,
+				multiplier: 50_000,
+				loyalty_curve: None,
+			},
+		),
+	];
 
-    });
+	predefined_test_ext().execute_with(|| {
+		run_to_block(17_865);
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(ALICE),
+			ALICE_FARM,
+			test_data[0].0,
+			20_000,
+			Some(LoyaltyCurve::default())
+		));
+
+		expect_events(vec![Event::LiquidityPoolAdded(
+			ALICE_FARM,
+			BSX_ACA_AMM,
+			test_data[0].1.clone(),
+		)
+		.into()]);
+
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(ALICE),
+			ALICE_FARM,
+			test_data[1].0,
+			10_000,
+			None,
+		));
+
+		expect_events(vec![Event::LiquidityPoolAdded(
+			ALICE_FARM,
+			BSX_KSM_AMM,
+			test_data[1].1.clone(),
+		)
+		.into()]);
+
+		run_to_block(20_000);
+
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(ALICE),
+			ALICE_FARM,
+			test_data[2].0,
+			10_000,
+			Some(LoyaltyCurve {
+				b: FixedU128::from_inner(100_000_000_000_000_000),
+				scale_coef: 50
+			}),
+		));
+
+		expect_events(vec![Event::LiquidityPoolAdded(
+			ALICE_FARM,
+			BSX_ETH_AMM,
+			test_data[2].1.clone(),
+		)
+		.into()]);
+
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(BOB),
+			BOB_FARM,
+			test_data[3].0,
+			50_000,
+			None,
+		));
+
+		expect_events(vec![Event::LiquidityPoolAdded(
+			BOB_FARM,
+			BSX_ETH_AMM,
+			test_data[3].1.clone(),
+		)
+		.into()]);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_ACA_AMM).unwrap(),
+			test_data[0].1
+		);
+		assert_eq!(
+			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_KSM_AMM).unwrap(),
+			test_data[1].1
+		);
+		assert_eq!(
+			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_ETH_AMM).unwrap(),
+			test_data[2].1
+		);
+		assert_eq!(
+			LiquidityMining::liquidity_pool(BOB_FARM, BSX_ETH_AMM).unwrap(),
+			test_data[3].1
+		);
+	});
 }
 
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx

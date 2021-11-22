@@ -46,10 +46,6 @@ pub const ACC_1M: AccountId = 6;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
-pub const BSX_ACA_POOL: PoolId = 1;
-pub const BSX_KSM_POOL: PoolId = 2;
-pub const BSX_DOT_POOL: PoolId = 3;
-
 pub const BSX_ACA_SHARE_ID: AssetId = 100;
 pub const BSX_KSM_SHARE_ID: AssetId = 101;
 pub const BSX_DOT_SHARE_ID: AssetId = 102;
@@ -58,6 +54,15 @@ pub const BSX: AssetId = 1000;
 pub const HDX: AssetId = 2000;
 pub const ACA: AssetId = 3000;
 pub const KSM: AssetId = 4000;
+pub const DOT: AssetId = 5000;
+pub const ETH: AssetId = 6000;
+
+
+pub const BSX_ACA_AMM: AccountId = 11_000;
+pub const BSX_KSM_AMM: AccountId = 11_001;
+pub const BSX_DOT_AMM: AccountId = 11_002;
+pub const BSX_ETH_AMM: AccountId = 11_003;
+pub const BSX_HDX_AMM: AccountId = 11_004;
 
 pub const BSX_ACA_LM_POOL: PoolId = 12_000;
 pub const BSX_KSM_LM_POOL: PoolId = 12_001;
@@ -121,13 +126,13 @@ impl system::Config for Test {
 	type OnSetCode = ();
 }
 
-pub struct XYK;
+pub struct Amm;
 
 thread_local! {
-	pub static XYK_POOLS: RefCell<HashMap<String, AccountId>> = RefCell::new(HashMap::new());
+	pub static AMM_POOLS: RefCell<HashMap<String, AccountId>> = RefCell::new(HashMap::new());
 }
 
-impl AMM<AccountId, AssetId, AssetPair, Balance> for XYK {
+impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 	fn get_max_out_ratio() -> u128 {
 		0_u32.into()
 	}
@@ -192,15 +197,16 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for XYK {
 
 	// Only fn bellow are used by liq. mining pallet
 	fn exists(assets: AssetPair) -> bool {
-		let key = format!("in:{}_out:{}", assets.asset_in, assets.asset_out);
-
-		XYK_POOLS.with(|v| v.borrow().contains_key(&key))
+		AMM_POOLS.with(|v| v.borrow().contains_key(&asset_pair_to_map_key(assets)))
 	}
 
 	fn get_pair_id(assets: AssetPair) -> AccountId {
-		let key = format!("in:{}_out:{}", assets.asset_in, assets.asset_out);
-		XYK_POOLS.with(|v| *v.borrow().get(&key).unwrap())
+		AMM_POOLS.with(|v| *v.borrow().get(&asset_pair_to_map_key(assets)).unwrap())
 	}
+}
+
+pub fn asset_pair_to_map_key(assets: AssetPair) -> String {
+    format!("in:{}_out:{}", assets.asset_in, assets.asset_out)
 }
 
 parameter_types! {
@@ -223,7 +229,7 @@ impl Config for Test {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
-	type AMM = XYK;
+	type AMM = Amm;
 }
 
 parameter_type_with_key! {

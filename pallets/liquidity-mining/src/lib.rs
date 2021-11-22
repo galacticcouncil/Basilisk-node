@@ -238,9 +238,6 @@ pub mod pallet {
 
 		/// AMM pool does not exist
 		AmmPoolDoesNotExist,
-
-		/// Feature is not implemented yet
-		NotImplemented,
 	}
 
 	#[pallet::event]
@@ -253,7 +250,7 @@ pub mod pallet {
 		),
 
 		/// New liquidity(AMM) pool was added to farm [farm_id, amm_pool_id, liquidity_pool]
-		AMMPoolAdded(PoolId, T::AccountId, LiquidityPool<T::BlockNumber, Balance>),
+		LiquidityPoolAdded(PoolId, T::AccountId, LiquidityPool<T::BlockNumber, Balance>),
 	}
 
 	#[pallet::storage]
@@ -352,15 +349,13 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(1000)]
-		#[transactional]
 		pub fn destroy_farm(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			Err(Error::<T>::NotImplemented.into())
+            todo!()
 		}
 
 		#[pallet::weight(1000)]
-		#[transactional]
 		pub fn withdraw_undistributed_rewards(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			Err(Error::<T>::NotImplemented.into())
+            todo!()
 		}
 
 		#[pallet::weight(1000)]
@@ -403,46 +398,40 @@ pub mod pallet {
 
 				<LiquidityPoolData<T>>::insert(g_pool.id, &amm_pool_id, &pool);
 
-				Self::deposit_event(Event::AMMPoolAdded(g_pool.id, amm_pool_id, pool));
+				Self::deposit_event(Event::LiquidityPoolAdded(g_pool.id, amm_pool_id, pool));
 
 				Ok(())
 			})
 		}
 
 		#[pallet::weight(1000)]
-		#[transactional]
 		pub fn update_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			Err(Error::<T>::NotImplemented.into())
+            todo!()
 		}
 
 		#[pallet::weight(1000)]
-		#[transactional]
 		pub fn cancel_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			Err(Error::<T>::NotImplemented.into())
+            todo!()
 		}
 
 		#[pallet::weight(1000)]
-		#[transactional]
 		pub fn remove_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			Err(Error::<T>::NotImplemented.into())
+            todo!()
 		}
 
 		#[pallet::weight(1000)]
-		#[transactional]
 		pub fn deposit_shares(_origin: OriginFor<T>) -> DispatchResult {
-			Err(Error::<T>::NotImplemented.into())
+            todo!()
 		}
 
 		#[pallet::weight(1000)]
-		#[transactional]
 		pub fn claim_rewards(_origin: OriginFor<T>) -> DispatchResult {
-			Err(Error::<T>::NotImplemented.into())
+            todo!()
 		}
 
 		#[pallet::weight(1000)]
-		#[transactional]
 		pub fn withdraw_shares(_origin: OriginFor<T>) -> DispatchResult {
-			Err(Error::<T>::NotImplemented.into())
+            todo!()
 		}
 	}
 }
