@@ -1,3 +1,20 @@
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
@@ -6,8 +23,7 @@
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
-	app_crypto::sp_core::crypto::UncheckedFrom,
-	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Hash, Saturating, Zero},
+	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
 	DispatchError, RuntimeDebug,
 };
 use frame_support::{
@@ -18,8 +34,8 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 use hydra_dx_math::types::LBPWeight;
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, AMM};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
-use primitives::traits::{AMMTransfer, AMM};
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
@@ -31,7 +47,7 @@ use scale_info::TypeInfo;
 
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_std::{vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -179,7 +195,7 @@ pub mod pallet {
 		type LBPWeightFunction: LBPWeightCalculation<Self::BlockNumber>;
 
 		/// Mapping of asset pairs to unique pool identities
-		type AssetPairPoolId: AssetPairPoolIdFor<AssetId, PoolId<Self>>;
+		type AssetPairAccountId: AssetPairAccountIdFor<AssetId, PoolId<Self>>;
 
 		/// Weight information for the extrinsics
 		type WeightInfo: WeightInfo;
@@ -518,7 +534,7 @@ pub mod pallet {
 			let (asset_a, asset_b) = (amount_a.0, amount_b.0);
 			let (amount_a, amount_b) = (amount_a.1, amount_b.1);
 
-			let pool_id = T::AssetPairPoolId::from_assets(asset_a, asset_b);
+			let pool_id = Self::pair_account_from_assets(asset_a, asset_b);
 			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
 			ensure!(who == pool_data.owner, Error::<T>::NotOwner);
@@ -905,40 +921,20 @@ impl<T: Config> Pallet<T> {
 		};
 		Ok(amount.just_fee(fee).ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
-}
 
-pub trait AssetPairPoolIdFor<AssetId: Sized, PoolId: Sized> {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId;
-}
-
-pub struct AssetPairPoolId<T: Config>(PhantomData<T>);
-
-impl<T: Config> AssetPairPoolIdFor<AssetId, PoolId<T>> for AssetPairPoolId<T>
-where
-	PoolId<T>: UncheckedFrom<T::Hash> + AsRef<[u8]>,
-{
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId<T> {
-		let mut buf: Vec<u8> = b"lbp".to_vec();
-
-		if asset_a < asset_b {
-			buf.extend_from_slice(&asset_a.to_le_bytes());
-			buf.extend_from_slice(&asset_b.to_le_bytes());
-		} else {
-			buf.extend_from_slice(&asset_b.to_le_bytes());
-			buf.extend_from_slice(&asset_a.to_le_bytes());
-		}
-		PoolId::<T>::unchecked_from(T::Hashing::hash(&buf[..]))
+	pub fn pair_account_from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId<T> {
+		T::AssetPairAccountId::from_assets(asset_a, asset_b, "lbp")
 	}
 }
 
 impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
-		let pair_account = T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out);
+		let pair_account = Self::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		<PoolData<T>>::contains_key(&pair_account)
 	}
 
 	fn get_pair_id(assets: AssetPair) -> T::AccountId {
-		T::AssetPairPoolId::from_assets(assets.asset_in, assets.asset_out)
+		Self::pair_account_from_assets(assets.asset_in, assets.asset_out)
 	}
 
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {

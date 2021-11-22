@@ -40,12 +40,16 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="6b399649f0379bc091ff69447b459ce30dd82b00", default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
+
+# HydraDX dependencies
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="32f3a9ab84b86b200d3ad702db762ac7de06b20c", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }
@@ -190,6 +194,7 @@ std = [
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-lbp/std",
     "pallet-utility/std",
+    "hydradx-traits/std",
     "sp-api/std",
     "sp-block-builder/std",
     "sp-consensus-aura/std",

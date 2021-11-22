@@ -24,7 +24,6 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-mod benchmarking;
 pub mod weights;
 
 use frame_support::{dispatch::DispatchResult, traits::Contains, traits::Get};
@@ -95,7 +94,7 @@ pub mod pallet {
 			+ MaybeSerializeDeserialize;
 
 		/// Asset type
-		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + From<u32>;
+		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord;
 
 		/// Currency for transfers
 		type MultiCurrency: MultiCurrencyExtended<
@@ -194,11 +193,7 @@ pub mod pallet {
 		///
 		/// Caller is rewarded with chosen reward in native currency.
 		#[pallet::weight((<T as Config>::WeightInfo::dust_account(), DispatchClass::Normal, Pays::Yes))]
-		pub fn dust_account(
-			origin: OriginFor<T>,
-			account: T::AccountId,
-			currency_id: T::CurrencyId,
-		) -> DispatchResult {
+		pub fn dust_account(origin: OriginFor<T>, account: T::AccountId, currency_id: T::CurrencyId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(Self::blacklisted(&account).is_none(), Error::<T>::AccountBlacklisted);

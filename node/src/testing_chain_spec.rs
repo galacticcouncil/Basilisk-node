@@ -19,7 +19,7 @@
 #![allow(clippy::too_many_arguments)]
 
 use cumulus_primitives_core::ParaId;
-use primitives::{BlockNumber, Price, AssetId};
+use primitives::{AssetId, BlockNumber, Price};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
@@ -28,9 +28,9 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use testing_basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
-	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
-	NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
+	DusterConfig, ElectionsConfig, FaucetConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig,
+	ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig,
+	VestingConfig, NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
 
 const TOKEN_DECIMALS: u8 = 12;
@@ -142,10 +142,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
-				vec![
-					(b"KSM".to_vec(), 1_000u128),
-					(b"KUSD".to_vec(), 1_000u128),
-				],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
@@ -221,10 +218,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
-				vec![
-					(b"KSM".to_vec(), 1_000u128),
-					(b"KUSD".to_vec(), 1_000u128),
-				],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
@@ -317,6 +311,11 @@ fn testnet_parachain_genesis(
 					]
 				})
 				.collect(),
+		},
+		faucet: FaucetConfig {
+			rampage: true,
+			mint_limit: 5,
+			mintable_currencies: vec![0, 1, 2],
 		},
 		treasury: Default::default(),
 		elections: ElectionsConfig {

@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -20,8 +20,8 @@ pub use crate::mock::{Currency, Event as TestEvent, ExtBuilder, Origin, System, 
 use frame_support::BoundedVec;
 use frame_support::{assert_noop, assert_ok};
 use hydra_dx_math::MathError;
+use hydradx_traits::AMM as AmmPool;
 use pallet_asset_registry::AssetType;
-use primitives::traits::AMM as AmmPool;
 use sp_std::convert::TryInto;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
