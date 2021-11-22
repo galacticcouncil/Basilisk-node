@@ -301,21 +301,21 @@ pub mod pallet {
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
 
+			Self::deposit_event(Event::PoolCreated(
+				who.clone(),
+				asset_a,
+				asset_b,
+				shares_added,
+				share_token,
+				pair_account.clone(),
+			));
+
 			T::Currency::transfer(asset_a, &who, &pair_account, amount)?;
 			T::Currency::transfer(asset_b, &who, &pair_account, asset_b_amount)?;
 
 			T::Currency::deposit(share_token, &who, shares_added)?;
 
 			<TotalLiquidity<T>>::insert(&pair_account, shares_added);
-
-			Self::deposit_event(Event::PoolCreated(
-				who,
-				asset_a,
-				asset_b,
-				shares_added,
-				share_token,
-				pair_account,
-			));
 
 			Ok(())
 		}
