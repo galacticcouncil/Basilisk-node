@@ -38,26 +38,13 @@ fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_event() -> TestEvent {
-	system::Pallet::<Test>::events().pop().expect("Event expected").event
-}
-
 fn expect_event<E: Into<TestEvent>>(e: E) {
-	assert_eq!(last_event(), e.into());
-}
-
-fn last_events(n: usize) -> Vec<TestEvent> {
-	system::Pallet::<Test>::events()
-		.into_iter()
-		.rev()
-		.take(n)
-		.rev()
-		.map(|e| e.event)
-		.collect()
+	frame_system::Pallet::<Test>::assert_has_event(e.into());
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	assert_eq!(last_events(e.len()), e);
+	e.into_iter()
+		.for_each(|event| frame_system::Pallet::<Test>::assert_has_event(event));
 }
 
 fn generate_intention_id(account: &<Test as system::Config>::AccountId, c: u32) -> crate::IntentionId<Test> {
