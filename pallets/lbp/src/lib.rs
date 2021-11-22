@@ -81,6 +81,9 @@ impl Default for WeightCurveType {
 /// Max weight corresponds to 100%
 pub const MAX_WEIGHT: LBPWeight = 100_000_000;
 
+/// Max sale duration is 14 days, assuming 6 sec blocks
+pub const MAX_SALE_DURATION: u32 = (60 * 60 * 24 / 6) * 14;
+
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default, TypeInfo)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
@@ -364,9 +367,9 @@ pub mod pallet {
 		/// reached, fee will be increased to 20% and taken from the pool
 		///
 		/// Emits `PoolCreated` event when successful.
-		/// 
-		/// BEWARE: We are taking the fee from the accumulated asset. If the accumulated asset is sold to the pool, 
-		/// the fee cost is transferred to the pool. If its bought from the pool the buyer bears the cost. 
+		///
+		/// BEWARE: We are taking the fee from the accumulated asset. If the accumulated asset is sold to the pool,
+		/// the fee cost is transferred to the pool. If its bought from the pool the buyer bears the cost.
 		/// This increases the price of the sold asset on every trade. Make sure to only run this with
 		/// previously illiquid assets.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
@@ -712,10 +715,9 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::InvalidBlockRange
 		);
 
-		// this restriction is based on the AtLeast32Bit trait of the frame_system::Balance type
-		// and is expected by the calculate_linear_weights function
+		// duration of the LBP sale should not exceed 2 weeks (assuming 6 sec blocks)
 		ensure!(
-			pool_data.end.unwrap_or_default().saturating_sub(pool_data.start.unwrap_or_default()) <= u32::MAX.into(),
+			pool_data.end.unwrap_or_default().saturating_sub(pool_data.start.unwrap_or_default()) < MAX_SALE_DURATION.into(),
 			Error::<T>::MaxSaleDurationExceeded
 		);
 
@@ -867,7 +869,7 @@ impl<T: Config> Pallet<T> {
 				Error::<T>::InsufficientAssetBalance
 			);
 
-		// If the fee asset is the asset leaving the pool, the fee is paid by the user // TODO check if same for sell and buy 
+		// If the fee asset is the asset leaving the pool, the fee is paid by the user // TODO check if same for sell and buy
 		} else {
 			ensure!(
 				T::MultiCurrency::free_balance(assets.asset_out, who) >= amount_out + fee_amount,

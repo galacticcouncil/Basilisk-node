@@ -218,6 +218,41 @@ fn validate_pool_data_should_work() {
 }
 
 #[test]
+fn max_sale_duration_ckeck() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(
+			LBPPallet::validate_pool_data(&Pool {
+				owner: ALICE,
+				start: SALE_START,
+				end: Some(SALE_START.unwrap() + MAX_SALE_DURATION as u64 - 1),
+				assets: (KUSD, BSX),
+				initial_weight: 20_000_000,
+				final_weight: 90_000_000,
+				weight_curve: WeightCurveType::Linear,
+				fee: Fee::default(),
+				fee_collector: CHARLIE,
+				repay_target: 0,
+			})
+		);
+		assert_noop!(
+			LBPPallet::validate_pool_data(&Pool {
+				owner: ALICE,
+				start: SALE_START,
+				end: Some(SALE_START.unwrap() + MAX_SALE_DURATION as u64),
+				assets: (KUSD, BSX),
+				initial_weight: 20_000_000,
+				final_weight: 90_000_000,
+				weight_curve: WeightCurveType::Linear,
+				fee: Fee::default(),
+				fee_collector: CHARLIE,
+				repay_target: 0,
+			}),
+			Error::<Test>::MaxSaleDurationExceeded
+		);
+	});
+}
+
+#[test]
 fn calculate_weights_should_work() {
 	new_test_ext().execute_with(|| {
 		let mut pool_data = Pool {
