@@ -257,7 +257,7 @@ fn calculate_weights_should_work() {
 		pool_data.start = Some(100);
 		pool_data.end = Some(200);
 		assert_eq!(
-			LBPPallet::calculate_weights(&pool_data, 200),
+			LBPPallet::calculate_weights(&pool_data, 201),
 			Err(Error::<Test>::WeightCalculationError.into())
 		);
 
@@ -1360,7 +1360,7 @@ fn remove_liquidity_from_not_finalized_pool_should_not_work() {
 #[test]
 fn remove_liquidity_from_finalized_pool_should_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block::<Test>(21);
+		run_to_block::<Test>(41);
 
 		let user_balance_a_before = Currency::free_balance(KUSD, &ALICE);
 		let user_balance_b_before = Currency::free_balance(BSX, &ALICE);
@@ -2068,16 +2068,16 @@ fn update_pool_data_after_sale_should_not_work() {
 			2_000_000_000_u128
 		));
 
-		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_985_631_285);
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_982_069_403);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_010_000_000);
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_014_339_978);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_017_894_736);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
-		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 28_737);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 35_861);
 
-		run_to_block::<Test>(30);
+		run_to_block::<Test>(41);
 
 		expect_events(vec![Event::BuyExecuted(
-			buyer, BSX, KUSD, 14_368_715, 10_000_000, KUSD, 28_737,
+			buyer, BSX, KUSD, 17_930_597, 10_000_000, KUSD, 35_861,
 		)
 		.into()]);
 
@@ -2832,7 +2832,7 @@ fn get_sorted_weight_should_work() {
 		);
 
 		assert_eq!(
-			LBPPallet::get_sorted_weight(KUSD, <Test as frame_system::Config>::BlockNumber::from(30u32), &pool)
+			LBPPallet::get_sorted_weight(KUSD, <Test as frame_system::Config>::BlockNumber::from(41u32), &pool)
 				.err()
 				.unwrap()
 				.as_u8(),
