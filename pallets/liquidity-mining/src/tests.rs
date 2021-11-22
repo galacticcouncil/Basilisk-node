@@ -2408,6 +2408,170 @@ fn add_liquidity_pool_should_work() {
 	});
 }
 
+#[test]
+fn add_liquidity_pool_non_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::add_liquidity_pool(
+				Origin::signed(BOB),
+				ALICE_FARM,
+				AssetPair {
+					asset_in: BSX,
+					asset_out: HDX,
+				},
+				10_000,
+				None
+			),
+			Error::<Test>::Forbidden
+		);
+
+		assert_noop!(
+			LiquidityMining::add_liquidity_pool(
+				Origin::signed(BOB),
+				ALICE_FARM,
+				AssetPair {
+					asset_in: BSX,
+					asset_out: HDX,
+				},
+				10_000,
+				Some(LoyaltyCurve::default())
+			),
+			Error::<Test>::Forbidden
+		);
+	});
+}
+
+#[test]
+fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::add_liquidity_pool(
+				Origin::signed(ALICE),
+				ALICE_FARM,
+				AssetPair {
+					asset_in: BSX,
+					asset_out: HDX,
+				},
+				10_000,
+				Some(LoyaltyCurve {
+					b: FixedU128::from_float(1.1_f64),
+					scale_coef: 100
+				})
+			),
+			Error::<Test>::InvalidLoyaltyCurverParamB
+		);
+	});
+}
+
+#[test]
+fn add_liquidity_pool_invalid_weight_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::add_liquidity_pool(
+				Origin::signed(ALICE),
+				ALICE_FARM,
+				AssetPair {
+					asset_in: BSX,
+					asset_out: HDX,
+				},
+				0,
+				Some(LoyaltyCurve::default())
+			),
+			Error::<Test>::InvalidWeight
+		);
+	});
+}
+
+#[test]
+fn add_liquidity_pool_non_existing_amm_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::add_liquidity_pool(
+				Origin::signed(ALICE),
+				ALICE_FARM,
+				AssetPair {
+					//AMM for this assetPair does not exist
+					asset_in: BSX,
+					asset_out: 999_999_999,
+				},
+				10_000,
+				Some(LoyaltyCurve::default())
+			),
+			Error::<Test>::AmmPoolDoesNotExist
+		);
+	});
+}
+
+#[test]
+fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		run_to_block(20_000);
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(ALICE),
+			ALICE_FARM,
+			AssetPair {
+				//AMM for this assetPair does not exist
+				asset_in: BSX,
+				asset_out: ACA,
+			},
+			10_000,
+			Some(LoyaltyCurve::default())
+		));
+
+		let existing_pool = LiquidityPool {
+			id: 3,
+			updated_at: 20,
+			total_shares: 0,
+			accumulated_rps: 0,
+			loyalty_curve: Some(LoyaltyCurve::default()),
+			stake_in_global_pool: 0,
+			multiplier: 10_000,
+		};
+		assert_eq!(
+			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_ACA_AMM).unwrap(),
+			existing_pool
+		);
+
+		expect_events(vec![
+			Event::LiquidityPoolAdded(ALICE_FARM, BSX_ACA_AMM, existing_pool).into()
+		]);
+
+		//try to add duplicate pool
+		//in the same block(period)
+		assert_noop!(
+			LiquidityMining::add_liquidity_pool(
+				Origin::signed(ALICE),
+				ALICE_FARM,
+				AssetPair {
+					//AMM for this assetPair does not exist
+					asset_in: BSX,
+					asset_out: ACA,
+				},
+				9_000,
+				Some(LoyaltyCurve::default()),
+			),
+			Error::<Test>::LiquidityPoolAlreadyExists
+		);
+
+		run_to_block(30_000);
+		//in later block(period)
+		assert_noop!(
+			LiquidityMining::add_liquidity_pool(
+				Origin::signed(ALICE),
+				ALICE_FARM,
+				AssetPair {
+					//AMM for this assetPair does not exist
+					asset_in: BSX,
+					asset_out: ACA,
+				},
+				9_000,
+				Some(LoyaltyCurve::default()),
+			),
+			Error::<Test>::LiquidityPoolAlreadyExists
+		);
+	});
+}
+
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx
 fn is_approx_eq_fixedu128(num_1: FixedU128, num_2: FixedU128, delta: FixedU128) -> bool {
 	let diff = match num_1.cmp(&num_2) {
