@@ -19,7 +19,7 @@
 
 use super::*;
 use frame_support::parameter_types;
-use frame_support::traits::GenesisBuild;
+use frame_support::traits::{Everything, GenesisBuild};
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;
@@ -29,11 +29,11 @@ use sp_runtime::{
 };
 
 use frame_system::EnsureSigned;
-use pallet_xyk::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	fee, AssetId, Balance,
 };
+use hydradx_traits::AssetPairAccountIdFor;
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -75,7 +75,7 @@ parameter_types! {
 }
 
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type Origin = Origin;
@@ -115,13 +115,13 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = ();
+	type DustRemovalWhitelist = Everything;
 }
 
 pub struct AssetPairAccountIdTest();
 
 impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> u64 {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> u64 {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {

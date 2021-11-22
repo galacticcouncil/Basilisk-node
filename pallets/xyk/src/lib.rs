@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -28,20 +28,16 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 
-use frame_support::sp_runtime::{
-	traits::{Hash, Zero},
-	DispatchError,
-};
+use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
-use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, traits::AMM, AssetId, Balance, Price};
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, AMM};
+use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, AssetId, Balance, Price};
+use sp_std::{vec, vec::Vec};
 
-use frame_support::sp_runtime::app_crypto::sp_core::crypto::UncheckedFrom;
 use frame_support::sp_runtime::FixedPointNumber;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::fee::WithFee;
-use primitives::traits::AMMTransfer;
 use primitives::Amount;
 
 #[cfg(test)]
@@ -64,7 +60,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-	use primitives::traits::ShareTokenRegistry;
+	use hydradx_traits::ShareTokenRegistry;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -186,7 +182,6 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	#[pallet::metadata(T::AccountId = "AccountId")]
 	pub enum Event<T: Config> {
 		/// New liquidity was provided to the pool. [who, asset a, asset b, amount a, amount b]
 		LiquidityAdded(T::AccountId, AssetId, AssetId, Balance, Balance),
@@ -200,7 +195,7 @@ pub mod pallet {
 		/// Pool was destroyed. [who, asset a, asset b, share token, pool account id]
 		PoolDestroyed(T::AccountId, AssetId, AssetId, AssetId, T::AccountId),
 
-		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount]
+		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount, pool account id]
 		SellExecuted(
 			T::AccountId,
 			AssetId,
@@ -259,7 +254,7 @@ pub mod pallet {
 			asset_b: AssetId,
 			amount: Balance,
 			initial_price: Price,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
@@ -322,7 +317,7 @@ pub mod pallet {
 				pair_account,
 			));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Add liquidity to previously created asset pair pool.
@@ -338,7 +333,7 @@ pub mod pallet {
 			asset_b: AssetId,
 			amount_a: Balance,
 			amount_b_max_limit: Balance,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let asset_pair = AssetPair {
@@ -416,7 +411,7 @@ pub mod pallet {
 				amount_b_required,
 			));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Remove liquidity from specific liquidity pool in the form of burning shares.
@@ -432,7 +427,7 @@ pub mod pallet {
 			asset_a: AssetId,
 			asset_b: AssetId,
 			liquidity_amount: Balance,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let asset_pair = AssetPair {
@@ -506,7 +501,7 @@ pub mod pallet {
 				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b, share_token, pair_account));
 			}
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade asset in for asset out.
@@ -524,12 +519,12 @@ pub mod pallet {
 			amount: Balance,
 			max_limit: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Trade asset in for asset out.
@@ -547,37 +542,13 @@ pub mod pallet {
 			amount: Balance,
 			max_limit: Balance,
 			discount: bool,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
-			Ok(().into())
+			Ok(())
 		}
-	}
-}
-
-pub trait AssetPairAccountIdFor<AssetId: Sized, AccountId: Sized> {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> AccountId;
-}
-
-pub struct AssetPairAccountId<T: Config>(PhantomData<T>);
-
-impl<T: Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
-where
-	T::AccountId: UncheckedFrom<T::Hash> + AsRef<[u8]>,
-{
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> T::AccountId {
-		let mut buf = Vec::new();
-		buf.extend_from_slice(b"hydradx");
-		if asset_a < asset_b {
-			buf.extend_from_slice(&asset_a.to_le_bytes());
-			buf.extend_from_slice(&asset_b.to_le_bytes());
-		} else {
-			buf.extend_from_slice(&asset_b.to_le_bytes());
-			buf.extend_from_slice(&asset_a.to_le_bytes());
-		}
-		T::AccountId::unchecked_from(T::Hashing::hash(&buf[..]))
 	}
 }
 
@@ -607,6 +578,10 @@ impl<T: Config> Pallet<T> {
 			.just_fee(T::GetExchangeFee::get())
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
+
+	pub fn pair_account_from_assets(asset_a: AssetId, asset_b: AssetId) -> T::AccountId {
+		T::AssetPairAccountId::from_assets(asset_a, asset_b, "xyk")
+	}
 }
 
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
@@ -616,7 +591,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	}
 
 	fn get_pair_id(assets: AssetPair) -> T::AccountId {
-		T::AssetPairAccountId::from_assets(assets.asset_in, assets.asset_out)
+		Self::pair_account_from_assets(assets.asset_in, assets.asset_out)
 	}
 
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {

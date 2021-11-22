@@ -1,6 +1,7 @@
 use super::*;
 use crate as pallet_nft;
 
+use frame_support::traits::Everything;
 use frame_support::{parameter_types, weights::Weight};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
@@ -67,7 +68,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
@@ -113,8 +114,10 @@ pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const CLASS_ID: <Test as orml_nft::Config>::ClassId = 0;
+pub const NOT_EXISTING_CLASS_ID: <Test as orml_nft::Config>::ClassId = 999;
 pub const TEST_PRICE: Balance = 99;
 pub const TOKEN_ID: <Test as orml_nft::Config>::TokenId = 0;
+pub const NOT_EXISTING_TOKEN_ID: <Test as orml_nft::Config>::TokenId = 999;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {

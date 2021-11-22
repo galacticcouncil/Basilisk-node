@@ -48,8 +48,6 @@ use sp_std::marker::PhantomData;
 pub trait WeightInfo {
 	fn create_pool() -> Weight;
 	fn update_pool_data() -> Weight;
-	fn pause_pool() -> Weight;
-	fn unpause_pool() -> Weight;
 	fn add_liquidity() -> Weight;
 	fn remove_liquidity() -> Weight;
 	fn sell() -> Weight;
@@ -66,16 +64,6 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	}
 	fn update_pool_data() -> Weight {
 		(29_130_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
-	}
-	fn pause_pool() -> Weight {
-		(25_872_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
-	}
-	fn unpause_pool() -> Weight {
-		(25_780_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
@@ -110,16 +98,6 @@ impl WeightInfo for () {
 	}
 	fn update_pool_data() -> Weight {
 		(29_130_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
-	}
-	fn pause_pool() -> Weight {
-		(25_872_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
-	}
-	fn unpause_pool() -> Weight {
-		(25_780_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}

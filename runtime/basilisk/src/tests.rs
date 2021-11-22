@@ -14,10 +14,10 @@ fn full_block_cost() {
 
 	let max_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap_or(1);
 	let weight_fee = WeightToFee::calc(&max_weight);
-	assert_eq!(weight_fee, 47647303225875);
+	assert_eq!(weight_fee, 46142147344500);
 
 	//let target_fee = 393 * DOLLARS + 68_950_233_386_750;
-	let target_fee = 39369248090258875;
+	let target_fee = 39367742960050500;
 
 	assert_eq!(ExtrinsicBaseWeight::get() as u128 + length_fee + weight_fee, target_fee);
 }
@@ -34,7 +34,10 @@ fn extrinsic_base_fee_is_correct() {
 #[test]
 // Useful to calculate how much single transfer costs in native currency with fee components breakdown
 fn transfer_cost() {
-	let call = <pallet_balances::Call<Runtime>>::transfer(Default::default(), Default::default());
+	let call = pallet_balances::Call::<Runtime>::transfer {
+		dest: Default::default(),
+		value: Default::default(),
+	};
 	let info = call.get_dispatch_info();
 	// convert to outer call
 	let call = Call::Balances(call);

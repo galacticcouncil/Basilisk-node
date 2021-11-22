@@ -1,4 +1,4 @@
-// This file is part of HydraDX.
+// This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -20,8 +20,8 @@ pub use crate::mock::{Currency, Event as TestEvent, ExtBuilder, Origin, System, 
 use frame_support::BoundedVec;
 use frame_support::{assert_noop, assert_ok};
 use hydra_dx_math::MathError;
+use hydradx_traits::AMM as AmmPool;
 use pallet_asset_registry::AssetType;
-use primitives::traits::AMM as AmmPool;
 use sp_std::convert::TryInto;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -96,6 +96,18 @@ fn create_same_pool_should_not_work() {
 			1000,
 			Price::from(2)
 		));
+		assert_noop!(
+			XYK::create_pool(Origin::signed(user), asset_b, asset_a, 999, Price::from(2)),
+			Error::<Test>::InsufficientLiquidity
+		);
+		assert_noop!(
+			XYK::create_pool(Origin::signed(user), asset_b, asset_a, 1000, Price::from(0)),
+			Error::<Test>::ZeroInitialPrice
+		);
+		assert_noop!(
+			XYK::create_pool(Origin::signed(user), asset_a, asset_a, 1000, Price::from(2)),
+			Error::<Test>::CannotCreatePoolWithSameAssets
+		);
 		assert_noop!(
 			XYK::create_pool(Origin::signed(user), asset_b, asset_a, 1000, Price::from(2)),
 			Error::<Test>::TokenPoolAlreadyExists
@@ -1369,6 +1381,139 @@ fn create_pool_fixed_point_amount_should_work() {
 			pair_account,
 		)
 		.into()]);
+	});
+}
+
+#[test]
+fn money_in_sell_money_out_should_leave_the_same_balance() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		let user_1_balance_a_before = Currency::free_balance(asset_a, &user_1);
+		let user_1_balance_b_before = Currency::free_balance(asset_b, &user_1);
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(user_1),
+			asset_a,
+			asset_b,
+			200_000_000_000,
+			Price::from(3000)
+		));
+
+		let pair_account = XYK::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+		let share_token = XYK::share_token(pair_account);
+
+		assert_eq!(Currency::free_balance(asset_a, &user_1), 999800000000000);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 400000000000000);
+		assert_eq!(Currency::free_balance(share_token, &user_1), 600000000000000);
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 200000000000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 600000000000000);
+
+		assert_ok!(XYK::sell(
+			Origin::signed(user_1),
+			asset_a,
+			asset_b,
+			456_444_678,
+			1000000000000,
+			false,
+		));
+
+		assert_eq!(Currency::free_balance(asset_a, &user_1), 999799543555322);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 401363483591787);
+		assert_eq!(Currency::free_balance(share_token, &user_1), 600000000000000);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 200456444678);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 598636516408213);
+
+		assert_ok!(XYK::remove_liquidity(
+			Origin::signed(user_1),
+			asset_a,
+			asset_b,
+			600000000000000
+		));
+
+		let user_1_balance_a_after = Currency::free_balance(asset_a, &user_1);
+		let user_1_balance_b_after = Currency::free_balance(asset_b, &user_1);
+
+		assert_eq!(user_1_balance_a_before, user_1_balance_a_after);
+		assert_eq!(user_1_balance_b_before, user_1_balance_b_after);
+	});
+}
+
+#[test]
+fn money_in_money_out_should_leave_the_same_balance_for_both_accounts() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let user_2 = BOB;
+		let asset_a = HDX;
+		let asset_b = DOT;
+
+		let user_1_balance_a_before = Currency::free_balance(asset_a, &user_1);
+		let user_1_balance_b_before = Currency::free_balance(asset_b, &user_1);
+		let user_2_balance_a_before = Currency::free_balance(asset_a, &user_2);
+		let user_2_balance_b_before = Currency::free_balance(asset_b, &user_2);
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(user_1),
+			asset_a,
+			asset_b,
+			100_000_000,
+			Price::from(10_000)
+		));
+
+		let asset_pair = AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		};
+
+		let pair_account = XYK::get_pair_id(asset_pair);
+		let share_token = XYK::share_token(pair_account);
+
+		assert!(XYK::exists(asset_pair));
+
+		assert_ok!(XYK::add_liquidity(
+			Origin::signed(user_2),
+			asset_a,
+			asset_b,
+			100_000_000,
+			1_000_000_000_000
+		));
+
+		assert_eq!(Currency::free_balance(share_token, &user_1), 100_000_000);
+		assert_eq!(Currency::free_balance(share_token, &user_2), 100_000_000);
+
+		assert_ok!(XYK::remove_liquidity(
+			Origin::signed(user_1),
+			asset_a,
+			asset_b,
+			100_000_000
+		));
+
+		assert_ok!(XYK::remove_liquidity(
+			Origin::signed(user_2),
+			asset_a,
+			asset_b,
+			100_000_000
+		));
+
+		assert_eq!(XYK::total_liquidity(&pair_account), 0);
+
+		let user_1_balance_a_after = Currency::free_balance(asset_a, &user_1);
+		let user_1_balance_b_after = Currency::free_balance(asset_b, &user_1);
+		let user_2_balance_a_after = Currency::free_balance(asset_a, &user_2);
+		let user_2_balance_b_after = Currency::free_balance(asset_b, &user_2);
+
+		assert_eq!(user_1_balance_a_before, user_1_balance_a_after);
+		assert_eq!(user_1_balance_b_before, user_1_balance_b_after);
+		assert_eq!(user_2_balance_a_before, user_2_balance_a_after);
+		assert_eq!(user_2_balance_b_before, user_2_balance_b_after);
+
+		assert!(!XYK::exists(asset_pair));
 	});
 }
 

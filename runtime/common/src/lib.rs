@@ -88,6 +88,11 @@ parameter_types! {
 	pub const MaxReserves: u32 = 50;
 }
 
+// pallet aura
+parameter_types! {
+	pub const MaxAuthorities: u32 = 32;
+}
+
 // pallet transaction payment
 parameter_types! {
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
@@ -212,7 +217,6 @@ parameter_types! {
 
 // pallet session
 parameter_types! {
-	pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(33);
 	pub const Period: u32 = 4 * HOURS;
 	pub const Offset: u32 = 0;
 }
