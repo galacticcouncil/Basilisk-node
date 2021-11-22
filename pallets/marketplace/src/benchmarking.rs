@@ -128,27 +128,9 @@ benchmarks! {
 
 #[cfg(test)]
 mod tests {
-	use super::mock::Test;
-	use super::*;
+	use super::Pallet;
 	use crate::mock::*;
-	use frame_support::assert_ok;
+	use frame_benchmarking::impl_benchmark_test_suite;
 
-	pub fn new_test_ext() -> sp_io::TestExternalities {
-		let mut ext = ExtBuilder::default().build();
-		ext.execute_with(|| System::set_block_number(1));
-		ext
-	}
-
-	#[test]
-	fn test_benchmarks() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_buy());
-			assert_ok!(Pallet::<Test>::test_benchmark_list());
-			assert_ok!(Pallet::<Test>::test_benchmark_unlist());
-			assert_ok!(Pallet::<Test>::test_benchmark_make_offer());
-			assert_ok!(Pallet::<Test>::test_benchmark_withdraw_offer());
-			assert_ok!(Pallet::<Test>::test_benchmark_accept_offer());
-			assert_ok!(Pallet::<Test>::test_benchmark_set_price());
-		});
-	}
+	impl_benchmark_test_suite!(Pallet, super::ExtBuilder::default().build(), super::Test);
 }
