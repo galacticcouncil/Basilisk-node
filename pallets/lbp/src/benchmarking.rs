@@ -118,7 +118,7 @@ benchmarks! {
 		let start = T::BlockNumber::from(1u32);
 		let end = T::BlockNumber::from(11u32);
 
-		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id.clone(), None, Some(start), Some(end), None, None, None, None, None)?;
+		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id, None, Some(start), Some(end), None, None, None, None, None)?;
 
 	}: _(RawOrigin::Signed(caller.clone()), asset_in, asset_out, amount, max_limit)
 	verify{
@@ -142,7 +142,7 @@ benchmarks! {
 		let start = T::BlockNumber::from(1u32);
 		let end = T::BlockNumber::from(11u32);
 
-		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id.clone(), None, Some(start), Some(end), None, None, None, None, None)?;
+		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id, None, Some(start), Some(end), None, None, None, None, None)?;
 
 	}: _(RawOrigin::Signed(caller.clone()), asset_out, asset_in, amount, max_limit)
 	verify{
