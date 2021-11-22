@@ -31,7 +31,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	e.into_iter().for_each( frame_system::Pallet::<Test>::assert_has_event);
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
 #[test]
@@ -1872,4 +1872,22 @@ fn fee_calculation() {
 		.execute_with(|| {
 			assert_noop!(XYK::calculate_fee(100000), Error::<Test>::FeeAmountInvalid);
 		});
+}
+
+#[test]
+fn can_create_pool_should_work() {
+	new_test_ext().execute_with(|| {
+		let asset_a = 10u32;
+		let asset_b = 10u32;
+		assert_noop!(
+			XYK::create_pool(
+				Origin::signed(ALICE),
+				asset_a,
+				asset_b,
+				100_000_000_000_000,
+				Price::from(10)
+			),
+			Error::<Test>::CannotCreatePool
+		);
+	});
 }

@@ -31,7 +31,7 @@
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, AMM};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, AMM};
 use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, AssetId, Balance, Price};
 use sp_std::{vec, vec::Vec};
 
@@ -107,6 +107,9 @@ pub mod pallet {
 		/// Max fraction of pool to buy in single transaction
 		#[pallet::constant]
 		type MaxOutRatio: Get<u128>;
+
+		/// Called to ensure that pool can be created
+		type CanCreatePool: CanCreatePool<AssetId>;
 	}
 
 	#[pallet::error]
@@ -178,6 +181,9 @@ pub mod pallet {
 
 		/// Overflow
 		Overflow,
+
+		/// Pool cannot be created due to outside factors.
+		CannotCreatePool,
 	}
 
 	#[pallet::event]
@@ -256,6 +262,11 @@ pub mod pallet {
 			initial_price: Price,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			ensure!(
+				T::CanCreatePool::can_create(asset_a, asset_b),
+				Error::<T>::CannotCreatePool
+			);
 
 			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
 
@@ -915,5 +926,13 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 	fn get_max_out_ratio() -> u128 {
 		T::MaxOutRatio::get()
+	}
+}
+
+pub struct AllowAllPools();
+
+impl CanCreatePool<AssetId> for AllowAllPools {
+	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
+		true
 	}
 }

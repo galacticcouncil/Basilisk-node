@@ -161,6 +161,7 @@ impl pallet_xyk::Config for Test {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type CanCreatePool = pallet_xyk::AllowAllPools;
 }
 
 impl pallet_exchange::Config for Test {
