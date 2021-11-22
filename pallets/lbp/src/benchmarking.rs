@@ -68,7 +68,7 @@ benchmarks! {
 
 	}: _(RawOrigin::Signed(caller.clone()), pool_id.clone(), Some(caller.clone()), new_start, new_end, Some(new_initial_weight), Some(new_final_weight), Some(Fee::default()), Some(fee_collector), Some(1))
 	verify {
-		let pool_data = LBP::<T>::pool_data(pool_id);
+		let pool_data = LBP::<T>::pool_data(pool_id).unwrap();
 		assert_eq!(pool_data.start, new_start);
 		assert_eq!(pool_data.end, new_end);
 		assert_eq!(pool_data.initial_weight, new_initial_weight);
@@ -120,8 +120,6 @@ benchmarks! {
 
 		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id.clone(), None, Some(start), Some(end), None, None, None, None, None)?;
 
-		let pool_data = LBP::<T>::pool_data(&pool_id);
-
 	}: _(RawOrigin::Signed(caller.clone()), asset_in, asset_out, amount, max_limit)
 	verify{
 		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999998900000000);
@@ -145,8 +143,6 @@ benchmarks! {
 		let end = T::BlockNumber::from(11u32);
 
 		LBP::<T>::update_pool_data(RawOrigin::Signed(caller.clone()).into(), pool_id.clone(), None, Some(start), Some(end), None, None, None, None, None)?;
-
-		let pool_data = LBP::<T>::pool_data(&pool_id);
 
 	}: _(RawOrigin::Signed(caller.clone()), asset_out, asset_in, amount, max_limit)
 	verify{
