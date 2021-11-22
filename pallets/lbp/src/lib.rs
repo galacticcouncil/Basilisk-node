@@ -105,13 +105,13 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	/// weight curve
 	pub weight_curve: WeightCurveType,
 
-	/// current fee
+	/// standard fee amount
 	pub fee: Fee,
 
 	/// person that receives the fee
 	pub fee_collector: AccountId,
 
-	/// repayment target of the accumulated asset in fee collectors account
+	/// repayment target of the accumulated asset in fee collectors account, when this target is reached fee drops from 20% to fee
 	pub repay_target: Balance,
 }
 
@@ -245,6 +245,7 @@ pub mod pallet {
 
 		/// Liquidity being added should not be zero
 		CannotAddZeroLiquidity,
+
 		/// Asset balance too low
 		InsufficientAssetBalance,
 
@@ -333,7 +334,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn pool_data)]
 	pub type PoolData<T: Config> =
-		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::AccountId, T::BlockNumber>, ValueQuery>;
+		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::AccountId, T::BlockNumber>, OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -359,8 +360,15 @@ pub mod pallet {
 		/// there is only one weight function implemented, the linear function.
 		/// - `fee`: The trading fee charged on every trade distributed to `fee_collector`.
 		/// - `fee_collector`: The account to which trading fees will be transferred.
+		/// - `repay_target`: The amount of tokens to repay to separate fee_collector account. Until this amount is
+		/// reached, fee will be increased to 20% and taken from the pool
 		///
 		/// Emits `PoolCreated` event when successful.
+		/// 
+		/// BEWARE: We are taking the fee from the accumulated asset. If the accumulated asset is sold to the pool, 
+		/// the fee cost is transferred to the pool. If its bought from the pool the buyer bears the cost. 
+		/// This increases the price of the sold asset on every trade. Make sure to only run this with
+		/// previously illiquid assets.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		#[transactional]
 		pub fn create_pool(
@@ -762,7 +770,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn is_repay_fee_applied(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
-		T::MultiCurrency::free_balance(pool_data.assets.1, &pool_data.fee_collector) < pool_data.repay_target
+		T::MultiCurrency::free_balance(pool_data.assets.0, &pool_data.fee_collector) < pool_data.repay_target
 	}
 
 	fn validate_trade(
@@ -852,14 +860,17 @@ impl<T: Config> Pallet<T> {
 			Self::calculate_fees(&pool_data, amount_out)?
 		};
 
+		// If the fee asset is the asset coming into the pool, the fee is paid by the pool
 		if fee_asset == assets.asset_in {
 			ensure!(
-				T::MultiCurrency::free_balance(assets.asset_in, &pool_id) >= amount_in + fee_amount,
+				T::MultiCurrency::free_balance(assets.asset_in, &pool_id) >= fee_amount,
 				Error::<T>::InsufficientAssetBalance
 			);
+
+		// If the fee asset is the asset leaving the pool, the fee is paid by the user // TODO check if same for sell and buy 
 		} else {
 			ensure!(
-				T::MultiCurrency::free_balance(assets.asset_in, who) >= amount_out + fee_amount,
+				T::MultiCurrency::free_balance(assets.asset_out, who) >= amount_out + fee_amount,
 				Error::<T>::InsufficientAssetBalance
 			);
 		}
@@ -878,7 +889,7 @@ impl<T: Config> Pallet<T> {
 	#[transactional]
 	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pool_id = Self::get_pair_id(transfer.assets);
-		let pool_data = Self::pool_data(&pool_id);
+		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
 		T::MultiCurrency::transfer(transfer.assets.asset_in, &transfer.origin, &pool_id, transfer.amount)?;
 		T::MultiCurrency::transfer(
