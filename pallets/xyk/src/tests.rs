@@ -31,7 +31,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	e.into_iter().for_each( |event| frame_system::Pallet::<Test>::assert_has_event(event));
+	e.into_iter().for_each( frame_system::Pallet::<Test>::assert_has_event);
 }
 
 #[test]
