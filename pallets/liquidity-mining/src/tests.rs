@@ -109,8 +109,8 @@ fn get_period_number_should_work() {
 #[test]
 fn get_period_number_should_not_work() {
 	let num_1: BlockNumber = 10_u64;
-	assert_eq!(
-		LiquidityMining::get_period_number(num_1.into(), 0).unwrap_err(),
+	assert_err!(
+		LiquidityMining::get_period_number(num_1.into(), 0),
 		Error::<Test>::Overflow
 	);
 }
@@ -1881,8 +1881,8 @@ fn pool_account_id_should_not_work() {
 	let ids: Vec<PoolId> = vec![0];
 
 	for id in ids {
-		assert_eq!(
-			LiquidityMining::pool_account_id(id).unwrap_err(),
+		assert_err!(
+			LiquidityMining::pool_account_id(id),
 			Error::<Test>::InvalidPoolId
 		);
 	}

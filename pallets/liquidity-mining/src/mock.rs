@@ -17,19 +17,21 @@
 //
 use crate as liq_mining;
 use crate::Config;
-use frame_support::{ 
-    parameter_types, 
-    PalletId,
-    traits::{GenesisBuild, Nothing, Everything}
+use frame_support::{
+	parameter_types,
+	traits::{Everything, GenesisBuild, Nothing},
+	PalletId,
 };
 use frame_system as system;
+use hydradx_traits::AMM;
 use orml_traits::parameter_type_with_key;
-use primitives::{Amount, AssetId, Balance};
+use primitives::{asset::AssetPair, Amount, AssetId, Balance};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, BlockNumberProvider},
+	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 };
+use std::{cell::RefCell, collections::HashMap};
 
 type AccountId = u128;
 pub type PoolId = crate::PoolId;
@@ -51,7 +53,6 @@ pub const BSX_DOT_POOL: PoolId = 3;
 pub const BSX_ACA_SHARE_ID: AssetId = 100;
 pub const BSX_KSM_SHARE_ID: AssetId = 101;
 pub const BSX_DOT_SHARE_ID: AssetId = 102;
-
 
 pub const BSX: AssetId = 1000;
 pub const HDX: AssetId = 2000;
@@ -120,27 +121,109 @@ impl system::Config for Test {
 	type OnSetCode = ();
 }
 
+pub struct XYK;
+
+thread_local! {
+	pub static XYK_POOLS: RefCell<HashMap<String, AccountId>> = RefCell::new(HashMap::new());
+}
+
+impl AMM<AccountId, AssetId, AssetPair, Balance> for XYK {
+	fn get_max_out_ratio() -> u128 {
+		0_u32.into()
+	}
+
+	fn get_max_in_ratio() -> u128 {
+		0_u32.into()
+	}
+
+	fn get_pool_assets(_pool_account_id: &AccountId) -> Option<Vec<AssetId>> {
+		None
+	}
+
+	fn get_spot_price_unchecked(_asset_a: AssetId, _asset_b: AssetId, _amount: Balance) -> Balance {
+		Balance::from(0_u32)
+	}
+
+	fn validate_sell(
+		_origin: &AccountId,
+		_assets: AssetPair,
+		_amount: Balance,
+		_min_bought: Balance,
+		_discount: bool,
+	) -> Result<
+		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		frame_support::sp_runtime::DispatchError,
+	> {
+		Err(sp_runtime::DispatchError::Other("NotImplemented"))
+	}
+
+	fn execute_buy(
+		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+	) -> frame_support::dispatch::DispatchResult {
+		Err(sp_runtime::DispatchError::Other("NotImplemented"))
+	}
+
+	fn execute_sell(
+		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+	) -> frame_support::dispatch::DispatchResult {
+		Err(sp_runtime::DispatchError::Other("NotImplemented"))
+	}
+
+	fn validate_buy(
+		_origin: &AccountId,
+		_assets: AssetPair,
+		_amount: Balance,
+		_max_limit: Balance,
+		_discount: bool,
+	) -> Result<
+		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		frame_support::sp_runtime::DispatchError,
+	> {
+		Err(sp_runtime::DispatchError::Other("NotImplemented"))
+	}
+
+	fn get_min_pool_liquidity() -> Balance {
+		Balance::from(0_u32)
+	}
+
+	fn get_min_trading_limit() -> Balance {
+		Balance::from(0_u32)
+	}
+
+	// Only fn bellow are used by liq. mining pallet
+	fn exists(assets: AssetPair) -> bool {
+		let key = format!("in:{}_out:{}", assets.asset_in, assets.asset_out);
+
+		XYK_POOLS.with(|v| v.borrow().contains_key(&key))
+	}
+
+	fn get_pair_id(assets: AssetPair) -> AccountId {
+		let key = format!("in:{}_out:{}", assets.asset_in, assets.asset_out);
+		XYK_POOLS.with(|v| *v.borrow().get(&key).unwrap())
+	}
+}
+
 parameter_types! {
 	pub NativeCurrencyId: AssetId = 0;
 
-    pub AccumulatePeriod: BlockNumber = 10;     // 10 blocks
+	pub AccumulatePeriod: BlockNumber = 10;     // 10 blocks
 	pub const MaxLocks: u32 = 1;
-    pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
-    pub const MinPlannedYieldingPeriods: BlockNumber = 100;
-    pub const MinTotalFarmRewards: Balance = 1_000_000;
+	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
+	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
+	pub const MinTotalFarmRewards: Balance = 1_000_000;
 }
 
 impl Config for Test {
 	type Event = Event;
-	type Balance = Balance;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
-    type CreateOrigin = frame_system::EnsureRoot<AccountId>;
+	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();
-    type PalletId = LMPalletId;
-    type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-    type MinTotalFarmRewards = MinTotalFarmRewards;
+	type PalletId = LMPalletId;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
+	type AMM = XYK;
 }
 
 parameter_type_with_key! {
@@ -173,7 +256,7 @@ impl Default for ExtBuilder {
 				(ALICE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(ALICE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
 				(ALICE, BSX, INITIAL_BALANCE),
-                (ACC_1M, BSX, 1_000_000),
+				(ACC_1M, BSX, 1_000_000),
 				(BOB, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
@@ -184,10 +267,10 @@ impl Default for ExtBuilder {
 				(DAVE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
-                (TREASURY, BSX, 1_000_000_000_000_000_000),
-                (TREASURY, ACA, 1_000_000_000_000_000_000),
-                (TREASURY, HDX, 1_000_000_000_000_000_000),
-                (TREASURY, KSM, 1_000_000_000_000_000_000),
+				(TREASURY, BSX, 1_000_000_000_000_000_000),
+				(TREASURY, ACA, 1_000_000_000_000_000_000),
+				(TREASURY, HDX, 1_000_000_000_000_000_000),
+				(TREASURY, KSM, 1_000_000_000_000_000_000),
 			],
 		}
 	}

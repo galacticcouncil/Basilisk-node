@@ -48,12 +48,12 @@ use sp_arithmetic::{
 	FixedU128, Permill,
 };
 
-use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use orml_traits::MultiCurrency;
 
-use hydradx_traits::AMM;
 use codec::{Decode, Encode};
-use scale_info::TypeInfo;
 use frame_support::sp_runtime::{traits::AccountIdConversion, RuntimeDebug};
+use hydradx_traits::AMM;
+use scale_info::TypeInfo;
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 pub struct GlobalPool<Period, Balance, AssetId, AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
@@ -120,9 +120,9 @@ pub struct LiquidityPool<Period, Balance> {
 impl<Period, Balance: std::default::Default> LiquidityPool<Period, Balance> {
 	fn new(id: PoolId, updated_at: Period, loyalty_curve: Option<LoyaltyCurve>, multiplier: u32) -> Self {
 		Self {
-            accumulated_rps: Default::default(),
-            stake_in_global_pool: Default::default(),
-            total_shares: Default::default(),
+			accumulated_rps: Default::default(),
+			stake_in_global_pool: Default::default(),
+			total_shares: Default::default(),
 			id,
 			updated_at,
 			loyalty_curve,
@@ -144,11 +144,12 @@ impl Default for LoyaltyCurve {
 			scale_coef: 100,
 		}
 	}
-} use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::{traits::AtLeast32BitUnsigned, FixedPointNumber, FixedPointOperand};
+}
+use frame_support::pallet_prelude::*;
+use frame_support::sp_runtime::{traits::AtLeast32BitUnsigned, FixedPointNumber};
 use sp_std::convert::{From, Into, TryInto};
 
-use primitives::asset::AssetPair;
+use primitives::{asset::AssetPair, Balance};
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -166,33 +167,14 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
-		/// Balance type
-		type Balance: Parameter
-			+ From<u128>
-			+ Into<u128>
-			+ From<Self::BlockNumber>
-			//+ From<FixedU128>
-			+ Member
-			+ AtLeast32BitUnsigned
-			+ FixedPointOperand
-			+ Default
-			+ Copy
-			+ MaybeSerializeDeserialize
-			+ MaxEncodedLen
-			+ CheckedAdd;
-
 		/// Asset type
 		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + From<u32>;
 
 		/// Currency for transfers
-		type MultiCurrency: MultiCurrencyExtended<
-			Self::AccountId,
-			CurrencyId = Self::CurrencyId,
-			Balance = Self::Balance,
-		>;
+		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = Self::CurrencyId, Balance = Balance>;
 
-        /// AMM helper functions
-        type AMM: AMM<Self::AccountId, Self::CurrencyId, AssetPair, Self::Balance>;
+		/// AMM helper functions
+		type AMM: AMM<Self::AccountId, Self::CurrencyId, AssetPair, Balance>;
 
 		/// The origin account that cat create new liquidity mining program
 		type CreateOrigin: EnsureOrigin<Self::Origin>;
@@ -200,7 +182,7 @@ pub mod pallet {
 		type PalletId: Get<PalletId>;
 
 		/// Minimum anout of total rewards to create new farm
-		type MinTotalFarmRewards: Get<Self::Balance>;
+		type MinTotalFarmRewards: Get<Balance>;
 
 		/// Minimalnumber of periods to distribute farm rewards
 		type MinPlannedYieldingPeriods: Get<Self::BlockNumber>;
@@ -213,7 +195,7 @@ pub mod pallet {
 	}
 
 	#[pallet::error]
-	#[derive(PartialEq)]
+	#[cfg_attr(test, derive(PartialEq))]
 	pub enum Error<T> {
 		/// Math computation overflow
 		Overflow,
@@ -254,8 +236,8 @@ pub mod pallet {
 		/// Loyalty curver b param should be from [0, 1)
 		InvalidLoyaltyCurverParamB,
 
-        /// AMM pool does not exist
-        AmmPoolDoesNotExist,
+		/// AMM pool does not exist
+		AmmPoolDoesNotExist,
 
 		/// Feature is not implemented yet
 		NotImplemented,
@@ -267,15 +249,11 @@ pub mod pallet {
 		/// New farm was creaated by `CreateOrigin` origin. [pool_id, global_pool]
 		FarmCreated(
 			PoolId,
-			GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
+			GlobalPool<T::BlockNumber, Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
 		),
 
-        /// New liquidity(AMM) pool was added to farm [farm_id, amm_pool_id, liquidity_pool]
-        AMMPoolAdded(
-            PoolId,
-            T::AccountId,
-		    LiquidityPool<T::BlockNumber, T::Balance>,
-        ),
+		/// New liquidity(AMM) pool was added to farm [farm_id, amm_pool_id, liquidity_pool]
+		AMMPoolAdded(PoolId, T::AccountId, LiquidityPool<T::BlockNumber, Balance>),
 	}
 
 	#[pallet::storage]
@@ -288,7 +266,7 @@ pub mod pallet {
 		_,
 		Twox64Concat,
 		PoolId,
-		GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
+		GlobalPool<T::BlockNumber, Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
 		OptionQuery,
 	>;
 
@@ -300,7 +278,7 @@ pub mod pallet {
 		PoolId,
 		Twox64Concat,
 		T::AccountId, //amm_pool_id
-		LiquidityPool<T::BlockNumber, T::Balance>,
+		LiquidityPool<T::BlockNumber, Balance>,
 		OptionQuery,
 	>;
 
@@ -323,7 +301,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn create_farm(
 			origin: OriginFor<T>,
-			total_rewards: T::Balance,
+			total_rewards: Balance,
 			planned_yielding_periods: T::BlockNumber,
 			blocks_per_period: T::BlockNumber,
 			incentivized_token: T::CurrencyId,
@@ -345,12 +323,9 @@ pub mod pallet {
 				Error::<T>::InsufficientRewardCurrencyBalance
 			);
 
-			let planned_periods = T::Balance::from(
-				TryInto::<u128>::try_into(planned_yielding_periods).map_err(|_e| Error::<T>::Overflow)?,
-			);
-			let max_reward_per_period = total_rewards
-				.checked_div(&planned_periods)
-				.ok_or(Error::<T>::Overflow)?;
+			let planned_periods =
+				Balance::from(TryInto::<u128>::try_into(planned_yielding_periods).map_err(|_e| Error::<T>::Overflow)?);
+			let max_reward_per_period = total_rewards.checked_div(planned_periods).ok_or(Error::<T>::Overflow)?;
 			let now_period = Self::get_now_period(blocks_per_period)?;
 			let pool_id = Self::get_next_id()?;
 
@@ -407,9 +382,9 @@ pub mod pallet {
 
 				ensure!(who == g_pool.owner, Error::<T>::Forbidden);
 
-                ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist); 
+				ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 
-                let amm_pool_id = T::AMM::get_pair_id(asset_pair);
+				let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 				ensure!(
 					!<LiquidityPoolData<T>>::contains_key(farm_id, &amm_pool_id),
 					Error::<T>::LiquidityPoolAlreadyExists
@@ -424,15 +399,14 @@ pub mod pallet {
 				Self::update_global_pool(farm_id, g_pool, now_period, reward_per_period)?;
 
 				let liq_pool_id = Self::get_next_id()?;
-                let pool = LiquidityPool::new(liq_pool_id, now_period, loyalty_curve, weight);
+				let pool = LiquidityPool::new(liq_pool_id, now_period, loyalty_curve, weight);
 
-                <LiquidityPoolData::<T>>::insert(g_pool.id, &amm_pool_id, &pool);
-			
-                Self::deposit_event(Event::AMMPoolAdded(g_pool.id, amm_pool_id, pool));
+				<LiquidityPoolData<T>>::insert(g_pool.id, &amm_pool_id, &pool);
 
-                Ok(())          
+				Self::deposit_event(Event::AMMPoolAdded(g_pool.id, amm_pool_id, pool));
+
+				Ok(())
 			})
-
 		}
 
 		#[pallet::weight(1000)]
@@ -475,13 +449,11 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	pub fn get_next_id() -> Result<PoolId, Error<T>> {
-		let next_id = PoolIdSeq::<T>::try_mutate(|current_id| {
+		PoolIdSeq::<T>::try_mutate(|current_id| {
 			*current_id = current_id.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
 			Ok(*current_id)
-		})?;
-
-		Ok(next_id)
+		})
 	}
 
 	/// Account id of pot holding all the shares
@@ -508,10 +480,6 @@ impl<T: Config> Pallet<T> {
 		now: T::BlockNumber,
 		blocks_per_period: T::BlockNumber,
 	) -> Result<T::BlockNumber, Error<T>> {
-		if blocks_per_period.is_one() {
-			return Ok(now);
-		}
-
 		now.checked_div(&blocks_per_period).ok_or(Error::<T>::Overflow)
 	}
 
@@ -562,9 +530,9 @@ impl<T: Config> Pallet<T> {
 
 	pub fn get_reward_per_period(
 		yield_per_period: FixedU128,
-		total_global_pool_shares: T::Balance,
-		max_reward_per_period: T::Balance,
-	) -> Result<T::Balance, Error<T>> {
+		total_global_pool_shares: Balance,
+		max_reward_per_period: Balance,
+	) -> Result<Balance, Error<T>> {
 		Ok(yield_per_period
 			.checked_mul_int(total_global_pool_shares)
 			.ok_or(Error::<T>::Overflow)?
@@ -573,9 +541,9 @@ impl<T: Config> Pallet<T> {
 
 	pub fn update_global_pool(
 		pool_id: PoolId,
-		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
+		pool: &mut GlobalPool<T::BlockNumber, Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
 		now_period: T::BlockNumber,
-		reward_per_period: T::Balance,
+		reward_per_period: Balance,
 	) -> Result<(), Error<T>> {
 		if pool.updated_at == now_period {
 			return Ok(());
@@ -585,14 +553,14 @@ impl<T: Config> Pallet<T> {
 			return Ok(());
 		}
 
-		let periods_since_last_update: T::Balance =
+		let periods_since_last_update: Balance =
 			TryInto::<u128>::try_into(now_period.checked_sub(&pool.updated_at).ok_or(Error::<T>::Overflow)?)
 				.map_err(|_e| Error::<T>::Overflow)?
 				.into();
 
 		let pool_account = Self::pool_account_id(pool_id);
 		let reward = periods_since_last_update
-			.checked_mul(&reward_per_period)
+			.checked_mul(reward_per_period)
 			.ok_or(Error::<T>::Overflow)?
 			.min(T::MultiCurrency::free_balance(pool.reward_currency, &pool_account?));
 
@@ -601,7 +569,7 @@ impl<T: Config> Pallet<T> {
 
 			pool.accumulated_rewards = pool
 				.accumulated_rewards
-				.checked_add(&reward)
+				.checked_add(reward)
 				.ok_or(Error::<T>::Overflow)?;
 		}
 
@@ -611,56 +579,54 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn get_accumulated_rps(
-		accumulated_rps_now: T::Balance,
-		total_shares: T::Balance,
-		reward: T::Balance,
-	) -> Result<T::Balance, Error<T>> {
+		accumulated_rps_now: Balance,
+		total_shares: Balance,
+		reward: Balance,
+	) -> Result<Balance, Error<T>> {
 		reward
-			.checked_div(&total_shares)
+			.checked_div(total_shares)
 			.ok_or(Error::<T>::Overflow)?
-			.checked_add(&accumulated_rps_now)
+			.checked_add(accumulated_rps_now)
 			.ok_or(Error::<T>::Overflow)
 	}
 
 	/// (user_rewards, unclaimable_rewards)
 	/// NOTE: claimable_reward and user_rewards is not the same !!!
 	pub fn get_user_reward(
-		user_accumulated_rps: T::Balance,
-		user_shares: T::Balance,
-		accumulated_rps_now: T::Balance,
-		user_accumulated_claimed_rewards: T::Balance,
+		user_accumulated_rps: Balance,
+		user_shares: Balance,
+		accumulated_rps_now: Balance,
+		user_accumulated_claimed_rewards: Balance,
 		loyalty_multiplier: FixedU128,
-	) -> Result<(T::Balance, T::Balance), Error<T>> {
+	) -> Result<(Balance, Balance), Error<T>> {
 		let max_rewards = accumulated_rps_now
-			.checked_sub(&user_accumulated_rps)
+			.checked_sub(user_accumulated_rps)
 			.ok_or(Error::<T>::Overflow)?
-			.checked_mul(&user_shares)
+			.checked_mul(user_shares)
 			.ok_or(Error::<T>::Overflow)?;
 
 		let claimable_rewards = loyalty_multiplier
 			.checked_mul_int(max_rewards)
 			.ok_or(Error::<T>::Overflow)?;
 
-		let unclaimable_rewards = max_rewards
-			.checked_sub(&claimable_rewards)
-			.ok_or(Error::<T>::Overflow)?;
+		let unclaimable_rewards = max_rewards.checked_sub(claimable_rewards).ok_or(Error::<T>::Overflow)?;
 
 		let user_rewards = claimable_rewards
-			.checked_sub(&user_accumulated_claimed_rewards)
+			.checked_sub(user_accumulated_claimed_rewards)
 			.ok_or(Error::<T>::Overflow)?;
 
 		Ok((user_rewards, unclaimable_rewards))
 	}
 
 	pub fn claim_from_global_pool(
-		pool: &mut GlobalPool<T::BlockNumber, T::Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
-		shares: T::Balance,
-	) -> Result<T::Balance, Error<T>> {
+		pool: &mut GlobalPool<T::BlockNumber, Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
+		shares: Balance,
+	) -> Result<Balance, Error<T>> {
 		let reward = pool
 			.accumulated_rps
-			.checked_sub(&pool.accumulated_rps_start)
+			.checked_sub(pool.accumulated_rps_start)
 			.ok_or(Error::<T>::Overflow)?
-			.checked_mul(&shares)
+			.checked_mul(shares)
 			.ok_or(Error::<T>::Overflow)?
 			.min(pool.accumulated_rewards);
 
@@ -668,12 +634,12 @@ impl<T: Config> Pallet<T> {
 
 		pool.paid_accumulated_rewards = pool
 			.paid_accumulated_rewards
-			.checked_add(&reward)
+			.checked_add(reward)
 			.ok_or(Error::<T>::Overflow)?;
 
 		pool.accumulated_rewards = pool
 			.accumulated_rewards
-			.checked_sub(&reward)
+			.checked_sub(reward)
 			.ok_or(Error::<T>::Overflow)?;
 
 		return Ok(reward);
@@ -681,8 +647,8 @@ impl<T: Config> Pallet<T> {
 
 	pub fn update_pool(
 		pool_id: PoolId,
-		pool: &mut LiquidityPool<T::BlockNumber, T::Balance>,
-		rewards: T::Balance,
+		pool: &mut LiquidityPool<T::BlockNumber, Balance>,
+		rewards: Balance,
 		period_now: T::BlockNumber,
 		global_pool_id: PoolId,
 		reward_currency: T::CurrencyId,
@@ -720,7 +686,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn validate_create_farm_data(
-		total_rewads: T::Balance,
+		total_rewads: Balance,
 		planned_yielding_periods: T::BlockNumber,
 		blocks_per_period: T::BlockNumber,
 		yield_per_period: Permill,
@@ -743,11 +709,11 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn validate_loyalty_curve(c: &Option<LoyaltyCurve>) -> DispatchResult {
-        if c.is_some() {
-            let b = c.as_ref().unwrap().b;
+		if c.is_some() {
+			let b = c.as_ref().unwrap().b;
 
-		    ensure!(b.lt(&FixedU128::one()), Error::<T>::InvalidLoyaltyCurverParamB);
-        }
+			ensure!(b.lt(&FixedU128::one()), Error::<T>::InvalidLoyaltyCurverParamB);
+		}
 
 		Ok(())
 	}
