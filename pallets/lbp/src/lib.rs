@@ -818,6 +818,7 @@ impl<T: Config> Pallet<T> {
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
 
+			// TODO account for fee in limit
 			ensure!(limit <= calculated_out, Error::<T>::AssetBalanceLimitExceeded);
 			(amount, calculated_out)
 		} else {
@@ -838,6 +839,7 @@ impl<T: Config> Pallet<T> {
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
 
+			// TODO account for fee in limit
 			ensure!(limit >= calculated_in, Error::<T>::AssetBalanceLimitExceeded);
 			(calculated_in, amount)
 		};
@@ -861,21 +863,6 @@ impl<T: Config> Pallet<T> {
 		} else {
 			Self::calculate_fees(&pool_data, amount_out)?
 		};
-
-		// If the fee asset is the asset coming into the pool, the fee is paid by the pool
-		if fee_asset == assets.asset_in {
-			ensure!(
-				T::MultiCurrency::free_balance(assets.asset_in, &pool_id) >= fee_amount,
-				Error::<T>::InsufficientAssetBalance
-			);
-
-		// If the fee asset is the asset leaving the pool, the fee is paid by the user // TODO check if same for sell and buy
-		} else {
-			ensure!(
-				T::MultiCurrency::free_balance(assets.asset_out, who) >= amount_out + fee_amount,
-				Error::<T>::InsufficientAssetBalance
-			);
-		}
 
 		Ok(AMMTransfer {
 			origin: who.clone(),
@@ -901,6 +888,7 @@ impl<T: Config> Pallet<T> {
 			transfer.amount_out,
 		)?;
 
+		// Fee is deducted from received amount of accumulated asset and transferred to the fee collector
 		if transfer.fee.0 == transfer.assets.asset_in {
 			T::MultiCurrency::transfer(
 				transfer.fee.0,
