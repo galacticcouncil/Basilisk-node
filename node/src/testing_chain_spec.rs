@@ -19,12 +19,13 @@
 #![allow(clippy::too_many_arguments)]
 
 use cumulus_primitives_core::ParaId;
+use hex_literal::hex;
 use primitives::{AssetId, BlockNumber, Price};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use testing_basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
@@ -144,6 +145,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
 		// Bootnodes
@@ -220,6 +222,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
 		// Bootnodes
@@ -238,6 +241,73 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 	))
 }
 
+pub fn k8s_testnet_parachain_config() -> Result<ChainSpec, String> {
+	const PARA_ID: u32 = 2090;
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+	let mut properties = Map::new();
+	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
+	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
+
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"Basilisk testnet",
+		// ID
+		"basilisk_testnet",
+		ChainType::Live,
+		move || {
+			testnet_parachain_genesis(
+				wasm_binary,
+				// Sudo account
+				hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+				//initial authorities & invulnerables
+				vec![
+					(
+						hex!["fa290a1ba515ab3a5ef68a5f233689e3928efb92e6c370157a6383ea29b60c5c"].into(),
+						hex!["fa290a1ba515ab3a5ef68a5f233689e3928efb92e6c370157a6383ea29b60c5c"].unchecked_into(),
+					),
+					(
+						hex!["6e22616dfeb5bde39a7fb9ebd13498f34f76aeb6177cfc211afffc1a88bfd260"].into(),
+						hex!["6e22616dfeb5bde39a7fb9ebd13498f34f76aeb6177cfc211afffc1a88bfd260"].unchecked_into(),
+					),
+					(
+						hex!["5a734f6ec201351570c1bea987959f3ee88dc29358f5c401eb6284b0406e7078"].into(),
+						hex!["5a734f6ec201351570c1bea987959f3ee88dc29358f5c401eb6284b0406e7078"].unchecked_into(),
+					),
+				],
+				// Pre-funded accounts
+				vec![
+					hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+					hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into(), //acc from ../res/basilisk-vesting-lbp-test.json
+					hex!["8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"].into(), //acc from ../res/basilisk-vesting-lbp-test.json
+				],
+				true,
+				PARA_ID.into(),
+				//technical committee
+				vec![hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into()], // TREASURY - Fallback for multi tx payment
+				vec![],
+				hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+				get_vesting_config_for_test(),
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into()],
+			)
+		},
+		// Bootnodes
+		vec![],
+		// Telemetry
+		None,
+		// Protocol ID
+		Some(PROTOCOL_ID),
+		// Properties
+		Some(properties),
+		// Extensions
+		Extensions {
+			relay_chain: "westend".into(),
+			para_id: PARA_ID,
+		},
+	))
+}
+
 fn testnet_parachain_genesis(
 	wasm_binary: &[u8],
 	root_key: AccountId,
@@ -251,6 +321,7 @@ fn testnet_parachain_genesis(
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
 	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
+	elections: Vec<AccountId>,
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -263,7 +334,7 @@ fn testnet_parachain_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1_000_000_000u128 * UNITS))
+				.map(|k| (k, 1_000_000_000_000u128 * UNITS))
 				.collect(),
 		},
 		sudo: SudoConfig {
@@ -306,8 +377,8 @@ fn testnet_parachain_genesis(
 				.iter()
 				.flat_map(|x| {
 					vec![
-						(x.clone(), 1, 1_000_000_000u128 * UNITS),
-						(x.clone(), 2, 1_000_000_000u128 * UNITS),
+						(x.clone(), 1, 1_000_000_000_000u128 * UNITS),
+						(x.clone(), 2, 1_000_000_000_000u128 * UNITS),
 					]
 				})
 				.collect(),
@@ -319,11 +390,10 @@ fn testnet_parachain_genesis(
 		},
 		treasury: Default::default(),
 		elections: ElectionsConfig {
-			// Intergalactic elections
-			members: vec![(
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				100_000_000u128 * UNITS,
-			)],
+			members: elections
+				.iter()
+				.flat_map(|x| vec![(x.clone(), 100_000_000u128 * UNITS)])
+				.collect(),
 		},
 		council: CouncilConfig {
 			members: council_members,
