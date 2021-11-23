@@ -32,12 +32,12 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
+use hydradx_traits::AMMTransfer;
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 	fee::Fee,
 };
-use hydradx_traits::AMMTransfer;
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();

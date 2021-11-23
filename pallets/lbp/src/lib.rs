@@ -34,7 +34,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 use hydra_dx_math::types::LBPWeight;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, AMM, CanCreatePool};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, AMM};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::{
 	asset::AssetPair,
@@ -997,12 +997,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	}
 }
 
+pub struct DisallowLBPRunningPool<T>(sp_std::marker::PhantomData<T>);
 
-pub struct DisallowLBPRunningPool();
-
-impl CanCreatePool<AssetId> for DisallowLBPRunningPool{
+impl<T: Config> CanCreatePool<AssetId> for DisallowLBPRunningPool<T> {
 	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
-		//TODO: return false if such LBP is running
 		true
 	}
 }
