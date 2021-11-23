@@ -3181,8 +3181,8 @@ dependencies = [
 
 [[package]]
 name = "hydradx-traits"
-version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=32f3a9ab84b86b200d3ad702db762ac7de06b20c#32f3a9ab84b86b200d3ad702db762ac7de06b20c"
+version = "0.2.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5#a5cb40ae5313bb158f8b28e0a78479148be3b9f5"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -6326,7 +6326,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "2.1.0"
+version = "3.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

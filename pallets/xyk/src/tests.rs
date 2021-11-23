@@ -30,18 +30,8 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_events(n: usize) -> Vec<TestEvent> {
-	frame_system::Pallet::<Test>::events()
-		.into_iter()
-		.rev()
-		.take(n)
-		.rev()
-		.map(|e| e.event)
-		.collect()
-}
-
 fn expect_events(e: Vec<TestEvent>) {
-	assert_eq!(last_events(e.len()), e);
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
 #[test]
@@ -62,6 +52,8 @@ fn create_pool_should_work() {
 			asset_out: asset_b,
 		});
 		let share_token = XYK::share_token(pair_account);
+
+		assert_eq!(XYK::get_pool_assets(&pair_account), Some(vec![asset_a, asset_b]));
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100000000000000);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1000000000000000);
@@ -1882,4 +1874,22 @@ fn fee_calculation() {
 		.execute_with(|| {
 			assert_noop!(XYK::calculate_fee(100000), Error::<Test>::FeeAmountInvalid);
 		});
+}
+
+#[test]
+fn can_create_pool_should_work() {
+	new_test_ext().execute_with(|| {
+		let asset_a = 10u32;
+		let asset_b = 10u32;
+		assert_noop!(
+			XYK::create_pool(
+				Origin::signed(ALICE),
+				asset_a,
+				asset_b,
+				100_000_000_000_000,
+				Price::from(10)
+			),
+			Error::<Test>::CannotCreatePool
+		);
+	});
 }
