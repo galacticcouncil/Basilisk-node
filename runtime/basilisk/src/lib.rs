@@ -410,6 +410,7 @@ impl pallet_xyk::Config for Runtime {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type CanCreatePool = pallet_xyk::AllowAllPools;
 }
 
 impl pallet_exchange::Config for Runtime {

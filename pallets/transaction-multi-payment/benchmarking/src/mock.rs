@@ -191,6 +191,7 @@ impl pallet_xyk::Config for Test {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type CanCreatePool = pallet_xyk::AllowAllPools;
 }
 
 parameter_type_with_key! {
