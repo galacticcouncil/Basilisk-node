@@ -34,7 +34,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 use hydra_dx_math::types::LBPWeight;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, AMM};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, AMM, CanCreatePool};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::{
 	asset::AssetPair,
@@ -994,5 +994,15 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 
 	fn get_max_out_ratio() -> u128 {
 		T::MaxOutRatio::get()
+	}
+}
+
+
+pub struct DisallowLBPRunningPool();
+
+impl CanCreatePool<AssetId> for DisallowLBPRunningPool{
+	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
+		//TODO: return false if such LBP is running
+		true
 	}
 }
