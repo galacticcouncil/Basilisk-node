@@ -1000,7 +1000,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 pub struct DisallowLBPRunningPool<T>(sp_std::marker::PhantomData<T>);
 
 impl<T: Config> CanCreatePool<AssetId> for DisallowLBPRunningPool<T> {
-	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
-		true
+	fn can_create(asset_a: AssetId, asset_b: AssetId) -> bool {
+		let pool_id = Pallet::<T>::pair_account_from_assets(asset_a, asset_b);
+		match <PoolData<T>>::try_get(&pool_id) {
+			Ok(pool_data) => Pallet::<T>::is_pool_running(&pool_data),
+			// returns false if a pool does not exist, is not initialized, a sale has not started, or was destroyed
+			Err(_) => false
+		}
 	}
 }

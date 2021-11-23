@@ -2744,3 +2744,54 @@ fn calculate_fees_should_work() {
 		);
 	});
 }
+
+#[test]
+fn can_create_should_work() {
+	new_test_ext().execute_with(|| {
+		let asset_pair = AssetPair{ asset_in: ACA, asset_out: DOT };
+		// pool doesn't exist
+		assert!(!DisallowLBPRunningPool::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			ACA,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
+			20_000_000,
+			80_000_000,
+			WeightCurveType::Linear,
+			Fee::default(),
+			CHARLIE,
+		));
+		// pool is not initialized
+		assert!(!DisallowLBPRunningPool::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			None,
+			Some(10),
+			Some(20),
+			None,
+			None,
+			None,
+			None
+		));
+		// pool is initialized but is not running
+		assert!(!DisallowLBPRunningPool::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		run_to_block::<Test>(15);
+		// pool is running
+		assert!(DisallowLBPRunningPool::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		run_to_block::<Test>(30);
+		// sale ended
+		assert!(!DisallowLBPRunningPool::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
+		// pool was destroyed
+		assert!(!DisallowLBPRunningPool::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+	});
+}
