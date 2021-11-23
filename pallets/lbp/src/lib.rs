@@ -1068,8 +1068,11 @@ impl<T: Config> CanCreatePool<AssetId> for DisallowWhenLBPPoolRunning<T> {
 		let now = T::BlockNumberProvider::current_block_number();
 		match <PoolData<T>>::try_get(&pool_id) {
 			// returns true if the pool exists and the sale ended
-			Ok(pool_data) => pool_data.end != Zero::zero() && pool_data.end < now,
-			Err(_) => true
+			Ok(data) => match data.end {
+				Some(end) => end < now,
+				None => false
+			},
+			_ => true
 		}
 	}
 }

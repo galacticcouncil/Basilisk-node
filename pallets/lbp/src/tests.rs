@@ -38,7 +38,6 @@ use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 	fee::Fee,
 };
-use hydradx_traits::AMMTransfer;
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
@@ -2901,36 +2900,38 @@ fn calculate_fees_should_work() {
 #[test]
 fn can_create_should_work() {
 	new_test_ext().execute_with(|| {
-		let asset_pair = AssetPair{ asset_in: ACA, asset_out: DOT };
+		let asset_pair = AssetPair{ asset_in: KUSD, asset_out: BSX };
 		// pool doesn't exist
 		assert!(DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
 
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
 			ALICE,
-			ACA,
+			KUSD,
 			1_000_000_000,
-			DOT,
+			BSX,
 			2_000_000_000,
 			20_000_000,
 			80_000_000,
 			WeightCurveType::Linear,
 			Fee::default(),
 			CHARLIE,
+			0,
 		));
 		// pool is not initialized
 		assert!(!DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
 
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
-			ACA_DOT_POOL_ID,
+			KUSD_BSX_POOL_ID,
 			None,
 			Some(10),
 			Some(20),
 			None,
 			None,
 			None,
-			None
+			None,
+			None,
 		));
 		// pool is initialized but is not running
 		assert!(!DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
@@ -2943,7 +2944,7 @@ fn can_create_should_work() {
 		// sale ended
 		assert!(DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
 
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
+		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID,));
 		// pool was destroyed
 		assert!(DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
 	});
