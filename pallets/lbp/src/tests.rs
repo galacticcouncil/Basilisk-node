@@ -2788,7 +2788,7 @@ fn can_create_should_work() {
 
 		run_to_block::<Test>(30);
 		// sale ended
-		assert!(!DisallowLBPRunningPool::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+		assert!(DisallowLBPRunningPool::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
 
 		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
 		// pool was destroyed
