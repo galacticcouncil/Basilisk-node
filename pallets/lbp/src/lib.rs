@@ -997,9 +997,9 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	}
 }
 
-pub struct DisallowLBPRunningPool<T>(sp_std::marker::PhantomData<T>);
+pub struct DisallowWhenLBPPoolRunning<T>(sp_std::marker::PhantomData<T>);
 
-impl<T: Config> CanCreatePool<AssetId> for DisallowLBPRunningPool<T> {
+impl<T: Config> CanCreatePool<AssetId> for DisallowWhenLBPPoolRunning<T> {
 	fn can_create(asset_a: AssetId, asset_b: AssetId) -> bool {
 		let pool_id = Pallet::<T>::pair_account_from_assets(asset_a, asset_b);
 		let now = T::BlockNumberProvider::current_block_number();
