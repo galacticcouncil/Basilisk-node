@@ -229,17 +229,18 @@ pub mod pallet {
 	/// Asset id storage for shared pool tokens
 	#[pallet::storage]
 	#[pallet::getter(fn share_token)]
-	pub type ShareToken<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, AssetId, ValueQuery>;
+	pub(crate) type ShareToken<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, AssetId, ValueQuery>;
 
 	/// Total liquidity in a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn total_liquidity)]
-	pub type TotalLiquidity<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Balance, ValueQuery>;
+	pub(crate) type TotalLiquidity<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Balance, ValueQuery>;
 
 	/// Asset pair in a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_assets)]
-	pub type PoolAssets<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, (AssetId, AssetId), ValueQuery>;
+	pub(crate) type PoolAssets<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, (AssetId, AssetId), OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -606,13 +607,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	}
 
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {
-		match <PoolAssets<T>>::contains_key(pool_account_id) {
-			true => {
-				let assets = Self::pool_assets(pool_account_id);
-				Some(vec![assets.0, assets.1])
-			}
-			false => None,
-		}
+		let maybe_assets = <PoolAssets<T>>::get(pool_account_id);
+		maybe_assets.map(|assets| vec![assets.0, assets.1])
 	}
 
 	fn get_spot_price_unchecked(asset_a: AssetId, asset_b: AssetId, amount: Balance) -> Balance {
