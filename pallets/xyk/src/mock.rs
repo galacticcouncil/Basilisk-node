@@ -161,7 +161,7 @@ pub struct Disallow10_10Pool();
 
 impl CanCreatePool<AssetId> for Disallow10_10Pool {
 	fn can_create(asset_a: AssetId, asset_b: AssetId) -> bool {
-		!matches!((asset_a, asset_b), (10u32,10u32))
+		!matches!((asset_a, asset_b), (10u32, 10u32))
 	}
 }
 
