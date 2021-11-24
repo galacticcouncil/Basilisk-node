@@ -30,9 +30,9 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-pub type ClassInfoOf<T> = ClassInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
-pub type InstanceInfoOf<T> =
+type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+type ClassInfoOf<T> = ClassInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
+type InstanceInfoOf<T> =
 	InstanceInfo<<T as frame_system::Config>::AccountId, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
@@ -44,8 +44,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::{pallet_prelude::*, traits::EnsureOrigin};
 	use frame_system::pallet_prelude::OriginFor;
-
-	pub const RESERVE_ID: ReserveIdentifier = ReserveIdentifier::Nft;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -68,19 +66,19 @@ pub mod pallet {
 			+ Copy
 			+ HasCompact
 			+ AtLeast32BitUnsigned
-			+ From<Self::InstanceId>
 			+ Into<Self::InstanceId>;
 	}
 
 	/// Next available class ID.
 	#[pallet::storage]
 	#[pallet::getter(fn next_class_id)]
-	pub type NextClassId<T: Config> = StorageValue<_, T::NftClassId, ValueQuery>;
+	pub(super) type NextClassId<T: Config> = StorageValue<_, T::NftClassId, ValueQuery>;
 
 	/// Next available token ID.
 	#[pallet::storage]
 	#[pallet::getter(fn next_instance_id)]
-	pub type NextInstanceId<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, T::NftInstanceId, ValueQuery>;
+	pub(super) type NextInstanceId<T: Config> =
+		StorageMap<_, Twox64Concat, T::NftClassId, T::NftInstanceId, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn classes)]

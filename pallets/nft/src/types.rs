@@ -18,7 +18,7 @@ impl Default for ClassType {
 	}
 }
 
-#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct ClassInfo<BoundedString> {
 	/// The user account which receives the royalty
@@ -27,7 +27,7 @@ pub struct ClassInfo<BoundedString> {
 	pub metadata: BoundedString,
 }
 
-#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct InstanceInfo<AccountId, BoundedString> {
 	/// The user account which receives the royalty

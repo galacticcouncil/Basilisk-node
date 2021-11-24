@@ -30,11 +30,9 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-type BalanceOf<T> =
-	<<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 type TokenInfoOf<T> = TokenInfo<BalanceOf<T>>;
-type OfferOf<T> =
-	Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
+type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -55,34 +53,27 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn tokens)]
 	/// Stores token info
-	pub(super) type Tokens<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::NftClassId, Twox64Concat, T::NftInstanceId, TokenInfoOf<T>, OptionQuery>;
+	pub(super) type Tokens<T: Config> = StorageDoubleMap<
+		_,
+		Blake2_128Concat,
+		T::NftClassId,
+		Blake2_128Concat,
+		T::NftInstanceId,
+		TokenInfoOf<T>,
+		OptionQuery,
+	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn offers)]
 	/// Stores offer info
 	pub(super) type Offers<T: Config> = StorageDoubleMap<
 		_,
-		Twox64Concat,
+		Blake2_128Concat,
 		(T::NftClassId, T::NftInstanceId),
-		Twox64Concat,
+		Blake2_128Concat,
 		T::AccountId,
 		OfferOf<T>,
 		OptionQuery,
-	>;
-
-	/// Offer existence check by account and token id
-	#[pallet::storage]
-	#[pallet::getter(fn offers_by_maker)]
-	pub(super) type OffersByMaker<T: Config> = StorageNMap<
-		_,
-		(
-			NMapKey<Blake2_128Concat, T::AccountId>,
-			NMapKey<Blake2_128Concat, T::NftClassId>,
-			NMapKey<Blake2_128Concat, T::NftInstanceId>,
-		),
-		(),
-		ValueQuery,
 	>;
 
 	#[pallet::config]
@@ -164,7 +155,7 @@ pub mod pallet {
 				pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into()) == Some(sender.clone()),
 				Error::<T>::NotTheTokenOwner
 			);
-			
+
 			let class_type = pallet_nft::Classes::<T>::get(class_id)
 				.map(|c| c.class_type)
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
@@ -177,7 +168,13 @@ pub mod pallet {
 
 			pallet_uniques::Pallet::<T>::freeze(origin.clone(), class_id.into(), instance_id.into())?;
 
-			Self::deposit_event(Event::TokenListed(sender, class_id, instance_id, instance_info.author, instance_info.royalty));
+			Self::deposit_event(Event::TokenListed(
+				sender,
+				class_id,
+				instance_id,
+				instance_info.author,
+				instance_info.royalty,
+			));
 
 			Ok(())
 		}
@@ -198,10 +195,7 @@ pub mod pallet {
 			let owner = pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
 				.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
-			ensure!(
-				owner == sender,
-				Error::<T>::NotTheTokenOwner
-			);
+			ensure!(owner == sender, Error::<T>::NotTheTokenOwner);
 
 			let token_id = (class_id, instance_id);
 
@@ -243,11 +237,9 @@ pub mod pallet {
 			ensure!(amount >= T::MinimumOfferAmount::get(), Error::<T>::OfferTooLow);
 			ensure!(Tokens::<T>::contains_key(class_id, instance_id), Error::<T>::NotListed);
 			ensure!(
-				!OffersByMaker::<T>::contains_key((sender.clone(), class_id, instance_id)),
+				!Offers::<T>::contains_key((class_id, instance_id), sender.clone()),
 				Error::<T>::AlreadyOffered
 			);
-
-			OffersByMaker::<T>::insert((sender.clone(), class_id, instance_id), ());
 
 			let token_id = (class_id, instance_id);
 
@@ -294,7 +286,10 @@ pub mod pallet {
 				let owner = pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
 					.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
-				ensure!(sender == offer.maker || sender == owner, Error::<T>::WithdrawNotAuthorized);
+				ensure!(
+					sender == offer.maker || sender == owner,
+					Error::<T>::WithdrawNotAuthorized
+				);
 
 				<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
 
@@ -332,7 +327,7 @@ pub mod pallet {
 				if offer.expires > <frame_system::Pallet<T>>::block_number() {
 					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
 					Self::do_buy(offer.maker, class_id, instance_id, true)?;
-					Self::deposit_event(Event::OfferAccepted(sender, class_id, instance_id));
+					Self::deposit_event(Event::OfferAccepted(sender, class_id, instance_id, offer.amount));
 					Ok(())
 				} else {
 					Err(Error::<T>::OfferExpired.into())
@@ -353,10 +348,10 @@ pub mod pallet {
 			T::NftClassId,
 			T::NftInstanceId,
 			BalanceOf<T>,
-			Option<(T::AccountId, u8)>,
+			(T::AccountId, u8),
 			BalanceOf<T>,
 		),
-		/// Token listed on Marketplace \[owner, class_id, instance_id, author royalty\]
+		/// Token listed on Marketplace \[owner, class_id, instance_id, author, royalty\]
 		TokenListed(T::AccountId, T::NftClassId, T::NftInstanceId, T::AccountId, u8),
 		/// Token listed on Marketplace \[class_id, instance_id\]
 		TokenUnlisted(T::NftClassId, T::NftInstanceId),
@@ -365,7 +360,7 @@ pub mod pallet {
 		/// Offer was withdrawn \[sender, class_id, instance_id\]
 		OfferWithdrawn(T::AccountId, T::NftClassId, T::NftInstanceId),
 		/// Offer was accepted \[sender, class_id, instance_id\]
-		OfferAccepted(T::AccountId, T::NftClassId, T::NftInstanceId),
+		OfferAccepted(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>),
 	}
 
 	#[pallet::error]
@@ -413,25 +408,22 @@ impl<T: Config> Pallet<T> {
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
 
-		pallet_uniques::Pallet::<T>::thaw(owner_origin, class_id.into(), instance_id.into())?;
-
 		let token_id = (class_id, instance_id);
 
 		Tokens::<T>::try_mutate(class_id, instance_id, |maybe_token_info| -> DispatchResult {
 			let token_info = maybe_token_info.as_mut().ok_or(Error::<T>::NotListed)?;
+			pallet_uniques::Pallet::<T>::thaw(owner_origin, class_id.into(), instance_id.into())?;
 
-			let mut price;
-
-			if is_offer {
-				price = Offers::<T>::get(token_id, buyer.clone())
+			let mut price = if is_offer {
+				Offers::<T>::get(token_id, buyer.clone())
 					.map(|o| o.amount)
-					.ok_or(Error::<T>::UnknownOffer)?;
+					.ok_or(Error::<T>::UnknownOffer)?
 			} else {
-				price = token_info.price.take().ok_or(Error::<T>::NotForSale)?;
-			}
+				token_info.price.take().ok_or(Error::<T>::NotForSale)?
+			};
 
 			let instance_info = Instances::<T>::get(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
-			
+
 			let royalty = instance_info.royalty;
 			let author = instance_info.author;
 
@@ -469,7 +461,7 @@ impl<T: Config> Pallet<T> {
 				class_id,
 				instance_id,
 				price,
-				Some((author, royalty)),
+				(author, royalty),
 				royalty_amount,
 			));
 			Ok(())

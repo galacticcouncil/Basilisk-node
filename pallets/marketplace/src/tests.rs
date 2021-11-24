@@ -102,7 +102,7 @@ fn buy_works() {
 			0,
 			0,
 			768 * BSX,
-			Some((CHARLIE, 25)),
+			(CHARLIE, 25),
 			256 * BSX,
 		));
 		assert_eq!(last_event(), event);
