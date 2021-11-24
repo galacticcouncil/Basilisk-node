@@ -1,5 +1,4 @@
 name: build-and-deploy
-
 on:
   push:
     branches:
@@ -127,8 +126,13 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+      - name: debug - run ls pwd
+        run: |
+          pwd
+          ls -R
+             
       - name: copy binary for docker image creation
-        run: cp ./target/release/basilisk ./docker
+        run: cp ./target/release/basilisk docker/
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
@@ -224,3 +228,13 @@ jobs:
       - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 200
         name: Launch rococo local & wait for inclusion
         working-directory: scripts/polkadot-launch
+  run-external-deployment:
+    runs-on: ubuntu-latest
+    needs: [test-inclusion]      
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v1
+      with:
+        token: ${{ secrets.DISPATCHDEPLOYMENTTOKEN }}
+        repository: galacticcouncil/testnet-deployment
+        event-type: run-k8s-deployment
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
