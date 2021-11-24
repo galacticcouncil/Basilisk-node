@@ -293,6 +293,9 @@ pub mod pallet {
 
 		/// Amount is less than minimum trading limit.
 		InsufficientTradingAmount,
+
+		/// Trade operation is not supported
+		OperationNotSupported,
 	}
 
 	#[pallet::event]
@@ -798,6 +801,10 @@ impl<T: Config> Pallet<T> {
 
 		let pool_id = Self::get_pair_id(assets);
 		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+		let fee_asset = pool_data.assets.0;
+
+		// Buying exact amount of the accumulated asset is not supported
+		ensure!(!(trade_type == TradeType::Buy && assets.asset_out == fee_asset), Error::<T>::OperationNotSupported);
 
 		// LBP has to be running
 		ensure!(Self::is_pool_running(&pool_data), Error::<T>::SaleIsNotRunning);
@@ -853,7 +860,6 @@ impl<T: Config> Pallet<T> {
 		);
 
 		// Calculate fee for the accumulated asset
-		let fee_asset = pool_data.assets.0;
 		let fee_amount = if assets.asset_in == fee_asset {
 			Self::calculate_fees(&pool_data, amount_in)?
 		} else {

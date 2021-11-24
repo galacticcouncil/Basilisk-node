@@ -1844,9 +1844,9 @@ fn exceed_max_out_ratio_should_not_work() {
 		assert_noop!(
 			LBPPallet::buy(
 				Origin::signed(BOB),
-				KUSD,
 				BSX,
-				1_000_000_000 / MAX_OUT_RATIO + 1,
+				KUSD,
+				2_000_000_000 / MAX_OUT_RATIO + 1,
 				200_000_u128
 			),
 			Error::<Test>::MaxOutRatioExceeded
@@ -1854,17 +1854,17 @@ fn exceed_max_out_ratio_should_not_work() {
 
 		// 1/2 should not work
 		assert_noop!(
-			LBPPallet::buy(Origin::signed(BOB), KUSD, BSX, 1_000_000_000 / 2, 200_000_u128),
+			LBPPallet::buy(Origin::signed(BOB), BSX, KUSD, 2_000_000_000 / 2, 200_000_u128),
 			Error::<Test>::MaxOutRatioExceeded
 		);
 
 		// max ratio should work
 		assert_ok!(LBPPallet::buy(
 			Origin::signed(BOB),
-			KUSD,
 			BSX,
-			1_000_000_000 / MAX_OUT_RATIO,
-			2_000_000_000_u128
+			KUSD,
+			2_000_000_000 / MAX_OUT_RATIO,
+			2_000_000_000_000_u128
 		));
 	});
 }
@@ -1885,7 +1885,7 @@ fn trade_in_non_running_pool_should_not_work() {
 			Error::<Test>::SaleIsNotRunning
 		);
 		assert_noop!(
-			LBPPallet::buy(Origin::signed(who), asset_in, asset_out, amount, limit),
+			LBPPallet::buy(Origin::signed(who), asset_out, asset_in, amount, limit),
 			Error::<Test>::SaleIsNotRunning
 		);
 
@@ -1896,7 +1896,7 @@ fn trade_in_non_running_pool_should_not_work() {
 			Error::<Test>::SaleIsNotRunning
 		);
 		assert_noop!(
-			LBPPallet::buy(Origin::signed(who), asset_in, asset_out, amount, limit),
+			LBPPallet::buy(Origin::signed(who), asset_out, asset_in, amount, limit),
 			Error::<Test>::SaleIsNotRunning
 		);
 	});
@@ -1920,8 +1920,18 @@ fn exceed_trader_limit_should_not_work() {
 		);
 
 		assert_noop!(
-			LBPPallet::buy(Origin::signed(who), asset_in, asset_out, amount, buy_limit),
+			LBPPallet::buy(Origin::signed(who), asset_out, asset_in, amount, buy_limit),
 			Error::<Test>::AssetBalanceLimitExceeded
+		);
+	});
+}
+
+#[test]
+fn buy_exact_value_of_accumulated_asset_restricted() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(BOB), KUSD, BSX, 800_000_u128, 800_000_u128),
+			Error::<Test>::OperationNotSupported
 		);
 	});
 }
@@ -3146,5 +3156,4 @@ fn simulate_lbp_event_with_repayment() {
 		assert_eq!(Currency::free_balance(sold_asset, &fee_collector), 0);
 	});
 }
-
 
