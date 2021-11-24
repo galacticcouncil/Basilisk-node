@@ -80,19 +80,17 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: whereami
-        run: pwd    
       - name: test_download-basilisk-image
         working-directory: ./docker
         run: wget https://github.com/galacticcouncil/Basilisk-node/releases/download/v5.0.3/basilisk
-      - name: list
-        run: ls
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 10 seconds
         run: sleep 10s
       - name: build docker image
         run: sudo docker build -t basilisk:latest docker
+      - name: Sleep for 10 seconds
+        run: sleep 10s        
       - name: install aws cli
         run: sudo apt  install awscli
       - name: configure aws creds
