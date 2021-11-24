@@ -128,8 +128,15 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+      - name: install docker
+        run: sudo snap install docker
+
       - name: build docker image
-        run: docker build -t basilisk:latest docker
+        run: sudo docker build -t basilisk:latest docker
+      - name: install aws cli
+        run: sudo apt  install awscli
+      - name: configure aws creds
+        run: aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}; aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}; aws configure set default.region eu-west-1  
       - name: get ecr credentials
         run: aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 601305236792.dkr.ecr.eu-west-1.amazonaws.com
       - name: push image to ecr repository
