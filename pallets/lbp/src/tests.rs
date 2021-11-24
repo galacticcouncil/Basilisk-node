@@ -1,3 +1,20 @@
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use super::*;
 pub use crate::mock::{
 	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, ACA, ALICE, BOB, CHARLIE,
@@ -15,11 +32,11 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
+use hydradx_traits::AMMTransfer;
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 	fee::Fee,
-	traits::AMMTransfer,
 };
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
@@ -51,18 +68,6 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			None
 		));
 
-		let pool_data1 = Pool {
-			owner: ALICE,
-			start: 0u64,
-			end: 0u64,
-			assets: (ACA, DOT),
-			initial_weight: 20_000_000,
-			final_weight: 80_000_000,
-			weight_curve: WeightCurveType::Linear,
-			fee: Fee::default(),
-			fee_collector: CHARLIE,
-		};
-
 		let pool_data2 = Pool {
 			owner: ALICE,
 			start: 10u64,
@@ -78,7 +83,6 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_eq!(<PoolData<Test>>::get(ACA_DOT_POOL_ID), pool_data2);
 
 		expect_events(vec![
-			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data1).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, pool_data2).into(),
 		]);
@@ -261,10 +265,14 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
-		expect_events(vec![
-			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
-			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
-		]);
+		expect_events(vec![Event::LiquidityAdded(
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -325,12 +333,14 @@ fn create_same_pool_should_not_work() {
 			Error::<Test>::PoolAlreadyExists
 		);
 
-		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-
-		expect_events(vec![
-			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
-			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
-		]);
+		expect_events(vec![Event::LiquidityAdded(
+			ACA_DOT_POOL_ID,
+			ACA,
+			DOT,
+			1_000_000_000,
+			2_000_000_000,
+		)
+		.into()]);
 	});
 }
 
@@ -833,8 +843,6 @@ fn update_pool_interval_should_work() {
 			CHARLIE,
 		));
 
-		let pool_data = LBPPallet::pool_data(ACA_DOT_POOL_ID);
-
 		run_to_block::<Test>(15);
 
 		assert_noop!(
@@ -870,7 +878,6 @@ fn update_pool_interval_should_work() {
 		assert_eq!(updated_pool_data.end, 20);
 
 		expect_events(vec![
-			Event::PoolCreated(ACA_DOT_POOL_ID, pool_data).into(),
 			Event::LiquidityAdded(ACA_DOT_POOL_ID, ACA, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(ACA_DOT_POOL_ID, updated_pool_data).into(),
 		]);
@@ -1892,10 +1899,10 @@ fn buy_should_work() {
 		expect_events(vec![
 			orml_tokens::Event::Endowed(ACA, CHARLIE, 28_737).into(),
 			Event::BuyExecuted(buyer, DOT, ACA, 14_368_715, 10_000_000, ACA, 28_737).into(),
+			Event::PoolCreated(pool_id2, pool_data1).into(),
 			frame_system::Event::NewAccount(pool_id2).into(),
 			orml_tokens::Event::Endowed(HDX, pool_id2, 1_000_000_000).into(),
 			orml_tokens::Event::Endowed(DOT, pool_id2, 2_000_000_000).into(),
-			Event::PoolCreated(pool_id2, pool_data1).into(),
 			Event::LiquidityAdded(pool_id2, HDX, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(pool_id2, pool_data2).into(),
 			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3711).into(),
@@ -2028,10 +2035,10 @@ fn sell_should_work() {
 		expect_events(vec![
 			orml_tokens::Event::Endowed(DOT, CHARLIE, 13_959).into(),
 			Event::SellExecuted(buyer, ACA, DOT, 10_000_000, 6_965_956, DOT, 13_959).into(),
+			Event::PoolCreated(pool_id2, pool_data1).into(),
 			frame_system::Event::NewAccount(pool_id2).into(),
 			orml_tokens::Event::Endowed(asset_in, pool_id2, 1_000_000_000).into(),
 			orml_tokens::Event::Endowed(asset_out, pool_id2, 2_000_000_000).into(),
-			Event::PoolCreated(pool_id2, pool_data1).into(),
 			Event::LiquidityAdded(pool_id2, HDX, DOT, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(pool_id2, pool_data2).into(),
 			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3_686).into(),
@@ -2735,5 +2742,56 @@ fn calculate_fees_should_work() {
 			LBPPallet::calculate_fees(&pool, u128::MAX / 2 + 1),
 			Error::<Test>::FeeAmountInvalid,
 		);
+	});
+}
+
+#[test]
+fn can_create_should_work() {
+	new_test_ext().execute_with(|| {
+		let asset_pair = AssetPair{ asset_in: ACA, asset_out: DOT };
+		// pool doesn't exist
+		assert!(DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			ACA,
+			1_000_000_000,
+			DOT,
+			2_000_000_000,
+			20_000_000,
+			80_000_000,
+			WeightCurveType::Linear,
+			Fee::default(),
+			CHARLIE,
+		));
+		// pool is not initialized
+		assert!(!DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			ACA_DOT_POOL_ID,
+			None,
+			Some(10),
+			Some(20),
+			None,
+			None,
+			None,
+			None
+		));
+		// pool is initialized but is not running
+		assert!(!DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		run_to_block::<Test>(15);
+		// pool is running
+		assert!(!DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		run_to_block::<Test>(30);
+		// sale ended
+		assert!(DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
+
+		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), ACA_DOT_POOL_ID,));
+		// pool was destroyed
+		assert!(DisallowWhenLBPPoolRunning::<Test>::can_create(asset_pair.asset_in, asset_pair.asset_out));
 	});
 }

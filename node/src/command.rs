@@ -45,6 +45,7 @@ fn load_spec(
 		Ok(match id {
 			"dev" => Box::new(testing_chain_spec::parachain_development_config(para_id)?),
 			"local" => Box::new(testing_chain_spec::local_parachain_config(para_id)?),
+			"testnet-k8s" => Box::new(testing_chain_spec::k8s_testnet_parachain_config()?),
 			path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
 				std::path::PathBuf::from(path),
 			)?),
@@ -109,6 +110,7 @@ impl SubstrateCli for Cli {
 			Ok(match id {
 				"dev" => Box::new(testing_chain_spec::parachain_development_config(para_id)?),
 				"local" => Box::new(testing_chain_spec::local_parachain_config(para_id)?),
+				"testnet-k8s" => Box::new(testing_chain_spec::k8s_testnet_parachain_config()?),
 				path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
 					std::path::PathBuf::from(path),
 				)?),
@@ -337,6 +339,10 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(&cli.run.base.normalize())?;
 
 			runner.run_node_until_exit(|config| async move {
+				if cfg!(feature = "runtime-benchmarks") && config.role.is_authority() {
+					return Err("It is not allowed to run a collator node with the benchmarking runtime.".into());
+				};
+
 				let para_id = chain_spec::Extensions::try_get(&config.chain_spec).map(|e| e.para_id);
 
 				let polkadot_cli = RelayChainCli::new(

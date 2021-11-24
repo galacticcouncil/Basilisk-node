@@ -31,11 +31,12 @@ use pallet_xyk as xyk;
 
 use frame_support::traits::{Everything, GenesisBuild, Get};
 use frame_system::EnsureSigned;
-use pallet_xyk::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, AssetId, Balance,
+	fee,
+	AssetId, Balance,
 };
+use hydradx_traits::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 pub type Amount = i128;
@@ -138,7 +139,7 @@ impl orml_tokens::Config for Test {
 pub struct AssetPairAccountIdTest();
 
 impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> u64 {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> u64 {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
@@ -167,6 +168,7 @@ impl xyk::Config for Test {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type CanCreatePool = pallet_xyk::AllowAllPools;
 }
 
 impl Config for Test {

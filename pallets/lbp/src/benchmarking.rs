@@ -1,3 +1,20 @@
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![cfg(feature = "runtime-benchmarks")]
 
 use super::*;
@@ -30,7 +47,7 @@ fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 benchmarks! {
 	create_pool {
 		let caller = funded_account::<T>("caller", 0);
-		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
+		let pool_id = LBP::<T>::pair_account_from_assets(ASSET_A_ID, ASSET_B_ID);
 
 	}: _(RawOrigin::Root, caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), caller)
 	verify {
@@ -40,7 +57,7 @@ benchmarks! {
 	update_pool_data {
 		let caller = funded_account::<T>("caller", 0);
 		let fee_collector = funded_account::<T>("fee_collector", 0);
-		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
+		let pool_id = LBP::<T>::pair_account_from_assets(ASSET_A_ID, ASSET_B_ID);
 		let new_start = T::BlockNumber::from(50_u32);
 		let new_end = T::BlockNumber::from(100_u32);
 		let new_initial_weight = 45_250_600;
@@ -60,7 +77,7 @@ benchmarks! {
 
 	add_liquidity {
 		let caller = funded_account::<T>("caller", 0);
-		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
+		let pool_id = LBP::<T>::pair_account_from_assets(ASSET_A_ID, ASSET_B_ID);
 
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), caller.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
@@ -73,7 +90,7 @@ benchmarks! {
 
 	remove_liquidity {
 		let caller = funded_account::<T>("caller", 0);
-		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
+		let pool_id = LBP::<T>::pair_account_from_assets(ASSET_A_ID, ASSET_B_ID);
 
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), caller.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
@@ -93,7 +110,7 @@ benchmarks! {
 		let amount : Balance = 100_000_000;
 		let max_limit: Balance = 10_000_000;
 
-		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
+		let pool_id = LBP::<T>::pair_account_from_assets(ASSET_A_ID, ASSET_B_ID);
 
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
@@ -119,7 +136,7 @@ benchmarks! {
 		let asset_in: AssetId = ASSET_B_ID;
 		let amount : Balance = 100_000_000;
 		let max_limit: Balance = 1_000_000_000;
-		let pool_id = T::AssetPairPoolId::from_assets(ASSET_A_ID, ASSET_B_ID);
+		let pool_id = LBP::<T>::pair_account_from_assets(ASSET_A_ID, ASSET_B_ID);
 
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee::default(), fee_collector.clone())?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");

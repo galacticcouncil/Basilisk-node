@@ -46,7 +46,7 @@ pub use pallet::*;
 
 use crate::types::{AssetDetails, AssetMetadata};
 use frame_support::BoundedVec;
-use primitives::traits::{Registry, ShareTokenRegistry};
+use hydradx_traits::{Registry, ShareTokenRegistry};
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -353,14 +353,14 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	/// Convert Vec<u8> to BoundedVec so it respects the max set limit, otherwise return TooLong error
-	fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
+	pub fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
 		name.try_into().map_err(|_| Error::<T>::TooLong)
 	}
 
 	/// Register new asset.
 	///
 	/// Does not perform any  check whether an asset for given name already exists. This has to be prior to calling this function.
-	fn register_asset(
+	pub fn register_asset(
 		name: BoundedVec<u8, T::StringLimit>,
 		asset_type: AssetType<T::AssetId>,
 		existential_deposit: T::Balance,
