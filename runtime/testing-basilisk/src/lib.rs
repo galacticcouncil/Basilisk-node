@@ -1054,7 +1054,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			add_benchmark!(params, batches, pallet_duster, Duster);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 
 			// Substrate pallets

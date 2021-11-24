@@ -17,7 +17,7 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false, optional = true }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
-orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "dc96605342de9971c27699561723a6de6e2614c2", default-features = false }
+orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "ee37b76a7a8cf159e6c41851942758746318bb84", default-features = false }
 pallet-uniques = { path = "../uniques", default-features = false }
 serde = { version = "1.0.111", optional = true, features = ["derive"] }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }

@@ -275,15 +275,15 @@ fn free_trading_works() {
 		);
 		assert_ok!(Market::list(Origin::signed(BOB), 1, 1));
 
-		// Unknown class
-		assert_noop!(
-			Market::list(Origin::signed(CHARLIE), 4, 0),
-			pallet_nft::Error::<Test>::ClassUnknown
-		);
+		// Unknown class, should never happen
+		// assert_noop!(
+		// 	Market::list(Origin::signed(CHARLIE), 4, 0),
+		// 	pallet_nft::Error::<Test>::ClassUnknown
+		// );
 
-		// Unsupported class
+		// Unsupported class, should never happen, bcs caller is 0x00
 		assert_noop!(
-			Market::list(Origin::signed(CHARLIE), 3, 0),
+			Market::list(Origin::signed(Default::default()), 3, 0),
 			Error::<Test>::UnsupportedClassType
 		);
 
