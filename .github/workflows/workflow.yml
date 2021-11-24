@@ -61,7 +61,7 @@ jobs:
         id: apply
         working-directory: ./infrastructure
         run: terraform apply -var="ec2_pwd=$EC2_SECRET" -var="branch_name=${{ steps.determine-runner.outputs.runner }}" -auto-approve
-      - name: Sleep for 20 seconds
+      - name: Sleep for 10 seconds
         if: ${{ env.IS_LOCAL == 'true' }}
         uses: jakejarvis/wait-action@master
         with:
@@ -80,8 +80,12 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+      - name: whereami
+        run: pwd    
       - name: test_download-basilisk-image
-        run: wget https://github.com/galacticcouncil/Basilisk-node/releases/download/v5.0.3/basilisk    
+        run: wget https://github.com/galacticcouncil/Basilisk-node/releases/download/v5.0.3/basilisk
+      - name: list
+        run: ls
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 10 seconds
