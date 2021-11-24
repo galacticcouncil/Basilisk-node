@@ -55,36 +55,39 @@ use frame_support::sp_runtime::{traits::AccountIdConversion, RuntimeDebug};
 use hydradx_traits::AMM;
 use scale_info::TypeInfo;
 
-#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub struct GlobalPool<Period, Balance, AssetId, AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
+type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
+type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
+type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
+type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
+
+#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
+pub struct GlobalPool<T: Config> {
 	id: PoolId,
-	owner: AccountId,
-	updated_at: Period,
+	owner: AccountIdOf<T>,
+	updated_at: PeriodOf<T>,
 	total_shares: Balance,
 	accumulated_rps: Balance,
 	accumulated_rps_start: Balance,
-	reward_currency: AssetId,
+	reward_currency: AssetIdOf<T>,
 	accumulated_rewards: Balance,
 	paid_accumulated_rewards: Balance,
 	yield_per_period: Permill,
-	planned_yielding_periods: Period,
-	blocks_per_period: BlockNumber,
-	incentivized_token: AssetId,
+	planned_yielding_periods: PeriodOf<T>,
+	blocks_per_period: BlockNumberFor<T>,
+	incentivized_token: AssetIdOf<T>,
 	max_reward_per_period: Balance,
 }
 
-impl<Period, Balance: std::default::Default, AssetId, AccountId, BlockNumber: AtLeast32BitUnsigned + Copy>
-	GlobalPool<Period, Balance, AssetId, AccountId, BlockNumber>
-{
+impl<T: Config> GlobalPool<T> {
 	fn new(
 		id: PoolId,
-		updated_at: Period,
-		reward_currency: AssetId,
+		updated_at: PeriodOf<T>,
+		reward_currency: T::CurrencyId,
 		yield_per_period: Permill,
-		planned_yielding_periods: Period,
-		blocks_per_period: BlockNumber,
-		owner: AccountId,
-		incentivized_token: AssetId,
+		planned_yielding_periods: PeriodOf<T>,
+		blocks_per_period: T::BlockNumber,
+		owner: T::AccountId,
+		incentivized_token: T::CurrencyId,
 		max_reward_per_period: Balance,
 	) -> Self {
 		Self {
@@ -106,10 +109,10 @@ impl<Period, Balance: std::default::Default, AssetId, AccountId, BlockNumber: At
 	}
 }
 
-#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub struct LiquidityPool<Period, Balance> {
+#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
+pub struct LiquidityPool<T: Config> {
 	id: PoolId,
-	updated_at: Period,
+	updated_at: PeriodOf<T>,
 	total_shares: Balance,
 	accumulated_rps: Balance,
 	loyalty_curve: Option<LoyaltyCurve>,
@@ -117,8 +120,8 @@ pub struct LiquidityPool<Period, Balance> {
 	multiplier: u32, //this is multiplier/weight in glboal pool
 }
 
-impl<Period, Balance: std::default::Default> LiquidityPool<Period, Balance> {
-	fn new(id: PoolId, updated_at: Period, loyalty_curve: Option<LoyaltyCurve>, multiplier: u32) -> Self {
+impl<T: Config> LiquidityPool<T> {
+	fn new(id: PoolId, updated_at: PeriodOf<T>, loyalty_curve: Option<LoyaltyCurve>, multiplier: u32) -> Self {
 		Self {
 			accumulated_rps: Default::default(),
 			stake_in_global_pool: Default::default(),
@@ -133,20 +136,20 @@ impl<Period, Balance: std::default::Default> LiquidityPool<Period, Balance> {
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 pub struct LoyaltyCurve {
-	b: FixedU128,
+	initial_reward_percentage: FixedU128,
 	scale_coef: u32,
 }
 
 impl Default for LoyaltyCurve {
 	fn default() -> Self {
 		Self {
-			b: FixedU128::from_inner(500_000_000_000_000_000), // 0.5
+			initial_reward_percentage: FixedU128::from_inner(500_000_000_000_000_000), // 0.5
 			scale_coef: 100,
 		}
 	}
 }
 use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::{traits::AtLeast32BitUnsigned, FixedPointNumber};
+use frame_support::sp_runtime::FixedPointNumber;
 use sp_std::convert::{From, Into, TryInto};
 
 use primitives::{asset::AssetPair, Balance};
@@ -164,7 +167,7 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + TypeInfo {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Asset type
@@ -244,13 +247,10 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// New farm was creaated by `CreateOrigin` origin. [pool_id, global_pool]
-		FarmCreated(
-			PoolId,
-			GlobalPool<T::BlockNumber, Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
-		),
+		FarmCreated(PoolId, GlobalPool<T>),
 
 		/// New liquidity(AMM) pool was added to farm [farm_id, amm_pool_id, liquidity_pool]
-		LiquidityPoolAdded(PoolId, T::AccountId, LiquidityPool<T::BlockNumber, Balance>),
+		LiquidityPoolAdded(PoolId, T::AccountId, LiquidityPool<T>),
 	}
 
 	#[pallet::storage]
@@ -259,23 +259,17 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn global_pool)]
-	pub type GlobalPoolData<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		PoolId,
-		GlobalPool<T::BlockNumber, Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
-		OptionQuery,
-	>;
+	type GlobalPoolData<T: Config> = StorageMap<_, Twox64Concat, PoolId, GlobalPool<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn liquidity_pool)]
-	pub type LiquidityPoolData<T: Config> = StorageDoubleMap<
+	type LiquidityPoolData<T: Config> = StorageDoubleMap<
 		_,
 		Twox64Concat,
 		PoolId,
 		Twox64Concat,
 		T::AccountId, //amm_pool_id
-		LiquidityPool<T::BlockNumber, Balance>,
+		LiquidityPool<T>,
 		OptionQuery,
 	>;
 
@@ -299,10 +293,10 @@ pub mod pallet {
 		pub fn create_farm(
 			origin: OriginFor<T>,
 			total_rewards: Balance,
-			planned_yielding_periods: T::BlockNumber,
-			blocks_per_period: T::BlockNumber,
-			incentivized_token: T::CurrencyId,
-			reward_currency: T::CurrencyId,
+			planned_yielding_periods: PeriodOf<T>,
+			blocks_per_period: BlockNumberFor<T>,
+			incentivized_token: AssetIdOf<T>,
+			reward_currency: AssetIdOf<T>,
 			owner: T::AccountId,
 			yield_per_period: Permill,
 		) -> DispatchResult {
@@ -350,12 +344,12 @@ pub mod pallet {
 
 		#[pallet::weight(1000)]
 		pub fn destroy_farm(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-            todo!()
+			todo!()
 		}
 
 		#[pallet::weight(1000)]
 		pub fn withdraw_undistributed_rewards(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-            todo!()
+			todo!()
 		}
 
 		#[pallet::weight(1000)]
@@ -370,14 +364,21 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			ensure!(!weight.is_zero(), Error::<T>::InvalidWeight);
-			Self::validate_loyalty_curve(&loyalty_curve)?;
+
+			if loyalty_curve.is_some() {
+				let c = loyalty_curve.as_ref().unwrap();
+				ensure!(
+					c.initial_reward_percentage.lt(&FixedU128::one()),
+					Error::<T>::InvalidLoyaltyCurverParamB
+				);
+			}
+
+			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 
 			<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_pool| -> DispatchResult {
 				let g_pool = maybe_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 				ensure!(who == g_pool.owner, Error::<T>::Forbidden);
-
-				ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 
 				let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 				ensure!(
@@ -391,7 +392,7 @@ pub mod pallet {
 					g_pool.total_shares,
 					g_pool.max_reward_per_period,
 				)?;
-				Self::update_global_pool(farm_id, g_pool, now_period, reward_per_period)?;
+				Self::update_global_pool(g_pool, now_period, reward_per_period)?;
 
 				let liq_pool_id = Self::get_next_id()?;
 				let pool = LiquidityPool::new(liq_pool_id, now_period, loyalty_curve, weight);
@@ -406,38 +407,38 @@ pub mod pallet {
 
 		#[pallet::weight(1000)]
 		pub fn update_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-            todo!()
+			todo!()
 		}
 
 		#[pallet::weight(1000)]
 		pub fn cancel_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-            todo!()
+			todo!()
 		}
 
 		#[pallet::weight(1000)]
 		pub fn remove_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-            todo!()
+			todo!()
 		}
 
 		#[pallet::weight(1000)]
 		pub fn deposit_shares(_origin: OriginFor<T>) -> DispatchResult {
-            todo!()
+			todo!()
 		}
 
 		#[pallet::weight(1000)]
 		pub fn claim_rewards(_origin: OriginFor<T>) -> DispatchResult {
-            todo!()
+			todo!()
 		}
 
 		#[pallet::weight(1000)]
 		pub fn withdraw_shares(_origin: OriginFor<T>) -> DispatchResult {
-            todo!()
+			todo!()
 		}
 	}
 }
 
 impl<T: Config> Pallet<T> {
-	pub fn get_next_id() -> Result<PoolId, Error<T>> {
+	fn get_next_id() -> Result<PoolId, Error<T>> {
 		PoolIdSeq::<T>::try_mutate(|current_id| {
 			*current_id = current_id.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
@@ -446,29 +447,29 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Account id of pot holding all the shares
-	pub fn account_id() {
+	fn account_id() {
 		T::PalletId::get().into_account()
 	}
 
 	/// Return pallet account or pool acocunt from PoolId
 	///
 	/// WARN: pool_id = 0 is same as `T::PalletId::get().into_account()`. 0 is not valid value
-	pub fn pool_account_id(pool_id: PoolId) -> Result<T::AccountId, Error<T>> {
+	fn pool_account_id(pool_id: PoolId) -> Result<T::AccountId, Error<T>> {
 		Self::validate_pool_id(pool_id)?;
 
 		Ok(T::PalletId::get().into_sub_account(pool_id))
 	}
 
 	/// Return now period number
-	pub fn get_now_period(blocks_per_period: T::BlockNumber) -> Result<T::BlockNumber, Error<T>> {
+	fn get_now_period(blocks_per_period: BlockNumberFor<T>) -> Result<PeriodOf<T>, Error<T>> {
 		Self::get_period_number(T::BlockNumberProvider::current_block_number(), blocks_per_period)
 	}
 
 	/// Return period number from block number now and number of blocks in one period
-	pub fn get_period_number(
-		now: T::BlockNumber,
-		blocks_per_period: T::BlockNumber,
-	) -> Result<T::BlockNumber, Error<T>> {
+	fn get_period_number(
+		now: BlockNumberFor<T>,
+		blocks_per_period: BlockNumberFor<T>,
+	) -> Result<PeriodOf<T>, Error<T>> {
 		now.checked_div(&blocks_per_period).ok_or(Error::<T>::Overflow)
 	}
 
@@ -478,22 +479,19 @@ impl<T: Config> Pallet<T> {
 	//
 	// loyalty-multiplier = [theta + (theta * b) + b]/[theta + (theta * b) + 1]
 	//
-	pub fn get_loyalty_multiplier(
-		periods: T::BlockNumber,
-		curve: Option<&LoyaltyCurve>,
-	) -> Result<FixedU128, Error<T>> {
+	fn get_loyalty_multiplier(periods: PeriodOf<T>, curve: Option<&LoyaltyCurve>) -> Result<FixedU128, Error<T>> {
 		let curve = match curve {
 			Some(v) => v,
 			None => return Ok(FixedU128::one()),
 		};
 
 		//b.is_one() is special case - this case is prevented by validate_loyalty_curve()
-		if FixedPointNumber::is_one(&curve.b) {
+		if FixedPointNumber::is_one(&curve.initial_reward_percentage) {
 			return Ok(FixedU128::one());
 		}
 
 		let denom = curve
-			.b
+			.initial_reward_percentage
 			.checked_add(&1.into())
 			.ok_or(Error::<T>::Overflow)?
 			.checked_mul(&FixedU128::from(Into::<u128>::into(curve.scale_coef)))
@@ -502,12 +500,14 @@ impl<T: Config> Pallet<T> {
 		let periods = FixedU128::from(TryInto::<u128>::try_into(periods).map_err(|_e| Error::<T>::Overflow)?);
 		let theta = periods.checked_div(&denom).ok_or(Error::<T>::Overflow)?;
 
-		let theta_mul_b = theta.checked_mul(&curve.b).ok_or(Error::<T>::Overflow)?;
+		let theta_mul_b = theta
+			.checked_mul(&curve.initial_reward_percentage)
+			.ok_or(Error::<T>::Overflow)?;
 
 		let theta_add_theta_mul_b = theta.checked_add(&theta_mul_b).ok_or(Error::<T>::Overflow)?;
 
 		let num = theta_add_theta_mul_b
-			.checked_add(&curve.b)
+			.checked_add(&curve.initial_reward_percentage)
 			.ok_or(Error::<T>::Overflow)?;
 
 		let denom = theta_add_theta_mul_b
@@ -517,7 +517,7 @@ impl<T: Config> Pallet<T> {
 		num.checked_div(&denom).ok_or(Error::<T>::Overflow)
 	}
 
-	pub fn get_reward_per_period(
+	fn get_reward_per_period(
 		yield_per_period: FixedU128,
 		total_global_pool_shares: Balance,
 		max_reward_per_period: Balance,
@@ -528,10 +528,9 @@ impl<T: Config> Pallet<T> {
 			.min(max_reward_per_period))
 	}
 
-	pub fn update_global_pool(
-		pool_id: PoolId,
-		pool: &mut GlobalPool<T::BlockNumber, Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
-		now_period: T::BlockNumber,
+	fn update_global_pool(
+		pool: &mut GlobalPool<T>,
+		now_period: PeriodOf<T>,
 		reward_per_period: Balance,
 	) -> Result<(), Error<T>> {
 		if pool.updated_at == now_period {
@@ -547,7 +546,7 @@ impl<T: Config> Pallet<T> {
 				.map_err(|_e| Error::<T>::Overflow)?
 				.into();
 
-		let pool_account = Self::pool_account_id(pool_id);
+		let pool_account = Self::pool_account_id(pool.id);
 		let reward = periods_since_last_update
 			.checked_mul(reward_per_period)
 			.ok_or(Error::<T>::Overflow)?
@@ -567,7 +566,7 @@ impl<T: Config> Pallet<T> {
 		return Ok(());
 	}
 
-	pub fn get_accumulated_rps(
+	fn get_accumulated_rps(
 		accumulated_rps_now: Balance,
 		total_shares: Balance,
 		reward: Balance,
@@ -581,7 +580,7 @@ impl<T: Config> Pallet<T> {
 
 	/// (user_rewards, unclaimable_rewards)
 	/// NOTE: claimable_reward and user_rewards is not the same !!!
-	pub fn get_user_reward(
+	fn get_user_reward(
 		user_accumulated_rps: Balance,
 		user_shares: Balance,
 		accumulated_rps_now: Balance,
@@ -607,10 +606,7 @@ impl<T: Config> Pallet<T> {
 		Ok((user_rewards, unclaimable_rewards))
 	}
 
-	pub fn claim_from_global_pool(
-		pool: &mut GlobalPool<T::BlockNumber, Balance, T::CurrencyId, T::AccountId, T::BlockNumber>,
-		shares: Balance,
-	) -> Result<Balance, Error<T>> {
+	fn claim_from_global_pool(pool: &mut GlobalPool<T>, shares: Balance) -> Result<Balance, Error<T>> {
 		let reward = pool
 			.accumulated_rps
 			.checked_sub(pool.accumulated_rps_start)
@@ -634,14 +630,13 @@ impl<T: Config> Pallet<T> {
 		return Ok(reward);
 	}
 
-	pub fn update_pool(
-		pool_id: PoolId,
-		pool: &mut LiquidityPool<T::BlockNumber, Balance>,
+	fn update_pool(
+		pool: &mut LiquidityPool<T>,
 		rewards: Balance,
-		period_now: T::BlockNumber,
+		period_now: BlockNumberFor<T>,
 		global_pool_id: PoolId,
 		reward_currency: T::CurrencyId,
-	) -> Result<(), DispatchError> {
+	) -> DispatchResult {
 		if pool.updated_at == period_now {
 			return Ok(());
 		}
@@ -662,22 +657,22 @@ impl<T: Config> Pallet<T> {
 		);
 
 		let global_pool_account = Self::pool_account_id(global_pool_id)?;
-		let pool_account = Self::pool_account_id(pool_id)?;
+		let pool_account = Self::pool_account_id(pool.id)?;
 		T::MultiCurrency::transfer(reward_currency, &global_pool_account, &pool_account, rewards)
 	}
 
-	pub fn validate_pool_id(pool_id: PoolId) -> Result<(), Error<T>> {
-		if pool_id.le(&Zero::zero()) {
+	fn validate_pool_id(pool_id: PoolId) -> Result<(), Error<T>> {
+		if pool_id.is_zero() {
 			return Err(Error::<T>::InvalidPoolId);
 		}
 
 		Ok(())
 	}
 
-	pub fn validate_create_farm_data(
+	fn validate_create_farm_data(
 		total_rewads: Balance,
-		planned_yielding_periods: T::BlockNumber,
-		blocks_per_period: T::BlockNumber,
+		planned_yielding_periods: PeriodOf<T>,
+		blocks_per_period: BlockNumberFor<T>,
 		yield_per_period: Permill,
 	) -> DispatchResult {
 		ensure!(
@@ -690,19 +685,9 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::InvalidPlannedYieldingPeriods
 		);
 
-		ensure!(!Zero::is_zero(&blocks_per_period), Error::<T>::InvalidBlocksPerPeriod);
+		ensure!(!blocks_per_period.is_zero(), Error::<T>::InvalidBlocksPerPeriod);
 
 		ensure!(!yield_per_period.is_zero(), Error::<T>::InvalidYieldPerPeriod);
-
-		Ok(())
-	}
-
-	pub fn validate_loyalty_curve(c: &Option<LoyaltyCurve>) -> DispatchResult {
-		if c.is_some() {
-			let b = c.as_ref().unwrap().b;
-
-			ensure!(b.lt(&FixedU128::one()), Error::<T>::InvalidLoyaltyCurverParamB);
-		}
 
 		Ok(())
 	}

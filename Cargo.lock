@@ -5780,7 +5780,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5800,7 +5800,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "substrate-wasm-builder",
 ]
 
 [[package]]

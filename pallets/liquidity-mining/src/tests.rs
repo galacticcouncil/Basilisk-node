@@ -169,15 +169,15 @@ fn get_period_number_should_not_work() {
 fn get_loyalty_multiplier_should_work() {
 	let c1 = LoyaltyCurve::default();
 	let c2 = LoyaltyCurve {
-		b: FixedU128::from(1),
+		initial_reward_percentage: FixedU128::from(1),
 		scale_coef: 50,
 	};
 	let c3 = LoyaltyCurve {
-		b: FixedU128::from_inner(123_580_000_000_000_000), // 0.12358
+		initial_reward_percentage: FixedU128::from_inner(123_580_000_000_000_000), // 0.12358
 		scale_coef: 23,
 	};
 	let c4 = LoyaltyCurve {
-		b: FixedU128::from_inner(0), // 0.12358
+		initial_reward_percentage: FixedU128::from_inner(0), // 0.12358
 		scale_coef: 15,
 	};
 
@@ -1118,7 +1118,7 @@ fn update_global_pool_should_work() {
 			let _ = Tokens::transfer(Origin::signed(TREASURY), farm_account_id, t.3, t.5);
 			assert_eq!(Tokens::free_balance(t.3, &farm_account_id), t.5);
 
-			LiquidityMining::update_global_pool(t.4, &mut p, t.6, t.7).unwrap();
+			LiquidityMining::update_global_pool(&mut p, t.6, t.7).unwrap();
 
 			let mut rhs_p = GlobalPool::new(
 				t.4,
@@ -1808,7 +1808,7 @@ fn update_pool_should_work() {
 		let reward_currency = t.7;
 		let max_reward_per_period = Balance::from(10_000_u32);
 
-		let mut global_p = GlobalPool::new(
+		let mut global_p = GlobalPool::<Test>::new(
 			gid,
 			updated_at,
 			reward_currency,
@@ -1827,7 +1827,7 @@ fn update_pool_should_work() {
 		global_p.paid_accumulated_rewards = Balance::from(1_000_000_u128);
 
 		let mut p = LiquidityPool {
-			id: 1,
+			id: t.1,
 			updated_at: t.2,
 			total_shares: t.5,
 			accumulated_rps: t.4,
@@ -1855,7 +1855,7 @@ fn update_pool_should_work() {
 
 			assert_eq!(Tokens::free_balance(t.7.try_into().unwrap(), &pool_account_id), 0);
 
-			assert_ok!(LiquidityMining::update_pool(t.1, &mut p, t.6, t.3, t.0, t.7));
+			assert_ok!(LiquidityMining::update_pool(&mut p, t.6, t.3, t.0, t.7));
 
 			let mut rhs_gp = GlobalPool::new(
 				gid,
@@ -1881,7 +1881,7 @@ fn update_pool_should_work() {
 			assert_eq!(
 				p,
 				LiquidityPool {
-					id: 1,
+					id: t.1,
 					updated_at: t.9,
 					total_shares: t.5,
 					accumulated_rps: t.8,
@@ -2193,69 +2193,8 @@ fn create_farm_with_inssufficient_balance_should_not_work() {
 }
 
 #[test]
-fn validate_loyalty_curve_should_work() {
-	let curvers = vec![
-		Some(LoyaltyCurve::default()),
-		Some(LoyaltyCurve {
-			b: FixedU128::from(0),
-			scale_coef: 0,
-		}),
-		Some(LoyaltyCurve {
-			b: FixedU128::from_inner(1), //0.000_000_000_000_000_001
-			scale_coef: 1_000_000,
-		}),
-		Some(LoyaltyCurve {
-			b: FixedU128::from_inner(100_000_000_000_000_000), //0.1
-			scale_coef: 25_996_000,
-		}),
-		None, //None is valid value and validation should not fail
-	];
-
-	for c in curvers {
-		assert_ok!(LiquidityMining::validate_loyalty_curve(&c));
-	}
-}
-
-#[test]
-fn validate_loyalty_curve_should_not_work() {
-	let curvers = vec![
-		Some(LoyaltyCurve {
-			b: FixedU128::one(),
-			scale_coef: 0,
-		}),
-		Some(LoyaltyCurve {
-			b: FixedU128::from_float(1.0),
-			scale_coef: 1_000_000,
-		}),
-		Some(LoyaltyCurve {
-			b: FixedU128::from_float(1.000_000_000_000_000_001),
-			scale_coef: 25_996_000,
-		}),
-		Some(LoyaltyCurve {
-			b: FixedU128::from(1_u128),
-			scale_coef: 25_996_000,
-		}),
-		Some(LoyaltyCurve {
-			b: FixedU128::from(5_u128),
-			scale_coef: 25_996_000,
-		}),
-		Some(LoyaltyCurve {
-			b: FixedU128::from(16_874_354_654_u128),
-			scale_coef: 25_996_000,
-		}),
-	];
-
-	for c in curvers {
-		assert_err!(
-			LiquidityMining::validate_loyalty_curve(&c),
-			Error::<Test>::InvalidLoyaltyCurverParamB
-		);
-	}
-}
-
-#[test]
 fn add_liquidity_pool_should_work() {
-	//(AssetPair, LiqudityPoo)
+	//(AssetPair, LiqudityPoo, ammPoolId, Origin, farmId, now)
 	let test_data = vec![
 		(
 			AssetPair {
@@ -2271,6 +2210,10 @@ fn add_liquidity_pool_should_work() {
 				multiplier: 20_000,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 			},
+			BSX_ACA_AMM,
+			ALICE,
+			ALICE_FARM,
+			17_850,
 		),
 		(
 			AssetPair {
@@ -2286,6 +2229,10 @@ fn add_liquidity_pool_should_work() {
 				multiplier: 10_000,
 				loyalty_curve: None,
 			},
+			BSX_KSM_AMM,
+			ALICE,
+			ALICE_FARM,
+			17_850,
 		),
 		(
 			AssetPair {
@@ -2300,10 +2247,14 @@ fn add_liquidity_pool_should_work() {
 				stake_in_global_pool: 0,
 				multiplier: 10_000,
 				loyalty_curve: Some(LoyaltyCurve {
-					b: FixedU128::from_inner(100_000_000_000_000_000),
+					initial_reward_percentage: FixedU128::from_inner(100_000_000_000_000_000),
 					scale_coef: 50,
 				}),
 			},
+			BSX_ETH_AMM,
+			ALICE,
+			ALICE_FARM,
+			20_000,
 		),
 		(
 			AssetPair {
@@ -2317,94 +2268,35 @@ fn add_liquidity_pool_should_work() {
 				accumulated_rps: 0,
 				stake_in_global_pool: 0,
 				multiplier: 50_000,
-				loyalty_curve: None,
+				loyalty_curve: Some(LoyaltyCurve {
+					initial_reward_percentage: FixedU128::from_inner(1),
+					scale_coef: 0,
+				}),
 			},
+			BSX_ETH_AMM,
+			BOB,
+			BOB_FARM,
+			20_000,
 		),
 	];
 
 	predefined_test_ext().execute_with(|| {
-		run_to_block(17_865);
-		assert_ok!(LiquidityMining::add_liquidity_pool(
-			Origin::signed(ALICE),
-			ALICE_FARM,
-			test_data[0].0,
-			20_000,
-			Some(LoyaltyCurve::default())
-		));
+		for (assets, pool, amm_id, who, farm_id, now) in test_data.clone() {
+			run_to_block(now);
+			assert_ok!(LiquidityMining::add_liquidity_pool(
+				Origin::signed(who),
+				farm_id,
+				assets,
+				pool.multiplier,
+				pool.loyalty_curve.clone()
+			));
 
-		expect_events(vec![Event::LiquidityPoolAdded(
-			ALICE_FARM,
-			BSX_ACA_AMM,
-			test_data[0].1.clone(),
-		)
-		.into()]);
+			expect_events(vec![Event::LiquidityPoolAdded(farm_id, amm_id, pool.clone()).into()]);
+		}
 
-		assert_ok!(LiquidityMining::add_liquidity_pool(
-			Origin::signed(ALICE),
-			ALICE_FARM,
-			test_data[1].0,
-			10_000,
-			None,
-		));
-
-		expect_events(vec![Event::LiquidityPoolAdded(
-			ALICE_FARM,
-			BSX_KSM_AMM,
-			test_data[1].1.clone(),
-		)
-		.into()]);
-
-		run_to_block(20_000);
-
-		assert_ok!(LiquidityMining::add_liquidity_pool(
-			Origin::signed(ALICE),
-			ALICE_FARM,
-			test_data[2].0,
-			10_000,
-			Some(LoyaltyCurve {
-				b: FixedU128::from_inner(100_000_000_000_000_000),
-				scale_coef: 50
-			}),
-		));
-
-		expect_events(vec![Event::LiquidityPoolAdded(
-			ALICE_FARM,
-			BSX_ETH_AMM,
-			test_data[2].1.clone(),
-		)
-		.into()]);
-
-		assert_ok!(LiquidityMining::add_liquidity_pool(
-			Origin::signed(BOB),
-			BOB_FARM,
-			test_data[3].0,
-			50_000,
-			None,
-		));
-
-		expect_events(vec![Event::LiquidityPoolAdded(
-			BOB_FARM,
-			BSX_ETH_AMM,
-			test_data[3].1.clone(),
-		)
-		.into()]);
-
-		assert_eq!(
-			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_ACA_AMM).unwrap(),
-			test_data[0].1
-		);
-		assert_eq!(
-			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_KSM_AMM).unwrap(),
-			test_data[1].1
-		);
-		assert_eq!(
-			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_ETH_AMM).unwrap(),
-			test_data[2].1
-		);
-		assert_eq!(
-			LiquidityMining::liquidity_pool(BOB_FARM, BSX_ETH_AMM).unwrap(),
-			test_data[3].1
-		);
+		for (_, pool, amm_id, _, farm_id, _) in test_data {
+			assert_eq!(LiquidityMining::liquidity_pool(farm_id, amm_id).unwrap(), pool);
+		}
 	});
 }
 
@@ -2444,22 +2336,48 @@ fn add_liquidity_pool_non_owner_should_not_work() {
 #[test]
 fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::add_liquidity_pool(
-				Origin::signed(ALICE),
-				ALICE_FARM,
-				AssetPair {
-					asset_in: BSX,
-					asset_out: HDX,
-				},
-				10_000,
-				Some(LoyaltyCurve {
-					b: FixedU128::from_float(1.1_f64),
-					scale_coef: 100
-				})
-			),
-			Error::<Test>::InvalidLoyaltyCurverParamB
-		);
+		let curves = vec![
+			Some(LoyaltyCurve {
+				initial_reward_percentage: FixedU128::one(),
+				scale_coef: 0,
+			}),
+			Some(LoyaltyCurve {
+				initial_reward_percentage: FixedU128::from_float(1.0),
+				scale_coef: 1_000_000,
+			}),
+			Some(LoyaltyCurve {
+				initial_reward_percentage: FixedU128::from_float(1.000_000_000_000_000_001),
+				scale_coef: 25_996_000,
+			}),
+			Some(LoyaltyCurve {
+				initial_reward_percentage: FixedU128::from(1_u128),
+				scale_coef: 25_996_000,
+			}),
+			Some(LoyaltyCurve {
+				initial_reward_percentage: FixedU128::from(5_u128),
+				scale_coef: 25_996_000,
+			}),
+			Some(LoyaltyCurve {
+				initial_reward_percentage: FixedU128::from(16_874_354_654_u128),
+				scale_coef: 25_996_000,
+			}),
+		];
+
+		for c in curves {
+			assert_noop!(
+				LiquidityMining::add_liquidity_pool(
+					Origin::signed(ALICE),
+					ALICE_FARM,
+					AssetPair {
+						asset_in: BSX,
+						asset_out: HDX,
+					},
+					10_000,
+					c
+				),
+				Error::<Test>::InvalidLoyaltyCurverParamB
+			);
+		}
 	});
 }
 
