@@ -85,18 +85,12 @@ jobs:
         run: wget https://github.com/galacticcouncil/Basilisk-node/releases/download/v5.0.3/basilisk
       - name: install docker
         run: sudo snap install docker
-      - name: Sleep for 10 seconds
-        run: sleep 10s
       - name: build docker image
         run: sudo docker build -t basilisk:latest docker
-      - name: Sleep for 10 seconds
-        run: sleep 10s        
+      - name: Sleep for 90 seconds
+        run: sleep 90s
       - name: install aws cli
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          sudo apt-get install unzip
-          unzip awscliv2.zip
-          sudo ./aws/install
+        run: sudo apt -y install awscli
       - name: configure aws creds
         run: aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}; aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}; aws configure set default.region eu-west-1  
       - name: get ecr credentials
