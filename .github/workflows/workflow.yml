@@ -94,7 +94,6 @@ jobs:
       - name: push image to ecr repository
         run: docker push 601305236792.dkr.ecr.region.amazonaws.com/basilisk:latest
 
-        
   destroy-runner-instance:
     name: destroy infra
     runs-on: ubuntu-latest
