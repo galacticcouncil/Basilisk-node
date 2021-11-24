@@ -133,9 +133,7 @@ jobs:
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 10 seconds
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '10s'  
+        run: sleep 10s
       - name: build docker image
         run: sudo docker build -t basilisk:latest docker
       - name: install aws cli
