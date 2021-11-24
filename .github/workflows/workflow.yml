@@ -116,7 +116,7 @@ jobs:
   
   build-and-publish-docker-image:
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
-    needs: [test-inclusion]
+    needs: test-inclusion
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
