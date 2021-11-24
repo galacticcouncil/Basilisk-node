@@ -1975,7 +1975,7 @@ fn inverted_operations_should_be_equal() {
 			BSX,
 			KUSD,
 			10_000_000_u128,
-			2_000_000_000_u128
+			21_000_000_u128
 		));
         (Currency::free_balance(KUSD, &BOB),
          Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID),

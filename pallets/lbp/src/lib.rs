@@ -782,86 +782,94 @@ impl<T: Config> Pallet<T> {
 		limit: BalanceOf<T>,
 		trade_type: TradeType,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 
-		if trade_type == TradeType::Sell {
-			ensure!(
+		// Quick sanity checks about amount parameters
+		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
+		match trade_type {
+			TradeType::Sell => ensure!(
 				T::MultiCurrency::free_balance(assets.asset_in, who) >= amount,
 				Error::<T>::InsufficientAssetBalance
-			);
+			),
+			TradeType::Buy => ensure!(
+				T::MultiCurrency::free_balance(assets.asset_in, who) >= limit,
+				Error::<T>::InsufficientAssetBalance
+			)
 		}
 
 		let pool_id = Self::get_pair_id(assets);
 		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
+		// LBP has to be running
 		ensure!(Self::is_pool_running(&pool_data), Error::<T>::SaleIsNotRunning);
 
 		let now = T::BlockNumberProvider::current_block_number();
-
 		let (weight_in, weight_out) = Self::get_sorted_weight(assets.asset_in, now, &pool_data)?;
-
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
 
-		let (amount_in, amount_out) = if trade_type == TradeType::Sell {
-			ensure!(
-				amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
-				Error::<T>::MaxInRatioExceeded
-			);
+		// Calculate final in & out amounts based on trade type
+		let (amount_in, amount_out) = match trade_type {
+			TradeType::Sell => {
+				ensure!(
+					amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
+					Error::<T>::MaxInRatioExceeded
+				);
+				let calculated_out = hydra_dx_math::lbp::calculate_out_given_in(
+					asset_in_reserve,
+					asset_out_reserve,
+					weight_in,
+					weight_out,
+					amount,
+				)
+					.map_err(|_| Error::<T>::Overflow)?;
 
-			let calculated_out = hydra_dx_math::lbp::calculate_out_given_in(
-				asset_in_reserve,
-				asset_out_reserve,
-				weight_in,
-				weight_out,
-				amount,
-			)
-			.map_err(|_| Error::<T>::Overflow)?;
+				(amount, calculated_out)
+			},
+			TradeType::Buy => {
+				ensure!(
+					amount
+						<= asset_out_reserve
+							.checked_div(MAX_OUT_RATIO)
+							.ok_or(Error::<T>::Overflow)?,
+					Error::<T>::MaxOutRatioExceeded
+				);
+				let calculated_in = hydra_dx_math::lbp::calculate_in_given_out(
+					asset_in_reserve,
+					asset_out_reserve,
+					weight_in,
+					weight_out,
+					amount,
+				)
+					.map_err(|_| Error::<T>::Overflow)?;
 
-			// TODO account for fee in limit
-			ensure!(limit <= calculated_out, Error::<T>::AssetBalanceLimitExceeded);
-			(amount, calculated_out)
-		} else {
-			ensure!(
-				amount
-					<= asset_out_reserve
-						.checked_div(MAX_OUT_RATIO)
-						.ok_or(Error::<T>::Overflow)?,
-				Error::<T>::MaxOutRatioExceeded
-			);
-
-			let calculated_in = hydra_dx_math::lbp::calculate_in_given_out(
-				asset_in_reserve,
-				asset_out_reserve,
-				weight_in,
-				weight_out,
-				amount,
-			)
-			.map_err(|_| Error::<T>::Overflow)?;
-
-			// TODO account for fee in limit
-			ensure!(limit >= calculated_in, Error::<T>::AssetBalanceLimitExceeded);
-			(calculated_in, amount)
+				(calculated_in, amount)
+			}
 		};
 
-
-		if trade_type == TradeType::Buy {
-			ensure!(
-				T::MultiCurrency::free_balance(assets.asset_in, who) >= amount_in,
-				Error::<T>::InsufficientAssetBalance
-			);
-		}
-
+		// Is there enough assets in the pool?
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_out, &pool_id) >= amount_out,
 			Error::<T>::InsufficientAssetBalance
 		);
 
+		// Calculate fee for the accumulated asset
 		let fee_asset = pool_data.assets.0;
 		let fee_amount = if assets.asset_in == fee_asset {
 			Self::calculate_fees(&pool_data, amount_in)?
 		} else {
 			Self::calculate_fees(&pool_data, amount_out)?
+		};
+
+		// Check if trade fits into requested limits
+		match trade_type {
+			TradeType::Sell => {
+				if assets.asset_in == fee_asset {
+					ensure!(limit <= amount_out, Error::<T>::AssetBalanceLimitExceeded)
+				} else {
+					ensure!(limit <= amount_out - fee_amount, Error::<T>::AssetBalanceLimitExceeded)
+				}
+			},
+			TradeType::Buy => ensure!(limit >= amount_in, Error::<T>::AssetBalanceLimitExceeded)
 		};
 
 		Ok(AMMTransfer {
@@ -878,8 +886,9 @@ impl<T: Config> Pallet<T> {
 	#[transactional]
 	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pool_id = Self::get_pair_id(transfer.assets);
-		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+		let Pool { fee_collector, .. } = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
 
+		// Transfer assets between pool and user
 		T::MultiCurrency::transfer(transfer.assets.asset_in, &transfer.origin, &pool_id, transfer.amount)?;
 		T::MultiCurrency::transfer(
 			transfer.assets.asset_out,
@@ -893,14 +902,14 @@ impl<T: Config> Pallet<T> {
 			T::MultiCurrency::transfer(
 				transfer.fee.0,
 				&pool_id,
-				&pool_data.fee_collector,
+				&fee_collector,
 				transfer.fee.1,
 			)?;
 		} else {
 			T::MultiCurrency::transfer(
 				transfer.fee.0,
 				&transfer.origin,
-				&pool_data.fee_collector,
+				&fee_collector,
 				transfer.fee.1,
 			)?;
 		}
