@@ -116,7 +116,7 @@ jobs:
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
 
   build-and-publish-docker-image:
-    runs-on: runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     needs: build
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
