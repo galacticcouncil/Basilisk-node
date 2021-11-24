@@ -130,8 +130,8 @@ benchmarks! {
 	buy {
 		let caller = funded_account::<T>("caller", 0);
 		let fee_collector = funded_account::<T>("fee_collector", 0);
-		let asset_out: AssetId = ASSET_A_ID;
-		let asset_in: AssetId = ASSET_B_ID;
+		let asset_in: AssetId = ASSET_A_ID;
+		let asset_out: AssetId = ASSET_B_ID;
 		let amount : Balance = 100_000_000;
 		let max_limit: Balance = 1_000_000_000;
 		let pool_id = LBP::<T>::pair_account_from_assets(ASSET_A_ID, ASSET_B_ID);
@@ -146,9 +146,9 @@ benchmarks! {
 
 	}: _(RawOrigin::Signed(caller.clone()), asset_out, asset_in, amount, max_limit)
 	verify{
-		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999999099800000);
-		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999997946619810);
-		assert_eq!(T::MultiCurrency::free_balance(asset_in, &fee_collector), 1000000000000000);
+		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999998100000000);
+		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999998772262327);
+		assert_eq!(T::MultiCurrency::free_balance(asset_in, &fee_collector), 1000000000455475);
 	}
 }
 
