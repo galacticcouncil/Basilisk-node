@@ -115,8 +115,8 @@ jobs:
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
   
   build-and-publish-docker-image:
-    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     needs: test-inclusion
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
