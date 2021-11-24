@@ -90,30 +90,7 @@ jobs:
         continue-on-error: false
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
-      - name: Test && Generate code coverage
-        run: make coverage
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: true
-      - name: Build runtime
-        run: cargo build --release --locked
-        working-directory: runtime
-      - name: Build node
-        run: cargo build --release --locked
-      - name: Version info
-        run: ./target/release/basilisk --version
-      - name: Upload release binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: basilisk
-          path: target/release/basilisk
-      - name: Upload release wasm
-        uses: actions/upload-artifact@v2
-        with:
-          name: basilisk_runtime.compact.compressed.wasm
-          path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
-  
+
   build-and-publish-docker-image:
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     needs: test-inclusion
@@ -132,15 +109,14 @@ jobs:
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
-        run: sleep 30s  
+        run: sleep 30s
       - name: build docker image
         run: sudo docker build -t basilisk:latest docker
       - name: get ecr credentials
         run: aws ecr get-login-password --region eu-west-1 | sudo docker login --username AWS --password-stdin 601305236792.dkr.ecr.eu-west-1.amazonaws.com
       - name: push image to ecr repository
-        run: |
-          sudo docker tag basilisk:latest 601305236792.dkr.ecr.eu-west-1.amazonaws.com/basilisk
-          sudo docker push 601305236792.dkr.ecr.eu-west-1.amazonaws.com/basilisk:latest
+        run: sudo docker tag basilisk:latest 601305236792.dkr.ecr.eu-west-1.amazonaws.com/basilisk
+      - run: sudo docker push 601305236792.dkr.ecr.eu-west-1.amazonaws.com/basilisk:latest
   
   destroy-runner-instance:
     name: destroy infra
@@ -225,8 +201,25 @@ jobs:
         name: Launch rococo local & wait for inclusion
         working-directory: scripts/polkadot-launch
   
+  inform-build-success:
+    needs: test-inclusion
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-ruby@v1
+      - name: Send Webhook Notification
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          HOOK_OS_NAME: ${{ runner.os }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+        run: |
+          git clone https://github.com/DiscordHooks/github-actions-discord-webhook.git webhook
+          bash webhook/send.sh $JOB_STATUS $WEBHOOK_URL
+        shell: bash
+
   run-external-deployment:
-    needs: [build-and-publish-docker-image]
+    needs: build-and-publish-docker-image
     runs-on: ubuntu-latest
     steps:
       - name: Repository Dispatch
