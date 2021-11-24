@@ -90,7 +90,30 @@ jobs:
         continue-on-error: false
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
-
+      - name: Test && Generate code coverage
+        run: make coverage
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+      - name: Build runtime
+        run: cargo build --release --locked
+        working-directory: runtime
+      - name: Build node
+        run: cargo build --release --locked
+      - name: Version info
+        run: ./target/release/basilisk --version
+      - name: Upload release binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk
+          path: target/release/basilisk
+      - name: Upload release wasm
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk_runtime.compact.compressed.wasm
+          path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
+  
   build-and-publish-docker-image:
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     needs: test-inclusion
