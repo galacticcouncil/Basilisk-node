@@ -116,7 +116,6 @@ jobs:
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
 
   build-and-publish-docker-image:
-    name: build and publish docker image to ECR
     runs-on: runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     needs: build
     env:
