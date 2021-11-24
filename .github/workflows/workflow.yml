@@ -127,9 +127,8 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: test_download-basilisk-image
-        working-directory: ./docker
-        run: wget https://github.com/galacticcouncil/Basilisk-node/releases/download/v5.0.3/basilisk
+      - name: copy binary for docker image creation
+        run: cp ./target/release/basilisk ./docker
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
