@@ -83,6 +83,7 @@ jobs:
       - name: whereami
         run: pwd    
       - name: test_download-basilisk-image
+        working-directory: ./docker
         run: wget https://github.com/galacticcouncil/Basilisk-node/releases/download/v5.0.3/basilisk
       - name: list
         run: ls
