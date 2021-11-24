@@ -230,11 +230,12 @@ jobs:
         working-directory: scripts/polkadot-launch
   run-external-deployment:
     needs: [test-inclusion]
-    runs-on: ubuntu-latest      
-    - name: Repository Dispatch
-      uses: peter-evans/repository-dispatch@v1
-      with:
-        token: ${{ secrets.DISPATCHDEPLOYMENTTOKEN }}
-        repository: galacticcouncil/testnet-deployment
-        event-type: run-k8s-deployment
-        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.DISPATCHDEPLOYMENTTOKEN }}
+          repository: galacticcouncil/testnet-deployment
+          event-type: run-k8s-deployment
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
