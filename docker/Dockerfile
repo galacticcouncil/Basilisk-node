@@ -10,7 +10,7 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /basilisk basilisk && \
     chown -R basilisk:basilisk /basilisk
     
 USER basilisk
-ADD ./basilisk /basilisk/basilisk
+ADD ./target/release/basilisk /basilisk/basilisk
 
 EXPOSE 30333 9933 9944
 
