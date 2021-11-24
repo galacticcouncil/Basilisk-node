@@ -128,7 +128,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - name: copy binary for docker image creation
-        run: cp ./target/release/basilisk docker/
+        run: cp target/release/basilisk docker/
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
