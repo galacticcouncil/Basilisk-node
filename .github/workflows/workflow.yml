@@ -85,6 +85,8 @@ jobs:
         run: wget https://github.com/galacticcouncil/Basilisk-node/releases/download/v5.0.3/basilisk
       - name: install docker
         run: sudo snap install docker
+      - name: Sleep for 30 seconds
+        run: sleep 30s  
       - name: build docker image
         run: sudo docker build -t basilisk:latest docker
       - name: Sleep for 90 seconds
