@@ -3,7 +3,7 @@ name: build-and-deploy
 on:
   push:
     branches:
-      - testnet-automation
+      - master
   workflow_dispatch:
   pull_request:
 
@@ -61,15 +61,62 @@ jobs:
         id: apply
         working-directory: ./infrastructure
         run: terraform apply -var="ec2_pwd=$EC2_SECRET" -var="branch_name=${{ steps.determine-runner.outputs.runner }}" -auto-approve
-      - name: Sleep for 10 seconds
+      - name: Sleep for 20 seconds
         if: ${{ env.IS_LOCAL == 'true' }}
         uses: jakejarvis/wait-action@master
         with:
-          time: '10s'
-  
+          time: '20s'
+
+  build:
+    needs: pop-runner-instance
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: git describe --tags --abbrev=0 --always
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1.0.7
+        with:
+          profile: minimal
+          toolchain: nightly-2021-06-01
+          target: wasm32-unknown-unknown
+          override: true
+          default: true
+      - name: Install clippy
+        run: rustup component add clippy
+      - name: Run clippy
+        run: make clippy
+        continue-on-error: false
+      - name: Install tarpaulin
+        run: cargo install cargo-tarpaulin
+      - name: Test && Generate code coverage
+        run: make coverage
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+      - name: Build runtime
+        run: cargo build --release --locked
+        working-directory: runtime
+      - name: Build node
+        run: cargo build --release --locked
+      - name: Version info
+        run: ./target/release/basilisk --version
+      - name: Upload release binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk
+          path: target/release/basilisk
+      - name: Upload release wasm
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk_runtime.compact.compressed.wasm
+          path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
   build-and-publish-docker-image:
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
-    needs: pop-runner-instance
+    needs: [pop-runner-instance, build]
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -93,11 +140,11 @@ jobs:
         run: aws ecr get-login-password --region eu-west-1 | sudo docker login --username AWS --password-stdin 601305236792.dkr.ecr.eu-west-1.amazonaws.com
       - name: push image to ecr repository
         run: sudo docker push 601305236792.dkr.ecr.region.amazonaws.com/basilisk:latest
-
+  
   destroy-runner-instance:
     name: destroy infra
     runs-on: ubuntu-latest
-    needs: build-and-publish-docker-image
+    needs: test-inclusion
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -135,3 +182,44 @@ jobs:
         working-directory: ./infrastructure
         run: terraform destroy -var="ec2_pwd=$EC2_SECRET" -var="branch_name=${{ needs.pop-runner-instance.outputs.runner }}" -auto-approve
         continue-on-error: false
+
+  test-inclusion:
+    needs: [pop-runner-instance, build]
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v2
+        name: Download basilisk binary
+        with:
+          name: basilisk
+          path: target/release
+      - uses: robinraju/release-downloader@v1
+        name: Download relay chain binary
+        with:
+          repository: paritytech/polkadot
+          tag: v0.9.12
+          fileName: polkadot
+          out-file-path: ../polkadot/target/release
+      - run: chmod +x ./basilisk && ./basilisk --version
+        name: Basilisk version
+        working-directory: target/release
+      - run: chmod +x ./polkadot && ./polkadot --version
+        name: Polkadot version
+        working-directory: ../polkadot/target/release
+      - uses: actions/setup-node@v2
+        name: Setup node.js
+        with:
+          node-version: '14'
+          check-latest: true
+      - run: ./install_polkadot_launch.sh
+        name: Setup polkadot launch
+        working-directory: scripts
+      - run: npm install
+        name: Setup wait script
+        working-directory: scripts/wait-for-inclusion
+      - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 200
+        name: Launch rococo local & wait for inclusion
+        working-directory: scripts/polkadot-launch
