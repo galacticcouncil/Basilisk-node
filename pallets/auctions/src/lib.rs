@@ -224,9 +224,7 @@ pub mod pallet {
 					}
 				}
 
-				Self::deposit_event(Event::Bid(auction_id, bidder, value));
-
-				Ok(())
+				Ok(Self::deposit_event(Event::Bid(auction_id, bidder, value)))
 			})?;
 
 			Ok(())
@@ -244,9 +242,7 @@ pub mod pallet {
 					}
 				}
 
-				Self::deposit_event(Event::AuctionRemoved(auction_id));
-
-				Ok(())
+				Ok(Self::deposit_event(Event::AuctionRemoved(auction_id)))
 			})?;
 
 			Ok(())
