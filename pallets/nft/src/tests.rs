@@ -234,7 +234,12 @@ fn transfer_works() {
 		assert_eq!(Balances::free_balance(BOB), 15_000 * BSX);
 		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0, BOB));
 		assert_eq!(Balances::free_balance(BOB), 14_900 * BSX);
-		assert_ok!(NFTPallet::transfer(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID_0, CHARLIE));
+		assert_ok!(NFTPallet::transfer(
+			Origin::signed(BOB),
+			CLASS_ID_0,
+			TOKEN_ID_0,
+			CHARLIE
+		));
 		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
 		assert_eq!(Balances::free_balance(BOB), 15_000 * BSX);
 		assert_eq!(Balances::free_balance(CHARLIE), 149_900 * BSX);

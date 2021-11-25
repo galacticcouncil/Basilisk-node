@@ -5,8 +5,8 @@ use super::*;
 
 use crate::Pallet as Marketplace;
 use frame_benchmarking::{account, benchmarks, vec};
-use frame_system::RawOrigin;
 use frame_support::traits::Get;
+use frame_system::RawOrigin;
 use sp_runtime::{traits::UniqueSaturatedInto, SaturatedConversion};
 use sp_std::convert::TryInto;
 

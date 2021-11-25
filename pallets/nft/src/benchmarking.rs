@@ -81,7 +81,8 @@ benchmarks! {
 	}
 }
 
-#[cfg(test)]#[cfg(test)]
+#[cfg(test)]
+#[cfg(test)]
 mod tests {
 	use super::Pallet;
 	use crate::mock::*;
