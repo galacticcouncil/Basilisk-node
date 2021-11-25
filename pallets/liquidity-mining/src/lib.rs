@@ -76,6 +76,7 @@ pub struct GlobalPool<T: Config> {
 	blocks_per_period: BlockNumberFor<T>,
 	incentivized_token: AssetIdOf<T>,
 	max_reward_per_period: Balance,
+	liq_pools_count: u32,
 }
 
 impl<T: Config> GlobalPool<T> {
@@ -86,7 +87,7 @@ impl<T: Config> GlobalPool<T> {
 		yield_per_period: Permill,
 		planned_yielding_periods: PeriodOf<T>,
 		blocks_per_period: T::BlockNumber,
-		owner: T::AccountId,
+		owner: AccountIdOf<T>,
 		incentivized_token: T::CurrencyId,
 		max_reward_per_period: Balance,
 	) -> Self {
@@ -96,6 +97,7 @@ impl<T: Config> GlobalPool<T> {
 			accumulated_rps_start: Default::default(),
 			paid_accumulated_rewards: Default::default(),
 			total_shares: Default::default(),
+			liq_pools_count: Default::default(),
 			id,
 			updated_at,
 			reward_currency,
@@ -239,8 +241,17 @@ pub mod pallet {
 		/// Loyalty curver b param should be from [0, 1)
 		InvalidLoyaltyCurverParamB,
 
+		/// Account balance of amm pool shares is not sufficient
+		InsufficientAmmSharesBalance,
+
 		/// AMM pool does not exist
 		AmmPoolDoesNotExist,
+
+		/// Liq. pool for provided assets was not found in farm
+		LiquidityPoolNotFound,
+
+		/// Account already have stake in liq. pool in farm
+		DuplicateDeposit,
 	}
 
 	#[pallet::event]
@@ -250,7 +261,7 @@ pub mod pallet {
 		FarmCreated(PoolId, GlobalPool<T>),
 
 		/// New liquidity(AMM) pool was added to farm [farm_id, amm_pool_id, liquidity_pool]
-		LiquidityPoolAdded(PoolId, T::AccountId, LiquidityPool<T>),
+		LiquidityPoolAdded(PoolId, AccountIdOf<T>, LiquidityPool<T>),
 	}
 
 	#[pallet::storage]
@@ -266,9 +277,9 @@ pub mod pallet {
 	type LiquidityPoolData<T: Config> = StorageDoubleMap<
 		_,
 		Twox64Concat,
-		PoolId,
+		PoolId, //global_pool_id
 		Twox64Concat,
-		T::AccountId, //amm_pool_id
+		AccountIdOf<T>, //amm_pool_id
 		LiquidityPool<T>,
 		OptionQuery,
 	>;
@@ -297,7 +308,7 @@ pub mod pallet {
 			blocks_per_period: BlockNumberFor<T>,
 			incentivized_token: AssetIdOf<T>,
 			reward_currency: AssetIdOf<T>,
-			owner: T::AccountId,
+			owner: AccountIdOf<T>,
 			yield_per_period: Permill,
 		) -> DispatchResult {
 			T::CreateOrigin::ensure_origin(origin)?;
@@ -343,7 +354,13 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(1000)]
-		pub fn destroy_farm(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
+		pub fn destroy_farm(origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
+			let who = ensure_signed(origin);
+
+			//TODO: check if farm is empty - no liq. pool
+
+			//<LiquidityPoolData<T>>::contains_key(farmId);
+
 			todo!()
 		}
 
@@ -363,6 +380,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			//TODO: create NFT class and store class_id
 			ensure!(!weight.is_zero(), Error::<T>::InvalidWeight);
 
 			if loyalty_curve.is_some() {
@@ -393,6 +411,7 @@ pub mod pallet {
 					g_pool.max_reward_per_period,
 				)?;
 				Self::update_global_pool(g_pool, now_period, reward_per_period)?;
+				g_pool.liq_pools_count = g_pool.liq_pools_count.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
 				let liq_pool_id = Self::get_next_id()?;
 				let pool = LiquidityPool::new(liq_pool_id, now_period, loyalty_curve, weight);
@@ -416,13 +435,46 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(1000)]
-		pub fn remove_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
+		pub fn remove_liqudity_pool(_origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
 			todo!()
 		}
 
 		#[pallet::weight(1000)]
-		pub fn deposit_shares(_origin: OriginFor<T>) -> DispatchResult {
-			todo!()
+		#[transactional]
+		pub fn deposit_shares(
+			origin: OriginFor<T>,
+			farm_id: PoolId,
+			assets: AssetPair,
+			amount: Balance,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			let amm_share = T::AMM::get_share_token(assets);
+
+			ensure!(
+				T::MultiCurrency::free_balance(amm_share, &who) >= amount,
+				Error::<T>::InsufficientAmmSharesBalance
+			);
+
+			let liq_pool_key = T::AMM::get_pair_id(assets);
+			<LiquidityPoolData<T>>::try_mutate(farm_id, liq_pool_key, |liq_pool| {
+				let liq_pool = liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+
+				//TODO: add check if account already have stake in liq pool
+				//waiting for nft impl(pseudocode bellow)
+				//ensure(NFT::get_nft(who, liq_pool.class_id).is_none(), Error::<T>::DuplicateDeposit);
+
+				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
+					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+
+					//update everything
+					//transferj shares
+					//mint nft
+
+					//WIP
+					Ok(())
+				})
+			})
 		}
 
 		#[pallet::weight(1000)]
@@ -454,7 +506,7 @@ impl<T: Config> Pallet<T> {
 	/// Return pallet account or pool acocunt from PoolId
 	///
 	/// WARN: pool_id = 0 is same as `T::PalletId::get().into_account()`. 0 is not valid value
-	fn pool_account_id(pool_id: PoolId) -> Result<T::AccountId, Error<T>> {
+	fn pool_account_id(pool_id: PoolId) -> Result<AccountIdOf<T>, Error<T>> {
 		Self::validate_pool_id(pool_id)?;
 
 		Ok(T::PalletId::get().into_sub_account(pool_id))

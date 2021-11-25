@@ -49,6 +49,8 @@ pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 pub const BSX_ACA_SHARE_ID: AssetId = 100;
 pub const BSX_KSM_SHARE_ID: AssetId = 101;
 pub const BSX_DOT_SHARE_ID: AssetId = 102;
+pub const BSX_ETH_SHARE_ID: AssetId = 103;
+pub const BSX_HDX_SHARE_ID: AssetId = 104;
 
 pub const BSX: AssetId = 1000;
 pub const HDX: AssetId = 2000;
@@ -129,7 +131,7 @@ impl system::Config for Test {
 pub struct Amm;
 
 thread_local! {
-	pub static AMM_POOLS: RefCell<HashMap<String, AccountId>> = RefCell::new(HashMap::new());
+	pub static AMM_POOLS: RefCell<HashMap<String, (AccountId, AssetId)>> = RefCell::new(HashMap::new());
 }
 
 impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
@@ -201,8 +203,12 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 	}
 
 	fn get_pair_id(assets: AssetPair) -> AccountId {
-		AMM_POOLS.with(|v| *v.borrow().get(&asset_pair_to_map_key(assets)).unwrap())
+		AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(assets)).unwrap().0)
 	}
+
+    fn get_share_token(assets: AssetPair) -> AssetId {
+		AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(assets)).unwrap().1)
+    }
 }
 
 pub fn asset_pair_to_map_key(assets: AssetPair) -> String {

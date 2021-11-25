@@ -21,7 +21,7 @@ sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "pol
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "ee37b76a7a8cf159e6c41851942758746318bb84", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="32f3a9ab84b86b200d3ad702db762ac7de06b20c", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="02d478ac79e718a1876d76e2e30d05e3d3f49096", default-features = false }
 
 primitives = { path = "../../primitives", default-features = false }
 

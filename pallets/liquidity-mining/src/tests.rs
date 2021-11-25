@@ -1,9 +1,10 @@
 use super::*;
 use crate::mock::{
 	asset_pair_to_map_key, run_to_block, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, Test,
-	Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_DOT_AMM,
-	BSX_DOT_LM_POOL, BSX_ETH_AMM, BSX_FARM, BSX_HDX_AMM, BSX_KSM_AMM, BSX_KSM_LM_POOL, DOT, ETH, HDX, INITIAL_BALANCE,
-	KSM, KSM_FARM, TREASURY,
+	Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID,
+	BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM,
+	BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, DOT, ETH, HDX, INITIAL_BALANCE, KSM, KSM_FARM,
+	TREASURY,
 };
 
 use frame_support::{assert_err, assert_noop, assert_ok};
@@ -22,6 +23,43 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext.execute_with(|| run_to_block(1));
 	ext
 }
+
+const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 2] = [
+	GlobalPool {
+		id: 1,
+		updated_at: 0,
+		reward_currency: BSX,
+		yield_per_period: Permill::from_percent(20),
+		planned_yielding_periods: 300_u64,
+		blocks_per_period: 1_000_u64,
+		owner: ALICE,
+		incentivized_token: BSX,
+		max_reward_per_period: 333_333_333,
+		accumulated_rps: 0,
+		accumulated_rps_start: 0,
+		liq_pools_count: 0,
+		paid_accumulated_rewards: 0,
+		total_shares: 0,
+		accumulated_rewards: 0,
+	},
+	GlobalPool {
+		id: 2,
+		updated_at: 0,
+		reward_currency: KSM,
+		yield_per_period: Permill::from_percent(38),
+		planned_yielding_periods: 5_000_u64,
+		blocks_per_period: 10_000_u64,
+		owner: BOB,
+		incentivized_token: BSX,
+		max_reward_per_period: 200_000,
+		accumulated_rps: 0,
+		accumulated_rps_start: 0,
+		liq_pools_count: 0,
+		paid_accumulated_rewards: 0,
+		total_shares: 0,
+		accumulated_rewards: 0,
+	},
+];
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
@@ -49,37 +87,11 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			Permill::from_percent(38),
 		));
 
-		let max_reward_per_period_p1: Balance = 100_000_000_000.checked_div(&300_u32.into()).unwrap();
-		let p1_data = GlobalPool::new(
-			1,
-			0,
-			BSX,
-			Permill::from_percent(20),
-			BlockNumber::from(300_u32),
-			BlockNumber::from(1_000_u32),
-			ALICE,
-			BSX,
-			max_reward_per_period_p1,
-		);
-
-		let max_reward_per_period_p2: Balance = 1000_000_000.checked_div(&5_000_u32.into()).unwrap();
-		let p2_data = GlobalPool::new(
-			2,
-			0,
-			KSM,
-			Permill::from_percent(38),
-			BlockNumber::from(5_000_u32),
-			BlockNumber::from(10_000_u32),
-			BOB,
-			BSX,
-			max_reward_per_period_p2,
-		);
-
 		expect_events(vec![
-			Event::FarmCreated(1, p1_data).into(),
+			Event::FarmCreated(1, PREDEFINED_GLOBAL_POOLS[0].clone()).into(),
 			frame_system::Event::NewAccount(187989685649991564771226578797).into(),
 			orml_tokens::Event::Endowed(4000, 187989685649991564771226578797, 1_000_000_000).into(),
-			Event::FarmCreated(2, p2_data).into(),
+			Event::FarmCreated(2, PREDEFINED_GLOBAL_POOLS[1].clone()).into(),
 		]);
 
 		let amm_mock_data = vec![
@@ -88,35 +100,35 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 					asset_in: BSX,
 					asset_out: ACA,
 				},
-				BSX_ACA_AMM,
+				(BSX_ACA_AMM, BSX_ACA_SHARE_ID),
 			),
 			(
 				AssetPair {
 					asset_in: BSX,
 					asset_out: KSM,
 				},
-				BSX_KSM_AMM,
+				(BSX_KSM_AMM, BSX_KSM_SHARE_ID),
 			),
 			(
 				AssetPair {
 					asset_in: BSX,
 					asset_out: DOT,
 				},
-				BSX_DOT_AMM,
+				(BSX_DOT_AMM, BSX_DOT_SHARE_ID),
 			),
 			(
 				AssetPair {
 					asset_in: BSX,
 					asset_out: ETH,
 				},
-				BSX_ETH_AMM,
+				(BSX_ETH_AMM, BSX_ETH_SHARE_ID),
 			),
 			(
 				AssetPair {
 					asset_in: BSX,
 					asset_out: HDX,
 				},
-				BSX_HDX_AMM,
+				(BSX_HDX_AMM, BSX_HDX_SHARE_ID),
 			),
 		];
 
@@ -2195,6 +2207,9 @@ fn create_farm_with_inssufficient_balance_should_not_work() {
 #[test]
 fn add_liquidity_pool_should_work() {
 	//(AssetPair, LiqudityPoo, ammPoolId, Origin, farmId, now)
+
+	//Note: global_pool.updated_at isn't changed because pool is empty (no. liq. pool stake in
+	//globalPool)
 	let test_data = vec![
 		(
 			AssetPair {
@@ -2214,6 +2229,10 @@ fn add_liquidity_pool_should_work() {
 			ALICE,
 			ALICE_FARM,
 			17_850,
+			GlobalPool {
+				liq_pools_count: 1,
+				..PREDEFINED_GLOBAL_POOLS[0].clone()
+			},
 		),
 		(
 			AssetPair {
@@ -2233,6 +2252,10 @@ fn add_liquidity_pool_should_work() {
 			ALICE,
 			ALICE_FARM,
 			17_850,
+			GlobalPool {
+				liq_pools_count: 2,
+				..PREDEFINED_GLOBAL_POOLS[0].clone()
+			},
 		),
 		(
 			AssetPair {
@@ -2255,6 +2278,10 @@ fn add_liquidity_pool_should_work() {
 			ALICE,
 			ALICE_FARM,
 			20_000,
+			GlobalPool {
+				liq_pools_count: 3,
+				..PREDEFINED_GLOBAL_POOLS[0].clone()
+			},
 		),
 		(
 			AssetPair {
@@ -2277,11 +2304,15 @@ fn add_liquidity_pool_should_work() {
 			BOB,
 			BOB_FARM,
 			20_000,
+			GlobalPool {
+				liq_pools_count: 1,
+				..PREDEFINED_GLOBAL_POOLS[1].clone()
+			},
 		),
 	];
 
 	predefined_test_ext().execute_with(|| {
-		for (assets, pool, amm_id, who, farm_id, now) in test_data.clone() {
+		for (assets, pool, amm_id, who, farm_id, now, g_pool) in test_data.clone() {
 			run_to_block(now);
 			assert_ok!(LiquidityMining::add_liquidity_pool(
 				Origin::signed(who),
@@ -2292,9 +2323,11 @@ fn add_liquidity_pool_should_work() {
 			));
 
 			expect_events(vec![Event::LiquidityPoolAdded(farm_id, amm_id, pool.clone()).into()]);
+
+			assert_eq!(LiquidityMining::global_pool(farm_id).unwrap(), g_pool);
 		}
 
-		for (_, pool, amm_id, _, farm_id, _) in test_data {
+		for (_, pool, amm_id, _, farm_id, _, _) in test_data {
 			assert_eq!(LiquidityMining::liquidity_pool(farm_id, amm_id).unwrap(), pool);
 		}
 	});
