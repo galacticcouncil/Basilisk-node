@@ -205,6 +205,12 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+      - name: whereami
+        run: pwd
+      - name: list all
+        run: ls -R
+      - name: list target
+        run: ls -R target   
       - name: Sleep for 120 seconds
         run: sleep 120    
       - name: copy binary for docker image creation
