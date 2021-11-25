@@ -1,6 +1,6 @@
 [package]
 name = "pallet-exchange-benchmarking"
-version = "3.2.0"
+version = "3.3.0"
 description = "Exchange Benchmarking Module"
 authors = ["GalacticCouncil"]
 edition = "2018"
@@ -30,7 +30,7 @@ orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "ee37b76a7a8cf159e6c41851942758746318bb84", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="a5cb40ae5313bb158f8b28e0a78479148be3b9f5", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="02d478ac79e718a1876d76e2e30d05e3d3f49096", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }

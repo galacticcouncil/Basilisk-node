@@ -606,6 +606,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		Self::pair_account_from_assets(assets.asset_in, assets.asset_out)
 	}
 
+	fn get_share_token(assets: AssetPair) -> AssetId {
+		let pair_account = Self::get_pair_id(assets);
+		Self::share_token(&pair_account)
+	}
+
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {
 		let maybe_assets = <PoolAssets<T>>::get(pool_account_id);
 		maybe_assets.map(|assets| vec![assets.0, assets.1])
