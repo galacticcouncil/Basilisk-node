@@ -115,7 +115,7 @@ jobs:
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
   
   build-and-publish-docker-image:
-    needs: test-inclusion
+    needs: pop-runner-instance
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -127,8 +127,12 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: copy binary for docker image creation
-        run: cp target/release/basilisk docker/
+      #- name: copy binary for docker image creation
+      #  run: cp target/release/basilisk docker/
+      - name: tmp download
+        run: wget https://github.com/galacticcouncil/Basilisk-node/releases/download/v5.0.3/basilisk
+      - name: copy
+        run: cp basilisk docker/  
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
