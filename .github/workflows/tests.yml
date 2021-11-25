@@ -77,7 +77,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - run: git describe --tags --abbrev=0 --always
       - name: Install Rust
-        uses: actions-rs/toolchain@v1.0.7
+        uses: actions-rs/toolchain@88dc2356392166efad76775c878094f4e83ff746
         with:
           profile: minimal
       - name: Install clippy
