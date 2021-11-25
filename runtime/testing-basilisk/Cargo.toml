@@ -41,8 +41,8 @@ pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",defaul
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="6b399649f0379bc091ff69447b459ce30dd82b00", default-features = false }
-pallet-faucet = { git = "https://github.com/galacticcouncil/warehouse", rev="11cfa1ae1b77ab4a0b86fcf617b18d9e2511c2e8", default-features = false }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="301e7fd7e8b79bd0f2d34e33511b4bda013e4462", default-features = false }
+pallet-faucet = { git = "https://github.com/galacticcouncil/warehouse", rev="301e7fd7e8b79bd0f2d34e33511b4bda013e4462", default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -51,7 +51,7 @@ pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", b
 pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="02d478ac79e718a1876d76e2e30d05e3d3f49096", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="301e7fd7e8b79bd0f2d34e33511b4bda013e4462", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }

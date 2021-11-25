@@ -29,7 +29,7 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "ee37b76a7a8cf159e6c41851942758746318bb84", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="02d478ac79e718a1876d76e2e30d05e3d3f49096", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="301e7fd7e8b79bd0f2d34e33511b4bda013e4462", default-features = false }
 
 # Substrate dependencies
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }

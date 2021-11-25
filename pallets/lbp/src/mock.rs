@@ -147,7 +147,7 @@ parameter_types! {
 pub struct MultiLockedBalance();
 
 impl LockedBalance<AssetId, AccountId, Balance> for MultiLockedBalance {
-	fn get_by_lock(asset: AssetId, account: AccountId, lock_id: LockIdentifier) -> Balance {
+	fn get_by_lock(lock_id: LockIdentifier, asset: AssetId, account: AccountId) -> Balance {
 		if asset == NativeAssetId::get() {
 			match Currency::locks(account, asset)
 				.into_iter()

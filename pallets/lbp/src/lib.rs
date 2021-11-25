@@ -783,7 +783,7 @@ impl<T: Config> Pallet<T> {
 	/// returns fees collected and locked in the fee collector account
 	/// not that after LBP finishes and liquidity is removed this will be 0
 	fn collected_fees(pool: &Pool<T::AccountId, T::BlockNumber>) -> BalanceOf<T> {
-		T::LockedBalance::get_by_lock(pool.assets.0, pool.fee_collector.clone(), COLLECTOR_LOCK_ID)
+		T::LockedBalance::get_by_lock(COLLECTOR_LOCK_ID, pool.assets.0, pool.fee_collector.clone())
 	}
 
 	/// repay fee is applied until repay target amount is reached

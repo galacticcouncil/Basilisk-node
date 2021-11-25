@@ -142,7 +142,7 @@ fn expect_events(e: Vec<TestEvent>) {
 #[test]
 fn default_locked_balance_should_be_zero() {
 	new_test_ext().execute_with(|| {
-		assert_eq!(<Test as pallet::Config>::LockedBalance::get_by_lock(BSX, BOB, COLLECTOR_LOCK_ID), 0_u128);
+		assert_eq!(<Test as pallet::Config>::LockedBalance::get_by_lock(COLLECTOR_LOCK_ID, BSX, BOB), 0_u128);
 	});
 }
 

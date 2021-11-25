@@ -13,7 +13,7 @@ where
 	Balance: From<<T as orml_tokens::Config>::Balance>,
 	Balance: From<<T as pallet_balances::Config>::Balance>,
 {
-	fn get_by_lock(currency_id: AssetId, who: T::AccountId, lock_id: LockIdentifier) -> Balance {
+	fn get_by_lock(lock_id: LockIdentifier, currency_id: AssetId, who: T::AccountId) -> Balance {
 		if currency_id == NativeAssetId::get() {
             match pallet_balances::Pallet::<T>::locks(who)
                 .into_iter()
