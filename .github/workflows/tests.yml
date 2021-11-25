@@ -77,13 +77,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - run: git describe --tags --abbrev=0 --always
       - name: Install Rust
-        uses: actions-rs/toolchain@v1.0.7
+        uses: actions-rs/toolchain@v1.0.6
         with:
           profile: minimal
-          toolchain: nightly-2021-06-01
-          target: wasm32-unknown-unknown
-          override: true
-          default: true
       - name: Install clippy
         run: rustup component add clippy
       - name: Run clippy
