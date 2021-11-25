@@ -34,8 +34,8 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 use hydra_dx_math::types::LBPWeight;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, AMM};
-use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, LockedBalance, AMM};
+use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
@@ -131,7 +131,7 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 		weight_curve: WeightCurveType,
 		fee: Fee,
 		fee_collector: AccountId,
-		repay_target: Balance
+		repay_target: Balance,
 	) -> Self {
 		Pool {
 			owner: pool_owner,
@@ -178,7 +178,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-	use hydradx_traits::LockedBalance;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -189,7 +188,7 @@ pub mod pallet {
 
 		/// Multi currency for transfer of currencies
 		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Amount = Amount, Balance = Balance>
-			+ MultiReservableCurrency<Self::AccountId>;
+			+ MultiLockableCurrency<Self::AccountId>;
 
 		/// Universal locked balance getter for tracking of fee collector balance
 		type LockedBalance: LockedBalance<AssetId, Self::AccountId, Balance>;
@@ -494,11 +493,9 @@ pub mod pallet {
 
 				ensure!(
 					start.is_some()
-						|| end.is_some()
-						|| initial_weight.is_some()
+						|| end.is_some() || initial_weight.is_some()
 						|| final_weight.is_some()
-						|| fee.is_some()
-						|| fee_collector.is_some()
+						|| fee.is_some() || fee_collector.is_some()
 						|| repay_target.is_some(),
 					Error::<T>::NothingToUpdate
 				);
@@ -613,6 +610,8 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
 
+			T::MultiCurrency::remove_lock(COLLECTOR_LOCK_ID, asset_a, &pool_data.fee_collector)?;
+
 			<PoolData<T>>::remove(&pool_id);
 
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
@@ -716,14 +715,18 @@ impl<T: Config> Pallet<T> {
 			match (pool_data.start, pool_data.end) {
 				(Some(start), Some(end)) => now < start && start < end,
 				(None, None) => true,
-				_ => false
+				_ => false,
 			},
 			Error::<T>::InvalidBlockRange
 		);
 
 		// duration of the LBP sale should not exceed 2 weeks (assuming 6 sec blocks)
 		ensure!(
-			pool_data.end.unwrap_or_default().saturating_sub(pool_data.start.unwrap_or_default()) < MAX_SALE_DURATION.into(),
+			pool_data
+				.end
+				.unwrap_or_default()
+				.saturating_sub(pool_data.start.unwrap_or_default())
+				< MAX_SALE_DURATION.into(),
 			Error::<T>::MaxSaleDurationExceeded
 		);
 
@@ -764,7 +767,7 @@ impl<T: Config> Pallet<T> {
 		let now = T::BlockNumberProvider::current_block_number();
 		match (pool_data.start, pool_data.end) {
 			(Some(start), Some(end)) => start <= now && now <= end,
-			_ => false
+			_ => false,
 		}
 	}
 
@@ -773,12 +776,19 @@ impl<T: Config> Pallet<T> {
 		let now = T::BlockNumberProvider::current_block_number();
 		match pool_data.start {
 			Some(start) => start <= now,
-			_ => false
+			_ => false,
 		}
 	}
 
-	fn is_repay_fee_applied(pool_data: &Pool<T::AccountId, T::BlockNumber>) -> bool {
-		T::MultiCurrency::free_balance(pool_data.assets.0, &pool_data.fee_collector) < pool_data.repay_target
+	/// returns fees collected and locked in the fee collector account
+	/// not that after LBP finishes and liquidity is removed this will be 0
+	fn collected_fees(pool: &Pool<T::AccountId, T::BlockNumber>) -> BalanceOf<T> {
+		T::LockedBalance::get_by_lock(pool.assets.0, pool.fee_collector.clone(), COLLECTOR_LOCK_ID)
+	}
+
+	/// repay fee is applied until repay target amount is reached
+	fn is_repay_fee_applied(pool: &Pool<T::AccountId, T::BlockNumber>) -> bool {
+		Self::collected_fees(pool) < pool.repay_target
 	}
 
 	fn validate_trade(
@@ -788,7 +798,6 @@ impl<T: Config> Pallet<T> {
 		limit: BalanceOf<T>,
 		trade_type: TradeType,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-
 		// Quick sanity checks about amount parameters
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 		match trade_type {
@@ -799,7 +808,7 @@ impl<T: Config> Pallet<T> {
 			TradeType::Buy => ensure!(
 				T::MultiCurrency::free_balance(assets.asset_in, who) >= limit,
 				Error::<T>::InsufficientAssetBalance
-			)
+			),
 		}
 
 		let pool_id = Self::get_pair_id(assets);
@@ -807,7 +816,10 @@ impl<T: Config> Pallet<T> {
 		let fee_asset = pool_data.assets.0;
 
 		// Buying exact amount of the accumulated asset is not supported
-		ensure!(!(trade_type == TradeType::Buy && assets.asset_out == fee_asset), Error::<T>::OperationNotSupported);
+		ensure!(
+			!(trade_type == TradeType::Buy && assets.asset_out == fee_asset),
+			Error::<T>::OperationNotSupported
+		);
 
 		// LBP has to be running
 		ensure!(Self::is_pool_running(&pool_data), Error::<T>::SaleIsNotRunning);
@@ -831,10 +843,10 @@ impl<T: Config> Pallet<T> {
 					weight_out,
 					amount,
 				)
-					.map_err(|_| Error::<T>::Overflow)?;
+				.map_err(|_| Error::<T>::Overflow)?;
 
 				(amount, calculated_out)
-			},
+			}
 			TradeType::Buy => {
 				ensure!(
 					amount
@@ -850,7 +862,7 @@ impl<T: Config> Pallet<T> {
 					weight_out,
 					amount,
 				)
-					.map_err(|_| Error::<T>::Overflow)?;
+				.map_err(|_| Error::<T>::Overflow)?;
 
 				(calculated_in, amount)
 			}
@@ -877,8 +889,8 @@ impl<T: Config> Pallet<T> {
 				} else {
 					ensure!(limit <= amount_out - fee_amount, Error::<T>::AssetBalanceLimitExceeded)
 				}
-			},
-			TradeType::Buy => ensure!(limit >= amount_in, Error::<T>::AssetBalanceLimitExceeded)
+			}
+			TradeType::Buy => ensure!(limit >= amount_in, Error::<T>::AssetBalanceLimitExceeded),
 		};
 
 		Ok(AMMTransfer {
@@ -894,49 +906,51 @@ impl<T: Config> Pallet<T> {
 
 	#[transactional]
 	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		let pool_id = Self::get_pair_id(transfer.assets);
-		let Pool { fee_collector, .. } = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+		let pool_account = Self::get_pair_id(transfer.assets);
+		let pool = <PoolData<T>>::try_get(&pool_account).map_err(|_| Error::<T>::PoolNotFound)?;
 
 		// Transfer assets between pool and user
-		T::MultiCurrency::transfer(transfer.assets.asset_in, &transfer.origin, &pool_id, transfer.amount)?;
+		T::MultiCurrency::transfer(
+			transfer.assets.asset_in,
+			&transfer.origin,
+			&pool_account,
+			transfer.amount,
+		)?;
 		T::MultiCurrency::transfer(
 			transfer.assets.asset_out,
-			&pool_id,
+			&pool_account,
 			&transfer.origin,
 			transfer.amount_out,
 		)?;
 
 		// Fee is deducted from received amount of accumulated asset and transferred to the fee collector
-		if transfer.fee.0 == transfer.assets.asset_in {
-			T::MultiCurrency::transfer(
-				transfer.fee.0,
-				&pool_id,
-				&fee_collector,
-				transfer.fee.1,
-			)?;
+		let (fee_asset, fee_amount) = transfer.fee;
+		let fee_payer = if transfer.assets.asset_in == fee_asset {
+			&pool_account
 		} else {
-			T::MultiCurrency::transfer(
-				transfer.fee.0,
-				&transfer.origin,
-				&fee_collector,
-				transfer.fee.1,
-			)?;
-		}
+			&transfer.origin
+		};
+		T::MultiCurrency::transfer(fee_asset, fee_payer, &pool.fee_collector, fee_amount)?;
+
+		// Resets lock for total of collected fees
+		let collected_fee_total = Self::collected_fees(&pool) + fee_amount;
+		T::MultiCurrency::set_lock(COLLECTOR_LOCK_ID, fee_asset, &pool.fee_collector, collected_fee_total)?;
 
 		Ok(())
 	}
 
+	/// determines fee rate and applies it to the amount
 	fn calculate_fees(
-		pool_data: &Pool<T::AccountId, T::BlockNumber>,
+		pool: &Pool<T::AccountId, T::BlockNumber>,
 		amount: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, DispatchError> {
-		let fee = if Self::is_repay_fee_applied(pool_data) {
+		let fee = if Self::is_repay_fee_applied(pool) {
 			Fee {
 				numerator: 2,
-				denominator: 10
+				denominator: 10,
 			}
 		} else {
-			pool_data.fee
+			pool.fee
 		};
 		Ok(amount.just_fee(fee).ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
@@ -1076,9 +1090,9 @@ impl<T: Config> CanCreatePool<AssetId> for DisallowWhenLBPPoolRunning<T> {
 			// returns true if the pool exists and the sale ended
 			Ok(data) => match data.end {
 				Some(end) => end < now,
-				None => false
+				None => false,
 			},
-			_ => true
+			_ => true,
 		}
 	}
 }

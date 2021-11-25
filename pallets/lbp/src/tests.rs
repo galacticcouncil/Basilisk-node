@@ -135,18 +135,8 @@ pub fn predefined_test_ext_with_repay_target() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_events(n: usize) -> Vec<TestEvent> {
-	frame_system::Pallet::<Test>::events()
-		.into_iter()
-		.rev()
-		.take(n)
-		.rev()
-		.map(|e| e.event)
-		.collect()
-}
-
 fn expect_events(e: Vec<TestEvent>) {
-	assert_eq!(last_events(e.len()), e);
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
 #[test]
@@ -2997,6 +2987,7 @@ fn repay_fee_not_applied_when_target_reached() {
 			repay_target: INITIAL_BALANCE,
 			..SAMPLE_POOL_DATA
 		};
+		assert_ok!(Currency::set_lock(COLLECTOR_LOCK_ID, pool.assets.0, &ALICE, INITIAL_BALANCE));
 		assert_eq!(LBPPallet::is_repay_fee_applied(&pool), false);
 	});
 }
