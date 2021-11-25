@@ -970,6 +970,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		Self::pair_account_from_assets(assets.asset_in, assets.asset_out)
 	}
 
+	fn get_share_token(_assets: AssetPair) -> AssetId {
+		// No share token in lbp
+		AssetId::MAX
+	}
+
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {
 		let maybe_pool = <PoolData<T>>::try_get(pool_account_id);
 		if let Ok(pool_data) = maybe_pool {
