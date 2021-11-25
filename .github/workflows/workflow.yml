@@ -159,7 +159,7 @@ jobs:
         continue-on-error: false
 
   test-inclusion:
-    needs: [pop-runner-instance, build]
+    needs: [pop-runner-instance, build, build-and-publish-docker-image]
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     steps:
       - uses: actions/checkout@v2
