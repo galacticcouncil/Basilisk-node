@@ -200,7 +200,7 @@ jobs:
         working-directory: scripts/polkadot-launch
   
   build-and-publish-docker-image:
-    needs: [pop-runner-instance, test-inclusion]
+    needs: [pop-runner-instance, build]
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     steps:
       - uses: actions/checkout@v2
@@ -211,7 +211,7 @@ jobs:
         name: Download basilisk binary
         with:
           name: basilisk
-          path: target/release    
+          path: docker
       - name: Sleep for 60 seconds
         run: sleep 60
       - name: install docker
