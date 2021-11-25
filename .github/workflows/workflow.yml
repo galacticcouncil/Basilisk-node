@@ -203,6 +203,17 @@ jobs:
     needs: [pop-runner-instance, test-inclusion]
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v2
+        name: Download basilisk binary
+        with:
+          name: basilisk
+          path: target/release    
+      - name: Sleep for 60 seconds
+        run: sleep 60
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
