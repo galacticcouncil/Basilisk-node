@@ -119,7 +119,7 @@ jobs:
   destroy-runner-instance:
     name: destroy infra
     runs-on: ubuntu-latest
-    needs: build-and-publish-docker-image
+    needs: test-inclusion
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
