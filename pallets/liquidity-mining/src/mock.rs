@@ -36,13 +36,13 @@ use std::{cell::RefCell, collections::HashMap};
 type AccountId = u128;
 pub type PoolId = crate::PoolId;
 pub type BlockNumber = u64;
-
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
 pub const DAVE: AccountId = 4;
 pub const TREASURY: AccountId = 5;
 pub const ACC_1M: AccountId = 6;
+pub const GC: AccountId = 7;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
@@ -52,27 +52,33 @@ pub const BSX_DOT_SHARE_ID: AssetId = 102;
 pub const BSX_ETH_SHARE_ID: AssetId = 103;
 pub const BSX_HDX_SHARE_ID: AssetId = 104;
 
+pub const BSX_TO1_SHARE_ID: AssetId = 105;
+pub const BSX_TO2_SHARE_ID: AssetId = 106;
+
 pub const BSX: AssetId = 1000;
 pub const HDX: AssetId = 2000;
 pub const ACA: AssetId = 3000;
 pub const KSM: AssetId = 4000;
 pub const DOT: AssetId = 5000;
 pub const ETH: AssetId = 6000;
-
+pub const TO1: AssetId = 7_001;
+pub const TO2: AssetId = 7_002;
 
 pub const BSX_ACA_AMM: AccountId = 11_000;
 pub const BSX_KSM_AMM: AccountId = 11_001;
 pub const BSX_DOT_AMM: AccountId = 11_002;
 pub const BSX_ETH_AMM: AccountId = 11_003;
 pub const BSX_HDX_AMM: AccountId = 11_004;
+pub const BSX_TO1_AMM: AccountId = 11_005;
+pub const BSX_TO2_AMM: AccountId = 11_006;
 
 pub const BSX_ACA_LM_POOL: PoolId = 12_000;
 pub const BSX_KSM_LM_POOL: PoolId = 12_001;
 pub const BSX_DOT_LM_POOL: PoolId = 12_002;
 
 pub const BSX_FARM: PoolId = 1;
-pub const GC_FARM: PoolId = 2;
-pub const KSM_FARM: PoolId = 3;
+pub const KSM_FARM: PoolId = 2;
+pub const GC_FARM: PoolId = 3;
 pub const ACA_FARM: PoolId = 4;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -206,13 +212,13 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(assets)).unwrap().0)
 	}
 
-    fn get_share_token(assets: AssetPair) -> AssetId {
+	fn get_share_token(assets: AssetPair) -> AssetId {
 		AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(assets)).unwrap().1)
-    }
+	}
 }
 
 pub fn asset_pair_to_map_key(assets: AssetPair) -> String {
-    format!("in:{}_out:{}", assets.asset_in, assets.asset_out)
+	format!("in:{}_out:{}", assets.asset_in, assets.asset_out)
 }
 
 parameter_types! {
@@ -279,6 +285,7 @@ impl Default for ExtBuilder {
 				(DAVE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
+				(GC, BSX, INITIAL_BALANCE),
 				(TREASURY, BSX, 1_000_000_000_000_000_000),
 				(TREASURY, ACA, 1_000_000_000_000_000_000),
 				(TREASURY, HDX, 1_000_000_000_000_000_000),

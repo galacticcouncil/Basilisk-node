@@ -252,6 +252,12 @@ pub mod pallet {
 
 		/// Account already have stake in liq. pool in farm
 		DuplicateDeposit,
+
+		/// One or moe liq. pools exist in farm. Only farm without liq. pools can be destroyed.
+		FarmIsNotEmpty,
+
+		/// Balance on rewards account is not 0. Only farm with 0 raward balance can be destroyed.
+		RewardBalanceIsNotZero,
 	}
 
 	#[pallet::event]
@@ -262,6 +268,9 @@ pub mod pallet {
 
 		/// New liquidity(AMM) pool was added to farm [farm_id, amm_pool_id, liquidity_pool]
 		LiquidityPoolAdded(PoolId, AccountIdOf<T>, LiquidityPool<T>),
+
+		/// Liq. mining farm was destroyed [farm_id, origin]
+		FarmDestroyed(PoolId, AccountIdOf<T>),
 	}
 
 	#[pallet::storage]
@@ -355,13 +364,27 @@ pub mod pallet {
 
 		#[pallet::weight(1000)]
 		pub fn destroy_farm(origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
-			let who = ensure_signed(origin);
+			let who = ensure_signed(origin)?;
 
-			//TODO: check if farm is empty - no liq. pool
+			<GlobalPoolData<T>>::try_mutate_exists(farm_id, |maybe_g_pool| -> DispatchResult {
+				let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-			//<LiquidityPoolData<T>>::contains_key(farmId);
+				ensure!(who == g_pool.owner, Error::<T>::Forbidden);
 
-			todo!()
+				ensure!(g_pool.liq_pools_count.is_zero(), Error::<T>::FarmIsNotEmpty);
+
+				let g_pool_account = Self::pool_account_id(g_pool.id)?;
+				//Note: should this be 0?
+				ensure!(
+					T::MultiCurrency::free_balance(g_pool.reward_currency, &g_pool_account).is_zero(),
+					Error::<T>::RewardBalanceIsNotZero
+				);
+
+				*maybe_g_pool = None;
+
+				Self::deposit_event(Event::FarmDestroyed(farm_id, who));
+				Ok(())
+			})
 		}
 
 		#[pallet::weight(1000)]

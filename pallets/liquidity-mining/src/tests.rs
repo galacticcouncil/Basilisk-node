@@ -3,8 +3,8 @@ use crate::mock::{
 	asset_pair_to_map_key, run_to_block, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, Test,
 	Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID,
 	BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM,
-	BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, DOT, ETH, HDX, INITIAL_BALANCE, KSM, KSM_FARM,
-	TREASURY,
+	BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, BSX_TO1_AMM, BSX_TO1_SHARE_ID, BSX_TO2_AMM,
+	BSX_TO2_SHARE_ID, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_FARM, TO1, TO2, TREASURY,
 };
 
 use frame_support::{assert_err, assert_noop, assert_ok};
@@ -15,8 +15,8 @@ use sp_runtime::traits::BadOrigin;
 
 use std::cmp::Ordering;
 
-const ALICE_FARM: u32 = 1;
-const BOB_FARM: u32 = 2;
+const ALICE_FARM: u32 = BSX_FARM;
+const BOB_FARM: u32 = KSM_FARM;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -24,9 +24,9 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 2] = [
+const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 	GlobalPool {
-		id: 1,
+		id: ALICE_FARM,
 		updated_at: 0,
 		reward_currency: BSX,
 		yield_per_period: Permill::from_percent(20),
@@ -43,7 +43,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 2] = [
 		accumulated_rewards: 0,
 	},
 	GlobalPool {
-		id: 2,
+		id: BOB_FARM,
 		updated_at: 0,
 		reward_currency: KSM,
 		yield_per_period: Permill::from_percent(38),
@@ -55,6 +55,23 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 2] = [
 		accumulated_rps: 0,
 		accumulated_rps_start: 0,
 		liq_pools_count: 0,
+		paid_accumulated_rewards: 0,
+		total_shares: 0,
+		accumulated_rewards: 0,
+	},
+	GlobalPool {
+		id: GC_FARM,
+		updated_at: 0,
+		reward_currency: BSX,
+		yield_per_period: Permill::from_percent(10),
+		planned_yielding_periods: 50_000_u64,
+		blocks_per_period: 1_000_u64,
+		owner: GC,
+		incentivized_token: BSX,
+		max_reward_per_period: 600_000,
+		accumulated_rps: 0,
+		accumulated_rps_start: 0,
+		liq_pools_count: 2,
 		paid_accumulated_rewards: 0,
 		total_shares: 0,
 		accumulated_rewards: 0,
@@ -87,11 +104,32 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			Permill::from_percent(38),
 		));
 
+		assert_ok!(LiquidityMining::create_farm(
+			Origin::root(),
+			30_000_000_000,
+			BlockNumber::from(50_000_u32),
+			BlockNumber::from(1_000_u32),
+			BSX,
+			BSX,
+			GC,
+			Permill::from_percent(10),
+		));
+
 		expect_events(vec![
 			Event::FarmCreated(1, PREDEFINED_GLOBAL_POOLS[0].clone()).into(),
 			frame_system::Event::NewAccount(187989685649991564771226578797).into(),
-			orml_tokens::Event::Endowed(4000, 187989685649991564771226578797, 1_000_000_000).into(),
+			orml_tokens::Event::Endowed(4_000, 187989685649991564771226578797, 1_000_000_000).into(),
 			Event::FarmCreated(2, PREDEFINED_GLOBAL_POOLS[1].clone()).into(),
+			frame_system::Event::NewAccount(267217848164255902364770529133).into(),
+			orml_tokens::Event::Endowed(1_000, 267217848164255902364770529133, 30_000_000_000).into(),
+			Event::FarmCreated(
+				3,
+				GlobalPool {
+					liq_pools_count: 0,
+					..PREDEFINED_GLOBAL_POOLS[2].clone()
+				},
+			)
+			.into(),
 		]);
 
 		let amm_mock_data = vec![
@@ -130,6 +168,20 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				},
 				(BSX_HDX_AMM, BSX_HDX_SHARE_ID),
 			),
+			(
+				AssetPair {
+					asset_in: BSX,
+					asset_out: TO1,
+				},
+				(BSX_TO1_AMM, BSX_TO1_SHARE_ID),
+			),
+			(
+				AssetPair {
+					asset_in: BSX,
+					asset_out: TO2,
+				},
+				(BSX_TO2_AMM, BSX_TO2_SHARE_ID),
+			),
 		];
 
 		AMM_POOLS.with(|h| {
@@ -137,7 +189,59 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			for (k, v) in amm_mock_data {
 				hm.insert(asset_pair_to_map_key(k), v);
 			}
-		})
+		});
+
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			AssetPair {
+				asset_in: BSX,
+				asset_out: TO1,
+			},
+			10_000,
+			Some(LoyaltyCurve::default()),
+		));
+
+		expect_events(vec![Event::LiquidityPoolAdded(
+			GC_FARM,
+			BSX_TO1_AMM,
+			LiquidityPool {
+				id: 4,
+				updated_at: 0,
+				accumulated_rps: 0,
+				total_shares: 0,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 0,
+				multiplier: 10_000,
+			},
+		)
+		.into()]);
+
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			AssetPair {
+				asset_in: BSX,
+				asset_out: TO2,
+			},
+			20_000,
+			Some(LoyaltyCurve::default()),
+		));
+
+		expect_events(vec![Event::LiquidityPoolAdded(
+			GC_FARM,
+			BSX_TO2_AMM,
+			LiquidityPool {
+				id: 5,
+				updated_at: 0,
+				accumulated_rps: 0,
+				total_shares: 0,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 0,
+				multiplier: 20_000,
+			},
+		)
+		.into()]);
 	});
 
 	ext
@@ -2217,7 +2321,7 @@ fn add_liquidity_pool_should_work() {
 				asset_out: ACA,
 			},
 			LiquidityPool {
-				id: 3,
+				id: 6,
 				updated_at: 17,
 				total_shares: 0,
 				accumulated_rps: 0,
@@ -2240,7 +2344,7 @@ fn add_liquidity_pool_should_work() {
 				asset_out: KSM,
 			},
 			LiquidityPool {
-				id: 4,
+				id: 7,
 				updated_at: 17,
 				total_shares: 0,
 				accumulated_rps: 0,
@@ -2263,7 +2367,7 @@ fn add_liquidity_pool_should_work() {
 				asset_out: ETH,
 			},
 			LiquidityPool {
-				id: 5,
+				id: 8,
 				updated_at: 20,
 				total_shares: 0,
 				accumulated_rps: 0,
@@ -2289,7 +2393,7 @@ fn add_liquidity_pool_should_work() {
 				asset_out: ETH,
 			},
 			LiquidityPool {
-				id: 6,
+				id: 9,
 				updated_at: 2,
 				total_shares: 0,
 				accumulated_rps: 0,
@@ -2470,7 +2574,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 		));
 
 		let existing_pool = LiquidityPool {
-			id: 3,
+			id: 6,
 			updated_at: 20,
 			total_shares: 0,
 			accumulated_rps: 0,
@@ -2519,6 +2623,141 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 				Some(LoyaltyCurve::default()),
 			),
 			Error::<Test>::LiquidityPoolAlreadyExists
+		);
+	});
+}
+
+#[test]
+fn destroy_farm_should_work() {
+	predefined_test_ext().execute_with(|| {
+		//remove all rewards from reward account
+		let farm_account = LiquidityMining::pool_account_id(BOB_FARM).unwrap();
+		let _ = Tokens::transfer_all(
+			Origin::signed(farm_account),
+			TREASURY,
+			PREDEFINED_GLOBAL_POOLS[1].reward_currency,
+			false,
+		);
+		assert_eq!(
+			Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[1].reward_currency, &farm_account),
+			0
+		);
+
+		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(BOB), BOB_FARM));
+
+		expect_events(vec![Event::FarmDestroyed(BOB_FARM, BOB).into()]);
+
+		assert_eq!(LiquidityMining::global_pool(BOB_FARM).is_none(), true);
+	});
+}
+
+#[test]
+fn destroy_farm_not_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		//remove all rewards from reward account
+		let farm_account = LiquidityMining::pool_account_id(BOB_FARM).unwrap();
+		let _ = Tokens::transfer_all(
+			Origin::signed(farm_account),
+			TREASURY,
+			PREDEFINED_GLOBAL_POOLS[1].reward_currency,
+			false,
+		);
+		assert_eq!(
+			Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[1].reward_currency, &farm_account),
+			0
+		);
+
+		assert_noop!(
+			LiquidityMining::destroy_farm(Origin::signed(ALICE), BOB_FARM),
+			Error::<Test>::Forbidden
+		);
+
+		assert_eq!(
+			LiquidityMining::global_pool(BOB_FARM).unwrap(),
+			PREDEFINED_GLOBAL_POOLS[1]
+		);
+	});
+}
+
+#[test]
+fn destroy_farm_farm_not_exists_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		const NON_EXISTING_FARM: u32 = 999_999_999;
+		assert_noop!(
+			LiquidityMining::destroy_farm(Origin::signed(ALICE), NON_EXISTING_FARM),
+			Error::<Test>::FarmNotFound
+		);
+	});
+}
+
+#[test]
+fn destroy_farm_with_pools_should_not_work() {
+	//in this case all rewards was distributed but liq. pool still exists in farm
+	predefined_test_ext().execute_with(|| {
+		//remove all rewards from reward account
+		let farm_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let _ = Tokens::transfer_all(
+			Origin::signed(farm_account),
+			TREASURY,
+			PREDEFINED_GLOBAL_POOLS[2].reward_currency,
+			false,
+		);
+		assert_eq!(
+			Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[2].reward_currency, &farm_account),
+			0
+		);
+
+		assert_noop!(
+			LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM),
+			Error::<Test>::FarmIsNotEmpty
+		);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			PREDEFINED_GLOBAL_POOLS[2]
+		);
+	});
+}
+
+#[test]
+fn destroy_farm_with_undistributed_rewards_and_no_pools_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let farm_account = LiquidityMining::pool_account_id(BOB_FARM).unwrap();
+		assert_eq!(
+			Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[1].reward_currency, &farm_account).is_zero(),
+			false
+		);
+
+		assert_noop!(
+			LiquidityMining::destroy_farm(Origin::signed(BOB), BOB_FARM),
+			Error::<Test>::RewardBalanceIsNotZero
+		);
+
+		assert_eq!(
+			LiquidityMining::global_pool(BOB_FARM).unwrap(),
+			PREDEFINED_GLOBAL_POOLS[1]
+		);
+	});
+}
+
+#[test]
+fn destroy_farm_healthy_should_not_work() {
+	//farm with undistributed rewards and liq. pools
+	predefined_test_ext().execute_with(|| {
+		let farm_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		assert_eq!(
+			Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[2].reward_currency, &farm_account).is_zero(),
+			false
+		);
+
+		assert_noop!(
+			LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM),
+			Error::<Test>::FarmIsNotEmpty
+		);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			PREDEFINED_GLOBAL_POOLS[2]
 		);
 	});
 }
