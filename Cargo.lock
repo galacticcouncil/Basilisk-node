@@ -554,7 +554,7 @@ dependencies = [
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5)",
  "memory-db",
  "orml-benchmarking",
  "orml-currencies",
@@ -3195,6 +3195,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydradx-traits"
+version = "0.2.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=d134ffbd10d76809bde6a1e4738582272494cb34#d134ffbd10d76809bde6a1e4738582272494cb34"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-std",
+]
+
+[[package]]
 name = "hyper"
 version = "0.14.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5210,7 +5222,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5)",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5578,7 +5590,7 @@ version = "5.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5)",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5603,7 +5615,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5)",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5737,7 +5749,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 4.0.0",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=d134ffbd10d76809bde6a1e4738582272494cb34)",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
@@ -5857,7 +5869,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5)",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -6177,7 +6189,7 @@ version = "6.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5)",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -6336,7 +6348,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 3.4.0",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5)",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
@@ -11014,7 +11026,7 @@ dependencies = [
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",
- "hydradx-traits",
+ "hydradx-traits 0.2.0 (git+https://github.com/galacticcouncil/warehouse?rev=a5cb40ae5313bb158f8b28e0a78479148be3b9f5)",
  "memory-db",
  "orml-currencies",
  "orml-nft",

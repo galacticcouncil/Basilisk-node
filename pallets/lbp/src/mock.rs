@@ -4,7 +4,8 @@ use super::*;
 use crate as lbp;
 use crate::{AssetPairAccountIdFor, Config};
 use frame_support::parameter_types;
-use frame_support::traits::{Everything, GenesisBuild, Nothing};
+use frame_support::traits::{Everything, GenesisBuild, LockIdentifier, Nothing};
+use hydradx_traits::LockedBalance;
 use orml_traits::parameter_type_with_key;
 use primitives::constants::chain::{
 	AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
@@ -139,10 +140,34 @@ parameter_types! {
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 }
 
+pub struct MultiLockedBalance();
+
+impl LockedBalance<AssetId, AccountId, Balance> for MultiLockedBalance {
+	fn get_by_lock(asset: AssetId, account: AccountId, lock_id: LockIdentifier) -> Balance {
+		if asset == NativeAssetId::get() {
+			match Currency::locks(account, asset)
+				.into_iter()
+				.find(|lock| lock.id == lock_id)
+			{
+				Some(lock) => lock.amount,
+				None => Zero::zero(),
+			}
+		} else {
+			match Currency::locks(account, asset)
+				.into_iter()
+				.find(|lock| lock.id == lock_id)
+			{
+				Some(lock) => lock.amount,
+				None => Zero::zero(),
+			}
+		}
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
-	type NativeAssetId = NativeAssetId;
+	type LockedBalance = MultiLockedBalance;
 	type CreatePoolOrigin = frame_system::EnsureRoot<u64>;
 	type LBPWeightFunction = lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountIdTest;
@@ -197,7 +222,12 @@ pub fn run_to_sale_start() {
 	run_to_block::<Test>(SALE_START.unwrap());
 }
 
-pub fn generate_trades(start: BlockNumber, end: BlockNumber, sale_rate: u128, sell_ratio: u128) -> BTreeMap<BlockNumber, (bool, u128)> {
+pub fn generate_trades(
+	start: BlockNumber,
+	end: BlockNumber,
+	sale_rate: u128,
+	sell_ratio: u128,
+) -> BTreeMap<BlockNumber, (bool, u128)> {
 	let mut trades = BTreeMap::new();
 	let intervals: u64 = 72;
 

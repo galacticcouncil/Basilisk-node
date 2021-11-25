@@ -29,7 +29,7 @@ use frame_support::sp_runtime::{
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{EnsureOrigin, Get},
+	traits::{EnsureOrigin, Get, LockIdentifier},
 	transactional,
 };
 use frame_system::ensure_signed;
@@ -83,6 +83,9 @@ pub const MAX_WEIGHT: LBPWeight = 100_000_000;
 
 /// Max sale duration is 14 days, assuming 6 sec blocks
 pub const MAX_SALE_DURATION: u32 = (60 * 60 * 24 / 6) * 14;
+
+/// Lock Identifier for the collected fees
+pub const COLLECTOR_LOCK_ID: LockIdentifier = *b"lbpcllct";
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 #[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default, TypeInfo)]
@@ -175,6 +178,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
+	use hydradx_traits::LockedBalance;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -187,9 +191,8 @@ pub mod pallet {
 		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Amount = Amount, Balance = Balance>
 			+ MultiReservableCurrency<Self::AccountId>;
 
-		#[pallet::constant]
-		/// Native Asset Id
-		type NativeAssetId: Get<AssetId>;
+		/// Universal locked balance getter for tracking of fee collector balance
+		type LockedBalance: LockedBalance<AssetId, Self::AccountId, Balance>;
 
 		/// The origin which can create a new pool
 		type CreatePoolOrigin: EnsureOrigin<Self::Origin>;

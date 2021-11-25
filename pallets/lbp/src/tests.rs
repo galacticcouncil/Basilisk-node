@@ -25,19 +25,19 @@ use crate::mock::{KUSD_BSX_POOL_ID, HDX_DOT_POOL_ID, INITIAL_BALANCE, SAMPLE_POO
 use frame_support::{assert_err, assert_noop, assert_ok};
 use sp_runtime::traits::BadOrigin;
 use sp_std::convert::TryInto;
+use hydradx_traits::{AMMTransfer, LockedBalance};
+
+use primitives::{
+	asset::AssetPair,
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
+	fee::Fee,
+};
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
 	ext.execute_with(|| run_to_block::<Test>(1));
 	ext
 }
-
-use hydradx_traits::AMMTransfer;
-use primitives::{
-	asset::AssetPair,
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
-	fee::Fee,
-};
 
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
@@ -147,6 +147,13 @@ fn last_events(n: usize) -> Vec<TestEvent> {
 
 fn expect_events(e: Vec<TestEvent>) {
 	assert_eq!(last_events(e.len()), e);
+}
+
+#[test]
+fn default_locked_balance_should_be_zero() {
+	new_test_ext().execute_with(|| {
+		assert_eq!(<Test as pallet::Config>::LockedBalance::get_by_lock(BSX, BOB, COLLECTOR_LOCK_ID), 0_u128);
+	});
 }
 
 #[test]
