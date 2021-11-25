@@ -103,6 +103,8 @@ jobs:
         run: cargo build --release --locked
       - name: Version info
         run: ./target/release/basilisk --version
+      - name: Copy Binary for docker image creation
+        run: cp target/release/basilisk docker/  
       - name: Upload release binary
         uses: actions/upload-artifact@v2
         with:
@@ -205,16 +207,8 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: whereami
-        run: pwd
-      - name: list all
-        run: ls -R
-      - name: list target
-        run: ls -R target   
-      - name: Sleep for 120 seconds
-        run: sleep 120    
-      - name: copy binary for docker image creation
-        run: cp target/release/basilisk docker/
+      - name: Sleep for 60 seconds
+        run: sleep 60
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
