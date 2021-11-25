@@ -36,7 +36,7 @@ pub struct InstanceInfo<AccountId, Balance, BoundedString> {
 	pub royalty: u8,
 	/// Arbitrary data about an instance, e.g. IPFS hash
 	pub metadata: BoundedString,
-	/// Represents number of shares of a token pool
+	/// Number of shares in a liquidity mining pool
 	pub shares: Balance,
 	/// Accumulated reward per share
 	pub accrps: Balance,
