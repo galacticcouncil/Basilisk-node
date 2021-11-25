@@ -204,7 +204,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha }
+      - name: Sleep for 120 seconds
+        run: sleep 120    
       - name: copy binary for docker image creation
         run: cp target/release/basilisk docker/
       - name: install docker
