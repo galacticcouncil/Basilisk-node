@@ -448,8 +448,67 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(1000)]
-		pub fn update_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			todo!()
+		#[transactional]
+		pub fn update_liqudity_pool(
+			origin: OriginFor<T>,
+			farm_id: PoolId,
+			asset_pair: AssetPair,
+			weight: u32,
+		) -> DispatchResult {
+			//TODO: this fn is WIP
+			let who = ensure_signed(origin)?;
+
+			ensure!(!weight.is_zero(), Error::<T>::InvalidWeight);
+
+			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
+			<LiquidityPoolData<T>>::try_mutate(farm_id, &amm_pool_id, |liq_pool| {
+				let liq_pool = liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+
+				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
+					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+
+					ensure!(who == g_pool.owner, Error::<T>::Forbidden);
+
+					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+					let reward_per_period = Self::get_reward_per_period(
+						g_pool.yield_per_period.into(),
+						g_pool.total_shares,
+						g_pool.max_reward_per_period,
+					)?;
+					Self::update_global_pool(g_pool, now_period, reward_per_period)?;
+
+					let pool_reward = Self::claim_from_global_pool(g_pool, liq_pool.stake_in_global_pool)?;
+					Self::update_pool(liq_pool, pool_reward, now_period, g_pool.id, g_pool.reward_currency)?;
+
+					let incentivized_token_balance_in_amm =
+						T::MultiCurrency::free_balance(g_pool.reward_currency, &amm_pool_id);
+					let new_stake_in_global_pool = incentivized_token_balance_in_amm
+						.checked_mul(liq_pool.total_shares)
+						.ok_or(Error::<T>::Overflow)?
+						.checked_mul(weight.into())
+						.ok_or(Error::<T>::Overflow)?;
+
+					if new_stake_in_global_pool > liq_pool.stake_in_global_pool {
+						let diff = new_stake_in_global_pool
+							.checked_sub(liq_pool.stake_in_global_pool)
+							.ok_or(Error::<T>::Overflow)?;
+
+						g_pool.total_shares = g_pool.total_shares.checked_add(diff).ok_or(Error::<T>::Overflow)?;
+					} else {
+						let diff = liq_pool
+							.stake_in_global_pool
+							.checked_sub(new_stake_in_global_pool)
+							.ok_or(Error::<T>::Overflow)?;
+
+						g_pool.total_shares = g_pool.total_shares.checked_sub(diff).ok_or(Error::<T>::Overflow)?;
+					}
+
+					liq_pool.stake_in_global_pool = new_stake_in_global_pool;
+					liq_pool.multiplier = weight;
+
+					Ok(())
+				})
+			})
 		}
 
 		#[pallet::weight(1000)]
@@ -467,19 +526,20 @@ pub mod pallet {
 		pub fn deposit_shares(
 			origin: OriginFor<T>,
 			farm_id: PoolId,
-			assets: AssetPair,
+			asset_pair: AssetPair,
 			amount: Balance,
 		) -> DispatchResult {
+			//TODO: this fn is WIP
 			let who = ensure_signed(origin)?;
 
-			let amm_share = T::AMM::get_share_token(assets);
+			let amm_share = T::AMM::get_share_token(asset_pair);
 
 			ensure!(
 				T::MultiCurrency::free_balance(amm_share, &who) >= amount,
 				Error::<T>::InsufficientAmmSharesBalance
 			);
 
-			let liq_pool_key = T::AMM::get_pair_id(assets);
+			let liq_pool_key = T::AMM::get_pair_id(asset_pair);
 			<LiquidityPoolData<T>>::try_mutate(farm_id, liq_pool_key, |liq_pool| {
 				let liq_pool = liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
 
