@@ -543,7 +543,7 @@ fn can_close_english_auction() {
 		let Auction::English(data) = auction;
 
 		// Attributed closed is updated
-		assert_eq!(data.general_data.closed, true);
+		assert!(data.general_data.closed);
 
 		// Error AuctionClosed
 		assert_noop!(

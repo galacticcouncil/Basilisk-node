@@ -76,14 +76,18 @@ pub mod pallet {
 			+ Into<<<Self as crate::Config>::Currency as Currency<<Self as frame_system::Config>::AccountId>>::Balance>;
 
 		/// Limit of auction name length
+		#[pallet::constant]
 		type AuctionsStringLimit: Get<u32>;
 
+		#[pallet::constant]
 		/// Increase end time to avoid sniping
 		type BidAddBlocks: Get<u32>;
 
+		#[pallet::constant]
 		/// Next bid step in percent
 		type BidStepPerc: Get<u32>;
 
+		#[pallet::constant]
 		/// Minimum auction duration
 		type MinAuctionDuration: Get<u32>;
 	}
@@ -210,7 +214,7 @@ pub mod pallet {
 		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
 			let bidder = ensure_signed(origin)?;
 
-			let bid = <Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
 				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
 
 				match auction {
@@ -220,21 +224,17 @@ pub mod pallet {
 					}
 				}
 
+				Self::deposit_event(Event::Bid(auction_id, bidder, value));
+
 				Ok(())
-			});
-
-			if let Err(err) = bid {
-				return Err(err);
-			}
-
-			Self::deposit_event(Event::Bid(auction_id, bidder, value));
+			})?;
 
 			Ok(())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::close_auction())]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
-			let close = <Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
 				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
 
 				match auction {
@@ -244,14 +244,10 @@ pub mod pallet {
 					}
 				}
 
+				Self::deposit_event(Event::AuctionRemoved(auction_id));
+
 				Ok(())
-			});
-
-			if let Err(err) = close {
-				return Err(err);
-			}
-
-			Self::deposit_event(Event::AuctionRemoved(auction_id));
+			})?;
 
 			Ok(())
 		}
@@ -336,7 +332,7 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		<Auctions<T>>::try_mutate(auction_id, |auction_result| -> DispatchResult {
 			if let Some(_auction) = auction_result {
-				Self::validate_update(sender, &general_data)?;
+				Self::validate_update(sender, general_data)?;
 				*auction_result = Some(updated_auction);
 				Ok(())
 			} else {
@@ -374,7 +370,7 @@ impl<T: Config> Pallet<T> {
 		);
 		ensure!(value >= general_auction_data.next_bid_min, Error::<T>::InvalidBidPrice);
 
-		if let Some(ref current_bid) = general_auction_data.last_bid {
+		if let Some(current_bid) = &general_auction_data.last_bid {
 			ensure!(value > current_bid.1, Error::<T>::InvalidBidPrice);
 		} else {
 			ensure!(!value.is_zero(), Error::<T>::InvalidBidPrice);
@@ -395,7 +391,7 @@ impl<T: Config> Pallet<T> {
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for EnglishAuction<T> {
 	fn bid(&mut self, bidder: T::AccountId, value: BalanceOf<T>) -> DispatchResult {
 		// Lock / Unlock funds
-		if let Some(ref current_bid) = self.general_data.last_bid {
+		if let Some(current_bid) = &self.general_data.last_bid {
 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
 		}
 		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
@@ -426,7 +422,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 			self.general_data.token.1,
 		)?;
 		// there is a bid so let's determine a winner and transfer tokens
-		if let Some(ref winner) = self.general_data.last_bid {
+		if let Some(winner) = &self.general_data.last_bid {
 			let dest = T::Lookup::unlookup(winner.0.clone());
 			let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
 			pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
