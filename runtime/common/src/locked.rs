@@ -11,7 +11,7 @@ where
 	Balance: From<<T as pallet_balances::Config>::Balance>,
 {
 	fn get_by_lock(lock_id: LockIdentifier, currency_id: AssetId, who: T::AccountId) -> Balance {
-		if currency_id == NativeAssetId::get() {
+		if currency_id != NativeAssetId::get() {
 			match orml_tokens::Pallet::<T>::locks(who, currency_id.into())
 				.into_iter()
 				.find(|lock| lock.id == lock_id)
