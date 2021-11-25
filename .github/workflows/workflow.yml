@@ -104,7 +104,18 @@ jobs:
       - name: Version info
         run: ./target/release/basilisk --version
       - name: Copy Binary for docker image creation
-        run: cp target/release/basilisk docker/  
+        run: cp target/release/basilisk docker/
+      - name: install docker
+        run: sudo snap install docker
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+      - name: build docker image
+        run: sudo docker build -t basilisk:latest docker
+      - name: get ecr credentials
+        run: aws ecr get-login-password --region eu-west-1 | sudo docker login --username AWS --password-stdin 601305236792.dkr.ecr.eu-west-1.amazonaws.com
+      - name: push image to ecr repository
+        run: sudo docker tag basilisk:latest 601305236792.dkr.ecr.eu-west-1.amazonaws.com/basilisk
+      - run: sudo docker push 601305236792.dkr.ecr.eu-west-1.amazonaws.com/basilisk:latest  
       - name: Upload release binary
         uses: actions/upload-artifact@v2
         with:
