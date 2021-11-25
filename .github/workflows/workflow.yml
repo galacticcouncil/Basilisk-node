@@ -198,7 +198,7 @@ jobs:
         working-directory: scripts/polkadot-launch
   
   build-and-publish-docker-image:
-    needs: test-inclusion
+    needs: [pop-runner-instance, test-inclusion]
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     steps:
       - uses: actions/checkout@v2
