@@ -525,7 +525,7 @@ fn can_close_english_auction() {
 			Error::<Test>::AuctionEndTimeNotReached,
 		);
 
-		// Happy path 1: bid above reserve_price
+		// Happy path
 		System::set_block_number(21);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
@@ -534,7 +534,7 @@ fn can_close_english_auction() {
 		let bob_balance_after = Balances::free_balance(&BOB);
 
 		// NFT can be transferred; Current version of nft pallet has no ownership check
-		// assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
+		assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
 
 		assert_eq!(alice_balance_before.saturating_add(bid), alice_balance_after);
 		assert_eq!(bob_balance_before.saturating_sub(bid), bob_balance_after);
@@ -550,28 +550,5 @@ fn can_close_english_auction() {
 			AuctionsModule::close(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionClosed,
 		);
-
-		System::set_block_number(22);
-
-		// Happy path 2: bid under reserve_price
-		let mut general_data = general_auction_data.clone();
-		let mut specific_data = english_auction_data.clone();
-
-		general_data.owner = BOB;
-		general_data.start = 23u64;
-		general_data.end = 34u64;
-
-		specific_data.reserve_price = 300;
-
-		let auction_data = EnglishAuction {
-			general_data: general_data,
-			specific_data: specific_data,
-		};
-		let auction = Auction::English(auction_data);
-
-		// TODO This raises NoPermission
-		assert_ok!(AuctionsModule::create(Origin::signed(BOB), auction));
-
-		// TODO finalize after tests
 	});
 }

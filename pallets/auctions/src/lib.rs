@@ -425,22 +425,18 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 			self.general_data.token.0,
 			self.general_data.token.1,
 		)?;
-
 		// there is a bid so let's determine a winner and transfer tokens
 		if let Some(ref winner) = self.general_data.last_bid {
+			let dest = T::Lookup::unlookup(winner.0.clone());
+			let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
+			pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.0);
-
-			if &winner.1 >= &self.specific_data.reserve_price {
-				let dest = T::Lookup::unlookup(winner.0.clone());
-				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
-				pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
-				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-					&winner.0,
-					&self.general_data.owner,
-					winner.1,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
+			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+				&winner.0,
+				&self.general_data.owner,
+				winner.1,
+				ExistenceRequirement::KeepAlive,
+			)?;
 		}
 
 		self.general_data.closed = true;
