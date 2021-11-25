@@ -384,13 +384,8 @@ impl<T: Config> Pallet<T> {
 		name.try_into().map_err(|_| Error::<T>::TooLong)
 	}
 
-	fn _get_first_instance(account: T::AccountId, class_id: T::NftClassId) -> Option<InstanceInfoOf<T>> {
-		let maybe_instance_id = pallet_uniques::Pallet::<T>::owned_in_class(&class_id.into(), &account).next();
-		if let Some(instance_id) = maybe_instance_id {
-			Self::instances(class_id, T::NftInstanceId::from(instance_id))
-		} else {
-			None
-		}
+	fn _get_instance_owner(class_id: T::NftClassId, instance_id: T::NftInstanceId) -> Option<T::AccountId> {
+		pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
 	}
 }
 
