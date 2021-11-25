@@ -41,7 +41,7 @@ benchmarks! {
 		let caller_lookup = T::Lookup::unlookup(caller.clone());
 		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata.clone()).unwrap_or_default();
-	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata))
+	}: _(RawOrigin::Signed(caller.clone()), caller.clone(), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata), Some(123u32.into()), Some(321u32.into()))
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()), Some(caller));
 	}
@@ -53,7 +53,7 @@ benchmarks! {
 		let caller2_lookup = T::Lookup::unlookup(caller2.clone());
 		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata.clone()).unwrap_or_default();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller), Some(20), Some(metadata)).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), caller.clone(), 0u32.into(), Some(caller), Some(20), Some(metadata), Some(123u32.into()), Some(321u32.into())).unwrap_or_default();
 	}: _(RawOrigin::Root, 0u32.into(), 0u32.into(), caller2_lookup)
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()), Some(caller2));
@@ -74,34 +74,18 @@ benchmarks! {
 		let caller_lookup = T::Lookup::unlookup(caller.clone());
 		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
 		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata.clone()).unwrap_or_default();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata)).unwrap_or_default();
+		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), caller.clone(), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata), Some(123u32.into()), Some(321u32.into())).unwrap_or_default();
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::owned(&caller).count(), 0);
 	}
 }
 
-#[cfg(test)]
+#[cfg(test)]#[cfg(test)]
 mod tests {
-	use super::mock::Test;
-	use super::*;
+	use super::Pallet;
 	use crate::mock::*;
-	use frame_support::assert_ok;
+	use frame_benchmarking::impl_benchmark_test_suite;
 
-	pub fn new_test_ext() -> sp_io::TestExternalities {
-		let mut ext = ExtBuilder::default().build();
-		ext.execute_with(|| System::set_block_number(1));
-		ext
-	}
-
-	#[test]
-	fn test_benchmarks() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_create_class());
-			assert_ok!(Pallet::<Test>::test_benchmark_mint());
-			assert_ok!(Pallet::<Test>::test_benchmark_transfer());
-			assert_ok!(Pallet::<Test>::test_benchmark_burn());
-			assert_ok!(Pallet::<Test>::test_benchmark_destroy_class());
-		});
-	}
+	impl_benchmark_test_suite!(Pallet, super::ExtBuilder::default().build(), super::Test);
 }

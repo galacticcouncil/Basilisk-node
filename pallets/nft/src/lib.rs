@@ -1,6 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::too_many_arguments)]
 
 use codec::HasCompact;
 use frame_support::{
@@ -32,8 +33,11 @@ mod tests;
 
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 type ClassInfoOf<T> = ClassInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
-type InstanceInfoOf<T> =
-	InstanceInfo<<T as frame_system::Config>::AccountId, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
+type InstanceInfoOf<T> = InstanceInfo<
+	<T as frame_system::Config>::AccountId,
+	BalanceOf<T>,
+	BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>,
+>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -66,7 +70,8 @@ pub mod pallet {
 			+ Copy
 			+ HasCompact
 			+ AtLeast32BitUnsigned
-			+ Into<Self::InstanceId>;
+			+ Into<Self::InstanceId>
+			+ From<Self::InstanceId>;
 	}
 
 	/// Next available class ID.
@@ -163,10 +168,13 @@ pub mod pallet {
 		#[transactional]
 		pub fn mint(
 			origin: OriginFor<T>,
+			owner: T::AccountId,
 			class_id: T::NftClassId,
 			author: Option<T::AccountId>,
 			royalty: Option<u8>,
 			metadata: Option<Vec<u8>>,
+			shares: Option<BalanceOf<T>>,
+			accrps: Option<BalanceOf<T>>,
 		) -> DispatchResult {
 			let sender = match T::ProtocolOrigin::try_origin(origin) {
 				Ok(_) => None,
@@ -188,22 +196,19 @@ pub mod pallet {
 					Ok(current_id)
 				})?;
 
-			pallet_uniques::Pallet::<T>::do_mint(
-				class_id.into(),
-				instance_id.into(),
-				sender.clone().unwrap_or_default(),
-				|_details| {
-					if sender.is_some() {
-						ensure!(class_type == ClassType::Marketplace, Error::<T>::NotPermitted)
-					}
-					Ok(())
-				},
-			)?;
+			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner, |_details| {
+				if sender.is_some() {
+					ensure!(class_type == ClassType::Marketplace, Error::<T>::NotPermitted)
+				}
+				Ok(())
+			})?;
 
 			if class_type == ClassType::Marketplace {
 				let metadata_bounded = Self::to_bounded_string(metadata.ok_or(Error::<T>::MetadataNotSet)?)?;
 				let author = author.ok_or(Error::<T>::AuthorNotSet)?;
 				let royalty = royalty.ok_or(Error::<T>::RoyaltyNotSet)?;
+				let shares = shares.ok_or(Error::<T>::SharesNotSet)?;
+				let accrps = accrps.ok_or(Error::<T>::AccrpsNotSet)?;
 
 				Instances::<T>::insert(
 					class_id,
@@ -212,6 +217,8 @@ pub mod pallet {
 						author,
 						royalty,
 						metadata: metadata_bounded,
+						shares,
+						accrps,
 					},
 				);
 			}
@@ -237,29 +244,26 @@ pub mod pallet {
 			instance_id: T::NftInstanceId,
 			dest: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
-			let sender = match T::ProtocolOrigin::try_origin(origin) {
-				Ok(_) => None,
-				Err(origin) => Some(ensure_signed(origin)?),
-			};
+			let sender = ensure_signed(origin)?;
 
 			let dest = T::Lookup::lookup(dest)?;
+
+			if sender == dest {
+				return Ok(());
+			}
 
 			pallet_uniques::Pallet::<T>::do_transfer(
 				class_id.into(),
 				instance_id.into(),
 				dest.clone(),
-				|_class_details, _instance_details| {
-					ensure!(sender.is_none(), pallet_uniques::Error::<T, ()>::NoPermission);
+				|_class_details, instance_details| {
+					let is_permitted = instance_details.owner == sender;
+					ensure!(is_permitted, Error::<T>::NotPermitted);
 					Ok(())
 				},
 			)?;
 
-			Self::deposit_event(Event::InstanceTransferred(
-				sender.unwrap_or_default(),
-				dest,
-				class_id,
-				instance_id,
-			));
+			Self::deposit_event(Event::InstanceTransferred(sender, dest, class_id, instance_id));
 
 			Ok(())
 		}
@@ -272,33 +276,21 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
 		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
-			let sender = match T::ProtocolOrigin::try_origin(origin) {
-				Ok(_) => None,
-				Err(origin) => Some(ensure_signed(origin)?),
-			};
-
-			ensure!(
-				pallet_uniques::Pallet::<T>::can_transfer(&class_id.into(), &instance_id.into()),
-				Error::<T>::TokenFrozen
-			);
+			let sender = ensure_signed(origin)?;
 
 			pallet_uniques::Pallet::<T>::do_burn(
 				class_id.into(),
 				instance_id.into(),
 				|_class_details, instance_details| {
-					if let Some(sender) = sender.clone() {
-						let is_permitted = instance_details.owner == sender;
-						ensure!(is_permitted, pallet_uniques::Error::<T, ()>::NoPermission);
-						Ok(())
-					} else {
-						Ok(())
-					}
+					let is_permitted = instance_details.owner == sender;
+					ensure!(is_permitted, Error::<T>::NotPermitted);
+					Ok(())
 				},
 			)?;
 
 			Instances::<T>::remove(class_id, instance_id);
 
-			Self::deposit_event(Event::InstanceBurned(sender.unwrap_or_default(), class_id, instance_id));
+			Self::deposit_event(Event::InstanceBurned(sender, class_id, instance_id));
 
 			Ok(())
 		}
@@ -314,6 +306,14 @@ pub mod pallet {
 				Ok(_) => None,
 				Err(origin) => Some(ensure_signed(origin)?),
 			};
+
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
+
+			if class_type == ClassType::PoolShare {
+				ensure!(sender.is_none(), Error::<T>::NotPermitted)
+			}
 
 			let witness =
 				pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::NoWitness)?;
@@ -366,6 +366,10 @@ pub mod pallet {
 		AuthorNotSet,
 		/// Metadata has to be set for marketplace
 		MetadataNotSet,
+		/// Shares has to be set for liquidity mining
+		SharesNotSet,
+		/// Accumulated reward per share has to be set for liquidity mining
+		AccrpsNotSet,
 		/// Cannot burn token if frozen
 		TokenFrozen,
 		/// Royalty not in 0-99 range
@@ -378,6 +382,15 @@ pub mod pallet {
 impl<T: Config> Pallet<T> {
 	fn to_bounded_string(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
 		name.try_into().map_err(|_| Error::<T>::TooLong)
+	}
+
+	fn _get_first_instance(account: T::AccountId, class_id: T::NftClassId) -> Option<InstanceInfoOf<T>> {
+		let maybe_instance_id = pallet_uniques::Pallet::<T>::owned_in_class(&class_id.into(), &account).next();
+		if let Some(instance_id) = maybe_instance_id {
+			Self::instances(class_id, T::NftInstanceId::from(instance_id))
+		} else {
+			None
+		}
 	}
 }
 

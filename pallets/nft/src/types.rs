@@ -29,11 +29,15 @@ pub struct ClassInfo<BoundedString> {
 
 #[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub struct InstanceInfo<AccountId, BoundedString> {
+pub struct InstanceInfo<AccountId, Balance, BoundedString> {
 	/// The user account which receives the royalty
 	pub author: AccountId,
 	/// Royalty in percent in range 0-99
 	pub royalty: u8,
 	/// Arbitrary data about an instance, e.g. IPFS hash
 	pub metadata: BoundedString,
+	/// Represents number of shares of a token pool
+	pub shares: Balance,
+	/// Accumulated reward per share
+	pub accrps: Balance,
 }

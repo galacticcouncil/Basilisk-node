@@ -56,17 +56,23 @@ fn mint_works() {
 		));
 		assert_ok!(NFTPallet::mint(
 			Origin::signed(ALICE),
+			ALICE,
 			CLASS_ID_0,
 			Some(ALICE),
 			Some(20),
-			Some(b"metadata".to_vec())
+			Some(b"metadata".to_vec()),
+			Some(123),
+			Some(654),
 		));
 		assert_ok!(NFTPallet::mint(
 			Origin::signed(BOB),
+			BOB,
 			CLASS_ID_0,
 			Some(CHARLIE),
 			Some(20),
-			Some(b"metadata".to_vec())
+			Some(b"metadata".to_vec()),
+			Some(123),
+			Some(654),
 		));
 
 		assert_ok!(NFTPallet::create_class(
@@ -77,73 +83,109 @@ fn mint_works() {
 		assert_noop!(
 			NFTPallet::mint(
 				Origin::signed(ALICE),
+				ALICE,
 				NOT_EXISTING_CLASS_ID,
 				Some(CHARLIE),
 				Some(20),
-				Some(b"metadata".to_vec())
+				Some(b"metadata".to_vec()),
+				Some(123),
+				Some(654),
 			),
 			Error::<Test>::ClassUnknown
 		);
 		assert_noop!(
 			NFTPallet::mint(
 				Origin::signed(ALICE),
+				ALICE,
 				CLASS_ID_0,
 				None,
 				Some(20),
-				Some(b"metadata".to_vec())
+				Some(b"metadata".to_vec()),
+				Some(123),
+				Some(654),
 			),
 			Error::<Test>::AuthorNotSet
 		);
 		assert_noop!(
 			NFTPallet::mint(
 				Origin::signed(ALICE),
+				ALICE,
 				CLASS_ID_0,
 				Some(CHARLIE),
 				None,
-				Some(b"metadata".to_vec())
+				Some(b"metadata".to_vec()),
+				Some(123),
+				Some(654),
 			),
 			Error::<Test>::RoyaltyNotSet
 		);
 		assert_noop!(
-			NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0, Some(CHARLIE), Some(20), None),
+			NFTPallet::mint(
+				Origin::signed(ALICE),
+				ALICE,
+				CLASS_ID_0,
+				Some(CHARLIE),
+				Some(20),
+				None,
+				Some(123),
+				Some(654),
+			),
 			Error::<Test>::MetadataNotSet
 		);
 		assert_noop!(
 			NFTPallet::mint(
 				Origin::signed(ALICE),
+				ALICE,
 				CLASS_ID_0,
 				Some(CHARLIE),
 				Some(123),
-				Some(b"metadata".to_vec())
+				Some(b"metadata".to_vec()),
+				Some(123),
+				Some(654),
 			),
 			Error::<Test>::NotInRange
 		);
 		assert_noop!(
 			NFTPallet::mint(
 				Origin::signed(ALICE),
+				ALICE,
 				CLASS_ID_1,
 				Some(CHARLIE),
 				Some(20),
-				Some(b"metadata".to_vec())
+				Some(b"metadata".to_vec()),
+				Some(123),
+				Some(654),
 			),
 			Error::<Test>::NotPermitted
 		);
-		assert_ok!(NFTPallet::mint(Origin::root(), CLASS_ID_1, None, None, None));
+		assert_ok!(NFTPallet::mint(
+			Origin::root(),
+			ALICE,
+			CLASS_ID_1,
+			None,
+			None,
+			None,
+			Some(123),
+			Some(654),
+		));
 		NextInstanceId::<Test>::mutate(CLASS_ID_0, |id| *id = <Test as UNQ::Config>::InstanceId::max_value());
 		assert_noop!(
 			NFTPallet::mint(
 				Origin::signed(ALICE),
+				ALICE,
 				CLASS_ID_0,
 				Some(CHARLIE),
 				Some(20),
-				Some(b"metadata".to_vec())
+				Some(b"metadata".to_vec()),
+				Some(123),
+				Some(654),
 			),
 			Error::<Test>::NoAvailableInstanceId
 		);
 
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), NOT_EXISTING_CLASS_ID),
-			Error::<Test>::NoWitness
+			Error::<Test>::ClassUnknown
 		);
 	});
 }
@@ -161,26 +203,38 @@ fn transfer_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFTPallet::mint(Origin::root(), CLASS_ID_1, None, None, None));
+		assert_ok!(NFTPallet::mint(
+			Origin::root(),
+			ALICE,
+			CLASS_ID_1,
+			None,
+			None,
+			None,
+			Some(123),
+			Some(654),
+		));
 		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
 		assert_ok!(NFTPallet::mint(
 			Origin::signed(ALICE),
+			ALICE,
 			CLASS_ID_0,
 			Some(ALICE),
 			Some(20),
-			Some(b"metadata".to_vec())
+			Some(b"metadata".to_vec()),
+			Some(123),
+			Some(654),
 		));
-		assert_eq!(Balances::free_balance(ALICE), 99_00 * BSX);
-		assert_ok!(NFTPallet::transfer(Origin::root(), CLASS_ID_1, TOKEN_ID_0, BOB));
+		assert_eq!(Balances::free_balance(ALICE), 9_900 * BSX);
+		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0, BOB));
 
 		assert_noop!(
 			NFTPallet::transfer(Origin::signed(CHARLIE), CLASS_ID_0, TOKEN_ID_0, ALICE),
-			UNQ::Error::<Test>::NoPermission
+			Error::<Test>::NotPermitted
 		);
 		assert_eq!(Balances::free_balance(BOB), 15_000 * BSX);
-		assert_ok!(NFTPallet::transfer(Origin::root(), CLASS_ID_0, TOKEN_ID_0, BOB));
+		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0, BOB));
 		assert_eq!(Balances::free_balance(BOB), 14_900 * BSX);
-		assert_ok!(NFTPallet::transfer(Origin::root(), CLASS_ID_0, TOKEN_ID_0, CHARLIE));
+		assert_ok!(NFTPallet::transfer(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID_0, CHARLIE));
 		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
 		assert_eq!(Balances::free_balance(BOB), 15_000 * BSX);
 		assert_eq!(Balances::free_balance(CHARLIE), 149_900 * BSX);
@@ -200,26 +254,38 @@ fn burn_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFTPallet::mint(Origin::root(), CLASS_ID_1, None, None, None));
+		assert_ok!(NFTPallet::mint(
+			Origin::root(),
+			ALICE,
+			CLASS_ID_1,
+			None,
+			None,
+			None,
+			Some(123),
+			Some(654),
+		));
 		assert_ok!(NFTPallet::mint(
 			Origin::signed(ALICE),
+			ALICE,
 			CLASS_ID_0,
 			Some(ALICE),
 			Some(20),
-			Some(b"metadata".to_vec())
+			Some(b"metadata".to_vec()),
+			Some(123),
+			Some(654),
 		));
 
 		assert_noop!(
 			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID_0),
-			UNQ::Error::<Test>::NoPermission
+			Error::<Test>::NotPermitted
 		);
 		assert_noop!(
 			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_1, TOKEN_ID_0),
-			UNQ::Error::<Test>::NoPermission
+			Error::<Test>::NotPermitted
 		);
 
 		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0));
-		assert_ok!(NFTPallet::burn(Origin::root(), CLASS_ID_1, TOKEN_ID_0));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0));
 	});
 }
 
@@ -236,13 +302,25 @@ fn destroy_class_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFTPallet::mint(Origin::root(), CLASS_ID_1, None, None, None));
+		assert_ok!(NFTPallet::mint(
+			Origin::root(),
+			ALICE,
+			CLASS_ID_1,
+			None,
+			None,
+			None,
+			Some(123),
+			Some(654),
+		));
 		assert_ok!(NFTPallet::mint(
 			Origin::signed(ALICE),
+			ALICE,
 			CLASS_ID_0,
 			Some(ALICE),
 			Some(20),
-			Some(b"metadata".to_vec())
+			Some(b"metadata".to_vec()),
+			Some(123),
+			Some(654),
 		));
 
 		assert_noop!(
@@ -252,15 +330,15 @@ fn destroy_class_works() {
 
 		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0));
 		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0));
-		assert_ok!(NFTPallet::burn(Origin::root(), CLASS_ID_1, TOKEN_ID_0));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0));
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_1),
-			UNQ::Error::<Test>::NoPermission
+			Error::<Test>::NotPermitted
 		);
 		assert_ok!(NFTPallet::destroy_class(Origin::root(), CLASS_ID_1));
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
-			Error::<Test>::NoWitness
+			Error::<Test>::ClassUnknown
 		);
 	});
 }
