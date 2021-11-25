@@ -77,6 +77,7 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 use orml_currencies::BasicCurrencyAdapter;
 
 pub use common_runtime::*;
+use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -423,7 +424,7 @@ impl pallet_exchange::Config for Runtime {
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
-	type NativeAssetId = NativeAssetId;
+	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
 	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
