@@ -1310,10 +1310,12 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "orml-tokens",
+ "orml-traits",
  "pallet-transaction-payment",
  "parity-scale-codec",
  "primitives",
@@ -1321,6 +1323,7 @@ dependencies = [
  "sp-core",
  "sp-npos-elections",
  "sp-runtime",
+ "sp-std",
  "substrate-wasm-builder",
 ]
 
