@@ -152,3 +152,11 @@ mod tests {
 		assert_eq!(1_000_000.discounted_fee(), Some(700));
 	}
 }
+
+
+
+// TODO: this will part of hydradx traits - but it is here now for demonstration purposes
+use frame_support::traits::LockIdentifier;
+pub trait LockedBalance<AssetId, AccountId, Balance> {
+	fn get_by_lock(locked_id: LockIdentifier, currency_id: AssetId, who: AccountId) -> Balance;
+}

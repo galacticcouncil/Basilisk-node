@@ -29,7 +29,7 @@ use frame_support::sp_runtime::{
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{EnsureOrigin, Get},
+	traits::{EnsureOrigin, Get, LockIdentifier},
 	transactional,
 };
 use frame_system::ensure_signed;
@@ -42,6 +42,8 @@ use primitives::{
 	fee::{Fee, WithFee},
 	Amount, AssetId, Balance,
 };
+
+use primitives::LockedBalance;
 
 use scale_info::TypeInfo;
 
@@ -213,6 +215,8 @@ pub mod pallet {
 
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
+
+		type GetLockedBalance:  primitives::LockedBalance<AssetId, Self::AccountId, Balance>;
 	}
 
 	#[pallet::hooks]
@@ -874,6 +878,10 @@ impl<T: Config> Pallet<T> {
 
 	pub fn pair_account_from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId<T> {
 		T::AssetPairAccountId::from_assets(asset_a, asset_b, "lbp")
+	}
+
+	fn get_lock_balance(lock: LockIdentifier, asset: AssetId, who: T::AccountId) -> Balance {
+		T::GetLockedBalance::get_by_lock(lock, asset, who)
 	}
 }
 

@@ -34,6 +34,15 @@ pub const ETH: AssetId = 4_000;
 pub const HDX_DOT_POOL_ID: AccountId = 3_000;
 pub const ACA_DOT_POOL_ID: AccountId = 2_003_000;
 
+use primitives::LockedBalance;
+pub struct GetLockedBalance<T>(sp_std::marker::PhantomData<T>);
+
+impl<T: Config> LockedBalance<AssetId, AccountId, Balance> for GetLockedBalance<T>{
+	fn get_by_lock(locked_id: LockIdentifier, currency_id: AssetId, who: AccountId) -> Balance {
+		0
+	}
+}
+
 frame_support::construct_runtime!(
 	pub enum Test where
 	 Block = Block,
@@ -130,6 +139,7 @@ impl Config for Test {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type BlockNumberProvider = System;
+	type GetLockedBalance = GetLockedBalance<Test>;
 }
 
 pub struct ExtBuilder {
@@ -170,3 +180,5 @@ impl ExtBuilder {
 pub fn run_to_block<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
 	frame_system::Pallet::<T>::set_block_number(n);
 }
+
+

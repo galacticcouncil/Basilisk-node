@@ -1316,6 +1316,7 @@ dependencies = [
  "frame-system",
  "orml-tokens",
  "orml-traits",
+ "pallet-balances",
  "pallet-transaction-payment",
  "parity-scale-codec",
  "primitives",

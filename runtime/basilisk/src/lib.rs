@@ -433,6 +433,7 @@ impl pallet_lbp::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type GetLockedBalance = common_runtime::locked::GetLockedBalance<Runtime>;
 }
 
 // Parachain Config
