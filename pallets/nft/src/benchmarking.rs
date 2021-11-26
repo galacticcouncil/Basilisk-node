@@ -48,7 +48,7 @@ fn do_mint<T: Config>(class_id: u32) {
 		RawOrigin::Signed(caller.clone()).into(),
 		caller.clone(),
 		class_id.into(),
-		Some(caller.clone()),
+		Some(caller),
 		Some(20),
 		Some(metadata),
 		Some(123u32.into()),
