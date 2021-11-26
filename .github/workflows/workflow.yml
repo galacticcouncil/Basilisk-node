@@ -119,6 +119,7 @@ jobs:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
   
+          
   upload-config-to-s3:
     name: upload configuration to S3
     runs-on: ubuntu-latest
