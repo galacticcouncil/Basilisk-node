@@ -27,6 +27,36 @@ fn dollar(d: u32) -> u128 {
 	d.saturating_mul(100_000_000_000_000)
 }
 
+fn do_create_class<T: Config>() -> (T::AccountId, <T::Lookup as StaticLookup>::Source, Vec<u8>) {
+	let caller = create_account::<T>("caller", 0);
+	let caller_lookup = T::Lookup::unlookup(caller.clone());
+	let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
+	assert!(NFT::Pallet::<T>::create_class(
+		RawOrigin::Signed(caller.clone()).into(),
+		ClassType::Marketplace,
+		metadata.clone()
+	)
+	.is_ok());
+	(caller, caller_lookup, metadata)
+}
+
+fn do_mint<T: Config>(class_id: u32) {
+	let caller = create_account::<T>("caller", 0);
+	let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
+
+	assert!(NFT::Pallet::<T>::mint(
+		RawOrigin::Signed(caller.clone()).into(),
+		caller.clone(),
+		class_id.into(),
+		Some(caller.clone()),
+		Some(20),
+		Some(metadata),
+		Some(123u32.into()),
+		Some(321u32.into())
+	)
+	.is_ok());
+}
+
 benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
@@ -37,44 +67,32 @@ benchmarks! {
 	}
 
 	mint {
-		let caller = create_account::<T>("caller", 0);
-		let caller_lookup = T::Lookup::unlookup(caller.clone());
-		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata.clone()).unwrap_or_default();
+		let (caller, caller_lookup, metadata) = do_create_class::<T>();
 	}: _(RawOrigin::Signed(caller.clone()), caller.clone(), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata), Some(123u32.into()), Some(321u32.into()))
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()), Some(caller));
 	}
 
 	transfer {
-		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
-		let caller_lookup = T::Lookup::unlookup(caller.clone());
 		let caller2_lookup = T::Lookup::unlookup(caller2.clone());
-		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata.clone()).unwrap_or_default();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), caller.clone(), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata), Some(123u32.into()), Some(321u32.into())).unwrap_or_default();
+		let (caller, caller_lookup, metadata) = do_create_class::<T>();
+		do_mint::<T>(0);
 	}: _(RawOrigin::Signed(caller), 0u32.into(), 0u32.into(), caller2_lookup)
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()), Some(caller2));
 	}
 
 	destroy_class {
-		let caller = create_account::<T>("caller", 0);
-		let caller_lookup = T::Lookup::unlookup(caller.clone());
-		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata).unwrap_or_default();
+		let (caller, caller_lookup, metadata) = do_create_class::<T>();
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into())
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::classes().count(), 0);
 	}
 
 	burn {
-		let caller = create_account::<T>("caller", 0);
-		let caller_lookup = T::Lookup::unlookup(caller.clone());
-		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), ClassType::Marketplace, metadata.clone()).unwrap_or_default();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), caller.clone(), 0u32.into(), Some(caller.clone()), Some(20), Some(metadata), Some(123u32.into()), Some(321u32.into())).unwrap_or_default();
+		let (caller, caller_lookup, metadata) = do_create_class::<T>();
+		do_mint::<T>(0);
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into())
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::owned(&caller).count(), 0);

@@ -160,10 +160,13 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be minted.
+		/// - `owner`: Actual owner of the token
 		/// - `instance_id`: The instance value of the asset to be minted.
 		/// - `author`: Receiver of the royalty
 		/// - `royalty`: Percentage reward from each trade for the author
 		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash
+		/// - `shares`: Number of shares in a liquidity mining pool
+		/// - `accrps`: Accumulated reward per share
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
 		pub fn mint(
