@@ -76,10 +76,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - run: git describe --tags --abbrev=0 --always
-      - name: Install Rust
-        uses: actions-rs/toolchain@88dc2356392166efad76775c878094f4e83ff746
-        with:
-          profile: minimal
+      - name: Install rust
+        run: rustup show
       - name: Install clippy
         run: rustup component add clippy
       - name: Run clippy
