@@ -76,8 +76,10 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - run: git describe --tags --abbrev=0 --always
-      - name: Install rust
-        run: rustup show
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
       - name: Install clippy
         run: rustup component add clippy
       - name: Run clippy
