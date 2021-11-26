@@ -1854,15 +1854,6 @@ fn exceed_max_out_ratio_should_not_work() {
 			LBPPallet::buy(Origin::signed(BOB), BSX, KUSD, 2_000_000_000 / 2, 200_000_u128),
 			Error::<Test>::MaxOutRatioExceeded
 		);
-
-		// max ratio should work
-		assert_ok!(LBPPallet::buy(
-			Origin::signed(BOB),
-			BSX,
-			KUSD,
-			2_000_000_000 / MAX_OUT_RATIO,
-			2_000_000_000_000_u128
-		));
 	});
 }
 
@@ -1913,22 +1904,12 @@ fn exceed_trader_limit_should_not_work() {
 		run_to_block::<Test>(11);
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, sell_limit),
-			Error::<Test>::AssetBalanceLimitExceeded
+			Error::<Test>::TradingLimitReached
 		);
 
 		assert_noop!(
 			LBPPallet::buy(Origin::signed(who), asset_out, asset_in, amount, buy_limit),
-			Error::<Test>::AssetBalanceLimitExceeded
-		);
-	});
-}
-
-#[test]
-fn buy_exact_value_of_accumulated_asset_restricted() {
-	predefined_test_ext().execute_with(|| {
-		assert_noop!(
-			LBPPallet::buy(Origin::signed(BOB), KUSD, BSX, 800_000_u128, 800_000_u128),
-			Error::<Test>::OperationNotSupported
+			Error::<Test>::TradingLimitReached
 		);
 	});
 }
@@ -2802,7 +2783,7 @@ fn validate_trade_should_not_work() {
 				499_u128,
 				false,
 			),
-			Error::<Test>::AssetBalanceLimitExceeded
+			Error::<Test>::TradingLimitReached
 		);
 
 		assert_err!(
@@ -2816,7 +2797,7 @@ fn validate_trade_should_not_work() {
 				1_994_u128,
 				false,
 			),
-			Error::<Test>::AssetBalanceLimitExceeded
+			Error::<Test>::TradingLimitReached
 		);
 
 		Currency::set_balance(Origin::root(), ALICE, KUSD, INITIAL_BALANCE, 0).unwrap();

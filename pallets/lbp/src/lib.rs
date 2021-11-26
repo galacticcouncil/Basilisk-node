@@ -282,7 +282,7 @@ pub mod pallet {
 		FeeAmountInvalid,
 
 		/// Trading limit reached
-		AssetBalanceLimitExceeded,
+		TradingLimitReached,
 
 		/// An unexpected integer overflow occurred
 		Overflow,
@@ -295,9 +295,6 @@ pub mod pallet {
 
 		/// Amount is less than minimum trading limit.
 		InsufficientTradingAmount,
-
-		/// Trade operation is not supported
-		OperationNotSupported,
 	}
 
 	#[pallet::event]
@@ -902,13 +899,27 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		limit: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
+
+		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
+		ensure!(
+			T::MultiCurrency::free_balance(assets.asset_in, who) >= amount,
+			Error::<T>::InsufficientAssetBalance
+		);
+
 		let pool_id = Self::get_pair_id(assets);
 		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+
+		ensure!(Self::is_pool_running(&pool_data), Error::<T>::SaleIsNotRunning);
 
 		let now = T::BlockNumberProvider::current_block_number();
 		let (weight_in, weight_out) = Self::get_sorted_weight(assets.asset_in, now, &pool_data)?;
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
+
+		ensure!(
+			amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxInRatioExceeded
+		);
 		
 		// LBP fee asset is always accumulated asset
 		let fee_asset = pool_data.assets.0;
@@ -931,7 +942,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
 
-			// TODO CHECKS (balances + limits)
+			ensure!(
+				amount_out <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+				Error::<T>::MaxOutRatioExceeded
+			);
+
+			ensure!(limit <= amount_out, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
 				origin: who.clone(),
@@ -961,7 +977,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			let fee = Self::calculate_fees(&pool_data, calculated_out)?;
 			let amount_out_without_fee = calculated_out.checked_sub(fee).ok_or(Error::<T>::Overflow)?;
 
-			// TODO CHECKS (balances + limits)
+			ensure!(
+				calculated_out <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+				Error::<T>::MaxOutRatioExceeded
+			);
+
+			ensure!(limit <= amount_out_without_fee, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
 				origin: who.clone(),
@@ -999,13 +1020,26 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
 
+		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
+		ensure!(
+			T::MultiCurrency::free_balance(assets.asset_in, who) >= limit,
+			Error::<T>::InsufficientAssetBalance
+		);
+
 		let pool_id = Self::get_pair_id(assets);
 		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
+
+		ensure!(Self::is_pool_running(&pool_data), Error::<T>::SaleIsNotRunning);
 
 		let now = T::BlockNumberProvider::current_block_number();
 		let (weight_in, weight_out) = Self::get_sorted_weight(assets.asset_in, now, &pool_data)?;
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
+
+		ensure!(
+			amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxOutRatioExceeded
+		);
 
 		// LBP fee asset is always accumulated asset
 		let fee_asset = pool_data.assets.0;
@@ -1028,7 +1062,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			)
 			.map_err(|_| Error::<T>::Overflow)?;
 
-			// TODO CHECKS (balances + limits)
+			ensure!(
+				calculated_in <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
+				Error::<T>::MaxInRatioExceeded
+			);
+
+			ensure!(limit >= calculated_in, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
 				origin: who.clone(),
@@ -1058,7 +1097,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			let fee = Self::calculate_fees(&pool_data, calculated_in)?;
 			let calculated_in_without_fee = calculated_in.checked_sub(fee).ok_or(Error::<T>::Overflow)?;
 
-			// TODO CHECKS (balances + limits)
+			ensure!(
+				calculated_in <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
+				Error::<T>::MaxInRatioExceeded
+			);
+
+			ensure!(limit >= calculated_in, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
 				origin: who.clone(),
