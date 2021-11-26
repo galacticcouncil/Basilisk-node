@@ -135,7 +135,18 @@ pub fn predefined_test_ext_with_repay_target() -> sp_io::TestExternalities {
 	ext
 }
 
+fn last_events(n: usize) -> Vec<TestEvent> {
+	frame_system::Pallet::<Test>::events()
+		.into_iter()
+		.rev()
+		.take(n)
+		.rev()
+		.map(|e| e.event)
+		.collect()
+}
+
 fn expect_events(e: Vec<TestEvent>) {
+	assert_eq!(last_events(e.len()), e);
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
@@ -1583,19 +1594,19 @@ fn execute_sell_should_work() {
 		assert_ok!(LBPPallet::execute_sell(&t));
 
 		expect_events(vec![Event::SellExecuted(
-			ALICE, asset_in, asset_out, amount_in, amount_out, asset_out, 1_000,
+			ALICE, asset_in, asset_out, amount_in, amount_out, asset_in, 1_000,
 		)
 		.into()]);
 
-		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_992_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999998020000000);
-		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 1_000);
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_991_999_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 1_000);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
 
 		expect_events(vec![Event::SellExecuted(
-			ALICE, asset_in, asset_out, 8_000_000, 20_000_000, asset_out, 1_000,
+			ALICE, asset_in, asset_out, 8_000_000, 20_000_000, asset_in, 1_000,
 		)
 		.into()]);
 	});
@@ -2061,7 +2072,7 @@ fn buy_should_work() {
 
 		expect_events(vec![
 			orml_tokens::Event::Endowed(KUSD, CHARLIE, 35_861).into(),
-			Event::BuyExecuted(buyer, BSX, KUSD, 17_930_597, 10_000_000, KUSD, 35_861).into(),
+			Event::BuyExecuted(buyer, BSX, KUSD, 17_894_736, 10_000_000, KUSD, 35_861).into(),
 			Event::PoolCreated(pool_id2, pool_data1).into(),
 			frame_system::Event::NewAccount(pool_id2).into(),
 			orml_tokens::Event::Endowed(HDX, pool_id2, 1_000_000_000).into(),
@@ -2069,7 +2080,7 @@ fn buy_should_work() {
 			Event::LiquidityAdded(pool_id2, HDX, BSX, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(pool_id2, pool_data2).into(),
 			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3711).into(),
-			Event::BuyExecuted(buyer, asset_out, asset_in, 1_855_672, 10_000_000, 0, 3711).into(),
+			Event::BuyExecuted(buyer, asset_out, asset_in, 1_851_961, 10_000_000, 0, 3711).into(),
 		]);
 	});
 }
@@ -2101,7 +2112,7 @@ fn update_pool_data_after_sale_should_not_work() {
 		run_to_block::<Test>(41);
 
 		expect_events(vec![Event::BuyExecuted(
-			buyer, BSX, KUSD, 17_930_597, 10_000_000, KUSD, 35_861,
+			buyer, BSX, KUSD, 17_894_736, 10_000_000, KUSD, 35_861,
 		)
 		.into()]);
 
@@ -2200,7 +2211,7 @@ fn sell_should_work() {
 
 		expect_events(vec![
 			orml_tokens::Event::Endowed(KUSD, CHARLIE, 20_000).into(),
-			Event::SellExecuted(buyer, KUSD, BSX, 10_000_000, 5_605_137, KUSD, 20_000).into(),
+			Event::SellExecuted(buyer, KUSD, BSX, 9_980_000, 5_605_137, KUSD, 20_000).into(),
 			Event::PoolCreated(pool_id2, pool_data1).into(),
 			frame_system::Event::NewAccount(pool_id2).into(),
 			orml_tokens::Event::Endowed(asset_in, pool_id2, 1_000_000_000).into(),
@@ -2208,7 +2219,7 @@ fn sell_should_work() {
 			Event::LiquidityAdded(pool_id2, HDX, BSX, 1_000_000_000, 2_000_000_000).into(),
 			Event::PoolUpdated(pool_id2, pool_data2).into(),
 			orml_tokens::Event::Endowed(asset_in, CHARLIE, 3_686).into(),
-			Event::SellExecuted(buyer, asset_out, asset_in, 10_000_000, 1_843_005, 0, 3_686).into(),
+			Event::SellExecuted(buyer, asset_out, asset_in, 10_000_000, 1_839_319, 0, 3_686).into(),
 		]);
 	});
 }
