@@ -5191,7 +5191,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.0.1"
+version = "1.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5561,7 +5561,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.1.0"
+version = "5.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5584,7 +5584,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.2.0"
+version = "3.3.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5717,7 +5717,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "3.1.0"
+version = "3.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5859,7 +5859,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-multi-payment-benchmarking"
-version = "5.1.0"
+version = "5.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6182,7 +6182,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "6.1.0"
+version = "6.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6354,7 +6354,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
