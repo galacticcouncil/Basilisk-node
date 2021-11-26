@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+
+set -e
+
+PROJECT_PATH=$(cargo locate-project --workspace --message-format plain)
+PROJECT_PATH=${PROJECT_PATH%Cargo.toml}
+
+ACTUAL_COMMIT=$(git rev-parse HEAD)
+MASTER_COMMIT=$(git rev-parse origin/master)
+
+git fetch --quiet --depth 1 origin "$MASTER_COMMIT"
+git checkout --quiet "$MASTER_COMMIT"
+
+# get list of local crates and remove empty lines from the output
+IFS=$'\n' read -r -d '' -a CRATE_ARR_MASTER < <( cargo tree --edges normal --depth 0 | sed -r '/^\s*$/d' && printf '\0' )
+
+CRATE_VERSION_MASTER_ARR=()
+CRATE_PATH_MASTER_ARR=()
+
+for crate in "${CRATE_ARR_MASTER[@]}"; do
+    VARS=( $crate )
+    CRATE_VERSION_MASTER_ARR+=( ${VARS[1]} )
+    CRATE_PATH_MASTER=$( echo ${VARS[2]} | sed 's/^.\(.*\).$/\1/' )
+    CRATE_PATH_MASTER=${CRATE_PATH_MASTER#$PROJECT_PATH}
+    CRATE_PATH_MASTER_ARR+=("$CRATE_PATH_MASTER")
+done
+
+git checkout --quiet "$ACTUAL_COMMIT"
+
+MODIFIED_FILES=($(git diff --name-only "$ACTUAL_COMMIT" "$MASTER_COMMIT"))
+
+# get list of local crates and remove empty lines from the output
+IFS=$'\n' read -r -d '' -a CRATE_ARR< <( cargo tree --edges normal --depth 0 | sed -r '/^\s*$/d' && printf '\0' )
+
+CRATE_NAME_ARR=()
+CRATE_VERSION_ARR=()
+CRATE_PATH_ARR=()
+
+for crate in "${CRATE_ARR[@]}"; do
+    VARS=( $crate )
+    CRATE_NAME_ARR+=("${VARS[0]}")
+    CRATE_VERSION_ARR+=("${VARS[1]}")
+    CRATE_PATH=$( echo ${VARS[2]} | sed 's/^.\(.*\).$/\1/' )
+    CRATE_PATH=${CRATE_PATH#$PROJECT_PATH}
+    CRATE_PATH_ARR+=("$CRATE_PATH")
+done
+
+# sort the list by length. This step is to prioritize nested crates
+IFS=$'\n' GLOBIGNORE='*' CRATE_PATH_ARR_SORTED=($(printf '%s\n' "${CRATE_PATH_ARR[@]}" | awk '{ print length($0) " " $0; }' | sort -r -n | cut -d ' ' -f 2-))
+
+MODIFIED_CRATES_ARR=()
+for modified_file in "${MODIFIED_FILES[@]}"; do
+    for CRATE_PATH in "${CRATE_PATH_ARR_SORTED[@]}"; do
+        if [[ $modified_file =~ ^$CRATE_PATH ]]; then
+            MODIFIED_CRATES_ARR+=("$CRATE_PATH")
+            continue
+        fi
+    done
+done
+
+# remove duplicates
+MODIFIED_CRATES_ARR=( $(printf '%s\n' "${MODIFIED_CRATES_ARR[@]}" | sort -u) )
+
+NOT_UPDATED_VERSIONS_ARR=()
+UPDATED_VERSIONS_ARR=()
+NEW_VERSIONS_ARR=()
+
+for crate in "${MODIFIED_CRATES_ARR[@]}"; do
+    # get index for the current revision
+    CURRENT_CRATE_INDEX=""
+    for i in "${!CRATE_PATH_ARR[@]}"; do
+        if [[ "${CRATE_PATH_ARR[$i]}" = "${crate}" ]]; then
+          CURRENT_CRATE_INDEX=$i
+        fi
+    done
+
+    CRATE_NAME=${CRATE_NAME_ARR[CURRENT_CRATE_INDEX]}
+    NEW_VERSION=${CRATE_VERSION_ARR[CURRENT_CRATE_INDEX]}
+
+    # get index for master
+    MASTER_CRATE_INDEX=""
+    for i in "${!CRATE_PATH_MASTER_ARR[@]}"; do
+        if [[ "${CRATE_PATH_MASTER_ARR[$i]}" = "${crate}" ]]; then
+          MASTER_CRATE_INDEX=$i
+        fi
+    done
+
+    # crate has the same version
+    if [ "$NEW_VERSION" == "${CRATE_VERSION_MASTER_ARR[MASTER_CRATE_INDEX]}" ]; then
+      NOT_UPDATED_VERSIONS_ARR+=("$CRATE_NAME: $NEW_VERSION")
+    # new crate
+    elif [ -z "$MASTER_CRATE_INDEX" ]; then
+      NEW_VERSIONS_ARR+=("$CRATE_NAME: $NEW_VERSION")
+    # crate has different versions
+    else
+      UPDATED_VERSIONS_ARR+=("$CRATE_NAME: ${CRATE_VERSION_MASTER_ARR[$MASTER_CRATE_INDEX]} -> $NEW_VERSION")
+    fi
+done
+
+if [ ${#NOT_UPDATED_VERSIONS_ARR[@]} -ne 0 ]; then
+    echo "Crate versions that have not been updated:"
+    for line in ${NOT_UPDATED_VERSIONS_ARR[@]}; do
+      echo "- $line"
+    done
+    echo
+fi
+
+if [ ${#NEW_VERSIONS_ARR[@]} -ne 0 ]; then
+    echo "New crates:"
+    for line in ${NEW_VERSIONS_ARR[@]}; do
+      echo "- $line"
+    done
+    echo
+fi
+
+if [ ${#UPDATED_VERSIONS_ARR[@]} -ne 0 ]; then
+    echo "Crate versions that have been updated:"
+    for line in ${UPDATED_VERSIONS_ARR[@]}; do
+      echo "- $line"
+    done
+    echo
+fi
