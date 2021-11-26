@@ -69,6 +69,12 @@ jobs:
   build:
     needs: pop-runner-instance
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    env:
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_CONFIG_BUCKET }}/testnet/
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: 'eu-west-1'
+      FILE: './basilisk-raw.json'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -103,6 +109,12 @@ jobs:
         run: cargo build --release --locked
       - name: Version info
         run: ./target/release/basilisk --version
+      - name: Get basilisk-raw json
+        run: |
+          chmod +x testing-basilisk
+          ./testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-raw.json
+      - name: S3 Upload basilisk-raw.json
+        uses: tpaschalis/s3-sync-action@master
       - name: Upload release binary
         uses: actions/upload-artifact@v2
         with:
@@ -254,4 +266,4 @@ jobs:
           token: ${{ secrets.DISPATCH_DEPLOYMENT_TOKEN }}
           repository: galacticcouncil/testnet-deployment
           event-type: run-k8s-deployment
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'        
