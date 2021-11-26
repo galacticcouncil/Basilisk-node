@@ -803,10 +803,11 @@ impl<T: Config> Pallet<T> {
 		// Fee is deducted from received amount of accumulated asset and transferred to the fee collector
 		let (fee_asset, fee_amount) = transfer.fee;
 		let fee_payer = if transfer.assets.asset_in == fee_asset {
-			&pool_account
-		} else {
 			&transfer.origin
+		} else {
+			&pool_account
 		};
+
 		T::MultiCurrency::transfer(fee_asset, fee_payer, &pool.fee_collector, fee_amount)?;
 
 		// Resets lock for total of collected fees
@@ -896,7 +897,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		who: &T::AccountId,
 		assets: AssetPair,
 		amount: BalanceOf<T>,
-		limit: BalanceOf<T>,
+		min_bought: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
 
@@ -947,7 +948,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				Error::<T>::MaxOutRatioExceeded
 			);
 
-			ensure!(limit <= amount_out, Error::<T>::TradingLimitReached);
+			ensure!(min_bought <= amount_out, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
 				origin: who.clone(),
@@ -982,7 +983,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				Error::<T>::MaxOutRatioExceeded
 			);
 
-			ensure!(limit <= amount_out_without_fee, Error::<T>::TradingLimitReached);
+			ensure!(min_bought <= amount_out_without_fee, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
 				origin: who.clone(),
@@ -1016,13 +1017,13 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		who: &T::AccountId,
 		assets: AssetPair,
 		amount: BalanceOf<T>,
-		limit: BalanceOf<T>,
+		max_sold: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
 
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 		ensure!(
-			T::MultiCurrency::free_balance(assets.asset_in, who) >= limit,
+			T::MultiCurrency::free_balance(assets.asset_in, who) >= max_sold,
 			Error::<T>::InsufficientAssetBalance
 		);
 
@@ -1067,7 +1068,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				Error::<T>::MaxInRatioExceeded
 			);
 
-			ensure!(limit >= calculated_in, Error::<T>::TradingLimitReached);
+			ensure!(max_sold >= calculated_in, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
 				origin: who.clone(),
@@ -1102,7 +1103,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				Error::<T>::MaxInRatioExceeded
 			);
 
-			ensure!(limit >= calculated_in, Error::<T>::TradingLimitReached);
+			ensure!(max_sold >= calculated_in, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
 				origin: who.clone(),

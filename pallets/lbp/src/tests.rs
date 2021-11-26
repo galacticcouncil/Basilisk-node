@@ -1456,7 +1456,7 @@ fn execute_trade_should_work() {
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
-			fee: (asset_out, 1_000),
+			fee: (asset_in, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
@@ -1469,10 +1469,10 @@ fn execute_trade_should_work() {
 
 		assert_ok!(LBPPallet::execute_trade(&t_sell));
 
-		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_995_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_009_999_000);
-		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 0);
-		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 1_000);
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_994_999_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_010_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 1_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_005_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
@@ -1489,12 +1489,12 @@ fn execute_trade_should_work() {
 
 		assert_ok!(LBPPallet::execute_trade(&t_buy));
 
-		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_990_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_019_999_000);
-		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 1_000);
-		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 1_000);
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_989_998_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
+		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 2_000);
+		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_009_999_000);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_010_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
 	});
 }
@@ -1570,7 +1570,7 @@ fn execute_sell_should_work() {
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
-			fee: (asset_out, 1_000),
+			fee: (asset_in, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_999_000_000_000);
@@ -1588,7 +1588,7 @@ fn execute_sell_should_work() {
 		.into()]);
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_992_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_019_999_000);
+		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999998020000000);
 		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 1_000);
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
@@ -1601,7 +1601,7 @@ fn execute_sell_should_work() {
 	});
 }
 
-// // This test ensure storage was not modified on error
+// This test ensure storage was not modified on error
 #[test]
 fn execute_sell_should_not_work() {
 	predefined_test_ext().execute_with(|| {
@@ -1615,7 +1615,7 @@ fn execute_sell_should_not_work() {
 			amount_out: 200_000_000_000_000_u128,
 			discount: false,
 			discount_amount: 0_u128,
-			fee: (BSX, 1_000),
+			fee: (KUSD, 1_000),
 		};
 
 		assert_eq!(Currency::free_balance(KUSD, &ALICE), 999_999_000_000_000);
@@ -1706,13 +1706,13 @@ fn execute_buy_should_work() {
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
 
 		assert_ok!(LBPPallet::execute_buy(&t));
-
-		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_992_000_000);
+															
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_991_999_000);						
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
 		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 1_000);
 		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
 
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_007_999_000);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
 
 		expect_events(vec![Event::BuyExecuted(
@@ -2002,7 +2002,7 @@ fn buy_should_work() {
 			10_000_000_u128,
 			2_000_000_000_u128
 		));
-
+															 
 		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_982_069_403);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_010_000_000);
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_017_894_736);
@@ -2314,15 +2314,21 @@ fn amm_trait_should_work() {
 		let who = BOB;
 		let amount_in = 1_000_000;
 		let sell_limit = 100_000;
+		let pool_id = LBPPallet::get_pair_id(asset_pair);
+		let pool_data = LBPPallet::pool_data(pool_id).unwrap();
+
+		let fee = LBPPallet::calculate_fees(&pool_data, amount_in).unwrap();
+
 		let t_sell = AMMTransfer {
 			origin: who,
 			assets: asset_pair,
-			amount: amount_in,
+			amount: amount_in - fee,
 			amount_out: 563_739,
 			discount: false,
 			discount_amount: 0_u128,
-			fee: (asset_pair.asset_in, 2_000),
+			fee: (asset_pair.asset_in, fee),
 		};
+
 		assert_eq!(
 			LBPPallet::validate_sell(&who, asset_pair, amount_in, sell_limit, false).unwrap(),
 			t_sell
@@ -2333,7 +2339,7 @@ fn amm_trait_should_work() {
 		let t_buy = AMMTransfer {
 			origin: who,
 			assets: asset_pair,
-			amount: 1_774_740,
+			amount: 1_771_191,
 			amount_out,
 			discount: false,
 			discount_amount: 0_u128,
@@ -2641,7 +2647,7 @@ fn validate_trade_should_work() {
 					asset_in: KUSD,
 					asset_out: BSX
 				},
-				amount: 2_002_498_u128,
+				amount: 1_998_494_u128,
 				amount_out: 1_000_000_u128,
 				discount: false,
 				discount_amount: 0_u128,
@@ -2667,7 +2673,7 @@ fn validate_trade_should_work() {
 					asset_in: KUSD,
 					asset_out: BSX
 				},
-				amount: 1_000_000_u128,
+				amount: 998_000_u128,
 				amount_out: 499_685_u128,
 				discount: false,
 				discount_amount: 0_u128,
