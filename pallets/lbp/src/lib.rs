@@ -921,13 +921,13 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			amount <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxInRatioExceeded
 		);
-		
+
 		// LBP fee asset is always accumulated asset
 		let fee_asset = pool_data.assets.0;
 
 		// Accumulated asset is sold (in) to the pool for distributed asset (out)
 		// Take accumulated asset (in) sans fee from the seller and add to pool
-		// Take distributed asset (out) and send to seller 
+		// Take distributed asset (out) and send to seller
 		// Take fee from the seller and add to fee repay pool
 		// Pool bears repay fee
 		if assets.asset_in == pool_data.assets.0 {
@@ -988,7 +988,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			Ok(AMMTransfer {
 				origin: who.clone(),
 				assets,
-				amount: amount,
+				amount,
 				amount_out: amount_out_without_fee,
 				discount: false,
 				discount_amount: 0_u128,
