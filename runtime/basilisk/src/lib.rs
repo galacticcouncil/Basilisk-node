@@ -70,7 +70,6 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 mod weights;
 mod xcm;
 
-mod adapter;
 mod benchmarking;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
@@ -137,7 +136,7 @@ impl Contains<Call> for BaseFilter {
 	}
 }
 
-use crate::adapter::OrmlTokensAdapter;
+use common_runtime::adapter::OrmlTokensAdapter;
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
 
