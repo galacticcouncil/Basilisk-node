@@ -2643,7 +2643,7 @@ fn validate_trade_should_work() {
 		run_to_sale_start();
 
 		assert_eq!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_buy(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2651,7 +2651,7 @@ fn validate_trade_should_work() {
 				},
 				1_000_000_u128,
 				2_157_153_u128,
-				TradeType::Buy,
+				false
 			)
 			.unwrap(),
 			AMMTransfer {
@@ -2669,7 +2669,7 @@ fn validate_trade_should_work() {
 		);
 
 		assert_eq!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_sell(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2677,7 +2677,7 @@ fn validate_trade_should_work() {
 				},
 				1_000_000_u128,
 				2_000_u128,
-				TradeType::Sell,
+				false
 			)
 			.unwrap(),
 			AMMTransfer {
@@ -2702,7 +2702,7 @@ fn validate_trade_should_not_work() {
 		run_to_block::<Test>(9);
 
 		assert_noop!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_buy(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2710,7 +2710,7 @@ fn validate_trade_should_not_work() {
 				},
 				1_000_000_u128,
 				2_157_153_u128,
-				TradeType::Buy,
+				false,
 			),
 			Error::<Test>::SaleIsNotRunning
 		);
@@ -2718,7 +2718,7 @@ fn validate_trade_should_not_work() {
 		run_to_block::<Test>(10);
 
 		assert_noop!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_buy(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2726,7 +2726,7 @@ fn validate_trade_should_not_work() {
 				},
 				0,
 				2_157_153_u128,
-				TradeType::Buy,
+				false,
 			),
 			Error::<Test>::ZeroAmount
 		);
@@ -2736,7 +2736,7 @@ fn validate_trade_should_not_work() {
 		assert_eq!(Currency::free_balance(BSX, &ALICE), 500000000);
 		assert_eq!(Currency::free_balance(KUSD, &ALICE), 500000000);
 		assert_err!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_buy(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2744,13 +2744,13 @@ fn validate_trade_should_not_work() {
 				},
 				500_000_001u128,
 				3000000000_u128,
-				TradeType::Buy,
+				false,
 			),
 			Error::<Test>::InsufficientAssetBalance
 		);
 
 		assert_noop!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_buy(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2758,13 +2758,13 @@ fn validate_trade_should_not_work() {
 				},
 				1_000_000_u128,
 				2_157_153_u128,
-				TradeType::Buy,
+				false,
 			),
 			Error::<Test>::PoolNotFound
 		);
 
 		assert_err!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_buy(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2772,13 +2772,13 @@ fn validate_trade_should_not_work() {
 				},
 				1_000_000_000_u128,
 				2_157_153_u128,
-				TradeType::Buy,
+				false,
 			),
 			Error::<Test>::MaxOutRatioExceeded
 		);
 
 		assert_err!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_sell(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2786,13 +2786,13 @@ fn validate_trade_should_not_work() {
 				},
 				400_000_000_u128,
 				2_157_153_u128,
-				TradeType::Sell,
+				false,
 			),
 			Error::<Test>::MaxInRatioExceeded
 		);
 
 		assert_err!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_sell(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2800,13 +2800,13 @@ fn validate_trade_should_not_work() {
 				},
 				1_000_u128,
 				499_u128,
-				TradeType::Sell,
+				false,
 			),
 			Error::<Test>::AssetBalanceLimitExceeded
 		);
 
 		assert_err!(
-			LBPPallet::validate_trade(
+			LBPPallet::validate_buy(
 				&ALICE,
 				AssetPair {
 					asset_in: KUSD,
@@ -2814,7 +2814,7 @@ fn validate_trade_should_not_work() {
 				},
 				1_000_u128,
 				1_994_u128,
-				TradeType::Buy,
+				false,
 			),
 			Error::<Test>::AssetBalanceLimitExceeded
 		);
