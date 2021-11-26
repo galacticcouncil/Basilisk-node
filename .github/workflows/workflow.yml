@@ -242,6 +242,7 @@ jobs:
           name: basilisk
           path: docker
       - name: Add execution for basilisk
+        working-directory: ./docker
         run: chmod +x basilisk    
       - name: Sleep for 60 seconds
         run: sleep 60
