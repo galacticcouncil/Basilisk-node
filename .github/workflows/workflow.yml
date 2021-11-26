@@ -69,7 +69,6 @@ jobs:
   build:
     needs: pop-runner-instance
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
-    
     steps:
       - uses: actions/checkout@v2
         with:
@@ -106,8 +105,8 @@ jobs:
         run: ./target/release/basilisk --version
       - name: Get basilisk-raw json
         run: |
-          chmod +x testing-basilisk
-          ./testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-raw.json
+          chmod +x target/release/testing-basilisk
+          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-raw.json
       - name: Upload config file
         uses: actions/upload-artifact@v2
         with:
@@ -142,6 +141,7 @@ jobs:
           path: .
       - name: S3 Upload basilisk-raw.json
         uses: tpaschalis/s3-sync-action@master
+
   destroy-runner-instance:
     name: destroy infra
     runs-on: ubuntu-latest
