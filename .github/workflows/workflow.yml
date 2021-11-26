@@ -101,7 +101,7 @@ jobs:
         run: ./target/release/basilisk --version
       - name: Get basilisk-raw json
         run: |
-          chmod +x target/release/testing-basilisk
+          chmod +x ./target/release/testing-basilisk
           ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-raw.json
       - name: Upload config file
         uses: actions/upload-artifact@v2
@@ -119,7 +119,7 @@ jobs:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
   
-          
+
   upload-config-to-s3:
     name: upload configuration to S3
     runs-on: ubuntu-latest
