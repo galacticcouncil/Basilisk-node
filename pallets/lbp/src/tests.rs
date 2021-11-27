@@ -21,7 +21,7 @@ pub use crate::mock::{
 	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, KUSD, ALICE, BOB, CHARLIE,
 	BSX, ETH, HDX,
 };
-use crate::mock::{KUSD_BSX_POOL_ID, HDX_DOT_POOL_ID, INITIAL_BALANCE, SAMPLE_POOL_DATA, EXISTENTIAL_DEPOSIT, generate_trades, SALE_START, SALE_END, run_to_sale_start};
+use crate::mock::{KUSD_BSX_POOL_ID, HDX_DOT_POOL_ID, INITIAL_BALANCE, SAMPLE_POOL_DATA, EXISTENTIAL_DEPOSIT, generate_trades, SALE_START, SALE_END, run_to_sale_start, run_to_sale_end, SAMPLE_AMM_TRANSFER};
 use frame_support::{assert_err, assert_noop, assert_ok};
 use sp_runtime::traits::BadOrigin;
 use sp_std::convert::TryInto;
@@ -1717,8 +1717,8 @@ fn execute_buy_should_work() {
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 2_000_000_000);
 
 		assert_ok!(LBPPallet::execute_buy(&t));
-															
-		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_991_999_000);						
+
+		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_991_999_000);
 		assert_eq!(Currency::free_balance(asset_out, &ALICE), 999_998_020_000_000);
 		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 1_000);
 		assert_eq!(Currency::free_balance(asset_out, &CHARLIE), 0);
@@ -2013,7 +2013,7 @@ fn buy_should_work() {
 			10_000_000_u128,
 			2_000_000_000_u128
 		));
-															 
+
 		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_982_069_403);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_010_000_000);
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_017_894_736);
@@ -3012,6 +3012,54 @@ fn calculate_repay_fee() {
 		let pool = LBPPallet::pool_data(KUSD_BSX_POOL_ID).unwrap();
 
 		assert_eq!(LBPPallet::calculate_fees(&pool, 1000).unwrap(), 200,);
+	});
+}
+
+#[test]
+fn collected_fees_should_be_locked_and_unlocked_after_liquidity_is_removed() {
+	predefined_test_ext().execute_with(|| {
+		run_to_sale_start();
+		let Pool { fee_collector, .. } = LBPPallet::pool_data(KUSD_BSX_POOL_ID).unwrap();
+		let (fee_asset, fee_amount) = SAMPLE_AMM_TRANSFER.fee;
+		assert_ok!(LBPPallet::execute_buy(&SAMPLE_AMM_TRANSFER));
+
+		// collector receives locked fee
+		assert_eq!(Currency::free_balance(fee_asset, &fee_collector), fee_amount);
+		assert_eq!(
+			<Test as pallet::Config>::LockedBalance::get_by_lock(COLLECTOR_LOCK_ID, fee_asset, fee_collector),
+			fee_amount
+		);
+
+		// still locked after sale ends
+		run_to_sale_end();
+		assert_eq!(
+			<Test as pallet::Config>::LockedBalance::get_by_lock(COLLECTOR_LOCK_ID, fee_asset, fee_collector),
+			fee_amount
+		);
+
+		// unlocked after liquidity is removed from pool
+		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID));
+		assert_eq!(
+			<Test as pallet::Config>::LockedBalance::get_by_lock(COLLECTOR_LOCK_ID, fee_asset, fee_collector),
+			0
+		);
+	});
+}
+
+#[test]
+fn collected_fees_are_continually_locked() {
+	predefined_test_ext().execute_with(|| {
+		run_to_sale_start();
+		let Pool { fee_collector, .. } = LBPPallet::pool_data(KUSD_BSX_POOL_ID).unwrap();
+		let (fee_asset, fee_amount) = SAMPLE_AMM_TRANSFER.fee;
+		assert_ok!(LBPPallet::execute_buy(&SAMPLE_AMM_TRANSFER));
+		assert_ok!(LBPPallet::execute_buy(&SAMPLE_AMM_TRANSFER));
+		let total = 2 * fee_amount;
+		assert_eq!(Currency::free_balance(fee_asset, &fee_collector), total);
+		assert_eq!(
+			<Test as pallet::Config>::LockedBalance::get_by_lock(COLLECTOR_LOCK_ID, fee_asset, fee_collector),
+			total
+		);
 	});
 }
 

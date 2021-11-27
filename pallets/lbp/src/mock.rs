@@ -57,6 +57,16 @@ pub const SAMPLE_POOL_DATA: Pool<AccountId, BlockNumber> = Pool {
 	repay_target: 0,
 };
 
+pub const SAMPLE_AMM_TRANSFER: AMMTransfer<AccountId, AssetId, AssetPair, Balance> = AMMTransfer {
+	origin: ALICE,
+	assets: AssetPair { asset_in: KUSD, asset_out: BSX },
+	amount: 1000,
+	amount_out: 10000,
+	discount: false,
+	discount_amount: 0_u128,
+	fee: (KUSD, 200),
+};
+
 frame_support::construct_runtime!(
 	pub enum Test where
 	 Block = Block,
@@ -224,6 +234,10 @@ pub fn run_to_block<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
 
 pub fn run_to_sale_start() {
 	run_to_block::<Test>(SALE_START.unwrap());
+}
+
+pub fn run_to_sale_end() {
+	run_to_block::<Test>(SALE_END.unwrap() + 1);
 }
 
 pub fn generate_trades(
