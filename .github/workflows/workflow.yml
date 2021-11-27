@@ -238,9 +238,8 @@ jobs:
         name: Download basilisk binary
         with:
           name: basilisk
-          path: docker
+          path: .
       - name: Add execution for basilisk
-        working-directory: ./docker
         run: chmod +x basilisk    
       - name: Sleep for 60 seconds
         run: sleep 60
@@ -249,7 +248,7 @@ jobs:
       - name: Sleep for 30 seconds
         run: sleep 30s
       - name: build docker image
-        run: sudo docker build -t basilisk:latest docker
+        run: sudo docker build -t basilisk:latest .
       - name: get ecr credentials
         run: aws ecr get-login-password --region eu-west-1 | sudo docker login --username AWS --password-stdin ${{ env.ECR_URL }}
       - name: push image to ecr repository
