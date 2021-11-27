@@ -201,6 +201,10 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
       - name: Get crate versions
         run: |
           VERSION_UPDATE=$(./scripts/list_crate_updates.sh)
