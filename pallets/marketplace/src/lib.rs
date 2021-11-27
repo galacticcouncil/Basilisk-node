@@ -17,7 +17,7 @@ use sp_runtime::{
 use types::Offer;
 use weights::WeightInfo;
 
-use pallet_nft::{types::ClassType, Instances};
+use pallet_nft::{types::ClassType, MarketplaceInstances};
 use primitives::ReserveIdentifier;
 
 mod benchmarking;
@@ -323,7 +323,8 @@ impl<T: Config> Pallet<T> {
 				price.take().ok_or(Error::<T>::NotForSale)?
 			};
 
-			let instance_info = Instances::<T>::get(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+			let instance_info =
+				MarketplaceInstances::<T>::get(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
 			let royalty = instance_info.royalty;
 			let author = instance_info.author;

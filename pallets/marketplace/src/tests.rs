@@ -19,15 +19,12 @@ fn set_price_works() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			CLASS_ID_0,
-			Some(CHARLIE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			CHARLIE,
+			20,
+			b"metadata".to_vec(),
 		));
 
 		assert_noop!(
@@ -58,15 +55,12 @@ fn buy_works() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			CLASS_ID_0,
-			Some(CHARLIE),
-			Some(25),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			CHARLIE,
+			25,
+			b"metadata".to_vec(),
 		));
 
 		assert_noop!(
@@ -118,15 +112,12 @@ fn buy_works_2() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			CLASS_ID_0,
-			Some(CHARLIE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			CHARLIE,
+			20,
+			b"metadata".to_vec(),
 		));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
 		assert_ok!(Market::buy(Origin::signed(BOB), 0, 0));
@@ -170,105 +161,76 @@ fn free_trading_works() {
 		));
 
 		// Anyone can mint a token in any class
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			0,
-			Some(ALICE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			ALICE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			1,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			DAVE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			2,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			DAVE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(BOB),
-			BOB,
 			0,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			DAVE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(BOB),
-			BOB,
 			1,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			DAVE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(BOB),
-			BOB,
 			2,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			DAVE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(CHARLIE),
-			CHARLIE,
 			0,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			DAVE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(CHARLIE),
-			CHARLIE,
 			1,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			DAVE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(CHARLIE),
-			CHARLIE,
 			2,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			DAVE,
+			20,
+			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_liquidity_mining(
 			Origin::root(),
-			ALICE,
+			DAVE,
 			3,
-			Some(DAVE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			123,
+			654,
+			b"metadata".to_vec(),
 		));
 
 		// Only instance owner can burn their token
@@ -328,15 +290,12 @@ fn offering_works() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFT::mint(
+		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			CLASS_ID_0,
-			Some(CHARLIE),
-			Some(20),
-			Some(b"metadata".to_vec()),
-			Some(123),
-			Some(654),
+			CHARLIE,
+			20,
+			b"metadata".to_vec(),
 		));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
 		assert_noop!(

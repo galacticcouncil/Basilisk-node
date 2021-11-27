@@ -14,7 +14,7 @@ use frame_system::ensure_signed;
 use primitives::ReserveIdentifier;
 use sp_runtime::traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
-use types::{ClassInfo, ClassType, MarketInstance, LiqMinInstance};
+use types::{ClassInfo, ClassType, LiqMinInstance, MarketInstance};
 use weights::WeightInfo;
 
 use pallet_uniques::traits::InstanceReserve;
@@ -159,7 +159,6 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be minted.
-		/// - `owner`: Actual owner of the token
 		/// - `instance_id`: The instance value of the asset to be minted.
 		/// - `author`: Receiver of the royalty
 		/// - `royalty`: Percentage reward from each trade for the author
@@ -168,7 +167,6 @@ pub mod pallet {
 		#[transactional]
 		pub fn mint_for_marketplace(
 			origin: OriginFor<T>,
-			owner: T::AccountId,
 			class_id: T::NftClassId,
 			author: T::AccountId,
 			royalty: u8,
@@ -186,7 +184,9 @@ pub mod pallet {
 
 			let instance_id = Self::get_next_instance_id(class_id)?;
 
-			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
+			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), sender.clone(), |_details| {
+				Ok(())
+			})?;
 
 			let metadata_bounded = Self::to_bounded_string(metadata)?;
 
@@ -200,7 +200,7 @@ pub mod pallet {
 				},
 			);
 
-			Self::deposit_event(Event::InstanceMinted(class_type, owner, class_id, instance_id));
+			Self::deposit_event(Event::InstanceMinted(class_type, sender, class_id, instance_id));
 
 			Ok(())
 		}
@@ -248,7 +248,12 @@ pub mod pallet {
 				},
 			);
 
-			Self::deposit_event(Event::InstanceMinted(class_type, Default::default(), class_id, instance_id));
+			Self::deposit_event(Event::InstanceMinted(
+				class_type,
+				Default::default(),
+				class_id,
+				instance_id,
+			));
 
 			Ok(())
 		}
@@ -300,7 +305,7 @@ pub mod pallet {
 		/// - `instance_id`: The instance of the asset to be burned.
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
-		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId, class_type: ClassType) -> DispatchResult {
+		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			pallet_uniques::Pallet::<T>::do_burn(
@@ -316,7 +321,7 @@ pub mod pallet {
 			let class_type = Self::classes(class_id)
 				.map(|c| c.class_type)
 				.ok_or(Error::<T>::ClassUnknown)?;
-			
+
 			match class_type {
 				ClassType::Marketplace => MarketplaceInstances::<T>::remove(class_id, instance_id),
 				ClassType::PoolShare => LiqMinInstances::<T>::remove(class_id, instance_id),
@@ -425,18 +430,18 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn get_next_class_id() -> Result<T::NftClassId, Error<T>> {
-		NextClassId::<T>::try_mutate(|current_id| {
-			*current_id = current_id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableClassId)?;
-
-			Ok(*current_id)
+		NextClassId::<T>::try_mutate(|id| {
+			let current_id = *id;
+			*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableClassId)?;
+			Ok(current_id)
 		})
 	}
 
 	fn get_next_instance_id(class_id: T::NftClassId) -> Result<T::NftInstanceId, Error<T>> {
-		NextInstanceId::<T>::try_mutate(class_id, |current_id| {
-			*current_id = current_id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
-
-			Ok(*current_id)
+		NextInstanceId::<T>::try_mutate(class_id, |id| {
+			let current_id = *id;
+			*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
+			Ok(current_id)
 		})
 	}
 }

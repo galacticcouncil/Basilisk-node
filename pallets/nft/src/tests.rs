@@ -1,4 +1,4 @@
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, error::BadOrigin};
 
 use crate::types::ClassType;
 
@@ -56,7 +56,6 @@ fn mint_works() {
 		));
 		assert_ok!(NFTPallet::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			CLASS_ID_0,
 			ALICE,
 			20,
@@ -64,7 +63,6 @@ fn mint_works() {
 		));
 		assert_ok!(NFTPallet::mint_for_marketplace(
 			Origin::signed(BOB),
-			BOB,
 			CLASS_ID_0,
 			CHARLIE,
 			20,
@@ -79,7 +77,6 @@ fn mint_works() {
 		assert_noop!(
 			NFTPallet::mint_for_marketplace(
 				Origin::signed(ALICE),
-				ALICE,
 				NOT_EXISTING_CLASS_ID,
 				CHARLIE,
 				20,
@@ -88,14 +85,7 @@ fn mint_works() {
 			Error::<Test>::ClassUnknown
 		);
 		assert_noop!(
-			NFTPallet::mint_for_marketplace(
-				Origin::signed(ALICE),
-				ALICE,
-				CLASS_ID_0,
-				CHARLIE,
-				123,
-				b"metadata".to_vec(),
-			),
+			NFTPallet::mint_for_marketplace(Origin::signed(ALICE), CLASS_ID_0, CHARLIE, 123, b"metadata".to_vec(),),
 			Error::<Test>::NotInRange
 		);
 		assert_noop!(
@@ -107,7 +97,7 @@ fn mint_works() {
 				654,
 				b"metadata".to_vec(),
 			),
-			Error::<Test>::NotPermitted
+			BadOrigin
 		);
 		assert_ok!(NFTPallet::mint_for_liquidity_mining(
 			Origin::root(),
@@ -119,14 +109,7 @@ fn mint_works() {
 		));
 		NextInstanceId::<Test>::mutate(CLASS_ID_0, |id| *id = <Test as UNQ::Config>::InstanceId::max_value());
 		assert_noop!(
-			NFTPallet::mint_for_marketplace(
-				Origin::signed(ALICE),
-				ALICE,
-				CLASS_ID_0,
-				CHARLIE,
-				20,
-				b"metadata".to_vec(),
-			),
+			NFTPallet::mint_for_marketplace(Origin::signed(ALICE), CLASS_ID_0, CHARLIE, 20, b"metadata".to_vec(),),
 			Error::<Test>::NoAvailableInstanceId
 		);
 
@@ -161,7 +144,6 @@ fn transfer_works() {
 		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
 		assert_ok!(NFTPallet::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			CLASS_ID_0,
 			CHARLIE,
 			20,
@@ -212,7 +194,6 @@ fn burn_works() {
 		));
 		assert_ok!(NFTPallet::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			CLASS_ID_0,
 			ALICE,
 			20,
@@ -220,26 +201,16 @@ fn burn_works() {
 		));
 
 		assert_noop!(
-			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID_0, ClassType::Marketplace),
+			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID_0),
 			Error::<Test>::NotPermitted
 		);
 		assert_noop!(
-			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_1, TOKEN_ID_0, ClassType::PoolShare),
+			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_1, TOKEN_ID_0),
 			Error::<Test>::NotPermitted
 		);
 
-		assert_ok!(NFTPallet::burn(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			TOKEN_ID_0,
-			ClassType::Marketplace
-		));
-		assert_ok!(NFTPallet::burn(
-			Origin::signed(ALICE),
-			CLASS_ID_1,
-			TOKEN_ID_0,
-			ClassType::Marketplace
-		));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0,));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0,));
 	});
 }
 
@@ -266,7 +237,6 @@ fn destroy_class_works() {
 		));
 		assert_ok!(NFTPallet::mint_for_marketplace(
 			Origin::signed(ALICE),
-			ALICE,
 			CLASS_ID_0,
 			ALICE,
 			20,
@@ -278,19 +248,9 @@ fn destroy_class_works() {
 			Error::<Test>::TokenClassNotEmpty
 		);
 
-		assert_ok!(NFTPallet::burn(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			TOKEN_ID_0,
-			ClassType::Marketplace
-		));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0,));
 		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0));
-		assert_ok!(NFTPallet::burn(
-			Origin::signed(ALICE),
-			CLASS_ID_1,
-			TOKEN_ID_0,
-			ClassType::PoolShare
-		));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0,));
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_1),
 			Error::<Test>::NotPermitted

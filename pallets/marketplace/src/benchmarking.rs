@@ -4,11 +4,11 @@
 use super::*;
 
 use crate::Pallet as Marketplace;
-use pallet_nft as NFT;
-use pallet_uniques as UNQ;
 use frame_benchmarking::{account, benchmarks, vec};
 use frame_support::traits::Get;
 use frame_system::RawOrigin;
+use pallet_nft as NFT;
+use pallet_uniques as UNQ;
 use sp_runtime::{traits::UniqueSaturatedInto, SaturatedConversion};
 use sp_std::vec::Vec;
 
@@ -29,12 +29,14 @@ fn unit(d: u32) -> u128 {
 	d.saturating_mul(1_000_000_000_000)
 }
 
-fn create_class_and_mint<T: Config>(class_id: u32) -> (T::AccountId, T::AccountId, <T::Lookup as StaticLookup>::Source, Vec<u8>) {
+fn create_class_and_mint<T: Config>(
+	class_id: u32,
+) -> (T::AccountId, T::AccountId, <T::Lookup as StaticLookup>::Source, Vec<u8>) {
 	let caller = create_account::<T>("caller", 0);
 	let caller2 = create_account::<T>("caller2", 1);
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
 	let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
-	
+
 	assert!(NFT::Pallet::<T>::create_class(
 		RawOrigin::Signed(caller.clone()).into(),
 		ClassType::Marketplace,
@@ -42,15 +44,12 @@ fn create_class_and_mint<T: Config>(class_id: u32) -> (T::AccountId, T::AccountI
 	)
 	.is_ok());
 
-	assert!(NFT::Pallet::<T>::mint(
+	assert!(NFT::Pallet::<T>::mint_for_marketplace(
 		RawOrigin::Signed(caller.clone()).into(),
-		caller.clone(),
 		class_id.into(),
-		Some(caller.clone()),
-		Some(20),
-		Some(metadata.clone()),
-		Some(123u32.into()),
-		Some(321u32.into())
+		caller.clone(),
+		20,
+		metadata.clone(),
 	)
 	.is_ok());
 	(caller, caller2, caller_lookup, metadata)
