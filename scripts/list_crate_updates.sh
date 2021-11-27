@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# this script is used in github workflow to print an overview of crates and its version
+
 set -e
 
 PROJECT_PATH=$(cargo locate-project --workspace --message-format plain)
