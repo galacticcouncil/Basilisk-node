@@ -203,7 +203,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Get crate versions
         run: |
-          VERSION_UPDATE=$(./scripts/list_crate_versions.sh)
+          VERSION_UPDATE=$(./scripts/list_crate_updates.sh)
           VERSION_UPDATE=$(cat << EOF
           $VERSION_UPDATE
           EOF
