@@ -2,7 +2,7 @@ name: build-and-deploy
 on:
   push:
     branches:
-      - master
+      - testnet-automation
   workflow_dispatch:
   pull_request:
 
@@ -276,6 +276,7 @@ jobs:
   run-external-deployment:
     needs: build-and-publish-docker-image
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     steps:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v1
