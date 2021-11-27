@@ -205,10 +205,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Check
-        run: |
-          echo $(git rev-parse --abbrev-ref HEAD)
-          echo $(git rev-parse origin/master)
       - name: Get crate versions
         run: |
           VERSION_UPDATE=$(./scripts/list_crate_versions.sh)
