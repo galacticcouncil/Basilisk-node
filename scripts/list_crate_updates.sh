@@ -123,6 +123,6 @@ if [ ${#UPDATED_VERSIONS_ARR[@]} -ne 0 ]; then
     echo
 fi
 
-if [ ${#NOT_UPDATED_VERSIONS_ARR[@]} -ne 0 -a ${#NEW_VERSIONS_ARR[@]} -ne 0 -a ${#UPDATED_VERSIONS_ARR[@]} -ne 0 ]; then
+if [ ${#NOT_UPDATED_VERSIONS_ARR[@]} -eq 0 -a ${#NEW_VERSIONS_ARR[@]} -eq 0 -a ${#UPDATED_VERSIONS_ARR[@]} -eq 0 ]; then
   echo "No changes have been detected in the local crates"
 fi
