@@ -66,7 +66,6 @@ use hydradx_traits::AssetPairAccountIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
-mod adapter;
 #[allow(clippy::all)]
 mod weights;
 mod xcm;
@@ -131,7 +130,7 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
-use crate::adapter::OrmlTokensAdapter;
+use common_runtime::adapter::OrmlTokensAdapter;
 use smallvec::smallvec;
 
 pub struct WeightToFee;
@@ -373,6 +372,7 @@ impl pallet_xyk::Config for Runtime {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 }
 
 impl pallet_exchange::Config for Runtime {
