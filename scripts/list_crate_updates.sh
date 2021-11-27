@@ -27,7 +27,7 @@ for crate in "${CRATE_ARR_MASTER[@]}"; do
     CRATE_PATH_MASTER_ARR+=("$CRATE_PATH_MASTER")
 done
 
-git checkout --quiet "$ACTUAL_COMMIT"
+git checkout -f --quiet "$ACTUAL_COMMIT"
 
 MODIFIED_FILES=($(git diff --name-only "$ACTUAL_COMMIT" "$MASTER_COMMIT"))
 
