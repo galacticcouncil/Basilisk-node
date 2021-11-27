@@ -532,7 +532,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "22.0.0"
+version = "42.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -4873,6 +4873,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "new-crate"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "primitive-types 0.10.1",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
 name = "nodrop"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5597,7 +5614,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.0"
+version = "7.8.9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6329,7 +6346,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.1.0"
+version = "4.5.6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
