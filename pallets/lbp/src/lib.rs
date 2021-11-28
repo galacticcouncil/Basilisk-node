@@ -360,7 +360,9 @@ pub mod pallet {
 		/// - `asset_a`: { asset_id, amount } Asset ID and initial liquidity amount.
 		/// - `asset_b`: { asset_id, amount } Asset ID and initial liquidity amount.
 		/// - `initial_weight`: Initial weight of the asset_a. 1_000_000 corresponding to 1% and 100_000_000 to 100%
+		/// this should be higher than final weight
 		/// - `final_weight`: Final weight of the asset_a. 1_000_000 corresponding to 1% and 100_000_000 to 100%
+		/// this should be lower than initial weight
 		/// - `weight_curve`: The weight function used to update the LBP weights. Currently,
 		/// there is only one weight function implemented, the linear function.
 		/// - `fee`: The trading fee charged on every trade distributed to `fee_collector`.
@@ -728,6 +730,8 @@ impl<T: Config> Pallet<T> {
 				&& pool_data.initial_weight < MAX_WEIGHT
 				&& !pool_data.final_weight.is_zero()
 				&& pool_data.final_weight < MAX_WEIGHT,
+				// TODO people could leak value out the pool if initial weight is < final weight due to fee structure
+				// && pool_data.initial_weight > pool_data.final_weight,
 			Error::<T>::InvalidWeight
 		);
 
