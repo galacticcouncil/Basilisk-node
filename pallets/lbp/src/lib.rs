@@ -607,7 +607,9 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_a, &pool_id, &who, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &pool_id, &who, amount_b)?;
 
-			T::MultiCurrency::remove_lock(COLLECTOR_LOCK_ID, asset_a, &pool_data.fee_collector)?;
+			if Self::collected_fees(&pool_data) > 0 {
+				T::MultiCurrency::remove_lock(COLLECTOR_LOCK_ID, asset_a, &pool_data.fee_collector)?;
+			}
 
 			<PoolData<T>>::remove(&pool_id);
 
