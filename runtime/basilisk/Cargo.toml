@@ -50,6 +50,7 @@ pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polka
 
 # HydraDX dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="02d478ac79e718a1876d76e2e30d05e3d3f49096", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev="02d478ac79e718a1876d76e2e30d05e3d3f49096", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }
@@ -135,6 +136,7 @@ runtime-benchmarks = [
     "pallet-xyk/runtime-benchmarks",
     "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
+    "pallet-price-oracle/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
@@ -193,6 +195,7 @@ std = [
     "pallet-transaction-multi-payment/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-lbp/std",
+    "pallet-price-oracle/std",
     "pallet-utility/std",
     "hydradx-traits/std",
     "sp-api/std",

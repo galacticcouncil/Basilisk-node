@@ -192,6 +192,7 @@ impl pallet_xyk::Config for Test {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_xyk::AllowAllPools;
+	type AMMHandler = ();
 }
 
 parameter_type_with_key! {

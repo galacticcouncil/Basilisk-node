@@ -485,7 +485,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-service",
- "primitives",
+ "primitives 6.0.0",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -580,6 +580,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
+ "pallet-price-oracle",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
@@ -597,7 +598,7 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "smallvec",
@@ -1318,7 +1319,7 @@ dependencies = [
  "orml-traits",
  "pallet-transaction-payment",
  "parity-scale-codec",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "sp-core",
  "sp-npos-elections",
@@ -5204,7 +5205,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.0.1"
+version = "1.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5214,7 +5215,7 @@ dependencies = [
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-api",
@@ -5520,7 +5521,7 @@ dependencies = [
  "orml-traits",
  "pallet-balances",
  "parity-scale-codec",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5574,7 +5575,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.1.0"
+version = "5.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5585,7 +5586,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5597,7 +5598,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.2.0"
+version = "3.3.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5610,7 +5611,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5730,7 +5731,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "3.1.0"
+version = "3.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5742,7 +5743,7 @@ dependencies = [
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5851,7 +5852,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-multi-payment-benchmarking"
-version = "5.1.0"
+version = "5.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5868,7 +5869,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5904,7 +5905,7 @@ dependencies = [
  "orml-utilities",
  "pallet-balances",
  "parity-scale-codec",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5964,6 +5965,24 @@ dependencies = [
  "scale-info",
  "sp-runtime",
  "sp-staking",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-price-oracle"
+version = "0.1.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=02d478ac79e718a1876d76e2e30d05e3d3f49096#02d478ac79e718a1876d76e2e30d05e3d3f49096"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hydradx-traits",
+ "parity-scale-codec",
+ "primitives 6.0.0 (git+https://github.com/galacticcouncil/basilisk-node?rev=c0bf049f0ee91c392f163768ef707c94c7981c46)",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-runtime",
  "sp-std",
 ]
 
@@ -6173,7 +6192,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "6.1.0"
+version = "6.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6188,7 +6207,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-api",
@@ -6329,7 +6348,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6341,9 +6360,10 @@ dependencies = [
  "orml-traits",
  "orml-utilities",
  "pallet-asset-registry",
+ "pallet-price-oracle",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-api",
@@ -7863,6 +7883,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "primitives"
+version = "6.0.0"
+source = "git+https://github.com/galacticcouncil/basilisk-node?rev=c0bf049f0ee91c392f163768ef707c94c7981c46#c0bf049f0ee91c392f163768ef707c94c7981c46"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "primitive-types 0.10.1",
+ "scale-info",
+ "serde",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
 name = "proc-macro-crate"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8529,6 +8564,7 @@ dependencies = [
  "pallet-lbp",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
+ "pallet-price-oracle",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
@@ -8547,7 +8583,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
- "primitives",
+ "primitives 6.0.0",
  "serde",
  "smallvec",
  "sp-api",
@@ -11040,6 +11076,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
+ "pallet-price-oracle",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
@@ -11057,7 +11094,7 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
- "primitives",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "smallvec",
