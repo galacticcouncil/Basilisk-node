@@ -97,8 +97,6 @@ fn buy_works() {
 			0,
 			0,
 			768 * BSX,
-			(CHARLIE, 25),
-			256 * BSX,
 		));
 		assert_eq!(last_event(), event);
 	});
@@ -160,7 +158,8 @@ fn free_trading_works() {
 			b"metadata".to_vec()
 		));
 
-		// Anyone can mint a token in any class
+		// Anyone can mint a token in Marketplace class
+		// Only root in liquidity mining
 		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
 			0,
@@ -273,6 +272,11 @@ fn free_trading_works() {
 
 		assert_noop!(Market::buy(Origin::signed(CHARLIE), 1, 1), Error::<Test>::BuyFromSelf);
 
+		// Liquidity mining token
+		assert_ok!(Market::set_price(Origin::signed(DAVE), 3, 0, Some(1000)));
+		assert_ok!(Market::buy(Origin::signed(ALICE), 3, 0));
+		assert_eq!(pallet_uniques::Pallet::<Test>::owner(3, 0), Some(ALICE));
+
 		assert_noop!(
 			NFT::burn(Origin::signed(BOB), 1, 1),
 			pallet_nft::Error::<Test>::NotPermitted
@@ -290,6 +294,11 @@ fn offering_works() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
+		assert_ok!(NFT::create_class(
+			Origin::root(),
+			ClassType::PoolShare,
+			b"metadata".to_vec()
+		));
 		assert_ok!(NFT::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -297,12 +306,22 @@ fn offering_works() {
 			20,
 			b"metadata".to_vec(),
 		));
+		assert_ok!(NFT::mint_for_liquidity_mining(
+			Origin::root(),
+			DAVE,
+			1,
+			123,
+			654,
+			b"metadata".to_vec(),
+		));
+
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
 		assert_noop!(
 			Market::make_offer(Origin::signed(BOB), 0, 0, 0, 1),
 			Error::<Test>::OfferTooLow
 		);
 		assert_ok!(Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * BSX, 1));
+		assert_ok!(Market::make_offer(Origin::signed(ALICE), 3, 0, 50 * BSX, 1));
 		assert_noop!(
 			Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * BSX, 1),
 			Error::<Test>::AlreadyOffered

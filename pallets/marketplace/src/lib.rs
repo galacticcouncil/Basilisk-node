@@ -255,14 +255,12 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// The price for a token was updated \[owner, class_id, instance_id, price\]
 		TokenPriceUpdated(T::AccountId, T::NftClassId, T::NftInstanceId, Option<BalanceOf<T>>),
-		/// Token was sold to a new owner \[owner, buyer, class_id, instance_id, price, author, royalty, royalty_amount\]
+		/// Token was sold to a new owner \[owner, buyer, class_id, instance_id, price\]
 		TokenSold(
 			T::AccountId,
 			T::AccountId,
 			T::NftClassId,
 			T::NftInstanceId,
-			BalanceOf<T>,
-			(T::AccountId, u8),
 			BalanceOf<T>,
 		),
 		/// Offer was placed on a token \[offerer, class_id, instance_id, price\]
@@ -271,6 +269,8 @@ pub mod pallet {
 		OfferWithdrawn(T::AccountId, T::NftClassId, T::NftInstanceId),
 		/// Offer was accepted \[sender, class_id, instance_id\]
 		OfferAccepted(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>),
+		/// Royalty hs been paid to the author \[class_id, instance_id, author, royalty, royalty_amount\]
+		RoyaltyPaid(T::NftClassId, T::NftInstanceId, T::AccountId, u8, BalanceOf<T>),
 	}
 
 	#[pallet::error]
@@ -310,6 +310,10 @@ impl<T: Config> Pallet<T> {
 			.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
+		let class_type = pallet_nft::Pallet::<T>::classes(class_id)
+			.map(|c| c.class_type)
+			.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
+
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
 
 		let token_id = (class_id, instance_id);
@@ -323,26 +327,31 @@ impl<T: Config> Pallet<T> {
 				price.take().ok_or(Error::<T>::NotForSale)?
 			};
 
-			let instance_info =
-				MarketplaceInstances::<T>::get(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+			// Marketplace specific logic
+			if class_type == ClassType::Marketplace {
+				let instance_info =
+					MarketplaceInstances::<T>::get(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
-			let royalty = instance_info.royalty;
-			let author = instance_info.author;
+				let royalty = instance_info.royalty;
+				let author = instance_info.author;
 
-			// Calculate royalty and subtract from price if author different from buyer
-			let royalty_perc = Percent::from_percent(royalty);
-			let royalty_amount = royalty_perc * price;
+				// Calculate royalty and subtract from price if author different from buyer
+				let royalty_perc = Percent::from_percent(royalty);
+				let royalty_amount = royalty_perc * price;
 
-			if owner != author && royalty != 0u8 {
-				price = price.saturating_sub(royalty_amount);
+				if owner != author && royalty != 0u8 {
+					price = price.saturating_sub(royalty_amount);
 
-				// Send royalty to author
-				<T as pallet_nft::Config>::Currency::transfer(
-					&buyer,
-					&author,
-					royalty_amount,
-					ExistenceRequirement::KeepAlive,
-				)?;
+					// Send royalty to author
+					<T as pallet_nft::Config>::Currency::transfer(
+						&buyer,
+						&author,
+						royalty_amount,
+						ExistenceRequirement::KeepAlive,
+					)?;
+
+					Self::deposit_event(Event::RoyaltyPaid(class_id, instance_id, author, royalty, royalty_amount));
+				}
 			}
 
 			// Send the net price from current to the previous owner
@@ -357,8 +366,6 @@ impl<T: Config> Pallet<T> {
 				class_id,
 				instance_id,
 				price,
-				(author, royalty),
-				royalty_amount,
 			));
 			Ok(())
 		})
