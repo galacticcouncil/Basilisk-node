@@ -2,12 +2,6 @@
 
 use super::*;
 
-use crate::Pallet as AUCTIONS;
-use sp_std::vec;
-
-use frame_benchmarking::{account, benchmarks};
-use frame_system::RawOrigin;
-
 benchmarks! {
 	create {
 	}: {
