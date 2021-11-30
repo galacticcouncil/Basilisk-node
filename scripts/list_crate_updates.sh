@@ -108,12 +108,12 @@ RUNTIME_NAMES=()
 for vars in "${RUNTIMES[@]}"; do
     IFS=$' '
     VARS=( $vars )
-    IFS=$'\n'
     RUNTIME_NAMES+=("${VARS[0]}")
     CRATE_PATH=$( echo ${VARS[2]} | sed 's/^.\(.*\).$/\1/' )
     RUNTIME_SPEC_VERSIONS+=($(grep -rI "spec_version:" "$CRATE_PATH" | grep -o -E "[0-9]+"))
     VERSION=( ${VARS[1]//./ } )
     RUNTIME_CARGO_VERSIONS+=($( echo "${VERSION[0]}" | grep -o -E "[0-9]+"))
+    IFS=$'\n'
 done
 
 RUNTIME_VERSION_DIFFS=()
