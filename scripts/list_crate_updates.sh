@@ -99,6 +99,29 @@ for crate in "${MODIFIED_CRATES_ARR[@]}"; do
     fi
 done
 
+# test that the same runtime versions are used
+IFS=$'\n' read -r -d '' -a RUNTIMES < <( printf '%s\n' "${CRATE_ARR[@]}" | grep "basilisk-runtime")
+
+RUNTIME_CARGO_VERSIONS=()
+RUNTIME_SPEC_VERSIONS=()
+RUNTIME_NAMES=()
+for vars in "${RUNTIMES[@]}"; do
+    VARS=($vars)
+    RUNTIME_NAMES+=("${VARS[0]}")
+    CRATE_PATH=$( echo ${VARS[2]} | sed 's/^.\(.*\).$/\1/' )
+    RUNTIME_SPEC_VERSIONS+=($(grep -rI "spec_version:" "$CRATE_PATH" | grep -o -E "[0-9]+"))
+    VERSION=( "${VARS[1]//./ }" )
+    RUNTIME_CARGO_VERSIONS+=($( echo "${VERSION[0]}" | grep -o -E "[0-9]+"))
+done
+
+RUNTIME_VERSION_DIFFS=()
+for i in "${!RUNTIME_NAMES[@]}"; do
+    if [ "${RUNTIME_CARGO_VERSIONS[i]}" != "${RUNTIME_SPEC_VERSIONS[i]}" ]; then
+      RUNTIME_VERSION_DIFFS+=("${RUNTIME_NAMES[i]}: cargo and spec versions don't match")
+    fi
+done
+
+# print the results
 if [ ${#NOT_UPDATED_VERSIONS_ARR[@]} -ne 0 ]; then
     echo "Crate versions that have not been updated:"
     for line in ${NOT_UPDATED_VERSIONS_ARR[@]}; do
@@ -123,6 +146,19 @@ if [ ${#UPDATED_VERSIONS_ARR[@]} -ne 0 ]; then
     echo
 fi
 
-if [ ${#NOT_UPDATED_VERSIONS_ARR[@]} -eq 0 -a ${#NEW_VERSIONS_ARR[@]} -eq 0 -a ${#UPDATED_VERSIONS_ARR[@]} -eq 0 ]; then
+if [ ${#RUNTIME_VERSION_DIFFS[@]} -ne 0 ]; then
+    for line in ${RUNTIME_VERSION_DIFFS[@]}; do
+      echo "$line"
+    done
+    echo
+fi
+
+RUNTIME_CARGO_VERSIONS=( $(printf '%s\n' "${RUNTIME_CARGO_VERSIONS[@]}" | sort -u) )
+RUNTIME_SPEC_VERSIONS=( $(printf '%s\n' "${RUNTIME_SPEC_VERSIONS[@]}" | sort -u) )
+if [ ${#RUNTIME_CARGO_VERSIONS} -gt 1 ]; then
+  echo "Runtimes versions don't match."
+fi
+
+if [ ${#NOT_UPDATED_VERSIONS_ARR[@]} -eq 0 -a ${#NEW_VERSIONS_ARR[@]} -eq 0 -a ${#UPDATED_VERSIONS_ARR[@]} -eq 0 -a ${#RUNTIME_VERSION_DIFFS[@]} -eq 0 -a ${#RUNTIME_CARGO_VERSIONS} -lt 2 ]; then
   echo "No changes have been detected in the local crates"
 fi
