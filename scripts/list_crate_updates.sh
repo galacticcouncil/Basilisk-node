@@ -100,7 +100,7 @@ for crate in "${MODIFIED_CRATES_ARR[@]}"; do
 done
 
 # test that the same runtime versions are used
-IFS=$'\n' read -r -d '' -a RUNTIMES < <( printf '%s\n' "${CRATE_ARR[@]}" | grep "basilisk-runtime")
+IFS=$'\n' read -r -d '' -a RUNTIMES < <( printf '%s\n' "${CRATE_ARR[@]}" | grep "basilisk-runtime" && printf '\0' )
 
 RUNTIME_CARGO_VERSIONS=()
 RUNTIME_SPEC_VERSIONS=()
@@ -147,14 +147,13 @@ if [ ${#UPDATED_VERSIONS_ARR[@]} -ne 0 ]; then
 fi
 
 if [ ${#RUNTIME_VERSION_DIFFS[@]} -ne 0 ]; then
-    for line in ${RUNTIME_VERSION_DIFFS[@]}; do
+    for line in "${RUNTIME_VERSION_DIFFS[@]}"; do
       echo "$line"
     done
     echo
 fi
 
 RUNTIME_CARGO_VERSIONS=( $(printf '%s\n' "${RUNTIME_CARGO_VERSIONS[@]}" | sort -u) )
-RUNTIME_SPEC_VERSIONS=( $(printf '%s\n' "${RUNTIME_SPEC_VERSIONS[@]}" | sort -u) )
 if [ ${#RUNTIME_CARGO_VERSIONS} -gt 1 ]; then
   echo "Runtimes versions don't match."
 fi
