@@ -113,11 +113,11 @@ pub mod pallet {
 		/// Auction created
 		AuctionCreated(T::AccountId, T::AuctionId),
 		/// A bid is placed
-		Bid(T::AuctionId, T::AccountId, BalanceOf<T>),
-		/// Auction ended
+		BidPlaced(T::AuctionId, T::AccountId, BalanceOf<T>),
+		/// Auction closed
 		AuctionClosed(T::AuctionId),
-		/// Auction removed
-		AuctionRemoved(T::AuctionId),
+		/// Auction destroyed
+		AuctionDestroyed(T::AuctionId),
 	}
 
 	#[pallet::error]
@@ -224,7 +224,9 @@ pub mod pallet {
 					}
 				}
 
-				Ok(Self::deposit_event(Event::Bid(auction_id, bidder, value)))
+				Self::deposit_event(Event::BidPlaced(auction_id, bidder, value));
+
+				Ok(())
 			})?;
 
 			Ok(())
@@ -242,7 +244,9 @@ pub mod pallet {
 					}
 				}
 
-				Ok(Self::deposit_event(Event::AuctionRemoved(auction_id)))
+				Self::deposit_event(Event::AuctionDestroyed(auction_id));
+
+				Ok(())
 			})?;
 
 			Ok(())
@@ -347,7 +351,7 @@ impl<T: Config> Pallet<T> {
 		<AuctionOwnerById<T>>::remove(auction_id);
 		<Auctions<T>>::remove(auction_id);
 
-		Self::deposit_event(Event::AuctionRemoved(auction_id));
+		Self::deposit_event(Event::AuctionDestroyed(auction_id));
 
 		Ok(())
 	}

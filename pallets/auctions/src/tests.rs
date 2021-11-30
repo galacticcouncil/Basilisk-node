@@ -19,7 +19,7 @@ fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, AuctionsStringLimit>,
 fn can_create_english_auction() {
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
 
-	let valid_common_auction_data = GeneralAuctionData {
+	let valid_general_auction_data = GeneralAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		last_bid: None,
 		start: 10u64,
@@ -47,11 +47,11 @@ fn can_create_english_auction() {
 		));
 
 		// Error AuctionStartTimeAlreadyPassed
-		let mut common_auction_data = valid_common_auction_data.clone();
-		common_auction_data.start = 0u64;
+		let mut general_auction_data = valid_general_auction_data.clone();
+		general_auction_data.start = 0u64;
 
 		let auction_data = EnglishAuction {
-			general_data: common_auction_data.clone(),
+			general_data: general_auction_data,
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -62,11 +62,11 @@ fn can_create_english_auction() {
 		);
 
 		// Error InvalidTimeConfiguration (end is zero)
-		let mut common_auction_data = valid_common_auction_data.clone();
-		common_auction_data.end = 0u64;
+		let mut general_auction_data = valid_general_auction_data.clone();
+		general_auction_data.end = 0u64;
 
 		let auction_data = EnglishAuction {
-			general_data: common_auction_data.clone(),
+			general_data: general_auction_data,
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -77,11 +77,11 @@ fn can_create_english_auction() {
 		);
 
 		// // Error InvalidTimeConfiguration (duration too short)
-		let mut common_auction_data = valid_common_auction_data.clone();
-		common_auction_data.end = 20u64;
+		let mut general_auction_data = valid_general_auction_data.clone();
+		general_auction_data.end = 20u64;
 
 		let auction_data = EnglishAuction {
-			general_data: common_auction_data.clone(),
+			general_data: general_auction_data,
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -92,11 +92,11 @@ fn can_create_english_auction() {
 		);
 
 		// Error EmptyAuctionName
-		let mut common_auction_data = valid_common_auction_data.clone();
-		common_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
+		let mut general_auction_data = valid_general_auction_data.clone();
+		general_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
 
 		let auction_data = EnglishAuction {
-			general_data: common_auction_data.clone(),
+			general_data: general_auction_data,
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -107,11 +107,11 @@ fn can_create_english_auction() {
 		);
 
 		// Error NotATokenOwner
-		let mut common_auction_data = valid_common_auction_data.clone();
-		common_auction_data.owner = BOB;
+		let mut general_auction_data = valid_general_auction_data.clone();
+		general_auction_data.owner = BOB;
 
 		let auction_data = EnglishAuction {
-			general_data: common_auction_data.clone(),
+			general_data: general_auction_data,
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -122,11 +122,11 @@ fn can_create_english_auction() {
 		);
 
 		// Error CannotSetAuctionClosed
-		let mut common_auction_data = valid_common_auction_data.clone();
-		common_auction_data.closed = true;
+		let mut general_auction_data = valid_general_auction_data.clone();
+		general_auction_data.closed = true;
 
 		let auction_data = EnglishAuction {
-			general_data: common_auction_data.clone(),
+			general_data: general_auction_data,
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -138,7 +138,7 @@ fn can_create_english_auction() {
 
 		// happy path
 		let auction_data = EnglishAuction {
-			general_data: valid_common_auction_data.clone(),
+			general_data: valid_general_auction_data.clone(),
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -162,7 +162,7 @@ fn can_create_english_auction() {
 
 		// Error TokenFrozen
 		let auction_data = EnglishAuction {
-			general_data: valid_common_auction_data.clone(),
+			general_data: valid_general_auction_data.clone(),
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -228,13 +228,13 @@ fn can_update_english_auction() {
 		updated_general_data.closed = true;
 
 		let auction_data = EnglishAuction {
-			general_data: updated_general_data.clone(),
+			general_data: updated_general_data,
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
 
 		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction.clone()),
+			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::CannotSetAuctionClosed
 		);
 
@@ -242,7 +242,7 @@ fn can_update_english_auction() {
 		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
 
 		let auction_data = EnglishAuction {
-			general_data: updated_general_data.clone(),
+			general_data: updated_general_data,
 			specific_data: english_auction_data.clone(),
 		};
 		let auction = Auction::English(auction_data);
@@ -266,7 +266,7 @@ fn can_update_english_auction() {
 		// Error AuctionAlreadyStarted
 		System::set_block_number(10);
 		assert_noop!(
-			AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()),
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
 			Error::<Test>::AuctionAlreadyStarted,
 		);
 	});
@@ -331,7 +331,7 @@ fn can_destroy_english_auction() {
 		assert_eq!(AuctionsModule::auctions(0), None);
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
 
-		expect_event(crate::Event::<Test>::AuctionRemoved(0));
+		expect_event(crate::Event::<Test>::AuctionDestroyed(0));
 
 		// NFT can be transferred
 		assert_ok!(Nft::transfer(
@@ -348,7 +348,7 @@ fn can_destroy_english_auction() {
 		));
 
 		// Error AuctionAlreadyStarted
-		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 		System::set_block_number(10);
 		assert_noop!(
 			AuctionsModule::destroy(Origin::signed(ALICE), 1),
@@ -449,7 +449,7 @@ fn can_bid_english_auction() {
 			0,
 			BalanceOf::<Test>::from(1_100_u32)
 		));
-		expect_event(crate::Event::<Test>::Bid(0, CHARLIE, 1100));
+		expect_event(crate::Event::<Test>::BidPlaced(0, CHARLIE, 1100));
 
 		// Tokens of previous highest bidder are unlocked
 		assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
