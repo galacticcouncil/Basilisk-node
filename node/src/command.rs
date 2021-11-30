@@ -45,6 +45,7 @@ fn load_spec(
 		Ok(match id {
 			"dev" => Box::new(testing_chain_spec::parachain_development_config(para_id)?),
 			"local" => Box::new(testing_chain_spec::local_parachain_config(para_id)?),
+			"testnet-k8s" => Box::new(testing_chain_spec::k8s_testnet_parachain_config()?),
 			path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
 				std::path::PathBuf::from(path),
 			)?),
@@ -109,6 +110,7 @@ impl SubstrateCli for Cli {
 			Ok(match id {
 				"dev" => Box::new(testing_chain_spec::parachain_development_config(para_id)?),
 				"local" => Box::new(testing_chain_spec::local_parachain_config(para_id)?),
+				"testnet-k8s" => Box::new(testing_chain_spec::k8s_testnet_parachain_config()?),
 				path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
 					std::path::PathBuf::from(path),
 				)?),

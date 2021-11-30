@@ -31,7 +31,7 @@
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, AMM};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, AMM};
 use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, AssetId, Balance, Price};
 use sp_std::{vec, vec::Vec};
 
@@ -107,6 +107,9 @@ pub mod pallet {
 		/// Max fraction of pool to buy in single transaction
 		#[pallet::constant]
 		type MaxOutRatio: Get<u128>;
+
+		/// Called to ensure that pool can be created
+		type CanCreatePool: CanCreatePool<AssetId>;
 	}
 
 	#[pallet::error]
@@ -178,6 +181,9 @@ pub mod pallet {
 
 		/// Overflow
 		Overflow,
+
+		/// Pool cannot be created due to outside factors.
+		CannotCreatePool,
 	}
 
 	#[pallet::event]
@@ -223,17 +229,18 @@ pub mod pallet {
 	/// Asset id storage for shared pool tokens
 	#[pallet::storage]
 	#[pallet::getter(fn share_token)]
-	pub type ShareToken<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, AssetId, ValueQuery>;
+	pub(crate) type ShareToken<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, AssetId, ValueQuery>;
 
 	/// Total liquidity in a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn total_liquidity)]
-	pub type TotalLiquidity<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Balance, ValueQuery>;
+	pub(crate) type TotalLiquidity<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Balance, ValueQuery>;
 
 	/// Asset pair in a pool.
 	#[pallet::storage]
 	#[pallet::getter(fn pool_assets)]
-	pub type PoolAssets<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, (AssetId, AssetId), ValueQuery>;
+	pub(crate) type PoolAssets<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, (AssetId, AssetId), OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -256,6 +263,11 @@ pub mod pallet {
 			initial_price: Price,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			ensure!(
+				T::CanCreatePool::can_create(asset_a, asset_b),
+				Error::<T>::CannotCreatePool
+			);
 
 			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
 
@@ -301,21 +313,21 @@ pub mod pallet {
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
 
+			Self::deposit_event(Event::PoolCreated(
+				who.clone(),
+				asset_a,
+				asset_b,
+				shares_added,
+				share_token,
+				pair_account.clone(),
+			));
+
 			T::Currency::transfer(asset_a, &who, &pair_account, amount)?;
 			T::Currency::transfer(asset_b, &who, &pair_account, asset_b_amount)?;
 
 			T::Currency::deposit(share_token, &who, shares_added)?;
 
 			<TotalLiquidity<T>>::insert(&pair_account, shares_added);
-
-			Self::deposit_event(Event::PoolCreated(
-				who,
-				asset_a,
-				asset_b,
-				shares_added,
-				share_token,
-				pair_account,
-			));
 
 			Ok(())
 		}
@@ -594,14 +606,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		Self::pair_account_from_assets(assets.asset_in, assets.asset_out)
 	}
 
+	fn get_share_token(assets: AssetPair) -> AssetId {
+		let pair_account = Self::get_pair_id(assets);
+		Self::share_token(&pair_account)
+	}
+
 	fn get_pool_assets(pool_account_id: &T::AccountId) -> Option<Vec<AssetId>> {
-		match <PoolAssets<T>>::contains_key(pool_account_id) {
-			true => {
-				let assets = Self::pool_assets(pool_account_id);
-				Some(vec![assets.0, assets.1])
-			}
-			false => None,
-		}
+		let maybe_assets = <PoolAssets<T>>::get(pool_account_id);
+		maybe_assets.map(|assets| vec![assets.0, assets.1])
 	}
 
 	fn get_spot_price_unchecked(asset_a: AssetId, asset_b: AssetId, amount: Balance) -> Balance {
@@ -915,5 +927,13 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 	fn get_max_out_ratio() -> u128 {
 		T::MaxOutRatio::get()
+	}
+}
+
+pub struct AllowAllPools();
+
+impl CanCreatePool<AssetId> for AllowAllPools {
+	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
+		true
 	}
 }
