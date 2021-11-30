@@ -206,7 +206,7 @@ pub mod pallet {
 		Overflow,
 
 		/// Insufficient balance in global pool to transfer rewards to pool
-		InsufficientBalancdInGlobalPool,
+		InsuffcientBalanceInGlobalPool,
 
 		/// Provide id is not valid. Valid range is [1, u32::MAX)
 		InvalidPoolId,
@@ -788,7 +788,7 @@ impl<T: Config> Pallet<T> {
 
 		ensure!(
 			global_pool_balance >= rewards,
-			Error::<T>::InsufficientBalancdInGlobalPool
+			Error::<T>::InsuffcientBalanceInGlobalPool
 		);
 
 		let global_pool_account = Self::pool_account_id(global_pool_id)?;
@@ -805,13 +805,13 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn validate_create_farm_data(
-		total_rewads: Balance,
+		total_rewards: Balance,
 		planned_yielding_periods: PeriodOf<T>,
 		blocks_per_period: BlockNumberFor<T>,
 		yield_per_period: Permill,
 	) -> DispatchResult {
 		ensure!(
-			total_rewads >= T::MinTotalFarmRewards::get(),
+			total_rewards >= T::MinTotalFarmRewards::get(),
 			Error::<T>::InvalidTotalRewards
 		);
 
