@@ -127,9 +127,6 @@ impl Contains<Call> for BaseFilter {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::Exchange(_) => false,
-			Call::Marketplace(_) => false,
-			Call::NFT(_) => false,
-			Call::Uniques(_) => false,
 			Call::XYK(_) => false,
 			_ => true,
 		}
@@ -720,6 +717,11 @@ impl pallet_marketplace::Config for Runtime {
 	type MinimumOfferAmount = MinimumOfferAmount;
 }
 
+impl pallet_redeemables::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = pallet_redeemables::weights::BasiliskWeight<Runtime>;
+}
+
 parameter_types! {
 	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
 	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
@@ -813,6 +815,7 @@ construct_runtime!(
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage},
+		Redeemables: pallet_redeemables::{Pallet, Call, Event<T>, Storage},
 
 		// TEMPORARY
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},

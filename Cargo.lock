@@ -580,6 +580,7 @@ dependencies = [
  "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
+ "pallet-redeemables",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
@@ -6000,6 +6001,27 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-redeemables"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "orml-utilities",
+ "pallet-balances",
+ "pallet-nft",
+ "pallet-uniques",
+ "parity-scale-codec",
+ "primitives",
+ "scale-info",
+ "serde",
+ "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",

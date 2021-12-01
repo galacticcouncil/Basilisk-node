@@ -41,6 +41,7 @@ pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",defaul
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
+pallet-redeemables = { path = '../../pallets/redeemables', default-features = false }
 pallet-uniques = { path = '../../pallets/uniques', default-features = false }
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="6b399649f0379bc091ff69447b459ce30dd82b00", default-features = false }
 
