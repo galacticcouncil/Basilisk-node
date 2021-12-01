@@ -397,10 +397,10 @@ fn can_bid_english_auction() {
 		// Create auction ID 0 with no next_bid_min and no last_bid
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		// Error BidOnOwnAuction
+		// Error CannotBidOnOwnAuction
 		assert_noop!(
 			AuctionsModule::bid(Origin::signed(ALICE), 0, BalanceOf::<Test>::from(2_000_u32)),
-			Error::<Test>::BidOnOwnAuction,
+			Error::<Test>::CannotBidOnOwnAuction,
 		);
 
 		// Error AuctionNotStarted
