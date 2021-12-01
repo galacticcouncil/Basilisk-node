@@ -29,7 +29,7 @@ use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use testing_basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, FaucetConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig,
+	DusterConfig, ElectionsConfig, FaucetConfig, GenesisConfig, MultiTransactionPaymentConfig,
 	ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig,
 	VestingConfig, NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
@@ -404,9 +404,6 @@ fn testnet_parachain_genesis(
 			phantom: Default::default(),
 		},
 		vesting: VestingConfig { vesting: vesting_list },
-		orml_nft: OrmlNftConfig {
-			tokens: Default::default(),
-		},
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 		duster: DusterConfig {

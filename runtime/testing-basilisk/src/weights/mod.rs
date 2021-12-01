@@ -3,6 +3,7 @@ pub mod democracy;
 pub mod duster;
 pub mod exchange;
 pub mod lbp;
+pub mod marketplace;
 pub mod nft;
 pub mod payment;
 pub mod scheduler;

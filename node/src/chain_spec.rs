@@ -20,7 +20,7 @@
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, OrmlNftConfig, ParachainInfoConfig,
+	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig,
 	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
 	NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
@@ -569,9 +569,6 @@ fn parachain_genesis(
 			],
 			phantom: Default::default(),
 		},
-		orml_nft: OrmlNftConfig {
-			tokens: Default::default(),
-		},
 		vesting: VestingConfig { vesting: vec![] },
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
@@ -675,9 +672,6 @@ fn testnet_parachain_genesis(
 			phantom: Default::default(),
 		},
 		vesting: VestingConfig { vesting: vesting_list },
-		orml_nft: OrmlNftConfig {
-			tokens: Default::default(),
-		},
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 		duster: DusterConfig {

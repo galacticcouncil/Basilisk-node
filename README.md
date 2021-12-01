@@ -137,29 +137,6 @@ Then open settings screen -> developer and paste
       },
       "LookupSource":"AccountId",
       "Price":"Balance",
-      "ClassId":"u64",
-      "TokenId":"u64",
-      "ClassData":{
-        "is_pool":"bool"
-      },
-      "TokenData":{
-        "locked":"bool"
-      },
-      "ClassInfo":{
-        "metadata":"Vec<u8>",
-        "total_issuance":"TokenId",
-        "owner":"AccountId",
-        "data":"ClassData"
-      },
-      "TokenInfo":{
-        "metadata":"Vec<u8>",
-        "owner":"AccountId",
-        "data":"TokenData"
-      },
-      "ClassInfoOf":"ClassInfo",
-      "TokenInfoOf":"TokenInfo",
-      "ClassIdOf":"ClassId",
-      "TokenIdOf":"TokenId",
       "OrderedSet":"Vec<AssetId>",
       "VestingSchedule":{
         "start":"BlockNumber",
@@ -204,6 +181,32 @@ Then open settings screen -> developer and paste
         "symbol":"Vec<u8>",
         "decimals":"u8"
       },
+      "ClassId":"u32",
+      "InstanceId":"u32",
+      "NftClassIdOf":"u32",
+      "NftTokenIdOf":"u32",
+      "ClassType":{
+        "_enum":[
+          "Marketplace",
+          "PoolShare"
+        ]
+      },
+      "TokenInfo":{
+        "price":"Option<Balance>",
+        "offer":"Option<(AccountId,Balance,BlockNumber)>"
+      },
+      "TokenInfoOf":"TokenInfo",
+      "ClassInfo":{
+        "class_type":"ClassType",
+        "metadata":"Vec<u8>"
+      },
+      "ClassInfoOf":"ClassInfo",
+      "InstanceInfo":{
+        "author":"AccountId",
+        "royalty":"u8",
+        "metadata":"Vec<u8>"
+      },
+      "InstanceInfoOf":"InstanceInfo",
       "AssetInstance": "AssetInstanceV1",
       "MultiLocation": "MultiLocationV1",
       "AssetNativeLocation": "MultiLocation",

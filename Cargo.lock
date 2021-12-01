@@ -532,7 +532,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "22.0.0"
+version = "24.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -554,11 +554,10 @@ dependencies = [
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "memory-db",
  "orml-benchmarking",
  "orml-currencies",
- "orml-nft",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -578,6 +577,7 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-relaychain-info",
@@ -590,6 +590,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
@@ -3195,18 +3196,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hydradx-traits"
-version = "0.2.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=02d478ac79e718a1876d76e2e30d05e3d3f49096#02d478ac79e718a1876d76e2e30d05e3d3f49096"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-std",
-]
-
-[[package]]
 name = "hyper"
 version = "0.14.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5081,20 +5070,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "orml-nft"
-version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84#ee37b76a7a8cf159e6c41851942758746318bb84"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84#ee37b76a7a8cf159e6c41851942758746318bb84"
@@ -5216,13 +5191,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.0.1"
+version = "1.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5586,11 +5561,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.1.0"
+version = "5.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5609,13 +5584,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.2.0"
+version = "3.3.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5742,14 +5717,14 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "3.1.0"
+version = "3.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 4.0.0",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
@@ -5794,23 +5769,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-liquidity-mining"
-version = "0.1.0"
+name = "pallet-marketplace"
+version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "frame-system-benchmarking",
- "hydradx-traits 0.2.0",
- "orml-currencies",
- "orml-tokens",
- "orml-traits",
+ "orml-utilities",
  "pallet-balances",
+ "pallet-nft",
+ "pallet-uniques",
  "parity-scale-codec",
  "primitives",
  "scale-info",
  "serde",
- "sp-arithmetic",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -5887,13 +5859,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-multi-payment-benchmarking"
-version = "5.1.0"
+version = "5.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -5936,13 +5908,14 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "orml-nft",
  "orml-utilities",
  "pallet-balances",
+ "pallet-uniques",
  "parity-scale-codec",
  "primitives",
  "scale-info",
  "serde",
+ "sp-arithmetic",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6209,11 +6182,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "6.1.0"
+version = "6.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -6298,6 +6271,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-uniques"
+version = "4.0.0-dev"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-utility"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?rev=d76f39995315ec36980908e4b99709bd14927044#d76f39995315ec36980908e4b99709bd14927044"
@@ -6365,14 +6354,14 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 3.4.0",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
@@ -8544,7 +8533,6 @@ dependencies = [
  "kusama-runtime",
  "memory-db",
  "orml-currencies",
- "orml-nft",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -8563,6 +8551,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-lbp",
+ "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-scheduler",
@@ -11028,7 +11017,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "23.0.0"
+version = "24.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11050,10 +11039,9 @@ dependencies = [
  "getrandom 0.2.3",
  "hash-db",
  "hex-literal",
- "hydradx-traits 0.1.0",
+ "hydradx-traits",
  "memory-db",
  "orml-currencies",
- "orml-nft",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -11074,6 +11062,7 @@ dependencies = [
  "pallet-faucet",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-relaychain-info",
@@ -11086,6 +11075,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",

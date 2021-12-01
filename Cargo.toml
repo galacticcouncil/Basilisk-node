@@ -11,6 +11,8 @@ members = [
   'pallets/duster',
   'pallets/xyk',
   'pallets/exchange',
+  'pallets/marketplace',
+  'pallets/uniques',
   'pallets/asset-registry',
   'pallets/liquidity-mining',
   'integration-tests',

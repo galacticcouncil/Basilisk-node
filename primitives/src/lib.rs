@@ -18,7 +18,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::upper_case_acronyms)]
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 
 use primitive_types::U256;
 #[cfg(feature = "std")]
@@ -27,6 +27,7 @@ use serde::{Deserialize, Serialize};
 use scale_info::TypeInfo;
 
 use frame_support::sp_runtime::FixedU128;
+use sp_runtime::RuntimeDebug;
 
 pub mod asset;
 pub mod constants;
@@ -77,6 +78,16 @@ pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 	pub discount: bool,
 	pub sell_or_buy: IntentionType,
 	pub intention_id: IntentionID,
+}
+
+#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, PartialOrd, Ord, MaxEncodedLen, RuntimeDebug, TypeInfo)]
+#[repr(u8)]
+pub enum ReserveIdentifier {
+	Nft,
+	Marketplace,
+
+	// always the last, indicate number of variants
+	Count,
 }
 
 pub mod fee {

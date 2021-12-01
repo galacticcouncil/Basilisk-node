@@ -3,6 +3,7 @@ use crate as pallet_nft;
 
 use frame_support::traits::Everything;
 use frame_support::{parameter_types, weights::Weight};
+use frame_system::EnsureRoot;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
@@ -28,7 +29,7 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		OrmlNft: orml_nft::{Pallet, Storage},
+		Uniques: pallet_uniques::{Pallet, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
@@ -42,22 +43,40 @@ parameter_types! {
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
-	type ClassBondAmount = ClassBondAmount;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type TokenDeposit = InstanceDeposit;
+	type NftClassId = u32;
+	type NftInstanceId = u32;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {
-	pub const MaxClassMetadata: u32 = 1024;
-	pub const MaxTokenMetadata: u32 = 1024;
+	pub const ClassDeposit: Balance = 10_000 * BSX; // 1 UNIT deposit to create asset class
+	pub const InstanceDeposit: Balance = 100 * BSX; // 1/100 UNIT deposit to create asset instance
+	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
+	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
+	pub const UniquesMetadataDepositBase: Balance = 1000 * BSX;
+	pub const AttributeDepositBase: Balance = 100 * BSX;
+	pub const DepositPerByte: Balance = 10 * BSX;
+	pub const UniquesStringLimit: u32 = 32;
 }
 
-impl orml_nft::Config for Test {
-	type ClassId = u64;
-	type TokenId = u64;
-	type ClassData = pallet_nft::ClassData;
-	type TokenData = pallet_nft::TokenData;
-	type MaxClassMetadata = MaxClassMetadata;
-	type MaxTokenMetadata = MaxTokenMetadata;
+impl pallet_uniques::Config for Test {
+	type Event = Event;
+	type ClassId = u32;
+	type InstanceId = u32;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type ClassDeposit = ClassDeposit;
+	type InstanceDeposit = InstanceDeposit;
+	type MetadataDepositBase = UniquesMetadataDepositBase;
+	type AttributeDepositBase = AttributeDepositBase;
+	type DepositPerByte = DepositPerByte;
+	type StringLimit = UniquesStringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type WeightInfo = ();
+	type InstanceReserveStrategy = NFT;
 }
 
 parameter_types! {
@@ -106,18 +125,17 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = ReserveIdentifier;
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
-pub const BSX: Balance = 100_000_000_000;
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
-pub const CLASS_ID: <Test as orml_nft::Config>::ClassId = 0;
-pub const NOT_EXISTING_CLASS_ID: <Test as orml_nft::Config>::ClassId = 999;
-pub const TEST_PRICE: Balance = 99;
-pub const TOKEN_ID: <Test as orml_nft::Config>::TokenId = 0;
-pub const NOT_EXISTING_TOKEN_ID: <Test as orml_nft::Config>::TokenId = 999;
+pub const BSX: Balance = 100_000_000_000;
+pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
+pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1;
+pub const TOKEN_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
+pub const NOT_EXISTING_CLASS_ID: <Test as pallet_uniques::Config>::ClassId = 999;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {
@@ -131,7 +149,7 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 1_000_000 * BSX), (BOB, 6_666_666 * BSX)],
+			balances: vec![(ALICE, 20_000 * BSX), (BOB, 15_000 * BSX), (CHARLIE, 150_000 * BSX)],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -140,11 +158,4 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-pub fn last_event() -> Event {
-	frame_system::Pallet::<Test>::events()
-		.pop()
-		.expect("An event expected")
-		.event
 }

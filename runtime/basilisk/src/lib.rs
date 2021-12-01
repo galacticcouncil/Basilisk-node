@@ -106,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 23,
+	spec_version: 24,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -126,9 +126,11 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
-			Call::XYK(_) => false,
-			Call::NFT(_) => false,
 			Call::Exchange(_) => false,
+			Call::Marketplace(_) => false,
+			Call::NFT(_) => false,
+			Call::Uniques(_) => false,
+			Call::XYK(_) => false,
 			_ => true,
 		}
 	}
@@ -311,7 +313,7 @@ impl pallet_balances::Config for Runtime {
 	type AccountStore = System;
 	type WeightInfo = weights::balances::BasiliskWeight<Runtime>;
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = primitives::ReserveIdentifier;
 }
 
 /// Parameterized slow adjusting fee updated based on
@@ -467,17 +469,11 @@ impl cumulus_pallet_aura_ext::Config for Runtime {}
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
+	type TokenDeposit = InstanceDeposit;
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
-	type ClassBondAmount = ClassBondAmount;
-}
-
-impl orml_nft::Config for Runtime {
-	type ClassId = u64;
-	type TokenId = u64;
-	type ClassData = pallet_nft::ClassData;
-	type TokenData = pallet_nft::TokenData;
-	type MaxClassMetadata = MaxClassMetadata;
-	type MaxTokenMetadata = MaxTokenMetadata;
+	type NftClassId = u32;
+	type NftInstanceId = u32;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
@@ -714,6 +710,45 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+parameter_types! {
+	pub const MinimumOfferAmount: Balance = 100 * UNITS;
+}
+
+impl pallet_marketplace::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
+	type MinimumOfferAmount = MinimumOfferAmount;
+}
+
+parameter_types! {
+	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
+	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
+	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
+	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
+	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
+	pub const AttributeDepositBase: Balance = 10 * UNITS;
+	pub const DepositPerByte: Balance = UNITS;
+	pub const UniquesStringLimit: u32 = 128;
+}
+
+impl pallet_uniques::Config for Runtime {
+	type Event = Event;
+	type ClassId = u32;
+	type InstanceId = u32;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type ClassDeposit = ClassDeposit;
+	type InstanceDeposit = InstanceDeposit;
+	type MetadataDepositBase = UniquesMetadataDepositBase;
+	type AttributeDepositBase = AttributeDepositBase;
+	type DepositPerByte = DepositPerByte;
+	type StringLimit = UniquesStringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type WeightInfo = ();
+	type InstanceReserveStrategy = NFT;
+}
+
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
@@ -742,6 +777,7 @@ construct_runtime!(
 		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
+		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
 
@@ -766,7 +802,6 @@ construct_runtime!(
 
 		// ORML related modules
 		Currencies: orml_currencies::{Pallet, Call, Event<T>},
-		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
 		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
 
@@ -777,6 +812,7 @@ construct_runtime!(
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
+		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage},
 
 		// TEMPORARY
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
@@ -995,6 +1031,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
+			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1004,6 +1041,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_democracy, Democracy);
 			list_benchmark!(list, extra, pallet_treasury, Treasury);
 			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
+			//list_benchmark!(list, extra, pallet_uniques, Uniques);
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
 
@@ -1055,6 +1093,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
@@ -1066,6 +1105,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
+			//add_benchmark!(params, batches, pallet_uniques, Uniques);
 
 			orml_add_benchmark!(params, batches, orml_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
