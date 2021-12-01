@@ -31,6 +31,16 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
+	/// Next available curve ID.
+	#[pallet::storage]
+	#[pallet::getter(fn next_class_id)]
+	pub(super) type NextCurveId<T: Config> = StorageValue<_, u64, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn classes)]
+	/// Stores class info
+	pub type Curves<T: Config> = StorageMap<_, Blake2_128Concat, u64, Option<BondingCurve>>;
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nft::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
@@ -50,10 +60,16 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		
+		Overflow,
 	}
 }
 
 impl<T: Config> Pallet<T> {
-
+	fn get_next_curve_id() -> Result<u64, Error<T>> {
+		NextCurveId::<T>::try_mutate(|id| {
+			let current_id = *id;
+			*id = id.checked_add(&One::one()).ok_or(Error::<T>::Overflow)?;
+			Ok(current_id)
+		})
+	}
 }
