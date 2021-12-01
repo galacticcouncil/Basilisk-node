@@ -213,6 +213,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
 				multiplier: 10_000,
+                nft_class: 0,
 			},
 		)
 		.into()]);
@@ -239,6 +240,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
 				multiplier: 20_000,
+                nft_class: 1,
 			},
 		)
 		.into()]);
@@ -1950,6 +1952,7 @@ fn update_pool_should_work() {
 			loyalty_curve: None,
 			stake_in_global_pool: Balance::from(10_000_u32),
 			multiplier: 10,
+            nft_class: 1,
 		};
 
 		let mut ext = new_test_ext();
@@ -2003,7 +2006,8 @@ fn update_pool_should_work() {
 					accumulated_rps: t.8,
 					loyalty_curve: None,
 					stake_in_global_pool: Balance::from(10_000_u32),
-					multiplier: 10
+					multiplier: 10,
+                    nft_class: 1,
 				}
 			);
 
@@ -2328,6 +2332,7 @@ fn add_liquidity_pool_should_work() {
 				stake_in_global_pool: 0,
 				multiplier: 20_000,
 				loyalty_curve: Some(LoyaltyCurve::default()),
+                nft_class: 2,
 			},
 			BSX_ACA_AMM,
 			ALICE,
@@ -2351,6 +2356,7 @@ fn add_liquidity_pool_should_work() {
 				stake_in_global_pool: 0,
 				multiplier: 10_000,
 				loyalty_curve: None,
+                nft_class: 3,
 			},
 			BSX_KSM_AMM,
 			ALICE,
@@ -2377,6 +2383,7 @@ fn add_liquidity_pool_should_work() {
 					initial_reward_percentage: FixedU128::from_inner(100_000_000_000_000_000),
 					scale_coef: 50,
 				}),
+                nft_class: 4,
 			},
 			BSX_ETH_AMM,
 			ALICE,
@@ -2403,6 +2410,7 @@ fn add_liquidity_pool_should_work() {
 					initial_reward_percentage: FixedU128::from_inner(1),
 					scale_coef: 0,
 				}),
+                nft_class: 5,
 			},
 			BSX_ETH_AMM,
 			BOB,
@@ -2581,6 +2589,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			stake_in_global_pool: 0,
 			multiplier: 10_000,
+            nft_class: 2,
 		};
 		assert_eq!(
 			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_ACA_AMM).unwrap(),

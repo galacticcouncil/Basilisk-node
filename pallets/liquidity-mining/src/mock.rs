@@ -22,6 +22,7 @@ use frame_support::{
 	traits::{Everything, GenesisBuild, Nothing},
 	PalletId,
 };
+use primitives::ReserveIdentifier;
 use frame_system as system;
 use hydradx_traits::AMM;
 use orml_traits::parameter_type_with_key;
@@ -92,6 +93,9 @@ frame_support::construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		LiquidityMining: liq_mining::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
+		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -242,6 +246,62 @@ impl Config for Test {
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type AMM = Amm;
+}
+
+impl pallet_nft::Config for Test {
+	type Currency = Balances;
+	type Event = Event;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type TokenDeposit = InstanceDeposit;
+	type NftClassId = u32;
+	type NftInstanceId = u32;
+	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
+}
+
+parameter_types! {
+	pub const ExistentialDeposit: u128 = 500;
+	pub const MaxReserves: u32 = 50;
+}
+
+impl pallet_balances::Config for Test {
+	type Balance = Balance;
+	type Event = Event;
+	type DustRemoval = ();
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = frame_system::Pallet<Test>;
+	type MaxLocks = ();
+	type WeightInfo = ();
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = ReserveIdentifier;
+}
+
+parameter_types! {
+	pub const ClassDeposit: Balance = 0; // 1 UNIT deposit to create asset class
+	pub const InstanceDeposit: Balance = 0; // 1/100 UNIT deposit to create asset instance
+	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
+	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
+	pub const UniquesMetadataDepositBase: Balance = 0;
+	pub const AttributeDepositBase: Balance = 0;
+	pub const DepositPerByte: Balance = 0;
+	pub const UniquesStringLimit: u32 = 128;
+}
+
+impl pallet_uniques::Config for Test {
+	type Event = Event;
+	type ClassId = u32;
+	type InstanceId = u32;
+	type Currency = Balances;
+	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
+	type ClassDeposit = ClassDeposit;
+	type InstanceDeposit = InstanceDeposit;
+	type MetadataDepositBase = UniquesMetadataDepositBase;
+	type AttributeDepositBase = AttributeDepositBase;
+	type DepositPerByte = DepositPerByte;
+	type StringLimit = UniquesStringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type WeightInfo = ();
+	type InstanceReserveStrategy = NFT;
 }
 
 parameter_type_with_key! {

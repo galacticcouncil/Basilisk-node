@@ -59,6 +59,9 @@ type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
 type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
+type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
+
+use pallet_nft::types::ClassType::PoolShare;
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct GlobalPool<T: Config> {
@@ -120,10 +123,11 @@ pub struct LiquidityPool<T: Config> {
 	loyalty_curve: Option<LoyaltyCurve>,
 	stake_in_global_pool: Balance,
 	multiplier: u32, //this is multiplier/weight in glboal pool
+    nft_class: NftClassIdOf<T>,
 }
 
 impl<T: Config> LiquidityPool<T> {
-	fn new(id: PoolId, updated_at: PeriodOf<T>, loyalty_curve: Option<LoyaltyCurve>, multiplier: u32) -> Self {
+	fn new(id: PoolId, updated_at: PeriodOf<T>, loyalty_curve: Option<LoyaltyCurve>, multiplier: u32, nft_class: NftClassIdOf<T>) -> Self {
 		Self {
 			accumulated_rps: Default::default(),
 			stake_in_global_pool: Default::default(),
@@ -132,6 +136,8 @@ impl<T: Config> LiquidityPool<T> {
 			updated_at,
 			loyalty_curve,
 			multiplier,
+            nft_class,
+
 		}
 	}
 }
@@ -169,7 +175,7 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + TypeInfo {
+	pub trait Config: frame_system::Config + TypeInfo + pallet_nft::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Asset type
@@ -403,7 +409,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			//TODO: create NFT class and store class_id
 			ensure!(!weight.is_zero(), Error::<T>::InvalidWeight);
 
 			if loyalty_curve.is_some() {
@@ -437,7 +442,9 @@ pub mod pallet {
 				g_pool.liq_pools_count = g_pool.liq_pools_count.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
 				let liq_pool_id = Self::get_next_id()?;
-				let pool = LiquidityPool::new(liq_pool_id, now_period, loyalty_curve, weight);
+                let pallet_account = Self::account_id();
+                let nft_class = pallet_nft::Pallet::<T>::do_create_class(Some(pallet_account), PoolShare, vec![])?;
+				let pool = LiquidityPool::new(liq_pool_id, now_period, loyalty_curve, weight, nft_class);
 
 				<LiquidityPoolData<T>>::insert(g_pool.id, &amm_pool_id, &pool);
 
@@ -541,14 +548,14 @@ pub mod pallet {
 
 			let liq_pool_key = T::AMM::get_pair_id(asset_pair);
 			<LiquidityPoolData<T>>::try_mutate(farm_id, liq_pool_key, |liq_pool| {
-				let liq_pool = liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+				let _liq_pool = liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
 
 				//TODO: add check if account already have stake in liq pool
 				//waiting for nft impl(pseudocode bellow)
 				//ensure(NFT::get_nft(who, liq_pool.class_id).is_none(), Error::<T>::DuplicateDeposit);
 
 				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
-					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+					let _g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 					//update everything
 					//transferj shares
@@ -582,7 +589,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Account id of pot holding all the shares
-	fn account_id() {
+	fn account_id() -> AccountIdOf<T> {
 		T::PalletId::get().into_account()
 	}
 

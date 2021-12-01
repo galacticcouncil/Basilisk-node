@@ -4,7 +4,7 @@
 
 use codec::HasCompact;
 use frame_support::{
-	dispatch::DispatchResult,
+	dispatch::{DispatchError, DispatchResult},
 	ensure,
 	traits::{tokens::nonfungibles::*, BalanceStatus, Currency, NamedReservableCurrency, ReservableCurrency},
 	transactional, BoundedVec,
@@ -17,6 +17,7 @@ use sp_std::{convert::TryInto, vec::Vec};
 use types::{ClassInfo, ClassType, LiqMinInstance, MarketInstance};
 use weights::WeightInfo;
 
+use frame_support::traits::Get;
 use pallet_uniques::traits::InstanceReserve;
 use pallet_uniques::{ClassTeam, DepositBalanceOf};
 
@@ -119,36 +120,7 @@ pub mod pallet {
 				ensure!(sender.is_none(), Error::<T>::NotPermitted)
 			}
 
-			let class_id = Self::get_next_class_id()?;
-
-			let metadata_bounded = Self::to_bounded_string(metadata)?;
-
-			let deposit_info = match class_type {
-				ClassType::PoolShare => (Zero::zero(), true),
-				_ => (T::ClassDeposit::get(), false),
-			};
-
-			pallet_uniques::Pallet::<T>::do_create_class(
-				class_id.into(),
-				sender.clone().unwrap_or_default(),
-				sender.clone().unwrap_or_default(),
-				deposit_info.0,
-				deposit_info.1,
-				pallet_uniques::Event::Created(
-					class_id.into(),
-					sender.clone().unwrap_or_default(),
-					sender.clone().unwrap_or_default(),
-				),
-			)?;
-
-			Classes::<T>::insert(
-				class_id,
-				ClassInfo {
-					class_type,
-					metadata: metadata_bounded,
-				},
-			);
-
+			let class_id = Self::do_create_class(sender.clone(), class_type, metadata)?;
 			Self::deposit_event(Event::ClassCreated(sender.unwrap_or_default(), class_id, class_type));
 
 			Ok(())
@@ -421,6 +393,44 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	pub fn do_create_class(
+		sender: Option<T::AccountId>,
+		class_type: types::ClassType,
+		metadata: Vec<u8>,
+	) -> Result<T::NftClassId, DispatchError> {
+		let class_id = Self::get_next_class_id()?;
+
+		let metadata_bounded = Self::to_bounded_string(metadata)?;
+
+		let deposit_info = match class_type {
+			ClassType::PoolShare => (Zero::zero(), true),
+			_ => (T::ClassDeposit::get(), false),
+		};
+
+		pallet_uniques::Pallet::<T>::do_create_class(
+			class_id.into(),
+			sender.clone().unwrap_or_default(),
+			sender.clone().unwrap_or_default(),
+			deposit_info.0,
+			deposit_info.1,
+			pallet_uniques::Event::Created(
+				class_id.into(),
+				sender.clone().unwrap_or_default(),
+				sender.clone().unwrap_or_default(),
+			),
+		)?;
+
+		Classes::<T>::insert(
+			class_id,
+			ClassInfo {
+				class_type,
+				metadata: metadata_bounded,
+			},
+		);
+
+		Ok(class_id)
+	}
+
 	fn to_bounded_string(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
 		name.try_into().map_err(|_| Error::<T>::TooLong)
 	}
