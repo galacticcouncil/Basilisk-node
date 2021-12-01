@@ -185,7 +185,9 @@ pub mod pallet {
 		/// - `owner`: Actual owner of the token
 		/// - `instance_id`: The instance value of the asset to be minted.
 		/// - `shares`: Number of shares in a liquidity mining pool
-		/// - `accrps`: Accumulated reward per share
+		/// - `accumulated_rps`: Accumulated reward per share
+		/// - `valued_shares`: Value of shares at the time of entry in incentivized tokens
+		/// - `accumulated_claimed_rewards`: sum of rewards claimed until now
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
 		pub fn mint_for_liquidity_mining(
@@ -193,32 +195,22 @@ pub mod pallet {
 			owner: T::AccountId,
 			class_id: T::NftClassId,
 			shares: BalanceOf<T>,
-			accrps: BalanceOf<T>,
+			accumulated_rps: BalanceOf<T>,
+			valued_shares: BalanceOf<T>,
+			accumulated_claimed_rewards: BalanceOf<T>,
 			metadata: Vec<u8>,
 		) -> DispatchResult {
 			T::ProtocolOrigin::ensure_origin(origin)?;
 
-			let class_type = Self::classes(class_id)
-				.map(|c| c.class_type)
-				.ok_or(Error::<T>::ClassUnknown)?;
-
-			ensure!(class_type == ClassType::PoolShare, Error::<T>::ClassTypeMismatch);
-
-			let instance_id = Self::get_next_instance_id(class_id)?;
-
-			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner, |_details| Ok(()))?;
-
-			let metadata_bounded = Self::to_bounded_string(metadata)?;
-
-			LiqMinInstances::<T>::insert(
+			let (class_type, instance_id) = Self::do_mint_for_liquidity_mining(
 				class_id,
-				instance_id,
-				LiqMinInstance {
-					metadata: metadata_bounded,
-					shares,
-					accrps,
-				},
-			);
+				owner,
+				metadata,
+				shares,
+				accumulated_rps,
+				valued_shares,
+				accumulated_claimed_rewards,
+			)?;
 
 			Self::deposit_event(Event::InstanceMinted(
 				class_type,
@@ -393,6 +385,42 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+	pub fn do_mint_for_liquidity_mining(
+		class_id: T::NftClassId,
+		owner: T::AccountId,
+		metadata: Vec<u8>,
+		shares: BalanceOf<T>,
+		valued_shares: BalanceOf<T>,
+		accumulated_rps: BalanceOf<T>,
+		accumulated_claimed_rewards: BalanceOf<T>,
+	) -> Result<(types::ClassType, T::NftInstanceId), DispatchError> {
+		let class_type = Self::classes(class_id)
+			.map(|c| c.class_type)
+			.ok_or(Error::<T>::ClassUnknown)?;
+
+		ensure!(class_type == ClassType::PoolShare, Error::<T>::ClassTypeMismatch);
+
+		let instance_id = Self::get_next_instance_id(class_id)?;
+
+		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner, |_details| Ok(()))?;
+
+		let metadata_bounded = Self::to_bounded_string(metadata)?;
+
+		LiqMinInstances::<T>::insert(
+			class_id,
+			instance_id,
+			LiqMinInstance {
+				metadata: metadata_bounded,
+				shares,
+				valued_shares,
+				accumulated_rps,
+				accumulated_claimed_rewards,
+			},
+		);
+
+		Ok((class_type, instance_id))
+	}
+
 	pub fn do_create_class(
 		sender: Option<T::AccountId>,
 		class_type: types::ClassType,

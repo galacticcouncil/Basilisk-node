@@ -95,6 +95,8 @@ fn mint_works() {
 				CLASS_ID_1,
 				123,
 				654,
+				700,
+				0,
 				b"metadata".to_vec(),
 			),
 			BadOrigin
@@ -105,6 +107,8 @@ fn mint_works() {
 			CLASS_ID_1,
 			123,
 			654,
+			700,
+			2_000,
 			b"metadata".to_vec(),
 		));
 		NextInstanceId::<Test>::mutate(CLASS_ID_0, |id| *id = <Test as UNQ::Config>::InstanceId::max_value());
@@ -139,6 +143,8 @@ fn transfer_works() {
 			CLASS_ID_1,
 			123,
 			654,
+			8_659,
+			0,
 			b"metadata".to_vec(),
 		));
 		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
@@ -190,6 +196,8 @@ fn burn_works() {
 			CLASS_ID_1,
 			123,
 			654,
+			8_946,
+			0,
 			b"metadata".to_vec(),
 		));
 		assert_ok!(NFTPallet::mint_for_marketplace(
@@ -233,6 +241,8 @@ fn destroy_class_works() {
 			CLASS_ID_1,
 			123,
 			654,
+			1_864,
+			0,
 			b"metadata".to_vec(),
 		));
 		assert_ok!(NFTPallet::mint_for_marketplace(

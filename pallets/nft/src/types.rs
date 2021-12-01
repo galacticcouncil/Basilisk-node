@@ -43,8 +43,12 @@ pub struct MarketInstance<AccountId, BoundedString> {
 pub struct LiqMinInstance<Balance, BoundedString> {
 	/// Number of shares in a liquidity mining pool
 	pub shares: Balance,
+	/// Value of shares at the time of entry in incentivized tokens
+	pub valued_shares: Balance,
 	/// Accumulated reward per share
-	pub accrps: Balance,
+	pub accumulated_rps: Balance,
+	/// Sum of rewards claimed by user until now
+	pub accumulated_claimed_rewards: Balance,
 	/// Arbitrary data about an instance, e.g. IPFS hash
 	pub metadata: BoundedString,
 }
