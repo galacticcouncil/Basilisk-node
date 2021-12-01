@@ -830,6 +830,13 @@ impl pallet_uniques::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const AuctionsStringLimit: u32 = 128; // limit length of auction name
+	pub const BidAddBlocks: u32 = 10; // Increase end time to avoid sniping
+	pub const BidStepPerc: u32 = 10; // Next bid step in percent
+	pub const MinAuctionDuration: u32 = 10; // Minimum auction duration
+}
+
 impl pallet_auctions::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -837,6 +844,10 @@ impl pallet_auctions::Config for Runtime {
 	type Currency = Balances;
 	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Runtime>;
 	type CurrencyBalance = Balance;
+	type AuctionsStringLimit = AuctionsStringLimit;
+	type BidAddBlocks = BidAddBlocks;
+	type BidStepPerc = BidStepPerc;
+	type MinAuctionDuration = MinAuctionDuration;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -1084,7 +1095,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
-			list_benchmark!(list, extra, pallet_nft, NFT);
+			//list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_duster, Duster);
@@ -1141,7 +1152,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
-			add_benchmark!(params, batches, pallet_nft, NFT);
+			//add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_duster, Duster);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);

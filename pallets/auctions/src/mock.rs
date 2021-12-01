@@ -13,6 +13,8 @@ mod auction {
 	pub use super::super::*;
 }
 
+pub use crate::mock::Event as TestEvent;
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 type AccountId = AccountId32;
@@ -37,7 +39,9 @@ pub type Balance = u128;
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
+pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
+pub const NFT_CLASS_ID_1: u32 = 123;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -50,6 +54,13 @@ impl pallet_nft::Config for Test {
 	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
 }
 
+parameter_types! {
+	pub const AuctionsStringLimit: u32 = 128;
+	pub const BidAddBlocks: u32 = 10;
+	pub const BidStepPerc: u32 = 10;
+	pub const MinAuctionDuration: u32 = 10;
+}
+
 impl pallet_auctions::Config for Test {
 	type Event = Event;
 	type Balance = Balance;
@@ -57,6 +68,10 @@ impl pallet_auctions::Config for Test {
 	type Currency = Balances;
 	type CurrencyBalance = Balance;
 	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Test>;
+	type AuctionsStringLimit = AuctionsStringLimit;
+	type BidAddBlocks = BidAddBlocks;
+	type BidStepPerc = BidStepPerc;
+	type MinAuctionDuration = MinAuctionDuration;
 }
 
 parameter_types! {
@@ -142,7 +157,7 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 20_000 * BSX), (BOB, 2_000 * BSX)],
+			balances: vec![(ALICE, 40_000 * BSX), (BOB, 2_000 * BSX), (CHARLIE, 4_000 * BSX)],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -153,9 +168,13 @@ impl ExtBuilder {
 	}
 }
 
-pub fn last_event() -> Event {
+fn last_event() -> Event {
 	frame_system::Pallet::<Test>::events()
 		.pop()
 		.expect("An event expected")
 		.event
+}
+
+pub fn expect_event<E: Into<TestEvent>>(e: E) {
+	assert_eq!(last_event(), e.into());
 }

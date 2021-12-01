@@ -1,76 +1,49 @@
+pub use crate::Config;
 use codec::{Decode, Encode};
-use frame_support::{
-	dispatch::{DispatchError, DispatchResult},
-	Parameter,
-};
-use sp_runtime::{
-	traits::{AtLeast32Bit, Bounded, MaybeDisplay, MaybeSerializeDeserialize, Member},
-	RuntimeDebug,
-};
-use sp_std::{
-	fmt::{Debug, Display, Formatter},
-	result,
-	vec::Vec,
-};
+use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
 
-#[derive(Encode, Decode, Clone, Copy, PartialEq, Eq, Debug)]
-pub enum AuctionType {
-	English,
-	Candle,
-	Dutch,
-	TopUp,
-	FixedSwap,
+pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
+	fn bid(&mut self, bidder: AccountId, value: BalanceOf) -> DispatchResult;
+
+	fn close(&mut self) -> DispatchResult;
 }
 
-impl Display for AuctionType {
-	fn fmt(&self, f: &mut Formatter) -> sp_std::fmt::Result {
-		write!(f, "{:?}", self)
+#[derive(Encode, Decode, Clone, PartialEq, Eq)]
+pub enum Auction<T: Config> {
+	English(EnglishAuction<T>),
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq)]
+pub struct EnglishAuction<T: Config> {
+	pub general_data: GeneralAuctionData<T>,
+	pub specific_data: EnglishAuctionData<T>,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq)]
+pub struct EnglishAuctionData<T: Config> {
+	pub reserve_price: BalanceOf<T>,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq)]
+pub struct GeneralAuctionData<T: Config> {
+	pub name: BoundedVec<u8, <T as crate::Config>::AuctionsStringLimit>,
+	pub last_bid: Option<(<T as frame_system::Config>::AccountId, BalanceOf<T>)>,
+	pub next_bid_min: BalanceOf<T>,
+	pub start: <T as frame_system::Config>::BlockNumber,
+	pub end: <T as frame_system::Config>::BlockNumber,
+  pub closed: bool,
+	pub owner: <T as frame_system::Config>::AccountId,
+	pub token: (
+		<T as pallet_uniques::Config>::ClassId,
+		<T as pallet_uniques::Config>::InstanceId,
+	),
+}
+
+/// Define type aliases for better readability
+pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+impl<T: Config> sp_std::fmt::Debug for Auction<T> {
+	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+		write!(f, "Auction")
 	}
-}
-
-impl Default for AuctionType {
-	fn default() -> Self {
-		AuctionType::English
-	}
-}
-
-#[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq)]
-pub struct AuctionInfo<AccountId, Balance, BlockNumber, NftClassId, NftTokenId> {
-	// TODO: Replace Vec with BoundedVec
-	pub name: Vec<u8>,
-	pub last_bid: Option<(AccountId, Balance)>,
-	pub start: BlockNumber,
-	pub end: BlockNumber,
-	pub owner: AccountId,
-	pub auction_type: AuctionType,
-	pub token: (NftClassId, NftTokenId),
-	pub minimal_bid: Balance,
-	// pub no_identity_allowed: bool,
-	// pub starting_price: Balance,
-	// pub private: bool,
-	// pub max_participants: u32,
-}
-
-/// Abstraction over a NFT auction system.
-pub trait Auction<AccountId, BlockNumber, NftClassId, NftTokenId> {
-	/// The id of an AuctionInfo
-	type AuctionId: Default + Copy + Eq + PartialEq + MaybeSerializeDeserialize + Bounded + Debug;
-	/// The price to bid.
-	type Balance: AtLeast32Bit + Copy + MaybeSerializeDeserialize + Debug + Default;
-	/// Account id
-	type AccountId: Parameter + Member + MaybeSerializeDeserialize + Debug + MaybeDisplay + Ord + Default;
-
-	/// Create new auction with specific startblock and endblock, return the id
-	fn new_auction(
-		info: AuctionInfo<Self::AccountId, Self::Balance, BlockNumber, NftClassId, NftTokenId>,
-	) -> result::Result<Self::AuctionId, DispatchError>;
-	/// Update the auction info of `id` with `info`
-	fn update_auction(
-		id: Self::AuctionId,
-		info: AuctionInfo<Self::AccountId, Self::Balance, BlockNumber, NftClassId, NftTokenId>,
-	) -> DispatchResult;
-	/// Remove auction by `id`
-	fn remove_auction(id: Self::AuctionId) -> DispatchResult;
-	/// Bid
-	fn bid(bidder: Self::AccountId, id: Self::AuctionId, value: Self::Balance) -> DispatchResult;
 }
