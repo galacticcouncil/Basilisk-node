@@ -314,9 +314,7 @@ pub mod pallet {
 				Self::deposit_event(Event::BidPlaced(auction_id, bidder, value));
 
 				Ok(())
-			})?;
-
-			Ok(())
+			})
 		}
 
 		/// 
@@ -349,9 +347,7 @@ pub mod pallet {
 				Self::deposit_event(Event::AuctionClosed(auction_id));
 
 				Ok(())
-			})?;
-
-			Ok(())
+			})
 		}
 	}
 }
@@ -456,7 +452,7 @@ impl<T: Config> Pallet<T> {
 		general_data: &GeneralAuctionData<T>,
 	) -> DispatchResult {
 		<Auctions<T>>::try_mutate(auction_id, |auction_result| -> DispatchResult {
-			if let Some(_auction) = auction_result {
+			if auction_result.is_some() {
 				Self::validate_update(sender, general_data)?;
 				*auction_result = Some(updated_auction);
 				Ok(())
