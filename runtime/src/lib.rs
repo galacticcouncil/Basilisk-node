@@ -1095,7 +1095,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
-			list_benchmark!(list, extra, pallet_nft, NFT);
+			//list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_duster, Duster);
@@ -1152,7 +1152,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
-			add_benchmark!(params, batches, pallet_nft, NFT);
+			//add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_duster, Duster);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
