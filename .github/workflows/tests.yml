@@ -214,7 +214,7 @@ jobs:
           branch: master
           name: basilisk
           path: target/release
-      - uses: robinraju/release-downloader@v1
+      - uses: robinraju/release-downloader@v1.2
         name: Download relay chain binary release
         with:
           repository: paritytech/polkadot
