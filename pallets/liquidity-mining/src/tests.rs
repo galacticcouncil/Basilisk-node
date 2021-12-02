@@ -35,8 +35,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		owner: ALICE,
 		incentivized_token: BSX,
 		max_reward_per_period: 333_333_333,
-		accumulated_rps: 0,
-		accumulated_rps_start: 0,
+		accumulated_rpz: 0,
 		liq_pools_count: 0,
 		paid_accumulated_rewards: 0,
 		total_shares: 0,
@@ -52,8 +51,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		owner: BOB,
 		incentivized_token: BSX,
 		max_reward_per_period: 200_000,
-		accumulated_rps: 0,
-		accumulated_rps_start: 0,
+		accumulated_rpz: 0,
 		liq_pools_count: 0,
 		paid_accumulated_rewards: 0,
 		total_shares: 0,
@@ -69,8 +67,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		owner: GC,
 		incentivized_token: BSX,
 		max_reward_per_period: 600_000,
-		accumulated_rps: 0,
-		accumulated_rps_start: 0,
+		accumulated_rpz: 0,
 		liq_pools_count: 2,
 		paid_accumulated_rewards: 0,
 		total_shares: 0,
@@ -209,11 +206,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				id: 4,
 				updated_at: 0,
 				accumulated_rps: 0,
+				accumulated_rpz: 0,
 				total_shares: 0,
+				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
 				multiplier: 10_000,
-                nft_class: 0,
+				nft_class: 0,
 			},
 		)
 		.into()]);
@@ -236,11 +235,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				id: 5,
 				updated_at: 0,
 				accumulated_rps: 0,
+				accumulated_rpz: 0,
 				total_shares: 0,
+				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
 				multiplier: 20_000,
-                nft_class: 1,
+				nft_class: 1,
 			},
 		)
 		.into()]);
@@ -1225,9 +1226,8 @@ fn update_global_pool_should_work() {
 
 		p.total_shares = t.1;
 		p.accumulated_rewards = t.8;
-		p.accumulated_rps = t.2;
+		p.accumulated_rpz = t.2;
 		p.paid_accumulated_rewards = 10;
-		p.accumulated_rps_start = 2;
 
 		let mut ext = new_test_ext();
 
@@ -1251,9 +1251,8 @@ fn update_global_pool_should_work() {
 			);
 
 			rhs_p.total_shares = t.1;
-			rhs_p.accumulated_rps_start = 2;
 			rhs_p.paid_accumulated_rewards = 10;
-			rhs_p.accumulated_rps = t.9;
+			rhs_p.accumulated_rpz = t.9;
 			rhs_p.accumulated_rewards = t.10;
 
 			assert_eq!(p, rhs_p);
@@ -1564,7 +1563,8 @@ fn claim_global_pool_should_work() {
 
 	//(pool.updated_at, pool.total_shares, pool.accumulated_rps_start, pool.accumulated_rps, pool.reward_currency, pool.accumululated_rewards, pool.paid_accumularted_rewards, shares , reward, pool.accumulated_rps_start, pool.accumululated_rewards, pool.paid_accumularted_rewards)
 	for t in testing_values.iter() {
-		let pool_id = 1;
+		let g_pool_id = 1;
+		let liq_pool_id = 2;
 		let yield_per_period = Permill::from_percent(50);
 		let planned_yielding_periods = 100;
 		let blocks_per_period = 1;
@@ -1572,8 +1572,8 @@ fn claim_global_pool_should_work() {
 		let incentivized_token = BSX;
 		let max_reward_per_period = Balance::from(10_000_u32);
 
-		let mut p = GlobalPool::new(
-			pool_id,
+		let mut g_pool = GlobalPool::new(
+			g_pool_id,
 			t.0,
 			t.4,
 			yield_per_period,
@@ -1584,16 +1584,21 @@ fn claim_global_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		p.total_shares = t.1;
-		p.accumulated_rps_start = t.2;
-		p.accumulated_rps = t.3;
-		p.accumulated_rewards = t.5;
-		p.paid_accumulated_rewards = t.6;
+		g_pool.total_shares = t.1;
+		g_pool.accumulated_rpz = t.3;
+		g_pool.accumulated_rewards = t.5;
+		g_pool.paid_accumulated_rewards = t.6;
 
-		assert_eq!(LiquidityMining::claim_from_global_pool(&mut p, t.7).unwrap(), t.8);
+		let mut liq_pool = LiquidityPool::new(liq_pool_id, t.0, None, 10, 1);
+		liq_pool.accumulated_rpz = t.2;
 
-		let mut rhs_p = GlobalPool::new(
-			pool_id,
+		assert_eq!(
+			LiquidityMining::claim_from_global_pool(&mut g_pool, &mut liq_pool, t.7).unwrap(),
+			t.8
+		);
+
+		let mut rhs_g_pool = GlobalPool::new(
+			g_pool_id,
 			t.0,
 			t.4,
 			yield_per_period,
@@ -1604,13 +1609,17 @@ fn claim_global_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		rhs_p.total_shares = t.1;
-		rhs_p.accumulated_rps_start = t.9;
-		rhs_p.accumulated_rps = t.3;
-		rhs_p.accumulated_rewards = t.10;
-		rhs_p.paid_accumulated_rewards = t.11;
+		rhs_g_pool.total_shares = t.1;
+		rhs_g_pool.accumulated_rpz = t.3;
+		rhs_g_pool.accumulated_rewards = t.10;
+		rhs_g_pool.paid_accumulated_rewards = t.11;
 
-		assert_eq!(p, rhs_p);
+		assert_eq!(g_pool, rhs_g_pool);
+
+		let mut rhs_liq_pool = LiquidityPool::new(liq_pool_id, t.0, None, 10, 1);
+		rhs_liq_pool.accumulated_rpz = t.9;
+
+		assert_eq!(liq_pool, rhs_liq_pool);
 	}
 }
 
@@ -1926,7 +1935,7 @@ fn update_pool_should_work() {
 		let reward_currency = t.7;
 		let max_reward_per_period = Balance::from(10_000_u32);
 
-		let mut global_p = GlobalPool::<Test>::new(
+		let mut g_pool = GlobalPool::<Test>::new(
 			gid,
 			updated_at,
 			reward_currency,
@@ -1938,21 +1947,22 @@ fn update_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		global_p.total_shares = Balance::from(1_000_000_u128);
-		global_p.accumulated_rps_start = Balance::from(200_u128);
-		global_p.accumulated_rps = Balance::from(200_u128);
-		global_p.accumulated_rewards = Balance::from(1_000_000_u128);
-		global_p.paid_accumulated_rewards = Balance::from(1_000_000_u128);
+		g_pool.total_shares = Balance::from(1_000_000_u128);
+		g_pool.accumulated_rpz = Balance::from(200_u128);
+		g_pool.accumulated_rewards = Balance::from(1_000_000_u128);
+		g_pool.paid_accumulated_rewards = Balance::from(1_000_000_u128);
 
-		let mut p = LiquidityPool {
+		let mut liq_pool = LiquidityPool {
 			id: t.1,
 			updated_at: t.2,
 			total_shares: t.5,
+			total_valued_shares: Balance::from(200_u128),
 			accumulated_rps: t.4,
+			accumulated_rpz: Balance::from(200_u128),
 			loyalty_curve: None,
 			stake_in_global_pool: Balance::from(10_000_u32),
 			multiplier: 10,
-            nft_class: 1,
+			nft_class: 1,
 		};
 
 		let mut ext = new_test_ext();
@@ -1964,19 +1974,19 @@ fn update_pool_should_work() {
 			let _ = Tokens::transfer(
 				Origin::signed(TREASURY),
 				farm_account_id,
-				global_p.reward_currency,
+				g_pool.reward_currency,
 				9_000_000_000_000,
 			);
 			assert_eq!(
-				Tokens::free_balance(global_p.reward_currency, &farm_account_id),
+				Tokens::free_balance(g_pool.reward_currency, &farm_account_id),
 				9_000_000_000_000_u128
 			);
 
 			assert_eq!(Tokens::free_balance(t.7.try_into().unwrap(), &pool_account_id), 0);
 
-			assert_ok!(LiquidityMining::update_pool(&mut p, t.6, t.3, t.0, t.7));
+			assert_ok!(LiquidityMining::update_pool(&mut liq_pool, t.6, t.3, t.0, t.7));
 
-			let mut rhs_gp = GlobalPool::new(
+			let mut rhs_g_pool = GlobalPool::new(
 				gid,
 				updated_at,
 				reward_currency,
@@ -1988,31 +1998,32 @@ fn update_pool_should_work() {
 				max_reward_per_period,
 			);
 
-			rhs_gp.updated_at = BlockNumber::from(200_u64);
-			rhs_gp.total_shares = Balance::from(1_000_000_u128);
-			rhs_gp.accumulated_rps_start = Balance::from(200_u128);
-			rhs_gp.accumulated_rps = Balance::from(200_u128);
-			rhs_gp.accumulated_rewards = Balance::from(1_000_000_u128);
-			rhs_gp.paid_accumulated_rewards = Balance::from(1_000_000_u128);
+			rhs_g_pool.updated_at = BlockNumber::from(200_u64);
+			rhs_g_pool.total_shares = Balance::from(1_000_000_u128);
+			rhs_g_pool.accumulated_rpz = Balance::from(200_u128);
+			rhs_g_pool.accumulated_rewards = Balance::from(1_000_000_u128);
+			rhs_g_pool.paid_accumulated_rewards = Balance::from(1_000_000_u128);
 
-			assert_eq!(global_p, rhs_gp);
+			assert_eq!(g_pool, rhs_g_pool);
 
 			assert_eq!(
-				p,
+				liq_pool,
 				LiquidityPool {
 					id: t.1,
 					updated_at: t.9,
 					total_shares: t.5,
+					total_valued_shares: Balance::from(200_u128),
 					accumulated_rps: t.8,
+					accumulated_rpz: Balance::from(200_u128),
 					loyalty_curve: None,
 					stake_in_global_pool: Balance::from(10_000_u32),
 					multiplier: 10,
-                    nft_class: 1,
+					nft_class: 1,
 				}
 			);
 
-			assert_eq!(Tokens::free_balance(global_p.reward_currency, &farm_account_id), t.11);
-			assert_eq!(Tokens::free_balance(global_p.reward_currency, &pool_account_id), t.10);
+			assert_eq!(Tokens::free_balance(g_pool.reward_currency, &farm_account_id), t.11);
+			assert_eq!(Tokens::free_balance(g_pool.reward_currency, &pool_account_id), t.10);
 		});
 	}
 }
@@ -2328,11 +2339,13 @@ fn add_liquidity_pool_should_work() {
 				id: 6,
 				updated_at: 17,
 				total_shares: 0,
+				total_valued_shares: 0,
 				accumulated_rps: 0,
+				accumulated_rpz: 0,
 				stake_in_global_pool: 0,
 				multiplier: 20_000,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-                nft_class: 2,
+				nft_class: 2,
 			},
 			BSX_ACA_AMM,
 			ALICE,
@@ -2352,11 +2365,13 @@ fn add_liquidity_pool_should_work() {
 				id: 7,
 				updated_at: 17,
 				total_shares: 0,
+				total_valued_shares: 0,
 				accumulated_rps: 0,
+				accumulated_rpz: 0,
 				stake_in_global_pool: 0,
 				multiplier: 10_000,
 				loyalty_curve: None,
-                nft_class: 3,
+				nft_class: 3,
 			},
 			BSX_KSM_AMM,
 			ALICE,
@@ -2376,14 +2391,16 @@ fn add_liquidity_pool_should_work() {
 				id: 8,
 				updated_at: 20,
 				total_shares: 0,
+				total_valued_shares: 0,
 				accumulated_rps: 0,
+				accumulated_rpz: 0,
 				stake_in_global_pool: 0,
 				multiplier: 10_000,
 				loyalty_curve: Some(LoyaltyCurve {
 					initial_reward_percentage: FixedU128::from_inner(100_000_000_000_000_000),
 					scale_coef: 50,
 				}),
-                nft_class: 4,
+				nft_class: 4,
 			},
 			BSX_ETH_AMM,
 			ALICE,
@@ -2403,14 +2420,16 @@ fn add_liquidity_pool_should_work() {
 				id: 9,
 				updated_at: 2,
 				total_shares: 0,
+				total_valued_shares: 0,
 				accumulated_rps: 0,
+				accumulated_rpz: 0,
 				stake_in_global_pool: 0,
 				multiplier: 50_000,
 				loyalty_curve: Some(LoyaltyCurve {
 					initial_reward_percentage: FixedU128::from_inner(1),
 					scale_coef: 0,
 				}),
-                nft_class: 5,
+				nft_class: 5,
 			},
 			BSX_ETH_AMM,
 			BOB,
@@ -2540,7 +2559,7 @@ fn add_liquidity_pool_invalid_weight_should_not_work() {
 				0,
 				Some(LoyaltyCurve::default())
 			),
-			Error::<Test>::InvalidWeight
+			Error::<Test>::InvalidMultiplier
 		);
 	});
 }
@@ -2585,11 +2604,13 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 			id: 6,
 			updated_at: 20,
 			total_shares: 0,
+			total_valued_shares: 0,
 			accumulated_rps: 0,
+			accumulated_rpz: 0,
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			stake_in_global_pool: 0,
 			multiplier: 10_000,
-            nft_class: 2,
+			nft_class: 2,
 		};
 		assert_eq!(
 			LiquidityMining::liquidity_pool(ALICE_FARM, BSX_ACA_AMM).unwrap(),
