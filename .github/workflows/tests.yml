@@ -218,7 +218,8 @@ jobs:
         name: Download relay chain binary release
         with:
           repository: paritytech/polkadot
-          latest: true
+          #latest: true
+          tag: "v0.9.13-rc1"
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
         name: Basilisk version
