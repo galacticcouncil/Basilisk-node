@@ -114,7 +114,7 @@ jobs:
   destroy-runner-instance:
     name: destroy infra
     runs-on: ubuntu-latest
-    needs: test-inclusion
+    needs: test-upgrade-runtime
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -193,3 +193,44 @@ jobs:
       - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 200
         name: Launch rococo local & wait for inclusion
         working-directory: scripts/polkadot-launch
+
+  test-upgrade-runtime:
+    needs: [pop-runner-instance, test-inclusion]
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v2
+          name: Download runtime wasm from pipeline
+          with:
+            name: basilisk_runtime.compact.compressed.wasm
+            path: scripts/upgrade-runtime
+      - uses: dawidd6/action-download-artifact@v2
+        name: Download basilisk binary from master
+        with:
+          workflow: tests.yml
+          branch: master
+          name: basilisk
+          path: target/release
+      - uses: robinraju/release-downloader@v1
+        name: Download relay chain binary release
+        with:
+          repository: paritytech/polkadot
+          latest: true
+          out-file-path: ../polkadot/target/release
+      - run: chmod +x ./basilisk && ./basilisk --version
+        name: Basilisk version
+        working-directory: target/release
+      - run: chmod +x ./polkadot && ./polkadot --version
+        name: Polkadot version
+        working-directory: ../polkadot/target/release
+      - uses: actions/setup-node@v2
+        name: Setup node.js
+        with:
+          node-version: '14'
+          check-latest: true
+      - run: npm install && npm run start
+        name: Test runtime upgrade
+        working-directory: scripts/upgrade-runtime
