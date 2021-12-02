@@ -4,7 +4,7 @@ version = "3.0.0"
 authors = ["GalacticCouncil"]
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/basilisk-node"
-edition = "2018"
+edition = "2021"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

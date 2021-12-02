@@ -2,7 +2,7 @@
 name = "primitives"
 version = "6.0.0"
 authors = ["GalacticCouncil"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [build-dependencies]

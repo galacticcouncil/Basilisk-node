@@ -2,7 +2,7 @@
 name = "runtime-integration-tests"
 version = "0.1.0"
 authors = ["GalacticCouncil"]
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
