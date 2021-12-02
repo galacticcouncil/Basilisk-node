@@ -203,10 +203,10 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/download-artifact@v2
-          name: Download runtime wasm from pipeline
-          with:
-            name: basilisk_runtime.compact.compressed.wasm
-            path: scripts/upgrade-runtime
+        name: Download runtime wasm from pipeline
+        with:
+          name: basilisk_runtime.compact.compressed.wasm
+          path: scripts/upgrade-runtime
       - uses: dawidd6/action-download-artifact@v2
         name: Download basilisk binary from master
         with:
