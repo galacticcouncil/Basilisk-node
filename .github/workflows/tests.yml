@@ -219,6 +219,7 @@ jobs:
         with:
           repository: paritytech/polkadot
           latest: true
+          fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
         name: Basilisk version
