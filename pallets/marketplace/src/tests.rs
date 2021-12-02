@@ -91,13 +91,7 @@ fn buy_works() {
 		assert_eq!(Balances::free_balance(CHARLIE), 150_256 * BSX);
 		assert_eq!(Balances::free_balance(DAVE), 200_000 * BSX);
 
-		let event = Event::Marketplace(crate::Event::TokenSold(
-			ALICE,
-			BOB,
-			0,
-			0,
-			768 * BSX,
-		));
+		let event = Event::Marketplace(crate::Event::TokenSold(ALICE, BOB, 0, 0, 768 * BSX));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -229,6 +223,8 @@ fn free_trading_works() {
 			3,
 			123,
 			654,
+			700,
+			0,
 			b"metadata".to_vec(),
 		));
 
@@ -312,6 +308,8 @@ fn offering_works() {
 			1,
 			123,
 			654,
+			700,
+			0,
 			b"metadata".to_vec(),
 		));
 
