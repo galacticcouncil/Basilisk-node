@@ -68,6 +68,7 @@ type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
 type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
+type NftInstanceIfOf<T> = <T as pallet_nft::Config>::NftInstanceId;
 
 use pallet_nft::types::ClassType::PoolShare;
 
@@ -292,6 +293,17 @@ pub mod pallet {
 
 		/// Liq. mining farm was destroyed [farm_id, origin]
 		FarmDestroyed(PoolId, AccountIdOf<T>),
+
+		/// Amm shares was deposited into liq. mining pool [farm_id, liq_pool_id, who, shares,
+		/// share_token, nft_instance_id]
+		SharesDeposited(
+			PoolId,
+			PoolId,
+			AccountIdOf<T>,
+			Balance,
+			T::CurrencyId,
+			NftInstanceIfOf<T>,
+		),
 	}
 
 	#[pallet::storage]
@@ -556,23 +568,20 @@ pub mod pallet {
 			asset_pair: AssetPair,
 			shares: Balance,
 		) -> DispatchResult {
-			//TODO: this fn is WIP
+			//NOTE: this fn is WIP
+            //TODO: tests
 			let who = ensure_signed(origin)?;
 
-			let amm_share = T::AMM::get_share_token(asset_pair);
+			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
 			ensure!(
-				T::MultiCurrency::free_balance(amm_share, &who) >= shares,
+				T::MultiCurrency::free_balance(amm_share_token, &who) >= shares,
 				Error::<T>::InsufficientAmmSharesBalance
 			);
 
 			let amm_account = T::AMM::get_pair_id(asset_pair);
 			<LiquidityPoolData<T>>::try_mutate(farm_id, amm_account.clone(), |liq_pool| {
 				let liq_pool = liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
-
-				//TODO:
-				//waiting for nft impl(pseudocode bellow)
-				//ensure(NFT::get_nft(who, liq_pool.class_id).is_none(), Error::<T>::DuplicateDeposit);
 
 				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
 					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
@@ -593,13 +602,45 @@ pub mod pallet {
 					}
 
 					let valued_shares = Self::get_valued_shares(shares, amm_account, g_pool.reward_currency)?;
-					let _global_pool_shares = Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
+					let global_pool_shares = Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
 
-					//let g_pool.total_shares
-					//transferj shares
-					//mint nft
+					liq_pool.total_valued_shares = liq_pool
+						.total_valued_shares
+						.checked_add(valued_shares)
+						.ok_or(Error::<T>::Overflow)?;
 
-					//WIP
+					liq_pool.stake_in_global_pool = liq_pool
+						.stake_in_global_pool
+						.checked_add(global_pool_shares)
+						.ok_or(Error::<T>::Overflow)?;
+
+					g_pool.total_shares = g_pool
+						.total_shares
+						.checked_add(global_pool_shares)
+						.ok_or(Error::<T>::Overflow)?;
+
+					let pallet_account = Self::account_id();
+					T::MultiCurrency::transfer(amm_share_token, &who, &pallet_account, shares)?;
+
+					let (_, nft_id) = pallet_nft::Pallet::<T>::do_mint_for_liquidity_mining(
+						liq_pool.nft_class,
+						who.clone(),
+						vec![],
+						shares,
+						valued_shares,
+						liq_pool.accumulated_rps,
+						0_u128,
+					)?;
+
+					Self::deposit_event(Event::SharesDeposited(
+						g_pool.id,
+						liq_pool.id,
+						who,
+						shares,
+						amm_share_token,
+						nft_id,
+					));
+
 					Ok(())
 				})
 			})
@@ -788,18 +829,18 @@ impl<T: Config> Pallet<T> {
 
 	fn claim_from_global_pool(
 		g_pool: &mut GlobalPool<T>,
-		pool: &mut LiquidityPool<T>,
+		liq_pool: &mut LiquidityPool<T>,
 		shares: Balance,
 	) -> Result<Balance, Error<T>> {
 		let reward = g_pool
 			.accumulated_rpz
-			.checked_sub(pool.accumulated_rpz)
+			.checked_sub(liq_pool.accumulated_rpz)
 			.ok_or(Error::<T>::Overflow)?
 			.checked_mul(shares)
 			.ok_or(Error::<T>::Overflow)?
 			.min(g_pool.accumulated_rewards);
 
-		pool.accumulated_rpz = g_pool.accumulated_rpz;
+		liq_pool.accumulated_rpz = g_pool.accumulated_rpz;
 
 		g_pool.paid_accumulated_rewards = g_pool
 			.paid_accumulated_rewards

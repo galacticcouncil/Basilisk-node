@@ -22,10 +22,10 @@ use frame_support::{
 	traits::{Everything, GenesisBuild, Nothing},
 	PalletId,
 };
-use primitives::ReserveIdentifier;
 use frame_system as system;
 use hydradx_traits::AMM;
 use orml_traits::parameter_type_with_key;
+use primitives::ReserveIdentifier;
 use primitives::{asset::AssetPair, Amount, AssetId, Balance};
 use sp_core::H256;
 use sp_runtime::{

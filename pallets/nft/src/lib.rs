@@ -11,7 +11,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 
-use primitives::ReserveIdentifier;
+use primitives::{ReserveIdentifier, Balance};
 use sp_runtime::traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
 use types::{ClassInfo, ClassType, LiqMinInstance, MarketInstance};
@@ -53,7 +53,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_uniques::Config {
 		/// Currency type for reserve balance.
-		type Currency: NamedReservableCurrency<Self::AccountId, ReserveIdentifier = ReserveIdentifier>;
+		type Currency: NamedReservableCurrency<Self::AccountId, ReserveIdentifier = ReserveIdentifier, Balance = Balance>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Amount that must be reserved for each minted NFT
 		#[pallet::constant]
