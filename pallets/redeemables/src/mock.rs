@@ -1,5 +1,5 @@
-use crate as pallet_marketplace;
-use frame_support::{parameter_types, traits::Everything};
+use crate as pallet_redeemables;
+use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
 use primitives::ReserveIdentifier;
 use sp_core::{crypto::AccountId32, H256};
@@ -26,7 +26,7 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Marketplace: pallet_marketplace::{Pallet, Call, Storage, Event<T>},
+		Redeemables: pallet_redeemables::{Pallet, Call, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
@@ -42,13 +42,13 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const MinimumOfferAmount: Balance = 20 * BSX;
+	pub const RedeemablesPalletId: PalletId = PalletId(*b"smartboy");
 }
 
-impl pallet_marketplace::Config for Test {
+impl pallet_redeemables::Config for Test {
 	type Event = Event;
-	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Test>;
-	type MinimumOfferAmount = MinimumOfferAmount;
+	type WeightInfo = pallet_redeemables::weights::BasiliskWeight<Test>;
+	type PalletId = RedeemablesPalletId;
 }
 
 impl pallet_nft::Config for Test {
@@ -155,7 +155,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: vec![
-				(ALICE, 20_000 * BSX),
+				(ALICE, 2_000_000 * BSX),
 				(BOB, 15_000 * BSX),
 				(CHARLIE, 150_000 * BSX),
 				(DAVE, 200_000 * BSX),

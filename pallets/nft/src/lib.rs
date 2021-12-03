@@ -12,9 +12,9 @@ use frame_support::{
 use frame_system::ensure_signed;
 
 use primitives::ReserveIdentifier;
-use sp_runtime::traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero};
+use sp_runtime::{traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero}, DispatchError};
 use sp_std::{convert::TryInto, vec::Vec};
-use types::{ClassInfo, ClassType, LiqMinInstance, MarketInstance};
+use types::*;
 use weights::WeightInfo;
 
 use pallet_uniques::traits::InstanceReserve;
@@ -86,6 +86,11 @@ pub mod pallet {
 	#[pallet::getter(fn classes)]
 	/// Stores class info
 	pub type Classes<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, ClassInfoOf<T>>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn classes_redeemables)]
+	/// Stores class info
+	pub type ClassesRedeemables<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, RedeemablesClassInfo>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn marketplace_instances)]
@@ -234,7 +239,7 @@ pub mod pallet {
 
 			let instance_id = Self::get_next_instance_id(class_id)?;
 
-			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner, |_details| Ok(()))?;
+			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
 
 			let metadata_bounded = Self::to_bounded_string(metadata)?;
 
@@ -250,7 +255,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::InstanceMinted(
 				class_type,
-				Default::default(),
+				owner,
 				class_id,
 				instance_id,
 			));
@@ -325,6 +330,7 @@ pub mod pallet {
 			match class_type {
 				ClassType::Marketplace => MarketplaceInstances::<T>::remove(class_id, instance_id),
 				ClassType::PoolShare => LiqMinInstances::<T>::remove(class_id, instance_id),
+				ClassType::Redeemable => (),
 			};
 
 			Self::deposit_event(Event::InstanceBurned(sender, class_id, instance_id));
@@ -417,6 +423,8 @@ pub mod pallet {
 		ClassTypeMismatch,
 		/// Number exceeded maximum allowed values
 		Overflow,
+		/// The supply of pool was capped
+		ReachedMaxSupply,
 	}
 }
 
@@ -443,6 +451,73 @@ impl<T: Config> Pallet<T> {
 			*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
 			Ok(current_id)
 		})
+	}
+
+	pub fn create_class_for_redeemables(max_supply: u32, curve: BondingCurve) -> Result<T::NftClassId, DispatchError> {
+		let class_id = Self::get_next_class_id()?;
+
+		pallet_uniques::Pallet::<T>::do_create_class(
+			class_id.into(),
+			Default::default(),
+			Default::default(),
+			Zero::zero(),
+			true,
+			pallet_uniques::Event::Created(
+				class_id.into(),
+				Default::default(),
+				Default::default(),
+			),
+		)?;
+
+		ClassesRedeemables::<T>::insert(
+			class_id,
+			RedeemablesClassInfo {
+				class_type: ClassType::Redeemable,
+				max_supply,
+				redeemed: Zero::zero(),
+				issued: Zero::zero(),
+				curve,
+			},
+		);
+
+		Self::deposit_event(Event::ClassCreated(Default::default(), class_id, ClassType::Redeemable));
+
+		Ok(class_id)
+	}
+
+	pub fn mint_for_redeemables(
+		owner: T::AccountId,
+		class_id: T::NftClassId,
+	) -> Result<T::NftInstanceId, DispatchError> {
+
+		let class_type = Self::classes_redeemables(class_id)
+			.map(|c| c.class_type)
+			.ok_or(Error::<T>::ClassUnknown)?;
+
+		ensure!(class_type == ClassType::Redeemable, Error::<T>::ClassTypeMismatch);
+
+		ClassesRedeemables::<T>::try_mutate(class_id, |maybe_info| -> DispatchResult {
+			let info = maybe_info.as_mut().ok_or(Error::<T>::ClassUnknown)?;
+
+			ensure!(info.issued.saturating_add(1) < info.max_supply, Error::<T>::ReachedMaxSupply);
+			
+			info.issued = info.issued.saturating_add(One::one());
+
+			Ok(())
+		})?;
+
+		let instance_id = Self::get_next_instance_id(class_id)?;
+
+		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
+
+		Self::deposit_event(Event::InstanceMinted(
+			class_type,
+			owner,
+			class_id,
+			instance_id,
+		));
+
+		Ok(instance_id)
 	}
 }
 
