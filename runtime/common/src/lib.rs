@@ -226,6 +226,6 @@ parameter_types! {
 
 // pallet vesting
 parameter_types! {
-	pub MinVestedTransfer: Balance = 100_000 * UNITS;
-	pub const MaxVestingSchedules: u32 = 100;
+	pub MinVestedTransfer: Balance = 100_000;
+	pub const MaxVestingSchedules: u32 = 15;
 }
