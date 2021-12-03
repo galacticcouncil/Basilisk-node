@@ -112,7 +112,7 @@ pub mod pallet {
 		type CanCreatePool: CanCreatePool<AssetId>;
 
 		/// AMM handlers
-		type AMMHandler: OnCreatePoolHandler<AssetPair> + OnTradeHandler<Self::AccountId, AssetId, AssetPair, Balance>;
+		type AMMHandler: OnCreatePoolHandler<AssetId> + OnTradeHandler<AssetId, Balance>;
 	}
 
 	#[pallet::error]
@@ -313,7 +313,7 @@ pub mod pallet {
 			let share_token =
 				T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], T::MinPoolLiquidity::get())?;
 
-			T::AMMHandler::on_create_pool(asset_pair);
+			T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out);
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
@@ -747,7 +747,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
 		let total_liquidity = Self::total_liquidity(&pair_account);
-		T::AMMHandler::on_trade(transfer, total_liquidity);
+		T::AMMHandler::on_trade(transfer.assets.asset_in, transfer.assets.asset_out, transfer.amount, transfer.amount_out, total_liquidity);
 
 		if transfer.discount && transfer.discount_amount > 0u128 {
 			let native_asset = T::NativeAssetId::get();
@@ -890,7 +890,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
 		let total_liquidity = Self::total_liquidity(&pair_account);
-		T::AMMHandler::on_trade(transfer, total_liquidity);
+		T::AMMHandler::on_trade(transfer.assets.asset_in, transfer.assets.asset_out, transfer.amount, transfer.amount_out, total_liquidity);
 
 		if transfer.discount && transfer.discount_amount > 0 {
 			let native_asset = T::NativeAssetId::get();
