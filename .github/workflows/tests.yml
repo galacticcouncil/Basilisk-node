@@ -215,6 +215,10 @@ jobs:
           echo "VERSION_UPDATE<<EOF" >> $GITHUB_ENV
           echo "$VERSION_UPDATE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+      - name: Set variable
+        if: contains(env.VERSION_UPDATE, 'Runtime version has been increased.')
+        run: |
+          echo "{HAS_RUNTIME_VERSION_INCREASED}={true}" >> $GITHUB_ENV
       - name: Sticky Pull Request Comment
         uses: marocchino/sticky-pull-request-comment@v2.1.0
         with:

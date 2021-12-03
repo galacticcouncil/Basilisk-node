@@ -27,6 +27,20 @@ for crate in "${CRATE_ARR_MASTER[@]}"; do
     CRATE_PATH_MASTER_ARR+=("$CRATE_PATH_MASTER")
 done
 
+# test that the same runtime versions are used
+IFS=$'\n' read -r -d '' -a RUNTIMES_MASTER < <( printf '%s\n' "${CRATE_ARR_MASTER[@]}" | grep "basilisk-runtime" && printf '\0' )
+
+RUNTIME_SPEC_VERSIONS_MASTER=()
+RUNTIME_NAMES_MASTER=()
+for vars in "${RUNTIMES_MASTER[@]}"; do
+#    IFS=$' '
+    VARS=( $vars )
+    RUNTIME_NAMES_MASTER+=("${VARS[0]}")
+    CRATE_PATH=$( echo ${VARS[2]} | sed 's/^.\(.*\).$/\1/' )
+    RUNTIME_SPEC_VERSIONS_MASTER+=($(grep -rI "spec_version:" "$CRATE_PATH" | grep -o -E "[0-9]+"))
+#    IFS=$'\n'
+done
+
 git checkout -f --quiet "$ACTUAL_COMMIT"
 
 MODIFIED_FILES=($(git diff --name-only "$ACTUAL_COMMIT" "$MASTER_COMMIT"))
@@ -105,15 +119,25 @@ IFS=$'\n' read -r -d '' -a RUNTIMES < <( printf '%s\n' "${CRATE_ARR[@]}" | grep 
 RUNTIME_CARGO_VERSIONS=()
 RUNTIME_SPEC_VERSIONS=()
 RUNTIME_NAMES=()
+HAS_RUNTIME_VERSION_CHANGED=false
 for vars in "${RUNTIMES[@]}"; do
     IFS=$' '
     VARS=( $vars )
     RUNTIME_NAMES+=("${VARS[0]}")
     CRATE_PATH=$( echo ${VARS[2]} | sed 's/^.\(.*\).$/\1/' )
-    RUNTIME_SPEC_VERSIONS+=($(grep -rI "spec_version:" "$CRATE_PATH" | grep -o -E "[0-9]+"))
+    RUNTIME_SPEC_VERSION=$(grep -rI "spec_version:" "$CRATE_PATH" | grep -o -E "[0-9]+")
+    RUNTIME_SPEC_VERSIONS+=($RUNTIME_SPEC_VERSION)
     VERSION=( ${VARS[1]//./ } )
     RUNTIME_CARGO_VERSIONS+=($( echo "${VERSION[0]}" | grep -o -E "[0-9]+"))
     IFS=$'\n'
+
+    for i in "${!RUNTIME_NAMES_MASTER[@]}"; do
+        if [ "${RUNTIME_NAMES_MASTER[i]}" == "${VARS[0]}" ]; then
+            if [ "${RUNTIME_SPEC_VERSIONS_MASTER[i]}" != "$RUNTIME_SPEC_VERSION" ]; then
+                HAS_RUNTIME_VERSION_CHANGED=true
+            fi
+        fi
+    done
 done
 
 RUNTIME_VERSION_DIFFS=()
@@ -158,6 +182,13 @@ fi
 RUNTIME_CARGO_VERSIONS=( $(printf '%s\n' "${RUNTIME_CARGO_VERSIONS[@]}" | sort -u) )
 if [ ${#RUNTIME_CARGO_VERSIONS} -gt 1 ]; then
   echo "Runtime versions don't match."
+  echo
+fi
+
+if [ "$HAS_RUNTIME_VERSION_CHANGED" == true ]; then
+    echo "Runtime version has been increased."
+else
+    echo "Runtime version has not been increased."
 fi
 
 if [ ${#NOT_UPDATED_VERSIONS_ARR[@]} -eq 0 -a ${#NEW_VERSIONS_ARR[@]} -eq 0 -a ${#UPDATED_VERSIONS_ARR[@]} -eq 0 -a ${#RUNTIME_VERSION_DIFFS[@]} -eq 0 -a ${#RUNTIME_CARGO_VERSIONS} -lt 2 ]; then
