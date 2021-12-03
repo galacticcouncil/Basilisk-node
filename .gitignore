@@ -48,3 +48,7 @@ fork-testing/parachain/coll-03/*
 fork-testing/local-raw.json
 
 .env
+
+#coverage
+cobertura.xml
+lcov.info
