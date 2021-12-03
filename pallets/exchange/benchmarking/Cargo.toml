@@ -1,6 +1,6 @@
 [package]
 name = "pallet-exchange-benchmarking"
-version = "7.8.9"
+version = "3.3.0"
 description = "Exchange Benchmarking Module"
 authors = ["GalacticCouncil"]
 edition = "2018"
