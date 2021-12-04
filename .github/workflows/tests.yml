@@ -195,8 +195,9 @@ jobs:
         working-directory: scripts/polkadot-launch
 
   test-upgrade-runtime:
-    needs: [pop-runner-instance, test-inclusion]
+    needs: [pop-runner-instance, test-inclusion, version-check]
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    if: ${{ needs.version-check.outputs.runtime-upgraded == 'true' }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -238,6 +239,8 @@ jobs:
 
   version-check:
     runs-on: ubuntu-latest
+    outputs:
+      runtime-upgraded: ${{ steps.check-runtime.outputs.upgraded }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -257,10 +260,11 @@ jobs:
           echo "VERSION_UPDATE<<EOF" >> $GITHUB_ENV
           echo "$VERSION_UPDATE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-      - name: Set variable
+      - name: Check runtime upgrade
+        id: check-runtime
         if: contains(env.VERSION_UPDATE, 'Runtime version has been increased.')
         run: |
-          echo "{HAS_RUNTIME_VERSION_INCREASED}={true}" >> $GITHUB_ENV
+          run: echo "::set-output name=upgraded::true"
       - name: Sticky Pull Request Comment
         uses: marocchino/sticky-pull-request-comment@v2.1.0
         with:
