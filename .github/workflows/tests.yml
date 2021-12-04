@@ -193,3 +193,34 @@ jobs:
       - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 200
         name: Launch rococo local & wait for inclusion
         working-directory: scripts/polkadot-launch
+
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
+      - name: Get crate versions
+        run: |
+          VERSION_UPDATE=$(./scripts/list_crate_updates.sh)
+          VERSION_UPDATE=$(cat << EOF
+          $VERSION_UPDATE
+          EOF
+          )
+          echo "VERSION_UPDATE<<EOF" >> $GITHUB_ENV
+          echo "$VERSION_UPDATE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - name: Set variable
+        if: contains(env.VERSION_UPDATE, 'Runtime version has been increased.')
+        run: |
+          echo "{HAS_RUNTIME_VERSION_INCREASED}={true}" >> $GITHUB_ENV
+      - name: Sticky Pull Request Comment
+        uses: marocchino/sticky-pull-request-comment@v2.1.0
+        with:
+          message: |
+            ${{ env.VERSION_UPDATE }}
