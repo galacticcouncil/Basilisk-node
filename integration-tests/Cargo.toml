@@ -158,7 +158,6 @@ std = [
     "pallet-transaction-multi-payment/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-lbp/std",
-    "pallet-price-oracle/std",
     "pallet-utility/std",
     "sp-api/std",
     "sp-block-builder/std",
