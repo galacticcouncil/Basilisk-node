@@ -67,9 +67,8 @@ jobs:
         with:
           time: '20s'
 
-  build:
-    needs: pop-runner-instance
-    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+  clippy:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -85,6 +84,20 @@ jobs:
       - name: Run clippy
         run: make clippy
         continue-on-error: false
+
+  build:
+    needs: pop-runner-instance
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: git describe --tags --abbrev=0 --always
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage
