@@ -32,9 +32,6 @@ pallet-lbp = { path = "../pallets/lbp", default-features = false }
 
 primitives = { default-features = false, path = "../primitives" }
 
-# warehouse dependencies
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev="34190daa5716fa478e981357dc579f3efa48428f", default-features = false }
-
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
