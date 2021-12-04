@@ -112,9 +112,9 @@ jobs:
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
 
   destroy-runner-instance:
-    name: destroy infra
+    name: destroy runner
     runs-on: ubuntu-latest
-    needs: test-upgrade-runtime
+    needs: build
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
