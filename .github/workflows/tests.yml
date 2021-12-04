@@ -263,8 +263,7 @@ jobs:
       - name: Check runtime upgrade
         id: check-runtime
         if: contains(env.VERSION_UPDATE, 'Runtime version has been increased.')
-        run: |
-          run: echo "::set-output name=upgraded::true"
+        run: echo "::set-output name=upgraded::true"
       - name: Sticky Pull Request Comment
         uses: marocchino/sticky-pull-request-comment@v2.1.0
         with:
