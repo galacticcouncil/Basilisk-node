@@ -1,3 +1,42 @@
+# v6.0.0 (Sat Dec 04 2021)
+
+#### 🚀 Enhancement
+
+- feat: price oracle [#270](https://github.com/galacticcouncil/Basilisk-node/pull/270) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: testnet-k8s chain [#259](https://github.com/galacticcouncil/Basilisk-node/pull/259) ([@martinfridrich](https://github.com/martinfridrich) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: dont allow to create xyk pool if  lbp is running [#257](https://github.com/galacticcouncil/Basilisk-node/pull/257) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: expose possibility to control pool creation [#256](https://github.com/galacticcouncil/Basilisk-node/pull/256) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: change the order of emitted events for xyk pools [#246](https://github.com/galacticcouncil/Basilisk-node/pull/246) ([@dexterslabor](https://github.com/dexterslabor) [@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: add faucet pallet to testing runtime [#243](https://github.com/galacticcouncil/Basilisk-node/pull/243) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: add relaychain-info pallet [#239](https://github.com/galacticcouncil/Basilisk-node/pull/239) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### 🐛 Bug Fix
+
+- ci: check crate upgrades [#209](https://github.com/galacticcouncil/Basilisk-node/pull/209) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: update weights [#277](https://github.com/galacticcouncil/Basilisk-node/pull/277) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: restricted vesting calls [#272](https://github.com/galacticcouncil/Basilisk-node/pull/272) ([@jak-pan](https://github.com/jak-pan) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: update two parachain config [#275](https://github.com/galacticcouncil/Basilisk-node/pull/275) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: install toolchain according to file [#268](https://github.com/galacticcouncil/Basilisk-node/pull/268) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: update to latest hydradx-traits [#266](https://github.com/galacticcouncil/Basilisk-node/pull/266) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- refactor: move tokens adapter toc common runtime [#264](https://github.com/galacticcouncil/Basilisk-node/pull/264) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: change xyk storage value query to option query [#258](https://github.com/galacticcouncil/Basilisk-node/pull/258) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: update weights [#235](https://github.com/galacticcouncil/Basilisk-node/pull/235) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- refactor: split primitives crate [#244](https://github.com/galacticcouncil/Basilisk-node/pull/244) ([@Roznovjak](https://github.com/Roznovjak))
+- fix: relaychain number in info event [#241](https://github.com/galacticcouncil/Basilisk-node/pull/241) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- refactor: AssetPairAccountId trait [#237](https://github.com/galacticcouncil/Basilisk-node/pull/237) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: exchange [#216](https://github.com/galacticcouncil/Basilisk-node/pull/216) ([@Roznovjak](https://github.com/Roznovjak) [@jak-pan](https://github.com/jak-pan))
+
+#### Authors: 6
+
+- [@dexterslabor](https://github.com/dexterslabor)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Jakub Pánik ([@jak-pan](https://github.com/jak-pan))
+- martin fridrich ([@martinfridrich](https://github.com/martinfridrich))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
 # v5.0.3 (Tue Nov 09 2021)
 
 #### 🐛 Bug Fix
