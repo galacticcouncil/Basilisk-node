@@ -5,7 +5,7 @@ use primitives::ReserveIdentifier;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
+	traits::{BlakeTwo256, IdentityLookup, AccountIdConversion},
 };
 use system::EnsureRoot;
 
@@ -137,6 +137,7 @@ pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const DAVE: AccountId = AccountId::new([4u8; 32]);
+pub const PALLET_ID: PalletId = PalletId(*b"smartboy");
 
 pub const BSX: Balance = 100_000_000_000;
 
@@ -159,6 +160,7 @@ impl ExtBuilder {
 				(BOB, 15_000 * BSX),
 				(CHARLIE, 150_000 * BSX),
 				(DAVE, 200_000 * BSX),
+				(PALLET_ID.into_account(), 10_000_000 * BSX),
 			],
 		}
 		.assimilate_storage(&mut t)

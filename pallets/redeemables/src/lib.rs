@@ -25,7 +25,7 @@ use sp_runtime::traits::{One, AccountIdConversion};
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{pallet_prelude::*, PalletId};
+	use frame_support::{pallet_prelude::*, PalletId, traits::ExistenceRequirement};
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
@@ -53,18 +53,18 @@ pub mod pallet {
 			let class_info = pallet_nft::Pallet::<T>::classes_redeemables(class_id)
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 
-			let price = class_info.price();
+			let price = class_info.price().saturated_into();
 
-			println!("issuance #: {:?} / {:?}, price: {:?} BSX", class_info.issued, class_info.max_supply, price);
+			println!("Bought! issuance #: {:?} / {:?}, price: {:?} BSX", class_info.issued, class_info.max_supply, price);
 
-			// <T as pallet_nft::Config>::Currency::transfer(
-			// 	&sender,
-			// 	&Self::module_account(),
-			// 	price,
-			// 	ExistenceRequirement::KeepAlive,
-			// )?;
+			<T as pallet_nft::Config>::Currency::transfer(
+				&sender,
+				&Self::module_account(),
+				price,
+				ExistenceRequirement::KeepAlive,
+			)?;
 			
-			//Self::deposit_event(Event::Bought(sender, class_id, price));
+			Self::deposit_event(Event::Bought(sender, class_id, price));
 
 			Ok(())
 		}
@@ -73,10 +73,26 @@ pub mod pallet {
 		///
 		#[pallet::weight(0)]
 		#[transactional]
-		pub fn sell(origin: OriginFor<T>, class_id: T::NftClassId, curve_id: u32) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
+		pub fn sell(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
+			let sender = ensure_signed(origin.clone())?;
 
-			Self::deposit_event(Event::Sold(sender, class_id, curve_id));
+			pallet_nft::Pallet::<T>::burn_for_redeemables(sender.clone(), class_id, instance_id, false)?;
+
+			let class_info = pallet_nft::Pallet::<T>::classes_redeemables(class_id)
+				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
+
+			let price = class_info.price().saturated_into();
+
+			println!("Sold! issuance #: {:?} / {:?}, price: {:?} BSX", class_info.issued, class_info.max_supply, price);
+
+			<T as pallet_nft::Config>::Currency::transfer(
+				&Self::module_account(),
+				&sender,
+				price,
+				ExistenceRequirement::KeepAlive,
+			)?;
+			
+			Self::deposit_event(Event::Sold(sender, class_id, price));
 
 			Ok(())
 		}
@@ -89,11 +105,15 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
-			curve_id: u32,
+			//remark: BoundedVec,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
+			let sender = ensure_signed(origin.clone())?;
 
-			Self::deposit_event(Event::Redeemed(sender, curve_id, class_id, instance_id));
+			pallet_nft::Pallet::<T>::burn(origin, class_id, instance_id, true)?;
+
+			println!("Redeemed! issuance #: {:?} / {:?}", class_id, instance_id);
+			
+			Self::deposit_event(Event::Redeemed(sender, class_id, instance_id));
 
 			Ok(())
 		}
@@ -105,9 +125,9 @@ pub mod pallet {
 		///
 		Bought(T::AccountId, T::NftClassId, BalanceOf<T>),
 		///
-		Sold(T::AccountId, T::NftClassId, u32),
+		Sold(T::AccountId, T::NftClassId, BalanceOf<T>),
 		///
-		Redeemed(T::AccountId, u32, T::NftClassId, T::NftInstanceId),
+		Redeemed(T::AccountId, T::NftClassId, T::NftInstanceId),
 	}
 
 	#[pallet::error]
@@ -117,7 +137,7 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn _module_account() -> T::AccountId {
+	fn module_account() -> T::AccountId {
         T::PalletId::get().into_account()
     }
 }
