@@ -47,7 +47,7 @@ async function main() {
       sections.includes(section)
     )
     .forEach(({event: {data, method, section}}) =>
-      console.log(`event ${section}.${method} ${data.toString()}`)
+      console.log(`event ${section}.${method}`,data.toHuman())
     ));
 
   const onEvent = (event, callback) => api.query.system.events(events => events
@@ -71,20 +71,26 @@ async function main() {
   console.log('waiting for parachain to start producing blocks');
   await waitForBlock(3);
 
-  console.log('submitting runtime upgrade');
+  console.log('performing runtime upgrade');
   watchEventsFromSections(["sudo", "parachainSystem"]);
   await waitTx(sudo);
 
   await new Promise(resolve => onEvent('parachainSystem.ValidationFunctionApplied', resolve));
-  api.rpc.chain.subscribeNewHeads(async header => {
+  const newSpec = await new Promise(resolve => api.rpc.chain.subscribeNewHeads(async () => {
     const newSpec = getSpecVersion();
     if (specVersion < newSpec) {
-      console.log(`parachain was sucessfully upgraded ${specVersion} -> ${newSpec}`);
-      process.exit(0);
+      resolve(newSpec);
     } else {
       console.log(`api still on the older spec (${newSpec})`);
     }
-  });
+  }));
+  console.log(`parachain spec was upgraded ${specVersion} -> ${newSpec}`);
+
+  console.log('recreate api instance');
+  api = await ApiPromise.create({provider});
+  console.log('collating full block');
+  await waitTx(api.tx.sudo.sudo(api.tx.system.fillBlock('720000000')));
+  process.exit(0);
 }
 
 main().catch(e => {
