@@ -1,3 +1,15 @@
+# v6.1.0 (Tue Dec 07 2021)
+
+#### 🚀 Enhancement
+
+- feat: transfers disabled [#282](https://github.com/galacticcouncil/Basilisk-node/pull/282) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+
+#### Authors: 1
+
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+
+---
+
 # v6.0.0 (Sat Dec 04 2021)
 
 #### 🚀 Enhancement
