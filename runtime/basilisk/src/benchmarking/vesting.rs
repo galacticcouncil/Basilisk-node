@@ -1,5 +1,5 @@
 use crate::{AccountId, AssetId, Balance, NativeAssetId, Runtime};
-use crate::{BlockNumber, Currencies, MaxVestingSchedules, MinVestedTransfer, System, Vesting};
+use crate::{BlockNumber, Currencies, MaxVestingSchedules, System, Vesting};
 
 use super::BSX;
 
@@ -16,6 +16,8 @@ use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrency;
 use orml_traits::MultiCurrencyExtended;
 use orml_vesting::VestingSchedule;
+
+use primitives::constants::currency::NATIVE_EXISTENTIAL_DEPOSIT;
 
 use sp_runtime::traits::{SaturatedConversion, StaticLookup};
 
@@ -49,7 +51,7 @@ runtime_benchmarks! {
 			start: 0,
 			period: 2,
 			period_count: 3,
-			per_period: MinVestedTransfer::get(),
+			per_period: NATIVE_EXISTENTIAL_DEPOSIT,
 		};
 
 		let from: AccountId = get_vesting_account();
@@ -72,7 +74,7 @@ runtime_benchmarks! {
 			start: 0,
 			period: 2,
 			period_count: 3,
-			per_period: MinVestedTransfer::get(),
+			per_period: NATIVE_EXISTENTIAL_DEPOSIT,
 		};
 
 		let from: AccountId = get_vesting_account();
@@ -101,7 +103,7 @@ runtime_benchmarks! {
 			start: 0,
 			period: 2,
 			period_count: 3,
-			per_period: MinVestedTransfer::get(),
+			per_period: NATIVE_EXISTENTIAL_DEPOSIT,
 		};
 
 		let to: AccountId = account("to", 0, SEED);

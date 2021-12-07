@@ -31,8 +31,8 @@
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, AMM};
-use primitives::{asset::AssetPair, constants::chain::MIN_POOL_LIQUIDITY, fee, AssetId, Balance, Price};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
+use primitives::{asset::AssetPair, fee, AssetId, Balance, Price};
 use sp_std::{vec, vec::Vec};
 
 use frame_support::sp_runtime::FixedPointNumber;
@@ -110,6 +110,9 @@ pub mod pallet {
 
 		/// Called to ensure that pool can be created
 		type CanCreatePool: CanCreatePool<AssetId>;
+
+		/// AMM handlers
+		type AMMHandler: OnCreatePoolHandler<AssetId> + OnTradeHandler<AssetId, Balance>;
 	}
 
 	#[pallet::error]
@@ -307,8 +310,13 @@ pub mod pallet {
 
 			let token_name = asset_pair.name();
 
-			let share_token =
-				T::AssetRegistry::get_or_create_shared_asset(token_name, vec![asset_a, asset_b], MIN_POOL_LIQUIDITY)?;
+			let share_token = T::AssetRegistry::get_or_create_shared_asset(
+				token_name,
+				vec![asset_a, asset_b],
+				T::MinPoolLiquidity::get(),
+			)?;
+
+			T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out);
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
@@ -523,7 +531,7 @@ pub mod pallet {
 		/// `max_limit` - minimum amount of `asset_out` / amount of asset_out to be obtained from the pool in exchange for `asset_in`.
 		///
 		/// Emits `SellExecuted` when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::sell())]
+		#[pallet::weight(<T as Config>::WeightInfo::sell() + <T as Config>::AMMHandler::on_trade_weight())]
 		pub fn sell(
 			origin: OriginFor<T>,
 			asset_in: AssetId,
@@ -546,7 +554,7 @@ pub mod pallet {
 		/// `max_limit` - maximum amount of `asset_in` to be sold in exchange for `asset_out`.
 		///
 		/// Emits `BuyExecuted` when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::buy())]
+		#[pallet::weight(<T as Config>::WeightInfo::buy() + <T as Config>::AMMHandler::on_trade_weight())]
 		pub fn buy(
 			origin: OriginFor<T>,
 			asset_out: AssetId,
@@ -741,6 +749,15 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(
+			transfer.assets.asset_in,
+			transfer.assets.asset_out,
+			transfer.amount,
+			transfer.amount_out,
+			total_liquidity,
+		);
+
 		if transfer.discount && transfer.discount_amount > 0u128 {
 			let native_asset = T::NativeAssetId::get();
 			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
@@ -880,6 +897,15 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	#[transactional]
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
+
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(
+			transfer.assets.asset_in,
+			transfer.assets.asset_out,
+			transfer.amount,
+			transfer.amount_out,
+			total_liquidity,
+		);
 
 		if transfer.discount && transfer.discount_amount > 0 {
 			let native_asset = T::NativeAssetId::get();
