@@ -1,4 +1,4 @@
-use frame_support::{assert_noop, assert_ok, error::BadOrigin};
+use frame_support::{assert_noop, assert_ok};
 
 use crate::types::ClassType;
 
@@ -54,20 +54,8 @@ fn mint_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFTPallet::mint_for_marketplace(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			ALICE,
-			20,
-			b"metadata".to_vec(),
-		));
-		assert_ok!(NFTPallet::mint_for_marketplace(
-			Origin::signed(BOB),
-			CLASS_ID_0,
-			CHARLIE,
-			20,
-			b"metadata".to_vec(),
-		));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0,));
+		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_0,));
 
 		assert_ok!(NFTPallet::create_class(
 			Origin::root(),
@@ -75,41 +63,16 @@ fn mint_works() {
 			b"metadata".to_vec()
 		));
 		assert_noop!(
-			NFTPallet::mint_for_marketplace(
-				Origin::signed(ALICE),
-				NOT_EXISTING_CLASS_ID,
-				CHARLIE,
-				20,
-				b"metadata".to_vec(),
-			),
+			NFTPallet::mint(Origin::signed(ALICE), NOT_EXISTING_CLASS_ID,),
 			Error::<Test>::ClassUnknown
 		);
 		assert_noop!(
-			NFTPallet::mint_for_marketplace(Origin::signed(ALICE), CLASS_ID_0, CHARLIE, 123, b"metadata".to_vec(),),
+			NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0),
 			Error::<Test>::NotInRange
 		);
-		assert_noop!(
-			NFTPallet::mint_for_liquidity_mining(
-				Origin::signed(ALICE),
-				ALICE,
-				CLASS_ID_1,
-				123,
-				654,
-				b"metadata".to_vec(),
-			),
-			BadOrigin
-		);
-		assert_ok!(NFTPallet::mint_for_liquidity_mining(
-			Origin::root(),
-			ALICE,
-			CLASS_ID_1,
-			123,
-			654,
-			b"metadata".to_vec(),
-		));
 		NextInstanceId::<Test>::mutate(CLASS_ID_0, |id| *id = <Test as UNQ::Config>::InstanceId::max_value());
 		assert_noop!(
-			NFTPallet::mint_for_marketplace(Origin::signed(ALICE), CLASS_ID_0, CHARLIE, 20, b"metadata".to_vec(),),
+			NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0),
 			Error::<Test>::NoAvailableInstanceId
 		);
 
@@ -133,22 +96,8 @@ fn transfer_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFTPallet::mint_for_liquidity_mining(
-			Origin::root(),
-			ALICE,
-			CLASS_ID_1,
-			123,
-			654,
-			b"metadata".to_vec(),
-		));
 		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
-		assert_ok!(NFTPallet::mint_for_marketplace(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			CHARLIE,
-			20,
-			b"metadata".to_vec(),
-		));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0,));
 		assert_eq!(Balances::free_balance(ALICE), 9_900 * BSX);
 		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0, BOB));
 
@@ -184,21 +133,7 @@ fn burn_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFTPallet::mint_for_liquidity_mining(
-			Origin::root(),
-			ALICE,
-			CLASS_ID_1,
-			123,
-			654,
-			b"metadata".to_vec(),
-		));
-		assert_ok!(NFTPallet::mint_for_marketplace(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			ALICE,
-			20,
-			b"metadata".to_vec(),
-		));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0,));
 
 		assert_noop!(
 			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID_0),
@@ -227,21 +162,7 @@ fn destroy_class_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFTPallet::mint_for_liquidity_mining(
-			Origin::root(),
-			ALICE,
-			CLASS_ID_1,
-			123,
-			654,
-			b"metadata".to_vec(),
-		));
-		assert_ok!(NFTPallet::mint_for_marketplace(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			ALICE,
-			20,
-			b"metadata".to_vec(),
-		));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0,));
 
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),

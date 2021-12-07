@@ -15,3 +15,14 @@ pub struct Offer<AccountId, Balance, BlockNumber> {
 	/// After this block the offer can't be accepted
 	pub(super) expires: BlockNumber,
 }
+
+#[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct MarketInstance<AccountId, BoundedString> {
+	/// The user account which receives the royalty
+	pub author: AccountId,
+	/// Royalty in percent in range 0-99
+	pub royalty: u8,
+	/// Arbitrary data about an instance, e.g. IPFS hash
+	pub metadata: BoundedString,
+}

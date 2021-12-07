@@ -6,7 +6,7 @@ use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
 	traits::{Currency, ExistenceRequirement, NamedReservableCurrency},
-	transactional,
+	transactional, BoundedVec,
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
@@ -14,11 +14,14 @@ use sp_runtime::{
 	Percent,
 };
 
-use types::Offer;
+use pallet_nft::Pallet as NFTPallet;
+
+use types::*;
 use weights::WeightInfo;
 
-use pallet_nft::{types::ClassType, MarketplaceInstances};
+use pallet_nft::types::ClassType;
 use primitives::ReserveIdentifier;
+use sp_std::vec::Vec;
 
 mod benchmarking;
 mod types;
@@ -32,6 +35,8 @@ mod tests;
 
 type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
+type MarketInstanceOf<T> =
+	MarketInstance<<T as frame_system::Config>::AccountId, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -74,6 +79,12 @@ pub mod pallet {
 		OfferOf<T>,
 		OptionQuery,
 	>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn marketplace_instances)]
+	/// Stores Marketplace info
+	pub type MarketplaceInstances<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, T::NftClassId, Twox64Concat, T::NftInstanceId, MarketInstanceOf<T>>;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nft::Config {
@@ -248,6 +259,60 @@ pub mod pallet {
 				}
 			})
 		}
+
+		/// Mints an NFT in the specified class
+		/// Sets metadata and the royalty attribute
+		///
+		/// Parameters:
+		/// - `class_id`: The class of the asset to be minted.
+		/// - `instance_id`: The instance value of the asset to be minted.
+		/// - `author`: Receiver of the royalty
+		/// - `royalty`: Percentage reward from each trade for the author
+		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash
+		#[pallet::weight(<T as Config>::WeightInfo::mint_for_marketplace())]
+		#[transactional]
+		pub fn mint_for_marketplace(
+			origin: OriginFor<T>,
+			class_id: T::NftClassId,
+			author: T::AccountId,
+			royalty: u8,
+			metadata: Vec<u8>,
+		) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
+
+			let class_type = NFTPallet::<T>::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
+
+			ensure!(
+				class_type == ClassType::Marketplace,
+				pallet_nft::Error::<T>::ClassTypeMismatch
+			);
+
+			ensure!(royalty < 100, pallet_nft::Error::<T>::NotInRange);
+
+			let instance_id: T::NftInstanceId = NFTPallet::<T>::get_next_instance_id(class_id)?;
+
+			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), sender.clone(), |_details| {
+				Ok(())
+			})?;
+
+			let metadata_bounded = NFTPallet::<T>::to_bounded_string(metadata)?;
+
+			MarketplaceInstances::<T>::insert(
+				class_id,
+				instance_id,
+				MarketInstance {
+					author,
+					royalty,
+					metadata: metadata_bounded,
+				},
+			);
+
+			Self::deposit_event(Event::InstanceMinted(class_type, sender, class_id, instance_id));
+
+			Ok(())
+		}
 	}
 
 	#[pallet::event]
@@ -271,6 +336,8 @@ pub mod pallet {
 		OfferAccepted(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>),
 		/// Royalty hs been paid to the author \[class_id, instance_id, author, royalty, royalty_amount\]
 		RoyaltyPaid(T::NftClassId, T::NftInstanceId, T::AccountId, u8, BalanceOf<T>),
+		/// An instance was minted \[class_type, sender, class_id, instance_id\]
+		InstanceMinted(ClassType, T::AccountId, T::NftClassId, T::NftInstanceId),
 	}
 
 	#[pallet::error]
@@ -350,7 +417,13 @@ impl<T: Config> Pallet<T> {
 						ExistenceRequirement::KeepAlive,
 					)?;
 
-					Self::deposit_event(Event::RoyaltyPaid(class_id, instance_id, author, royalty, royalty_amount));
+					Self::deposit_event(Event::RoyaltyPaid(
+						class_id,
+						instance_id,
+						author,
+						royalty,
+						royalty_amount,
+					));
 				}
 			}
 
@@ -360,13 +433,7 @@ impl<T: Config> Pallet<T> {
 			let to = T::Lookup::unlookup(buyer.clone());
 			pallet_nft::Pallet::<T>::transfer(owner_origin, class_id, instance_id, to)?;
 
-			Self::deposit_event(Event::TokenSold(
-				owner,
-				buyer,
-				class_id,
-				instance_id,
-				price,
-			));
+			Self::deposit_event(Event::TokenSold(owner, buyer, class_id, instance_id, price));
 			Ok(())
 		})
 	}

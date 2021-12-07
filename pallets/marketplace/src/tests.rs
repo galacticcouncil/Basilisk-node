@@ -19,7 +19,7 @@ fn set_price_works() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			CHARLIE,
@@ -55,7 +55,7 @@ fn buy_works() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			CHARLIE,
@@ -91,13 +91,7 @@ fn buy_works() {
 		assert_eq!(Balances::free_balance(CHARLIE), 150_256 * BSX);
 		assert_eq!(Balances::free_balance(DAVE), 200_000 * BSX);
 
-		let event = Event::Marketplace(crate::Event::TokenSold(
-			ALICE,
-			BOB,
-			0,
-			0,
-			768 * BSX,
-		));
+		let event = Event::Marketplace(crate::Event::TokenSold(ALICE, BOB, 0, 0, 768 * BSX));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -110,7 +104,7 @@ fn buy_works_2() {
 			ClassType::Marketplace,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			CHARLIE,
@@ -160,75 +154,67 @@ fn free_trading_works() {
 
 		// Anyone can mint a token in Marketplace class
 		// Only root in liquidity mining
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			0,
 			ALICE,
 			20,
 			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			1,
 			DAVE,
 			20,
 			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			2,
 			DAVE,
 			20,
 			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(BOB),
 			0,
 			DAVE,
 			20,
 			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(BOB),
 			1,
 			DAVE,
 			20,
 			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(BOB),
 			2,
 			DAVE,
 			20,
 			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(CHARLIE),
 			0,
 			DAVE,
 			20,
 			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(CHARLIE),
 			1,
 			DAVE,
 			20,
 			b"metadata".to_vec(),
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(CHARLIE),
 			2,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
-		));
-		assert_ok!(NFT::mint_for_liquidity_mining(
-			Origin::root(),
-			DAVE,
-			3,
-			123,
-			654,
 			b"metadata".to_vec(),
 		));
 
@@ -273,9 +259,9 @@ fn free_trading_works() {
 		assert_noop!(Market::buy(Origin::signed(CHARLIE), 1, 1), Error::<Test>::BuyFromSelf);
 
 		// Liquidity mining token
-		assert_ok!(Market::set_price(Origin::signed(DAVE), 3, 0, Some(1000)));
-		assert_ok!(Market::buy(Origin::signed(ALICE), 3, 0));
-		assert_eq!(pallet_uniques::Pallet::<Test>::owner(3, 0), Some(ALICE));
+		// assert_ok!(Market::set_price(Origin::signed(DAVE), 3, 0, Some(1000)));
+		// assert_ok!(Market::buy(Origin::signed(ALICE), 3, 0));
+		// assert_eq!(pallet_uniques::Pallet::<Test>::owner(3, 0), Some(ALICE));
 
 		assert_noop!(
 			NFT::burn(Origin::signed(BOB), 1, 1),
@@ -299,19 +285,11 @@ fn offering_works() {
 			ClassType::PoolShare,
 			b"metadata".to_vec()
 		));
-		assert_ok!(NFT::mint_for_marketplace(
+		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			CHARLIE,
 			20,
-			b"metadata".to_vec(),
-		));
-		assert_ok!(NFT::mint_for_liquidity_mining(
-			Origin::root(),
-			DAVE,
-			1,
-			123,
-			654,
 			b"metadata".to_vec(),
 		));
 

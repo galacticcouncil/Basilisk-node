@@ -26,25 +26,3 @@ pub struct ClassInfo<BoundedString> {
 	/// Arbitrary data about a class, e.g. IPFS hash
 	pub metadata: BoundedString,
 }
-
-#[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub struct MarketInstance<AccountId, BoundedString> {
-	/// The user account which receives the royalty
-	pub author: AccountId,
-	/// Royalty in percent in range 0-99
-	pub royalty: u8,
-	/// Arbitrary data about an instance, e.g. IPFS hash
-	pub metadata: BoundedString,
-}
-
-#[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub struct LiqMinInstance<Balance, BoundedString> {
-	/// Number of shares in a liquidity mining pool
-	pub shares: Balance,
-	/// Accumulated reward per share
-	pub accrps: Balance,
-	/// Arbitrary data about an instance, e.g. IPFS hash
-	pub metadata: BoundedString,
-}

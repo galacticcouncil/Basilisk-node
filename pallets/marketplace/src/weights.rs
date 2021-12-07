@@ -54,6 +54,7 @@ pub trait WeightInfo {
 	fn make_offer() -> Weight;
 	fn withdraw_offer() -> Weight;
 	fn accept_offer() -> Weight;
+	fn mint_for_marketplace() -> Weight;
 }
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
@@ -90,6 +91,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn accept_offer() -> Weight {
+		(228_091_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(8 as Weight))
+			.saturating_add(T::DbWeight::get().writes(8 as Weight))
+	}
+	fn mint_for_marketplace() -> Weight {
 		(228_091_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(8 as Weight))
 			.saturating_add(T::DbWeight::get().writes(8 as Weight))
