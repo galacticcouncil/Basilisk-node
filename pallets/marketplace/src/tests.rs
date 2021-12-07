@@ -225,6 +225,7 @@ fn free_trading_works() {
 			654,
 			700,
 			0,
+			4_864,
 			b"metadata".to_vec(),
 		));
 
@@ -310,6 +311,7 @@ fn offering_works() {
 			654,
 			700,
 			0,
+			48_974,
 			b"metadata".to_vec(),
 		));
 

@@ -11,7 +11,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 
-use primitives::{ReserveIdentifier, Balance};
+use primitives::{Balance, ReserveIdentifier};
 use sp_runtime::traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
 use types::{ClassInfo, ClassType, LiqMinInstance, MarketInstance};
@@ -35,7 +35,11 @@ type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Con
 type ClassInfoOf<T> = ClassInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 type MarketInstanceOf<T> =
 	MarketInstance<<T as frame_system::Config>::AccountId, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
-type LiqMinInstanceOf<T> = LiqMinInstance<BalanceOf<T>, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
+type LiqMinInstanceOf<T> = LiqMinInstance<
+	BalanceOf<T>,
+	BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>,
+	<T as frame_system::Config>::BlockNumber,
+>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -53,7 +57,11 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_uniques::Config {
 		/// Currency type for reserve balance.
-		type Currency: NamedReservableCurrency<Self::AccountId, ReserveIdentifier = ReserveIdentifier, Balance = Balance>;
+		type Currency: NamedReservableCurrency<
+			Self::AccountId,
+			ReserveIdentifier = ReserveIdentifier,
+			Balance = Balance,
+		>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Amount that must be reserved for each minted NFT
 		#[pallet::constant]
@@ -198,6 +206,7 @@ pub mod pallet {
 			accumulated_rps: BalanceOf<T>,
 			valued_shares: BalanceOf<T>,
 			accumulated_claimed_rewards: BalanceOf<T>,
+			entered_at_block: T::BlockNumber,
 			metadata: Vec<u8>,
 		) -> DispatchResult {
 			T::ProtocolOrigin::ensure_origin(origin)?;
@@ -210,6 +219,7 @@ pub mod pallet {
 				accumulated_rps,
 				valued_shares,
 				accumulated_claimed_rewards,
+				entered_at_block,
 			)?;
 
 			Self::deposit_event(Event::InstanceMinted(
@@ -393,6 +403,7 @@ impl<T: Config> Pallet<T> {
 		valued_shares: BalanceOf<T>,
 		accumulated_rps: BalanceOf<T>,
 		accumulated_claimed_rewards: BalanceOf<T>,
+		entered_at_block: T::BlockNumber,
 	) -> Result<(types::ClassType, T::NftInstanceId), DispatchError> {
 		let class_type = Self::classes(class_id)
 			.map(|c| c.class_type)
@@ -415,6 +426,7 @@ impl<T: Config> Pallet<T> {
 				valued_shares,
 				accumulated_rps,
 				accumulated_claimed_rewards,
+				entered_at_block,
 			},
 		);
 

@@ -40,7 +40,7 @@ pub struct MarketInstance<AccountId, BoundedString> {
 
 #[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub struct LiqMinInstance<Balance, BoundedString> {
+pub struct LiqMinInstance<Balance, BoundedString, BlockNumber> {
 	/// Number of shares in a liquidity mining pool
 	pub shares: Balance,
 	/// Value of shares at the time of entry in incentivized tokens
@@ -51,4 +51,6 @@ pub struct LiqMinInstance<Balance, BoundedString> {
 	pub accumulated_claimed_rewards: Balance,
 	/// Arbitrary data about an instance, e.g. IPFS hash
 	pub metadata: BoundedString,
+	/// Block number when account deposited shares
+	pub entered_at_block: BlockNumber,
 }

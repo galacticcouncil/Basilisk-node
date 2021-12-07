@@ -350,7 +350,13 @@ impl<T: Config> Pallet<T> {
 						ExistenceRequirement::KeepAlive,
 					)?;
 
-					Self::deposit_event(Event::RoyaltyPaid(class_id, instance_id, author, royalty, royalty_amount));
+					Self::deposit_event(Event::RoyaltyPaid(
+						class_id,
+						instance_id,
+						author,
+						royalty,
+						royalty_amount,
+					));
 				}
 			}
 
@@ -360,13 +366,7 @@ impl<T: Config> Pallet<T> {
 			let to = T::Lookup::unlookup(buyer.clone());
 			pallet_nft::Pallet::<T>::transfer(owner_origin, class_id, instance_id, to)?;
 
-			Self::deposit_event(Event::TokenSold(
-				owner,
-				buyer,
-				class_id,
-				instance_id,
-				price,
-			));
+			Self::deposit_event(Event::TokenSold(owner, buyer, class_id, instance_id, price));
 			Ok(())
 		})
 	}

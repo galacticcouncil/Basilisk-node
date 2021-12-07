@@ -38,7 +38,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		accumulated_rpz: 0,
 		liq_pools_count: 0,
 		paid_accumulated_rewards: 0,
-		total_shares: 0,
+		total_shares_z: 0,
 		accumulated_rewards: 0,
 	},
 	GlobalPool {
@@ -54,7 +54,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		accumulated_rpz: 0,
 		liq_pools_count: 0,
 		paid_accumulated_rewards: 0,
-		total_shares: 0,
+		total_shares_z: 0,
 		accumulated_rewards: 0,
 	},
 	GlobalPool {
@@ -63,14 +63,14 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		reward_currency: BSX,
 		yield_per_period: Permill::from_percent(10),
 		planned_yielding_periods: 50_000_u64,
-		blocks_per_period: 1_000_u64,
+		blocks_per_period: 100_u64,
 		owner: GC,
 		incentivized_token: BSX,
 		max_reward_per_period: 600_000,
 		accumulated_rpz: 0,
 		liq_pools_count: 2,
 		paid_accumulated_rewards: 0,
-		total_shares: 0,
+		total_shares_z: 0,
 		accumulated_rewards: 0,
 	},
 ];
@@ -105,7 +105,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			Origin::root(),
 			30_000_000_000,
 			BlockNumber::from(50_000_u32),
-			BlockNumber::from(1_000_u32),
+			BlockNumber::from(100_u32),
 			BSX,
 			BSX,
 			GC,
@@ -202,7 +202,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		expect_events(vec![Event::LiquidityPoolAdded(
 			GC_FARM,
 			BSX_TO1_AMM,
-			LiquidityPool {
+			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 0,
 				accumulated_rps: 0,
@@ -231,7 +231,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		expect_events(vec![Event::LiquidityPoolAdded(
 			GC_FARM,
 			BSX_TO2_AMM,
-			LiquidityPool {
+			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 0,
 				accumulated_rps: 0,
@@ -1224,7 +1224,7 @@ fn update_global_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		p.total_shares = t.1;
+		p.total_shares_z = t.1;
 		p.accumulated_rewards = t.8;
 		p.accumulated_rpz = t.2;
 		p.paid_accumulated_rewards = 10;
@@ -1250,7 +1250,7 @@ fn update_global_pool_should_work() {
 				max_reward_per_period,
 			);
 
-			rhs_p.total_shares = t.1;
+			rhs_p.total_shares_z = t.1;
 			rhs_p.paid_accumulated_rewards = 10;
 			rhs_p.accumulated_rpz = t.9;
 			rhs_p.accumulated_rewards = t.10;
@@ -1584,12 +1584,12 @@ fn claim_global_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		g_pool.total_shares = t.1;
+		g_pool.total_shares_z = t.1;
 		g_pool.accumulated_rpz = t.3;
 		g_pool.accumulated_rewards = t.5;
 		g_pool.paid_accumulated_rewards = t.6;
 
-		let mut liq_pool = LiquidityPool::new(liq_pool_id, t.0, None, 10, 1);
+		let mut liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, 10, 1);
 		liq_pool.accumulated_rpz = t.2;
 
 		assert_eq!(
@@ -1609,14 +1609,14 @@ fn claim_global_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		rhs_g_pool.total_shares = t.1;
+		rhs_g_pool.total_shares_z = t.1;
 		rhs_g_pool.accumulated_rpz = t.3;
 		rhs_g_pool.accumulated_rewards = t.10;
 		rhs_g_pool.paid_accumulated_rewards = t.11;
 
 		assert_eq!(g_pool, rhs_g_pool);
 
-		let mut rhs_liq_pool = LiquidityPool::new(liq_pool_id, t.0, None, 10, 1);
+		let mut rhs_liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, 10, 1);
 		rhs_liq_pool.accumulated_rpz = t.9;
 
 		assert_eq!(liq_pool, rhs_liq_pool);
@@ -1947,16 +1947,16 @@ fn update_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		g_pool.total_shares = Balance::from(1_000_000_u128);
+		g_pool.total_shares_z = Balance::from(1_000_000_u128);
 		g_pool.accumulated_rpz = Balance::from(200_u128);
 		g_pool.accumulated_rewards = Balance::from(1_000_000_u128);
 		g_pool.paid_accumulated_rewards = Balance::from(1_000_000_u128);
 
-		let mut liq_pool = LiquidityPool {
+		let mut liq_pool = LiquidityPoolYieldFarm {
 			id: t.1,
 			updated_at: t.2,
-			total_shares: t.5,
-			total_valued_shares: Balance::from(200_u128),
+			total_shares: Balance::from(200_u128),
+			total_valued_shares: t.5,
 			accumulated_rps: t.4,
 			accumulated_rpz: Balance::from(200_u128),
 			loyalty_curve: None,
@@ -1999,7 +1999,7 @@ fn update_pool_should_work() {
 			);
 
 			rhs_g_pool.updated_at = BlockNumber::from(200_u64);
-			rhs_g_pool.total_shares = Balance::from(1_000_000_u128);
+			rhs_g_pool.total_shares_z = Balance::from(1_000_000_u128);
 			rhs_g_pool.accumulated_rpz = Balance::from(200_u128);
 			rhs_g_pool.accumulated_rewards = Balance::from(1_000_000_u128);
 			rhs_g_pool.paid_accumulated_rewards = Balance::from(1_000_000_u128);
@@ -2008,11 +2008,11 @@ fn update_pool_should_work() {
 
 			assert_eq!(
 				liq_pool,
-				LiquidityPool {
+				LiquidityPoolYieldFarm {
 					id: t.1,
 					updated_at: t.9,
-					total_shares: t.5,
-					total_valued_shares: Balance::from(200_u128),
+					total_shares: Balance::from(200_u128),
+					total_valued_shares: t.5,
 					accumulated_rps: t.8,
 					accumulated_rpz: Balance::from(200_u128),
 					loyalty_curve: None,
@@ -2335,7 +2335,7 @@ fn add_liquidity_pool_should_work() {
 				asset_in: BSX,
 				asset_out: ACA,
 			},
-			LiquidityPool {
+			LiquidityPoolYieldFarm {
 				id: 6,
 				updated_at: 17,
 				total_shares: 0,
@@ -2361,7 +2361,7 @@ fn add_liquidity_pool_should_work() {
 				asset_in: BSX,
 				asset_out: KSM,
 			},
-			LiquidityPool {
+			LiquidityPoolYieldFarm {
 				id: 7,
 				updated_at: 17,
 				total_shares: 0,
@@ -2387,7 +2387,7 @@ fn add_liquidity_pool_should_work() {
 				asset_in: BSX,
 				asset_out: ETH,
 			},
-			LiquidityPool {
+			LiquidityPoolYieldFarm {
 				id: 8,
 				updated_at: 20,
 				total_shares: 0,
@@ -2416,7 +2416,7 @@ fn add_liquidity_pool_should_work() {
 				asset_in: BSX,
 				asset_out: ETH,
 			},
-			LiquidityPool {
+			LiquidityPoolYieldFarm {
 				id: 9,
 				updated_at: 2,
 				total_shares: 0,
@@ -2600,7 +2600,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 			Some(LoyaltyCurve::default())
 		));
 
-		let existing_pool = LiquidityPool {
+		let existing_pool = LiquidityPoolYieldFarm {
 			id: 6,
 			updated_at: 20,
 			total_shares: 0,
@@ -2789,6 +2789,93 @@ fn destroy_farm_healthy_should_not_work() {
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
 			PREDEFINED_GLOBAL_POOLS[2]
 		);
+	});
+}
+
+#[test]
+fn deposit_shares_should_work() {
+	//NOTE: farm incentivize BSX token
+	predefined_test_ext().execute_with(|| {
+		let farm_id = GC_FARM;
+		let amm_1 = AssetPair {
+			asset_in: BSX,
+			asset_out: TO1,
+		};
+
+		let _amm_2 = AssetPair {
+			asset_in: BSX,
+			asset_out: TO2,
+		};
+
+		run_to_block(1_800); //18-th period
+
+		let alice_to1_balance = Tokens::free_balance(TO1, &ALICE);
+		let amm_1_acc = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_1)).unwrap().0);
+
+		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 520, 0).unwrap();
+
+		assert_ok!(LiquidityMining::deposit_shares(
+			Origin::signed(ALICE),
+			farm_id,
+			amm_1,
+			50
+		));
+
+		expect_events(vec![
+			Event::SharesDeposited(GC_FARM, 4, ALICE, 50, BSX_TO1_SHARE_ID, 0).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 0,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(10),
+				planned_yielding_periods: 50_000_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 600_000,
+				accumulated_rpz: 0,
+				liq_pools_count: 2,
+				paid_accumulated_rewards: 0,
+				total_shares_z: 260_000_000,
+				accumulated_rewards: 0
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 4,
+				updated_at: 0,
+				accumulated_rps: 0,
+				accumulated_rpz: 0,
+				total_shares: 50,
+				total_valued_shares: 26_000,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 260_000_000,
+				multiplier: 10_000,
+				nft_class: 0,
+			},
+		);
+
+		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 1));
+
+		assert_eq!(
+			LiquidityMining::deposit(0, 0).unwrap(),
+			Deposit {
+				shares: 50,
+				valued_shares: 26_000,
+				accumulated_rps: 0,
+				accumulated_claimed_rewards: 0,
+				entered_period: 18,
+			},
+		);
+
+		//TODO: check depoist_storage
+		//assert_eq!(Tokens::free_balance(TO1, &ALICE), alice_to1_balance - 1_000_000);
 	});
 }
 
