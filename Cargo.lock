@@ -577,7 +577,6 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-relaychain-info",
@@ -5769,27 +5768,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-marketplace"
-version = "1.0.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "orml-utilities",
- "pallet-balances",
- "pallet-nft",
- "pallet-uniques",
- "parity-scale-codec",
- "primitives",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-membership"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?rev=d76f39995315ec36980908e4b99709bd14927044#d76f39995315ec36980908e4b99709bd14927044"
@@ -8551,7 +8529,6 @@ dependencies = [
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-lbp",
- "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-scheduler",
@@ -11062,7 +11039,6 @@ dependencies = [
  "pallet-faucet",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-marketplace",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-relaychain-info",

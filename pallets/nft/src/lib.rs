@@ -294,12 +294,6 @@ pub mod pallet {
 		TokenClassNotEmpty,
 		/// Class does not exist
 		ClassUnknown,
-		/// Royalty has to be set for marketplace
-		RoyaltyNotSet,
-		/// Author has to be set for marketplace
-		AuthorNotSet,
-		/// Metadata has to be set for marketplace
-		MetadataNotSet,
 		/// Shares has to be set for liquidity mining
 		SharesNotSet,
 		/// Accumulated reward per share has to be set for liquidity mining

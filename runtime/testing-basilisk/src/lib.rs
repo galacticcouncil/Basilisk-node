@@ -704,12 +704,6 @@ parameter_types! {
 	pub const MinimumOfferAmount: Balance = 20 * UNITS;
 }
 
-impl pallet_marketplace::Config for Runtime {
-	type Event = Event;
-	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
-	type MinimumOfferAmount = MinimumOfferAmount;
-}
-
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
 	type RelaychainBlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
@@ -778,7 +772,6 @@ construct_runtime!(
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
-		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage},
 		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>},
 
 		// TEMPORARY
@@ -999,7 +992,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
-			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1053,7 +1045,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);

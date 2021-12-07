@@ -127,7 +127,6 @@ impl Contains<Call> for BaseFilter {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::Exchange(_) => false,
-			Call::Marketplace(_) => false,
 			Call::NFT(_) => false,
 			Call::Uniques(_) => false,
 			Call::XYK(_) => false,
@@ -714,12 +713,6 @@ parameter_types! {
 	pub const MinimumOfferAmount: Balance = 100 * UNITS;
 }
 
-impl pallet_marketplace::Config for Runtime {
-	type Event = Event;
-	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
-	type MinimumOfferAmount = MinimumOfferAmount;
-}
-
 parameter_types! {
 	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
 	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
@@ -812,7 +805,6 @@ construct_runtime!(
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
-		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage},
 
 		// TEMPORARY
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
@@ -1031,7 +1023,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
-			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1093,7 +1084,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);

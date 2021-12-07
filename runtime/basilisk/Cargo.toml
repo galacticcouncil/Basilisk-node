@@ -40,7 +40,6 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
-pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-uniques = { path = '../../pallets/uniques', default-features = false }
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="6b399649f0379bc091ff69447b459ce30dd82b00", default-features = false }
 
@@ -133,7 +132,6 @@ runtime-benchmarks = [
     "pallet-timestamp/runtime-benchmarks",
     "pallet-multi-payment-benchmarking",
     "pallet-nft/runtime-benchmarks",
-    "pallet-marketplace/runtime-benchmarks",
     "pallet-xyk/runtime-benchmarks",
     "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
@@ -188,7 +186,6 @@ std = [
     "pallet-balances/std",
     "pallet-elections-phragmen/std",
     "pallet-nft/std",
-    "pallet-marketplace/std",
     "pallet-session/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",
