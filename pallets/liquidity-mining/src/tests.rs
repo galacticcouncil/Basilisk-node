@@ -61,12 +61,12 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		id: GC_FARM,
 		updated_at: 0,
 		reward_currency: BSX,
-		yield_per_period: Permill::from_percent(10),
-		planned_yielding_periods: 50_000_u64,
+		yield_per_period: Permill::from_percent(50),
+		planned_yielding_periods: 500_u64,
 		blocks_per_period: 100_u64,
 		owner: GC,
 		incentivized_token: BSX,
-		max_reward_per_period: 600_000,
+		max_reward_per_period: 60_000_000,
 		accumulated_rpz: 0,
 		liq_pools_count: 2,
 		paid_accumulated_rewards: 0,
@@ -104,12 +104,12 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::create_farm(
 			Origin::root(),
 			30_000_000_000,
-			BlockNumber::from(50_000_u32),
+			BlockNumber::from(500_u32),
 			BlockNumber::from(100_u32),
 			BSX,
 			BSX,
 			GC,
-			Permill::from_percent(10),
+			Permill::from_percent(50),
 		));
 
 		expect_events(vec![
@@ -195,7 +195,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TO1,
 			},
-			10_000,
+			5,
 			Some(LoyaltyCurve::default()),
 		));
 
@@ -211,7 +211,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
-				multiplier: 10_000,
+				multiplier: 5,
 				nft_class: 0,
 			},
 		)
@@ -224,7 +224,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TO2,
 			},
-			20_000,
+			10,
 			Some(LoyaltyCurve::default()),
 		));
 
@@ -240,7 +240,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
-				multiplier: 20_000,
+				multiplier: 10,
 				nft_class: 1,
 			},
 		)
@@ -2802,17 +2802,23 @@ fn deposit_shares_should_work() {
 			asset_out: TO1,
 		};
 
-		let _amm_2 = AssetPair {
+		let amm_2 = AssetPair {
 			asset_in: BSX,
 			asset_out: TO2,
 		};
 
+		let pallet_acc = LiquidityMining::account_id();
+		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_amm_1_farm_acc = LiquidityMining::pool_account_id(4).unwrap();
+		let liq_pool_amm_2_farm_acc = LiquidityMining::pool_account_id(5).unwrap();
+		let amm_1_acc = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_1)).unwrap().0);
+		let amm_2_acc = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_2)).unwrap().0);
+		//DEPOSIT 1:
 		run_to_block(1_800); //18-th period
 
-		let alice_to1_balance = Tokens::free_balance(TO1, &ALICE);
-		let amm_1_acc = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_1)).unwrap().0);
-
-		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 520, 0).unwrap();
+		let alice_bsx_to1_shares = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
+		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 50, 0).unwrap();
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -2831,16 +2837,16 @@ fn deposit_shares_should_work() {
 				id: GC_FARM,
 				updated_at: 0,
 				reward_currency: BSX,
-				yield_per_period: Permill::from_percent(10),
-				planned_yielding_periods: 50_000_u64,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
 				incentivized_token: BSX,
-				max_reward_per_period: 600_000,
+				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 0,
 				liq_pools_count: 2,
 				paid_accumulated_rewards: 0,
-				total_shares_z: 260_000_000,
+				total_shares_z: 12_500,
 				accumulated_rewards: 0
 			}
 		);
@@ -2853,10 +2859,10 @@ fn deposit_shares_should_work() {
 				accumulated_rps: 0,
 				accumulated_rpz: 0,
 				total_shares: 50,
-				total_valued_shares: 26_000,
+				total_valued_shares: 2_500,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 260_000_000,
-				multiplier: 10_000,
+				stake_in_global_pool: 12_500,
+				multiplier: 5,
 				nft_class: 0,
 			},
 		);
@@ -2867,16 +2873,462 @@ fn deposit_shares_should_work() {
 			LiquidityMining::deposit(0, 0).unwrap(),
 			Deposit {
 				shares: 50,
-				valued_shares: 26_000,
+				valued_shares: 2_500,
 				accumulated_rps: 0,
 				accumulated_claimed_rewards: 0,
 				entered_period: 18,
 			},
 		);
 
-		//TODO: check depoist_storage
-		//assert_eq!(Tokens::free_balance(TO1, &ALICE), alice_to1_balance - 1_000_000);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
+			alice_bsx_to1_shares - 50
+		);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 50);
+
+		// DEPOSIT 2 (deposit in same period):
+		let bob_bsx_to1_shares = Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB);
+		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 52, 0).unwrap();
+
+		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_1, 80));
+
+		expect_events(vec![
+			Event::SharesDeposited(GC_FARM, 4, BOB, 80, BSX_TO1_SHARE_ID, 1).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 18,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 9,
+				liq_pools_count: 2,
+				paid_accumulated_rewards: 112_500,
+				total_shares_z: 33_300,
+				accumulated_rewards: 0,
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 4,
+				updated_at: 18,
+				accumulated_rps: 45,
+				accumulated_rpz: 9,
+				total_shares: 130,
+				total_valued_shares: 6_660,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 33_300,
+				multiplier: 5,
+				nft_class: 0,
+			},
+		);
+
+		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 2));
+
+		assert_eq!(
+			LiquidityMining::deposit(0, 1).unwrap(),
+			Deposit {
+				shares: 80,
+				valued_shares: 4_160,
+				accumulated_rps: 45,
+				accumulated_claimed_rewards: 0,
+				entered_period: 18,
+			},
+		);
+
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB), bob_bsx_to1_shares - 80);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 130);
+
+		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 112_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
+
+		// DEPOSIT 3 (same period, second liq pool yield farm):
+		let bob_bsx_to2_shares = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
+		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 8, 0).unwrap();
+
+		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_2, 25));
+
+		expect_events(vec![
+			Event::SharesDeposited(GC_FARM, 5, BOB, 25, BSX_TO2_SHARE_ID, 0).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 18,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 9,
+				liq_pools_count: 2,
+				paid_accumulated_rewards: 112_500,
+				total_shares_z: 35_300,
+				accumulated_rewards: 0,
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 5,
+				updated_at: 0,
+				accumulated_rps: 0,
+				accumulated_rpz: 0,
+				total_shares: 25,
+				total_valued_shares: 200,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 2_000,
+				multiplier: 10,
+				nft_class: 1,
+			},
+		);
+
+		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 1));
+
+		assert_eq!(
+			LiquidityMining::deposit(1, 0).unwrap(),
+			Deposit {
+				shares: 25,
+				valued_shares: 200,
+				accumulated_rps: 0,
+				accumulated_claimed_rewards: 0,
+				entered_period: 18,
+			},
+		);
+
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB), bob_bsx_to2_shares - 25);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 25);
+
+		//no pools update no transfers
+		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 112_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), 0);
+
+		// DEPOSIT 4 (new period):
+		run_to_block(2051); //period 20
+		let bob_bsx_to2_shares = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
+		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 58, 0).unwrap();
+
+		assert_ok!(LiquidityMining::deposit_shares(
+			Origin::signed(BOB),
+			farm_id,
+			amm_2,
+			800
+		));
+
+		expect_events(vec![
+			Event::SharesDeposited(GC_FARM, 5, BOB, 800, BSX_TO2_SHARE_ID, 1).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 20,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 10,
+				liq_pools_count: 2,
+				paid_accumulated_rewards: 132_500,
+				total_shares_z: 499_300,
+				accumulated_rewards: 15_300,
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 5,
+				updated_at: 20,
+				accumulated_rps: 100,
+				accumulated_rpz: 10,
+				total_shares: 825,
+				total_valued_shares: 46_600,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 466_000,
+				multiplier: 10,
+				nft_class: 1,
+			},
+		);
+
+		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 2));
+
+		assert_eq!(
+			LiquidityMining::deposit(1, 1).unwrap(),
+			Deposit {
+				shares: 800,
+				valued_shares: 46_400,
+				accumulated_rps: 100,
+				accumulated_claimed_rewards: 0,
+				entered_period: 20,
+			},
+		);
+
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB), bob_bsx_to2_shares - 800);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 825);
+
+		//no pools update no transfers
+		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 132_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), 20_000);
+
+		// DEPOSIT 5 (same period, second liq pool yield farm):
+		run_to_block(2_586); //period 20
+		let alice_bsx_to2_shares = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
+		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 3, 0).unwrap();
+
+		assert_ok!(LiquidityMining::deposit_shares(
+			Origin::signed(ALICE),
+			farm_id,
+			amm_2,
+			87
+		));
+
+		expect_events(vec![
+			Event::SharesDeposited(GC_FARM, 5, ALICE, 87, BSX_TO2_SHARE_ID, 2).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 25,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 12,
+				liq_pools_count: 2,
+				total_shares_z: 501_910,
+				accumulated_rewards: 331_550,
+				paid_accumulated_rewards: 1_064_500,
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 5,
+				updated_at: 25,
+				accumulated_rps: 120,
+				accumulated_rpz: 12,
+				total_shares: 912,
+				total_valued_shares: 46_861,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 468_610,
+				multiplier: 10,
+				nft_class: 1,
+			},
+		);
+
+		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 3));
+
+		assert_eq!(
+			LiquidityMining::deposit(1, 2).unwrap(),
+			Deposit {
+				shares: 87,
+				valued_shares: 261,
+				accumulated_rps: 120,
+				accumulated_claimed_rewards: 0,
+				entered_period: 25,
+			},
+		);
+
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
+			alice_bsx_to2_shares - 87
+		);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 912);
+
+		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 1_064_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), (20_000 + 932_000)); //NOTE: 20k from prew deposit
+
+		// DEPOSIT 6 (same period):
+		run_to_block(2_596); //period 20
+		let alice_bsx_to2_shares = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
+		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 16, 0).unwrap();
+
+		assert_ok!(LiquidityMining::deposit_shares(
+			Origin::signed(ALICE),
+			farm_id,
+			amm_2,
+			48
+		));
+
+		expect_events(vec![
+			Event::SharesDeposited(GC_FARM, 5, ALICE, 48, BSX_TO2_SHARE_ID, 3).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 25,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 12,
+				liq_pools_count: 2,
+				total_shares_z: 509_590,
+				accumulated_rewards: 331_550,
+				paid_accumulated_rewards: 1_064_500,
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 5,
+				updated_at: 25,
+				accumulated_rps: 120,
+				accumulated_rpz: 12,
+				total_shares: 960,
+				total_valued_shares: 47_629,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 476_290,
+				multiplier: 10,
+				nft_class: 1,
+			},
+		);
+
+		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 4));
+
+		assert_eq!(
+			LiquidityMining::deposit(1, 3).unwrap(),
+			Deposit {
+				shares: 48,
+				valued_shares: 768,
+				accumulated_rps: 120,
+				accumulated_claimed_rewards: 0,
+				entered_period: 25,
+			},
+		);
+
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
+			alice_bsx_to2_shares - 48
+		);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 960);
+
+		//no pools update no transfers
+		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 1_064_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), (20_000 + 932_000)); //NOTE: 20k from prew deposit
+
+		// DEPOSIT 7 : (same period differen liq poll farm)
+		run_to_block(2_596); //period 20
+		let alice_bsx_to1_shares = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
+		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 80, 0).unwrap();
+
+		assert_ok!(LiquidityMining::deposit_shares(
+			Origin::signed(ALICE),
+			farm_id,
+			amm_1,
+			486
+		));
+
+		expect_events(vec![Event::SharesDeposited(
+			GC_FARM,
+			4,
+			ALICE,
+			486,
+			BSX_TO1_SHARE_ID,
+			2,
+		)
+		.into()]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 25,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 12,
+				liq_pools_count: 2,
+				total_shares_z: 703_990,
+				accumulated_rewards: 231_650,
+				paid_accumulated_rewards: 1_164_400,
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 4,
+				updated_at: 25,
+				accumulated_rps: 60,
+				accumulated_rpz: 12,
+				total_shares: 616,
+				total_valued_shares: 45_540,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 227_700,
+				multiplier: 5,
+				nft_class: 0,
+			},
+		);
+
+		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 3));
+
+		assert_eq!(
+			LiquidityMining::deposit(0, 2).unwrap(),
+			Deposit {
+				shares: 486,
+				valued_shares: 38_880,
+				accumulated_rps: 60,
+				accumulated_claimed_rewards: 0,
+				entered_period: 25,
+			},
+		);
+
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
+			alice_bsx_to1_shares - 486
+		);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 616);
+
+		//no pools update no transfers
+		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 1_164_400));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 212_400);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), 952_000);
 	});
+}
+
+#[test]
+fn deposit_shares_should_not_work() {
+	todo!()
 }
 
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx

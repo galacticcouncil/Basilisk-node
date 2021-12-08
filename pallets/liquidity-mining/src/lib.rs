@@ -184,12 +184,7 @@ pub struct Deposit<T: Config> {
 }
 
 impl<T: Config> Deposit<T> {
-	fn new(
-		shares: Balance,
-		valued_shares: Balance,
-		accumulated_rps: Balance,
-		entered_period: PeriodOf<T>,
-	) -> Self {
+	fn new(shares: Balance, valued_shares: Balance, accumulated_rps: Balance, entered_period: PeriodOf<T>) -> Self {
 		Self {
 			entered_period,
 			shares,
@@ -309,8 +304,8 @@ pub mod pallet {
 		/// Balance on rewards account is not 0. Only farm with 0 raward balance can be destroyed.
 		RewardBalanceIsNotZero,
 
-        /// Nft class for liq. pool does not exists.
-        NftClassDoesNotExists,
+		/// Nft class for liq. pool does not exists.
+		NftClassDoesNotExists,
 	}
 
 	#[pallet::event]
@@ -363,7 +358,7 @@ pub mod pallet {
 		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftInstanceIfOf<T>, Deposit<T>, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn nft_class)]         //(asset_pair, amount of existing nfts)
+	#[pallet::getter(fn nft_class)] //(asset_pair, amount of existing nfts)
 	type NftClassData<T: Config> = StorageMap<_, Twox64Concat, NftClassIdOf<T>, (AssetPair, u64), OptionQuery>;
 
 	#[pallet::call]
@@ -625,6 +620,7 @@ pub mod pallet {
 					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+
 					if Self::should_update_pool(liq_pool.stake_in_global_pool, liq_pool.updated_at, now_period)
 						&& !liq_pool.stake_in_global_pool.is_zero()
 					{
@@ -634,6 +630,7 @@ pub mod pallet {
 								g_pool.total_shares_z,
 								g_pool.max_reward_per_period,
 							)?;
+
 							Self::update_global_pool(g_pool, now_period, rewards)?;
 						}
 
@@ -678,11 +675,11 @@ pub mod pallet {
 
 					let d = Deposit::new(shares, valued_shares, liq_pool.accumulated_rps, now_period);
 					<DepositData<T>>::insert(&liq_pool.nft_class, &nft_id, d);
-                    <NftClassData<T>>::try_mutate(liq_pool.nft_class, |maybe_class| -> DispatchResult {
-				        let class = maybe_class.as_mut().ok_or(Error::<T>::NftClassDoesNotExists)?;
-			            class.1 = class.1.checked_add(1).ok_or(Error::<T>::Overflow)?;
-                        Ok(())
-                    })?;
+					<NftClassData<T>>::try_mutate(liq_pool.nft_class, |maybe_class| -> DispatchResult {
+						let class = maybe_class.as_mut().ok_or(Error::<T>::NftClassDoesNotExists)?;
+						class.1 = class.1.checked_add(1).ok_or(Error::<T>::Overflow)?;
+						Ok(())
+					})?;
 
 					Self::deposit_event(Event::SharesDeposited(
 						g_pool.id,
@@ -819,15 +816,17 @@ impl<T: Config> Pallet<T> {
 				.map_err(|_e| Error::<T>::Overflow)?
 				.into();
 
-		let pool_account = Self::pool_account_id(pool.id);
+		let pool_account = Self::pool_account_id(pool.id)?;
 		let reward = periods_since_last_update
 			.checked_mul(reward_per_period)
 			.ok_or(Error::<T>::Overflow)?
-			.min(T::MultiCurrency::free_balance(pool.reward_currency, &pool_account?));
+			.min(T::MultiCurrency::free_balance(
+				pool.reward_currency,
+				&pool_account.clone(),
+			));
 
 		if !reward.is_zero() {
 			pool.accumulated_rpz = Self::get_accumulated_rps(pool.accumulated_rpz, pool.total_shares_z, reward)?;
-
 			pool.accumulated_rewards = pool
 				.accumulated_rewards
 				.checked_add(reward)
