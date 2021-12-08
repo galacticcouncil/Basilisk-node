@@ -344,7 +344,8 @@ pub mod pallet {
 	pub type PoolData<T: Config> =
 		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::AccountId, T::BlockNumber>, OptionQuery>;
 
-	/// Details of a pool.
+	/// Storage used for tracking existing fee collectors
+	/// Not more than one fee collector per asset possible
 	#[pallet::storage]
 	#[pallet::getter(fn fee_collectors)]
 	pub type FeeCollectors<T: Config> =
@@ -530,6 +531,7 @@ pub mod pallet {
 
 				pool.fee = fee.unwrap_or(pool.fee);
 
+				// Handle update of fee collector - validate and replace old fee collector
 				if let Some(updated_fee_collector) = fee_collector {
 					Self::validate_fee_collector(updated_fee_collector.clone(), pool.assets.0)?;
 
@@ -766,6 +768,9 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	/// Validates fee collector
+	/// Not more than one fee collector per assert
+	/// This is done to prevent race conditions with locks on the same asset
 	fn validate_fee_collector(
 		fee_collector: T::AccountId,
 		asset: AssetId
