@@ -24,19 +24,18 @@ use primitive_types::U256;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
+use scale_info::TypeInfo;
+
 use frame_support::sp_runtime::FixedU128;
 
 pub mod asset;
-pub mod traits;
+pub mod constants;
 
 /// An index to a block.
 pub type BlockNumber = u32;
 
 /// Type used for expressing timestamp.
 pub type Moment = u64;
-
-/// Core asset id
-pub const CORE_ASSET_ID: AssetId = 0;
 
 /// Type for storing the id of an asset.
 pub type AssetId = u32;
@@ -50,24 +49,12 @@ pub type Amount = i128;
 /// Price
 pub type Price = FixedU128;
 
-/// Max fraction of pool to buy in single transaction
-pub const MAX_OUT_RATIO: u128 = 3;
-
-/// Max fraction of pool to sell in single transaction
-pub const MAX_IN_RATIO: u128 = 3;
-
-/// Trading limit
-pub const MIN_TRADING_LIMIT: Balance = 1000;
-
-/// Minimum pool liquidity
-pub const MIN_POOL_LIQUIDITY: Balance = 1000;
-
 /// Scaled Unsigned of Balance
 pub type HighPrecisionBalance = U256;
 pub type LowPrecisionBalance = u128;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Debug, Encode, Decode, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Encode, Decode, Clone, Copy, PartialEq, Eq, TypeInfo)]
 pub enum IntentionType {
 	SELL,
 	BUY,
@@ -80,7 +67,7 @@ impl Default for IntentionType {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Encode, Decode, Default, Clone, PartialEq)]
+#[derive(Encode, Decode, Default, Clone, PartialEq, TypeInfo)]
 pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 	pub who: AccountId,
 	pub assets: asset::AssetPair,
@@ -96,7 +83,7 @@ pub mod fee {
 	use super::*;
 
 	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-	#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq)]
+	#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo)]
 	pub struct Fee {
 		pub numerator: u32,
 		pub denominator: u32,
@@ -123,13 +110,13 @@ pub mod fee {
 
 	impl WithFee for Balance {
 		fn with_fee(&self, fee: Fee) -> Option<Self> {
-			self.checked_mul(fee.denominator as Self + fee.numerator as Self)?
+			self.checked_mul((fee.denominator as Self).checked_add(fee.numerator as Self)?)?
 				.checked_div(fee.denominator as Self)
 		}
 
 		fn without_fee(&self, fee: Fee) -> Option<Self> {
 			self.checked_mul(fee.denominator as Self)?
-				.checked_div(fee.denominator as Self + fee.numerator as Self)
+				.checked_div((fee.denominator as Self).checked_add(fee.numerator as Self)?)
 		}
 
 		fn just_fee(&self, fee: Fee) -> Option<Self> {
@@ -154,7 +141,7 @@ mod tests {
 	#[test]
 	// This function tests that fee calculations return correct amounts
 	fn fee_calculations_should_work() {
-		let fee = Fee{
+		let fee = Fee {
 			numerator: 2,
 			denominator: 1_000,
 		};

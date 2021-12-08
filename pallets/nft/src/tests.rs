@@ -85,7 +85,6 @@ fn destroy_class_works() {
 				),
 				UNQ::Error::<Test>::BadWitness
 		);
-
 		assert_ok!(NFTPallet::destroy_class(
 			Origin::signed(ALICE),
 			CLASS_ID,

@@ -9,10 +9,10 @@ use std::sync::Arc;
 
 use basilisk_runtime::{opaque::Block, AccountId, AssetId, Balance, Index};
 pub use sc_rpc_api::DenyUnsafe;
+use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-use sc_transaction_pool_api::TransactionPool;
 
 /// Full client dependencies.
 pub struct FullDeps<C, P> {
@@ -36,9 +36,11 @@ where
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: pallet_xyk_rpc::XYKRuntimeApi<Block, AccountId, AssetId, Balance>,
+	C::Api: pallet_lbp_rpc::LBPRuntimeApi<Block, AccountId, AssetId>,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
 {
+	use pallet_lbp_rpc::{LBPApi, LBP};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 	use pallet_xyk_rpc::{XYKApi, XYK};
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
@@ -65,7 +67,8 @@ where
 	// to call into the runtime.
 	// `io.extend_with(YourRpcTrait::to_delegate(YourRpcStruct::new(ReferenceToClient, ...)));`
 
-	io.extend_with(XYKApi::to_delegate(XYK::new(client)));
+	io.extend_with(XYKApi::to_delegate(XYK::new(client.clone())));
+	io.extend_with(LBPApi::to_delegate(LBP::new(client)));
 
 	Ok(io)
 }

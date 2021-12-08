@@ -1,3 +1,160 @@
+# v6.1.0 (Tue Dec 07 2021)
+
+#### 🚀 Enhancement
+
+- feat: transfers disabled [#282](https://github.com/galacticcouncil/Basilisk-node/pull/282) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+
+#### Authors: 1
+
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+
+---
+
+# v6.0.0 (Sat Dec 04 2021)
+
+#### 🚀 Enhancement
+
+- feat: price oracle [#270](https://github.com/galacticcouncil/Basilisk-node/pull/270) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: testnet-k8s chain [#259](https://github.com/galacticcouncil/Basilisk-node/pull/259) ([@martinfridrich](https://github.com/martinfridrich) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: dont allow to create xyk pool if  lbp is running [#257](https://github.com/galacticcouncil/Basilisk-node/pull/257) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: expose possibility to control pool creation [#256](https://github.com/galacticcouncil/Basilisk-node/pull/256) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: change the order of emitted events for xyk pools [#246](https://github.com/galacticcouncil/Basilisk-node/pull/246) ([@dexterslabor](https://github.com/dexterslabor) [@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: add faucet pallet to testing runtime [#243](https://github.com/galacticcouncil/Basilisk-node/pull/243) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: add relaychain-info pallet [#239](https://github.com/galacticcouncil/Basilisk-node/pull/239) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### 🐛 Bug Fix
+
+- ci: check crate upgrades [#209](https://github.com/galacticcouncil/Basilisk-node/pull/209) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: update weights [#277](https://github.com/galacticcouncil/Basilisk-node/pull/277) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: restricted vesting calls [#272](https://github.com/galacticcouncil/Basilisk-node/pull/272) ([@jak-pan](https://github.com/jak-pan) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: update two parachain config [#275](https://github.com/galacticcouncil/Basilisk-node/pull/275) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: install toolchain according to file [#268](https://github.com/galacticcouncil/Basilisk-node/pull/268) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: update to latest hydradx-traits [#266](https://github.com/galacticcouncil/Basilisk-node/pull/266) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- refactor: move tokens adapter toc common runtime [#264](https://github.com/galacticcouncil/Basilisk-node/pull/264) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: change xyk storage value query to option query [#258](https://github.com/galacticcouncil/Basilisk-node/pull/258) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: update weights [#235](https://github.com/galacticcouncil/Basilisk-node/pull/235) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- refactor: split primitives crate [#244](https://github.com/galacticcouncil/Basilisk-node/pull/244) ([@Roznovjak](https://github.com/Roznovjak))
+- fix: relaychain number in info event [#241](https://github.com/galacticcouncil/Basilisk-node/pull/241) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- refactor: AssetPairAccountId trait [#237](https://github.com/galacticcouncil/Basilisk-node/pull/237) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: exchange [#216](https://github.com/galacticcouncil/Basilisk-node/pull/216) ([@Roznovjak](https://github.com/Roznovjak) [@jak-pan](https://github.com/jak-pan))
+
+#### Authors: 6
+
+- [@dexterslabor](https://github.com/dexterslabor)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Jakub Pánik ([@jak-pan](https://github.com/jak-pan))
+- martin fridrich ([@martinfridrich](https://github.com/martinfridrich))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
+# v5.0.3 (Tue Nov 09 2021)
+
+#### 🐛 Bug Fix
+
+- ci: test inclusion with 0.9.12 [#215](https://github.com/galacticcouncil/Basilisk-node/pull/215) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: add format target [#227](https://github.com/galacticcouncil/Basilisk-node/pull/227) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: use DispatchResult [#226](https://github.com/galacticcouncil/Basilisk-node/pull/226) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: change the order of emitted events on createPool() [#230](https://github.com/galacticcouncil/Basilisk-node/pull/230) ([@dexterslabor](https://github.com/dexterslabor) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: polkadot-v0.9.12 [#222](https://github.com/galacticcouncil/Basilisk-node/pull/222) ([@green-jay](https://github.com/green-jay) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: update testing runtime [#228](https://github.com/galacticcouncil/Basilisk-node/pull/228) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: update registered currencies in dev chainspec [#225](https://github.com/galacticcouncil/Basilisk-node/pull/225) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: disallow collating with benchmarking runtime [#219](https://github.com/galacticcouncil/Basilisk-node/pull/219) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: orml-tokens adapter [#223](https://github.com/galacticcouncil/Basilisk-node/pull/223) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### Authors: 5
+
+- [@dexterslabor](https://github.com/dexterslabor)
+- [@green-jay](https://github.com/green-jay)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
+# v5.0.2 (Mon Nov 01 2021)
+
+#### 🐛 Bug Fix
+
+- chore: additional audit tests [#199](https://github.com/galacticcouncil/Basilisk-node/pull/199) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@Roznovjak](https://github.com/Roznovjak))
+- feat: XYK and LBP rpc to retrieve pool account id [#213](https://github.com/galacticcouncil/Basilisk-node/pull/213) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- test(exchange): resolve todos [#207](https://github.com/galacticcouncil/Basilisk-node/pull/207) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: implement orml benchmarks [#190](https://github.com/galacticcouncil/Basilisk-node/pull/190) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: upgrade v0.9.11 [#202](https://github.com/galacticcouncil/Basilisk-node/pull/202) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: use system blocknum provider in lbp [#211](https://github.com/galacticcouncil/Basilisk-node/pull/211) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: bump xyk and exchange crate versions [#188](https://github.com/galacticcouncil/Basilisk-node/pull/188) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore!: lbp refactor [#185](https://github.com/galacticcouncil/Basilisk-node/pull/185) ([@jak-pan](https://github.com/jak-pan) [@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- refactor: rename BSX to UNITS [#196](https://github.com/galacticcouncil/Basilisk-node/pull/196) ([@Roznovjak](https://github.com/Roznovjak) [@jak-pan](https://github.com/jak-pan))
+- fix!: XCM filter [#200](https://github.com/galacticcouncil/Basilisk-node/pull/200) ([@jak-pan](https://github.com/jak-pan) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: use Everything as a call filter [#192](https://github.com/galacticcouncil/Basilisk-node/pull/192) ([@Roznovjak](https://github.com/Roznovjak) [@jak-pan](https://github.com/jak-pan))
+- fix: revert orml-token accounts in dev chain spec [#191](https://github.com/galacticcouncil/Basilisk-node/pull/191) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@jak-pan](https://github.com/jak-pan))
+- fix: Remove duplicated key AssetNativeLocation [#198](https://github.com/galacticcouncil/Basilisk-node/pull/198) ([@mckrava](https://github.com/mckrava))
+- chore: makefile linking fix [#197](https://github.com/galacticcouncil/Basilisk-node/pull/197) ([@Roznovjak](https://github.com/Roznovjak))
+- fix: LBP benchmarks [#195](https://github.com/galacticcouncil/Basilisk-node/pull/195) ([@Roznovjak](https://github.com/Roznovjak))
+
+#### ⚠️ Pushed to `master`
+
+- spec version parity restored ([@lumir-mrkva](https://github.com/lumir-mrkva))
+
+#### Authors: 5
+
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Jakub Pánik ([@jak-pan](https://github.com/jak-pan))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Max Kravchuk ([@mckrava](https://github.com/mckrava))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
+# v5.0.1 (Thu Oct 14 2021)
+
+- fix: enabled XCM
+
+# v5.0.0 (Fri Oct 08 2021)
+
+#### 🚀 Enhancement
+
+- feat: update xyk/exchange events with pool id [#187](https://github.com/galacticcouncil/Basilisk-node/pull/187) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: create testing runtime [#171](https://github.com/galacticcouncil/Basilisk-node/pull/171) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: create makefile [#183](https://github.com/galacticcouncil/Basilisk-node/pull/183) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat(lbp): add simulation test [#160](https://github.com/galacticcouncil/Basilisk-node/pull/160) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: try-runtime integration [#151](https://github.com/galacticcouncil/Basilisk-node/pull/151) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: access amm constants from exchange api [#95](https://github.com/galacticcouncil/Basilisk-node/pull/95) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: Integration tests - xcm transfers [#161](https://github.com/galacticcouncil/Basilisk-node/pull/161) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: update xyk events [#150](https://github.com/galacticcouncil/Basilisk-node/pull/150) ([@Roznovjak](https://github.com/Roznovjak))
+
+#### 🐛 Bug Fix
+
+- ci: fix inclusion test [#167](https://github.com/galacticcouncil/Basilisk-node/pull/167) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: update README - xcm v1 types [#184](https://github.com/galacticcouncil/Basilisk-node/pull/184) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: update orml-tokens whitelist accounts [#175](https://github.com/galacticcouncil/Basilisk-node/pull/175) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: upgrade to polkadot-v0.9.10 [#178](https://github.com/galacticcouncil/Basilisk-node/pull/178) ([@green-jay](https://github.com/green-jay) [@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: set ED to max value for unsupported assets [#177](https://github.com/galacticcouncil/Basilisk-node/pull/177) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: update asset details type in readme [#174](https://github.com/galacticcouncil/Basilisk-node/pull/174) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: asset instance type ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: checked runtime upgrade [#152](https://github.com/galacticcouncil/Basilisk-node/pull/152) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@jak-pan](https://github.com/jak-pan))
+- refactor: improve multi payment (builder review) [#170](https://github.com/galacticcouncil/Basilisk-node/pull/170) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: builder review final changes [#172](https://github.com/galacticcouncil/Basilisk-node/pull/172) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix(exchange): fix matching algorithm [#155](https://github.com/galacticcouncil/Basilisk-node/pull/155) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@jak-pan](https://github.com/jak-pan))
+- chore: Added an extra node to the rococo-local config [#165](https://github.com/galacticcouncil/Basilisk-node/pull/165) (matej.sima@stove-labs.com [@maht0rz](https://github.com/maht0rz) [@jak-pan](https://github.com/jak-pan))
+- fix: base xcm weight [#163](https://github.com/galacticcouncil/Basilisk-node/pull/163) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- fix: audit changes [#162](https://github.com/galacticcouncil/Basilisk-node/pull/162) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- ci: add clippy [#156](https://github.com/galacticcouncil/Basilisk-node/pull/156) ([@Roznovjak](https://github.com/Roznovjak))
+- fix: duster dependencies [#153](https://github.com/galacticcouncil/Basilisk-node/pull/153) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### Authors: 7
+
+- [@green-jay](https://github.com/green-jay)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Jakub Pánik ([@jak-pan](https://github.com/jak-pan))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Matej Šima ([@maht0rz](https://github.com/maht0rz))
+- Matej Sima (matej.sima@stove-labs.com)
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+
+---
+
 # v4.0.0 (Tue Aug 31 2021)
 
 #### 🚀 Enhancement

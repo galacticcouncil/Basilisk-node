@@ -80,6 +80,7 @@ use sp_runtime::{
 use sp_std::result;
 pub use traits::*;
 use weights::WeightInfo;
+use scale_info::TypeInfo;
 
 mod benchmarking;
 pub mod traits;
@@ -106,7 +107,7 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_nft::Config {
+	pub trait Config: frame_system::Config + pallet_nft::Config + TypeInfo {
 		/// Event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 

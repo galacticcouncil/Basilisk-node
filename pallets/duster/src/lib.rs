@@ -18,16 +18,16 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::if_then_panic)]
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-mod benchmarking;
 pub mod weights;
 
-use frame_support::{dispatch::DispatchResult, traits::Get};
+use frame_support::{dispatch::DispatchResult, traits::Contains, traits::Get};
 
 use orml_traits::{
 	arithmetic::{Signed, SimpleArithmetic},
@@ -95,7 +95,7 @@ pub mod pallet {
 			+ MaybeSerializeDeserialize;
 
 		/// Asset type
-		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + From<u32>;
+		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord;
 
 		/// Currency for transfers
 		type MultiCurrency: MultiCurrencyExtended<
@@ -194,11 +194,7 @@ pub mod pallet {
 		///
 		/// Caller is rewarded with chosen reward in native currency.
 		#[pallet::weight((<T as Config>::WeightInfo::dust_account(), DispatchClass::Normal, Pays::Yes))]
-		pub fn dust_account(
-			origin: OriginFor<T>,
-			account: T::AccountId,
-			currency_id: T::CurrencyId,
-		) -> DispatchResultWithPostInfo {
+		pub fn dust_account(origin: OriginFor<T>, account: T::AccountId, currency_id: T::CurrencyId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(Self::blacklisted(&account).is_none(), Error::<T>::AccountBlacklisted);
@@ -216,39 +212,39 @@ pub mod pallet {
 			// Ignore the result, it fails - no problem.
 			let _ = Self::reward_duster(&who, currency_id, dust);
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Add account to list of non-dustable account. Account whihc are excluded from udsting.
 		/// If such account should be dusted - `AccountBlacklisted` error is returned.
 		/// Only root can perform this action.
 		#[pallet::weight((<T as Config>::WeightInfo::add_nondustable_account(), DispatchClass::Normal, Pays::No))]
-		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
+		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 
 			AccountBlacklist::<T>::insert(&account, ());
 
 			Self::deposit_event(Event::Added(account));
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Remove account from list of non-dustable accounts. That means account can be dusted again.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_nondustable_account(), DispatchClass::Normal, Pays::No))]
-		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResultWithPostInfo {
+		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
 			ensure_root(origin)?;
 
-			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResultWithPostInfo {
+			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResult {
 				ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
 
 				*maybe_account = None;
 
-				Ok(().into())
+				Ok(())
 			})?;
 
 			Self::deposit_event(Event::Removed(account));
 
-			Ok(().into())
+			Ok(())
 		}
 	}
 }
@@ -285,8 +281,17 @@ impl<T: Config> Pallet<T> {
 
 use orml_traits::OnDust;
 
+use sp_std::marker::PhantomData;
+pub struct DusterWhitelist<T>(PhantomData<T>);
+
 impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
 	fn on_dust(who: &T::AccountId, currency_id: T::CurrencyId, amount: T::Balance) {
 		let _ = Self::transfer_dust(who, &Self::dust_dest_account(), currency_id, amount);
+	}
+}
+
+impl<T: Config> Contains<T::AccountId> for DusterWhitelist<T> {
+	fn contains(t: &T::AccountId) -> bool {
+		AccountBlacklist::<T>::contains_key(t)
 	}
 }

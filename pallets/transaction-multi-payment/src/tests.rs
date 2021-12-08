@@ -16,19 +16,21 @@
 // limitations under the License.
 
 pub use crate::{mock::*, Error};
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, assert_storage_noop};
 use pallet_transaction_payment::ChargeTransactionPayment;
 use sp_runtime::traits::SignedExtension;
 
+use crate::traits::{CurrencySwap, PaymentSwapResult};
 use crate::CurrencyBalanceCheck;
 use frame_support::sp_runtime::transaction_validity::{InvalidTransaction, ValidTransaction};
 use frame_support::weights::DispatchInfo;
 use orml_traits::MultiCurrency;
 use pallet_balances::Call as BalancesCall;
 use primitives::Price;
+use sp_runtime::traits::BadOrigin;
 use sp_std::marker::PhantomData;
 
-const CALL: &<Test as frame_system::Config>::Call = &Call::Balances(BalancesCall::transfer(2, 69));
+const CALL: &<Test as frame_system::Config>::Call = &Call::Balances(BalancesCall::transfer { dest: 2, value: 69 });
 
 #[test]
 fn set_unsupported_currency() {
@@ -279,18 +281,14 @@ fn fee_payment_non_native_insufficient_balance() {
 #[test]
 fn add_new_accepted_currency() {
 	ExtBuilder::default().base_weight(5).build().execute_with(|| {
-		assert_ok!(PaymentPallet::add_currency(
-			Origin::signed(BOB),
-			100,
-			Price::from_float(1.1)
-		));
+		assert_ok!(PaymentPallet::add_currency(Origin::root(), 100, Price::from_float(1.1)));
 		assert_eq!(PaymentPallet::currencies(100), Some(Price::from_float(1.1)));
 		assert_noop!(
 			PaymentPallet::add_currency(Origin::signed(ALICE), 1000, Price::from_float(1.2)),
-			Error::<Test>::NotAllowed
+			BadOrigin
 		);
 		assert_noop!(
-			PaymentPallet::add_currency(Origin::signed(BOB), 100, Price::from(10)),
+			PaymentPallet::add_currency(Origin::root(), 100, Price::from(10)),
 			Error::<Test>::AlreadyAccepted
 		);
 		assert_eq!(PaymentPallet::currencies(100), Some(Price::from_float(1.1)));
@@ -300,65 +298,23 @@ fn add_new_accepted_currency() {
 #[test]
 fn removed_accepted_currency() {
 	ExtBuilder::default().base_weight(5).build().execute_with(|| {
-		assert_ok!(PaymentPallet::add_currency(Origin::signed(BOB), 100, Price::from(3)));
+		assert_ok!(PaymentPallet::add_currency(Origin::root(), 100, Price::from(3)));
 		assert_eq!(PaymentPallet::currencies(100), Some(Price::from(3)));
 
-		assert_noop!(
-			PaymentPallet::remove_currency(Origin::signed(ALICE), 100),
-			Error::<Test>::NotAllowed
-		);
+		assert_noop!(PaymentPallet::remove_currency(Origin::signed(ALICE), 100), BadOrigin);
 
 		assert_noop!(
-			PaymentPallet::remove_currency(Origin::signed(BOB), 1000),
+			PaymentPallet::remove_currency(Origin::root(), 1000),
 			Error::<Test>::UnsupportedCurrency
 		);
 
-		assert_ok!(PaymentPallet::remove_currency(Origin::signed(BOB), 100));
+		assert_ok!(PaymentPallet::remove_currency(Origin::root(), 100));
 
 		assert_eq!(PaymentPallet::currencies(100), None);
 
 		assert_noop!(
-			PaymentPallet::remove_currency(Origin::signed(BOB), 100),
+			PaymentPallet::remove_currency(Origin::root(), 100),
 			Error::<Test>::UnsupportedCurrency
-		);
-	});
-}
-
-#[test]
-fn add_member() {
-	ExtBuilder::default().base_weight(5).build().execute_with(|| {
-		const CHARLIE: AccountId = 3;
-		assert_eq!(PaymentPallet::authorities(), vec![BOB]);
-
-		assert_ok!(PaymentPallet::add_member(Origin::root(), CHARLIE));
-
-		assert_eq!(PaymentPallet::authorities(), vec![BOB, CHARLIE]);
-
-		// Non root should not be allowed
-		assert_noop!(
-			PaymentPallet::add_member(Origin::signed(ALICE), CHARLIE),
-			sp_runtime::traits::BadOrigin
-		);
-
-		// Adding existing member should return error
-		assert_noop!(
-			PaymentPallet::add_member(Origin::root(), CHARLIE),
-			Error::<Test>::AlreadyMember
-		);
-
-		// Non root should not be allowed
-		assert_noop!(
-			PaymentPallet::remove_member(Origin::signed(ALICE), CHARLIE),
-			sp_runtime::traits::BadOrigin
-		);
-
-		assert_ok!(PaymentPallet::remove_member(Origin::root(), CHARLIE));
-
-		assert_eq!(PaymentPallet::authorities(), vec![BOB]);
-
-		assert_noop!(
-			PaymentPallet::remove_member(Origin::root(), CHARLIE),
-			Error::<Test>::NotAMember
 		);
 	});
 }
@@ -444,7 +400,9 @@ fn check_balance_extension_works() {
 		.account_tokens(CHARLIE, SUPPORTED_CURRENCY_WITH_BALANCE, 1000)
 		.build()
 		.execute_with(|| {
-			let call = <crate::Call<Test>>::set_currency(SUPPORTED_CURRENCY_WITH_BALANCE).into();
+			let call = Call::PaymentPallet(multi_payment::Call::set_currency {
+				currency: SUPPORTED_CURRENCY_WITH_BALANCE,
+			});
 			let info = DispatchInfo::default();
 
 			assert_eq!(
@@ -452,7 +410,10 @@ fn check_balance_extension_works() {
 				Ok(ValidTransaction::default())
 			);
 
-			let call = <crate::Call<Test>>::add_currency(SUPPORTED_CURRENCY_WITH_BALANCE, Price::from(1)).into();
+			let call = Call::PaymentPallet(multi_payment::Call::add_currency {
+				currency: SUPPORTED_CURRENCY_WITH_BALANCE,
+				price: Price::from(1),
+			});
 
 			assert_eq!(
 				CurrencyBalanceCheck::<Test>(PhantomData).validate(&CHARLIE, &call, &info, 150),
@@ -466,12 +427,173 @@ fn check_balance_extension_fails() {
 	const NOT_CHARLIE: AccountId = 6;
 
 	ExtBuilder::default().build().execute_with(|| {
-		let call = <crate::Call<Test>>::set_currency(SUPPORTED_CURRENCY_WITH_BALANCE).into();
+		let call = Call::PaymentPallet(multi_payment::Call::set_currency {
+			currency: SUPPORTED_CURRENCY_WITH_BALANCE,
+		});
 		let info = DispatchInfo::default();
 
 		assert_eq!(
 			CurrencyBalanceCheck::<Test>(PhantomData).validate(&NOT_CHARLIE, &call, &info, 150),
 			InvalidTransaction::Custom(Error::<Test>::ZeroBalance.as_u8()).into()
 		);
+	});
+}
+
+#[test]
+fn account_currency_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(PaymentPallet::account_currency(&ALICE), HDX);
+
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+		assert_eq!(PaymentPallet::account_currency(&ALICE), SUPPORTED_CURRENCY_WITH_BALANCE);
+
+		assert_ok!(PaymentPallet::set_currency(Origin::signed(ALICE), HDX));
+		assert_eq!(PaymentPallet::account_currency(&ALICE), HDX);
+	});
+}
+
+#[test]
+fn swap_currency_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(XYKPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			SUPPORTED_CURRENCY_WITH_BALANCE,
+			100_000,
+			Price::from(1)
+		));
+
+		assert_storage_noop!(PaymentPallet::swap_currency(&ALICE, 10000).unwrap());
+
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+
+		let currency_balance_before = Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE);
+		let hdx_balance_before = Currencies::free_balance(HDX, &ALICE);
+
+		assert_ok!(PaymentPallet::swap_currency(&ALICE, 10000));
+		assert_eq!(
+			currency_balance_before - 11379,
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE)
+		);
+		assert_eq!(hdx_balance_before + 10000, Currencies::free_balance(HDX, &ALICE));
+	});
+}
+
+#[test]
+fn withdraw_set_fee_with_core_asset_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(XYKPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			SUPPORTED_CURRENCY_WITH_BALANCE,
+			100_000,
+			Price::from(1)
+		));
+
+		let hdx_balance_before = Currencies::free_balance(HDX, &ALICE);
+
+		assert_ok!(PaymentPallet::withdraw_set_fee(&ALICE));
+		assert_eq!(hdx_balance_before - 1029, Currencies::free_balance(HDX, &ALICE));
+	});
+}
+
+#[test]
+fn withdraw_set_fee_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+
+		let balance_before = Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE);
+		let fb_acc_balance_before =
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &PaymentPallet::fallback_account());
+
+		assert_ok!(PaymentPallet::withdraw_set_fee(&ALICE));
+		assert_eq!(
+			balance_before - 1543,
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE)
+		);
+		assert_eq!(
+			fb_acc_balance_before + 1543,
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &PaymentPallet::fallback_account())
+		);
+	});
+}
+
+#[test]
+fn weight_to_fee_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_eq!(PaymentPallet::weight_to_fee(1024), 1024);
+		assert_eq!(PaymentPallet::weight_to_fee(1), 1);
+		assert_eq!(PaymentPallet::weight_to_fee(1025), 1024);
+		assert_eq!(PaymentPallet::weight_to_fee(10000), 1024);
+	});
+}
+
+#[test]
+fn check_balance_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(PaymentPallet::check_balance(&ALICE, SUPPORTED_CURRENCY_WITH_BALANCE));
+		assert_eq!(
+			PaymentPallet::check_balance(&ALICE, SUPPORTED_CURRENCY_NO_BALANCE)
+				.err()
+				.unwrap()
+				.as_u8(),
+			1_u8
+		);
+	});
+}
+
+#[test]
+fn swap_should_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_eq!(PaymentPallet::swap(&ALICE, 1000).unwrap(), PaymentSwapResult::Native);
+
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+		assert_eq!(
+			PaymentPallet::swap(&ALICE, 1000).unwrap(),
+			PaymentSwapResult::Transferred
+		);
+
+		assert_ok!(XYKPallet::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			SUPPORTED_CURRENCY_WITH_BALANCE,
+			100_000,
+			Price::from(1)
+		));
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+		assert_eq!(PaymentPallet::swap(&ALICE, 1000).unwrap(), PaymentSwapResult::Swapped);
+	});
+}
+
+#[test]
+fn swap_should_not_work() {
+	ExtBuilder::default().base_weight(5).build().execute_with(|| {
+		assert_ok!(PaymentPallet::set_currency(
+			Origin::signed(ALICE),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+
+		assert_noop!(PaymentPallet::swap(&ALICE, u128::MAX), Error::<Test>::Overflow);
+
+		assert_ok!(PaymentPallet::remove_currency(
+			Origin::root(),
+			SUPPORTED_CURRENCY_WITH_BALANCE
+		));
+		assert_noop!(PaymentPallet::swap(&ALICE, 1000), Error::<Test>::FallbackPriceNotFound);
 	});
 }

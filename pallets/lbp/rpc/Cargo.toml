@@ -1,0 +1,36 @@
+[package]
+name = "pallet-lbp-rpc"
+version = "1.0.0"
+authors = ["GalacticCouncil"]
+edition = "2018"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/basilisk-node"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[build-dependencies]
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+
+[dependencies]
+codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "2.3.1" }
+jsonrpc-core = { default-features = false, version = "18.0.0" }
+jsonrpc-core-client = { default-features = false, version = "18.0.0" }
+jsonrpc-derive = { default-features = false, version = "18.0.0" }
+serde = { features = ["derive"], optional = true, version = "1.0.101" }
+
+pallet-lbp-rpc-runtime-api = { path = "runtime-api", default-features = false }
+
+# Substrate dependencies
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
+
+[features]
+default = ["std"]
+std = [
+    "serde",
+    "codec/std",
+    "pallet-lbp-rpc-runtime-api/std",
+]

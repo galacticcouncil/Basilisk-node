@@ -2,7 +2,7 @@ use super::*;
 use crate as pallet_nft;
 
 use frame_system::EnsureRoot;
-use frame_support::{parameter_types, weights::Weight};
+use frame_support::{parameter_types, weights::Weight, traits::Everything};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
@@ -81,7 +81,7 @@ parameter_types! {
 }
 
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();

@@ -63,5 +63,10 @@ sp_api::decl_runtime_apis! {
 		fn get_pool_balances(
 			pool_address: AccountId,
 		) -> Vec<BalanceInfo<AssetId, Balance>>;
+
+		fn get_pool_id(
+			asset_a: AssetId,
+			asset_b: AssetId
+		) -> AccountId;
 	}
 }

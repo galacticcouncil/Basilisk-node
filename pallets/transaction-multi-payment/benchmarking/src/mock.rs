@@ -19,7 +19,7 @@
 
 use crate::Config;
 use frame_support::parameter_types;
-use frame_support::traits::GenesisBuild;
+use frame_support::traits::{Everything, GenesisBuild};
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;
@@ -29,17 +29,19 @@ use sp_runtime::{
 };
 
 use frame_support::weights::IdentityFee;
+use hydradx_traits::AssetPairAccountIdFor;
 use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
-use primitives::{Amount, AssetId, Balance};
+use primitives::{
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	fee, Amount, AssetId, Balance, Price,
+};
 
 use frame_support::traits::Get;
-use pallet_xyk::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 use frame_benchmarking::frame_support::weights::Pays;
 use frame_system::EnsureSigned;
-use primitives::fee;
 
 pub type AccountId = u64;
 
@@ -88,7 +90,7 @@ parameter_types! {
 }
 
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type Origin = Origin;
@@ -116,8 +118,8 @@ impl Config for Test {}
 
 impl pallet_transaction_multi_payment::Config for Test {
 	type Event = Event;
-	type Currency = Balances;
-	type MultiCurrency = Currencies;
+	type AcceptedCurrencyOrigin = frame_system::EnsureRoot<u64>;
+	type Currencies = Currencies;
 	type AMMPool = XYKPallet;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = PayForSetCurrency;
@@ -152,6 +154,7 @@ impl pallet_balances::Config for Test {
 impl pallet_transaction_payment::Config for Test {
 	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), PaymentPallet>;
 	type TransactionByteFee = TransactionByteFee;
+	type OperationalFeeMultiplier = ();
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
 }
@@ -159,7 +162,7 @@ impl pallet_transaction_payment::Config for Test {
 pub struct AssetPairAccountIdTest();
 
 impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId) -> u64 {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> u64 {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
@@ -167,6 +170,13 @@ impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
 		}
 		(a * 1000 + b) as u64
 	}
+}
+
+parameter_types! {
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 }
 
 impl pallet_xyk::Config for Test {
@@ -177,6 +187,12 @@ impl pallet_xyk::Config for Test {
 	type NativeAssetId = HdxAssetId;
 	type WeightInfo = ();
 	type GetExchangeFee = ExchangeFeeRate;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
+	type CanCreatePool = pallet_xyk::AllowAllPools;
+	type AMMHandler = ();
 }
 
 parameter_type_with_key! {
@@ -194,7 +210,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = ();
+	type DustRemovalWhitelist = Everything;
 }
 
 impl orml_currencies::Config for Test {
@@ -253,8 +269,7 @@ impl ExtBuilder {
 		buf.extend_from_slice(&core_asset.to_le_bytes());
 
 		pallet_transaction_multi_payment::GenesisConfig::<Test> {
-			currencies: vec![],
-			authorities: vec![],
+			currencies: vec![(2, Price::from(1))],
 			fallback_account: 1000,
 		}
 		.assimilate_storage(&mut t)

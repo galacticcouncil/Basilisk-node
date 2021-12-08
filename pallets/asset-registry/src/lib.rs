@@ -22,6 +22,7 @@ use frame_support::pallet_prelude::*;
 use frame_support::sp_runtime::traits::CheckedAdd;
 use frame_support::transactional;
 use frame_system::pallet_prelude::*;
+use scale_info::TypeInfo;
 use sp_arithmetic::traits::BaseArithmetic;
 use sp_std::convert::TryInto;
 use sp_std::vec::Vec;
@@ -45,14 +46,15 @@ pub use pallet::*;
 
 use crate::types::{AssetDetails, AssetMetadata};
 use frame_support::BoundedVec;
-use primitives::traits::{Registry, ShareTokenRegistry};
+use hydradx_traits::{Registry, ShareTokenRegistry};
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
 	use frame_support::sp_runtime::traits::AtLeast32BitUnsigned;
 
-	pub type AssetDetailsT<T> = AssetDetails<<T as Config>::AssetId, <T as Config>::Balance, BoundedVec<u8, <T as Config>::StringLimit>>;
+	pub type AssetDetailsT<T> =
+		AssetDetails<<T as Config>::AssetId, <T as Config>::Balance, BoundedVec<u8, <T as Config>::StringLimit>>;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -62,7 +64,14 @@ pub mod pallet {
 		type RegistryOrigin: EnsureOrigin<Self::Origin>;
 
 		/// Asset type
-		type AssetId: Parameter + Member + Default + Copy + BaseArithmetic + MaybeSerializeDeserialize + MaxEncodedLen;
+		type AssetId: Parameter
+			+ Member
+			+ Default
+			+ Copy
+			+ BaseArithmetic
+			+ MaybeSerializeDeserialize
+			+ MaxEncodedLen
+			+ TypeInfo;
 
 		/// Balance type
 		type Balance: Parameter + Member + AtLeast32BitUnsigned + Default + Copy + MaybeSerializeDeserialize;
@@ -111,13 +120,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn assets)]
 	/// Details of an asset.
-	pub type Assets<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AssetId,
-		AssetDetailsT<T>,
-		OptionQuery,
-	>;
+	pub type Assets<T: Config> = StorageMap<_, Twox64Concat, T::AssetId, AssetDetailsT<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn next_asset_id)]
@@ -195,7 +198,6 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	#[pallet::metadata(T::AccountId = "AccountId", T::AssetId = "AssetId")]
 	pub enum Event<T: Config> {
 		/// Asset was registered. \[asset_id, name, type\]
 		Registered(T::AssetId, BoundedVec<u8, T::StringLimit>, AssetType<T::AssetId>),
@@ -351,14 +353,14 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	/// Convert Vec<u8> to BoundedVec so it respects the max set limit, otherwise return TooLong error
-	fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
+	pub fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, T::StringLimit>, Error<T>> {
 		name.try_into().map_err(|_| Error::<T>::TooLong)
 	}
 
 	/// Register new asset.
 	///
 	/// Does not perform any  check whether an asset for given name already exists. This has to be prior to calling this function.
-	fn register_asset(
+	pub fn register_asset(
 		name: BoundedVec<u8, T::StringLimit>,
 		asset_type: AssetType<T::AssetId>,
 		existential_deposit: T::Balance,
@@ -464,6 +466,7 @@ impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, T::Balance, DispatchErro
 }
 
 use orml_traits::GetByKey;
+use sp_arithmetic::traits::Bounded;
 
 // Return Existential deposit of an asset
 impl<T: Config> GetByKey<T::AssetId, T::Balance> for Pallet<T> {
@@ -471,8 +474,8 @@ impl<T: Config> GetByKey<T::AssetId, T::Balance> for Pallet<T> {
 		if let Some(details) = Self::assets(k) {
 			details.existential_deposit
 		} else {
-			// Asset does not exists, so it does not really matter.
-			Default::default()
+			// Asset does not exist - not supported
+			T::Balance::max_value()
 		}
 	}
 }

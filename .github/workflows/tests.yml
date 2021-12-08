@@ -77,22 +77,18 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - run: git describe --tags --abbrev=0 --always
       - name: Install Rust
-        uses: actions-rs/toolchain@v1.0.7
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
         with:
           profile: minimal
-          toolchain: nightly-2021-06-01
-          target: wasm32-unknown-unknown
-          override: true
-          default: true
       - name: Install clippy
         run: rustup component add clippy
       - name: Run clippy
-        run: cargo clippy --release --all-targets --all-features -- -D warnings
-        
+        run: make clippy
+        continue-on-error: false
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
       - name: Test && Generate code coverage
-        run: cargo tarpaulin --avoid-cfg-tarpaulin --all-features --workspace --locked  --exclude-files node/* --exclude-files runtime/* --exclude-files infrastructure/* --exclude-files **/weights.rs --ignore-tests -o Xml -o lcov
+        run: make coverage
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
         with:
@@ -116,7 +112,7 @@ jobs:
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
 
   destroy-runner-instance:
-    name: destroy infra
+    name: destroy runner
     runs-on: ubuntu-latest
     needs: build
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
@@ -158,7 +154,7 @@ jobs:
         continue-on-error: false
 
   test-inclusion:
-    needs: build
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -174,7 +170,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: v0.9.9-1
+          tag: v0.9.12
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
@@ -191,9 +187,85 @@ jobs:
       - run: ./install_polkadot_launch.sh
         name: Setup polkadot launch
         working-directory: scripts
-      - run: npm start ../../rococo-local/config.json &
-        name: Launch rococo local
-        working-directory: scripts/polkadot-launch
-      - run: npm install && npm start 200
-        name: Wait for parachain inclusion
+      - run: npm install
+        name: Setup wait script
         working-directory: scripts/wait-for-inclusion
+      - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 200
+        name: Launch rococo local & wait for inclusion
+        working-directory: scripts/polkadot-launch
+
+  test-upgrade-runtime:
+    needs: [build, version-check]
+    runs-on: ubuntu-latest
+    if: ${{ needs.version-check.outputs.runtime-upgraded == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v2
+        name: Download runtime wasm from pipeline
+        with:
+          name: basilisk_runtime.compact.compressed.wasm
+          path: scripts/upgrade-runtime
+      - uses: dawidd6/action-download-artifact@v2
+        name: Download basilisk binary from master
+        with:
+          workflow: tests.yml
+          branch: master
+          name: basilisk
+          path: target/release
+      - uses: robinraju/release-downloader@v1.2
+        name: Download relay chain binary release
+        with:
+          repository: paritytech/polkadot
+          latest: true
+          fileName: polkadot
+          out-file-path: ../polkadot/target/release
+      - run: chmod +x ./basilisk && ./basilisk --version
+        name: Basilisk version
+        working-directory: target/release
+      - run: chmod +x ./polkadot && ./polkadot --version
+        name: Polkadot version
+        working-directory: ../polkadot/target/release
+      - uses: actions/setup-node@v2
+        name: Setup node.js
+        with:
+          node-version: '14'
+          check-latest: true
+      - run: npm install && npm run start
+        name: Test runtime upgrade
+        working-directory: scripts/upgrade-runtime
+
+  version-check:
+    runs-on: ubuntu-latest
+    outputs:
+      runtime-upgraded: ${{ steps.check-runtime.outputs.upgraded }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
+      - name: Get crate versions
+        run: |
+          VERSION_UPDATE=$(./scripts/list_crate_updates.sh)
+          VERSION_UPDATE=$(cat << EOF
+          $VERSION_UPDATE
+          EOF
+          )
+          echo "VERSION_UPDATE<<EOF" >> $GITHUB_ENV
+          echo "$VERSION_UPDATE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - name: Check runtime upgrade
+        id: check-runtime
+        if: contains(env.VERSION_UPDATE, 'Runtime version has been increased.')
+        run: echo "::set-output name=upgraded::true"
+      - name: Sticky Pull Request Comment
+        uses: marocchino/sticky-pull-request-comment@v2.1.0
+        with:
+          message: |
+            ${{ env.VERSION_UPDATE }}

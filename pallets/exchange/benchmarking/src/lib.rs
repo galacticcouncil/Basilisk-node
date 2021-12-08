@@ -68,10 +68,10 @@ fn initialize_pool<T: Config>(
 	asset_b: AssetId,
 	amount: Balance,
 	price: Price,
-) -> dispatch::DispatchResultWithPostInfo {
+) -> dispatch::DispatchResult {
 	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, asset_b, amount, price)?;
 
-	Ok(().into())
+	Ok(())
 }
 
 const SELL_INTENTION_AMOUNT: Balance = 1_000_000_000;
@@ -84,7 +84,7 @@ fn feed_intentions<T: Config>(
 	asset_b: AssetId,
 	number: u32,
 	amounts: &[u32],
-) -> dispatch::DispatchResultWithPostInfo {
+) -> dispatch::DispatchResult {
 	for idx in 0..number / 2 {
 		let user = funded_account::<T>("user", idx + 2);
 		pallet_exchange::Pallet::<T>::sell(
@@ -107,7 +107,7 @@ fn feed_intentions<T: Config>(
 		)?;
 	}
 
-	Ok(().into())
+	Ok(())
 }
 
 fn validate_finalize<T: Config>(

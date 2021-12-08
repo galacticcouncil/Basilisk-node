@@ -205,14 +205,14 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			class_id: T::ClassId,
 			witness: pallet_uniques::DestroyWitness,
-		) -> DispatchResult {
+		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin.clone())?;
 
 			pallet_uniques::Pallet::<T>::destroy(origin, class_id, witness)?;
 
 			InstanceCount::<T>::remove(class_id);
 
-			Ok(())
+			Ok(().into())
 		}
 	}
 

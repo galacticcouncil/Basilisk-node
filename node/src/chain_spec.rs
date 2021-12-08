@@ -1,15 +1,32 @@
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![allow(clippy::or_fun_call)]
 #![allow(clippy::too_many_arguments)]
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig,
-	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, BSX,
-	WASM_BINARY, NATIVE_EXISTENTIAL_DEPOSIT
+	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
+	NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
-use primitives::BlockNumber;
+use primitives::{AssetId, BlockNumber, Price};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use sc_telemetry::TelemetryEndpoints;
@@ -211,12 +228,8 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
 				vec![],
-				vec![
-					(b"hKSM".to_vec(), 1_000u128),
-					(b"hDOT".to_vec(), 1_000u128),
-					(b"hETH".to_vec(), 1_000u128),
-					(b"hUSDT".to_vec(), 1_000u128),
-				],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
 		// Bootnodes
@@ -299,12 +312,8 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
-				vec![
-					(b"hKSM".to_vec(), 1_000u128),
-					(b"hDOT".to_vec(), 1_000u128),
-					(b"hETH".to_vec(), 1_000u128),
-					(b"hUSDT".to_vec(), 1_000u128),
-				],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
 		// Bootnodes
@@ -373,6 +382,7 @@ pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, Strin
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
+				vec![],
 				vec![],
 			)
 		},
@@ -448,12 +458,8 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				],
 				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
-				vec![
-					(b"hKSM".to_vec(), 1_000u128),
-					(b"hDOT".to_vec(), 1_000u128),
-					(b"hETH".to_vec(), 1_000u128),
-					(b"hUSDT".to_vec(), 1_000u128),
-				],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
+				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 			)
 		},
 		// Bootnodes
@@ -494,12 +500,12 @@ fn parachain_genesis(
 				(
 					// Intergalactic HDX Tokens 15%
 					hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
-					15_000_000_000u128 * BSX,
+					15_000_000_000u128 * UNITS,
 				),
 				(
 					// Treasury 9%
 					hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
-					9_000_000_000 * BSX,
+					9_000_000_000 * UNITS,
 				),
 			],
 		},
@@ -536,7 +542,6 @@ fn parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			authorities: vec![],
 			fallback_account: tx_fee_payment_account,
 		},
 		tokens: TokensConfig { balances: vec![] },
@@ -545,7 +550,7 @@ fn parachain_genesis(
 			// Intergalactic elections
 			members: vec![(
 				hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(),
-				14_999_900_000u128 * BSX,
+				14_999_900_000u128 * UNITS,
 			)],
 		},
 		council: CouncilConfig {
@@ -587,6 +592,7 @@ fn testnet_parachain_genesis(
 	tx_fee_payment_account: AccountId,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
+	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -599,7 +605,7 @@ fn testnet_parachain_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1_000_000_000u128 * BSX))
+				.map(|k| (k, 1_000_000_000u128 * UNITS))
 				.collect(),
 		},
 		sudo: SudoConfig {
@@ -634,8 +640,7 @@ fn testnet_parachain_genesis(
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
-			currencies: vec![],
-			authorities: vec![],
+			currencies: accepted_assets,
 			fallback_account: tx_fee_payment_account,
 		},
 		tokens: TokensConfig {
@@ -643,20 +648,19 @@ fn testnet_parachain_genesis(
 				.iter()
 				.flat_map(|x| {
 					vec![
-						(x.clone(), 1, 1_000_000_000u128 * BSX),
-						(x.clone(), 2, 1_000_000_000u128 * BSX),
-						(x.clone(), 3, 1_000_000_000u128 * BSX),
-						(x.clone(), 4, 1_000_000_000u128 * BSX),
+						(x.clone(), 1, 1_000_000_000u128 * UNITS),
+						(x.clone(), 2, 1_000_000_000u128 * UNITS),
 					]
 				})
 				.collect(),
 		},
+
 		treasury: Default::default(),
 		elections: ElectionsConfig {
 			// Intergalactic elections
 			members: vec![(
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				100_000_000u128 * BSX,
+				100_000_000u128 * UNITS,
 			)],
 		},
 		council: CouncilConfig {
