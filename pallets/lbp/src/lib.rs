@@ -774,10 +774,11 @@ impl<T: Config> Pallet<T> {
 	fn validate_fee_collector(
 		fee_collector: T::AccountId,
 		asset: AssetId
-	) -> DispatchResult {
-		if let Some(existing_fee_collector) = <FeeCollectors<T>>::get(fee_collector, asset) {
-			ensure!(!existing_fee_collector, Error::<T>::FeeCollectorAlreadyExists);
-		}
+	) -> DispatchResult {		
+		ensure!(
+			!<FeeCollectors<T>>::contains_key(fee_collector, asset),
+			Error::<T>::FeeCollectorAlreadyExists
+		);
 
 		Ok(())
 	}
