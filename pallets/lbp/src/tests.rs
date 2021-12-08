@@ -359,8 +359,7 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
-		let fee_collector = LBPPallet::fee_collectors(CHARLIE, KUSD).unwrap();
-		assert!(fee_collector);
+		assert!(LBPPallet::fee_collectors(CHARLIE, KUSD).unwrap());
 
 		expect_events(vec![
 			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, 1_000_000_000, 2_000_000_000).into(),
