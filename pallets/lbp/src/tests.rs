@@ -359,7 +359,7 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
-		assert!(LBPPallet::fee_collectors(CHARLIE, KUSD).unwrap());
+		assert!(LBPPallet::fee_collectors(CHARLIE, KUSD));
 
 		expect_events(vec![
 			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, 1_000_000_000, 2_000_000_000).into(),
@@ -457,7 +457,44 @@ fn create_pool_with_same_assets_should_not_work() {
 }
 
 #[test]
-fn create_pool_with_existing_fee_collector_should_not_work() {
+fn create_pool_with_non_existing_fee_collector_with_asset_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			KUSD,
+			1_000_000_000,
+			BSX,
+			2_000_000_000,
+			20_000_000u32,
+			90_000_000u32,
+			WeightCurveType::Linear,
+			Fee::default(),
+			CHARLIE,
+			0,
+		));
+
+		assert_ok!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				HDX,
+				1_000_000_000,
+				BSX,
+				2_000_000_000,
+				20_000_000u32,
+				90_000_000u32,
+				WeightCurveType::Linear,
+				Fee::default(),
+				CHARLIE,
+				0,
+			),
+		);
+	});
+}
+
+#[test]
+fn create_pool_with_existing_fee_collector_with_asset_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),
@@ -489,7 +526,7 @@ fn create_pool_with_existing_fee_collector_should_not_work() {
 				CHARLIE,
 				0,
 			),
-			Error::<Test>::FeeCollectorAlreadyExists
+			Error::<Test>::FeeCollectorWithAssetAlreadyUsed
 		);
 	});
 }
@@ -613,8 +650,8 @@ fn update_pool_data_should_work() {
 
 		// removes old fee collector from store and
 		// sets updated fee collector
-		assert!(!<FeeCollectors<Test>>::contains_key(CHARLIE, KUSD));
-		assert!(LBPPallet::fee_collectors(BOB, KUSD).unwrap());
+		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
+		assert!(LBPPallet::fee_collectors(BOB, KUSD));
 
 		// update only one parameter
 		assert_ok!(LBPPallet::update_pool_data(
@@ -1032,7 +1069,7 @@ fn update_pool_with_existing_fee_collector_should_not_work() {
 				Some(BOB),
 				None,
 			),
-			Error::<Test>::FeeCollectorAlreadyExists
+			Error::<Test>::FeeCollectorWithAssetAlreadyUsed
 		);
 	});
 }
@@ -1350,7 +1387,7 @@ fn remove_liquidity_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before)
 		);
 
-		assert!(!<FeeCollectors<Test>>::contains_key(CHARLIE, KUSD));
+		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
 		assert!(!<PoolData<Test>>::contains_key(KUSD_BSX_POOL_ID));
 
 		expect_events(vec![

@@ -297,7 +297,7 @@ pub mod pallet {
 		InsufficientTradingAmount,
 
 		/// Not more than one fee collector per asset id
-		FeeCollectorAlreadyExists
+		FeeCollectorWithAssetAlreadyUsed
 	}
 
 	#[pallet::event]
@@ -348,12 +348,12 @@ pub mod pallet {
 	/// Not more than one fee collector per asset possible
 	#[pallet::storage]
 	#[pallet::getter(fn fee_collectors)]
-	pub type FeeCollectors<T: Config> =
+	pub type FeeCollectorWithAsset<T: Config> =
 		StorageDoubleMap<_,
 			Blake2_128Concat,
 			T::AccountId,
 			Blake2_128Concat,
-			AssetId, bool, OptionQuery>;
+			AssetId, bool, ValueQuery>;
  
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -451,7 +451,7 @@ pub mod pallet {
 			let pool_id = Self::get_pair_id(asset_pair);
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
-			<FeeCollectors<T>>::insert(fee_collector, asset_a, true);
+			<FeeCollectorWithAsset<T>>::insert(fee_collector, asset_a, true);
 
 			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
 
@@ -535,8 +535,8 @@ pub mod pallet {
 				if let Some(updated_fee_collector) = fee_collector {
 					Self::validate_fee_collector(updated_fee_collector.clone(), pool.assets.0)?;
 
-					<FeeCollectors<T>>::remove(pool.fee_collector.clone(), pool.assets.0);
-					<FeeCollectors<T>>::insert(updated_fee_collector.clone(), pool.assets.0, true);
+					<FeeCollectorWithAsset<T>>::remove(pool.fee_collector.clone(), pool.assets.0);
+					<FeeCollectorWithAsset<T>>::insert(updated_fee_collector.clone(), pool.assets.0, true);
 
 					pool.fee_collector = updated_fee_collector;
 				}
@@ -640,7 +640,7 @@ pub mod pallet {
 				T::MultiCurrency::remove_lock(COLLECTOR_LOCK_ID, asset_a, &pool_data.fee_collector)?;
 			}
 
-			<FeeCollectors<T>>::remove(pool_data.fee_collector, pool_data.assets.0);
+			<FeeCollectorWithAsset<T>>::remove(pool_data.fee_collector, pool_data.assets.0);
 			<PoolData<T>>::remove(&pool_id);
 
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
@@ -776,8 +776,8 @@ impl<T: Config> Pallet<T> {
 		asset: AssetId
 	) -> DispatchResult {		
 		ensure!(
-			!<FeeCollectors<T>>::contains_key(fee_collector, asset),
-			Error::<T>::FeeCollectorAlreadyExists
+			!<FeeCollectorWithAsset<T>>::contains_key(fee_collector, asset),
+			Error::<T>::FeeCollectorWithAssetAlreadyUsed
 		);
 
 		Ok(())
