@@ -348,7 +348,11 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn fee_collectors)]
 	pub type FeeCollectors<T: Config> =
-		StorageMap<_, Blake2_128Concat, (T::AccountId, AssetId), bool, OptionQuery>;
+		StorageDoubleMap<_,
+			Blake2_128Concat,
+			T::AccountId,
+			Blake2_128Concat,
+			AssetId, bool, OptionQuery>;
  
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -417,9 +421,12 @@ pub mod pallet {
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::PoolAlreadyExists);
 
+			/*
 			if let Some(existing_fee_collector) = <FeeCollectors<T>>::get((pool_owner.clone(), asset_a)) {
 				ensure!(!existing_fee_collector, Error::<T>::FeeCollectorAlreadyExists);
 			}
+
+			 */
 
 			ensure!(
 				T::MultiCurrency::free_balance(asset_a, &pool_owner) >= asset_a_amount,
@@ -448,7 +455,7 @@ pub mod pallet {
 			let pool_id = Self::get_pair_id(asset_pair);
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
-			<FeeCollectors<T>>::insert((asset_a, pool_owner.clone()), true);
+			<FeeCollectors<T>>::insert(pool_owner.clone(), asset_a,true);
 
 			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
 
