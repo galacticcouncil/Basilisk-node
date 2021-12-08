@@ -21,7 +21,7 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::too_many_arguments)]
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, EncodeLike};
 use frame_support::sp_runtime::{
 	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
 	DispatchError, RuntimeDebug,
@@ -295,6 +295,9 @@ pub mod pallet {
 
 		/// Amount is less than minimum trading limit.
 		InsufficientTradingAmount,
+
+		/// Not more than one fee collector per asset id
+		FeeCollectorAlreadyExists
 	}
 
 	#[pallet::event]
@@ -341,6 +344,12 @@ pub mod pallet {
 	pub type PoolData<T: Config> =
 		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::AccountId, T::BlockNumber>, OptionQuery>;
 
+	/// Details of a pool.
+	#[pallet::storage]
+	#[pallet::getter(fn fee_collectors)]
+	pub type FeeCollectors<T: Config> =
+		StorageMap<_, Blake2_128Concat, (T::AccountId, AssetId), bool, OptionQuery>;
+ 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Create a new liquidity bootstrapping pool for given asset pair.
@@ -408,6 +417,10 @@ pub mod pallet {
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::PoolAlreadyExists);
 
+			if let Some(existing_fee_collector) = <FeeCollectors<T>>::get((pool_owner.clone(), asset_a)) {
+				ensure!(!existing_fee_collector, Error::<T>::FeeCollectorAlreadyExists);
+			}
+
 			ensure!(
 				T::MultiCurrency::free_balance(asset_a, &pool_owner) >= asset_a_amount,
 				Error::<T>::InsufficientAssetBalance
@@ -435,6 +448,7 @@ pub mod pallet {
 			let pool_id = Self::get_pair_id(asset_pair);
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
+			<FeeCollectors<T>>::insert((asset_a, pool_owner.clone()), true);
 
 			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
 

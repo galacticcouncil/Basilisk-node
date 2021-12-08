@@ -455,6 +455,46 @@ fn create_pool_with_same_assets_should_not_work() {
 }
 
 #[test]
+fn create_pool_with_existing_fee_collector_should_not_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				KUSD,
+				1_000_000_000,
+				HDX,
+				2_000_000_000,
+				80_000_000u32,
+				10_000_000u32,
+				WeightCurveType::Linear,
+				Fee::default(),
+				CHARLIE,
+				0,
+			)
+		);
+
+		assert_noop!(
+			LBPPallet::create_pool(
+				Origin::root(),
+				ALICE,
+				KUSD,
+				1_000_000_000,
+				BSX,
+				2_000_000_000,
+				80_000_000u32,
+				10_000_000u32,
+				WeightCurveType::Linear,
+				Fee::default(),
+				CHARLIE,
+				0,
+			),
+			Error::<Test>::FeeCollectorAlreadyExists
+		);
+	});
+}
+
+#[test]
 fn create_pool_with_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
