@@ -769,7 +769,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Validates fee collector
-	/// Not more than one fee collector per assert
+	/// Not more than one fee collector per asset
 	/// This is done to prevent race conditions with locks on the same asset
 	fn validate_fee_collector(
 		fee_collector: T::AccountId,
