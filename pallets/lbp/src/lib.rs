@@ -21,7 +21,7 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::too_many_arguments)]
 
-use codec::{Decode, Encode, EncodeLike};
+use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
 	DispatchError, RuntimeDebug,
@@ -421,12 +421,7 @@ pub mod pallet {
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::PoolAlreadyExists);
 
-			/*
-			if let Some(existing_fee_collector) = <FeeCollectors<T>>::get((pool_owner.clone(), asset_a)) {
-				ensure!(!existing_fee_collector, Error::<T>::FeeCollectorAlreadyExists);
-			}
-
-			 */
+			Self::validate_fee_collector(fee_collector.clone(), asset_a)?;
 
 			ensure!(
 				T::MultiCurrency::free_balance(asset_a, &pool_owner) >= asset_a_amount,
@@ -446,7 +441,7 @@ pub mod pallet {
 				final_weight,
 				weight_curve,
 				fee,
-				fee_collector,
+				fee_collector.clone(),
 				repay_target,
 			);
 
@@ -455,7 +450,7 @@ pub mod pallet {
 			let pool_id = Self::get_pair_id(asset_pair);
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
-			<FeeCollectors<T>>::insert(pool_owner.clone(), asset_a,true);
+			<FeeCollectors<T>>::insert(fee_collector, asset_a, true);
 
 			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
 
@@ -534,7 +529,16 @@ pub mod pallet {
 				pool.final_weight = final_weight.unwrap_or(pool.final_weight);
 
 				pool.fee = fee.unwrap_or(pool.fee);
-				pool.fee_collector = fee_collector.unwrap_or_else(|| pool.fee_collector.clone());
+
+				if let Some(updated_fee_collector) = fee_collector {
+					Self::validate_fee_collector(updated_fee_collector.clone(), pool.assets.0)?;
+
+					<FeeCollectors<T>>::remove(pool.fee_collector.clone(), pool.assets.0);
+					<FeeCollectors<T>>::insert(updated_fee_collector.clone(), pool.assets.0, true);
+
+					pool.fee_collector = updated_fee_collector;
+				}
+
 				pool.repay_target = repay_target.unwrap_or(pool.repay_target);
 
 				Self::validate_pool_data(pool)?;
@@ -634,6 +638,7 @@ pub mod pallet {
 				T::MultiCurrency::remove_lock(COLLECTOR_LOCK_ID, asset_a, &pool_data.fee_collector)?;
 			}
 
+			<FeeCollectors<T>>::remove(pool_data.fee_collector, pool_data.assets.0);
 			<PoolData<T>>::remove(&pool_id);
 
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
@@ -757,6 +762,17 @@ impl<T: Config> Pallet<T> {
 		);
 
 		ensure!(!pool_data.fee.denominator.is_zero(), Error::<T>::FeeAmountInvalid);
+
+		Ok(())
+	}
+
+	fn validate_fee_collector(
+		fee_collector: T::AccountId,
+		asset: AssetId
+	) -> DispatchResult {
+		if let Some(existing_fee_collector) = <FeeCollectors<T>>::get(fee_collector, asset) {
+			ensure!(!existing_fee_collector, Error::<T>::FeeCollectorAlreadyExists);
+		}
 
 		Ok(())
 	}
