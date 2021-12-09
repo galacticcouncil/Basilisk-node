@@ -533,10 +533,18 @@ pub mod pallet {
 
 				// Handle update of fee collector - validate and replace old fee collector
 				if let Some(updated_fee_collector) = fee_collector {
-					Self::validate_fee_collector(updated_fee_collector.clone(), pool.assets.0)?;
+					FeeCollectorWithAsset::<T>::try_mutate(
+						&updated_fee_collector,
+						pool.assets.0,
+						|collector| -> DispatchResult {
+							ensure!(!*collector, Error::<T>::FeeCollectorWithAssetAlreadyUsed);
 
-					<FeeCollectorWithAsset<T>>::remove(pool.fee_collector.clone(), pool.assets.0);
-					<FeeCollectorWithAsset<T>>::insert(updated_fee_collector.clone(), pool.assets.0, true);
+							<FeeCollectorWithAsset<T>>::remove(&pool.fee_collector, pool.assets.0);
+							*collector = true;
+
+							Ok(())
+						},
+					)?;
 
 					pool.fee_collector = updated_fee_collector;
 				}
