@@ -844,7 +844,7 @@ impl<T: Config> Pallet<T> {
 			transfer.amount_out,
 		)?;
 
-		// Fee is deducted from received amount of accumulated asset and transferred to the fee collector
+		// Fee is deducted from the sent out amount of accumulated asset and transferred to the fee collector
 		let (fee_asset, fee_amount) = transfer.fee;
 		let fee_payer = if transfer.assets.asset_in == fee_asset {
 			&transfer.origin
@@ -972,9 +972,9 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		// Accumulated asset is sold (in) to the pool for distributed asset (out)
 		// Take accumulated asset (in) sans fee from the seller and add to pool
 		// Take distributed asset (out) and send to seller
-		// Take fee from the seller and add to fee repay pool
+		// Take fee from the seller and send to fee collector
 		// Pool bears repay fee
-		if assets.asset_in == pool_data.assets.0 {
+		if fee_asset == assets.asset_in {
 			let fee = Self::calculate_fees(&pool_data, amount)?;
 			let amount_without_fee = amount.checked_sub(fee).ok_or(Error::<T>::Overflow)?;
 
@@ -1007,7 +1007,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		// Distributed asset is sold (in) to the pool for accumulated asset (out)
 		// Take accumulated asset (out) from the pool sans fee and send to the seller
 		// Take distributed asset (in) from the seller and send to pool
-		// Take fee from the pool and add to fee repay pool
+		// Take fee from the pool and send to fee collector
 		// Seller bears repay fee
 		} else {
 			let calculated_out = hydra_dx_math::lbp::calculate_out_given_in(
@@ -1092,9 +1092,9 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		// Accumulated asset is bought (out) of the pool for distributed asset (in)
 		// Take accumulated asset (out) sans fee from the pool and send to seller
 		// Take distributed asset (in) from the seller and add to pool
-		// Take fee from the pool and add to fee repay pool
+		// Take fee from the pool and send to fee collector
 		// Buyer bears repay fee
-		if assets.asset_out == pool_data.assets.0 {
+		if fee_asset == assets.asset_out {
 			let fee = Self::calculate_fees(&pool_data, amount)?;
 			let amount_out_plus_fee = amount.checked_add(fee).ok_or(Error::<T>::Overflow)?;
 
@@ -1127,7 +1127,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		// Distributed asset is bought (out) of the pool for accumulated asset (in)
 		// Take accumulated asset (in) sans fee from the buyer and send to pool
 		// Take distributed asset (out) from the pool and send to buyer
-		// Take fee from the buyer and add to fee repay pool
+		// Take fee from the buyer and send to fee collector
 		// Pool bears repay fee
 		} else {
 			let calculated_in = hydra_dx_math::lbp::calculate_in_given_out(
