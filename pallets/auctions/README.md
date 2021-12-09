@@ -6,7 +6,7 @@ The pallet implements an NftAuction trait which allows users to extend the palle
 auction types. All auction types must implement bid() and close() functions at their interface.
 
 The auction types share the same store called Auctions. Auction types are represented in a struct which holds
-two other structs with general_data (eg auction name, start, end) and specific_data for the given auction type.
+two other structs with general_data (e.g. auction name, start, end) and specific_data for the given auction type.
 Besides Auctions, there are are two other stores: NextAuctionId and AuctionOwnerById.
 
 ## Dispatchable Functions
@@ -16,7 +16,7 @@ Besides Auctions, there are are two other stores: NextAuctionId and AuctionOwner
 
 - `destroy` - destroy an auction
 
-- `bid` - place a bid on an auctio
+- `bid` - place a bid on an auction
 
 - `close` - close an auction after the end time has lapsed. Not done in a hook for better chain performance.
 
