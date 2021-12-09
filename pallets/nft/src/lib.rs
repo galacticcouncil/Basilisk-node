@@ -14,7 +14,7 @@ use frame_system::ensure_signed;
 use primitives::ReserveIdentifier;
 use sp_runtime::traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
-use types::{ClassInfo, ClassType};
+use types::{ClassInfo};
 use weights::WeightInfo;
 
 use pallet_uniques::traits::InstanceReserve;
@@ -29,16 +29,18 @@ mod mock;
 
 #[cfg(test)]
 mod tests;
+mod traits;
+
+use traits::NftPermission;
 
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-type ClassInfoOf<T> = ClassInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
+type ClassInfoOf<T> = ClassInfo<<T as Config>::ClassType, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
-
 	use super::*;
 	use frame_support::{pallet_prelude::*, traits::EnsureOrigin};
 	use frame_system::pallet_prelude::OriginFor;
@@ -48,14 +50,18 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_uniques::Config {
+		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+
+		type ProtocolOrigin: EnsureOrigin<Self::Origin>;
+
 		/// Currency type for reserve balance.
 		type Currency: NamedReservableCurrency<Self::AccountId, ReserveIdentifier = ReserveIdentifier>;
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+
 		/// Amount that must be reserved for each minted NFT
 		#[pallet::constant]
 		type TokenDeposit: Get<BalanceOf<Self>>;
+
 		type WeightInfo: WeightInfo;
-		type ProtocolOrigin: EnsureOrigin<Self::Origin>;
 
 		type NftClassId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned + Into<Self::ClassId>;
 		type NftInstanceId: Member
@@ -66,6 +72,10 @@ pub mod pallet {
 			+ AtLeast32BitUnsigned
 			+ Into<Self::InstanceId>
 			+ From<Self::InstanceId>;
+
+		type ClassType: Member + Parameter + Default + Copy ;
+
+		type Permissions: NftPermission<Self::ClassType>;
 	}
 
 	/// Next available class ID.
@@ -94,24 +104,29 @@ pub mod pallet {
 		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(origin: OriginFor<T>, class_type: types::ClassType, metadata: Vec<u8>) -> DispatchResult {
+		pub fn create_class(origin: OriginFor<T>, class_type: T::ClassType, metadata: Vec<u8>) -> DispatchResult {
 			let sender = match T::ProtocolOrigin::try_origin(origin) {
 				Ok(_) => None,
 				Err(origin) => Some(ensure_signed(origin)?),
 			};
 
-			if class_type == ClassType::PoolShare {
-				ensure!(sender.is_none(), Error::<T>::NotPermitted)
-			}
+			ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
 
 			let class_id = Self::get_next_class_id()?;
 
 			let metadata_bounded = Self::to_bounded_string(metadata)?;
 
+			let deposit_info = (Zero::zero(), false);
+			/*
+
+			Deposit can be an input param here ?!
+
 			let deposit_info = match class_type {
 				ClassType::PoolShare => (Zero::zero(), true),
 				_ => (T::ClassDeposit::get(), false),
 			};
+
+			 */
 
 			pallet_uniques::Pallet::<T>::do_create_class(
 				class_id.into(),
@@ -245,9 +260,14 @@ pub mod pallet {
 				.map(|c| c.class_type)
 				.ok_or(Error::<T>::ClassUnknown)?;
 
+			/*
+
+			TODO: add can_desotry to NFtPermission trait
+
 			if class_type == ClassType::PoolShare {
 				ensure!(sender.is_none(), Error::<T>::NotPermitted)
 			}
+			 */
 
 			let witness =
 				pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::NoWitness)?;
@@ -269,9 +289,9 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// A class was created \[sender, class_id, class_type\]
-		ClassCreated(T::AccountId, T::NftClassId, ClassType),
+		ClassCreated(T::AccountId, T::NftClassId, T::ClassType),
 		/// An instance was minted \[class_type, sender, class_id, instance_id\]
-		InstanceMinted(ClassType, T::AccountId, T::NftClassId, T::NftInstanceId),
+		InstanceMinted(T::ClassType, T::AccountId, T::NftClassId, T::NftInstanceId),
 		/// An instance was transferred \[from, to, class_id, instance_id\]
 		InstanceTransferred(T::AccountId, T::AccountId, T::NftClassId, T::NftInstanceId),
 		/// An instance was burned \[sender, class_id, instance_id\]

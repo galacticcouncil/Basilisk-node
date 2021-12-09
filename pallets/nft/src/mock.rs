@@ -40,6 +40,16 @@ parameter_types! {
 	pub MaxMetadataLength: u32 = 256;
 }
 
+use crate::Event::ClassCreated;
+use crate::traits::NftPermission;
+
+
+pub type NftPermissions = ( MarketPlacePermissions,
+							LiquidityMiningPermissions,
+							SomeFutureUseCase,
+SomeFutureUseCasei2);
+
+
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
@@ -48,6 +58,8 @@ impl pallet_nft::Config for Test {
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = ();
 }
 
 parameter_types! {
@@ -157,5 +169,63 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
+	}
+}
+
+use frame_support::pallet_prelude::*;
+
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
+
+use scale_info::TypeInfo;
+
+
+#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum ClassType {
+	Marketplace = 1_isize,
+	PoolShare = 0_isize,
+	Future = 2_isize,
+	Future2 = 2_isize,
+}
+
+impl Default for ClassType {
+	fn default() -> Self {
+		ClassType::Marketplace
+	}
+}
+
+
+pub struct MarketPlacePermissions;
+
+impl NftPermission<ClassType> for MarketPlacePermissions{
+	fn can_create(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Marketplace
+	}
+}
+pub struct LiquidityMiningPermissions;
+
+impl NftPermission<ClassType> for LiquidityMiningPermissions{
+
+	fn can_create(_class_type: &ClassType) -> bool {
+		false
+	}
+}
+pub struct SomeFutureUseCase;
+
+impl NftPermission<ClassType> for SomeFutureUseCase{
+
+	fn can_create(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Future
+
+	}
+}
+pub struct SomeFutureUseCasei2;
+
+impl NftPermission<ClassType> for SomeFutureUseCase2{
+
+	fn can_create(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Future2
+
 	}
 }

@@ -1,6 +1,6 @@
 use frame_support::{assert_noop, assert_ok};
 
-use crate::types::ClassType;
+use super::mock::ClassType;
 
 use super::*;
 use mock::*;
