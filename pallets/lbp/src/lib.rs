@@ -353,7 +353,7 @@ pub mod pallet {
 			T::AccountId,
 			Blake2_128Concat,
 			AssetId, bool, ValueQuery>;
- 
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Create a new liquidity bootstrapping pool for given asset pair.
@@ -976,7 +976,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		// Pool bears repay fee
 		if fee_asset == assets.asset_in {
 			let fee = Self::calculate_fees(&pool_data, amount)?;
-			let amount_without_fee = amount.checked_sub(fee).ok_or(Error::<T>::Overflow)?;
 
 			let amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 				asset_in_reserve,
@@ -993,6 +992,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			);
 
 			ensure!(min_bought <= amount_out, Error::<T>::TradingLimitReached);
+
+			let amount_without_fee = amount.checked_sub(fee).ok_or(Error::<T>::Overflow)?;
 
 			Ok(AMMTransfer {
 				origin: who.clone(),

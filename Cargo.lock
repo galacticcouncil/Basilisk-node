@@ -1311,7 +1311,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5202,7 +5202,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
