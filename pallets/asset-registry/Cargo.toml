@@ -1,6 +1,6 @@
 [package]
 name = "pallet-asset-registry"
-version = "1.1.0"
+version = "1.1.1"
 description = "Pallet for asset registry management"
 authors = ["GalacticCouncil"]
 edition = "2018"
@@ -35,7 +35,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="301e7fd7e8b79bd0f2d34e33511b4bda013e4462", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="34190daa5716fa478e981357dc579f3efa48428f", default-features = false }
 
 # Optionals
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false, optional = true }
