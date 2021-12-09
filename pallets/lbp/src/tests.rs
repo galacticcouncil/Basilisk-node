@@ -359,7 +359,7 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.fee, Fee::default());
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
-		assert!(LBPPallet::fee_collectors(CHARLIE, KUSD));
+		assert!(<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
 
 		expect_events(vec![
 			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, 1_000_000_000, 2_000_000_000).into(),
@@ -651,7 +651,7 @@ fn update_pool_data_should_work() {
 		// removes old fee collector from store and
 		// sets updated fee collector
 		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
-		assert!(LBPPallet::fee_collectors(BOB, KUSD));
+		assert!(<FeeCollectorWithAsset<Test>>::contains_key(BOB, KUSD));
 
 		// update only one parameter
 		assert_ok!(LBPPallet::update_pool_data(

@@ -347,7 +347,6 @@ pub mod pallet {
 	/// Storage used for tracking existing fee collectors
 	/// Not more than one fee collector per asset possible
 	#[pallet::storage]
-	#[pallet::getter(fn fee_collectors)]
 	pub type FeeCollectorWithAsset<T: Config> =
 		StorageDoubleMap<_,
 			Blake2_128Concat,
@@ -422,7 +421,10 @@ pub mod pallet {
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::PoolAlreadyExists);
 
-			Self::validate_fee_collector(fee_collector.clone(), asset_a)?;
+			ensure!(
+				!<FeeCollectorWithAsset<T>>::contains_key(fee_collector.clone(), asset_a),
+				Error::<T>::FeeCollectorWithAssetAlreadyUsed
+			);
 
 			ensure!(
 				T::MultiCurrency::free_balance(asset_a, &pool_owner) >= asset_a_amount,
@@ -772,21 +774,6 @@ impl<T: Config> Pallet<T> {
 		);
 
 		ensure!(!pool_data.fee.denominator.is_zero(), Error::<T>::FeeAmountInvalid);
-
-		Ok(())
-	}
-
-	/// Validates fee collector
-	/// Not more than one fee collector per asset
-	/// This is done to prevent race conditions with locks on the same asset
-	fn validate_fee_collector(
-		fee_collector: T::AccountId,
-		asset: AssetId
-	) -> DispatchResult {		
-		ensure!(
-			!<FeeCollectorWithAsset<T>>::contains_key(fee_collector, asset),
-			Error::<T>::FeeCollectorWithAssetAlreadyUsed
-		);
 
 		Ok(())
 	}
