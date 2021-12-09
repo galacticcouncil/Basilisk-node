@@ -295,6 +295,9 @@ pub mod pallet {
 
 		/// Amount is less than minimum trading limit.
 		InsufficientTradingAmount,
+
+		/// Not more than one fee collector per asset id
+		FeeCollectorWithAssetAlreadyUsed
 	}
 
 	#[pallet::event]
@@ -341,6 +344,16 @@ pub mod pallet {
 	pub type PoolData<T: Config> =
 		StorageMap<_, Blake2_128Concat, PoolId<T>, Pool<T::AccountId, T::BlockNumber>, OptionQuery>;
 
+	/// Storage used for tracking existing fee collectors
+	/// Not more than one fee collector per asset possible
+	#[pallet::storage]
+	pub type FeeCollectorWithAsset<T: Config> =
+		StorageDoubleMap<_,
+			Blake2_128Concat,
+			T::AccountId,
+			Blake2_128Concat,
+			AssetId, bool, ValueQuery>;
+ 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Create a new liquidity bootstrapping pool for given asset pair.
@@ -409,6 +422,11 @@ pub mod pallet {
 			ensure!(!Self::exists(asset_pair), Error::<T>::PoolAlreadyExists);
 
 			ensure!(
+				!<FeeCollectorWithAsset<T>>::contains_key(fee_collector.clone(), asset_a),
+				Error::<T>::FeeCollectorWithAssetAlreadyUsed
+			);
+
+			ensure!(
 				T::MultiCurrency::free_balance(asset_a, &pool_owner) >= asset_a_amount,
 				Error::<T>::InsufficientAssetBalance
 			);
@@ -426,7 +444,7 @@ pub mod pallet {
 				final_weight,
 				weight_curve,
 				fee,
-				fee_collector,
+				fee_collector.clone(),
 				repay_target,
 			);
 
@@ -435,6 +453,7 @@ pub mod pallet {
 			let pool_id = Self::get_pair_id(asset_pair);
 
 			<PoolData<T>>::insert(&pool_id, &pool_data);
+			<FeeCollectorWithAsset<T>>::insert(fee_collector, asset_a, true);
 
 			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
 
@@ -513,7 +532,25 @@ pub mod pallet {
 				pool.final_weight = final_weight.unwrap_or(pool.final_weight);
 
 				pool.fee = fee.unwrap_or(pool.fee);
-				pool.fee_collector = fee_collector.unwrap_or_else(|| pool.fee_collector.clone());
+
+				// Handle update of fee collector - validate and replace old fee collector
+				if let Some(updated_fee_collector) = fee_collector {
+					FeeCollectorWithAsset::<T>::try_mutate(
+						&updated_fee_collector,
+						pool.assets.0,
+						|collector| -> DispatchResult {
+							ensure!(!*collector, Error::<T>::FeeCollectorWithAssetAlreadyUsed);
+
+							<FeeCollectorWithAsset<T>>::remove(&pool.fee_collector, pool.assets.0);
+							*collector = true;
+
+							Ok(())
+						},
+					)?;
+
+					pool.fee_collector = updated_fee_collector;
+				}
+
 				pool.repay_target = repay_target.unwrap_or(pool.repay_target);
 
 				Self::validate_pool_data(pool)?;
@@ -613,6 +650,7 @@ pub mod pallet {
 				T::MultiCurrency::remove_lock(COLLECTOR_LOCK_ID, asset_a, &pool_data.fee_collector)?;
 			}
 
+			<FeeCollectorWithAsset<T>>::remove(pool_data.fee_collector, pool_data.assets.0);
 			<PoolData<T>>::remove(&pool_id);
 
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
