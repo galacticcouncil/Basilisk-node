@@ -41,8 +41,8 @@ pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",defaul
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="301e7fd7e8b79bd0f2d34e33511b4bda013e4462", default-features = false }
-pallet-faucet = { git = "https://github.com/galacticcouncil/warehouse", rev="301e7fd7e8b79bd0f2d34e33511b4bda013e4462", default-features = false }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
+pallet-faucet = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -51,8 +51,8 @@ pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", b
 pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="34190daa5716fa478e981357dc579f3efa48428f", default-features = false }
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev="34190daa5716fa478e981357dc579f3efa48428f", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.12", default-features = false }
