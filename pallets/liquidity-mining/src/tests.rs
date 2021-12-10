@@ -418,19 +418,19 @@ fn get_loyalty_multiplier_should_work() {
 	let precission_delta = FixedU128::from_inner(100_000_000); //0.000_000_000_1
 	for t in testing_values.iter() {
 		//1-th curve test
-		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(&c1)).unwrap();
+		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(c1.clone())).unwrap();
 		assert_eq!(is_approx_eq_fixedu128(m, t.1, precission_delta), true);
 
 		//2-nd curve test
-		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(&c2)).unwrap();
+		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(c2.clone())).unwrap();
 		assert_eq!(is_approx_eq_fixedu128(m, t.2, precission_delta), true);
 
 		//3-th ucrve test
-		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(&c3)).unwrap();
+		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(c3.clone())).unwrap();
 		assert_eq!(is_approx_eq_fixedu128(m, t.3, precission_delta), true);
 
 		//4-th curve test
-		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(&c4)).unwrap();
+		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(c4.clone())).unwrap();
 		assert_eq!(is_approx_eq_fixedu128(m, t.4, precission_delta), true);
 	}
 }
@@ -915,7 +915,7 @@ fn get_user_reward_should_work() {
 
 	for t in testing_values.iter() {
 		assert_eq!(
-			LiquidityMining::get_user_reward(t.0, t.1, t.2, t.3, t.4).unwrap(),
+			LiquidityMining::get_user_reward(t.0, t.1, t.3, t.2, t.4).unwrap(),
 			(t.5, t.6)
 		);
 	}
