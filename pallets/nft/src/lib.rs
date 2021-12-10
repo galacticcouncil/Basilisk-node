@@ -14,7 +14,7 @@ use frame_system::ensure_signed;
 use primitives::ReserveIdentifier;
 use sp_runtime::traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
-use types::{ClassInfo, ClassType};
+use types::ClassInfo;
 use weights::WeightInfo;
 
 use pallet_uniques::traits::InstanceReserve;
@@ -31,10 +31,39 @@ mod mock;
 mod tests;
 
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-type ClassInfoOf<T> = ClassInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
+type ClassInfoOf<T> = ClassInfo<<T as Config>::ClassType, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
+
+pub trait NftPermission<InnerClassType> {
+    fn can_create(class_type: &InnerClassType) -> bool;
+	fn can_destroy(class_type: &InnerClassType) -> bool;
+}
+
+#[impl_trait_for_tuples::impl_for_tuples(5)]
+impl<InnerClassType> NftPermission<InnerClassType> for Tuple {
+
+    fn can_create(class_type: &InnerClassType) -> bool {
+        for_tuples!( #(
+			let result  = match Tuple::can_create(class_type) {
+				true => return true,
+				false => false,
+			};
+		)* );
+        false
+    }
+
+	fn can_destroy(class_type: &InnerClassType) -> bool {
+        for_tuples!( #(
+			let result  = match Tuple::can_destroy(class_type) {
+				true => return true,
+				false => false,
+			};
+		)* );
+        false
+    }
+}
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -66,6 +95,8 @@ pub mod pallet {
 			+ AtLeast32BitUnsigned
 			+ Into<Self::InstanceId>
 			+ From<Self::InstanceId>;
+		type ClassType: Member + Parameter + Default + Copy;
+		type Permissions: NftPermission<Self::ClassType>;
 	}
 
 	/// Next available class ID.
@@ -94,15 +125,13 @@ pub mod pallet {
 		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(origin: OriginFor<T>, class_type: types::ClassType, metadata: Vec<u8>) -> DispatchResult {
+		pub fn create_class(origin: OriginFor<T>, class_type: T::ClassType, metadata: Vec<u8>) -> DispatchResult {
 			let sender = match T::ProtocolOrigin::try_origin(origin) {
 				Ok(_) => None,
 				Err(origin) => Some(ensure_signed(origin)?),
 			};
 
-			if class_type == ClassType::PoolShare {
-				ensure!(sender.is_none(), Error::<T>::NotPermitted)
-			}
+			ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
 
 			let class_id = Self::get_next_class_id()?;
 
@@ -245,9 +274,7 @@ pub mod pallet {
 				.map(|c| c.class_type)
 				.ok_or(Error::<T>::ClassUnknown)?;
 
-			if class_type == ClassType::PoolShare {
-				ensure!(sender.is_none(), Error::<T>::NotPermitted)
-			}
+			ensure!(T::Permissions::can_destroy(&class_type), Error::<T>::NotPermitted);
 
 			let witness =
 				pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::NoWitness)?;

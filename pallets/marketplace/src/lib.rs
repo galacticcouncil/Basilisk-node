@@ -14,7 +14,7 @@ use sp_runtime::{
 	Percent,
 };
 
-use pallet_nft::Pallet as NFTPallet;
+use pallet_nft::{Pallet as NFTPallet, NftPermission};
 
 use types::*;
 use weights::WeightInfo;
@@ -37,6 +37,14 @@ type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame
 type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
 type MarketInstanceOf<T> =
 	MarketInstance<<T as frame_system::Config>::AccountId, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
+
+pub struct MarketPlacePermissions;
+
+impl NftPermission<ClassType> for MarketPlacePermissions{
+	fn can_create(class_type: &ClassType) -> bool {
+		false
+	}
+}
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
