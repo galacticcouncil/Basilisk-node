@@ -28,6 +28,10 @@
 // * total_shares_z         -> Z
 // * multiplier             -> m
 
+//NOTE:
+//`LiquidityPoolYieldFarm.stake_in_global_pool` - can be removed/replaces with:
+//`LiquidityPoolYieldFarm.total_valued_shares * LiquidityPoolYieldFarm.multiplier`
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
@@ -312,8 +316,11 @@ pub mod pallet {
 		/// NFT does not exist.
 		NftDoesNotExist,
 
-		/// Provided nft doesn't belong to provided asset pair
+		/// Provided nft doesn't belong to provided asset pair.
 		NftAssetsMismatch,
+
+		/// Liquidity mining for porovided pool is canceled.
+		LiquidityMiningCanceled,
 	}
 
 	#[pallet::event]
@@ -626,6 +633,9 @@ pub mod pallet {
 			<LiquidityPoolData<T>>::try_mutate(farm_id, amm_account.clone(), |liq_pool| {
 				let liq_pool = liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
 
+				//TODO: add test
+				ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
+
 				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
 					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
@@ -712,6 +722,9 @@ pub mod pallet {
 				let amm_account = T::AMM::get_pair_id(asset_pair);
 				<LiquidityPoolData<T>>::try_mutate(farm_id, amm_account, |maybe_liq_pool| {
 					let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+
+					//NOTE: do we want to force him to use withdraw?
+					ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
 					<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
 						let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
@@ -1166,7 +1179,7 @@ impl<T: Config> Pallet<T> {
 			.ok_or(Error::<T>::Overflow)?;
 
 		let pool_account = Self::pool_account_id(pool.id)?;
-		T::MultiCurrency::transfer(reward_currency, &who, &pool_account, rewards)?;
+		T::MultiCurrency::transfer(reward_currency, &pool_account, &who, rewards)?;
 
 		Ok((rewards, unclaimable_rewards))
 	}
@@ -1177,6 +1190,10 @@ impl<T: Config> Pallet<T> {
 		liq_pool: &mut LiquidityPoolYieldFarm<T>,
 		now_period: PeriodOf<T>,
 	) -> DispatchResult {
+		if liq_pool.canceled {
+			return Ok(());
+		}
+
 		if !liq_pool.total_shares.is_zero() && liq_pool.updated_at != now_period {
 			if !g_pool.total_shares_z.is_zero() && g_pool.updated_at != now_period {
 				let rewards = Self::get_reward_per_period(
