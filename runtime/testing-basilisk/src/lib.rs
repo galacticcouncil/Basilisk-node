@@ -115,7 +115,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 26,
+	spec_version: 27,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -131,6 +131,7 @@ pub fn native_version() -> NativeVersion {
 }
 
 use common_runtime::adapter::OrmlTokensAdapter;
+use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 use smallvec::smallvec;
 
 pub struct WeightToFee;
@@ -387,7 +388,7 @@ impl pallet_exchange::Config for Runtime {
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
-	type NativeAssetId = NativeAssetId;
+	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
 	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;

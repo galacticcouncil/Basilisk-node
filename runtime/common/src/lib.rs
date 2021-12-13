@@ -18,6 +18,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod adapter;
+pub mod locked_balance;
 
 use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId};
 pub use pallet_transaction_payment::Multiplier;
