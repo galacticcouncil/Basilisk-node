@@ -14,14 +14,12 @@ use sp_runtime::{
 	Percent,
 };
 
-use pallet_nft::{Pallet as NFTPallet, NftPermission};
+use pallet_nft::Pallet as NFTPallet;
 
 use types::*;
 use weights::WeightInfo;
 
-use pallet_nft::types::ClassType;
 use primitives::ReserveIdentifier;
-use sp_std::vec::Vec;
 
 mod benchmarking;
 mod types;
@@ -38,14 +36,6 @@ type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T
 type MarketInstanceOf<T> =
 	MarketInstance<<T as frame_system::Config>::AccountId, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 
-pub struct MarketPlacePermissions;
-
-impl NftPermission<ClassType> for MarketPlacePermissions{
-	fn can_create(class_type: &ClassType) -> bool {
-		false
-	}
-}
-
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -54,6 +44,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
+use pallet_nft::BoundedVecOfUnq;
 
 	/// An identifier for a reserve. Used for disambiguating different reserves so that
 	/// they can be individually replaced or removed.
@@ -284,28 +275,19 @@ pub mod pallet {
 			class_id: T::NftClassId,
 			author: T::AccountId,
 			royalty: u8,
-			metadata: Vec<u8>,
+			metadata: BoundedVecOfUnq<T>,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
+			let sender = ensure_signed(origin.clone())?;
 
 			let class_type = NFTPallet::<T>::classes(class_id)
 				.map(|c| c.class_type)
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 
-			ensure!(
-				class_type == ClassType::Marketplace,
-				pallet_nft::Error::<T>::ClassTypeMismatch
-			);
-
 			ensure!(royalty < 100, pallet_nft::Error::<T>::NotInRange);
 
 			let instance_id: T::NftInstanceId = NFTPallet::<T>::get_next_instance_id(class_id)?;
 
-			pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), sender.clone(), |_details| {
-				Ok(())
-			})?;
-
-			let metadata_bounded = NFTPallet::<T>::to_bounded_string(metadata)?;
+			pallet_nft::Pallet::<T>::mint(origin, class_id);
 
 			MarketplaceInstances::<T>::insert(
 				class_id,
@@ -313,7 +295,7 @@ pub mod pallet {
 				MarketInstance {
 					author,
 					royalty,
-					metadata: metadata_bounded,
+					metadata,
 				},
 			);
 
@@ -345,7 +327,7 @@ pub mod pallet {
 		/// Royalty hs been paid to the author \[class_id, instance_id, author, royalty, royalty_amount\]
 		RoyaltyPaid(T::NftClassId, T::NftInstanceId, T::AccountId, u8, BalanceOf<T>),
 		/// An instance was minted \[class_type, sender, class_id, instance_id\]
-		InstanceMinted(ClassType, T::AccountId, T::NftClassId, T::NftInstanceId),
+		InstanceMinted(T::ClassType, T::AccountId, T::NftClassId, T::NftInstanceId),
 	}
 
 	#[pallet::error]
@@ -403,36 +385,35 @@ impl<T: Config> Pallet<T> {
 			};
 
 			// Marketplace specific logic
-			if class_type == ClassType::Marketplace {
-				let instance_info =
-					MarketplaceInstances::<T>::get(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
-				let royalty = instance_info.royalty;
-				let author = instance_info.author;
+			let instance_info =
+				MarketplaceInstances::<T>::get(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
-				// Calculate royalty and subtract from price if author different from buyer
-				let royalty_perc = Percent::from_percent(royalty);
-				let royalty_amount = royalty_perc * price;
+			let royalty = instance_info.royalty;
+			let author = instance_info.author;
 
-				if owner != author && royalty != 0u8 {
-					price = price.saturating_sub(royalty_amount);
+			// Calculate royalty and subtract from price if author different from buyer
+			let royalty_perc = Percent::from_percent(royalty);
+			let royalty_amount = royalty_perc * price;
 
-					// Send royalty to author
-					<T as pallet_nft::Config>::Currency::transfer(
-						&buyer,
-						&author,
-						royalty_amount,
-						ExistenceRequirement::KeepAlive,
-					)?;
+			if owner != author && royalty != 0u8 {
+				price = price.saturating_sub(royalty_amount);
 
-					Self::deposit_event(Event::RoyaltyPaid(
-						class_id,
-						instance_id,
-						author,
-						royalty,
-						royalty_amount,
-					));
-				}
+				// Send royalty to author
+				<T as pallet_nft::Config>::Currency::transfer(
+					&buyer,
+					&author,
+					royalty_amount,
+					ExistenceRequirement::KeepAlive,
+				)?;
+
+				Self::deposit_event(Event::RoyaltyPaid(
+					class_id,
+					instance_id,
+					author,
+					royalty,
+					royalty_amount,
+				));
 			}
 
 			// Send the net price from current to the previous owner

@@ -4,6 +4,7 @@ use crate as pallet_nft;
 use frame_support::traits::Everything;
 use frame_support::{parameter_types, weights::Weight};
 use frame_system::EnsureRoot;
+use primitives::ClassType;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
@@ -20,6 +21,13 @@ type AccountId = AccountId32;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 type Balance = u128;
+
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
+
+use codec::{Decode, Encode};
+use frame_support::RuntimeDebug;
+use scale_info::TypeInfo;
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -40,6 +48,71 @@ parameter_types! {
 	pub MaxMetadataLength: u32 = 256;
 }
 
+#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct DefaultPermissions;
+
+impl NftPermission<ClassType> for DefaultPermissions {
+	fn can_create(class_type: &ClassType) -> bool {
+		true
+	}
+
+	fn can_mint(class_type: &ClassType) -> bool {
+		true
+	}
+
+	fn can_transfer(class_type: &ClassType) -> bool {
+		true
+	}
+
+	fn can_burn(class_type: &ClassType) -> bool {
+		true
+	}
+
+	fn can_destroy(class_type: &ClassType) -> bool {
+		true
+	}
+
+	fn has_deposit(class_type: &ClassType) -> bool {
+		true
+	}
+}
+
+#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct LiquidityMiningPermissions;
+
+impl NftPermission<ClassType> for LiquidityMiningPermissions {
+	fn can_create(class_type: &ClassType) -> bool {
+		false
+	}
+
+	fn can_mint(class_type: &ClassType) -> bool {
+		false
+	}
+
+	fn can_transfer(class_type: &ClassType) -> bool {
+		false
+	}
+
+	fn can_burn(class_type: &ClassType) -> bool {
+		false
+	}
+
+	fn can_destroy(class_type: &ClassType) -> bool {
+		false
+	}
+
+	fn has_deposit(class_type: &ClassType) -> bool {
+		false
+	}
+}
+
+pub type AllNftPermissions = (
+	DefaultPermissions,
+	LiquidityMiningPermissions,
+);
+
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
@@ -48,6 +121,8 @@ impl pallet_nft::Config for Test {
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = AllNftPermissions;
 }
 
 parameter_types! {
@@ -76,7 +151,7 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = NFT;
+	type InstanceReserveStrategy = ();
 }
 
 parameter_types! {
@@ -135,7 +210,7 @@ pub const BSX: Balance = 100_000_000_000;
 pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
 pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1;
 pub const TOKEN_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
-pub const NOT_EXISTING_CLASS_ID: <Test as pallet_uniques::Config>::ClassId = 999;
+pub const NON_EXISTING_CLASS_ID: <Test as pallet_uniques::Config>::ClassId = 999;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {
@@ -149,7 +224,7 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 20_000 * BSX), (BOB, 15_000 * BSX), (CHARLIE, 150_000 * BSX)],
+			balances: vec![(ALICE, 200_000 * BSX), (BOB, 150_000 * BSX), (CHARLIE, 15_000 * BSX)],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

@@ -1,7 +1,7 @@
 use crate as pallet_marketplace;
 use frame_support::{parameter_types, traits::Everything};
 use frame_system as system;
-use primitives::ReserveIdentifier;
+use primitives::{ReserveIdentifier, ClassType};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
@@ -59,6 +59,8 @@ impl pallet_nft::Config for Test {
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = ();
 }
 
 parameter_types! {

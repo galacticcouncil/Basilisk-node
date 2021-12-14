@@ -148,7 +148,7 @@ fn free_trading_works() {
 		));
 		assert_ok!(NFT::create_class(
 			Origin::root(),
-			ClassType::PoolShare,
+			ClassType::LiquidityMining,
 			b"metadata".to_vec()
 		));
 
@@ -282,7 +282,7 @@ fn offering_works() {
 		));
 		assert_ok!(NFT::create_class(
 			Origin::root(),
-			ClassType::PoolShare,
+			ClassType::LiquidityMining,
 			b"metadata".to_vec()
 		));
 		assert_ok!(Market::mint_for_marketplace(

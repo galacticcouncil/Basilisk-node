@@ -90,6 +90,23 @@ pub enum ReserveIdentifier {
 	Count,
 }
 
+#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub enum ClassType {
+	Default = 0_isize,
+	Marketplace = 1_isize,
+	LiquidityMining = 2_isize,
+	Redeemable = 3_isize,
+	Auction = 4_isize,
+	HydraHeads = 5_isize,
+}
+
+impl Default for ClassType {
+	fn default() -> Self {
+		ClassType::Default
+	}
+}
+
 pub mod fee {
 	use super::*;
 

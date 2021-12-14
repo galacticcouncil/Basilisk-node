@@ -3,12 +3,12 @@
 use super::*;
 
 use crate as NFT;
-use crate::types::ClassType;
 use frame_benchmarking::{account, benchmarks, vec};
 use frame_support::traits::{tokens::nonfungibles::InspectEnumerable, Currency, Get};
 use frame_system::RawOrigin;
 use pallet_uniques as UNQ;
 use sp_runtime::traits::UniqueSaturatedInto;
+use std::convert::TryInto;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;
@@ -27,13 +27,12 @@ fn dollar(d: u32) -> u128 {
 	d.saturating_mul(100_000_000_000_000)
 }
 
-fn do_create_class<T: Config>() -> (T::AccountId, <T::Lookup as StaticLookup>::Source, Vec<u8>) {
+fn do_create_class<T: Config>() -> (T::AccountId, <T::Lookup as StaticLookup>::Source, BoundedVecOfUnq<T>) {
 	let caller = create_account::<T>("caller", 0);
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
-	let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
+	let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
 	assert!(NFT::Pallet::<T>::create_class(
 		RawOrigin::Signed(caller.clone()).into(),
-		ClassType::Marketplace,
 		metadata.clone()
 	)
 	.is_ok());
@@ -49,8 +48,8 @@ fn do_mint<T: Config>(class_id: u32) {
 benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
-		let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
-	}: _(RawOrigin::Signed(caller.clone()), ClassType::Marketplace, metadata)
+		let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
+	}: _(RawOrigin::Signed(caller.clone()), metadata)
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::class_owner(&T::NftClassId::from(0u32).into()), Some(caller));
 	}

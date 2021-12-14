@@ -1,41 +1,33 @@
 use frame_support::{assert_noop, assert_ok};
 
-use crate::types::ClassType;
+use primitives::ClassType;
 
 use super::*;
 use mock::*;
 use pallet_uniques as UNQ;
+use std::convert::TryInto;
 
 type NFTPallet = Pallet<Test>;
 
 #[test]
 fn create_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			NFTPallet::create_class(Origin::signed(ALICE), ClassType::PoolShare, b"metadata".to_vec()),
-			Error::<Test>::NotPermitted
-		);
-		assert_ok!(NFTPallet::create_class(
-			Origin::root(),
-			ClassType::PoolShare,
-			b"metadata".to_vec()
-		));
+
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
+
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
-		assert_noop!(
-			NFTPallet::create_class(
-				Origin::signed(ALICE),
-				ClassType::Marketplace,
-				vec![0; <Test as UNQ::Config>::StringLimit::get() as usize + 1]
-			),
-			Error::<Test>::TooLong
-		);
+		assert_ok!(NFTPallet::do_create_class(
+			ALICE,
+			ClassType::LiquidityMining,
+			metadata.clone()
+		));
+
 		NextClassId::<Test>::mutate(|id| *id = <Test as UNQ::Config>::ClassId::max_value());
 		assert_noop!(
-			NFTPallet::create_class(Origin::signed(ALICE), ClassType::Marketplace, b"metadata".to_vec()),
+			NFTPallet::create_class(Origin::signed(ALICE), metadata),
 			Error::<Test>::NoAvailableClassId
 		);
 	})
@@ -44,31 +36,32 @@ fn create_class_works() {
 #[test]
 fn mint_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(NFTPallet::create_class(
-			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
-		));
-		assert_ok!(NFTPallet::create_class(
-			Origin::root(),
-			ClassType::PoolShare,
-			b"metadata".to_vec()
-		));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0,));
-		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_0,));
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
 
 		assert_ok!(NFTPallet::create_class(
-			Origin::root(),
-			ClassType::PoolShare,
-			b"metadata".to_vec()
+			Origin::signed(ALICE),
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::do_create_class(
+			ALICE,
+			ClassType::LiquidityMining,
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
+		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_0));
+		assert_noop!(
+			NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_1),
+			Error::<Test>::NotPermitted
+		);
+		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1));
+
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			metadata
 		));
 		assert_noop!(
-			NFTPallet::mint(Origin::signed(ALICE), NOT_EXISTING_CLASS_ID,),
+			NFTPallet::mint(Origin::signed(ALICE), NON_EXISTING_CLASS_ID),
 			Error::<Test>::ClassUnknown
-		);
-		assert_noop!(
-			NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0),
-			Error::<Test>::NotInRange
 		);
 		NextInstanceId::<Test>::mutate(CLASS_ID_0, |id| *id = <Test as UNQ::Config>::InstanceId::max_value());
 		assert_noop!(
@@ -77,7 +70,7 @@ fn mint_works() {
 		);
 
 		assert_noop!(
-			NFTPallet::destroy_class(Origin::signed(ALICE), NOT_EXISTING_CLASS_ID),
+			NFTPallet::destroy_class(Origin::signed(ALICE), NON_EXISTING_CLASS_ID),
 			Error::<Test>::ClassUnknown
 		);
 	});
@@ -86,52 +79,60 @@ fn mint_works() {
 #[test]
 fn transfer_works() {
 	ExtBuilder::default().build().execute_with(|| {
+
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
+
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
-		assert_ok!(NFTPallet::create_class(
-			Origin::root(),
-			ClassType::PoolShare,
-			b"metadata".to_vec()
+		assert_ok!(NFTPallet::do_create_class(
+			ALICE,
+			ClassType::LiquidityMining,
+			metadata
 		));
-		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
+		assert_eq!(Balances::free_balance(ALICE), 180_000 * BSX);
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0,));
-		assert_eq!(Balances::free_balance(ALICE), 9_900 * BSX);
-		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0, BOB));
-
+		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1,));
+		assert_eq!(Balances::free_balance(ALICE), 179_800 * BSX);
+		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0, BOB));
 		assert_noop!(
 			NFTPallet::transfer(Origin::signed(CHARLIE), CLASS_ID_0, TOKEN_ID_0, ALICE),
 			Error::<Test>::NotPermitted
 		);
-		assert_eq!(Balances::free_balance(BOB), 15_000 * BSX);
+		assert_noop!(
+			NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0, BOB),
+			Error::<Test>::NotPermitted
+		);
+		assert_ok!(NFTPallet::do_transfer(CLASS_ID_1, TOKEN_ID_0, ALICE, BOB));
+		assert_eq!(Balances::free_balance(BOB), 150_000 * BSX);
 		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0, BOB));
-		assert_eq!(Balances::free_balance(BOB), 14_900 * BSX);
+		assert_eq!(Balances::free_balance(BOB), 150_000 * BSX);
 		assert_ok!(NFTPallet::transfer(
 			Origin::signed(BOB),
 			CLASS_ID_0,
 			TOKEN_ID_0,
 			CHARLIE
 		));
-		assert_eq!(Balances::free_balance(ALICE), 10_000 * BSX);
-		assert_eq!(Balances::free_balance(BOB), 15_000 * BSX);
-		assert_eq!(Balances::free_balance(CHARLIE), 149_900 * BSX);
+		assert_eq!(Balances::free_balance(ALICE), 179_800 * BSX);
+		assert_eq!(Balances::free_balance(BOB), 150_000 * BSX);
+		assert_eq!(Balances::free_balance(CHARLIE), 15_000 * BSX);
 	});
 }
 
 #[test]
 fn burn_works() {
 	ExtBuilder::default().build().execute_with(|| {
+
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
+
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 		assert_ok!(NFTPallet::create_class(
-			Origin::root(),
-			ClassType::PoolShare,
-			b"metadata".to_vec()
+			Origin::signed(ALICE),
+			metadata
 		));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0,));
 
@@ -152,15 +153,16 @@ fn burn_works() {
 #[test]
 fn destroy_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
+
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
+
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 		assert_ok!(NFTPallet::create_class(
-			Origin::root(),
-			ClassType::PoolShare,
-			b"metadata".to_vec()
+			Origin::signed(ALICE),
+			metadata
 		));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0,));
 
@@ -176,7 +178,7 @@ fn destroy_class_works() {
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_1),
 			Error::<Test>::NotPermitted
 		);
-		assert_ok!(NFTPallet::destroy_class(Origin::root(), CLASS_ID_1));
+		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_1));
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
 			Error::<Test>::ClassUnknown

@@ -39,7 +39,7 @@ fn create_class_and_mint<T: Config>(
 
 	assert!(NFT::Pallet::<T>::create_class(
 		RawOrigin::Signed(caller.clone()).into(),
-		ClassType::Marketplace,
+		Default::default(),
 		metadata.clone()
 	)
 	.is_ok());

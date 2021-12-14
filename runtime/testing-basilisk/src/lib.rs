@@ -132,6 +132,8 @@ pub fn native_version() -> NativeVersion {
 
 use common_runtime::adapter::OrmlTokensAdapter;
 use smallvec::smallvec;
+use pallet_marketplace::MarketPlacePermissions;
+use primitives::ClassType;
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
@@ -433,6 +435,9 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
+
+pub type NftPermissions = MarketPlacePermissions;
+
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
@@ -441,6 +446,8 @@ impl pallet_nft::Config for Runtime {
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
 }
 
 parameter_types! {

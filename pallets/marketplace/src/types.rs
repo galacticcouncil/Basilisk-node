@@ -4,6 +4,8 @@ use frame_support::pallet_prelude::*;
 use serde::{Deserialize, Serialize};
 
 use scale_info::TypeInfo;
+use pallet_nft::NftPermission;
+use primitives::ClassType;
 
 #[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
@@ -25,4 +27,34 @@ pub struct MarketInstance<AccountId, BoundedString> {
 	pub royalty: u8,
 	/// Arbitrary data about an instance, e.g. IPFS hash
 	pub metadata: BoundedString,
+}
+
+#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct MarketPlacePermissions;
+
+impl NftPermission<ClassType> for MarketPlacePermissions{
+	fn can_create(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Marketplace
+	}
+
+	fn can_mint(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Marketplace
+	}
+
+	fn can_transfer(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Marketplace
+	}
+
+	fn can_burn(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Marketplace
+	}
+
+	fn can_destroy(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Marketplace
+	}
+
+	fn has_deposit(class_type: &ClassType) -> bool {
+		*class_type == ClassType::Marketplace
+	}
 }
