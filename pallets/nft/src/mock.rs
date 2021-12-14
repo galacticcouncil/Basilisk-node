@@ -54,27 +54,27 @@ pub struct DefaultPermissions;
 
 impl NftPermission<ClassType> for DefaultPermissions {
 	fn can_create(class_type: &ClassType) -> bool {
-		true
+		*class_type == Default::default()
 	}
 
 	fn can_mint(class_type: &ClassType) -> bool {
-		true
+		*class_type == Default::default()
 	}
 
 	fn can_transfer(class_type: &ClassType) -> bool {
-		true
+		*class_type == Default::default()
 	}
 
 	fn can_burn(class_type: &ClassType) -> bool {
-		true
+		*class_type == Default::default()
 	}
 
 	fn can_destroy(class_type: &ClassType) -> bool {
-		true
+		*class_type == Default::default()
 	}
 
 	fn has_deposit(class_type: &ClassType) -> bool {
-		true
+		*class_type == Default::default()
 	}
 }
 
@@ -84,27 +84,27 @@ pub struct LiquidityMiningPermissions;
 
 impl NftPermission<ClassType> for LiquidityMiningPermissions {
 	fn can_create(class_type: &ClassType) -> bool {
-		false
+		*class_type == ClassType::LiquidityMining
 	}
 
 	fn can_mint(class_type: &ClassType) -> bool {
-		false
+		*class_type == ClassType::LiquidityMining
 	}
 
 	fn can_transfer(class_type: &ClassType) -> bool {
-		false
+		*class_type == ClassType::LiquidityMining
 	}
 
 	fn can_burn(class_type: &ClassType) -> bool {
-		false
+		*class_type == ClassType::LiquidityMining
 	}
 
 	fn can_destroy(class_type: &ClassType) -> bool {
-		false
+		*class_type == ClassType::LiquidityMining
 	}
 
 	fn has_deposit(class_type: &ClassType) -> bool {
-		false
+		*class_type == ClassType::LiquidityMining
 	}
 }
 
