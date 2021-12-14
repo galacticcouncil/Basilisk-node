@@ -348,6 +348,9 @@ pub mod pallet {
 
 		/// Liquidity provider claimed rewards. [who, farm_id, liq_pooo_id, claimed_amount, reward_token]
 		RewardClaimed(AccountIdOf<T>, PoolId, PoolId, Balance, T::CurrencyId),
+
+		/// Shares withdrawn from liq. mining. [who, share_token, amount]
+		SharesWithdrawn(AccountIdOf<T>, T::CurrencyId, Balance),
 	}
 
 	#[pallet::storage]
@@ -771,7 +774,7 @@ pub mod pallet {
 					let deposit = maybe_nft.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
 
 					let amm_account = T::AMM::get_pair_id(asset_pair);
-					let mut liq_pool_canceled = false;
+					let mut can_destroy_nft_class = false;
 					<LiquidityPoolData<T>>::try_mutate(
 						farm_id,
 						amm_account,
@@ -781,7 +784,7 @@ pub mod pallet {
 								//exist, it should only update different things if do exist.
 								let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
 
-								liq_pool_canceled = liq_pool.canceled;
+								can_destroy_nft_class = liq_pool.canceled;
 
 								<GlobalPoolData<T>>::try_mutate(
 									farm_id,
@@ -808,14 +811,12 @@ pub mod pallet {
 										liq_pool.total_shares = liq_pool
 											.total_shares
 											.checked_sub(deposit.shares)
-											.ok_or(Error::<T>::Overflow)?
-											.min(0);
+											.ok_or(Error::<T>::Overflow)?;
 
 										liq_pool.total_valued_shares = liq_pool
 											.total_valued_shares
 											.checked_sub(deposit.valued_shares)
-											.ok_or(Error::<T>::Overflow)?
-											.min(0);
+											.ok_or(Error::<T>::Overflow)?;
 
 										let global_pool_shares =
 											Self::get_global_pool_shares(deposit.valued_shares, liq_pool.multiplier)?;
@@ -823,14 +824,12 @@ pub mod pallet {
 										liq_pool.stake_in_global_pool = liq_pool
 											.stake_in_global_pool
 											.checked_sub(global_pool_shares)
-											.ok_or(Error::<T>::Overflow)?
-											.min(0);
+											.ok_or(Error::<T>::Overflow)?;
 
 										g_pool.total_shares_z = g_pool
 											.total_shares_z
 											.checked_sub(global_pool_shares)
-											.ok_or(Error::<T>::Overflow)?
-											.min(0);
+											.ok_or(Error::<T>::Overflow)?;
 
 										T::MultiCurrency::transfer(
 											g_pool.reward_currency,
@@ -847,32 +846,42 @@ pub mod pallet {
 											reward,
 											g_pool.reward_currency,
 										));
+
 										Ok(())
 									},
 								)?;
-							}
-
-							//Note: how to communicate this to user - no shares will be transferes?
-							if T::AMM::exists(asset_pair) {
-								let amm_token = T::AMM::get_share_token(asset_pair);
-
-								let pallet_account = Self::account_id();
-								T::MultiCurrency::transfer(amm_token, &pallet_account, &who, deposit.shares)?;
-							}
-
-							if nfts_in_class.is_one() && (maybe_liq_pool.is_none() || liq_pool_canceled) {
-								//TODO: Burn NFT
-								*maybe_nft_class = None;
 							} else {
-								*maybe_nft_class = Some((
-									asset_pair,
-									nfts_in_class.checked_sub(1).ok_or(Error::<T>::Overflow)?,
-									farm_id,
-								));
+								can_destroy_nft_class = true;
 							}
 							Ok(())
 						},
 					)?;
+
+					//Note: how to communicate this to user - no shares will be transferes?
+					if T::AMM::exists(asset_pair) {
+						let amm_token = T::AMM::get_share_token(asset_pair);
+
+						let pallet_account = Self::account_id();
+						T::MultiCurrency::transfer(amm_token, &pallet_account, &who, deposit.shares)?;
+
+						//NOTE: Theoretically neither `GlobalPool` nor
+						//`LiquidityPoolYieldFarm` may not exist
+						Self::deposit_event(Event::SharesWithdrawn(who, amm_token, deposit.shares));
+					}
+
+					//TODO: burn nft
+					*maybe_nft = None;
+
+					if nfts_in_class.is_one() && can_destroy_nft_class {
+						//TODO: Burn NFT class
+						*maybe_nft_class = None;
+					} else {
+						*maybe_nft_class = Some((
+							asset_pair,
+							nfts_in_class.checked_sub(1).ok_or(Error::<T>::Overflow)?,
+							farm_id,
+						));
+					}
 					Ok(())
 				})
 			})

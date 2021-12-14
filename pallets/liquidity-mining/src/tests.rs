@@ -3729,6 +3729,724 @@ fn claim_rewards_should_not_work() {
 }
 */
 
+#[test]
+fn withdraw_shares_should_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	let amm_2 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO2,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		const REWARD_CURRENCY: u32 = BSX;
+
+		let pallet_acc = LiquidityMining::account_id();
+		let liq_pool_amm_1_acc = LiquidityMining::pool_account_id(4).unwrap();
+		let liq_pool_amm_2_acc = LiquidityMining::pool_account_id(5).unwrap();
+		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+
+		// withdraw 1A
+		let alice_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
+		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
+		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
+		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
+		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 0));
+
+		expect_events(vec![
+			Event::RewardClaimed(ALICE, GC_FARM, 4, 79_906, BSX).into(),
+			Event::SharesWithdrawn(ALICE, BSX_TO1_SHARE_ID, 50).into(),
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 25,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 12,
+				liq_pools_count: 2,
+				total_shares_z: 691_490,
+				accumulated_rewards: 231_650,
+				paid_accumulated_rewards: 1_164_400,
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 4,
+				updated_at: 25,
+				accumulated_rps: 60,
+				accumulated_rpz: 12,
+				total_shares: 566,
+				total_valued_shares: 43_040,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 215_200,
+				multiplier: 5,
+				nft_class: 0,
+				canceled: false,
+			},
+		);
+
+		//user balances checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
+			alice_rew_curr_balance + 79_906
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
+			alice_amm_1_shares_balance + 50
+		);
+
+		//pallet balances checks
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			pallet_amm_1_shares_balance - 50
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			pallet_amm_2_shares_balance
+		);
+
+		//liq pool farms balance checks
+		//NOTE ... - (reward + unclaimabe)
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
+			liq_pool_amm_1_rew_curr_balance - (79_906 + 70_094)
+		);
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
+			liq_pool_amm_2_rew_curr_balance
+		);
+
+		//global pool balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
+			g_pool_rew_curr_balance + 70_094
+		);
+
+		assert_eq!(LiquidityMining::deposit(0, 0), None);
+
+		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 2, GC_FARM));
+
+		run_to_block(12_800);
+		
+        // withdraw 3B
+		let alice_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
+		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
+		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
+		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
+		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 1, 2));
+
+		expect_events(vec![
+			Event::RewardClaimed(ALICE, GC_FARM, 5, 100_324, BSX).into(),
+			Event::SharesWithdrawn(ALICE, BSX_TO2_SHARE_ID, 87).into(),
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 128,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 63,
+				liq_pools_count: 2,
+				total_shares_z: 688_880,
+				accumulated_rewards: 11_552_595,
+				paid_accumulated_rewards: 25_455_190,
+			}
+		);
+            
+        // this pool should not change
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 4,
+				updated_at: 25,
+				accumulated_rps: 60,
+				accumulated_rpz: 12,
+				total_shares: 566,
+				total_valued_shares: 43_040,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 215_200,
+				multiplier: 5,
+				nft_class: 0,
+				canceled: false,
+			},
+		);
+		
+        assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 5,
+				updated_at: 128,
+				accumulated_rps: 630,
+				accumulated_rpz: 63,
+				total_shares: 873,
+				total_valued_shares: 47_368,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 473_680,
+				multiplier: 10,
+				nft_class: 1,
+				canceled: false,
+			},
+		);
+
+		//user balances checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
+			alice_rew_curr_balance + 100_324
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
+			alice_amm_2_shares_balance + 87
+		);
+
+		//pallet balances checks
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			pallet_amm_1_shares_balance
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			pallet_amm_2_shares_balance - 87
+		);
+
+		//liq pool farms balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
+			liq_pool_amm_1_rew_curr_balance
+		);
+		//NOTE ... pool reward - (reward + unclaimabe)
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
+			(liq_pool_amm_2_rew_curr_balance + 24_290_790 - (100_324 + 32_786))
+		);
+
+		//global pool balance checks
+        //note ... + unclaimabe - pool reward
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
+			g_pool_rew_curr_balance + 32_786 - 24_290_790
+		);
+
+		assert_eq!(LiquidityMining::deposit(1, 2), None);
+
+		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 3, GC_FARM));
+        
+        // withdraw 3A
+		let alice_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
+		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
+		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
+		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
+		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+
+
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 2));
+
+		expect_events(vec![
+			Event::RewardClaimed(ALICE, GC_FARM, 4, 7_472_429, BSX).into(),
+			Event::SharesWithdrawn(ALICE, BSX_TO1_SHARE_ID, 486).into(),
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 128,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 63,
+				liq_pools_count: 2,
+				total_shares_z: 494_480,
+				accumulated_rewards: 577_395,
+				paid_accumulated_rewards: 36_430_390,
+			}
+		);
+            
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 4,
+				updated_at: 128,
+				accumulated_rps: 315,
+				accumulated_rpz: 63,
+				total_shares: 80,
+				total_valued_shares: 4_160,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 20_800,
+				multiplier: 5,
+				nft_class: 0,
+				canceled: false,
+			},
+		);
+		
+		//user balances checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
+			alice_rew_curr_balance +  7_472_429
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
+			alice_amm_1_shares_balance + 486
+		);
+
+		//pallet balances checks
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			pallet_amm_1_shares_balance - 486
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			pallet_amm_2_shares_balance
+		);
+
+		//liq pool farms balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
+			liq_pool_amm_1_rew_curr_balance + 10_975_200 - (7_472_429 + 2_441_971)
+		);
+		//NOTE ... pool reward - (reward + unclaimabe)
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
+			liq_pool_amm_2_rew_curr_balance
+		);
+
+		//global pool balance checks
+        //note ... + unclaimabe - pool reward
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
+			g_pool_rew_curr_balance +  2_441_971- 10_975_200
+		);
+
+		assert_eq!(LiquidityMining::deposit(0, 2), None);
+
+		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 1, GC_FARM));
+
+        // withdraw 2A
+		let bob_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB);
+		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
+		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
+		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
+		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+
+
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 0, 1));
+
+		expect_events(vec![
+			Event::RewardClaimed(BOB, GC_FARM, 4, 855_771, BSX).into(),
+			Event::SharesWithdrawn(BOB, BSX_TO1_SHARE_ID, 80).into(),
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 128,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 63,
+				liq_pools_count: 2,
+				total_shares_z: 473_680,
+				accumulated_rewards: 577_395,
+				paid_accumulated_rewards: 36_430_390,
+			}
+		);
+            
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 4,
+				updated_at: 128,
+				accumulated_rps: 315,
+				accumulated_rpz: 63,
+				total_shares: 0,
+				total_valued_shares: 0,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 0,
+				multiplier: 5,
+				nft_class: 0,
+				canceled: false,
+			},
+		);
+		
+		//user balances checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &BOB),
+			bob_rew_curr_balance + 855_771 
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB),
+			bob_amm_1_shares_balance + 80 
+		);
+
+		//pallet balances checks
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			0 
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			pallet_amm_2_shares_balance
+		);
+
+		//liq pool farms balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
+			liq_pool_amm_1_rew_curr_balance - (855_771 + 267_429)
+		);
+		//NOTE ... pool reward - (reward + unclaimabe)
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
+			liq_pool_amm_2_rew_curr_balance
+		);
+
+		//global pool balance checks
+        //note ... + unclaimabe - pool reward
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
+			g_pool_rew_curr_balance +  267_429
+		);
+
+		assert_eq!(LiquidityMining::deposit(0, 1), None);
+
+		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 0, GC_FARM));
+
+        // withdraw 1B
+		let bob_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
+		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
+		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
+		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
+		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1, 0));
+
+		expect_events(vec![
+			Event::RewardClaimed(BOB, GC_FARM, 5, 95_999, BSX).into(),
+			Event::SharesWithdrawn(BOB, BSX_TO2_SHARE_ID, 25).into(),
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 128,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 63,
+				liq_pools_count: 2,
+				total_shares_z: 471_680,
+				accumulated_rewards: 577_395,
+				paid_accumulated_rewards: 36_430_390,
+			}
+		);
+            
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 4,
+				updated_at: 128,
+				accumulated_rps: 315,
+				accumulated_rpz: 63,
+				total_shares: 0,
+				total_valued_shares: 0,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 0,
+				multiplier: 5,
+				nft_class: 0,
+				canceled: false,
+			},
+		);
+		
+        assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 5,
+				updated_at: 128,
+				accumulated_rps: 630,
+				accumulated_rpz: 63,
+				total_shares: 848,
+				total_valued_shares: 47_168,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 471_680,
+				multiplier: 10,
+				nft_class: 1,
+				canceled: false,
+			},
+		);
+		
+		//user balances checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &BOB),
+			bob_rew_curr_balance +  95_999
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB),
+			bob_amm_2_shares_balance + 25 
+		);
+
+		//pallet balances checks
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			0 
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			pallet_amm_2_shares_balance - 25
+		);
+
+		//liq pool farms balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
+			liq_pool_amm_1_rew_curr_balance
+		);
+		//NOTE ... - (reward + unclaimabe)
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
+			liq_pool_amm_2_rew_curr_balance - (95_999 + 30_001)
+		);
+
+		//global pool balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
+			g_pool_rew_curr_balance + 30_001 
+		);
+
+		assert_eq!(LiquidityMining::deposit(1, 0), None);
+
+		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 2, GC_FARM));
+        
+        // withdraw 4B
+		let alice_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
+		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
+		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
+		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
+		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 1, 3));
+
+		expect_events(vec![
+			Event::RewardClaimed(ALICE, GC_FARM, 5, 295_207, BSX).into(),
+			Event::SharesWithdrawn(ALICE, BSX_TO2_SHARE_ID, 48).into(),
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 128,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 63,
+				liq_pools_count: 2,
+				total_shares_z: 464_000,
+				accumulated_rewards: 577_395,
+				paid_accumulated_rewards: 36_430_390,
+			}
+		);
+		
+        assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 5,
+				updated_at: 128,
+				accumulated_rps: 630,
+				accumulated_rpz: 63,
+				total_shares: 800,
+				total_valued_shares: 46_400,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 464_000,
+				multiplier: 10,
+				nft_class: 1,
+				canceled: false,
+			},
+		);
+		
+		//user balances checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
+			alice_rew_curr_balance + 29_5207 
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
+			alice_amm_2_shares_balance + 48
+		);
+
+		//pallet balances checks
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			0 
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			pallet_amm_2_shares_balance - 48
+		);
+
+		//liq pool farms balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
+			liq_pool_amm_1_rew_curr_balance
+		);
+		//NOTE ... - (reward + unclaimabe)
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
+			liq_pool_amm_2_rew_curr_balance - (29_5207 + 96_473)
+		);
+
+		//global pool balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
+			g_pool_rew_curr_balance +  96_473
+		);
+
+		assert_eq!(LiquidityMining::deposit(1, 3), None);
+
+		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 1, GC_FARM));
+        
+
+        // withdraw 2B
+		let bob_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
+		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
+		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
+		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
+
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1, 1));
+
+		expect_events(vec![
+			Event::RewardClaimed(BOB, GC_FARM, 5, 18_680_461, BSX).into(),
+            frame_system::Event::KilledAccount(29533360621462889584138678125).into(),
+            Event::SharesWithdrawn(BOB, BSX_TO2_SHARE_ID, 800).into(),
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				id: GC_FARM,
+				updated_at: 128,
+				reward_currency: BSX,
+				yield_per_period: Permill::from_percent(50),
+				planned_yielding_periods: 500_u64,
+				blocks_per_period: 100_u64,
+				owner: GC,
+				incentivized_token: BSX,
+				max_reward_per_period: 60_000_000,
+				accumulated_rpz: 63,
+				liq_pools_count: 2,
+				total_shares_z: 0,
+				accumulated_rewards: 577_395,
+				paid_accumulated_rewards: 36_430_390,
+			}
+		);
+		
+        assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				id: 5,
+				updated_at: 128,
+				accumulated_rps: 630,
+				accumulated_rpz: 63,
+				total_shares: 0,
+				total_valued_shares: 0,
+				loyalty_curve: Some(LoyaltyCurve::default()),
+				stake_in_global_pool: 0,
+				multiplier: 10,
+				nft_class: 1,
+				canceled: false,
+			},
+		);
+		
+		//user balances checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &BOB),
+			bob_rew_curr_balance + 18_680_461 
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB),
+			bob_amm_2_shares_balance +800
+		);
+
+		//pallet balances checks
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			0 
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+            0
+		);
+
+		//liq pool farms balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
+			liq_pool_amm_1_rew_curr_balance
+		);
+		//NOTE ... - (reward + unclaimabe)
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
+            0
+		);
+
+		//global pool balance checks
+		assert_eq!(
+			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
+			g_pool_rew_curr_balance + 5_911_539 
+		);
+
+		assert_eq!(LiquidityMining::deposit(1, 1), None);
+
+		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 0, GC_FARM));
+	});
+}
+
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx
 fn is_approx_eq_fixedu128(num_1: FixedU128, num_2: FixedU128, delta: FixedU128) -> bool {
 	let diff = match num_1.cmp(&num_2) {
