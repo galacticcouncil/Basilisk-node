@@ -3,9 +3,9 @@ use frame_support::pallet_prelude::*;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
-use scale_info::TypeInfo;
 use pallet_nft::NftPermission;
 use primitives::ClassType;
+use scale_info::TypeInfo;
 
 #[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
@@ -33,7 +33,7 @@ pub struct MarketInstance<AccountId, BoundedString> {
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct MarketPlacePermissions;
 
-impl NftPermission<ClassType> for MarketPlacePermissions{
+impl NftPermission<ClassType> for MarketPlacePermissions {
 	fn can_create(class_type: &ClassType) -> bool {
 		*class_type == ClassType::Marketplace
 	}

@@ -30,12 +30,10 @@ fn dollar(d: u32) -> u128 {
 fn do_create_class<T: Config>() -> (T::AccountId, <T::Lookup as StaticLookup>::Source, BoundedVecOfUnq<T>) {
 	let caller = create_account::<T>("caller", 0);
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
-	let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
-	assert!(NFT::Pallet::<T>::create_class(
-		RawOrigin::Signed(caller.clone()).into(),
-		metadata.clone()
-	)
-	.is_ok());
+	let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize]
+		.try_into()
+		.unwrap();
+	assert!(NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), metadata.clone()).is_ok());
 	(caller, caller_lookup, metadata)
 }
 

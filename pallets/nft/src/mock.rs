@@ -64,8 +64,8 @@ impl NftPermission<ClassType> for NftPermissions {
 	fn can_transfer(class_type: &ClassType) -> bool {
 		match *class_type {
 			ClassType::Plain => true,
-		    ClassType::LiquidityMining => true,
-			_ => false
+			ClassType::LiquidityMining => true,
+			_ => false,
 		}
 	}
 

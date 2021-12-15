@@ -12,13 +12,10 @@ type NFTPallet = Pallet<Test>;
 #[test]
 fn create_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
 
-		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
-
-		assert_ok!(NFTPallet::create_class(
-			Origin::signed(ALICE),
-			metadata.clone()
-		));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
 		assert_ok!(NFTPallet::do_create_class(
 			ALICE,
 			ClassType::LiquidityMining,
@@ -36,12 +33,10 @@ fn create_class_works() {
 #[test]
 fn mint_works() {
 	ExtBuilder::default().build().execute_with(|| {
-		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
 
-		assert_ok!(NFTPallet::create_class(
-			Origin::signed(ALICE),
-			metadata.clone()
-		));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
 		assert_ok!(NFTPallet::do_create_class(
 			ALICE,
 			ClassType::LiquidityMining,
@@ -55,10 +50,7 @@ fn mint_works() {
 		);
 		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1));
 
-		assert_ok!(NFTPallet::create_class(
-			Origin::signed(ALICE),
-			metadata
-		));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata));
 		assert_noop!(
 			NFTPallet::mint(Origin::signed(ALICE), NON_EXISTING_CLASS_ID),
 			Error::<Test>::ClassUnknown
@@ -79,18 +71,11 @@ fn mint_works() {
 #[test]
 fn transfer_works() {
 	ExtBuilder::default().build().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
 
-		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
-
-		assert_ok!(NFTPallet::create_class(
-			Origin::signed(ALICE),
-			metadata.clone()
-		));
-		assert_ok!(NFTPallet::do_create_class(
-			ALICE,
-			ClassType::LiquidityMining,
-			metadata
-		));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
 		assert_eq!(Balances::free_balance(ALICE), 190_000 * BSX);
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1,));
@@ -120,18 +105,11 @@ fn transfer_works() {
 #[test]
 fn burn_works() {
 	ExtBuilder::default().build().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
 
-		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
-
-		assert_ok!(NFTPallet::create_class(
-			Origin::signed(ALICE),
-			metadata.clone()
-		));
-		assert_ok!(NFTPallet::do_create_class(
-			ALICE,
-			ClassType::LiquidityMining,
-			metadata
-		));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(NFTPallet::do_mint(BOB, CLASS_ID_1));
 
@@ -151,18 +129,11 @@ fn burn_works() {
 #[test]
 fn destroy_class_works() {
 	ExtBuilder::default().build().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
 
-		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
-
-		assert_ok!(NFTPallet::create_class(
-			Origin::signed(ALICE),
-			metadata.clone()
-		));
-		assert_ok!(NFTPallet::do_create_class(
-			ALICE,
-			ClassType::LiquidityMining,
-			metadata
-		));
+		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(NFTPallet::do_mint(BOB, CLASS_ID_1));
 
