@@ -2,6 +2,8 @@ use frame_support::{assert_noop, assert_ok};
 
 use super::*;
 use mock::{Event, *};
+use primitives::ClassType;
+use std::convert::TryInto;
 
 type Market = Pallet<Test>;
 
@@ -14,17 +16,17 @@ fn new_test_ext() -> sp_io::TestExternalities {
 #[test]
 fn set_price_works() {
 	new_test_ext().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
 		assert_ok!(NFT::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			CHARLIE,
 			20,
-			b"metadata".to_vec(),
+			metadata,
 		));
 
 		assert_noop!(
@@ -50,17 +52,17 @@ fn set_price_works() {
 #[test]
 fn buy_works() {
 	new_test_ext().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
 		assert_ok!(NFT::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			CHARLIE,
 			25,
-			b"metadata".to_vec(),
+			metadata,
 		));
 
 		assert_noop!(
@@ -99,17 +101,17 @@ fn buy_works() {
 #[test]
 fn buy_works_2() {
 	new_test_ext().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
 		assert_ok!(NFT::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			CHARLIE,
 			20,
-			b"metadata".to_vec(),
+			metadata,
 		));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
 		assert_ok!(Market::buy(Origin::signed(BOB), 0, 0));
@@ -130,26 +132,24 @@ fn buy_works_2() {
 #[test]
 fn free_trading_works() {
 	new_test_ext().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
 		// Anyone can create a marketplace class
 		assert_ok!(NFT::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 		assert_ok!(NFT::create_class(
 			Origin::signed(BOB),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 		assert_ok!(NFT::create_class(
 			Origin::signed(CHARLIE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
-		assert_ok!(NFT::create_class(
-			Origin::root(),
+		assert_ok!(NFT::do_create_class(
+			ALICE,
 			ClassType::LiquidityMining,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 
 		// Anyone can mint a token in Marketplace class
@@ -159,63 +159,63 @@ fn free_trading_works() {
 			0,
 			ALICE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			1,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			2,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(BOB),
 			0,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(BOB),
 			1,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(BOB),
 			2,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(CHARLIE),
 			0,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(CHARLIE),
 			1,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(CHARLIE),
 			2,
 			DAVE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 
 		// Only instance owner can burn their token
@@ -275,22 +275,22 @@ fn free_trading_works() {
 #[test]
 fn offering_works() {
 	new_test_ext().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> = b"metadata".to_vec().try_into().unwrap();
 		assert_ok!(NFT::create_class(
 			Origin::signed(ALICE),
-			ClassType::Marketplace,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
-		assert_ok!(NFT::create_class(
-			Origin::root(),
+		assert_ok!(NFT::do_create_class(
+			ALICE,
 			ClassType::LiquidityMining,
-			b"metadata".to_vec()
+			metadata.clone()
 		));
 		assert_ok!(Market::mint_for_marketplace(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			CHARLIE,
 			20,
-			b"metadata".to_vec(),
+			metadata.clone(),
 		));
 
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));

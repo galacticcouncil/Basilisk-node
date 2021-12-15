@@ -285,9 +285,7 @@ use pallet_nft::BoundedVecOfUnq;
 
 			ensure!(royalty < 100, pallet_nft::Error::<T>::NotInRange);
 
-			let instance_id: T::NftInstanceId = NFTPallet::<T>::get_next_instance_id(class_id)?;
-
-			pallet_nft::Pallet::<T>::mint(origin, class_id);
+			let instance_id = pallet_nft::Pallet::<T>::do_mint(sender.clone(), class_id)?;
 
 			MarketplaceInstances::<T>::insert(
 				class_id,
@@ -366,10 +364,6 @@ impl<T: Config> Pallet<T> {
 		let owner = pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
 			.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
-
-		let class_type = pallet_nft::Pallet::<T>::classes(class_id)
-			.map(|c| c.class_type)
-			.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
 

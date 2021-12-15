@@ -132,7 +132,7 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = NFT;
+	type InstanceReserveStrategy = ();
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);

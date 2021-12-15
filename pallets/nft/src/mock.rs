@@ -12,6 +12,13 @@ use sp_runtime::{
 	Perbill,
 };
 
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
+
+use codec::{Decode, Encode};
+use frame_support::RuntimeDebug;
+use scale_info::TypeInfo;
+
 mod nfc {
 	// Re-export needed for `impl_outer_event!`.
 	pub use super::super::*;
@@ -21,13 +28,6 @@ type AccountId = AccountId32;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 type Balance = u128;
-
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
-
-use codec::{Decode, Encode};
-use frame_support::RuntimeDebug;
-use scale_info::TypeInfo;
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -50,9 +50,9 @@ parameter_types! {
 
 #[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub struct DefaultPermissions;
+pub struct NftPermissions;
 
-impl NftPermission<ClassType> for DefaultPermissions {
+impl NftPermission<ClassType> for NftPermissions {
 	fn can_create(class_type: &ClassType) -> bool {
 		*class_type == Default::default()
 	}
@@ -62,7 +62,11 @@ impl NftPermission<ClassType> for DefaultPermissions {
 	}
 
 	fn can_transfer(class_type: &ClassType) -> bool {
-		*class_type == Default::default()
+		match *class_type {
+			ClassType::Plain => true,
+		    ClassType::LiquidityMining => true,
+			_ => false
+		}
 	}
 
 	fn can_burn(class_type: &ClassType) -> bool {
@@ -77,41 +81,6 @@ impl NftPermission<ClassType> for DefaultPermissions {
 		*class_type == Default::default()
 	}
 }
-
-#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub struct LiquidityMiningPermissions;
-
-impl NftPermission<ClassType> for LiquidityMiningPermissions {
-	fn can_create(class_type: &ClassType) -> bool {
-		*class_type == ClassType::LiquidityMining
-	}
-
-	fn can_mint(class_type: &ClassType) -> bool {
-		*class_type == ClassType::LiquidityMining
-	}
-
-	fn can_transfer(class_type: &ClassType) -> bool {
-		*class_type == ClassType::LiquidityMining
-	}
-
-	fn can_burn(class_type: &ClassType) -> bool {
-		*class_type == ClassType::LiquidityMining
-	}
-
-	fn can_destroy(class_type: &ClassType) -> bool {
-		*class_type == ClassType::LiquidityMining
-	}
-
-	fn has_deposit(class_type: &ClassType) -> bool {
-		*class_type == ClassType::LiquidityMining
-	}
-}
-
-pub type AllNftPermissions = (
-	DefaultPermissions,
-	LiquidityMiningPermissions,
-);
 
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
@@ -122,7 +91,7 @@ impl pallet_nft::Config for Test {
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
-	type Permissions = AllNftPermissions;
+	type Permissions = NftPermissions;
 }
 
 parameter_types! {

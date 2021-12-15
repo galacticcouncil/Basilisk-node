@@ -116,6 +116,12 @@ pub mod pallet {
 		pub fn mint(origin: OriginFor<T>, class_id: T::NftClassId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
+
+			ensure!(T::Permissions::can_mint(&class_type), Error::<T>::NotPermitted);
+
 			let instance_id = Self::do_mint(sender.clone(), class_id)?;
 
 			Self::deposit_event(Event::InstanceMinted(sender, class_id, instance_id));
@@ -143,6 +149,12 @@ pub mod pallet {
 
 			let dest = T::Lookup::lookup(dest)?;
 
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
+
+			ensure!(T::Permissions::can_transfer(&class_type), Error::<T>::NotPermitted);
+
 			Self::do_transfer(class_id, instance_id, sender.clone(), dest.clone())?;
 
 			Self::deposit_event(Event::InstanceTransferred(sender, dest, class_id, instance_id));
@@ -160,6 +172,12 @@ pub mod pallet {
 		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
+
+			ensure!(T::Permissions::can_burn(&class_type), Error::<T>::NotPermitted);
+
 			Self::do_burn(sender.clone(), class_id, instance_id)?;
 
 			Self::deposit_event(Event::InstanceBurned(sender, class_id, instance_id));
@@ -175,6 +193,12 @@ pub mod pallet {
 		#[transactional]
 		pub fn destroy_class(origin: OriginFor<T>, class_id: T::NftClassId) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
+
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
+
+			ensure!(T::Permissions::can_destroy(&class_type), Error::<T>::NotPermitted);
 
 			Self::do_destroy_class(class_id)?;
 
@@ -261,9 +285,9 @@ impl<T: Config> Pallet<T> {
 		class_type: T::ClassType,
 		metadata: BoundedVecOfUnq<T>,
 	) -> Result<(T::NftClassId, T::ClassType), DispatchError> {
-		ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
-
 		let class_id = Self::get_next_class_id()?;
+
+		println!("Creating. Class: {:?}, Type: {:?}", class_id, class_type);
 
 		let deposit_info = match T::Permissions::has_deposit(&class_type) {
 			false => (Zero::zero(), true),
@@ -285,13 +309,9 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn do_mint(owner: T::AccountId, class_id: T::NftClassId) -> Result<T::NftInstanceId, DispatchError> {
-		let class_type = Self::classes(class_id)
-			.map(|c| c.class_type)
-			.ok_or(Error::<T>::ClassUnknown)?;
-
-		ensure!(T::Permissions::can_mint(&class_type), Error::<T>::NotPermitted);
-
 		let instance_id = Self::get_next_instance_id(class_id)?;
+
+		println!("Minting. Class: {:?}, Instance: {:?}", class_id, instance_id);
 
 		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner, |_details| Ok(()))?;
 
@@ -308,12 +328,6 @@ impl<T: Config> Pallet<T> {
 			return Ok(());
 		}
 
-		let class_type = Self::classes(class_id)
-			.map(|c| c.class_type)
-			.ok_or(Error::<T>::ClassUnknown)?;
-
-		ensure!(T::Permissions::can_transfer(&class_type), Error::<T>::NotPermitted);
-
 		pallet_uniques::Pallet::<T>::do_transfer(
 			class_id.into(),
 			instance_id.into(),
@@ -327,12 +341,6 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn do_burn(owner: T::AccountId, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
-		let class_type = Self::classes(class_id)
-			.map(|c| c.class_type)
-			.ok_or(Error::<T>::ClassUnknown)?;
-
-		ensure!(T::Permissions::can_burn(&class_type), Error::<T>::NotPermitted);
-
 		pallet_uniques::Pallet::<T>::do_burn(
 			class_id.into(),
 			instance_id.into(),
@@ -345,12 +353,6 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn do_destroy_class(class_id: T::NftClassId) -> DispatchResultWithPostInfo {
-		let class_type = Self::classes(class_id)
-			.map(|c| c.class_type)
-			.ok_or(Error::<T>::ClassUnknown)?;
-
-		ensure!(T::Permissions::can_destroy(&class_type), Error::<T>::NotPermitted);
-
 		let witness =
 			pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::NoWitness)?;
 

@@ -11,6 +11,8 @@ use pallet_nft as NFT;
 use pallet_uniques as UNQ;
 use sp_runtime::{traits::UniqueSaturatedInto, SaturatedConversion};
 use sp_std::vec::Vec;
+use NFT::BoundedVecOfUnq;
+use std::convert::TryInto;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;
@@ -31,15 +33,14 @@ fn unit(d: u32) -> u128 {
 
 fn create_class_and_mint<T: Config>(
 	class_id: u32,
-) -> (T::AccountId, T::AccountId, <T::Lookup as StaticLookup>::Source, Vec<u8>) {
+) -> (T::AccountId, T::AccountId, <T::Lookup as StaticLookup>::Source, BoundedVecOfUnq<T>) {
 	let caller = create_account::<T>("caller", 0);
 	let caller2 = create_account::<T>("caller2", 1);
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
-	let metadata = vec![0; <T as UNQ::Config>::StringLimit::get() as usize];
+	let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
 
 	assert!(NFT::Pallet::<T>::create_class(
 		RawOrigin::Signed(caller.clone()).into(),
-		Default::default(),
 		metadata.clone()
 	)
 	.is_ok());
