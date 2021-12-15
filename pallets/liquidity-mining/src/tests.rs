@@ -724,7 +724,7 @@ fn get_reward_per_period_should_work() {
 	];
 
 	for t in testing_values.iter() {
-		assert_eq!(LiquidityMining::get_reward_per_period(t.0, t.1, t.2).unwrap(), t.3);
+		assert_eq!(LiquidityMining::get_global_pool_reward_per_period(t.0, t.1, t.2).unwrap(), t.3);
 	}
 }
 
@@ -1459,8 +1459,8 @@ fn update_global_pool_should_work() {
 
 #[test]
 /// https://docs.google.com/spreadsheets/d/1iSBWBM8XLalMkI4djhcFWRSxz-S4CHtjadoLzGxMD74/edit#gid=1562134162
-fn claim_global_pool_should_work() {
-	//(pool.updated_at, pool.total_shares, pool.accumulated_rps_start, pool.accumulated_rps, pool.reward_currency, pool.accumululated_rewards, ool.paid_accumularted_rewards, shares , reward, pool.accumulated_rps_start, pool.accumululated_rewards, pool.paid_accumularted_rewards)
+fn claim_from_global_pool_should_work() {
+	//(pool.updated_at, pool.total_shares, pool.accumulated_rps_start, pool.accumulated_rps, pool.reward_currency, pool.accumululated_rewards, pool.paid_accumularted_rewards, shares , reward, pool.accumulated_rps_start, pool.accumululated_rewards, pool.paid_accumularted_rewards)
 	let testing_values = vec![
 		(
 			BlockNumber::from(26_u64),
@@ -2182,7 +2182,7 @@ fn update_pool_should_work() {
 
 			assert_eq!(Tokens::free_balance(t.7.try_into().unwrap(), &pool_account_id), 0);
 
-			assert_ok!(LiquidityMining::update_pool(&mut liq_pool, t.6, t.3, t.0, t.7));
+			assert_ok!(LiquidityMining::update_liq_pool(&mut liq_pool, t.6, t.3, t.0, t.7));
 
 			let mut rhs_g_pool = GlobalPool::new(
 				gid,
@@ -2742,7 +2742,7 @@ fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
 					10_000,
 					c
 				),
-				Error::<Test>::InvalidLoyaltyCurverParamB
+				Error::<Test>::InvalidInitialRewardPercentage
 			);
 		}
 	});
@@ -3081,7 +3081,7 @@ fn deposit_shares_should_work() {
 				valued_shares: 2_500,
 				accumulated_rps: 0,
 				accumulated_claimed_rewards: 0,
-				entered_period: 18,
+				entered_at: 18,
 			},
 		);
 
@@ -3147,7 +3147,7 @@ fn deposit_shares_should_work() {
 				valued_shares: 4_160,
 				accumulated_rps: 45,
 				accumulated_claimed_rewards: 0,
-				entered_period: 18,
+				entered_at: 18,
 			},
 		);
 
@@ -3213,7 +3213,7 @@ fn deposit_shares_should_work() {
 				valued_shares: 200,
 				accumulated_rps: 0,
 				accumulated_claimed_rewards: 0,
-				entered_period: 18,
+				entered_at: 18,
 			},
 		);
 
@@ -3287,7 +3287,7 @@ fn deposit_shares_should_work() {
 				valued_shares: 46_400,
 				accumulated_rps: 100,
 				accumulated_claimed_rewards: 0,
-				entered_period: 20,
+				entered_at: 20,
 			},
 		);
 
@@ -3361,7 +3361,7 @@ fn deposit_shares_should_work() {
 				valued_shares: 261,
 				accumulated_rps: 120,
 				accumulated_claimed_rewards: 0,
-				entered_period: 25,
+				entered_at: 25,
 			},
 		);
 
@@ -3437,7 +3437,7 @@ fn deposit_shares_should_work() {
 				valued_shares: 768,
 				accumulated_rps: 120,
 				accumulated_claimed_rewards: 0,
-				entered_period: 25,
+				entered_at: 25,
 			},
 		);
 
@@ -3520,7 +3520,7 @@ fn deposit_shares_should_work() {
 				valued_shares: 38_880,
 				accumulated_rps: 60,
 				accumulated_claimed_rewards: 0,
-				entered_period: 25,
+				entered_at: 25,
 			},
 		);
 
@@ -3563,7 +3563,7 @@ fn claim_rewards_should_work() {
 				valued_shares: 2_500,
 				accumulated_rps: 0,
 				accumulated_claimed_rewards: 79_906,
-				entered_period: 18,
+				entered_at: 18,
 			}
 		);
 
@@ -3589,7 +3589,7 @@ fn claim_rewards_should_work() {
 				valued_shares: 261,
 				accumulated_rps: 120,
 				accumulated_claimed_rewards: 2_734,
-				entered_period: 25,
+				entered_at: 25,
 			}
 		);
 
@@ -3655,7 +3655,7 @@ fn claim_rewards_should_work() {
 				valued_shares: 2_500,
 				accumulated_rps: 0,
 				accumulated_claimed_rewards: 7_557_089,
-				entered_period: 18,
+				entered_at: 18,
 			}
 		);
 
