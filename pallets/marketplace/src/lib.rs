@@ -14,8 +14,6 @@ use sp_runtime::{
 	Percent,
 };
 
-use pallet_nft::Pallet as NFTPallet;
-
 use types::*;
 use weights::WeightInfo;
 
@@ -33,8 +31,7 @@ mod tests;
 
 type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
-type MarketInstanceOf<T> =
-	MarketInstance<<T as frame_system::Config>::AccountId, BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
+type MarketInstanceOf<T> = MarketInstance<<T as frame_system::Config>::AccountId>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -44,7 +41,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-	use pallet_nft::BoundedVecOfUnq;
 
 	/// An identifier for a reserve. Used for disambiguating different reserves so that
 	/// they can be individually replaced or removed.
@@ -128,7 +124,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(
-				pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into()) == Some(sender.clone()),
+				pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id) == Some(sender.clone()),
 				Error::<T>::NotTheTokenOwner
 			);
 
@@ -207,7 +203,7 @@ pub mod pallet {
 			Offers::<T>::try_mutate_exists(token_id, maker, |maybe_offer| -> DispatchResult {
 				let offer = maybe_offer.take().ok_or(Error::<T>::UnknownOffer)?;
 
-				let owner = pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
+				let owner = pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id)
 					.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
 				ensure!(
@@ -270,34 +266,30 @@ pub mod pallet {
 		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash
 		#[pallet::weight(<T as Config>::WeightInfo::mint_for_marketplace())]
 		#[transactional]
-		pub fn mint_for_marketplace(
+		pub fn add_royalty(
 			origin: OriginFor<T>,
 			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
 			author: T::AccountId,
 			royalty: u8,
-			metadata: BoundedVecOfUnq<T>,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin)?;
 
-			let class_type = NFTPallet::<T>::classes(class_id)
-				.map(|c| c.class_type)
-				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
-
-			ensure!(royalty < 100, pallet_nft::Error::<T>::NotInRange);
-
-			let instance_id = pallet_nft::Pallet::<T>::do_mint(sender.clone(), class_id)?;
+			ensure!(royalty <= 100, pallet_nft::Error::<T>::NotInRange);
+			let owner = pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id)
+				.ok_or(pallet_nft::Error::<T>::InstanceUnknown)?;
+			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);
 
 			MarketplaceInstances::<T>::insert(
 				class_id,
 				instance_id,
 				MarketInstance {
-					author,
+					author: author.clone(),
 					royalty,
-					metadata,
 				},
 			);
 
-			Self::deposit_event(Event::InstanceMinted(class_type, sender, class_id, instance_id));
+			Self::deposit_event(Event::MarketplaceDataAdded(class_id, instance_id, author, royalty));
 
 			Ok(())
 		}
@@ -324,8 +316,8 @@ pub mod pallet {
 		OfferAccepted(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>),
 		/// Royalty hs been paid to the author \[class_id, instance_id, author, royalty, royalty_amount\]
 		RoyaltyPaid(T::NftClassId, T::NftInstanceId, T::AccountId, u8, BalanceOf<T>),
-		/// An instance was minted \[class_type, sender, class_id, instance_id\]
-		InstanceMinted(T::ClassType, T::AccountId, T::NftClassId, T::NftInstanceId),
+		/// Marketplace data has been added \[class_type, sender, class_id, instance_id\]
+		MarketplaceDataAdded(T::NftClassId, T::NftInstanceId, T::AccountId, u8),
 	}
 
 	#[pallet::error]
@@ -361,8 +353,8 @@ impl<T: Config> Pallet<T> {
 		instance_id: T::NftInstanceId,
 		is_offer: bool,
 	) -> DispatchResult {
-		let owner = pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
-			.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+		let owner =
+			pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
@@ -378,36 +370,34 @@ impl<T: Config> Pallet<T> {
 				price.take().ok_or(Error::<T>::NotForSale)?
 			};
 
-			// Marketplace specific logic
+			// Settle royalty if set
+			if let Some(instance_info) = MarketplaceInstances::<T>::get(class_id, instance_id) {
+				let royalty = instance_info.royalty;
+				let author = instance_info.author;
 
-			let instance_info =
-				MarketplaceInstances::<T>::get(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+				// Calculate royalty and subtract from price if author different from buyer
+				let royalty_perc = Percent::from_percent(royalty);
+				let royalty_amount = royalty_perc * price;
 
-			let royalty = instance_info.royalty;
-			let author = instance_info.author;
+				if owner != author && royalty != 0u8 {
+					price = price.saturating_sub(royalty_amount);
 
-			// Calculate royalty and subtract from price if author different from buyer
-			let royalty_perc = Percent::from_percent(royalty);
-			let royalty_amount = royalty_perc * price;
+					// Send royalty to author
+					<T as pallet_nft::Config>::Currency::transfer(
+						&buyer,
+						&author,
+						royalty_amount,
+						ExistenceRequirement::KeepAlive,
+					)?;
 
-			if owner != author && royalty != 0u8 {
-				price = price.saturating_sub(royalty_amount);
-
-				// Send royalty to author
-				<T as pallet_nft::Config>::Currency::transfer(
-					&buyer,
-					&author,
-					royalty_amount,
-					ExistenceRequirement::KeepAlive,
-				)?;
-
-				Self::deposit_event(Event::RoyaltyPaid(
-					class_id,
-					instance_id,
-					author,
-					royalty,
-					royalty_amount,
-				));
+					Self::deposit_event(Event::RoyaltyPaid(
+						class_id,
+						instance_id,
+						author,
+						royalty,
+						royalty_amount,
+					));
+				}
 			}
 
 			// Send the net price from current to the previous owner

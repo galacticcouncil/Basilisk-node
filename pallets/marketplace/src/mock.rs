@@ -2,12 +2,19 @@ use crate as pallet_marketplace;
 use frame_support::{parameter_types, traits::Everything};
 use frame_system as system;
 use primitives::{ClassType, ReserveIdentifier};
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use system::EnsureRoot;
+
+use codec::{Decode, Encode};
+use frame_support::RuntimeDebug;
+use pallet_nft::NftPermission;
+use scale_info::TypeInfo;
 
 mod marketplace {
 	// Re-export needed for `impl_outer_event!`.
@@ -51,6 +58,59 @@ impl pallet_marketplace::Config for Test {
 	type MinimumOfferAmount = MinimumOfferAmount;
 }
 
+#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct NftPermissions;
+
+impl NftPermission<ClassType> for NftPermissions {
+	fn can_create(class_type: &ClassType) -> bool {
+		match *class_type {
+			ClassType::Plain => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
+	}
+
+	fn can_mint(class_type: &ClassType) -> bool {
+		match *class_type {
+			ClassType::Plain => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
+	}
+
+	fn can_transfer(class_type: &ClassType) -> bool {
+		match *class_type {
+			ClassType::Plain => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
+	}
+
+	fn can_burn(class_type: &ClassType) -> bool {
+		match *class_type {
+			ClassType::Plain => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
+	}
+
+	fn can_destroy(class_type: &ClassType) -> bool {
+		match *class_type {
+			ClassType::Plain => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
+	}
+
+	fn has_deposit(class_type: &ClassType) -> bool {
+		match *class_type {
+			ClassType::Plain => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
+	}
+}
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
@@ -60,7 +120,7 @@ impl pallet_nft::Config for Test {
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
-	type Permissions = ();
+	type Permissions = NftPermissions;
 }
 
 parameter_types! {
@@ -143,6 +203,10 @@ pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 
 pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
+pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1;
+
+pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
+pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {
@@ -157,7 +221,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: vec![
-				(ALICE, 20_000 * BSX),
+				(ALICE, 200_000 * BSX),
 				(BOB, 15_000 * BSX),
 				(CHARLIE, 150_000 * BSX),
 				(DAVE, 200_000 * BSX),

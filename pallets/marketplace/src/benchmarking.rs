@@ -46,7 +46,12 @@ fn create_class_and_mint<T: Config>(
 		.try_into()
 		.unwrap();
 
-	assert!(NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), metadata.clone()).is_ok());
+	assert!(NFT::Pallet::<T>::create_class(
+		RawOrigin::Signed(caller.clone()).into(),
+		Default::default(),
+		metadata.clone()
+	)
+	.is_ok());
 
 	assert!(NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id.into(),).is_ok());
 	(caller, caller2, caller_lookup, metadata)

@@ -15,7 +15,20 @@ fn create_class_works() {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
 
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			metadata.clone()
+		));
+		assert_noop!(
+			NFTPallet::create_class(Origin::signed(ALICE), ClassType::LiquidityMining, metadata.clone()),
+			Error::<Test>::NotPermitted
+		);
 		assert_ok!(NFTPallet::do_create_class(
 			ALICE,
 			ClassType::LiquidityMining,
@@ -24,7 +37,7 @@ fn create_class_works() {
 
 		NextClassId::<Test>::mutate(|id| *id = <Test as UNQ::Config>::ClassId::max_value());
 		assert_noop!(
-			NFTPallet::create_class(Origin::signed(ALICE), metadata),
+			NFTPallet::create_class(Origin::signed(ALICE), Default::default(), metadata),
 			Error::<Test>::NoAvailableClassId
 		);
 	})
@@ -36,7 +49,11 @@ fn mint_works() {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
 
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
 		assert_ok!(NFTPallet::do_create_class(
 			ALICE,
 			ClassType::LiquidityMining,
@@ -50,7 +67,11 @@ fn mint_works() {
 		);
 		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1));
 
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata
+		));
 		assert_noop!(
 			NFTPallet::mint(Origin::signed(ALICE), NON_EXISTING_CLASS_ID),
 			Error::<Test>::ClassUnknown
@@ -74,7 +95,11 @@ fn transfer_works() {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
 
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
 		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
 		assert_eq!(Balances::free_balance(ALICE), 190_000 * BSX);
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
@@ -108,7 +133,11 @@ fn burn_works() {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
 
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
 		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(NFTPallet::do_mint(BOB, CLASS_ID_1));
@@ -132,7 +161,11 @@ fn destroy_class_works() {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
 
-		assert_ok!(NFTPallet::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFTPallet::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
 		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
 		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(NFTPallet::do_mint(BOB, CLASS_ID_1));

@@ -33,7 +33,12 @@ fn do_create_class<T: Config>() -> (T::AccountId, <T::Lookup as StaticLookup>::S
 	let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize]
 		.try_into()
 		.unwrap();
-	assert!(NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), metadata.clone()).is_ok());
+	assert!(NFT::Pallet::<T>::create_class(
+		RawOrigin::Signed(caller.clone()).into(),
+		Default::default(),
+		metadata.clone()
+	)
+	.is_ok());
 	(caller, caller_lookup, metadata)
 }
 
@@ -47,7 +52,7 @@ benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
 		let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
-	}: _(RawOrigin::Signed(caller.clone()), metadata)
+	}: _(RawOrigin::Signed(caller.clone()), Default::default(), metadata)
 	verify {
 		assert_eq!(UNQ::Pallet::<T>::class_owner(&T::NftClassId::from(0u32).into()), Some(caller));
 	}

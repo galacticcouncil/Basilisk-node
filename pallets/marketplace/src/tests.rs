@@ -18,13 +18,18 @@ fn set_price_works() {
 	new_test_ext().execute_with(|| {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), metadata.clone()));
-		assert_ok!(Market::mint_for_marketplace(
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
+		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
+			INSTANCE_ID_0,
 			CHARLIE,
 			20,
-			metadata,
 		));
 
 		assert_noop!(
@@ -52,13 +57,18 @@ fn buy_works() {
 	new_test_ext().execute_with(|| {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), metadata.clone()));
-		assert_ok!(Market::mint_for_marketplace(
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
+		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
+			INSTANCE_ID_0,
 			CHARLIE,
 			25,
-			metadata,
 		));
 
 		assert_noop!(
@@ -81,11 +91,8 @@ fn buy_works() {
 
 		assert_eq!(Market::prices(0, 0), None);
 
-		// e.g. Alice free balance = Total balance - Class deposit + Price - Royalty
-		// = 20_000 - 10_000 + 1024 - 256 = 10_768
-		assert_eq!(Balances::free_balance(ALICE), 10_768 * BSX);
-		// BOB now owns NFT so reserved balance should be transferred to him
-		assert_eq!(Balances::free_balance(BOB), 13_876 * BSX);
+		assert_eq!(Balances::free_balance(ALICE), 190_668 * BSX);
+		assert_eq!(Balances::free_balance(BOB), 13_976 * BSX);
 		assert_eq!(Balances::free_balance(CHARLIE), 150_256 * BSX);
 		assert_eq!(Balances::free_balance(DAVE), 200_000 * BSX);
 
@@ -99,24 +106,29 @@ fn buy_works_2() {
 	new_test_ext().execute_with(|| {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), metadata.clone()));
-		assert_ok!(Market::mint_for_marketplace(
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
+		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
+			INSTANCE_ID_0,
 			CHARLIE,
 			20,
-			metadata,
 		));
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
 		assert_ok!(Market::buy(Origin::signed(BOB), 0, 0));
 		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
-		assert_eq!(Balances::total_balance(&ALICE), 20_080 * BSX);
+		assert_eq!(Balances::total_balance(&ALICE), 200_080 * BSX);
 		assert_eq!(Balances::total_balance(&BOB), 14_900 * BSX);
 		assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * BSX);
 		// Reserved 10_000 for the class
-		assert_eq!(Balances::reserved_balance(&ALICE), 10_000 * BSX);
+		assert_eq!(Balances::reserved_balance(&ALICE), 10_100 * BSX);
 		// Reserved 100 for the transferred nft
-		assert_eq!(Balances::reserved_balance(&BOB), 100 * BSX);
+		assert_eq!(Balances::reserved_balance(&BOB), 0);
 		assert_ok!(NFT::burn(Origin::signed(BOB), 0, 0));
 		assert_eq!(Balances::reserved_balance(&ALICE), 10_000 * BSX);
 		assert_eq!(Balances::reserved_balance(&BOB), 0);
@@ -124,137 +136,78 @@ fn buy_works_2() {
 }
 
 #[test]
-fn free_trading_works() {
+fn trading_works() {
 	new_test_ext().execute_with(|| {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
-		// Anyone can create a marketplace class
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), metadata.clone()));
-		assert_ok!(NFT::create_class(Origin::signed(BOB), metadata.clone()));
-		assert_ok!(NFT::create_class(Origin::signed(CHARLIE), metadata.clone()));
-		assert_ok!(NFT::do_create_class(
-			ALICE,
-			ClassType::LiquidityMining,
+
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
 			metadata.clone()
 		));
+		assert_ok!(NFT::create_class(
+			Origin::signed(BOB),
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFT::create_class(
+			Origin::signed(CHARLIE),
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
+		assert_ok!(NFT::mint(Origin::signed(BOB), CLASS_ID_1));
+		assert_ok!(NFT::mint(Origin::signed(BOB), CLASS_ID_1));
 
-		// Anyone can mint a token in Marketplace class
-		// Only root in liquidity mining
-		assert_ok!(Market::mint_for_marketplace(
+		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
-			0,
+			CLASS_ID_0,
+			INSTANCE_ID_0,
 			ALICE,
 			20,
-			metadata.clone(),
 		));
-		assert_ok!(Market::mint_for_marketplace(
-			Origin::signed(ALICE),
-			1,
-			DAVE,
-			20,
-			metadata.clone(),
-		));
-		assert_ok!(Market::mint_for_marketplace(
-			Origin::signed(ALICE),
-			2,
-			DAVE,
-			20,
-			metadata.clone(),
-		));
-		assert_ok!(Market::mint_for_marketplace(
-			Origin::signed(BOB),
-			0,
-			DAVE,
-			20,
-			metadata.clone(),
-		));
-		assert_ok!(Market::mint_for_marketplace(
-			Origin::signed(BOB),
-			1,
-			DAVE,
-			20,
-			metadata.clone(),
-		));
-		assert_ok!(Market::mint_for_marketplace(
-			Origin::signed(BOB),
-			2,
-			DAVE,
-			20,
-			metadata.clone(),
-		));
-		assert_ok!(Market::mint_for_marketplace(
-			Origin::signed(CHARLIE),
-			0,
-			DAVE,
-			20,
-			metadata.clone(),
-		));
-		assert_ok!(Market::mint_for_marketplace(
-			Origin::signed(CHARLIE),
-			1,
-			DAVE,
-			20,
-			metadata.clone(),
-		));
-		assert_ok!(Market::mint_for_marketplace(
-			Origin::signed(CHARLIE),
-			2,
-			DAVE,
-			20,
-			metadata.clone(),
-		));
-
-		// Only instance owner can burn their token
-		assert_noop!(
-			NFT::burn(Origin::signed(ALICE), 1, 1),
-			pallet_nft::Error::<Test>::NotPermitted
-		);
-		assert_noop!(
-			NFT::burn(Origin::signed(CHARLIE), 1, 1),
-			pallet_nft::Error::<Test>::NotPermitted
-		);
-		assert_ok!(NFT::burn(Origin::signed(ALICE), 2, 0));
-		assert_ok!(NFT::burn(Origin::signed(BOB), 2, 1));
-		assert_ok!(NFT::burn(Origin::signed(CHARLIE), 2, 2));
-
-		// Only class owner or ForceOrigin can destroy their class
-		assert_ok!(NFT::destroy_class(Origin::signed(CHARLIE), 2));
-
-		assert_noop!(
-			NFT::destroy_class(Origin::signed(CHARLIE), 1),
-			pallet_nft::Error::<Test>::TokenClassNotEmpty
-		);
 
 		// Only token owner can set price of a token on marketplace
 		assert_noop!(
-			Market::set_price(Origin::signed(CHARLIE), 1, 1, Some(20)),
+			Market::set_price(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0, Some(20)),
 			Error::<Test>::NotTheTokenOwner
 		);
-		assert_ok!(Market::set_price(Origin::signed(BOB), 1, 1, Some(100)));
+		assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(100)
+		));
 
 		// Anyone can trade NFTs freely from each other
-		assert_ok!(Market::buy(Origin::signed(ALICE), 1, 1));
-		assert_ok!(Market::set_price(Origin::signed(ALICE), 1, 1, Some(200)));
+		assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+		assert_ok!(Market::set_price(
+			Origin::signed(BOB),
+			CLASS_ID_1,
+			INSTANCE_ID_1,
+			Some(200)
+		));
 
-		assert_ok!(Market::buy(Origin::signed(BOB), 1, 1));
-		assert_ok!(Market::set_price(Origin::signed(BOB), 1, 1, Some(300)));
-
-		assert_ok!(Market::buy(Origin::signed(CHARLIE), 1, 1));
-		assert_ok!(Market::set_price(Origin::signed(CHARLIE), 1, 1, Some(400)));
-
-		assert_noop!(Market::buy(Origin::signed(CHARLIE), 1, 1), Error::<Test>::BuyFromSelf);
-
-		// Liquidity mining token
-		// assert_ok!(Market::set_price(Origin::signed(DAVE), 3, 0, Some(1000)));
-		// assert_ok!(Market::buy(Origin::signed(ALICE), 3, 0));
-		// assert_eq!(pallet_uniques::Pallet::<Test>::owner(3, 0), Some(ALICE));
+		assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_1, INSTANCE_ID_1));
+		assert_ok!(Market::set_price(
+			Origin::signed(CHARLIE),
+			CLASS_ID_1,
+			INSTANCE_ID_1,
+			Some(300)
+		));
 
 		assert_noop!(
-			NFT::burn(Origin::signed(BOB), 1, 1),
+			Market::buy(Origin::signed(CHARLIE), CLASS_ID_1, INSTANCE_ID_1),
+			Error::<Test>::BuyFromSelf
+		);
+
+		assert_noop!(
+			NFT::burn(Origin::signed(BOB), CLASS_ID_1, INSTANCE_ID_1),
 			pallet_nft::Error::<Test>::NotPermitted
 		);
 
-		assert_ok!(NFT::burn(Origin::signed(CHARLIE), 1, 1));
+		assert_ok!(NFT::burn(Origin::signed(CHARLIE), CLASS_ID_1, INSTANCE_ID_1));
 	});
 }
 
@@ -263,18 +216,23 @@ fn offering_works() {
 	new_test_ext().execute_with(|| {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(Origin::signed(ALICE), metadata.clone()));
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(NFT::do_create_class(
 			ALICE,
 			ClassType::LiquidityMining,
 			metadata.clone()
 		));
-		assert_ok!(Market::mint_for_marketplace(
+		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
+			INSTANCE_ID_0,
 			CHARLIE,
 			20,
-			metadata.clone(),
 		));
 
 		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
@@ -319,8 +277,30 @@ fn offering_works() {
 		assert_ok!(Market::accept_offer(Origin::signed(ALICE), 0, 0, BOB));
 		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
 		// Total = 20_000 + 50 - 10 = 20_040
-		assert_eq!(Balances::total_balance(&ALICE), 20_040 * BSX);
+		assert_eq!(Balances::total_balance(&ALICE), 200_040 * BSX);
 		assert_eq!(Balances::total_balance(&BOB), 14_950 * BSX);
 		assert_eq!(Balances::total_balance(&CHARLIE), 150_010 * BSX);
+	});
+}
+
+#[test]
+fn add_royalty_works() {
+	new_test_ext().execute_with(|| {
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			ClassType::Marketplace,
+			metadata.clone()
+		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
+
+		assert_ok!(Market::add_royalty(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			CHARLIE,
+			20,
+		));
 	});
 }

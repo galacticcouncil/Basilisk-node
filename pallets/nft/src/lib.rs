@@ -24,7 +24,7 @@ pub mod types;
 pub mod weights;
 
 #[cfg(test)]
-mod mock;
+pub mod mock;
 
 #[cfg(test)]
 mod tests;
@@ -96,8 +96,14 @@ pub mod pallet {
 		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(origin: OriginFor<T>, metadata: BoundedVecOfUnq<T>) -> DispatchResult {
+		pub fn create_class(
+			origin: OriginFor<T>,
+			class_type: T::ClassType,
+			metadata: BoundedVecOfUnq<T>,
+		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
+
+			ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
 
 			let (class_id, class_type) = Self::do_create_class(sender.clone(), Default::default(), metadata)?;
 
@@ -240,6 +246,8 @@ pub mod pallet {
 		TokenClassNotEmpty,
 		/// Class does not exist
 		ClassUnknown,
+		/// Instance does not exist
+		InstanceUnknown,
 		/// Royalty has to be set for marketplace
 		RoyaltyNotSet,
 		/// Author has to be set for marketplace
@@ -280,14 +288,20 @@ impl<T: Config> Pallet<T> {
 		})
 	}
 
+	pub fn class_owner(class_id: T::NftClassId) -> Option<T::AccountId> {
+		pallet_uniques::Pallet::<T>::class_owner(&class_id.into())
+	}
+
+	pub fn instance_owner(class_id: T::NftClassId, instance_id: T::NftInstanceId) -> Option<T::AccountId> {
+		pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
+	}
+
 	pub fn do_create_class(
 		owner: T::AccountId,
 		class_type: T::ClassType,
 		metadata: BoundedVecOfUnq<T>,
 	) -> Result<(T::NftClassId, T::ClassType), DispatchError> {
 		let class_id = Self::get_next_class_id()?;
-
-		println!("Creating. Class: {:?}, Type: {:?}", class_id, class_type);
 
 		let deposit_info = match T::Permissions::has_deposit(&class_type) {
 			false => (Zero::zero(), true),
@@ -310,8 +324,6 @@ impl<T: Config> Pallet<T> {
 
 	pub fn do_mint(owner: T::AccountId, class_id: T::NftClassId) -> Result<T::NftInstanceId, DispatchError> {
 		let instance_id = Self::get_next_instance_id(class_id)?;
-
-		println!("Minting. Class: {:?}, Instance: {:?}", class_id, instance_id);
 
 		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner, |_details| Ok(()))?;
 

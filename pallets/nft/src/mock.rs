@@ -54,11 +54,19 @@ pub struct NftPermissions;
 
 impl NftPermission<ClassType> for NftPermissions {
 	fn can_create(class_type: &ClassType) -> bool {
-		*class_type == Default::default()
+		match *class_type {
+			ClassType::Plain => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
 	}
 
 	fn can_mint(class_type: &ClassType) -> bool {
-		*class_type == Default::default()
+		match *class_type {
+			ClassType::Plain => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
 	}
 
 	fn can_transfer(class_type: &ClassType) -> bool {
