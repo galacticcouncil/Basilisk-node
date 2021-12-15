@@ -724,7 +724,10 @@ fn get_reward_per_period_should_work() {
 	];
 
 	for t in testing_values.iter() {
-		assert_eq!(LiquidityMining::get_global_pool_reward_per_period(t.0, t.1, t.2).unwrap(), t.3);
+		assert_eq!(
+			LiquidityMining::get_global_pool_reward_per_period(t.0, t.1, t.2).unwrap(),
+			t.3
+		);
 	}
 }
 
@@ -3536,10 +3539,41 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), 952_000);
 	});
 }
+
+#[test]
+fn deposit_shares_insufficient_shares_balance_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let assets = AssetPair {
+			asset_in: BSX,
+			asset_out: TO1,
+		};
+
+		assert_noop!(
+			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, assets, 4_000_000),
+			Error::<Test>::InsufficientAmmSharesBalance
+		);
+	});
+}
+
+#[test]
+fn deposit_shares_non_existing_liq_pool_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let assets = AssetPair {
+			asset_in: BSX,
+			asset_out: DOT,
+		};
+
+		assert_noop!(
+			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, assets, 10_000),
+			Error::<Test>::LiquidityPoolNotFound
+		);
+	});
+}
+
 /*
 #[test]
-fn deposit_shares_should_not_work() {
-	todo!()
+fn deposit_shares_canceled_liq_pool_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| todo!());
 }
 */
 
@@ -3722,13 +3756,49 @@ fn claim_rewards_should_work() {
 	});
 }
 
-/*
 #[test]
-fn claim_rewards_should_not_work() {
+fn claim_reward_invalid_nft_class_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let invalid_nft_class = 5486;
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), invalid_nft_class, 0),
+			Error::<Test>::NftClassDoesNotExists
+		);
+	});
+}
+
+#[test]
+fn claim_reward_invalid_nft_id_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let invalid_nft_id = 684;
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, invalid_nft_id),
+			Error::<Test>::NftDoesNotExist
+		);
+	});
+}
+
+/*
+
+#[test]
+fn claim_reward_from_pool_does_not_exist_should_not_work() {
+    //best to after cancel_liq_pool() and remove_liq_pool()
+	todo!()
+}
+ 
+#[test]
+fn claim_reward_from_canceled_pool_should_not_work() {
+    //best to after cancel_liq_pool() and remove_liq_pool()
+	todo!()
+}
+
+#[test]
+fn claim_reward_not_deposit_owner_should_not_work() {
 	todo!()
 }
 */
-
 #[test]
 fn withdraw_shares_should_work() {
 	let amm_1 = AssetPair {
@@ -3844,8 +3914,8 @@ fn withdraw_shares_should_work() {
 		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 2, GC_FARM));
 
 		run_to_block(12_800);
-		
-        // withdraw 3B
+
+		// withdraw 3B
 		let alice_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
 		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
@@ -3880,8 +3950,8 @@ fn withdraw_shares_should_work() {
 				paid_accumulated_rewards: 25_455_190,
 			}
 		);
-            
-        // this pool should not change
+
+		// this pool should not change
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
@@ -3898,8 +3968,8 @@ fn withdraw_shares_should_work() {
 				canceled: false,
 			},
 		);
-		
-        assert_eq!(
+
+		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: 5,
@@ -3948,7 +4018,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		//global pool balance checks
-        //note ... + unclaimabe - pool reward
+		//note ... + unclaimabe - pool reward
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
 			g_pool_rew_curr_balance + 32_786 - 24_290_790
@@ -3957,8 +4027,8 @@ fn withdraw_shares_should_work() {
 		assert_eq!(LiquidityMining::deposit(1, 2), None);
 
 		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 3, GC_FARM));
-        
-        // withdraw 3A
+
+		// withdraw 3A
 		let alice_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
 		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
@@ -3966,7 +4036,6 @@ fn withdraw_shares_should_work() {
 		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
 		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
 		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
-
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 2));
 
@@ -3994,7 +4063,7 @@ fn withdraw_shares_should_work() {
 				paid_accumulated_rewards: 36_430_390,
 			}
 		);
-            
+
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
@@ -4011,11 +4080,11 @@ fn withdraw_shares_should_work() {
 				canceled: false,
 			},
 		);
-		
+
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			alice_rew_curr_balance +  7_472_429
+			alice_rew_curr_balance + 7_472_429
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
@@ -4044,24 +4113,23 @@ fn withdraw_shares_should_work() {
 		);
 
 		//global pool balance checks
-        //note ... + unclaimabe - pool reward
+		//note ... + unclaimabe - pool reward
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance +  2_441_971- 10_975_200
+			g_pool_rew_curr_balance + 2_441_971 - 10_975_200
 		);
 
 		assert_eq!(LiquidityMining::deposit(0, 2), None);
 
 		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 1, GC_FARM));
 
-        // withdraw 2A
+		// withdraw 2A
 		let bob_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB);
 		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
 		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
 		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
 		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
 		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
-
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 0, 1));
 
@@ -4089,7 +4157,7 @@ fn withdraw_shares_should_work() {
 				paid_accumulated_rewards: 36_430_390,
 			}
 		);
-            
+
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
@@ -4106,22 +4174,19 @@ fn withdraw_shares_should_work() {
 				canceled: false,
 			},
 		);
-		
+
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &BOB),
-			bob_rew_curr_balance + 855_771 
+			bob_rew_curr_balance + 855_771
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB),
-			bob_amm_1_shares_balance + 80 
+			bob_amm_1_shares_balance + 80
 		);
 
 		//pallet balances checks
-		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
-			0 
-		);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
 			pallet_amm_2_shares_balance
@@ -4139,17 +4204,17 @@ fn withdraw_shares_should_work() {
 		);
 
 		//global pool balance checks
-        //note ... + unclaimabe - pool reward
+		//note ... + unclaimabe - pool reward
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance +  267_429
+			g_pool_rew_curr_balance + 267_429
 		);
 
 		assert_eq!(LiquidityMining::deposit(0, 1), None);
 
 		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 0, GC_FARM));
 
-        // withdraw 1B
+		// withdraw 1B
 		let bob_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
 		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
 		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
@@ -4183,7 +4248,7 @@ fn withdraw_shares_should_work() {
 				paid_accumulated_rewards: 36_430_390,
 			}
 		);
-            
+
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
@@ -4200,8 +4265,8 @@ fn withdraw_shares_should_work() {
 				canceled: false,
 			},
 		);
-		
-        assert_eq!(
+
+		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: 5,
@@ -4217,22 +4282,19 @@ fn withdraw_shares_should_work() {
 				canceled: false,
 			},
 		);
-		
+
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &BOB),
-			bob_rew_curr_balance +  95_999
+			bob_rew_curr_balance + 95_999
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB),
-			bob_amm_2_shares_balance + 25 
+			bob_amm_2_shares_balance + 25
 		);
 
 		//pallet balances checks
-		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
-			0 
-		);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
 			pallet_amm_2_shares_balance - 25
@@ -4252,14 +4314,14 @@ fn withdraw_shares_should_work() {
 		//global pool balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 30_001 
+			g_pool_rew_curr_balance + 30_001
 		);
 
 		assert_eq!(LiquidityMining::deposit(1, 0), None);
 
 		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 2, GC_FARM));
-        
-        // withdraw 4B
+
+		// withdraw 4B
 		let alice_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
 		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
@@ -4293,8 +4355,8 @@ fn withdraw_shares_should_work() {
 				paid_accumulated_rewards: 36_430_390,
 			}
 		);
-		
-        assert_eq!(
+
+		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: 5,
@@ -4310,11 +4372,11 @@ fn withdraw_shares_should_work() {
 				canceled: false,
 			},
 		);
-		
+
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			alice_rew_curr_balance + 29_5207 
+			alice_rew_curr_balance + 29_5207
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
@@ -4322,10 +4384,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		//pallet balances checks
-		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
-			0 
-		);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
 			pallet_amm_2_shares_balance - 48
@@ -4345,15 +4404,14 @@ fn withdraw_shares_should_work() {
 		//global pool balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance +  96_473
+			g_pool_rew_curr_balance + 96_473
 		);
 
 		assert_eq!(LiquidityMining::deposit(1, 3), None);
 
 		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 1, GC_FARM));
-        
 
-        // withdraw 2B
+		// withdraw 2B
 		let bob_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
 		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
 		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
@@ -4363,8 +4421,8 @@ fn withdraw_shares_should_work() {
 
 		expect_events(vec![
 			Event::RewardClaimed(BOB, GC_FARM, 5, 18_680_461, BSX).into(),
-            frame_system::Event::KilledAccount(29533360621462889584138678125).into(),
-            Event::SharesWithdrawn(BOB, BSX_TO2_SHARE_ID, 800).into(),
+			frame_system::Event::KilledAccount(29533360621462889584138678125).into(),
+			Event::SharesWithdrawn(BOB, BSX_TO2_SHARE_ID, 800).into(),
 		]);
 
 		assert_eq!(
@@ -4386,8 +4444,8 @@ fn withdraw_shares_should_work() {
 				paid_accumulated_rewards: 36_430_390,
 			}
 		);
-		
-        assert_eq!(
+
+		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: 5,
@@ -4403,26 +4461,20 @@ fn withdraw_shares_should_work() {
 				canceled: false,
 			},
 		);
-		
+
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &BOB),
-			bob_rew_curr_balance + 18_680_461 
+			bob_rew_curr_balance + 18_680_461
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB),
-			bob_amm_2_shares_balance +800
+			bob_amm_2_shares_balance + 800
 		);
 
 		//pallet balances checks
-		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
-			0 
-		);
-		assert_eq!(
-			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
-            0
-		);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 0);
 
 		//liq pool farms balance checks
 		assert_eq!(
@@ -4430,15 +4482,12 @@ fn withdraw_shares_should_work() {
 			liq_pool_amm_1_rew_curr_balance
 		);
 		//NOTE ... - (reward + unclaimabe)
-		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
-            0
-		);
+		assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc), 0);
 
 		//global pool balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 5_911_539 
+			g_pool_rew_curr_balance + 5_911_539
 		);
 
 		assert_eq!(LiquidityMining::deposit(1, 1), None);
@@ -4446,6 +4495,41 @@ fn withdraw_shares_should_work() {
 		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 0, GC_FARM));
 	});
 }
+
+#[test]
+fn withdraw_shares_invalid_nft_class_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let invalid_nft_class = 684;
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), invalid_nft_class, 0),
+			Error::<Test>::NftClassDoesNotExists
+		);
+	});
+}
+
+#[test]
+fn withdraw_shares_invalid_nft_id_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let invalid_nft_id = 684;
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, invalid_nft_id),
+			Error::<Test>::NftDoesNotExist
+		);
+	});
+}
+/*
+#[test]
+fn withdraw_shares_from_canceld_liq_mining_should_work() {
+    todo!()
+}
+
+#[test]
+fn withdraw_shares_invalid_deposit_owner_should_not_work() {
+    todo!()
+}
+*/
 
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx
 fn is_approx_eq_fixedu128(num_1: FixedU128, num_2: FixedU128, delta: FixedU128) -> bool {

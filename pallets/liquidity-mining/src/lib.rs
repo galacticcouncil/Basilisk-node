@@ -312,6 +312,9 @@ pub mod pallet {
 
 		/// Liquidity mining for porovided pool is canceled.
 		LiquidityMiningCanceled,
+
+		/// Liquidity mining is not canceled yet for provided pool.
+		LiquidityMiningIsNotCanceled,
 	}
 
 	#[pallet::event]
@@ -594,13 +597,73 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(1000)]
-		pub fn cancel_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			todo!()
+		#[transactional]
+		pub fn cancel_liqudity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
+			//WIP
+			let who = ensure_signed(origin)?;
+
+			let amm_account = T::AMM::get_pair_id(asset_pair);
+
+			<LiquidityPoolData<T>>::try_mutate(farm_id, amm_account, |maybe_liq_pool| {
+				let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+
+				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| {
+					let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+
+					ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+
+					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+					Self::maybe_update_pools(g_pool, liq_pool, now_period)?;
+
+					g_pool.total_shares_z = g_pool
+						.total_shares_z
+						.checked_sub(liq_pool.stake_in_global_pool)
+						.ok_or(Error::<T>::Overflow)?;
+
+					liq_pool.canceled = true;
+					liq_pool.stake_in_global_pool = 0;
+
+					Ok(())
+				})
+			})
 		}
 
 		#[pallet::weight(1000)]
-		pub fn remove_liqudity_pool(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			todo!()
+		#[transactional]
+		pub fn remove_liqudity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
+			//WIP
+			let who = ensure_signed(origin)?;
+
+			let amm_account = T::AMM::get_pair_id(asset_pair);
+
+			<LiquidityPoolData<T>>::try_mutate_exists(farm_id, amm_account, |maybe_liq_pool| {
+				let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+
+				ensure!(liq_pool.canceled, Error::<T>::LiquidityMiningIsNotCanceled);
+
+				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| -> DispatchResult {
+					let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+
+					ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+
+					g_pool.liq_pools_count = g_pool.liq_pools_count.checked_sub(1).ok_or(Error::<T>::Overflow)?;
+
+					<NftClassData<T>>::try_mutate_exists(liq_pool.nft_class, |maybe_nft_class| -> DispatchResult {
+						//This should never happen. LiqPool can't exist without nft class.
+						let (_, nfts_in_class, _) = maybe_nft_class.ok_or(Error::<T>::NftClassDoesNotExists)?;
+
+						if (nfts_in_class.is_zero()) {
+							*maybe_nft_class = None;
+						}
+
+						Ok(())
+					})?;
+					Ok(())
+				})?;
+
+				*maybe_liq_pool = None;
+				Ok(())
+			})
 		}
 
 		#[pallet::weight(1000)]
@@ -611,7 +674,6 @@ pub mod pallet {
 			asset_pair: AssetPair,
 			shares: Balance,
 		) -> DispatchResult {
-			//TODO: ..._should_not_work tests
 			let who = ensure_signed(origin)?;
 
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
@@ -628,6 +690,7 @@ pub mod pallet {
 				ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
 				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
+					//something is very wrong if this fail, liq_pool can't exist without g_pool
 					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
@@ -718,6 +781,7 @@ pub mod pallet {
 					ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
 					<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
+						//something is very wrong it this fail
 						let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 						let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
