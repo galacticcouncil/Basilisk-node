@@ -345,23 +345,19 @@ impl<T: Config> CurrencySwap<<T as frame_system::Config>::AccountId, Balance> fo
 		match Self::account_currency(who) {
 			CORE_ASSET_ID => Ok(PaymentSwapResult::Native),
 			currency => {
-				if T::AMMPool::exists(AssetPair {
+				let amount = if T::AMMPool::exists(AssetPair {
 					asset_in: currency,
 					asset_out: CORE_ASSET_ID,
 				}) {
-					Self::swap_currency(who, fee)?;
-					Ok(PaymentSwapResult::Swapped)
+					T::AMMPool::get_spot_price_unchecked(currency, CORE_ASSET_ID, fee)
 				} else {
-					// If pool does not exists, let's use the currency fixed price
-
 					let price = Self::currencies(currency).ok_or(Error::<T>::FallbackPriceNotFound)?;
+					price.checked_mul_int(fee).ok_or(Error::<T>::Overflow)?
+				};
 
-					let amount = price.checked_mul_int(fee).ok_or(Error::<T>::Overflow)?;
+				T::Currencies::transfer(currency, who, &Self::fallback_account(), amount)?;
 
-					T::Currencies::transfer(currency, who, &Self::fallback_account(), amount)?;
-
-					Ok(PaymentSwapResult::Transferred)
-				}
+				Ok(PaymentSwapResult::Transferred)
 			}
 		}
 	}
