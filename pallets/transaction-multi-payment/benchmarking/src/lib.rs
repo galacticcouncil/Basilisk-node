@@ -78,7 +78,7 @@ benchmarks! {
 	verify{
 		assert_eq!(MultiPaymentModule::<T>::get_currency(&caller), Some(ASSET_ID));
 		#[cfg(test)]
-		assert_eq!(T::Currencies::free_balance(ASSET_ID, &caller), 9999688747087);
+		assert_eq!(T::Currencies::free_balance(ASSET_ID, &caller), 9999689375999);
 	}
 
 	set_currency {
