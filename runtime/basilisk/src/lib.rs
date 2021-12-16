@@ -127,9 +127,12 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
+			Call::XYK(_) => false,
 			Call::NFT(_) => false,
 			Call::Exchange(_) => false,
 			Call::Vesting(_) => false,
+			Call::Balances(_) => false,
+			Call::Currencies(_) => false,
 			_ => true,
 		}
 	}
