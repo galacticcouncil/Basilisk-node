@@ -577,7 +577,10 @@ fn swap_should_work() {
 			Origin::signed(ALICE),
 			SUPPORTED_CURRENCY_WITH_BALANCE
 		));
-		assert_eq!(PaymentPallet::swap(&ALICE, 1000).unwrap(), PaymentSwapResult::Transferred);
+		assert_eq!(
+			PaymentPallet::swap(&ALICE, 1000).unwrap(),
+			PaymentSwapResult::Transferred
+		);
 	});
 }
 
