@@ -104,18 +104,10 @@ impl Config for Test {
 }
 pub type AssetRegistryPallet = crate::Pallet<Test>;
 
+#[derive(Default)]
 pub struct ExtBuilder {
 	assets: Vec<(Vec<u8>, Balance)>,
 	native_asset_name: Option<Vec<u8>>,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> Self {
-		Self {
-			assets: vec![],
-			native_asset_name: None,
-		}
-	}
 }
 
 impl ExtBuilder {

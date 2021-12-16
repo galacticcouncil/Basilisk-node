@@ -18,6 +18,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod adapter;
+pub mod locked_balance;
 
 use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId};
 pub use pallet_transaction_payment::Multiplier;
@@ -225,6 +226,6 @@ parameter_types! {
 
 // pallet vesting
 parameter_types! {
-	pub MinVestedTransfer: Balance = 100_000 * UNITS;
-	pub const MaxVestingSchedules: u32 = 100;
+	pub MinVestedTransfer: Balance = 100_000;
+	pub const MaxVestingSchedules: u32 = 15;
 }

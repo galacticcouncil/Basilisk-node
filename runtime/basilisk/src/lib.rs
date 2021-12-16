@@ -77,6 +77,7 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 use orml_currencies::BasicCurrencyAdapter;
 
 pub use common_runtime::*;
+use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -106,7 +107,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 24,
+	spec_version: 27,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -127,10 +128,11 @@ impl Contains<Call> for BaseFilter {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::Exchange(_) => false,
-			Call::Marketplace(_) => false,
 			Call::NFT(_) => false,
 			Call::Uniques(_) => false,
-			Call::XYK(_) => false,
+			Call::Vesting(_) => false,
+			Call::Balances(_) => false,
+			Call::Currencies(_) => false,
 			_ => true,
 		}
 	}
@@ -139,6 +141,7 @@ impl Contains<Call> for BaseFilter {
 use common_runtime::adapter::OrmlTokensAdapter;
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
+use primitives::nft::{ClassType, NftPermissions};
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
@@ -412,6 +415,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
+	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
 }
 
 impl pallet_exchange::Config for Runtime {
@@ -425,7 +429,7 @@ impl pallet_exchange::Config for Runtime {
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
-	type NativeAssetId = NativeAssetId;
+	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
 	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
@@ -435,6 +439,11 @@ impl pallet_lbp::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+}
+
+impl pallet_price_oracle::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = pallet_price_oracle::weights::HydraWeight<Runtime>;
 }
 
 // Parachain Config
@@ -474,6 +483,8 @@ impl pallet_nft::Config for Runtime {
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
@@ -714,12 +725,6 @@ parameter_types! {
 	pub const MinimumOfferAmount: Balance = 100 * UNITS;
 }
 
-impl pallet_marketplace::Config for Runtime {
-	type Event = Event;
-	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
-	type MinimumOfferAmount = MinimumOfferAmount;
-}
-
 parameter_types! {
 	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
 	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
@@ -746,7 +751,7 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = NFT;
+	type InstanceReserveStrategy = ();
 }
 
 impl pallet_relaychain_info::Config for Runtime {
@@ -812,7 +817,7 @@ construct_runtime!(
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
-		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage},
+		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>},
 
 		// TEMPORARY
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
@@ -1028,10 +1033,10 @@ impl_runtime_apis! {
 
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
+			list_benchmark!(list, extra, pallet_price_oracle, PriceOracle);
 			list_benchmark!(list, extra, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
-			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1089,11 +1094,11 @@ impl_runtime_apis! {
 			// Basilisk pallets
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
+			add_benchmark!(params, batches, pallet_price_oracle, PriceOracle);
 			add_benchmark!(params, batches, pallet_transaction_multi_payment, MultiBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
