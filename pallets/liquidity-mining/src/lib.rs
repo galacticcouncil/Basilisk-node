@@ -315,6 +315,9 @@ pub mod pallet {
 
 		/// Liquidity mining is not canceled yet for provided pool.
 		LiquidityMiningIsNotCanceled,
+
+		/// Deposit amount is out of valid range
+		InvalidDepositAmount,
 	}
 
 	#[pallet::event]
@@ -599,7 +602,7 @@ pub mod pallet {
 		#[pallet::weight(1000)]
 		#[transactional]
 		pub fn cancel_liqudity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
-			//WIP
+			//WIP, it's not tested
 			let who = ensure_signed(origin)?;
 
 			let amm_account = T::AMM::get_pair_id(asset_pair);
@@ -630,8 +633,8 @@ pub mod pallet {
 
 		#[pallet::weight(1000)]
 		#[transactional]
-		pub fn remove_liqudity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
-			//WIP
+		pub fn remove_liquidity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
+			//WIP, it's not tested
 			let who = ensure_signed(origin)?;
 
 			let amm_account = T::AMM::get_pair_id(asset_pair);
@@ -652,8 +655,9 @@ pub mod pallet {
 						//This should never happen. LiqPool can't exist without nft class.
 						let (_, nfts_in_class, _) = maybe_nft_class.ok_or(Error::<T>::NftClassDoesNotExists)?;
 
-						if (nfts_in_class.is_zero()) {
+						if nfts_in_class.is_zero() {
 							*maybe_nft_class = None;
+							//TODO: destroy nft class
 						}
 
 						Ok(())
@@ -672,14 +676,16 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			farm_id: PoolId,
 			asset_pair: AssetPair,
-			shares: Balance,
+			shares_amount: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			ensure!(!shares_amount.is_zero(), Error::<T>::InvalidDepositAmount);
 
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
 			ensure!(
-				T::MultiCurrency::free_balance(amm_share_token, &who) >= shares,
+				T::MultiCurrency::free_balance(amm_share_token, &who) >= shares_amount,
 				Error::<T>::InsufficientAmmSharesBalance
 			);
 
@@ -697,10 +703,10 @@ pub mod pallet {
 
 					Self::maybe_update_pools(g_pool, liq_pool, now_period)?;
 
-					let valued_shares = Self::get_valued_shares(shares, amm_account, g_pool.reward_currency)?;
+					let valued_shares = Self::get_valued_shares(shares_amount, amm_account, g_pool.reward_currency)?;
 					let global_pool_shares = Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
 
-					liq_pool.total_shares = liq_pool.total_shares.checked_add(shares).ok_or(Error::<T>::Overflow)?;
+					liq_pool.total_shares = liq_pool.total_shares.checked_add(shares_amount).ok_or(Error::<T>::Overflow)?;
 
 					liq_pool.total_valued_shares = liq_pool
 						.total_valued_shares
@@ -718,21 +724,21 @@ pub mod pallet {
 						.ok_or(Error::<T>::Overflow)?;
 
 					let pallet_account = Self::account_id();
-					T::MultiCurrency::transfer(amm_share_token, &who, &pallet_account, shares)?;
+					T::MultiCurrency::transfer(amm_share_token, &who, &pallet_account, shares_amount)?;
 
 					//TODO/NOTE: This will change after NFT pallet refactor
 					let (_, nft_id) = pallet_nft::Pallet::<T>::do_mint_for_liquidity_mining(
 						liq_pool.nft_class,
 						who.clone(),
 						vec![],
-						shares,
+						shares_amount,
 						valued_shares,
 						liq_pool.accumulated_rps,
 						0_u128,
 						T::BlockNumberProvider::current_block_number(),
 					)?;
 
-					let d = Deposit::new(shares, valued_shares, liq_pool.accumulated_rps, now_period);
+					let d = Deposit::new(shares_amount, valued_shares, liq_pool.accumulated_rps, now_period);
 					<DepositData<T>>::insert(&liq_pool.nft_class, &nft_id, d);
 					<NftClassData<T>>::try_mutate(liq_pool.nft_class, |maybe_class| -> DispatchResult {
 						let class = maybe_class.as_mut().ok_or(Error::<T>::NftClassDoesNotExists)?;
@@ -744,7 +750,7 @@ pub mod pallet {
 						g_pool.id,
 						liq_pool.id,
 						who,
-						shares,
+						shares_amount,
 						amm_share_token,
 						nft_id,
 					));

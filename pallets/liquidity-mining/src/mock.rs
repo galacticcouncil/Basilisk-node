@@ -34,7 +34,7 @@ use sp_runtime::{
 };
 use std::{cell::RefCell, collections::HashMap};
 
-type AccountId = u128;
+pub type AccountId = u128;
 pub type PoolId = crate::PoolId;
 pub type BlockNumber = u64;
 pub const ALICE: AccountId = 1;
@@ -72,6 +72,7 @@ pub const BSX_ETH_AMM: AccountId = 11_003;
 pub const BSX_HDX_AMM: AccountId = 11_004;
 pub const BSX_TO1_AMM: AccountId = 11_005;
 pub const BSX_TO2_AMM: AccountId = 11_006;
+pub const DEFAULT_AMM: AccountId = 11_007;
 
 pub const BSX_ACA_LM_POOL: PoolId = 12_000;
 pub const BSX_KSM_LM_POOL: PoolId = 12_001;
@@ -213,11 +214,17 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 	}
 
 	fn get_pair_id(assets: AssetPair) -> AccountId {
-		AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(assets)).unwrap().0)
+		AMM_POOLS.with(|v| match v.borrow().get(&asset_pair_to_map_key(assets)) {
+			Some(p) => p.0,
+			None => DEFAULT_AMM,
+		})
 	}
 
 	fn get_share_token(assets: AssetPair) -> AssetId {
-		AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(assets)).unwrap().1)
+		AMM_POOLS.with(|v| match v.borrow().get(&asset_pair_to_map_key(assets)) {
+			Some(p) => p.1,
+			None => BSX,
+		})
 	}
 }
 
@@ -342,15 +349,20 @@ impl Default for ExtBuilder {
 				(BOB, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_TO1_SHARE_ID, 2_000_000),
 				(BOB, BSX_TO2_SHARE_ID, 2_000_000),
+				(BOB, BSX, INITIAL_BALANCE),
 				(BOB, KSM, INITIAL_BALANCE),
 				(CHARLIE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(CHARLIE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(CHARLIE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
 				(CHARLIE, BSX_TO1_SHARE_ID, 5_000_000),
 				(CHARLIE, BSX_TO2_SHARE_ID, 5_000_000),
+				(CHARLIE, BSX, INITIAL_BALANCE),
 				(DAVE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
+				(DAVE, BSX_TO1_SHARE_ID, 10_000_000),
+				(DAVE, BSX_TO2_SHARE_ID, 10_000_000),
+				(DAVE, BSX, INITIAL_BALANCE),
 				(GC, BSX, INITIAL_BALANCE),
 				(TREASURY, BSX, 1_000_000_000_000_000_000),
 				(TREASURY, ACA, 1_000_000_000_000_000_000),
@@ -377,5 +389,5 @@ impl ExtBuilder {
 
 pub fn run_to_block(n: u64) {
 	MockBlockNumberProvider::set(n);
-	System::set_block_number(System::block_number() + 1);
+	System::set_block_number(n);
 }

@@ -1,10 +1,11 @@
 use super::*;
 use crate::mock::{
-	asset_pair_to_map_key, run_to_block, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, Test,
-	Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID,
-	BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM,
-	BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, BSX_TO1_AMM, BSX_TO1_SHARE_ID, BSX_TO2_AMM,
-	BSX_TO2_SHARE_ID, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_FARM, TO1, TO2, TREASURY,
+	asset_pair_to_map_key, run_to_block, BlockNumber, Event as TestEvent,
+	ExtBuilder, LiquidityMining, Origin, Test, Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM,
+	BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID, BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID,
+	BSX_FARM, BSX_HDX_AMM, BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, BSX_TO1_AMM,
+	BSX_TO1_SHARE_ID, BSX_TO2_AMM, BSX_TO2_SHARE_ID, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM,
+	KSM_FARM, TO1, TO2, TREASURY,
 };
 
 use frame_support::{assert_err, assert_noop, assert_ok};
@@ -3541,6 +3542,21 @@ fn deposit_shares_should_work() {
 }
 
 #[test]
+fn deposit_shares_zero_deposit_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let assets = AssetPair {
+			asset_in: BSX,
+			asset_out: TO1,
+		};
+
+		assert_noop!(
+			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, assets, 0),
+			Error::<Test>::InvalidDepositAmount
+		);
+	});
+}
+
+#[test]
 fn deposit_shares_insufficient_shares_balance_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let assets = AssetPair {
@@ -3784,13 +3800,13 @@ fn claim_reward_invalid_nft_id_should_not_work() {
 
 #[test]
 fn claim_reward_from_pool_does_not_exist_should_not_work() {
-    //best to after cancel_liq_pool() and remove_liq_pool()
+	//best to after cancel_liq_pool() and remove_liq_pool()
 	todo!()
 }
- 
+
 #[test]
 fn claim_reward_from_canceled_pool_should_not_work() {
-    //best to after cancel_liq_pool() and remove_liq_pool()
+	//best to after cancel_liq_pool() and remove_liq_pool()
 	todo!()
 }
 
@@ -4519,15 +4535,16 @@ fn withdraw_shares_invalid_nft_id_should_not_work() {
 		);
 	});
 }
+
 /*
 #[test]
 fn withdraw_shares_from_canceld_liq_mining_should_work() {
-    todo!()
+	todo!()
 }
 
 #[test]
 fn withdraw_shares_invalid_deposit_owner_should_not_work() {
-    todo!()
+	todo!()
 }
 */
 
