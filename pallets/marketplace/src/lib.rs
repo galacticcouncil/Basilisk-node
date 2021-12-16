@@ -31,7 +31,7 @@ mod tests;
 
 type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
-type MarketInstanceOf<T> = MarketInstance<<T as frame_system::Config>::AccountId>;
+type RoyaltyOf<T> = Royalty<<T as frame_system::Config>::AccountId>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -79,7 +79,7 @@ pub mod pallet {
 	#[pallet::getter(fn marketplace_instances)]
 	/// Stores Marketplace info
 	pub type MarketplaceInstances<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::NftClassId, Twox64Concat, T::NftInstanceId, MarketInstanceOf<T>>;
+		StorageDoubleMap<_, Twox64Concat, T::NftClassId, Twox64Concat, T::NftInstanceId, RoyaltyOf<T>>;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nft::Config {
@@ -255,15 +255,14 @@ pub mod pallet {
 			})
 		}
 
-		/// Mints an NFT in the specified class
-		/// Sets metadata and the royalty attribute
+		/// Add royalty feature where each trade means
+		///
 		///
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be minted.
 		/// - `instance_id`: The instance value of the asset to be minted.
 		/// - `author`: Receiver of the royalty
 		/// - `royalty`: Percentage reward from each trade for the author
-		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash
 		#[pallet::weight(<T as Config>::WeightInfo::mint_for_marketplace())]
 		#[transactional]
 		pub fn add_royalty(
@@ -275,6 +274,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
+			ensure!(
+				!MarketplaceInstances::<T>::contains_key(class_id, instance_id),
+				Error::<T>::RoyaltyAlreadySet
+			);
 			ensure!(royalty <= 100, pallet_nft::Error::<T>::NotInRange);
 			let owner = pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id)
 				.ok_or(pallet_nft::Error::<T>::InstanceUnknown)?;
@@ -283,7 +286,7 @@ pub mod pallet {
 			MarketplaceInstances::<T>::insert(
 				class_id,
 				instance_id,
-				MarketInstance {
+				Royalty {
 					author: author.clone(),
 					royalty,
 				},
@@ -342,6 +345,8 @@ pub mod pallet {
 		WithdrawNotAuthorized,
 		/// User has to be the token owner to accept an offer
 		AcceptNotAuthorized,
+		/// Royalty can be set only once
+		RoyaltyAlreadySet,
 	}
 }
 

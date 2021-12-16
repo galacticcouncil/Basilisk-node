@@ -4,7 +4,7 @@ use crate as pallet_nft;
 use frame_support::traits::Everything;
 use frame_support::{parameter_types, weights::Weight};
 use frame_system::EnsureRoot;
-use primitives::ClassType;
+use primitives::nft::{ClassType, NftPermission};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
@@ -55,7 +55,7 @@ pub struct NftPermissions;
 impl NftPermission<ClassType> for NftPermissions {
 	fn can_create(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
 			ClassType::Marketplace => true,
 			_ => false,
 		}
@@ -63,7 +63,7 @@ impl NftPermission<ClassType> for NftPermissions {
 
 	fn can_mint(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
 			ClassType::Marketplace => true,
 			_ => false,
 		}
@@ -71,22 +71,35 @@ impl NftPermission<ClassType> for NftPermissions {
 
 	fn can_transfer(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
+			ClassType::Marketplace => true,
 			ClassType::LiquidityMining => true,
 			_ => false,
 		}
 	}
 
 	fn can_burn(class_type: &ClassType) -> bool {
-		*class_type == Default::default()
+		match *class_type {
+			ClassType::Bare => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
 	}
 
 	fn can_destroy(class_type: &ClassType) -> bool {
-		*class_type == Default::default()
+		match *class_type {
+			ClassType::Bare => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
 	}
 
 	fn has_deposit(class_type: &ClassType) -> bool {
-		*class_type == Default::default()
+		match *class_type {
+			ClassType::Bare => true,
+			ClassType::Marketplace => true,
+			_ => false,
+		}
 	}
 }
 

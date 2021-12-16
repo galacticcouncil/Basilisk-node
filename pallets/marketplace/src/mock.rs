@@ -65,7 +65,7 @@ pub struct NftPermissions;
 impl NftPermission<ClassType> for NftPermissions {
 	fn can_create(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
 			ClassType::Marketplace => true,
 			_ => false,
 		}
@@ -73,7 +73,7 @@ impl NftPermission<ClassType> for NftPermissions {
 
 	fn can_mint(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
 			ClassType::Marketplace => true,
 			_ => false,
 		}
@@ -81,7 +81,7 @@ impl NftPermission<ClassType> for NftPermissions {
 
 	fn can_transfer(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
 			ClassType::Marketplace => true,
 			_ => false,
 		}
@@ -89,7 +89,7 @@ impl NftPermission<ClassType> for NftPermissions {
 
 	fn can_burn(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
 			ClassType::Marketplace => true,
 			_ => false,
 		}
@@ -97,7 +97,7 @@ impl NftPermission<ClassType> for NftPermissions {
 
 	fn can_destroy(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
 			ClassType::Marketplace => true,
 			_ => false,
 		}
@@ -105,7 +105,7 @@ impl NftPermission<ClassType> for NftPermissions {
 
 	fn has_deposit(class_type: &ClassType) -> bool {
 		match *class_type {
-			ClassType::Plain => true,
+			ClassType::Bare => true,
 			ClassType::Marketplace => true,
 			_ => false,
 		}

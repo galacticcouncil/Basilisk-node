@@ -140,9 +140,7 @@ impl Contains<Call> for BaseFilter {
 use common_runtime::adapter::OrmlTokensAdapter;
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
-use pallet_uniques::ClassTeam;
-use primitives::ClassType;
-use pallet_marketplace::MarketPlacePermissions;
+use primitives::nft::{ClassType, NftPermissions};
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
@@ -476,8 +474,6 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
-pub type NftPermissions = MarketPlacePermissions;
-
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
@@ -760,7 +756,7 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = NFT;
+	type InstanceReserveStrategy = ();
 }
 
 impl pallet_relaychain_info::Config for Runtime {

@@ -11,7 +11,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 
-use primitives::ReserveIdentifier;
+use primitives::{nft::NftPermission, ReserveIdentifier};
 use sp_runtime::{
 	traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero},
 	DispatchError,

@@ -5909,7 +5909,6 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "impl-trait-for-tuples",
  "orml-utilities",
  "pallet-balances",
  "pallet-uniques",
