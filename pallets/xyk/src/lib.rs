@@ -32,12 +32,12 @@ use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
-use primitives::{asset::AssetPair, fee, AssetId, Balance, Price};
+use primitives::{asset::AssetPair, AssetId, Balance, Price};
 use sp_std::{vec, vec::Vec};
 
 use frame_support::sp_runtime::FixedPointNumber;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
-use primitives::fee::WithFee;
+use primitives::fee::{Fee, WithFee};
 use primitives::Amount;
 
 #[cfg(test)]
@@ -90,7 +90,7 @@ pub mod pallet {
 
 		/// Trading fee rate
 		#[pallet::constant]
-		type GetExchangeFee: Get<fee::Fee>;
+		type GetExchangeFee: Get<Fee>;
 
 		/// Minimum trading limit
 		#[pallet::constant]
@@ -542,7 +542,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
+			<Self as AMM<_, _, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
 			Ok(())
 		}
@@ -565,7 +565,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
+			<Self as AMM<_, _, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
 			Ok(())
 		}
@@ -605,7 +605,7 @@ impl<T: Config> Pallet<T> {
 }
 
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
-impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
+impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance, Fee> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
 		<ShareToken<T>>::contains_key(&Self::get_pair_id(assets))
 	}
@@ -953,6 +953,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 	fn get_max_out_ratio() -> u128 {
 		T::MaxOutRatio::get()
+	}
+
+	fn get_fee(maybe_pool_account_id: Option<&T::AccountId>) -> Option<Fee> {
+		maybe_pool_account_id.map(|_| T::GetExchangeFee::get())
 	}
 }
 

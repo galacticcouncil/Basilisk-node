@@ -16,7 +16,9 @@
 // limitations under the License.
 
 use super::*;
-pub use crate::mock::{Currency, Event as TestEvent, ExtBuilder, Origin, System, Test, ACA, ALICE, BOB, DOT, HDX, XYK};
+pub use crate::mock::{
+	Currency, Event as TestEvent, ExtBuilder, Origin, System, Test, ACA, ALICE, BOB, DOT, HDX, HDX_DOT_POOL_ID, XYK,
+};
 use frame_support::BoundedVec;
 use frame_support::{assert_noop, assert_ok};
 use hydra_dx_math::MathError;
@@ -1855,7 +1857,7 @@ fn fee_calculation() {
 		assert_eq!(XYK::calculate_fee(10000), Ok(20));
 	});
 	ExtBuilder::default()
-		.with_exchange_fee(fee::Fee {
+		.with_exchange_fee(Fee {
 			numerator: 10,
 			denominator: 1000,
 		})
@@ -1866,7 +1868,7 @@ fn fee_calculation() {
 		});
 
 	ExtBuilder::default()
-		.with_exchange_fee(fee::Fee {
+		.with_exchange_fee(Fee {
 			numerator: 10,
 			denominator: 0,
 		})
@@ -1891,5 +1893,24 @@ fn can_create_pool_should_work() {
 			),
 			Error::<Test>::CannotCreatePool
 		);
+	});
+}
+
+#[test]
+fn get_fee_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			DOT,
+			1_000_000_000,
+			Price::from(2)
+		),);
+
+		// existing pool
+		assert_eq!(XYK::get_fee(Some(&HDX_DOT_POOL_ID)).unwrap(), Fee::default());
+		// non existing pool
+		assert_eq!(XYK::get_fee(Some(&1_234)).unwrap(), Fee::default());
+		assert_eq!(XYK::get_fee(None), None);
 	});
 }

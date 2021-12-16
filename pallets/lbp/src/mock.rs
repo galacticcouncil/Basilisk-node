@@ -38,7 +38,7 @@ pub const EXISTENTIAL_DEPOSIT: Balance = 100;
 pub const SALE_START: Option<BlockNumber> = Some(10);
 pub const SALE_END: Option<BlockNumber> = Some(40);
 
-pub const HDX_DOT_POOL_ID: AccountId = 3_000;
+pub const HDX_BSX_POOL_ID: AccountId = 3_000;
 pub const KUSD_BSX_POOL_ID: AccountId = 2_003_000;
 
 pub const SAMPLE_POOL_DATA: Pool<AccountId, BlockNumber> = Pool {

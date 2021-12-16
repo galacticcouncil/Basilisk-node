@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::traits::BalanceStatus;
 
-use primitives::fee::{Fee, WithFee};
+use primitives::fee::WithFee;
 
 /// Hold info about each transfer which has to be made to resolve a direct trade.
 pub struct Transfer<'a, T: Config> {
@@ -57,8 +57,9 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 		}
 
 		// Let's handle the fees now for registered transfers.
-		let fee_a = self.amount_from_a.just_fee(Fee::default());
-		let fee_b = self.amount_from_b.just_fee(Fee::default());
+		// Unwrapping is correct as None case is handled in previous statement.
+		let fee_a = self.amount_from_a.just_fee(T::AMMPool::get_fee(Some(pool_account)).unwrap());
+		let fee_b = self.amount_from_b.just_fee(T::AMMPool::get_fee(Some(pool_account)).unwrap());
 
 		if fee_a.is_none() || fee_b.is_none() {
 			return false;

@@ -33,7 +33,7 @@ use frame_support::weights::Weight;
 use hydradx_traits::{AMMTransfer, Resolver, AMM};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiReservableCurrency};
 use primitives::{
-	asset::AssetPair, constants::chain::MIN_TRADING_LIMIT, Amount, AssetId, Balance, ExchangeIntention, IntentionType,
+	asset::AssetPair, constants::chain::MIN_TRADING_LIMIT, fee::Fee, Amount, AssetId, Balance, ExchangeIntention, IntentionType,
 };
 
 use frame_support::sp_runtime::traits::BlockNumberProvider;
@@ -105,7 +105,7 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// AMM pool implementation
-		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
+		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance, Fee>;
 
 		/// Intention resolver
 		type Resolver: Resolver<Self::AccountId, Intention<Self>, Error<Self>>;

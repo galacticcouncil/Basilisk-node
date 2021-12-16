@@ -532,7 +532,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "27.0.0"
+version = "28.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -3182,8 +3182,8 @@ dependencies = [
 
 [[package]]
 name = "hydradx-traits"
-version = "0.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=35ee94a4daf3e4e8b56c20d6f6e85716d5641562#35ee94a4daf3e4e8b56c20d6f6e85716d5641562"
+version = "0.4.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=181329b2c2da5942e558d4289539c9e5be66dae1#181329b2c2da5942e558d4289539c9e5be66dae1"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5728,7 +5728,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.0.1"
+version = "4.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5968,7 +5968,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=35ee94a4daf3e4e8b56c20d6f6e85716d5641562#35ee94a4daf3e4e8b56c20d6f6e85716d5641562"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=181329b2c2da5942e558d4289539c9e5be66dae1#181329b2c2da5942e558d4289539c9e5be66dae1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6345,7 +6345,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.2.0"
+version = "3.3.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -11011,7 +11011,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "27.0.0"
+version = "28.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
