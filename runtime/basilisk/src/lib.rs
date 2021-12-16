@@ -140,6 +140,7 @@ impl Contains<Call> for BaseFilter {
 use common_runtime::adapter::OrmlTokensAdapter;
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
+use primitives::nft::{ClassType, NftPermissions};
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
@@ -481,6 +482,8 @@ impl pallet_nft::Config for Runtime {
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
@@ -747,7 +750,7 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = NFT;
+	type InstanceReserveStrategy = ();
 }
 
 impl pallet_relaychain_info::Config for Runtime {

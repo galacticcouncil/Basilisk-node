@@ -90,6 +90,84 @@ pub enum ReserveIdentifier {
 	Count,
 }
 
+pub mod nft {
+	use super::*;
+
+	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo)]
+	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+	pub enum ClassType {
+		Bare = 0_isize,
+		Marketplace = 1_isize,
+		LiquidityMining = 2_isize,
+		Redeemable = 3_isize,
+		Auction = 4_isize,
+		HydraHeads = 5_isize,
+	}
+
+	impl Default for ClassType {
+		fn default() -> Self {
+			ClassType::Bare
+		}
+	}
+
+	pub trait NftPermission<InnerClassType> {
+		fn can_create(class_type: &InnerClassType) -> bool;
+		fn can_mint(class_type: &InnerClassType) -> bool;
+		fn can_transfer(class_type: &InnerClassType) -> bool;
+		fn can_burn(class_type: &InnerClassType) -> bool;
+		fn can_destroy(class_type: &InnerClassType) -> bool;
+		fn has_deposit(class_type: &InnerClassType) -> bool;
+	}
+
+	#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+	pub struct NftPermissions;
+
+	impl NftPermission<ClassType> for NftPermissions {
+		fn can_create(class_type: &ClassType) -> bool {
+			matches!(*class_type,
+				ClassType::Bare 
+				| ClassType::Marketplace
+			)
+		}
+
+		fn can_mint(class_type: &ClassType) -> bool {
+			matches!(*class_type,
+				ClassType::Bare 
+				| ClassType::Marketplace
+			)
+		}
+
+		fn can_transfer(class_type: &ClassType) -> bool {
+			matches!(*class_type,
+				ClassType::Bare 
+				| ClassType::Marketplace
+				| ClassType::LiquidityMining
+			)
+		}
+
+		fn can_burn(class_type: &ClassType) -> bool {
+			matches!(*class_type,
+				ClassType::Bare 
+				| ClassType::Marketplace
+			)
+		}
+
+		fn can_destroy(class_type: &ClassType) -> bool {
+			matches!(*class_type,
+				ClassType::Bare 
+				| ClassType::Marketplace
+			)
+		}
+
+		fn has_deposit(class_type: &ClassType) -> bool {
+			matches!(*class_type,
+				ClassType::Bare 
+				| ClassType::Marketplace
+			)
+		}
+	}
+}
 pub mod fee {
 	use super::*;
 
