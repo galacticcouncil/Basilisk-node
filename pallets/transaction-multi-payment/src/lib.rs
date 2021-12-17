@@ -366,7 +366,7 @@ impl<T: Config> CurrencySwap<<T as frame_system::Config>::AccountId, Balance> fo
 					currency,
 					fee,
 					amount,
-					Self::fallback_account().clone(),
+					Self::fallback_account(),
 				));
 
 				Ok(PaymentSwapResult::Transferred)
