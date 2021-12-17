@@ -3183,7 +3183,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.4.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=181329b2c2da5942e558d4289539c9e5be66dae1#181329b2c2da5942e558d4289539c9e5be66dae1"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=a395fe6cfcf4d2d66fb89c8397beee182c5754f6#a395fe6cfcf4d2d66fb89c8397beee182c5754f6"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5968,7 +5968,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=181329b2c2da5942e558d4289539c9e5be66dae1#181329b2c2da5942e558d4289539c9e5be66dae1"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=a395fe6cfcf4d2d66fb89c8397beee182c5754f6#a395fe6cfcf4d2d66fb89c8397beee182c5754f6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

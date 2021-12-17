@@ -1908,9 +1908,8 @@ fn get_fee_should_work() {
 		),);
 
 		// existing pool
-		assert_eq!(XYK::get_fee(Some(&HDX_DOT_POOL_ID)).unwrap(), Fee::default());
+		assert_eq!(XYK::get_fee(&HDX_DOT_POOL_ID), Fee::default());
 		// non existing pool
-		assert_eq!(XYK::get_fee(Some(&1_234)).unwrap(), Fee::default());
-		assert_eq!(XYK::get_fee(None), None);
+		assert_eq!(XYK::get_fee(&1_234), Fee::default());
 	});
 }

@@ -1193,17 +1193,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>, Fee> for Pal
 		T::MaxOutRatio::get()
 	}
 
-	fn get_fee(maybe_pool_account_id: Option<&T::AccountId>) -> Option<Fee> {
-		match maybe_pool_account_id {
-			Some(pool_account_id) => {
-				let maybe_pool_data = <PoolData<T>>::get(pool_account_id);
-				match maybe_pool_data {
-					Some(pool_data) => Some(pool_data.fee),
-					None => None
-				}
-			},
-			None => None
-		}
+	fn get_fee(pool_account_id: &T::AccountId) -> Fee {
+		 let maybe_pool_data = <PoolData<T>>::get(pool_account_id);
+		 match maybe_pool_data {
+		   Some(pool_data) => pool_data.fee,
+		   None => Fee {numerator: 0, denominator: 0}
+		 }
 	}
 }
 

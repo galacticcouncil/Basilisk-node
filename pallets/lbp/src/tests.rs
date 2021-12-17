@@ -2561,15 +2561,14 @@ fn amm_trait_should_work() {
 		});
 		// existing pool
 		assert_eq!(
-			LBPPallet::get_fee(Some(&pool_id)).unwrap(),
+			LBPPallet::get_fee(&pool_id),
 			Fee {
 				numerator: 400,
 				denominator: 1_000
 			}
 		);
 		// not existing pool
-		assert_eq!(LBPPallet::get_fee(Some(&1_234)), None);
-		assert_eq!(LBPPallet::get_fee(None), None);
+		assert_eq!(LBPPallet::get_fee(&1_234), Fee {numerator: 0, denominator: 0});
 	});
 }
 

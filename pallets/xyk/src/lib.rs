@@ -955,8 +955,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance, Fee> for Pallet<T
 		T::MaxOutRatio::get()
 	}
 
-	fn get_fee(maybe_pool_account_id: Option<&T::AccountId>) -> Option<Fee> {
-		maybe_pool_account_id.map(|_| T::GetExchangeFee::get())
+	fn get_fee(_pool_account_id: &T::AccountId) -> Fee {
+		T::GetExchangeFee::get()
 	}
 }
 

@@ -57,9 +57,8 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 		}
 
 		// Let's handle the fees now for registered transfers.
-		// Unwrapping is correct as None case is handled in previous statement.
-		let fee_a = self.amount_from_a.just_fee(T::AMMPool::get_fee(Some(pool_account)).unwrap());
-		let fee_b = self.amount_from_b.just_fee(T::AMMPool::get_fee(Some(pool_account)).unwrap());
+		let fee_a = self.amount_from_a.just_fee(T::AMMPool::get_fee(pool_account));
+		let fee_b = self.amount_from_b.just_fee(T::AMMPool::get_fee(pool_account));
 
 		if fee_a.is_none() || fee_b.is_none() {
 			return false;
