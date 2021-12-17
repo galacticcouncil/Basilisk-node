@@ -123,8 +123,8 @@ pub mod pallet {
 		CurrencyRemoved(AssetId),
 
 		/// Transaction fee paid in non-native currency
-		/// [Account, Currency, Native fee amount, Non-native fee amount]
-		FeeTransferred(T::AccountId, AssetId, Balance, Balance),
+		/// [Account, Currency, Native fee amount, Non-native fee amount, Destination account]
+		FeeWithdrawn(T::AccountId, AssetId, Balance, Balance, T::AccountId),
 	}
 
 	#[pallet::error]
@@ -361,7 +361,13 @@ impl<T: Config> CurrencySwap<<T as frame_system::Config>::AccountId, Balance> fo
 
 				T::Currencies::transfer(currency, who, &Self::fallback_account(), amount)?;
 
-				Self::deposit_event(Event::FeeTransferred(who.clone(), currency, fee, amount));
+				Self::deposit_event(Event::FeeWithdrawn(
+					who.clone(),
+					currency,
+					fee,
+					amount,
+					Self::fallback_account().clone(),
+				));
 
 				Ok(PaymentSwapResult::Transferred)
 			}
