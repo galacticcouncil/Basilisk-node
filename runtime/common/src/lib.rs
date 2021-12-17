@@ -20,10 +20,12 @@
 pub mod adapter;
 pub mod locked_balance;
 
-use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId};
+use codec::{Decode, Encode, MaxEncodedLen};
+use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId, RuntimeDebug};
 pub use pallet_transaction_payment::Multiplier;
 pub use primitives::constants::{chain::*, currency::*, time::*};
 pub use primitives::{fee, Amount, AssetId, Balance};
+use scale_info::TypeInfo;
 use sp_runtime::{
 	generic,
 	traits::{BlakeTwo256, IdentifyAccount, Verify},
@@ -109,6 +111,27 @@ parameter_types! {
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
 	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
+}
+
+// pallet proxy
+/// The type used to represent the kinds of proxying allowed.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+pub enum ProxyType {
+	Any,
+}
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+parameter_types! {
+	pub ProxyDepositBase: Balance = 4 * DOLLARS + 480 * MILLICENTS;
+	pub ProxyDepositFactor: Balance = 1_980 * MILLICENTS;
+	pub const MaxProxies: u16 = 32;
+	pub AnnouncementDepositBase: Balance = 4 * DOLLARS + 480 * MILLICENTS;
+	pub AnnouncementDepositFactor: Balance = 3_960 * MILLICENTS;
+	pub const MaxPending: u16 = 32;
 }
 
 // pallet xyk
