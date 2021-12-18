@@ -51,22 +51,22 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn withdraw_fee_non_native() -> Weight {
-		(138_421_000 as Weight)
+		(87_850_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	fn set_currency() -> Weight {
-		(107_850_000 as Weight)
+		(106_331_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn add_currency() -> Weight {
-		(17_555_000 as Weight)
+		(17_412_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	fn remove_currency() -> Weight {
-		(18_194_000 as Weight)
+		(18_402_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}

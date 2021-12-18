@@ -57,22 +57,22 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn withdraw_fee_non_native() -> Weight {
-		(137_452_000 as Weight)
+		(87_521_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	fn set_currency() -> Weight {
-		(107_766_000 as Weight)
+		(105_284_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	fn add_currency() -> Weight {
-		(18_168_000 as Weight)
+		(17_506_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	fn remove_currency() -> Weight {
-		(18_856_000 as Weight)
+		(18_324_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
@@ -81,22 +81,22 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn withdraw_fee_non_native() -> Weight {
-		(137_452_000 as Weight)
+		(87_521_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
 	fn set_currency() -> Weight {
-		(107_766_000 as Weight)
+		(105_284_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 	fn add_currency() -> Weight {
-		(18_168_000 as Weight)
+		(17_506_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 	fn remove_currency() -> Weight {
-		(18_856_000 as Weight)
+		(18_324_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
