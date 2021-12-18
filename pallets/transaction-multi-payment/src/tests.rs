@@ -466,23 +466,24 @@ fn swap_currency_should_work() {
 			Price::from(1)
 		));
 
-		assert_storage_noop!(PaymentPallet::swap_currency(&ALICE, 10000).unwrap());
+		assert_storage_noop!(PaymentPallet::withdraw_fee_non_native(&ALICE, 10000).unwrap());
 
 		assert_ok!(PaymentPallet::set_currency(
 			Origin::signed(ALICE),
 			SUPPORTED_CURRENCY_WITH_BALANCE
 		));
 
-		let hdx_balance_before = Currencies::free_balance(HDX, &ALICE);
-
-		assert_ok!(PaymentPallet::swap_currency(&ALICE, 10000));
+		assert_ok!(PaymentPallet::withdraw_fee_non_native(&ALICE, 10000));
 
 		assert_eq!(
-			999999999887837,
+			999999999888971,
 			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE)
 		);
 
-		assert_eq!(hdx_balance_before + 10000, Currencies::free_balance(HDX, &ALICE));
+		assert_eq!(
+			11029,
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &PaymentPallet::fallback_account())
+		);
 	});
 }
 
