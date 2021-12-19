@@ -14,10 +14,10 @@ fn full_block_cost() {
 
 	let max_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap_or(1);
 	let weight_fee = WeightToFee::calc(&max_weight);
-	assert_eq!(weight_fee, 47647303225875);
+	assert_eq!(weight_fee, 58791251861625);
 
 	//let target_fee = 393 * DOLLARS + 68_950_233_386_750;
-	let target_fee = 39369248090258875;
+	let target_fee = 39380391889711625;
 
 	assert_eq!(ExtrinsicBaseWeight::get() as u128 + length_fee + weight_fee, target_fee);
 }
