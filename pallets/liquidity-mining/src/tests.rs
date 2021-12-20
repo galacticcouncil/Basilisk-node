@@ -4542,6 +4542,112 @@ fn withdraw_shares_invalid_nft_id_should_not_work() {
 	});
 }
 
+#[test]
+fn cancel_liquidity_pool_should_work() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let liq_pool_id = 4;
+		let liq_pool_account = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
+		let g_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_account);
+		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_account);
+		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
+		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			assets
+		));
+
+		expect_events(vec![
+			Event::LiquidityMiningCanceled(GC, GC_FARM, liq_pool_id, assets).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				stake_in_global_pool: 0,
+				canceled: true,
+				..liq_pool
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				total_shares_z: g_pool
+					.total_shares_z
+					.checked_sub(liq_pool.stake_in_global_pool)
+					.unwrap(),
+				..g_pool
+			}
+		);
+
+		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 3, GC_FARM));
+
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), liq_pool_rew_balance);
+		assert_eq!(Tokens::free_balance(BSX, &g_pool_account), g_pool_rew_balance);
+	});
+}
+
+#[test]
+fn cancel_liquidity_pool_invalid_liq_pool_should_not_work() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: DOT,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::cancel_liquidity_pool(Origin::signed(GC), GC_FARM, assets),
+			Error::<Test>::LiquidityPoolNotFound
+		);
+	});
+}
+
+#[test]
+fn cancel_liquidity_pool_lm_already_canceled() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			assets
+		));
+
+		assert_noop!(
+			LiquidityMining::cancel_liquidity_pool(Origin::signed(GC), GC_FARM, assets),
+			Error::<Test>::LiquidityMiningCanceled
+		);
+	});
+}
+
+#[test]
+fn cancel_liquidity_pool_non_owner_should_not_work() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		const NON_OWNER: u128 = ALICE;
+
+		assert_noop!(
+			LiquidityMining::cancel_liquidity_pool(Origin::signed(NON_OWNER), GC_FARM, assets),
+			Error::<Test>::Forbidden
+		);
+	});
+}
+
 /*
 #[test]
 fn withdraw_shares_from_canceld_liq_mining_should_work() {

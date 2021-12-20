@@ -355,6 +355,10 @@ pub mod pallet {
 
 		/// Shares withdrawn from liq. mining. [who, share_token, amount]
 		SharesWithdrawn(AccountIdOf<T>, T::CurrencyId, Balance),
+
+		/// Liquidity mining was canceled for liquidity pool. [who, FarmId, liq_mining_pool_id,
+		/// asset_pair]
+		LiquidityMiningCanceled(AccountIdOf<T>, PoolId, PoolId, AssetPair),
 	}
 
 	#[pallet::storage]
@@ -611,14 +615,15 @@ pub mod pallet {
 
 		#[pallet::weight(1000)]
 		#[transactional]
-		pub fn cancel_liqudity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
-			//WIP, it's not tested
+		pub fn cancel_liquidity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let amm_account = T::AMM::get_pair_id(asset_pair);
 
 			<LiquidityPoolData<T>>::try_mutate(farm_id, amm_account, |maybe_liq_pool| {
 				let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+
+				ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
 				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| {
 					let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
@@ -635,6 +640,8 @@ pub mod pallet {
 
 					liq_pool.canceled = true;
 					liq_pool.stake_in_global_pool = 0;
+
+					Self::deposit_event(Event::LiquidityMiningCanceled(who, farm_id, liq_pool.id, asset_pair));
 
 					Ok(())
 				})
