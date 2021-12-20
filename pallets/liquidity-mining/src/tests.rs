@@ -4648,6 +4648,171 @@ fn cancel_liquidity_pool_non_owner_should_not_work() {
 	});
 }
 
+#[test]
+fn remove_liquidity_pool_with_deposits_should_work() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let liq_pool_id = 4;
+		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_acc = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
+
+		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_acc);
+		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
+
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			assets
+		));
+
+		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			assets
+		));
+
+		expect_events(vec![
+			Event::LiquidityPoolRemoved(GC, GC_FARM, liq_pool_id, assets).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				liq_pools_count: g_pool.liq_pools_count.checked_sub(1).unwrap(),
+				..g_pool
+			}
+		);
+
+		//liq pool struct should be removed from storage
+		assert_eq!(LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM), None);
+
+		//nft class info should stay in storage until add deposits will be withdrawn
+		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 3, GC_FARM));
+
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_acc), 0);
+		//unpaid rewards should be transfered back to g_pool account
+		assert_eq!(
+			Tokens::free_balance(BSX, &g_pool_acc),
+			g_pool_rew_balance.checked_add(liq_pool_rew_balance).unwrap()
+		);
+	});
+}
+
+#[test]
+fn remove_liquidity_pool_without_deposits_should_work() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext().execute_with(|| {
+		let liq_pool_id = 4;
+		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_acc = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
+
+		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_acc);
+		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
+
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			assets
+		));
+
+		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			assets
+		));
+
+		expect_events(vec![
+			Event::LiquidityPoolRemoved(GC, GC_FARM, liq_pool_id, assets).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				liq_pools_count: g_pool.liq_pools_count.checked_sub(1).unwrap(),
+				..g_pool
+			}
+		);
+
+		//liq pool struct should be removed from storage
+		assert_eq!(LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM), None);
+
+		//nft class info should removed from storage if no deposits are left
+		assert_eq!(LiquidityMining::nft_class(0), None);
+
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_acc), 0);
+		//unpaid rewards should be transfered back to g_pool account
+		assert_eq!(
+			Tokens::free_balance(BSX, &g_pool_acc),
+			g_pool_rew_balance.checked_add(liq_pool_rew_balance).unwrap()
+		);
+	});
+}
+
+#[test]
+fn remove_liquidity_pool_non_canceled_lm_should_not_work() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::remove_liquidity_pool(Origin::signed(GC), GC_FARM, assets),
+			Error::<Test>::LiquidityMiningIsNotCanceled
+		);
+	});
+}
+
+#[test]
+fn remove_liquidity_pool_non_owner_should_not_work() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		const NON_OWNER: u128 = ALICE;
+
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			assets
+		));
+
+		assert_noop!(
+			LiquidityMining::remove_liquidity_pool(Origin::signed(NON_OWNER), GC_FARM, assets),
+			Error::<Test>::Forbidden
+		);
+	});
+}
+
+#[test]
+fn remove_liquidity_pool_liq_pool_does_not_exists_should_not_work() {
+	let assets = AssetPair {
+		asset_in: BSX,
+		asset_out: DOT,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::remove_liquidity_pool(Origin::signed(GC), GC_FARM, assets),
+			Error::<Test>::LiquidityPoolNotFound
+		);
+	});
+}
+
 /*
 #[test]
 fn withdraw_shares_from_canceld_liq_mining_should_work() {

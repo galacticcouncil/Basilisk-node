@@ -356,9 +356,13 @@ pub mod pallet {
 		/// Shares withdrawn from liq. mining. [who, share_token, amount]
 		SharesWithdrawn(AccountIdOf<T>, T::CurrencyId, Balance),
 
-		/// Liquidity mining was canceled for liquidity pool. [who, FarmId, liq_mining_pool_id,
+		/// Liquidity mining was canceled for liquidity pool. [who, farm_id, liq_mining_pool_id,
 		/// asset_pair]
 		LiquidityMiningCanceled(AccountIdOf<T>, PoolId, PoolId, AssetPair),
+
+		/// Liquidity pool was removed from liq. mining program. [who, Farm_id, liq_mining_pool_id,
+		/// asset_pair]
+		LiquidityPoolRemoved(AccountIdOf<T>, PoolId, PoolId, AssetPair),
 	}
 
 	#[pallet::storage]
@@ -655,7 +659,6 @@ pub mod pallet {
 			farm_id: PoolId,
 			asset_pair: AssetPair,
 		) -> DispatchResultWithPostInfo {
-			//WIP, it's not tested
 			let who = ensure_signed(origin)?;
 
 			let amm_account = T::AMM::get_pair_id(asset_pair);
@@ -675,6 +678,18 @@ pub mod pallet {
 
 						g_pool.liq_pools_count = g_pool.liq_pools_count.checked_sub(1).ok_or(Error::<T>::Overflow)?;
 
+						//transfer unpaid rewards back to g_pool
+						let g_pool_account = Self::pool_account_id(g_pool.id)?;
+						let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
+
+						let unpaid_rew = T::MultiCurrency::total_balance(g_pool.reward_currency, &liq_pool_account);
+						T::MultiCurrency::transfer(
+							g_pool.reward_currency,
+							&liq_pool_account,
+							&g_pool_account,
+							unpaid_rew,
+						)?;
+
 						<NftClassData<T>>::try_mutate_exists(
 							liq_pool.nft_class,
 							|maybe_nft_class| -> DispatchResultWithPostInfo {
@@ -691,6 +706,8 @@ pub mod pallet {
 						)?;
 						Ok(().into())
 					})?;
+
+					Self::deposit_event(Event::LiquidityPoolRemoved(who, farm_id, liq_pool.id, asset_pair));
 
 					*maybe_liq_pool = None;
 					Ok(().into())
