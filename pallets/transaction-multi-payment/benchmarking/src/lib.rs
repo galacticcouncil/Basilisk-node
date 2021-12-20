@@ -67,18 +67,18 @@ fn initialize_pool<T: Config>(
 }
 
 benchmarks! {
-	swap_currency {
+	withdraw_fee_non_native{
 		let maker = funded_account::<T>("maker", 1);
 		initialize_pool::<T>(maker, ASSET_ID, 10_000_000_000_000, Price::from(1))?;
 
 		let caller = funded_account::<T>("caller", 2);
 		MultiPaymentModule::<T>::set_currency(RawOrigin::Signed(caller.clone()).into(), ASSET_ID)?;
 
-	}: { MultiPaymentModule::<T>::swap_currency(&caller, 1_000_000)? }
+	}: { MultiPaymentModule::<T>::withdraw_fee_non_native(&caller, 1_000_000)? }
 	verify{
 		assert_eq!(MultiPaymentModule::<T>::get_currency(&caller), Some(ASSET_ID));
 		#[cfg(test)]
-		assert_eq!(T::Currencies::free_balance(ASSET_ID, &caller), 9999688747088);
+		assert_eq!(T::Currencies::free_balance(ASSET_ID, &caller), 9999243716000);
 	}
 
 	set_currency {
@@ -122,7 +122,7 @@ mod tests {
 	#[test]
 	fn test_benchmarks() {
 		ExtBuilder::default().base_weight(5).build().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_swap_currency());
+			assert_ok!(Pallet::<Test>::test_benchmark_withdraw_fee_non_native());
 			assert_ok!(Pallet::<Test>::test_benchmark_set_currency());
 			assert_ok!(Pallet::<Test>::test_benchmark_add_currency());
 			assert_ok!(Pallet::<Test>::test_benchmark_remove_currency());

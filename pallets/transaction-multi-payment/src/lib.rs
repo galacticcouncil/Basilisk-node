@@ -121,6 +121,10 @@ pub mod pallet {
 		/// Accepted currency removed
 		/// [currency]
 		CurrencyRemoved(AssetId),
+
+		/// Transaction fee paid in non-native currency
+		/// [Account, Currency, Native fee amount, Non-native fee amount, Destination account]
+		FeeWithdrawn(T::AccountId, AssetId, Balance, Balance, T::AccountId),
 	}
 
 	#[pallet::error]
@@ -285,28 +289,33 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Execute a trade to buy HDX and sell selected currency.
-	pub fn swap_currency(who: &T::AccountId, fee: Balance) -> DispatchResult {
-		// Let's determine currency in which user would like to pay the fee
-		let fee_currency = match Pallet::<T>::get_currency(who) {
-			Some(c) => c,
-			_ => CORE_ASSET_ID,
-		};
-
-		// If not native currency, let's buy CORE asset first and then pay with that.
-		if fee_currency != CORE_ASSET_ID {
-			T::AMMPool::buy(
-				who,
-				AssetPair {
+	pub fn withdraw_fee_non_native(who: &T::AccountId, fee: Balance) -> Result<PaymentSwapResult, DispatchError> {
+		match Self::account_currency(who) {
+			CORE_ASSET_ID => Ok(PaymentSwapResult::Native),
+			currency => {
+				let amount = if T::AMMPool::exists(AssetPair {
+					asset_in: currency,
 					asset_out: CORE_ASSET_ID,
-					asset_in: fee_currency,
-				},
-				fee,
-				2u128.checked_mul(fee).ok_or(Error::<T>::Overflow)?,
-				false,
-			)?;
-		}
+				}) {
+					T::AMMPool::get_spot_price_unchecked(currency, CORE_ASSET_ID, fee)
+				} else {
+					let price = Self::currencies(currency).ok_or(Error::<T>::FallbackPriceNotFound)?;
+					price.checked_mul_int(fee).ok_or(Error::<T>::Overflow)?
+				};
 
-		Ok(())
+				T::Currencies::transfer(currency, who, &Self::fallback_account(), amount)?;
+
+				Self::deposit_event(Event::FeeWithdrawn(
+					who.clone(),
+					currency,
+					fee,
+					amount,
+					Self::fallback_account(),
+				));
+
+				Ok(PaymentSwapResult::Transferred)
+			}
+		}
 	}
 
 	pub fn withdraw_set_fee(who: &T::AccountId) -> DispatchResult {
@@ -342,28 +351,7 @@ use traits::CurrencySwap;
 
 impl<T: Config> CurrencySwap<<T as frame_system::Config>::AccountId, Balance> for Pallet<T> {
 	fn swap(who: &T::AccountId, fee: u128) -> Result<PaymentSwapResult, DispatchError> {
-		match Self::account_currency(who) {
-			CORE_ASSET_ID => Ok(PaymentSwapResult::Native),
-			currency => {
-				if T::AMMPool::exists(AssetPair {
-					asset_in: currency,
-					asset_out: CORE_ASSET_ID,
-				}) {
-					Self::swap_currency(who, fee)?;
-					Ok(PaymentSwapResult::Swapped)
-				} else {
-					// If pool does not exists, let's use the currency fixed price
-
-					let price = Self::currencies(currency).ok_or(Error::<T>::FallbackPriceNotFound)?;
-
-					let amount = price.checked_mul_int(fee).ok_or(Error::<T>::Overflow)?;
-
-					T::Currencies::transfer(currency, who, &Self::fallback_account(), amount)?;
-
-					Ok(PaymentSwapResult::Transferred)
-				}
-			}
-		}
+		Self::withdraw_fee_non_native(who, fee)
 	}
 }
 
