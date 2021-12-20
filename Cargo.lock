@@ -485,7 +485,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-service",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -532,7 +532,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "27.0.0"
+version = "28.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -598,7 +598,7 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "smallvec",
@@ -1321,7 +1321,7 @@ dependencies = [
  "pallet-balances",
  "pallet-transaction-payment",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "sp-core",
  "sp-npos-elections",
@@ -3154,18 +3154,6 @@ source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#56bd
 dependencies = [
  "cargo-lock",
  "platforms",
-]
-
-[[package]]
-name = "hydra-dx-math"
-version = "3.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "992b2f7cab8392a1ec26e7e48a8882137f66634839bd09f4669e5f50e40eaa47"
-dependencies = [
- "fixed",
- "lazy_static",
- "num-traits",
- "primitive-types 0.8.0",
 ]
 
 [[package]]
@@ -5212,7 +5200,7 @@ dependencies = [
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-api",
@@ -5518,7 +5506,7 @@ dependencies = [
  "orml-traits",
  "pallet-balances",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5583,7 +5571,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5595,7 +5583,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.1"
+version = "3.3.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5608,7 +5596,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5728,19 +5716,19 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.0.1"
+version = "4.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5849,7 +5837,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-multi-payment-benchmarking"
-version = "5.2.1"
+version = "5.2.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5866,7 +5854,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5902,7 +5890,7 @@ dependencies = [
  "orml-utilities",
  "pallet-balances",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -5975,7 +5963,7 @@ dependencies = [
  "frame-system",
  "hydradx-traits",
  "parity-scale-codec",
- "primitives 6.0.0 (git+https://github.com/galacticcouncil/basilisk-node?rev=c0bf049f0ee91c392f163768ef707c94c7981c46)",
+ "primitives 6.0.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -6204,7 +6192,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-api",
@@ -6345,13 +6333,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.2.0"
+version = "3.3.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 3.4.0",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -6359,7 +6347,7 @@ dependencies = [
  "pallet-asset-registry",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-api",
@@ -7864,6 +7852,21 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "6.0.0"
+source = "git+https://github.com/galacticcouncil/basilisk-node?rev=c0bf049f0ee91c392f163768ef707c94c7981c46#c0bf049f0ee91c392f163768ef707c94c7981c46"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "primitive-types 0.10.1",
+ "scale-info",
+ "serde",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
+name = "primitives"
+version = "6.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7874,21 +7877,6 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
-name = "primitives"
-version = "6.0.0"
-source = "git+https://github.com/galacticcouncil/basilisk-node?rev=c0bf049f0ee91c392f163768ef707c94c7981c46#c0bf049f0ee91c392f163768ef707c94c7981c46"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "primitive-types 0.10.1",
- "scale-info",
- "serde",
  "sp-std",
  "substrate-wasm-builder",
 ]
@@ -8566,7 +8554,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "serde",
  "smallvec",
  "sp-api",
@@ -11011,7 +10999,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "27.0.0"
+version = "28.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11077,7 +11065,7 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
- "primitives 6.0.0",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "smallvec",

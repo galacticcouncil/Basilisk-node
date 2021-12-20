@@ -89,12 +89,23 @@ pub mod fee {
 		pub denominator: u32,
 	}
 
+	impl Fee {
+		// 0.07%
+		pub fn discounted_fee() -> Fee {
+			Fee {
+				numerator: 7,
+				denominator: 10_000,
+			}
+		}
+	}
+
 	impl Default for Fee {
+		// 0.2%
 		fn default() -> Self {
 			Fee {
 				numerator: 2,
-				denominator: 1000,
-			} // 0.2%
+				denominator: 1_000,
+			}
 		}
 	}
 
@@ -125,11 +136,7 @@ pub mod fee {
 		}
 
 		fn discounted_fee(&self) -> Option<Self> {
-			let fee = Fee {
-				numerator: 7,
-				denominator: 10000,
-			};
-			self.just_fee(fee)
+			self.just_fee(Fee::discounted_fee())
 		}
 	}
 }

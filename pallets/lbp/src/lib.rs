@@ -39,7 +39,7 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
-	fee::{Fee, WithFee},
+	fee::Fee,
 	Amount, AssetId, Balance,
 };
 
@@ -874,7 +874,8 @@ impl<T: Config> Pallet<T> {
 		} else {
 			pool.fee
 		};
-		Ok(amount.just_fee(fee).ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
+		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (fee.numerator, fee.denominator))
+		.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 
 	pub fn pair_account_from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId<T> {

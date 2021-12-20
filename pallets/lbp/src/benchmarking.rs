@@ -148,7 +148,7 @@ benchmarks! {
 	verify{
 		assert_eq!(T::MultiCurrency::free_balance(asset_out, &caller), 999998100000000);
 		assert_eq!(T::MultiCurrency::free_balance(asset_in, &caller), 999998772262327);
-		assert_eq!(T::MultiCurrency::free_balance(asset_in, &fee_collector), 1000000000455475);
+		assert_eq!(T::MultiCurrency::free_balance(asset_in, &fee_collector), 1000000000455474);
 	}
 }
 

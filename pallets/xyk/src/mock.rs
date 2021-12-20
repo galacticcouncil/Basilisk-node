@@ -30,7 +30,7 @@ use frame_support::traits::{Everything, GenesisBuild, Get};
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool};
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, AssetId, Balance,
+	fee::Fee, AssetId, Balance,
 };
 
 use frame_system::EnsureSigned;
@@ -64,12 +64,12 @@ frame_support::construct_runtime!(
 );
 
 thread_local! {
-		static EXCHANGE_FEE: RefCell<fee::Fee> = RefCell::new(fee::Fee::default());
+		static EXCHANGE_FEE: RefCell<Fee> = RefCell::new(Fee::default());
 }
 
 struct ExchangeFee;
-impl Get<fee::Fee> for ExchangeFee {
-	fn get() -> fee::Fee {
+impl Get<Fee> for ExchangeFee {
+	fn get() -> Fee {
 		EXCHANGE_FEE.with(|v| *v.borrow())
 	}
 }
@@ -78,7 +78,7 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 63;
 	pub const NativeAssetId: AssetId = HDX;
-	pub ExchangeFeeRate: fee::Fee = ExchangeFee::get();
+	pub ExchangeFeeRate: Fee = ExchangeFee::get();
 	pub RegistryStringLimit: u32 = 100;
 }
 
@@ -209,7 +209,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_exchange_fee(self, f: fee::Fee) -> Self {
+	pub fn with_exchange_fee(self, f: Fee) -> Self {
 		EXCHANGE_FEE.with(|v| *v.borrow_mut() = f);
 		self
 	}
