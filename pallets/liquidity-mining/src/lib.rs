@@ -68,6 +68,7 @@ use hydradx_traits::AMM;
 use scale_info::TypeInfo;
 use sp_std::convert::{From, Into, TryInto};
 
+use primitives::nft::ClassType;
 use primitives::{asset::AssetPair, Balance};
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
@@ -76,8 +77,6 @@ type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
 type NftInstanceIfOf<T> = <T as pallet_nft::Config>::NftInstanceId;
-
-use pallet_nft::types::ClassType::PoolShare;
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct GlobalPool<T: Config> {
@@ -216,7 +215,9 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + TypeInfo + pallet_nft::Config {
+	pub trait Config:
+		frame_system::Config + TypeInfo + pallet_nft::Config<ClassType = primitives::nft::ClassType>
+	{
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Asset type
@@ -318,6 +319,12 @@ pub mod pallet {
 
 		/// Deposit amount is out of valid range
 		InvalidDepositAmount,
+
+		/// Account is not owner of the deposit
+		NotDepositOwner,
+
+		/// Nft pallet doesn't returned owner
+		CantFindDepositOwner,
 	}
 
 	#[pallet::event]
@@ -525,8 +532,11 @@ pub mod pallet {
 
 				let liq_pool_id = Self::get_next_id()?;
 				let pallet_account = Self::account_id();
-				//TODO: check after nft pallet refactor
-				let nft_class = pallet_nft::Pallet::<T>::do_create_class(Some(pallet_account), PoolShare, vec![])?;
+				let (nft_class, _) = pallet_nft::Pallet::<T>::do_create_class(
+					pallet_account,
+					ClassType::LiquidityMining,
+					vec![].try_into().unwrap(),
+				)?;
 				<NftClassData<T>>::insert(nft_class, (asset_pair, 0, g_pool.id));
 
 				let pool = LiquidityPoolYieldFarm::new(liq_pool_id, now_period, loyalty_curve, multiplier, nft_class);
@@ -633,41 +643,52 @@ pub mod pallet {
 
 		#[pallet::weight(1000)]
 		#[transactional]
-		pub fn remove_liquidity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
+		pub fn remove_liquidity_pool(
+			origin: OriginFor<T>,
+			farm_id: PoolId,
+			asset_pair: AssetPair,
+		) -> DispatchResultWithPostInfo {
 			//WIP, it's not tested
 			let who = ensure_signed(origin)?;
 
 			let amm_account = T::AMM::get_pair_id(asset_pair);
 
-			<LiquidityPoolData<T>>::try_mutate_exists(farm_id, amm_account, |maybe_liq_pool| {
-				let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+			<LiquidityPoolData<T>>::try_mutate_exists(
+				farm_id,
+				amm_account,
+				|maybe_liq_pool| -> DispatchResultWithPostInfo {
+					let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
 
-				ensure!(liq_pool.canceled, Error::<T>::LiquidityMiningIsNotCanceled);
+					ensure!(liq_pool.canceled, Error::<T>::LiquidityMiningIsNotCanceled);
 
-				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| -> DispatchResult {
-					let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+					<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| -> DispatchResultWithPostInfo {
+						let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-					ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+						ensure!(g_pool.owner == who, Error::<T>::Forbidden);
 
-					g_pool.liq_pools_count = g_pool.liq_pools_count.checked_sub(1).ok_or(Error::<T>::Overflow)?;
+						g_pool.liq_pools_count = g_pool.liq_pools_count.checked_sub(1).ok_or(Error::<T>::Overflow)?;
 
-					<NftClassData<T>>::try_mutate_exists(liq_pool.nft_class, |maybe_nft_class| -> DispatchResult {
-						//This should never happen. LiqPool can't exist without nft class.
-						let (_, nfts_in_class, _) = maybe_nft_class.ok_or(Error::<T>::NftClassDoesNotExists)?;
+						<NftClassData<T>>::try_mutate_exists(
+							liq_pool.nft_class,
+							|maybe_nft_class| -> DispatchResultWithPostInfo {
+								//This should never happen. LiqPool can't exist without nft class.
+								let (_, nfts_in_class, _) = maybe_nft_class.ok_or(Error::<T>::NftClassDoesNotExists)?;
 
-						if nfts_in_class.is_zero() {
-							*maybe_nft_class = None;
-							//TODO: destroy nft class
-						}
+								if nfts_in_class.is_zero() {
+									*maybe_nft_class = None;
+									pallet_nft::Pallet::<T>::do_destroy_class(liq_pool.nft_class)?;
+								}
 
-						Ok(())
+								Ok(().into())
+							},
+						)?;
+						Ok(().into())
 					})?;
-					Ok(())
-				})?;
 
-				*maybe_liq_pool = None;
-				Ok(())
-			})
+					*maybe_liq_pool = None;
+					Ok(().into())
+				},
+			)
 		}
 
 		#[pallet::weight(1000)]
@@ -706,7 +727,10 @@ pub mod pallet {
 					let valued_shares = Self::get_valued_shares(shares_amount, amm_account, g_pool.reward_currency)?;
 					let global_pool_shares = Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
 
-					liq_pool.total_shares = liq_pool.total_shares.checked_add(shares_amount).ok_or(Error::<T>::Overflow)?;
+					liq_pool.total_shares = liq_pool
+						.total_shares
+						.checked_add(shares_amount)
+						.ok_or(Error::<T>::Overflow)?;
 
 					liq_pool.total_valued_shares = liq_pool
 						.total_valued_shares
@@ -726,17 +750,7 @@ pub mod pallet {
 					let pallet_account = Self::account_id();
 					T::MultiCurrency::transfer(amm_share_token, &who, &pallet_account, shares_amount)?;
 
-					//TODO/NOTE: This will change after NFT pallet refactor
-					let (_, nft_id) = pallet_nft::Pallet::<T>::do_mint_for_liquidity_mining(
-						liq_pool.nft_class,
-						who.clone(),
-						vec![],
-						shares_amount,
-						valued_shares,
-						liq_pool.accumulated_rps,
-						0_u128,
-						T::BlockNumberProvider::current_block_number(),
-					)?;
+					let nft_id = pallet_nft::Pallet::<T>::do_mint(who.clone(), liq_pool.nft_class)?;
 
 					let d = Deposit::new(shares_amount, valued_shares, liq_pool.accumulated_rps, now_period);
 					<DepositData<T>>::insert(&liq_pool.nft_class, &nft_id, d);
@@ -777,8 +791,10 @@ pub mod pallet {
 
 			<DepositData<T>>::try_mutate(nft_class_id, nft_id, |maybe_nft| {
 				let deposit = maybe_nft.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
+				let nft_owner = pallet_nft::Pallet::<T>::instance_owner(nft_class_id, nft_id)
+					.ok_or(Error::<T>::CantFindDepositOwner)?;
 
-				//TODO: check nft owner. Waiting for nft pallet refactor
+				ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
 				let amm_account = T::AMM::get_pair_id(asset_pair);
 				<LiquidityPoolData<T>>::try_mutate(farm_id, amm_account, |maybe_liq_pool| {
@@ -817,10 +833,13 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			nft_class_id: NftClassIdOf<T>,
 			nft_id: NftInstanceIfOf<T>,
-		) -> DispatchResult {
+		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			//TODO: check nft owner. Waiting for nft refactor
+			let nft_owner = pallet_nft::Pallet::<T>::instance_owner(nft_class_id, nft_id)
+				.ok_or(Error::<T>::CantFindDepositOwner)?;
+
+			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
 			<NftClassData<T>>::try_mutate_exists(nft_class_id, |maybe_nft_class| {
 				let (asset_pair, nfts_in_class, farm_id) = maybe_nft_class.ok_or(Error::<T>::NftClassDoesNotExists)?;
@@ -918,15 +937,15 @@ pub mod pallet {
 
 						//NOTE: Theoretically neither `GlobalPool` nor
 						//`LiquidityPoolYieldFarm` may not exist
-						Self::deposit_event(Event::SharesWithdrawn(who, amm_token, deposit.shares));
+						Self::deposit_event(Event::SharesWithdrawn(who.clone(), amm_token, deposit.shares));
 					}
 
-					//TODO: burn nft
 					*maybe_nft = None;
+					pallet_nft::Pallet::<T>::do_burn(who, nft_class_id, nft_id)?;
 
 					if nfts_in_class.is_one() && can_destroy_nft_class {
-						//TODO: Burn NFT class
 						*maybe_nft_class = None;
+						pallet_nft::Pallet::<T>::do_destroy_class(nft_class_id)?;
 					} else {
 						*maybe_nft_class = Some((
 							asset_pair,
@@ -934,7 +953,7 @@ pub mod pallet {
 							farm_id,
 						));
 					}
-					Ok(())
+					Ok(().into())
 				})
 			})
 		}

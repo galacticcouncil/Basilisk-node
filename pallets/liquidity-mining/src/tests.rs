@@ -1,11 +1,10 @@
 use super::*;
 use crate::mock::{
-	asset_pair_to_map_key, run_to_block, BlockNumber, Event as TestEvent,
-	ExtBuilder, LiquidityMining, Origin, Test, Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM,
-	BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID, BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID,
-	BSX_FARM, BSX_HDX_AMM, BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, BSX_TO1_AMM,
-	BSX_TO1_SHARE_ID, BSX_TO2_AMM, BSX_TO2_SHARE_ID, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM,
-	KSM_FARM, TO1, TO2, TREASURY,
+	asset_pair_to_map_key, run_to_block, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, Test,
+	Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID,
+	BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM,
+	BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, BSX_TO1_AMM, BSX_TO1_SHARE_ID, BSX_TO2_AMM,
+	BSX_TO2_SHARE_ID, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_FARM, TO1, TO2, TREASURY,
 };
 
 use frame_support::{assert_err, assert_noop, assert_ok};
@@ -3849,6 +3848,7 @@ fn withdraw_shares_should_work() {
 		expect_events(vec![
 			Event::RewardClaimed(ALICE, GC_FARM, 4, 79_906, BSX).into(),
 			Event::SharesWithdrawn(ALICE, BSX_TO1_SHARE_ID, 50).into(),
+			pallet_uniques::Event::Burned(0, 0, 1).into(),
 		]);
 
 		assert_eq!(
@@ -3945,6 +3945,7 @@ fn withdraw_shares_should_work() {
 		expect_events(vec![
 			Event::RewardClaimed(ALICE, GC_FARM, 5, 100_324, BSX).into(),
 			Event::SharesWithdrawn(ALICE, BSX_TO2_SHARE_ID, 87).into(),
+			pallet_uniques::Event::Burned(1, 2, 1).into(),
 		]);
 
 		assert_eq!(
@@ -4058,6 +4059,7 @@ fn withdraw_shares_should_work() {
 		expect_events(vec![
 			Event::RewardClaimed(ALICE, GC_FARM, 4, 7_472_429, BSX).into(),
 			Event::SharesWithdrawn(ALICE, BSX_TO1_SHARE_ID, 486).into(),
+			pallet_uniques::Event::Burned(0, 2, 1).into(),
 		]);
 
 		assert_eq!(
@@ -4152,6 +4154,7 @@ fn withdraw_shares_should_work() {
 		expect_events(vec![
 			Event::RewardClaimed(BOB, GC_FARM, 4, 855_771, BSX).into(),
 			Event::SharesWithdrawn(BOB, BSX_TO1_SHARE_ID, 80).into(),
+			pallet_uniques::Event::Burned(0, 1, 2).into(),
 		]);
 
 		assert_eq!(
@@ -4243,6 +4246,7 @@ fn withdraw_shares_should_work() {
 		expect_events(vec![
 			Event::RewardClaimed(BOB, GC_FARM, 5, 95_999, BSX).into(),
 			Event::SharesWithdrawn(BOB, BSX_TO2_SHARE_ID, 25).into(),
+			pallet_uniques::Event::Burned(1, 0, 2).into(),
 		]);
 
 		assert_eq!(
@@ -4350,6 +4354,7 @@ fn withdraw_shares_should_work() {
 		expect_events(vec![
 			Event::RewardClaimed(ALICE, GC_FARM, 5, 295_207, BSX).into(),
 			Event::SharesWithdrawn(ALICE, BSX_TO2_SHARE_ID, 48).into(),
+			pallet_uniques::Event::Burned(1, 3, 1).into(),
 		]);
 
 		assert_eq!(
@@ -4439,6 +4444,7 @@ fn withdraw_shares_should_work() {
 			Event::RewardClaimed(BOB, GC_FARM, 5, 18_680_461, BSX).into(),
 			frame_system::Event::KilledAccount(29533360621462889584138678125).into(),
 			Event::SharesWithdrawn(BOB, BSX_TO2_SHARE_ID, 800).into(),
+			pallet_uniques::Event::Burned(1, 1, 2).into(),
 		]);
 
 		assert_eq!(

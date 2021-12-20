@@ -33,6 +33,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 };
 use std::{cell::RefCell, collections::HashMap};
+use primitives::nft::{ClassType, NftPermissions};
 
 pub type AccountId = u128;
 pub type PoolId = crate::PoolId;
@@ -263,6 +264,8 @@ impl pallet_nft::Config for Test {
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
+    type ClassType = ClassType;
+	type Permissions = NftPermissions;
 }
 
 parameter_types! {
@@ -308,7 +311,7 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = NFT;
+	type InstanceReserveStrategy = ();
 }
 
 parameter_type_with_key! {
