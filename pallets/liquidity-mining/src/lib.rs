@@ -807,7 +807,6 @@ pub mod pallet {
 			nft_class_id: NftClassIdOf<T>,
 			nft_id: NftInstanceIfOf<T>,
 		) -> DispatchResult {
-			//NOTE: WIP
 			let who = ensure_signed(origin)?;
 
 			let (asset_pair, _, farm_id) =
@@ -916,18 +915,22 @@ pub mod pallet {
 											.checked_sub(deposit.valued_shares)
 											.ok_or(Error::<T>::Overflow)?;
 
-										let global_pool_shares =
-											Self::get_global_pool_shares(deposit.valued_shares, liq_pool.multiplier)?;
+										if !liq_pool.canceled {
+											let global_pool_shares = Self::get_global_pool_shares(
+												deposit.valued_shares,
+												liq_pool.multiplier,
+											)?;
 
-										liq_pool.stake_in_global_pool = liq_pool
-											.stake_in_global_pool
-											.checked_sub(global_pool_shares)
-											.ok_or(Error::<T>::Overflow)?;
+											liq_pool.stake_in_global_pool = liq_pool
+												.stake_in_global_pool
+												.checked_sub(global_pool_shares)
+												.ok_or(Error::<T>::Overflow)?;
 
-										g_pool.total_shares_z = g_pool
-											.total_shares_z
-											.checked_sub(global_pool_shares)
-											.ok_or(Error::<T>::Overflow)?;
+											g_pool.total_shares_z = g_pool
+												.total_shares_z
+												.checked_sub(global_pool_shares)
+												.ok_or(Error::<T>::Overflow)?;
+										}
 
 										T::MultiCurrency::transfer(
 											g_pool.reward_currency,
@@ -952,7 +955,7 @@ pub mod pallet {
 						},
 					)?;
 
-					//NOTE: how to communicate this to user? - no shares will be transferes?
+					//NOTE: how to communicate "else" to the user? - no shares or rewards will be transferes?
 					if T::AMM::exists(asset_pair) {
 						let amm_token = T::AMM::get_share_token(asset_pair);
 
