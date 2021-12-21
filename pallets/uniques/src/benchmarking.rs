@@ -18,10 +18,10 @@
 //! Assets pallet benchmarking.
 
 #![cfg(feature = "runtime-benchmarks")]
-/*
+
 use super::*;
 use frame_benchmarking::{
-	account, benchmarks_instance_pallet, impl_benchmark_test_suite, whitelist_account, whitelisted_caller,
+	account, benchmarks_instance_pallet, whitelist_account, whitelisted_caller,
 };
 use frame_support::{
 	dispatch::UnfilteredDispatchable,
@@ -36,8 +36,8 @@ use crate::Pallet as Uniques;
 
 const SEED: u32 = 0;
 
-
-fn create_class<T: Config<I>, I: 'static>() -> (T::ClassId, T::AccountId, <T::Lookup as StaticLookup>::Source) {
+fn create_class<T: Config<I>, I: 'static>(
+) -> (T::ClassId, T::AccountId, <T::Lookup as StaticLookup>::Source) {
 	let caller: T::AccountId = whitelisted_caller();
 	let caller_lookup = T::Lookup::unlookup(caller.clone());
 	let class = Default::default();
@@ -51,7 +51,8 @@ fn create_class<T: Config<I>, I: 'static>() -> (T::ClassId, T::AccountId, <T::Lo
 	(class, caller, caller_lookup)
 }
 
-fn add_class_metadata<T: Config<I>, I: 'static>() -> (T::AccountId, <T::Lookup as StaticLookup>::Source) {
+fn add_class_metadata<T: Config<I>, I: 'static>(
+) -> (T::AccountId, <T::Lookup as StaticLookup>::Source) {
 	let caller = Class::<T, I>::get(T::ClassId::default()).unwrap().owner;
 	if caller != whitelisted_caller() {
 		whitelist_account!(caller);
@@ -107,11 +108,7 @@ fn add_instance_metadata<T: Config<I>, I: 'static>(
 
 fn add_instance_attribute<T: Config<I>, I: 'static>(
 	instance: T::InstanceId,
-) -> (
-	BoundedVec<u8, T::KeyLimit>,
-	T::AccountId,
-	<T::Lookup as StaticLookup>::Source,
-) {
+) -> (BoundedVec<u8, T::KeyLimit>, T::AccountId, <T::Lookup as StaticLookup>::Source) {
 	let caller = Class::<T, I>::get(T::ClassId::default()).unwrap().owner;
 	if caller != whitelisted_caller() {
 		whitelist_account!(caller);
@@ -381,7 +378,6 @@ benchmarks_instance_pallet! {
 	verify {
 		assert_last_event::<T, I>(Event::ApprovalCancelled(class, instance, caller, delegate).into());
 	}
-}
 
-impl_benchmark_test_suite!(Uniques, crate::mock::new_test_ext(), crate::mock::Test);
-*/
+	impl_benchmark_test_suite!(Uniques, crate::mock::new_test_ext(), crate::mock::Test);
+}

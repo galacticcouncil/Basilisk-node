@@ -1,4 +1,3 @@
-#![allow(clippy::all)]
 // This file is part of Substrate.
 
 // Copyright (C) 2017-2021 Parity Technologies (UK) Ltd.
@@ -22,10 +21,12 @@ use super::*;
 use frame_support::{traits::Get, BoundedVec};
 use scale_info::TypeInfo;
 
-pub type DepositBalanceOf<T, I = ()> =
+pub(super) type DepositBalanceOf<T, I = ()> =
 	<<T as Config<I>>::Currency as Currency<<T as SystemConfig>::AccountId>>::Balance;
-pub(super) type ClassDetailsFor<T, I> = ClassDetails<<T as SystemConfig>::AccountId, DepositBalanceOf<T, I>>;
-pub(super) type InstanceDetailsFor<T, I> = InstanceDetails<<T as SystemConfig>::AccountId, DepositBalanceOf<T, I>>;
+pub(super) type ClassDetailsFor<T, I> =
+	ClassDetails<<T as SystemConfig>::AccountId, DepositBalanceOf<T, I>>;
+pub(super) type InstanceDetailsFor<T, I> =
+	InstanceDetails<<T as SystemConfig>::AccountId, DepositBalanceOf<T, I>>;
 
 #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 pub struct ClassDetails<AccountId, DepositBalance> {
@@ -50,17 +51,6 @@ pub struct ClassDetails<AccountId, DepositBalance> {
 	pub(super) attributes: u32,
 	/// Whether the asset is frozen for non-admin transfers.
 	pub(super) is_frozen: bool,
-}
-
-#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo)]
-pub struct ClassTeam<AccountId> {
-	pub owner: AccountId,
-	/// Can mint tokens.
-	pub issuer: AccountId,
-	/// Can thaw tokens, force transfers and burn tokens from any account.
-	pub admin: AccountId,
-	/// Can freeze tokens.
-	pub freezer: AccountId,
 }
 
 /// Witness data for the destroy transactions.

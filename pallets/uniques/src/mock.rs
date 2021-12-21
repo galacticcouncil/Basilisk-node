@@ -1,4 +1,3 @@
-#![allow(clippy::all)]
 // This file is part of Substrate.
 
 // Copyright (C) 2019-2021 Parity Technologies (UK) Ltd.
@@ -115,7 +114,6 @@ impl Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = ();
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {
