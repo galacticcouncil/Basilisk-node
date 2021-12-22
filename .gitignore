@@ -50,3 +50,8 @@ fork-testing/local-raw.json
 .env
 
 /scripts/upgrade-runtime/basilisk_runtime.compact.compressed.wasm
+
+
+#coverage
+cobertura.xml
+lcov.info
