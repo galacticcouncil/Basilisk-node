@@ -278,9 +278,9 @@ pub mod pallet {
 				!MarketplaceInstances::<T>::contains_key(class_id, instance_id),
 				Error::<T>::RoyaltyAlreadySet
 			);
-			ensure!(royalty <= 100, pallet_nft::Error::<T>::NotInRange);
+			ensure!(royalty <= 100, Error::<T>::NotInRange);
 			let owner = pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id)
-				.ok_or(pallet_nft::Error::<T>::InstanceUnknown)?;
+				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);
 
 			MarketplaceInstances::<T>::insert(
@@ -347,6 +347,8 @@ pub mod pallet {
 		AcceptNotAuthorized,
 		/// Royalty can be set only once
 		RoyaltyAlreadySet,
+		/// Royalty not in 0-99 range
+		NotInRange,
 	}
 }
 

@@ -125,52 +125,46 @@ pub mod nft {
 
 	impl NftPermission<ClassType> for NftPermissions {
 		fn can_create(class_type: &ClassType) -> bool {
-			match *class_type {
-				ClassType::Bare => true,
-				ClassType::Marketplace => true,
-				_ => false,
-			}
+			matches!(*class_type,
+				ClassType::Bare
+				| ClassType::Marketplace
+			)
 		}
 
 		fn can_mint(class_type: &ClassType) -> bool {
-			match *class_type {
-				ClassType::Bare => true,
-				ClassType::Marketplace => true,
-				_ => false,
-			}
+			matches!(*class_type,
+				ClassType::Bare
+				| ClassType::Marketplace
+			)
 		}
 
 		fn can_transfer(class_type: &ClassType) -> bool {
-			match *class_type {
-				ClassType::Bare => true,
-				ClassType::Marketplace => true,
-				ClassType::LiquidityMining => true,
-				_ => false,
-			}
+			matches!(*class_type,
+				ClassType::Bare
+				| ClassType::Marketplace
+				| ClassType::LiquidityMining
+			)
 		}
 
 		fn can_burn(class_type: &ClassType) -> bool {
-			match *class_type {
-				ClassType::Bare => true,
-				ClassType::Marketplace => true,
-				_ => false,
-			}
+			matches!(*class_type,
+				ClassType::Bare
+				| ClassType::Marketplace
+			)
 		}
 
 		fn can_destroy(class_type: &ClassType) -> bool {
-			match *class_type {
-				ClassType::Bare => true,
-				ClassType::Marketplace => true,
-				_ => false,
-			}
+			matches!(*class_type,
+				ClassType::Bare
+				| ClassType::Marketplace
+			)
 		}
 
 		fn has_deposit(class_type: &ClassType) -> bool {
-			match *class_type {
-				ClassType::Bare => true,
-				ClassType::Marketplace => true,
-				_ => false,
-			}
+			matches!(*class_type,
+				ClassType::Bare
+				| ClassType::Marketplace
+			)
 		}
 	}
 }

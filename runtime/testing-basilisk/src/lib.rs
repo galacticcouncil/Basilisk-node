@@ -472,7 +472,6 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = ();
 }
 
 type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<

@@ -1,20 +1,16 @@
 use crate as pallet_marketplace;
 use frame_support::{parameter_types, traits::Everything};
 use frame_system as system;
-use primitives::{ClassType, ReserveIdentifier};
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
+use primitives::{
+	nft::{ClassType, NftPermissions},
+	ReserveIdentifier,
+};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use system::EnsureRoot;
-
-use codec::{Decode, Encode};
-use frame_support::RuntimeDebug;
-use pallet_nft::NftPermission;
-use scale_info::TypeInfo;
 
 mod marketplace {
 	// Re-export needed for `impl_outer_event!`.
@@ -58,59 +54,6 @@ impl pallet_marketplace::Config for Test {
 	type MinimumOfferAmount = MinimumOfferAmount;
 }
 
-#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-pub struct NftPermissions;
-
-impl NftPermission<ClassType> for NftPermissions {
-	fn can_create(class_type: &ClassType) -> bool {
-		match *class_type {
-			ClassType::Bare => true,
-			ClassType::Marketplace => true,
-			_ => false,
-		}
-	}
-
-	fn can_mint(class_type: &ClassType) -> bool {
-		match *class_type {
-			ClassType::Bare => true,
-			ClassType::Marketplace => true,
-			_ => false,
-		}
-	}
-
-	fn can_transfer(class_type: &ClassType) -> bool {
-		match *class_type {
-			ClassType::Bare => true,
-			ClassType::Marketplace => true,
-			_ => false,
-		}
-	}
-
-	fn can_burn(class_type: &ClassType) -> bool {
-		match *class_type {
-			ClassType::Bare => true,
-			ClassType::Marketplace => true,
-			_ => false,
-		}
-	}
-
-	fn can_destroy(class_type: &ClassType) -> bool {
-		match *class_type {
-			ClassType::Bare => true,
-			ClassType::Marketplace => true,
-			_ => false,
-		}
-	}
-
-	fn has_deposit(class_type: &ClassType) -> bool {
-		match *class_type {
-			ClassType::Bare => true,
-			ClassType::Marketplace => true,
-			_ => false,
-		}
-	}
-}
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
@@ -192,7 +135,6 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = ();
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);

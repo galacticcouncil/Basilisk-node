@@ -10,8 +10,7 @@ use frame_system::RawOrigin;
 use pallet_nft as NFT;
 use pallet_uniques as UNQ;
 use sp_runtime::{traits::UniqueSaturatedInto, SaturatedConversion};
-use sp_std::vec::Vec;
-use std::convert::TryInto;
+use sp_std::convert::TryInto;
 use NFT::BoundedVecOfUnq;
 
 const SEED: u32 = 0;

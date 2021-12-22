@@ -234,40 +234,18 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// String exceeds allowed length
-		TooLong,
 		/// Count of instances overflown
 		NoAvailableInstanceId,
 		/// Count of classes overflown
 		NoAvailableClassId,
-		/// No witness found for given class
-		NoWitness,
 		/// Class still contains minted tokens
 		TokenClassNotEmpty,
 		/// Class does not exist
 		ClassUnknown,
-		/// Instance does not exist
-		InstanceUnknown,
-		/// Royalty has to be set for marketplace
-		RoyaltyNotSet,
-		/// Author has to be set for marketplace
-		AuthorNotSet,
-		/// Metadata has to be set for marketplace
-		MetadataNotSet,
 		/// Shares has to be set for liquidity mining
 		SharesNotSet,
-		/// Accumulated reward per share has to be set for liquidity mining
-		AccrpsNotSet,
-		/// Cannot burn token if frozen
-		TokenFrozen,
-		/// Royalty not in 0-99 range
-		NotInRange,
 		/// Operation not permitted
 		NotPermitted,
-		/// Class type does not match the chosen operation
-		ClassTypeMismatch,
-		/// Number exceeded maximum allowed values
-		Overflow,
 	}
 }
 
@@ -343,7 +321,7 @@ impl<T: Config> Pallet<T> {
 		pallet_uniques::Pallet::<T>::do_transfer(
 			class_id.into(),
 			instance_id.into(),
-			to.clone(),
+			to,
 			|_class_details, instance_details| {
 				let is_permitted = instance_details.owner == from;
 				ensure!(is_permitted, Error::<T>::NotPermitted);
@@ -366,7 +344,7 @@ impl<T: Config> Pallet<T> {
 
 	pub fn do_destroy_class(class_id: T::NftClassId) -> DispatchResultWithPostInfo {
 		let witness =
-			pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::NoWitness)?;
+			pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::ClassUnknown)?;
 
 		ensure!(witness.instances == 0u32, Error::<T>::TokenClassNotEmpty);
 		pallet_uniques::Pallet::<T>::do_destroy_class(class_id.into(), witness, None)?;

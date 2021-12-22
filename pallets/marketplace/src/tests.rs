@@ -2,7 +2,7 @@ use frame_support::{assert_noop, assert_ok};
 
 use super::*;
 use mock::{Event, *};
-use primitives::ClassType;
+use primitives::nft::ClassType;
 use std::convert::TryInto;
 
 type Market = Pallet<Test>;
@@ -18,11 +18,7 @@ fn set_price_works() {
 	new_test_ext().execute_with(|| {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(
-			Origin::signed(ALICE),
-			Default::default(),
-			metadata.clone()
-		));
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), Default::default(), metadata));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
@@ -57,11 +53,7 @@ fn buy_works() {
 	new_test_ext().execute_with(|| {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(
-			Origin::signed(ALICE),
-			Default::default(),
-			metadata.clone()
-		));
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), Default::default(), metadata));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
@@ -106,11 +98,7 @@ fn buy_works_2() {
 	new_test_ext().execute_with(|| {
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(
-			Origin::signed(ALICE),
-			Default::default(),
-			metadata.clone()
-		));
+		assert_ok!(NFT::create_class(Origin::signed(ALICE), Default::default(), metadata));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
@@ -151,11 +139,7 @@ fn trading_works() {
 			Default::default(),
 			metadata.clone()
 		));
-		assert_ok!(NFT::create_class(
-			Origin::signed(CHARLIE),
-			Default::default(),
-			metadata.clone()
-		));
+		assert_ok!(NFT::create_class(Origin::signed(CHARLIE), Default::default(), metadata));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
 		assert_ok!(NFT::mint(Origin::signed(BOB), CLASS_ID_1));
 		assert_ok!(NFT::mint(Origin::signed(BOB), CLASS_ID_1));
@@ -222,11 +206,7 @@ fn offering_works() {
 			metadata.clone()
 		));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
-		assert_ok!(NFT::do_create_class(
-			ALICE,
-			ClassType::LiquidityMining,
-			metadata.clone()
-		));
+		assert_ok!(NFT::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -291,7 +271,7 @@ fn add_royalty_works() {
 		assert_ok!(NFT::create_class(
 			Origin::signed(ALICE),
 			ClassType::Marketplace,
-			metadata.clone()
+			metadata
 		));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0));
 
