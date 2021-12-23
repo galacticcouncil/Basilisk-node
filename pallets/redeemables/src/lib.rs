@@ -39,6 +39,11 @@ pub mod pallet {
     	type PalletId: Get<PalletId>;
 	}
 
+	#[pallet::storage]
+	#[pallet::getter(fn classes_redeemables)]
+	/// Stores class info
+	pub type ClassesRedeemables<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, RedeemablesClassInfo>;
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Buys from a pool
@@ -76,7 +81,19 @@ pub mod pallet {
 		pub fn sell(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
-			pallet_nft::Pallet::<T>::burn_for_redeemables(sender.clone(), class_id, instance_id, false)?;
+			//pallet_nft::Pallet::<T>::burn_for_redeemables(sender.clone(), class_id, instance_id, false)?;
+
+			ClassesRedeemables::<T>::try_mutate(class_id, |maybe_info| -> DispatchResult {
+				let info = maybe_info.as_mut().ok_or(Error::<T>::ClassUnknown)?;
+
+				if redeem {
+					info.redeemed = info.redeemed.saturating_add(One::one())
+				} else {
+					info.issued = info.issued.saturating_sub(One::one())
+				}
+
+				Ok(())
+			})?;
 
 			let class_info = pallet_nft::Pallet::<T>::classes_redeemables(class_id)
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
@@ -140,4 +157,99 @@ impl<T: Config> Pallet<T> {
 	fn module_account() -> T::AccountId {
         T::PalletId::get().into_account()
     }
+}
+
+
+pub fn create_class_for_redeemables(max_supply: u32, curve: BondingCurve) -> Result<T::NftClassId, DispatchError> {
+	let class_id = Self::get_next_class_id()?;
+
+	pallet_uniques::Pallet::<T>::do_create_class(
+		class_id.into(),
+		Default::default(),
+		Default::default(),
+		Zero::zero(),
+		true,
+		pallet_uniques::Event::Created(class_id.into(), Default::default(), Default::default()),
+	)?;
+
+	ClassesRedeemables::<T>::insert(
+		class_id,
+		RedeemablesClassInfo {
+			class_type: ClassType::Redeemable,
+			max_supply,
+			redeemed: Zero::zero(),
+			issued: Zero::zero(),
+			curve,
+		},
+	);
+
+	Self::deposit_event(Event::ClassCreated(Default::default(), class_id, ClassType::Redeemable));
+
+	Ok(class_id)
+}
+
+pub fn mint_for_redeemables(
+	owner: T::AccountId,
+	class_id: T::NftClassId,
+) -> Result<T::NftInstanceId, DispatchError> {
+	let class_type = Self::classes_redeemables(class_id)
+		.map(|c| c.class_type)
+		.ok_or(Error::<T>::ClassUnknown)?;
+
+	ensure!(class_type == ClassType::Redeemable, Error::<T>::ClassTypeMismatch);
+
+	ClassesRedeemables::<T>::try_mutate(class_id, |maybe_info| -> DispatchResult {
+		let info = maybe_info.as_mut().ok_or(Error::<T>::ClassUnknown)?;
+
+		ensure!(
+			info.issued.saturating_add(1) < info.max_supply,
+			Error::<T>::ReachedMaxSupply
+		);
+
+		info.issued = info.issued.saturating_add(One::one());
+
+		Ok(())
+	})?;
+
+	let instance_id = Self::get_next_instance_id(class_id)?;
+
+	pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
+
+	Self::deposit_event(Event::InstanceMinted(class_type, owner, class_id, instance_id));
+
+	Ok(instance_id)
+}
+
+pub fn burn_for_redeemables (
+	sender: T::AccountId,
+	class_id: T::NftClassId,
+	instance_id: T::NftInstanceId,
+	redeem: bool,
+) -> DispatchResult {
+
+	pallet_uniques::Pallet::<T>::do_burn(
+		class_id.into(),
+		instance_id.into(),
+		|_class_details, instance_details| {
+			let is_permitted = instance_details.owner == sender;
+			ensure!(is_permitted, Error::<T>::NotPermitted);
+			Ok(())
+		},
+	)?;
+
+	ClassesRedeemables::<T>::try_mutate(class_id, |maybe_info| -> DispatchResult {
+		let info = maybe_info.as_mut().ok_or(Error::<T>::ClassUnknown)?;
+
+		if redeem {
+			info.redeemed = info.redeemed.saturating_add(One::one())
+		} else {
+			info.issued = info.issued.saturating_sub(One::one())
+		}
+
+		Ok(())
+	})?;
+
+	Self::deposit_event(Event::InstanceBurned(sender, class_id, instance_id));
+
+	Ok(())
 }
