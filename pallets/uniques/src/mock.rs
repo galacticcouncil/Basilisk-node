@@ -115,7 +115,6 @@ impl Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = ();
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

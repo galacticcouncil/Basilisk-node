@@ -178,6 +178,7 @@ impl Config for Test {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = Disallow10_10Pool;
+	type AMMHandler = ();
 }
 
 pub struct ExtBuilder {
