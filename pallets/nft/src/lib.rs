@@ -6,7 +6,7 @@ use codec::HasCompact;
 use frame_support::{
 	dispatch::{DispatchResult, DispatchResultWithPostInfo},
 	ensure,
-	traits::{tokens::nonfungibles::*, Currency, Get, NamedReservableCurrency},
+	traits::{tokens::nonfungibles::*, Get, NamedReservableCurrency},
 	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
@@ -29,9 +29,9 @@ pub mod mock;
 #[cfg(test)]
 mod tests;
 
-type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 pub type BoundedVecOfUnq<T> = BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>;
 type ClassInfoOf<T> = ClassInfo<<T as Config>::ClassType, BoundedVecOfUnq<T>>;
+pub type InstanceInfoOf<T> = InstanceInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -48,15 +48,10 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_uniques::Config {
-		/// Currency type for reserve balance.
 		type Currency: NamedReservableCurrency<Self::AccountId, ReserveIdentifier = ReserveIdentifier>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		/// Amount that must be reserved for each minted NFT
-		#[pallet::constant]
-		type TokenDeposit: Get<BalanceOf<Self>>;
 		type WeightInfo: WeightInfo;
 		type ProtocolOrigin: EnsureOrigin<Self::Origin>;
-
 		type NftClassId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned + Into<Self::ClassId>;
 		type NftInstanceId: Member
 			+ Parameter
@@ -86,14 +81,21 @@ pub mod pallet {
 	/// Stores class info
 	pub type Classes<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, ClassInfoOf<T>>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn instances)]
+	/// Stores instance info
+	pub type Instances<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, T::NftClassId, Twox64Concat, T::NftInstanceId, InstanceInfoOf<T>>;
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Creates an NFT class and sets its metadata
+		/// Creates an NFT class of the given class
+		/// and sets its metadata
+		/// Class ID is chosen automatically from the sequence
 		///
 		/// Parameters:
-		/// - `class_id`: The identifier of the new asset class. This must not be currently in use.
 		/// - `class_type`: The class type determines its purpose and usage
-		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash
+		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash or name
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
 		pub fn create_class(
@@ -113,13 +115,14 @@ pub mod pallet {
 		}
 
 		/// Mints an NFT in the specified class
-		/// Sets metadata and the royalty attribute
+		/// and sets its metadata
 		///
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be minted.
+		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash or symbol
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
-		pub fn mint(origin: OriginFor<T>, class_id: T::NftClassId) -> DispatchResult {
+		pub fn mint(origin: OriginFor<T>, class_id: T::NftClassId, metadata: BoundedVecOfUnq<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			let class_type = Self::classes(class_id)
@@ -128,7 +131,7 @@ pub mod pallet {
 
 			ensure!(T::Permissions::can_mint(&class_type), Error::<T>::NotPermitted);
 
-			let instance_id = Self::do_mint(sender.clone(), class_id)?;
+			let instance_id = Self::do_mint(sender.clone(), class_id, metadata)?;
 
 			Self::deposit_event(Event::InstanceMinted(sender, class_id, instance_id));
 
@@ -300,10 +303,16 @@ impl<T: Config> Pallet<T> {
 		Ok((class_id, class_type))
 	}
 
-	pub fn do_mint(owner: T::AccountId, class_id: T::NftClassId) -> Result<T::NftInstanceId, DispatchError> {
+	pub fn do_mint(
+		owner: T::AccountId,
+		class_id: T::NftClassId,
+		metadata: BoundedVecOfUnq<T>,
+	) -> Result<T::NftInstanceId, DispatchError> {
 		let instance_id = Self::get_next_instance_id(class_id)?;
 
 		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner, |_details| Ok(()))?;
+
+		Instances::<T>::insert(class_id, instance_id, InstanceInfo { metadata });
 
 		Ok(instance_id)
 	}
@@ -339,7 +348,11 @@ impl<T: Config> Pallet<T> {
 				ensure!(is_permitted, Error::<T>::NotPermitted);
 				Ok(())
 			},
-		)
+		)?;
+
+		Instances::<T>::remove(class_id, instance_id);
+
+		Ok(())
 	}
 
 	pub fn do_destroy_class(class_id: T::NftClassId) -> DispatchResultWithPostInfo {
