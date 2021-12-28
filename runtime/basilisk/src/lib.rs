@@ -107,7 +107,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 27,
+	spec_version: 29,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -127,8 +127,8 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
-			Call::Marketplace(_) => false,
-			Call::NFT(_) => false,
+			//Call::Marketplace(_) => false,
+			//Call::NFT(_) => false,
 			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
@@ -721,13 +721,15 @@ impl orml_vesting::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumOfferAmount: Balance = 100 * UNITS;
+	pub const MinimumOfferAmount: Balance = 10000 * UNITS;
+	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
 }
 
 impl pallet_marketplace::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
 	type MinimumOfferAmount = MinimumOfferAmount;
+	type RoyaltyBondAmount = RoyaltyBondAmount;
 }
 
 parameter_types! {

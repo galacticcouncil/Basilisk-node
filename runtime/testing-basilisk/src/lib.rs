@@ -709,13 +709,15 @@ impl orml_vesting::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumOfferAmount: Balance = 20 * UNITS;
+	pub const MinimumOfferAmount: Balance = 10000 * UNITS;
+	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
 }
 
 impl pallet_marketplace::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
 	type MinimumOfferAmount = MinimumOfferAmount;
+	type RoyaltyBondAmount = RoyaltyBondAmount;
 }
 
 impl pallet_relaychain_info::Config for Runtime {

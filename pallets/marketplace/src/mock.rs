@@ -45,13 +45,15 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const MinimumOfferAmount: Balance = 20 * BSX;
+	pub const MinimumOfferAmount: Balance = 50 * UNITS;
+	pub const RoyaltyBondAmount: Balance = 200 * UNITS;
 }
 
 impl pallet_marketplace::Config for Test {
 	type Event = Event;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Test>;
 	type MinimumOfferAmount = MinimumOfferAmount;
+	type RoyaltyBondAmount = RoyaltyBondAmount;
 }
 
 impl pallet_nft::Config for Test {
@@ -109,13 +111,13 @@ impl system::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 10_000 * BSX; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 100 * BSX; // 1/100 UNIT deposit to create asset instance
+	pub const ClassDeposit: Balance = 10_000 * UNITS; // 1 UNIT deposit to create asset class
+	pub const InstanceDeposit: Balance = 100 * UNITS; // 1/100 UNIT deposit to create asset instance
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
-	pub const UniquesMetadataDepositBase: Balance = 100 * BSX;
-	pub const AttributeDepositBase: Balance = 10 * BSX;
-	pub const DepositPerByte: Balance = BSX;
+	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
+	pub const AttributeDepositBase: Balance = 10 * UNITS;
+	pub const DepositPerByte: Balance = UNITS;
 	pub const UniquesStringLimit: u32 = 128;
 }
 
@@ -141,7 +143,7 @@ pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 
-pub const BSX: Balance = 100_000_000_000;
+pub const UNITS: Balance = 100_000_000_000;
 
 pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
 pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1;
@@ -162,10 +164,10 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: vec![
-				(ALICE, 200_000 * BSX),
-				(BOB, 15_000 * BSX),
-				(CHARLIE, 150_000 * BSX),
-				(DAVE, 200_000 * BSX),
+				(ALICE, 200_000 * UNITS),
+				(BOB, 15_000 * UNITS),
+				(CHARLIE, 150_000 * UNITS),
+				(DAVE, 200_000 * UNITS),
 			],
 		}
 		.assimilate_storage(&mut t)

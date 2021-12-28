@@ -87,6 +87,8 @@ pub mod pallet {
 		type WeightInfo: WeightInfo;
 		#[pallet::constant]
 		type MinimumOfferAmount: Get<BalanceOf<Self>>;
+		#[pallet::constant]
+		type RoyaltyBondAmount: Get<BalanceOf<Self>>;
 	}
 
 	#[pallet::call]
@@ -255,8 +257,8 @@ pub mod pallet {
 			})
 		}
 
-		/// Add royalty feature where each trade means
-		///
+		/// Add royalty feature where a cut for author is provided
+		/// There is non-refundable reserve held for creating a royalty
 		///
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be minted.
@@ -283,6 +285,9 @@ pub mod pallet {
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);
 
+			let royalty_bond = T::RoyaltyBondAmount::get();
+			<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, royalty_bond)?;
+
 			MarketplaceInstances::<T>::insert(
 				class_id,
 				instance_id,
@@ -292,7 +297,7 @@ pub mod pallet {
 				},
 			);
 
-			Self::deposit_event(Event::MarketplaceDataAdded(class_id, instance_id, author, royalty));
+			Self::deposit_event(Event::RoyaltyAdded(class_id, instance_id, author, royalty));
 
 			Ok(())
 		}
@@ -320,7 +325,7 @@ pub mod pallet {
 		/// Royalty hs been paid to the author \[class_id, instance_id, author, royalty, royalty_amount\]
 		RoyaltyPaid(T::NftClassId, T::NftInstanceId, T::AccountId, u8, BalanceOf<T>),
 		/// Marketplace data has been added \[class_type, sender, class_id, instance_id\]
-		MarketplaceDataAdded(T::NftClassId, T::NftInstanceId, T::AccountId, u8),
+		RoyaltyAdded(T::NftClassId, T::NftInstanceId, T::AccountId, u8),
 	}
 
 	#[pallet::error]

@@ -78,25 +78,25 @@ fn buy_works() {
 
 		assert_noop!(Market::buy(Origin::signed(BOB), 0, 0), Error::<Test>::NotForSale);
 
-		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(22_222 * BSX)));
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(22_222 * UNITS)));
 
 		assert_noop!(
 			Market::buy(Origin::signed(BOB), 0, 0),
 			pallet_balances::Error::<Test, _>::InsufficientBalance
 		);
 
-		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(1024 * BSX)));
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(1024 * UNITS)));
 
 		assert_ok!(Market::buy(Origin::signed(BOB), 0, 0));
 
 		assert_eq!(Market::prices(0, 0), None);
 
-		assert_eq!(Balances::free_balance(ALICE), 190_668 * BSX);
-		assert_eq!(Balances::free_balance(BOB), 13_976 * BSX);
-		assert_eq!(Balances::free_balance(CHARLIE), 150_256 * BSX);
-		assert_eq!(Balances::free_balance(DAVE), 200_000 * BSX);
+		assert_eq!(Balances::free_balance(ALICE), 190_468 * UNITS);
+		assert_eq!(Balances::free_balance(BOB), 13_976 * UNITS);
+		assert_eq!(Balances::free_balance(CHARLIE), 150_256 * UNITS);
+		assert_eq!(Balances::free_balance(DAVE), 200_000 * UNITS);
 
-		let event = Event::Marketplace(crate::Event::TokenSold(ALICE, BOB, 0, 0, 768 * BSX));
+		let event = Event::Marketplace(crate::Event::TokenSold(ALICE, BOB, 0, 0, 768 * UNITS));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -119,18 +119,20 @@ fn buy_works_2() {
 			CHARLIE,
 			20,
 		));
-		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * UNITS)));
 		assert_ok!(Market::buy(Origin::signed(BOB), 0, 0));
 		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
-		assert_eq!(Balances::total_balance(&ALICE), 200_080 * BSX);
-		assert_eq!(Balances::total_balance(&BOB), 14_900 * BSX);
-		assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * BSX);
-		// Reserved 10_000 for the class
-		assert_eq!(Balances::reserved_balance(&ALICE), 10_100 * BSX);
-		// Reserved 100 for the transferred nft
+		assert_eq!(Balances::total_balance(&ALICE), 200_080 * UNITS);
+		assert_eq!(Balances::total_balance(&BOB), 14_900 * UNITS);
+		assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * UNITS);
+		// Reserved:
+		// 10_000 class
+		// 100 instance
+		// 200 royalty
+		assert_eq!(Balances::reserved_balance(&ALICE), 10_300 * UNITS);
 		assert_eq!(Balances::reserved_balance(&BOB), 0);
 		assert_ok!(NFT::burn(Origin::signed(BOB), 0, 0));
-		assert_eq!(Balances::reserved_balance(&ALICE), 10_000 * BSX);
+		assert_eq!(Balances::reserved_balance(&ALICE), 10_200 * UNITS);
 		assert_eq!(Balances::reserved_balance(&BOB), 0);
 	});
 }
@@ -231,15 +233,15 @@ fn offering_works() {
 			20,
 		));
 
-		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * BSX)));
+		assert_ok!(Market::set_price(Origin::signed(ALICE), 0, 0, Some(100 * UNITS)));
 		assert_noop!(
 			Market::make_offer(Origin::signed(BOB), 0, 0, 0, 1),
 			Error::<Test>::OfferTooLow
 		);
-		assert_ok!(Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * BSX, 1));
-		assert_ok!(Market::make_offer(Origin::signed(ALICE), 3, 0, 50 * BSX, 1));
+		assert_ok!(Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * UNITS, 1));
+		assert_ok!(Market::make_offer(Origin::signed(ALICE), 3, 0, 50 * UNITS, 1));
 		assert_noop!(
-			Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * BSX, 1),
+			Market::make_offer(Origin::signed(DAVE), 0, 0, 50 * UNITS, 1),
 			Error::<Test>::AlreadyOffered
 		);
 		assert_noop!(
@@ -255,17 +257,17 @@ fn offering_works() {
 			Error::<Test>::OfferExpired
 		);
 		assert_ok!(Market::withdraw_offer(Origin::signed(ALICE), 0, 0, DAVE));
-		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * BSX, 666));
+		assert_ok!(Market::make_offer(Origin::signed(BOB), 0, 0, 50 * UNITS, 666));
 		assert_noop!(
 			Market::accept_offer(Origin::signed(DAVE), 0, 0, BOB),
 			Error::<Test>::AcceptNotAuthorized
 		);
-		assert_eq!(Market::prices(0, 0), Some(100 * BSX));
+		assert_eq!(Market::prices(0, 0), Some(100 * UNITS));
 		assert_eq!(
 			Market::offers((0, 0), BOB),
 			Some(Offer {
 				maker: BOB,
-				amount: 50 * BSX,
+				amount: 50 * UNITS,
 				expires: 666,
 			})
 		);
@@ -273,9 +275,9 @@ fn offering_works() {
 		assert_ok!(Market::accept_offer(Origin::signed(ALICE), 0, 0, BOB));
 		assert_eq!(pallet_uniques::Pallet::<Test>::owner(0, 0), Some(BOB));
 		// Total = 20_000 + 50 - 10 = 20_040
-		assert_eq!(Balances::total_balance(&ALICE), 200_040 * BSX);
-		assert_eq!(Balances::total_balance(&BOB), 14_950 * BSX);
-		assert_eq!(Balances::total_balance(&CHARLIE), 150_010 * BSX);
+		assert_eq!(Balances::total_balance(&ALICE), 200_040 * UNITS);
+		assert_eq!(Balances::total_balance(&BOB), 14_950 * UNITS);
+		assert_eq!(Balances::total_balance(&CHARLIE), 150_010 * UNITS);
 	});
 }
 

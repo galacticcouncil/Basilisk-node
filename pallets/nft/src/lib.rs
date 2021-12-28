@@ -107,7 +107,7 @@ pub mod pallet {
 
 			ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
 
-			let (class_id, class_type) = Self::do_create_class(sender.clone(), Default::default(), metadata)?;
+			let (class_id, class_type) = Self::do_create_class(sender.clone(), class_type, metadata)?;
 
 			Self::deposit_event(Event::ClassCreated(sender, class_id, class_type));
 
