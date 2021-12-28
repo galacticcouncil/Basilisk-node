@@ -586,7 +586,7 @@ impl<T: Config> Pallet<T> {
 	}
 	/// Calculate discounted trade fee
 	fn calculate_discounted_fee(amount: Balance) -> Result<Balance, DispatchError> {
-		let fee = Fee::discounted_fee();
+		let fee = Fee {numerator: 7, denominator: 10_000};
 		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (fee.numerator, fee.denominator))
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}

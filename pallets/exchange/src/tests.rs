@@ -43,6 +43,8 @@ fn expect_event<E: Into<TestEvent>>(e: E) {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
+	println!("left: {:?}\n",frame_system::Pallet::<Test>::events());
+	println!("right: {:?}",e);
 	e.into_iter()
 		.for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
@@ -2517,10 +2519,10 @@ fn simple_sell_sell() {
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 99_999999999998000);
 		assert_eq!(Currency::free_balance(asset_b, &user_2), 100_000000000003993);
 
-		assert_eq!(Currency::free_balance(asset_a, &user_3), 100_000000000000499);
+		assert_eq!(Currency::free_balance(asset_a, &user_3), 100_000000000000500);
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 99_999999999999000);
 
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100001501);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100001500);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 199997007);
 
 		expect_events(vec![
@@ -2553,7 +2555,7 @@ fn simple_sell_sell() {
 				1000,
 			)
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_a, 1).into(),
+			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_a, 0).into(),
 			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_b, 2).into(),
 			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2995, 2000, 4, pair_account).into(),
 			Event::IntentionResolvedAMMTrade(
@@ -2614,10 +2616,10 @@ fn simple_buy_buy() {
 		assert_eq!(Currency::free_balance(asset_a, &user_2), 100_000000000002000);
 		assert_eq!(Currency::free_balance(asset_b, &user_2), 99_999999999995991);
 
-		assert_eq!(Currency::free_balance(asset_a, &user_3), 99_999999999999499);
+		assert_eq!(Currency::free_balance(asset_a, &user_3), 99_999999999999500);
 		assert_eq!(Currency::free_balance(asset_b, &user_3), 100_000000000001000);
 
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 99998501);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 99998500);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200003009);
 
 		expect_events(vec![
@@ -2639,7 +2641,7 @@ fn simple_buy_buy() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 501).into(),
+			orml_tokens::Event::Reserved(asset_a, 3, 500).into(),
 			orml_tokens::Event::Reserved(asset_b, 2, 1002).into(),
 			xyk::Event::BuyExecuted(2, 3000, 2000, 1500, 3001, 2000, 6, pair_account).into(),
 			Event::IntentionResolvedAMMTrade(
@@ -2660,7 +2662,7 @@ fn simple_buy_buy() {
 				1000,
 			)
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_a, 1).into(),
+			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_a, 0).into(),
 			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 2).into(),
 		]);
 	});

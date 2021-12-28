@@ -67,6 +67,8 @@ pub const SAMPLE_AMM_TRANSFER: AMMTransfer<AccountId, AssetId, AssetPair, Balanc
 	fee: (KUSD, 200),
 };
 
+pub const DEFAULT_FEE: Fee = Fee {numerator: 2, denominator: 1_000};
+
 frame_support::construct_runtime!(
 	pub enum Test where
 	 Block = Block,

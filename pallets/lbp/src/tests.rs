@@ -21,7 +21,7 @@ pub use crate::mock::{
 	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, KUSD, ALICE, BOB, CHARLIE,
 	BSX, ETH, HDX,
 };
-use crate::mock::{KUSD_BSX_POOL_ID, HDX_BSX_POOL_ID, INITIAL_BALANCE, SAMPLE_POOL_DATA, EXISTENTIAL_DEPOSIT, generate_trades, SALE_START, SALE_END, run_to_sale_start, run_to_sale_end, SAMPLE_AMM_TRANSFER};
+use crate::mock::{KUSD_BSX_POOL_ID, HDX_BSX_POOL_ID, INITIAL_BALANCE, SAMPLE_POOL_DATA, EXISTENTIAL_DEPOSIT, generate_trades, SALE_START, SALE_END, run_to_sale_start, run_to_sale_end, SAMPLE_AMM_TRANSFER, DEFAULT_FEE};
 use frame_support::{assert_err, assert_noop, assert_ok};
 use sp_runtime::traits::BadOrigin;
 use sp_std::convert::TryInto;
@@ -30,7 +30,6 @@ use hydradx_traits::{AMMTransfer, LockedBalance};
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
-	fee::Fee,
 };
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -52,7 +51,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			20_000_000,
 			80_000_000,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -78,7 +77,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			initial_weight: 20_000_000,
 			final_weight: 80_000_000,
 			weight_curve: WeightCurveType::Linear,
-			fee: Fee::default(),
+			fee: DEFAULT_FEE,
 			fee_collector: CHARLIE,
 			repay_target: 0,
 		};
@@ -108,7 +107,7 @@ pub fn predefined_test_ext_with_repay_target() -> sp_io::TestExternalities {
 			80_000_000,
 			20_000_000,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			initial_liquidity,
 		));
@@ -168,7 +167,7 @@ fn validate_pool_data_should_work() {
 			initial_weight: 20_000_000,
 			final_weight: 90_000_000,
 			weight_curve: WeightCurveType::Linear,
-			fee: Fee::default(),
+			fee: DEFAULT_FEE,
 			fee_collector: CHARLIE,
 			repay_target: 0,
 		};
@@ -183,7 +182,7 @@ fn validate_pool_data_should_work() {
 			initial_weight: 20_000_000,
 			final_weight: 90_000_000,
 			weight_curve: WeightCurveType::Linear,
-			fee: Fee::default(),
+			fee: DEFAULT_FEE,
 			fee_collector: CHARLIE,
 			repay_target: 0,
 		};
@@ -197,7 +196,7 @@ fn validate_pool_data_should_work() {
 			initial_weight: 20_000_000,
 			final_weight: 90_000_000,
 			weight_curve: WeightCurveType::Linear,
-			fee: Fee::default(),
+			fee: DEFAULT_FEE,
 			fee_collector: CHARLIE,
 			repay_target: 0,
 		};
@@ -214,7 +213,7 @@ fn validate_pool_data_should_work() {
 			initial_weight: 20_000_000,
 			final_weight: 90_000_000,
 			weight_curve: WeightCurveType::Linear,
-			fee: Fee::default(),
+			fee: DEFAULT_FEE,
 			fee_collector: CHARLIE,
 			repay_target: 0,
 		};
@@ -237,7 +236,7 @@ fn max_sale_duration_ckeck() {
 				initial_weight: 20_000_000,
 				final_weight: 90_000_000,
 				weight_curve: WeightCurveType::Linear,
-				fee: Fee::default(),
+				fee: DEFAULT_FEE,
 				fee_collector: CHARLIE,
 				repay_target: 0,
 			})
@@ -251,7 +250,7 @@ fn max_sale_duration_ckeck() {
 				initial_weight: 20_000_000,
 				final_weight: 90_000_000,
 				weight_curve: WeightCurveType::Linear,
-				fee: Fee::default(),
+				fee: DEFAULT_FEE,
 				fee_collector: CHARLIE,
 				repay_target: 0,
 			}),
@@ -271,7 +270,7 @@ fn calculate_weights_should_work() {
 			initial_weight: 50_000_000,
 			final_weight: 33_333_333,
 			weight_curve: WeightCurveType::Linear,
-			fee: Fee::default(),
+			fee: DEFAULT_FEE,
 			fee_collector: CHARLIE,
 			repay_target: 0,
 		};
@@ -332,7 +331,7 @@ fn create_pool_should_work() {
 			20_000_000u32,
 			90_000_000u32,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -356,7 +355,7 @@ fn create_pool_should_work() {
 		assert_eq!(pool_data.initial_weight, 20_000_000);
 		assert_eq!(pool_data.final_weight, 90_000_000);
 		assert_eq!(pool_data.weight_curve, WeightCurveType::Linear);
-		assert_eq!(pool_data.fee, Fee::default());
+		assert_eq!(pool_data.fee, DEFAULT_FEE);
 		assert_eq!(pool_data.fee_collector, CHARLIE);
 
 		assert!(<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
@@ -382,7 +381,7 @@ fn create_pool_from_basic_origin_should_not_work() {
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -404,7 +403,7 @@ fn create_same_pool_should_not_work() {
 			80_000_000u32,
 			10_000_000u32,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -420,7 +419,7 @@ fn create_same_pool_should_not_work() {
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -447,7 +446,7 @@ fn create_pool_with_same_assets_should_not_work() {
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -469,7 +468,7 @@ fn create_pool_with_non_existing_fee_collector_with_asset_should_work() {
 			20_000_000u32,
 			90_000_000u32,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -485,7 +484,7 @@ fn create_pool_with_non_existing_fee_collector_with_asset_should_work() {
 				20_000_000u32,
 				90_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -506,7 +505,7 @@ fn create_pool_with_existing_fee_collector_with_asset_should_not_work() {
 			20_000_000u32,
 			90_000_000u32,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -522,7 +521,7 @@ fn create_pool_with_existing_fee_collector_with_asset_should_not_work() {
 				20_000_000u32,
 				90_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -545,7 +544,7 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -563,7 +562,7 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -581,7 +580,7 @@ fn create_pool_with_insufficient_liquidity_should_not_work() {
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -604,7 +603,7 @@ fn create_pool_with_insufficient_balance_should_not_work() {
 				80_000_000u32,
 				10_000_000u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -1048,7 +1047,7 @@ fn update_pool_with_existing_fee_collector_should_not_work() {
 			20_000_000u32,
 			90_000_000u32,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			BOB,
 			0,
 		));
@@ -1087,7 +1086,7 @@ fn update_pool_interval_should_work() {
 			10_000_000,
 			10_000_000,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -1444,7 +1443,7 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 			10_000_000,
 			90_000_000,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -1783,7 +1782,7 @@ fn zero_weight_should_not_work() {
 				0u32,
 				20u32,
 				WeightCurveType::Linear,
-				Fee::default(),
+				DEFAULT_FEE,
 				CHARLIE,
 				0,
 			),
@@ -2155,7 +2154,7 @@ fn buy_should_work() {
 			80_000_000u32,
 			10_000_000u32,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -2294,7 +2293,7 @@ fn sell_should_work() {
 			80_000_000u32,
 			10_000_000u32,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -2509,7 +2508,7 @@ fn get_spot_price_should_work() {
 			20_000_000,
 			90_000_000,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));
@@ -3073,7 +3072,7 @@ fn can_create_should_work() {
 			20_000_000,
 			80_000_000,
 			WeightCurveType::Linear,
-			Fee::default(),
+			DEFAULT_FEE,
 			CHARLIE,
 			0,
 		));

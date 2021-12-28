@@ -88,7 +88,7 @@ pub const MAX_SALE_DURATION: u32 = (60 * 60 * 24 / 6) * 14;
 pub const COLLECTOR_LOCK_ID: LockIdentifier = *b"lbpcllct";
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default, TypeInfo)]
+#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	/// owner of the pool after `CreatePoolOrigin` creates it
 	pub owner: AccountId,

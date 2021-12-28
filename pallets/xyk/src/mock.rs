@@ -64,7 +64,7 @@ frame_support::construct_runtime!(
 );
 
 thread_local! {
-		static EXCHANGE_FEE: RefCell<Fee> = RefCell::new(Fee::default());
+		static EXCHANGE_FEE: RefCell<Fee> = RefCell::new(Fee {numerator: 2, denominator: 1_000});
 }
 
 struct ExchangeFee;

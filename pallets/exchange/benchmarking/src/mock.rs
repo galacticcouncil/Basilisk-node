@@ -31,7 +31,7 @@ use sp_runtime::{
 use frame_system::EnsureSigned;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, AssetId, Balance,
+	fee::Fee, AssetId, Balance,
 };
 use hydradx_traits::AssetPairAccountIdFor;
 
@@ -70,7 +70,7 @@ frame_support::construct_runtime!(
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const HDXAssetId: AssetId = HDX;
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub ExchangeFeeRate: Fee = Fee {numerator: 2, denominator: 1_000};
 	pub RegistryStringLimit: u32 = 100;
 }
 
