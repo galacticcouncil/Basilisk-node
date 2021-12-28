@@ -58,7 +58,6 @@ impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type TokenDeposit = InstanceDeposit;
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
