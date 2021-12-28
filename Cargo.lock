@@ -485,7 +485,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-service",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -598,7 +598,7 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "smallvec",
@@ -1311,7 +1311,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -1321,7 +1321,7 @@ dependencies = [
  "pallet-balances",
  "pallet-transaction-payment",
  "parity-scale-codec",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "sp-core",
  "sp-npos-elections",
@@ -5200,7 +5200,7 @@ dependencies = [
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-api",
@@ -5506,7 +5506,7 @@ dependencies = [
  "orml-traits",
  "pallet-balances",
  "parity-scale-codec",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -5572,7 +5572,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -5584,7 +5584,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.2"
+version = "3.3.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5597,7 +5597,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -5717,7 +5717,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5729,7 +5729,7 @@ dependencies = [
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -5838,7 +5838,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-multi-payment-benchmarking"
-version = "5.3.1"
+version = "5.3.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5855,7 +5855,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -5891,7 +5891,7 @@ dependencies = [
  "orml-utilities",
  "pallet-balances",
  "parity-scale-codec",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -6178,7 +6178,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "6.3.0"
+version = "6.3.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6193,7 +6193,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-api",
@@ -6334,7 +6334,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.3.0"
+version = "3.3.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6348,7 +6348,7 @@ dependencies = [
  "pallet-asset-registry",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "sp-api",
@@ -7867,7 +7867,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.0"
+version = "6.1.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8555,7 +8555,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "serde",
  "smallvec",
  "sp-api",
@@ -11066,7 +11066,7 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
- "primitives 6.1.0",
+ "primitives 6.1.1",
  "scale-info",
  "serde",
  "smallvec",
