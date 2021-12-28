@@ -624,10 +624,7 @@ fn update_pool_data_should_work() {
 			Some(18),
 			Some(10_000_000),
 			Some(80_000_000),
-			Some(Fee {
-				numerator: 5,
-				denominator: 100,
-			}),
+			Some((5, 100)),
 			Some(BOB),
 			None,
 		));
@@ -640,10 +637,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_1.final_weight, 80_000_000);
 		assert_eq!(
 			updated_pool_data_1.fee,
-			Fee {
-				numerator: 5,
-				denominator: 100
-			}
+			(5, 100),
 		);
 		assert_eq!(updated_pool_data_1.fee_collector, BOB);
 
@@ -674,10 +668,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_2.final_weight, 80_000_000);
 		assert_eq!(
 			updated_pool_data_2.fee,
-			Fee {
-				numerator: 5,
-				denominator: 100
-			}
+			(5, 100),
 		);
 		assert_eq!(updated_pool_data_2.fee_collector, BOB);
 
@@ -703,10 +694,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_3.final_weight, 80_000_000);
 		assert_eq!(
 			updated_pool_data_3.fee,
-			Fee {
-				numerator: 5,
-				denominator: 100
-			}
+			(5, 100),
 		);
 		assert_eq!(updated_pool_data_3.fee_collector, BOB);
 
@@ -732,10 +720,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_4.final_weight, 80_000_000);
 		assert_eq!(
 			updated_pool_data_4.fee,
-			Fee {
-				numerator: 5,
-				denominator: 100
-			}
+			(5, 100),
 		);
 		assert_eq!(updated_pool_data_4.fee_collector, ALICE);
 
@@ -748,10 +733,7 @@ fn update_pool_data_should_work() {
 			Some(18),
 			Some(10_000_000),
 			Some(80_000_000),
-			Some(Fee {
-				numerator: 6,
-				denominator: 1_000
-			}),
+			Some((6, 1_000)),
 			None,
 			None,
 		));
@@ -764,10 +746,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_5.final_weight, 80_000_000);
 		assert_eq!(
 			updated_pool_data_5.fee,
-			Fee {
-				numerator: 6,
-				denominator: 1_000
-			}
+			(6, 1_000),
 		);
 		assert_eq!(updated_pool_data_5.fee_collector, ALICE);
 
@@ -812,10 +791,7 @@ fn update_non_existing_pool_data_should_not_work() {
 				Some(18),
 				Some(10_000_000),
 				Some(80_000_000),
-				Some(Fee {
-					numerator: 5,
-					denominator: 100,
-				}),
+				Some((5, 100)),
 				None,
 				None,
 			),
@@ -837,10 +813,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 				Some(10),
 				Some(10_000_000),
 				Some(80_000_000),
-				Some(Fee {
-					numerator: 5,
-					denominator: 100,
-				}),
+				Some((5, 100)),
 				None,
 				None,
 			),
@@ -858,10 +831,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 				Some(20),
 				Some(10_000_000),
 				Some(80_000_000),
-				Some(Fee {
-					numerator: 5,
-					denominator: 100,
-				}),
+				Some((5, 100)),
 				None,
 				None,
 			),
@@ -877,10 +847,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 				Some(20),
 				Some(10_000_000),
 				Some(80_000_000),
-				Some(Fee {
-					numerator: 5,
-					denominator: 100,
-				}),
+				Some((5, 100)),
 				None,
 				None,
 			),
@@ -896,10 +863,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 				Some(0),
 				Some(10_000_000),
 				Some(80_000_000),
-				Some(Fee {
-					numerator: 5,
-					denominator: 100,
-				}),
+				Some((5, 100)),
 				None,
 				None,
 			),
@@ -1018,10 +982,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 				Some(30),
 				Some(10_000_000),
 				Some(80_000_000),
-				Some(Fee {
-					numerator: 5,
-					denominator: 100
-				}),
+				Some((5, 100)),
 				Some(BOB),
 				None,
 			),
@@ -1061,10 +1022,7 @@ fn update_pool_with_existing_fee_collector_should_not_work() {
 				Some(18),
 				Some(10_000_000),
 				Some(80_000_000),
-				Some(Fee {
-					numerator: 5,
-					denominator: 100,
-				}),
+				Some((5, 100)),
 				Some(BOB),
 				None,
 			),
@@ -1798,10 +1756,7 @@ fn zero_weight_should_not_work() {
 				Some(18),
 				Some(0),
 				Some(80),
-				Some(Fee {
-					numerator: 5,
-					denominator: 100,
-				}),
+				Some((5, 100)),
 				Some(BOB),
 				Some(0),
 			),
@@ -2358,10 +2313,7 @@ fn zero_fee_should_work() {
 			20_000_000,
 			80_000_000,
 			WeightCurveType::Linear,
-			Fee {
-				numerator: 0,
-				denominator: 100,
-			},
+			(0, 100),
 			CHARLIE,
 			0,
 		));
@@ -2400,10 +2352,7 @@ fn invalid_fee_should_not_work() {
 				20_000_000,
 				80_000_000,
 				WeightCurveType::Linear,
-				Fee {
-					numerator: 10,
-					denominator: 0,
-				},
+				(10, 0),
 				CHARLIE,
 				0,
 			),
@@ -2602,10 +2551,7 @@ fn simulate_lbp_event_should_work() {
 
 		let trades = generate_trades(sale_start, sale_end, 200_000_000, 2);
 
-		let fee = Fee {
-			numerator: 9,
-			denominator: 1_000,
-		};
+		let fee = (9, 1_000);
 
 		let fee_collector = ALICE;
 
@@ -2952,10 +2898,7 @@ fn validate_trade_should_not_work() {
 			20_000_000,
 			80_000_000,
 			WeightCurveType::Linear,
-			Fee {
-				numerator: 10,
-				denominator: 1
-			},
+			(10, 1),
 			CHARLIE,
 			0,
 		));
@@ -3028,7 +2971,7 @@ fn calculate_fees_should_work() {
 			80_000_000,
 			20_000_000,
 			WeightCurveType::Linear,
-			Fee {numerator: 10, denominator: 1},
+			(10, 1),
 			CHARLIE,
 			0,
 		));
@@ -3240,10 +3183,7 @@ fn simulate_lbp_event_with_repayment() {
 
 		let trades = generate_trades(sale_start, sale_end, 500_000_000_000, 4);
 
-		let fee = Fee {
-			numerator: 9,
-			denominator: 1_000,
-		};
+		let fee = (9, 1_000);
 
 		let fee_collector = CHARLIE;
 

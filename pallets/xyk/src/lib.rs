@@ -32,7 +32,7 @@ use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
-use primitives::{asset::AssetPair, fee::Fee, AssetId, Balance, Price};
+use primitives::{asset::AssetPair, AssetId, Balance, Price};
 use sp_std::{vec, vec::Vec};
 
 use frame_support::sp_runtime::FixedPointNumber;
@@ -89,7 +89,7 @@ pub mod pallet {
 
 		/// Trading fee rate
 		#[pallet::constant]
-		type GetExchangeFee: Get<Fee>;
+		type GetExchangeFee: Get<(u32, u32)>;
 
 		/// Minimum trading limit
 		#[pallet::constant]
@@ -586,15 +586,14 @@ impl<T: Config> Pallet<T> {
 	}
 	/// Calculate discounted trade fee
 	fn calculate_discounted_fee(amount: Balance) -> Result<Balance, DispatchError> {
-		let fee = Fee {numerator: 7, denominator: 10_000};
-		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (fee.numerator, fee.denominator))
+		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (7, 10_000)) // 0.07%
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 
 	/// Calculate trade fee
 	fn calculate_fee(amount: Balance) -> Result<Balance, DispatchError> {
 		let fee = T::GetExchangeFee::get();
-		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (fee.numerator, fee.denominator))
+		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (fee.0, fee.1))
 			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 

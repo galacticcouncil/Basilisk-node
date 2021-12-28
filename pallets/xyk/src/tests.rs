@@ -1855,10 +1855,9 @@ fn fee_calculation() {
 		assert_eq!(XYK::calculate_fee(10000), Ok(20));
 	});
 	ExtBuilder::default()
-		.with_exchange_fee(Fee {
-			numerator: 10,
-			denominator: 1000,
-		})
+		.with_exchange_fee(
+			(10, 1000)
+		)
 		.build()
 		.execute_with(|| {
 			assert_eq!(XYK::calculate_fee(100000), Ok(1000));
@@ -1866,20 +1865,18 @@ fn fee_calculation() {
 		});
 
 	ExtBuilder::default()
-		.with_exchange_fee(Fee {
-			numerator: 10,
-			denominator: 0,
-		})
+		.with_exchange_fee(
+			(10, 0)
+		)
 		.build()
 		.execute_with(|| {
 			assert_eq!(XYK::calculate_fee(100000), Ok(0));
 		});
 
 	ExtBuilder::default()
-		.with_exchange_fee(Fee {
-			numerator: 10,
-			denominator: 1,
-		})
+		.with_exchange_fee(
+			(10, 1)
+		)
 		.build()
 		.execute_with(|| {
 			assert_noop!(XYK::calculate_fee(u128::MAX), Error::<Test>::FeeAmountInvalid);
