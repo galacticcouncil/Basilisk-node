@@ -36,7 +36,7 @@ const ASSET_B_AMOUNT: Balance = 2_000_000_000;
 const INITIAL_WEIGHT: LBPWeight = 20_000_000;
 const FINAL_WEIGHT: LBPWeight = 90_000_000;
 
-const DEFAULT_FEE: Fee = Fee {numerator: 2, denominator: 1_000};
+const DEFAULT_FEE: (u32, u32) = (2, 1_000);
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
@@ -64,8 +64,9 @@ benchmarks! {
 		let new_end = Some(T::BlockNumber::from(100_u32));
 		let new_initial_weight = 45_250_600;
 		let new_final_weight = 55_250_600;
+		let fee = (5, 1000);
 
-		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, Fee { numerator: 5, denominator: 1000 }, caller.clone(), 0)?;
+		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, fee, caller.clone(), 0)?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
 	}: _(RawOrigin::Signed(caller.clone()), pool_id.clone(), Some(caller.clone()), new_start, new_end, Some(new_initial_weight), Some(new_final_weight), Some(DEFAULT_FEE), Some(fee_collector), Some(1))
