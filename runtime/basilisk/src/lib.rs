@@ -56,7 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, EnsureOrigin, Get, U128CurrencyToVote},
+	traits::{Contains, EnsureOrigin, Get, U128CurrencyToVote, EqualPrivilegeOnly},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -633,12 +633,14 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
 	type WeightInfo = weights::utility::BasiliskWeight<Runtime>;
+	type PalletsOrigin = OriginCaller;
 }
 
 impl pallet_authorship::Config for Runtime {

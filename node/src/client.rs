@@ -13,7 +13,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Block as BlockT},
 	Justifications,
 };
-use sp_storage::{ChildInfo, PrefixedStorageKey, StorageData, StorageKey};
+use sp_storage::{ChildInfo, StorageData, StorageKey};
 use std::sync::Arc;
 
 /// A set of APIs that Basilisk-like runtimes must implement.
@@ -295,30 +295,6 @@ impl sc_client_api::StorageProvider<Block, FullBackend> for Client {
 		match self {
 			Self::Basilisk(client) => client.child_storage_hash(id, child_info, key),
 			Self::TestingBasilisk(client) => client.child_storage_hash(id, child_info, key),
-		}
-	}
-
-	fn max_key_changes_range(
-		&self,
-		first: NumberFor<Block>,
-		last: BlockId<Block>,
-	) -> sp_blockchain::Result<Option<(NumberFor<Block>, BlockId<Block>)>> {
-		match self {
-			Self::Basilisk(client) => client.max_key_changes_range(first, last),
-			Self::TestingBasilisk(client) => client.max_key_changes_range(first, last),
-		}
-	}
-
-	fn key_changes(
-		&self,
-		first: NumberFor<Block>,
-		last: BlockId<Block>,
-		storage_key: Option<&PrefixedStorageKey>,
-		key: &StorageKey,
-	) -> sp_blockchain::Result<Vec<(NumberFor<Block>, u32)>> {
-		match self {
-			Self::Basilisk(client) => client.key_changes(first, last, storage_key, key),
-			Self::TestingBasilisk(client) => client.key_changes(first, last, storage_key, key),
 		}
 	}
 }

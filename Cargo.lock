@@ -466,7 +466,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-service",
- "primitives 6.0.0",
+ "primitives",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -540,8 +540,8 @@ dependencies = [
  "orml-benchmarking",
  "orml-currencies",
  "orml-nft",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
  "orml-unknown-tokens",
  "orml-vesting",
  "orml-xcm-support",
@@ -579,7 +579,7 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "smallvec",
@@ -1296,12 +1296,12 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydradx-traits",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
  "pallet-balances",
  "pallet-transaction-payment",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "sp-core",
  "sp-npos-elections",
@@ -3195,8 +3195,8 @@ dependencies = [
 
 [[package]]
 name = "hydradx-traits"
-version = "0.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=35ee94a4daf3e4e8b56c20d6f6e85716d5641562#35ee94a4daf3e4e8b56c20d6f6e85716d5641562"
+version = "0.4.0"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.13#3743eec45b0a4565d87e5472a795ff9e628dc924"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5083,8 +5083,8 @@ source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev
 dependencies = [
  "frame-support",
  "frame-system",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-traits",
+ "orml-utilities",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -5114,22 +5114,7 @@ source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev
 dependencies = [
  "frame-support",
  "frame-system",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "orml-tokens"
-version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84#ee37b76a7a8cf159e6c41851942758746318bb84"
-dependencies = [
- "frame-support",
- "frame-system",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84)",
+ "orml-traits",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -5145,25 +5130,7 @@ dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
  "num-traits",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm",
-]
-
-[[package]]
-name = "orml-traits"
-version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84#ee37b76a7a8cf159e6c41851942758746318bb84"
-dependencies = [
- "frame-support",
- "impl-trait-for-tuples",
- "num-traits",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84)",
+ "orml-utilities",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -5203,20 +5170,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "orml-utilities"
-version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84#ee37b76a7a8cf159e6c41851942758746318bb84"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "orml-vesting"
 version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9#1c80da43a720d1b957e1ba12238e4d98b2ee8cf9"
@@ -5237,7 +5190,7 @@ version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9#1c80da43a720d1b957e1ba12238e4d98b2ee8cf9"
 dependencies = [
  "frame-support",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-traits",
  "parity-scale-codec",
  "sp-runtime",
  "sp-std",
@@ -5253,7 +5206,7 @@ dependencies = [
  "cumulus-primitives-core",
  "frame-support",
  "frame-system",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-traits",
  "orml-xcm-support",
  "parity-scale-codec",
  "scale-info",
@@ -5283,10 +5236,10 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydradx-traits",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-api",
@@ -5588,11 +5541,11 @@ dependencies = [
  "frame-system-benchmarking",
  "lazy_static",
  "orml-currencies",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
  "pallet-balances",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-core",
@@ -5651,13 +5604,13 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydradx-traits",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
  "pallet-asset-registry",
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-core",
@@ -5676,13 +5629,13 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydradx-traits",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
  "pallet-asset-registry",
  "pallet-exchange",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-core",
@@ -5695,12 +5648,12 @@ dependencies = [
 [[package]]
 name = "pallet-faucet"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=35ee94a4daf3e4e8b56c20d6f6e85716d5641562#35ee94a4daf3e4e8b56c20d6f6e85716d5641562"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.13#3743eec45b0a4565d87e5472a795ff9e628dc924"
 dependencies = [
  "frame-support",
  "frame-system",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=ee37b76a7a8cf159e6c41851942758746318bb84)",
+ "orml-tokens",
+ "orml-traits",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -5810,11 +5763,11 @@ dependencies = [
  "frame-system-benchmarking",
  "hydra-dx-math 4.1.1",
  "hydradx-traits",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-core",
@@ -5931,16 +5884,16 @@ dependencies = [
  "frame-system-benchmarking",
  "hydradx-traits",
  "orml-currencies",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
+ "orml-utilities",
  "pallet-asset-registry",
  "pallet-balances",
  "pallet-transaction-multi-payment",
  "pallet-transaction-payment",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-core",
@@ -5973,10 +5926,10 @@ dependencies = [
  "frame-support",
  "frame-system",
  "orml-nft",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-utilities",
  "pallet-balances",
  "parity-scale-codec",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-core",
@@ -6042,18 +5995,16 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=35ee94a4daf3e4e8b56c20d6f6e85716d5641562#35ee94a4daf3e4e8b56c20d6f6e85716d5641562"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.13#3743eec45b0a4565d87e5472a795ff9e628dc924"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hydradx-traits",
  "parity-scale-codec",
- "primitives 6.0.0 (git+https://github.com/galacticcouncil/basilisk-node?rev=c0bf049f0ee91c392f163768ef707c94c7981c46)",
  "scale-info",
  "serde",
  "sp-core",
- "sp-runtime",
  "sp-std",
 ]
 
@@ -6089,7 +6040,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.2.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=35ee94a4daf3e4e8b56c20d6f6e85716d5641562#35ee94a4daf3e4e8b56c20d6f6e85716d5641562"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.13#3743eec45b0a4565d87e5472a795ff9e628dc924"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -6269,16 +6220,16 @@ dependencies = [
  "frame-system",
  "hydradx-traits",
  "orml-currencies",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
+ "orml-utilities",
  "pallet-asset-registry",
  "pallet-balances",
  "pallet-transaction-payment",
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-api",
@@ -6427,13 +6378,13 @@ dependencies = [
  "frame-system-benchmarking",
  "hydra-dx-math 3.4.0",
  "hydradx-traits",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
+ "orml-utilities",
  "pallet-asset-registry",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "sp-api",
@@ -7976,21 +7927,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "primitives"
-version = "6.0.0"
-source = "git+https://github.com/galacticcouncil/basilisk-node?rev=c0bf049f0ee91c392f163768ef707c94c7981c46#c0bf049f0ee91c392f163768ef707c94c7981c46"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "primitive-types 0.10.1",
- "scale-info",
- "serde",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
 name = "proc-macro-crate"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8617,8 +8553,8 @@ dependencies = [
  "memory-db",
  "orml-currencies",
  "orml-nft",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
  "orml-unknown-tokens",
  "orml-vesting",
  "orml-xcm-support",
@@ -8655,7 +8591,7 @@ dependencies = [
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
- "primitives 6.0.0",
+ "primitives",
  "serde",
  "smallvec",
  "sp-api",
@@ -11092,8 +11028,8 @@ dependencies = [
  "memory-db",
  "orml-currencies",
  "orml-nft",
- "orml-tokens 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
- "orml-traits 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=1c80da43a720d1b957e1ba12238e4d98b2ee8cf9)",
+ "orml-tokens",
+ "orml-traits",
  "orml-unknown-tokens",
  "orml-vesting",
  "orml-xcm-support",
@@ -11132,7 +11068,7 @@ dependencies = [
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
- "primitives 6.0.0",
+ "primitives",
  "scale-info",
  "serde",
  "smallvec",

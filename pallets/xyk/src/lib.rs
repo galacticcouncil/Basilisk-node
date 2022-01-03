@@ -954,6 +954,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn get_max_out_ratio() -> u128 {
 		T::MaxOutRatio::get()
 	}
+
+	fn get_fee(_: &T::AccountId) -> (u32, u32) { todo!() }
 }
 
 pub struct AllowAllPools();
