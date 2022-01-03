@@ -1908,8 +1908,10 @@ fn get_fee_should_work() {
 		),);
 
 		// existing pool
-		assert_eq!(XYK::get_fee(&HDX_DOT_POOL_ID), Fee::default());
+		let fee = XYK::get_fee(&HDX_DOT_POOL_ID);
+		assert_eq!(Fee {numerator: fee.0, denominator: fee.1}, Fee::default());
 		// non existing pool
-		assert_eq!(XYK::get_fee(&1_234), Fee::default());
+		let fee = XYK::get_fee(&1_234);
+		assert_eq!(Fee {numerator: fee.0, denominator: fee.1}, Fee::default());
 	});
 }

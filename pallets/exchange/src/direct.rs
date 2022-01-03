@@ -57,8 +57,9 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 		}
 
 		// Let's handle the fees now for registered transfers.
-		let fee_a = self.amount_from_a.just_fee(T::AMMPool::get_fee(pool_account));
-		let fee_b = self.amount_from_b.just_fee(T::AMMPool::get_fee(pool_account));
+		let fee = T::AMMPool::get_fee(pool_account);
+		let fee_a = self.amount_from_a.just_fee(Fee {numerator: fee.0, denominator: fee.1});
+		let fee_b = self.amount_from_b.just_fee(Fee {numerator: fee.0, denominator: fee.1});
 
 		if fee_a.is_none() || fee_b.is_none() {
 			return false;

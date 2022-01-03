@@ -683,7 +683,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
+			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
 
 			Ok(())
 		}
@@ -713,7 +713,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
+			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, false)?;
 
 			Ok(())
 		}
@@ -882,7 +882,7 @@ impl<T: Config> Pallet<T> {
 	}
 }
 
-impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>, Fee> for Pallet<T> {
+impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
 		let pair_account = Self::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		<PoolData<T>>::contains_key(&pair_account)
@@ -1193,11 +1193,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>, Fee> for Pal
 		T::MaxOutRatio::get()
 	}
 
-	fn get_fee(pool_account_id: &T::AccountId) -> Fee {
+	fn get_fee(pool_account_id: &T::AccountId) -> (u32, u32) {
 		 let maybe_pool_data = <PoolData<T>>::get(pool_account_id);
 		 match maybe_pool_data {
-		   Some(pool_data) => pool_data.fee,
-		   None => Fee {numerator: 0, denominator: 0}
+		   Some(pool_data) => (pool_data.fee.numerator, pool_data.fee.denominator),
+		   None => (0, 0)
 		 }
 	}
 }

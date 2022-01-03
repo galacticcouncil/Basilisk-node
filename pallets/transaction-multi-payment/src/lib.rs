@@ -52,7 +52,6 @@ use frame_support::weights::{Pays, Weight};
 use hydradx_traits::AMM;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::asset::AssetPair;
-use primitives::fee::Fee;
 use primitives::{constants::chain::CORE_ASSET_ID, Amount, AssetId, Balance};
 
 use codec::{Decode, Encode};
@@ -96,7 +95,7 @@ pub mod pallet {
 		>;
 
 		/// AMM pool to swap for native currency
-		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance, Fee>;
+		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
 
 		/// Weight information for the extrinsics.
 		type WeightInfo: WeightInfo;

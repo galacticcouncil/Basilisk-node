@@ -105,7 +105,7 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// AMM pool implementation
-		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance, Fee>;
+		type AMMPool: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
 
 		/// Intention resolver
 		type Resolver: Resolver<Self::AccountId, Intention<Self>, Error<Self>>;

@@ -542,7 +542,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
+			<Self as AMM<_, _, _, _>>::sell(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
 			Ok(())
 		}
@@ -565,7 +565,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			<Self as AMM<_, _, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
+			<Self as AMM<_, _, _, _>>::buy(&who, AssetPair { asset_in, asset_out }, amount, max_limit, discount)?;
 
 			Ok(())
 		}
@@ -605,7 +605,7 @@ impl<T: Config> Pallet<T> {
 }
 
 // Implementation of AMM API which makes possible to plug the AMM pool into the exchange pallet.
-impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance, Fee> for Pallet<T> {
+impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn exists(assets: AssetPair) -> bool {
 		<ShareToken<T>>::contains_key(&Self::get_pair_id(assets))
 	}
@@ -955,8 +955,9 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance, Fee> for Pallet<T
 		T::MaxOutRatio::get()
 	}
 
-	fn get_fee(_pool_account_id: &T::AccountId) -> Fee {
-		T::GetExchangeFee::get()
+	fn get_fee(_pool_account_id: &T::AccountId) -> (u32, u32) {
+		let fee = T::GetExchangeFee::get();
+		(fee.numerator, fee.denominator)
 	}
 }
 

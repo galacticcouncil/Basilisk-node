@@ -2562,13 +2562,10 @@ fn amm_trait_should_work() {
 		// existing pool
 		assert_eq!(
 			LBPPallet::get_fee(&pool_id),
-			Fee {
-				numerator: 400,
-				denominator: 1_000
-			}
+			(400, 1_000)
 		);
 		// not existing pool
-		assert_eq!(LBPPallet::get_fee(&1_234), Fee {numerator: 0, denominator: 0});
+		assert_eq!(LBPPallet::get_fee(&1_234), (0, 0));
 	});
 }
 
