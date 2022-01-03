@@ -7,6 +7,7 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup, AccountIdConversion},
 };
+use primitives::nft::{ClassType, NftPermissions};
 use system::EnsureRoot;
 
 mod marketplace {
@@ -55,10 +56,11 @@ impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type TokenDeposit = InstanceDeposit;
 	type NftClassId = u32;
 	type NftInstanceId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
 }
 
 parameter_types! {
@@ -130,7 +132,6 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = NFT;
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);

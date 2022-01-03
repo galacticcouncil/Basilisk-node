@@ -1,5 +1,6 @@
 use frame_support::pallet_prelude::*;
 
+use primitives::{nft::ClassType, Balance};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
@@ -25,4 +26,13 @@ impl RedeemablesClassInfo {
 	pub fn price(&self) -> Balance {
         self.curve.slope / (self.max_supply - self.issued).pow(self.curve.exponent) as Balance
     }
+}
+
+#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+pub struct BondingCurve {
+    /// The exponent of the curve.
+    pub exponent: u32,
+    /// The slope of the curve.
+    pub slope: u128,
 }
