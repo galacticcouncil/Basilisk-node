@@ -76,7 +76,7 @@ type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
 type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
-type NftInstanceIfOf<T> = <T as pallet_nft::Config>::NftInstanceId;
+type NftInstaceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct GlobalPool<T: Config> {
@@ -347,7 +347,7 @@ pub mod pallet {
 			AccountIdOf<T>,
 			Balance,
 			T::CurrencyId,
-			NftInstanceIfOf<T>,
+			NftInstaceIdOf<T>,
 		),
 
 		/// Liquidity provider claimed rewards. [who, farm_id, liq_pooo_id, claimed_amount, reward_token]
@@ -388,7 +388,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn deposit)]
 	type DepositData<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftInstanceIfOf<T>, Deposit<T>, OptionQuery>;
+		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftInstaceIdOf<T>, Deposit<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nft_class)] //(asset_pair, amount of existing nfts, globalPoolId)
@@ -805,7 +805,7 @@ pub mod pallet {
 		pub fn claim_rewards(
 			origin: OriginFor<T>,
 			nft_class_id: NftClassIdOf<T>,
-			nft_id: NftInstanceIfOf<T>,
+			nft_id: NftInstaceIdOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -855,7 +855,7 @@ pub mod pallet {
 		pub fn withdraw_shares(
 			origin: OriginFor<T>,
 			nft_class_id: NftClassIdOf<T>,
-			nft_id: NftInstanceIfOf<T>,
+			nft_id: NftInstaceIdOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
