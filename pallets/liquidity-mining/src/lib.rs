@@ -506,8 +506,7 @@ pub mod pallet {
 
 			ensure!(!multiplier.is_zero(), Error::<T>::InvalidMultiplier);
 
-			if loyalty_curve.is_some() {
-				let c = loyalty_curve.as_ref().unwrap();
+			if let Some(ref c) = loyalty_curve {
 				ensure!(
 					c.initial_reward_percentage.lt(&FixedU128::one()),
 					Error::<T>::InvalidInitialRewardPercentage
@@ -565,7 +564,6 @@ pub mod pallet {
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
 		) -> DispatchResult {
-			//TODO: this fn is WIP, it's not tested
 			let who = ensure_signed(origin)?;
 
 			ensure!(!multiplier.is_zero(), Error::<T>::InvalidMultiplier);
@@ -574,38 +572,38 @@ pub mod pallet {
 			<LiquidityPoolData<T>>::try_mutate(farm_id, &amm_pool_id, |liq_pool| {
 				let liq_pool = liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
 
+				ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
+
 				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
 					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 					ensure!(who == g_pool.owner, Error::<T>::Forbidden);
 
 					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+					if !g_pool.total_shares_z.is_zero() {
+						let reward_per_period = Self::get_global_pool_reward_per_period(
+							g_pool.yield_per_period.into(),
+							g_pool.total_shares_z,
+							g_pool.max_reward_per_period,
+						)?;
+						Self::update_global_pool(g_pool, now_period, reward_per_period)?;
+					}
 
-					let reward_per_period = Self::get_global_pool_reward_per_period(
-						g_pool.yield_per_period.into(),
-						g_pool.total_shares_z,
-						g_pool.max_reward_per_period,
-					)?;
-					Self::update_global_pool(g_pool, now_period, reward_per_period)?;
+					if !liq_pool.total_shares.is_zero() {
+						let pool_reward =
+							Self::claim_from_global_pool(g_pool, liq_pool, liq_pool.stake_in_global_pool)?;
+						Self::update_liq_pool(liq_pool, pool_reward, now_period, g_pool.id, g_pool.reward_currency)?;
+					}
 
-					let pool_reward = Self::claim_from_global_pool(g_pool, liq_pool, liq_pool.stake_in_global_pool)?;
-					Self::update_liq_pool(liq_pool, pool_reward, now_period, g_pool.id, g_pool.reward_currency)?;
-
-					let incentivized_token_balance_in_amm =
-						T::MultiCurrency::free_balance(g_pool.reward_currency, &amm_pool_id);
-
-					let new_stake_in_global_pool = incentivized_token_balance_in_amm
-						.checked_mul(liq_pool.total_valued_shares)
-						.ok_or(Error::<T>::Overflow)?
+					let new_stake_in_global_pool = liq_pool
+						.total_valued_shares
 						.checked_mul(multiplier.into())
 						.ok_or(Error::<T>::Overflow)?;
 
-					g_pool
+					g_pool.total_shares_z = g_pool
 						.total_shares_z
 						.checked_sub(liq_pool.stake_in_global_pool)
-						.ok_or(Error::<T>::Overflow)?;
-					g_pool
-						.total_shares_z
+						.ok_or(Error::<T>::Overflow)?
 						.checked_add(new_stake_in_global_pool)
 						.ok_or(Error::<T>::Overflow)?;
 
@@ -877,7 +875,7 @@ pub mod pallet {
 						amm_account,
 						|maybe_liq_pool| -> Result<(), DispatchError> {
 							if maybe_liq_pool.is_some() {
-								//This is intetional. This fn should not fail if liq. pool does not
+								//This is intentional. This fn should not fail if liq. pool does not
 								//exist, it should only behave differently.
 								let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
 

@@ -5267,6 +5267,184 @@ fn remove_liquidity_pool_liq_pool_does_not_exists_should_not_work() {
 	});
 }
 
+#[test]
+fn update_liquidity_pool_should_work() {
+	//liq pool yeid farms without deposits
+	predefined_test_ext().execute_with(|| {
+		let amm_1 = AssetPair {
+			asset_in: BSX,
+			asset_out: TO1,
+		};
+
+		const NEW_MULTIPLIER: PoolMultiplier = 5_000;
+		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
+		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+
+		assert_ok!(LiquidityMining::update_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1,
+			NEW_MULTIPLIER
+		));
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				multiplier: NEW_MULTIPLIER,
+				..liq_pool
+			}
+		);
+
+		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), g_pool);
+	});
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let amm_1 = AssetPair {
+			asset_in: BSX,
+			asset_out: TO1,
+		};
+
+		// Same period as last pools update so no udpate_XXX_pool() is called.
+		let new_multiplier: PoolMultiplier = 10_000;
+		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
+		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+
+		assert_ok!(LiquidityMining::update_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1,
+			new_multiplier
+		));
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				stake_in_global_pool: 455_400_000,
+				multiplier: new_multiplier,
+				..liq_pool
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				total_shares_z: 455_876_290,
+				..g_pool
+			}
+		);
+
+		// Different period update_XXX_pool() should be called
+		run_to_block(5_000);
+		let new_multiplier: PoolMultiplier = 5_000;
+		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
+		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+
+		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_acc = LiquidityMining::pool_account_id(4).unwrap();
+
+		let g_pool_rew_curr_balance = Tokens::free_balance(BSX, &g_pool_acc);
+		let liq_pool_rew_curr_balance = Tokens::free_balance(BSX, &liq_pool_acc);
+
+		assert_ok!(LiquidityMining::update_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1,
+			new_multiplier
+		));
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				updated_at: 50,
+				accumulated_rps: 30_060,
+				accumulated_rpz: 15,
+				multiplier: new_multiplier,
+				stake_in_global_pool: 227_700_000,
+				..liq_pool
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				updated_at: 50,
+				accumulated_rpz: 15,
+				total_shares_z: 228_176_290,
+				accumulated_rewards: g_pool.accumulated_rewards + 133_800_000,
+				paid_accumulated_rewards: g_pool.paid_accumulated_rewards + 1_366_200_000,
+				..g_pool
+			}
+		);
+
+		assert_eq!(
+			Tokens::free_balance(BSX, &g_pool_acc),
+			g_pool_rew_curr_balance - 1_366_200_000
+		);
+		assert_eq!(
+			Tokens::free_balance(BSX, &liq_pool_acc),
+			liq_pool_rew_curr_balance + 1_366_200_000
+		);
+	});
+}
+
+#[test]
+fn update_liquidity_pool_zero_multiplier_should_not_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::update_liquidity_pool(Origin::signed(GC), GC_FARM, amm_1, 0),
+			Error::<Test>::InvalidMultiplier
+		);
+	});
+}
+
+#[test]
+fn update_liquidity_pool_canceled_pool_should_not_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+
+		assert_noop!(
+			LiquidityMining::update_liquidity_pool(Origin::signed(GC), GC_FARM, amm_1, 10_001),
+			Error::<Test>::LiquidityMiningCanceled
+		);
+	});
+}
+
+#[test]
+fn update_liquidity_pool_not_owner_should_not_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+
+		let not_owner = ALICE;
+		assert_noop!(
+			LiquidityMining::update_liquidity_pool(Origin::signed(not_owner), GC_FARM, amm_1, 10_001),
+			Error::<Test>::LiquidityMiningCanceled
+		);
+	});
+}
+
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx
 fn is_approx_eq_fixedu128(num_1: FixedU128, num_2: FixedU128, delta: FixedU128) -> bool {
 	let diff = match num_1.cmp(&num_2) {
