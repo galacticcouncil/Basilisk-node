@@ -135,12 +135,22 @@ fn dust_account_native_works() {
 			// system
 			frame_system::Event::KilledAccount(*ALICE).into(),
 			// dust transfer
-			pallet_balances::Event::Transfer{from: *ALICE, to: *TREASURY, amount: 500}.into(),
+			pallet_balances::Event::Transfer {
+				from: *ALICE,
+				to: *TREASURY,
+				amount: 500,
+			}
+			.into(),
 			orml_currencies::Event::Transferred(currency_id, *ALICE, *TREASURY, 500).into(),
 			// duster
 			Event::Dusted(*ALICE, 500).into(),
 			//reward transfer
-			pallet_balances::Event::Transfer{from: *TREASURY, to: *DUSTER, amount: 10_000}.into(),
+			pallet_balances::Event::Transfer {
+				from: *TREASURY,
+				to: *DUSTER,
+				amount: 10_000,
+			}
+			.into(),
 			orml_currencies::Event::Transferred(currency_id, *TREASURY, *DUSTER, 10_000).into(),
 		]);
 	});
@@ -178,19 +188,43 @@ fn native_existential_deposit() {
 			orml_tokens::Event::Endowed(currency_id, *ALICE, 20_000).into(),
 			orml_currencies::Event::Transferred(currency_id, *DUSTER, *ALICE, 20_000).into(),
 			//second tranfer
-			pallet_balances::Event::Endowed{account: *ALICE, free_balance: 600}.into(),
-			pallet_balances::Event::Transfer{from: *DUSTER, to: *ALICE, amount: 600}.into(),
+			pallet_balances::Event::Endowed {
+				account: *ALICE,
+				free_balance: 600,
+			}
+			.into(),
+			pallet_balances::Event::Transfer {
+				from: *DUSTER,
+				to: *ALICE,
+				amount: 600,
+			}
+			.into(),
 			orml_currencies::Event::Transferred(0, *DUSTER, *ALICE, 600).into(),
 			// 3rd transfer
-			pallet_balances::Event::Transfer{from: *ALICE, to: *DUSTER, amount: 300}.into(),
+			pallet_balances::Event::Transfer {
+				from: *ALICE,
+				to: *DUSTER,
+				amount: 300,
+			}
+			.into(),
 			orml_currencies::Event::Transferred(0, *ALICE, *DUSTER, 300).into(),
 			// dust transfer
-			pallet_balances::Event::Transfer{from: *ALICE, to: *TREASURY, amount: 300}.into(),
+			pallet_balances::Event::Transfer {
+				from: *ALICE,
+				to: *TREASURY,
+				amount: 300,
+			}
+			.into(),
 			orml_currencies::Event::Transferred(0, *ALICE, *TREASURY, 300).into(),
 			// duster
 			Event::Dusted(*ALICE, 300).into(),
 			//reward transfer
-			pallet_balances::Event::Transfer{from: *TREASURY, to: *DUSTER, amount: 10_000}.into(),
+			pallet_balances::Event::Transfer {
+				from: *TREASURY,
+				to: *DUSTER,
+				amount: 10_000,
+			}
+			.into(),
 			orml_currencies::Event::Transferred(0, *TREASURY, *DUSTER, 10_000).into(),
 		]);
 

@@ -34,10 +34,7 @@ use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as BlockT;
 use std::{io::Write, net::SocketAddr};
 
-fn load_spec(
-	id: &str,
-	is_testing: bool,
-) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+fn load_spec(id: &str, is_testing: bool) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	if is_testing {
 		Ok(match id {
 			"dev" => Box::new(testing_chain_spec::parachain_development_config()?),
@@ -93,7 +90,6 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-
 		let id = if id.is_empty() { "basilisk" } else { id };
 
 		let is_testing_runtime = if get_exec_name().unwrap_or_default().starts_with("testing") {
@@ -349,8 +345,7 @@ pub fn run() -> sc_cli::Result<()> {
 
 				let id = ParaId::from(para_id);
 
-				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
+				let parachain_account = AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
 
 				let block: Block = generate_genesis_block(&config.chain_spec).map_err(|e| format!("{:?}", e))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
