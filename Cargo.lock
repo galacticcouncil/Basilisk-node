@@ -3196,7 +3196,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.4.0"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.13#3743eec45b0a4565d87e5472a795ff9e628dc924"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=d62d43acd7db03dfefcfd9c8c773d86e37ad1319#d62d43acd7db03dfefcfd9c8c773d86e37ad1319"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5648,7 +5648,7 @@ dependencies = [
 [[package]]
 name = "pallet-faucet"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.13#3743eec45b0a4565d87e5472a795ff9e628dc924"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=d62d43acd7db03dfefcfd9c8c773d86e37ad1319#d62d43acd7db03dfefcfd9c8c773d86e37ad1319"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5995,7 +5995,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.13#3743eec45b0a4565d87e5472a795ff9e628dc924"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=d62d43acd7db03dfefcfd9c8c773d86e37ad1319#d62d43acd7db03dfefcfd9c8c773d86e37ad1319"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6040,7 +6040,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.2.0"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.13#3743eec45b0a4565d87e5472a795ff9e628dc924"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=d62d43acd7db03dfefcfd9c8c773d86e37ad1319#d62d43acd7db03dfefcfd9c8c773d86e37ad1319"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
