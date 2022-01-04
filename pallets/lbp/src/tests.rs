@@ -18,7 +18,7 @@
 #![allow(clippy::bool_assert_comparison)]
 use super::*;
 pub use crate::mock::{
-	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, System, Test, KUSD, ALICE, BOB, CHARLIE,
+	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, KUSD, ALICE, BOB, CHARLIE,
 	BSX, ETH, HDX,
 };
 use crate::mock::{KUSD_BSX_POOL_ID, HDX_BSX_POOL_ID, INITIAL_BALANCE, SAMPLE_POOL_DATA, EXISTENTIAL_DEPOSIT, generate_trades, SALE_START, SALE_END, run_to_sale_start, run_to_sale_end, SAMPLE_AMM_TRANSFER, DEFAULT_FEE};
@@ -2441,6 +2441,33 @@ fn amm_trait_should_work() {
 		);
 		assert_eq!(LBPPallet::get_max_in_ratio(), <Test as Config>::MaxInRatio::get());
 		assert_eq!(LBPPallet::get_max_out_ratio(), <Test as Config>::MaxOutRatio::get());
+
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			HDX,
+			1_000_000_000,
+			BSX,
+			2_000_000_000,
+			20_000_000,
+			80_000_000,
+			WeightCurveType::Linear,
+			(400, 1_000),
+			CHARLIE,
+			0,
+		));
+
+		let pool_id = LBPPallet::get_pair_id(AssetPair {
+			asset_in: HDX,
+			asset_out: BSX,
+		});
+		// existing pool
+		assert_eq!(
+			LBPPallet::get_fee(&pool_id),
+			(400, 1_000)
+		);
+		// not existing pool
+		assert_eq!(LBPPallet::get_fee(&1_234), (0, 0));
 	});
 }
 

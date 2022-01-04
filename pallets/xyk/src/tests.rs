@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-pub use crate::mock::{Currency, Event as TestEvent, ExtBuilder, Origin, System, Test, ACA, ALICE, BOB, DOT, HDX, XYK};
+pub use crate::mock::{Currency, Event as TestEvent, ExtBuilder, Origin, System, Test, ACA, ALICE, BOB, DOT, HDX, XYK, HDX_DOT_POOL_ID};
 use frame_support::BoundedVec;
 use frame_support::{assert_noop, assert_ok};
 use hydra_dx_math::MathError;
@@ -1898,5 +1898,25 @@ fn can_create_pool_should_work() {
 			),
 			Error::<Test>::CannotCreatePool
 		);
+	});
+}
+
+#[test]
+fn get_fee_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			DOT,
+			1_000_000_000,
+			Price::from(2)
+		),);
+
+		// existing pool
+		let fee = XYK::get_fee(&HDX_DOT_POOL_ID);
+		assert_eq!(fee, (2, 1_000));
+		// non existing pool
+		let fee = XYK::get_fee(&1_234);
+		assert_eq!(fee, (2, 1_000));
 	});
 }

@@ -1189,6 +1189,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	fn get_max_out_ratio() -> u128 {
 		T::MaxOutRatio::get()
 	}
+
+	fn get_fee(pool_account_id: &T::AccountId) -> (u32, u32) {
+		 let maybe_pool_data = <PoolData<T>>::get(pool_account_id);
+		 match maybe_pool_data {
+		   Some(pool_data) => pool_data.fee,
+		   None => (0, 0)
+		 }
+	}
 }
 
 pub struct DisallowWhenLBPPoolRunning<T>(sp_std::marker::PhantomData<T>);
