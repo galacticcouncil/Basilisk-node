@@ -55,9 +55,9 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 		}
 
 		// Let's handle the fees now for registered transfers.
-		let default_fee = (2, 1_000); // 0.2%
-		let fee_a = hydra_dx_math::fee::calculate_pool_trade_fee(self.amount_from_a, default_fee);
-		let fee_b = hydra_dx_math::fee::calculate_pool_trade_fee(self.amount_from_b, default_fee);
+		let fee = T::AMMPool::get_fee(pool_account);
+		let fee_a = hydra_dx_math::fee::calculate_pool_trade_fee(self.amount_from_a, fee);
+		let fee_b = hydra_dx_math::fee::calculate_pool_trade_fee(self.amount_from_b, fee);
 
 		if fee_a.is_none() || fee_b.is_none() {
 			return false;

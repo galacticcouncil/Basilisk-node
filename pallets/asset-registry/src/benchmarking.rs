@@ -29,20 +29,21 @@ benchmarks! {
 		let name = vec![1; T::StringLimit::get() as usize];
 		let ed = T::Balance::from(1_000_000u32);
 
-		// This makes sure that next asset id is equal to native asset id
-		// In such case, one additional operation is performed to skip the id (aka worst case)
-		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
+		let next_asset_id = crate::Pallet::<T>::next_asset_id();
 
 	}: _(RawOrigin::Root, name.clone(), AssetType::Token, ed)
 	verify {
 		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
-		assert_eq!(crate::Pallet::<T>::asset_ids(bname), Some(T::AssetId::from(1u8)));
+		if next_asset_id == T::NativeAssetId::get() {
+			assert_eq!(crate::Pallet::<T>::asset_ids(&bname), next_asset_id.checked_add(&T::AssetId::from(1u8)));
+		} else {
+			assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(next_asset_id));
+		}
 	}
 
 	update{
 		let name = b"NAME".to_vec();
 		let ed = T::Balance::from(1_000_000u32);
-		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
 		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name, AssetType::Token, ed);
 
 		let new_name= vec![1; T::StringLimit::get() as usize];
@@ -54,7 +55,7 @@ benchmarks! {
 	}: _(RawOrigin::Root, asset_id, new_name.clone(), AssetType::PoolShare(T::AssetId::from(10u8),T::AssetId::from(20u8)), Some(new_ed))
 	verify {
 		let bname = crate::Pallet::<T>::to_bounded_name(new_name).unwrap();
-		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(T::AssetId::from(1u8)));
+		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(asset_id));
 
 		let stored = crate::Pallet::<T>::assets(asset_id);
 
@@ -75,19 +76,17 @@ benchmarks! {
 
 	set_metadata{
 		let name = b"NAME".to_vec();
+		let bname = crate::Pallet::<T>::to_bounded_name(name.clone()).unwrap();
 		let ed = T::Balance::from(1_000_000u32);
-		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
-		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token, ed);
+		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name, AssetType::Token, ed);
 
-		let asset_id = T::AssetId::from(1u8);
+		let asset_id = crate::Pallet::<T>::asset_ids(&bname).unwrap();
 
 		let max_symbol = vec![1; T::StringLimit::get() as usize];
 
 	}: _(RawOrigin::Root, asset_id, max_symbol.clone(), 10u8)
 	verify {
-		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
 		let bsymbol= crate::Pallet::<T>::to_bounded_name(max_symbol).unwrap();
-		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(T::AssetId::from(1u8)));
 
 		let stored = crate::Pallet::<T>::asset_metadata(asset_id);
 
@@ -107,7 +106,6 @@ benchmarks! {
 	set_location{
 		let name = b"NAME".to_vec();
 		let ed = T::Balance::from(1_000_000u32);
-		assert_eq!(crate::Pallet::<T>::next_asset_id(), T::AssetId::from(0u8));
 		let _ = crate::Pallet::<T>::register(RawOrigin::Root.into(), name.clone(), AssetType::Token, ed);
 
 		let asset_id = T::AssetId::from(1u8);
@@ -116,7 +114,7 @@ benchmarks! {
 	verify {
 		let bname = crate::Pallet::<T>::to_bounded_name(name).unwrap();
 		let bsymbol= crate::Pallet::<T>::to_bounded_name(b"SYMBOL".to_vec()).unwrap();
-		assert_eq!(crate::Pallet::<T>::asset_ids(&bname), Some(T::AssetId::from(1u8)));
+
 		assert_eq!(crate::Pallet::<T>::locations(asset_id), Some(Default::default()));
 		assert_eq!(crate::Pallet::<T>::location_assets(T::AssetNativeLocation::default()), Some(asset_id));
 	}
