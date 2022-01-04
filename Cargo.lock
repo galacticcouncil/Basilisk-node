@@ -438,7 +438,6 @@ dependencies = [
  "basilisk-runtime",
  "common-runtime",
  "cumulus-client-cli",
- "cumulus-client-collator 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.13)",
  "cumulus-client-consensus-aura",
  "cumulus-client-consensus-common",
  "cumulus-client-consensus-relay-chain",
@@ -1595,29 +1594,6 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.13#c02514d8cb66d6860e597f75d53ca07119dbbf32"
-dependencies = [
- "cumulus-client-consensus-common",
- "cumulus-client-network",
- "cumulus-primitives-core",
- "futures 0.3.18",
- "parity-scale-codec",
- "parking_lot 0.10.2",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-overseer",
- "polkadot-primitives",
- "sc-client-api",
- "sp-api",
- "sp-consensus",
- "sp-core",
- "sp-runtime",
- "tracing",
-]
-
-[[package]]
-name = "cumulus-client-collator"
-version = "0.1.0"
 source = "git+https://github.com/paritytech//cumulus?rev=0be8e8fc214641e306e4f913dd64ff1913e46e95#0be8e8fc214641e306e4f913dd64ff1913e46e95"
 dependencies = [
  "cumulus-client-consensus-common",
@@ -1763,7 +1739,7 @@ name = "cumulus-client-service"
 version = "0.1.0"
 source = "git+https://github.com/paritytech//cumulus?rev=0be8e8fc214641e306e4f913dd64ff1913e46e95#0be8e8fc214641e306e4f913dd64ff1913e46e95"
 dependencies = [
- "cumulus-client-collator 0.1.0 (git+https://github.com/paritytech//cumulus?rev=0be8e8fc214641e306e4f913dd64ff1913e46e95)",
+ "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-pov-recovery",
  "cumulus-primitives-core",
