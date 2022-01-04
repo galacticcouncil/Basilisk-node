@@ -18,8 +18,6 @@
 use super::*;
 use frame_support::traits::BalanceStatus;
 
-use primitives::fee::WithFee;
-
 /// Hold info about each transfer which has to be made to resolve a direct trade.
 pub struct Transfer<'a, T: Config> {
 	pub from: &'a T::AccountId,
@@ -58,8 +56,8 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 
 		// Let's handle the fees now for registered transfers.
 		let fee = T::AMMPool::get_fee(pool_account);
-		let fee_a = self.amount_from_a.just_fee(Fee {numerator: fee.0, denominator: fee.1});
-		let fee_b = self.amount_from_b.just_fee(Fee {numerator: fee.0, denominator: fee.1});
+		let fee_a = hydra_dx_math::fee::calculate_pool_trade_fee(self.amount_from_a, fee);
+		let fee_b = hydra_dx_math::fee::calculate_pool_trade_fee(self.amount_from_b, fee);
 
 		if fee_a.is_none() || fee_b.is_none() {
 			return false;

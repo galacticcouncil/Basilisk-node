@@ -34,7 +34,7 @@ use hydradx_traits::AssetPairAccountIdFor;
 use orml_currencies::BasicCurrencyAdapter;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, Amount, AssetId, Balance, Price,
+	Amount, AssetId, Balance, Price,
 };
 
 use std::cell::RefCell;
@@ -117,7 +117,7 @@ parameter_types! {
 		.avg_block_initialization(Perbill::from_percent(0))
 		.build_or_panic();
 
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
 	pub PayForSetCurrency : Pays = Pays::Yes;
 }
 

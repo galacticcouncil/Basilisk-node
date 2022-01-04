@@ -34,7 +34,7 @@ use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::MultiCurrencyAdapter;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, Amount, AssetId, Balance, Price,
+	Amount, AssetId, Balance, Price,
 };
 
 use frame_support::traits::Get;
@@ -84,7 +84,7 @@ parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 	pub const MaxLocks: u32 = 50;
 	pub const TransactionByteFee: Balance = 1;
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
 	pub PayForSetCurrency : Pays = Pays::Yes;
 	pub const RegistryStringLimit: u32 = 100;
 }
