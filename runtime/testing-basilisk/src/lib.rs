@@ -724,6 +724,19 @@ impl pallet_faucet::Config for Runtime {
 	type Currency = Currencies;
 }
 
+impl pallet_liquidity_mining::Config for Runtime {
+    type Event = Event;
+    type CurrencyId = AssetId;
+    type MultiCurrency = Currencies;
+    type CreateOrigin = EnsureRoot<AccountId>;
+    type PalletId = LMPalletId;
+    type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+    type MinTotalFarmRewards = MinTotalFarmRewards;
+    type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+    type AMM = XYK;
+    type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -750,6 +763,7 @@ construct_runtime!(
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
+		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>},
 
 		// Parachain
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},

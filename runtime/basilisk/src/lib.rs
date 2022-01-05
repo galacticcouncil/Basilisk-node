@@ -31,7 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
+use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin, EnsureSigned};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -127,12 +127,12 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
-			Call::Exchange(_) => false,
+			/*Call::Exchange(_) => false,
 			Call::NFT(_) => false,
 			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
-			Call::Currencies(_) => false,
+			Call::Currencies(_) => false,*/
 			_ => true,
 		}
 	}
@@ -762,8 +762,9 @@ impl pallet_relaychain_info::Config for Runtime {
 impl pallet_liquidity_mining::Config for Runtime {
     type Event = Event;
     type CurrencyId = AssetId;
-    type MultiCurrency = Tokens;
-    type CreateOrigin = EnsureRoot<AccountId>;
+    type MultiCurrency = Currencies;
+    //type CreateOrigin = EnsureRoot<AccountId>;
+    type CreateOrigin = EnsureSigned<AccountId>;
     type PalletId = LMPalletId;
     type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
     type MinTotalFarmRewards = MinTotalFarmRewards;

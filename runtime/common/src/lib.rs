@@ -234,5 +234,5 @@ parameter_types! {
 parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
-	pub const MinTotalFarmRewards: Balance = 1_000_000;
+	pub const MinTotalFarmRewards: Balance = NATIVE_EXISTENTIAL_DEPOSIT * 1_000;
 }

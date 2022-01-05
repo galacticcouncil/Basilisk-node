@@ -41,6 +41,7 @@ pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",defaul
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-uniques = { path = '../../pallets/uniques', default-features = false }
+pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features = false }
 
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
 pallet-faucet = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
@@ -220,6 +221,7 @@ std = [
     "pallet-authorship/std",
     "scale-info/std",
     "pallet-uniques/std",
+    "pallet-liquidity-mining/std",
 ]
 try-runtime= [
     "frame-try-runtime",
