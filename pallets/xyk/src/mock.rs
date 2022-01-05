@@ -30,7 +30,7 @@ use frame_support::traits::{Everything, GenesisBuild, Get};
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool};
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, AssetId, Balance,
+	AssetId, Balance,
 };
 
 use frame_system::EnsureSigned;
@@ -45,6 +45,8 @@ pub const BOB: AccountId = 2;
 pub const HDX: AssetId = 1000;
 pub const DOT: AssetId = 2000;
 pub const ACA: AssetId = 3000;
+
+pub const HDX_DOT_POOL_ID: AccountId = 1_002_000;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -64,12 +66,12 @@ frame_support::construct_runtime!(
 );
 
 thread_local! {
-		static EXCHANGE_FEE: RefCell<fee::Fee> = RefCell::new(fee::Fee::default());
+		static EXCHANGE_FEE: RefCell<(u32, u32)> = RefCell::new((2, 1_000));
 }
 
 struct ExchangeFee;
-impl Get<fee::Fee> for ExchangeFee {
-	fn get() -> fee::Fee {
+impl Get<(u32, u32)> for ExchangeFee {
+	fn get() -> (u32, u32) {
 		EXCHANGE_FEE.with(|v| *v.borrow())
 	}
 }
@@ -78,7 +80,7 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 63;
 	pub const NativeAssetId: AssetId = HDX;
-	pub ExchangeFeeRate: fee::Fee = ExchangeFee::get();
+	pub ExchangeFeeRate: (u32, u32) = ExchangeFee::get();
 	pub RegistryStringLimit: u32 = 100;
 }
 
@@ -209,7 +211,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_exchange_fee(self, f: fee::Fee) -> Self {
+	pub fn with_exchange_fee(self, f: (u32, u32)) -> Self {
 		EXCHANGE_FEE.with(|v| *v.borrow_mut() = f);
 		self
 	}
