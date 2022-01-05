@@ -1,7 +1,7 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
 
-use frame_support::assert_ok;
+use frame_support::{assert_noop, assert_ok};
 
 use polkadot_xcm::latest::prelude::*;
 
@@ -146,7 +146,7 @@ fn transfer_insufficient_amount_should_fail() {
 	});
 
 	Hydra::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
+		assert_noop!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			1_000_000 - 1,
@@ -164,10 +164,12 @@ fn transfer_insufficient_amount_should_fail() {
 				.into()
 			),
 			399_600_000_000
-		));
+		),
+			orml_xtokens::Error::<basilisk_runtime::Runtime>::XcmExecutionFailed
+		);
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			199999999000001
+			200000000000000
 		);
 	});
 
