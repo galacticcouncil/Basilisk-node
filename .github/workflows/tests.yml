@@ -184,15 +184,9 @@ jobs:
         with:
           node-version: '14'
           check-latest: true
-      - run: ./install_polkadot_launch.sh
-        name: Setup polkadot launch
-        working-directory: scripts
-      - run: npm install
-        name: Setup wait script
-        working-directory: scripts/wait-for-inclusion
-      - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 2090
+      - run: npm install && npm start
         name: Launch rococo local & wait for inclusion
-        working-directory: scripts/polkadot-launch
+        working-directory: scripts/wait-for-inclusion
 
   test-upgrade-runtime:
     needs: [build, version-check]
