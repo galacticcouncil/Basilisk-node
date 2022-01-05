@@ -221,7 +221,7 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				true,
-				1000.into(),
+				PARA_ID.into(),
 				//council
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				//technical committee
@@ -259,7 +259,7 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "westend".into(),
-			para_id: 1000,
+			para_id: PARA_ID,
 		},
 	))
 }
@@ -301,7 +301,7 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
-				1001.into(),
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -327,7 +327,7 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-dev".into(),
-			para_id: 1001,
+			para_id: PARA_ID,
 		},
 	))
 }
@@ -371,7 +371,7 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
-				1002.into(),
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -397,7 +397,7 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-dev".into(),
-			para_id: 1002,
+			para_id: PARA_ID,
 		},
 	))
 }
@@ -447,7 +447,7 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
 				true,
-				1003.into(),
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -473,7 +473,7 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(),
-			para_id: 1003,
+			para_id: PARA_ID,
 		},
 	))
 }

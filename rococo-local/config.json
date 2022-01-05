@@ -41,7 +41,7 @@
   "parachains": [
     {
       "bin": "../target/release/basilisk",
-      "id": "200",
+      "id": "2090",
       "chain":"local",
       "balance": "1000000000000000000000",
       "nodes": [

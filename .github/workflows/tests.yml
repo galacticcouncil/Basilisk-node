@@ -190,7 +190,7 @@ jobs:
       - run: npm install
         name: Setup wait script
         working-directory: scripts/wait-for-inclusion
-      - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 200
+      - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 2090
         name: Launch rococo local & wait for inclusion
         working-directory: scripts/polkadot-launch
 

@@ -101,7 +101,7 @@
 	"parachains": [
 		{
 			"bin": "../target/release/basilisk",
-			"id": "2084",
+			"id": "2090",
 			"chain":"local",
 			"nodes": [
 				{
