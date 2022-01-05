@@ -91,7 +91,7 @@ fn set_supported_currency_with_pool() {
 
 		assert_eq!(
 			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE),
-			999_999_999_898_958
+			999_999_999_898_971
 		);
 	});
 }
@@ -228,7 +228,7 @@ fn fee_payment_in_non_native_currency() {
 				..Default::default()
 			};
 
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 8_958);
+			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 8_971);
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
 				.pre_dispatch(&CHARLIE, CALL, &info, len)
@@ -237,7 +237,7 @@ fn fee_payment_in_non_native_currency() {
 			//Native balance check - Charlie should be still broke!
 			assert_eq!(Balances::free_balance(CHARLIE), 0);
 
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 7_914);
+			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 7_961);
 		});
 }
 
@@ -274,7 +274,7 @@ fn fee_payment_non_native_insufficient_balance() {
 				.pre_dispatch(&CHARLIE, CALL, &info, len)
 				.is_err());
 
-			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 958);
+			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &CHARLIE), 971);
 		});
 }
 
@@ -466,22 +466,24 @@ fn swap_currency_should_work() {
 			Price::from(1)
 		));
 
-		assert_storage_noop!(PaymentPallet::swap_currency(&ALICE, 10000).unwrap());
+		assert_storage_noop!(PaymentPallet::withdraw_fee_non_native(&ALICE, 10000).unwrap());
 
 		assert_ok!(PaymentPallet::set_currency(
 			Origin::signed(ALICE),
 			SUPPORTED_CURRENCY_WITH_BALANCE
 		));
 
-		let currency_balance_before = Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE);
-		let hdx_balance_before = Currencies::free_balance(HDX, &ALICE);
+		assert_ok!(PaymentPallet::withdraw_fee_non_native(&ALICE, 10000));
 
-		assert_ok!(PaymentPallet::swap_currency(&ALICE, 10000));
 		assert_eq!(
-			currency_balance_before - 11379,
+			999999999888971,
 			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &ALICE)
 		);
-		assert_eq!(hdx_balance_before + 10000, Currencies::free_balance(HDX, &ALICE));
+
+		assert_eq!(
+			11029,
+			Currencies::free_balance(SUPPORTED_CURRENCY_WITH_BALANCE, &PaymentPallet::fallback_account())
+		);
 	});
 }
 
@@ -576,7 +578,10 @@ fn swap_should_work() {
 			Origin::signed(ALICE),
 			SUPPORTED_CURRENCY_WITH_BALANCE
 		));
-		assert_eq!(PaymentPallet::swap(&ALICE, 1000).unwrap(), PaymentSwapResult::Swapped);
+		assert_eq!(
+			PaymentPallet::swap(&ALICE, 1000).unwrap(),
+			PaymentSwapResult::Transferred
+		);
 	});
 }
 
