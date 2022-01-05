@@ -28,7 +28,6 @@ benchmarks! {
 	register{
 		let name = vec![1; T::StringLimit::get() as usize];
 		let ed = T::Balance::from(1_000_000u32);
-
 		let next_asset_id = crate::Pallet::<T>::next_asset_id();
 
 	}: _(RawOrigin::Root, name.clone(), AssetType::Token, ed)
