@@ -42,6 +42,7 @@ pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-uniques = { path = '../../pallets/uniques', default-features = false }
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
+pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -198,6 +199,7 @@ std = [
     "pallet-price-oracle/std",
     "pallet-utility/std",
     "hydradx-traits/std",
+    "pallet-liquidity-mining/std",
     "sp-api/std",
     "sp-block-builder/std",
     "sp-consensus-aura/std",

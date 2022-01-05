@@ -229,3 +229,10 @@ parameter_types! {
 	pub MinVestedTransfer: Balance = 100_000;
 	pub const MaxVestingSchedules: u32 = 15;
 }
+
+// pallet liquidity mining
+parameter_types! {
+	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
+	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
+	pub const MinTotalFarmRewards: Balance = 1_000_000;
+}

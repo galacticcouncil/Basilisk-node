@@ -66,7 +66,10 @@ use frame_support::{
 };
 use hydradx_traits::AMM;
 use scale_info::TypeInfo;
-use sp_std::convert::{From, Into, TryInto};
+use sp_std::{
+    vec,
+    convert::{From, Into, TryInto}
+};
 
 use primitives::nft::ClassType;
 use primitives::{asset::AssetPair, Balance};
@@ -221,7 +224,7 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Asset type
-		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + From<u32>;
+		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord;
 
 		/// Currency for transfers
 		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = Self::CurrencyId, Balance = Balance>;
@@ -360,9 +363,12 @@ pub mod pallet {
 		/// asset_pair]
 		LiquidityMiningCanceled(AccountIdOf<T>, PoolId, PoolId, AssetPair),
 
-		/// Liquidity pool was removed from liq. mining program. [who, Farm_id, liq_mining_pool_id,
+		/// Liquidity pool was removed from liq. mining program. [who, farm_id, liq_mining_pool_id,
 		/// asset_pair]
 		LiquidityPoolRemoved(AccountIdOf<T>, PoolId, PoolId, AssetPair),
+
+		/// Undistributed rewards was withdrawn from farm. [who, farm_id, amount]
+		UndistributedRewardsWithdrawn(AccountIdOf<T>, PoolId, Balance),
 	}
 
 	#[pallet::storage]
@@ -489,8 +495,29 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(1000)]
-		pub fn withdraw_undistributed_rewards(_origin: OriginFor<T>, _farm_id: PoolId) -> DispatchResult {
-			todo!()
+		pub fn withdraw_undistributed_rewards(origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
+			//TODO: not tested, add tests
+			let who = ensure_signed(origin)?;
+
+			let g_pool = Self::global_pool(farm_id).ok_or(Error::<T>::FarmNotFound)?;
+
+			ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+
+			ensure!(g_pool.liq_pools_count.is_zero(), Error::<T>::FarmIsNotEmpty);
+
+			let g_pool_account = Self::pool_account_id(g_pool.id)?;
+
+			let undistributed_rew = T::MultiCurrency::total_balance(g_pool.reward_currency, &g_pool_account);
+
+			T::MultiCurrency::transfer(g_pool.reward_currency, &g_pool_account, &who, undistributed_rew)?;
+
+			Self::deposit_event(Event::UndistributedRewardsWithdrawn(
+				who,
+				g_pool.id,
+				undistributed_rew,
+			));
+
+			Ok(())
 		}
 
 		#[pallet::weight(1000)]
@@ -1042,7 +1069,7 @@ impl<T: Config> Pallet<T> {
 			.initial_reward_percentage
 			.checked_add(&1.into())
 			.ok_or(Error::<T>::Overflow)?
-			.checked_mul(&FixedU128::from(Into::<u128>::into(curve.scale_coef)))
+			.checked_mul(&FixedU128::from(curve.scale_coef as u128))
 			.ok_or(Error::<T>::Overflow)?;
 
 		let periods = FixedU128::from(TryInto::<u128>::try_into(periods).map_err(|_e| Error::<T>::Overflow)?);

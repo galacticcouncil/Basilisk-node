@@ -759,6 +759,19 @@ impl pallet_relaychain_info::Config for Runtime {
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+impl pallet_liquidity_mining::Config for Runtime {
+    type Event = Event;
+    type CurrencyId = AssetId;
+    type MultiCurrency = Tokens;
+    type CreateOrigin = EnsureRoot<AccountId>;
+    type PalletId = LMPalletId;
+    type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+    type MinTotalFarmRewards = MinTotalFarmRewards;
+    type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+    type AMM = XYK;
+    type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -818,6 +831,7 @@ construct_runtime!(
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>},
+		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>},
 
 		// TEMPORARY
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},

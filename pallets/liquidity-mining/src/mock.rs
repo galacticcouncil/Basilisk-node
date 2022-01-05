@@ -234,9 +234,6 @@ pub fn asset_pair_to_map_key(assets: AssetPair) -> String {
 }
 
 parameter_types! {
-	pub NativeCurrencyId: AssetId = 0;
-
-	pub AccumulatePeriod: BlockNumber = 10;     // 10 blocks
 	pub const MaxLocks: u32 = 1;
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
