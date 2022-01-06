@@ -1,6 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{dispatch::DispatchResult, ensure, transactional, traits::{Currency, Get}};
+use sp_std::convert::TryInto;
+
+use frame_support::{dispatch::DispatchResult, ensure, transactional, traits::{Currency, Get}, BoundedVec};
 use frame_system::ensure_signed;
 use primitives::nft::ClassType;
 use sp_runtime::{SaturatedConversion, traits::Zero, DispatchError};
@@ -36,7 +38,7 @@ use super::*;
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_nft::Config {
+	pub trait Config: frame_system::Config + pallet_nft::Config<ClassType = primitives::nft::ClassType> {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 		#[pallet::constant]
@@ -63,7 +65,8 @@ use super::*;
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 
 			let price = class_info.price().saturated_into();
-
+			
+			#[cfg(test)]
 			println!("Bought! issuance #: {:?} / {:?}, price: {:?} BSX", class_info.issued, class_info.max_supply, price);
 
 			<T as pallet_nft::Config>::Currency::transfer(
@@ -100,6 +103,7 @@ use super::*;
 
 			let price = class_info.price().saturated_into();
 
+			#[cfg(test)]
 			println!("Sold! issuance #: {:?} / {:?}, price: {:?} BSX", class_info.issued, class_info.max_supply, price);
 
 			<T as pallet_nft::Config>::Currency::transfer(
@@ -128,6 +132,7 @@ use super::*;
 
 			pallet_nft::Pallet::<T>::burn(origin, class_id, instance_id)?;
 
+			#[cfg(test)]
 			println!("Redeemed! issuance #: {:?} / {:?}", class_id, instance_id);
 
 			ClassesRedeemables::<T>::try_mutate(class_id, |maybe_info| -> DispatchResult {
@@ -160,6 +165,7 @@ use super::*;
 	pub enum Error<T> {
 		Overflow,
 		ClassUnknown,
+		ReachedMaxSupply,
 	}
 }
 
@@ -169,12 +175,12 @@ impl<T: Config> Pallet<T> {
     }
 
 	pub fn create_class_for_redeemables(max_supply: u32, curve: BondingCurve) -> Result<T::NftClassId, DispatchError> {
-		let class_id = pallet_nft::Pallet::<T>::do_create_class(Default::default(), ClassType::Redeemable, Default::default())?;
+		let (class_id, class_type) = pallet_nft::Pallet::<T>::do_create_class(Default::default(), ClassType::Redeemable, Default::default())?;
 	
 		ClassesRedeemables::<T>::insert(
 			class_id,
 			RedeemablesClassInfo {
-				class_type: ClassType::Redeemable,
+				class_type,
 				max_supply,
 				redeemed: Zero::zero(),
 				issued: Zero::zero(),
@@ -182,7 +188,7 @@ impl<T: Config> Pallet<T> {
 			},
 		);
 		
-		Ok((class_id, ClassType::Redeemable))
+		Ok(class_id)
 	}
 	
 	pub fn mint_for_redeemables(
@@ -192,9 +198,7 @@ impl<T: Config> Pallet<T> {
 		let class_type = Self::classes_redeemables(class_id)
 			.map(|c| c.class_type)
 			.ok_or(Error::<T>::ClassUnknown)?;
-	
-		ensure!(class_type == ClassType::Redeemable, Error::<T>::ClassTypeMismatch);
-	
+		
 		ClassesRedeemables::<T>::try_mutate(class_id, |maybe_info| -> DispatchResult {
 			let info = maybe_info.as_mut().ok_or(Error::<T>::ClassUnknown)?;
 	
@@ -208,12 +212,11 @@ impl<T: Config> Pallet<T> {
 			Ok(())
 		})?;
 	
-		let instance_id = Self::get_next_instance_id(class_id)?;
+		let metadata: BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
 	
-		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
-	
-		Self::deposit_event(Event::InstanceMinted(class_type, owner, class_id, instance_id));
-	
+		let instance_id = pallet_nft::Pallet::<T>::do_mint(owner.clone(), class_id, metadata)?;
+		
 		Ok(instance_id)
 	}
 	
@@ -224,14 +227,10 @@ impl<T: Config> Pallet<T> {
 		redeem: bool,
 	) -> DispatchResult {
 	
-		pallet_uniques::Pallet::<T>::do_burn(
-			class_id.into(),
-			instance_id.into(),
-			|_class_details, instance_details| {
-				let is_permitted = instance_details.owner == sender;
-				ensure!(is_permitted, Error::<T>::NotPermitted);
-				Ok(())
-			},
+		pallet_nft::Pallet::<T>::do_burn(
+			sender,
+			class_id,
+			instance_id,
 		)?;
 	
 		ClassesRedeemables::<T>::try_mutate(class_id, |maybe_info| -> DispatchResult {
@@ -245,9 +244,7 @@ impl<T: Config> Pallet<T> {
 	
 			Ok(())
 		})?;
-	
-		Self::deposit_event(Event::InstanceBurned(sender, class_id, instance_id));
-	
+		
 		Ok(())
 	}
 }

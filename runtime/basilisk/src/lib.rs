@@ -479,7 +479,6 @@ impl cumulus_pallet_aura_ext::Config for Runtime {}
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
-	type TokenDeposit = InstanceDeposit;
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftClassId = u32;
 	type NftInstanceId = u32;
@@ -729,6 +728,7 @@ parameter_types! {
 impl pallet_redeemables::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_redeemables::weights::BasiliskWeight<Runtime>;
+	type PalletId = TreasuryPalletId;
 }
 
 parameter_types! {

@@ -36,7 +36,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 [features]
 default = ["std"]
 std = [
-    "serde/std",
+    "serde",
     "scale-info/std",
     "codec/std",
     "frame-support/std",
