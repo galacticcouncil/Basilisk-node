@@ -6,7 +6,8 @@
   "scripts": {
     "chain": "polkadot-launch ../../rococo-local/config.json",
     "test-inclusion": "node index.js 2090",
-    "start": "run-p -lr chain test-inclusion"
+    "start": "run-p -lr chain test-inclusion logs:parachain",
+    "logs:parachain": "tail -f 9988.log"
   },
   "author": "",
   "license": "Apache-2.0",
