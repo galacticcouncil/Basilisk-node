@@ -45,6 +45,7 @@ std = [
     "sp-runtime/std",
     "pallet-nft/std",
     "pallet-uniques/std",
+    "primitives/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
