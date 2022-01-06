@@ -1,6 +1,6 @@
 [package]
 name = "pallet-exchange"
-version = "5.2.1"
+version = "5.2.2"
 description = "Exchange Module"
 authors = ["GalacticCouncil"]
 edition = "2018"
@@ -31,6 +31,7 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 
 # HydraDX dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "d62d43acd7db03dfefcfd9c8c773d86e37ad1319", default-features = false }
+hydra-dx-math = { default-features = false, version = "4.1.1" }
 
 # Substrate dependencies
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false }

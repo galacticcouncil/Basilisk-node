@@ -512,7 +512,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "27.0.0"
+version = "28.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1290,7 +1290,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -3143,18 +3143,6 @@ source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#56bd
 dependencies = [
  "cargo-lock",
  "platforms 1.1.0",
-]
-
-[[package]]
-name = "hydra-dx-math"
-version = "3.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "992b2f7cab8392a1ec26e7e48a8882137f66634839bd09f4669e5f50e40eaa47"
-dependencies = [
- "fixed",
- "lazy_static",
- "num-traits",
- "primitive-types 0.8.0",
 ]
 
 [[package]]
@@ -5575,10 +5563,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.1"
+version = "5.2.2"
 dependencies = [
  "frame-support",
  "frame-system",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5598,7 +5587,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.1"
+version = "3.3.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5731,13 +5720,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.0.1"
+version = "4.1.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5852,7 +5841,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-multi-payment-benchmarking"
-version = "5.3.0"
+version = "5.3.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6190,7 +6179,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "6.3.0"
+version = "6.3.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6346,13 +6335,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.2.0"
+version = "3.3.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 3.4.0",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -7887,7 +7876,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.0.0"
+version = "6.1.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -10978,7 +10967,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "27.0.0"
+version = "28.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",

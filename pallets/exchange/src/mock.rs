@@ -34,7 +34,7 @@ use frame_system::EnsureSigned;
 use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, AssetId, Balance,
+	 AssetId, Balance,
 };
 use std::cell::RefCell;
 
@@ -87,7 +87,7 @@ parameter_types! {
 
 	pub const HDXAssetId: AssetId = HDX;
 
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
 
 	pub RegistryStringLimit: u32 = 100;
 }

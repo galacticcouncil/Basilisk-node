@@ -38,8 +38,10 @@ pub const EXISTENTIAL_DEPOSIT: Balance = 100;
 pub const SALE_START: Option<BlockNumber> = Some(10);
 pub const SALE_END: Option<BlockNumber> = Some(40);
 
-pub const HDX_DOT_POOL_ID: AccountId = 3_000;
+pub const HDX_BSX_POOL_ID: AccountId = 3_000;
 pub const KUSD_BSX_POOL_ID: AccountId = 2_003_000;
+
+pub const DEFAULT_FEE: (u32, u32) = (2, 1_000);
 
 pub const SAMPLE_POOL_DATA: Pool<AccountId, BlockNumber> = Pool {
 	owner: ALICE,
@@ -49,10 +51,7 @@ pub const SAMPLE_POOL_DATA: Pool<AccountId, BlockNumber> = Pool {
 	initial_weight: 10_000_000,
 	final_weight: 90_000_000,
 	weight_curve: WeightCurveType::Linear,
-	fee: Fee {
-		numerator: 2,
-		denominator: 1000,
-	},
+	fee: DEFAULT_FEE,
 	fee_collector: CHARLIE,
 	repay_target: 0,
 };
