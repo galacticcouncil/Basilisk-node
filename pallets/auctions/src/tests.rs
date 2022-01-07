@@ -15,6 +15,38 @@ fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, AuctionsStringLimit>,
 	name.try_into().map_err(|_| Error::<Test>::TooLong)
 }
 
+pub fn new_test_ext() -> sp_io::TestExternalities {
+	let mut ext = ExtBuilder::default().build();
+	ext.execute_with(|| run_to_block::<Test>(1));
+	ext
+}
+
+pub fn predefined_test_ext() -> sp_io::TestExternalities {
+	let mut ext = new_test_ext();
+
+	ext.execute_with(|| {
+		assert_ok!(Nft::create_class(
+			Origin::signed(ALICE),
+			NFT_CLASS_ID_1,
+			ALICE,
+			bvec![0]
+		));
+		assert_ok!(Nft::mint(
+			Origin::signed(ALICE),
+			NFT_CLASS_ID_1,
+			0u16.into(),
+			ALICE,
+			10u8,
+			bvec![0]
+		));
+	});
+
+	ext
+}
+
+/// English auction tests
+///
+/// fn create_auction_auction()
 #[test]
 fn can_create_english_auction() {
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
@@ -30,22 +62,7 @@ fn can_create_english_auction() {
 		next_bid_min: 55,
 	};
 
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Nft::create_class(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			ALICE,
-			bvec![0]
-		));
-		assert_ok!(Nft::mint(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			0u16.into(),
-			ALICE,
-			10u8,
-			bvec![0]
-		));
-
+	predefined_test_ext().execute_with(|| {
 		// Error AuctionStartTimeAlreadyPassed
 		let mut general_auction_data = valid_general_auction_data.clone();
 		general_auction_data.start = 0u64;
@@ -191,22 +208,7 @@ fn can_update_english_auction() {
 
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
 
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Nft::create_class(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			ALICE,
-			bvec![0]
-		));
-		assert_ok!(Nft::mint(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			0u16.into(),
-			ALICE,
-			10u8,
-			bvec![0]
-		));
-
+	predefined_test_ext().execute_with(|| {
 		let auction_data = EnglishAuction {
 			general_data: general_auction_data.clone(),
 			specific_data: english_auction_data.clone(),
@@ -221,7 +223,7 @@ fn can_update_english_auction() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		System::set_block_number(3);
+		run_to_block::<Test>(3);
 
 		// Error CannotSetAuctionClosed
 		let mut updated_general_data = general_auction_data.clone();
@@ -264,7 +266,7 @@ fn can_update_english_auction() {
 		);
 
 		// Error AuctionAlreadyStarted
-		System::set_block_number(10);
+		run_to_block::<Test>(10);
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
 			Error::<Test>::AuctionAlreadyStarted,
@@ -287,22 +289,7 @@ fn can_destroy_english_auction() {
 
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
 
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Nft::create_class(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			ALICE,
-			bvec![0]
-		));
-		assert_ok!(Nft::mint(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			0u16.into(),
-			ALICE,
-			10u8,
-			bvec![0]
-		));
-
+	predefined_test_ext().execute_with(|| {
 		let auction_data = EnglishAuction {
 			general_data: general_auction_data.clone(),
 			specific_data: english_auction_data.clone(),
@@ -317,7 +304,7 @@ fn can_destroy_english_auction() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
 
-		System::set_block_number(3);
+		run_to_block::<Test>(3);
 
 		// Error NotAuctionOwner when caller is not owner
 		assert_noop!(
@@ -349,7 +336,8 @@ fn can_destroy_english_auction() {
 
 		// Error AuctionAlreadyStarted
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
-		System::set_block_number(10);
+		run_to_block::<Test>(10);
+
 		assert_noop!(
 			AuctionsModule::destroy(Origin::signed(ALICE), 1),
 			Error::<Test>::AuctionAlreadyStarted,
@@ -372,22 +360,7 @@ fn can_bid_english_auction() {
 
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
 
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Nft::create_class(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			ALICE,
-			bvec![0]
-		));
-		assert_ok!(Nft::mint(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			0u16.into(),
-			ALICE,
-			10u8,
-			bvec![0]
-		));
-
+	predefined_test_ext().execute_with(|| {
 		let auction_data = EnglishAuction {
 			general_data: general_auction_data.clone(),
 			specific_data: english_auction_data.clone(),
@@ -409,7 +382,7 @@ fn can_bid_english_auction() {
 			Error::<Test>::AuctionNotStarted,
 		);
 
-		System::set_block_number(11);
+		run_to_block::<Test>(11);
 
 		// Error InvalidBidPrice when bid is zero and auction has no minimal_price
 		assert_noop!(
@@ -443,7 +416,8 @@ fn can_bid_english_auction() {
 		);
 
 		// Happy path: Second highest bidder
-		System::set_block_number(12);
+		run_to_block::<Test>(12);
+
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
 			0,
@@ -464,7 +438,8 @@ fn can_bid_english_auction() {
 		assert_eq!(data.general_data.end, 22u64);
 
 		// Error AuctionEndTimeReached
-		System::set_block_number(22);
+		run_to_block::<Test>(22);
+
 		assert_noop!(
 			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
 			Error::<Test>::AuctionEndTimeReached,
@@ -487,22 +462,7 @@ fn can_close_english_auction() {
 
 	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
 
-	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(Nft::create_class(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			ALICE,
-			bvec![0]
-		));
-		assert_ok!(Nft::mint(
-			Origin::signed(ALICE),
-			NFT_CLASS_ID_1,
-			0u16.into(),
-			ALICE,
-			10u8,
-			bvec![0]
-		));
-
+	predefined_test_ext().execute_with(|| {
 		let auction_data = EnglishAuction {
 			general_data: general_auction_data.clone(),
 			specific_data: english_auction_data.clone(),
@@ -511,7 +471,7 @@ fn can_close_english_auction() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		System::set_block_number(11);
+		run_to_block::<Test>(11);
 
 		let bid = BalanceOf::<Test>::from(1_000_u32);
 		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, bid));
@@ -526,7 +486,7 @@ fn can_close_english_auction() {
 		);
 
 		// Happy path
-		System::set_block_number(21);
+		run_to_block::<Test>(21);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
