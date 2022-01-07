@@ -1,6 +1,6 @@
 [package]
 name = "common-runtime"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["GalacticCouncil"]
 edition = "2018"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -19,7 +19,7 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 primitives = {path = '../../primitives', default-features = false}
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="70e615bb8456950d7359a391077e1af57b78ff13", default-features = false }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }

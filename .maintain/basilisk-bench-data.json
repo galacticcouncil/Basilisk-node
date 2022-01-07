@@ -1,0 +1,23 @@
+{
+    "pallet-xyk": {
+        "create_pool": 203.5,
+        "add_liquidity": 163.8,
+        "remove_liquidity": 156.9,
+        "sell": 120.0,
+        "buy": 120.0
+    },
+    "pallet-exchange": {
+        "sell_intention": 93.0,
+        "buy_intention": 92.0,
+        "sell_extrinsic": 121.0,
+        "on_finalize_for_one_sell_extrinsic": 160.0,
+        "buy_extrinsic": 121.0,
+        "on_finalize_for_one_buy_extrinsic": 169.0
+    },
+    "pallet-transaction-multi-payment": {
+        "withdraw_fee_non_native": 87.0,
+        "set_currency": 106.0,
+        "add_currency": 17.0,
+        "remove_currency": 18.0
+    }
+}
