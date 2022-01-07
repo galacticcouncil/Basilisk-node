@@ -352,45 +352,20 @@ fn update_english_auction_after_auction_start_should_not_work() {
 	});
 }
 
+/// fn update_auction_auction()
+/// 
+/// Happy path
 #[test]
-fn can_destroy_english_auction() {
-	let general_auction_data = GeneralAuctionData {
-		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
-		last_bid: None,
-		start: 10u64,
-		end: 21u64,
-		closed: false,
-		owner: ALICE,
-		token: (NFT_CLASS_ID_1, 0u16.into()),
-		next_bid_min: 55,
-	};
-
-	let english_auction_data = EnglishAuctionData {};
-
+fn destroy_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data.clone(),
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		// Error AuctionNotExist when auction is not found
-		assert_noop!(
-			AuctionsModule::destroy(Origin::signed(ALICE), 0),
-			Error::<Test>::AuctionNotExist,
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
 		);
 
-		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		run_to_block::<Test>(3);
 
-		// Error NotAuctionOwner when caller is not owner
-		assert_noop!(
-			AuctionsModule::destroy(Origin::signed(BOB), 0),
-			Error::<Test>::NotAuctionOwner,
-		);
-
-		// Happy path
 		assert_ok!(AuctionsModule::destroy(Origin::signed(ALICE), 0));
 
 		assert_eq!(AuctionsModule::auctions(0), None);
@@ -411,13 +386,51 @@ fn can_destroy_english_auction() {
 			0u16.into(),
 			ALICE
 		));
+	});
+}
 
-		// Error AuctionAlreadyStarted
+/// Error AuctionNotExist
+#[test]
+fn destroy_english_auction_with_nonexisting_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			AuctionsModule::destroy(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionNotExist,
+		);
+	});
+}
+
+/// Error NotAuctionOwner
+#[test]
+fn destroy_english_auction_by_non_auction_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		assert_noop!(
+			AuctionsModule::destroy(Origin::signed(BOB), 0),
+			Error::<Test>::NotAuctionOwner,
+		);
+	});
+}
+
+/// Error AuctionAlreadyStarted
+#[test]
+fn destroy_english_auction_after_auction_started_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
 		run_to_block::<Test>(10);
 
 		assert_noop!(
-			AuctionsModule::destroy(Origin::signed(ALICE), 1),
+			AuctionsModule::destroy(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionAlreadyStarted,
 		);
 	});
