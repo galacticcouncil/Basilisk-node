@@ -229,69 +229,29 @@ fn create_english_auction_with_frozen_token_should_not_work() {
 		// TODO test frozen NFT transfer
 }
 
+/// fn update_auction_auction()
+/// 
+/// Happy path
 #[test]
-fn can_update_english_auction() {
-	let general_auction_data = GeneralAuctionData {
-		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
-		last_bid: None,
-		start: 10u64,
-		end: 21u64,
-		closed: false,
-		owner: ALICE,
-		token: (NFT_CLASS_ID_1, 0u16.into()),
-		next_bid_min: 55,
-	};
-
-	let english_auction_data = EnglishAuctionData {};
-
+fn update_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data.clone(),
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		// Error AuctionNotExist
-		assert_noop!(
-			AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()),
-			Error::<Test>::AuctionNotExist,
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
 		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		run_to_block::<Test>(3);
 
-		// Error CannotSetAuctionClosed
-		let mut updated_general_data = general_auction_data.clone();
-		updated_general_data.closed = true;
-
-		let auction_data = EnglishAuction {
-			general_data: updated_general_data,
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction),
-			Error::<Test>::CannotSetAuctionClosed
-		);
-
-		let mut updated_general_data = general_auction_data.clone();
+		let mut updated_general_data = valid_general_auction_data();
 		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
 
 		let auction_data = EnglishAuction {
 			general_data: updated_general_data,
-			specific_data: english_auction_data.clone(),
+			specific_data: valid_english_specific_data(),
 		};
 		let auction = Auction::English(auction_data);
 
-		// Error NotAuctionOwner when caller is not owner
-		assert_noop!(
-			AuctionsModule::update(Origin::signed(BOB), 0, auction.clone()),
-			Error::<Test>::NotAuctionOwner,
-		);
-
-		// Happy path
 		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()));
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
@@ -300,9 +260,91 @@ fn can_update_english_auction() {
 			String::from_utf8(data.general_data.name.to_vec()).unwrap(),
 			"Auction renamed"
 		);
+	});
+}
 
-		// Error AuctionAlreadyStarted
+/// Error AuctionNotExist
+#[test]
+fn update_english_auction_with_nonexisting_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::AuctionNotExist,
+		);
+	});
+}
+
+/// Error CannotSetAuctionClosed
+#[test]
+fn update_english_auction_with_closed_true_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.closed = true;
+
+		let auction = english_auction_object(
+			updated_general_data, valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::CannotSetAuctionClosed,
+		);
+	});
+}
+
+/// Error NotAuctionOwner
+#[test]
+fn update_english_auction_by_non_auction_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction = english_auction_object(
+			updated_general_data, valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(BOB), 0, auction),
+			Error::<Test>::NotAuctionOwner,
+		);
+	});
+}
+
+/// Error AuctionAlreadyStarted
+#[test]
+fn update_english_auction_after_auction_start_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction = english_auction_object(
+			updated_general_data, valid_english_specific_data()
+		);
+
 		run_to_block::<Test>(10);
+
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
 			Error::<Test>::AuctionAlreadyStarted,
