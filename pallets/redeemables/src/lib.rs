@@ -6,13 +6,13 @@ use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
 	traits::{Currency, Get},
-	transactional, BoundedVec,
+	transactional,
 };
 use frame_system::ensure_signed;
 use primitives::nft::ClassType;
-use sp_runtime::{traits::Zero, DispatchError, SaturatedConversion};
+use sp_runtime::{traits::Zero, SaturatedConversion};
 
-use types::{BondingCurve, RedeemablesClassInfo};
+use types::BondingCurve;
 use weights::WeightInfo;
 
 mod benchmarking;
