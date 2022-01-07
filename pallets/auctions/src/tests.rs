@@ -352,7 +352,7 @@ fn update_english_auction_after_auction_start_should_not_work() {
 	});
 }
 
-/// fn update_auction_auction()
+/// fn destroy_auction_auction()
 /// 
 /// Happy path
 #[test]
@@ -436,52 +436,21 @@ fn destroy_english_auction_after_auction_started_should_not_work() {
 	});
 }
 
+/// fn bid_auction_auction()
+/// 
+/// Happy path with 2 bidders
 #[test]
-fn can_bid_english_auction() {
-	let general_auction_data = GeneralAuctionData {
-		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
-		last_bid: None,
-		start: 10u64,
-		end: 21u64,
-		closed: false,
-		owner: ALICE,
-		token: (NFT_CLASS_ID_1, 0u16.into()),
-		next_bid_min: 55,
-	};
-
-	let english_auction_data = EnglishAuctionData {};
-
+fn bid_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data.clone(),
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
 
-		// Create auction ID 0 with no next_bid_min and no last_bid
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
-
-		// Error CannotBidOnOwnAuction
-		assert_noop!(
-			AuctionsModule::bid(Origin::signed(ALICE), 0, BalanceOf::<Test>::from(2_000_u32)),
-			Error::<Test>::CannotBidOnOwnAuction,
-		);
-
-		// Error AuctionNotStarted
-		assert_noop!(
-			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
-			Error::<Test>::AuctionNotStarted,
-		);
 
 		run_to_block::<Test>(11);
 
-		// Error InvalidBidPrice when bid is zero and auction has no minimal_price
-		assert_noop!(
-			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::zero()),
-			Error::<Test>::InvalidBidPrice,
-		);
-
-		// Happy path: First highest bidder
+		// First highest bidder
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
 			0,
@@ -494,19 +463,7 @@ fn can_bid_english_auction() {
 			pallet_balances::Error::<Test>::LiquidityRestrictions
 		);
 
-		// Error InvalidBidPrice when second bid <= last_bid
-		assert_noop!(
-			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(1_000_u32)),
-			Error::<Test>::InvalidBidPrice,
-		);
-
-		// Error InvalidBidPrice when second bid < minimal_bid (10% above previous bid)
-		assert_noop!(
-			AuctionsModule::bid(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_099_u32)),
-			Error::<Test>::InvalidBidPrice,
-		);
-
-		// Happy path: Second highest bidder
+		// Second highest bidder
 		run_to_block::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
@@ -527,8 +484,104 @@ fn can_bid_english_auction() {
 
 		// Auction time is extended with 1 block when end time is less than 10 blocks away
 		assert_eq!(data.general_data.end, 22u64);
+	});
+}
 
-		// Error AuctionEndTimeReached
+/// Error AuctionNotStarted
+#[test]
+fn bid_english_auction_before_auction_start_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(10);
+
+		assert_noop!(
+			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
+			Error::<Test>::AuctionNotStarted,
+		);
+	});
+}
+
+/// Error CannotBidOnOwnAuction
+#[test]
+fn bid_english_auction_by_auction_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(11);
+
+		assert_noop!(
+			AuctionsModule::bid(Origin::signed(ALICE), 0, BalanceOf::<Test>::from(2_000_u32)),
+			Error::<Test>::CannotBidOnOwnAuction,
+		);
+	});
+}
+
+/// Error InvalidBidPrice when bid is zero
+#[test]
+fn bid_english_auction_with_bid_amount_zero_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(11);
+
+		assert_noop!(
+			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::zero()),
+			Error::<Test>::InvalidBidPrice,
+		);
+	});
+}
+
+/// Error InvalidBidPrice when second bid <= last_bid
+#[test]
+fn bid_english_auction_with_second_bid_below_first_bid_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(11);
+
+		// First bid
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		run_to_block::<Test>(12);
+
+		assert_noop!(
+			AuctionsModule::bid(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_099_u32)),
+			Error::<Test>::InvalidBidPrice,
+		);
+	});
+}
+
+/// Error AuctionEndTimeReached
+#[test]
+fn bid_english_auction_after_auction_end_time_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
 		run_to_block::<Test>(22);
 
 		assert_noop!(
