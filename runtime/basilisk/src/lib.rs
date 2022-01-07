@@ -722,13 +722,13 @@ impl orml_vesting::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumOfferAmount: Balance = 100 * UNITS;
+	pub const RedeemablesPalletId: PalletId = PalletId(*b"smartboy");
 }
 
 impl pallet_redeemables::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_redeemables::weights::BasiliskWeight<Runtime>;
-	type PalletId = TreasuryPalletId;
+	type PalletId = RedeemablesPalletId;
 }
 
 parameter_types! {

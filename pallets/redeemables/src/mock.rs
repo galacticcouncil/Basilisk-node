@@ -1,13 +1,13 @@
 use crate as pallet_redeemables;
 use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
+use primitives::nft::{ClassType, NftPermissions};
 use primitives::ReserveIdentifier;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, AccountIdConversion},
+	traits::{AccountIdConversion, BlakeTwo256, IdentityLookup},
 };
-use primitives::nft::{ClassType, NftPermissions};
 use system::EnsureRoot;
 
 mod marketplace {
@@ -142,8 +142,6 @@ pub const PALLET_ID: PalletId = PalletId(*b"smartboy");
 
 pub const BSX: Balance = 100_000_000_000;
 
-pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
-
 pub struct ExtBuilder;
 impl Default for ExtBuilder {
 	fn default() -> Self {
@@ -171,11 +169,4 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-pub fn last_event() -> Event {
-	frame_system::Pallet::<Test>::events()
-		.pop()
-		.expect("An event expected")
-		.event
 }

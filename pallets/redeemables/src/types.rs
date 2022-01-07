@@ -22,17 +22,17 @@ pub struct RedeemablesClassInfo {
 }
 
 impl RedeemablesClassInfo {
-    /// Price of previous token (sell to pool)
+	/// Price of previous token (sell to pool)
 	pub fn price(&self) -> Balance {
-        self.curve.slope / (self.max_supply - self.issued).pow(self.curve.exponent) as Balance
-    }
+		self.curve.slope / (self.max_supply - self.issued).pow(self.curve.exponent) as Balance
+	}
 }
 
 #[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct BondingCurve {
-    /// The exponent of the curve.
-    pub exponent: u32,
-    /// The slope of the curve.
-    pub slope: u128,
+	/// The exponent of the curve.
+	pub exponent: u32,
+	/// The slope of the curve.
+	pub slope: u128,
 }

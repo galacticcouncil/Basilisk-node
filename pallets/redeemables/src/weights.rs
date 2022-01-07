@@ -46,12 +46,8 @@ use frame_support::{
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_redeemables.
-pub trait WeightInfo {
-
-}
+pub trait WeightInfo {}
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
-
-}
+impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {}
