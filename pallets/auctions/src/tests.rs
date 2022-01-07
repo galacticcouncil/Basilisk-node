@@ -70,7 +70,7 @@ fn valid_english_specific_data() -> EnglishAuctionData {
 	EnglishAuctionData {}
 }
 
-/// fn create_auction_auction()
+/// Creating an English auction
 /// 
 /// Happy path
 #[test]
@@ -229,7 +229,7 @@ fn create_english_auction_with_frozen_token_should_not_work() {
 		// TODO test frozen NFT transfer
 }
 
-/// fn update_auction_auction()
+/// Updating an English auction
 /// 
 /// Happy path
 #[test]
@@ -352,7 +352,7 @@ fn update_english_auction_after_auction_start_should_not_work() {
 	});
 }
 
-/// fn destroy_auction_auction()
+/// Destroying an English auction
 /// 
 /// Happy path
 #[test]
@@ -436,7 +436,7 @@ fn destroy_english_auction_after_auction_started_should_not_work() {
 	});
 }
 
-/// fn bid_auction_auction()
+/// Bidding on an English auction
 /// 
 /// Happy path with 2 bidders
 #[test]
@@ -591,27 +591,15 @@ fn bid_english_auction_after_auction_end_time_should_not_work() {
 	});
 }
 
+/// Closing an English auction
+/// 
+/// Happy path
 #[test]
-fn can_close_english_auction() {
-	let general_auction_data = GeneralAuctionData {
-		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
-		last_bid: None,
-		start: 10u64,
-		end: 21u64,
-		closed: false,
-		owner: ALICE,
-		token: (NFT_CLASS_ID_1, 0u16.into()),
-		next_bid_min: 55,
-	};
-
-	let english_auction_data = EnglishAuctionData {};
-
+fn close_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data.clone(),
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -623,13 +611,6 @@ fn can_close_english_auction() {
 		let alice_balance_before = Balances::free_balance(&ALICE);
 		let bob_balance_before = Balances::free_balance(&BOB);
 
-		// Error AuctionEndTimeNotReached
-		assert_noop!(
-			AuctionsModule::close(Origin::signed(ALICE), 0),
-			Error::<Test>::AuctionEndTimeNotReached,
-		);
-
-		// Happy path
 		run_to_block::<Test>(21);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
@@ -648,8 +629,44 @@ fn can_close_english_auction() {
 
 		// Attributed closed is updated
 		assert!(data.general_data.closed);
+	});
+}
 
-		// Error AuctionClosed
+/// Error AuctionEndTimeNotReached
+#[test]
+fn close_english_auction_before_auction_end_time_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(11);
+
+		assert_noop!(
+			AuctionsModule::close(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionEndTimeNotReached,
+		);
+	});
+}
+
+/// Error AuctionClosed
+#[test]
+fn close_english_auction_which_is_already_closed_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(21);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		run_to_block::<Test>(23);
+
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionClosed,
