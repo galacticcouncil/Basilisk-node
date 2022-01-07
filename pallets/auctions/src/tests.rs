@@ -44,14 +44,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-/// English auction tests
-///
-/// fn create_auction_auction()
-#[test]
-fn can_create_english_auction() {
-	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
-
-	let valid_general_auction_data = GeneralAuctionData {
+fn valid_general_auction_data() -> GeneralAuctionData<Test> {
+	GeneralAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		last_bid: None,
 		start: 10u64,
@@ -60,107 +54,33 @@ fn can_create_english_auction() {
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
 		next_bid_min: 55,
+	}
+}
+
+/// English auction tests
+fn english_auction_object(general_data: GeneralAuctionData<Test>, specific_data: EnglishAuctionData) -> Auction<Test> {
+	let auction_data = EnglishAuction {
+		general_data: general_data, specific_data: specific_data
 	};
 
+	Auction::English(auction_data)
+}
+
+fn valid_english_specific_data() -> EnglishAuctionData {
+	EnglishAuctionData {}
+}
+
+/// fn create_auction_auction()
+/// 
+/// Happy path
+#[test]
+fn create_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		// Error AuctionStartTimeAlreadyPassed
-		let mut general_auction_data = valid_general_auction_data.clone();
-		general_auction_data.start = 0u64;
-
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data,
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction),
-			Error::<Test>::AuctionStartTimeAlreadyPassed
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
 		);
 
-		// Error InvalidTimeConfiguration (end is zero)
-		let mut general_auction_data = valid_general_auction_data.clone();
-		general_auction_data.end = 0u64;
-
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data,
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction),
-			Error::<Test>::InvalidTimeConfiguration
-		);
-
-		// // Error InvalidTimeConfiguration (duration too short)
-		let mut general_auction_data = valid_general_auction_data.clone();
-		general_auction_data.end = 20u64;
-
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data,
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction),
-			Error::<Test>::InvalidTimeConfiguration
-		);
-
-		// Error EmptyAuctionName
-		let mut general_auction_data = valid_general_auction_data.clone();
-		general_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
-
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data,
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction),
-			Error::<Test>::EmptyAuctionName
-		);
-
-		// Error NotATokenOwner
-		let mut general_auction_data = valid_general_auction_data.clone();
-		general_auction_data.owner = BOB;
-
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data,
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction),
-			Error::<Test>::NotATokenOwner
-		);
-
-		// Error CannotSetAuctionClosed
-		let mut general_auction_data = valid_general_auction_data.clone();
-		general_auction_data.closed = true;
-
-		let auction_data = EnglishAuction {
-			general_data: general_auction_data,
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction),
-			Error::<Test>::CannotSetAuctionClosed
-		);
-
-		// happy path
-		let auction_data = EnglishAuction {
-			general_data: valid_general_auction_data.clone(),
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
-
-		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction,));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
 
@@ -176,21 +96,137 @@ fn can_create_english_auction() {
 		assert_eq!(data.general_data.next_bid_min, 55);
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
+	});
+}
 
-		// Error TokenFrozen
-		let auction_data = EnglishAuction {
-			general_data: valid_general_auction_data.clone(),
-			specific_data: english_auction_data.clone(),
-		};
-		let auction = Auction::English(auction_data);
+/// Error AuctionStartTimeAlreadyPassed
+#[test]
+fn create_english_auction_starting_in_the_past_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.start = 0u64;
 
-		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction,),
-			Error::<Test>::TokenFrozen
+		let auction = english_auction_object(
+			general_auction_data, valid_english_specific_data()
 		);
 
-		// TODO test frozen NFT transfer
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::AuctionStartTimeAlreadyPassed
+		);
 	});
+}
+
+/// Error InvalidTimeConfiguration
+#[test]
+fn create_english_auction_without_end_time_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.end = 0u64;
+
+		let auction = english_auction_object(
+			general_auction_data, valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidTimeConfiguration
+		);
+	});
+}
+
+/// Error InvalidTimeConfiguration (duration too short)
+#[test]
+fn create_english_auction_with_duration_shorter_than_minimum_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.end = 20u64;
+
+		let auction = english_auction_object(
+			general_auction_data, valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidTimeConfiguration
+		);
+	});
+}
+
+/// Error EmptyAuctionName
+#[test]
+fn create_english_auction_with_empty_name_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
+
+		let auction = english_auction_object(
+			general_auction_data, valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::EmptyAuctionName
+		);
+	});
+}
+
+/// Error NotATokenOwner
+#[test]
+fn create_english_auction_when_not_token_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.owner = BOB;
+
+		let auction = english_auction_object(
+			general_auction_data, valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::NotATokenOwner
+		);
+	});
+}
+
+/// Error CannotSetAuctionClosed
+#[test]
+fn create_english_auction_with_closed_true_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.closed = true;
+
+		let auction = english_auction_object(
+			general_auction_data, valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::CannotSetAuctionClosed
+		);
+	});
+}
+
+/// Error TokenFrozen
+#[test]
+fn create_english_auction_with_frozen_token_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let auction = english_auction_object(
+			valid_general_auction_data(), valid_english_specific_data()
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::TokenFrozen
+		);
+	});
+		// TODO test frozen NFT transfer
 }
 
 #[test]
@@ -206,7 +242,7 @@ fn can_update_english_auction() {
 		next_bid_min: 55,
 	};
 
-	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
+	let english_auction_data = EnglishAuctionData {};
 
 	predefined_test_ext().execute_with(|| {
 		let auction_data = EnglishAuction {
@@ -287,7 +323,7 @@ fn can_destroy_english_auction() {
 		next_bid_min: 55,
 	};
 
-	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
+	let english_auction_data = EnglishAuctionData {};
 
 	predefined_test_ext().execute_with(|| {
 		let auction_data = EnglishAuction {
@@ -358,7 +394,7 @@ fn can_bid_english_auction() {
 		next_bid_min: 55,
 	};
 
-	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
+	let english_auction_data = EnglishAuctionData {};
 
 	predefined_test_ext().execute_with(|| {
 		let auction_data = EnglishAuction {
@@ -460,7 +496,7 @@ fn can_close_english_auction() {
 		next_bid_min: 55,
 	};
 
-	let english_auction_data = EnglishAuctionData { reserve_price: 0 };
+	let english_auction_data = EnglishAuctionData {};
 
 	predefined_test_ext().execute_with(|| {
 		let auction_data = EnglishAuction {
