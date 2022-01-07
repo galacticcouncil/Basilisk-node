@@ -22,7 +22,7 @@ pub struct RedeemablesClassInfo {
 }
 
 impl RedeemablesClassInfo {
-	/// Price of previous token (sell to pool)
+	/// Calculate price of current buy/sell
 	pub fn price(&self) -> Balance {
 		self.curve.slope / (self.max_supply - self.issued).pow(self.curve.exponent) as Balance
 	}
