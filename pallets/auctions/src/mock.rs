@@ -178,3 +178,7 @@ fn last_event() -> Event {
 pub fn expect_event<E: Into<TestEvent>>(e: E) {
 	assert_eq!(last_event(), e.into());
 }
+
+pub fn run_to_block<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
+	frame_system::Pallet::<T>::set_block_number(n);
+}

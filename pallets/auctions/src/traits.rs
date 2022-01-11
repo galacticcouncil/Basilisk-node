@@ -17,13 +17,11 @@ pub enum Auction<T: Config> {
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct EnglishAuction<T: Config> {
 	pub general_data: GeneralAuctionData<T>,
-	pub specific_data: EnglishAuctionData<T>,
+	pub specific_data: EnglishAuctionData,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct EnglishAuctionData<T: Config> {
-	pub reserve_price: BalanceOf<T>,
-}
+pub struct EnglishAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct GeneralAuctionData<T: Config> {
