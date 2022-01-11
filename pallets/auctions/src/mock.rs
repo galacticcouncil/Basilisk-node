@@ -40,6 +40,8 @@ pub type Balance = u128;
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
+pub const DAVE: AccountId = AccountId::new([4u8; 32]);
+pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 pub const NFT_CLASS_ID_1: u32 = 123;
 
@@ -157,7 +159,7 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 40_000 * BSX), (BOB, 2_000 * BSX), (CHARLIE, 4_000 * BSX)],
+			balances: vec![(ALICE, 40_000 * BSX), (BOB, 2_000 * BSX), (CHARLIE, 4_000 * BSX), (DAVE, 4_000 * BSX), (EVE, 4_000 * BSX)],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

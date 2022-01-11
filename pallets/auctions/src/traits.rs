@@ -12,6 +12,7 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub enum Auction<T: Config> {
 	English(EnglishAuction<T>),
+	TopUp(TopUpAuction<T>),
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -21,7 +22,25 @@ pub struct EnglishAuction<T: Config> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct TopUpAuction<T: Config> {
+	pub general_data: GeneralAuctionData<T>,
+	pub specific_data: TopUpAuctionData<T>,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct Bid<AccountId, BlockNumber, Balance> {
+	pub who: AccountId,
+	pub when: BlockNumber,
+	pub amount: Balance,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct EnglishAuctionData {}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct TopUpAuctionData<T: Config> {
+	pub bids: Vec<Bid<T::AccountId, T::BlockNumber, BalanceOf<T>>>,
+}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct GeneralAuctionData<T: Config> {
@@ -30,7 +49,7 @@ pub struct GeneralAuctionData<T: Config> {
 	pub next_bid_min: BalanceOf<T>,
 	pub start: <T as frame_system::Config>::BlockNumber,
 	pub end: <T as frame_system::Config>::BlockNumber,
-  	pub closed: bool,
+	pub closed: bool,
 	pub owner: <T as frame_system::Config>::AccountId,
 	pub token: (
 		<T as pallet_uniques::Config>::ClassId,
