@@ -258,38 +258,34 @@ pub fn k8s_testnet_parachain_config() -> Result<ChainSpec, String> {
 			testnet_parachain_genesis(
 				wasm_binary,
 				// Sudo account
-				hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+				hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
 				//initial authorities & invulnerables
 				vec![
 					(
-						hex!["fa290a1ba515ab3a5ef68a5f233689e3928efb92e6c370157a6383ea29b60c5c"].into(),
-						hex!["fa290a1ba515ab3a5ef68a5f233689e3928efb92e6c370157a6383ea29b60c5c"].unchecked_into(),
+						hex!["54d469d6141e56c0aa802b00732c38477e72d1ad9d8030f45f76b61aaebc1251"].into(),
+						hex!["54d469d6141e56c0aa802b00732c38477e72d1ad9d8030f45f76b61aaebc1251"].unchecked_into(),
 					),
 					(
-						hex!["6e22616dfeb5bde39a7fb9ebd13498f34f76aeb6177cfc211afffc1a88bfd260"].into(),
-						hex!["6e22616dfeb5bde39a7fb9ebd13498f34f76aeb6177cfc211afffc1a88bfd260"].unchecked_into(),
-					),
-					(
-						hex!["5a734f6ec201351570c1bea987959f3ee88dc29358f5c401eb6284b0406e7078"].into(),
-						hex!["5a734f6ec201351570c1bea987959f3ee88dc29358f5c401eb6284b0406e7078"].unchecked_into(),
+						hex!["f4969ff6c9b4b1219a1d329d7bdeff9857dd5fc33085fd98182856f7f781b043"].into(),
+						hex!["f4969ff6c9b4b1219a1d329d7bdeff9857dd5fc33085fd98182856f7f781b043"].unchecked_into(),
 					),
 				],
 				// Pre-funded accounts
 				vec![
-					hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+					hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
 					hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into(), //acc from ../res/basilisk-vesting-lbp-test.json
 					hex!["8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"].into(), //acc from ../res/basilisk-vesting-lbp-test.json
 				],
 				true,
 				PARA_ID.into(),
 				//technical committee
-				vec![hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into()], // TREASURY - Fallback for multi tx payment
+				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()], // TREASURY - Fallback for multi tx payment
 				vec![],
-				hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+				hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
-				vec![hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into()],
+				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()],
 			)
 		},
 		// Bootnodes
