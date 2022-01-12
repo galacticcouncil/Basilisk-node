@@ -200,8 +200,6 @@ jobs:
       - name: Configure AWS CLI
         run: |
           sudo apt-get -y install awscli
-          echo ${{ env.AWS_ACCESS_KEY_ID }}
-          echo ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region eu-west-1   
