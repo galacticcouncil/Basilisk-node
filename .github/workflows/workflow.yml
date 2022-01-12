@@ -109,7 +109,7 @@ jobs:
         continue-on-error: false
   
   build-and-publish-docker-image:
-    needs: [pop-runner-instance, build]
+    needs: pop-runner-instance
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
