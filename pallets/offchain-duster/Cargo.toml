@@ -1,6 +1,6 @@
 [package]
 name = "pallet-offchain-duster"
-version = "2.0.0"
+version = "2.0.1"
 description = "Account duster offchain worker"
 authors = ["GalacticCouncil"]
 edition = "2018"

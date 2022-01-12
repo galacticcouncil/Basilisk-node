@@ -1,6 +1,6 @@
 [package]
 name = "basilisk"
-version = "4.1.0"
+version = "5.1.0"
 description = "Basilisk node"
 authors = ["GalacticCouncil"]
 edition = "2018"

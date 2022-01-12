@@ -433,7 +433,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "4.1.0"
+version = "5.1.0"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
@@ -512,7 +512,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "28.0.0"
+version = "29.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1290,7 +1290,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.2.1"
+version = "1.3.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5193,7 +5193,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.1.3"
+version = "1.1.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5497,7 +5497,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "2.2.0"
+version = "2.2.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5563,7 +5563,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.2"
+version = "5.2.3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5587,7 +5587,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.3"
+version = "3.3.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5720,7 +5720,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.1.1"
+version = "4.1.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5744,7 +5744,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp-rpc"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -5885,7 +5885,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6179,7 +6179,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "6.3.1"
+version = "6.3.2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6335,7 +6335,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.3.1"
+version = "3.3.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6362,7 +6362,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-rpc"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -7876,7 +7876,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.1"
+version = "6.1.2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8493,7 +8493,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -10967,7 +10967,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "28.0.0"
+version = "29.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
