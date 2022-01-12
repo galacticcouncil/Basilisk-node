@@ -5761,7 +5761,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp-rpc-runtime-api"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -5841,7 +5841,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-multi-payment-benchmarking"
-version = "5.3.2"
+version = "5.3.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6380,7 +6380,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-rpc-runtime-api"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
