@@ -66,10 +66,84 @@ jobs:
         with:
           time: '20s'
 
+  build:
+    needs: pop-runner-instance
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: git describe --tags --abbrev=0 --always
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
+      - name: Install clippy
+        run: rustup component add clippy
+      - name: Run clippy
+        run: make clippy
+        continue-on-error: false
+      - name: Install tarpaulin
+        run: cargo install cargo-tarpaulin
+      - name: Test && Generate code coverage
+        run: make coverage
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+      - name: Build runtime
+        run: cargo build --release --locked
+        working-directory: runtime
+      - name: Build node
+        run: cargo build --release --locked
+      - name: Version info
+        run: ./target/release/basilisk --version
+      - name: Get basilisk-raw json
+        run: |
+          cp target/release/basilisk target/release/testing-basilisk
+          chmod +x ./target/release/testing-basilisk
+          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-raw.json
+      - name: Upload config file
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk-raw
+          path: basilisk-raw.json
+      - name: Upload release binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk
+          path: target/release/basilisk
+      - name: Upload release wasm
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk_runtime.compact.compressed.wasm
+          path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
+  
+
+  upload-config-to-s3:
+    name: upload configuration to S3
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_CONFIG_BUCKET }}/testnet/
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: 'eu-west-1'
+      FILE: './basilisk-raw.json'
+    steps:
+      - uses: actions/download-artifact@v2
+        name: Download config file
+        with:
+          name: basilisk-raw
+          path: .
+      - name: S3 Upload basilisk-raw.json
+        uses: tpaschalis/s3-sync-action@master
+
   destroy-runner-instance:
     name: destroy runner
     runs-on: ubuntu-latest
-    needs: build-and-publish-docker-image
+    needs: [build, upload-config-to-s3, build-and-publish-docker-image]
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -114,6 +188,8 @@ jobs:
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       ECR_URL: 601305236792.dkr.ecr.eu-west-1.amazonaws.com
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -128,7 +204,7 @@ jobs:
           echo ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws configure set default.region eu-west-1    
+          aws configure set default.region eu-west-1   
       - uses: actions/download-artifact@v2
         name: Download basilisk binary
         with:
@@ -150,4 +226,15 @@ jobs:
         run: sudo docker tag basilisk:latest ${{ env.ECR_URL }}/basilisk
       - run: sudo docker push ${{ env.ECR_URL }}/basilisk:latest
   
-
+  run-external-deployment:
+    needs: build-and-publish-docker-image
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.DISPATCH_DEPLOYMENT_TOKEN }}
+          repository: galacticcouncil/testnet-deployment
+          event-type: run-k8s-deployment
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'        
