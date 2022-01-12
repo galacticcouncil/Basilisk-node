@@ -23,7 +23,7 @@ pub mod locked_balance;
 use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId};
 pub use pallet_transaction_payment::Multiplier;
 pub use primitives::constants::{chain::*, currency::*, time::*};
-pub use primitives::{fee, Amount, AssetId, Balance};
+pub use primitives::{Amount, AssetId, Balance};
 use sp_runtime::{
 	generic,
 	traits::{BlakeTwo256, IdentifyAccount, Verify},
@@ -113,7 +113,7 @@ parameter_types! {
 
 // pallet xyk
 parameter_types! {
-	pub ExchangeFee: fee::Fee = fee::Fee::default();
+	pub ExchangeFee: (u32, u32) = (2, 1_000);
 	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
@@ -128,7 +128,7 @@ parameter_types! {
 
 // pallet lbp
 parameter_types! {
-	pub LBPExchangeFee: fee::Fee = fee::Fee::default();
+	pub LBPExchangeFee: (u32, u32) = (2, 1_000);
 }
 
 // pallet nft
