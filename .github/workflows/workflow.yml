@@ -181,47 +181,6 @@ jobs:
         working-directory: ./infrastructure
         run: terraform destroy -var="ec2_pwd=$EC2_SECRET" -var="branch_name=${{ needs.pop-runner-instance.outputs.runner }}" -auto-approve
         continue-on-error: false
-
-  test-inclusion:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/download-artifact@v2
-        name: Download basilisk binary
-        with:
-          name: basilisk
-          path: target/release
-      - uses: robinraju/release-downloader@v1
-        name: Download relay chain binary
-        with:
-          repository: paritytech/polkadot
-          tag: v0.9.12
-          fileName: polkadot
-          out-file-path: ../polkadot/target/release
-      - run: chmod +x ./basilisk && ./basilisk --version
-        name: Basilisk version
-        working-directory: target/release
-      - run: chmod +x ./polkadot && ./polkadot --version
-        name: Polkadot version
-        working-directory: ../polkadot/target/release
-      - uses: actions/setup-node@v2
-        name: Setup node.js
-        with:
-          node-version: '14'
-          check-latest: true
-      - run: ./install_polkadot_launch.sh
-        name: Setup polkadot launch
-        working-directory: scripts
-      - run: npm install
-        name: Setup wait script
-        working-directory: scripts/wait-for-inclusion
-      - run: yarn start ../../rococo-local/config.json & cd ../wait-for-inclusion && npm start 200
-        name: Launch rococo local & wait for inclusion
-        working-directory: scripts/polkadot-launch
   
   build-and-publish-docker-image:
     needs: [pop-runner-instance, build]
@@ -255,22 +214,6 @@ jobs:
         run: sudo docker tag basilisk:latest ${{ env.ECR_URL }}/basilisk
       - run: sudo docker push ${{ env.ECR_URL }}/basilisk:latest
   
-  inform-build-success:
-    needs: test-inclusion
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-ruby@v1
-      - name: Send Webhook Notification
-        if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          HOOK_OS_NAME: ${{ runner.os }}
-          WORKFLOW_NAME: ${{ github.workflow }}
-        run: |
-          git clone https://github.com/DiscordHooks/github-actions-discord-webhook.git webhook
-          bash webhook/send.sh $JOB_STATUS $WEBHOOK_URL
-        shell: bash
   run-external-deployment:
     needs: build-and-publish-docker-image
     runs-on: ubuntu-latest
