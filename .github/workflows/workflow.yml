@@ -271,7 +271,6 @@ jobs:
           git clone https://github.com/DiscordHooks/github-actions-discord-webhook.git webhook
           bash webhook/send.sh $JOB_STATUS $WEBHOOK_URL
         shell: bash
-
   run-external-deployment:
     needs: build-and-publish-docker-image
     runs-on: ubuntu-latest
