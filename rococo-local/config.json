@@ -1,6 +1,6 @@
 {
   "relaychain": {
-    "bin": "../../../polkadot/target/release/polkadot",
+    "bin": "../../polkadot/target/release/polkadot",
     "chain": "rococo-local",
     "nodes": [
       {
@@ -40,7 +40,7 @@
   "simpleParachains": [],
   "parachains": [
     {
-      "bin": "../../target/release/basilisk",
+      "bin": "../target/release/basilisk",
       "chain":"local",
       "balance": "1000000000000000000000",
       "nodes": [
