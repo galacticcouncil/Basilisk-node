@@ -124,7 +124,11 @@ jobs:
       - name: Configure AWS CLI
         run: |
           sudo apt-get -y install awscli
-          aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}; aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}; aws configure set default.region eu-west-1    
+          echo ${{ env.AWS_ACCESS_KEY_ID }}
+          echo ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region eu-west-1    
       - uses: actions/download-artifact@v2
         name: Download basilisk binary
         with:
@@ -146,3 +150,4 @@ jobs:
         run: sudo docker tag basilisk:latest ${{ env.ECR_URL }}/basilisk
       - run: sudo docker push ${{ env.ECR_URL }}/basilisk:latest
   
+
