@@ -59,7 +59,7 @@ pub struct Extensions {
 impl Extensions {
 	/// Try to get the extension from the given `ChainSpec`.
 	#[allow(clippy::borrowed_box)]
-	pub fn try_get(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Option<&Self> {
+	pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
 		sc_chain_spec::get_extension(chain_spec.extensions())
 	}
 }
@@ -186,7 +186,7 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 	))
 }
 
-pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -221,7 +221,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				//technical committee
@@ -259,12 +259,12 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "westend".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
-pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn parachain_development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -301,7 +301,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -327,14 +327,14 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-dev".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
 // This is used when benchmarking pallets
 // Originally dev config was used - but benchmarking needs empty asset registry
-pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -371,7 +371,7 @@ pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, Strin
 					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -397,12 +397,12 @@ pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, Strin
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-dev".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
-pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn local_parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
 	let mut properties = Map::new();
@@ -447,7 +447,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -473,7 +473,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
@@ -492,7 +492,6 @@ fn parachain_genesis(
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.
@@ -601,7 +600,6 @@ fn testnet_parachain_genesis(
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.

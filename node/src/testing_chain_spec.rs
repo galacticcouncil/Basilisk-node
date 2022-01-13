@@ -37,6 +37,8 @@ use testing_basilisk_runtime::{
 const TOKEN_DECIMALS: u8 = 12;
 const TOKEN_SYMBOL: &str = "BSX";
 const PROTOCOL_ID: &str = "bsx";
+//Kusama parachain id
+const PARA_ID: u32 = 2090;
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -95,7 +97,7 @@ pub fn get_vesting_config_for_test() -> Vec<(AccountId, BlockNumber, BlockNumber
 	vesting_list
 }
 
-pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn parachain_development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -132,7 +134,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -159,12 +161,12 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-dev".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
-pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn local_parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
 	let mut properties = Map::new();
@@ -209,7 +211,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -236,13 +238,12 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
 pub fn k8s_testnet_parachain_config() -> Result<ChainSpec, String> {
-	const PARA_ID: u32 = 2090;
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -323,7 +324,6 @@ fn testnet_parachain_genesis(
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.

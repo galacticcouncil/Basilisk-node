@@ -296,7 +296,7 @@ pub mod pallet {
 		InsufficientTradingAmount,
 
 		/// Not more than one fee collector per asset id
-		FeeCollectorWithAssetAlreadyUsed
+		FeeCollectorWithAssetAlreadyUsed,
 	}
 
 	#[pallet::event]
@@ -347,11 +347,7 @@ pub mod pallet {
 	/// Not more than one fee collector per asset possible
 	#[pallet::storage]
 	pub type FeeCollectorWithAsset<T: Config> =
-		StorageDoubleMap<_,
-			Blake2_128Concat,
-			T::AccountId,
-			Blake2_128Concat,
-			AssetId, bool, ValueQuery>;
+		StorageDoubleMap<_, Blake2_128Concat, T::AccountId, Blake2_128Concat, AssetId, bool, ValueQuery>;
 
 	#[pallet::extra_constants]
 	impl<T: Config> Pallet<T> {
@@ -774,8 +770,8 @@ impl<T: Config> Pallet<T> {
 				&& pool_data.initial_weight < MAX_WEIGHT
 				&& !pool_data.final_weight.is_zero()
 				&& pool_data.final_weight < MAX_WEIGHT,
-				// TODO people could leak value out the pool if initial weight is < final weight due to fee structure
-				// && pool_data.initial_weight > pool_data.final_weight,
+			// TODO people could leak value out the pool if initial weight is < final weight due to fee structure
+			// && pool_data.initial_weight > pool_data.final_weight,
 			Error::<T>::InvalidWeight
 		);
 
@@ -948,7 +944,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		min_bought: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_in, who) >= amount,
@@ -991,7 +986,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			.map_err(|_| Error::<T>::Overflow)?;
 
 			ensure!(
-				amount_out <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+				amount_out
+					<= asset_out_reserve
+						.checked_div(MAX_OUT_RATIO)
+						.ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxOutRatioExceeded
 			);
 
@@ -1028,7 +1026,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			let amount_out_without_fee = calculated_out.checked_sub(fee).ok_or(Error::<T>::Overflow)?;
 
 			ensure!(
-				calculated_out <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+				calculated_out
+					<= asset_out_reserve
+						.checked_div(MAX_OUT_RATIO)
+						.ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxOutRatioExceeded
 			);
 
@@ -1069,7 +1070,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		max_sold: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_in, who) >= max_sold,
@@ -1087,7 +1087,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
 
 		ensure!(
-			amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+			amount
+				<= asset_out_reserve
+					.checked_div(MAX_OUT_RATIO)
+					.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxOutRatioExceeded
 		);
 
