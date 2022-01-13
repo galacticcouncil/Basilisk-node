@@ -31,11 +31,11 @@ use pallet_xyk as xyk;
 
 use frame_support::traits::{Everything, GenesisBuild, Get};
 use frame_system::EnsureSigned;
+use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	AssetId, Balance,
+	 AssetId, Balance,
 };
-use hydradx_traits::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 pub type Amount = i128;
