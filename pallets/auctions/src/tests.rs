@@ -60,7 +60,8 @@ fn valid_general_auction_data() -> GeneralAuctionData<Test> {
 /// English auction tests
 fn english_auction_object(general_data: GeneralAuctionData<Test>, specific_data: EnglishAuctionData) -> Auction<Test> {
 	let auction_data = EnglishAuction {
-		general_data: general_data, specific_data: specific_data
+		general_data,
+		specific_data,
 	};
 
 	Auction::English(auction_data)
@@ -70,15 +71,30 @@ fn valid_english_specific_data() -> EnglishAuctionData {
 	EnglishAuctionData {}
 }
 
+/// TopUp auction tests
+fn topup_auction_object(
+	general_data: GeneralAuctionData<Test>,
+	specific_data: TopUpAuctionData<Test>,
+) -> Auction<Test> {
+	let auction_data = TopUpAuction {
+		general_data,
+		specific_data,
+	};
+
+	Auction::TopUp(auction_data)
+}
+
+fn valid_topup_specific_data() -> TopUpAuctionData<Test> {
+	TopUpAuctionData { bids: vec![] }
+}
+
 /// Creating an English auction
-/// 
+///
 /// Happy path
 #[test]
 fn create_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -86,14 +102,15 @@ fn create_english_auction_should_work() {
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 
-		let Auction::English(data) = auction;
-		assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
-		assert_eq!(data.general_data.last_bid, None);
-		assert_eq!(data.general_data.start, 10u64);
-		assert_eq!(data.general_data.end, 21u64);
-		assert_eq!(data.general_data.owner, ALICE);
-		assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-		assert_eq!(data.general_data.next_bid_min, 55);
+		if let Auction::English(data) = auction {
+			assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+			assert_eq!(data.general_data.last_bid, None);
+			assert_eq!(data.general_data.start, 10u64);
+			assert_eq!(data.general_data.end, 21u64);
+			assert_eq!(data.general_data.owner, ALICE);
+			assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+			assert_eq!(data.general_data.next_bid_min, 55)
+		}
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
 	});
@@ -106,9 +123,7 @@ fn create_english_auction_starting_in_the_past_should_not_work() {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.start = 0u64;
 
-		let auction = english_auction_object(
-			general_auction_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(general_auction_data, valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -124,9 +139,7 @@ fn create_english_auction_without_end_time_should_not_work() {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.end = 0u64;
 
-		let auction = english_auction_object(
-			general_auction_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(general_auction_data, valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -142,9 +155,7 @@ fn create_english_auction_with_duration_shorter_than_minimum_should_not_work() {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.end = 20u64;
 
-		let auction = english_auction_object(
-			general_auction_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(general_auction_data, valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -160,9 +171,7 @@ fn create_english_auction_with_empty_name_should_not_work() {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
 
-		let auction = english_auction_object(
-			general_auction_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(general_auction_data, valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -178,9 +187,7 @@ fn create_english_auction_when_not_token_owner_should_not_work() {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.owner = BOB;
 
-		let auction = english_auction_object(
-			general_auction_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(general_auction_data, valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -196,9 +203,7 @@ fn create_english_auction_with_closed_true_should_not_work() {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.closed = true;
 
-		let auction = english_auction_object(
-			general_auction_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(general_auction_data, valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -211,33 +216,27 @@ fn create_english_auction_with_closed_true_should_not_work() {
 #[test]
 fn create_english_auction_with_frozen_token_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::TokenFrozen
 		);
 	});
-		// TODO test frozen NFT transfer
+	// TODO test frozen NFT transfer
 }
 
 /// Updating an English auction
-/// 
+///
 /// Happy path
 #[test]
 fn update_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -252,14 +251,15 @@ fn update_english_auction_should_work() {
 		};
 		let auction = Auction::English(auction_data);
 
-		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()));
+		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction));
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
-		let Auction::English(data) = auction_result;
-		assert_eq!(
-			String::from_utf8(data.general_data.name.to_vec()).unwrap(),
-			"Auction renamed"
-		);
+		if let Auction::English(data) = auction_result {
+			assert_eq!(
+				String::from_utf8(data.general_data.name.to_vec()).unwrap(),
+				"Auction renamed"
+			);
+		}
 	});
 }
 
@@ -267,9 +267,7 @@ fn update_english_auction_should_work() {
 #[test]
 fn update_english_auction_with_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -282,18 +280,14 @@ fn update_english_auction_with_nonexisting_auction_should_not_work() {
 #[test]
 fn update_english_auction_with_closed_true_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		let mut updated_general_data = valid_general_auction_data();
 		updated_general_data.closed = true;
 
-		let auction = english_auction_object(
-			updated_general_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -306,18 +300,14 @@ fn update_english_auction_with_closed_true_should_not_work() {
 #[test]
 fn update_english_auction_by_non_auction_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		let mut updated_general_data = valid_general_auction_data();
 		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
 
-		let auction = english_auction_object(
-			updated_general_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(BOB), 0, auction),
@@ -330,18 +320,14 @@ fn update_english_auction_by_non_auction_owner_should_not_work() {
 #[test]
 fn update_english_auction_after_auction_start_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		let mut updated_general_data = valid_general_auction_data();
 		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
 
-		let auction = english_auction_object(
-			updated_general_data, valid_english_specific_data()
-		);
+		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
 
 		run_to_block::<Test>(10);
 
@@ -353,14 +339,12 @@ fn update_english_auction_after_auction_start_should_not_work() {
 }
 
 /// Destroying an English auction
-/// 
+///
 /// Happy path
 #[test]
 fn destroy_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -404,9 +388,7 @@ fn destroy_english_auction_with_nonexisting_auction_should_not_work() {
 #[test]
 fn destroy_english_auction_by_non_auction_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -421,9 +403,7 @@ fn destroy_english_auction_by_non_auction_owner_should_not_work() {
 #[test]
 fn destroy_english_auction_after_auction_started_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -437,14 +417,12 @@ fn destroy_english_auction_after_auction_started_should_not_work() {
 }
 
 /// Bidding on an English auction
-/// 
+///
 /// Happy path with 2 bidders
 #[test]
 fn bid_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -477,13 +455,13 @@ fn bid_english_auction_should_work() {
 		assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		let Auction::English(data) = auction;
+		if let Auction::English(data) = auction {
+			// Next bid step is updated
+			assert_eq!(data.general_data.next_bid_min, 1210);
 
-		// Next bid step is updated
-		assert_eq!(data.general_data.next_bid_min, 1210);
-
-		// Auction time is extended with 1 block when end time is less than 10 blocks away
-		assert_eq!(data.general_data.end, 22u64);
+			// Auction time is extended with 1 block when end time is less than 10 blocks away
+			assert_eq!(data.general_data.end, 22u64);
+		}
 	});
 }
 
@@ -491,9 +469,7 @@ fn bid_english_auction_should_work() {
 #[test]
 fn bid_english_auction_before_auction_start_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -510,9 +486,7 @@ fn bid_english_auction_before_auction_start_should_not_work() {
 #[test]
 fn bid_english_auction_by_auction_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -529,9 +503,7 @@ fn bid_english_auction_by_auction_owner_should_not_work() {
 #[test]
 fn bid_english_auction_with_bid_amount_zero_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -548,9 +520,7 @@ fn bid_english_auction_with_bid_amount_zero_should_not_work() {
 #[test]
 fn bid_english_auction_with_second_bid_below_first_bid_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -576,9 +546,7 @@ fn bid_english_auction_with_second_bid_below_first_bid_should_not_work() {
 #[test]
 fn bid_english_auction_after_auction_end_time_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -592,14 +560,12 @@ fn bid_english_auction_after_auction_end_time_should_not_work() {
 }
 
 /// Closing an English auction
-/// 
+///
 /// Happy path
 #[test]
 fn close_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -625,10 +591,10 @@ fn close_english_auction_should_work() {
 		assert_eq!(bob_balance_before.saturating_sub(bid), bob_balance_after);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		let Auction::English(data) = auction;
-
-		// Attributed closed is updated
-		assert!(data.general_data.closed);
+		if let Auction::English(data) = auction {
+			// Attributed closed is updated
+			assert!(data.general_data.closed);
+		}
 	});
 }
 
@@ -636,9 +602,7 @@ fn close_english_auction_should_work() {
 #[test]
 fn close_english_auction_before_auction_end_time_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -655,9 +619,7 @@ fn close_english_auction_before_auction_end_time_should_not_work() {
 #[test]
 fn close_english_auction_which_is_already_closed_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(
-			valid_general_auction_data(), valid_english_specific_data()
-		);
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -671,5 +633,143 @@ fn close_english_auction_which_is_already_closed_should_not_work() {
 			AuctionsModule::close(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionClosed,
 		);
+	});
+}
+
+// -------------- TopUp auction tests -------------- //
+// functionality is the same as the English auctions //
+// so handlers and helpers are exempt from testing   //
+
+// no bids -> balance and owner don't change
+#[test]
+fn no_bid_topup_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		System::set_block_number(21);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.start = 30u64;
+		updated_general_data.end = 50u64;
+
+		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+	});
+}
+
+// one bid -> only transfer winning bid to owner
+#[test]
+fn one_bid_topup_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		System::set_block_number(11);
+
+		// First and highest bidder
+		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 1000));
+
+		let alice_balance_before = Balances::free_balance(&ALICE);
+		let bob_balance_before = Balances::free_balance(&BOB);
+
+		System::set_block_number(21);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		let alice_balance_after = Balances::free_balance(&ALICE);
+		let bob_balance_after = Balances::free_balance(&BOB);
+
+		assert_eq!(alice_balance_before.saturating_add(1000), alice_balance_after);
+		assert_eq!(bob_balance_before.saturating_sub(1000), bob_balance_after);
+	});
+}
+
+// one bidder multiple bids
+// -> should also account for intermediary bids to prevent spam or manipulation
+#[test]
+fn obmb_bid_topup_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		System::set_block_number(11);
+
+		// First bid
+		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 1000));
+
+		System::set_block_number(12);
+
+		// Second bid
+		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 1300));
+
+		System::set_block_number(13);
+
+		// Third bid
+		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 1700));
+
+		let alice_balance_before = Balances::free_balance(&ALICE);
+		let bob_balance_before = Balances::free_balance(&BOB);
+
+		System::set_block_number(23);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		let alice_balance_after = Balances::free_balance(&ALICE);
+		let bob_balance_after = Balances::free_balance(&BOB);
+
+		assert_eq!(alice_balance_before.saturating_add(2000), alice_balance_after);
+		assert_eq!(bob_balance_before.saturating_sub(2000), bob_balance_after);
+	});
+}
+
+// multiple bidders multiple bids
+#[test]
+fn multiple_bids_topup_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		System::set_block_number(12);
+		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 100));
+		System::set_block_number(13);
+		assert_ok!(AuctionsModule::bid(Origin::signed(CHARLIE), 0, 200));
+		System::set_block_number(14);
+		assert_ok!(AuctionsModule::bid(Origin::signed(DAVE), 0, 350));
+		System::set_block_number(15);
+		assert_ok!(AuctionsModule::bid(Origin::signed(EVE), 0, 666));
+
+		let alice_balance_before = Balances::free_balance(&ALICE);
+		let bob_balance_before = Balances::free_balance(&BOB);
+		let charlie_balance_before = Balances::free_balance(&CHARLIE);
+		let dave_balance_before = Balances::free_balance(&DAVE);
+		let eve_balance_before = Balances::free_balance(&EVE);
+
+		// Happy path
+		System::set_block_number(25);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		let alice_balance_after = Balances::free_balance(&ALICE);
+		let bob_balance_after = Balances::free_balance(&BOB);
+		let charlie_balance_after = Balances::free_balance(&CHARLIE);
+		let dave_balance_after = Balances::free_balance(&DAVE);
+		let eve_balance_after = Balances::free_balance(&EVE);
+
+		// ALICE should have 666 from winner EVE,
+		// 150 and 100 respectively from each of next bidders DAVE and CHARLIE
+		// and nothing from the first bidder BOB
+		assert_eq!(alice_balance_before.saturating_add(916), alice_balance_after);
+		assert_eq!(bob_balance_before, bob_balance_after);
+		assert_eq!(charlie_balance_before.saturating_sub(100), charlie_balance_after);
+		assert_eq!(dave_balance_before.saturating_sub(150), dave_balance_after);
+		assert_eq!(eve_balance_before.saturating_sub(666), eve_balance_after);
 	});
 }

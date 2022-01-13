@@ -628,10 +628,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 	///
 	/// Places a bid on an TopUpAuction
 	///
-	/// - removes lock on auction.general_data.last_bid
-	/// - sets lock on new bid
-	/// - updates auction.general_data.last_bid and auction.general_data.next_bid_min
-	/// - if necessary, increases auction end time to prevent sniping
+	/// the same functionality as bidding on English auction
+	///
+	/// Also registers individual bids for the final settlement
 	///
 	fn bid(&mut self, bidder: T::AccountId, value: BalanceOf<T>) -> DispatchResult {
 		// Lock / Unlock funds
@@ -666,11 +665,12 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 	///
 	/// Closes a TopUpAuction
 	///
-	/// - removes lock on NFT
-	/// - transfers NFT to winning bidder
-	/// - removes lock on auction.general_data.last_bid
-	/// - transfers the amount of the bid from the account of the bidder to the owner of the auction
-	/// - sets auction.general_data.closed to true
+	/// Processes the final settlement of tokens as follows:
+	///
+	/// Winner (highest bidder) pays the price for an NFT to its owner
+	/// NFT is transferred to the winner
+	/// First bidder does not pay anything
+	/// Everyone else has to pay the difference between his and next lowest bid
 	///
 	fn close(&mut self) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
@@ -680,11 +680,6 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 		)?;
 		// there is a bid so let's determine a winner and transfer tokens
 		if let Some(winner) = &self.general_data.last_bid {
-			#[cfg(test)]
-				println!(
-					"Winner is: {:?} with amount {:?}",
-					winner.0, winner.1
-				);
 			// sort by amount descending
 			self.specific_data.bids.sort_by_key(|b| b.amount);
 			self.specific_data.bids.reverse();
@@ -693,20 +688,10 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 
 			// handle winner in the first iteration
 			if let Some(winning_bid) = bids_iter.next() {
-				let dest = T::Lookup::unlookup(winning_bid.who.clone());
+				let dest = T::Lookup::unlookup(winner.0.clone());
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
-				pallet_nft::Pallet::<T>::transfer(
-					source,
-					self.general_data.token.0,
-					self.general_data.token.1,
-					dest.clone(),
-				)?;
+				pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
 				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winning_bid.who);
-				#[cfg(test)]
-				println!(
-					"Transferring {:?} from {:?} to {:?}",
-					winning_bid.amount, winning_bid.who, self.general_data.owner
-				);
 				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 					&winning_bid.who,
 					&self.general_data.owner,
@@ -722,11 +707,6 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 				if let Some(next_lowest_bid) = bids_iter.peek() {
 					let bid_diff = bid.amount.saturating_sub(next_lowest_bid.amount);
 					<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &bid.who.clone());
-					#[cfg(test)]
-					println!(
-						"Transferring {:?} from {:?} to {:?}",
-						bid_diff, bid.who.clone(), &self.general_data.owner
-					);
 					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 						&bid.who.clone(),
 						&self.general_data.owner,

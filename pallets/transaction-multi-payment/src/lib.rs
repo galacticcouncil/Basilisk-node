@@ -17,7 +17,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
-#![allow(clippy::if_then_panic)]
 
 pub mod weights;
 
