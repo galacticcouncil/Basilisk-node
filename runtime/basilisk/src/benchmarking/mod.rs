@@ -4,12 +4,16 @@ pub mod currencies;
 pub mod duster;
 pub mod tokens;
 pub mod vesting;
+pub mod multi_payment;
 
+use frame_support::assert_ok;
 use crate::AssetRegistry;
+use crate::XYK;
 use frame_system::RawOrigin;
 
-use primitives::{AssetId, Balance};
+use primitives::{AssetId, Balance, Price};
 use sp_std::vec::Vec;
+use common_runtime::AccountId;
 
 pub const BSX: Balance = primitives::constants::currency::UNITS;
 
@@ -31,4 +35,12 @@ pub fn update_asset(asset_id: AssetId, name: Vec<u8>, deposit: Balance) -> Resul
 		Some(deposit),
 	)
 	.map_err(|_| ())
+}
+
+pub fn create_pool(who: AccountId, asset_a: AssetId, asset_b: AssetId, amount: Balance, price: Price)  {
+	assert_ok!(XYK::create_pool(RawOrigin::Signed(who).into(),
+	asset_a,
+	asset_b,
+	amount,
+	price));
 }

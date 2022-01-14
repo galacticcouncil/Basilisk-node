@@ -29,8 +29,8 @@ smallvec = "1.6.1"
 # local dependencies
 primitives = { default-features = false, path = "../../primitives" }
 common-runtime = { path = '../common', default-features = false }
-pallet-transaction-multi-payment = { path = "../../pallets/transaction-multi-payment", default-features = false}
-pallet-multi-payment-benchmarking = { path = "../../pallets/transaction-multi-payment/benchmarking", optional = true, default-features = false}
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "6ed0f88a4ebb6912a494f7a71c9600c81e063701", default-features = false}
+#pallet-multi-payment-benchmarking = { path = "../../pallets/transaction-multi-payment/benchmarking", optional = true, default-features = false}
 pallet-exchange = { path = "../../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-asset-registry = { path = "../../pallets/asset-registry",default-features = false}
@@ -49,8 +49,8 @@ pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", b
 pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "d62d43acd7db03dfefcfd9c8c773d86e37ad1319", default-features = false }
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "d62d43acd7db03dfefcfd9c8c773d86e37ad1319", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "6ed0f88a4ebb6912a494f7a71c9600c81e063701", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "6ed0f88a4ebb6912a494f7a71c9600c81e063701", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.13", default-features = false }
@@ -131,7 +131,6 @@ runtime-benchmarks = [
     "pallet-balances/runtime-benchmarks",
     "pallet-collective/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
-    "pallet-multi-payment-benchmarking",
     "pallet-nft/runtime-benchmarks",
     "pallet-xyk/runtime-benchmarks",
     "pallet-exchange-benchmarking",

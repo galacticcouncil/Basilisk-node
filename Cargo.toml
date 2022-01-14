@@ -191,3 +191,6 @@ cumulus-primitives-timestamp = { git = "https://github.com/paritytech//cumulus",
 cumulus-primitives-utility = { git = "https://github.com/paritytech//cumulus", rev = "0be8e8fc214641e306e4f913dd64ff1913e46e95" }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech//cumulus", rev = "0be8e8fc214641e306e4f913dd64ff1913e46e95" }
 parachain-info  = { git = "https://github.com/paritytech//cumulus", rev = "0be8e8fc214641e306e4f913dd64ff1913e46e95" }
+
+#[patch."https://github.com/galacticcouncil/warehouse"]
+#hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "6ed0f88a4ebb6912a494f7a71c9600c81e063701"}
