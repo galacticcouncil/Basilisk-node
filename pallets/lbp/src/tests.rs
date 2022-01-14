@@ -3130,11 +3130,18 @@ fn repay_fee_applied_in_env_with_repay_target() {
 }
 
 #[test]
-fn calculate_repay_fee() {
+fn get_repay_fee_should_work() {
 	predefined_test_ext_with_repay_target().execute_with(|| {
 		let pool = LBPPallet::pool_data(KUSD_BSX_POOL_ID).unwrap();
 
 		assert_eq!(LBPPallet::calculate_fees(&pool, 1000).unwrap(), 200,);
+	});
+}
+
+#[test]
+fn calculate_repay_fee() {
+	new_test_ext().execute_with(|| {
+		assert_eq!(LBPPallet::get_repay_fee(), (2, 10));
 	});
 }
 
