@@ -56,7 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, EnsureOrigin, Get, U128CurrencyToVote},
+	traits::{Contains, EnsureOrigin, EqualPrivilegeOnly, Get, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -76,8 +76,8 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
 
-pub use common_runtime::*;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
+pub use common_runtime::*;
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -107,7 +107,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 28,
+	spec_version: 29,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -633,12 +633,14 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 }
 
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
 	type WeightInfo = weights::utility::BasiliskWeight<Runtime>;
+	type PalletsOrigin = OriginCaller;
 }
 
 impl pallet_authorship::Config for Runtime {

@@ -37,6 +37,8 @@ use testing_basilisk_runtime::{
 const TOKEN_DECIMALS: u8 = 12;
 const TOKEN_SYMBOL: &str = "BSX";
 const PROTOCOL_ID: &str = "bsx";
+//Kusama parachain id
+const PARA_ID: u32 = 2090;
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -95,7 +97,7 @@ pub fn get_vesting_config_for_test() -> Vec<(AccountId, BlockNumber, BlockNumber
 	vesting_list
 }
 
-pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn parachain_development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -132,7 +134,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -159,12 +161,12 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-dev".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
-pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn local_parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
 	let mut properties = Map::new();
@@ -209,7 +211,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -236,13 +238,12 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
 pub fn k8s_testnet_parachain_config() -> Result<ChainSpec, String> {
-	const PARA_ID: u32 = 2090;
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -258,38 +259,34 @@ pub fn k8s_testnet_parachain_config() -> Result<ChainSpec, String> {
 			testnet_parachain_genesis(
 				wasm_binary,
 				// Sudo account
-				hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+				hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
 				//initial authorities & invulnerables
 				vec![
 					(
-						hex!["fa290a1ba515ab3a5ef68a5f233689e3928efb92e6c370157a6383ea29b60c5c"].into(),
-						hex!["fa290a1ba515ab3a5ef68a5f233689e3928efb92e6c370157a6383ea29b60c5c"].unchecked_into(),
+						hex!["54d469d6141e56c0aa802b00732c38477e72d1ad9d8030f45f76b61aaebc1251"].into(),
+						hex!["54d469d6141e56c0aa802b00732c38477e72d1ad9d8030f45f76b61aaebc1251"].unchecked_into(),
 					),
 					(
-						hex!["6e22616dfeb5bde39a7fb9ebd13498f34f76aeb6177cfc211afffc1a88bfd260"].into(),
-						hex!["6e22616dfeb5bde39a7fb9ebd13498f34f76aeb6177cfc211afffc1a88bfd260"].unchecked_into(),
-					),
-					(
-						hex!["5a734f6ec201351570c1bea987959f3ee88dc29358f5c401eb6284b0406e7078"].into(),
-						hex!["5a734f6ec201351570c1bea987959f3ee88dc29358f5c401eb6284b0406e7078"].unchecked_into(),
+						hex!["f4969ff6c9b4b1219a1d329d7bdeff9857dd5fc33085fd98182856f7f781b043"].into(),
+						hex!["f4969ff6c9b4b1219a1d329d7bdeff9857dd5fc33085fd98182856f7f781b043"].unchecked_into(),
 					),
 				],
 				// Pre-funded accounts
 				vec![
-					hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+					hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
 					hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into(), //acc from ../res/basilisk-vesting-lbp-test.json
 					hex!["8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"].into(), //acc from ../res/basilisk-vesting-lbp-test.json
 				],
 				true,
 				PARA_ID.into(),
 				//technical committee
-				vec![hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into()], // TREASURY - Fallback for multi tx payment
+				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()], // TREASURY - Fallback for multi tx payment
 				vec![],
-				hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into(),
+				hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
-				vec![hex!["1416edee80b0715279a437336e96b427f5b4c1825ac4b4d4692a19f57a55d879"].into()],
+				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()],
 			)
 		},
 		// Bootnodes
@@ -327,7 +324,6 @@ fn testnet_parachain_genesis(
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.

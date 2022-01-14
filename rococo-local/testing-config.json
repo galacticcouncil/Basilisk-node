@@ -37,7 +37,6 @@
   "parachains": [
     {
       "bin": "../target/release/testing-basilisk",
-      "id": "200",
       "chain":"dev",
       "balance": "1000000000000000000000",
       "nodes": [
