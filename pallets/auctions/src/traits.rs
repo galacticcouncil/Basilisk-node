@@ -29,9 +29,8 @@ pub struct TopUpAuction<T: Config> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct Bid<AccountId, BlockNumber, Balance> {
-	pub who: AccountId,
-	pub when: BlockNumber,
+pub struct Bid<AccountId, Balance> {
+	pub bidder: AccountId,
 	pub amount: Balance,
 }
 
@@ -40,7 +39,7 @@ pub struct EnglishAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct TopUpAuctionData<T: Config> {
-	pub bids: Vec<Bid<T::AccountId, T::BlockNumber, BalanceOf<T>>>,
+	pub bids: Vec<Bid<T::AccountId, BalanceOf<T>>>,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]

@@ -312,7 +312,7 @@ pub mod pallet {
 		/// - deposits BidPlaced event
 		///
 		#[pallet::weight(<T as Config>::WeightInfo::bid())]
-		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, value: BalanceOf<T>) -> DispatchResult {
+		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
 			let bidder = ensure_signed(origin)?;
 
 			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
@@ -320,16 +320,16 @@ pub mod pallet {
 
 				match auction {
 					Auction::English(auction_object) => {
-						Self::validate_bid(&bidder, &auction_object.general_data, value)?;
-						auction_object.bid(bidder.clone(), value)?;
+						Self::validate_bid(&bidder, &auction_object.general_data, amount)?;
+						auction_object.bid(bidder.clone(), amount)?;
 					}
 					Auction::TopUp(auction_object) => {
-						Self::validate_bid(&bidder, &auction_object.general_data, value)?;
-						auction_object.bid(bidder.clone(), value)?;
+						Self::validate_bid(&bidder, &auction_object.general_data, amount)?;
+						auction_object.bid(bidder.clone(), amount)?;
 					}
 				}
 
-				Self::deposit_event(Event::BidPlaced(auction_id, bidder, value));
+				Self::deposit_event(Event::BidPlaced(auction_id, bidder, amount));
 
 				Ok(())
 			})
@@ -513,7 +513,7 @@ impl<T: Config> Pallet<T> {
 	fn validate_bid(
 		bidder: &<T>::AccountId,
 		general_auction_data: &GeneralAuctionData<T>,
-		value: BalanceOf<T>,
+		amount: BalanceOf<T>,
 	) -> DispatchResult {
 		let block_number = <frame_system::Pallet<T>>::block_number();
 		ensure!(bidder != &general_auction_data.owner, Error::<T>::CannotBidOnOwnAuction);
@@ -522,12 +522,12 @@ impl<T: Config> Pallet<T> {
 			block_number < general_auction_data.end,
 			Error::<T>::AuctionEndTimeReached
 		);
-		ensure!(value >= general_auction_data.next_bid_min, Error::<T>::InvalidBidPrice);
+		ensure!(amount >= general_auction_data.next_bid_min, Error::<T>::InvalidBidPrice);
 
 		if let Some(current_bid) = &general_auction_data.last_bid {
-			ensure!(value > current_bid.1, Error::<T>::InvalidBidPrice);
+			ensure!(amount > current_bid.1, Error::<T>::InvalidBidPrice);
 		} else {
-			ensure!(!value.is_zero(), Error::<T>::InvalidBidPrice);
+			ensure!(!amount.is_zero(), Error::<T>::InvalidBidPrice);
 		}
 
 		Ok(())
@@ -546,6 +546,26 @@ impl<T: Config> Pallet<T> {
 
 		Ok(())
 	}
+
+	fn set_next_min_bid(general_auction_data: &mut GeneralAuctionData<T>, amount: BalanceOf<T>) -> DispatchResult {
+		let bid_step = Permill::from_percent(<T as crate::Config>::BidStepPerc::get()).mul_floor(amount);
+		general_auction_data.next_bid_min = amount.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
+
+		Ok(())
+	}
+
+	fn avoid_auction_sniping(general_auction_data: &mut GeneralAuctionData<T>) -> DispatchResult {
+		let block_number = <frame_system::Pallet<T>>::block_number();
+		let time_left = general_auction_data
+			.end
+			.checked_sub(&block_number)
+			.ok_or(Error::<T>::TimeUnderflow)?;
+		if time_left < <T as crate::Config>::BidAddBlocks::get().into() {
+			general_auction_data.end = block_number + <T as crate::Config>::BidAddBlocks::get().into();
+		}
+
+		Ok(())
+	}
 }
 
 ///
@@ -560,28 +580,19 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 	/// - updates auction.general_data.last_bid and auction.general_data.next_bid_min
 	/// - if necessary, increases auction end time to prevent sniping
 	///
-	fn bid(&mut self, bidder: T::AccountId, value: BalanceOf<T>) -> DispatchResult {
+	fn bid(&mut self, bidder: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
 		// Lock / Unlock funds
 		if let Some(current_bid) = &self.general_data.last_bid {
 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
 		}
-		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
+		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, amount, WithdrawReasons::all());
 
-		self.general_data.last_bid = Some((bidder, value));
+		self.general_data.last_bid = Some((bidder, amount));
 		// Set next minimal bid
-		let bid_step = Permill::from_percent(<T as crate::Config>::BidStepPerc::get()).mul_floor(value);
-		self.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
+		Pallet::<T>::set_next_min_bid(&mut self.general_data, amount)?;
 
 		// Avoid auction sniping
-		let block_number = <frame_system::Pallet<T>>::block_number();
-		let time_left = self
-			.general_data
-			.end
-			.checked_sub(&block_number)
-			.ok_or(Error::<T>::TimeUnderflow)?;
-		if time_left < <T as crate::Config>::BidAddBlocks::get().into() {
-			self.general_data.end = block_number + <T as crate::Config>::BidAddBlocks::get().into();
-		}
+		Pallet::<T>::avoid_auction_sniping(&mut self.general_data)?;
 
 		Ok(())
 	}
@@ -632,32 +643,18 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 	///
 	/// Also registers individual bids for the final settlement
 	///
-	fn bid(&mut self, bidder: T::AccountId, value: BalanceOf<T>) -> DispatchResult {
+	fn bid(&mut self, bidder: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
 		// Lock / Unlock funds
-		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, value, WithdrawReasons::all());
+		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, amount, WithdrawReasons::all());
 
-		self.general_data.last_bid = Some((bidder.clone(), value));
+		self.general_data.last_bid = Some((bidder.clone(), amount));
 		// Set next minimal bid
-		let bid_step = Permill::from_percent(<T as crate::Config>::BidStepPerc::get()).mul_floor(value);
-		self.general_data.next_bid_min = value.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
+		Pallet::<T>::set_next_min_bid(&mut self.general_data, amount)?;
 
-		let current_block = <frame_system::Pallet<T>>::block_number();
-
-		self.specific_data.bids.push(Bid {
-			who: bidder,
-			when: current_block,
-			amount: value,
-		});
+		self.specific_data.bids.push(Bid { bidder, amount });
 
 		// Avoid auction sniping
-		let time_left = self
-			.general_data
-			.end
-			.checked_sub(&current_block)
-			.ok_or(Error::<T>::TimeUnderflow)?;
-		if time_left < <T as crate::Config>::BidAddBlocks::get().into() {
-			self.general_data.end = current_block + <T as crate::Config>::BidAddBlocks::get().into();
-		}
+		Pallet::<T>::avoid_auction_sniping(&mut self.general_data)?;
 
 		Ok(())
 	}
@@ -691,9 +688,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 				let dest = T::Lookup::unlookup(winner.0.clone());
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
 				pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
-				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winning_bid.who);
+				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winning_bid.bidder);
 				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-					&winning_bid.who,
+					&winning_bid.bidder,
 					&self.general_data.owner,
 					winning_bid.amount,
 					ExistenceRequirement::KeepAlive,
@@ -706,9 +703,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 			while let Some(bid) = bids_iter.next() {
 				if let Some(next_lowest_bid) = bids_iter.peek() {
 					let bid_diff = bid.amount.saturating_sub(next_lowest_bid.amount);
-					<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &bid.who.clone());
+					<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &bid.bidder.clone());
 					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-						&bid.who.clone(),
+						&bid.bidder.clone(),
 						&self.general_data.owner,
 						bid_diff,
 						ExistenceRequirement::KeepAlive,
