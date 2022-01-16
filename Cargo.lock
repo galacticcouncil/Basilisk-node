@@ -5720,7 +5720,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.1.3"
+version = "4.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
