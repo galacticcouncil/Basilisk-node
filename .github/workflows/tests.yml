@@ -169,6 +169,9 @@ jobs:
         with:
           name: basilisk
           path: target/release
+      - name: Prepare basilisk testing binary
+        run: ln -sf basilisk testing-basilisk
+        working-directory: target/release
       - uses: robinraju/release-downloader@v1
         name: Download relay chain binary
         with:
