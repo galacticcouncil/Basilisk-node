@@ -349,6 +349,13 @@ pub mod pallet {
 	pub type FeeCollectorWithAsset<T: Config> =
 		StorageDoubleMap<_, Blake2_128Concat, T::AccountId, Blake2_128Concat, AssetId, bool, ValueQuery>;
 
+	#[pallet::extra_constants]
+	impl<T: Config> Pallet<T> {
+		pub fn get_repay_fee() -> (u32, u32) {
+			(2, 10)
+		}
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Create a new liquidity bootstrapping pool for given asset pair.
@@ -862,7 +869,7 @@ impl<T: Config> Pallet<T> {
 		amount: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, DispatchError> {
 		let fee = if Self::is_repay_fee_applied(pool) {
-			(2, 10) // 20%
+			Self::get_repay_fee()
 		} else {
 			pool.fee
 		};

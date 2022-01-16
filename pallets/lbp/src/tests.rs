@@ -3206,6 +3206,13 @@ fn calculate_repay_fee() {
 }
 
 #[test]
+fn get_repay_fee_should_work() {
+	new_test_ext().execute_with(|| {
+		assert_eq!(LBPPallet::get_repay_fee(), (2, 10));
+	});
+}
+
+#[test]
 fn collected_fees_should_be_locked_and_unlocked_after_liquidity_is_removed() {
 	predefined_test_ext().execute_with(|| {
 		run_to_sale_start();
