@@ -424,7 +424,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "5.1.0"
+version = "5.1.1"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
@@ -5709,7 +5709,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.1.2"
+version = "4.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

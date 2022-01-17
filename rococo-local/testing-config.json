@@ -24,11 +24,15 @@
         "port": 30777
       }
     ],
-    "runtime_genesis_config": {
-      "parachainsConfiguration": {
-        "config": {
-          "validation_upgrade_frequency": 1,
-          "validation_upgrade_delay": 1
+    "genesis": {
+      "runtime": {
+        "runtime_genesis_config": {
+          "configuration": {
+            "config": {
+              "validation_upgrade_frequency": 1,
+              "validation_upgrade_delay": 10
+            }
+          }
         }
       }
     }
@@ -37,7 +41,7 @@
   "parachains": [
     {
       "bin": "../target/release/testing-basilisk",
-      "chain":"dev",
+      "chain":"local",
       "balance": "1000000000000000000000",
       "nodes": [
         {

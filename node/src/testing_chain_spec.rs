@@ -21,9 +21,7 @@
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use primitives::{AssetId, BlockNumber, Price};
-use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
-use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
 use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
@@ -33,31 +31,13 @@ use testing_basilisk_runtime::{
 	ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig,
 	VestingConfig, NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
+use crate::chain_spec::Extensions;
 
 const TOKEN_DECIMALS: u8 = 12;
 const TOKEN_SYMBOL: &str = "BSX";
 const PROTOCOL_ID: &str = "bsx";
 //Kusama parachain id
 const PARA_ID: u32 = 2090;
-
-/// The extensions for the [`ChainSpec`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
-#[serde(deny_unknown_fields)]
-pub struct Extensions {
-	/// The relay chain of the Parachain.
-	pub relay_chain: String,
-	/// The id of the Parachain.
-	pub para_id: u32,
-}
-
-impl Extensions {
-	/// Try to get the extension from the given `ChainSpec`.
-	#[allow(clippy::borrowed_box)]
-	#[allow(dead_code)]
-	pub fn try_get(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Option<&Self> {
-		sc_chain_spec::get_extension(chain_spec.extensions())
-	}
-}
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
