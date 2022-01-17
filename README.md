@@ -25,26 +25,21 @@ Once the development environment is set up, build the node. This command will bu
 [native](https://substrate.dev/docs/en/knowledgebase/advanced/executor#native-execution) code:
 
 ```bash
-cargo build --release
+make build
 ```
 
 ## Run
 
-### Rococo local testnet
+### Local Testnet
 
 Relay chain repository (polkadot) has to be built in `../polkadot`
-and uses `polkadot-launch` utility that has to be installed from the latest sources.
+Install `polkadot-launch` utility used to start network.
 
 ```
-git clone https://github.com/paritytech/polkadot-launch.git
-cd polkadot-launch
-yarn
-yarn build
-chmod +x dist/index.js
-npm link
+npm install -g polkadot-launch
 ```
 
-Starts local testnet with 4 relay chain validators and Basilisk as a parachain.
+Start local testnet with 4 relay chain validators and Basilisk as a parachain with 2 collators.
 
 ```
 cd ../rococo-local
@@ -57,10 +52,10 @@ Observe Basilisk logs
 multitail 99*.log
 ```
 
-### Testing Runtime
+#### Use Testing Runtime
 
 There is also an option to run the testing runtime with less restrictive settings to facilitate testing of new features.
-The following command starts a dev chain, and the testing runtime is used as a runtime for our node.
+The following command starts a dev node collator, and the testing runtime is used as a runtime for our node.
 ```bash
 ./target/release/basilisk --dev --runtime=testing
 ```
@@ -73,147 +68,20 @@ we don't have an option to communicate to its internal commands that we would li
 To overcome this limitation, rename the binary so it starts with the `testing` prefix, e.g. `testing-basilisk`.
 Such a binary always uses the testing runtime, even if the `--runtime testing` option is not specified.
 
+Start local testnet with testing runtime
+```
+cd ../rococo-local
+polkadot-launch testing-config.json
+```
+
 ### Interaction with the node
 
 Go to the Polkadot apps at https://dotapps.io
 
-Then open settings screen -> developer and paste
+Connect to the local testnet at `ws://localhost:9988` or live `wss://basilisk.hydradx.io:9944`
 
 *NOTE - FixedU128 type is not yet implemented for polkadot apps. Balance is a measure so price can be reasonably selected. If using polkadot apps to create pool:*
 - 1 Mega Units equals 1:1 price
 - 20 Mega Units equals 20:1 price
 - 50 Kilo Units equals 0.05:1 price
-
-```
-{
-  "alias":{
-    "tokens":{
-      "AccountData":"OrmlAccountData"
-    }
-  },
-  "types":[
-    {
-      "AssetPair":{
-        "asset_in":"AssetId",
-        "asset_out":"AssetId"
-      },
-      "Amount":"i128",
-      "AmountOf":"Amount",
-      "Address":"AccountId",
-      "OrmlAccountData":{
-        "free":"Balance",
-        "frozen":"Balance",
-        "reserved":"Balance"
-      },
-      "Fee":{
-        "numerator":"u32",
-        "denominator":"u32"
-      },
-      "BalanceInfo":{
-        "amount":"Balance",
-        "assetId":"AssetId"
-      },
-      "Chain":{
-        "genesisHash":"Vec<u8>",
-        "lastBlockHash":"Vec<u8>"
-      },
-      "Currency":"AssetId",
-      "CurrencyId":"AssetId",
-      "CurrencyIdOf":"AssetId",
-      "Intention":{
-        "who":"AccountId",
-        "asset_sell":"AssetId",
-        "asset_buy":"AssetId",
-        "amount":"Balance",
-        "discount":"bool",
-        "sell_or_buy":"IntentionType"
-      },
-      "IntentionId":"Hash",
-      "IntentionType":{
-        "_enum":[
-          "SELL",
-          "BUY"
-        ]
-      },
-      "LookupSource":"AccountId",
-      "Price":"Balance",
-      "ClassId":"u64",
-      "TokenId":"u64",
-      "ClassData":{
-        "is_pool":"bool"
-      },
-      "TokenData":{
-        "locked":"bool"
-      },
-      "ClassInfo":{
-        "metadata":"Vec<u8>",
-        "total_issuance":"TokenId",
-        "owner":"AccountId",
-        "data":"ClassData"
-      },
-      "TokenInfo":{
-        "metadata":"Vec<u8>",
-        "owner":"AccountId",
-        "data":"TokenData"
-      },
-      "ClassInfoOf":"ClassInfo",
-      "TokenInfoOf":"TokenInfo",
-      "ClassIdOf":"ClassId",
-      "TokenIdOf":"TokenId",
-      "OrderedSet":"Vec<AssetId>",
-      "VestingSchedule":{
-        "start":"BlockNumber",
-        "period":"BlockNumber",
-        "period_count":"u32",
-        "per_period":"Compact<Balance>"
-      },
-      "VestingScheduleOf":"VestingSchedule",
-      "LBPWeight":"u32",
-      "WeightCurveType":{
-        "_enum":[
-          "Linear"
-        ]
-      },
-      "PoolId":"AccountId",
-      "BalanceOf":"Balance",
-      "AssetType": {
-        "_enum": {
-          "Token": "Null",
-          "PoolShare": "(AssetId,AssetId)"
-      }
-      },
-      "Pool":{
-        "owner":"AccountId",
-        "start":"BlockNumber",
-        "end":"BlockNumber",
-        "assets":"AssetPair",
-        "initial_weight":"LBPWeight",
-        "final_weight":"LBPWeight",
-        "weight_curve":"WeightCurveType",
-        "fee":"Fee",
-        "fee_collector":"AccountId"
-      },
-      "AssetDetails":{
-        "name":"Vec<u8>",
-        "asset_type":"AssetType",
-        "existential_deposit":"Balance",
-        "locked":"bool"
-      },
-      "AssetDetailsT": "AssetDetails",
-      "AssetMetadata":{
-        "symbol":"Vec<u8>",
-        "decimals":"u8"
-      },
-      "AssetInstance": "AssetInstanceV1",
-      "MultiLocation": "MultiLocationV1",
-      "AssetNativeLocation": "MultiLocation",
-      "MultiAsset": "MultiAssetV1",
-      "Xcm": "XcmV1",
-      "XcmOrder": "XcmOrderV1"
-    }
-  ]
-}
-```
-
-Connect to the `wss://basilisk.hydradx.io:9944` or local node.
 
