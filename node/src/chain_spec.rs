@@ -542,6 +542,7 @@ fn parachain_genesis(
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
 			fallback_account: tx_fee_payment_account,
+			account_currencies: vec![],
 		},
 		tokens: TokensConfig { balances: vec![] },
 		treasury: Default::default(),
@@ -643,6 +644,7 @@ fn testnet_parachain_genesis(
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: accepted_assets,
 			fallback_account: tx_fee_payment_account,
+			account_currencies: vec![],
 		},
 		tokens: TokensConfig {
 			balances: endowed_accounts

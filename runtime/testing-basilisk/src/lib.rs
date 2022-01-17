@@ -75,7 +75,7 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 use orml_currencies::BasicCurrencyAdapter;
 
 pub use common_runtime::*;
-use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
+use pallet_transaction_multi_payment::MultiCurrencyAdapter;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -201,8 +201,7 @@ parameter_types! {
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
-	pub ExtrinsicPaymentExtraWeight: Weight =  <Runtime as pallet_transaction_multi_payment::Config>::WeightInfo::withdraw_fee_non_native();
-	pub ExtrinsicBaseWeight: Weight = frame_support::weights::constants::ExtrinsicBaseWeight::get() + ExtrinsicPaymentExtraWeight::get();
+	pub ExtrinsicBaseWeight: Weight = frame_support::weights::constants::ExtrinsicBaseWeight::get();
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -295,10 +294,11 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
 	type AcceptedCurrencyOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
-	type AMMPool = XYK;
+	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
 	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
+	type NativeAssetId = ();
 }
 
 impl pallet_sudo::Config for Runtime {

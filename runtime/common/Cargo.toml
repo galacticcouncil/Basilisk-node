@@ -19,7 +19,7 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 primitives = {path = '../../primitives', default-features = false}
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "6ed0f88a4ebb6912a494f7a71c9600c81e063701", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch="main", default-features = false }
 
 # Substrate dependencies
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false }

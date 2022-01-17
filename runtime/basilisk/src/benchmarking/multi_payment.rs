@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{AccountId, AssetId, Balance, Duster, DustingReward, NativeAssetId, Runtime, Tokens, Currencies};
+use crate::{AccountId, AssetId, Balance, Currencies, Runtime};
 use primitives::Price;
 
 use super::*;
@@ -27,8 +27,8 @@ use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
 use sp_runtime::traits::SaturatedConversion;
 
-use orml_traits::{GetByKey, MultiCurrency, MultiCurrencyExtended};
 use hydradx_traits::pools::SpotPriceProvider;
+use orml_traits::MultiCurrencyExtended;
 
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
 

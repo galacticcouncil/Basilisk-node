@@ -35,7 +35,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "6ed0f88a4ebb6912a494f7a71c9600c81e063701", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch="main", default-features = false }
 
 # Optionals
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.13", default-features = false, optional = true }

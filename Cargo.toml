@@ -192,5 +192,9 @@ cumulus-primitives-utility = { git = "https://github.com/paritytech//cumulus", r
 cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech//cumulus", rev = "0be8e8fc214641e306e4f913dd64ff1913e46e95" }
 parachain-info  = { git = "https://github.com/paritytech//cumulus", rev = "0be8e8fc214641e306e4f913dd64ff1913e46e95" }
 
-#[patch."https://github.com/galacticcouncil/warehouse"]
-#hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "6ed0f88a4ebb6912a494f7a71c9600c81e063701"}
+[patch."https://github.com/galacticcouncil/warehouse"]
+pallet-price-oracle = { git = "https://github.com/galacticcouncil//warehouse", rev = "6300a7d30eb9b864659fb92d83222e9d684d54bc"}
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse", rev = "6300a7d30eb9b864659fb92d83222e9d684d54bc"}
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", rev = "6300a7d30eb9b864659fb92d83222e9d684d54bc"}
+pallet-faucet= { git = "https://github.com/galacticcouncil//warehouse", rev = "6300a7d30eb9b864659fb92d83222e9d684d54bc"}
+hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", rev = "6300a7d30eb9b864659fb92d83222e9d684d54bc"}

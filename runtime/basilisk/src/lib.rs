@@ -62,7 +62,7 @@ use frame_support::{
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 };
-use hydradx_traits::{AMM, AssetPairAccountIdFor};
+use hydradx_traits::AssetPairAccountIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
@@ -78,7 +78,7 @@ use orml_currencies::BasicCurrencyAdapter;
 
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
-use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
+use pallet_transaction_multi_payment::MultiCurrencyAdapter;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -330,33 +330,14 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
-pub struct SpotPrice;
-use hydradx_traits::pools::SpotPriceProvider;
-
-impl SpotPriceProvider<AssetId> for SpotPrice{
-	type Price = primitives::Price;
-
-	fn pair_exists(asset_a: AssetId, asset_b: AssetId) -> bool {
-		todo!()
-	}
-
-	fn spot_price(asset_a: AssetId, asset_b: AssetId) -> Option<Self::Price> {
-
-		let p = <XYK as AMM<_,_,_,_>>::get_spot_price_unchecked(asset_b, asset_a, 1);
-
-		Some(Self::Price::from_inner(p))
-	}
-}
-
-
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
 	type AcceptedCurrencyOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
+	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
 	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
-	type SpotPriceProvider = SpotPrice;
 	type NativeAssetId = NativeAssetId;
 }
 

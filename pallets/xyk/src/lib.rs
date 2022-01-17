@@ -48,6 +48,9 @@ mod tests;
 mod benchmarking;
 
 pub mod weights;
+mod impls;
+
+pub use impls::XYKSpotPrice;
 
 use weights::WeightInfo;
 

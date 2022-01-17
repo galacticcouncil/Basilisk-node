@@ -19,8 +19,7 @@ trie-db = { version = "0.22.6", default-features = false }
 smallvec = "1.6.1"
 
 # local dependencies
-pallet-transaction-multi-payment = { path = "../pallets/transaction-multi-payment", default-features = false}
-pallet-multi-payment-benchmarking = { path = "../pallets/transaction-multi-payment/benchmarking", optional = true, default-features = false}
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", branch="main", default-features = false}
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-asset-registry = { path = "../pallets/asset-registry",default-features = false}
