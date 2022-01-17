@@ -9,7 +9,7 @@
     "test-inclusion": "node index.js 2090",
     "main": "run-p -lr chain:main test-inclusion logs:parachain",
     "testing": "run-p -lr chain:testing test-inclusion logs:parachain",
-    "logs:parachain": "wait-on 9988.log && tail -f 9988.log"
+    "logs:parachain": "wait-on 9988.log && tail -f -n 100000 9988.log"
   },
   "author": "",
   "license": "Apache-2.0",
