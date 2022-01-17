@@ -424,7 +424,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "5.1.1"
+version = "5.1.2"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
