@@ -46,9 +46,6 @@ fn create_pool_should_work() {
 			100_000_000_000_000,
 			Price::from(10)
 		));
-		let p = Price::from_inner(500_000_000_000_000_000);
-		let p = Price::from((1,2));
-		println!("{:?}", p);
 
 		let pair_account = XYK::get_pair_id(AssetPair {
 			asset_in: asset_a,
