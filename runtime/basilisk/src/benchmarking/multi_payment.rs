@@ -79,10 +79,10 @@ runtime_benchmarks! {
 
 		let asset_out = 0u32;
 		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
-		update_balance(asset_out, &maker, 2000_000_000_000_000);
-		update_balance(asset_id, &maker, 2000_000_000_000_000);
+		update_balance(asset_out, &maker, 2_000_000_000_000_000);
+		update_balance(asset_id, &maker, 2_000_000_000_000_000);
 
-		create_pool(maker, asset_out, asset_id, 1000_000_000_000_000, Price::from_inner(500_000_000_000_000_000));
+		create_pool(maker, asset_out, asset_id, 1_000_000_000_000_000, Price::from_inner(500_000_000_000_000_000));
 
 	}: { <Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_id, asset_out) }
 	verify{
