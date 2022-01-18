@@ -318,7 +318,7 @@ pub mod pallet {
 				T::MinPoolLiquidity::get(),
 			)?;
 
-			T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
+			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));

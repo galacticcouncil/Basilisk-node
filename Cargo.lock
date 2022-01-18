@@ -503,7 +503,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "30.0.0"
+version = "31.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1268,7 +1268,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.4.0"
+version = "1.4.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5182,7 +5182,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.1.5"
+version = "1.1.6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5552,7 +5552,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.4"
+version = "5.2.5"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5709,7 +5709,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.2.1"
+version = "4.2.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6285,7 +6285,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.0"
+version = "3.4.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10910,7 +10910,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "30.0.0"
+version = "31.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
