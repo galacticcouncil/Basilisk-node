@@ -195,5 +195,6 @@ parachain-info  = { git = "https://github.com/paritytech//cumulus", rev = "0be8e
 [patch."https://github.com/galacticcouncil/warehouse"]
 pallet-price-oracle = { git = "https://github.com/galacticcouncil//warehouse", rev = "2b50c91b419e1091c341cc8e3bd5afef56022180"}
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse", rev = "2b50c91b419e1091c341cc8e3bd5afef56022180"}
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", rev = "2b50c91b419e1091c341cc8e3bd5afef56022180"}
 pallet-faucet= { git = "https://github.com/galacticcouncil//warehouse", rev = "2b50c91b419e1091c341cc8e3bd5afef56022180"}
 hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", rev = "2b50c91b419e1091c341cc8e3bd5afef56022180"}
