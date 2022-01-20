@@ -424,7 +424,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "5.1.2"
+version = "5.1.3"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
@@ -5182,7 +5182,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.1.6"
+version = "1.1.7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5486,7 +5486,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "2.2.1"
+version = "2.2.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5552,7 +5552,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.5"
+version = "5.2.4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5576,7 +5576,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.5"
+version = "3.3.6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5709,7 +5709,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.2.2"
+version = "4.2.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5733,7 +5733,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp-rpc"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -5750,7 +5750,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp-rpc-runtime-api"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -5845,7 +5845,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.1.1"
+version = "2.1.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6285,7 +6285,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.1"
+version = "3.4.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6312,7 +6312,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-rpc"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
@@ -6330,7 +6330,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-rpc-runtime-api"
-version = "3.0.1"
+version = "3.0.2"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -7826,7 +7826,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.2"
+version = "6.1.3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8437,7 +8437,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",

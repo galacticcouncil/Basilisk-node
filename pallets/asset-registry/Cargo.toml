@@ -1,6 +1,6 @@
 [package]
 name = "pallet-asset-registry"
-version = "1.1.6"
+version = "1.1.7"
 description = "Pallet for asset registry management"
 authors = ["GalacticCouncil"]
 edition = "2021"
