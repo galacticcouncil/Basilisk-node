@@ -578,6 +578,7 @@ dependencies = [
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
  "pallet-liquidity-mining",
+ "pallet-liquidity-mining-benchmarking",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-price-oracle",
@@ -5770,6 +5771,30 @@ dependencies = [
 name = "pallet-liquidity-mining"
 version = "0.1.0"
 dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydradx-traits",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-nft",
+ "pallet-uniques",
+ "parity-scale-codec",
+ "primitives 6.0.0",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-liquidity-mining-benchmarking"
+version = "0.1.0"
+dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -5778,9 +5803,12 @@ dependencies = [
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
+ "pallet-asset-registry",
  "pallet-balances",
+ "pallet-liquidity-mining",
  "pallet-nft",
  "pallet-uniques",
+ "pallet-xyk",
  "parity-scale-codec",
  "primitives 6.0.0",
  "scale-info",

@@ -132,8 +132,8 @@ pub fn native_version() -> NativeVersion {
 
 use common_runtime::adapter::OrmlTokensAdapter;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
-use smallvec::smallvec;
 use primitives::nft::{ClassType, NftPermissions};
+use smallvec::smallvec;
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
@@ -725,16 +725,16 @@ impl pallet_faucet::Config for Runtime {
 }
 
 impl pallet_liquidity_mining::Config for Runtime {
-    type Event = Event;
-    type CurrencyId = AssetId;
-    type MultiCurrency = Currencies;
-    type CreateOrigin = EnsureRoot<AccountId>;
-    type PalletId = LMPalletId;
-    type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-    type MinTotalFarmRewards = MinTotalFarmRewards;
-    type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
-    type AMM = XYK;
-    type WeightInfo = ();
+	type Event = Event;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type CreateOrigin = EnsureRoot<AccountId>;
+	type PalletId = LMPalletId;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type AMM = XYK;
+	type WeightInfo = ();
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

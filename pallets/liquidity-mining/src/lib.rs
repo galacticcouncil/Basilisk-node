@@ -37,7 +37,6 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-mod benchmarking;
 pub mod weights;
 
 pub use pallet::*;
@@ -67,8 +66,8 @@ use frame_support::{
 use hydradx_traits::AMM;
 use scale_info::TypeInfo;
 use sp_std::{
-    vec,
-    convert::{From, Into, TryInto}
+	convert::{From, Into, TryInto},
+	vec,
 };
 
 use primitives::nft::ClassType;
@@ -224,7 +223,7 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Asset type
-		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord;
+		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + From<u32>;
 
 		/// Currency for transfers
 		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = Self::CurrencyId, Balance = Balance>;
@@ -481,7 +480,6 @@ pub mod pallet {
 				ensure!(g_pool.liq_pools_count.is_zero(), Error::<T>::FarmIsNotEmpty);
 
 				let g_pool_account = Self::pool_account_id(g_pool.id)?;
-				//NOTE: should this be 0?
 				ensure!(
 					T::MultiCurrency::free_balance(g_pool.reward_currency, &g_pool_account).is_zero(),
 					Error::<T>::RewardBalanceIsNotZero
@@ -511,11 +509,7 @@ pub mod pallet {
 
 			T::MultiCurrency::transfer(g_pool.reward_currency, &g_pool_account, &who, undistributed_rew)?;
 
-			Self::deposit_event(Event::UndistributedRewardsWithdrawn(
-				who,
-				g_pool.id,
-				undistributed_rew,
-			));
+			Self::deposit_event(Event::UndistributedRewardsWithdrawn(who, g_pool.id, undistributed_rew));
 
 			Ok(())
 		}
@@ -1029,7 +1023,7 @@ impl<T: Config> Pallet<T> {
 	/// Return pallet account or pool acocunt from PoolId
 	///
 	/// WARN: pool_id = 0 is same as `T::PalletId::get().into_account()`. 0 is not valid value
-	fn pool_account_id(pool_id: PoolId) -> Result<AccountIdOf<T>, Error<T>> {
+	pub fn pool_account_id(pool_id: PoolId) -> Result<AccountIdOf<T>, Error<T>> {
 		Self::validate_pool_id(pool_id)?;
 
 		Ok(T::PalletId::get().into_sub_account(pool_id))

@@ -31,7 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin, EnsureSigned};
+use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -76,8 +76,8 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
 
-pub use common_runtime::*;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
+pub use common_runtime::*;
 use pallet_transaction_multi_payment::{weights::WeightInfo, MultiCurrencyAdapter};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
@@ -139,9 +139,9 @@ impl Contains<Call> for BaseFilter {
 }
 
 use common_runtime::adapter::OrmlTokensAdapter;
+use primitives::nft::{ClassType, NftPermissions};
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
-use primitives::nft::{ClassType, NftPermissions};
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
@@ -760,17 +760,16 @@ impl pallet_relaychain_info::Config for Runtime {
 }
 
 impl pallet_liquidity_mining::Config for Runtime {
-    type Event = Event;
-    type CurrencyId = AssetId;
-    type MultiCurrency = Currencies;
-    //type CreateOrigin = EnsureRoot<AccountId>;
-    type CreateOrigin = EnsureSigned<AccountId>;
-    type PalletId = LMPalletId;
-    type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-    type MinTotalFarmRewards = MinTotalFarmRewards;
-    type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-    type AMM = XYK;
-    type WeightInfo = ();
+	type Event = Event;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type CreateOrigin = EnsureSigned<AccountId>;
+	type PalletId = LMPalletId;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type AMM = XYK;
+	type WeightInfo = ();
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

@@ -43,6 +43,7 @@ pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-uniques = { path = '../../pallets/uniques', default-features = false }
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev="35ee94a4daf3e4e8b56c20d6f6e85716d5641562", default-features = false }
 pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features = false }
+pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", default-features = false, optional = true }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
@@ -151,6 +152,7 @@ runtime-benchmarks = [
     "pallet-tips/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "orml-benchmarking",
+    "pallet-liquidity-mining-benchmarking",
 ]
 std = [
     "codec/std",

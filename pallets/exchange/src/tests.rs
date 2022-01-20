@@ -43,8 +43,7 @@ fn expect_event<E: Into<TestEvent>>(e: E) {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	e.into_iter()
-		.for_each(frame_system::Pallet::<Test>::assert_has_event);
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
 fn generate_intention_id(account: &<Test as system::Config>::AccountId, c: u32) -> crate::IntentionId<Test> {
