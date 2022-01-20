@@ -442,7 +442,7 @@ impl pallet_lbp::Config for Runtime {
 
 impl pallet_price_oracle::Config for Runtime {
 	type Event = Event;
-	type WeightInfo = pallet_price_oracle::weights::HydraWeight<Runtime>;
+	type WeightInfo = weights::price_oracle::BasiliskWeight<Runtime>;
 }
 
 // Parachain Config
