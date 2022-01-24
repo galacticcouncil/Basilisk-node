@@ -195,8 +195,8 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: sleep 60
-        run: sleep 60    
+      - name: sleep 30
+        run: sleep 30    
       - name: Configure AWS CLI
         run: |
           sudo apt-get -y install awscli
@@ -210,8 +210,8 @@ jobs:
           path: .
       - name: Add execution for basilisk
         run: chmod +x basilisk
-      - name: Sleep for 60 seconds
-        run: sleep 60
+      - name: Sleep for 30 seconds
+        run: sleep 30
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
@@ -236,4 +236,121 @@ jobs:
           token: ${{ secrets.DISPATCH_DEPLOYMENT_TOKEN }}
           repository: galacticcouncil/testnet-deployment
           event-type: run-k8s-deployment
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'        
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+  test-inclusion:
+      needs: [build]
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          chain: [ main, testing ]
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            fetch-depth: 0
+            ref: ${{ github.event.pull_request.head.sha }}
+        - uses: actions/download-artifact@v2
+          name: Download basilisk binary
+          with:
+            name: basilisk
+            path: target/release
+        - name: Prepare basilisk testing binary
+          run: ln -f basilisk testing-basilisk
+          working-directory: target/release
+        - uses: robinraju/release-downloader@v1
+          name: Download relay chain binary
+          with:
+            repository: paritytech/polkadot
+            tag: v0.9.13
+            fileName: polkadot
+            out-file-path: ../polkadot/target/release
+        - run: chmod +x ./basilisk && ./basilisk --version
+          name: Basilisk version
+          working-directory: target/release
+        - run: chmod +x ./polkadot && ./polkadot --version
+          name: Polkadot version
+          working-directory: ../polkadot/target/release
+        - uses: actions/setup-node@v2
+          name: Setup node.js
+          with:
+            node-version: '14'
+            check-latest: true
+        - run: npm install && npm run ${{ matrix.chain }}
+          name: Launch rococo local & wait for inclusion
+          working-directory: scripts/wait-for-inclusion
+
+  test-upgrade-runtime:
+    needs: [build, version-check]
+    runs-on: ubuntu-latest
+    if: ${{ needs.version-check.outputs.runtime-upgraded == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v2
+        name: Download runtime wasm from pipeline
+        with:
+          name: basilisk_runtime.compact.compressed.wasm
+          path: scripts/upgrade-runtime
+      - uses: dawidd6/action-download-artifact@v2
+        name: Download basilisk binary from master
+        with:
+          workflow: tests.yml
+          branch: master
+          name: basilisk
+          path: target/release
+      - uses: robinraju/release-downloader@v1.2
+        name: Download relay chain binary release
+        with:
+          repository: paritytech/polkadot
+          latest: true
+          fileName: polkadot
+          out-file-path: ../polkadot/target/release
+      - run: chmod +x ./basilisk && ./basilisk --version
+        name: Basilisk version
+        working-directory: target/release
+      - run: chmod +x ./polkadot && ./polkadot --version
+        name: Polkadot version
+        working-directory: ../polkadot/target/release
+      - uses: actions/setup-node@v2
+        name: Setup node.js
+        with:
+          node-version: '14'
+          check-latest: true
+      - run: npm install && npm run start
+        name: Test runtime upgrade
+        working-directory: scripts/upgrade-runtime
+
+  version-check:
+    runs-on: ubuntu-latest
+    outputs:
+      runtime-upgraded: ${{ steps.check-runtime.outputs.upgraded }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
+      - name: Get crate versions
+        run: |
+          VERSION_UPDATE=$(./scripts/list_crate_updates.sh)
+          VERSION_UPDATE=$(cat << EOF
+          $VERSION_UPDATE
+          EOF
+          )
+          echo "VERSION_UPDATE<<EOF" >> $GITHUB_ENV
+          echo "$VERSION_UPDATE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - name: Check runtime upgrade
+        id: check-runtime
+        if: contains(env.VERSION_UPDATE, 'Runtime version has been increased.')
+        run: echo "::set-output name=upgraded::true"
+      - name: Sticky Pull Request Comment
+        uses: marocchino/sticky-pull-request-comment@v2.1.0
+        with:
+          message: |
+            ${{ env.VERSION_UPDATE }}
