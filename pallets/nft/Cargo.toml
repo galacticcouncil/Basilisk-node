@@ -1,9 +1,9 @@
 [package]
 name = "pallet-nft"
-version = "2.1.1"
+version = "2.1.2"
 description = "Simple NFT pallet for creating tokens"
 authors = ["GalacticCoucil"]
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"

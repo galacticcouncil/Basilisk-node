@@ -1,9 +1,9 @@
 [package]
 name = "pallet-exchange-benchmarking"
-version = "3.3.5"
+version = "3.3.6"
 description = "Exchange Benchmarking Module"
 authors = ["GalacticCouncil"]
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/galacticcouncil/basilisk-node"
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/basilisk-node"

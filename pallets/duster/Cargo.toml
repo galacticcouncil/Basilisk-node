@@ -1,9 +1,9 @@
 [package]
 name = "pallet-duster"
-version = "2.2.1"
+version = "2.2.2"
 description = "Account duster"
 authors = ["GalacticCouncil"]
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"

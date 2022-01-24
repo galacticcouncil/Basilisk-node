@@ -1,9 +1,9 @@
 [package]
 name = "pallet-exchange"
-version = "5.2.5"
+version = "5.2.4"
 description = "Exchange Module"
 authors = ["GalacticCouncil"]
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/galacticcouncil/basilisk-node"
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/basilisk-node"
