@@ -184,6 +184,7 @@ jobs:
   
   build-and-publish-docker-image:
     needs: [pop-runner-instance, build]
+    if: github.ref == 'refs/heads/master'
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
