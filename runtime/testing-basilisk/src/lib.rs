@@ -746,6 +746,7 @@ construct_runtime!(
 		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
 		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
+		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>},
 
 		// Basilisk related modules
 		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},

@@ -67,6 +67,7 @@ orml-benchmarking = { git = "https://github.com/open-web3-stack/open-runtime-mod
 orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "1c80da43a720d1b957e1ba12238e4d98b2ee8cf9", default-features = false }
 orml-xcm-support = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "1c80da43a720d1b957e1ba12238e4d98b2ee8cf9", default-features = false }
 orml-unknown-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "1c80da43a720d1b957e1ba12238e4d98b2ee8cf9", default-features = false }
+orml-xcm = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "1c80da43a720d1b957e1ba12238e4d98b2ee8cf9", default-features = false }
 
 # Cumulus dependencies
 cumulus-pallet-aura-ext = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.13", default-features = false }
@@ -162,6 +163,7 @@ std = [
     "orml-vesting/std",
     "orml-xtokens/std",
     "orml-xcm-support/std",
+    "orml-xcm/std",
     "orml-unknown-tokens/std",
     "orml-benchmarking/std",
     "cumulus-pallet-parachain-system/std",
