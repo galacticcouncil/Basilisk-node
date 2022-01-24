@@ -210,9 +210,9 @@ jobs:
           name: basilisk
           path: .
       - name: Add execution for basilisk
-        run: chmod +x basilisk
-      - name: Sleep for 30 seconds
-        run: sleep 30
+        run: chmod +x ./basilisk && ./basilisk --version
+      - name: basilisk hardlink
+        run: ln -f basilisk testing-basilisk
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
