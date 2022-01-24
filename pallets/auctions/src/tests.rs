@@ -47,14 +47,14 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 fn valid_general_auction_data() -> GeneralAuctionData<Test> {
 	GeneralAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
-		reserve_price: 0,
+		reserve_price: None,
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,
 		closed: false,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
-		next_bid_min: 55,
+		next_bid_min: 0,
 	}
 }
 
@@ -105,12 +105,13 @@ fn create_english_auction_should_work() {
 
 		if let Auction::English(data) = auction {
 			assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+			assert_eq!(data.general_data.reserve_price, None);
 			assert_eq!(data.general_data.last_bid, None);
 			assert_eq!(data.general_data.start, 10u64);
 			assert_eq!(data.general_data.end, 21u64);
 			assert_eq!(data.general_data.owner, ALICE);
 			assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-			assert_eq!(data.general_data.next_bid_min, 55)
+			assert_eq!(data.general_data.next_bid_min, 0)
 		}
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
@@ -163,6 +164,32 @@ fn create_english_auction_with_duration_shorter_than_minimum_should_not_work() {
 			Error::<Test>::InvalidTimeConfiguration
 		);
 	});
+}
+
+/// Error InvalidNextBidMin
+#[test]
+fn create_english_auction_with_invalid_next_bid_min_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.next_bid_min = 10;
+		
+		let auction = english_auction_object(general_auction_data.clone(), valid_english_specific_data());
+		
+		// next_bid_min is set while reserve_price is None
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+		
+		general_auction_data.reserve_price = Some(20);
+		let auction = english_auction_object(general_auction_data.clone(), valid_english_specific_data());
+
+		// next_bid_min != reserve_price
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+	});	
 }
 
 /// Error EmptyAuctionName
@@ -275,6 +302,36 @@ fn update_english_auction_with_nonexisting_auction_should_not_work() {
 			Error::<Test>::AuctionNotExist,
 		);
 	});
+}
+
+/// Error InvalidNextBidMin
+#[test]
+fn update_english_auction_with_invalid_next_bid_min_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.next_bid_min = 10;
+		
+		let auction = english_auction_object(updated_general_data.clone(), valid_english_specific_data());
+		
+		// next_bid_min is set while reserve_price is None
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+		
+		updated_general_data.reserve_price = Some(20);
+		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
+
+		// next_bid_min != reserve_price
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+	});	
 }
 
 /// Error CannotSetAuctionClosed

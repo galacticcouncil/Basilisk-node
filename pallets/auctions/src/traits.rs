@@ -7,6 +7,8 @@ use sp_std::vec::Vec;
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
 	fn create(&self, sender: AccountId, auction: &NftAuction) -> DispatchResult;
 
+	fn update(&self, sender: AccountId, auction_id: AuctionId, auction: NftAuction) -> DispatchResult;
+
 	fn bid(&mut self, bidder: AccountId, value: BalanceOf) -> DispatchResult;
 
 	fn close(&mut self) -> DispatchResult;
@@ -49,7 +51,7 @@ pub struct TopUpAuctionData<T: Config> {
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct GeneralAuctionData<T: Config> {
 	pub name: BoundedVec<u8, <T as crate::Config>::AuctionsStringLimit>,
-	pub reserve_price: BalanceOf<T>,
+	pub reserve_price: Option<BalanceOf<T>>,
 	pub last_bid: Option<(<T as frame_system::Config>::AccountId, BalanceOf<T>)>,
 	pub next_bid_min: BalanceOf<T>,
 	pub start: <T as frame_system::Config>::BlockNumber,

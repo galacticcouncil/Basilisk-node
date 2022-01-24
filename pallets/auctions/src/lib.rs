@@ -222,8 +222,8 @@ pub mod pallet {
 		TooLong,
 		/// Auction type cannot be changed
 		NoChangeOfAuctionType,
-		/// reserve_price must be equal to next_bid_min (EnglishAuction)
-		ReservePriceMustBeEqualToNextBidMin,
+		/// next_bid_min is invalid
+		InvalidNextBidMin,
 	}
 
 	#[pallet::call]
@@ -264,12 +264,10 @@ pub mod pallet {
 
 			match &updated_auction {
 				Auction::English(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::handle_update(sender, id, updated_auction.clone(), &auction_object.general_data)?;
+					auction_object.update(sender, id, updated_auction.clone())?;
 				}
 				Auction::TopUp(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::handle_update(sender, id, updated_auction.clone(), &auction_object.general_data)?;
+					auction_object.update(sender, id, updated_auction.clone())?;
 				}
 			}
 
@@ -578,6 +576,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 		Ok(())
 	}
 
+	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
+		self.validate_general_data()?;
+		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
 	///
 	/// Places a bid on an EnglishAuction
 	///
@@ -640,10 +645,14 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 	fn validate_general_data(&self) -> DispatchResult {
 		Pallet::<T>::validate_general_data(&self.general_data)?;
 
-		ensure!(
-			self.general_data.reserve_price == self.general_data.next_bid_min,
-			Error::<T>::ReservePriceMustBeEqualToNextBidMin
-		);
+		if let Some(reserve_price) = self.general_data.reserve_price {
+			ensure!(
+				reserve_price == self.general_data.next_bid_min,
+				Error::<T>::InvalidNextBidMin
+			);
+		} else {
+			ensure!(self.general_data.next_bid_min.is_zero(), Error::<T>::InvalidNextBidMin);
+		}
 
 		Ok(())
 	}
@@ -657,6 +666,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 		self.validate_general_data()?;
 		Pallet::<T>::validate_create(&self.general_data)?;
 		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
+	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
+		self.validate_general_data()?;
+		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
 
 		Ok(())
 	}
