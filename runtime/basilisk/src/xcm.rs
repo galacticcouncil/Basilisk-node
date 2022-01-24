@@ -137,6 +137,11 @@ impl orml_unknown_tokens::Config for Runtime {
 	type Event = Event;
 }
 
+impl orml_xcm::Config for Runtime {
+	type Event = Event;
+	type SovereignOrigin = crate::EnsureMajorityCouncilOrRoot;
+}
+
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;

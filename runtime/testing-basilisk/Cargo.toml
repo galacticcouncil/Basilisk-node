@@ -66,6 +66,7 @@ orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-l
 # orml XCM support
 orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "1c80da43a720d1b957e1ba12238e4d98b2ee8cf9", default-features = false }
 orml-xcm-support = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "1c80da43a720d1b957e1ba12238e4d98b2ee8cf9", default-features = false }
+orml-xcm = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "1c80da43a720d1b957e1ba12238e4d98b2ee8cf9", default-features = false }
 orml-unknown-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "1c80da43a720d1b957e1ba12238e4d98b2ee8cf9", default-features = false }
 
 # Cumulus dependencies
@@ -161,6 +162,7 @@ std = [
     "orml-vesting/std",
     "orml-xtokens/std",
     "orml-xcm-support/std",
+    "orml-xcm/std",
     "orml-unknown-tokens/std",
     "cumulus-pallet-parachain-system/std",
     "cumulus-pallet-aura-ext/std",
