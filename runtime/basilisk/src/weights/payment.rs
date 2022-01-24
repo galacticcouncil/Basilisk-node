@@ -50,7 +50,7 @@ use pallet_transaction_multi_payment::weights::WeightInfo;
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
-	fn withdraw_fee_non_native() -> Weight {
+	fn get_spot_price() -> Weight {
 		(87_850_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))

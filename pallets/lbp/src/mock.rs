@@ -58,7 +58,10 @@ pub const SAMPLE_POOL_DATA: Pool<AccountId, BlockNumber> = Pool {
 
 pub const SAMPLE_AMM_TRANSFER: AMMTransfer<AccountId, AssetId, AssetPair, Balance> = AMMTransfer {
 	origin: ALICE,
-	assets: AssetPair { asset_in: KUSD, asset_out: BSX },
+	assets: AssetPair {
+		asset_in: KUSD,
+		asset_out: BSX,
+	},
 	amount: 1000,
 	amount_out: 10000,
 	discount: false,

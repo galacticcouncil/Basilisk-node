@@ -63,4 +63,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			// Standard Error: 7_000
 			.saturating_add((7_856_000 as Weight).saturating_mul(c as Weight))
 	}
+	fn dispatch_as() -> Weight {
+		(19_769_000 as Weight)
+	}
 }
