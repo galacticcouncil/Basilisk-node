@@ -181,7 +181,6 @@ jobs:
         working-directory: ./infrastructure
         run: terraform destroy -var="ec2_pwd=$EC2_SECRET" -var="branch_name=${{ needs.pop-runner-instance.outputs.runner }}" -auto-approve
         continue-on-error: false
-<<<<<<< HEAD:.github/workflows/workflow.yml
   
   build-and-publish-docker-image:
     needs: [pop-runner-instance, build]
@@ -192,15 +191,6 @@ jobs:
       ECR_URL: 601305236792.dkr.ecr.eu-west-1.amazonaws.com
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-=======
-
-  test-inclusion:
-    needs: [build]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        chain: [ main, testing ]
->>>>>>> b82c7e6f97dbab868c8455c901025220be6dfb99:.github/workflows/tests.yml
     steps:
       - uses: actions/checkout@v2
         with:
@@ -218,7 +208,6 @@ jobs:
         name: Download basilisk binary
         with:
           name: basilisk
-<<<<<<< HEAD:.github/workflows/workflow.yml
           path: .
       - name: Add execution for basilisk
         run: chmod +x ./basilisk && ./basilisk --version
@@ -290,33 +279,6 @@ jobs:
         - run: npm install && npm run ${{ matrix.chain }}
           name: Launch rococo local & wait for inclusion
           working-directory: scripts/wait-for-inclusion
-=======
-          path: target/release
-      - name: Prepare basilisk testing binary
-        run: ln -f basilisk testing-basilisk
-        working-directory: target/release
-      - uses: robinraju/release-downloader@v1
-        name: Download relay chain binary
-        with:
-          repository: paritytech/polkadot
-          tag: v0.9.13
-          fileName: polkadot
-          out-file-path: ../polkadot/target/release
-      - run: chmod +x ./basilisk && ./basilisk --version
-        name: Basilisk version
-        working-directory: target/release
-      - run: chmod +x ./polkadot && ./polkadot --version
-        name: Polkadot version
-        working-directory: ../polkadot/target/release
-      - uses: actions/setup-node@v2
-        name: Setup node.js
-        with:
-          node-version: '14'
-          check-latest: true
-      - run: npm install && npm run ${{ matrix.chain }}
-        name: Launch rococo local & wait for inclusion
-        working-directory: scripts/wait-for-inclusion
->>>>>>> b82c7e6f97dbab868c8455c901025220be6dfb99:.github/workflows/tests.yml
 
   test-upgrade-runtime:
     needs: [build, version-check]
