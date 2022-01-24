@@ -107,8 +107,8 @@ jobs:
       - name: Upload config file
         uses: actions/upload-artifact@v2
         with:
-          name: basilisk-raw
-          path: basilisk-testnet-chainspec.json
+          name: basilisk-testnet-chainspec.json
+          path: .
       - name: Upload release binary
         uses: actions/upload-artifact@v2
         with:
