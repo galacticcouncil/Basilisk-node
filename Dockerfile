@@ -11,8 +11,7 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /basilisk basilisk && \
     
 USER basilisk
 ADD ./basilisk /basilisk/basilisk
-RUN ln -f basilisk testing-basilisk
-
+RUN ln -f /basilisk/basilisk /basilisk/testing-basilisk
 EXPOSE 30333 9933 9944
 
 VOLUME ["/data"]
