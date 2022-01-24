@@ -47,6 +47,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 fn valid_general_auction_data() -> GeneralAuctionData<Test> {
 	GeneralAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
+		reserve_price: 0,
 		last_bid: None,
 		start: 10u64,
 		end: 21u64,

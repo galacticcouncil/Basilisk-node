@@ -222,6 +222,8 @@ pub mod pallet {
 		TooLong,
 		/// Auction type cannot be changed
 		NoChangeOfAuctionType,
+		/// reserve_price must be equal to next_bid_min (EnglishAuction)
+		ReservePriceMustBeEqualToNextBidMin,
 	}
 
 	#[pallet::call]
@@ -240,14 +242,10 @@ pub mod pallet {
 
 			match &auction {
 				Auction::English(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::validate_create(&auction_object.general_data)?;
-					Self::handle_create(sender, &auction, &auction_object.general_data)?;
+					auction_object.create(sender, &auction)?;
 				}
 				Auction::TopUp(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::validate_create(&auction_object.general_data)?;
-					Self::handle_create(sender, &auction, &auction_object.general_data)?;
+					auction_object.create(sender, &auction)?;
 				}
 			}
 
@@ -572,6 +570,14 @@ impl<T: Config> Pallet<T> {
 /// Implementation of EnglishAuction
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for EnglishAuction<T> {
+	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
+		self.validate_general_data()?;
+		Pallet::<T>::validate_create(&self.general_data)?;
+		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
 	///
 	/// Places a bid on an EnglishAuction
 	///
@@ -630,12 +636,31 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 
 		Ok(())
 	}
+
+	fn validate_general_data(&self) -> DispatchResult {
+		Pallet::<T>::validate_general_data(&self.general_data)?;
+
+		ensure!(
+			self.general_data.reserve_price == self.general_data.next_bid_min,
+			Error::<T>::ReservePriceMustBeEqualToNextBidMin
+		);
+
+		Ok(())
+	}
 }
 
 ///
 /// Implementation of TopUpAuction
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for TopUpAuction<T> {
+	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
+		self.validate_general_data()?;
+		Pallet::<T>::validate_create(&self.general_data)?;
+		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
 	///
 	/// Places a bid on an TopUpAuction
 	///
@@ -717,6 +742,17 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 		}
 
 		self.general_data.closed = true;
+
+		Ok(())
+	}
+
+	fn validate_general_data(&self) -> DispatchResult {
+		Pallet::<T>::validate_general_data(&self.general_data)?;
+
+		// add check for none next_bid_min
+		// if Some(general_auction_data.next_bid_min) {
+		// 	ensure!(reserve_price == general_auction_data.next_bid_min, Error::<T>::ReservePriceMustBeEqualToNextBidMin)
+		// }
 
 		Ok(())
 	}
