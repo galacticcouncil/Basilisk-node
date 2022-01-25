@@ -17,6 +17,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - run: git describe --tags --abbrev=0 --always
       - name: Build node
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
         run: cargo build --release --locked
       - name: Version info
         run: ./target/release/basilisk --version
