@@ -228,7 +228,7 @@ jobs:
   run-external-deployment:
     needs: build-and-publish-docker-image
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     steps:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v1
