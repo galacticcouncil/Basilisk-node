@@ -1,4 +1,5 @@
 name: build-and-deploy
+
 on:
   push:
     branches:
@@ -24,7 +25,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}  
+          ref: ${{ github.event.pull_request.head.sha }}
       - id: determine-runner
         name: Determine runner
         run: if $IS_LOCAL; then echo "::set-output name=runner::$(uuidgen)"; else echo "::set-output name=runner::ubuntu-latest"; fi;
@@ -103,7 +104,7 @@ jobs:
         run: |
           cp target/release/basilisk target/release/testing-basilisk
           chmod +x ./target/release/testing-basilisk
-          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.jsons 
+          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.jsons
       - name: Upload config file
         uses: actions/upload-artifact@v2
         with:
@@ -119,7 +120,6 @@ jobs:
         with:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
-  
 
   upload-config-to-s3:
     name: upload configuration to S3
@@ -182,7 +182,7 @@ jobs:
         working-directory: ./infrastructure
         run: terraform destroy -var="ec2_pwd=$EC2_SECRET" -var="branch_name=${{ needs.pop-runner-instance.outputs.runner }}" -auto-approve
         continue-on-error: false
-  
+
   build-and-publish-docker-image:
     needs: [pop-runner-instance, build]
     if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
@@ -198,13 +198,13 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - name: sleep 30
-        run: sleep 30    
+        run: sleep 30
       - name: Configure AWS CLI
         run: |
           sudo apt-get -y install awscli
           aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws configure set default.region eu-west-1   
+          aws configure set default.region eu-west-1
       - uses: actions/download-artifact@v2
         name: Download basilisk binary
         with:
@@ -239,45 +239,45 @@ jobs:
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
 
   test-inclusion:
-      needs: [build]
-      runs-on: ubuntu-latest
-      strategy:
-        matrix:
-          chain: [ main, testing ]
-      steps:
-        - uses: actions/checkout@v2
-          with:
-            fetch-depth: 0
-            ref: ${{ github.event.pull_request.head.sha }}
-        - uses: actions/download-artifact@v2
-          name: Download basilisk binary
-          with:
-            name: basilisk
-            path: target/release
-        - name: Prepare basilisk testing binary
-          run: ln -f basilisk testing-basilisk
-          working-directory: target/release
-        - uses: robinraju/release-downloader@v1
-          name: Download relay chain binary
-          with:
-            repository: paritytech/polkadot
-            tag: v0.9.13
-            fileName: polkadot
-            out-file-path: ../polkadot/target/release
-        - run: chmod +x ./basilisk && ./basilisk --version
-          name: Basilisk version
-          working-directory: target/release
-        - run: chmod +x ./polkadot && ./polkadot --version
-          name: Polkadot version
-          working-directory: ../polkadot/target/release
-        - uses: actions/setup-node@v2
-          name: Setup node.js
-          with:
-            node-version: '14'
-            check-latest: true
-        - run: npm install && npm run ${{ matrix.chain }}
-          name: Launch rococo local & wait for inclusion
-          working-directory: scripts/wait-for-inclusion
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chain: [ main, testing ]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v2
+        name: Download basilisk binary
+        with:
+          name: basilisk
+          path: target/release
+      - name: Prepare basilisk testing binary
+        run: ln -f basilisk testing-basilisk
+        working-directory: target/release
+      - uses: robinraju/release-downloader@v1
+        name: Download relay chain binary
+        with:
+          repository: paritytech/polkadot
+          tag: v0.9.15
+          fileName: polkadot
+          out-file-path: ../polkadot/target/release
+      - run: chmod +x ./basilisk && ./basilisk --version
+        name: Basilisk version
+        working-directory: target/release
+      - run: chmod +x ./polkadot && ./polkadot --version
+        name: Polkadot version
+        working-directory: ../polkadot/target/release
+      - uses: actions/setup-node@v2
+        name: Setup node.js
+        with:
+          node-version: '14'
+          check-latest: true
+      - run: npm install && npm run ${{ matrix.chain }}
+        name: Launch rococo local & wait for inclusion
+        working-directory: scripts/wait-for-inclusion
 
   test-upgrade-runtime:
     needs: [build, version-check]
