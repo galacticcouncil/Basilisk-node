@@ -103,9 +103,10 @@ jobs:
         run: |
           cp target/release/basilisk target/release/testing-basilisk
           chmod +x ./target/release/testing-basilisk
-          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.json
+          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.jsons 
       - name: Upload config file
         uses: actions/upload-artifact@v2
+        if: github.ref == 'refs/heads/master'
         with:
           name: basilisk-testnet-chainspec.json
           path: ./basilisk-testnet-chainspec.json
