@@ -25,7 +25,17 @@
 //! The Auctions pallet provides extendable auction functionality for NFTs.
 //!
 //! The pallet implements an NftAuction trait which allows users to extend the pallet by implementing other
-//! auction types. All auction types must implement bid() and close() functions at their interface.
+//! auction types. All auction types must implement the following instance functions at their interface:
+//! 
+//! - `create`
+//! 
+//! - `update`
+//! 
+//! - `bid`
+//! 
+//! - `close`
+//! 
+//! - `validate_general_data`
 //!
 //! The auction types share the same store called Auctions. Auction types are represented in a struct which holds
 //! two other structs with general_data (eg auction name, start, end) and specific_data for the given auction type.
@@ -49,10 +59,14 @@
 //! In an English auction, participants place bids in a running auction. Once the auction has reached its end time,
 //! the highest bid wins.
 //!
-//! The implementation of English auction allows sellers to set a starting price for the object, under which it will not
-//! be sold (auction.general_data.next_bid_min).
-//!
-//! It also extens the end time of the auction for any last-minute bids in order to prevent auction sniping.
+//! The implementation of English auction allows sellers to set a reserve price for the NFT
+//! (auction.general_data.reserve_price). The reserve_price acts as a minimum starting bid, preventing bidders 
+//! from placing bids below the reserve_price.
+//! When creating an English auction with a reserve_price, auction.general_data.reserve_price must be equal to
+//! auction.general_data.next_bid_min.
+//! 
+//! To avoid auction sniping, the pallet extends the end time of the auction for any late bids which are placed
+//! shortly before auction close.
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
