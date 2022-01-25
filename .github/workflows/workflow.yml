@@ -135,7 +135,7 @@ jobs:
       - uses: actions/download-artifact@v2
         name: Download config file
         with:
-          name: basilisk-testnet-chainspec.json
+          name: basilisk-testnet-chainspec
           path: .
       - name: S3 Upload basilisk-testnet-chainspec.json
         uses: tpaschalis/s3-sync-action@master
@@ -184,7 +184,6 @@ jobs:
   
   build-and-publish-docker-image:
     needs: [pop-runner-instance, build]
-    if: github.ref == 'refs/heads/master'
     runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
