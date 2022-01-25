@@ -257,4 +257,5 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	LocationToAccountId,
 	AssetId,
 	CurrencyIdConvert,
+	(),
 >;
