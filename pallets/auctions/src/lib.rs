@@ -732,6 +732,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 	/// First bidder does not pay anything
 	/// Everyone else has to pay the difference between his and next lowest bid
 	///
+	/// TODO: implement reserve_price after refactoring bid and close fns
+	/// 
 	fn close(&mut self) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
 			RawOrigin::Signed(self.general_data.owner.clone()).into(),
