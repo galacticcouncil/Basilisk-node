@@ -415,9 +415,11 @@ fn update_english_auction_after_auction_start_should_not_work() {
 	});
 }
 
+///
 /// Destroying an English auction
 ///
 /// Happy path
+///
 #[test]
 fn destroy_english_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
@@ -716,6 +718,68 @@ fn close_english_auction_which_is_already_closed_should_not_work() {
 // -------------- TopUp auction tests -------------- //
 // functionality is the same as the English auctions //
 // so handlers and helpers are exempt from testing   //
+///
+/// Creating a TopUp auction
+///
+/// Happy path
+///
+#[test]
+fn create_topup_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
+
+		let auction = AuctionsModule::auctions(0).unwrap();
+
+		if let Auction::TopUp(data) = auction {
+			assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+			assert_eq!(data.general_data.reserve_price, None);
+			assert_eq!(data.general_data.last_bid, None);
+			assert_eq!(data.general_data.start, 10u64);
+			assert_eq!(data.general_data.end, 21u64);
+			assert_eq!(data.general_data.owner, ALICE);
+			assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+			assert_eq!(data.general_data.next_bid_min, 1)
+		}
+
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
+	});
+}
+
+/// Error InvalidTimeConfiguration
+#[test]
+fn create_topup_auction_without_end_time_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.end = 0u64;
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidTimeConfiguration
+		);
+	});
+}
+
+/// Error InvalidTimeConfiguration (duration too short)
+#[test]
+fn create_topup_auction_with_duration_shorter_than_minimum_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.end = 20u64;
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidTimeConfiguration
+		);
+	});
+}
 
 /// Error InvalidNextBidMin
 #[test]
@@ -732,6 +796,120 @@ fn create_topup_auction_with_invalid_next_bid_min_should_not_work() {
 			Error::<Test>::InvalidNextBidMin
 		);
 	});	
+}
+
+/// Error EmptyAuctionName
+#[test]
+fn create_topup_auction_with_empty_name_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::EmptyAuctionName
+		);
+	});
+}
+
+/// Error NotATokenOwner
+#[test]
+fn create_topup_auction_when_not_token_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.owner = BOB;
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::NotATokenOwner
+		);
+	});
+}
+
+/// Error CannotSetAuctionClosed
+#[test]
+fn create_topup_auction_with_closed_true_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.closed = true;
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::CannotSetAuctionClosed
+		);
+	});
+}
+
+/// Error TokenFrozen
+#[test]
+fn create_topup_auction_with_frozen_token_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::TokenFrozen
+		);
+	});
+	// TODO test frozen NFT transfer
+}
+
+///
+/// Updating a TopUp auction
+///
+/// Happy path
+///
+#[test]
+fn update_topup_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(3);
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction_data = TopUpAuction {
+			general_data: updated_general_data,
+			specific_data: valid_topup_specific_data(),
+		};
+		let auction = Auction::TopUp(auction_data);
+
+		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction));
+
+		let auction_result = AuctionsModule::auctions(0).unwrap();
+		if let Auction::English(data) = auction_result {
+			assert_eq!(
+				String::from_utf8(data.general_data.name.to_vec()).unwrap(),
+				"Auction renamed"
+			);
+		}
+	});
+}
+
+/// Error AuctionNotExist
+#[test]
+fn update_topup_auction_with_nonexisting_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::AuctionNotExist,
+		);
+	});
 }
 
 /// Error InvalidNextBidMin
@@ -753,6 +931,148 @@ fn update_topup_auction_with_invalid_next_bid_min_should_not_work() {
 			Error::<Test>::InvalidNextBidMin
 		);
 	});	
+}
+
+/// Error CannotSetAuctionClosed
+#[test]
+fn update_topup_auction_with_closed_true_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.closed = true;
+
+		let auction = topup_auction_object(updated_general_data, valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::CannotSetAuctionClosed,
+		);
+	});
+}
+
+/// Error NotAuctionOwner
+#[test]
+fn update_topup_auction_by_non_auction_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction = topup_auction_object(updated_general_data, valid_topup_specific_data());
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(BOB), 0, auction),
+			Error::<Test>::NotAuctionOwner,
+		);
+	});
+}
+
+/// Error AuctionAlreadyStarted
+#[test]
+fn update_topup_auction_after_auction_start_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction = topup_auction_object(updated_general_data, valid_topup_specific_data());
+
+		run_to_block::<Test>(10);
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::AuctionAlreadyStarted,
+		);
+	});
+}
+
+///
+/// Destroying a TopUp auction
+///
+/// Happy path
+///
+#[test]
+fn destroy_topup_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(3);
+
+		assert_ok!(AuctionsModule::destroy(Origin::signed(ALICE), 0));
+
+		assert_eq!(AuctionsModule::auctions(0), None);
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
+
+		expect_event(crate::Event::<Test>::AuctionDestroyed(0));
+
+		// NFT can be transferred
+		assert_ok!(Nft::transfer(
+			Origin::signed(ALICE),
+			NFT_CLASS_ID_1,
+			0u16.into(),
+			CHARLIE
+		));
+		assert_ok!(Nft::transfer(
+			Origin::signed(CHARLIE),
+			NFT_CLASS_ID_1,
+			0u16.into(),
+			ALICE
+		));
+	});
+}
+
+/// Error AuctionNotExist
+#[test]
+fn destroy_topup_auction_with_nonexisting_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			AuctionsModule::destroy(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionNotExist,
+		);
+	});
+}
+
+/// Error NotAuctionOwner
+#[test]
+fn destroy_topup_auction_by_non_auction_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		assert_noop!(
+			AuctionsModule::destroy(Origin::signed(BOB), 0),
+			Error::<Test>::NotAuctionOwner,
+		);
+	});
+}
+
+/// Error AuctionAlreadyStarted
+#[test]
+fn destroy_topup_auction_after_auction_started_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(10);
+
+		assert_noop!(
+			AuctionsModule::destroy(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionAlreadyStarted,
+		);
+	});
 }
 
 // no bids -> balance and owner don't change
@@ -778,7 +1098,11 @@ fn no_bid_topup_auction_should_work() {
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 	});
 }
-
+//
+// Bidding on a TopUp auction
+//
+// TODO: refactor
+//
 // one bid -> only transfer winning bid to owner
 #[test]
 fn one_bid_topup_auction_should_work() {
@@ -890,3 +1214,5 @@ fn multiple_bids_topup_auction_should_work() {
 		assert_eq!(eve_balance_before.saturating_sub(666), eve_balance_after);
 	});
 }
+
+// TODO: add tests for close
