@@ -61,6 +61,7 @@ parameter_types! {
 	pub const BidAddBlocks: u32 = 10;
 	pub const BidStepPerc: u32 = 10;
 	pub const MinAuctionDuration: u32 = 10;
+	pub const BidMinAmount: u32 = 1;
 }
 
 impl pallet_auctions::Config for Test {
@@ -74,6 +75,7 @@ impl pallet_auctions::Config for Test {
 	type BidAddBlocks = BidAddBlocks;
 	type BidStepPerc = BidStepPerc;
 	type MinAuctionDuration = MinAuctionDuration;
+	type BidMinAmount = BidMinAmount;
 }
 
 parameter_types! {

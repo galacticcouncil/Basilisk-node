@@ -149,6 +149,10 @@ pub mod pallet {
 		/// Minimum auction duration
 		#[pallet::constant]
 		type MinAuctionDuration: Get<u32>;
+
+		/// Minimum bid amount
+		#[pallet::constant]
+		type BidMinAmount: Get<u32>;
 	}
 
 	#[pallet::storage]
@@ -394,6 +398,10 @@ impl<T: Config> Pallet<T> {
 			token_owner == Some(general_data.owner.clone()),
 			Error::<T>::NotATokenOwner
 		);
+
+		// Start bid should always be above the minimum
+		ensure!(general_data.next_bid_min >= <T as crate::Config>::BidMinAmount::get().into(), Error::<T>::InvalidNextBidMin);
+
 		ensure!(!&general_data.closed, Error::<T>::CannotSetAuctionClosed);
 
 		Ok(())
@@ -651,7 +659,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 				Error::<T>::InvalidNextBidMin
 			);
 		} else {
-			ensure!(self.general_data.next_bid_min.is_zero(), Error::<T>::InvalidNextBidMin);
+			ensure!(self.general_data.next_bid_min == T::BidMinAmount::get().into(), Error::<T>::InvalidNextBidMin);
 		}
 
 		Ok(())
@@ -763,13 +771,6 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 	}
 
 	fn validate_general_data(&self) -> DispatchResult {
-		Pallet::<T>::validate_general_data(&self.general_data)?;
-
-		// add check for none next_bid_min
-		// if Some(general_auction_data.next_bid_min) {
-		// 	ensure!(reserve_price == general_auction_data.next_bid_min, Error::<T>::ReservePriceMustBeEqualToNextBidMin)
-		// }
-
-		Ok(())
+		Pallet::<T>::validate_general_data(&self.general_data)
 	}
 }

@@ -54,7 +54,7 @@ fn valid_general_auction_data() -> GeneralAuctionData<Test> {
 		closed: false,
 		owner: ALICE,
 		token: (NFT_CLASS_ID_1, 0u16.into()),
-		next_bid_min: 0,
+		next_bid_min: 1,
 	}
 }
 
@@ -111,7 +111,7 @@ fn create_english_auction_should_work() {
 			assert_eq!(data.general_data.end, 21u64);
 			assert_eq!(data.general_data.owner, ALICE);
 			assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-			assert_eq!(data.general_data.next_bid_min, 0)
+			assert_eq!(data.general_data.next_bid_min, 1)
 		}
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
@@ -171,11 +171,20 @@ fn create_english_auction_with_duration_shorter_than_minimum_should_not_work() {
 fn create_english_auction_with_invalid_next_bid_min_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let mut general_auction_data = valid_general_auction_data();
+
+		general_auction_data.next_bid_min = 0;
+		let auction = english_auction_object(general_auction_data.clone(), valid_english_specific_data());
+
+		// next_bid_min is below BidMinAmount
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+
 		general_auction_data.next_bid_min = 10;
-		
 		let auction = english_auction_object(general_auction_data.clone(), valid_english_specific_data());
 		
-		// next_bid_min is set while reserve_price is None
+		// next_bid_min cannot be set when reserve_price is None
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::InvalidNextBidMin
@@ -184,7 +193,7 @@ fn create_english_auction_with_invalid_next_bid_min_should_not_work() {
 		general_auction_data.reserve_price = Some(20);
 		let auction = english_auction_object(general_auction_data.clone(), valid_english_specific_data());
 
-		// next_bid_min != reserve_price
+		// next_bid_min cannot be different from reserve_price
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
 			Error::<Test>::InvalidNextBidMin
@@ -313,6 +322,16 @@ fn update_english_auction_with_invalid_next_bid_min_should_not_work() {
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.next_bid_min = 0;
+
+		let auction = english_auction_object(updated_general_data.clone(), valid_english_specific_data());
+
+		// next_bid_min is below BidMinAmount
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+
 		updated_general_data.next_bid_min = 10;
 		
 		let auction = english_auction_object(updated_general_data.clone(), valid_english_specific_data());
@@ -698,6 +717,44 @@ fn close_english_auction_which_is_already_closed_should_not_work() {
 // functionality is the same as the English auctions //
 // so handlers and helpers are exempt from testing   //
 
+/// Error InvalidNextBidMin
+#[test]
+fn create_topup_auction_with_invalid_next_bid_min_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+
+		general_auction_data.next_bid_min = 0;
+		let auction = topup_auction_object(general_auction_data.clone(), valid_topup_specific_data());
+
+		// next_bid_min is below BidMinAmount
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+	});	
+}
+
+/// Error InvalidNextBidMin
+#[test]
+fn update_topup_auction_with_invalid_next_bid_min_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data().clone(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.next_bid_min = 0;
+
+		let auction = topup_auction_object(updated_general_data.clone(), valid_topup_specific_data());
+
+		// next_bid_min is below BidMinAmount
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+	});	
+}
+
 // no bids -> balance and owner don't change
 #[test]
 fn no_bid_topup_auction_should_work() {
@@ -713,8 +770,10 @@ fn no_bid_topup_auction_should_work() {
 		let mut updated_general_data = valid_general_auction_data();
 		updated_general_data.start = 30u64;
 		updated_general_data.end = 50u64;
+		updated_general_data.next_bid_min = 50u128;
+		updated_general_data.reserve_price = Some(500u128);
 
-		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
+		let auction = topup_auction_object(updated_general_data, valid_topup_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 	});
