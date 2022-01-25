@@ -106,7 +106,6 @@ jobs:
           ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.jsons 
       - name: Upload config file
         uses: actions/upload-artifact@v2
-        if: github.ref == 'refs/heads/master'
         with:
           name: basilisk-testnet-chainspec.json
           path: ./basilisk-testnet-chainspec.json
@@ -124,6 +123,7 @@ jobs:
 
   upload-config-to-s3:
     name: upload configuration to S3
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs: build
     env:
