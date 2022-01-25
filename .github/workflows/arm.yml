@@ -1,0 +1,27 @@
+name: arm-build
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: arm64
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: git describe --tags --abbrev=0 --always
+      - name: Build node
+        run: cargo build --release --locked
+      - name: Version info
+        run: ./target/release/basilisk --version
+      - name: Upload release binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk.arm64
+          path: target/release/basilisk
