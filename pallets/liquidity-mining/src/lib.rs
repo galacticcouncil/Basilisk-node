@@ -77,14 +77,14 @@ type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
 type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
-type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
-type NftInstaceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
+pub type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
+pub type NftInstaceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct GlobalPool<T: Config> {
 	id: PoolId,
 	owner: AccountIdOf<T>,
-	updated_at: PeriodOf<T>,
+	pub updated_at: PeriodOf<T>,
 	total_shares_z: Balance,
 	accumulated_rpz: Balance,
 	reward_currency: AssetIdOf<T>,
@@ -95,7 +95,7 @@ pub struct GlobalPool<T: Config> {
 	blocks_per_period: BlockNumberFor<T>,
 	incentivized_token: AssetIdOf<T>,
 	max_reward_per_period: Balance,
-	liq_pools_count: u32,
+	pub liq_pools_count: u32,
 }
 
 impl<T: Config> GlobalPool<T> {
@@ -132,16 +132,16 @@ impl<T: Config> GlobalPool<T> {
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct LiquidityPoolYieldFarm<T: Config> {
 	id: PoolId,
-	updated_at: PeriodOf<T>,
+	pub updated_at: PeriodOf<T>,
 	total_shares: Balance,
 	total_valued_shares: Balance,
 	accumulated_rps: Balance,
 	accumulated_rpz: Balance,
 	loyalty_curve: Option<LoyaltyCurve>,
 	stake_in_global_pool: Balance, //NOTE: may be replace with: total_valued_shares * multiplier
-	multiplier: PoolMultiplier,
+	pub multiplier: PoolMultiplier,
 	nft_class: NftClassIdOf<T>,
-	canceled: bool,
+	pub canceled: bool,
 }
 
 impl<T: Config> LiquidityPoolYieldFarm<T> {
@@ -183,7 +183,7 @@ impl Default for LoyaltyCurve {
 	}
 }
 
-#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct Deposit<T: Config> {
 	shares: Balance,
 	valued_shares: Balance,
@@ -845,7 +845,7 @@ pub mod pallet {
 					ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
 					<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
-						//something is very wrong it this fail
+						//something is very wrong if this fail
 						let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 						let now_period = Self::get_now_period(g_pool.blocks_per_period)?;

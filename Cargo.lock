@@ -11114,6 +11114,7 @@ dependencies = [
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
  "pallet-liquidity-mining",
+ "pallet-liquidity-mining-benchmarking",
  "pallet-multi-payment-benchmarking",
  "pallet-nft",
  "pallet-price-oracle",

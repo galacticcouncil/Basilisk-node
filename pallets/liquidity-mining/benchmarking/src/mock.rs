@@ -87,7 +87,7 @@ impl BlockNumberProvider for MockBlockNumberProvider {
 	type BlockNumber = u64;
 
 	fn current_block_number() -> Self::BlockNumber {
-		Self::get()
+        System::block_number()
 	}
 }
 impl system::Config for Test {
