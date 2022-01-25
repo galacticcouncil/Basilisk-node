@@ -107,7 +107,7 @@ jobs:
       - name: Upload config file
         uses: actions/upload-artifact@v2
         with:
-          name: basilisk-testnet-chainspec
+          name: basilisk-testnet-chainspec.json
           path: ./basilisk-testnet-chainspec.json
       - name: Upload release binary
         uses: actions/upload-artifact@v2
@@ -135,7 +135,7 @@ jobs:
       - uses: actions/download-artifact@v2
         name: Download config file
         with:
-          name: basilisk-testnet-chainspec
+          name: basilisk-testnet-chainspec.json
           path: .
       - name: S3 Upload basilisk-testnet-chainspec.json
         uses: tpaschalis/s3-sync-action@master
@@ -209,7 +209,7 @@ jobs:
           name: basilisk
           path: .
       - name: Add execution for basilisk
-        run: chmod +x ./basilisk && ./basilisk --version
+        run: chmod 777 ./basilisk && ./basilisk --version
       - name: install docker
         run: sudo snap install docker
       - name: Sleep for 30 seconds
