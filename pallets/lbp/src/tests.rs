@@ -3234,9 +3234,9 @@ fn calculate_repay_fee() {
 }
 
 #[test]
-fn get_repay_fee_should_work() {
+fn repay_fee_should_work() {
 	new_test_ext().execute_with(|| {
-		assert_eq!(LBPPallet::get_repay_fee(), (2, 10));
+		assert_eq!(LBPPallet::repay_fee(), (2, 10));
 	});
 }
 
