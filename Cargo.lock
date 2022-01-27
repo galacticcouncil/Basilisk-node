@@ -5724,7 +5724,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.2.4"
+version = "4.3.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -11287,7 +11287,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.10.2",
+ "parking_lot 0.11.2",
  "regex",
  "serde",
  "serde_json",
