@@ -188,6 +188,11 @@ parameter_types! {
 	pub const MaxApprovals: u32 =  100;
 }
 
+// pallet-auctions
+parameter_types! {
+	pub const AuctionsPalletId: PalletId = PalletId(*b"auctions");
+}
+
 // pallet authorship
 parameter_types! {
 	pub const UncleGenerations: u32 = 0;

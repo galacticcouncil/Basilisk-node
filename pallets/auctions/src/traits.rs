@@ -9,9 +9,9 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
 
 	fn update(&self, sender: AccountId, auction_id: AuctionId, auction: NftAuction) -> DispatchResult;
 
-	fn bid(&mut self, bidder: AccountId, value: BalanceOf) -> DispatchResult;
+	fn bid(&mut self, auction_id: &AuctionId, bidder: AccountId, value: BalanceOf) -> DispatchResult;
 
-	fn close(&mut self) -> DispatchResult;
+	fn close(&mut self, auction_id: &AuctionId) -> DispatchResult;
 
 	fn validate_general_data(&self) -> DispatchResult;
 }
