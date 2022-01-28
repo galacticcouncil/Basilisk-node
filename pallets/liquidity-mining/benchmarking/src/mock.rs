@@ -38,6 +38,8 @@ use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 };
 
+use primitives::constants::currency::NATIVE_EXISTENTIAL_DEPOSIT;
+
 pub type AccountId = u128;
 pub type BlockNumber = u64;
 pub const ALICE: AccountId = 1;
@@ -87,7 +89,7 @@ impl BlockNumberProvider for MockBlockNumberProvider {
 	type BlockNumber = u64;
 
 	fn current_block_number() -> Self::BlockNumber {
-        System::block_number()
+		System::block_number()
 	}
 }
 impl system::Config for Test {
@@ -151,7 +153,7 @@ impl pallet_nft::Config for Test {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 500;
+	pub const ExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
 	pub const MaxReserves: u32 = 50;
 }
 

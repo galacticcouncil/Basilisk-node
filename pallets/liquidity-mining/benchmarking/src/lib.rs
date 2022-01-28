@@ -31,25 +31,37 @@ use primitives::{asset::AssetPair, AssetId, Balance, Price};
 use sp_arithmetic::Permill;
 use sp_std::convert::From;
 
+use primitives::constants::currency::NATIVE_EXISTENTIAL_DEPOSIT;
+
 use pallet_xyk as xykpool;
 
 const SEED: u32 = 0;
 
-const BSX: AssetId = 1000;
-const KSM: AssetId = 2000;
+const BSX: AssetId = 0;
+const KSM: AssetId = 1;
 
 pub trait Config: pallet_liquidity_mining::Config + pallet_xyk::Config {}
 
 pub struct Pallet<T: Config>(LiquidityMining<T>);
 
-const INITIAL_BALANCE: Balance = 100_000_000_000_000_000_000;
+const INITIAL_BALANCE: Balance = 100_000_000_000_000_000;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 
-	<T as pallet_liquidity_mining::Config>::MultiCurrency::deposit(BSX.into(), &caller, INITIAL_BALANCE).unwrap();
+	<T as pallet_liquidity_mining::Config>::MultiCurrency::deposit(
+		BSX.into(),
+		&caller,
+		INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT,
+	)
+	.unwrap();
 
-	<T as pallet_liquidity_mining::Config>::MultiCurrency::deposit(KSM.into(), &caller, INITIAL_BALANCE).unwrap();
+	<T as pallet_liquidity_mining::Config>::MultiCurrency::deposit(
+		KSM.into(),
+		&caller,
+		INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT,
+	)
+	.unwrap();
 
 	caller
 }
@@ -73,7 +85,7 @@ fn init_farm<T: Config>(
 ) -> dispatch::DispatchResult {
 	LiquidityMining::<T>::create_farm(
 		RawOrigin::Root.into(),
-		total_rewards,
+		total_rewards * NATIVE_EXISTENTIAL_DEPOSIT,
 		T::BlockNumber::from(1_000_000_u32),
 		T::BlockNumber::from(1_u32),
 		BSX.into(),
@@ -131,7 +143,7 @@ fn set_block_number<T: Config>(block: u32) {
 benchmarks! {
 	create_farm {
 		let caller = funded_account::<T>("caller", 0);
-	}: { LiquidityMining::<T>::create_farm(RawOrigin::Root.into(), 1_000_000_000_000, T::BlockNumber::from(1_000_000_u32), T::BlockNumber::from(1_u32), BSX.into(), BSX.into(), caller, Permill::from_percent(20))? }
+	}: { LiquidityMining::<T>::create_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, T::BlockNumber::from(1_000_000_u32), T::BlockNumber::from(1_u32), BSX.into(), BSX.into(), caller.clone(), Permill::from_percent(20))? }
 	verify {
 		assert!(LiquidityMining::<T>::global_pool(1).is_some());
 	}
@@ -139,7 +151,7 @@ benchmarks! {
 	destroy_farm {
 		let caller = funded_account::<T>("caller", 0);
 
-		init_farm::<T>(1_000_000_000_000, caller.clone(), Permill::from_percent(20))?;
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
 		assert!(LiquidityMining::<T>::global_pool(1).is_some());
 
@@ -153,26 +165,26 @@ benchmarks! {
 	withdraw_undistributed_rewards {
 		let caller = funded_account::<T>("caller", 0);
 
-		init_farm::<T>(1_000_000_000_000, caller.clone(), Permill::from_percent(20))?;
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
 		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000_000_000);
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 	}: { LiquidityMining::<T>::withdraw_undistributed_rewards(RawOrigin::Signed(caller.clone()).into(), 1)? }
 	verify {
 		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc), 0);
-		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &caller.clone()), INITIAL_BALANCE);
+		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &caller.clone()), INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT);
 	}
 
 	add_liquidity_pool {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 
-		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000_000, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
-		init_farm::<T>(1_000_000_000_000, caller.clone(), Permill::from_percent(20))?;
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
 		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000_000_000);
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -193,12 +205,12 @@ benchmarks! {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 
-		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000_000, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
-		init_farm::<T>(1_000_000_000_000, caller.clone(), Permill::from_percent(20))?;
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
 		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000_000_000);
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -223,12 +235,12 @@ benchmarks! {
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000_000, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
-		init_farm::<T>(1_000_000_000_000, caller.clone(), Permill::from_percent(20))?;
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
 		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000_000_000);
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -262,12 +274,12 @@ benchmarks! {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 
-		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000_000, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
-		init_farm::<T>(1_000_000_000_000, caller.clone(), Permill::from_percent(20))?;
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
 		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000_000_000);
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -281,7 +293,7 @@ benchmarks! {
 
 		LiquidityMining::<T>::cancel_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
 
-        //NOTE: check if this is really worstcase 
+		//NOTE: check if this is really worstcase
 		assert!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled);
 	}: {
 		LiquidityMining::<T>::remove_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?
@@ -296,12 +308,12 @@ benchmarks! {
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000_000, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
-		init_farm::<T>(1_000_000_000_000, caller.clone(), Permill::from_percent(20))?;
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
 		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000_000_000);
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -322,31 +334,31 @@ benchmarks! {
 
 
 		assert!(LiquidityMining::<T>::deposit(
-            <<T as pallet_nft::Config>::NftClassId>::from(0_u32), 
-            <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
-        ).is_none());
+			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
+			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
+		).is_none());
 
 	}: {
 		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), 1, assets, 10_000)?
 	}
 	verify {
 		assert!(LiquidityMining::<T>::deposit(
-            <<T as pallet_nft::Config>::NftClassId>::from(0_u32), 
-            <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
-        ).is_some());
+			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
+			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
+		).is_some());
 	}
-	
-    claim_rewards {
+
+	claim_rewards {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000_000, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
 		init_farm::<T>(INITIAL_BALANCE, caller.clone(), Permill::from_percent(20))?;
 
 		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc), 100_000_000_000_000_000_000);
+		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc), INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -366,34 +378,34 @@ benchmarks! {
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
 
 		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), 1, assets, 10_000)?;
-		
-        assert!(LiquidityMining::<T>::deposit(
-            <<T as pallet_nft::Config>::NftClassId>::from(0_u32), 
-            <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
-        ).is_some());
 
-        set_block_number::<T>(400_000);
+		assert!(LiquidityMining::<T>::deposit(
+			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
+			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
+		).is_some());
 
-        let liq_provider_bsx_balance = T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone());
+		set_block_number::<T>(400_000);
+
+		let liq_provider_bsx_balance = T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone());
 	}: {
 		LiquidityMining::<T>::claim_rewards(RawOrigin::Signed(liq_provider.clone()).into(), <<T as pallet_nft::Config>::NftClassId>::from(0_u32), <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32))?
 	}
 	verify {
 		assert!(T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone()).gt(&liq_provider_bsx_balance));
 	}
-   
-    //TODO: check if this is worst case 
-    withdraw_shares {
+
+	//TODO: check if this is worst case
+	withdraw_shares {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000_000, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
 		init_farm::<T>(INITIAL_BALANCE, caller.clone(), Permill::from_percent(20))?;
 
 		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc), 100_000_000_000_000_000_000);
+		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc), INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -413,24 +425,24 @@ benchmarks! {
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
 
 		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), 1, assets, 10_000)?;
-		
-        assert!(LiquidityMining::<T>::deposit(
-            <<T as pallet_nft::Config>::NftClassId>::from(0_u32), 
-            <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
-        ).is_some());
 
-        set_block_number::<T>(400_000);
+		assert!(LiquidityMining::<T>::deposit(
+			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
+			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
+		).is_some());
 
-        let liq_provider_bsx_balance = T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone());
+		set_block_number::<T>(400_000);
+
+		let liq_provider_bsx_balance = T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone());
 	}: {
 		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), <<T as pallet_nft::Config>::NftClassId>::from(0_u32), <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32))?
 	}
 	verify {
 		assert!(T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone()).gt(&liq_provider_bsx_balance));
 		assert!(LiquidityMining::<T>::deposit(
-            <<T as pallet_nft::Config>::NftClassId>::from(0_u32), 
-            <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
-        ).is_none());
+			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
+			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
+		).is_none());
 	}
 }
 

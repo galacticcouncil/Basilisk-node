@@ -31,7 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned, RawOrigin};
+use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -763,7 +763,7 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type Event = Event;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currencies;
-	type CreateOrigin = EnsureSigned<AccountId>;
+	type CreateOrigin = EnsureRoot<AccountId>;
 	type PalletId = LMPalletId;
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
