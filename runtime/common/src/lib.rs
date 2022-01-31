@@ -118,6 +118,9 @@ parameter_types! {
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub enum ProxyType {
 	Any,
+	CancelProxy,
+	Governance,
+	Exchange,
 }
 impl Default for ProxyType {
 	fn default() -> Self {
