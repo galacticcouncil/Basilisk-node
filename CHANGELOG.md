@@ -1,3 +1,40 @@
+# (Fri Jan 14 2022)
+
+#### 💥 Breaking Change
+
+- feat!: LBP repayment fee from accumulated asset [#231](https://github.com/galacticcouncil/Basilisk-node/pull/231) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@jak-pan](https://github.com/jak-pan) [@vgantchev](https://github.com/vgantchev) [@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### 🚀 Enhancement
+
+- feat: new keys for k8s testnet [#305](https://github.com/galacticcouncil/Basilisk-node/pull/305) ([@martinfridrich](https://github.com/martinfridrich))
+- feat(exchange): use fee from amm [#302](https://github.com/galacticcouncil/Basilisk-node/pull/302) ([@Roznovjak](https://github.com/Roznovjak))
+- feat: add check performance script [#297](https://github.com/galacticcouncil/Basilisk-node/pull/297) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: use spot price in multi payment instead of pool trade [#290](https://github.com/galacticcouncil/Basilisk-node/pull/290) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: Add validation on existing fee collector [#287](https://github.com/galacticcouncil/Basilisk-node/pull/287) ([@vgantchev](https://github.com/vgantchev) [@enthusiastmartin](https://github.com/enthusiastmartin))
+
+#### 🐛 Bug Fix
+
+- chore: polkadot-v0.9.13 [#295](https://github.com/galacticcouncil/Basilisk-node/pull/295) ([@green-jay](https://github.com/green-jay) [@lumir-mrkva](https://github.com/lumir-mrkva) [@enthusiastmartin](https://github.com/enthusiastmartin))
+- refactor: fee calcs from math crate [#294](https://github.com/galacticcouncil/Basilisk-node/pull/294) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: update asset registry benchmarks [#298](https://github.com/galacticcouncil/Basilisk-node/pull/298) ([@Roznovjak](https://github.com/Roznovjak) [@enthusiastmartin](https://github.com/enthusiastmartin))
+- refactor: remove fee struct [#296](https://github.com/galacticcouncil/Basilisk-node/pull/296) ([@Roznovjak](https://github.com/Roznovjak))
+- ci: update ami image with new key [#299](https://github.com/galacticcouncil/Basilisk-node/pull/299) ([@fakirAyoub](https://github.com/fakirAyoub))
+- ci: runtime upgrade test [#274](https://github.com/galacticcouncil/Basilisk-node/pull/274) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: running chain tests in parallel on gh infra [#279](https://github.com/galacticcouncil/Basilisk-node/pull/279) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+
+#### Authors: 8
+
+- [@green-jay](https://github.com/green-jay)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Ayoub Fakir ([@fakirAyoub](https://github.com/fakirAyoub))
+- Jakub Pánik ([@jak-pan](https://github.com/jak-pan))
+- martin fridrich ([@martinfridrich](https://github.com/martinfridrich))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+- Valery Gantchev ([@vgantchev](https://github.com/vgantchev))
+
+---
+
 # v6.1.0 (Tue Dec 07 2021)
 
 #### 🚀 Enhancement

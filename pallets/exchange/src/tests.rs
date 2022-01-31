@@ -43,10 +43,9 @@ fn expect_event<E: Into<TestEvent>>(e: E) {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	println!("left: {:?}\n",frame_system::Pallet::<Test>::events());
-	println!("right: {:?}",e);
-	e.into_iter()
-		.for_each(frame_system::Pallet::<Test>::assert_has_event);
+	println!("left: {:?}\n", frame_system::Pallet::<Test>::events());
+	println!("right: {:?}", e);
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
 fn generate_intention_id(account: &<Test as system::Config>::AccountId, c: u32) -> crate::IntentionId<Test> {
@@ -206,8 +205,18 @@ fn sell_test_pool_finalization_states() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, user_2, 1000000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, user_3, 2004000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: user_2,
+				amount: 1000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: user_3,
+				amount: 2004000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -354,8 +363,18 @@ fn sell_test_standard() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 2, 1000000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 2004000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: user_2,
+				amount: 1000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: user_3,
+				amount: 2004000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -490,8 +509,18 @@ fn sell_test_inverse_standard() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 2, 1000000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 2000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: user_2,
+				amount: 1000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: user_3,
+				amount: 2000000000000,
+			}
+			.into(),
 			xyk::Event::SellExecuted(
 				3,
 				2000,
@@ -618,8 +647,18 @@ fn sell_test_exact_match() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 2, 1000000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 2000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: user_2,
+				amount: 1000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: user_3,
+				amount: 2000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -1227,8 +1266,18 @@ fn sell_test_single_multiple_sells() {
 				user_6_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 2, 1000000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 6, 2000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 2,
+				amount: 1000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 6,
+				amount: 2000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_6,
@@ -1254,8 +1303,18 @@ fn sell_test_single_multiple_sells() {
 				4000000000,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 4, 500000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 1000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 4,
+				amount: 500000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 3,
+				amount: 1000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_4,
 				user_3,
@@ -1281,8 +1340,18 @@ fn sell_test_single_multiple_sells() {
 				2000000000,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 4, 500000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 5, 1000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 4,
+				amount: 500000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 5,
+				amount: 1000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_4,
 				user_5,
@@ -1409,8 +1478,18 @@ fn sell_test_group_sells() {
 				user_4_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 4, 2500000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 5000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 4,
+				amount: 2500000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 5000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_4,
 				user_2,
@@ -1436,8 +1515,18 @@ fn sell_test_group_sells() {
 				10000000000,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 4, 1500000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 3000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 4,
+				amount: 1500000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 3,
+				amount: 3000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_4,
 				user_3,
@@ -1638,8 +1727,18 @@ fn sell_test_mixed_buy_sells() {
 				user_4_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 4, 1500000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 3000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 4,
+				amount: 1500000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 3,
+				amount: 3000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_4,
 				user_3,
@@ -1806,8 +1905,18 @@ fn discount_tests_no_discount() {
 				user_4_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 4, 1500000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 3000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 4,
+				amount: 1500000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 3,
+				amount: 3000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_4,
 				user_3,
@@ -1980,8 +2089,18 @@ fn discount_tests_with_discount() {
 				user_4_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 4, 1500000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 3000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 4,
+				amount: 1500000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 3,
+				amount: 3000000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_4,
 				user_3,
@@ -2125,8 +2244,18 @@ fn buy_test_exact_match() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 1002000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 2004000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 3,
+				amount: 1002000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 2004000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_3,
 				user_2,
@@ -2253,8 +2382,18 @@ fn buy_test_group_buys() {
 				user_4_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 2, 2505000000000).into(),
-			orml_tokens::Event::Reserved(asset_b, 4, 5010000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 2,
+				amount: 2505000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 4,
+				amount: 5010000000000,
+			}
+			.into(),
 			xyk::Event::BuyExecuted(
 				user_4,
 				asset_a,
@@ -2544,8 +2683,18 @@ fn simple_sell_sell() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 2, 500).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 1000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 2,
+				amount: 500,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 3,
+				amount: 1000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -2641,8 +2790,18 @@ fn simple_buy_buy() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 500).into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 1002).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 3,
+				amount: 500,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 1002,
+			}
+			.into(),
 			xyk::Event::BuyExecuted(2, 3000, 2000, 1500, 3001, 2000, 6, pair_account).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
@@ -2739,8 +2898,18 @@ fn simple_sell_buy() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 2, 1000).into(),
-			orml_tokens::Event::Reserved(asset_b, 3, 2004).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 2,
+				amount: 1000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 3,
+				amount: 2004,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -2836,8 +3005,18 @@ fn simple_buy_sell() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 1000).into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 2004).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 3,
+				amount: 1000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 2004,
+			}
+			.into(),
 			xyk::Event::BuyExecuted(user_2, 3000, 2000, 1000, 2001, 2000, 4, pair_account).into(),
 			Event::IntentionResolvedAMMTrade(
 				user_2,
@@ -3197,8 +3376,18 @@ fn matching_limits_buy_buy_should_work() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 200400000000000).into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 100200000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 200400000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 3,
+				amount: 100200000000000,
+			}
+			.into(),
 			xyk::Event::BuyExecuted(
 				3,
 				asset_b,
@@ -3323,8 +3512,18 @@ fn matching_limits_sell_buy_should_work() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 60120000000000).into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 30000000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 60120000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 3,
+				amount: 30000000000000,
+			}
+			.into(),
 			xyk::Event::SellExecuted(
 				3,
 				asset_a,
@@ -3444,8 +3643,18 @@ fn exact_match_limit_should_work() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 100200000000000).into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 50100000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 100200000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 3,
+				amount: 50100000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -3553,8 +3762,18 @@ fn matching_limit_scenario_2() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 180360000000000).into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 90180000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 180360000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 3,
+				amount: 90180000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -3682,8 +3901,18 @@ fn matching_limit_scenario_3() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_b, 2, 200400000000000).into(),
-			orml_tokens::Event::Reserved(asset_a, 3, 100200000000000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: 2,
+				amount: 200400000000000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: 3,
+				amount: 100200000000000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -4699,8 +4928,20 @@ fn direct_sell_sell_transfers_without_other_asset_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200004000);
 
 		expect_events(vec![
-			orml_tokens::Event::Transfer(asset_b, user_2, ALICE, 100000000000000000).into(),
-			orml_tokens::Event::Transfer(asset_a, user_3, ALICE, 100000000000000000).into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_b,
+				from: user_2,
+				to: ALICE,
+				amount: 100000000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_a,
+				from: user_3,
+				to: ALICE,
+				amount: 100000000000000000,
+			}
+			.into(),
 			Event::IntentionRegistered(
 				user_2,
 				asset_a,
@@ -4719,8 +4960,18 @@ fn direct_sell_sell_transfers_without_other_asset_should_work() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, user_2, 1_000_000).into(),
-			orml_tokens::Event::Reserved(asset_b, user_3, 2_000_000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: user_2,
+				amount: 1_000_000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: user_3,
+				amount: 2_000_000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -4805,8 +5056,20 @@ fn direct_buy_buy_transfers_without_other_asset_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200_004_000);
 
 		expect_events(vec![
-			orml_tokens::Event::Transfer(asset_a, user_2, ALICE, 100000000000000000).into(),
-			orml_tokens::Event::Transfer(asset_b, user_3, ALICE, 100000000000000000).into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_a,
+				from: user_2,
+				to: ALICE,
+				amount: 100000000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_b,
+				from: user_3,
+				to: ALICE,
+				amount: 100000000000000000,
+			}
+			.into(),
 			Event::IntentionRegistered(
 				user_2,
 				asset_a,
@@ -4825,8 +5088,18 @@ fn direct_buy_buy_transfers_without_other_asset_should_work() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, user_3, 1_002_000).into(),
-			orml_tokens::Event::Reserved(asset_b, user_2, 2_004_000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: user_3,
+				amount: 1_002_000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: user_2,
+				amount: 2_004_000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_3,
 				user_2,
@@ -4911,8 +5184,20 @@ fn direct_sell_buy_transfers_without_other_asset_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200008000);
 
 		expect_events(vec![
-			orml_tokens::Event::Transfer(asset_b, user_2, ALICE, 100000000000000000).into(),
-			orml_tokens::Event::Transfer(asset_a, user_3, ALICE, 100000000000000000).into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_b,
+				from: user_2,
+				to: ALICE,
+				amount: 100000000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_a,
+				from: user_3,
+				to: ALICE,
+				amount: 100000000000000000,
+			}
+			.into(),
 			Event::IntentionRegistered(
 				user_2,
 				asset_a,
@@ -4931,8 +5216,18 @@ fn direct_sell_buy_transfers_without_other_asset_should_work() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, user_2, 1_000_000).into(),
-			orml_tokens::Event::Reserved(asset_b, user_3, 2_004_000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: user_2,
+				amount: 1_000_000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: user_3,
+				amount: 2_004_000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_2,
 				user_3,
@@ -5015,8 +5310,20 @@ fn direct_buy_sell_transfers_without_other_asset_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200008000);
 
 		expect_events(vec![
-			orml_tokens::Event::Transfer(asset_a, user_2, ALICE, 100000000000000000).into(),
-			orml_tokens::Event::Transfer(asset_b, user_3, ALICE, 100000000000000000).into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_a,
+				from: user_2,
+				to: ALICE,
+				amount: 100000000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_b,
+				from: user_3,
+				to: ALICE,
+				amount: 100000000000000000,
+			}
+			.into(),
 			Event::IntentionRegistered(
 				user_2,
 				asset_a,
@@ -5035,8 +5342,18 @@ fn direct_buy_sell_transfers_without_other_asset_should_work() {
 				user_3_sell_intention_id,
 			)
 			.into(),
-			orml_tokens::Event::Reserved(asset_a, user_3, 1_000_000).into(),
-			orml_tokens::Event::Reserved(asset_b, user_2, 2_004_000).into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_a,
+				who: user_3,
+				amount: 1_000_000,
+			}
+			.into(),
+			orml_tokens::Event::Reserved {
+				currency_id: asset_b,
+				who: user_2,
+				amount: 2_004_000,
+			}
+			.into(),
 			Event::IntentionResolvedDirectTrade(
 				user_3,
 				user_2,

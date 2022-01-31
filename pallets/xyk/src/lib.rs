@@ -47,7 +47,10 @@ mod tests;
 
 mod benchmarking;
 
+mod impls;
 pub mod weights;
+
+pub use impls::XYKSpotPrice;
 
 use weights::WeightInfo;
 
@@ -315,7 +318,7 @@ pub mod pallet {
 				T::MinPoolLiquidity::get(),
 			)?;
 
-			T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out);
+			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
@@ -586,8 +589,10 @@ impl<T: Config> Pallet<T> {
 	}
 	/// Calculate discounted trade fee
 	fn calculate_discounted_fee(amount: Balance) -> Result<Balance, DispatchError> {
-		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (7, 10_000)) // 0.07%
-			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
+		Ok(
+			hydra_dx_math::fee::calculate_pool_trade_fee(amount, (7, 10_000)) // 0.07%
+				.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?,
+		)
 	}
 
 	/// Calculate trade fee
