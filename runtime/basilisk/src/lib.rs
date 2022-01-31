@@ -360,6 +360,8 @@ impl InstanceFilter<Call> for ProxyType {
 					| Call::Utility(..)
 			),
 			ProxyType::Exchange => matches!(c, Call::XYK(..) | Call::Exchange(..) | Call::LBP(..) | Call::NFT(..)),
+			// Transfer group doesn't include cross-chain transfers
+			ProxyType::Transfer => matches!(c, Call::Balances(..) | Call::Currencies(..) | Call::Tokens(..)),
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {

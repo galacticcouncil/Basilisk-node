@@ -118,6 +118,7 @@ pub enum ProxyType {
 	CancelProxy,
 	Governance,
 	Exchange,
+	Transfer,
 }
 impl Default for ProxyType {
 	fn default() -> Self {
