@@ -414,7 +414,7 @@ pub mod pallet {
 		/// - `reward_currency`
 		/// - `admin_account`
 		/// - `yield_per_period`
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::create_farm())]
 		#[transactional]
 		pub fn create_farm(
 			origin: OriginFor<T>,
@@ -468,7 +468,8 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_farm())]
+		#[transactional]
 		pub fn destroy_farm(origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -492,7 +493,8 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::withdraw_undistributed_rewards())]
+		#[transactional]
 		pub fn withdraw_undistributed_rewards(origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
 			//TODO: not tested, add tests
 			let who = ensure_signed(origin)?;
@@ -514,7 +516,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity_pool())]
 		#[transactional]
 		pub fn add_liquidity_pool(
 			origin: OriginFor<T>,
@@ -577,7 +579,7 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::update_liquidity_pool())]
 		#[transactional]
 		pub fn update_liquidity_pool(
 			origin: OriginFor<T>,
@@ -636,7 +638,7 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
 		pub fn cancel_liquidity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -671,7 +673,7 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity_pool())]
 		#[transactional]
 		pub fn remove_liquidity_pool(
 			origin: OriginFor<T>,
@@ -734,7 +736,7 @@ pub mod pallet {
 			)
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
 		#[transactional]
 		pub fn deposit_shares(
 			origin: OriginFor<T>,
@@ -819,7 +821,7 @@ pub mod pallet {
 
 		/// use `withdraw_shares()` if nft is valid but pool/farm doesn't exist or liq. mining is
 		/// canceled
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::claim_rewards())]
 		#[transactional]
 		pub fn claim_rewards(
 			origin: OriginFor<T>,
@@ -869,7 +871,7 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::withdraw_shares())]
 		#[transactional]
 		pub fn withdraw_shares(
 			origin: OriginFor<T>,

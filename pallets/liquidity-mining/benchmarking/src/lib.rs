@@ -293,7 +293,6 @@ benchmarks! {
 
 		LiquidityMining::<T>::cancel_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
 
-		//NOTE: check if this is really worstcase
 		assert!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled);
 	}: {
 		LiquidityMining::<T>::remove_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?
@@ -394,7 +393,6 @@ benchmarks! {
 		assert!(T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone()).gt(&liq_provider_bsx_balance));
 	}
 
-	//TODO: check if this is worst case
 	withdraw_shares {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
