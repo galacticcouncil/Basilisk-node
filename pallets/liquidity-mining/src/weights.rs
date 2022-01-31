@@ -40,23 +40,23 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_liquidity_mining.
 pub trait WeightInfo {
-    fn create_farm() -> Weight;
-    fn destroy_farm() -> Weight;
-    fn withdraw_undistributed_rewards() -> Weight;
-    fn add_liquidity_pool() -> Weight;
-    fn update_liquidity_pool() -> Weight;
-    fn cancel_liquidity_pool() -> Weight;
-    fn remove_liquidity_pool() -> Weight;
-    fn deposit_shares() -> Weight;
-    fn claim_rewards() -> Weight;
-    fn withdraw_shares() -> Weight;
+	fn create_farm() -> Weight;
+	fn destroy_farm() -> Weight;
+	fn withdraw_undistributed_rewards() -> Weight;
+	fn add_liquidity_pool() -> Weight;
+	fn update_liquidity_pool() -> Weight;
+	fn cancel_liquidity_pool() -> Weight;
+	fn remove_liquidity_pool() -> Weight;
+	fn deposit_shares() -> Weight;
+	fn claim_rewards() -> Weight;
+	fn withdraw_shares() -> Weight;
 }
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
@@ -116,54 +116,54 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
-    fn create_farm() -> Weight {
-        (175_953_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(3 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(4 as Weight))
-    }
-    fn destroy_farm() -> Weight {
-        (57_555_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(1 as Weight))
-    }
-    fn withdraw_undistributed_rewards() -> Weight {
-        (116_707_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(3 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(2 as Weight))
-    }
-    fn add_liquidity_pool() -> Weight {
-        (94_313_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(6 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(7 as Weight))
-    }
-    fn update_liquidity_pool() -> Weight {
-        (32_332_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(2 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(2 as Weight))
-    }
-    fn cancel_liquidity_pool() -> Weight {
-        (77_309_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(3 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(2 as Weight))
-    }
-    fn remove_liquidity_pool() -> Weight {
-        (110_016_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(6 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
-    }
-    fn deposit_shares() -> Weight {
-        (218_776_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(13 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(12 as Weight))
-    }
-    fn claim_rewards() -> Weight {
-        (247_594_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(8 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(6 as Weight))
-    }
-    fn withdraw_shares() -> Weight {
-        (441_755_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(14 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(13 as Weight))
-    }
+	fn create_farm() -> Weight {
+		(175_953_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn destroy_farm() -> Weight {
+		(57_555_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
+	fn withdraw_undistributed_rewards() -> Weight {
+		(116_707_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+	}
+	fn add_liquidity_pool() -> Weight {
+		(94_313_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
+	}
+	fn update_liquidity_pool() -> Weight {
+		(32_332_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+	}
+	fn cancel_liquidity_pool() -> Weight {
+		(77_309_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+	}
+	fn remove_liquidity_pool() -> Weight {
+		(110_016_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	fn deposit_shares() -> Weight {
+		(218_776_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(13 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(12 as Weight))
+	}
+	fn claim_rewards() -> Weight {
+		(247_594_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	fn withdraw_shares() -> Weight {
+		(441_755_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(14 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(13 as Weight))
+	}
 }

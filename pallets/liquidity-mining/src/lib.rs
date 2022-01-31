@@ -441,7 +441,7 @@ pub mod pallet {
 			);
 
 			let planned_periods =
-				Balance::from(TryInto::<u128>::try_into(planned_yielding_periods).map_err(|_e| Error::<T>::Overflow)?);
+				TryInto::<u128>::try_into(planned_yielding_periods).map_err(|_e| Error::<T>::Overflow)?;
 			let max_reward_per_period = total_rewards.checked_div(planned_periods).ok_or(Error::<T>::Overflow)?;
 			let now_period = Self::get_now_period(blocks_per_period)?;
 			let pool_id = Self::get_next_id()?;
@@ -1120,11 +1120,10 @@ impl<T: Config> Pallet<T> {
 
 		let periods_since_last_update: Balance =
 			TryInto::<u128>::try_into(now_period.checked_sub(&g_pool.updated_at).ok_or(Error::<T>::Overflow)?)
-				.map_err(|_e| Error::<T>::Overflow)?
-				.into();
+				.map_err(|_e| Error::<T>::Overflow)?;
 
 		let g_pool_account = Self::pool_account_id(g_pool.id)?;
-		let left_to_distribute = T::MultiCurrency::free_balance(g_pool.reward_currency, &g_pool_account.clone());
+		let left_to_distribute = T::MultiCurrency::free_balance(g_pool.reward_currency, &g_pool_account);
 		let reward = periods_since_last_update
 			.checked_mul(reward_per_period)
 			.ok_or(Error::<T>::Overflow)?
@@ -1140,7 +1139,7 @@ impl<T: Config> Pallet<T> {
 
 		g_pool.updated_at = now_period;
 
-		return Ok(());
+		Ok(())
 	}
 
 	fn get_accumulated_rps(
@@ -1207,7 +1206,7 @@ impl<T: Config> Pallet<T> {
 			.checked_sub(reward)
 			.ok_or(Error::<T>::Overflow)?;
 
-		return Ok(reward);
+		Ok(reward)
 	}
 
 	fn update_liq_pool(
