@@ -503,7 +503,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "33.0.0"
+version = "34.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -552,6 +552,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-nft",
  "pallet-price-oracle",
+ "pallet-proxy",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
@@ -1269,7 +1270,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.4.3"
+version = "1.5.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -10925,7 +10926,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "33.0.0"
+version = "34.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -10974,6 +10975,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-nft",
  "pallet-price-oracle",
+ "pallet-proxy",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
