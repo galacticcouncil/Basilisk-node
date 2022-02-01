@@ -25,7 +25,6 @@ use frame_support::sp_runtime::FixedPointNumber;
 use frame_support::traits::Get;
 use frame_support::traits::OnFinalize;
 use frame_support::{assert_noop, assert_ok};
-use frame_system::InitKind;
 use hydradx_traits::Resolver;
 use primitives::Price;
 use sp_runtime::DispatchError;
@@ -98,7 +97,7 @@ fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: P
 	assert_eq!(Currency::free_balance(share_token, &user), shares);
 
 	// Advance blockchain so that we kill old events
-	System::initialize(&1, &[0u8; 32].into(), &Default::default(), InitKind::Full);
+	System::initialize(&1, &[0u8; 32].into(), &Default::default());
 }
 
 #[test]

@@ -175,6 +175,8 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 		),
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
@@ -253,6 +255,8 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 		),
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
@@ -321,6 +325,8 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 		None,
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
@@ -391,6 +397,8 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 		None,
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
@@ -467,6 +475,8 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 		None,
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
@@ -509,7 +519,7 @@ fn parachain_genesis(
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.
-			key: root_key,
+			key: Some(root_key),
 		},
 		collator_selection: CollatorSelectionConfig {
 			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
@@ -540,7 +550,7 @@ fn parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			fallback_account: tx_fee_payment_account,
+			fallback_account: Some(tx_fee_payment_account),
 			account_currencies: vec![],
 		},
 		tokens: TokensConfig { balances: vec![] },
@@ -576,8 +586,8 @@ fn parachain_genesis(
 		aura_ext: Default::default(),
 		duster: DusterConfig {
 			account_blacklist: vec![hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()],
-			reward_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
-			dust_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
+			reward_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
+			dust_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
 		},
 	}
 }
@@ -611,7 +621,7 @@ fn testnet_parachain_genesis(
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.
-			key: root_key,
+			key: Some(root_key),
 		},
 		collator_selection: CollatorSelectionConfig {
 			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
@@ -642,7 +652,7 @@ fn testnet_parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: accepted_assets,
-			fallback_account: tx_fee_payment_account,
+			fallback_account: Some(tx_fee_payment_account),
 			account_currencies: vec![],
 		},
 		tokens: TokensConfig {
@@ -681,8 +691,8 @@ fn testnet_parachain_genesis(
 		aura_ext: Default::default(),
 		duster: DusterConfig {
 			account_blacklist: vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
-			reward_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
-			dust_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
+			reward_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
+			dust_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 		},
 	}
 }

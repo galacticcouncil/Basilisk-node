@@ -31,7 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -56,7 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, EnsureOrigin, EqualPrivilegeOnly, Get, U128CurrencyToVote},
+	traits::{Contains, EnsureOrigin, EqualPrivilegeOnly, Get, U128CurrencyToVote, EnsureOneOf},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -111,6 +111,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
+	state_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -293,6 +294,7 @@ impl frame_system::Config for Runtime {
 	type SystemWeightInfo = weights::system::BasiliskWeight<Runtime>;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -454,7 +456,7 @@ parameter_types! {
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
-	type OnValidationData = pallet_relaychain_info::OnValidationDataHandler<Runtime>;
+	type OnSystemEvent = pallet_relaychain_info::OnValidationDataHandler<Runtime>;
 	type SelfParaId = ParachainInfo;
 
 	type OutboundXcmpMessageSource = XcmpQueue;
@@ -490,28 +492,23 @@ impl orml_nft::Config for Runtime {
 	type MaxTokenMetadata = MaxTokenMetadata;
 }
 
-type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureMajorityCouncilOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureUnanimousCouncilOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureUnanimousCouncilOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureSuperMajorityCouncilOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureSuperMajorityCouncilOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureSuperMajorityTechCommitteeOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureSuperMajorityTechCommitteeOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechnicalCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureUnanimousTechCommitteOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureUnanimousTechCommitteOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
@@ -600,7 +597,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 }
 
 type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
-type ManageOrigin = EnsureOneOf<AccountId, EnsureRoot<AccountId>, AllCouncilMembers>;
+type ManageOrigin = EnsureOneOf<EnsureRoot<AccountId>, AllCouncilMembers>;
 
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
@@ -611,6 +608,7 @@ impl pallet_treasury::Config for Runtime {
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
+	type ProposalBondMaximum = ProposalBondMaximum;
 	type SpendPeriod = SpendPeriod;
 	type Burn = Burn;
 	type BurnDestination = ();
@@ -622,6 +620,7 @@ impl pallet_treasury::Config for Runtime {
 parameter_types! {
 	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(10) * BlockWeights::get().max_block;
 	pub const MaxScheduledPerBlock: u32 = 50;
+	pub const NoPreimagePostponement: Option<u32> = Some(5 * MINUTES);
 }
 
 impl pallet_scheduler::Config for Runtime {
@@ -634,6 +633,8 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
+	type PreimageProvider = Preimage;
+	type NoPreimagePostponement = NoPreimagePostponement;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -731,6 +732,22 @@ impl pallet_relaychain_info::Config for Runtime {
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+parameter_types! {
+	pub const PreimageMaxSize: u32 = 4096 * 1024;
+	pub PreimageBaseDeposit: Balance = deposit(2, 64);
+	pub PreimageByteDeposit: Balance = deposit(0, 1);
+}
+
+impl pallet_preimage::Config for Runtime {
+	type WeightInfo = ();
+	type Event = Event;
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type MaxSize = PreimageMaxSize;
+	type BaseDeposit = PreimageBaseDeposit;
+	type ByteDeposit = PreimageByteDeposit;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -742,6 +759,7 @@ construct_runtime!(
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>},
 
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>},
 
@@ -912,8 +930,8 @@ impl_runtime_apis! {
 	}
 
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
-		fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
-			ParachainSystem::collect_collation_info()
+		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {
+			ParachainSystem::collect_collation_info(header)
 		}
 	}
 

@@ -52,7 +52,7 @@ runtime_benchmarks! {
 
 		let min_deposit = AssetRegistry::get(&asset_id);
 
-		update_balance(asset_id, &dest_account, min_deposit);
+		update_balance(asset_id, &dest_account.clone().unwrap(), min_deposit);
 
 		let dust_amount = min_deposit;
 
@@ -61,13 +61,13 @@ runtime_benchmarks! {
 		let _ = update_asset(asset_id, b"TST".to_vec(), 110u128).map_err(|_| BenchmarkError::Stop("Failed to update asset"))?;
 		assert_eq!(Tokens::free_balance(asset_id, &to_dust_account), dust_amount);
 
-		let current_balance = Tokens::free_balance(asset_id, &dest_account);
+		let current_balance = Tokens::free_balance(asset_id, &dest_account.clone().unwrap());
 
 	}: { pallet_duster::Pallet::<Runtime>::dust_account(RawOrigin::Signed(caller.clone()).into(), to_dust_account.clone(),asset_id)? }
 	verify {
 		assert_eq!(Tokens::free_balance(asset_id, &to_dust_account), 0u128);
 		assert_eq!(Tokens::free_balance(NativeAssetId::get(), &caller), reward);
-		assert_eq!(Tokens::free_balance(asset_id, &dest_account), current_balance + dust_amount);
+		assert_eq!(Tokens::free_balance(asset_id, &dest_account.unwrap()), current_balance + dust_amount);
 	}
 
 	add_nondustable_account{

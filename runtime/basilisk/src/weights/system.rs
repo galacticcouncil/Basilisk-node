@@ -65,11 +65,6 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	fn set_changes_trie_config() -> Weight {
-		(6_881_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-	}
 	fn set_storage(i: u32) -> Weight {
 		(0 as Weight)
 			// Standard Error: 1_000

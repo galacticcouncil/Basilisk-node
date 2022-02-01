@@ -49,6 +49,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
@@ -59,12 +60,12 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn reward_account)]
 	/// Account to take reward from.
-	pub type RewardAccount<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
+	pub type RewardAccount<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn dust_dest_account)]
 	/// Account to send dust to.
-	pub type DustAccount<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
+	pub type DustAccount<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
@@ -122,8 +123,8 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub account_blacklist: Vec<T::AccountId>,
-		pub reward_account: T::AccountId,
-		pub dust_account: T::AccountId,
+		pub reward_account: Option<T::AccountId>,
+		pub dust_account: Option<T::AccountId>,
 	}
 
 	#[cfg(feature = "std")]
@@ -131,8 +132,8 @@ pub mod pallet {
 		fn default() -> Self {
 			GenesisConfig {
 				account_blacklist: vec![],
-				reward_account: Default::default(),
-				dust_account: Default::default(),
+				reward_account: None,
+				dust_account: None,
 			}
 		}
 	}
@@ -144,16 +145,16 @@ pub mod pallet {
 				AccountBlacklist::<T>::insert(account_id, ());
 			});
 
-			if self.reward_account == Default::default() {
+			if self.reward_account == None {
 				panic!("Reward account is not set in genesis config");
 			}
 
-			if self.dust_account == Default::default() {
+			if self.dust_account == None {
 				panic!("Dust account is not set in genesis config");
 			}
 
-			RewardAccount::<T>::put(&self.reward_account);
-			DustAccount::<T>::put(&self.dust_account);
+			RewardAccount::<T>::put(&self.reward_account.clone().expect("Reward account is not set in genesis config"));
+			DustAccount::<T>::put(&self.dust_account.clone().expect("Dust account is not set in genesis config"));
 		}
 	}
 
@@ -204,7 +205,7 @@ pub mod pallet {
 
 			ensure!(dustable, Error::<T>::BalanceSufficient);
 
-			Self::transfer_dust(&account, &Self::dust_dest_account(), currency_id, dust)?;
+			Self::transfer_dust(&account, &Self::dust_dest_account().unwrap(), currency_id, dust)?;
 
 			Self::deposit_event(Event::Dusted(account, dust));
 
@@ -262,7 +263,7 @@ impl<T: Config> Pallet<T> {
 		let reserve_account = Self::reward_account();
 		let reward = T::Reward::get();
 
-		T::MultiCurrency::transfer(T::NativeCurrencyId::get(), &reserve_account, _duster, reward)?;
+		T::MultiCurrency::transfer(T::NativeCurrencyId::get(), &reserve_account.unwrap(), _duster, reward)?;
 
 		Ok(())
 	}
@@ -285,7 +286,7 @@ pub struct DusterWhitelist<T>(PhantomData<T>);
 
 impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
 	fn on_dust(who: &T::AccountId, currency_id: T::CurrencyId, amount: T::Balance) {
-		let _ = Self::transfer_dust(who, &Self::dust_dest_account(), currency_id, amount);
+		let _ = Self::transfer_dust(who, &Self::dust_dest_account().unwrap(), currency_id, amount);
 	}
 }
 

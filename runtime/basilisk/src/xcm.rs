@@ -66,6 +66,7 @@ parameter_types! {
 	/// The amount of weight an XCM operation takes. This is a safe overestimate.
 	pub const BaseXcmWeight: Weight = 100_000_000;
 	pub const MaxInstructions: u32 = 100;
+	pub const MaxAssetsForTransfer: usize = 2;
 }
 
 pub struct TradePassthrough();
@@ -112,6 +113,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = ();
+	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -131,6 +133,7 @@ impl orml_xtokens::Config for Runtime {
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
+	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 }
 
 impl orml_unknown_tokens::Config for Runtime {
