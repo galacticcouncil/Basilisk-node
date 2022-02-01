@@ -259,10 +259,10 @@ pub fn run() -> sc_cli::Result<()> {
 			let spec = load_spec(&params.chain.clone().unwrap_or_default(), false)?;
 			let state_version = Cli::native_runtime_version(&spec).state_version();
 
-			let block: Block = generate_genesis_block(&load_spec(
-				&params.chain.clone().unwrap_or_default(),
-				is_testing_runtime,
-			)?, state_version)?;
+			let block: Block = generate_genesis_block(
+				&load_spec(&params.chain.clone().unwrap_or_default(), is_testing_runtime)?,
+				state_version,
+			)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {
 				raw_header
@@ -353,7 +353,7 @@ pub fn run() -> sc_cli::Result<()> {
 				let state_version = Cli::native_runtime_version(&config.chain_spec).state_version();
 
 				let block: Block =
-						generate_genesis_block(&config.chain_spec, state_version).map_err(|e| format!("{:?}", e))?;
+					generate_genesis_block(&config.chain_spec, state_version).map_err(|e| format!("{:?}", e))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
 				let task_executor = config.tokio_handle.clone();

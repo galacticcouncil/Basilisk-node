@@ -133,7 +133,7 @@ fn dust_account_native_works() {
 
 		expect_events(vec![
 			// system
-			frame_system::Event::KilledAccount{account:*ALICE}.into(),
+			frame_system::Event::KilledAccount { account: *ALICE }.into(),
 			// dust transfer
 			pallet_balances::Event::Transfer {
 				from: *ALICE,
@@ -196,7 +196,7 @@ fn native_existential_deposit() {
 
 		expect_events(vec![
 			// first transfer
-			frame_system::Event::NewAccount{account:*ALICE}.into(),
+			frame_system::Event::NewAccount { account: *ALICE }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id,
 				who: *ALICE,
@@ -285,7 +285,7 @@ fn native_existential_deposit() {
 
 		expect_events(vec![
 			// first transfer
-			frame_system::Event::KilledAccount{account:*ALICE}.into(),
+			frame_system::Event::KilledAccount { account: *ALICE }.into(),
 			orml_currencies::Event::Transferred {
 				currency_id,
 				from: *ALICE,

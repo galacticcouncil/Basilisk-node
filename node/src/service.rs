@@ -262,7 +262,7 @@ where
 	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	RuntimeApi::RuntimeApi: CollectCollationInfo<Block>,
 	RuntimeApi::RuntimeApi: sp_consensus_aura::AuraApi<Block, sp_consensus_aura::sr25519::AuthorityId>,
-	Executor: NativeExecutionDispatch + 'static, 
+	Executor: NativeExecutionDispatch + 'static,
 	BIC: FnOnce(
 		Arc<FullClient<RuntimeApi, Executor>>,
 		Option<&Registry>,
@@ -463,14 +463,14 @@ pub async fn start_node(
 									para_id,
 								)
 								.await;
-	
+
 							let time = sp_timestamp::InherentDataProvider::from_system_time();
-	
+
 							let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_duration(
 								*time,
 								slot_duration.slot_duration(),
 							);
-	
+
 							let parachain_inherent = parachain_inherent.ok_or_else(|| {
 								Box::<dyn std::error::Error + Send + Sync>::from("Failed to create parachain inherent")
 							})?;
@@ -539,14 +539,14 @@ pub async fn start_node(
 									para_id,
 								)
 								.await;
-	
+
 							let time = sp_timestamp::InherentDataProvider::from_system_time();
-	
+
 							let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_duration(
 								*time,
 								slot_duration.slot_duration(),
 							);
-	
+
 							let parachain_inherent = parachain_inherent.ok_or_else(|| {
 								Box::<dyn std::error::Error + Send + Sync>::from("Failed to create parachain inherent")
 							})?;

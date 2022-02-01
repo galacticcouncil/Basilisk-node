@@ -153,8 +153,18 @@ pub mod pallet {
 				panic!("Dust account is not set in genesis config");
 			}
 
-			RewardAccount::<T>::put(&self.reward_account.clone().expect("Reward account is not set in genesis config"));
-			DustAccount::<T>::put(&self.dust_account.clone().expect("Dust account is not set in genesis config"));
+			RewardAccount::<T>::put(
+				&self
+					.reward_account
+					.clone()
+					.expect("Reward account is not set in genesis config"),
+			);
+			DustAccount::<T>::put(
+				&self
+					.dust_account
+					.clone()
+					.expect("Dust account is not set in genesis config"),
+			);
 		}
 	}
 
