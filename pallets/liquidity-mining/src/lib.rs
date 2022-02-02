@@ -651,7 +651,7 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
-		//TODO: add tests and benchmarks
+		//TODO: benchmarks
 		pub fn cancel_liquidity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -1230,17 +1230,21 @@ impl<T: Config> Pallet<T> {
 	/// (user_rewards, unclaimable_rewards)
 	/// NOTE: claimable_reward and user_rewards is not the same !!!
 	fn get_user_reward(
-		accumulated_rps: Balance,
+		accumulated_rpvs: Balance,
 		valued_shares: Balance, // Value of shares at the time of entry in incentivized tokens.
 		accumulated_claimed_rewards: Balance,
-		accumulated_rps_now: Balance,
+		accumulated_rpvs_now: Balance,
 		loyalty_multiplier: FixedU128,
 	) -> Result<(Balance, Balance), Error<T>> {
-		let max_rewards = accumulated_rps_now
-			.checked_sub(accumulated_rps)
+		let max_rewards = accumulated_rpvs_now
+			.checked_sub(accumulated_rpvs)
 			.ok_or(Error::<T>::Overflow)?
 			.checked_mul(valued_shares)
 			.ok_or(Error::<T>::Overflow)?;
+
+        if max_rewards.is_zero() {
+            return Ok((0, 0));
+        }
 
 		let claimable_rewards = loyalty_multiplier
 			.checked_mul_int(max_rewards)
@@ -1369,6 +1373,11 @@ impl<T: Config> Pallet<T> {
 		reward_currency: T::CurrencyId,
 	) -> Result<(Balance, Balance), DispatchError> {
 		let periods = now_period.checked_sub(&d.entered_at).ok_or(Error::<T>::Overflow)?;
+
+        if periods.is_zero() {
+            return Ok((0, 0))
+        }
+
 		let loyalty_multiplier = Self::get_loyalty_multiplier(periods, liq_pool.loyalty_curve.clone())?;
 
 		let (rewards, unclaimable_rewards) = Self::get_user_reward(

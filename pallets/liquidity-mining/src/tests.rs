@@ -977,6 +977,15 @@ fn get_user_reward_should_work() {
 			21370122208415_u128,
 			12880000502759_u128,
 		),
+		(
+			193_u128,
+			22787841433_u128,
+			193_u128,
+			2962625_u128,
+			FixedU128::from_inner(623_942_971_029_398_000_u128),
+			0_u128,
+			0_u128,
+		),
 	];
 
 	for t in testing_values.iter() {
@@ -5536,7 +5545,7 @@ fn withdraw_undistributed_rewards_not_empty_farm_should_not_work() {
 		asset_out: TO2,
 	};
 
-    //canceled pools
+	//canceled pools
 	predefined_test_ext().execute_with(|| {
 		//farm have to empty to be able to withdraw undistributed rewards
 		assert_ok!(LiquidityMining::cancel_liquidity_pool(
@@ -5561,8 +5570,8 @@ fn withdraw_undistributed_rewards_not_empty_farm_should_not_work() {
 			Error::<Test>::FarmIsNotEmpty
 		);
 	});
-    
-    //active pools
+
+	//active pools
 	predefined_test_ext().execute_with(|| {
 		//farm have to empty to be able to withdraw undistributed rewards
 		assert_ok!(LiquidityMining::cancel_liquidity_pool(
@@ -5580,6 +5589,66 @@ fn withdraw_undistributed_rewards_not_empty_farm_should_not_work() {
 			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(GC), GC_FARM),
 			Error::<Test>::FarmIsNotEmpty
 		);
+	});
+}
+
+#[test]
+fn do_claim_rewards_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let mock_deposits: [Deposit<Test>; 3] = [
+			Deposit {
+				shares: 100,
+				valued_shares: 500,
+				accumulated_claimed_rewards: 0,
+				accumulated_rpvs: 56,
+				entered_at: 45,
+			},
+			Deposit {
+				shares: 12_315_314,
+				valued_shares: 1_454_565_765_765,
+				accumulated_claimed_rewards: 65_454,
+				accumulated_rpvs: 9_809,
+				entered_at: 3,
+			},
+			Deposit {
+				shares: 97_634,
+				valued_shares: 7_483_075,
+				accumulated_claimed_rewards: 1_657_649,
+				accumulated_rpvs: 10_989,
+				entered_at: 14_329,
+			},
+		];
+
+		let empty_lp: LiquidityPoolYieldFarm<Test> = LiquidityPoolYieldFarm {
+			id: 1,
+			updated_at: 0,
+			total_shares: 0,
+			total_valued_shares: 0,
+			accumulated_rpvs: 0,
+			accumulated_rpz: 0,
+			loyalty_curve: Some(LoyaltyCurve::default()),
+			stake_in_global_pool: 0,
+			multiplier: FixedU128::from(100),
+			nft_class: 0,
+			canceled: false,
+		};
+
+		let mock_liq_pools: [LiquidityPoolYieldFarm<Test>; 3] = [
+            LiquidityPoolYieldFarm {
+                loyalty_curve: None,
+                ..empty_lp
+            },
+            LiquidityPoolYieldFarm {
+                loyalty_curve: Some(LoyaltyCurve {
+                    initial_reward_percentage: FixedU128::from_float(0.6746519004_f64),
+                    scale_coef: 360,
+                }),
+                ..empty_lp
+            },
+            LiquidityPoolYieldFarm {
+                ..empty_lp
+            },
+        ];
 	});
 }
 
