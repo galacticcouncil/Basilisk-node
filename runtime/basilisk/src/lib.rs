@@ -56,7 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Get, U128CurrencyToVote},
+	traits::{Contains, EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Get, U128CurrencyToVote, InstanceFilter},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -107,7 +107,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 34,
+	spec_version: 35,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -346,6 +346,49 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, c: &Call) -> bool {
+		match self {
+			ProxyType::Any => true,
+			ProxyType::CancelProxy => matches!(c, Call::Proxy(pallet_proxy::Call::reject_announcement { .. })),
+			ProxyType::Governance => matches!(
+				c,
+				Call::Democracy(..)
+					| Call::Council(..) | Call::TechnicalCommittee(..)
+					| Call::Elections(..)
+					| Call::Treasury(..) | Call::Tips(..)
+					| Call::Utility(..)
+			),
+			ProxyType::Exchange => matches!(c, Call::XYK(..) | Call::Exchange(..) | Call::LBP(..) | Call::NFT(..)),
+			// Transfer group doesn't include cross-chain transfers
+			ProxyType::Transfer => matches!(c, Call::Balances(..) | Call::Currencies(..) | Call::Tokens(..)),
+		}
+	}
+	fn is_superset(&self, o: &Self) -> bool {
+		match (self, o) {
+			(x, y) if x == y => true,
+			(ProxyType::Any, _) => true,
+			(_, ProxyType::Any) => false,
+			_ => false,
+		}
+	}
+}
+
+impl pallet_proxy::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
+	type WeightInfo = ();
+	type MaxPending = MaxPending;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = AnnouncementDepositBase;
+	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
 /// Tokens Configurations
@@ -774,6 +817,7 @@ construct_runtime!(
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
 		Utility: pallet_utility::{Pallet, Call, Event},
 		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 
 		// Parachain
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},

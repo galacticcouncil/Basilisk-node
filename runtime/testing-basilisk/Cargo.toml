@@ -1,6 +1,6 @@
 [package]
 name = "testing-basilisk-runtime"
-version = "34.0.0"
+version = "35.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -100,6 +100,7 @@ pallet-aura = { git = "https://github.com/paritytech/substrate", branch = "polka
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 pallet-preimage = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
+pallet-proxy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 pallet-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }

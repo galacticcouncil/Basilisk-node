@@ -546,6 +546,7 @@ dependencies = [
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
+ "pallet-proxy",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
@@ -1262,7 +1263,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.4.4"
+version = "1.5.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -11111,7 +11112,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "34.0.0"
+version = "35.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11161,6 +11162,7 @@ dependencies = [
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
+ "pallet-proxy",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
