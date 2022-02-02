@@ -44,7 +44,8 @@ runtime_benchmarks! {
 	dust_account{
 		let caller: AccountId = account("caller", 0, SEED);
 		let to_dust_account: AccountId = account("dust", 0, SEED);
-
+		let dust_dest_account: AccountId = account("dest", 1, SEED);
+		pallet_duster::DustAccount::<Runtime>::put(dust_dest_account);
 
 		let asset_id = register_asset(b"TST".to_vec(), 100u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		let reward = DustingReward::get();

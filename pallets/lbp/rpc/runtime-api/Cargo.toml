@@ -1,6 +1,6 @@
 [package]
 name = "pallet-lbp-rpc-runtime-api"
-version = "1.0.3"
+version = "1.0.4"
 authors = ["GalacticCouncil"]
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/basilisk-node"
