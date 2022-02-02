@@ -28,19 +28,12 @@
 // * total_shares_z         -> Z
 // * multiplier             -> m
 
-//NOTE: couple update_pool together with reward_per_period fn
 //for audit:
 // * check if nft is manipulable only by this pallet
-//
 
 // * make sure nft minted event happen
 // * make sure in the docs: 1-th reward for next whole period
 
-//add restore liq. Mining
-// update global pool
-// set liq_pool.rpz = g_pool.prz (without claiming from global pool)
-// set liq_pool.stake_in_gpool
-// add liq_pool.stake_in_gpool to gpool.stake
 // add test for 0 multiplier (liq. pool)
 // add to docs blocks are related to relay chain blocks
 
@@ -516,7 +509,6 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_undistributed_rewards())]
 		#[transactional]
 		pub fn withdraw_undistributed_rewards(origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
-			//TODO: not tested, add tests
 			let who = ensure_signed(origin)?;
 
 			let g_pool = Self::global_pool(farm_id).ok_or(Error::<T>::FarmNotFound)?;

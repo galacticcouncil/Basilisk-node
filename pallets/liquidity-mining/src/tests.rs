@@ -5421,6 +5421,168 @@ fn resume_liquidity_pool_not_owner_should_not_work() {
 	});
 }
 
+#[test]
+fn withdraw_undistributed_rewards_should_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	let amm_2 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO2,
+	};
+
+	predefined_test_ext().execute_with(|| {
+		//farm have to empty to be able to withdraw undistributed rewards
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_2
+		));
+
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_2
+		));
+
+		let farm_ower_banalce = Tokens::total_balance(BSX, &GC);
+
+		assert_ok!(LiquidityMining::withdraw_undistributed_rewards(
+			Origin::signed(GC),
+			GC_FARM
+		));
+
+		assert_eq!(Tokens::total_balance(BSX, &GC), farm_ower_banalce + 30_000_000_000);
+	});
+}
+
+#[test]
+fn withdraw_undistributed_rewards_non_existing_farm_should_not_work() {
+	const NON_EXISTING_FARM: PoolId = 879_798;
+
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(GC), NON_EXISTING_FARM),
+			Error::<Test>::FarmNotFound
+		);
+	});
+}
+
+#[test]
+fn withdraw_undistributed_rewards_not_owner_should_not_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	let amm_2 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO2,
+	};
+
+	predefined_test_ext().execute_with(|| {
+		//farm have to empty to be able to withdraw undistributed rewards
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_2
+		));
+
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_2
+		));
+
+		const NOT_OWNER: u128 = ALICE;
+		assert_noop!(
+			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(NOT_OWNER), GC_FARM),
+			Error::<Test>::Forbidden
+		);
+	});
+}
+
+#[test]
+fn withdraw_undistributed_rewards_not_empty_farm_should_not_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	let amm_2 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO2,
+	};
+
+    //canceled pools
+	predefined_test_ext().execute_with(|| {
+		//farm have to empty to be able to withdraw undistributed rewards
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_2
+		));
+
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_2
+		));
+
+		assert_noop!(
+			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(GC), GC_FARM),
+			Error::<Test>::FarmIsNotEmpty
+		);
+	});
+    
+    //active pools
+	predefined_test_ext().execute_with(|| {
+		//farm have to empty to be able to withdraw undistributed rewards
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_2
+		));
+
+		assert_noop!(
+			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(GC), GC_FARM),
+			Error::<Test>::FarmIsNotEmpty
+		);
+	});
+}
+
 //NOTE: look at approx pallet - https://github.com/brendanzab/approx
 fn is_approx_eq_fixedu128(num_1: FixedU128, num_2: FixedU128, delta: FixedU128) -> bool {
 	let diff = match num_1.cmp(&num_2) {
