@@ -28,6 +28,7 @@ use frame_system::{Pallet as System, RawOrigin};
 use frame_support::dispatch;
 use orml_traits::MultiCurrency;
 use primitives::{asset::AssetPair, AssetId, Balance, Price};
+use sp_arithmetic::FixedU128;
 use sp_arithmetic::Permill;
 use sp_std::convert::From;
 
@@ -123,7 +124,7 @@ fn lm_deposit_shares<T: Config>(caller: T::AccountId, assets: AssetPair, amount:
 fn lm_add_liquidity_pool<T: Config>(
 	caller: T::AccountId,
 	assets: AssetPair,
-	multiplier: u32,
+	multiplier: FixedU128,
 ) -> dispatch::DispatchResult {
 	LiquidityMining::<T>::add_liquidity_pool(
 		RawOrigin::Signed(caller).into(),
@@ -192,7 +193,7 @@ benchmarks! {
 		};
 
 	}: {
-		LiquidityMining::<T>::add_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, 50_000, Some(pallet_liquidity_mining::LoyaltyCurve::default()))?
+		LiquidityMining::<T>::add_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(50_000_u128), Some(pallet_liquidity_mining::LoyaltyCurve::default()))?
 	}
 	verify {
 		assert_eq!(LiquidityMining::<T>::global_pool(1).unwrap().liq_pools_count, 1);
@@ -217,17 +218,17 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		LiquidityMining::<T>::add_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, 50_000, Some(pallet_liquidity_mining::LoyaltyCurve::default()))?;
+		LiquidityMining::<T>::add_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(50_000_u128), Some(pallet_liquidity_mining::LoyaltyCurve::default()))?;
 
 		assert_eq!(LiquidityMining::<T>::global_pool(1).unwrap().liq_pools_count, 1);
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().multiplier, 50_000);
+		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().multiplier, FixedU128::from(50_000_u128));
 	}: {
-		LiquidityMining::<T>::update_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, 10_000)?
+		LiquidityMining::<T>::update_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(10_000_u128))?
 	}
 	verify {
-		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().multiplier, 10_000);
+		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().multiplier, FixedU128::from(10_000_u128));
 	}
 
 	cancel_liquidity_pool {
@@ -247,7 +248,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller.clone(), assets, 50_000)?;
+		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled, false);
@@ -286,7 +287,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller.clone(), assets, 50_000)?;
+		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled, false);
@@ -319,7 +320,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller.clone(), assets, 50_000)?;
+		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled, false);
@@ -364,7 +365,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller.clone(), assets, 50_000)?;
+		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled, false);
@@ -410,7 +411,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller.clone(), assets, 50_000)?;
+		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled, false);

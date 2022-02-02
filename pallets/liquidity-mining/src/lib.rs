@@ -16,7 +16,7 @@
 // limitations under the License.
 //
 // Abbr:
-//  rps - reward per share
+//  rpvs - reward per valued share
 //  rpz - reward per share in global pool
 
 // Notion spec naming map:
@@ -27,6 +27,22 @@
 // * stake_in_global_pool   -> z
 // * total_shares_z         -> Z
 // * multiplier             -> m
+
+//NOTE: couple update_pool together with reward_per_period fn
+//for audit:
+// * check if nft is manipulable only by this pallet
+//
+
+// * make sure nft minted event happen
+// * make sure in the docs: 1-th reward for next whole period
+
+//add restore liq. Mining
+// update global pool
+// set liq_pool.rpz = g_pool.prz (without claiming from global pool)
+// set liq_pool.stake_in_gpool
+// add liq_pool.stake_in_gpool to gpool.stake
+// add test for 0 multiplier (liq. pool)
+// add to docs blocks are related to relay chain blocks
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
@@ -42,7 +58,7 @@ pub mod weights;
 pub use pallet::*;
 
 type PoolId = u32;
-type PoolMultiplier = u32;
+type PoolMultiplier = FixedU128;
 
 use frame_support::{
 	ensure,
@@ -78,7 +94,7 @@ type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
 type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 pub type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
-pub type NftInstaceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
+pub type NftInstanceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct GlobalPool<T: Config> {
@@ -135,10 +151,10 @@ pub struct LiquidityPoolYieldFarm<T: Config> {
 	pub updated_at: PeriodOf<T>,
 	total_shares: Balance,
 	total_valued_shares: Balance,
-	accumulated_rps: Balance,
+	accumulated_rpvs: Balance,
 	accumulated_rpz: Balance,
 	loyalty_curve: Option<LoyaltyCurve>,
-	stake_in_global_pool: Balance, //NOTE: may be replace with: total_valued_shares * multiplier
+	stake_in_global_pool: Balance, //NOTE: may be replaced with: total_valued_shares * multiplier
 	pub multiplier: PoolMultiplier,
 	nft_class: NftClassIdOf<T>,
 	pub canceled: bool,
@@ -149,11 +165,11 @@ impl<T: Config> LiquidityPoolYieldFarm<T> {
 		id: PoolId,
 		updated_at: PeriodOf<T>,
 		loyalty_curve: Option<LoyaltyCurve>,
-		multiplier: u32,
+		multiplier: PoolMultiplier,
 		nft_class: NftClassIdOf<T>,
 	) -> Self {
 		Self {
-			accumulated_rps: Default::default(),
+			accumulated_rpvs: Default::default(),
 			accumulated_rpz: Default::default(),
 			stake_in_global_pool: Default::default(),
 			total_shares: Default::default(),
@@ -187,18 +203,18 @@ impl Default for LoyaltyCurve {
 pub struct Deposit<T: Config> {
 	shares: Balance,
 	valued_shares: Balance,
-	accumulated_rps: Balance,
+	accumulated_rpvs: Balance,
 	accumulated_claimed_rewards: Balance,
 	entered_at: PeriodOf<T>,
 }
 
 impl<T: Config> Deposit<T> {
-	fn new(shares: Balance, valued_shares: Balance, accumulated_rps: Balance, entered_at: PeriodOf<T>) -> Self {
+	fn new(shares: Balance, valued_shares: Balance, accumulated_rpvs: Balance, entered_at: PeriodOf<T>) -> Self {
 		Self {
 			entered_at,
 			shares,
 			valued_shares,
-			accumulated_rps,
+			accumulated_rpvs,
 			accumulated_claimed_rewards: Default::default(),
 		}
 	}
@@ -237,7 +253,7 @@ pub mod pallet {
 		/// Pallet id
 		type PalletId: Get<PalletId>;
 
-		/// Minimum anout of total rewards to create new farm
+		/// Minimum amount of total rewards to create new farm
 		type MinTotalFarmRewards: Get<Balance>;
 
 		/// Minimal number of periods to distribute farm rewards
@@ -246,7 +262,7 @@ pub mod pallet {
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
-		/// Weight information for extrinsics in this module.
+		/// Weight information for extrinsic in this module.
 		type WeightInfo: WeightInfo;
 	}
 
@@ -257,7 +273,7 @@ pub mod pallet {
 		Overflow,
 
 		/// Insufficient balance in global pool to transfer rewards to pool
-		InsuffcientBalanceInGlobalPool,
+		InsufficientBalanceInGlobalPool,
 
 		/// Provide id is not valid. Valid range is [1, u32::MAX)
 		InvalidPoolId,
@@ -313,7 +329,7 @@ pub mod pallet {
 		/// NFT does not exist.
 		NftDoesNotExist,
 
-		/// Liquidity mining for porovided pool is canceled.
+		/// Liquidity mining for provided pool is canceled.
 		LiquidityMiningCanceled,
 
 		/// Liquidity mining is not canceled yet for provided pool.
@@ -332,7 +348,7 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// New farm was creaated by `CreateOrigin` origin. [pool_id, global_pool]
+		/// New farm was created by `CreateOrigin` origin. [pool_id, global_pool]
 		FarmCreated(PoolId, GlobalPool<T>),
 
 		/// New liquidity(AMM) pool was added to farm [farm_id, amm_pool_id, liquidity_pool]
@@ -349,10 +365,10 @@ pub mod pallet {
 			AccountIdOf<T>,
 			Balance,
 			T::CurrencyId,
-			NftInstaceIdOf<T>,
+			NftInstanceIdOf<T>,
 		),
 
-		/// Liquidity provider claimed rewards. [who, farm_id, liq_pooo_id, claimed_amount, reward_token]
+		/// Liquidity provider claimed rewards. [who, farm_id, liq_pool_id, claimed_amount, reward_token]
 		RewardClaimed(AccountIdOf<T>, PoolId, PoolId, Balance, T::CurrencyId),
 
 		/// Shares withdrawn from liq. mining. [who, share_token, amount]
@@ -361,6 +377,10 @@ pub mod pallet {
 		/// Liquidity mining was canceled for liquidity pool. [who, farm_id, liq_mining_pool_id,
 		/// asset_pair]
 		LiquidityMiningCanceled(AccountIdOf<T>, PoolId, PoolId, AssetPair),
+
+		/// Liquidity mining was resumed for liquidity pool. [who, farm_id, liq_mining_pool_id,
+		/// asset_pair]
+		LiquidityMiningResumed(AccountIdOf<T>, PoolId, PoolId, AssetPair),
 
 		/// Liquidity pool was removed from liq. mining program. [who, farm_id, liq_mining_pool_id,
 		/// asset_pair]
@@ -393,7 +413,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn deposit)]
 	type DepositData<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftInstaceIdOf<T>, Deposit<T>, OptionQuery>;
+		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftInstanceIdOf<T>, Deposit<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn nft_class)] //(asset_pair, amount of existing nfts, globalPoolId)
@@ -549,6 +569,7 @@ pub mod pallet {
 					Error::<T>::LiquidityPoolAlreadyExists
 				);
 
+				// update accRPZ
 				let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
 				if !g_pool.total_shares_z.is_zero() && g_pool.updated_at != now_period {
 					let reward_per_period = Self::get_global_pool_reward_per_period(
@@ -618,10 +639,8 @@ pub mod pallet {
 						Self::update_liq_pool(liq_pool, pool_reward, now_period, g_pool.id, g_pool.reward_currency)?;
 					}
 
-					let new_stake_in_global_pool = liq_pool
-						.total_valued_shares
-						.checked_mul(multiplier.into())
-						.ok_or(Error::<T>::Overflow)?;
+					let new_stake_in_global_pool =
+						Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
 
 					g_pool.total_shares_z = g_pool
 						.total_shares_z
@@ -640,6 +659,7 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
+		//TODO: add tests and benchmarks
 		pub fn cancel_liquidity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -665,8 +685,69 @@ pub mod pallet {
 
 					liq_pool.canceled = true;
 					liq_pool.stake_in_global_pool = 0;
+					liq_pool.multiplier = 0.into();
 
 					Self::deposit_event(Event::LiquidityMiningCanceled(who, farm_id, liq_pool.id, asset_pair));
+
+					Ok(())
+				})
+			})
+		}
+
+		#[pallet::weight(1000)]
+		#[transactional]
+		pub fn resume_liquidity_pool(
+			origin: OriginFor<T>,
+			farm_id: PoolId,
+			asset_pair: AssetPair,
+			multiplier: PoolMultiplier,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			ensure!(!multiplier.is_zero(), Error::<T>::InvalidMultiplier);
+
+			let amm_account = T::AMM::get_pair_id(asset_pair);
+
+			<LiquidityPoolData<T>>::try_mutate(farm_id, amm_account, |maybe_liq_pool| {
+				let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
+
+				ensure!(liq_pool.canceled, Error::<T>::LiquidityMiningIsNotCanceled);
+
+				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| {
+					// this should never happen, liq. pool can't exist without g_pool
+					let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+
+					ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+
+					// update accRPZ
+					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+					if !g_pool.total_shares_z.is_zero() && g_pool.updated_at != now_period {
+						let reward_per_period = Self::get_global_pool_reward_per_period(
+							g_pool.yield_per_period.into(),
+							g_pool.total_shares_z,
+							g_pool.max_reward_per_period,
+						)?;
+						Self::update_global_pool(g_pool, now_period, reward_per_period)?;
+					}
+
+					let new_stake_in_g_pool = Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
+
+					g_pool.total_shares_z = g_pool
+						.total_shares_z
+						.checked_add(new_stake_in_g_pool)
+						.ok_or(Error::<T>::Overflow)?;
+
+					liq_pool.accumulated_rpz = g_pool.accumulated_rpz;
+					liq_pool.stake_in_global_pool = new_stake_in_g_pool;
+					liq_pool.canceled = false;
+					liq_pool.multiplier = multiplier;
+
+					Self::deposit_event(Event::<T>::LiquidityMiningResumed(
+						who,
+						farm_id,
+						liq_pool.id,
+						asset_pair,
+					));
 
 					Ok(())
 				})
@@ -797,7 +878,7 @@ pub mod pallet {
 
 					let nft_id = pallet_nft::Pallet::<T>::do_mint(who.clone(), liq_pool.nft_class)?;
 
-					let d = Deposit::new(shares_amount, valued_shares, liq_pool.accumulated_rps, now_period);
+					let d = Deposit::new(shares_amount, valued_shares, liq_pool.accumulated_rpvs, now_period);
 					<DepositData<T>>::insert(&liq_pool.nft_class, &nft_id, d);
 					<NftClassData<T>>::try_mutate(liq_pool.nft_class, |maybe_class| -> DispatchResult {
 						let class = maybe_class.as_mut().ok_or(Error::<T>::NftClassDoesNotExists)?;
@@ -826,7 +907,7 @@ pub mod pallet {
 		pub fn claim_rewards(
 			origin: OriginFor<T>,
 			nft_class_id: NftClassIdOf<T>,
-			nft_id: NftInstaceIdOf<T>,
+			nft_id: NftInstanceIdOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -876,7 +957,7 @@ pub mod pallet {
 		pub fn withdraw_shares(
 			origin: OriginFor<T>,
 			nft_class_id: NftClassIdOf<T>,
-			nft_id: NftInstaceIdOf<T>,
+			nft_id: NftInstanceIdOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
@@ -976,7 +1057,7 @@ pub mod pallet {
 						},
 					)?;
 
-					//NOTE: how to communicate "else" to the user? - no shares or rewards will be transferes?
+					//NOTE: how to communicate "else" to the user? - no shares or rewards will be transferred?
 					if T::AMM::exists(asset_pair) {
 						let amm_token = T::AMM::get_share_token(asset_pair);
 
@@ -1224,7 +1305,8 @@ impl<T: Config> Pallet<T> {
 			return Ok(());
 		}
 
-		pool.accumulated_rps = Self::get_accumulated_rps(pool.accumulated_rps, pool.total_valued_shares, pool_rewards)?;
+		pool.accumulated_rpvs =
+			Self::get_accumulated_rps(pool.accumulated_rpvs, pool.total_valued_shares, pool_rewards)?;
 		pool.updated_at = period_now;
 
 		let global_pool_balance =
@@ -1232,7 +1314,7 @@ impl<T: Config> Pallet<T> {
 
 		ensure!(
 			global_pool_balance >= pool_rewards,
-			Error::<T>::InsuffcientBalanceInGlobalPool
+			Error::<T>::InsufficientBalanceInGlobalPool
 		);
 
 		let global_pool_account = Self::pool_account_id(global_pool_id)?;
@@ -1272,7 +1354,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn get_global_pool_shares(valued_shares: Balance, multiplier: PoolMultiplier) -> Result<Balance, Error<T>> {
-		valued_shares.checked_mul(multiplier.into()).ok_or(Error::<T>::Overflow)
+		multiplier.checked_mul_int(valued_shares).ok_or(Error::<T>::Overflow)
 	}
 
 	fn get_valued_shares(
@@ -1286,6 +1368,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	//TODO: add tests
+	//make test: claim in the same period should return 0 reward
 	fn do_claim_rewards(
 		who: AccountIdOf<T>,
 		d: &mut Deposit<T>,
@@ -1297,10 +1380,10 @@ impl<T: Config> Pallet<T> {
 		let loyalty_multiplier = Self::get_loyalty_multiplier(periods, liq_pool.loyalty_curve.clone())?;
 
 		let (rewards, unclaimable_rewards) = Self::get_user_reward(
-			d.accumulated_rps,
+			d.accumulated_rpvs,
 			d.valued_shares,
 			d.accumulated_claimed_rewards,
-			liq_pool.accumulated_rps,
+			liq_pool.accumulated_rpvs,
 			loyalty_multiplier,
 		)?;
 

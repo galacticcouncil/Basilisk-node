@@ -212,7 +212,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TO1,
 			},
-			5,
+			FixedU128::from(5_u128),
 			Some(LoyaltyCurve::default()),
 		));
 
@@ -222,13 +222,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 0,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
 				total_shares: 0,
 				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -242,7 +242,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TO2,
 			},
-			10,
+			FixedU128::from(10_u128),
 			Some(LoyaltyCurve::default()),
 		));
 
@@ -252,13 +252,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 0,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
 				total_shares: 0,
 				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -415,13 +415,13 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 25,
-				accumulated_rps: 60,
+				accumulated_rpvs: 60,
 				accumulated_rpz: 12,
 				total_shares: 616,
 				total_valued_shares: 45_540,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 227_700,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -432,13 +432,13 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 25,
-				accumulated_rps: 120,
+				accumulated_rpvs: 120,
 				accumulated_rpz: 12,
 				total_shares: 960,
 				total_valued_shares: 47_629,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 476_290,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -625,19 +625,19 @@ fn get_loyalty_multiplier_should_work() {
 
 	let precission_delta = FixedU128::from_inner(100_000_000); //0.000_000_000_1
 	for t in testing_values.iter() {
-		//1-th curve test
+		//1th curve test
 		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(c1.clone())).unwrap();
 		assert!(is_approx_eq_fixedu128(m, t.1, precission_delta));
 
-		//2-nd curve test
+		//2nd curve test
 		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(c2.clone())).unwrap();
 		assert!(is_approx_eq_fixedu128(m, t.2, precission_delta));
 
-		//3-th ucrve test
+		//3rd curve test
 		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(c3.clone())).unwrap();
 		assert!(is_approx_eq_fixedu128(m, t.3, precission_delta));
 
-		//4-th curve test
+		//4th curve test
 		let m = LiquidityMining::get_loyalty_multiplier(t.0, Some(c4.clone())).unwrap();
 		assert!(is_approx_eq_fixedu128(m, t.4, precission_delta));
 	}
@@ -1655,7 +1655,7 @@ fn claim_from_global_pool_should_work() {
 		g_pool.accumulated_rewards = t.5;
 		g_pool.paid_accumulated_rewards = t.6;
 
-		let mut liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, 10, 1);
+		let mut liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, FixedU128::from(10_u128), 1);
 		liq_pool.accumulated_rpz = t.2;
 
 		assert_eq!(
@@ -1682,7 +1682,7 @@ fn claim_from_global_pool_should_work() {
 
 		assert_eq!(g_pool, rhs_g_pool);
 
-		let mut rhs_liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, 10, 1);
+		let mut rhs_liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, FixedU128::from(10_u128), 1);
 		rhs_liq_pool.accumulated_rpz = t.9;
 
 		assert_eq!(liq_pool, rhs_liq_pool);
@@ -2023,11 +2023,11 @@ fn update_pool_should_work() {
 			updated_at: t.2,
 			total_shares: 200_u128,
 			total_valued_shares: t.5,
-			accumulated_rps: t.4,
+			accumulated_rpvs: t.4,
 			accumulated_rpz: 200_u128,
 			loyalty_curve: None,
 			stake_in_global_pool: Balance::from(10_000_u32),
-			multiplier: 10,
+			multiplier: FixedU128::from(10_u128),
 			nft_class: 1,
 			canceled: false,
 		};
@@ -2080,11 +2080,11 @@ fn update_pool_should_work() {
 					updated_at: t.9,
 					total_shares: 200_u128,
 					total_valued_shares: t.5,
-					accumulated_rps: t.8,
+					accumulated_rpvs: t.8,
 					accumulated_rpz: 200_u128,
 					loyalty_curve: None,
 					stake_in_global_pool: Balance::from(10_000_u32),
-					multiplier: 10,
+					multiplier: FixedU128::from(10_u128),
 					nft_class: 1,
 					canceled: false,
 				}
@@ -2408,10 +2408,10 @@ fn add_liquidity_pool_should_work() {
 				updated_at: 17,
 				total_shares: 0,
 				total_valued_shares: 0,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
 				stake_in_global_pool: 0,
-				multiplier: 20_000,
+				multiplier: FixedU128::from(20_000_u128),
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				nft_class: 2,
 				canceled: false,
@@ -2435,10 +2435,10 @@ fn add_liquidity_pool_should_work() {
 				updated_at: 17,
 				total_shares: 0,
 				total_valued_shares: 0,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
 				stake_in_global_pool: 0,
-				multiplier: 10_000,
+				multiplier: FixedU128::from(10_000_u128),
 				loyalty_curve: None,
 				nft_class: 3,
 				canceled: false,
@@ -2462,10 +2462,10 @@ fn add_liquidity_pool_should_work() {
 				updated_at: 20,
 				total_shares: 0,
 				total_valued_shares: 0,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
 				stake_in_global_pool: 0,
-				multiplier: 10_000,
+				multiplier: FixedU128::from(10_000_u128),
 				loyalty_curve: Some(LoyaltyCurve {
 					initial_reward_percentage: FixedU128::from_inner(100_000_000_000_000_000),
 					scale_coef: 50,
@@ -2492,10 +2492,10 @@ fn add_liquidity_pool_should_work() {
 				updated_at: 2,
 				total_shares: 0,
 				total_valued_shares: 0,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
 				stake_in_global_pool: 0,
-				multiplier: 50_000,
+				multiplier: FixedU128::from(50_000_128),
 				loyalty_curve: Some(LoyaltyCurve {
 					initial_reward_percentage: FixedU128::from_inner(1),
 					scale_coef: 0,
@@ -2547,7 +2547,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 					asset_in: BSX,
 					asset_out: HDX,
 				},
-				10_000,
+				FixedU128::from(10_000_u128),
 				None
 			),
 			Error::<Test>::Forbidden
@@ -2561,7 +2561,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 					asset_in: BSX,
 					asset_out: HDX,
 				},
-				10_000,
+				FixedU128::from(10_000_u128),
 				Some(LoyaltyCurve::default())
 			),
 			Error::<Test>::Forbidden
@@ -2608,7 +2608,7 @@ fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
 						asset_in: BSX,
 						asset_out: HDX,
 					},
-					10_000,
+					FixedU128::from(10_000_u128),
 					c
 				),
 				Error::<Test>::InvalidInitialRewardPercentage
@@ -2628,7 +2628,7 @@ fn add_liquidity_pool_invalid_weight_should_not_work() {
 					asset_in: BSX,
 					asset_out: HDX,
 				},
-				0,
+				FixedU128::from(0_u128),
 				Some(LoyaltyCurve::default())
 			),
 			Error::<Test>::InvalidMultiplier
@@ -2648,7 +2648,7 @@ fn add_liquidity_pool_non_existing_amm_should_not_work() {
 					asset_in: BSX,
 					asset_out: 999_999_999,
 				},
-				10_000,
+				FixedU128::from(10_000_u128),
 				Some(LoyaltyCurve::default())
 			),
 			Error::<Test>::AmmPoolDoesNotExist
@@ -2668,7 +2668,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 				asset_in: BSX,
 				asset_out: ACA,
 			},
-			10_000,
+			FixedU128::from(10_000_u128),
 			Some(LoyaltyCurve::default())
 		));
 
@@ -2677,11 +2677,11 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 			updated_at: 20,
 			total_shares: 0,
 			total_valued_shares: 0,
-			accumulated_rps: 0,
+			accumulated_rpvs: 0,
 			accumulated_rpz: 0,
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			stake_in_global_pool: 0,
-			multiplier: 10_000,
+			multiplier: FixedU128::from(10_000_u128),
 			nft_class: 2,
 			canceled: false,
 		};
@@ -2705,7 +2705,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 					asset_in: BSX,
 					asset_out: ACA,
 				},
-				9_000,
+				FixedU128::from(9_000_u128),
 				Some(LoyaltyCurve::default()),
 			),
 			Error::<Test>::LiquidityPoolAlreadyExists
@@ -2722,7 +2722,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 					asset_in: BSX,
 					asset_out: ACA,
 				},
-				9_000,
+				FixedU128::from(9_000_u128),
 				Some(LoyaltyCurve::default()),
 			),
 			Error::<Test>::LiquidityPoolAlreadyExists
@@ -2923,13 +2923,13 @@ fn deposit_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 0,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
 				total_shares: 50,
 				total_valued_shares: 2_500,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 12_500,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -2942,7 +2942,7 @@ fn deposit_shares_should_work() {
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_claimed_rewards: 0,
 				entered_at: 18,
 			},
@@ -2989,13 +2989,13 @@ fn deposit_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 18,
-				accumulated_rps: 45,
+				accumulated_rpvs: 45,
 				accumulated_rpz: 9,
 				total_shares: 130,
 				total_valued_shares: 6_660,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 33_300,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -3008,7 +3008,7 @@ fn deposit_shares_should_work() {
 			Deposit {
 				shares: 80,
 				valued_shares: 4_160,
-				accumulated_rps: 45,
+				accumulated_rpvs: 45,
 				accumulated_claimed_rewards: 0,
 				entered_at: 18,
 			},
@@ -3055,13 +3055,13 @@ fn deposit_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 0,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
 				total_shares: 25,
 				total_valued_shares: 200,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 2_000,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -3074,7 +3074,7 @@ fn deposit_shares_should_work() {
 			Deposit {
 				shares: 25,
 				valued_shares: 200,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_claimed_rewards: 0,
 				entered_at: 18,
 			},
@@ -3129,13 +3129,13 @@ fn deposit_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 20,
-				accumulated_rps: 100,
+				accumulated_rpvs: 100,
 				accumulated_rpz: 10,
 				total_shares: 825,
 				total_valued_shares: 46_600,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 466_000,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -3148,7 +3148,7 @@ fn deposit_shares_should_work() {
 			Deposit {
 				shares: 800,
 				valued_shares: 46_400,
-				accumulated_rps: 100,
+				accumulated_rpvs: 100,
 				accumulated_claimed_rewards: 0,
 				entered_at: 20,
 			},
@@ -3203,13 +3203,13 @@ fn deposit_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 25,
-				accumulated_rps: 120,
+				accumulated_rpvs: 120,
 				accumulated_rpz: 12,
 				total_shares: 912,
 				total_valued_shares: 46_861,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 468_610,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -3222,7 +3222,7 @@ fn deposit_shares_should_work() {
 			Deposit {
 				shares: 87,
 				valued_shares: 261,
-				accumulated_rps: 120,
+				accumulated_rpvs: 120,
 				accumulated_claimed_rewards: 0,
 				entered_at: 25,
 			},
@@ -3279,13 +3279,13 @@ fn deposit_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 25,
-				accumulated_rps: 120,
+				accumulated_rpvs: 120,
 				accumulated_rpz: 12,
 				total_shares: 960,
 				total_valued_shares: 47_629,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 476_290,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -3298,7 +3298,7 @@ fn deposit_shares_should_work() {
 			Deposit {
 				shares: 48,
 				valued_shares: 768,
-				accumulated_rps: 120,
+				accumulated_rpvs: 120,
 				accumulated_claimed_rewards: 0,
 				entered_at: 25,
 			},
@@ -3362,13 +3362,13 @@ fn deposit_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 25,
-				accumulated_rps: 60,
+				accumulated_rpvs: 60,
 				accumulated_rpz: 12,
 				total_shares: 616,
 				total_valued_shares: 45_540,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 227_700,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -3381,7 +3381,7 @@ fn deposit_shares_should_work() {
 			Deposit {
 				shares: 486,
 				valued_shares: 38_880,
-				accumulated_rps: 60,
+				accumulated_rpvs: 60,
 				accumulated_claimed_rewards: 0,
 				entered_at: 25,
 			},
@@ -3484,7 +3484,7 @@ fn claim_rewards_should_work() {
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_claimed_rewards: 79_906,
 				entered_at: 18,
 			}
@@ -3510,7 +3510,7 @@ fn claim_rewards_should_work() {
 			Deposit {
 				shares: 87,
 				valued_shares: 261,
-				accumulated_rps: 120,
+				accumulated_rpvs: 120,
 				accumulated_claimed_rewards: 2_734,
 				entered_at: 25,
 			}
@@ -3541,13 +3541,13 @@ fn claim_rewards_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 30,
-				accumulated_rps: 140,
+				accumulated_rpvs: 140,
 				accumulated_rpz: 14,
 				total_shares: 960,
 				total_valued_shares: 47_629,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 476_290,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -3576,7 +3576,7 @@ fn claim_rewards_should_work() {
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
-				accumulated_rps: 0,
+				accumulated_rpvs: 0,
 				accumulated_claimed_rewards: 7_557_089,
 				entered_at: 18,
 			}
@@ -3607,13 +3607,13 @@ fn claim_rewards_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 1_258,
-				accumulated_rps: 3_140,
+				accumulated_rpvs: 3_140,
 				accumulated_rpz: 628,
 				total_shares: 616,
 				total_valued_shares: 45_540,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 227_700,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -3624,13 +3624,13 @@ fn claim_rewards_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 30,
-				accumulated_rps: 140,
+				accumulated_rpvs: 140,
 				accumulated_rpz: 14,
 				total_shares: 960,
 				total_valued_shares: 47_629,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 476_290,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -3791,13 +3791,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 25,
-				accumulated_rps: 60,
+				accumulated_rpvs: 60,
 				accumulated_rpz: 12,
 				total_shares: 566,
 				total_valued_shares: 43_040,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 215_200,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -3889,13 +3889,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 25,
-				accumulated_rps: 60,
+				accumulated_rpvs: 60,
 				accumulated_rpz: 12,
 				total_shares: 566,
 				total_valued_shares: 43_040,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 215_200,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -3906,13 +3906,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 128,
-				accumulated_rps: 630,
+				accumulated_rpvs: 630,
 				accumulated_rpz: 63,
 				total_shares: 873,
 				total_valued_shares: 47_368,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 473_680,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -4002,13 +4002,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 128,
-				accumulated_rps: 315,
+				accumulated_rpvs: 315,
 				accumulated_rpz: 63,
 				total_shares: 80,
 				total_valued_shares: 4_160,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 20_800,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -4097,13 +4097,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 128,
-				accumulated_rps: 315,
+				accumulated_rpvs: 315,
 				accumulated_rpz: 63,
 				total_shares: 0,
 				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -4189,13 +4189,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 4,
 				updated_at: 128,
-				accumulated_rps: 315,
+				accumulated_rpvs: 315,
 				accumulated_rpz: 63,
 				total_shares: 0,
 				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
-				multiplier: 5,
+				multiplier: FixedU128::from(5_u128),
 				nft_class: 0,
 				canceled: false,
 			},
@@ -4206,13 +4206,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 128,
-				accumulated_rps: 630,
+				accumulated_rpvs: 630,
 				accumulated_rpz: 63,
 				total_shares: 848,
 				total_valued_shares: 47_168,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 471_680,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -4297,13 +4297,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 128,
-				accumulated_rps: 630,
+				accumulated_rpvs: 630,
 				accumulated_rpz: 63,
 				total_shares: 800,
 				total_valued_shares: 46_400,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 464_000,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -4387,13 +4387,13 @@ fn withdraw_shares_should_work() {
 			LiquidityPoolYieldFarm {
 				id: 5,
 				updated_at: 128,
-				accumulated_rps: 630,
+				accumulated_rpvs: 630,
 				accumulated_rpz: 63,
 				total_shares: 0,
 				total_valued_shares: 0,
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
-				multiplier: 10,
+				multiplier: FixedU128::from(10_u128),
 				nft_class: 1,
 				canceled: false,
 			},
@@ -4824,6 +4824,7 @@ fn cancel_liquidity_pool_should_work() {
 			LiquidityPoolYieldFarm {
 				stake_in_global_pool: 0,
 				canceled: true,
+				multiplier: 0.into(),
 				..liq_pool
 			}
 		);
@@ -4871,10 +4872,11 @@ fn cancel_liquidity_pool_should_work() {
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				updated_at: 100,
-				accumulated_rps: 245,
+				accumulated_rpvs: 245,
 				accumulated_rpz: 49,
 				stake_in_global_pool: 0,
 				canceled: true,
+				multiplier: 0.into(),
 				..liq_pool
 			}
 		);
@@ -5129,14 +5131,14 @@ fn remove_liquidity_pool_liq_pool_does_not_exists_should_not_work() {
 
 #[test]
 fn update_liquidity_pool_should_work() {
-	//liq pool yeid farms without deposits
+	//liq pool yield farms without deposits
 	predefined_test_ext().execute_with(|| {
 		let amm_1 = AssetPair {
 			asset_in: BSX,
 			asset_out: TO1,
 		};
 
-		const NEW_MULTIPLIER: PoolMultiplier = 5_000;
+		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
 		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
@@ -5144,13 +5146,13 @@ fn update_liquidity_pool_should_work() {
 			Origin::signed(GC),
 			GC_FARM,
 			amm_1,
-			NEW_MULTIPLIER
+			new_multiplier
 		));
 
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
-				multiplier: NEW_MULTIPLIER,
+				multiplier: new_multiplier,
 				..liq_pool
 			}
 		);
@@ -5164,8 +5166,8 @@ fn update_liquidity_pool_should_work() {
 			asset_out: TO1,
 		};
 
-		// Same period as last pools update so no udpate_XXX_pool() is called.
-		let new_multiplier: PoolMultiplier = 10_000;
+		// Same period as last pools update so no update_XXX_pool() is called.
+		let new_multiplier: PoolMultiplier = FixedU128::from(10_000_u128);
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
 		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
@@ -5195,7 +5197,7 @@ fn update_liquidity_pool_should_work() {
 
 		// Different period update_XXX_pool() should be called
 		run_to_block(5_000);
-		let new_multiplier: PoolMultiplier = 5_000;
+		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
 		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
@@ -5216,7 +5218,7 @@ fn update_liquidity_pool_should_work() {
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				updated_at: 50,
-				accumulated_rps: 30_060,
+				accumulated_rpvs: 30_060,
 				accumulated_rpz: 15,
 				multiplier: new_multiplier,
 				stake_in_global_pool: 227_700_000,
@@ -5256,7 +5258,7 @@ fn update_liquidity_pool_zero_multiplier_should_not_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::update_liquidity_pool(Origin::signed(GC), GC_FARM, amm_1, 0),
+			LiquidityMining::update_liquidity_pool(Origin::signed(GC), GC_FARM, amm_1, FixedU128::from(0_u128)),
 			Error::<Test>::InvalidMultiplier
 		);
 	});
@@ -5277,7 +5279,7 @@ fn update_liquidity_pool_canceled_pool_should_not_work() {
 		));
 
 		assert_noop!(
-			LiquidityMining::update_liquidity_pool(Origin::signed(GC), GC_FARM, amm_1, 10_001),
+			LiquidityMining::update_liquidity_pool(Origin::signed(GC), GC_FARM, amm_1, FixedU128::from(10_001)),
 			Error::<Test>::LiquidityMiningCanceled
 		);
 	});
@@ -5299,8 +5301,122 @@ fn update_liquidity_pool_not_owner_should_not_work() {
 
 		let not_owner = ALICE;
 		assert_noop!(
-			LiquidityMining::update_liquidity_pool(Origin::signed(not_owner), GC_FARM, amm_1, 10_001),
+			LiquidityMining::update_liquidity_pool(
+				Origin::signed(not_owner),
+				GC_FARM,
+				amm_1,
+				FixedU128::from(10_001_u128)
+			),
 			Error::<Test>::LiquidityMiningCanceled
+		);
+	});
+}
+
+#[test]
+fn resume_liquidity_pool_should_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1
+		));
+
+		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
+		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+
+		let new_multiplier = FixedU128::from(7490_000);
+
+		assert!(liq_pool.canceled);
+		assert!(liq_pool.stake_in_global_pool.is_zero());
+		assert!(liq_pool.multiplier.is_zero());
+
+		run_to_block(13_420_000);
+
+		assert_ok!(LiquidityMining::resume_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			amm_1,
+			new_multiplier
+		));
+
+		let liq_pool_stake_in_g_pool = new_multiplier.checked_mul_int(45_540).unwrap();
+
+		assert_eq!(
+			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
+			LiquidityPoolYieldFarm {
+				canceled: false,
+				stake_in_global_pool: liq_pool_stake_in_g_pool,
+				accumulated_rpz: 62_996,
+				multiplier: new_multiplier,
+				..liq_pool
+			}
+		);
+
+		assert_eq!(
+			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			GlobalPool {
+				total_shares_z: g_pool.total_shares_z + liq_pool_stake_in_g_pool,
+				updated_at: 134_200,
+				accumulated_rpz: 62_996,
+				accumulated_rewards: 29_999_067_250,
+				..g_pool
+			}
+		);
+	});
+}
+
+#[test]
+fn resume_liquidity_pool_not_existing_pool_should_not_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: KSM,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let new_multiplier = FixedU128::from(7490_000);
+
+		assert_noop!(
+			LiquidityMining::resume_liquidity_pool(Origin::signed(GC), GC_FARM, amm_1, new_multiplier),
+			Error::<Test>::LiquidityPoolNotFound
+		);
+	});
+}
+
+#[test]
+fn resume_liquidity_pool_not_canceled_pool_should_not_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let new_multiplier = FixedU128::from(7490_000);
+
+		assert_noop!(
+			LiquidityMining::resume_liquidity_pool(Origin::signed(GC), GC_FARM, amm_1, new_multiplier),
+			Error::<Test>::LiquidityMiningIsNotCanceled
+		);
+	});
+}
+
+#[test]
+fn resume_liquidity_pool_not_owner_should_not_work() {
+	let amm_1 = AssetPair {
+		asset_in: BSX,
+		asset_out: TO1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let new_multiplier = FixedU128::from(7490_000);
+
+		assert_noop!(
+			LiquidityMining::resume_liquidity_pool(Origin::signed(ALICE), GC_FARM, amm_1, new_multiplier),
+			Error::<Test>::LiquidityMiningIsNotCanceled
 		);
 	});
 }
