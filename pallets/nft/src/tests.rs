@@ -194,7 +194,7 @@ fn destroy_class_works() {
 			Error::<Test>::NotPermitted
 		);
 		assert_ok!(NFTPallet::do_burn(BOB, CLASS_ID_1, TOKEN_ID_0));
-		assert_ok!(NFTPallet::do_destroy_class(CLASS_ID_1));
+		assert_ok!(NFTPallet::do_destroy_class(ALICE, CLASS_ID_1));
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
 			Error::<Test>::ClassUnknown
