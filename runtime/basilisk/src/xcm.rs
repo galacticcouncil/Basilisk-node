@@ -163,11 +163,12 @@ impl pallet_xcm::Config for Runtime {
 }
 
 pub struct CurrencyIdConvert;
+use primitives::constants::chain::CORE_ASSET_ID;
 
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
 		match id {
-			0 => Some(MultiLocation::new(
+			CORE_ASSET_ID => Some(MultiLocation::new(
 				1,
 				X2(Parachain(ParachainInfo::get().into()), GeneralKey(id.encode())),
 			)),
@@ -193,7 +194,22 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
 					// we currently have only one native asset
 					match currency_id {
-						0 => Some(currency_id),
+						CORE_ASSET_ID => Some(currency_id),
+						_ => None,
+					}
+				} else {
+					None
+				}
+			}
+			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
+			MultiLocation {
+				parents: 0,
+				interior: X1(GeneralKey(key)),
+			} => {
+				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
+					// we currently have only one native asset
+					match currency_id {
+						CORE_ASSET_ID => Some(currency_id),
 						_ => None,
 					}
 				} else {
