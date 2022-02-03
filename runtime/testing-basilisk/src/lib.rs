@@ -134,7 +134,7 @@ pub fn native_version() -> NativeVersion {
 use common_runtime::adapter::OrmlTokensAdapter;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 use smallvec::smallvec;
-use primitives::nft::{ClassType, NftPermissions};
+use primitives::{nft::{ClassType, NftPermissions}, ClassId, InstanceId};
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
@@ -484,8 +484,8 @@ impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
-	type NftClassId = u32;
-	type NftInstanceId = u32;
+	type NftClassId = ClassId;
+	type NftInstanceId = InstanceId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
@@ -504,8 +504,8 @@ parameter_types! {
 
 impl pallet_uniques::Config for Runtime {
 	type Event = Event;
-	type ClassId = u32;
-	type InstanceId = u32;
+	type ClassId = ClassId;
+	type InstanceId = InstanceId;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type ClassDeposit = ClassDeposit;

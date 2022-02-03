@@ -53,7 +53,14 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 		type ProtocolOrigin: EnsureOrigin<Self::Origin>;
-		type NftClassId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned + Into<Self::ClassId>;
+		type NftClassId: Member
+			+ Parameter
+			+ Default
+			+ Copy
+			+ HasCompact
+			+ AtLeast32BitUnsigned
+			+ Into<Self::ClassId>
+			+ From<Self::ClassId>;
 		type NftInstanceId: Member
 			+ Parameter
 			+ Default
@@ -274,7 +281,7 @@ impl<T: Config> Pallet<T> {
 		pallet_uniques::Pallet::<T>::class_owner(&class_id.into())
 	}
 
-	pub fn instance_owner(class_id: T::NftClassId, instance_id: T::NftInstanceId) -> Option<T::AccountId> {
+	pub fn owner(class_id: T::NftClassId, instance_id: T::NftInstanceId) -> Option<T::AccountId> {
 		pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
 	}
 
@@ -337,7 +344,7 @@ impl<T: Config> Pallet<T> {
 			instance_id.into(),
 			to,
 			|_class_details, _instance_details| {
-				let owner = Self::instance_owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
+				let owner = Self::owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
 				ensure!(owner == from, Error::<T>::NotPermitted);
 				Ok(())
 			},
@@ -349,7 +356,7 @@ impl<T: Config> Pallet<T> {
 			class_id.into(),
 			instance_id.into(),
 			|_class_details, _instance_details| {
-				let iowner = Self::instance_owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
+				let iowner = Self::owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
 				ensure!(owner == iowner, Error::<T>::NotPermitted);
 				Ok(())
 			},
