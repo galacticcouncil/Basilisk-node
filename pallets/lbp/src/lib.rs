@@ -39,7 +39,6 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
-	fee::{Fee, WithFee},
 	Amount, AssetId, Balance,
 };
 
@@ -88,7 +87,7 @@ pub const MAX_SALE_DURATION: u32 = (60 * 60 * 24 / 6) * 14;
 pub const COLLECTOR_LOCK_ID: LockIdentifier = *b"lbpcllct";
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, Default, TypeInfo)]
+#[derive(RuntimeDebug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	/// owner of the pool after `CreatePoolOrigin` creates it
 	pub owner: AccountId,
@@ -112,7 +111,7 @@ pub struct Pool<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> {
 	pub weight_curve: WeightCurveType,
 
 	/// standard fee amount
-	pub fee: Fee,
+	pub fee: (u32, u32),
 
 	/// person that receives the fee
 	pub fee_collector: AccountId,
@@ -129,7 +128,7 @@ impl<AccountId, BlockNumber: AtLeast32BitUnsigned + Copy> Pool<AccountId, BlockN
 		initial_weight: LBPWeight,
 		final_weight: LBPWeight,
 		weight_curve: WeightCurveType,
-		fee: Fee,
+		fee: (u32, u32),
 		fee_collector: AccountId,
 		repay_target: Balance,
 	) -> Self {
@@ -180,6 +179,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
@@ -297,7 +297,7 @@ pub mod pallet {
 		InsufficientTradingAmount,
 
 		/// Not more than one fee collector per asset id
-		FeeCollectorWithAssetAlreadyUsed
+		FeeCollectorWithAssetAlreadyUsed,
 	}
 
 	#[pallet::event]
@@ -348,11 +348,14 @@ pub mod pallet {
 	/// Not more than one fee collector per asset possible
 	#[pallet::storage]
 	pub type FeeCollectorWithAsset<T: Config> =
-		StorageDoubleMap<_,
-			Blake2_128Concat,
-			T::AccountId,
-			Blake2_128Concat,
-			AssetId, bool, ValueQuery>;
+		StorageDoubleMap<_, Blake2_128Concat, T::AccountId, Blake2_128Concat, AssetId, bool, ValueQuery>;
+
+	#[pallet::extra_constants]
+	impl<T: Config> Pallet<T> {
+		pub fn repay_fee() -> (u32, u32) {
+			(2, 10)
+		}
+	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -401,7 +404,7 @@ pub mod pallet {
 			initial_weight: LBPWeight,
 			final_weight: LBPWeight,
 			weight_curve: WeightCurveType,
-			fee: Fee,
+			fee: (u32, u32),
 			fee_collector: T::AccountId,
 			repay_target: Balance,
 		) -> DispatchResult {
@@ -499,7 +502,7 @@ pub mod pallet {
 			end: Option<T::BlockNumber>,
 			initial_weight: Option<LBPWeight>,
 			final_weight: Option<LBPWeight>,
-			fee: Option<Fee>,
+			fee: Option<(u32, u32)>,
 			fee_collector: Option<T::AccountId>,
 			repay_target: Option<Balance>,
 		) -> DispatchResult {
@@ -768,12 +771,12 @@ impl<T: Config> Pallet<T> {
 				&& pool_data.initial_weight < MAX_WEIGHT
 				&& !pool_data.final_weight.is_zero()
 				&& pool_data.final_weight < MAX_WEIGHT,
-				// TODO people could leak value out the pool if initial weight is < final weight due to fee structure
-				// && pool_data.initial_weight > pool_data.final_weight,
+			// TODO people could leak value out the pool if initial weight is < final weight due to fee structure
+			// && pool_data.initial_weight > pool_data.final_weight,
 			Error::<T>::InvalidWeight
 		);
 
-		ensure!(!pool_data.fee.denominator.is_zero(), Error::<T>::FeeAmountInvalid);
+		ensure!(!pool_data.fee.1.is_zero(), Error::<T>::FeeAmountInvalid);
 
 		Ok(())
 	}
@@ -867,14 +870,12 @@ impl<T: Config> Pallet<T> {
 		amount: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, DispatchError> {
 		let fee = if Self::is_repay_fee_applied(pool) {
-			Fee {
-				numerator: 2,
-				denominator: 10,
-			}
+			Self::repay_fee()
 		} else {
 			pool.fee
 		};
-		Ok(amount.just_fee(fee).ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
+		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (fee.0, fee.1))
+			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 
 	pub fn pair_account_from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId<T> {
@@ -944,7 +945,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		min_bought: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_in, who) >= amount,
@@ -987,7 +987,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			.map_err(|_| Error::<T>::Overflow)?;
 
 			ensure!(
-				amount_out <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+				amount_out
+					<= asset_out_reserve
+						.checked_div(MAX_OUT_RATIO)
+						.ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxOutRatioExceeded
 			);
 
@@ -1024,7 +1027,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			let amount_out_without_fee = calculated_out.checked_sub(fee).ok_or(Error::<T>::Overflow)?;
 
 			ensure!(
-				calculated_out <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+				calculated_out
+					<= asset_out_reserve
+						.checked_div(MAX_OUT_RATIO)
+						.ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxOutRatioExceeded
 			);
 
@@ -1065,7 +1071,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		max_sold: BalanceOf<T>,
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
 		ensure!(
 			T::MultiCurrency::free_balance(assets.asset_in, who) >= max_sold,
@@ -1083,7 +1088,10 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
 
 		ensure!(
-			amount <= asset_out_reserve.checked_div(MAX_OUT_RATIO).ok_or(Error::<T>::Overflow)?,
+			amount
+				<= asset_out_reserve
+					.checked_div(MAX_OUT_RATIO)
+					.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::MaxOutRatioExceeded
 		);
 
@@ -1191,6 +1199,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 
 	fn get_max_out_ratio() -> u128 {
 		T::MaxOutRatio::get()
+	}
+
+	fn get_fee(pool_account_id: &T::AccountId) -> (u32, u32) {
+		let maybe_pool_data = <PoolData<T>>::get(pool_account_id);
+		match maybe_pool_data {
+			Some(pool_data) => pool_data.fee,
+			None => (0, 0),
+		}
 	}
 }
 

@@ -7,6 +7,7 @@ use sp_runtime::traits::Convert;
 use sp_runtime::FixedPointNumber;
 
 #[test]
+#[ignore]
 fn full_block_cost() {
 	let max_bytes = *BlockLength::get().max.get(DispatchClass::Normal) as u128;
 	let length_fee = max_bytes * TransactionByteFee::get();

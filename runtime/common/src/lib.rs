@@ -20,10 +20,12 @@
 pub mod adapter;
 pub mod locked_balance;
 
-use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId};
+use codec::{Decode, Encode, MaxEncodedLen};
+use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId, RuntimeDebug};
 pub use pallet_transaction_payment::Multiplier;
 pub use primitives::constants::{chain::*, currency::*, time::*};
-pub use primitives::{fee, Amount, AssetId, Balance};
+pub use primitives::{Amount, AssetId, Balance};
+use scale_info::TypeInfo;
 use sp_runtime::{
 	generic,
 	traits::{BlakeTwo256, IdentifyAccount, Verify},
@@ -49,9 +51,6 @@ pub type Index = u32;
 
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
-
-/// Digest item type.
-pub type DigestItem = generic::DigestItem<Hash>;
 
 /// Opaque, encoded, unchecked extrinsic.
 pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
@@ -111,9 +110,34 @@ parameter_types! {
 	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
 }
 
+// pallet proxy
+/// The type used to represent the kinds of proxying allowed.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+pub enum ProxyType {
+	Any,
+	CancelProxy,
+	Governance,
+	Exchange,
+	Transfer,
+}
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::Any
+	}
+}
+
+parameter_types! {
+	pub ProxyDepositBase: Balance = 4 * DOLLARS + 480 * MILLICENTS;
+	pub ProxyDepositFactor: Balance = 1_980 * MILLICENTS;
+	pub const MaxProxies: u16 = 32;
+	pub AnnouncementDepositBase: Balance = 4 * DOLLARS + 480 * MILLICENTS;
+	pub AnnouncementDepositFactor: Balance = 3_960 * MILLICENTS;
+	pub const MaxPending: u16 = 32;
+}
+
 // pallet xyk
 parameter_types! {
-	pub ExchangeFee: fee::Fee = fee::Fee::default();
+	pub ExchangeFee: (u32, u32) = (2, 1_000);
 	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
@@ -128,7 +152,7 @@ parameter_types! {
 
 // pallet lbp
 parameter_types! {
-	pub LBPExchangeFee: fee::Fee = fee::Fee::default();
+	pub LBPExchangeFee: (u32, u32) = (2, 1_000);
 }
 
 // pallet nft
@@ -189,6 +213,7 @@ parameter_types! {
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const ProposalBondMinimum: Balance = 10 * DOLLARS;
+	pub const ProposalBondMaximum: Balance = 50 * DOLLARS;
 	pub const SpendPeriod: BlockNumber = 3 * DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
