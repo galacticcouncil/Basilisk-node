@@ -2954,6 +2954,7 @@ fn deposit_shares_should_work() {
 				accumulated_rpvs: 0,
 				accumulated_claimed_rewards: 0,
 				entered_at: 18,
+				updated_at: 18,
 			},
 		);
 
@@ -3020,6 +3021,7 @@ fn deposit_shares_should_work() {
 				accumulated_rpvs: 45,
 				accumulated_claimed_rewards: 0,
 				entered_at: 18,
+				updated_at: 18,
 			},
 		);
 
@@ -3086,6 +3088,7 @@ fn deposit_shares_should_work() {
 				accumulated_rpvs: 0,
 				accumulated_claimed_rewards: 0,
 				entered_at: 18,
+				updated_at: 18,
 			},
 		);
 
@@ -3160,6 +3163,7 @@ fn deposit_shares_should_work() {
 				accumulated_rpvs: 100,
 				accumulated_claimed_rewards: 0,
 				entered_at: 20,
+				updated_at: 20,
 			},
 		);
 
@@ -3234,6 +3238,7 @@ fn deposit_shares_should_work() {
 				accumulated_rpvs: 120,
 				accumulated_claimed_rewards: 0,
 				entered_at: 25,
+				updated_at: 25,
 			},
 		);
 
@@ -3310,6 +3315,7 @@ fn deposit_shares_should_work() {
 				accumulated_rpvs: 120,
 				accumulated_claimed_rewards: 0,
 				entered_at: 25,
+				updated_at: 25,
 			},
 		);
 
@@ -3393,6 +3399,7 @@ fn deposit_shares_should_work() {
 				accumulated_rpvs: 60,
 				accumulated_claimed_rewards: 0,
 				entered_at: 25,
+				updated_at: 25,
 			},
 		);
 
@@ -3496,6 +3503,7 @@ fn claim_rewards_should_work() {
 				accumulated_rpvs: 0,
 				accumulated_claimed_rewards: 79_906,
 				entered_at: 18,
+				updated_at: 25,
 			}
 		);
 
@@ -3522,6 +3530,7 @@ fn claim_rewards_should_work() {
 				accumulated_rpvs: 120,
 				accumulated_claimed_rewards: 2_734,
 				entered_at: 25,
+				updated_at: 30,
 			}
 		);
 
@@ -3588,6 +3597,7 @@ fn claim_rewards_should_work() {
 				accumulated_rpvs: 0,
 				accumulated_claimed_rewards: 7_557_089,
 				entered_at: 18,
+				updated_at: 1_258,
 			}
 		);
 
@@ -3650,6 +3660,42 @@ fn claim_rewards_should_work() {
 		assert_eq!(
 			Tokens::free_balance(BSX, &bsx_to1_lm_account),
 			liq_pool_bsx_to1_rewarad_balance + 140_263_200 - 7_477_183
+		);
+	});
+}
+
+#[test]
+fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
+		let bsx_to1_lm_account = LiquidityMining::pool_account_id(4).unwrap();
+		let liq_pool_bsx_to1_rewarad_balance = Tokens::free_balance(BSX, &bsx_to1_lm_account);
+
+		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
+
+		expect_events(vec![Event::RewardClaimed(ALICE, GC_FARM, 4, 79_906, BSX).into()]);
+
+		assert_eq!(
+			LiquidityMining::deposit(0, 0).unwrap(),
+			Deposit {
+				shares: 50,
+				valued_shares: 2_500,
+				accumulated_rpvs: 0,
+				accumulated_claimed_rewards: 79_906,
+				entered_at: 18,
+				updated_at: 25,
+			}
+		);
+
+		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance + 79_906);
+		assert_eq!(
+			Tokens::free_balance(BSX, &bsx_to1_lm_account),
+			liq_pool_bsx_to1_rewarad_balance - 79_906
+		);
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0),
+			Error::<Test>::DoubleClaimInThePeriod
 		);
 	});
 }
@@ -4463,7 +4509,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
 		let liq_pool_acc = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
 
-		//1-th withdrwa
+		//1-th withdraw
 		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_acc);
 		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
 		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
@@ -4640,6 +4686,53 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 
 		//last withdraw should destroy nft class
 		assert_eq!(LiquidityMining::nft_class(0), None);
+	});
+}
+
+#[test]
+fn claim_and_reward_in_same_period_should_work() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
+		let bsx_to1_lm_account = LiquidityMining::pool_account_id(4).unwrap();
+		let liq_pool_bsx_to1_rewarad_balance = Tokens::free_balance(BSX, &bsx_to1_lm_account);
+		let alice_lp_tokens_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
+		const LIQ_POOL_ID: PoolId = 4;
+
+		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
+
+		expect_events(vec![
+			Event::RewardClaimed(ALICE, GC_FARM, LIQ_POOL_ID, 79_906, BSX).into()
+		]);
+
+		assert_eq!(
+			LiquidityMining::deposit(0, 0).unwrap(),
+			Deposit {
+				shares: 50,
+				valued_shares: 2_500,
+				accumulated_rpvs: 0,
+				accumulated_claimed_rewards: 79_906,
+				entered_at: 18,
+				updated_at: 25,
+			}
+		);
+
+		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance + 79_906);
+		assert_eq!(
+			Tokens::free_balance(BSX, &bsx_to1_lm_account),
+			liq_pool_bsx_to1_rewarad_balance - 79_906
+		);
+
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 0));
+
+		assert_eq!(
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
+			alice_lp_tokens_balance + 50
+		);
+
+		expect_events(vec![
+			Event::SharesWithdrawn(ALICE, BSX_TO1_SHARE_ID, 50).into(),
+			pallet_uniques::Event::Burned(0, 0, 1).into(),
+		]);
 	});
 }
 
@@ -5595,30 +5688,6 @@ fn withdraw_undistributed_rewards_not_empty_farm_should_not_work() {
 #[test]
 fn do_claim_rewards_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let mock_deposits: [Deposit<Test>; 3] = [
-			Deposit {
-				shares: 100,
-				valued_shares: 500,
-				accumulated_claimed_rewards: 0,
-				accumulated_rpvs: 56,
-				entered_at: 45,
-			},
-			Deposit {
-				shares: 12_315_314,
-				valued_shares: 1_454_565_765_765,
-				accumulated_claimed_rewards: 65_454,
-				accumulated_rpvs: 9_809,
-				entered_at: 3,
-			},
-			Deposit {
-				shares: 97_634,
-				valued_shares: 7_483_075,
-				accumulated_claimed_rewards: 1_657_649,
-				accumulated_rpvs: 10_989,
-				entered_at: 14_329,
-			},
-		];
-
 		let empty_lp: LiquidityPoolYieldFarm<Test> = LiquidityPoolYieldFarm {
 			id: 1,
 			updated_at: 0,
@@ -5633,22 +5702,93 @@ fn do_claim_rewards_should_work() {
 			canceled: false,
 		};
 
-		let mock_liq_pools: [LiquidityPoolYieldFarm<Test>; 3] = [
-            LiquidityPoolYieldFarm {
-                loyalty_curve: None,
-                ..empty_lp
-            },
-            LiquidityPoolYieldFarm {
-                loyalty_curve: Some(LoyaltyCurve {
-                    initial_reward_percentage: FixedU128::from_float(0.6746519004_f64),
-                    scale_coef: 360,
-                }),
-                ..empty_lp
-            },
-            LiquidityPoolYieldFarm {
-                ..empty_lp
-            },
-        ];
+		//(Deposit, LiquidityPoolYieldFarm, period_now, expected_result(user_reward, unclaimable_rewards)
+		let mock_data: [(
+			Deposit<Test>,
+			LiquidityPoolYieldFarm<Test>,
+			PeriodOf<Test>,
+			(Balance, Balance),
+		); 3] = [
+			(
+				Deposit {
+					shares: 100,
+					valued_shares: 500,
+					accumulated_claimed_rewards: 0,
+					accumulated_rpvs: 56,
+					entered_at: 12,
+					updated_at: 45,
+				},
+				LiquidityPoolYieldFarm {
+					loyalty_curve: Some(LoyaltyCurve::default()),
+					accumulated_rpvs: 7_789,
+					..empty_lp
+				},
+				45,
+				(0, 0),
+			),
+			(
+				Deposit {
+					shares: 12_315_314,
+					valued_shares: 1_454_565_765_765,
+					accumulated_claimed_rewards: 65_454,
+					accumulated_rpvs: 9_809,
+					entered_at: 3,
+					updated_at: 3,
+				},
+				LiquidityPoolYieldFarm {
+					loyalty_curve: Some(LoyaltyCurve {
+						initial_reward_percentage: FixedU128::from_float(0.674_651_900_400_000_000_000f64),
+						scale_coef: 360,
+					}),
+					accumulated_rpvs: 10_743,
+					..empty_lp
+				},
+				50,
+				(967_600_574_016_191, 390_963_851_142_865),
+			),
+			(
+				Deposit {
+					shares: 97_634,
+					valued_shares: 7_483_075,
+					accumulated_claimed_rewards: 1_657_649,
+					accumulated_rpvs: 10_989,
+					entered_at: 39,
+					updated_at: 329,
+				},
+				LiquidityPoolYieldFarm {
+					loyalty_curve: None, //no loyalty factor
+					accumulated_rpvs: 11_000,
+					..empty_lp
+				},
+				1002,
+				(80_656_176, 0),
+			),
+		];
+
+		let liq_pool_acc = LiquidityMining::pool_account_id(1).unwrap();
+		assert_ok!(Tokens::set_balance(
+			Origin::root(),
+			liq_pool_acc,
+			BSX,
+			1_000_0000_0000_0000_0000_000,
+			0
+		));
+
+		for (mut deposit, liq_pool, now_period, expected_result) in mock_data {
+			let alice_balance = Tokens::free_balance(BSX, &ALICE);
+			let pool_acc_balance = Tokens::free_balance(BSX, &liq_pool_acc);
+
+			assert_eq!(
+				LiquidityMining::do_claim_rewards(ALICE, &mut deposit, &liq_pool, now_period, BSX).unwrap(),
+				expected_result
+			);
+
+			let expected_alice_balance = alice_balance + expected_result.0;
+			let expected_pool_balance = pool_acc_balance - expected_result.0;
+
+			assert_eq!(Tokens::free_balance(BSX, &ALICE), expected_alice_balance);
+			assert_eq!(Tokens::free_balance(BSX, &liq_pool_acc), expected_pool_balance);
+		}
 	});
 }
 

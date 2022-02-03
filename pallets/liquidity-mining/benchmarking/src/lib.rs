@@ -268,7 +268,6 @@ benchmarks! {
 		assert!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled);
 
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().updated_at, 200_000_u32.into());
-		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().updated_at, 200_000_u32.into());
 	}
 
 	remove_liquidity_pool {
@@ -443,6 +442,37 @@ benchmarks! {
 			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
 		).is_none());
 	}
+
+	resume_liquidity_pool {
+		let caller = funded_account::<T>("caller", 0);
+		let xyk_caller = funded_account::<T>("xyk_caller", 1);
+
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
+
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
+
+		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+
+		let assets = AssetPair {
+			asset_in: BSX,
+			asset_out: KSM,
+		};
+
+		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+
+		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
+		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled, false);
+
+		LiquidityMining::<T>::cancel_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
+
+		assert!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled);
+	}: {
+		LiquidityMining::<T>::resume_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(12_452))?
+	}
+	verify {
+		assert!(!LiquidityMining::<T>::liquidity_pool(1, xyk_id).unwrap().canceled);
+	}
 }
 
 #[cfg(test)]
@@ -464,6 +494,7 @@ mod tests {
 			assert_ok!(Pallet::<Test>::test_benchmark_deposit_shares());
 			assert_ok!(Pallet::<Test>::test_benchmark_claim_rewards());
 			assert_ok!(Pallet::<Test>::test_benchmark_withdraw_shares());
+			assert_ok!(Pallet::<Test>::test_benchmark_resume_liquidity_pool());
 		});
 	}
 }

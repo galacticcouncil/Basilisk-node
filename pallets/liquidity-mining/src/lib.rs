@@ -199,11 +199,13 @@ pub struct Deposit<T: Config> {
 	accumulated_rpvs: Balance,
 	accumulated_claimed_rewards: Balance,
 	entered_at: PeriodOf<T>,
+	updated_at: PeriodOf<T>,
 }
 
 impl<T: Config> Deposit<T> {
 	fn new(shares: Balance, valued_shares: Balance, accumulated_rpvs: Balance, entered_at: PeriodOf<T>) -> Self {
 		Self {
+			updated_at: entered_at,
 			entered_at,
 			shares,
 			valued_shares,
@@ -336,6 +338,9 @@ pub mod pallet {
 
 		/// Nft pallet doesn't returned owner
 		CantFindDepositOwner,
+
+		/// Account can't claim multiple times in the same period
+		DoubleClaimInThePeriod,
 	}
 
 	#[pallet::event]
@@ -651,7 +656,6 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
-		//TODO: benchmarks
 		pub fn cancel_liquidity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -686,7 +690,7 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(1000)]
+		#[pallet::weight(<T as Config>::WeightInfo::resume_liquidity_pool())]
 		#[transactional]
 		pub fn resume_liquidity_pool(
 			origin: OriginFor<T>,
@@ -908,6 +912,7 @@ pub mod pallet {
 
 			<DepositData<T>>::try_mutate(nft_class_id, nft_id, |maybe_nft| {
 				let deposit = maybe_nft.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
+
 				let nft_owner = pallet_nft::Pallet::<T>::instance_owner(nft_class_id, nft_id)
 					.ok_or(Error::<T>::CantFindDepositOwner)?;
 
@@ -920,10 +925,12 @@ pub mod pallet {
 					ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
 					<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
-						//something is very wrong if this fail
+						// something is very wrong if this fail
 						let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
+						// can't claim multiple times in the same period
 						let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+						ensure!(deposit.updated_at != now_period, Error::<T>::DoubleClaimInThePeriod);
 
 						Self::maybe_update_pools(g_pool, liq_pool, now_period)?;
 
@@ -988,6 +995,7 @@ pub mod pallet {
 										if !liq_pool.canceled {
 											Self::maybe_update_pools(g_pool, liq_pool, now_period)?;
 										}
+
 										let (reward, unclaimable_rewards) = Self::do_claim_rewards(
 											who.clone(),
 											deposit,
@@ -1033,13 +1041,16 @@ pub mod pallet {
 											unclaimable_rewards,
 										)?;
 
-										Self::deposit_event(Event::RewardClaimed(
-											who.clone(),
-											g_pool.id,
-											liq_pool.id,
-											reward,
-											g_pool.reward_currency,
-										));
+										//emit this event only if something was claimed
+										if !reward.is_zero() {
+											Self::deposit_event(Event::RewardClaimed(
+												who.clone(),
+												g_pool.id,
+												liq_pool.id,
+												reward,
+												g_pool.reward_currency,
+											));
+										}
 
 										Ok(())
 									},
@@ -1242,9 +1253,9 @@ impl<T: Config> Pallet<T> {
 			.checked_mul(valued_shares)
 			.ok_or(Error::<T>::Overflow)?;
 
-        if max_rewards.is_zero() {
-            return Ok((0, 0));
-        }
+		if max_rewards.is_zero() {
+			return Ok((0, 0));
+		}
 
 		let claimable_rewards = loyalty_multiplier
 			.checked_mul_int(max_rewards)
@@ -1363,8 +1374,6 @@ impl<T: Config> Pallet<T> {
 		shares.checked_mul(reward_currency_balance).ok_or(Error::<T>::Overflow)
 	}
 
-	//TODO: add tests
-	//make test: claim in the same period should return 0 reward
 	fn do_claim_rewards(
 		who: AccountIdOf<T>,
 		d: &mut Deposit<T>,
@@ -1374,9 +1383,9 @@ impl<T: Config> Pallet<T> {
 	) -> Result<(Balance, Balance), DispatchError> {
 		let periods = now_period.checked_sub(&d.entered_at).ok_or(Error::<T>::Overflow)?;
 
-        if periods.is_zero() {
-            return Ok((0, 0))
-        }
+		if d.updated_at == now_period {
+			return Ok((0, 0));
+		}
 
 		let loyalty_multiplier = Self::get_loyalty_multiplier(periods, liq_pool.loyalty_curve.clone())?;
 
@@ -1392,6 +1401,8 @@ impl<T: Config> Pallet<T> {
 			.accumulated_claimed_rewards
 			.checked_add(rewards)
 			.ok_or(Error::<T>::Overflow)?;
+
+		d.updated_at = now_period;
 
 		let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
 		T::MultiCurrency::transfer(reward_currency, &liq_pool_account, &who, rewards)?;
