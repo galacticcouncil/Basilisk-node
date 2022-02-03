@@ -25,7 +25,17 @@
 //! The Auctions pallet provides extendable auction functionality for NFTs.
 //!
 //! The pallet implements an NftAuction trait which allows users to extend the pallet by implementing other
-//! auction types. All auction types must implement bid() and close() functions at their interface.
+//! auction types. All auction types must implement the following instance functions at their interface:
+//! 
+//! - `create`
+//! 
+//! - `update`
+//! 
+//! - `bid`
+//! 
+//! - `close`
+//! 
+//! - `validate_general_data`
 //!
 //! The auction types share the same store called Auctions. Auction types are represented in a struct which holds
 //! two other structs with general_data (eg auction name, start, end) and specific_data for the given auction type.
@@ -49,10 +59,14 @@
 //! In an English auction, participants place bids in a running auction. Once the auction has reached its end time,
 //! the highest bid wins.
 //!
-//! The implementation of English auction allows sellers to set a starting price for the object, under which it will not
-//! be sold (auction.general_data.next_bid_min).
-//!
-//! It also extens the end time of the auction for any last-minute bids in order to prevent auction sniping.
+//! The implementation of English auction allows sellers to set a reserve price for the NFT
+//! (auction.general_data.reserve_price). The reserve_price acts as a minimum starting bid, preventing bidders 
+//! from placing bids below the reserve_price.
+//! When creating an English auction with a reserve_price, auction.general_data.reserve_price must be equal to
+//! auction.general_data.next_bid_min.
+//! 
+//! To avoid auction sniping, the pallet extends the end time of the auction for any late bids which are placed
+//! shortly before auction close.
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -149,6 +163,10 @@ pub mod pallet {
 		/// Minimum auction duration
 		#[pallet::constant]
 		type MinAuctionDuration: Get<u32>;
+
+		/// Minimum bid amount
+		#[pallet::constant]
+		type BidMinAmount: Get<u32>;
 	}
 
 	#[pallet::storage]
@@ -222,6 +240,8 @@ pub mod pallet {
 		TooLong,
 		/// Auction type cannot be changed
 		NoChangeOfAuctionType,
+		/// next_bid_min is invalid
+		InvalidNextBidMin,
 	}
 
 	#[pallet::call]
@@ -240,14 +260,10 @@ pub mod pallet {
 
 			match &auction {
 				Auction::English(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::validate_create(&auction_object.general_data)?;
-					Self::handle_create(sender, &auction, &auction_object.general_data)?;
+					auction_object.create(sender, &auction)?;
 				}
 				Auction::TopUp(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::validate_create(&auction_object.general_data)?;
-					Self::handle_create(sender, &auction, &auction_object.general_data)?;
+					auction_object.create(sender, &auction)?;
 				}
 			}
 
@@ -266,12 +282,10 @@ pub mod pallet {
 
 			match &updated_auction {
 				Auction::English(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::handle_update(sender, id, updated_auction.clone(), &auction_object.general_data)?;
+					auction_object.update(sender, id, updated_auction.clone())?;
 				}
 				Auction::TopUp(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::handle_update(sender, id, updated_auction.clone(), &auction_object.general_data)?;
+					auction_object.update(sender, id, updated_auction.clone())?;
 				}
 			}
 
@@ -398,6 +412,10 @@ impl<T: Config> Pallet<T> {
 			token_owner == Some(general_data.owner.clone()),
 			Error::<T>::NotATokenOwner
 		);
+
+		// Start bid should always be above the minimum
+		ensure!(general_data.next_bid_min >= <T as crate::Config>::BidMinAmount::get().into(), Error::<T>::InvalidNextBidMin);
+
 		ensure!(!&general_data.closed, Error::<T>::CannotSetAuctionClosed);
 
 		Ok(())
@@ -572,6 +590,21 @@ impl<T: Config> Pallet<T> {
 /// Implementation of EnglishAuction
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for EnglishAuction<T> {
+	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
+		self.validate_general_data()?;
+		Pallet::<T>::validate_create(&self.general_data)?;
+		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
+	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
+		self.validate_general_data()?;
+		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
 	///
 	/// Places a bid on an EnglishAuction
 	///
@@ -630,12 +663,42 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 
 		Ok(())
 	}
+
+	fn validate_general_data(&self) -> DispatchResult {
+		Pallet::<T>::validate_general_data(&self.general_data)?;
+
+		if let Some(reserve_price) = self.general_data.reserve_price {
+			ensure!(
+				reserve_price == self.general_data.next_bid_min,
+				Error::<T>::InvalidNextBidMin
+			);
+		} else {
+			ensure!(self.general_data.next_bid_min == T::BidMinAmount::get().into(), Error::<T>::InvalidNextBidMin);
+		}
+
+		Ok(())
+	}
 }
 
 ///
 /// Implementation of TopUpAuction
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>> for TopUpAuction<T> {
+	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
+		self.validate_general_data()?;
+		Pallet::<T>::validate_create(&self.general_data)?;
+		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
+	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
+		self.validate_general_data()?;
+		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
 	///
 	/// Places a bid on an TopUpAuction
 	///
@@ -669,6 +732,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 	/// First bidder does not pay anything
 	/// Everyone else has to pay the difference between his and next lowest bid
 	///
+	/// TODO: implement reserve_price after refactoring bid and close fns
+	/// 
 	fn close(&mut self) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
 			RawOrigin::Signed(self.general_data.owner.clone()).into(),
@@ -719,5 +784,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>>
 		self.general_data.closed = true;
 
 		Ok(())
+	}
+
+	fn validate_general_data(&self) -> DispatchResult {
+		Pallet::<T>::validate_general_data(&self.general_data)
 	}
 }
