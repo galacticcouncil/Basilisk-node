@@ -11,7 +11,6 @@ members = [
   'pallets/duster',
   'pallets/xyk',
   'pallets/exchange',
-  'pallets/uniques',
   'pallets/asset-registry',
   'integration-tests',
 ]
@@ -68,6 +67,7 @@ pallet-transaction-payment = { git = "https://github.com/paritytech//substrate",
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech//substrate", rev = "1c2332db8b6784d10bba55db794c5476aa49732a" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech//substrate", rev = "1c2332db8b6784d10bba55db794c5476aa49732a" }
 pallet-treasury = { git = "https://github.com/paritytech//substrate", rev = "1c2332db8b6784d10bba55db794c5476aa49732a" }
+pallet-uniques = { git = "https://github.com/paritytech//substrate", rev = "1c2332db8b6784d10bba55db794c5476aa49732a" }
 pallet-utility = { git = "https://github.com/paritytech//substrate", rev = "1c2332db8b6784d10bba55db794c5476aa49732a" }
 pallet-vesting = { git = "https://github.com/paritytech//substrate", rev = "1c2332db8b6784d10bba55db794c5476aa49732a" }
 remote-externalities = { git = "https://github.com/paritytech//substrate", rev = "1c2332db8b6784d10bba55db794c5476aa49732a" }

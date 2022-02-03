@@ -6308,15 +6308,14 @@ dependencies = [
 [[package]]
 name = "pallet-uniques"
 version = "4.0.0-dev"
+source = "git+https://github.com/paritytech//substrate?rev=1c2332db8b6784d10bba55db794c5476aa49732a#1c2332db8b6784d10bba55db794c5476aa49732a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-balances",
+ "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -11478,7 +11477,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.10.2",
+ "parking_lot 0.11.2",
  "regex",
  "serde",
  "serde_json",

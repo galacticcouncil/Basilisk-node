@@ -246,8 +246,8 @@ pub mod pallet {
 		TokenClassNotEmpty,
 		/// Class does not exist
 		ClassUnknown,
-		/// Shares has to be set for liquidity mining
-		SharesNotSet,
+		/// Instance does not exist
+		InstanceUnknown,
 		/// Operation not permitted
 		NotPermitted,
 	}
@@ -296,7 +296,11 @@ impl<T: Config> Pallet<T> {
 			owner.clone(),
 			deposit_info.0,
 			deposit_info.1,
-			pallet_uniques::Event::Created(class_id.into(), owner.clone(), owner),
+			pallet_uniques::Event::Created {
+				class: class_id.into(),
+				creator: owner.clone(),
+				owner,
+			},
 		)?;
 
 		Classes::<T>::insert(class_id, ClassInfo { class_type, metadata });
@@ -332,9 +336,9 @@ impl<T: Config> Pallet<T> {
 			class_id.into(),
 			instance_id.into(),
 			to,
-			|_class_details, instance_details| {
-				let is_permitted = instance_details.owner == from;
-				ensure!(is_permitted, Error::<T>::NotPermitted);
+			|_class_details, _instance_details| {
+				let owner = Self::instance_owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
+				ensure!(owner == from, Error::<T>::NotPermitted);
 				Ok(())
 			},
 		)
@@ -344,9 +348,9 @@ impl<T: Config> Pallet<T> {
 		pallet_uniques::Pallet::<T>::do_burn(
 			class_id.into(),
 			instance_id.into(),
-			|_class_details, instance_details| {
-				let is_permitted = instance_details.owner == owner;
-				ensure!(is_permitted, Error::<T>::NotPermitted);
+			|_class_details, _instance_details| {
+				let iowner = Self::instance_owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
+				ensure!(owner == iowner, Error::<T>::NotPermitted);
 				Ok(())
 			},
 		)?;
