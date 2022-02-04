@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: x86
+    runs-on: ryzen
     steps:
       - uses: actions/checkout@v2
         with:
@@ -85,7 +85,7 @@ jobs:
   build-and-publish-docker-image:
     needs: build
     if: github.ref == 'refs/heads/testnet' && github.event_name != 'pull_request'
-    runs-on: x86
+    runs-on: ryzen
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       ECR_URL: 601305236792.dkr.ecr.eu-west-1.amazonaws.com
