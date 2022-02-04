@@ -16,7 +16,9 @@
 // limitations under the License.
 
 use super::*;
-pub use crate::mock::{Currency, Event as TestEvent, ExtBuilder, Origin, System, Test, ACA, ALICE, BOB, DOT, HDX, XYK, HDX_DOT_POOL_ID};
+pub use crate::mock::{
+	Currency, Event as TestEvent, ExtBuilder, Origin, System, Test, ACA, ALICE, BOB, DOT, HDX, HDX_DOT_POOL_ID, XYK,
+};
 use frame_support::BoundedVec;
 use frame_support::{assert_noop, assert_ok};
 use hydra_dx_math::MathError;
@@ -267,7 +269,12 @@ fn add_liquidity_as_another_user_should_work() {
 		expect_events(vec![
 			Event::PoolCreated(ALICE, asset_b, asset_a, 1000000000000, share_token, pair_account).into(),
 			Event::LiquidityAdded(ALICE, asset_b, asset_a, 400000, 4000000000).into(),
-			orml_tokens::Event::Endowed(0, 2, 10000000000).into(),
+			orml_tokens::Event::Endowed {
+				currency_id: 0,
+				who: 2,
+				amount: 10000000000,
+			}
+			.into(),
 			Event::LiquidityAdded(BOB, asset_b, asset_a, 1000000, 10000000000).into(),
 		]);
 	});
@@ -345,8 +352,19 @@ fn remove_liquidity_without_shares_should_not_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, asset_a, asset_b, 100000000, share_token, pair_account).into(),
-			orml_tokens::Event::Endowed(share_token, BOB, shares).into(),
-			orml_tokens::Event::Transfer(share_token, ALICE, BOB, shares).into(),
+			orml_tokens::Event::Endowed {
+				currency_id: share_token,
+				who: BOB,
+				amount: shares,
+			}
+			.into(),
+			orml_tokens::Event::Transfer {
+				currency_id: share_token,
+				from: ALICE,
+				to: BOB,
+				amount: shares,
+			}
+			.into(),
 		]);
 	});
 }
@@ -413,9 +431,27 @@ fn remove_liquidity_from_reduced_pool_should_not_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(ALICE, asset_a, asset_b, 100000000, share_token, pair_account).into(),
-			orml_tokens::Event::Transfer(asset_a, pair_account, BOB, 90_000_000).into(),
-			orml_tokens::Event::Transfer(asset_a, BOB, pair_account, 90_000_000).into(),
-			orml_tokens::Event::Transfer(asset_b, pair_account, BOB, 90_000_000).into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_a,
+				from: pair_account,
+				to: BOB,
+				amount: 90_000_000,
+			}
+			.into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_a,
+				from: BOB,
+				to: pair_account,
+				amount: 90_000_000,
+			}
+			.into(),
+			orml_tokens::Event::Transfer {
+				currency_id: asset_b,
+				from: pair_account,
+				to: BOB,
+				amount: 90_000_000,
+			}
+			.into(),
 		]);
 	});
 }
@@ -742,7 +778,12 @@ fn work_flow_happy_path_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, asset_b, 350_000_000_000, share_token, pair_account).into(),
-			orml_tokens::Event::Endowed(0, 2, 300000000000).into(),
+			orml_tokens::Event::Endowed {
+				currency_id: 0,
+				who: 2,
+				amount: 300000000000,
+			}
+			.into(),
 			Event::LiquidityAdded(user_2, asset_a, asset_b, 300_000_000_000, 12_000_000_000_000).into(),
 			Event::SellExecuted(
 				user_2,
@@ -924,9 +965,24 @@ fn discount_sell_fees_should_work() {
 			Event::PoolCreated(user_1, asset_a, HDX, 10_000, share_token_native, native_pair_account).into(),
 			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, asset_b)).into(),
 			frame_system::Event::NewAccount(pair_account).into(),
-			orml_tokens::Event::Endowed(asset_a, pair_account, 30000).into(),
-			orml_tokens::Event::Endowed(asset_b, pair_account, 60000).into(),
-			orml_tokens::Event::Endowed(1, 1, 60000).into(),
+			orml_tokens::Event::Endowed {
+				currency_id: asset_a,
+				who: pair_account,
+				amount: 30000,
+			}
+			.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: asset_b,
+				who: pair_account,
+				amount: 60000,
+			}
+			.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: 1,
+				who: 1,
+				amount: 60000,
+			}
+			.into(),
 			Event::PoolCreated(user_1, asset_a, asset_b, 60_000, share_token, pair_account).into(),
 			Event::SellExecuted(user_1, asset_a, asset_b, 10_000, 14_993, asset_b, 7, pair_account).into(),
 		]);
@@ -1176,9 +1232,24 @@ fn single_buy_with_discount_should_work() {
 			Event::PoolCreated(user_1, asset_a, asset_b, 640_000_000_000, share_token, pair_account).into(),
 			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, HDX)).into(),
 			frame_system::Event::NewAccount(native_pair_account).into(),
-			orml_tokens::Event::Endowed(asset_a, 1003000, 50000000000).into(),
-			orml_tokens::Event::Endowed(1000, 1003000, 100000000000).into(),
-			orml_tokens::Event::Endowed(1, 1, 100000000000).into(),
+			orml_tokens::Event::Endowed {
+				currency_id: asset_a,
+				who: 1003000,
+				amount: 50000000000,
+			}
+			.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: 1000,
+				who: 1003000,
+				amount: 100000000000,
+			}
+			.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: 1,
+				who: 1,
+				amount: 100000000000,
+			}
+			.into(),
 			Event::PoolCreated(
 				user_1,
 				asset_a,
@@ -1561,9 +1632,24 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 			Event::LiquidityRemoved(user, asset_a, asset_b, 100_000_000).into(),
 			Event::PoolDestroyed(user, asset_a, asset_b, share_token, pair_account).into(),
 			frame_system::Event::NewAccount(pair_account).into(),
-			orml_tokens::Event::Endowed(asset_a, pair_account, 100000000).into(),
-			orml_tokens::Event::Endowed(asset_b, pair_account, 1000000000000).into(),
-			orml_tokens::Event::Endowed(0, 1, 100000000).into(),
+			orml_tokens::Event::Endowed {
+				currency_id: asset_a,
+				who: pair_account,
+				amount: 100000000,
+			}
+			.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: asset_b,
+				who: pair_account,
+				amount: 1000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: 0,
+				who: 1,
+				amount: 100000000,
+			}
+			.into(),
 			Event::PoolCreated(user, asset_a, asset_b, 100_000_000, share_token, pair_account).into(),
 		]);
 	});
@@ -1855,9 +1941,7 @@ fn fee_calculation() {
 		assert_eq!(XYK::calculate_fee(10000), Ok(20));
 	});
 	ExtBuilder::default()
-		.with_exchange_fee(
-			(10, 1000)
-		)
+		.with_exchange_fee((10, 1000))
 		.build()
 		.execute_with(|| {
 			assert_eq!(XYK::calculate_fee(100000), Ok(1000));
@@ -1865,18 +1949,14 @@ fn fee_calculation() {
 		});
 
 	ExtBuilder::default()
-		.with_exchange_fee(
-			(10, 0)
-		)
+		.with_exchange_fee((10, 0))
 		.build()
 		.execute_with(|| {
 			assert_eq!(XYK::calculate_fee(100000), Ok(0));
 		});
 
 	ExtBuilder::default()
-		.with_exchange_fee(
-			(10, 1)
-		)
+		.with_exchange_fee((10, 1))
 		.build()
 		.execute_with(|| {
 			assert_noop!(XYK::calculate_fee(u128::MAX), Error::<Test>::FeeAmountInvalid);

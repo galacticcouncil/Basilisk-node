@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - testnet
   workflow_dispatch:
   pull_request:
 
@@ -28,7 +29,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - id: determine-runner
         name: Determine runner
-        run: if $IS_LOCAL; then echo "::set-output name=runner::${{ github.sha }}"; else echo "::set-output name=runner::ubuntu-latest"; fi;
+        run: if $IS_LOCAL; then echo "::set-output name=runner::$(uuidgen)"; else echo "::set-output name=runner::ubuntu-latest"; fi;
       - name: checkout code
         if: ${{ env.IS_LOCAL == 'true' }}
         uses: actions/checkout@v2.1.0
@@ -100,6 +101,16 @@ jobs:
         run: cargo build --release --locked
       - name: Version info
         run: ./target/release/basilisk --version
+      - name: Get basilisk-raw json
+        run: |
+          cp target/release/basilisk target/release/testing-basilisk
+          chmod +x ./target/release/testing-basilisk
+          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.jsons
+      - name: Upload config file
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk-testnet-chainspec.json
+          path: ./basilisk-testnet-chainspec.json
       - name: Upload release binary
         uses: actions/upload-artifact@v2
         with:
@@ -111,10 +122,30 @@ jobs:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
 
+  upload-config-to-s3:
+    name: upload configuration to S3
+    if: github.ref == 'refs/heads/testnet' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_CONFIG_BUCKET }}/testnet/
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: 'eu-west-1'
+      FILE: './basilisk-testnet-chainspec.json'
+    steps:
+      - uses: actions/download-artifact@v2
+        name: Download config file
+        with:
+          name: basilisk-testnet-chainspec.json
+          path: .
+      - name: S3 Upload basilisk-testnet-chainspec.json
+        uses: tpaschalis/s3-sync-action@master
+
   destroy-runner-instance:
     name: destroy runner
     runs-on: ubuntu-latest
-    needs: build
+    needs: [pop-runner-instance, build, build-and-publish-docker-image]
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -122,7 +153,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       EC2_SECRET: ${{ secrets.EC2_PWD }}
-      S3_BACKEND_KEY_NAME: tf-state-${{ github.sha }}
+      S3_BACKEND_KEY_NAME: tf-state-${{ needs.pop-runner-instance.outputs.runner }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -153,6 +184,61 @@ jobs:
         run: terraform destroy -var="ec2_pwd=$EC2_SECRET" -var="branch_name=${{ needs.pop-runner-instance.outputs.runner }}" -auto-approve
         continue-on-error: false
 
+  build-and-publish-docker-image:
+    needs: [pop-runner-instance, build]
+    if: github.ref == 'refs/heads/testnet' && github.event_name != 'pull_request'
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      ECR_URL: 601305236792.dkr.ecr.eu-west-1.amazonaws.com
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: sleep 30
+        run: sleep 30
+      - name: Configure AWS CLI
+        run: |
+          sudo apt-get -y install awscli
+          aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region eu-west-1
+      - uses: actions/download-artifact@v2
+        name: Download basilisk binary
+        with:
+          name: basilisk
+          path: .
+      - name: Add execution for basilisk
+        run: chmod 777 ./basilisk && ./basilisk --version
+      - name: install docker
+        run: sudo snap install docker
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+      - name: build docker image
+        run: sudo docker build -t basilisk:latest .
+      - name: get ecr credentials
+        run: aws ecr get-login-password --region eu-west-1 | sudo docker login --username AWS --password-stdin ${{ env.ECR_URL }}
+      - name: push image to ecr repository
+        run: sudo docker tag basilisk:latest ${{ env.ECR_URL }}/basilisk
+      - run: sudo docker push ${{ env.ECR_URL }}/basilisk:latest
+
+
+  run-external-deployment:
+    needs: build-and-publish-docker-image
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/testnet' && github.event_name != 'pull_request'
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.DISPATCH_DEPLOYMENT_TOKEN }}
+          repository: galacticcouncil/testnet-deployment
+          event-type: run-k8s-deployment
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
   test-inclusion:
     needs: [build]
     runs-on: ubuntu-latest
@@ -176,7 +262,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: v0.9.13
+          tag: v0.9.15
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version

@@ -146,25 +146,26 @@ fn transfer_insufficient_amount_should_fail() {
 	});
 
 	Hydra::execute_with(|| {
-		assert_noop!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
-			0,
-			1_000_000 - 1,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(2000),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
+		assert_noop!(
+			basilisk_runtime::XTokens::transfer(
+				basilisk_runtime::Origin::signed(ALICE.into()),
+				0,
+				1_000_000 - 1,
+				Box::new(
+					MultiLocation::new(
+						1,
+						X2(
+							Junction::Parachain(2000),
+							Junction::AccountId32 {
+								id: BOB,
+								network: NetworkId::Any,
+							}
+						)
 					)
-				)
-				.into()
+					.into()
+				),
+				399_600_000_000
 			),
-			399_600_000_000
-		),
 			orml_xtokens::Error::<basilisk_runtime::Runtime>::XcmExecutionFailed
 		);
 		assert_eq!(

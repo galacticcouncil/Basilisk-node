@@ -351,7 +351,7 @@ pub mod pallet {
 
 	#[pallet::extra_constants]
 	impl<T: Config> Pallet<T> {
-		pub fn get_repay_fee() -> (u32, u32) {
+		pub fn repay_fee() -> (u32, u32) {
 			(2, 10)
 		}
 	}
@@ -869,12 +869,12 @@ impl<T: Config> Pallet<T> {
 		amount: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, DispatchError> {
 		let fee = if Self::is_repay_fee_applied(pool) {
-			Self::get_repay_fee()
+			Self::repay_fee()
 		} else {
 			pool.fee
 		};
 		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (fee.0, fee.1))
-		.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
+			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
 	}
 
 	pub fn pair_account_from_assets(asset_a: AssetId, asset_b: AssetId) -> PoolId<T> {
@@ -1201,11 +1201,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	}
 
 	fn get_fee(pool_account_id: &T::AccountId) -> (u32, u32) {
-		 let maybe_pool_data = <PoolData<T>>::get(pool_account_id);
-		 match maybe_pool_data {
-		   Some(pool_data) => pool_data.fee,
-		   None => (0, 0)
-		 }
+		let maybe_pool_data = <PoolData<T>>::get(pool_account_id);
+		match maybe_pool_data {
+			Some(pool_data) => pool_data.fee,
+			None => (0, 0),
+		}
 	}
 }
 
