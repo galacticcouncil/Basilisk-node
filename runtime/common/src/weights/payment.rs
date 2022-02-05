@@ -39,8 +39,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -48,8 +48,23 @@ use pallet_transaction_multi_payment::weights::WeightInfo;
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {	fn add_currency() -> Weight {
-		(16_131_000 as Weight)			.saturating_add(T::DbWeight::get().reads(1 as Weight))			.saturating_add(T::DbWeight::get().writes(1 as Weight))	}	fn remove_currency() -> Weight {
-		(16_685_000 as Weight)			.saturating_add(T::DbWeight::get().reads(1 as Weight))			.saturating_add(T::DbWeight::get().writes(1 as Weight))	}	fn set_currency() -> Weight {
-		(100_353_000 as Weight)			.saturating_add(T::DbWeight::get().reads(9 as Weight))			.saturating_add(T::DbWeight::get().writes(4 as Weight))	}	fn get_spot_price() -> Weight {
-		(17_519_000 as Weight)			.saturating_add(T::DbWeight::get().reads(3 as Weight))	}}
+impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
+	fn add_currency() -> Weight {
+		(16_131_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	fn remove_currency() -> Weight {
+		(16_685_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	fn set_currency() -> Weight {
+		(100_353_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(9 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn get_spot_price() -> Weight {
+		(17_519_000 as Weight).saturating_add(T::DbWeight::get().reads(3 as Weight))
+	}
+}
