@@ -579,6 +579,7 @@ fn parachain_genesis(
 			reward_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
 			dust_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
 		},
+		polkadot_xcm: Default::default()
 	}
 }
 
@@ -684,5 +685,6 @@ fn testnet_parachain_genesis(
 			reward_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
 			dust_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
 		},
+		polkadot_xcm: Default::default()
 	}
 }

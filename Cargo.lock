@@ -424,7 +424,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "5.1.4"
+version = "5.2.0"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
@@ -8469,7 +8469,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
