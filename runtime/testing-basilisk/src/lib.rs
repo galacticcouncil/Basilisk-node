@@ -115,7 +115,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 34,
+	spec_version: 35,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -771,7 +771,7 @@ construct_runtime!(
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
 
 		// XCM
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
