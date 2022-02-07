@@ -13,7 +13,7 @@ use frame_system::ensure_signed;
 
 use primitives::{nft::NftPermission, ReserveIdentifier};
 use sp_runtime::{
-	traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero},
+	traits::{AtLeast32BitUnsigned, StaticLookup, Zero},
 	DispatchError,
 };
 pub use types::*;
@@ -73,17 +73,6 @@ pub mod pallet {
 		type Permissions: NftPermission<Self::ClassType>;
 	}
 
-	/// Next available class ID.
-	#[pallet::storage]
-	#[pallet::getter(fn next_class_id)]
-	pub(super) type NextClassId<T: Config> = StorageValue<_, T::NftClassId, ValueQuery>;
-
-	/// Next available token ID.
-	#[pallet::storage]
-	#[pallet::getter(fn next_instance_id)]
-	pub(super) type NextInstanceId<T: Config> =
-		StorageMap<_, Twox64Concat, T::NftClassId, T::NftInstanceId, ValueQuery>;
-
 	#[pallet::storage]
 	#[pallet::getter(fn classes)]
 	/// Stores class info
@@ -99,9 +88,9 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Creates an NFT class of the given class
 		/// and sets its metadata
-		/// Class ID is chosen automatically from the sequence
 		///
 		/// Parameters:
+		/// - `class_id`: Identifier of a class
 		/// - `class_type`: The class type determines its purpose and usage
 		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash or name
 		///
@@ -110,6 +99,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn create_class(
 			origin: OriginFor<T>,
+			class_id: T::NftClassId,
 			class_type: T::ClassType,
 			metadata: BoundedVecOfUnq<T>,
 		) -> DispatchResult {
@@ -117,7 +107,7 @@ pub mod pallet {
 
 			ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
 
-			Self::do_create_class(sender, Default::default(), metadata)?;
+			Self::do_create_class(sender, class_id, Default::default(), metadata)?;
 
 			Ok(())
 		}
@@ -127,10 +117,16 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be minted.
+		/// - `instance_id`: The class of the asset to be minted.
 		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash or symbol
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
-		pub fn mint(origin: OriginFor<T>, class_id: T::NftClassId, metadata: BoundedVecOfUnq<T>) -> DispatchResult {
+		pub fn mint(
+			origin: OriginFor<T>,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+			metadata: BoundedVecOfUnq<T>,
+		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			let class_type = Self::classes(class_id)
@@ -139,7 +135,7 @@ pub mod pallet {
 
 			ensure!(T::Permissions::can_mint(&class_type), Error::<T>::NotPermitted);
 
-			Self::do_mint(sender, class_id, metadata)?;
+			Self::do_mint(sender, class_id, instance_id, metadata)?;
 
 			Ok(())
 		}
@@ -273,22 +269,6 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	pub fn get_next_class_id() -> Result<T::NftClassId, Error<T>> {
-		NextClassId::<T>::try_mutate(|id| {
-			let current_id = *id;
-			*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableClassId)?;
-			Ok(current_id)
-		})
-	}
-
-	pub fn get_next_instance_id(class_id: T::NftClassId) -> Result<T::NftInstanceId, Error<T>> {
-		NextInstanceId::<T>::try_mutate(class_id, |id| {
-			let current_id = *id;
-			*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
-			Ok(current_id)
-		})
-	}
-
 	pub fn class_owner(class_id: T::NftClassId) -> Option<T::AccountId> {
 		pallet_uniques::Pallet::<T>::class_owner(&class_id.into())
 	}
@@ -299,11 +279,10 @@ impl<T: Config> Pallet<T> {
 
 	pub fn do_create_class(
 		owner: T::AccountId,
+		class_id: T::NftClassId,
 		class_type: T::ClassType,
 		metadata: BoundedVecOfUnq<T>,
 	) -> Result<(T::NftClassId, T::ClassType), DispatchError> {
-		let class_id = Self::get_next_class_id()?;
-
 		let deposit_info = match T::Permissions::has_deposit(&class_type) {
 			false => (Zero::zero(), true),
 			true => (T::ClassDeposit::get(), false),
@@ -336,10 +315,9 @@ impl<T: Config> Pallet<T> {
 	pub fn do_mint(
 		owner: T::AccountId,
 		class_id: T::NftClassId,
+		instance_id: T::NftInstanceId,
 		metadata: BoundedVecOfUnq<T>,
 	) -> Result<T::NftInstanceId, DispatchError> {
-		let instance_id = Self::get_next_instance_id(class_id)?;
-
 		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
 
 		Instances::<T>::insert(class_id, instance_id, InstanceInfo { metadata });
