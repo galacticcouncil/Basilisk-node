@@ -40,3 +40,4 @@ jobs:
         with:
           message: |
             ${{ env.VERSION_UPDATE }}
+            
