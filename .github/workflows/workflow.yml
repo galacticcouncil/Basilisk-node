@@ -265,7 +265,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: $RELAY_CHAIN_VERSION
+          tag: ${{ env.RELAY_CHAIN_VERSION }}
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
@@ -308,7 +308,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: $RELAY_CHAIN_VERSION
+          tag: ${{ env.RELAY_CHAIN_VERSION }}
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
