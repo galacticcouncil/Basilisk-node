@@ -108,6 +108,7 @@
 					"port": 31200,
 					"name": "alice",
 					"flags": [
+						"--log=debug",
 						"--unsafe-ws-external",
 						"--unsafe-rpc-external",
 						"--rpc-cors=all",
@@ -120,6 +121,7 @@
 					"port": 31201,
 					"name": "bob",
 					"flags": [
+						"--log=debug",
 						"--unsafe-ws-external",
 						"--unsafe-rpc-external",
 						"--rpc-cors=all",
@@ -130,14 +132,15 @@
 			]
 		},
 		{
-			"bin": "../../Acala/target/release/acala",
-			"chain": "karura-dev",
+			"bin": "../moonbeam/target/release/moonbeam",
+			"chain": "moonriver-local",
 			"nodes": [
 				{
 					"wsPort": 9999,
 					"port": 31300,
 					"name": "alice",
 					"flags": [
+						"--log=debug",
 						"--unsafe-ws-external",
 						"--unsafe-rpc-external",
 						"--rpc-cors=all",
@@ -149,18 +152,6 @@
 		}
 	],
 	"hrmpChannels": [
-		{
-			"sender": 2090,
-			"recipient": 2000,
-			"maxCapacity": 8,
-			"maxMessageSize": 1024
-		},
-		{
-			"sender": 2000,
-			"recipient": 2090,
-			"maxCapacity": 8,
-			"maxMessageSize": 1024
-		}
 	],
 	"types": {},
 	"finalization": false

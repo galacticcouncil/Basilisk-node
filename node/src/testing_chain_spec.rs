@@ -397,5 +397,6 @@ fn testnet_parachain_genesis(
 			reward_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 			dust_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 		},
+		polkadot_xcm: Default::default()
 	}
 }

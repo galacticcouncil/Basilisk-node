@@ -824,7 +824,7 @@ construct_runtime!(
 		ParachainInfo: parachain_info::{Pallet, Storage, Config},
 
 		// XCM
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},

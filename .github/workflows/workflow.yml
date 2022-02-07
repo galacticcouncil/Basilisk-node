@@ -301,11 +301,11 @@ jobs:
           branch: master
           name: basilisk
           path: target/release
-      - uses: robinraju/release-downloader@v1.2
-        name: Download relay chain binary release
+      - uses: robinraju/release-downloader@v1
+        name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          latest: true
+          tag: v0.9.15
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
