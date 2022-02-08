@@ -22,7 +22,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       EC2_SECRET: ${{ secrets.EC2_PWD }}
-      S3_BACKEND_KEY_NAME: $(uuidgen)
+      S3_BACKEND_KEY_NAME: ${{ $(uuidgen) }}
     outputs:
       runner: ${{ env.UUID_GEN }}
     steps:
