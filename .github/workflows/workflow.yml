@@ -301,7 +301,7 @@ jobs:
       - uses: dawidd6/action-download-artifact@v2
         name: Download basilisk binary from master
         with:
-          workflow: tests.yml
+          workflow: workflow.yml
           branch: master
           name: basilisk
           path: target/release
