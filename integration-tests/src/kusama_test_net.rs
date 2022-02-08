@@ -4,6 +4,7 @@ use primitives::Balance;
 
 pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
+pub const FALLBACK: [u8; 32] = [99u8; 32];
 
 pub const BSX: Balance = 1_000_000_000_000;
 
@@ -203,6 +204,14 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		},
 		&mut t,
 	)
+	.unwrap();
+
+	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
+		currencies: vec![],
+		fallback_account: Some(FALLBACK.into()),
+		account_currencies: vec![],
+	}
+	.assimilate_storage(&mut t)
 	.unwrap();
 
 
