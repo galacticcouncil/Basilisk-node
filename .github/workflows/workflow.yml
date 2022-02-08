@@ -22,7 +22,6 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       EC2_SECRET: ${{ secrets.EC2_PWD }}
-      S3_BACKEND_KEY_NAME: tf-state-${{ github.sha }}
     outputs:
       runner: ${{ steps.determine-runner.outputs.runner }}
     steps:
@@ -30,9 +29,12 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+      - id: set-backend-key-name
+        name: Set Backend Key Name
+        run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV    
       - id: determine-runner
         name: Determine runner
-        run: if $IS_LOCAL; then echo "::set-output name=runner::$(uuidgen)"; else echo "::set-output name=runner::ubuntu-latest"; fi;
+        run: if $IS_LOCAL; then echo "::set-output name=runner::${{ env.S3_BACKEND_KEY_NAME }}"; else echo "::set-output name=runner::ubuntu-latest"; fi;
       - name: checkout code
         if: ${{ env.IS_LOCAL == 'true' }}
         uses: actions/checkout@v2.1.0
@@ -144,11 +146,10 @@ jobs:
           path: .
       - name: S3 Upload basilisk-testnet-chainspec.json
         uses: tpaschalis/s3-sync-action@master
-
   destroy-runner-instance:
     name: destroy runner
     runs-on: ubuntu-latest
-    needs: [pop-runner-instance, build, build-and-publish-docker-image]
+    needs: [ pop-runner-instance, build, build-and-publish-docker-image]
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -156,7 +157,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       EC2_SECRET: ${{ secrets.EC2_PWD }}
-      S3_BACKEND_KEY_NAME: tf-state-${{ needs.pop-runner-instance.outputs.runner }}
+      S3_BACKEND_KEY_NAME: ${{ needs.pop-runner-instance.outputs.runner }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -358,3 +359,6 @@ jobs:
         with:
           message: |
             ${{ env.VERSION_UPDATE }}
+      - name: Evaluate result
+        if: contains(env.VERSION_UPDATE, 'have not been updated')
+        run: exit 1
