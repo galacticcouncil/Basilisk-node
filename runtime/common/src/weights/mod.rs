@@ -8,6 +8,7 @@ pub mod exchange;
 pub mod lbp;
 pub mod nft;
 pub mod payment;
+pub mod price_oracle;
 pub mod scheduler;
 pub mod system;
 pub mod timestamp;
