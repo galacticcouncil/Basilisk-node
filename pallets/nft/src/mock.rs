@@ -45,8 +45,8 @@ impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type NftClassId = u32;
-	type NftInstanceId = u32;
+	type NftClassId = primitives::ClassId;
+	type NftInstanceId = primitives::InstanceId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
@@ -65,8 +65,8 @@ parameter_types! {
 
 impl pallet_uniques::Config for Test {
 	type Event = Event;
-	type ClassId = u32;
-	type InstanceId = u32;
+	type ClassId = primitives::ClassId;
+	type InstanceId = primitives::InstanceId;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type ClassDeposit = ClassDeposit;
