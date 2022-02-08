@@ -1263,15 +1263,31 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.5.1"
+version = "1.6.1"
 dependencies = [
  "frame-support",
  "frame-system",
  "hydradx-traits",
+ "orml-currencies",
  "orml-tokens",
  "orml-traits",
+ "orml-vesting",
+ "pallet-asset-registry",
  "pallet-balances",
+ "pallet-collator-selection",
+ "pallet-democracy",
+ "pallet-duster",
+ "pallet-exchange",
+ "pallet-lbp",
+ "pallet-nft",
+ "pallet-price-oracle",
+ "pallet-scheduler",
+ "pallet-timestamp",
+ "pallet-transaction-multi-payment",
  "pallet-transaction-payment",
+ "pallet-treasury",
+ "pallet-utility",
+ "pallet-xyk",
  "parity-scale-codec",
  "primitives",
  "scale-info",
