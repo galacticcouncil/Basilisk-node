@@ -22,9 +22,10 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       EC2_SECRET: ${{ secrets.EC2_PWD }}
-      S3_BACKEND_KEY_NAME: tf-state-${{ steps.determine-runner.outputs.runner }}
+      UUID_GEN: $(uuidgen)
+      S3_BACKEND_KEY_NAME: tf-state-${{ env.UUID_GEN }}
     outputs:
-      runner: ${{ steps.determine-runner.outputs.runner }}
+      runner: ${{ env.UUID_GEN }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -32,7 +33,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - id: determine-runner
         name: Determine runner
-        run: if $IS_LOCAL; then echo "::set-output name=runner::$(uuidgen)"; else echo "::set-output name=runner::ubuntu-latest"; fi;
+        run: if $IS_LOCAL; then echo "::set-output name=runner::${{ env.UUID_GEN }}"; else echo "::set-output name=runner::ubuntu-latest"; fi;
       - name: checkout code
         if: ${{ env.IS_LOCAL == 'true' }}
         uses: actions/checkout@v2.1.0
