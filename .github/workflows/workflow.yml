@@ -149,7 +149,7 @@ jobs:
   destroy-runner-instance:
     name: destroy runner
     runs-on: ubuntu-latest
-    needs: pop-runner-instance
+    needs: [ pop-runner-instance, build, build-and-publish-docker-image]
     if: ${{ always() && github.event.pull_request.head.repo.fork == false }}
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
