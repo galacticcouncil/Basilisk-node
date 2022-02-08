@@ -22,14 +22,17 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       EC2_SECRET: ${{ secrets.EC2_PWD }}
-      S3_BACKEND_KEY_NAME: ${{ $(uuidgen) }}
+      S3_BACKEND_KEY_NAME: TMP
     outputs:
-      runner: ${{ env.UUID_GEN }}
+      runner: ${{ env.S3_BACKEND_KEY_NAME }}
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+      - id: set backend key name
+        name: Set Backend Key Name
+        run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV    
       - id: determine-runner
         name: Determine runner
         run: if $IS_LOCAL; then echo "::set-output name=runner::${{ env.S3_BACKEND_KEY_NAME }}"; else echo "::set-output name=runner::ubuntu-latest"; fi;
