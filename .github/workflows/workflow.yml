@@ -30,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - id: set backend key name
+      - id: set-backend-key-name
         name: Set Backend Key Name
         run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV    
       - id: determine-runner
