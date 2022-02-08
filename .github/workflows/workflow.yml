@@ -24,7 +24,7 @@ jobs:
       EC2_SECRET: ${{ secrets.EC2_PWD }}
       S3_BACKEND_KEY_NAME: TMP
     outputs:
-      runner: ${{ env.S3_BACKEND_KEY_NAME }}
+      runner: ${{ steps.determine-runner.outputs.runner }}
     steps:
       - uses: actions/checkout@v2
         with:
