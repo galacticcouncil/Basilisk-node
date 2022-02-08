@@ -37,8 +37,7 @@ frame_support::construct_runtime!(
 );
 
 parameter_types! {
-	pub ClassBondAmount: Balance = 100;
-	pub MaxMetadataLength: u32 = 256;
+	pub ReserveClassIdUpTo: u128 = 999;
 }
 
 impl pallet_nft::Config for Test {
@@ -50,6 +49,7 @@ impl pallet_nft::Config for Test {
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {
@@ -134,9 +134,10 @@ pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
-pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
-pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1;
-pub const CLASS_ID_2: <Test as pallet_uniques::Config>::ClassId = 2;
+pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 1000;
+pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1001;
+pub const CLASS_ID_2: <Test as pallet_uniques::Config>::ClassId = 1002;
+pub const CLASS_ID_RESERVED: <Test as pallet_uniques::Config>::ClassId = 42;
 pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
 pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
 pub const INSTANCE_ID_2: <Test as pallet_uniques::Config>::InstanceId = 2;

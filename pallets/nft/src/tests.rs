@@ -39,8 +39,17 @@ fn create_class_works() {
 			ALICE,
 			CLASS_ID_2,
 			ClassType::LiquidityMining,
-			metadata
+			metadata.clone()
 		));
+		assert_noop!(
+			NFTPallet::create_class(
+				Origin::signed(ALICE),
+				CLASS_ID_RESERVED,
+				ClassType::Marketplace,
+				metadata
+			),
+			Error::<Test>::IdReserved
+		);
 	})
 }
 

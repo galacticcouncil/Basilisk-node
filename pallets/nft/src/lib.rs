@@ -71,6 +71,9 @@ pub mod pallet {
 			+ From<Self::InstanceId>;
 		type ClassType: Member + Parameter + Default + Copy;
 		type Permissions: NftPermission<Self::ClassType>;
+		/// Class IDs reserved for runtime up to the following constant
+		#[pallet::constant]
+		type ReserveClassIdUpTo: Get<Self::NftClassId>;
 	}
 
 	#[pallet::storage]
@@ -105,6 +108,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
+			ensure!(T::ReserveClassIdUpTo::get() < class_id, Error::<T>::IdReserved);
 			ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
 
 			Self::do_create_class(sender, class_id, Default::default(), metadata)?;
@@ -265,6 +269,8 @@ pub mod pallet {
 		InstanceUnknown,
 		/// Operation not permitted
 		NotPermitted,
+		/// ID reserved for runtime
+		IdReserved,
 	}
 }
 

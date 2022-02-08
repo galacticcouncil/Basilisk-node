@@ -523,6 +523,10 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
+parameter_types! {
+	pub ReserveClassIdUpTo: u128 = 999_999;
+}
+
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
@@ -532,6 +536,7 @@ impl pallet_nft::Config for Runtime {
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 type EnsureMajorityCouncilOrRoot = EnsureOneOf<
