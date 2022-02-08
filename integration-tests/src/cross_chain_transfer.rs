@@ -11,6 +11,7 @@ use orml_traits::currency::MultiCurrency;
 use primitives::asset::AssetPair;
 use sp_runtime::traits::AccountIdConversion;
 use xcm_emulator::TestExt;
+use hydradx_traits::AMM;
 
 #[test]
 fn transfer_from_relay_chain() {
@@ -188,30 +189,27 @@ fn non_native_fee_payment_works() {
 
 	Basilisk::execute_with(|| {
 
-		let curr_0 = 0;
-		let curr_1 = 1;
+		let curr_0 = 100;
+		let curr_1 = 101;
 
 		// Alice wants to pay in the native currency
-		assert_ok!(basilisk_runtime::Tokens::set_balance(
+		assert_ok!(basilisk_runtime::Balances::set_balance(
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
-			curr_0,
 			1_000_000_000_000_000_000,
 			0,
 		));
 
-		assert_ok!(basilisk_runtime::Tokens::set_balance(
+		assert_ok!(basilisk_runtime::Balances::set_balance(
 			basilisk_runtime::Origin::root(),
 			BOB.into(),
-			curr_0,
 			1_000_000_000_000_000_000,
 			0,
 		));
 
-		assert_ok!(basilisk_runtime::Tokens::transfer(
+		assert_ok!(basilisk_runtime::Balances::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			BOB.into(),
-			curr_0,
 			1_000,
 		));
 
@@ -241,14 +239,14 @@ fn non_native_fee_payment_works() {
 		
 		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
 			basilisk_runtime::Origin::signed(BOB.into()),
-			1,
+			curr_1,
 		));
 
-		assert_ok!(basilisk_runtime::Currencies::transfer(
+		assert_ok!(basilisk_runtime::Tokens::transfer(
 			basilisk_runtime::Origin::signed(BOB.into()),
 			ALICE.into(),
 			curr_1,
-			1,
+			1_000,
 		));
 
 		assert_eq!(basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)), 537_323_499_999_999_999);
@@ -262,18 +260,20 @@ fn non_native_fee_payment_works() {
 		});
 		let share_token = basilisk_runtime::XYK::share_token(pair_account);
 
+		assert_eq!(basilisk_runtime::Tokens::free_balance(share_token, &AccountId::from(ALICE)), 1_000_000_000_000_000_001);
+
 		assert_ok!(basilisk_runtime::XYK::create_pool(
 			basilisk_runtime::Origin::signed(ALICE.into()),
-			0,
-			1,
+			curr_0,
+			curr_1,
 			100_000,
 			Price::from(10)
 		));
 
 		assert_ok!(basilisk_runtime::XYK::buy(
 			basilisk_runtime::Origin::signed(ALICE.into()),
-			0,
-			1,
+			curr_0,
+			curr_1,
 			66_666_666,
 			1_000_000_000,
 			false,

@@ -72,6 +72,9 @@ pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release
 xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.16", default-features = false }
 polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.16", default-features = false }
 
+# HydraDX dependencies
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "main", default-features = false }
+
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false, optional = true }
 frame-executive = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
@@ -180,4 +183,5 @@ std = [
     "pallet-collator-selection/std",
     "pallet-authorship/std",
     "basilisk-runtime/std",
+    "hydradx-traits/std",
 ]
