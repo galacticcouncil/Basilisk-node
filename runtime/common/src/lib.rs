@@ -19,9 +19,13 @@
 
 pub mod adapter;
 pub mod locked_balance;
+pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::{parameter_types, traits::LockIdentifier, weights::Pays, PalletId, RuntimeDebug};
+use frame_support::{
+	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_PER_MICROS, weights::Pays, PalletId,
+	RuntimeDebug,
+};
 pub use pallet_transaction_payment::Multiplier;
 pub use primitives::constants::{chain::*, currency::*, time::*};
 pub use primitives::{Amount, AssetId, Balance};
@@ -75,6 +79,11 @@ parameter_types! {
 	pub BlockLength: frame_system::limits::BlockLength =
 		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub const SS58Prefix: u16 = 10041;
+
+	/// Basilisk base weight of an extrinsic
+	/// This includes weight for payment in non-native currency.
+	// Default substrate base weight is 125 * WEIGHT_PER_MICROS
+	pub const BasiliskExtrinsicBaseWeight: Weight = 200 * WEIGHT_PER_MICROS;
 }
 
 // pallet timestamp
@@ -153,17 +162,6 @@ parameter_types! {
 // pallet lbp
 parameter_types! {
 	pub LBPExchangeFee: (u32, u32) = (2, 1_000);
-}
-
-// pallet nft
-parameter_types! {
-	pub ClassBondAmount: Balance = 10_000 * UNITS;
-}
-
-// pallet orml_nft
-parameter_types! {
-	pub const MaxClassMetadata: u32 = 1024;
-	pub const MaxTokenMetadata: u32 = 1024;
 }
 
 // pallet democracy

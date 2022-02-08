@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
   pull_request:
 
+env:
+  RELAY_CHAIN_VERSION: v0.9.16
+
 jobs:
   pop-runner-instance:
     name: create and setup infrastructure for branch
@@ -262,7 +265,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: v0.9.15
+          tag: ${{ env.RELAY_CHAIN_VERSION }}
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
@@ -301,11 +304,11 @@ jobs:
           branch: master
           name: basilisk
           path: target/release
-      - uses: robinraju/release-downloader@v1.2
-        name: Download relay chain binary release
+      - uses: robinraju/release-downloader@v1
+        name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          latest: true
+          tag: ${{ env.RELAY_CHAIN_VERSION }}
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
