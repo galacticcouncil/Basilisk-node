@@ -415,7 +415,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "5.2.1"
+version = "5.2.2"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
@@ -1263,7 +1263,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.6.1"
+version = "1.6.2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8002,7 +8002,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.5"
+version = "6.1.6"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8598,7 +8598,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
