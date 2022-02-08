@@ -101,6 +101,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_type_with_key! {
@@ -203,8 +204,8 @@ impl ExtBuilder {
 
 		duster::GenesisConfig::<Test> {
 			account_blacklist: vec![*TREASURY],
-			reward_account: *TREASURY,
-			dust_account: *TREASURY,
+			reward_account: Some(*TREASURY),
+			dust_account: Some(*TREASURY),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

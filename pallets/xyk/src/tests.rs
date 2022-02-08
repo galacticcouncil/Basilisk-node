@@ -964,7 +964,7 @@ fn discount_sell_fees_should_work() {
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, HDX, 10_000, share_token_native, native_pair_account).into(),
 			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, asset_b)).into(),
-			frame_system::Event::NewAccount(pair_account).into(),
+			frame_system::Event::NewAccount { account: pair_account }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_a,
 				who: pair_account,
@@ -1231,7 +1231,10 @@ fn single_buy_with_discount_should_work() {
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, asset_b, 640_000_000_000, share_token, pair_account).into(),
 			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, HDX)).into(),
-			frame_system::Event::NewAccount(native_pair_account).into(),
+			frame_system::Event::NewAccount {
+				account: native_pair_account,
+			}
+			.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_a,
 				who: 1003000,
@@ -1628,10 +1631,10 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(user, asset_a, asset_b, 100_000_000, share_token, pair_account).into(),
-			frame_system::Event::KilledAccount(pair_account).into(),
+			frame_system::Event::KilledAccount { account: pair_account }.into(),
 			Event::LiquidityRemoved(user, asset_a, asset_b, 100_000_000).into(),
 			Event::PoolDestroyed(user, asset_a, asset_b, share_token, pair_account).into(),
-			frame_system::Event::NewAccount(pair_account).into(),
+			frame_system::Event::NewAccount { account: pair_account }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_a,
 				who: pair_account,

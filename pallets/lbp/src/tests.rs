@@ -1345,7 +1345,10 @@ fn remove_liquidity_should_work() {
 		assert!(!<PoolData<Test>>::contains_key(KUSD_BSX_POOL_ID));
 
 		expect_events(vec![
-			frame_system::Event::KilledAccount(KUSD_BSX_POOL_ID).into(),
+			frame_system::Event::KilledAccount {
+				account: KUSD_BSX_POOL_ID,
+			}
+			.into(),
 			Event::LiquidityRemoved(
 				KUSD_BSX_POOL_ID,
 				KUSD,
@@ -1390,7 +1393,10 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 		assert!(!<PoolData<Test>>::contains_key(KUSD_BSX_POOL_ID));
 
 		expect_events(vec![
-			frame_system::Event::KilledAccount(KUSD_BSX_POOL_ID).into(),
+			frame_system::Event::KilledAccount {
+				account: KUSD_BSX_POOL_ID,
+			}
+			.into(),
 			Event::LiquidityRemoved(
 				KUSD_BSX_POOL_ID,
 				KUSD,
@@ -1446,7 +1452,10 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 		assert!(!<PoolData<Test>>::contains_key(HDX_BSX_POOL_ID));
 
 		expect_events(vec![
-			frame_system::Event::KilledAccount(HDX_BSX_POOL_ID).into(),
+			frame_system::Event::KilledAccount {
+				account: HDX_BSX_POOL_ID,
+			}
+			.into(),
 			Event::LiquidityRemoved(HDX_BSX_POOL_ID, HDX, BSX, pool_balance_a_before, pool_balance_b_before).into(),
 		]);
 	});
@@ -1525,7 +1534,10 @@ fn remove_liquidity_from_finalized_pool_should_work() {
 		assert!(!<PoolData<Test>>::contains_key(KUSD_BSX_POOL_ID));
 
 		expect_events(vec![
-			frame_system::Event::KilledAccount(KUSD_BSX_POOL_ID).into(),
+			frame_system::Event::KilledAccount {
+				account: KUSD_BSX_POOL_ID,
+			}
+			.into(),
 			Event::LiquidityRemoved(
 				KUSD_BSX_POOL_ID,
 				KUSD,
@@ -2183,7 +2195,7 @@ fn buy_should_work() {
 			.into(),
 			Event::BuyExecuted(buyer, BSX, KUSD, 17_894_737, 10_000_000, KUSD, 35_860).into(),
 			Event::PoolCreated(pool_id2, pool_data1).into(),
-			frame_system::Event::NewAccount(pool_id2).into(),
+			frame_system::Event::NewAccount { account: pool_id2 }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: HDX,
 				who: pool_id2,
@@ -2342,7 +2354,7 @@ fn sell_should_work() {
 			.into(),
 			Event::SellExecuted(buyer, KUSD, BSX, 9_980_000, 5_605_137, KUSD, 20_000).into(),
 			Event::PoolCreated(pool_id2, pool_data1).into(),
-			frame_system::Event::NewAccount(pool_id2).into(),
+			frame_system::Event::NewAccount { account: pool_id2 }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_in,
 				who: pool_id2,
