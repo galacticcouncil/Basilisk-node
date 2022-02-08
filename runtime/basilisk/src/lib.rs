@@ -798,64 +798,62 @@ construct_runtime!(
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+		// Substrate
+		System: frame_system::{Pallet, Call, Config, Storage, Event<T>} = 0,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 1,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 2,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 3,
+		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 4,
+		Utility: pallet_utility::{Pallet, Call, Event} = 5,
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>} = 6,
+		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>} = 7,
+		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>} = 8,
+		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>} = 9,
+		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>} = 10,
+		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>} = 11,
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 12,
+		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>} = 13,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>},
 
-		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>},
+		Authorship: pallet_authorship::{Pallet, Call, Storage} = 14,
+		CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>, Config<T>} = 15,
+		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 16, // Session must be after collator and before aura
+		Aura: pallet_aura::{Pallet, Config<T>} = 17,
+		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config} = 18,
 
-		// Basilisk's registry
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
+		// Parachain and XCM - starts at index 50
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned} = 50,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 51,
 
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
-		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>},
-		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
-		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
-		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Pallet, Call, Event},
-		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config} = 52,
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin} = 53,
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>} = 54,
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 55,
 
-		// Parachain
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
+		// Basilisk - runtime module index for basilisk's pallets starts at 100
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>} = 100,
+		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>} = 101,
+		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>} = 102,
+		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
+		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
+		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
 
-		// XCM
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config},
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
-		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
-		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>},
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} ,
+		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
+		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
+		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 
-		// Collator support
-		Authorship: pallet_authorship::{Pallet, Call, Storage},
-		CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
-		Aura: pallet_aura::{Pallet, Config<T>},
-		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config},
+		// ORML related modules - runtime module index for orml starts at 150
+		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
+		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>} = 151,
+		OrmlNft: orml_nft::{Pallet, Storage, Config<T>} = 152,
 
-		// ORML related modules
-		Currencies: orml_currencies::{Pallet, Call, Event<T>},
-		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
-		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
-		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
-		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>},
+		// ORML XCM
+		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>} = 153,
+		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>} = 154,
+		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event} = 155,
 
-		// Basilisk related modules
-		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
-		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
-		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
-		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
-		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
-		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>},
-
-		// TEMPORARY
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
+		// TEMPORARY - always last. Sudo will be removed at some point.
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 255,
 	}
 );
 
