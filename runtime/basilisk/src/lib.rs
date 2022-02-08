@@ -126,6 +126,7 @@ impl Contains<Call> for BaseFilter {
 	fn contains(call: &Call) -> bool {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
+			Call::XYK(_) => false,
 			Call::Exchange(_) => false,
 			Call::NFT(_) => false,
 			Call::Uniques(_) => false,
@@ -766,10 +767,6 @@ impl orml_vesting::Config for Runtime {
 	type WeightInfo = common_runtime::weights::vesting::BasiliskWeight<Runtime>;
 	type MaxVestingSchedules = MaxVestingSchedules;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-}
-
-parameter_types! {
-	pub const MinimumOfferAmount: Balance = 100 * UNITS;
 }
 
 parameter_types! {
