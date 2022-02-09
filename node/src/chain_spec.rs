@@ -337,6 +337,84 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 	))
 }
 
+pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
+	let para_id = 2038;
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+	let mut properties = Map::new();
+	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
+	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
+
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"Basilisk testnet",
+		// ID
+		"basilisk_rococo",
+		ChainType::Live,
+		move || {
+			testnet_parachain_genesis(
+				wasm_binary,
+				// Sudo account
+				// 5DF1gbttx4k7NWsJUid7VjDEEcCeaTsYZFd6oATtbfNxEscd
+				hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(),
+				//initial authorities & invulnerables
+				vec![
+					(
+						// 5CcMLZnK8RNMfurDsRXHwtabSKt8ZmG3ry5G3sAeRXfj4QK2
+						hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].into(),
+						hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].unchecked_into(),
+					),
+					(
+						// 5CfHZGU9iFpv2mRd9jBDu1VT6yNPFL3xsjnk971bsGBmuZ8x
+						hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].into(),
+						hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].unchecked_into(),
+					),
+				],
+				// Pre-funded accounts
+				vec![
+					hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(), // sudo
+				],
+				true,
+				para_id.into(),
+				//technical committee
+				vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()], // same as sudo
+				vec![],
+				hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(), // same as sudo
+				vec![],
+				vec![],
+				vec![],
+			)
+		},
+		// Bootnodes
+		vec![
+			"/dns/p2p-01.basilisk-rococo.hydradx.io/tcp/30333/p2p/12D3KooWPr6PPDFpnY3A4mVE1nNfxQcLAzM98g9tVqNbv3ErZoCV"
+				.parse()
+				.unwrap(),
+			"/dns/p2p-02.basilisk-rococo.hydradx.io/tcp/30333/p2p/12D3KooWN39qskQYQkXVHnAdpCbrRQDQTomUTVv9WjnWCagZroY4"
+				.parse()
+				.unwrap()
+		],
+		// Telemetry
+		Some(
+			TelemetryEndpoints::new(vec![
+				(TELEMETRY_URLS[0].to_string(), 0),
+				(TELEMETRY_URLS[1].to_string(), 0),
+			])
+			.expect("Telemetry url is valid"),
+		),
+		// Protocol ID
+		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
+		// Properties
+		Some(properties),
+		// Extensions
+		Extensions {
+			relay_chain: "rococo".into(),
+			para_id,
+		},
+	))
+}
+
 // This is used when benchmarking pallets
 // Originally dev config was used - but benchmarking needs empty asset registry
 pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
@@ -589,7 +667,7 @@ fn parachain_genesis(
 			reward_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
 			dust_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
 		},
-		polkadot_xcm: Default::default()
+		polkadot_xcm: Default::default(),
 	}
 }
 
@@ -695,6 +773,6 @@ fn testnet_parachain_genesis(
 			reward_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 			dust_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 		},
-		polkadot_xcm: Default::default()
+		polkadot_xcm: Default::default(),
 	}
 }
