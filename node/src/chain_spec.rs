@@ -231,6 +231,7 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 				vec![],
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 			)
 		},
 		// Bootnodes
@@ -317,6 +318,7 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
 		// Bootnodes
@@ -372,6 +374,8 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 				// Pre-funded accounts
 				vec![
 					hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(), // sudo
+					hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].into(), // collator-01
+					hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].into(), // collator-02
 				],
 				true,
 				para_id.into(),
@@ -380,8 +384,9 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 				vec![],
 				hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(), // same as sudo
 				vec![],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![],
-				vec![],
+				vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()],
 			)
 		},
 		// Bootnodes
@@ -391,7 +396,7 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 				.unwrap(),
 			"/dns/p2p-02.basilisk-rococo.hydradx.io/tcp/30333/p2p/12D3KooWN39qskQYQkXVHnAdpCbrRQDQTomUTVv9WjnWCagZroY4"
 				.parse()
-				.unwrap()
+				.unwrap(),
 		],
 		// Telemetry
 		Some(
@@ -467,6 +472,7 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 				get_vesting_config_for_test(),
 				vec![],
 				vec![],
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
 		// Bootnodes
@@ -545,6 +551,7 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
 		// Bootnodes
@@ -684,6 +691,7 @@ fn testnet_parachain_genesis(
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
 	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
+	elections: Vec<AccountId>,
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -748,11 +756,10 @@ fn testnet_parachain_genesis(
 
 		treasury: Default::default(),
 		elections: ElectionsConfig {
-			// Intergalactic elections
-			members: vec![(
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				100_000_000u128 * UNITS,
-			)],
+			members: elections
+				.iter()
+				.flat_map(|x| vec![(x.clone(), 100_000_000u128 * UNITS)])
+				.collect(),
 		},
 		council: CouncilConfig {
 			members: council_members,

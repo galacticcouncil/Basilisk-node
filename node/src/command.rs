@@ -105,6 +105,7 @@ impl SubstrateCli for Cli {
 				"dev" => Box::new(testing_chain_spec::parachain_development_config()?),
 				"local" => Box::new(testing_chain_spec::local_parachain_config()?),
 				"testnet-k8s" => Box::new(testing_chain_spec::k8s_testnet_parachain_config()?),
+				"moonbase" => Box::new(testing_chain_spec::moonbase_parachain_config()?),
 				path => Box::new(testing_chain_spec::ChainSpec::from_json_file(
 					std::path::PathBuf::from(path),
 				)?),
@@ -117,6 +118,7 @@ impl SubstrateCli for Cli {
 				"testnet" => Box::new(chain_spec::testnet_parachain_config()?),
 				"local" => Box::new(chain_spec::local_parachain_config()?),
 				"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
+				"rococo" => Box::new(chain_spec::rococo_parachain_config()?),
 				path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 			})
 		}

@@ -339,7 +339,7 @@ pub fn moonbase_parachain_config() -> Result<ChainSpec, String> {
 				vec![],
 				hex!["9eaea650948488ccc720491b8e40be7436359dc4213a6487ba758ed496f9e53f"].into(), // same as sudo
 				vec![],
-				vec![],
+				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![],
 				vec![hex!["9eaea650948488ccc720491b8e40be7436359dc4213a6487ba758ed496f9e53f"].into()], // same as sudo
 			)
