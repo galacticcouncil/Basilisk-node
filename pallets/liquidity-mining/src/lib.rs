@@ -102,7 +102,7 @@ pub struct GlobalPool<T: Config> {
 	yield_per_period: Permill,
 	planned_yielding_periods: PeriodOf<T>,
 	blocks_per_period: BlockNumberFor<T>,
-	incentivized_token: AssetIdOf<T>,
+	incentivized_asset: AssetIdOf<T>,
 	max_reward_per_period: Balance,
 	pub liq_pools_count: u32,
 }
@@ -116,7 +116,7 @@ impl<T: Config> GlobalPool<T> {
 		planned_yielding_periods: PeriodOf<T>,
 		blocks_per_period: T::BlockNumber,
 		owner: AccountIdOf<T>,
-		incentivized_token: T::CurrencyId,
+		incentivized_asset: T::CurrencyId,
 		max_reward_per_period: Balance,
 	) -> Self {
 		Self {
@@ -132,7 +132,7 @@ impl<T: Config> GlobalPool<T> {
 			planned_yielding_periods,
 			blocks_per_period,
 			owner,
-			incentivized_token,
+			incentivized_asset,
 			max_reward_per_period,
 		}
 	}
@@ -346,46 +346,115 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// New farm was created by `CreateOrigin` origin. [pool_id, global_pool]
-		FarmCreated(PoolId, GlobalPool<T>),
+		/// New farm created.
+		NewFarm {
+			farm_id: PoolId,
+			owner: AccountIdOf<T>,
+			reward_currency: AssetIdOf<T>,
+			yield_per_period: Permill,
+			planned_yielding_periods: PeriodOf<T>,
+			blocks_per_period: BlockNumberFor<T>,
+			incentivized_asset: AssetIdOf<T>,
+			max_reward_per_period: Balance,
+			//origin: AccountIdOf<T>,   //TODO:
+		},
 
-		/// New liquidity(AMM) pool was added to farm [farm_id, amm_pool_id, liquidity_pool]
-		LiquidityPoolAdded(PoolId, AccountIdOf<T>, LiquidityPoolYieldFarm<T>),
+		/// New liquidity mining farm for AMM created.
+		NewLiquidityPoolFarm {
+			farm_id: PoolId,
+			liq_pool_farm_id: PoolId,
+			multiplier: PoolMultiplier,
+			nft_class: NftClassIdOf<T>,
+			asset_pair: AssetPair,
+		},
 
-		/// Liq. mining farm was destroyed [farm_id, who]
-		FarmDestroyed(PoolId, AccountIdOf<T>),
+		/// Destroy farm.
+		DestroyFarm { id: PoolId, who: AccountIdOf<T> },
 
-		/// Amm shares was deposited into liq. mining pool [farm_id, liq_mining_pool_id, who, shares,
-		/// share_token, nft_instance_id]
-		SharesDeposited(
-			PoolId,
-			PoolId,
-			AccountIdOf<T>,
-			Balance,
-			T::CurrencyId,
-			NftInstanceIdOf<T>,
-		),
+		/// Deposit lp tokens.
+		DepositShares {
+			farm_id: PoolId,
+			liq_pool_farm_id: PoolId,
+			who: AccountIdOf<T>,
+			amount: Balance,
+			lp_token: T::CurrencyId,
+			nft_class: NftClassIdOf<T>,
+			nft_instance_id: NftInstanceIdOf<T>,
+		},
 
-		/// Liquidity provider claimed rewards. [who, farm_id, liq_pool_id, claimed_amount, reward_token]
-		RewardClaimed(AccountIdOf<T>, PoolId, PoolId, Balance, T::CurrencyId),
+		/// Claim rewards.
+		ClaimReward {
+			farm_id: PoolId,
+			liq_pool_farm_id: PoolId,
+			who: AccountIdOf<T>,
+			claimed: Balance,
+			reward_currency: T::CurrencyId,
+		},
 
-		/// Shares withdrawn from liq. mining. [who, share_token, amount]
-		SharesWithdrawn(AccountIdOf<T>, T::CurrencyId, Balance),
+        //TODO: add farm, pool_id, asset_pair
+		/// Withdraw shares.
+		WithdrawShares {
+			who: AccountIdOf<T>,
+			lp_token: T::CurrencyId,
+			amount: Balance,
+		},
 
-		/// Liquidity mining was canceled for liquidity pool. [who, farm_id, liq_mining_pool_id,
-		/// asset_pair]
-		LiquidityMiningCanceled(AccountIdOf<T>, PoolId, PoolId, AssetPair),
+		/// Cancel liquidity mining for AMM.
+		CancelLiquidityPoolFarm {
+			farm_id: PoolId,
+			liq_pool_farm_id: PoolId,
+			who: AccountIdOf<T>,
+			asset_pair: AssetPair,
+		},
 
-		/// Liquidity mining was resumed for liquidity pool. [who, farm_id, liq_mining_pool_id,
-		/// asset_pair]
-		LiquidityMiningResumed(AccountIdOf<T>, PoolId, PoolId, AssetPair),
+		/// Resume liquidity mining for AMM.
+		ResumeLiquidityPoolFarm {
+			farm_id: PoolId,
+			liq_pool_farm_id: PoolId,
+			who: AccountIdOf<T>,
+			asset_pair: AssetPair,
+			multiplier: PoolMultiplier,
+		},
 
-		/// Liquidity pool was removed from liq. mining program. [who, farm_id, liq_mining_pool_id,
-		/// asset_pair]
-		LiquidityPoolRemoved(AccountIdOf<T>, PoolId, PoolId, AssetPair),
+		/// Remove liquidity mining pool farm.
+		RemoveLiquidityPoolFarm {
+			farm_id: PoolId,
+			liq_pool_farm_id: PoolId,
+			who: AccountIdOf<T>,
+			asset_pair: AssetPair,
+		},
 
-		/// Undistributed rewards was withdrawn from farm. [who, farm_id, amount]
-		UndistributedRewardsWithdrawn(AccountIdOf<T>, PoolId, Balance),
+		/// Withdraw undistributed rewards from farm.
+		WithdrawUndistributedRewards {
+			farm_id: PoolId,
+			who: AccountIdOf<T>,
+			reward_currency: T::CurrencyId,
+			amount: Balance,
+		},
+
+		/// Update liquidity pool farm multiplier.
+		UpdateLiquidityPoolFarm {
+			farm_id: PoolId,
+			liq_pool_farm_id: PoolId,
+			who: AccountIdOf<T>,
+			asset_pair: AssetPair,
+			multiplier: PoolMultiplier,
+		},
+
+		/// Update of `accumulated_rpz` of farm.
+		UpdateFarmAccRPZ {
+			farm_id: PoolId,
+			accumulated_rpz: Balance,
+			total_shares_z: Balance,
+		},
+
+		/// Update of `accumulated_rpvs` of liq. pool farm.
+		UpdateLiquidityPoolFarmAccRPVS {
+			farm_id: PoolId,
+			liq_pool_farm_id: PoolId,
+			accumulated_rpvs: Balance,
+			total_valued_shares: Balance,
+		},
 	}
 
 	#[pallet::storage]
@@ -428,7 +497,7 @@ pub mod pallet {
 		/// how long will farming run.  Owner can destroy farm sooner or liq. mining can run longer
 		/// if all the rewards will not distributed.
 		/// - `blocks_per_period`:
-		/// - `incentivized_token`
+		/// - `incentivized_asset`
 		/// - `reward_currency`
 		/// - `admin_account`
 		/// - `yield_per_period`
@@ -439,7 +508,7 @@ pub mod pallet {
 			total_rewards: Balance,
 			planned_yielding_periods: PeriodOf<T>,
 			blocks_per_period: BlockNumberFor<T>,
-			incentivized_token: AssetIdOf<T>,
+			incentivized_asset: AssetIdOf<T>,
 			reward_currency: AssetIdOf<T>,
 			owner: AccountIdOf<T>,
 			yield_per_period: Permill,
@@ -464,7 +533,7 @@ pub mod pallet {
 			let now_period = Self::get_now_period(blocks_per_period)?;
 			let pool_id = Self::get_next_id()?;
 
-			let pool = GlobalPool::new(
+			let g_pool = GlobalPool::new(
 				pool_id,
 				now_period,
 				reward_currency,
@@ -472,16 +541,25 @@ pub mod pallet {
 				planned_yielding_periods,
 				blocks_per_period,
 				owner,
-				incentivized_token,
+				incentivized_asset,
 				max_reward_per_period,
 			);
 
-			<GlobalPoolData<T>>::insert(&pool.id, &pool);
+			<GlobalPoolData<T>>::insert(&g_pool.id, &g_pool);
 
-			let pool_account = Self::pool_account_id(pool.id)?;
-			T::MultiCurrency::transfer(reward_currency, &pool.owner, &pool_account, total_rewards)?;
+			let pool_account = Self::pool_account_id(g_pool.id)?;
+			T::MultiCurrency::transfer(reward_currency, &g_pool.owner, &pool_account, total_rewards)?;
 
-			Self::deposit_event(Event::FarmCreated(pool.id, pool));
+			Self::deposit_event(Event::NewFarm {
+				farm_id: g_pool.id,
+				owner: g_pool.owner,
+				reward_currency: g_pool.reward_currency,
+				yield_per_period: g_pool.yield_per_period,
+				planned_yielding_periods: g_pool.planned_yielding_periods,
+				blocks_per_period: g_pool.blocks_per_period,
+				incentivized_asset: g_pool.incentivized_asset,
+				max_reward_per_period: g_pool.max_reward_per_period,
+			});
 
 			Ok(())
 		}
@@ -506,7 +584,7 @@ pub mod pallet {
 
 				*maybe_g_pool = None;
 
-				Self::deposit_event(Event::FarmDestroyed(farm_id, who));
+				Self::deposit_event(Event::DestroyFarm { id: farm_id, who });
 				Ok(())
 			})
 		}
@@ -528,7 +606,12 @@ pub mod pallet {
 
 			T::MultiCurrency::transfer(g_pool.reward_currency, &g_pool_account, &who, undistributed_rew)?;
 
-			Self::deposit_event(Event::UndistributedRewardsWithdrawn(who, g_pool.id, undistributed_rew));
+			Self::deposit_event(Event::WithdrawUndistributedRewards {
+				farm_id: g_pool.id,
+				who,
+				reward_currency: g_pool.reward_currency,
+				amount: undistributed_rew,
+			});
 
 			Ok(())
 		}
@@ -576,7 +659,6 @@ pub mod pallet {
 					)?;
 					Self::update_global_pool(g_pool, now_period, reward_per_period)?;
 				}
-				g_pool.liq_pools_count = g_pool.liq_pools_count.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
 				let liq_pool_id = Self::get_next_id()?;
 				let pallet_account = Self::account_id();
@@ -590,8 +672,15 @@ pub mod pallet {
 				let pool = LiquidityPoolYieldFarm::new(liq_pool_id, now_period, loyalty_curve, multiplier, nft_class);
 
 				<LiquidityPoolData<T>>::insert(g_pool.id, &amm_pool_id, &pool);
+				g_pool.liq_pools_count = g_pool.liq_pools_count.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
-				Self::deposit_event(Event::LiquidityPoolAdded(g_pool.id, amm_pool_id, pool));
+				Self::deposit_event(Event::NewLiquidityPoolFarm {
+					farm_id: g_pool.id,
+					liq_pool_farm_id: pool.id,
+					multiplier: pool.multiplier,
+					nft_class: pool.nft_class,
+					asset_pair,
+				});
 
 				Ok(())
 			})
@@ -649,6 +738,14 @@ pub mod pallet {
 					liq_pool.stake_in_global_pool = new_stake_in_global_pool;
 					liq_pool.multiplier = multiplier;
 
+					Self::deposit_event(Event::UpdateLiquidityPoolFarm {
+						farm_id: g_pool.id,
+						liq_pool_farm_id: liq_pool.id,
+						multiplier: liq_pool.multiplier,
+						who,
+						asset_pair,
+					});
+
 					Ok(())
 				})
 			})
@@ -683,7 +780,12 @@ pub mod pallet {
 					liq_pool.stake_in_global_pool = 0;
 					liq_pool.multiplier = 0.into();
 
-					Self::deposit_event(Event::LiquidityMiningCanceled(who, farm_id, liq_pool.id, asset_pair));
+					Self::deposit_event(Event::CancelLiquidityPoolFarm {
+						farm_id,
+						liq_pool_farm_id: liq_pool.id,
+						who,
+						asset_pair,
+					});
 
 					Ok(())
 				})
@@ -738,12 +840,13 @@ pub mod pallet {
 					liq_pool.canceled = false;
 					liq_pool.multiplier = multiplier;
 
-					Self::deposit_event(Event::<T>::LiquidityMiningResumed(
-						who,
+					Self::deposit_event(Event::<T>::ResumeLiquidityPoolFarm {
 						farm_id,
-						liq_pool.id,
+						liq_pool_farm_id: liq_pool.id,
+						who,
 						asset_pair,
-					));
+						multiplier,
+					});
 
 					Ok(())
 				})
@@ -805,7 +908,12 @@ pub mod pallet {
 						Ok(().into())
 					})?;
 
-					Self::deposit_event(Event::LiquidityPoolRemoved(who, farm_id, liq_pool.id, asset_pair));
+					Self::deposit_event(Event::RemoveLiquidityPoolFarm {
+						farm_id,
+						liq_pool_farm_id: liq_pool.id,
+						who,
+						asset_pair,
+					});
 
 					*maybe_liq_pool = None;
 					Ok(().into())
@@ -882,14 +990,15 @@ pub mod pallet {
 						Ok(())
 					})?;
 
-					Self::deposit_event(Event::SharesDeposited(
-						g_pool.id,
-						liq_pool.id,
+					Self::deposit_event(Event::DepositShares {
+						farm_id,
+						liq_pool_farm_id: liq_pool.id,
 						who,
-						shares_amount,
-						amm_share_token,
-						nft_id,
-					));
+						amount: shares_amount,
+						lp_token: amm_share_token,
+						nft_class: liq_pool.nft_class,
+						nft_instance_id: nft_id,
+					});
 
 					Ok(())
 				})
@@ -937,13 +1046,13 @@ pub mod pallet {
 						let (reward, _) =
 							Self::do_claim_rewards(who.clone(), deposit, liq_pool, now_period, g_pool.reward_currency)?;
 
-						Self::deposit_event(Event::RewardClaimed(
+						Self::deposit_event(Event::ClaimReward {
+							farm_id,
+							liq_pool_farm_id: liq_pool.id,
 							who,
-							g_pool.id,
-							liq_pool.id,
-							reward,
-							g_pool.reward_currency,
-						));
+							claimed: reward,
+							reward_currency: g_pool.reward_currency,
+						});
 
 						Ok(())
 					})
@@ -1043,13 +1152,13 @@ pub mod pallet {
 
 										//emit this event only if something was claimed
 										if !reward.is_zero() {
-											Self::deposit_event(Event::RewardClaimed(
-												who.clone(),
-												g_pool.id,
-												liq_pool.id,
-												reward,
-												g_pool.reward_currency,
-											));
+											Self::deposit_event(Event::ClaimReward {
+												farm_id: g_pool.id,
+												liq_pool_farm_id: liq_pool.id,
+												who: who.clone(),
+												claimed: reward,
+												reward_currency: g_pool.reward_currency,
+											});
 										}
 
 										Ok(())
@@ -1069,7 +1178,11 @@ pub mod pallet {
 
 						//NOTE: Theoretically neither `GlobalPool` nor
 						//`LiquidityPoolYieldFarm` may not exist
-						Self::deposit_event(Event::SharesWithdrawn(who.clone(), amm_token, deposit.shares));
+						Self::deposit_event(Event::WithdrawShares {
+							who: who.clone(),
+							lp_token: amm_token,
+							amount: deposit.shares,
+						});
 					}
 
 					*maybe_nft = None;
@@ -1223,6 +1336,12 @@ impl<T: Config> Pallet<T> {
 
 		g_pool.updated_at = now_period;
 
+        Self::deposit_event(Event::UpdateFarmAccRPZ {
+            farm_id: g_pool.id,
+            accumulated_rpz: g_pool.accumulated_rpz,
+            total_shares_z: g_pool.total_shares_z,
+        });
+        
 		Ok(())
 	}
 
@@ -1326,6 +1445,14 @@ impl<T: Config> Pallet<T> {
 
 		let global_pool_account = Self::pool_account_id(global_pool_id)?;
 		let pool_account = Self::pool_account_id(pool.id)?;
+
+        Self::deposit_event(Event::UpdateLiquidityPoolFarmAccRPVS {
+            farm_id: global_pool_id,
+            liq_pool_farm_id: pool.id,
+            accumulated_rpvs: pool.accumulated_rpvs,
+            total_valued_shares: pool.total_valued_shares,
+        });
+
 		T::MultiCurrency::transfer(reward_currency, &global_pool_account, &pool_account, pool_rewards)
 	}
 

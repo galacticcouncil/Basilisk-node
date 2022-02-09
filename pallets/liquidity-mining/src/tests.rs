@@ -50,7 +50,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		planned_yielding_periods: 300_u64,
 		blocks_per_period: 1_000_u64,
 		owner: ALICE,
-		incentivized_token: BSX,
+		incentivized_asset: BSX,
 		max_reward_per_period: 333_333_333,
 		accumulated_rpz: 0,
 		liq_pools_count: 0,
@@ -66,7 +66,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		planned_yielding_periods: 5_000_u64,
 		blocks_per_period: 10_000_u64,
 		owner: BOB,
-		incentivized_token: BSX,
+		incentivized_asset: BSX,
 		max_reward_per_period: 200_000,
 		accumulated_rpz: 0,
 		liq_pools_count: 0,
@@ -82,7 +82,7 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 		planned_yielding_periods: 500_u64,
 		blocks_per_period: 100_u64,
 		owner: GC,
-		incentivized_token: BSX,
+		incentivized_asset: BSX,
 		max_reward_per_period: 60_000_000,
 		accumulated_rpz: 0,
 		liq_pools_count: 2,
@@ -130,20 +130,40 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![
-			Event::FarmCreated(1, PREDEFINED_GLOBAL_POOLS[0].clone()).into(),
+			mock::Event::LiquidityMining(Event::NewFarm {
+				farm_id: PREDEFINED_GLOBAL_POOLS[0].id,
+				owner: PREDEFINED_GLOBAL_POOLS[0].owner,
+				reward_currency: PREDEFINED_GLOBAL_POOLS[0].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_POOLS[0].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[0].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_POOLS[0].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_POOLS[0].incentivized_asset,
+				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[0].max_reward_per_period,
+			}),
 			frame_system::Event::NewAccount(187989685649991564771226578797).into(),
 			orml_tokens::Event::Endowed(4_000, 187989685649991564771226578797, 1_000_000_000).into(),
-			Event::FarmCreated(2, PREDEFINED_GLOBAL_POOLS[1].clone()).into(),
+			mock::Event::LiquidityMining(Event::NewFarm {
+				farm_id: PREDEFINED_GLOBAL_POOLS[1].id,
+				owner: PREDEFINED_GLOBAL_POOLS[1].owner,
+				reward_currency: PREDEFINED_GLOBAL_POOLS[1].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_POOLS[1].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[1].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_POOLS[1].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_POOLS[1].incentivized_asset,
+				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[1].max_reward_per_period,
+			}),
 			frame_system::Event::NewAccount(267217848164255902364770529133).into(),
 			orml_tokens::Event::Endowed(1_000, 267217848164255902364770529133, 30_000_000_000).into(),
-			Event::FarmCreated(
-				3,
-				GlobalPool {
-					liq_pools_count: 0,
-					..PREDEFINED_GLOBAL_POOLS[2].clone()
-				},
-			)
-			.into(),
+			mock::Event::LiquidityMining(Event::NewFarm {
+				farm_id: PREDEFINED_GLOBAL_POOLS[2].id,
+				owner: PREDEFINED_GLOBAL_POOLS[2].owner,
+				reward_currency: PREDEFINED_GLOBAL_POOLS[2].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_POOLS[2].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[2].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_POOLS[2].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_POOLS[2].incentivized_asset,
+				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[2].max_reward_per_period,
+			}),
 		]);
 
 		let amm_mock_data = vec![
@@ -216,24 +236,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			Some(LoyaltyCurve::default()),
 		));
 
-		expect_events(vec![Event::LiquidityPoolAdded(
-			GC_FARM,
-			BSX_TO1_AMM,
-			LiquidityPoolYieldFarm {
-				id: 4,
-				updated_at: 0,
-				accumulated_rpvs: 0,
-				accumulated_rpz: 0,
-				total_shares: 0,
-				total_valued_shares: 0,
-				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 0,
-				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
-				canceled: false,
+		expect_events(vec![mock::Event::LiquidityMining(Event::NewLiquidityPoolFarm {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 4,
+			multiplier: FixedU128::from(5),
+			nft_class: 0,
+			asset_pair: AssetPair {
+				asset_in: BSX,
+				asset_out: TO1,
 			},
-		)
-		.into()]);
+		})]);
 
 		assert_ok!(LiquidityMining::add_liquidity_pool(
 			Origin::signed(GC),
@@ -246,24 +258,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			Some(LoyaltyCurve::default()),
 		));
 
-		expect_events(vec![Event::LiquidityPoolAdded(
-			GC_FARM,
-			BSX_TO2_AMM,
-			LiquidityPoolYieldFarm {
-				id: 5,
-				updated_at: 0,
-				accumulated_rpvs: 0,
-				accumulated_rpz: 0,
-				total_shares: 0,
-				total_valued_shares: 0,
-				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 0,
-				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
-				canceled: false,
+		expect_events(vec![mock::Event::LiquidityMining(Event::NewLiquidityPoolFarm {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 5,
+			multiplier: FixedU128::from(10),
+			nft_class: 1,
+			asset_pair: AssetPair {
+				asset_in: BSX,
+				asset_out: TO2,
 			},
-		)
-		.into()]);
+		})]);
 	});
 
 	ext
@@ -302,27 +306,45 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			50
 		));
 
-		expect_events(vec![
-			Event::SharesDeposited(GC_FARM, 4, ALICE, 50, BSX_TO1_SHARE_ID, 0).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 5,
+			who: ALICE,
+			lp_token: BSX_TO1_SHARE_ID,
+			amount: 50,
+			nft_class: 1,
+			nft_instance_id: 0,
+		})]);
 
 		// DEPOSIT 2 (deposit in same period):
 		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 52, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_1, 80));
 
-		expect_events(vec![
-			Event::SharesDeposited(GC_FARM, 4, BOB, 80, BSX_TO1_SHARE_ID, 1).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 4,
+			who: BOB,
+			lp_token: BSX_TO1_SHARE_ID,
+			amount: 80,
+			nft_class: 1,
+			nft_instance_id: 1,
+		})]);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
 		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 8, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_2, 25));
 
-		expect_events(vec![
-			Event::SharesDeposited(GC_FARM, 5, BOB, 25, BSX_TO2_SHARE_ID, 0).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 5,
+			who: BOB,
+			lp_token: BSX_TO2_SHARE_ID,
+			amount: 25,
+			nft_class: 1,
+			nft_instance_id: 1,
+		})]);
 
 		// DEPOSIT 4 (new period):
 		run_to_block(2051); //period 20
@@ -335,9 +357,15 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			800
 		));
 
-		expect_events(vec![
-			Event::SharesDeposited(GC_FARM, 5, BOB, 800, BSX_TO2_SHARE_ID, 1).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 5,
+			who: BOB,
+			lp_token: BSX_TO2_SHARE_ID,
+			amount: 800,
+			nft_class: 1,
+			nft_instance_id: 1,
+		})]);
 
 		// DEPOSIT 5 (same period, second liq pool yield farm):
 		run_to_block(2_586); //period 20
@@ -350,9 +378,15 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			87
 		));
 
-		expect_events(vec![
-			Event::SharesDeposited(GC_FARM, 5, ALICE, 87, BSX_TO2_SHARE_ID, 2).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 5,
+			who: BOB,
+			lp_token: BSX_TO2_SHARE_ID,
+			amount: 87,
+			nft_class: 1,
+			nft_instance_id: 2,
+		})]);
 
 		// DEPOSIT 6 (same period):
 		run_to_block(2_596); //period 20
@@ -365,9 +399,15 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			48
 		));
 
-		expect_events(vec![
-			Event::SharesDeposited(GC_FARM, 5, ALICE, 48, BSX_TO2_SHARE_ID, 3).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 5,
+			who: ALICE,
+			lp_token: BSX_TO2_SHARE_ID,
+			amount: 48,
+			nft_class: 1,
+			nft_instance_id: 3,
+		})]);
 
 		// DEPOSIT 7 : (same period differen liq poll farm)
 		run_to_block(2_596); //period 20
@@ -380,15 +420,15 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			486
 		));
 
-		expect_events(vec![Event::SharesDeposited(
-			GC_FARM,
-			4,
-			ALICE,
-			486,
-			BSX_TO1_SHARE_ID,
-			2,
-		)
-		.into()]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: 4,
+			who: ALICE,
+			lp_token: BSX_TO1_SHARE_ID,
+			amount: 486,
+			nft_class: 1,
+			nft_instance_id: 22,
+		})]);
 
 		assert_eq!(
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
@@ -400,7 +440,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 12,
 				liq_pools_count: 2,
@@ -2282,7 +2322,16 @@ fn create_farm_should_work() {
 			max_reward_per_period,
 		);
 
-		expect_events(vec![Event::FarmCreated(pool_id, global_pool.clone()).into()]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::NewFarm {
+			farm_id: global_pool.id,
+			owner: global_pool.owner,
+			reward_currency: global_pool.reward_currency,
+			yield_per_period: global_pool.yield_per_period,
+			planned_yielding_periods: global_pool.planned_yielding_periods,
+			blocks_per_period: global_pool.blocks_per_period,
+			incentivized_asset: global_pool.incentivized_asset,
+			max_reward_per_period: global_pool.max_reward_per_period,
+		})]);
 
 		assert_eq!(LiquidityMining::global_pool(pool_id), Some(global_pool));
 	});
@@ -2534,7 +2583,13 @@ fn add_liquidity_pool_should_work() {
 				pool.loyalty_curve.clone()
 			));
 
-			expect_events(vec![Event::LiquidityPoolAdded(farm_id, amm_id, pool.clone()).into()]);
+			expect_events(vec![mock::Event::LiquidityMining(Event::NewLiquidityPoolFarm {
+				farm_id,
+				liq_pool_farm_id: pool.id,
+				multiplier: pool.multiplier,
+				nft_class: pool.nft_class,
+				asset_pair: assets,
+			})]);
 
 			assert_eq!(LiquidityMining::global_pool(farm_id).unwrap(), g_pool);
 		}
@@ -2917,7 +2972,7 @@ fn deposit_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 0,
 				liq_pools_count: 2,
@@ -2984,7 +3039,7 @@ fn deposit_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 9,
 				liq_pools_count: 2,
@@ -3051,7 +3106,7 @@ fn deposit_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 9,
 				liq_pools_count: 2,
@@ -3126,7 +3181,7 @@ fn deposit_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 10,
 				liq_pools_count: 2,
@@ -3201,7 +3256,7 @@ fn deposit_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 12,
 				liq_pools_count: 2,
@@ -3278,7 +3333,7 @@ fn deposit_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 12,
 				liq_pools_count: 2,
@@ -3362,7 +3417,7 @@ fn deposit_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 12,
 				liq_pools_count: 2,
@@ -3544,7 +3599,7 @@ fn claim_rewards_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 14,
 				liq_pools_count: 2,
@@ -3611,7 +3666,7 @@ fn claim_rewards_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 628,
 				liq_pools_count: 2,
@@ -3831,7 +3886,7 @@ fn withdraw_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 12,
 				liq_pools_count: 2,
@@ -3928,7 +3983,7 @@ fn withdraw_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 63,
 				liq_pools_count: 2,
@@ -4042,7 +4097,7 @@ fn withdraw_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 63,
 				liq_pools_count: 2,
@@ -4137,7 +4192,7 @@ fn withdraw_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 63,
 				liq_pools_count: 2,
@@ -4229,7 +4284,7 @@ fn withdraw_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 63,
 				liq_pools_count: 2,
@@ -4337,7 +4392,7 @@ fn withdraw_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 63,
 				liq_pools_count: 2,
@@ -4427,7 +4482,7 @@ fn withdraw_shares_should_work() {
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
-				incentivized_token: BSX,
+				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 63,
 				liq_pools_count: 2,
@@ -4835,7 +4890,11 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), nft_class_id, 1));
 
 		expect_events(vec![
-			Event::SharesWithdrawn(BOB, BSX_TO1_SHARE_ID, shares_amount).into(),
+			mock::Event::LiquidityMining(Event::WithdrawShares {
+				who: BOB,
+				lp_token: BSX_TO1_SHARE_ID,
+				amount: shares_amount,
+			}),
 			pallet_uniques::Event::Burned(0, 1, 2).into(),
 			pallet_uniques::Event::Destroyed(0).into(),
 		]);
@@ -4917,9 +4976,12 @@ fn cancel_liquidity_pool_should_work() {
 			assets
 		));
 
-		expect_events(vec![
-			Event::LiquidityMiningCanceled(GC, GC_FARM, liq_pool_id, assets).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::CancelLiquidityPoolFarm {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: liq_pool_id,
+			who: GC,
+			asset_pair: assets,
+		})]);
 
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
@@ -4966,9 +5028,12 @@ fn cancel_liquidity_pool_should_work() {
 			assets
 		));
 
-		expect_events(vec![
-			Event::LiquidityMiningCanceled(GC, GC_FARM, liq_pool_id, assets).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::CancelLiquidityPoolFarm {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: liq_pool_id,
+			who: GC,
+			asset_pair: assets,
+		})]);
 
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
@@ -5095,9 +5160,12 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 			assets
 		));
 
-		expect_events(vec![
-			Event::LiquidityPoolRemoved(GC, GC_FARM, liq_pool_id, assets).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::RemoveLiquidityPoolFarm {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: liq_pool_id,
+			who: GC,
+			asset_pair: assets,
+		})]);
 
 		assert_eq!(
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
@@ -5151,9 +5219,12 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 			assets
 		));
 
-		expect_events(vec![
-			Event::LiquidityPoolRemoved(GC, GC_FARM, liq_pool_id, assets).into()
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::RemoveLiquidityPoolFarm {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: liq_pool_id,
+			who: GC,
+			asset_pair: assets,
+		})]);
 
 		assert_eq!(
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
