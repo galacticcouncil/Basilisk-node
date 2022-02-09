@@ -4,12 +4,12 @@ use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
-pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction> {
+pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 	fn create(&self, sender: AccountId, auction: &NftAuction) -> DispatchResult;
 
 	fn update(&self, sender: AccountId, auction_id: AuctionId, auction: NftAuction) -> DispatchResult;
 
-	fn bid(&mut self, auction_id: &AuctionId, bidder: AccountId, value: BalanceOf) -> DispatchResult;
+	fn bid(&mut self, auction_id: &AuctionId, bidder: AccountId, bid: &Bid) -> DispatchResult;
 
 	fn close(&mut self, auction_id: &AuctionId) -> DispatchResult;
 
@@ -31,22 +31,20 @@ pub struct EnglishAuction<T: Config> {
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct TopUpAuction<T: Config> {
 	pub general_data: GeneralAuctionData<T>,
-	pub specific_data: TopUpAuctionData<T>,
+	pub specific_data: TopUpAuctionData,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct Bid<AccountId, Balance> {
-	pub bidder: AccountId,
-	pub amount: Balance,
+pub struct Bid<T: Config> {
+	pub amount: BalanceOf<T>,
+	pub block_number: T::BlockNumber,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct EnglishAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct TopUpAuctionData<T: Config> {
-	pub bids: Vec<Bid<T::AccountId, BalanceOf<T>>>,
-}
+pub struct TopUpAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct GeneralAuctionData<T: Config> {
@@ -66,6 +64,12 @@ pub struct GeneralAuctionData<T: Config> {
 
 /// Define type aliases for better readability
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+impl<T: Config> sp_std::fmt::Debug for Bid<T> {
+	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+		write!(f, "Bid")
+	}
+}
 
 impl<T: Config> sp_std::fmt::Debug for Auction<T> {
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {

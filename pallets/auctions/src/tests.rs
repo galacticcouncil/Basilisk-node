@@ -77,7 +77,7 @@ fn valid_english_specific_data() -> EnglishAuctionData {
 /// TopUp auction tests
 fn topup_auction_object(
 	general_data: GeneralAuctionData<Test>,
-	specific_data: TopUpAuctionData<Test>,
+	specific_data: TopUpAuctionData,
 ) -> Auction<Test> {
 	let auction_data = TopUpAuction {
 		general_data,
@@ -87,8 +87,15 @@ fn topup_auction_object(
 	Auction::TopUp(auction_data)
 }
 
-fn valid_topup_specific_data() -> TopUpAuctionData<Test> {
-	TopUpAuctionData { bids: vec![] }
+fn valid_topup_specific_data() -> TopUpAuctionData {
+	TopUpAuctionData {}
+}
+
+fn bid_object(amount: BalanceOf::<Test>, block_number: <Test as frame_system::Config>::BlockNumber) -> Bid<Test> {
+	Bid {
+		amount: amount,
+		block_number: block_number
+	}
 }
 
 fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) -> AccountId {
@@ -356,7 +363,7 @@ fn update_english_auction_with_invalid_next_bid_min_should_not_work() {
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
 			Error::<Test>::InvalidNextBidMin
 		);
-	});	
+	});
 }
 
 /// Error CannotSetAuctionClosed
@@ -534,7 +541,9 @@ fn bid_english_auction_should_work() {
 			0,
 			BalanceOf::<Test>::from(1_100_u32)
 		));
-		expect_event(crate::Event::<Test>::BidPlaced(0, CHARLIE, 1100));
+		expect_event(
+			crate::Event::<Test>::BidPlaced(0, CHARLIE, bid_object(1100, 12))
+		);
 
 		// Tokens of previous highest bidder are unlocked
 		assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
@@ -547,6 +556,10 @@ fn bid_english_auction_should_work() {
 			// Auction time is extended with 1 block when end time is less than 10 blocks away
 			assert_eq!(data.general_data.end, 22u64);
 		}
+
+		// In the case of English auction, storing individual bids is not necessary
+		let bid = AuctionsModule::bids(CHARLIE, 0);
+		assert_eq!(bid, None);
 	});
 }
 
@@ -1120,14 +1133,16 @@ fn bid_topup_auction_should_work() {
 			0,
 			BalanceOf::<Test>::from(1_100_u32)
 		));
-		expect_event(crate::Event::<Test>::BidPlaced(0, CHARLIE, 1100));
+		expect_event(
+			crate::Event::<Test>::BidPlaced(0, CHARLIE, bid_object(1100, 12))
+		);
 
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let charlie_balance_after = Balances::free_balance(&CHARLIE);
 
 		// The difference between bid amount and last bid is transferred to the auction subaccount
-		assert_eq!(auction_subaccount_balance_before.saturating_add(1_100), auction_subaccount_balance_after);
-		assert_eq!(charlie_balance_before.saturating_sub(100), charlie_balance_after);
+		assert_eq!(auction_subaccount_balance_before.saturating_add(2_100), auction_subaccount_balance_after);
+		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		if let Auction::TopUp(data) = auction {
@@ -1137,6 +1152,15 @@ fn bid_topup_auction_should_work() {
 			// Auction time is extended with 1 block when end time is less than 10 blocks away
 			assert_eq!(data.general_data.end, 22u64);
 		}
+
+		// Bids on TopUp auctions are stored in order to validate the claim_bids extrinsic
+		let bid = AuctionsModule::bids(BOB, 0).unwrap();
+		assert_eq!(bid.amount, 1000);
+		assert_eq!(bid.block_number, 11);
+
+		let bid = AuctionsModule::bids(CHARLIE, 0).unwrap();
+		assert_eq!(bid.amount, 1_100);
+		assert_eq!(bid.block_number, 12);
 	});
 }
 
@@ -1184,8 +1208,8 @@ fn close_topup_auction_with_winner_should_work() {
 		// transfer all funds from bids to the seller
 		assert_eq!(alice_balance_before.saturating_add(1_100), alice_balance_after);
 		assert_eq!(bob_balance_before.saturating_sub(1000), bob_balance_after);
-		assert_eq!(charlie_balance_before.saturating_sub(100), charlie_balance_after);
-		assert_eq!(auction_subaccount_balance_before.saturating_sub(1_100), auction_subaccount_balance_after);
+		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
+		assert_eq!(auction_subaccount_balance_before.saturating_sub(2_100), auction_subaccount_balance_after);
 		
 		// NFT can be transferred; Current version of nft pallet has no ownership check
 		assert_ok!(Nft::transfer(Origin::signed(CHARLIE), NFT_CLASS_ID_1, 0u16.into(), BOB));
@@ -1242,7 +1266,7 @@ fn close_topup_auction_without_winner_should_work() {
 		// the funds are placed in the subaccount of the auction, available to be claimed
 		assert_eq!(alice_balance_before, alice_balance_after);
 		assert_eq!(bob_balance_before.saturating_sub(1000), bob_balance_after);
-		assert_eq!(charlie_balance_before.saturating_sub(100), charlie_balance_after);
+		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 		assert_eq!(auction_subaccount_balance_before, auction_subaccount_balance_after);
 		
 		// NFT can be transferred by its original owner again
