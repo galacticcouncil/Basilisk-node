@@ -339,7 +339,7 @@ pub fn moonbase_parachain_config() -> Result<ChainSpec, String> {
 				vec![],
 				hex!["9eaea650948488ccc720491b8e40be7436359dc4213a6487ba758ed496f9e53f"].into(), // same as sudo
 				vec![],
-				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
+				vec![],
 				vec![],
 				vec![hex!["9eaea650948488ccc720491b8e40be7436359dc4213a6487ba758ed496f9e53f"].into()], // same as sudo
 			)
@@ -430,7 +430,7 @@ fn testnet_parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			asset_names: registered_assets,
+			asset_names: registered_assets.clone(),
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
@@ -440,15 +440,19 @@ fn testnet_parachain_genesis(
 			account_currencies: vec![],
 		},
 		tokens: TokensConfig {
-			balances: endowed_accounts
-				.iter()
-				.flat_map(|x| {
-					vec![
-						(x.clone(), 1, 1_000_000_000_000u128 * UNITS),
-						(x.clone(), 2, 1_000_000_000_000u128 * UNITS),
-					]
-				})
-				.collect(),
+			balances: if registered_assets.is_empty() {
+				vec![]
+			} else {
+				endowed_accounts
+					.iter()
+					.flat_map(|x| {
+						vec![
+							(x.clone(), 1, 1_000_000_000_000u128 * UNITS),
+							(x.clone(), 2, 1_000_000_000_000u128 * UNITS),
+						]
+					})
+					.collect()
+			},
 		},
 		faucet: FaucetConfig {
 			rampage: true,
