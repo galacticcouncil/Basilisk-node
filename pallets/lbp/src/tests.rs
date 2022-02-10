@@ -22,7 +22,7 @@ use crate::mock::{
 	INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
 };
 pub use crate::mock::{
-	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
+	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
 	HDX, KUSD,
 };
 use frame_support::{assert_err, assert_noop, assert_ok};
@@ -37,7 +37,7 @@ use primitives::{
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
-	ext.execute_with(|| run_to_block::<Test>(1));
+	ext.execute_with(|| set_block_number::<Test>(1));
 	ext
 }
 
@@ -817,7 +817,7 @@ fn update_pool_with_invalid_data_should_not_work() {
 			Error::<Test>::InvalidBlockRange
 		);
 
-		run_to_block::<Test>(6);
+		set_block_number::<Test>(6);
 
 		assert_noop!(
 			LBPPallet::update_pool_data(
@@ -967,7 +967,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 			None,
 		));
 
-		run_to_block::<Test>(16);
+		set_block_number::<Test>(16);
 
 		// update starting block and final weights
 		assert_noop!(
@@ -1046,7 +1046,7 @@ fn update_pool_interval_should_work() {
 			0,
 		));
 
-		run_to_block::<Test>(15);
+		set_block_number::<Test>(15);
 
 		assert_noop!(
 			LBPPallet::update_pool_data(
@@ -1240,7 +1240,7 @@ fn add_liquidity_with_insufficient_balance_should_not_work() {
 #[test]
 fn add_liquidity_after_sale_started_should_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block::<Test>(15);
+		set_block_number::<Test>(15);
 
 		let user_balance_a_before = Currency::free_balance(KUSD, &ALICE);
 		let user_balance_b_before = Currency::free_balance(BSX, &ALICE);
@@ -1267,7 +1267,7 @@ fn add_liquidity_after_sale_started_should_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(1_000));
 
 		// sale ended at the block number 20
-		run_to_block::<Test>(30);
+		set_block_number::<Test>(30);
 
 		let user_balance_a_before = Currency::free_balance(KUSD, &ALICE);
 		let user_balance_b_before = Currency::free_balance(BSX, &ALICE);
@@ -1313,7 +1313,7 @@ fn add_liquidity_to_non_existing_pool_should_not_work() {
 #[test]
 fn remove_liquidity_should_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block::<Test>(41);
+		set_block_number::<Test>(41);
 
 		let user_balance_a_before = Currency::free_balance(KUSD, &ALICE);
 		let user_balance_b_before = Currency::free_balance(BSX, &ALICE);
@@ -1474,7 +1474,7 @@ fn remove_liquidity_from_non_existing_pool_should_not_work() {
 #[test]
 fn remove_liquidity_from_not_finalized_pool_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block::<Test>(15);
+		set_block_number::<Test>(15);
 
 		let user_balance_a_before = Currency::free_balance(KUSD, &ALICE);
 		let user_balance_b_before = Currency::free_balance(BSX, &ALICE);
@@ -1503,7 +1503,7 @@ fn remove_liquidity_from_not_finalized_pool_should_not_work() {
 #[test]
 fn remove_liquidity_from_finalized_pool_should_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block::<Test>(41);
+		set_block_number::<Test>(41);
 
 		let user_balance_a_before = Currency::free_balance(KUSD, &ALICE);
 		let user_balance_b_before = Currency::free_balance(BSX, &ALICE);
@@ -1926,7 +1926,7 @@ fn buy_from_non_existing_pool_should_not_work() {
 #[test]
 fn exceed_max_in_ratio_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block::<Test>(11); //start sale
+		set_block_number::<Test>(11); //start sale
 		assert_noop!(
 			LBPPallet::sell(
 				Origin::signed(BOB),
@@ -1958,7 +1958,7 @@ fn exceed_max_in_ratio_should_not_work() {
 #[test]
 fn exceed_max_out_ratio_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block::<Test>(11); //start sale
+		set_block_number::<Test>(11); //start sale
 
 		// max_ratio_out + 1 should not work
 		assert_noop!(
@@ -1990,7 +1990,7 @@ fn trade_in_non_running_pool_should_not_work() {
 		let limit = 200_000_u128;
 
 		//sale not started
-		run_to_block::<Test>(9);
+		set_block_number::<Test>(9);
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, limit),
 			Error::<Test>::SaleIsNotRunning
@@ -2001,7 +2001,7 @@ fn trade_in_non_running_pool_should_not_work() {
 		);
 
 		//sale ended
-		run_to_block::<Test>(41);
+		set_block_number::<Test>(41);
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, limit),
 			Error::<Test>::SaleIsNotRunning
@@ -2024,7 +2024,7 @@ fn exceed_trader_limit_should_not_work() {
 		let buy_limit = 1_000_u128;
 
 		//start sale
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, sell_limit),
 			Error::<Test>::TradingLimitReached
@@ -2049,7 +2049,7 @@ fn sell_with_insufficient_balance_should_not_work() {
 		assert_eq!(Currency::free_balance(asset_in, &who), 100_000);
 
 		//start sale
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, 800_000_u128),
 			Error::<Test>::InsufficientAssetBalance
@@ -2069,7 +2069,7 @@ fn buy_with_insufficient_balance_should_not_work() {
 		assert_eq!(Currency::free_balance(asset_in, &who), 100_000);
 
 		//start sale
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 		assert_noop!(
 			LBPPallet::buy(Origin::signed(who), asset_out, asset_in, amount, 2_000_000_u128),
 			Error::<Test>::InsufficientAssetBalance
@@ -2121,7 +2121,7 @@ fn buy_should_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		//start sale
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 		assert_ok!(LBPPallet::buy(
 			Origin::signed(buyer),
 			asset_out,
@@ -2172,7 +2172,7 @@ fn buy_should_work() {
 		let pool_data2 = LBPPallet::pool_data(pool_id2).unwrap();
 
 		//start sale
-		run_to_block::<Test>(21);
+		set_block_number::<Test>(21);
 		assert_ok!(LBPPallet::buy(
 			Origin::signed(buyer),
 			asset_out,
@@ -2230,7 +2230,7 @@ fn update_pool_data_after_sale_should_not_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		//start sale
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 		assert_ok!(LBPPallet::buy(
 			Origin::signed(buyer),
 			asset_out,
@@ -2245,7 +2245,7 @@ fn update_pool_data_after_sale_should_not_work() {
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
 		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 35_860);
 
-		run_to_block::<Test>(41);
+		set_block_number::<Test>(41);
 
 		expect_events(vec![Event::BuyExecuted(
 			buyer, BSX, KUSD, 17_894_737, 10_000_000, KUSD, 35_860,
@@ -2279,7 +2279,7 @@ fn sell_should_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		//start sale
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_ok!(LBPPallet::sell(
 			Origin::signed(buyer),
@@ -2331,7 +2331,7 @@ fn sell_should_work() {
 		let pool_data2 = LBPPallet::pool_data(pool_id2).unwrap();
 
 		//start sale
-		run_to_block::<Test>(21);
+		set_block_number::<Test>(21);
 		assert_ok!(LBPPallet::sell(
 			Origin::signed(buyer),
 			asset_out,
@@ -2412,7 +2412,7 @@ fn zero_fee_should_work() {
 		));
 
 		//start sale
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_ok!(LBPPallet::sell(Origin::signed(ALICE), KUSD, BSX, 1_000, 1,));
 	});
@@ -2457,7 +2457,7 @@ fn amm_trait_should_work() {
 			asset_out: HDX,
 		};
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert!(LBPPallet::exists(asset_pair));
 		assert!(LBPPallet::exists(reversed_asset_pair));
@@ -2579,7 +2579,7 @@ fn get_spot_price_should_work() {
 			None
 		));
 
-		run_to_block::<Test>(10);
+		set_block_number::<Test>(10);
 
 		let price = hydra_dx_math::lbp::calculate_spot_price(
 			1_000_000_000_u128,
@@ -2605,7 +2605,7 @@ fn get_spot_price_should_work() {
 		assert_eq!(LBPPallet::get_spot_price_unchecked(BSX, KUSD, 1_000_000_u128), price);
 
 		// change weights
-		run_to_block::<Test>(20);
+		set_block_number::<Test>(20);
 
 		let price = hydra_dx_math::lbp::calculate_spot_price(
 			1_000_000_000_u128,
@@ -2625,7 +2625,7 @@ fn get_spot_price_should_work() {
 		assert_eq!(LBPPallet::get_spot_price_unchecked(KUSD, BSX, u128::MAX), 0);
 
 		// sale ended
-		run_to_block::<Test>(21);
+		set_block_number::<Test>(21);
 		assert_eq!(LBPPallet::get_spot_price_unchecked(KUSD, BSX, 1_000_000), 0);
 	});
 }
@@ -2733,12 +2733,12 @@ fn simulate_lbp_event_should_work() {
 			None
 		));
 
-		run_to_block::<Test>(sale_start.checked_sub(1).unwrap());
+		set_block_number::<Test>(sale_start.checked_sub(1).unwrap());
 		//frame_system::Pallet::<Test>::set_block_number(sale_start + 1);
 
 		// start LBP
 		for block_num in sale_start..=sale_end {
-			run_to_block::<Test>(block_num);
+			set_block_number::<Test>(block_num);
 
 			if let Some((is_buy, amount)) = trades.get(&block_num) {
 				if *is_buy {
@@ -2762,7 +2762,7 @@ fn simulate_lbp_event_should_work() {
 		}
 
 		// end LBP and consolidate results
-		run_to_block::<Test>(sale_end.checked_add(1).unwrap());
+		set_block_number::<Test>(sale_end.checked_add(1).unwrap());
 
 		let pool_account_result_asset_in = Currency::free_balance(asset_in, &pool_account);
 		let pool_account_result_asset_out = Currency::free_balance(asset_out, &pool_account);
@@ -2868,7 +2868,7 @@ fn validate_trade_should_work() {
 #[test]
 fn validate_trade_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		run_to_block::<Test>(9);
+		set_block_number::<Test>(9);
 
 		assert_noop!(
 			LBPPallet::validate_buy(
@@ -2884,7 +2884,7 @@ fn validate_trade_should_not_work() {
 			Error::<Test>::SaleIsNotRunning
 		);
 
-		run_to_block::<Test>(10);
+		set_block_number::<Test>(10);
 
 		assert_noop!(
 			LBPPallet::validate_buy(
@@ -3157,14 +3157,14 @@ fn can_create_should_work() {
 			asset_pair.asset_out
 		));
 
-		run_to_block::<Test>(15);
+		set_block_number::<Test>(15);
 		// pool is running
 		assert!(!DisallowWhenLBPPoolRunning::<Test>::can_create(
 			asset_pair.asset_in,
 			asset_pair.asset_out
 		));
 
-		run_to_block::<Test>(30);
+		set_block_number::<Test>(30);
 		// sale ended
 		assert!(DisallowWhenLBPPoolRunning::<Test>::can_create(
 			asset_pair.asset_in,
@@ -3364,12 +3364,12 @@ fn simulate_lbp_event_with_repayment() {
 			None
 		));
 
-		run_to_block::<Test>(sale_start.checked_sub(1).unwrap());
+		set_block_number::<Test>(sale_start.checked_sub(1).unwrap());
 		//frame_system::Pallet::<Test>::set_block_number(sale_start + 1);
 
 		// start LBP
 		for block_num in sale_start..=sale_end {
-			run_to_block::<Test>(block_num);
+			set_block_number::<Test>(block_num);
 			println!("{}", LBPPallet::get_spot_price_unchecked(HDX, BSX, 100_000_000_000));
 			if let Some((is_buy, amount)) = trades.get(&block_num) {
 				if *is_buy {
@@ -3393,7 +3393,7 @@ fn simulate_lbp_event_with_repayment() {
 		}
 
 		// end LBP and consolidate results
-		run_to_block::<Test>(sale_end.checked_add(1).unwrap());
+		set_block_number::<Test>(sale_end.checked_add(1).unwrap());
 
 		let pool_account_result_asset_in = Currency::free_balance(accumulated_asset, &pool_account);
 		let pool_account_result_asset_out = Currency::free_balance(sold_asset, &pool_account);
