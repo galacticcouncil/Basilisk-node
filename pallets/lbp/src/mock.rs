@@ -231,16 +231,16 @@ impl ExtBuilder {
 	}
 }
 
-pub fn run_to_block<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
+pub fn set_block_number<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
 	frame_system::Pallet::<T>::set_block_number(n);
 }
 
 pub fn run_to_sale_start() {
-	run_to_block::<Test>(SALE_START.unwrap());
+	set_block_number::<Test>(SALE_START.unwrap());
 }
 
 pub fn run_to_sale_end() {
-	run_to_block::<Test>(SALE_END.unwrap() + 1);
+	set_block_number::<Test>(SALE_END.unwrap() + 1);
 }
 
 pub fn generate_trades(
