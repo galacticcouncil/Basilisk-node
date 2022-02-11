@@ -168,11 +168,11 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 	}: { LiquidityMining::<T>::withdraw_undistributed_rewards(RawOrigin::Signed(caller.clone()).into(), 1)? }
 	verify {
-		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc), 0);
+		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account), 0);
 		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &caller.clone()), INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT);
 	}
 
@@ -184,8 +184,8 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -210,8 +210,8 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -240,8 +240,8 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -278,8 +278,8 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -311,8 +311,8 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -356,8 +356,8 @@ benchmarks! {
 
 		init_farm::<T>(INITIAL_BALANCE, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc), INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account), INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -402,8 +402,8 @@ benchmarks! {
 
 		init_farm::<T>(INITIAL_BALANCE, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc), INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert_eq!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account), INITIAL_BALANCE * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,
@@ -451,8 +451,8 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let g_pool_acc = LiquidityMining::<T>::pool_account_id(1).unwrap();
-		assert!(T::MultiCurrency::free_balance(BSX.into(), &g_pool_acc) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+		let global_pool_account = LiquidityMining::<T>::pool_account_id(1).unwrap();
+		assert!(T::MultiCurrency::free_balance(BSX.into(), &global_pool_account) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
 
 		let assets = AssetPair {
 			asset_in: BSX,

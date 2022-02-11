@@ -18,7 +18,7 @@
 use super::*;
 use crate::mock::{
 	asset_pair_to_map_key, run_to_block, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin, Test,
-	Tokens, ACA, ACA_FARM, ACC_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID,
+	Tokens, ACA, ACA_FARM, ACCOUNT_WITH_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID,
 	BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM,
 	BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, BSX_TO1_AMM, BSX_TO1_SHARE_ID, BSX_TO2_AMM,
 	BSX_TO2_SHARE_ID, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_FARM, TO1, TO2, TREASURY,
@@ -290,16 +290,16 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			asset_out: TO2,
 		};
 
-		let pallet_acc = LiquidityMining::account_id();
-		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_amm_1_farm_acc = LiquidityMining::pool_account_id(4).unwrap();
-		let liq_pool_amm_2_farm_acc = LiquidityMining::pool_account_id(5).unwrap();
-		let amm_1_acc = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_1)).unwrap().0);
-		let amm_2_acc = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_2)).unwrap().0);
+		let pallet_account = LiquidityMining::account_id();
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_amm_1_farm_account = LiquidityMining::pool_account_id(4).unwrap();
+		let liq_pool_amm_2_farm_account = LiquidityMining::pool_account_id(5).unwrap();
+		let amm_1_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_1)).unwrap().0);
+		let amm_2_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_2)).unwrap().0);
 		//DEPOSIT 1:
 		run_to_block(1_800); //18-th period
 
-		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 50, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_1_account, BSX, 50, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -319,7 +319,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		})]);
 
 		// DEPOSIT 2 (deposit in same period):
-		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 52, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_1_account, BSX, 52, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_1, 80));
 
@@ -334,7 +334,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		})]);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
-		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 8, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_2_account, BSX, 8, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_2, 25));
 
@@ -350,7 +350,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		// DEPOSIT 4 (new period):
 		run_to_block(2051); //period 20
-		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 58, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_2_account, BSX, 58, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
@@ -371,7 +371,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		// DEPOSIT 5 (same period, second liq pool yield farm):
 		run_to_block(2_586); //period 20
-		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 3, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_2_account, BSX, 3, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -392,7 +392,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		// DEPOSIT 6 (same period):
 		run_to_block(2_596); //period 20
-		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 16, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_2_account, BSX, 16, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -413,7 +413,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		// DEPOSIT 7 : (same period differen liq poll farm)
 		run_to_block(2_596); //period 20
-		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 80, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_1_account, BSX, 80, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -489,12 +489,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 3, GC_FARM));
 		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 4, GC_FARM));
 
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 616);
-		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 960);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 616);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 960);
 
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 1_164_400));
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 212_400);
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), 952_000);
+		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 1_164_400));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 212_400);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), 952_000);
 
 		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE), 3_000_000 - 536);
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE), 3_000_000 - 135);
@@ -1680,7 +1680,7 @@ fn claim_from_global_pool_should_work() {
 
 	//(pool.updated_at, pool.total_shares, pool.accumulated_rps_start, pool.accumulated_rps, pool.reward_currency, pool.accumululated_rewards, pool.paid_accumularted_rewards, shares , reward, pool.accumulated_rps_start, pool.accumululated_rewards, pool.paid_accumularted_rewards)
 	for t in testing_values.iter() {
-		let g_pool_id = 1;
+		let global_pool_id = 1;
 		let liq_pool_id = 2;
 		let yield_per_period = Permill::from_percent(50);
 		let planned_yielding_periods = 100;
@@ -1689,8 +1689,8 @@ fn claim_from_global_pool_should_work() {
 		let incentivized_token = BSX;
 		let max_reward_per_period = Balance::from(10_000_u32);
 
-		let mut g_pool = GlobalPool::new(
-			g_pool_id,
+		let mut global_pool = GlobalPool::new(
+			global_pool_id,
 			t.0,
 			t.4,
 			yield_per_period,
@@ -1701,21 +1701,21 @@ fn claim_from_global_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		g_pool.total_shares_z = t.1;
-		g_pool.accumulated_rpz = t.3;
-		g_pool.accumulated_rewards = t.5;
-		g_pool.paid_accumulated_rewards = t.6;
+		global_pool.total_shares_z = t.1;
+		global_pool.accumulated_rpz = t.3;
+		global_pool.accumulated_rewards = t.5;
+		global_pool.paid_accumulated_rewards = t.6;
 
 		let mut liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, FixedU128::from(10_u128), 1);
 		liq_pool.accumulated_rpz = t.2;
 
 		assert_eq!(
-			LiquidityMining::claim_from_global_pool(&mut g_pool, &mut liq_pool, t.7).unwrap(),
+			LiquidityMining::claim_from_global_pool(&mut global_pool, &mut liq_pool, t.7).unwrap(),
 			t.8
 		);
 
-		let mut rhs_g_pool = GlobalPool::new(
-			g_pool_id,
+		let mut rhs_global_pool = GlobalPool::new(
+			global_pool_id,
 			t.0,
 			t.4,
 			yield_per_period,
@@ -1726,12 +1726,12 @@ fn claim_from_global_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		rhs_g_pool.total_shares_z = t.1;
-		rhs_g_pool.accumulated_rpz = t.3;
-		rhs_g_pool.accumulated_rewards = t.10;
-		rhs_g_pool.paid_accumulated_rewards = t.11;
+		rhs_global_pool.total_shares_z = t.1;
+		rhs_global_pool.accumulated_rpz = t.3;
+		rhs_global_pool.accumulated_rewards = t.10;
+		rhs_global_pool.paid_accumulated_rewards = t.11;
 
-		assert_eq!(g_pool, rhs_g_pool);
+		assert_eq!(global_pool, rhs_global_pool);
 
 		let mut rhs_liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, FixedU128::from(10_u128), 1);
 		rhs_liq_pool.accumulated_rpz = t.9;
@@ -2052,7 +2052,7 @@ fn update_pool_should_work() {
 		let reward_currency = t.7;
 		let max_reward_per_period = Balance::from(10_000_u32);
 
-		let mut g_pool = GlobalPool::<Test>::new(
+		let mut global_pool = GlobalPool::<Test>::new(
 			gid,
 			updated_at,
 			reward_currency,
@@ -2064,10 +2064,10 @@ fn update_pool_should_work() {
 			max_reward_per_period,
 		);
 
-		g_pool.total_shares_z = 1_000_000_u128;
-		g_pool.accumulated_rpz = 200_u128;
-		g_pool.accumulated_rewards = 1_000_000_u128;
-		g_pool.paid_accumulated_rewards = 1_000_000_u128;
+		global_pool.total_shares_z = 1_000_000_u128;
+		global_pool.accumulated_rpz = 200_u128;
+		global_pool.accumulated_rewards = 1_000_000_u128;
+		global_pool.paid_accumulated_rewards = 1_000_000_u128;
 
 		let mut liq_pool = LiquidityPoolYieldFarm {
 			id: t.1,
@@ -2092,11 +2092,11 @@ fn update_pool_should_work() {
 			let _ = Tokens::transfer(
 				Origin::signed(TREASURY),
 				farm_account_id,
-				g_pool.reward_currency,
+				global_pool.reward_currency,
 				9_000_000_000_000,
 			);
 			assert_eq!(
-				Tokens::free_balance(g_pool.reward_currency, &farm_account_id),
+				Tokens::free_balance(global_pool.reward_currency, &farm_account_id),
 				9_000_000_000_000_u128
 			);
 
@@ -2104,7 +2104,7 @@ fn update_pool_should_work() {
 
 			assert_ok!(LiquidityMining::update_liq_pool(&mut liq_pool, t.6, t.3, t.0, t.7));
 
-			let mut rhs_g_pool = GlobalPool::new(
+			let mut rhs_global_pool = GlobalPool::new(
 				gid,
 				updated_at,
 				reward_currency,
@@ -2116,13 +2116,13 @@ fn update_pool_should_work() {
 				max_reward_per_period,
 			);
 
-			rhs_g_pool.updated_at = 200_u64;
-			rhs_g_pool.total_shares_z = 1_000_000_u128;
-			rhs_g_pool.accumulated_rpz = 200_u128;
-			rhs_g_pool.accumulated_rewards = 1_000_000_u128;
-			rhs_g_pool.paid_accumulated_rewards = 1_000_000_u128;
+			rhs_global_pool.updated_at = 200_u64;
+			rhs_global_pool.total_shares_z = 1_000_000_u128;
+			rhs_global_pool.accumulated_rpz = 200_u128;
+			rhs_global_pool.accumulated_rewards = 1_000_000_u128;
+			rhs_global_pool.paid_accumulated_rewards = 1_000_000_u128;
 
-			assert_eq!(g_pool, rhs_g_pool);
+			assert_eq!(global_pool, rhs_global_pool);
 
 			assert_eq!(
 				liq_pool,
@@ -2141,8 +2141,8 @@ fn update_pool_should_work() {
 				}
 			);
 
-			assert_eq!(Tokens::free_balance(g_pool.reward_currency, &farm_account_id), t.11);
-			assert_eq!(Tokens::free_balance(g_pool.reward_currency, &pool_account_id), t.10);
+			assert_eq!(Tokens::free_balance(global_pool.reward_currency, &farm_account_id), t.11);
+			assert_eq!(Tokens::free_balance(global_pool.reward_currency, &pool_account_id), t.10);
 		});
 	}
 }
@@ -2443,7 +2443,7 @@ fn create_farm_with_inssufficient_balance_should_not_work() {
 				1,
 				BSX,
 				BSX,
-				ACC_1M,
+				ACCOUNT_WITH_1M,
 				Permill::from_percent(20)
 			),
 			Error::<Test>::InsufficientRewardCurrencyBalance
@@ -2575,7 +2575,7 @@ fn add_liquidity_pool_should_work() {
 	];
 
 	predefined_test_ext().execute_with(|| {
-		for (assets, pool, _amm_id, who, farm_id, now, g_pool) in test_data.clone() {
+		for (assets, pool, _amm_id, who, farm_id, now, global_pool) in test_data.clone() {
 			run_to_block(now);
 			assert_ok!(LiquidityMining::add_liquidity_pool(
 				Origin::signed(who),
@@ -2594,7 +2594,7 @@ fn add_liquidity_pool_should_work() {
 				asset_pair: assets,
 			})]);
 
-			assert_eq!(LiquidityMining::global_pool(farm_id).unwrap(), g_pool);
+			assert_eq!(LiquidityMining::global_pool(farm_id).unwrap(), global_pool);
 		}
 
 		for (_, pool, amm_id, _, farm_id, _, _) in test_data {
@@ -2952,18 +2952,18 @@ fn deposit_shares_should_work() {
 			asset_out: TO2,
 		};
 
-		let pallet_acc = LiquidityMining::account_id();
-		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_amm_1_farm_acc = LiquidityMining::pool_account_id(4).unwrap();
-		let liq_pool_amm_2_farm_acc = LiquidityMining::pool_account_id(5).unwrap();
-		let amm_1_acc = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_1)).unwrap().0);
-		let amm_2_acc = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_2)).unwrap().0);
+		let pallet_account = LiquidityMining::account_id();
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_amm_1_farm_account = LiquidityMining::pool_account_id(4).unwrap();
+		let liq_pool_amm_2_farm_account = LiquidityMining::pool_account_id(5).unwrap();
+		let amm_1_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_1)).unwrap().0);
+		let amm_2_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(amm_2)).unwrap().0);
 		//DEPOSIT 1:
 		run_to_block(1_800); //18-th period
 
 		let alice_bsx_to1_shares = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
-		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 50, 0).unwrap();
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
+		Tokens::set_balance(Origin::root(), amm_1_account, BSX, 50, 0).unwrap();
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 0);
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -3037,11 +3037,11 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
 			alice_bsx_to1_shares - 50
 		);
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 50);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 50);
 
 		// DEPOSIT 2 (deposit in same period):
 		let bob_bsx_to1_shares = Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB);
-		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 52, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_1_account, BSX, 52, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_1, 80));
 
@@ -3107,14 +3107,14 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB), bob_bsx_to1_shares - 80);
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 130);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 130);
 
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 112_500));
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 112_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
 		let bob_bsx_to2_shares = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
-		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 8, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_2_account, BSX, 8, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_2, 25));
 
@@ -3180,17 +3180,17 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB), bob_bsx_to2_shares - 25);
-		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 25);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 25);
 
 		//no pools update no transfers
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 112_500));
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), 0);
+		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 112_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), 0);
 
 		// DEPOSIT 4 (new period):
 		run_to_block(2051); //period 20
 		let bob_bsx_to2_shares = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
-		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 58, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_2_account, BSX, 58, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
@@ -3261,17 +3261,17 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB), bob_bsx_to2_shares - 800);
-		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 825);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 825);
 
 		//no pools update no transfers
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 132_500));
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), 20_000);
+		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 132_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), 20_000);
 
 		// DEPOSIT 5 (same period, second liq pool yield farm):
 		run_to_block(2_586); //period 20
 		let alice_bsx_to2_shares = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
-		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 3, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_2_account, BSX, 3, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -3345,16 +3345,16 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
 			alice_bsx_to2_shares - 87
 		);
-		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 912);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 912);
 
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 1_064_500));
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), (20_000 + 932_000)); //NOTE: 20k from prew deposit
+		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 1_064_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), (20_000 + 932_000)); //NOTE: 20k from prew deposit
 
 		// DEPOSIT 6 (same period):
 		run_to_block(2_596); //period 20
 		let alice_bsx_to2_shares = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
-		Tokens::set_balance(Origin::root(), amm_2_acc, BSX, 16, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_2_account, BSX, 16, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -3428,17 +3428,17 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
 			alice_bsx_to2_shares - 48
 		);
-		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 960);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 960);
 
 		//no pools update no transfers
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 1_064_500));
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 112_500);
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), (20_000 + 932_000)); //NOTE: 20k from prew deposit
+		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 1_064_500));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), (20_000 + 932_000)); //NOTE: 20k from prew deposit
 
 		// DEPOSIT 7 : (same period differen liq poll farm)
 		run_to_block(2_596); //period 20
 		let alice_bsx_to1_shares = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
-		Tokens::set_balance(Origin::root(), amm_1_acc, BSX, 80, 0).unwrap();
+		Tokens::set_balance(Origin::root(), amm_1_account, BSX, 80, 0).unwrap();
 
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
@@ -3512,12 +3512,12 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
 			alice_bsx_to1_shares - 486
 		);
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 616);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 616);
 
 		//no pools update no transfers
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), (30_000_000_000 - 1_164_400));
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_acc), 212_400);
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_acc), 952_000);
+		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 1_164_400));
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 212_400);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), 952_000);
 	});
 }
 
@@ -3928,19 +3928,19 @@ fn withdraw_shares_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		const REWARD_CURRENCY: u32 = BSX;
 
-		let pallet_acc = LiquidityMining::account_id();
-		let liq_pool_amm_1_acc = LiquidityMining::pool_account_id(4).unwrap();
-		let liq_pool_amm_2_acc = LiquidityMining::pool_account_id(5).unwrap();
-		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let pallet_account = LiquidityMining::account_id();
+		let liq_pool_amm_1_account = LiquidityMining::pool_account_id(4).unwrap();
+		let liq_pool_amm_2_account = LiquidityMining::pool_account_id(5).unwrap();
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
 
 		// withdraw 1A
 		let alice_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
-		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
-		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
-		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
-		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
-		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
-		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
+		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 0));
 
@@ -4000,7 +4000,7 @@ fn withdraw_shares_should_work() {
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			alice_rew_curr_balance + 79_906
+			alice_bsx_balance + 79_906
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
@@ -4009,29 +4009,29 @@ fn withdraw_shares_should_work() {
 
 		//pallet balances checks
 		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
 			pallet_amm_1_shares_balance - 50
 		);
 		assert_eq!(
-			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account),
 			pallet_amm_2_shares_balance
 		);
 
 		//liq pool farms balance checks
 		//NOTE ... - (reward + unclaimabe)
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
-			liq_pool_amm_1_rew_curr_balance - (79_906 + 70_094)
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account),
+			liq_pool_amm_1_bsx_balance - (79_906 + 70_094)
 		);
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
-			liq_pool_amm_2_rew_curr_balance
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account),
+			liq_pool_amm_2_bsx_balance
 		);
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 70_094
+			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			global_pool_bsx_balance + 70_094
 		);
 
 		assert_eq!(LiquidityMining::deposit(0, 0), None);
@@ -4042,12 +4042,12 @@ fn withdraw_shares_should_work() {
 
 		// withdraw 3B
 		let alice_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
-		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
-		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
-		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
-		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
-		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
-		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
+		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 1, 2));
 
@@ -4136,7 +4136,7 @@ fn withdraw_shares_should_work() {
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			alice_rew_curr_balance + 100_324
+			alice_bsx_balance + 100_324
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
@@ -4145,30 +4145,30 @@ fn withdraw_shares_should_work() {
 
 		//pallet balances checks
 		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
 			pallet_amm_1_shares_balance
 		);
 		assert_eq!(
-			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account),
 			pallet_amm_2_shares_balance - 87
 		);
 
 		//liq pool farms balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
-			liq_pool_amm_1_rew_curr_balance
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account),
+			liq_pool_amm_1_bsx_balance
 		);
 		//NOTE ... pool reward - (reward + unclaimabe)
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
-			(liq_pool_amm_2_rew_curr_balance + 24_290_790 - (100_324 + 32_786))
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account),
+			(liq_pool_amm_2_bsx_balance + 24_290_790 - (100_324 + 32_786))
 		);
 
 		//global pool balance checks
 		//note ... + unclaimabe - pool reward
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 32_786 - 24_290_790
+			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			global_pool_bsx_balance + 32_786 - 24_290_790
 		);
 
 		assert_eq!(LiquidityMining::deposit(1, 2), None);
@@ -4177,12 +4177,12 @@ fn withdraw_shares_should_work() {
 
 		// withdraw 3A
 		let alice_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
-		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
-		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
-		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
-		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
-		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
-		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+		let pallet_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
+		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 2));
 
@@ -4248,7 +4248,7 @@ fn withdraw_shares_should_work() {
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			alice_rew_curr_balance + 7_472_429
+			alice_bsx_balance + 7_472_429
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
@@ -4257,30 +4257,30 @@ fn withdraw_shares_should_work() {
 
 		//pallet balances checks
 		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
 			pallet_amm_1_shares_balance - 486
 		);
 		assert_eq!(
-			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account),
 			pallet_amm_2_shares_balance
 		);
 
 		//liq pool farms balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
-			liq_pool_amm_1_rew_curr_balance + 10_975_200 - (7_472_429 + 2_441_971)
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account),
+			liq_pool_amm_1_bsx_balance + 10_975_200 - (7_472_429 + 2_441_971)
 		);
 		//NOTE ... pool reward - (reward + unclaimabe)
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
-			liq_pool_amm_2_rew_curr_balance
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account),
+			liq_pool_amm_2_bsx_balance
 		);
 
 		//global pool balance checks
 		//note ... + unclaimabe - pool reward
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 2_441_971 - 10_975_200
+			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			global_pool_bsx_balance + 2_441_971 - 10_975_200
 		);
 
 		assert_eq!(LiquidityMining::deposit(0, 2), None);
@@ -4289,11 +4289,11 @@ fn withdraw_shares_should_work() {
 
 		// withdraw 2A
 		let bob_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB);
-		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
-		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
-		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
-		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
-		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
+		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 0, 1));
 
@@ -4353,7 +4353,7 @@ fn withdraw_shares_should_work() {
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &BOB),
-			bob_rew_curr_balance + 855_771
+			bob_bsx_balance + 855_771
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB),
@@ -4361,28 +4361,28 @@ fn withdraw_shares_should_work() {
 		);
 
 		//pallet balances checks
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 0);
 		assert_eq!(
-			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account),
 			pallet_amm_2_shares_balance
 		);
 
 		//liq pool farms balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
-			liq_pool_amm_1_rew_curr_balance - (855_771 + 267_429)
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account),
+			liq_pool_amm_1_bsx_balance - (855_771 + 267_429)
 		);
 		//NOTE ... pool reward - (reward + unclaimabe)
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
-			liq_pool_amm_2_rew_curr_balance
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account),
+			liq_pool_amm_2_bsx_balance
 		);
 
 		//global pool balance checks
 		//note ... + unclaimabe - pool reward
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 267_429
+			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			global_pool_bsx_balance + 267_429
 		);
 
 		assert_eq!(LiquidityMining::deposit(0, 1), None);
@@ -4391,11 +4391,11 @@ fn withdraw_shares_should_work() {
 
 		// withdraw 1B
 		let bob_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
-		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
-		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
-		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
-		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
-		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
+		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1, 0));
 
@@ -4472,7 +4472,7 @@ fn withdraw_shares_should_work() {
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &BOB),
-			bob_rew_curr_balance + 95_999
+			bob_bsx_balance + 95_999
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB),
@@ -4480,27 +4480,27 @@ fn withdraw_shares_should_work() {
 		);
 
 		//pallet balances checks
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 0);
 		assert_eq!(
-			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account),
 			pallet_amm_2_shares_balance - 25
 		);
 
 		//liq pool farms balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
-			liq_pool_amm_1_rew_curr_balance
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account),
+			liq_pool_amm_1_bsx_balance
 		);
 		//NOTE ... - (reward + unclaimabe)
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
-			liq_pool_amm_2_rew_curr_balance - (95_999 + 30_001)
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account),
+			liq_pool_amm_2_bsx_balance - (95_999 + 30_001)
 		);
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 30_001
+			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			global_pool_bsx_balance + 30_001
 		);
 
 		assert_eq!(LiquidityMining::deposit(1, 0), None);
@@ -4509,11 +4509,11 @@ fn withdraw_shares_should_work() {
 
 		// withdraw 4B
 		let alice_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
-		let alice_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
-		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc);
-		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
-		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
-		let liq_pool_amm_2_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc);
+		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+		let pallet_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
+		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 1, 3));
 
@@ -4573,7 +4573,7 @@ fn withdraw_shares_should_work() {
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			alice_rew_curr_balance + 29_5207
+			alice_bsx_balance + 29_5207
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE),
@@ -4581,27 +4581,27 @@ fn withdraw_shares_should_work() {
 		);
 
 		//pallet balances checks
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 0);
 		assert_eq!(
-			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account),
 			pallet_amm_2_shares_balance - 48
 		);
 
 		//liq pool farms balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
-			liq_pool_amm_1_rew_curr_balance
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account),
+			liq_pool_amm_1_bsx_balance
 		);
 		//NOTE ... - (reward + unclaimabe)
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc),
-			liq_pool_amm_2_rew_curr_balance - (29_5207 + 96_473)
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account),
+			liq_pool_amm_2_bsx_balance - (29_5207 + 96_473)
 		);
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 96_473
+			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			global_pool_bsx_balance + 96_473
 		);
 
 		assert_eq!(LiquidityMining::deposit(1, 3), None);
@@ -4610,9 +4610,9 @@ fn withdraw_shares_should_work() {
 
 		// withdraw 2B
 		let bob_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
-		let bob_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
-		let g_pool_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc);
-		let liq_pool_amm_1_rew_curr_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc);
+		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1, 1));
 
@@ -4673,7 +4673,7 @@ fn withdraw_shares_should_work() {
 		//user balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &BOB),
-			bob_rew_curr_balance + 18_680_461
+			bob_bsx_balance + 18_680_461
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB),
@@ -4681,21 +4681,21 @@ fn withdraw_shares_should_work() {
 		);
 
 		//pallet balances checks
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
-		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_acc), 0);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 0);
+		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 0);
 
 		//liq pool farms balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_acc),
-			liq_pool_amm_1_rew_curr_balance
+			Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account),
+			liq_pool_amm_1_bsx_balance
 		);
 		//NOTE ... - (reward + unclaimabe)
-		assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_acc), 0);
+		assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account), 0);
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &g_pool_acc),
-			g_pool_rew_curr_balance + 5_911_539
+			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			global_pool_bsx_balance + 5_911_539
 		);
 
 		assert_eq!(LiquidityMining::deposit(1, 1), None);
@@ -4721,18 +4721,18 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		));
 
 		let liq_pool_id = 4;
-		let pallet_acc = LiquidityMining::account_id();
-		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_acc = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
+		let pallet_account = LiquidityMining::account_id();
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
 
 		//1-th withdraw
-		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_acc);
-		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
-		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
+		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
 		let alice_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 0));
@@ -4754,7 +4754,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			pallet_uniques::Event::Burned(0, 0, 1).into(),
 		]);
 
-		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), g_pool);
+		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
@@ -4768,7 +4768,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(LiquidityMining::deposit(0, 0), None);
 
 		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
 			pallet_shares_balance - 50
 		);
 
@@ -4781,25 +4781,25 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 
 		let unclaimable_rewards = 168_270;
 		assert_eq!(
-			Tokens::free_balance(BSX, &g_pool_acc),
-			g_pool_rew_balance + unclaimable_rewards
+			Tokens::free_balance(BSX, &global_pool_account),
+			global_pool_bsx_balance + unclaimable_rewards
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &liq_pool_acc),
-			liq_pool_rew_balance - user_reward - unclaimable_rewards
+			Tokens::free_balance(BSX, &liq_pool_account),
+			liq_pool_bsx_balance - user_reward - unclaimable_rewards
 		);
 
 		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 2, GC_FARM));
 
 		//2-nd withdraw
-		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_acc);
-		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
-		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
+		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
 		let alice_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
 
 		let user_reward = 5_137_714;
@@ -4825,7 +4825,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			pallet_uniques::Event::Burned(0, 2, 1).into(),
 		]);
 
-		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), g_pool);
+		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
@@ -4839,7 +4839,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(LiquidityMining::deposit(0, 2), None);
 
 		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
 			pallet_shares_balance - shares_amount
 		);
 
@@ -4851,25 +4851,25 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance + user_reward);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &g_pool_acc),
-			g_pool_rew_balance + unclaimable_rewards
+			Tokens::free_balance(BSX, &global_pool_account),
+			global_pool_bsx_balance + unclaimable_rewards
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &liq_pool_acc),
-			liq_pool_rew_balance - user_reward - unclaimable_rewards
+			Tokens::free_balance(BSX, &liq_pool_account),
+			liq_pool_bsx_balance - user_reward - unclaimable_rewards
 		);
 
 		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 1, GC_FARM));
 
 		//3-th withdraw
-		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_acc);
-		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
-		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
+		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
 		let bob_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(BSX, &BOB);
 
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
 
 		let user_reward = 603_428;
@@ -4895,7 +4895,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			pallet_uniques::Event::Destroyed(0).into(),
 		]);
 
-		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), g_pool);
+		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
@@ -4909,7 +4909,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(LiquidityMining::deposit(0, 3), None);
 
 		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
 			pallet_shares_balance - shares_amount
 		);
 
@@ -4921,13 +4921,13 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(Tokens::free_balance(BSX, &BOB), bob_bsx_balance + user_reward);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &g_pool_acc),
-			g_pool_rew_balance + unclaimable_rewards
+			Tokens::free_balance(BSX, &global_pool_account),
+			global_pool_bsx_balance + unclaimable_rewards
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &liq_pool_acc),
-			liq_pool_rew_balance - user_reward - unclaimable_rewards
+			Tokens::free_balance(BSX, &liq_pool_account),
+			liq_pool_bsx_balance - user_reward - unclaimable_rewards
 		);
 
 		//last withdraw should destroy nft class
@@ -5014,15 +5014,15 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_eq!(LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM), None);
 
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
 		let nft_class_id = 0;
-		let pallet_acc = LiquidityMining::account_id();
-		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
-		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
+		let pallet_account = LiquidityMining::account_id();
+		let globa_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &globa_pool_account);
 		let alice_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
-		let alice_rew_curr_balance = Tokens::free_balance(BSX, &ALICE);
+		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
 		//1-th withdraw
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), nft_class_id, 0));
@@ -5040,10 +5040,10 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_eq!(LiquidityMining::deposit(nft_class_id, 0), None);
 
-		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), g_pool);
+		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
 		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
 			pallet_shares_balance - shares_amount
 		);
 		assert_eq!(
@@ -5052,13 +5052,13 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		);
 
 		//no reward paid from removed pool
-		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_rew_curr_balance);
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), g_pool_rew_balance);
+		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance);
+		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_pool_bsx_balance);
 
 		//2-nd withdraw
 		let alice_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
-		let alice_rew_curr_balance = Tokens::free_balance(BSX, &ALICE);
-		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc);
+		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
+		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
 		let shares_amount = 486;
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), nft_class_id, 2));
@@ -5074,10 +5074,10 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_eq!(LiquidityMining::deposit(nft_class_id, 2), None);
 
-		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), g_pool);
+		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
 		assert_eq!(
-			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc),
+			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
 			pallet_shares_balance - shares_amount
 		);
 		assert_eq!(
@@ -5086,12 +5086,12 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		);
 
 		//no reward paid from removed pool
-		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_rew_curr_balance);
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), g_pool_rew_balance);
+		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance);
+		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_pool_bsx_balance);
 
 		//3-th withdraw
 		let bob_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB);
-		let bob_rew_curr_balance = Tokens::free_balance(BSX, &BOB);
+		let bob_new_bsx_balance = Tokens::free_balance(BSX, &BOB);
 		let shares_amount = 80;
 
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), nft_class_id, 1));
@@ -5108,17 +5108,17 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_eq!(LiquidityMining::deposit(nft_class_id, 3), None);
 
-		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), g_pool);
+		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
-		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_acc), 0);
+		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 0);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB),
 			bob_shares_balance + shares_amount
 		);
 
 		//no reward paid from removed pool
-		assert_eq!(Tokens::free_balance(BSX, &BOB), bob_rew_curr_balance);
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_acc), g_pool_rew_balance);
+		assert_eq!(Tokens::free_balance(BSX, &BOB), bob_new_bsx_balance);
+		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_pool_bsx_balance);
 
 		assert_eq!(LiquidityMining::nft_class(nft_class_id), None);
 	});
@@ -5171,11 +5171,11 @@ fn cancel_liquidity_pool_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let liq_pool_id = 4;
 		let liq_pool_account = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
-		let g_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_account);
-		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_account);
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::cancel_liquidity_pool(
 			Origin::signed(GC),
@@ -5203,29 +5203,29 @@ fn cancel_liquidity_pool_should_work() {
 		assert_eq!(
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
-				total_shares_z: g_pool
+				total_shares_z: global_pool
 					.total_shares_z
 					.checked_sub(liq_pool.stake_in_global_pool)
 					.unwrap(),
-				..g_pool
+				..global_pool
 			}
 		);
 
 		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 3, GC_FARM));
 
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), liq_pool_rew_balance);
-		assert_eq!(Tokens::free_balance(BSX, &g_pool_account), g_pool_rew_balance);
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), liq_pool_bsx_balance);
+		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), global_pool_bsx_balance);
 	});
 
 	//with pools update
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let liq_pool_id = 4;
 		let liq_pool_account = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
-		let g_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_account);
-		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_account);
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
 		run_to_block(10_000);
 
@@ -5260,13 +5260,13 @@ fn cancel_liquidity_pool_should_work() {
 			GlobalPool {
 				updated_at: 100,
 				accumulated_rpz: 49,
-				total_shares_z: g_pool
+				total_shares_z: global_pool
 					.total_shares_z
 					.checked_sub(liq_pool.stake_in_global_pool)
 					.unwrap(),
 				accumulated_rewards: 18_206_375,
 				paid_accumulated_rewards: 9_589_300,
-				..g_pool
+				..global_pool
 			}
 		);
 
@@ -5275,12 +5275,12 @@ fn cancel_liquidity_pool_should_work() {
 		//"last reward" from update pool
 		assert_eq!(
 			Tokens::free_balance(BSX, &liq_pool_account),
-			liq_pool_rew_balance + 8_424_900
+			liq_pool_bsx_balance + 8_424_900
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &g_pool_account),
-			g_pool_rew_balance - 8_424_900
+			Tokens::free_balance(BSX, &global_pool_account),
+			global_pool_bsx_balance - 8_424_900
 		);
 	});
 }
@@ -5347,11 +5347,11 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let liq_pool_id = 4;
-		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_acc = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
 
-		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_acc);
-		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
+		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 
 		assert_ok!(LiquidityMining::cancel_liquidity_pool(
 			Origin::signed(GC),
@@ -5359,7 +5359,7 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 			assets
 		));
 
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::remove_liquidity_pool(
 			Origin::signed(GC),
@@ -5377,8 +5377,8 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 		assert_eq!(
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
-				liq_pools_count: g_pool.liq_pools_count.checked_sub(1).unwrap(),
-				..g_pool
+				liq_pools_count: global_pool.liq_pools_count.checked_sub(1).unwrap(),
+				..global_pool
 			}
 		);
 
@@ -5388,11 +5388,11 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 		//nft class info should stay in storage until add deposits will be withdrawn
 		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 3, GC_FARM));
 
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_acc), 0);
-		//unpaid rewards should be transfered back to g_pool account
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
+		//unpaid rewards should be transfered back to global_pool account
 		assert_eq!(
-			Tokens::free_balance(BSX, &g_pool_acc),
-			g_pool_rew_balance.checked_add(liq_pool_rew_balance).unwrap()
+			Tokens::free_balance(BSX, &global_pool_account),
+			global_pool_bsx_balance.checked_add(liq_pool_bsx_balance).unwrap()
 		);
 	});
 }
@@ -5406,11 +5406,11 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 
 	predefined_test_ext().execute_with(|| {
 		let liq_pool_id = 4;
-		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_acc = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = LiquidityMining::pool_account_id(liq_pool_id).unwrap();
 
-		let liq_pool_rew_balance = Tokens::free_balance(BSX, &liq_pool_acc);
-		let g_pool_rew_balance = Tokens::free_balance(BSX, &g_pool_acc);
+		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 
 		assert_ok!(LiquidityMining::cancel_liquidity_pool(
 			Origin::signed(GC),
@@ -5418,7 +5418,7 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 			assets
 		));
 
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::remove_liquidity_pool(
 			Origin::signed(GC),
@@ -5436,8 +5436,8 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 		assert_eq!(
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
-				liq_pools_count: g_pool.liq_pools_count.checked_sub(1).unwrap(),
-				..g_pool
+				liq_pools_count: global_pool.liq_pools_count.checked_sub(1).unwrap(),
+				..global_pool
 			}
 		);
 
@@ -5447,11 +5447,11 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 		//nft class info should removed from storage if no deposits are left
 		assert_eq!(LiquidityMining::nft_class(0), None);
 
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_acc), 0);
-		//unpaid rewards should be transfered back to g_pool account
+		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
+		//unpaid rewards should be transfered back to global_pool account
 		assert_eq!(
-			Tokens::free_balance(BSX, &g_pool_acc),
-			g_pool_rew_balance.checked_add(liq_pool_rew_balance).unwrap()
+			Tokens::free_balance(BSX, &global_pool_account),
+			global_pool_bsx_balance.checked_add(liq_pool_bsx_balance).unwrap()
 		);
 	});
 }
@@ -5520,7 +5520,7 @@ fn update_liquidity_pool_should_work() {
 
 		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::update_liquidity_pool(
 			Origin::signed(GC),
@@ -5537,7 +5537,7 @@ fn update_liquidity_pool_should_work() {
 			}
 		);
 
-		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), g_pool);
+		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 	});
 
 	predefined_test_ext_with_deposits().execute_with(|| {
@@ -5549,7 +5549,7 @@ fn update_liquidity_pool_should_work() {
 		// Same period as last pools update so no update_XXX_pool() is called.
 		let new_multiplier: PoolMultiplier = FixedU128::from(10_000_u128);
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::update_liquidity_pool(
 			Origin::signed(GC),
@@ -5571,7 +5571,7 @@ fn update_liquidity_pool_should_work() {
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				total_shares_z: 455_876_290,
-				..g_pool
+				..global_pool
 			}
 		);
 
@@ -5579,13 +5579,13 @@ fn update_liquidity_pool_should_work() {
 		run_to_block(5_000);
 		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
-		let g_pool_acc = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_acc = LiquidityMining::pool_account_id(4).unwrap();
+		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = LiquidityMining::pool_account_id(4).unwrap();
 
-		let g_pool_rew_curr_balance = Tokens::free_balance(BSX, &g_pool_acc);
-		let liq_pool_rew_curr_balance = Tokens::free_balance(BSX, &liq_pool_acc);
+		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 
 		assert_ok!(LiquidityMining::update_liquidity_pool(
 			Origin::signed(GC),
@@ -5612,19 +5612,19 @@ fn update_liquidity_pool_should_work() {
 				updated_at: 50,
 				accumulated_rpz: 15,
 				total_shares_z: 228_176_290,
-				accumulated_rewards: g_pool.accumulated_rewards + 133_800_000,
-				paid_accumulated_rewards: g_pool.paid_accumulated_rewards + 1_366_200_000,
-				..g_pool
+				accumulated_rewards: global_pool.accumulated_rewards + 133_800_000,
+				paid_accumulated_rewards: global_pool.paid_accumulated_rewards + 1_366_200_000,
+				..global_pool
 			}
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &g_pool_acc),
-			g_pool_rew_curr_balance - 1_366_200_000
+			Tokens::free_balance(BSX, &global_pool_account),
+			global_pool_bsx_balance - 1_366_200_000
 		);
 		assert_eq!(
-			Tokens::free_balance(BSX, &liq_pool_acc),
-			liq_pool_rew_curr_balance + 1_366_200_000
+			Tokens::free_balance(BSX, &liq_pool_account),
+			liq_pool_bsx_balance + 1_366_200_000
 		);
 	});
 }
@@ -5707,7 +5707,7 @@ fn resume_liquidity_pool_should_work() {
 		));
 
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
-		let g_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
 		let new_multiplier = FixedU128::from(7490_000);
 
@@ -5724,13 +5724,13 @@ fn resume_liquidity_pool_should_work() {
 			new_multiplier
 		));
 
-		let liq_pool_stake_in_g_pool = new_multiplier.checked_mul_int(45_540).unwrap();
+		let liq_pool_stake_in_global_pool = new_multiplier.checked_mul_int(45_540).unwrap();
 
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				canceled: false,
-				stake_in_global_pool: liq_pool_stake_in_g_pool,
+				stake_in_global_pool: liq_pool_stake_in_global_pool,
 				accumulated_rpz: 62_996,
 				multiplier: new_multiplier,
 				..liq_pool
@@ -5740,11 +5740,11 @@ fn resume_liquidity_pool_should_work() {
 		assert_eq!(
 			LiquidityMining::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
-				total_shares_z: g_pool.total_shares_z + liq_pool_stake_in_g_pool,
+				total_shares_z: global_pool.total_shares_z + liq_pool_stake_in_global_pool,
 				updated_at: 134_200,
 				accumulated_rpz: 62_996,
 				accumulated_rewards: 29_999_067_250,
-				..g_pool
+				..global_pool
 			}
 		);
 	});
@@ -6043,10 +6043,10 @@ fn do_claim_rewards_should_work() {
 			),
 		];
 
-		let liq_pool_acc = LiquidityMining::pool_account_id(1).unwrap();
+		let liq_pool_account = LiquidityMining::pool_account_id(1).unwrap();
 		assert_ok!(Tokens::set_balance(
 			Origin::root(),
-			liq_pool_acc,
+			liq_pool_account,
 			BSX,
 			1_000_0000_0000_0000_0000_000,
 			0
@@ -6054,7 +6054,7 @@ fn do_claim_rewards_should_work() {
 
 		for (mut deposit, liq_pool, now_period, expected_result) in mock_data {
 			let alice_balance = Tokens::free_balance(BSX, &ALICE);
-			let pool_acc_balance = Tokens::free_balance(BSX, &liq_pool_acc);
+			let pool_account_balance = Tokens::free_balance(BSX, &liq_pool_account);
 
 			assert_eq!(
 				LiquidityMining::do_claim_rewards(ALICE, &mut deposit, &liq_pool, now_period, BSX).unwrap(),
@@ -6062,10 +6062,10 @@ fn do_claim_rewards_should_work() {
 			);
 
 			let expected_alice_balance = alice_balance + expected_result.0;
-			let expected_pool_balance = pool_acc_balance - expected_result.0;
+			let expected_pool_balance = pool_account_balance - expected_result.0;
 
 			assert_eq!(Tokens::free_balance(BSX, &ALICE), expected_alice_balance);
-			assert_eq!(Tokens::free_balance(BSX, &liq_pool_acc), expected_pool_balance);
+			assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), expected_pool_balance);
 		}
 	});
 }

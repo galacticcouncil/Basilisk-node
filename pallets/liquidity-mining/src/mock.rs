@@ -46,7 +46,7 @@ pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
 pub const DAVE: AccountId = 4;
 pub const TREASURY: AccountId = 5;
-pub const ACC_1M: AccountId = 6;
+pub const ACCOUNT_WITH_1M: AccountId = 6;
 pub const GC: AccountId = 7;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
@@ -347,7 +347,7 @@ impl Default for ExtBuilder {
 				(ALICE, BSX_TO1_SHARE_ID, 3_000_000),
 				(ALICE, BSX_TO2_SHARE_ID, 3_000_000),
 				(ALICE, BSX, INITIAL_BALANCE),
-				(ACC_1M, BSX, 1_000_000),
+				(ACCOUNT_WITH_1M, BSX, 1_000_000),
 				(BOB, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_KSM_SHARE_ID, INITIAL_BALANCE),

@@ -51,6 +51,7 @@ pub mod weights;
 pub use pallet::*;
 
 type PoolId = u32;
+type GlobalPoolId = PoolId;
 type PoolMultiplier = FixedU128;
 
 use frame_support::{
@@ -91,7 +92,7 @@ pub type NftInstanceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct GlobalPool<T: Config> {
-	id: PoolId,
+	id: GlobalPoolId,
 	owner: AccountIdOf<T>,
 	pub updated_at: PeriodOf<T>,
 	total_shares_z: Balance,
@@ -109,7 +110,7 @@ pub struct GlobalPool<T: Config> {
 
 impl<T: Config> GlobalPool<T> {
 	fn new(
-		id: PoolId,
+		id: GlobalPoolId,
 		updated_at: PeriodOf<T>,
 		reward_currency: T::CurrencyId,
 		yield_per_period: Permill,
@@ -348,7 +349,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// New farm created.
 		FarmCreated {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			owner: AccountIdOf<T>,
 			reward_currency: AssetIdOf<T>,
 			yield_per_period: Permill,
@@ -360,7 +361,7 @@ pub mod pallet {
 
 		/// New liquidity mining farm for AMM created.
 		LiquidityPoolAdded {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			multiplier: PoolMultiplier,
 			nft_class: NftClassIdOf<T>,
@@ -373,7 +374,7 @@ pub mod pallet {
 
 		/// Deposit lp tokens.
 		SharesDeposited {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			amount: Balance,
@@ -384,7 +385,7 @@ pub mod pallet {
 
 		/// Claim rewards.
 		RewardClaimed {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			claimed: Balance,
@@ -401,7 +402,7 @@ pub mod pallet {
 
 		/// Cancel liquidity mining for AMM.
 		LiquidityMiningCanceled {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
@@ -409,7 +410,7 @@ pub mod pallet {
 
 		/// Resume liquidity mining for AMM.
 		LiquidityMiningResumed {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
@@ -418,7 +419,7 @@ pub mod pallet {
 
 		/// Remove liquidity mining pool farm.
 		LiquidityPoolRemoved {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
@@ -426,7 +427,7 @@ pub mod pallet {
 
 		/// Withdraw undistributed rewards from farm.
 		UndistributedRewardsWithdrawn {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			who: AccountIdOf<T>,
 			reward_currency: T::CurrencyId,
 			amount: Balance,
@@ -434,7 +435,7 @@ pub mod pallet {
 
 		/// Update liquidity pool farm multiplier.
 		LiquidityPoolUpdated {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
@@ -443,14 +444,14 @@ pub mod pallet {
 
 		/// Update of `accumulated_rpz` of farm.
 		FarmAccRPZUpdated {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			accumulated_rpz: Balance,
 			total_shares_z: Balance,
 		},
 
 		/// Update of `accumulated_rpvs` of liq. pool farm.
 		LiquidityPoolAccRPVSUpdated {
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			accumulated_rpvs: Balance,
 			total_valued_shares: Balance,
@@ -463,14 +464,14 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn global_pool)]
-	type GlobalPoolData<T: Config> = StorageMap<_, Twox64Concat, PoolId, GlobalPool<T>, OptionQuery>;
+	type GlobalPoolData<T: Config> = StorageMap<_, Twox64Concat, GlobalPoolId, GlobalPool<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn liquidity_pool)]
 	type LiquidityPoolData<T: Config> = StorageDoubleMap<
 		_,
 		Twox64Concat,
-		PoolId, //global_pool_id
+		GlobalPoolId,
 		Twox64Concat,
 		AccountIdOf<T>, //amm_pool_id
 		LiquidityPoolYieldFarm<T>,
@@ -484,7 +485,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn nft_class)] //(asset_pair, amount of existing nfts, globalPoolId)
-	type NftClassData<T: Config> = StorageMap<_, Twox64Concat, NftClassIdOf<T>, (AssetPair, u64, PoolId), OptionQuery>;
+	type NftClassData<T: Config> = StorageMap<_, Twox64Concat, NftClassIdOf<T>, (AssetPair, u64, GlobalPoolId), OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -533,7 +534,7 @@ pub mod pallet {
 			let now_period = Self::get_now_period(blocks_per_period)?;
 			let pool_id = Self::get_next_id()?;
 
-			let g_pool = GlobalPool::new(
+			let global_pool = GlobalPool::new(
 				pool_id,
 				now_period,
 				reward_currency,
@@ -545,20 +546,20 @@ pub mod pallet {
 				max_reward_per_period,
 			);
 
-			<GlobalPoolData<T>>::insert(&g_pool.id, &g_pool);
+			<GlobalPoolData<T>>::insert(&global_pool.id, &global_pool);
 
-			let pool_account = Self::pool_account_id(g_pool.id)?;
-			T::MultiCurrency::transfer(reward_currency, &g_pool.owner, &pool_account, total_rewards)?;
+			let pool_account = Self::pool_account_id(global_pool.id)?;
+			T::MultiCurrency::transfer(reward_currency, &global_pool.owner, &pool_account, total_rewards)?;
 
 			Self::deposit_event(Event::FarmCreated {
-				farm_id: g_pool.id,
-				owner: g_pool.owner,
-				reward_currency: g_pool.reward_currency,
-				yield_per_period: g_pool.yield_per_period,
-				planned_yielding_periods: g_pool.planned_yielding_periods,
-				blocks_per_period: g_pool.blocks_per_period,
-				incentivized_asset: g_pool.incentivized_asset,
-				max_reward_per_period: g_pool.max_reward_per_period,
+				farm_id: global_pool.id,
+				owner: global_pool.owner,
+				reward_currency: global_pool.reward_currency,
+				yield_per_period: global_pool.yield_per_period,
+				planned_yielding_periods: global_pool.planned_yielding_periods,
+				blocks_per_period: global_pool.blocks_per_period,
+				incentivized_asset: global_pool.incentivized_asset,
+				max_reward_per_period: global_pool.max_reward_per_period,
 			});
 
 			Ok(())
@@ -566,23 +567,23 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_farm())]
 		#[transactional]
-		pub fn destroy_farm(origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
+		pub fn destroy_farm(origin: OriginFor<T>, farm_id: GlobalPoolId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			<GlobalPoolData<T>>::try_mutate_exists(farm_id, |maybe_g_pool| -> DispatchResult {
-				let g_pool = maybe_g_pool.as_ref().ok_or(Error::<T>::FarmNotFound)?;
+			<GlobalPoolData<T>>::try_mutate_exists(farm_id, |maybe_global_pool| -> DispatchResult {
+				let global_pool = maybe_global_pool.as_ref().ok_or(Error::<T>::FarmNotFound)?;
 
-				ensure!(who == g_pool.owner, Error::<T>::Forbidden);
+				ensure!(who == global_pool.owner, Error::<T>::Forbidden);
 
-				ensure!(g_pool.liq_pools_count.is_zero(), Error::<T>::FarmIsNotEmpty);
+				ensure!(global_pool.liq_pools_count.is_zero(), Error::<T>::FarmIsNotEmpty);
 
-				let g_pool_account = Self::pool_account_id(g_pool.id)?;
+				let global_pool_account = Self::pool_account_id(global_pool.id)?;
 				ensure!(
-					T::MultiCurrency::free_balance(g_pool.reward_currency, &g_pool_account).is_zero(),
+					T::MultiCurrency::free_balance(global_pool.reward_currency, &global_pool_account).is_zero(),
 					Error::<T>::RewardBalanceIsNotZero
 				);
 
-				*maybe_g_pool = None;
+				*maybe_global_pool = None;
 
 				Self::deposit_event(Event::FarmDestroyed { id: farm_id, who });
 				Ok(())
@@ -591,26 +592,26 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_undistributed_rewards())]
 		#[transactional]
-		pub fn withdraw_undistributed_rewards(origin: OriginFor<T>, farm_id: PoolId) -> DispatchResult {
+		pub fn withdraw_undistributed_rewards(origin: OriginFor<T>, farm_id: GlobalPoolId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let g_pool = Self::global_pool(farm_id).ok_or(Error::<T>::FarmNotFound)?;
+			let global_pool = Self::global_pool(farm_id).ok_or(Error::<T>::FarmNotFound)?;
 
-			ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+			ensure!(global_pool.owner == who, Error::<T>::Forbidden);
 
-			ensure!(g_pool.liq_pools_count.is_zero(), Error::<T>::FarmIsNotEmpty);
+			ensure!(global_pool.liq_pools_count.is_zero(), Error::<T>::FarmIsNotEmpty);
 
-			let g_pool_account = Self::pool_account_id(g_pool.id)?;
+			let global_pool_account = Self::pool_account_id(global_pool.id)?;
 
-			let undistributed_rew = T::MultiCurrency::total_balance(g_pool.reward_currency, &g_pool_account);
+			let undistributed_reward = T::MultiCurrency::total_balance(global_pool.reward_currency, &global_pool_account);
 
-			T::MultiCurrency::transfer(g_pool.reward_currency, &g_pool_account, &who, undistributed_rew)?;
+			T::MultiCurrency::transfer(global_pool.reward_currency, &global_pool_account, &who, undistributed_reward)?;
 
 			Self::deposit_event(Event::UndistributedRewardsWithdrawn {
-				farm_id: g_pool.id,
+				farm_id: global_pool.id,
 				who,
-				reward_currency: g_pool.reward_currency,
-				amount: undistributed_rew,
+				reward_currency: global_pool.reward_currency,
+				amount: undistributed_reward,
 			});
 
 			Ok(())
@@ -620,7 +621,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn add_liquidity_pool(
 			origin: OriginFor<T>,
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
 			loyalty_curve: Option<LoyaltyCurve>,
@@ -629,9 +630,9 @@ pub mod pallet {
 
 			ensure!(!multiplier.is_zero(), Error::<T>::InvalidMultiplier);
 
-			if let Some(ref c) = loyalty_curve {
+			if let Some(ref curve) = loyalty_curve {
 				ensure!(
-					c.initial_reward_percentage.lt(&FixedU128::one()),
+					curve.initial_reward_percentage.lt(&FixedU128::one()),
 					Error::<T>::InvalidInitialRewardPercentage
 				);
 			}
@@ -639,9 +640,9 @@ pub mod pallet {
 			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 
 			<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_pool| -> DispatchResult {
-				let g_pool = maybe_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+				let global_pool = maybe_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-				ensure!(who == g_pool.owner, Error::<T>::Forbidden);
+				ensure!(who == global_pool.owner, Error::<T>::Forbidden);
 
 				let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 				ensure!(
@@ -650,14 +651,14 @@ pub mod pallet {
 				);
 
 				// update accRPZ
-				let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
-				if !g_pool.total_shares_z.is_zero() && g_pool.updated_at != now_period {
+				let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
+				if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
 					let reward_per_period = Self::get_global_pool_reward_per_period(
-						g_pool.yield_per_period.into(),
-						g_pool.total_shares_z,
-						g_pool.max_reward_per_period,
+						global_pool.yield_per_period.into(),
+						global_pool.total_shares_z,
+						global_pool.max_reward_per_period,
 					)?;
-					Self::update_global_pool(g_pool, now_period, reward_per_period)?;
+					Self::update_global_pool(global_pool, now_period, reward_per_period)?;
 				}
 
 				let liq_pool_id = Self::get_next_id()?;
@@ -667,15 +668,15 @@ pub mod pallet {
 					ClassType::LiquidityMining,
 					vec![].try_into().unwrap(),
 				)?;
-				<NftClassData<T>>::insert(nft_class, (asset_pair, 0, g_pool.id));
+				<NftClassData<T>>::insert(nft_class, (asset_pair, 0, global_pool.id));
 
 				let pool = LiquidityPoolYieldFarm::new(liq_pool_id, now_period, loyalty_curve.clone(), multiplier, nft_class);
 
-				<LiquidityPoolData<T>>::insert(g_pool.id, &amm_pool_id, &pool);
-				g_pool.liq_pools_count = g_pool.liq_pools_count.checked_add(1).ok_or(Error::<T>::Overflow)?;
+				<LiquidityPoolData<T>>::insert(global_pool.id, &amm_pool_id, &pool);
+				global_pool.liq_pools_count = global_pool.liq_pools_count.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
 				Self::deposit_event(Event::LiquidityPoolAdded {
-					farm_id: g_pool.id,
+					farm_id: global_pool.id,
 					liq_pool_farm_id: pool.id,
 					nft_class: pool.nft_class,
                     multiplier,
@@ -691,7 +692,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn update_liquidity_pool(
 			origin: OriginFor<T>,
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
 		) -> DispatchResult {
@@ -705,31 +706,31 @@ pub mod pallet {
 
 				ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
-				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
-					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_global_pool| {
+					let global_pool = maybe_global_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-					ensure!(who == g_pool.owner, Error::<T>::Forbidden);
+					ensure!(who == global_pool.owner, Error::<T>::Forbidden);
 
-					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
-					if !g_pool.total_shares_z.is_zero() {
+					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
+					if !global_pool.total_shares_z.is_zero() {
 						let reward_per_period = Self::get_global_pool_reward_per_period(
-							g_pool.yield_per_period.into(),
-							g_pool.total_shares_z,
-							g_pool.max_reward_per_period,
+							global_pool.yield_per_period.into(),
+							global_pool.total_shares_z,
+							global_pool.max_reward_per_period,
 						)?;
-						Self::update_global_pool(g_pool, now_period, reward_per_period)?;
+						Self::update_global_pool(global_pool, now_period, reward_per_period)?;
 					}
 
 					if !liq_pool.total_shares.is_zero() {
 						let pool_reward =
-							Self::claim_from_global_pool(g_pool, liq_pool, liq_pool.stake_in_global_pool)?;
-						Self::update_liq_pool(liq_pool, pool_reward, now_period, g_pool.id, g_pool.reward_currency)?;
+							Self::claim_from_global_pool(global_pool, liq_pool, liq_pool.stake_in_global_pool)?;
+						Self::update_liq_pool(liq_pool, pool_reward, now_period, global_pool.id, global_pool.reward_currency)?;
 					}
 
 					let new_stake_in_global_pool =
 						Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
 
-					g_pool.total_shares_z = g_pool
+					global_pool.total_shares_z = global_pool
 						.total_shares_z
 						.checked_sub(liq_pool.stake_in_global_pool)
 						.ok_or(Error::<T>::Overflow)?
@@ -740,7 +741,7 @@ pub mod pallet {
 					liq_pool.multiplier = multiplier;
 
 					Self::deposit_event(Event::LiquidityPoolUpdated {
-						farm_id: g_pool.id,
+						farm_id: global_pool.id,
 						liq_pool_farm_id: liq_pool.id,
 						multiplier: liq_pool.multiplier,
 						who,
@@ -754,7 +755,7 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
-		pub fn cancel_liquidity_pool(origin: OriginFor<T>, farm_id: PoolId, asset_pair: AssetPair) -> DispatchResult {
+		pub fn cancel_liquidity_pool(origin: OriginFor<T>, farm_id: GlobalPoolId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let amm_account = T::AMM::get_pair_id(asset_pair);
@@ -764,15 +765,15 @@ pub mod pallet {
 
 				ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
-				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| {
-					let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_global_pool| {
+					let global_pool = maybe_global_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-					ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+					ensure!(global_pool.owner == who, Error::<T>::Forbidden);
 
-					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
-					Self::maybe_update_pools(g_pool, liq_pool, now_period)?;
+					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
+					Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 
-					g_pool.total_shares_z = g_pool
+					global_pool.total_shares_z = global_pool
 						.total_shares_z
 						.checked_sub(liq_pool.stake_in_global_pool)
 						.ok_or(Error::<T>::Overflow)?;
@@ -797,7 +798,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn resume_liquidity_pool(
 			origin: OriginFor<T>,
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
 		) -> DispatchResult {
@@ -812,32 +813,32 @@ pub mod pallet {
 
 				ensure!(liq_pool.canceled, Error::<T>::LiquidityMiningIsNotCanceled);
 
-				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| {
-					// this should never happen, liq. pool can't exist without g_pool
-					let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_global_pool| {
+					// this should never happen, liq. pool can't exist without global_pool
+					let global_pool = maybe_global_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-					ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+					ensure!(global_pool.owner == who, Error::<T>::Forbidden);
 
 					// update accRPZ
-					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
-					if !g_pool.total_shares_z.is_zero() && g_pool.updated_at != now_period {
+					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
+					if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
 						let reward_per_period = Self::get_global_pool_reward_per_period(
-							g_pool.yield_per_period.into(),
-							g_pool.total_shares_z,
-							g_pool.max_reward_per_period,
+							global_pool.yield_per_period.into(),
+							global_pool.total_shares_z,
+							global_pool.max_reward_per_period,
 						)?;
-						Self::update_global_pool(g_pool, now_period, reward_per_period)?;
+						Self::update_global_pool(global_pool, now_period, reward_per_period)?;
 					}
 
-					let new_stake_in_g_pool = Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
+					let new_stake_in_global_poll = Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
 
-					g_pool.total_shares_z = g_pool
+					global_pool.total_shares_z = global_pool
 						.total_shares_z
-						.checked_add(new_stake_in_g_pool)
+						.checked_add(new_stake_in_global_poll)
 						.ok_or(Error::<T>::Overflow)?;
 
-					liq_pool.accumulated_rpz = g_pool.accumulated_rpz;
-					liq_pool.stake_in_global_pool = new_stake_in_g_pool;
+					liq_pool.accumulated_rpz = global_pool.accumulated_rpz;
+					liq_pool.stake_in_global_pool = new_stake_in_global_poll;
 					liq_pool.canceled = false;
 					liq_pool.multiplier = multiplier;
 
@@ -858,7 +859,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn remove_liquidity_pool(
 			origin: OriginFor<T>,
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			asset_pair: AssetPair,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
@@ -873,22 +874,22 @@ pub mod pallet {
 
 					ensure!(liq_pool.canceled, Error::<T>::LiquidityMiningIsNotCanceled);
 
-					<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_g_pool| -> DispatchResultWithPostInfo {
-						let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+					<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_global_pool| -> DispatchResultWithPostInfo {
+						let global_pool = maybe_global_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-						ensure!(g_pool.owner == who, Error::<T>::Forbidden);
+						ensure!(global_pool.owner == who, Error::<T>::Forbidden);
 
-						g_pool.liq_pools_count = g_pool.liq_pools_count.checked_sub(1).ok_or(Error::<T>::Overflow)?;
+						global_pool.liq_pools_count = global_pool.liq_pools_count.checked_sub(1).ok_or(Error::<T>::Overflow)?;
 
-						//transfer unpaid rewards back to g_pool
-						let g_pool_account = Self::pool_account_id(g_pool.id)?;
+						//transfer unpaid rewards back to global_pool
+						let global_pool_account = Self::pool_account_id(global_pool.id)?;
 						let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
 
-						let unpaid_rew = T::MultiCurrency::total_balance(g_pool.reward_currency, &liq_pool_account);
+						let unpaid_rew = T::MultiCurrency::total_balance(global_pool.reward_currency, &liq_pool_account);
 						T::MultiCurrency::transfer(
-							g_pool.reward_currency,
+							global_pool.reward_currency,
 							&liq_pool_account,
-							&g_pool_account,
+							&global_pool_account,
 							unpaid_rew,
 						)?;
 
@@ -926,7 +927,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn deposit_shares(
 			origin: OriginFor<T>,
-			farm_id: PoolId,
+			farm_id: GlobalPoolId,
 			asset_pair: AssetPair,
 			shares_amount: Balance,
 		) -> DispatchResult {
@@ -947,15 +948,15 @@ pub mod pallet {
 
 				ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
-				<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
-					//something is very wrong if this fail, liq_pool can't exist without g_pool
-					let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+				<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_global_pool| {
+					//something is very wrong if this fail, liq_pool can't exist without global_pool
+					let global_pool = maybe_global_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-					let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 
-					Self::maybe_update_pools(g_pool, liq_pool, now_period)?;
+					Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 
-					let valued_shares = Self::get_valued_shares(shares_amount, amm_account, g_pool.reward_currency)?;
+					let valued_shares = Self::get_valued_shares(shares_amount, amm_account, global_pool.reward_currency)?;
 					let shares_in_global_pool_for_deposit = Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
 
 					liq_pool.total_shares = liq_pool
@@ -973,7 +974,7 @@ pub mod pallet {
 						.checked_add(shares_in_global_pool_for_deposit)
 						.ok_or(Error::<T>::Overflow)?;
 
-					g_pool.total_shares_z = g_pool
+					global_pool.total_shares_z = global_pool
 						.total_shares_z
 						.checked_add(shares_in_global_pool_for_deposit)
 						.ok_or(Error::<T>::Overflow)?;
@@ -1034,25 +1035,25 @@ pub mod pallet {
 
 					ensure!(!liq_pool.canceled, Error::<T>::LiquidityMiningCanceled);
 
-					<GlobalPoolData<T>>::try_mutate(farm_id, |g_pool| {
+					<GlobalPoolData<T>>::try_mutate(farm_id, |maybe_global_pool| {
 						// something is very wrong if this fail
-						let g_pool = g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+						let global_pool = maybe_global_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 						// can't claim multiple times in the same period
-						let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+						let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 						ensure!(deposit.updated_at != now_period, Error::<T>::DoubleClaimInThePeriod);
 
-						Self::maybe_update_pools(g_pool, liq_pool, now_period)?;
+						Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 
 						let (reward, _) =
-							Self::do_claim_rewards(who.clone(), deposit, liq_pool, now_period, g_pool.reward_currency)?;
+							Self::do_claim_rewards(who.clone(), deposit, liq_pool, now_period, global_pool.reward_currency)?;
 
 						Self::deposit_event(Event::RewardClaimed {
 							farm_id,
 							liq_pool_farm_id: liq_pool.id,
 							who,
 							claimed: reward,
-							reward_currency: g_pool.reward_currency,
+							reward_currency: global_pool.reward_currency,
 						});
 
 						Ok(())
@@ -1096,14 +1097,14 @@ pub mod pallet {
 
 								<GlobalPoolData<T>>::try_mutate(
 									farm_id,
-									|maybe_g_pool| -> Result<(), DispatchError> {
+									|maybe_global_pool| -> Result<(), DispatchError> {
 										//This should never happen. If this happen something is very broken.
-										let g_pool = maybe_g_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
+										let global_pool = maybe_global_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
-										let now_period = Self::get_now_period(g_pool.blocks_per_period)?;
+										let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 
 										if !liq_pool.canceled {
-											Self::maybe_update_pools(g_pool, liq_pool, now_period)?;
+											Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 										}
 
 										let (reward, unclaimable_rewards) = Self::do_claim_rewards(
@@ -1111,10 +1112,10 @@ pub mod pallet {
 											deposit,
 											liq_pool,
 											now_period,
-											g_pool.reward_currency,
+											global_pool.reward_currency,
 										)?;
 
-										let g_pool_account = Self::pool_account_id(g_pool.id)?;
+										let global_pool_account = Self::pool_account_id(global_pool.id)?;
 										let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
 
 										liq_pool.total_shares = liq_pool
@@ -1138,27 +1139,27 @@ pub mod pallet {
 												.checked_sub(shares_in_global_pool_for_deposit)
 												.ok_or(Error::<T>::Overflow)?;
 
-											g_pool.total_shares_z = g_pool
+											global_pool.total_shares_z = global_pool
 												.total_shares_z
 												.checked_sub(shares_in_global_pool_for_deposit)
 												.ok_or(Error::<T>::Overflow)?;
 										}
 
 										T::MultiCurrency::transfer(
-											g_pool.reward_currency,
+											global_pool.reward_currency,
 											&liq_pool_account,
-											&g_pool_account,
+											&global_pool_account,
 											unclaimable_rewards,
 										)?;
 
 										//emit this event only if something was claimed
 										if !reward.is_zero() {
 											Self::deposit_event(Event::RewardClaimed {
-												farm_id: g_pool.id,
+												farm_id: global_pool.id,
 												liq_pool_farm_id: liq_pool.id,
 												who: who.clone(),
 												claimed: reward,
-												reward_currency: g_pool.reward_currency,
+												reward_currency: global_pool.reward_currency,
 											});
 										}
 
@@ -1270,22 +1271,22 @@ impl<T: Config> Pallet<T> {
 		let theta = periods.checked_div(&denom).ok_or(Error::<T>::Overflow)?;
 
 		// theta * initial_reward_percentage
-		let theta_mul_init_rew_percentage = theta
+		let theta_mul_initial_reward_percentage = theta
 			.checked_mul(&curve.initial_reward_percentage)
 			.ok_or(Error::<T>::Overflow)?;
 
 		// theta + (theta * initial_reward_percentage)
-		let theta_add_theta_mul_init_rew_percentage = theta
-			.checked_add(&theta_mul_init_rew_percentage)
+		let theta_add_theta_mul_initial_reward_percentage = theta
+			.checked_add(&theta_mul_initial_reward_percentage)
 			.ok_or(Error::<T>::Overflow)?;
 
 		// theta + (theta * initial_reward_percentage) + initial_reward_percentage
-		let num = theta_add_theta_mul_init_rew_percentage
+		let num = theta_add_theta_mul_initial_reward_percentage
 			.checked_add(&curve.initial_reward_percentage)
 			.ok_or(Error::<T>::Overflow)?;
 
 		// theta + (theta * initial_reward_percentage) + 1
-		let denom = theta_add_theta_mul_init_rew_percentage
+		let denom = theta_add_theta_mul_initial_reward_percentage
 			.checked_add(&1.into())
 			.ok_or(Error::<T>::Overflow)?;
 
@@ -1304,43 +1305,43 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn update_global_pool(
-		g_pool: &mut GlobalPool<T>,
+		global_pool: &mut GlobalPool<T>,
 		now_period: PeriodOf<T>,
 		reward_per_period: Balance,
 	) -> Result<(), Error<T>> {
-		if g_pool.updated_at == now_period {
+		if global_pool.updated_at == now_period {
 			return Ok(());
 		}
 
-		if g_pool.total_shares_z.is_zero() {
+		if global_pool.total_shares_z.is_zero() {
 			return Ok(());
 		}
 
 		let periods_since_last_update: Balance =
-			TryInto::<u128>::try_into(now_period.checked_sub(&g_pool.updated_at).ok_or(Error::<T>::Overflow)?)
+			TryInto::<u128>::try_into(now_period.checked_sub(&global_pool.updated_at).ok_or(Error::<T>::Overflow)?)
 				.map_err(|_e| Error::<T>::Overflow)?;
 
-		let g_pool_account = Self::pool_account_id(g_pool.id)?;
-		let left_to_distribute = T::MultiCurrency::free_balance(g_pool.reward_currency, &g_pool_account);
+		let global_pool_account = Self::pool_account_id(global_pool.id)?;
+		let left_to_distribute = T::MultiCurrency::free_balance(global_pool.reward_currency, &global_pool_account);
 		let reward = periods_since_last_update
 			.checked_mul(reward_per_period)
 			.ok_or(Error::<T>::Overflow)?
 			.min(left_to_distribute);
 
 		if !reward.is_zero() {
-			g_pool.accumulated_rpz = Self::get_accumulated_rps(g_pool.accumulated_rpz, g_pool.total_shares_z, reward)?;
-			g_pool.accumulated_rewards = g_pool
+			global_pool.accumulated_rpz = Self::get_accumulated_rps(global_pool.accumulated_rpz, global_pool.total_shares_z, reward)?;
+			global_pool.accumulated_rewards = global_pool
 				.accumulated_rewards
 				.checked_add(reward)
 				.ok_or(Error::<T>::Overflow)?;
 		}
 
-		g_pool.updated_at = now_period;
+		global_pool.updated_at = now_period;
 
         Self::deposit_event(Event::FarmAccRPZUpdated {
-            farm_id: g_pool.id,
-            accumulated_rpz: g_pool.accumulated_rpz,
-            total_shares_z: g_pool.total_shares_z,
+            farm_id: global_pool.id,
+            accumulated_rpz: global_pool.accumulated_rpz,
+            total_shares_z: global_pool.total_shares_z,
         });
         
 		Ok(())
@@ -1391,25 +1392,25 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn claim_from_global_pool(
-		g_pool: &mut GlobalPool<T>,
+		global_pool: &mut GlobalPool<T>,
 		liq_pool: &mut LiquidityPoolYieldFarm<T>,
-		stake_in_g_pool: Balance,
+		stake_in_global_pool: Balance,
 	) -> Result<Balance, Error<T>> {
-		let reward = g_pool
+		let reward = global_pool
 			.accumulated_rpz
 			.checked_sub(liq_pool.accumulated_rpz)
 			.ok_or(Error::<T>::Overflow)?
-			.checked_mul(stake_in_g_pool)
+			.checked_mul(stake_in_global_pool)
 			.ok_or(Error::<T>::Overflow)?;
 
-		liq_pool.accumulated_rpz = g_pool.accumulated_rpz;
+		liq_pool.accumulated_rpz = global_pool.accumulated_rpz;
 
-		g_pool.paid_accumulated_rewards = g_pool
+		global_pool.paid_accumulated_rewards = global_pool
 			.paid_accumulated_rewards
 			.checked_add(reward)
 			.ok_or(Error::<T>::Overflow)?;
 
-		g_pool.accumulated_rewards = g_pool
+		global_pool.accumulated_rewards = global_pool
 			.accumulated_rewards
 			.checked_sub(reward)
 			.ok_or(Error::<T>::Overflow)?;
@@ -1540,7 +1541,7 @@ impl<T: Config> Pallet<T> {
 
 	/// This function update pools if conditions are met
 	fn maybe_update_pools(
-		g_pool: &mut GlobalPool<T>,
+		global_pool: &mut GlobalPool<T>,
 		liq_pool: &mut LiquidityPoolYieldFarm<T>,
 		now_period: PeriodOf<T>,
 	) -> DispatchResult {
@@ -1549,18 +1550,18 @@ impl<T: Config> Pallet<T> {
 		}
 
 		if !liq_pool.total_shares.is_zero() && liq_pool.updated_at != now_period {
-			if !g_pool.total_shares_z.is_zero() && g_pool.updated_at != now_period {
+			if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
 				let rewards = Self::get_global_pool_reward_per_period(
-					g_pool.yield_per_period.into(),
-					g_pool.total_shares_z,
-					g_pool.max_reward_per_period,
+					global_pool.yield_per_period.into(),
+					global_pool.total_shares_z,
+					global_pool.max_reward_per_period,
 				)?;
 
-				Self::update_global_pool(g_pool, now_period, rewards)?;
+				Self::update_global_pool(global_pool, now_period, rewards)?;
 			}
 
-			let rewards = Self::claim_from_global_pool(g_pool, liq_pool, liq_pool.stake_in_global_pool)?;
-			Self::update_liq_pool(liq_pool, rewards, now_period, g_pool.id, g_pool.reward_currency)?;
+			let rewards = Self::claim_from_global_pool(global_pool, liq_pool, liq_pool.stake_in_global_pool)?;
+			Self::update_liq_pool(liq_pool, rewards, now_period, global_pool.id, global_pool.reward_currency)?;
 		}
 
 		Ok(())
