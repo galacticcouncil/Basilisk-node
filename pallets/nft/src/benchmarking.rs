@@ -3,20 +3,22 @@
 use super::*;
 
 use crate as NFT;
-use frame_benchmarking::{account, benchmarks};
-use frame_support::traits::Get;
+use frame_benchmarking::{account, benchmarks, vec};
+use frame_support::traits::{tokens::nonfungibles::InspectEnumerable, Currency, Get};
 use frame_system::RawOrigin;
+use pallet_uniques as UNQ;
 use sp_runtime::traits::UniqueSaturatedInto;
-use sp_std::vec;
+use sp_std::convert::TryInto;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;
+const CLASS_ID_0: u32 = 1_000_000;
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 
 	let amount = dollar(ENDOWMENT);
-	T::Currency::deposit_creating(&caller, amount.unique_saturated_into());
+	<T as NFT::Config>::Currency::deposit_creating(&caller, amount.unique_saturated_into());
 
 	caller
 }
@@ -26,164 +28,80 @@ fn dollar(d: u32) -> u128 {
 	d.saturating_mul(100_000_000_000_000)
 }
 
+fn do_create_class<T: Config>(
+	class_id: T::NftClassId,
+) -> (T::AccountId, <T::Lookup as StaticLookup>::Source, BoundedVecOfUnq<T>) {
+	let caller = create_account::<T>("caller", 0);
+	let caller_lookup = T::Lookup::unlookup(caller.clone());
+	let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize]
+		.try_into()
+		.unwrap();
+	assert!(NFT::Pallet::<T>::create_class(
+		RawOrigin::Signed(caller.clone()).into(),
+		class_id,
+		Default::default(),
+		metadata.clone()
+	)
+	.is_ok());
+	(caller, caller_lookup, metadata)
+}
+
+fn do_mint<T: Config>(class_id: T::NftClassId, instance_id: T::NftInstanceId) {
+	let caller = create_account::<T>("caller", 0);
+	let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize]
+		.try_into()
+		.unwrap();
+	assert!(NFT::Pallet::<T>::mint(RawOrigin::Signed(caller).into(), class_id, instance_id, metadata).is_ok());
+}
+
 benchmarks! {
 	create_class {
 		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let class_data = ClassData { is_pool:false };
-		let class_id = orml_nft::Pallet::<T>::next_class_id();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data)
+		let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
+	}: _(RawOrigin::Signed(caller.clone()), CLASS_ID_0.into(), Default::default(), metadata)
 	verify {
-		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 1);
-	}
-
-	create_pool {
-		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let class_data = ClassData { is_pool:true };
-		let class_id = orml_nft::Pallet::<T>::next_class_id();
-		let price: BalanceOf<T> = u32::MAX.into();
-	}: _(RawOrigin::Signed(caller.clone()), class_metadata, class_data, price)
-	verify {
-		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 1);
+		assert_eq!(UNQ::Pallet::<T>::class_owner(&T::NftClassId::from(CLASS_ID_0).into()), Some(caller));
 	}
 
 	mint {
-		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let token_data = TokenData { locked:false };
-		let class_data = ClassData { is_pool:false };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
-		let class_id = 0u32.into();
-		let token_id = orml_nft::Pallet::<T>::next_token_id(class_id);
-		let token = (class_id, token_id);
-	}: _(RawOrigin::Signed(caller.clone()), class_id, class_metadata, token_data)
+		let (caller, caller_lookup, metadata) = do_create_class::<T>(1_000_000u32.into());
+		let metadata: BoundedVec<_, _> = vec![0; <T as UNQ::Config>::StringLimit::get() as usize].try_into().unwrap();
+	}: _(RawOrigin::Signed(caller.clone()), CLASS_ID_0.into(), 0u32.into(), metadata)
 	verify {
-		assert!(orml_nft::TokensByOwner::<T>::contains_key((caller, token.0, token.1)));
+		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(CLASS_ID_0).into(), T::NftInstanceId::from(0u32).into()), Some(caller));
 	}
 
 	transfer {
-		let caller = create_account::<T>("caller", 0);
 		let caller2 = create_account::<T>("caller2", 1);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let class_data = ClassData { is_pool:false };
-		let token_data = TokenData { locked:false };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
-		let class_id = 0u32.into();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata, token_data).unwrap_or_default();
-		let token_id = 0u32.into();
-		let token = (class_id, token_id);
-	}: _(RawOrigin::Signed(caller.clone()), T::Lookup::unlookup(caller2.clone()), token)
+		let caller2_lookup = T::Lookup::unlookup(caller2.clone());
+		let (caller, caller_lookup, metadata) = do_create_class::<T>(CLASS_ID_0.into());
+		do_mint::<T>(CLASS_ID_0.into(), 0u32.into());
+	}: _(RawOrigin::Signed(caller), CLASS_ID_0.into(), 0u32.into(), caller2_lookup)
 	verify {
-		let transferred_token = orml_nft::Pallet::<T>::tokens(class_id, token_id);
-		assert_eq!(transferred_token.unwrap().owner, caller2);
+		assert_eq!(UNQ::Pallet::<T>::owner(T::NftClassId::from(CLASS_ID_0).into(), T::NftInstanceId::from(0u32).into()), Some(caller2));
 	}
 
 	destroy_class {
-		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let class_data = ClassData { is_pool:true };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata, class_data).unwrap_or_default();
-		let class_id = 0u32.into();
-	}: _(RawOrigin::Signed(caller.clone()), class_id)
+		let (caller, caller_lookup, metadata) = do_create_class::<T>(CLASS_ID_0.into());
+	}: _(RawOrigin::Signed(caller.clone()), CLASS_ID_0.into())
 	verify {
-		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 0);
-	}
-
-	destroy_pool {
-		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let class_data = ClassData { is_pool:true };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata, class_data).unwrap_or_default();
-		let class_id = 0u32.into();
-	}: _(RawOrigin::Signed(caller.clone()), class_id)
-	verify {
-		assert_eq!(orml_nft::Pallet::<T>::classes(class_id).iter().count(), 0);
+		assert_eq!(UNQ::Pallet::<T>::classes().count(), 0);
 	}
 
 	burn {
-		let caller = create_account::<T>("caller", 0);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let class_data = ClassData { is_pool:true };
-		let token_data = TokenData { locked:false };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
-		let class_id = 0u32.into();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata, token_data).unwrap_or_default();
-		let token_id = 0u32.into();
-		let token = (class_id, token_id);
-	}: _(RawOrigin::Signed(caller.clone()), token)
+		let (caller, caller_lookup, metadata) = do_create_class::<T>(CLASS_ID_0.into());
+		do_mint::<T>(CLASS_ID_0.into(), 0u32.into());
+	}: _(RawOrigin::Signed(caller.clone()), CLASS_ID_0.into(), 0u32.into())
 	verify {
-		assert_eq!(orml_nft::Pallet::<T>::tokens(class_id, token_id).iter().count(), 0);
-	}
-
-	buy_from_pool {
-		let caller = create_account::<T>("caller", 0);
-		let caller2 = create_account::<T>("caller2", 1);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let class_data = ClassData { is_pool:true };
-		let token_data = TokenData { locked:false };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
-		let class_id = 0u32.into();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller).into(), class_id, class_metadata, token_data).unwrap_or_default();
-		let token_id = 0u32.into();
-		let token = (class_id, token_id);
-	}: _(RawOrigin::Signed(caller2.clone()), token)
-	verify {
-		let bought_token = orml_nft::Pallet::<T>::tokens(class_id, token_id);
-		assert_eq!(bought_token.unwrap().owner, caller2);
-	}
-
-	sell_to_pool {
-		let caller = create_account::<T>("caller", 0);
-		let caller2 = create_account::<T>("caller2", 1);
-		let big_vec = vec![1; <T as orml_nft::Config>::MaxClassMetadata::get() as usize];
-		let class_metadata = big_vec;
-		let class_data = ClassData { is_pool:true };
-		let token_data = TokenData { locked:false };
-		NFT::Pallet::<T>::create_class(RawOrigin::Signed(caller.clone()).into(), class_metadata.clone(), class_data).unwrap_or_default();
-		let class_id = 0u32.into();
-		NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, class_metadata, token_data).unwrap_or_default();
-		let token_id = 0u32.into();
-		let token = (class_id, token_id);
-		NFT::Pallet::<T>::transfer(RawOrigin::Signed(caller.clone()).into(), T::Lookup::unlookup(caller2.clone()), token).unwrap_or_default();
-	}: _(RawOrigin::Signed(caller2.clone()), token)
-	verify {
-		let sold_token = orml_nft::Pallet::<T>::tokens(class_id, token_id);
-		assert_eq!(sold_token.unwrap().owner, caller);
+		assert_eq!(UNQ::Pallet::<T>::owned(&caller).count(), 0);
 	}
 }
 
 #[cfg(test)]
 mod tests {
-	use super::mock::Test;
-	use super::*;
+	use super::Pallet;
 	use crate::mock::*;
-	use frame_support::assert_ok;
+	use frame_benchmarking::impl_benchmark_test_suite;
 
-	pub fn new_test_ext() -> sp_io::TestExternalities {
-		let mut ext = ExtBuilder::default().build();
-		ext.execute_with(|| System::set_block_number(1));
-		ext
-	}
-
-	#[test]
-	fn test_benchmarks() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_create_class());
-			assert_ok!(Pallet::<Test>::test_benchmark_mint());
-			assert_ok!(Pallet::<Test>::test_benchmark_transfer());
-			assert_ok!(Pallet::<Test>::test_benchmark_burn());
-			assert_ok!(Pallet::<Test>::test_benchmark_destroy_class());
-			assert_ok!(Pallet::<Test>::test_benchmark_buy_from_pool());
-			assert_ok!(Pallet::<Test>::test_benchmark_sell_to_pool());
-		});
-	}
+	impl_benchmark_test_suite!(Pallet, super::ExtBuilder::default().build(), super::Test);
 }

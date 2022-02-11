@@ -67,6 +67,7 @@ pallet-transaction-payment = { git = "https://github.com/paritytech//substrate",
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }
 pallet-treasury = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }
+pallet-uniques = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }
 pallet-utility = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }
 pallet-vesting = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }
 remote-externalities = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }

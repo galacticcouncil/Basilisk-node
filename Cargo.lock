@@ -415,7 +415,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "5.3.0"
+version = "5.3.1"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "37.0.0"
+version = "38.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -522,7 +522,6 @@ dependencies = [
  "memory-db 0.27.0",
  "orml-benchmarking",
  "orml-currencies",
- "orml-nft",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -557,6 +556,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
@@ -1263,7 +1263,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.6.1"
+version = "1.6.2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5134,20 +5134,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "orml-nft"
-version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=63b32194e7b9aff6a6350d2d4434525de4eec7c1#63b32194e7b9aff6a6350d2d4434525de4eec7c1"
-dependencies = [
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=63b32194e7b9aff6a6350d2d4434525de4eec7c1#63b32194e7b9aff6a6350d2d4434525de4eec7c1"
@@ -5945,14 +5931,14 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.1.4"
+version = "2.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "orml-nft",
  "orml-utilities",
  "pallet-balances",
+ "pallet-uniques",
  "parity-scale-codec",
  "primitives",
  "scale-info",
@@ -6330,6 +6316,21 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-uniques"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech//substrate?rev=4aeb95f7f38fcd519e2628f32f79044a8fef99d5#4aeb95f7f38fcd519e2628f32f79044a8fef99d5"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
  "sp-runtime",
  "sp-std",
 ]
@@ -8001,7 +8002,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.5"
+version = "6.1.6"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8597,7 +8598,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8621,7 +8622,6 @@ dependencies = [
  "kusama-runtime",
  "memory-db 0.27.0",
  "orml-currencies",
- "orml-nft",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -11128,7 +11128,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "37.0.0"
+version = "38.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11153,7 +11153,6 @@ dependencies = [
  "hydradx-traits",
  "memory-db 0.27.0",
  "orml-currencies",
- "orml-nft",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -11189,6 +11188,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
+ "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
@@ -11492,7 +11492,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.10.2",
+ "parking_lot 0.11.2",
  "regex",
  "serde",
  "serde_json",

@@ -56,7 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Get, U128CurrencyToVote, InstanceFilter},
+	traits::{Contains, EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -105,7 +105,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 37,
+	spec_version: 38,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -127,8 +127,9 @@ impl Contains<Call> for BaseFilter {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::XYK(_) => false,
-			Call::NFT(_) => false,
 			Call::Exchange(_) => false,
+			Call::NFT(_) => false,
+			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
 			Call::Currencies(_) => false,
@@ -138,6 +139,10 @@ impl Contains<Call> for BaseFilter {
 }
 
 use common_runtime::adapter::OrmlTokensAdapter;
+use primitives::{
+	nft::{ClassType, NftPermissions},
+	ClassId, InstanceId,
+};
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
 
@@ -315,7 +320,7 @@ impl pallet_balances::Config for Runtime {
 	type AccountStore = System;
 	type WeightInfo = common_runtime::weights::balances::BasiliskWeight<Runtime>;
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = primitives::ReserveIdentifier;
 }
 
 /// Parameterized slow adjusting fee updated based on
@@ -518,20 +523,20 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
+parameter_types! {
+	pub ReserveClassIdUpTo: u128 = 999_999;
+}
+
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = common_runtime::weights::nft::BasiliskWeight<Runtime>;
-	type ClassBondAmount = ClassBondAmount;
-}
-
-impl orml_nft::Config for Runtime {
-	type ClassId = u64;
-	type TokenId = u64;
-	type ClassData = pallet_nft::ClassData;
-	type TokenData = pallet_nft::TokenData;
-	type MaxClassMetadata = MaxClassMetadata;
-	type MaxTokenMetadata = MaxTokenMetadata;
+	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
+	type NftClassId = ClassId;
+	type NftInstanceId = InstanceId;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 type EnsureMajorityCouncilOrRoot = EnsureOneOf<
@@ -769,6 +774,34 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+parameter_types! {
+	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
+	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
+	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
+	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
+	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
+	pub const AttributeDepositBase: Balance = 10 * UNITS;
+	pub const DepositPerByte: Balance = UNITS;
+	pub const UniquesStringLimit: u32 = 60;
+}
+
+impl pallet_uniques::Config for Runtime {
+	type Event = Event;
+	type ClassId = ClassId;
+	type InstanceId = InstanceId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type ClassDeposit = ClassDeposit;
+	type InstanceDeposit = InstanceDeposit;
+	type MetadataDepositBase = UniquesMetadataDepositBase;
+	type AttributeDepositBase = AttributeDepositBase;
+	type DepositPerByte = DepositPerByte;
+	type StringLimit = UniquesStringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type WeightInfo = ();
+}
+
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
@@ -819,6 +852,7 @@ construct_runtime!(
 		Aura: pallet_aura::{Pallet, Config<T>} = 17,
 		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config} = 18,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 19,
+		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>} = 20,
 
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned} = 50,
@@ -844,7 +878,6 @@ construct_runtime!(
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>} = 151,
-		OrmlNft: orml_nft::{Pallet, Storage, Config<T>} = 152,
 
 		// ORML XCM
 		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>} = 153,

@@ -1,6 +1,6 @@
 [package]
 name = "pallet-nft"
-version = "2.1.4"
+version = "2.2.0"
 description = "Simple NFT pallet for creating tokens"
 authors = ["GalacticCoucil"]
 edition = "2021"
@@ -17,11 +17,11 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false, optional = true }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
-orml-nft = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "63b32194e7b9aff6a6350d2d4434525de4eec7c1", default-features = false }
 orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "63b32194e7b9aff6a6350d2d4434525de4eec7c1", default-features = false }
 serde = { version = "1.0.111", optional = true, features = ["derive"] }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
+pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 
 # local dependency
 primitives = { default-features = false, path = "../../primitives" }
@@ -41,8 +41,9 @@ std = [
     "frame-system/std",
     "sp-std/std",
     "sp-runtime/std",
-    "orml-nft/std",
+    "pallet-uniques/std",
     "scale-info/std",
+
 ]
 runtime-benchmarks = [
     "frame-benchmarking",
