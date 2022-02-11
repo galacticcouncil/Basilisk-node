@@ -20,6 +20,7 @@ smallvec = "1.6.1"
 
 # local dependencies
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", branch="main", default-features = false}
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", branch="main", default-features = false}
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-asset-registry = { path = "../pallets/asset-registry",default-features = false}
@@ -30,6 +31,8 @@ pallet-nft = { path = "../pallets/nft", default-features = false }
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
 
 primitives = { default-features = false, path = "../primitives" }
+
+hydra-dx-math = { default-features = false, version = "4.1.1" }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
@@ -184,4 +187,5 @@ std = [
     "pallet-authorship/std",
     "basilisk-runtime/std",
     "hydradx-traits/std",
+    "pallet-price-oracle/std",
 ]
