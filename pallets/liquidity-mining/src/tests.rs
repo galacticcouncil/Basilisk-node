@@ -130,7 +130,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::NewFarm {
+			mock::Event::LiquidityMining(Event::FarmCreated {
 				farm_id: PREDEFINED_GLOBAL_POOLS[0].id,
 				owner: PREDEFINED_GLOBAL_POOLS[0].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[0].reward_currency,
@@ -142,7 +142,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			}),
 			frame_system::Event::NewAccount(187989685649991564771226578797).into(),
 			orml_tokens::Event::Endowed(4_000, 187989685649991564771226578797, 1_000_000_000).into(),
-			mock::Event::LiquidityMining(Event::NewFarm {
+			mock::Event::LiquidityMining(Event::FarmCreated {
 				farm_id: PREDEFINED_GLOBAL_POOLS[1].id,
 				owner: PREDEFINED_GLOBAL_POOLS[1].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[1].reward_currency,
@@ -154,7 +154,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			}),
 			frame_system::Event::NewAccount(267217848164255902364770529133).into(),
 			orml_tokens::Event::Endowed(1_000, 267217848164255902364770529133, 30_000_000_000).into(),
-			mock::Event::LiquidityMining(Event::NewFarm {
+			mock::Event::LiquidityMining(Event::FarmCreated {
 				farm_id: PREDEFINED_GLOBAL_POOLS[2].id,
 				owner: PREDEFINED_GLOBAL_POOLS[2].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[2].reward_currency,
@@ -236,11 +236,12 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			Some(LoyaltyCurve::default()),
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::NewLiquidityPoolFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			multiplier: FixedU128::from(5),
 			nft_class: 0,
+            loyalty_curve: Some(LoyaltyCurve::default()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TO1,
@@ -258,11 +259,12 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			Some(LoyaltyCurve::default()),
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::NewLiquidityPoolFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			multiplier: FixedU128::from(10),
 			nft_class: 1,
+            loyalty_curve: Some(LoyaltyCurve::default()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TO2,
@@ -306,7 +308,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			50
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: ALICE,
@@ -321,7 +323,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_1, 80));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: BOB,
@@ -336,7 +338,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_2, 25));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: BOB,
@@ -357,7 +359,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			800
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: BOB,
@@ -378,7 +380,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			87
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: ALICE,
@@ -399,7 +401,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			48
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: ALICE,
@@ -420,7 +422,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			486
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: ALICE,
@@ -2322,7 +2324,7 @@ fn create_farm_should_work() {
 			max_reward_per_period,
 		);
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::NewFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::FarmCreated {
 			farm_id: global_pool.id,
 			owner: global_pool.owner,
 			reward_currency: global_pool.reward_currency,
@@ -2583,11 +2585,12 @@ fn add_liquidity_pool_should_work() {
 				pool.loyalty_curve.clone()
 			));
 
-			expect_events(vec![mock::Event::LiquidityMining(Event::NewLiquidityPoolFarm {
+			expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
 				farm_id,
 				liq_pool_farm_id: pool.id,
 				multiplier: pool.multiplier,
 				nft_class: pool.nft_class,
+                loyalty_curve: pool.loyalty_curve.clone(),
 				asset_pair: assets,
 			})]);
 
@@ -2754,11 +2757,12 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 			existing_pool
 		);
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::NewLiquidityPoolFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
 			farm_id: ALICE_FARM,
 			liq_pool_farm_id: existing_pool.id,
 			multiplier: existing_pool.multiplier,
 			nft_class: existing_pool.nft_class,
+            loyalty_curve: existing_pool.loyalty_curve,
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: ACA,
@@ -2819,7 +2823,7 @@ fn destroy_farm_should_work() {
 
 		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(BOB), BOB_FARM));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DestroyFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::FarmDestroyed {
 			id: BOB_FARM,
 			who: BOB,
 		})]);
@@ -2968,7 +2972,7 @@ fn deposit_shares_should_work() {
 			50
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: ALICE,
@@ -3041,7 +3045,7 @@ fn deposit_shares_should_work() {
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_1, 80));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: BOB,
@@ -3114,7 +3118,7 @@ fn deposit_shares_should_work() {
 
 		assert_ok!(LiquidityMining::deposit_shares(Origin::signed(BOB), farm_id, amm_2, 25));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: BOB,
@@ -3195,7 +3199,7 @@ fn deposit_shares_should_work() {
 			800
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: BOB,
@@ -3276,7 +3280,7 @@ fn deposit_shares_should_work() {
 			87
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: ALICE,
@@ -3359,7 +3363,7 @@ fn deposit_shares_should_work() {
 			48
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: ALICE,
@@ -3443,7 +3447,7 @@ fn deposit_shares_should_work() {
 			486
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::DepositShares {
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: ALICE,
@@ -3594,7 +3598,7 @@ fn claim_rewards_should_work() {
 		//claim A1.1  (dep A1 1-th time)
 		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::ClaimReward {
+		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: ALICE,
@@ -3627,7 +3631,7 @@ fn claim_rewards_should_work() {
 
 		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 1, 2));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::ClaimReward {
+		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 5,
 			who: ALICE,
@@ -3700,7 +3704,7 @@ fn claim_rewards_should_work() {
 
 		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::ClaimReward {
+		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: ALICE,
@@ -3792,7 +3796,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 
 		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::ClaimReward {
+		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: 4,
 			who: ALICE,
@@ -3941,14 +3945,14 @@ fn withdraw_shares_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 0));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: 4,
 				who: ALICE,
 				claimed: 79_906,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 50,
@@ -4048,25 +4052,25 @@ fn withdraw_shares_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 1, 2));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::UpdateFarmAccRPZ {
+			mock::Event::LiquidityMining(Event::FarmAccRPZUpdated {
 				farm_id: 3,
 				accumulated_rpz: 63,
 				total_shares_z: 691_490,
 			}),
-			mock::Event::LiquidityMining(Event::UpdateLiquidityPoolFarmAccRPVS {
+			mock::Event::LiquidityMining(Event::LiquidityPoolAccRPVSUpdated {
 				farm_id: 3,
 				liq_pool_farm_id: 5,
 				accumulated_rpvs: 630,
 				total_valued_shares: 47_629,
 			}),
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: 5,
 				who: ALICE,
 				claimed: 100_324,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO2_SHARE_ID,
 				amount: 87,
@@ -4183,20 +4187,20 @@ fn withdraw_shares_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 2));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::UpdateLiquidityPoolFarmAccRPVS {
+			mock::Event::LiquidityMining(Event::LiquidityPoolAccRPVSUpdated {
 				farm_id: 3,
 				liq_pool_farm_id: 4,
 				accumulated_rpvs: 315,
 				total_valued_shares: 43040,
 			}),
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: 4,
 				who: ALICE,
 				claimed: 7_472_429,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 486,
@@ -4294,14 +4298,14 @@ fn withdraw_shares_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 0, 1));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: 4,
 				who: BOB,
 				claimed: 855_771,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: BOB,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 80,
@@ -4396,14 +4400,14 @@ fn withdraw_shares_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1, 0));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: 5,
 				who: BOB,
 				claimed: 95_999,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: BOB,
 				lp_token: BSX_TO2_SHARE_ID,
 				amount: 25,
@@ -4514,14 +4518,14 @@ fn withdraw_shares_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 1, 3));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: 5,
 				who: ALICE,
 				claimed: 295_207,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO2_SHARE_ID,
 				amount: 48,
@@ -4613,7 +4617,7 @@ fn withdraw_shares_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1, 1));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: 5,
 				who: BOB,
@@ -4621,7 +4625,7 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			frame_system::Event::KilledAccount(29533360621462889584138678125).into(),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: BOB,
 				lp_token: BSX_TO2_SHARE_ID,
 				amount: 800,
@@ -4735,14 +4739,14 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 
 		let user_reward = 444_230;
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: liq_pool_id,
 				who: ALICE,
 				claimed: user_reward,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 50,
@@ -4806,14 +4810,14 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 2));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: liq_pool_id,
 				who: ALICE,
 				claimed: user_reward,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -4875,14 +4879,14 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 0, 1));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::ClaimReward {
+			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: liq_pool_id,
 				who: BOB,
 				claimed: user_reward,
 				reward_currency: BSX,
 			}),
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: BOB,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -4942,7 +4946,7 @@ fn claim_and_reward_in_same_period_should_work() {
 
 		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::ClaimReward {
+		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: LIQ_POOL_ID,
 			who: ALICE,
@@ -4976,7 +4980,7 @@ fn claim_and_reward_in_same_period_should_work() {
 		);
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 50,
@@ -5026,7 +5030,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		let shares_amount = 50;
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -5060,7 +5064,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), nft_class_id, 2));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -5093,7 +5097,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), nft_class_id, 1));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::WithdrawShares {
+			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				who: BOB,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -5179,7 +5183,7 @@ fn cancel_liquidity_pool_should_work() {
 			assets
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::CancelLiquidityPoolFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: liq_pool_id,
 			who: GC,
@@ -5231,7 +5235,7 @@ fn cancel_liquidity_pool_should_work() {
 			assets
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::CancelLiquidityPoolFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: liq_pool_id,
 			who: GC,
@@ -5363,7 +5367,7 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 			assets
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::RemoveLiquidityPoolFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolRemoved {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: liq_pool_id,
 			who: GC,
@@ -5422,7 +5426,7 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 			assets
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::RemoveLiquidityPoolFarm {
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolRemoved {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: liq_pool_id,
 			who: GC,
