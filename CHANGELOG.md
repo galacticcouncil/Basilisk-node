@@ -1,4 +1,50 @@
-# (Fri Jan 14 2022)
+# v7.0.0 (Sat Feb 12 2022)
+
+#### 🐛 Bug Fix
+
+- refactor: NFT [#283](https://github.com/galacticcouncil/Basilisk-node/pull/283) ([@green-jay](https://github.com/green-jay) [@lumir-mrkva](https://github.com/lumir-mrkva) [@enthusiastmartin](https://github.com/enthusiastmartin))
+- refactor: rename run_to_block to set_block_number [#372](https://github.com/galacticcouncil/Basilisk-node/pull/372) ([@vgantchev](https://github.com/vgantchev) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: moonbase & rococo chainspec [#371](https://github.com/galacticcouncil/Basilisk-node/pull/371) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@martinfridrich](https://github.com/martinfridrich))
+- feat: kintsugi integration [#370](https://github.com/galacticcouncil/Basilisk-node/pull/370) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: fixed runner destroy [#369](https://github.com/galacticcouncil/Basilisk-node/pull/369) ([@fakirAyoub](https://github.com/fakirAyoub) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: check fails if versions are not updated [#367](https://github.com/galacticcouncil/Basilisk-node/pull/367) ([@Roznovjak](https://github.com/Roznovjak))
+- chore: upgrade to polkadot v0.9.16 [#348](https://github.com/galacticcouncil/Basilisk-node/pull/348) ([@green-jay](https://github.com/green-jay) [@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: weights update [#360](https://github.com/galacticcouncil/Basilisk-node/pull/360) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- refactor: pin runtime pallet ids [#363](https://github.com/galacticcouncil/Basilisk-node/pull/363) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- feat: set xcm version wrapper [#356](https://github.com/galacticcouncil/Basilisk-node/pull/356) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: update local launch configs + moonriver config [#353](https://github.com/galacticcouncil/Basilisk-node/pull/353) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: change instance type from c5ad to c5a [#354](https://github.com/galacticcouncil/Basilisk-node/pull/354) ([@fakirAyoub](https://github.com/fakirAyoub))
+- feat: add proxy pallet [#292](https://github.com/galacticcouncil/Basilisk-node/pull/292) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- refactor: rename get_repay_fee [#339](https://github.com/galacticcouncil/Basilisk-node/pull/339) ([@Roznovjak](https://github.com/Roznovjak))
+- ci: Testnet deployment automation [#263](https://github.com/galacticcouncil/Basilisk-node/pull/263) ([@fakirAyoub](https://github.com/fakirAyoub) [@lumir-mrkva](https://github.com/lumir-mrkva) [@martinfridrich](https://github.com/martinfridrich))
+- chore: upgrade to polkadot v0.9.15 [#328](https://github.com/galacticcouncil/Basilisk-node/pull/328) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@green-jay](https://github.com/green-jay))
+- ci: arm build workflow [#324](https://github.com/galacticcouncil/Basilisk-node/pull/324) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: rust edition 2021 and rust toolchain update [#320](https://github.com/galacticcouncil/Basilisk-node/pull/320) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: add orml xcm pallet [#316](https://github.com/galacticcouncil/Basilisk-node/pull/316) ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- chore: latest price oracle version [#314](https://github.com/galacticcouncil/Basilisk-node/pull/314) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: tx multi payment  - revised spot price approach [#312](https://github.com/galacticcouncil/Basilisk-node/pull/312) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- ci: fix missing testing-basilisk binary in the inclusion test [#311](https://github.com/galacticcouncil/Basilisk-node/pull/311) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- fix: testing chain spec extension [#310](https://github.com/galacticcouncil/Basilisk-node/pull/310) ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- feat: make repay fee constant [#307](https://github.com/galacticcouncil/Basilisk-node/pull/307) ([@Roznovjak](https://github.com/Roznovjak) [@lumir-mrkva](https://github.com/lumir-mrkva))
+
+#### ⚠️ Pushed to `master`
+
+- testing runtime reserve transfer filter parity ([@lumir-mrkva](https://github.com/lumir-mrkva))
+- Update README.md ([@lumir-mrkva](https://github.com/lumir-mrkva))
+
+#### Authors: 7
+
+- [@green-jay](https://github.com/green-jay)
+- [@lumir-mrkva](https://github.com/lumir-mrkva)
+- Ayoub Fakir ([@fakirAyoub](https://github.com/fakirAyoub))
+- martin fridrich ([@martinfridrich](https://github.com/martinfridrich))
+- Martin Hloska ([@enthusiastmartin](https://github.com/enthusiastmartin))
+- Richard Roznovjak ([@Roznovjak](https://github.com/Roznovjak))
+- Valery Gantchev ([@vgantchev](https://github.com/vgantchev))
+
+---
+
+# v6.1.1 (Fri Jan 14 2022)
 
 #### 💥 Breaking Change
 
