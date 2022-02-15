@@ -36,6 +36,21 @@ fn non_native_fee_payment_works() {
 			asset_in: currency_0,
 			asset_out: currency_1,
 		});
+
+        assert_ok!(basilisk_runtime::Balances::set_balance(
+			basilisk_runtime::Origin::root(),
+			ALICE.into(),
+			2_000_000_000_000 * BSX,
+			0,
+		));
+
+        assert_ok!(basilisk_runtime::Tokens::set_balance(
+			basilisk_runtime::Origin::root(),
+			ALICE.into(),
+            1,
+			2_000_000_000_000 * BSX,
+			0,
+		));
 			
 		assert_ok!(basilisk_runtime::XYK::create_pool(
 			basilisk_runtime::Origin::signed(ALICE.into()),

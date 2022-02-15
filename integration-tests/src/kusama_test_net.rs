@@ -176,7 +176,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 2_000_000_000_000 * BSX),
+			(AccountId::from(ALICE), 200 * BSX),
 			(AccountId::from(BOB), 1000 * BSX),
 			(AccountId::from(CHARLIE), 1000 * BSX),
 			(AccountId::from(DAVE), 1000 * BSX)
@@ -202,7 +202,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 1, 2_000_000_000_000 * BSX),
+			(AccountId::from(ALICE), 1, 200 * BSX),
 			(AccountId::from(BOB), 1, 1_000 * BSX),
 			(AccountId::from(CHARLIE), 1, 1000 * BSX),
 			(AccountId::from(DAVE), 1, 1_000 * BSX),
