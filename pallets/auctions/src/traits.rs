@@ -2,7 +2,6 @@ pub use crate::Config;
 use codec::{Decode, Encode};
 use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
 use scale_info::TypeInfo;
-use sp_std::vec::Vec;
 
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 	fn create(&self, sender: AccountId, auction: &NftAuction) -> DispatchResult;

@@ -89,7 +89,7 @@ use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{
 		AccountIdConversion, AtLeast32BitUnsigned, Bounded, CheckedAdd, CheckedSub, MaybeSerializeDeserialize, Member,
-		One, Saturating, StaticLookup, Zero,
+		One, StaticLookup, Zero,
 	},
 	Permill,
 };
@@ -184,9 +184,9 @@ pub mod pallet {
 	pub(crate) type NextAuctionId<T: Config> = StorageValue<_, T::AuctionId, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn bidder_topup_locked_amounts)]
+	#[pallet::getter(fn reserved_amounts)]
 	/// Stores bids placed by an account on a given auction
-	pub(crate) type BidderTopUpLockedAmounts<T: Config> = StorageDoubleMap<_, Twox64Concat, T::AccountId, Twox64Concat, T::AuctionId, BalanceOf<T>, ValueQuery>;
+	pub(crate) type ReservedAmounts<T: Config> = StorageDoubleMap<_, Twox64Concat, T::AccountId, Twox64Concat, T::AuctionId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
@@ -252,7 +252,7 @@ pub mod pallet {
 		/// next_bid_min is invalid
 		InvalidNextBidMin,
 		// TopUp locked amount is invalid
-		InvalidTopUpLockedAmount,
+		InvalidReservedAmount,
 	}
 
 	#[pallet::call]
@@ -398,26 +398,22 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::claim_bids())]
-		pub fn claim_bids(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
-			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+		#[pallet::weight(<T as Config>::WeightInfo::auction_claim_locked_amounts())]
+		pub fn claim_locked_amount(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 
-				match auction {
-					Auction::English(auction_object) => {
-						Self::validate_close(&auction_object.general_data)?;
-						auction_object.close(&auction_id)?;
-					}
-					Auction::TopUp(auction_object) => {
-						Self::validate_close(&auction_object.general_data)?;
-						auction_object.close(&auction_id)?;
-					}
-				}
+			if claimable_amount > Zero::zero() {
+				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+					&Pallet::<T>::get_auction_subaccount_id(&auction_id),
+					&bidder,
+					claimable_amount,
+					ExistenceRequirement::AllowDeath,
+				)?;
 
-				Self::deposit_event(Event::AuctionClosed(auction_id));
+				<ReservedAmounts<T>>::remove(bidder, auction_id);
+			}
 
-				Ok(())
-			})
+			Ok(())
 		}
 	}
 }
@@ -769,12 +765,6 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// Also registers individual bids for the final settlement
 	///
 	fn bid(&mut self, auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
-		// let mut transfer_amount = bid.amount.clone();
-
-		// if let Some(last_bid) = &self.general_data.last_bid {
-		// 	transfer_amount = transfer_amount.saturating_sub(last_bid.1);
-		// }
-
 		// Trasnfer funds to the subaccount of the auction
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 			&bidder,
@@ -784,13 +774,14 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		)?;
 
 		self.general_data.last_bid = Some((bidder.clone(), bid.amount));
+
 		// Set next minimal bid
 		Pallet::<T>::set_next_bid_min(&mut self.general_data, bid.amount)?;
 
-		<BidderTopUpLockedAmounts<T>>::try_mutate(&bidder, auction_id, |locked_amount| -> DispatchResult {
+		<ReservedAmounts<T>>::try_mutate(&bidder, auction_id, |locked_amount| -> DispatchResult {
 			*locked_amount = locked_amount
 				.checked_add(&bid.amount)
-				.ok_or(Error::<T>::InvalidTopUpLockedAmount)?;
+				.ok_or(Error::<T>::InvalidReservedAmount)?;
 
 			Ok(())
 		})?;

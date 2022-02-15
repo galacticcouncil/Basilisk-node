@@ -1169,10 +1169,10 @@ fn bid_topup_auction_should_work() {
 		}
 
 		// Bids on TopUp auctions are stored in order to validate the claim_bids extrinsic
-		let locked_amount_bob = AuctionsModule::bidder_topup_locked_amounts(BOB, 0);
+		let locked_amount_bob = AuctionsModule::reserved_amounts(BOB, 0);
 		assert_eq!(locked_amount_bob, 2500);
 
-		let locked_amount_charlie = AuctionsModule::bidder_topup_locked_amounts(CHARLIE, 0);
+		let locked_amount_charlie = AuctionsModule::reserved_amounts(CHARLIE, 0);
 		assert_eq!(locked_amount_charlie, 1_100);
 	});
 }
@@ -1328,5 +1328,92 @@ fn close_topup_auction_which_is_already_closed_should_not_work() {
 			AuctionsModule::close(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionClosed,
 		);
+	});
+}
+
+
+/// Claiming locked amount from a TopUp auction without winner
+///
+/// Happy path
+/// 
+/// 
+#[test]
+fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.reserve_price = Some(1_500);
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(11);
+
+		
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		run_to_block::<Test>(12);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+
+		run_to_block::<Test>(22);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		// Bob claims
+		let bob_balance_before = Balances::free_balance(&BOB);
+		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
+
+		assert_ok!(AuctionsModule::claim_locked_amount(
+			Origin::signed(BOB),
+			BOB,
+			0
+		));
+
+		let bob_balance_after = Balances::free_balance(&BOB);
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+
+		assert_eq!(bob_balance_before.saturating_add(1000), bob_balance_after);
+		assert_eq!(auction_subaccount_balance_before.saturating_sub(1000), auction_subaccount_balance_after);
+
+		// Bob cannot claim twice
+		let bob_balance_before = Balances::free_balance(&BOB);
+		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
+
+		assert_ok!(AuctionsModule::claim_locked_amount(
+			Origin::signed(BOB),
+			BOB,
+			0
+		));
+
+		let bob_balance_after = Balances::free_balance(&BOB);
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+
+		assert_eq!(bob_balance_before, bob_balance_after);
+		assert_eq!(auction_subaccount_balance_before, auction_subaccount_balance_after);
+
+		// Bob claims for Charlie
+		let charlie_balance_before = Balances::free_balance(&CHARLIE);
+
+		assert_ok!(AuctionsModule::claim_locked_amount(
+			Origin::signed(BOB),
+			CHARLIE,
+			0
+		));
+
+		let charlie_balance_after = Balances::free_balance(&CHARLIE);
+		assert_eq!(charlie_balance_before.saturating_add(1100), charlie_balance_after);
+
+		let final_auction_account_balance = Balances::free_balance(&get_auction_subaccount_id(0));
+		assert_eq!(final_auction_account_balance, Zero::zero());
 	});
 }
