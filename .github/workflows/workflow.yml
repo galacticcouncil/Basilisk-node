@@ -110,7 +110,7 @@ jobs:
         run: |
           cp target/release/basilisk target/release/testing-basilisk
           chmod +x ./target/release/testing-basilisk
-          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.jsons
+          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.json
       - name: Upload config file
         uses: actions/upload-artifact@v2
         with:
