@@ -66,9 +66,9 @@ fn non_native_fee_payment_works() {
 		let spot_price = XYKSpotPrice::<basilisk_runtime::Runtime>::spot_price(currency_0, currency_1);
 		assert_eq!(spot_price, Some(Price::from_float(2.0)));
 
-		basilisk_runtime::PriceOracle::on_finalize(1u32.into());
+		basilisk_runtime::PriceOracle::on_finalize(1u32);
 		basilisk_runtime::PriceOracle::on_initialize(2);
-		basilisk_runtime::System::set_block_number(2u32.into());
+		basilisk_runtime::System::set_block_number(2u32);
 
 		assert_ok!(basilisk_runtime::XYK::buy(
 			basilisk_runtime::Origin::signed(ALICE.into()),
@@ -79,7 +79,7 @@ fn non_native_fee_payment_works() {
 			false,
 		));
 
-		basilisk_runtime::PriceOracle::on_finalize(2u32.into());
+		basilisk_runtime::PriceOracle::on_finalize(2u32);
 
 		assert_eq!(basilisk_runtime::XYK::get_pool_assets(&pair_account), Some(vec![currency_0, currency_1]));
 		
@@ -111,8 +111,8 @@ fn non_native_fee_payment_works() {
 
 		for i in 3..11 {
             basilisk_runtime::PriceOracle::on_initialize(i);
-            basilisk_runtime::System::set_block_number(i.into());
-            basilisk_runtime::PriceOracle::on_finalize(i.into());
+            basilisk_runtime::System::set_block_number(i);
+            basilisk_runtime::PriceOracle::on_finalize(i);
         }
 
 		let pair_name = basilisk_runtime::PriceOracle::get_name(currency_0, currency_1);
