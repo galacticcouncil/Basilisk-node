@@ -184,9 +184,9 @@ pub mod pallet {
 	pub(crate) type NextAuctionId<T: Config> = StorageValue<_, T::AuctionId, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn bids)]
+	#[pallet::getter(fn bidder_topup_locked_amounts)]
 	/// Stores bids placed by an account on a given auction
-	pub(crate) type Bids<T: Config> = StorageDoubleMap<_, Twox64Concat, T::AccountId, Twox64Concat, T::AuctionId, Bid<T>, OptionQuery>;
+	pub(crate) type BidderTopUpLockedAmounts<T: Config> = StorageDoubleMap<_, Twox64Concat, T::AccountId, Twox64Concat, T::AuctionId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
@@ -251,6 +251,8 @@ pub mod pallet {
 		NoChangeOfAuctionType,
 		/// next_bid_min is invalid
 		InvalidNextBidMin,
+		// TopUp locked amount is invalid
+		InvalidTopUpLockedAmount,
 	}
 
 	#[pallet::call]
@@ -785,7 +787,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		// Set next minimal bid
 		Pallet::<T>::set_next_bid_min(&mut self.general_data, bid.amount)?;
 
-		<Bids<T>>::insert(bidder, auction_id, bid);
+		<BidderTopUpLockedAmounts<T>>::try_mutate(&bidder, auction_id, |locked_amount| -> DispatchResult {
+			*locked_amount = locked_amount
+				.checked_add(&bid.amount)
+				.ok_or(Error::<T>::InvalidTopUpLockedAmount)?;
+
+			Ok(())
+		})?;
 
 		// Avoid auction sniping
 		Pallet::<T>::avoid_auction_sniping(&mut self.general_data)?;
@@ -818,10 +826,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
 				pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
 
+				let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+				let transfer_amount = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+
 				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-					&Pallet::<T>::get_auction_subaccount_id(auction_id),
+					auction_account,
 					&self.general_data.owner,
-					winner.1,
+					transfer_amount,
 					ExistenceRequirement::AllowDeath,
 				)?;
 			}

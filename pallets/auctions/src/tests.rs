@@ -556,10 +556,6 @@ fn bid_english_auction_should_work() {
 			// Auction time is extended with 1 block when end time is less than 10 blocks away
 			assert_eq!(data.general_data.end, 22u64);
 		}
-
-		// In the case of English auction, storing individual bids is not necessary
-		let bid = AuctionsModule::bids(CHARLIE, 0);
-		assert_eq!(bid, None);
 	});
 }
 
@@ -1144,23 +1140,40 @@ fn bid_topup_auction_should_work() {
 		assert_eq!(auction_subaccount_balance_before.saturating_add(2_100), auction_subaccount_balance_after);
 		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 
+		// Third bidder = First bidder
+		run_to_block::<Test>(14);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_500_u32)
+		));
+		expect_event(
+			crate::Event::<Test>::BidPlaced(0, BOB, bid_object(1500, 14))
+		);
+
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+		let bob_balance_after = Balances::free_balance(&BOB);
+
+		// The difference between bid amount and last bid is transferred to the auction subaccount
+		assert_eq!(auction_subaccount_balance_before.saturating_add(3_600), auction_subaccount_balance_after);
+		assert_eq!(bob_balance_before.saturating_sub(2_500), bob_balance_after);
+
 		let auction = AuctionsModule::auctions(0).unwrap();
 		if let Auction::TopUp(data) = auction {
 			// Next bid step is updated
-			assert_eq!(data.general_data.next_bid_min, 1210);
+			assert_eq!(data.general_data.next_bid_min, 1650);
 
 			// Auction time is extended with 1 block when end time is less than 10 blocks away
-			assert_eq!(data.general_data.end, 22u64);
+			assert_eq!(data.general_data.end, 24u64);
 		}
 
 		// Bids on TopUp auctions are stored in order to validate the claim_bids extrinsic
-		let bid = AuctionsModule::bids(BOB, 0).unwrap();
-		assert_eq!(bid.amount, 1000);
-		assert_eq!(bid.block_number, 11);
+		let locked_amount_bob = AuctionsModule::bidder_topup_locked_amounts(BOB, 0);
+		assert_eq!(locked_amount_bob, 2500);
 
-		let bid = AuctionsModule::bids(CHARLIE, 0).unwrap();
-		assert_eq!(bid.amount, 1_100);
-		assert_eq!(bid.block_number, 12);
+		let locked_amount_charlie = AuctionsModule::bidder_topup_locked_amounts(CHARLIE, 0);
+		assert_eq!(locked_amount_charlie, 1_100);
 	});
 }
 
@@ -1206,7 +1219,7 @@ fn close_topup_auction_with_winner_should_work() {
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 
 		// transfer all funds from bids to the seller
-		assert_eq!(alice_balance_before.saturating_add(1_100), alice_balance_after);
+		assert_eq!(alice_balance_before.saturating_add(2_100), alice_balance_after);
 		assert_eq!(bob_balance_before.saturating_sub(1000), bob_balance_after);
 		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 		assert_eq!(auction_subaccount_balance_before.saturating_sub(2_100), auction_subaccount_balance_after);
