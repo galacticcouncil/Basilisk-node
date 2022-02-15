@@ -4,7 +4,6 @@ use primitives::nft::ClassType;
 
 use super::*;
 use mock::*;
-use pallet_uniques as UNQ;
 use std::convert::TryInto;
 
 type NFTPallet = Pallet<Test>;
@@ -17,28 +16,39 @@ fn create_class_works() {
 
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
+			CLASS_ID_0,
 			Default::default(),
 			metadata.clone()
 		));
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
+			CLASS_ID_1,
 			ClassType::Marketplace,
 			metadata.clone()
 		));
 		assert_noop!(
-			NFTPallet::create_class(Origin::signed(ALICE), ClassType::LiquidityMining, metadata.clone()),
+			NFTPallet::create_class(
+				Origin::signed(ALICE),
+				CLASS_ID_2,
+				ClassType::LiquidityMining,
+				metadata.clone()
+			),
 			Error::<Test>::NotPermitted
 		);
 		assert_ok!(NFTPallet::do_create_class(
 			ALICE,
+			CLASS_ID_2,
 			ClassType::LiquidityMining,
 			metadata.clone()
 		));
-
-		NextClassId::<Test>::mutate(|id| *id = <Test as UNQ::Config>::ClassId::max_value());
 		assert_noop!(
-			NFTPallet::create_class(Origin::signed(ALICE), Default::default(), metadata),
-			Error::<Test>::NoAvailableClassId
+			NFTPallet::create_class(
+				Origin::signed(ALICE),
+				CLASS_ID_RESERVED,
+				ClassType::Marketplace,
+				metadata
+			),
+			Error::<Test>::IdReserved
 		);
 	})
 }
@@ -51,35 +61,43 @@ fn mint_works() {
 
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
+			CLASS_ID_0,
 			Default::default(),
 			metadata.clone()
 		));
 		assert_ok!(NFTPallet::do_create_class(
 			ALICE,
+			CLASS_ID_1,
 			ClassType::LiquidityMining,
 			metadata.clone()
 		));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
-		assert_ok!(NFTPallet::mint(Origin::signed(BOB), CLASS_ID_0));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(BOB),
+			CLASS_ID_0,
+			INSTANCE_ID_1,
+			metadata.clone()
+		));
 		assert_noop!(
-			NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_1),
+			NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_1, INSTANCE_ID_2, metadata.clone()),
 			Error::<Test>::NotPermitted
 		);
-		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1));
+		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1, INSTANCE_ID_2, metadata.clone()));
 
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
+			CLASS_ID_2,
 			Default::default(),
-			metadata
+			metadata.clone()
 		));
 		assert_noop!(
-			NFTPallet::mint(Origin::signed(ALICE), NON_EXISTING_CLASS_ID),
+			NFTPallet::mint(Origin::signed(ALICE), NON_EXISTING_CLASS_ID, INSTANCE_ID_0, metadata),
 			Error::<Test>::ClassUnknown
-		);
-		NextInstanceId::<Test>::mutate(CLASS_ID_0, |id| *id = <Test as UNQ::Config>::InstanceId::max_value());
-		assert_noop!(
-			NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0),
-			Error::<Test>::NoAvailableInstanceId
 		);
 
 		assert_noop!(
@@ -97,28 +115,49 @@ fn transfer_works() {
 
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
+			CLASS_ID_0,
 			Default::default(),
 			metadata.clone()
 		));
-		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
+		assert_ok!(NFTPallet::do_create_class(
+			ALICE,
+			CLASS_ID_1,
+			ClassType::LiquidityMining,
+			metadata.clone()
+		));
 		assert_eq!(Balances::free_balance(ALICE), 190_000 * BSX);
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
-		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1,));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::do_mint(ALICE, CLASS_ID_1, INSTANCE_ID_0, metadata));
 		assert_eq!(Balances::free_balance(ALICE), 189_900 * BSX);
-		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0, BOB));
+		assert_ok!(NFTPallet::transfer(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			BOB
+		));
 		assert_noop!(
-			NFTPallet::transfer(Origin::signed(CHARLIE), CLASS_ID_0, TOKEN_ID_0, ALICE),
+			NFTPallet::transfer(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0, ALICE),
 			Error::<Test>::NotPermitted
 		);
-		assert_ok!(NFTPallet::transfer(Origin::signed(ALICE), CLASS_ID_1, TOKEN_ID_0, BOB));
-		assert_ok!(NFTPallet::do_transfer(CLASS_ID_1, TOKEN_ID_0, BOB, CHARLIE));
+		assert_ok!(NFTPallet::transfer(
+			Origin::signed(ALICE),
+			CLASS_ID_1,
+			INSTANCE_ID_0,
+			BOB
+		));
+		assert_ok!(NFTPallet::do_transfer(CLASS_ID_1, INSTANCE_ID_0, BOB, CHARLIE));
 		assert_eq!(Balances::free_balance(BOB), 150_000 * BSX);
-		assert_ok!(NFTPallet::transfer(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID_0, BOB));
+		assert_ok!(NFTPallet::transfer(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0, BOB));
 		assert_eq!(Balances::free_balance(BOB), 150_000 * BSX);
 		assert_ok!(NFTPallet::transfer(
 			Origin::signed(BOB),
 			CLASS_ID_0,
-			TOKEN_ID_0,
+			INSTANCE_ID_0,
 			CHARLIE
 		));
 		assert_eq!(Balances::free_balance(ALICE), 189_900 * BSX);
@@ -135,23 +174,34 @@ fn burn_works() {
 
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
+			CLASS_ID_0,
 			Default::default(),
 			metadata.clone()
 		));
-		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
-		assert_ok!(NFTPallet::do_mint(BOB, CLASS_ID_1));
+		assert_ok!(NFTPallet::do_create_class(
+			ALICE,
+			CLASS_ID_1,
+			ClassType::LiquidityMining,
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::do_mint(BOB, CLASS_ID_1, INSTANCE_ID_0, metadata));
 
 		assert_noop!(
-			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_0, TOKEN_ID_0),
+			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0),
 			Error::<Test>::NotPermitted
 		);
 		assert_noop!(
-			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_1, TOKEN_ID_0),
+			NFTPallet::burn(Origin::signed(BOB), CLASS_ID_1, INSTANCE_ID_0),
 			Error::<Test>::NotPermitted
 		);
 
-		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0));
 	});
 }
 
@@ -163,26 +213,37 @@ fn destroy_class_works() {
 
 		assert_ok!(NFTPallet::create_class(
 			Origin::signed(ALICE),
+			CLASS_ID_0,
 			Default::default(),
 			metadata.clone()
 		));
-		assert_ok!(NFTPallet::do_create_class(ALICE, ClassType::LiquidityMining, metadata));
-		assert_ok!(NFTPallet::mint(Origin::signed(ALICE), CLASS_ID_0));
-		assert_ok!(NFTPallet::do_mint(BOB, CLASS_ID_1));
+		assert_ok!(NFTPallet::do_create_class(
+			ALICE,
+			CLASS_ID_1,
+			ClassType::LiquidityMining,
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::mint(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			metadata.clone()
+		));
+		assert_ok!(NFTPallet::do_mint(BOB, CLASS_ID_1, INSTANCE_ID_0, metadata));
 
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
 			Error::<Test>::TokenClassNotEmpty
 		);
 
-		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, TOKEN_ID_0));
+		assert_ok!(NFTPallet::burn(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0));
 		assert_ok!(NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0));
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_1),
 			Error::<Test>::NotPermitted
 		);
-		assert_ok!(NFTPallet::do_burn(BOB, CLASS_ID_1, TOKEN_ID_0));
-		assert_ok!(NFTPallet::do_destroy_class(CLASS_ID_1));
+		assert_ok!(NFTPallet::do_burn(BOB, CLASS_ID_1, INSTANCE_ID_0));
+		assert_ok!(NFTPallet::do_destroy_class(ALICE, CLASS_ID_1));
 		assert_noop!(
 			NFTPallet::destroy_class(Origin::signed(ALICE), CLASS_ID_0),
 			Error::<Test>::ClassUnknown

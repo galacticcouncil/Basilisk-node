@@ -32,7 +32,7 @@ use frame_system::EnsureSigned;
 use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, AssetId, Balance,
+	AssetId, Balance,
 };
 
 pub type Amount = i128;
@@ -70,7 +70,7 @@ frame_support::construct_runtime!(
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const HDXAssetId: AssetId = HDX;
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
 	pub RegistryStringLimit: u32 = 100;
 }
 
@@ -98,6 +98,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_type_with_key! {

@@ -50,7 +50,7 @@ pub mod weights;
 
 pub use pallet::*;
 
-type PoolId = u32;
+type PoolId = u128;     //TODO: change this back after implementing nft sequencer
 type GlobalPoolId = PoolId;
 type PoolMultiplier = FixedU128;
 
@@ -194,7 +194,7 @@ impl Default for LoyaltyCurve {
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
-pub struct Deposit<T: Config> {
+pub struct Deposit<T:Config> {
 	shares: Balance,
 	valued_shares: Balance,
 	accumulated_rpvs: Balance,
@@ -223,6 +223,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 
 	#[pallet::pallet]
+    #[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::hooks]
@@ -230,7 +231,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config + TypeInfo + pallet_nft::Config<ClassType = primitives::nft::ClassType>
+		frame_system::Config + TypeInfo + pallet_nft::Config<ClassType = ClassType, NftClassId = primitives::ClassId, NftInstanceId = primitives::InstanceId> 
 	{
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
@@ -665,7 +666,8 @@ pub mod pallet {
 				let pallet_account = Self::account_id();
 				let (nft_class, _) = pallet_nft::Pallet::<T>::do_create_class(
 					pallet_account,
-					ClassType::LiquidityMining,
+                    0_u128,   //TODO: change this 
+                    ClassType::LiquidityMining,  
 					vec![].try_into().unwrap(),
 				)?;
 				<NftClassData<T>>::insert(nft_class, (asset_pair, 0, global_pool.id));
@@ -893,20 +895,6 @@ pub mod pallet {
 							unpaid_rew,
 						)?;
 
-						<NftClassData<T>>::try_mutate_exists(
-							liq_pool.nft_class,
-							|maybe_nft_class| -> DispatchResultWithPostInfo {
-								//This should never happen. LiqPool can't exist without nft class.
-								let (_, nfts_in_class, _) = maybe_nft_class.ok_or(Error::<T>::NftClassDoesNotExists)?;
-
-								if nfts_in_class.is_zero() {
-									*maybe_nft_class = None;
-									pallet_nft::Pallet::<T>::do_destroy_class(liq_pool.nft_class)?;
-								}
-
-								Ok(().into())
-							},
-						)?;
 						Ok(().into())
 					})?;
 
@@ -982,7 +970,8 @@ pub mod pallet {
 					let pallet_account = Self::account_id();
 					T::MultiCurrency::transfer(amm_share_token, &who, &pallet_account, shares_amount)?;
 
-					let nft_id = pallet_nft::Pallet::<T>::do_mint(who.clone(), liq_pool.nft_class)?;
+                    let nft_id = Self::get_next_id()?; //TODO: update this with nft id sequencer
+					let _ = pallet_nft::Pallet::<T>::do_mint(who.clone(), liq_pool.nft_class, nft_id, vec![].try_into().unwrap())?;
 
 					let d = Deposit::new(shares_amount, valued_shares, liq_pool.accumulated_rpvs, now_period);
 					<DepositData<T>>::insert(&liq_pool.nft_class, &nft_id, d);
@@ -1024,7 +1013,7 @@ pub mod pallet {
 			<DepositData<T>>::try_mutate(nft_class_id, nft_id, |maybe_nft| {
 				let deposit = maybe_nft.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
 
-				let nft_owner = pallet_nft::Pallet::<T>::instance_owner(nft_class_id, nft_id)
+				let nft_owner = pallet_nft::Pallet::<T>::owner(nft_class_id, nft_id)
 					.ok_or(Error::<T>::CantFindDepositOwner)?;
 
 				ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
@@ -1071,7 +1060,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			let nft_owner = pallet_nft::Pallet::<T>::instance_owner(nft_class_id, nft_id)
+			let nft_owner = pallet_nft::Pallet::<T>::owner(nft_class_id, nft_id)
 				.ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
@@ -1190,9 +1179,11 @@ pub mod pallet {
 					*maybe_nft = None;
 					pallet_nft::Pallet::<T>::do_burn(who, nft_class_id, nft_id)?;
 
+                    //TODO: rewrite this, nft class will be never destroyed, there will be only 1
+                    //class per whole pallet
 					if nfts_in_class.is_one() && can_destroy_nft_class {
-						*maybe_nft_class = None;
-						pallet_nft::Pallet::<T>::do_destroy_class(nft_class_id)?;
+						//*maybe_nft_class = None;
+						//pallet_nft::Pallet::<T>::do_destroy_class(nft_class_id)?;
 					} else {
 						*maybe_nft_class = Some((
 							asset_pair,

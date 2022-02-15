@@ -58,8 +58,7 @@ pub struct Extensions {
 
 impl Extensions {
 	/// Try to get the extension from the given `ChainSpec`.
-	#[allow(clippy::borrowed_box)]
-	pub fn try_get(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Option<&Self> {
+	pub fn try_get(chain_spec: &dyn sc_service::ChainSpec) -> Option<&Self> {
 		sc_chain_spec::get_extension(chain_spec.extensions())
 	}
 }
@@ -176,6 +175,8 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 		),
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
@@ -186,7 +187,7 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 	))
 }
 
-pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -221,7 +222,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				// Pre-funded accounts
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				//technical committee
@@ -230,6 +231,7 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				vec![],
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 			)
 		},
 		// Bootnodes
@@ -254,17 +256,19 @@ pub fn testnet_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		),
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
 		Extensions {
 			relay_chain: "westend".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
-pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn parachain_development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -301,7 +305,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -314,6 +318,7 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
 		// Bootnodes
@@ -322,19 +327,102 @@ pub fn parachain_development_config(para_id: ParaId) -> Result<ChainSpec, String
 		None,
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-dev".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
+		},
+	))
+}
+
+pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
+	let para_id = 2038;
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+	let mut properties = Map::new();
+	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
+	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
+
+	Ok(ChainSpec::from_genesis(
+		// Name
+		"Basilisk testnet",
+		// ID
+		"basilisk_rococo",
+		ChainType::Live,
+		move || {
+			testnet_parachain_genesis(
+				wasm_binary,
+				// Sudo account
+				// 5DF1gbttx4k7NWsJUid7VjDEEcCeaTsYZFd6oATtbfNxEscd
+				hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(),
+				//initial authorities & invulnerables
+				vec![
+					(
+						// 5CcMLZnK8RNMfurDsRXHwtabSKt8ZmG3ry5G3sAeRXfj4QK2
+						hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].into(),
+						hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].unchecked_into(),
+					),
+					(
+						// 5CfHZGU9iFpv2mRd9jBDu1VT6yNPFL3xsjnk971bsGBmuZ8x
+						hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].into(),
+						hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].unchecked_into(),
+					),
+				],
+				// Pre-funded accounts
+				vec![
+					hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(), // sudo
+					hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].into(), // collator-01
+					hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].into(), // collator-02
+				],
+				true,
+				para_id.into(),
+				//technical committee
+				vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()], // same as sudo
+				vec![],
+				hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(), // same as sudo
+				vec![],
+				vec![],
+				vec![],
+				vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()],
+			)
+		},
+		// Bootnodes
+		vec![
+			"/dns/p2p-01.basilisk-rococo.hydradx.io/tcp/30333/p2p/12D3KooWPr6PPDFpnY3A4mVE1nNfxQcLAzM98g9tVqNbv3ErZoCV"
+				.parse()
+				.unwrap(),
+			"/dns/p2p-02.basilisk-rococo.hydradx.io/tcp/30333/p2p/12D3KooWN39qskQYQkXVHnAdpCbrRQDQTomUTVv9WjnWCagZroY4"
+				.parse()
+				.unwrap(),
+		],
+		// Telemetry
+		Some(
+			TelemetryEndpoints::new(vec![
+				(TELEMETRY_URLS[0].to_string(), 0),
+				(TELEMETRY_URLS[1].to_string(), 0),
+			])
+			.expect("Telemetry url is valid"),
+		),
+		// Protocol ID
+		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
+		// Properties
+		Some(properties),
+		// Extensions
+		Extensions {
+			relay_chain: "rococo".into(),
+			para_id,
 		},
 	))
 }
 
 // This is used when benchmarking pallets
 // Originally dev config was used - but benchmarking needs empty asset registry
-pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -371,7 +459,7 @@ pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, Strin
 					get_account_id_from_seed::<sr25519::Public>("Duster"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -384,6 +472,7 @@ pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, Strin
 				get_vesting_config_for_test(),
 				vec![],
 				vec![],
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
 		// Bootnodes
@@ -392,17 +481,19 @@ pub fn benchmarks_development_config(para_id: ParaId) -> Result<ChainSpec, Strin
 		None,
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-dev".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
 
-pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
+pub fn local_parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
 	let mut properties = Map::new();
@@ -447,7 +538,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 				],
 				true,
-				para_id,
+				PARA_ID.into(),
 				//council
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				//technical_committe
@@ -460,6 +551,7 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
 		// Bootnodes
@@ -468,12 +560,14 @@ pub fn local_parachain_config(para_id: ParaId) -> Result<ChainSpec, String> {
 		None,
 		// Protocol ID
 		Some(PROTOCOL_ID),
+		// Fork ID
+		None,
 		// Properties
 		Some(properties),
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(),
-			para_id: para_id.into(),
+			para_id: PARA_ID,
 		},
 	))
 }
@@ -492,7 +586,6 @@ fn parachain_genesis(
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.
@@ -511,7 +604,7 @@ fn parachain_genesis(
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.
-			key: root_key,
+			key: Some(root_key),
 		},
 		collator_selection: CollatorSelectionConfig {
 			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
@@ -542,7 +635,8 @@ fn parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			fallback_account: tx_fee_payment_account,
+			fallback_account: Some(tx_fee_payment_account),
+			account_currencies: vec![],
 		},
 		tokens: TokensConfig { balances: vec![] },
 		treasury: Default::default(),
@@ -574,9 +668,10 @@ fn parachain_genesis(
 		aura_ext: Default::default(),
 		duster: DusterConfig {
 			account_blacklist: vec![hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()],
-			reward_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
-			dust_account: hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(),
+			reward_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
+			dust_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
 		},
+		polkadot_xcm: Default::default(),
 	}
 }
 
@@ -593,12 +688,12 @@ fn testnet_parachain_genesis(
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
 	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
+	elections: Vec<AccountId>,
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.
@@ -610,7 +705,7 @@ fn testnet_parachain_genesis(
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.
-			key: root_key,
+			key: Some(root_key),
 		},
 		collator_selection: CollatorSelectionConfig {
 			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
@@ -635,33 +730,37 @@ fn testnet_parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			asset_names: registered_assets,
+			asset_names: registered_assets.clone(),
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: accepted_assets,
-			fallback_account: tx_fee_payment_account,
+			fallback_account: Some(tx_fee_payment_account),
+			account_currencies: vec![],
 		},
 		tokens: TokensConfig {
-			balances: endowed_accounts
-				.iter()
-				.flat_map(|x| {
-					vec![
-						(x.clone(), 1, 1_000_000_000u128 * UNITS),
-						(x.clone(), 2, 1_000_000_000u128 * UNITS),
-					]
-				})
-				.collect(),
+			balances: if registered_assets.is_empty() {
+				vec![]
+			} else {
+				endowed_accounts
+					.iter()
+					.flat_map(|x| {
+						vec![
+							(x.clone(), 1, 1_000_000_000u128 * UNITS),
+							(x.clone(), 2, 1_000_000_000u128 * UNITS),
+						]
+					})
+					.collect()
+			},
 		},
 
 		treasury: Default::default(),
 		elections: ElectionsConfig {
-			// Intergalactic elections
-			members: vec![(
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				100_000_000u128 * UNITS,
-			)],
+			members: elections
+				.iter()
+				.flat_map(|x| vec![(x.clone(), 100_000_000u128 * UNITS)])
+				.collect(),
 		},
 		council: CouncilConfig {
 			members: council_members,
@@ -676,8 +775,9 @@ fn testnet_parachain_genesis(
 		aura_ext: Default::default(),
 		duster: DusterConfig {
 			account_blacklist: vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
-			reward_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
-			dust_account: get_account_id_from_seed::<sr25519::Public>("Duster"),
+			reward_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
+			dust_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 		},
+		polkadot_xcm: Default::default(),
 	}
 }

@@ -101,7 +101,6 @@
 	"parachains": [
 		{
 			"bin": "../target/release/basilisk",
-			"id": "2084",
 			"chain":"local",
 			"nodes": [
 				{
@@ -132,7 +131,6 @@
 		},
 		{
 			"bin": "../../Acala/target/release/acala",
-			"id": "2000",
 			"chain": "karura-dev",
 			"nodes": [
 				{
@@ -152,14 +150,14 @@
 	],
 	"hrmpChannels": [
 		{
-			"sender": 2084,
+			"sender": 2090,
 			"recipient": 2000,
 			"maxCapacity": 8,
 			"maxMessageSize": 1024
 		},
 		{
 			"sender": 2000,
-			"recipient": 2084,
+			"recipient": 2090,
 			"maxCapacity": 8,
 			"maxMessageSize": 1024
 		}

@@ -18,7 +18,7 @@ use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain
 decl_test_relay_chain! {
 	pub struct KusamaRelay {
 		Runtime = kusama_runtime::Runtime,
-		XcmConfig = kusama_runtime::XcmConfig,
+		XcmConfig = kusama_runtime::xcm_config::XcmConfig,
 		new_ext = kusama_ext(),
 	}
 }
@@ -27,6 +27,8 @@ decl_test_parachain! {
 	pub struct Basilisk{
 		Runtime = basilisk_runtime::Runtime,
 		Origin = basilisk_runtime::Origin,
+		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
+		DmpMessageHandler = basilisk_runtime::DmpQueue,
 		new_ext = basilisk_ext(),
 	}
 }
@@ -35,6 +37,8 @@ decl_test_parachain! {
 	pub struct Hydra{
 		Runtime = basilisk_runtime::Runtime,
 		Origin = basilisk_runtime::Origin,
+		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
+		DmpMessageHandler = basilisk_runtime::DmpQueue,
 		new_ext = hydra_ext(),
 	}
 }
@@ -51,8 +55,9 @@ decl_test_network! {
 
 fn default_parachains_host_configuration() -> HostConfiguration<BlockNumber> {
 	HostConfiguration {
-		validation_upgrade_frequency: 1u32,
-		validation_upgrade_delay: 1,
+		minimum_validation_upgrade_delay: 5,
+		validation_upgrade_cooldown: 5u32,
+		validation_upgrade_delay: 5,
 		code_retention_period: 1200,
 		max_code_size: MAX_CODE_SIZE,
 		max_pov_size: MAX_POV_SIZE,
@@ -142,6 +147,15 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
+	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+		&pallet_xcm::GenesisConfig {
+			safe_xcm_version: Some(2),
+		},
+		&mut t,
+	)
+	.unwrap();
+
+
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext
@@ -182,6 +196,15 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
+
+	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+		&pallet_xcm::GenesisConfig {
+			safe_xcm_version: Some(2),
+		},
+		&mut t,
+	)
+	.unwrap();
+
 
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));

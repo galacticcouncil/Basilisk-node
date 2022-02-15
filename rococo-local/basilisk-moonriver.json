@@ -1,0 +1,159 @@
+{
+	"relaychain": {
+		"bin": "../../polkadot/target/release/polkadot",
+		"chain": "rococo-local",
+		"nodes": [
+			{
+				"name": "alice",
+				"wsPort": 9944,
+				"port": 30444,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "bob",
+				"wsPort": 9955,
+				"port": 30555,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "charlie",
+				"wsPort": 9966,
+				"port": 30666,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "dave",
+				"wsPort": 9967,
+				"port": 30667,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "ferdie",
+				"wsPort": 9968,
+				"port": 30668,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "eve",
+				"wsPort": 9969,
+				"port": 30669,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "one",
+				"wsPort": 9970,
+				"port": 30670,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			},
+			{
+				"name": "two",
+				"wsPort": 9971,
+				"port": 30671,
+				"flags": [
+					"--unsafe-ws-external",
+					"--unsafe-rpc-external",
+					"--rpc-cors=all"
+				]
+			}
+		],
+		"genesis": {
+			"runtime": {
+				"runtime_genesis_config": {
+					"parachainsConfiguration": {
+						"config": {
+							"validation_upgrade_frequency": 1,
+							"validation_upgrade_delay": 1
+						}
+					}
+				}
+			}
+		}
+	},
+	"simpleParachains": [],
+	"parachains": [
+		{
+			"bin": "../target/release/basilisk",
+			"chain":"local",
+			"nodes": [
+				{
+					"wsPort": 9988,
+					"port": 31200,
+					"name": "alice",
+					"flags": [
+						"--log=debug",
+						"--unsafe-ws-external",
+						"--unsafe-rpc-external",
+						"--rpc-cors=all",
+						"--",
+						"--execution=wasm"
+					]
+				},
+				{
+					"wsPort": 9977,
+					"port": 31201,
+					"name": "bob",
+					"flags": [
+						"--log=debug",
+						"--unsafe-ws-external",
+						"--unsafe-rpc-external",
+						"--rpc-cors=all",
+						"--",
+						"--execution=wasm"
+					]
+				}
+			]
+		},
+		{
+			"bin": "../moonbeam/target/release/moonbeam",
+			"chain": "moonriver-local",
+			"nodes": [
+				{
+					"wsPort": 9999,
+					"port": 31300,
+					"name": "alice",
+					"flags": [
+						"--log=debug",
+						"--unsafe-ws-external",
+						"--unsafe-rpc-external",
+						"--rpc-cors=all",
+						"--",
+						"--execution=wasm"
+					]
+				}
+			]
+		}
+	],
+	"hrmpChannels": [
+	],
+	"types": {},
+	"finalization": false
+}
+

@@ -142,6 +142,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 pub struct Amm;
@@ -154,6 +155,10 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 	fn get_max_out_ratio() -> u128 {
 		0_u32.into()
 	}
+
+    fn get_fee(pool_account_id: &AccountId) -> (u32, u32) {
+        (0, 0) 
+    }
 
 	fn get_max_in_ratio() -> u128 {
 		0_u32.into()
@@ -257,16 +262,20 @@ impl Config for Test {
 	type AMM = Amm;
 }
 
+parameter_types! {
+	pub ReserveClassIdUpTo: u128 = 999;
+}
+
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type TokenDeposit = InstanceDeposit;
-	type NftClassId = u32;
-	type NftInstanceId = u32;
+	type NftClassId = primitives::ClassId;
+	type NftInstanceId = primitives::InstanceId;
 	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
+    type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {
@@ -287,20 +296,20 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 0; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 0; // 1/100 UNIT deposit to create asset instance
+	pub const ClassDeposit: Balance = 1_000_000_000_000_000; // 1 UNIT deposit to create asset class
+	pub const InstanceDeposit: Balance = 10_000_000_000_000; // 1/100 UNIT deposit to create asset instance
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
-	pub const UniquesMetadataDepositBase: Balance = 0;
-	pub const AttributeDepositBase: Balance = 0;
-	pub const DepositPerByte: Balance = 0;
-	pub const UniquesStringLimit: u32 = 128;
+	pub const UniquesMetadataDepositBase: Balance = 100_000_000_000_000;
+	pub const AttributeDepositBase: Balance = 10_000_000_000_000;
+	pub const DepositPerByte: Balance = 1_000_000_000_000;
+	pub const UniquesStringLimit: u32 = 32;
 }
 
 impl pallet_uniques::Config for Test {
 	type Event = Event;
-	type ClassId = u32;
-	type InstanceId = u32;
+	type ClassId = primitives::ClassId;
+	type InstanceId = primitives::InstanceId;
 	type Currency = Balances;
 	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
 	type ClassDeposit = ClassDeposit;
@@ -312,7 +321,6 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = ();
 }
 
 parameter_type_with_key! {
