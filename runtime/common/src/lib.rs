@@ -164,17 +164,6 @@ parameter_types! {
 	pub LBPExchangeFee: (u32, u32) = (2, 1_000);
 }
 
-// pallet nft
-parameter_types! {
-	pub ClassBondAmount: Balance = 10_000 * UNITS;
-}
-
-// pallet orml_nft
-parameter_types! {
-	pub const MaxClassMetadata: u32 = 1024;
-	pub const MaxTokenMetadata: u32 = 1024;
-}
-
 // pallet democracy
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 7 * DAYS;

@@ -2,277 +2,218 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 
-use codec::{Decode, Encode};
+use codec::HasCompact;
 use frame_support::{
-	dispatch::{DispatchError, DispatchResult},
+	dispatch::{DispatchResult, DispatchResultWithPostInfo},
 	ensure,
-	traits::{Currency, ExistenceRequirement, ReservableCurrency},
-	transactional,
+	traits::{tokens::nonfungibles::*, Get, NamedReservableCurrency},
+	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
-use scale_info::TypeInfo;
+
+use primitives::{nft::NftPermission, ReserveIdentifier};
 use sp_runtime::{
-	traits::{StaticLookup, Zero},
-	RuntimeDebug,
+	traits::{AtLeast32BitUnsigned, StaticLookup, Zero},
+	DispatchError,
 };
-use sp_std::vec::Vec;
+pub use types::*;
 use weights::WeightInfo;
 
 mod benchmarking;
+pub mod types;
 pub mod weights;
 
 #[cfg(test)]
-mod mock;
+pub mod mock;
 
 #[cfg(test)]
 mod tests;
 
-pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-pub type TokenIdOf<T> = <T as orml_nft::Config>::TokenId;
-pub type ClassIdOf<T> = <T as orml_nft::Config>::ClassId;
-
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq, TypeInfo)]
-pub struct ClassData {
-	pub is_pool: bool, // NFT pools for tokenized merch
-}
-
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Encode, Decode, RuntimeDebug, Clone, PartialEq, Eq, TypeInfo)]
-pub struct TokenData {
-	pub locked: bool, // token locking will be used in the nft auctions
-}
+pub type BoundedVecOfUnq<T> = BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>;
+type ClassInfoOf<T> = ClassInfo<<T as Config>::ClassType, BoundedVecOfUnq<T>>;
+pub type InstanceInfoOf<T> = InstanceInfo<BoundedVec<u8, <T as pallet_uniques::Config>::StringLimit>>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
+
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*, traits::EnsureOrigin};
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
-	#[pallet::storage]
-	#[pallet::getter(fn class_item_price)]
-	/// Stores prices for NFT pools
-	pub type PoolItemPrice<T: Config> = StorageMap<_, Blake2_128Concat, ClassIdOf<T>, BalanceOf<T>, ValueQuery>;
-
 	#[pallet::config]
-	pub trait Config: frame_system::Config + orml_nft::Config<ClassData = ClassData, TokenData = TokenData> {
-		type Currency: ReservableCurrency<Self::AccountId>;
+	pub trait Config: frame_system::Config + pallet_uniques::Config {
+		type Currency: NamedReservableCurrency<Self::AccountId, ReserveIdentifier = ReserveIdentifier>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
-		// How much will be bonded
+		type ProtocolOrigin: EnsureOrigin<Self::Origin>;
+		type NftClassId: Member
+			+ Parameter
+			+ Default
+			+ Copy
+			+ HasCompact
+			+ AtLeast32BitUnsigned
+			+ Into<Self::ClassId>
+			+ From<Self::ClassId>;
+		type NftInstanceId: Member
+			+ Parameter
+			+ Default
+			+ Copy
+			+ HasCompact
+			+ AtLeast32BitUnsigned
+			+ Into<Self::InstanceId>
+			+ From<Self::InstanceId>;
+		type ClassType: Member + Parameter + Default + Copy;
+		type Permissions: NftPermission<Self::ClassType>;
+		/// Class IDs reserved for runtime up to the following constant
 		#[pallet::constant]
-		type ClassBondAmount: Get<BalanceOf<Self>>;
+		type ReserveClassIdUpTo: Get<Self::NftClassId>;
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn classes)]
+	/// Stores class info
+	pub type Classes<T: Config> = StorageMap<_, Twox64Concat, T::NftClassId, ClassInfoOf<T>>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn instances)]
+	/// Stores instance info
+	pub type Instances<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, T::NftClassId, Twox64Concat, T::NftInstanceId, InstanceInfoOf<T>>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		///////////////////////////////////////////////////
-		//
-		// Generic methods for NFT handling
-		//
-		///////////////////////////////////////////////////
-
-		/// Creates an NFT class
-		/// This is necessary as the first step, because tokens will be minted as part of this class
-		/// An amount X (ClassBondAmount) is reserved
+		/// Creates an NFT class of the given class
+		/// and sets its metadata
 		///
 		/// Parameters:
-		/// - `metadata`: Arbitrary info/description of a class
-		/// - `data`: Field(s) defined in the ClassData struct
+		/// - `class_id`: Identifier of a class
+		/// - `class_type`: The class type determines its purpose and usage
+		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash or name
+		///
+		/// Emits ClassCreated event
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
-		pub fn create_class(origin: OriginFor<T>, metadata: Vec<u8>, data: T::ClassData) -> DispatchResult {
+		pub fn create_class(
+			origin: OriginFor<T>,
+			class_id: T::NftClassId,
+			class_type: T::ClassType,
+			metadata: BoundedVecOfUnq<T>,
+		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
-			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
-			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
+			ensure!(T::ReserveClassIdUpTo::get() < class_id, Error::<T>::IdReserved);
+			ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
 
-			Self::deposit_event(Event::TokenClassCreated(sender, class_id));
+			Self::do_create_class(sender, class_id, Default::default(), metadata)?;
+
 			Ok(())
 		}
 
-		/// NFT is minted in the specified class
+		/// Mints an NFT in the specified class
+		/// and sets its metadata
 		///
 		/// Parameters:
-		/// - `class_id`: identificator of a class
-		/// - `metadata`: Arbitrary info/description of a token
-		/// - `data`: Field(s) defined in the TokenData struct
+		/// - `class_id`: The class of the asset to be minted.
+		/// - `instance_id`: The class of the asset to be minted.
+		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash or symbol
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
 		pub fn mint(
 			origin: OriginFor<T>,
-			class_id: ClassIdOf<T>,
-			metadata: Vec<u8>,
-			token_data: TokenData,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+			metadata: BoundedVecOfUnq<T>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
-			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
-			ensure!(sender == class_info.owner, Error::<T>::NotClassOwner);
-			let data = token_data;
-			let token_id = orml_nft::Pallet::<T>::mint(&sender, class_id, metadata.clone(), data)?;
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
 
-			Self::deposit_event(Event::TokenMinted(sender, class_id, token_id));
+			ensure!(T::Permissions::can_mint(&class_type), Error::<T>::NotPermitted);
+
+			Self::do_mint(sender, class_id, instance_id, metadata)?;
+
 			Ok(())
 		}
 
 		/// Transfers NFT from account A to account B
-		/// Only the owner can send their NFT to another account
+		/// Only the ProtocolOrigin can send NFT to another account
+		/// This is to prevent creating deposit burden for others
 		///
 		/// Parameters:
-		/// - `dest`: The destination account a token will be sent to
-		/// - `token`: unique identificator of a token
+		/// - `class_id`: The class of the asset to be transferred.
+		/// - `instance_id`: The instance of the asset to be transferred.
+		/// - `dest`: The account to receive ownership of the asset.
 		#[pallet::weight(<T as Config>::WeightInfo::transfer())]
 		#[transactional]
 		pub fn transfer(
 			origin: OriginFor<T>,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
 			dest: <T::Lookup as StaticLookup>::Source,
-			token: (ClassIdOf<T>, TokenIdOf<T>),
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
-			let to: T::AccountId = T::Lookup::lookup(dest)?;
-			ensure!(sender != to, Error::<T>::CannotSendToSelf);
-			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
-			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
-			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
-			orml_nft::Pallet::<T>::transfer(&sender, &to, token)?;
-			Self::deposit_event(Event::TokenTransferred(sender, to, token.0, token.1));
+
+			let dest = T::Lookup::lookup(dest)?;
+
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
+
+			ensure!(T::Permissions::can_transfer(&class_type), Error::<T>::NotPermitted);
+
+			Self::do_transfer(class_id, instance_id, sender, dest)?;
+
 			Ok(())
 		}
 
 		/// Removes a token from existence
 		///
 		/// Parameters:
-		/// - `token`: unique identificator of a token
+		/// - `class_id`: The class of the asset to be burned.
+		/// - `instance_id`: The instance of the asset to be burned.
 		#[pallet::weight(<T as Config>::WeightInfo::burn())]
 		#[transactional]
-		pub fn burn(origin: OriginFor<T>, token: (T::ClassId, T::TokenId)) -> DispatchResult {
+		pub fn burn(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
-			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
-			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
-			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
-			orml_nft::Pallet::<T>::burn(&sender, token)?;
-			Self::deposit_event(Event::TokenBurned(sender, token.0, token.1));
+
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
+
+			ensure!(T::Permissions::can_burn(&class_type), Error::<T>::NotPermitted);
+
+			Self::do_burn(sender, class_id, instance_id)?;
+
 			Ok(())
 		}
 
 		/// Removes a class from existence
-		/// Returns the bond amount
 		///
 		/// Parameters:
-		/// - `class_id`: unique identificator of a class
+		/// - `class_id`: The identifier of the asset class to be destroyed.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
 		#[transactional]
-		pub fn destroy_class(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
-			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
-			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
-			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
-			T::Currency::unreserve(&sender, T::ClassBondAmount::get());
-			Self::deposit_event(Event::TokenClassDestroyed(sender, class_id));
-			Ok(())
-		}
-
-		///////////////////////////////////////////////////
-		//
-		// Basilisk-specific methods for NFT handling
-		//
-		///////////////////////////////////////////////////
-
-		/// Similar method to create_/destroy_class
-		/// The difference between a pool and a class in this case is that
-		/// a price has to be specified for each pool. Any NFT within this class
-		/// will have this exact constant price
-		///
-		/// Parameters:
-		/// - `metadata`: Arbitrary info/description of a pool
-		/// - `data`: Field(s) defined in the ClassData struct
-		/// - `price`: Price of each individual NFT
-		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
-		#[transactional]
-		pub fn create_pool(
-			origin: OriginFor<T>,
-			metadata: Vec<u8>,
-			data: T::ClassData,
-			price: BalanceOf<T>,
-		) -> DispatchResult {
+		pub fn destroy_class(origin: OriginFor<T>, class_id: T::NftClassId) -> DispatchResultWithPostInfo {
 			let sender = ensure_signed(origin)?;
 
-			T::Currency::reserve(&sender, T::ClassBondAmount::get())?;
-			let class_id = orml_nft::Pallet::<T>::create_class(&sender, metadata, data)?;
-			PoolItemPrice::<T>::insert(class_id, price);
+			let class_type = Self::classes(class_id)
+				.map(|c| c.class_type)
+				.ok_or(Error::<T>::ClassUnknown)?;
 
-			Self::deposit_event(Event::TokenPoolCreated(sender, class_id));
-			Ok(())
-		}
+			ensure!(T::Permissions::can_destroy(&class_type), Error::<T>::NotPermitted);
 
-		/// Removes a pool from existence
-		/// Returns the bond amount
-		///
-		/// Parameters:
-		/// - `class_id`: unique identificator of a class
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_class())]
-		#[transactional]
-		pub fn destroy_pool(origin: OriginFor<T>, class_id: ClassIdOf<T>) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
-			let class_info = orml_nft::Pallet::<T>::classes(class_id).ok_or(Error::<T>::ClassNotFound)?;
-			ensure!(class_info.total_issuance == Zero::zero(), Error::<T>::NonZeroIssuance);
-			orml_nft::Pallet::<T>::destroy_class(&sender, class_id)?;
-			PoolItemPrice::<T>::remove(class_id);
-			T::Currency::unreserve(&sender, T::ClassBondAmount::get());
-			Self::deposit_event(Event::TokenPoolDestroyed(sender, class_id));
-			Ok(())
-		}
+			Self::do_destroy_class(sender, class_id)?;
 
-		/// NFTs can be bought from a pool for a constant price
-		///
-		/// Parameters:
-		/// - `token`: unique identificator of a token
-		#[pallet::weight(<T as Config>::WeightInfo::buy_from_pool())]
-		#[transactional]
-		pub fn buy_from_pool(origin: OriginFor<T>, token: (ClassIdOf<T>, TokenIdOf<T>)) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
-			let class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
-			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
-			let price = Self::class_item_price(token.0);
-			ensure!(class_info.data.is_pool, Error::<T>::NotAPool);
-			ensure!(class_info.owner == token_info.owner, Error::<T>::TokenAlreadyHasAnOwner);
-			ensure!(sender != token_info.owner, Error::<T>::CannotBuyOwnToken);
-			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
-
-			orml_nft::Pallet::<T>::transfer(&token_info.owner, &sender, token)?;
-			T::Currency::transfer(&sender, &token_info.owner, price, ExistenceRequirement::KeepAlive)?;
-			Self::deposit_event(Event::BoughtFromPool(class_info.owner, sender, token.0, token.1));
-			Ok(())
-		}
-
-		/// Owned NFTs can be sold back to the pool for the original price
-		///
-		/// Parameters:
-		/// - `token`: unique identificator of a token
-		#[pallet::weight(<T as Config>::WeightInfo::sell_to_pool())]
-		#[transactional]
-		pub fn sell_to_pool(origin: OriginFor<T>, token: (ClassIdOf<T>, TokenIdOf<T>)) -> DispatchResult {
-			let sender = ensure_signed(origin)?;
-			let class_info = orml_nft::Pallet::<T>::classes(token.0).ok_or(Error::<T>::ClassNotFound)?;
-			let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
-			let price = Self::class_item_price(token.0);
-			ensure!(class_info.data.is_pool, Error::<T>::NotAPool);
-			ensure!(class_info.owner != token_info.owner, Error::<T>::CannotSellPoolToken);
-			ensure!(sender == token_info.owner, Error::<T>::NotTokenOwner);
-			ensure!(!token_info.data.locked, Error::<T>::TokenLocked);
-
-			orml_nft::Pallet::<T>::transfer(&sender, &class_info.owner, token)?;
-			T::Currency::transfer(&class_info.owner, &sender, price, ExistenceRequirement::KeepAlive)?;
-			Self::deposit_event(Event::SoldToPool(sender, class_info.owner, token.0, token.1));
-			Ok(())
+			Ok(().into())
 		}
 	}
 
@@ -282,71 +223,179 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		TokenClassCreated(T::AccountId, T::ClassId),
-		TokenMinted(T::AccountId, T::ClassId, T::TokenId),
-		TokenMintedLockToggled(T::AccountId, T::ClassId, T::TokenId, bool),
-		TokenTransferred(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
-		TokenBurned(T::AccountId, T::ClassId, T::TokenId),
-		TokenClassDestroyed(T::AccountId, T::ClassId),
-		BoughtFromPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
-		SoldToPool(T::AccountId, T::AccountId, T::ClassId, T::TokenId),
-		TokenPoolCreated(T::AccountId, T::ClassId),
-		TokenPoolDestroyed(T::AccountId, T::ClassId),
+		/// A class was created \[owner, class_id, class_type\]
+		ClassCreated {
+			owner: T::AccountId,
+			class_id: T::NftClassId,
+			class_type: T::ClassType,
+		},
+		/// An instance was minted \[owner, class_id, instance_id\]
+		InstanceMinted {
+			owner: T::AccountId,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+		},
+		/// An instance was transferred \[from, to, class_id, instance_id\]
+		InstanceTransferred {
+			from: T::AccountId,
+			to: T::AccountId,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+		},
+		/// An instance was burned \[sender, class_id, instance_id\]
+		InstanceBurned {
+			owner: T::AccountId,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+		},
+		/// A class was destroyed \[class_id\]
+		ClassDestroyed {
+			owner: T::AccountId,
+			class_id: T::NftClassId,
+		},
 	}
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// The class does not exist
-		ClassNotFound,
-		/// The token does not exist
-		TokenNotFound,
-		/// Not the class owner
-		NotClassOwner,
-		/// Not the token owner
-		NotTokenOwner,
-		/// The token class is not empty
-		NonZeroIssuance,
-		/// Token is currently locked
-		TokenLocked,
-		/// A token can not be transferred to self
-		CannotSendToSelf,
-		/// A user cannot buy already owned token
-		CannotBuyOwnToken,
-		/// Token has been already bought from a pool
-		TokenAlreadyHasAnOwner,
-		/// A token still owned by class owner
-		CannotSellPoolToken,
-		/// Class wasn't created as a pool
-		NotAPool,
-		/// Metadata exceed the allowed length
-		MetadataTooLong,
+		/// Count of instances overflown
+		NoAvailableInstanceId,
+		/// Count of classes overflown
+		NoAvailableClassId,
+		/// Class still contains minted tokens
+		TokenClassNotEmpty,
+		/// Class does not exist
+		ClassUnknown,
+		/// Instance does not exist
+		InstanceUnknown,
+		/// Operation not permitted
+		NotPermitted,
+		/// ID reserved for runtime
+		IdReserved,
 	}
 }
 
 impl<T: Config> Pallet<T> {
-	pub fn is_owner(account: &T::AccountId, token: (T::ClassId, T::TokenId)) -> bool {
-		orml_nft::Pallet::<T>::is_owner(account, token)
+	pub fn class_owner(class_id: T::NftClassId) -> Option<T::AccountId> {
+		pallet_uniques::Pallet::<T>::class_owner(&class_id.into())
 	}
 
-	pub fn is_locked(token: (T::ClassId, T::TokenId)) -> Result<bool, DispatchError> {
-		let token_info = orml_nft::Pallet::<T>::tokens(token.0, token.1).ok_or(Error::<T>::TokenNotFound)?;
-		Ok(token_info.data.locked)
+	pub fn owner(class_id: T::NftClassId, instance_id: T::NftInstanceId) -> Option<T::AccountId> {
+		pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
 	}
 
-	pub fn toggle_lock(account: &T::AccountId, token_id: (T::ClassId, T::TokenId)) -> DispatchResult {
-		let _class_info = orml_nft::Pallet::<T>::classes(token_id.0).ok_or(Error::<T>::ClassNotFound)?;
-		orml_nft::Tokens::<T>::mutate_exists(token_id.0, token_id.1, |token| -> DispatchResult {
-			if let Some(ref mut token) = token {
-				ensure!(*account == token.owner, Error::<T>::NotTokenOwner);
-				token.data.locked ^= true; // Toggle
-				Self::deposit_event(Event::TokenMintedLockToggled(
-					account.clone(),
-					token_id.0,
-					token_id.1,
-					token.data.locked,
-				));
-			}
-			Ok(())
-		})
+	pub fn do_create_class(
+		owner: T::AccountId,
+		class_id: T::NftClassId,
+		class_type: T::ClassType,
+		metadata: BoundedVecOfUnq<T>,
+	) -> Result<(T::NftClassId, T::ClassType), DispatchError> {
+		let deposit_info = match T::Permissions::has_deposit(&class_type) {
+			false => (Zero::zero(), true),
+			true => (T::ClassDeposit::get(), false),
+		};
+
+		pallet_uniques::Pallet::<T>::do_create_class(
+			class_id.into(),
+			owner.clone(),
+			owner.clone(),
+			deposit_info.0,
+			deposit_info.1,
+			pallet_uniques::Event::Created {
+				class: class_id.into(),
+				creator: owner.clone(),
+				owner: owner.clone(),
+			},
+		)?;
+
+		Classes::<T>::insert(class_id, ClassInfo { class_type, metadata });
+
+		Self::deposit_event(Event::ClassCreated {
+			owner,
+			class_id,
+			class_type,
+		});
+
+		Ok((class_id, class_type))
+	}
+
+	pub fn do_mint(
+		owner: T::AccountId,
+		class_id: T::NftClassId,
+		instance_id: T::NftInstanceId,
+		metadata: BoundedVecOfUnq<T>,
+	) -> Result<T::NftInstanceId, DispatchError> {
+		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
+
+		Instances::<T>::insert(class_id, instance_id, InstanceInfo { metadata });
+
+		Self::deposit_event(Event::InstanceMinted {
+			owner,
+			class_id,
+			instance_id,
+		});
+
+		Ok(instance_id)
+	}
+
+	pub fn do_transfer(
+		class_id: T::NftClassId,
+		instance_id: T::NftInstanceId,
+		from: T::AccountId,
+		to: T::AccountId,
+	) -> DispatchResult {
+		if from == to {
+			return Ok(());
+		}
+
+		pallet_uniques::Pallet::<T>::do_transfer(
+			class_id.into(),
+			instance_id.into(),
+			to.clone(),
+			|_class_details, _instance_details| {
+				let owner = Self::owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
+				ensure!(owner == from, Error::<T>::NotPermitted);
+				Self::deposit_event(Event::InstanceTransferred {
+					from,
+					to,
+					class_id,
+					instance_id,
+				});
+				Ok(())
+			},
+		)
+	}
+
+	pub fn do_burn(owner: T::AccountId, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
+		pallet_uniques::Pallet::<T>::do_burn(
+			class_id.into(),
+			instance_id.into(),
+			|_class_details, _instance_details| {
+				let iowner = Self::owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
+				ensure!(owner == iowner, Error::<T>::NotPermitted);
+				Ok(())
+			},
+		)?;
+
+		Instances::<T>::remove(class_id, instance_id);
+
+		Self::deposit_event(Event::InstanceBurned {
+			owner,
+			class_id,
+			instance_id,
+		});
+
+		Ok(())
+	}
+
+	pub fn do_destroy_class(owner: T::AccountId, class_id: T::NftClassId) -> DispatchResultWithPostInfo {
+		let witness =
+			pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::ClassUnknown)?;
+
+		ensure!(witness.instances == 0u32, Error::<T>::TokenClassNotEmpty);
+		pallet_uniques::Pallet::<T>::do_destroy_class(class_id.into(), witness, Some(owner.clone()))?;
+		Classes::<T>::remove(class_id);
+
+		Self::deposit_event(Event::ClassDestroyed { owner, class_id });
+		Ok(().into())
 	}
 }
