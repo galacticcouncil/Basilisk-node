@@ -232,3 +232,17 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	ext.execute_with(|| System::set_block_number(1));
 	ext
 }
+
+fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
+	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
+		.into_iter()
+		.rev()
+		.take(n)
+		.rev()
+		.map(|e| e.event)
+		.collect()
+}
+
+pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
+	assert_eq!(last_basilisk_events(e.len()), e);
+}
