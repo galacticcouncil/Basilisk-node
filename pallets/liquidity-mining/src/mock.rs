@@ -156,9 +156,9 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		0_u32.into()
 	}
 
-    fn get_fee(pool_account_id: &AccountId) -> (u32, u32) {
-        (0, 0) 
-    }
+	fn get_fee(_pool_account_id: &AccountId) -> (u32, u32) {
+		(0, 0)
+	}
 
 	fn get_max_in_ratio() -> u128 {
 		0_u32.into()
@@ -275,7 +275,7 @@ impl pallet_nft::Config for Test {
 	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
-    type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {

@@ -50,9 +50,13 @@ pub mod weights;
 
 pub use pallet::*;
 
-type PoolId = u128;     //TODO: change this back after implementing nft sequencer
+type PoolId = u32;
 type GlobalPoolId = PoolId;
 type PoolMultiplier = FixedU128;
+
+//This value is result of: u128::from_le_bytes([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0])
+//This is necessary because first 4 bytes of NftInstanceIdOf(u128) is reserved to encode liq_pool_id(u32) into NftInstanceIdOf.
+const MAX_NFT_INSTANCE_SEQUENCER: u128 = 79_228_162_514_264_337_593_543_950_335;
 
 use frame_support::{
 	ensure,
@@ -194,7 +198,7 @@ impl Default for LoyaltyCurve {
 }
 
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
-pub struct Deposit<T:Config> {
+pub struct Deposit<T: Config> {
 	shares: Balance,
 	valued_shares: Balance,
 	accumulated_rpvs: Balance,
@@ -223,7 +227,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 
 	#[pallet::pallet]
-    #[pallet::without_storage_info]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::hooks]
@@ -231,7 +235,13 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config + TypeInfo + pallet_nft::Config<ClassType = ClassType, NftClassId = primitives::ClassId, NftInstanceId = primitives::InstanceId> 
+		frame_system::Config
+		+ TypeInfo
+		+ pallet_nft::Config<
+			ClassType = ClassType,
+			NftClassId = primitives::ClassId,
+			NftInstanceId = primitives::InstanceId,
+		>
 	{
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
@@ -326,6 +336,12 @@ pub mod pallet {
 		/// NFT does not exist.
 		NftDoesNotExist,
 
+		/// Max number of ntf id was reached.
+		NftIdOwerflow,
+
+		/// Nft id is not valid.
+		InvalidNftId,
+
 		/// Liquidity mining for provided pool is canceled.
 		LiquidityMiningCanceled,
 
@@ -367,7 +383,7 @@ pub mod pallet {
 			multiplier: PoolMultiplier,
 			nft_class: NftClassIdOf<T>,
 			asset_pair: AssetPair,
-            loyalty_curve: Option<LoyaltyCurve>,
+			loyalty_curve: Option<LoyaltyCurve>,
 		},
 
 		/// Destroy farm.
@@ -393,7 +409,7 @@ pub mod pallet {
 			reward_currency: T::CurrencyId,
 		},
 
-        //TODO: add farm, pool_id, asset_pair
+		//TODO: add farm, pool_id, asset_pair
 		/// Withdraw shares.
 		SharesWithdrawn {
 			who: AccountIdOf<T>,
@@ -461,7 +477,10 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn pool_id)]
-	pub type PoolIdSeq<T: Config> = StorageValue<_, PoolId, ValueQuery>;
+	pub type PoolIdSequencer<T: Config> = StorageValue<_, PoolId, ValueQuery>;
+
+	#[pallet::storage]
+	pub type NftInstanceSequencer<T: Config> = StorageValue<_, primitives::InstanceId, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn global_pool)]
@@ -486,7 +505,8 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn nft_class)] //(asset_pair, amount of existing nfts, globalPoolId)
-	type NftClassData<T: Config> = StorageMap<_, Twox64Concat, NftClassIdOf<T>, (AssetPair, u64, GlobalPoolId), OptionQuery>;
+	type NftClassData<T: Config> =
+		StorageMap<_, Twox64Concat, NftClassIdOf<T>, (AssetPair, u64, GlobalPoolId), OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -533,7 +553,7 @@ pub mod pallet {
 				TryInto::<u128>::try_into(planned_yielding_periods).map_err(|_e| Error::<T>::Overflow)?;
 			let max_reward_per_period = total_rewards.checked_div(planned_periods).ok_or(Error::<T>::Overflow)?;
 			let now_period = Self::get_now_period(blocks_per_period)?;
-			let pool_id = Self::get_next_id()?;
+			let pool_id = Self::get_next_pool_id()?;
 
 			let global_pool = GlobalPool::new(
 				pool_id,
@@ -604,9 +624,15 @@ pub mod pallet {
 
 			let global_pool_account = Self::pool_account_id(global_pool.id)?;
 
-			let undistributed_reward = T::MultiCurrency::total_balance(global_pool.reward_currency, &global_pool_account);
+			let undistributed_reward =
+				T::MultiCurrency::total_balance(global_pool.reward_currency, &global_pool_account);
 
-			T::MultiCurrency::transfer(global_pool.reward_currency, &global_pool_account, &who, undistributed_reward)?;
+			T::MultiCurrency::transfer(
+				global_pool.reward_currency,
+				&global_pool_account,
+				&who,
+				undistributed_reward,
+			)?;
 
 			Self::deposit_event(Event::UndistributedRewardsWithdrawn {
 				farm_id: global_pool.id,
@@ -662,17 +688,18 @@ pub mod pallet {
 					Self::update_global_pool(global_pool, now_period, reward_per_period)?;
 				}
 
-				let liq_pool_id = Self::get_next_id()?;
+				let liq_pool_id = Self::get_next_pool_id()?;
 				let pallet_account = Self::account_id();
 				let (nft_class, _) = pallet_nft::Pallet::<T>::do_create_class(
 					pallet_account,
-                    0_u128,   //TODO: change this 
-                    ClassType::LiquidityMining,  
+					0_u128, //TODO: change this
+					ClassType::LiquidityMining,
 					vec![].try_into().unwrap(),
 				)?;
 				<NftClassData<T>>::insert(nft_class, (asset_pair, 0, global_pool.id));
 
-				let pool = LiquidityPoolYieldFarm::new(liq_pool_id, now_period, loyalty_curve.clone(), multiplier, nft_class);
+				let pool =
+					LiquidityPoolYieldFarm::new(liq_pool_id, now_period, loyalty_curve.clone(), multiplier, nft_class);
 
 				<LiquidityPoolData<T>>::insert(global_pool.id, &amm_pool_id, &pool);
 				global_pool.liq_pools_count = global_pool.liq_pools_count.checked_add(1).ok_or(Error::<T>::Overflow)?;
@@ -681,8 +708,8 @@ pub mod pallet {
 					farm_id: global_pool.id,
 					liq_pool_farm_id: pool.id,
 					nft_class: pool.nft_class,
-                    multiplier,
-                    loyalty_curve,
+					multiplier,
+					loyalty_curve,
 					asset_pair,
 				});
 
@@ -726,7 +753,13 @@ pub mod pallet {
 					if !liq_pool.total_shares.is_zero() {
 						let pool_reward =
 							Self::claim_from_global_pool(global_pool, liq_pool, liq_pool.stake_in_global_pool)?;
-						Self::update_liq_pool(liq_pool, pool_reward, now_period, global_pool.id, global_pool.reward_currency)?;
+						Self::update_liq_pool(
+							liq_pool,
+							pool_reward,
+							now_period,
+							global_pool.id,
+							global_pool.reward_currency,
+						)?;
 					}
 
 					let new_stake_in_global_pool =
@@ -757,7 +790,11 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
-		pub fn cancel_liquidity_pool(origin: OriginFor<T>, farm_id: GlobalPoolId, asset_pair: AssetPair) -> DispatchResult {
+		pub fn cancel_liquidity_pool(
+			origin: OriginFor<T>,
+			farm_id: GlobalPoolId,
+			asset_pair: AssetPair,
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let amm_account = T::AMM::get_pair_id(asset_pair);
@@ -832,7 +869,8 @@ pub mod pallet {
 						Self::update_global_pool(global_pool, now_period, reward_per_period)?;
 					}
 
-					let new_stake_in_global_poll = Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
+					let new_stake_in_global_poll =
+						Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
 
 					global_pool.total_shares_z = global_pool
 						.total_shares_z
@@ -881,13 +919,15 @@ pub mod pallet {
 
 						ensure!(global_pool.owner == who, Error::<T>::Forbidden);
 
-						global_pool.liq_pools_count = global_pool.liq_pools_count.checked_sub(1).ok_or(Error::<T>::Overflow)?;
+						global_pool.liq_pools_count =
+							global_pool.liq_pools_count.checked_sub(1).ok_or(Error::<T>::Overflow)?;
 
 						//transfer unpaid rewards back to global_pool
 						let global_pool_account = Self::pool_account_id(global_pool.id)?;
 						let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
 
-						let unpaid_rew = T::MultiCurrency::total_balance(global_pool.reward_currency, &liq_pool_account);
+						let unpaid_rew =
+							T::MultiCurrency::total_balance(global_pool.reward_currency, &liq_pool_account);
 						T::MultiCurrency::transfer(
 							global_pool.reward_currency,
 							&liq_pool_account,
@@ -944,8 +984,10 @@ pub mod pallet {
 
 					Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 
-					let valued_shares = Self::get_valued_shares(shares_amount, amm_account, global_pool.reward_currency)?;
-					let shares_in_global_pool_for_deposit = Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
+					let valued_shares =
+						Self::get_valued_shares(shares_amount, amm_account, global_pool.reward_currency)?;
+					let shares_in_global_pool_for_deposit =
+						Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
 
 					liq_pool.total_shares = liq_pool
 						.total_shares
@@ -970,8 +1012,13 @@ pub mod pallet {
 					let pallet_account = Self::account_id();
 					T::MultiCurrency::transfer(amm_share_token, &who, &pallet_account, shares_amount)?;
 
-                    let nft_id = Self::get_next_id()?; //TODO: update this with nft id sequencer
-					let _ = pallet_nft::Pallet::<T>::do_mint(who.clone(), liq_pool.nft_class, nft_id, vec![].try_into().unwrap())?;
+					let nft_id = Self::get_next_nft_id(liq_pool.id)?;
+					let _ = pallet_nft::Pallet::<T>::do_mint(
+						who.clone(),
+						liq_pool.nft_class,
+						nft_id,
+						vec![].try_into().unwrap(),
+					)?;
 
 					let d = Deposit::new(shares_amount, valued_shares, liq_pool.accumulated_rpvs, now_period);
 					<DepositData<T>>::insert(&liq_pool.nft_class, &nft_id, d);
@@ -1013,8 +1060,8 @@ pub mod pallet {
 			<DepositData<T>>::try_mutate(nft_class_id, nft_id, |maybe_nft| {
 				let deposit = maybe_nft.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
 
-				let nft_owner = pallet_nft::Pallet::<T>::owner(nft_class_id, nft_id)
-					.ok_or(Error::<T>::CantFindDepositOwner)?;
+				let nft_owner =
+					pallet_nft::Pallet::<T>::owner(nft_class_id, nft_id).ok_or(Error::<T>::CantFindDepositOwner)?;
 
 				ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
@@ -1034,8 +1081,13 @@ pub mod pallet {
 
 						Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 
-						let (reward, _) =
-							Self::do_claim_rewards(who.clone(), deposit, liq_pool, now_period, global_pool.reward_currency)?;
+						let (reward, _) = Self::do_claim_rewards(
+							who.clone(),
+							deposit,
+							liq_pool,
+							now_period,
+							global_pool.reward_currency,
+						)?;
 
 						Self::deposit_event(Event::RewardClaimed {
 							farm_id,
@@ -1060,8 +1112,8 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			let nft_owner = pallet_nft::Pallet::<T>::owner(nft_class_id, nft_id)
-				.ok_or(Error::<T>::CantFindDepositOwner)?;
+			let nft_owner =
+				pallet_nft::Pallet::<T>::owner(nft_class_id, nft_id).ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
@@ -1179,8 +1231,8 @@ pub mod pallet {
 					*maybe_nft = None;
 					pallet_nft::Pallet::<T>::do_burn(who, nft_class_id, nft_id)?;
 
-                    //TODO: rewrite this, nft class will be never destroyed, there will be only 1
-                    //class per whole pallet
+					//TODO: rewrite this, nft class will be never destroyed, there will be only 1
+					//class per whole pallet
 					if nfts_in_class.is_one() && can_destroy_nft_class {
 						//*maybe_nft_class = None;
 						//pallet_nft::Pallet::<T>::do_destroy_class(nft_class_id)?;
@@ -1199,12 +1251,43 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	fn get_next_id() -> Result<PoolId, Error<T>> {
-		PoolIdSeq::<T>::try_mutate(|current_id| {
+	fn get_next_pool_id() -> Result<PoolId, Error<T>> {
+		PoolIdSequencer::<T>::try_mutate(|current_id| {
 			*current_id = current_id.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
 			Ok(*current_id)
 		})
+	}
+
+	/// This function encode liq_pool_id into nft id. 4 most significant bytes of nft id are
+	/// reserverd for liq pool id.
+	fn get_next_nft_id(liq_pool_id: PoolId) -> Result<NftInstanceIdOf<T>, Error<T>> {
+		Self::validate_pool_id(liq_pool_id)?;
+
+		NftInstanceSequencer::<T>::try_mutate(|current_id| {
+			*current_id = current_id.checked_add(1).ok_or(Error::<T>::Overflow)?;
+
+			ensure!(MAX_NFT_INSTANCE_SEQUENCER.ge(current_id), Error::<T>::NftIdOwerflow);
+
+			let mut id_bytes: [u8; 16] = [0; 16];
+
+			id_bytes[..4].copy_from_slice(&liq_pool_id.to_le_bytes());
+			id_bytes[4..].copy_from_slice(&current_id.to_le_bytes()[..12]);
+
+			Ok(u128::from_le_bytes(id_bytes))
+		})
+	}
+
+	/// This function decode liq. pool id from nft id
+	fn get_pool_id_from_nft_id(nft_id: NftInstanceIdOf<T>) -> Result<PoolId, Error<T>> {
+		//largets invalid nft id
+		ensure!(4_294_967_296_u128.lt(&nft_id), Error::<T>::InvalidNftId);
+
+		let mut pool_id_bytes = [0; 4];
+
+		pool_id_bytes.copy_from_slice(&nft_id.to_le_bytes()[..4]);
+
+		Ok(PoolId::from_le_bytes(pool_id_bytes))
 	}
 
 	/// Account id of pot holding all the shares
@@ -1308,9 +1391,12 @@ impl<T: Config> Pallet<T> {
 			return Ok(());
 		}
 
-		let periods_since_last_update: Balance =
-			TryInto::<u128>::try_into(now_period.checked_sub(&global_pool.updated_at).ok_or(Error::<T>::Overflow)?)
-				.map_err(|_e| Error::<T>::Overflow)?;
+		let periods_since_last_update: Balance = TryInto::<u128>::try_into(
+			now_period
+				.checked_sub(&global_pool.updated_at)
+				.ok_or(Error::<T>::Overflow)?,
+		)
+		.map_err(|_e| Error::<T>::Overflow)?;
 
 		let global_pool_account = Self::pool_account_id(global_pool.id)?;
 		let left_to_distribute = T::MultiCurrency::free_balance(global_pool.reward_currency, &global_pool_account);
@@ -1320,7 +1406,8 @@ impl<T: Config> Pallet<T> {
 			.min(left_to_distribute);
 
 		if !reward.is_zero() {
-			global_pool.accumulated_rpz = Self::get_accumulated_rps(global_pool.accumulated_rpz, global_pool.total_shares_z, reward)?;
+			global_pool.accumulated_rpz =
+				Self::get_accumulated_rps(global_pool.accumulated_rpz, global_pool.total_shares_z, reward)?;
 			global_pool.accumulated_rewards = global_pool
 				.accumulated_rewards
 				.checked_add(reward)
@@ -1329,12 +1416,12 @@ impl<T: Config> Pallet<T> {
 
 		global_pool.updated_at = now_period;
 
-        Self::deposit_event(Event::FarmAccRPZUpdated {
-            farm_id: global_pool.id,
-            accumulated_rpz: global_pool.accumulated_rpz,
-            total_shares_z: global_pool.total_shares_z,
-        });
-        
+		Self::deposit_event(Event::FarmAccRPZUpdated {
+			farm_id: global_pool.id,
+			accumulated_rpz: global_pool.accumulated_rpz,
+			total_shares_z: global_pool.total_shares_z,
+		});
+
 		Ok(())
 	}
 
@@ -1439,12 +1526,12 @@ impl<T: Config> Pallet<T> {
 		let global_pool_account = Self::pool_account_id(global_pool_id)?;
 		let pool_account = Self::pool_account_id(pool.id)?;
 
-        Self::deposit_event(Event::LiquidityPoolAccRPVSUpdated {
-            farm_id: global_pool_id,
-            liq_pool_farm_id: pool.id,
-            accumulated_rpvs: pool.accumulated_rpvs,
-            total_valued_shares: pool.total_valued_shares,
-        });
+		Self::deposit_event(Event::LiquidityPoolAccRPVSUpdated {
+			farm_id: global_pool_id,
+			liq_pool_farm_id: pool.id,
+			accumulated_rpvs: pool.accumulated_rpvs,
+			total_valued_shares: pool.total_valued_shares,
+		});
 
 		T::MultiCurrency::transfer(reward_currency, &global_pool_account, &pool_account, pool_rewards)
 	}
@@ -1552,7 +1639,13 @@ impl<T: Config> Pallet<T> {
 			}
 
 			let rewards = Self::claim_from_global_pool(global_pool, liq_pool, liq_pool.stake_in_global_pool)?;
-			Self::update_liq_pool(liq_pool, rewards, now_period, global_pool.id, global_pool.reward_currency)?;
+			Self::update_liq_pool(
+				liq_pool,
+				rewards,
+				now_period,
+				global_pool.id,
+				global_pool.reward_currency,
+			)?;
 		}
 
 		Ok(())

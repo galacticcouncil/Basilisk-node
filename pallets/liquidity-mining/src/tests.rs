@@ -32,8 +32,8 @@ use sp_runtime::traits::BadOrigin;
 
 use std::cmp::Ordering;
 
-const ALICE_FARM: u128 = BSX_FARM;
-const BOB_FARM: u128 = KSM_FARM;
+const ALICE_FARM: u32 = BSX_FARM;
+const BOB_FARM: u32 = KSM_FARM;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -241,7 +241,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			liq_pool_farm_id: 4,
 			multiplier: FixedU128::from(5),
 			nft_class: 0,
-            loyalty_curve: Some(LoyaltyCurve::default()),
+			loyalty_curve: Some(LoyaltyCurve::default()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TO1,
@@ -264,7 +264,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			liq_pool_farm_id: 5,
 			multiplier: FixedU128::from(10),
 			nft_class: 1,
-            loyalty_curve: Some(LoyaltyCurve::default()),
+			loyalty_curve: Some(LoyaltyCurve::default()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TO2,
@@ -492,7 +492,10 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 616);
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 960);
 
-		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 1_164_400));
+		assert_eq!(
+			Tokens::free_balance(BSX, &global_pool_account),
+			(30_000_000_000 - 1_164_400)
+		);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 212_400);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), 952_000);
 
@@ -2141,34 +2144,40 @@ fn update_pool_should_work() {
 				}
 			);
 
-			assert_eq!(Tokens::free_balance(global_pool.reward_currency, &farm_account_id), t.11);
-			assert_eq!(Tokens::free_balance(global_pool.reward_currency, &pool_account_id), t.10);
+			assert_eq!(
+				Tokens::free_balance(global_pool.reward_currency, &farm_account_id),
+				t.11
+			);
+			assert_eq!(
+				Tokens::free_balance(global_pool.reward_currency, &pool_account_id),
+				t.10
+			);
 		});
 	}
 }
 
 #[test]
-fn next_id_should_work() {
+fn get_next_pool_id_should_work() {
 	let mut ext = new_test_ext();
 
 	ext.execute_with(|| {
-		assert_eq!(LiquidityMining::get_next_id().unwrap(), 1);
+		assert_eq!(LiquidityMining::get_next_pool_id().unwrap(), 1);
 		assert_eq!(LiquidityMining::pool_id(), 1);
 
-		assert_eq!(LiquidityMining::get_next_id().unwrap(), 2);
+		assert_eq!(LiquidityMining::get_next_pool_id().unwrap(), 2);
 		assert_eq!(LiquidityMining::pool_id(), 2);
 
-		assert_eq!(LiquidityMining::get_next_id().unwrap(), 3);
+		assert_eq!(LiquidityMining::get_next_pool_id().unwrap(), 3);
 		assert_eq!(LiquidityMining::pool_id(), 3);
 
-		assert_eq!(LiquidityMining::get_next_id().unwrap(), 4);
+		assert_eq!(LiquidityMining::get_next_pool_id().unwrap(), 4);
 		assert_eq!(LiquidityMining::pool_id(), 4);
 	});
 }
 
 #[test]
 fn pool_account_id_should_work() {
-	let ids: Vec<PoolId> = vec![1, 100, 543, u128::MAX];
+	let ids: Vec<PoolId> = vec![1, 100, 543, u32::max_value()];
 
 	for id in ids {
 		assert_ok!(LiquidityMining::pool_account_id(id));
@@ -2186,7 +2195,7 @@ fn pool_account_id_should_not_work() {
 
 #[test]
 fn validate_pool_id_should_work() {
-	let ids: Vec<PoolId> = vec![1, 100, 543, u128::MAX];
+	let ids: Vec<PoolId> = vec![1, 100, 543, u32::max_value()];
 
 	for id in ids {
 		assert_ok!(LiquidityMining::validate_pool_id(id));
@@ -2590,7 +2599,7 @@ fn add_liquidity_pool_should_work() {
 				liq_pool_farm_id: pool.id,
 				multiplier: pool.multiplier,
 				nft_class: pool.nft_class,
-                loyalty_curve: pool.loyalty_curve.clone(),
+				loyalty_curve: pool.loyalty_curve.clone(),
 				asset_pair: assets,
 			})]);
 
@@ -2762,7 +2771,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 			liq_pool_farm_id: existing_pool.id,
 			multiplier: existing_pool.multiplier,
 			nft_class: existing_pool.nft_class,
-            loyalty_curve: existing_pool.loyalty_curve,
+			loyalty_curve: existing_pool.loyalty_curve,
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: ACA,
@@ -2863,7 +2872,7 @@ fn destroy_farm_not_owner_should_not_work() {
 #[test]
 fn destroy_farm_farm_not_exists_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		const NON_EXISTING_FARM: u128 = 999_999_999;
+		const NON_EXISTING_FARM: u32 = 999_999_999;
 		assert_noop!(
 			LiquidityMining::destroy_farm(Origin::signed(ALICE), NON_EXISTING_FARM),
 			Error::<Test>::FarmNotFound
@@ -3109,7 +3118,10 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB), bob_bsx_to1_shares - 80);
 		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 130);
 
-		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 112_500));
+		assert_eq!(
+			Tokens::free_balance(BSX, &global_pool_account),
+			(30_000_000_000 - 112_500)
+		);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
@@ -3183,7 +3195,10 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 25);
 
 		//no pools update no transfers
-		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 112_500));
+		assert_eq!(
+			Tokens::free_balance(BSX, &global_pool_account),
+			(30_000_000_000 - 112_500)
+		);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), 0);
 
@@ -3264,7 +3279,10 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 825);
 
 		//no pools update no transfers
-		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 132_500));
+		assert_eq!(
+			Tokens::free_balance(BSX, &global_pool_account),
+			(30_000_000_000 - 132_500)
+		);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), 20_000);
 
@@ -3347,9 +3365,15 @@ fn deposit_shares_should_work() {
 		);
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 912);
 
-		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 1_064_500));
+		assert_eq!(
+			Tokens::free_balance(BSX, &global_pool_account),
+			(30_000_000_000 - 1_064_500)
+		);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), (20_000 + 932_000)); //NOTE: 20k from prew deposit
+		assert_eq!(
+			Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account),
+			(20_000 + 932_000)
+		); //NOTE: 20k from prew deposit
 
 		// DEPOSIT 6 (same period):
 		run_to_block(2_596); //period 20
@@ -3431,9 +3455,15 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 960);
 
 		//no pools update no transfers
-		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 1_064_500));
+		assert_eq!(
+			Tokens::free_balance(BSX, &global_pool_account),
+			(30_000_000_000 - 1_064_500)
+		);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 112_500);
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), (20_000 + 932_000)); //NOTE: 20k from prew deposit
+		assert_eq!(
+			Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account),
+			(20_000 + 932_000)
+		); //NOTE: 20k from prew deposit
 
 		// DEPOSIT 7 : (same period differen liq poll farm)
 		run_to_block(2_596); //period 20
@@ -3515,7 +3545,10 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 616);
 
 		//no pools update no transfers
-		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), (30_000_000_000 - 1_164_400));
+		assert_eq!(
+			Tokens::free_balance(BSX, &global_pool_account),
+			(30_000_000_000 - 1_164_400)
+		);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_1_farm_account), 212_400);
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_amm_2_farm_account), 952_000);
 	});
@@ -4351,10 +4384,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		//user balances checks
-		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &BOB),
-			bob_bsx_balance + 855_771
-		);
+		assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &BOB), bob_bsx_balance + 855_771);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB),
 			bob_amm_1_shares_balance + 80
@@ -4470,10 +4500,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		//user balances checks
-		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &BOB),
-			bob_bsx_balance + 95_999
-		);
+		assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &BOB), bob_bsx_balance + 95_999);
 		assert_eq!(
 			Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB),
 			bob_amm_2_shares_balance + 25
@@ -5981,7 +6008,7 @@ fn do_claim_rewards_should_work() {
 		};
 
 		//(Deposit, LiquidityPoolYieldFarm, period_now, expected_result(user_reward, unclaimable_rewards)
-		let mock_data: [(
+		let test_data: [(
 			Deposit<Test>,
 			LiquidityPoolYieldFarm<Test>,
 			PeriodOf<Test>,
@@ -6052,7 +6079,7 @@ fn do_claim_rewards_should_work() {
 			0
 		));
 
-		for (mut deposit, liq_pool, now_period, expected_result) in mock_data {
+		for (mut deposit, liq_pool, now_period, expected_result) in test_data {
 			let alice_balance = Tokens::free_balance(BSX, &ALICE);
 			let pool_account_balance = Tokens::free_balance(BSX, &liq_pool_account);
 
@@ -6066,6 +6093,110 @@ fn do_claim_rewards_should_work() {
 
 			assert_eq!(Tokens::free_balance(BSX, &ALICE), expected_alice_balance);
 			assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), expected_pool_balance);
+		}
+	});
+}
+
+#[test]
+fn get_next_nft_id_should_work() {
+	new_test_ext().execute_with(|| {
+		//(pool_id, result)
+		let test_data = vec![
+			(1, 4_294_967_297),
+			(6_886, 8_589_941_478),
+			(87_321, 12_884_989_209),
+			(56, 17_179_869_240),
+			(789, 21_474_837_269),
+			(248, 25_769_804_024),
+			(1_000_000_200, 31_064_771_272),
+			(u32::max_value(), 38_654_705_663),
+		];
+
+		for (pool_id, expected_nft_id) in test_data {
+			assert_eq!(LiquidityMining::get_next_nft_id(pool_id).unwrap(), expected_nft_id);
+		}
+
+		//This is last allowed sequencer number - 1
+		let last_nft_sequencer_num =
+			u128::from_le_bytes([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0])
+				.checked_sub(1_u128)
+				.unwrap();
+
+		<NftInstanceSequencer<Test>>::set(last_nft_sequencer_num);
+		assert_eq!(
+			<NftInstanceSequencer<Test>>::get(),
+			79_228_162_514_264_337_593_543_950_334
+		);
+
+		assert_eq!(
+			LiquidityMining::get_next_nft_id(u32::max_value()).unwrap(),
+			u128::max_value()
+		);
+
+		//This is last allowed sequencer number - 1
+		let last_nft_sequencer_num =
+			u128::from_le_bytes([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0])
+				.checked_sub(1_u128)
+				.unwrap();
+
+		<NftInstanceSequencer<Test>>::set(last_nft_sequencer_num);
+		assert_eq!(
+			<NftInstanceSequencer<Test>>::get(),
+			79_228_162_514_264_337_593_543_950_334
+		);
+
+		assert_eq!(
+			LiquidityMining::get_next_nft_id(1).unwrap(),
+			340_282_366_920_938_463_463_374_607_427_473_244_161
+		);
+	});
+}
+
+#[test]
+fn get_next_nft_id_should_not_work() {
+	new_test_ext().execute_with(|| {
+		//This is last allowed sequencer number, next should throw error
+		let last_nft_sequencer_num =
+			u128::from_le_bytes([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0]);
+
+		<NftInstanceSequencer<Test>>::set(last_nft_sequencer_num);
+		assert_eq!(
+			<NftInstanceSequencer<Test>>::get(),
+			79_228_162_514_264_337_593_543_950_335
+		);
+
+		assert_noop!(
+			LiquidityMining::get_next_nft_id(u32::max_value()),
+			Error::<Test>::NftIdOwerflow
+		);
+
+		assert_noop!(LiquidityMining::get_next_nft_id(1), Error::<Test>::NftIdOwerflow);
+	});
+}
+
+#[test]
+fn get_pool_id_from_nft_id_should_work() {
+	new_test_ext().execute_with(|| {
+		//(nft_id, liq pool id)
+		let test_data = vec![
+			(4_294_967_297, 1),
+			(8_589_941_478, 6_886),
+			(12_884_989_209, 87_321),
+			(17_179_869_240, 56),
+			(21_474_837_269, 789),
+			(25_769_804_024, 248),
+			(31_064_771_272, 1_000_000_200),
+			(38_654_705_663, u32::max_value()),
+			(u128::max_value(), u32::max_value()),
+			(340_282_366_920_938_463_463_374_607_427_473_244_161, 1),
+			(340_282_366_920_938_463_463_374_607_427_473_244_161, 1),
+		];
+
+		for (nft_id, expected_pool_id) in test_data {
+			assert_eq!(
+				LiquidityMining::get_pool_id_from_nft_id(nft_id).unwrap(),
+				expected_pool_id
+			);
 		}
 	});
 }
