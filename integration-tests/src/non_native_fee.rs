@@ -60,11 +60,8 @@ fn non_native_fee_payment_works() {
 			Price::from_float(0.5),
 		));
 
-		// Spot price is 2 but should be 0.5. Will be fixed in
-		// https://github.com/galacticcouncil/warehouse/issues/28
-		// TODO: Remove comment when closed
 		let spot_price = XYKSpotPrice::<basilisk_runtime::Runtime>::spot_price(currency_0, currency_1);
-		assert_eq!(spot_price, Some(Price::from_float(2.0)));
+		assert_eq!(spot_price, Some(Price::from_float(0.5)));
 
 		basilisk_runtime::PriceOracle::on_finalize(1u32);
 		basilisk_runtime::PriceOracle::on_initialize(2);
@@ -90,15 +87,15 @@ fn non_native_fee_payment_works() {
 		));
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(DAVE));
-		let expected_diff = 197_453_601_724;
-		assert_eq!(dave_balance, bob_balance + expected_diff);
+		let expected_diff = 344_454_200_415;
+		assert_eq!(dave_balance, bob_balance - expected_diff);
 
 		expect_basilisk_events(vec![
 			pallet_transaction_multi_payment::Event::FeeWithdrawn(
 				DAVE.into(),
 				1,
 				462_676_500_000,
-				265_222_898_276,
+				807_130_700_415,
 				FALLBACK.into(),
 			)
 			.into(),
