@@ -154,7 +154,6 @@ pub struct LiquidityPoolYieldFarm<T: Config> {
 	loyalty_curve: Option<LoyaltyCurve>,
 	stake_in_global_pool: Balance, //NOTE: may be replaced with: total_valued_shares * multiplier
 	pub multiplier: PoolMultiplier,
-	nft_class: NftClassIdOf<T>,
 	pub canceled: bool,
 }
 
@@ -164,7 +163,6 @@ impl<T: Config> LiquidityPoolYieldFarm<T> {
 		updated_at: PeriodOf<T>,
 		loyalty_curve: Option<LoyaltyCurve>,
 		multiplier: PoolMultiplier,
-		nft_class: NftClassIdOf<T>,
 	) -> Self {
 		Self {
 			accumulated_rpvs: Default::default(),
@@ -177,7 +175,6 @@ impl<T: Config> LiquidityPoolYieldFarm<T> {
 			updated_at,
 			loyalty_curve,
 			multiplier,
-			nft_class,
 		}
 	}
 }
@@ -269,6 +266,8 @@ pub mod pallet {
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
+		type NftClass: Get<primitives::ClassId>;
+
 		/// Weight information for extrinsic in this module.
 		type WeightInfo: WeightInfo;
 	}
@@ -330,8 +329,8 @@ pub mod pallet {
 		/// Balance on rewards account is not 0. Only farm with 0 reward balance can be destroyed
 		RewardBalanceIsNotZero,
 
-		/// NFT class for liq. pool does not exists.
-		NftClassDoesNotExists,
+		/// Metadata for liquidity pool was not found.
+		LiquidityPoolMetadataNotFound,
 
 		/// NFT does not exist.
 		NftDoesNotExist,
@@ -500,13 +499,12 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn deposit)]
-	type DepositData<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, NftClassIdOf<T>, Twox64Concat, NftInstanceIdOf<T>, Deposit<T>, OptionQuery>;
+	type DepositData<T: Config> = StorageMap<_, Twox64Concat, NftInstanceIdOf<T>, Deposit<T>, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn nft_class)] //(asset_pair, amount of existing nfts, globalPoolId)
-	type NftClassData<T: Config> =
-		StorageMap<_, Twox64Concat, NftClassIdOf<T>, (AssetPair, u64, GlobalPoolId), OptionQuery>;
+	#[pallet::getter(fn liq_pool_metadata)] //(asset_pair, amount of existing nfts, globalPoolId)
+	type LiquidityPoolMetadata<T: Config> =
+		StorageMap<_, Twox64Concat, PoolId, (AssetPair, u64, GlobalPoolId), OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -569,8 +567,8 @@ pub mod pallet {
 
 			<GlobalPoolData<T>>::insert(&global_pool.id, &global_pool);
 
-			let pool_account = Self::pool_account_id(global_pool.id)?;
-			T::MultiCurrency::transfer(reward_currency, &global_pool.owner, &pool_account, total_rewards)?;
+			let global_pool_account = Self::pool_account_id(global_pool.id)?;
+			T::MultiCurrency::transfer(reward_currency, &global_pool.owner, &global_pool_account, total_rewards)?;
 
 			Self::deposit_event(Event::FarmCreated {
 				farm_id: global_pool.id,
@@ -689,17 +687,9 @@ pub mod pallet {
 				}
 
 				let liq_pool_id = Self::get_next_pool_id()?;
-				let pallet_account = Self::account_id();
-				let (nft_class, _) = pallet_nft::Pallet::<T>::do_create_class(
-					pallet_account,
-					0_u128, //TODO: change this
-					ClassType::LiquidityMining,
-					vec![].try_into().unwrap(),
-				)?;
-				<NftClassData<T>>::insert(nft_class, (asset_pair, 0, global_pool.id));
+				<LiquidityPoolMetadata<T>>::insert(liq_pool_id, (asset_pair, 0, global_pool.id));
 
-				let pool =
-					LiquidityPoolYieldFarm::new(liq_pool_id, now_period, loyalty_curve.clone(), multiplier, nft_class);
+				let pool = LiquidityPoolYieldFarm::new(liq_pool_id, now_period, loyalty_curve.clone(), multiplier);
 
 				<LiquidityPoolData<T>>::insert(global_pool.id, &amm_pool_id, &pool);
 				global_pool.liq_pools_count = global_pool.liq_pools_count.checked_add(1).ok_or(Error::<T>::Overflow)?;
@@ -707,7 +697,7 @@ pub mod pallet {
 				Self::deposit_event(Event::LiquidityPoolAdded {
 					farm_id: global_pool.id,
 					liq_pool_farm_id: pool.id,
-					nft_class: pool.nft_class,
+					nft_class: T::NftClass::get(),
 					multiplier,
 					loyalty_curve,
 					asset_pair,
@@ -740,6 +730,7 @@ pub mod pallet {
 
 					ensure!(who == global_pool.owner, Error::<T>::Forbidden);
 
+					//TODO: maybe replace this wich maybe_update_pools() - check spec
 					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 					if !global_pool.total_shares_z.is_zero() {
 						let reward_per_period = Self::get_global_pool_reward_per_period(
@@ -858,7 +849,7 @@ pub mod pallet {
 
 					ensure!(global_pool.owner == who, Error::<T>::Forbidden);
 
-					// update accRPZ
+					// update accRPZ TODO: maybe replace with maybe_update_pools() - check spec
 					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 					if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
 						let reward_per_period = Self::get_global_pool_reward_per_period(
@@ -934,6 +925,13 @@ pub mod pallet {
 							&global_pool_account,
 							unpaid_rew,
 						)?;
+
+						//TODO: test this
+						if let Some((_, nfts_in_class, _)) = Self::liq_pool_metadata(liq_pool.id) {
+							if nfts_in_class.is_zero() {
+								<LiquidityPoolMetadata<T>>::remove(liq_pool.id);
+							}
+						};
 
 						Ok(().into())
 					})?;
@@ -1015,16 +1013,20 @@ pub mod pallet {
 					let nft_id = Self::get_next_nft_id(liq_pool.id)?;
 					let _ = pallet_nft::Pallet::<T>::do_mint(
 						who.clone(),
-						liq_pool.nft_class,
+						T::NftClass::get(),
 						nft_id,
 						vec![].try_into().unwrap(),
 					)?;
 
 					let d = Deposit::new(shares_amount, valued_shares, liq_pool.accumulated_rpvs, now_period);
-					<DepositData<T>>::insert(&liq_pool.nft_class, &nft_id, d);
-					<NftClassData<T>>::try_mutate(liq_pool.nft_class, |maybe_class| -> DispatchResult {
-						let class = maybe_class.as_mut().ok_or(Error::<T>::NftClassDoesNotExists)?;
-						class.1 = class.1.checked_add(1).ok_or(Error::<T>::Overflow)?;
+					<DepositData<T>>::insert(&nft_id, d);
+					<LiquidityPoolMetadata<T>>::try_mutate(liq_pool.id, |maybe_liq_pool_metadata| -> DispatchResult {
+						//Something is very wrong if this fail. Metadata can exist without liq. pool but liq. pool can't
+						//exist without metadata.
+						let liq_pool_metadata = maybe_liq_pool_metadata
+							.as_mut()
+							.ok_or(Error::<T>::LiquidityPoolMetadataNotFound)?;
+						liq_pool_metadata.1 = liq_pool_metadata.1.checked_add(1).ok_or(Error::<T>::Overflow)?;
 						Ok(())
 					})?;
 
@@ -1034,7 +1036,7 @@ pub mod pallet {
 						who,
 						amount: shares_amount,
 						lp_token: amm_share_token,
-						nft_class: liq_pool.nft_class,
+						nft_class: T::NftClass::get(),
 						nft_instance_id: nft_id,
 					});
 
@@ -1047,21 +1049,21 @@ pub mod pallet {
 		/// canceled
 		#[pallet::weight(<T as Config>::WeightInfo::claim_rewards())]
 		#[transactional]
-		pub fn claim_rewards(
-			origin: OriginFor<T>,
-			nft_class_id: NftClassIdOf<T>,
-			nft_id: NftInstanceIdOf<T>,
-		) -> DispatchResult {
+		pub fn claim_rewards(origin: OriginFor<T>, nft_id: NftInstanceIdOf<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let (asset_pair, _, farm_id) =
-				<NftClassData<T>>::get(nft_class_id).ok_or(Error::<T>::NftClassDoesNotExists)?;
+			let liq_pool_id = Self::get_pool_id_from_nft_id(nft_id)?;
 
-			<DepositData<T>>::try_mutate(nft_class_id, nft_id, |maybe_nft| {
+			//This is same same as liq pool not found in this case. Liq. pool metadata CAN exist
+			//without liq. pool but liq. pool CAN'T exist without metadata.
+			let (asset_pair, _, farm_id) =
+				<LiquidityPoolMetadata<T>>::get(liq_pool_id).ok_or(Error::<T>::LiquidityPoolNotFound)?;
+
+			<DepositData<T>>::try_mutate(nft_id, |maybe_nft| {
 				let deposit = maybe_nft.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
 
-				let nft_owner =
-					pallet_nft::Pallet::<T>::owner(nft_class_id, nft_id).ok_or(Error::<T>::CantFindDepositOwner)?;
+				let nft_owner = pallet_nft::Pallet::<T>::owner(T::NftClass::get(), nft_id)
+					.ok_or(Error::<T>::CantFindDepositOwner)?;
 
 				ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
@@ -1105,26 +1107,29 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_shares())]
 		#[transactional]
-		pub fn withdraw_shares(
-			origin: OriginFor<T>,
-			nft_class_id: NftClassIdOf<T>,
-			nft_id: NftInstanceIdOf<T>,
-		) -> DispatchResultWithPostInfo {
+		pub fn withdraw_shares(origin: OriginFor<T>, nft_id: NftInstanceIdOf<T>) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
 			let nft_owner =
-				pallet_nft::Pallet::<T>::owner(nft_class_id, nft_id).ok_or(Error::<T>::CantFindDepositOwner)?;
+				pallet_nft::Pallet::<T>::owner(T::NftClass::get(), nft_id).ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
-			<NftClassData<T>>::try_mutate_exists(nft_class_id, |maybe_nft_class| {
-				let (asset_pair, nfts_in_class, farm_id) = maybe_nft_class.ok_or(Error::<T>::NftClassDoesNotExists)?;
+			let liq_pool_id = Self::get_pool_id_from_nft_id(nft_id)?;
+			<LiquidityPoolMetadata<T>>::try_mutate_exists(liq_pool_id, |maybe_liq_pool_metadata| {
+				//This is same same as liq pool not found in this case. Liq. pool metadata CAN exist
+				//without liq. pool but liq. pool CAN'T exist without metadata.
+				//If metadata doesn't exist, user CAN'T withdraw.
+				let (asset_pair, nfts_in_liq_pool, farm_id) =
+					maybe_liq_pool_metadata.ok_or(Error::<T>::LiquidityPoolNotFound)?;
 
-				<DepositData<T>>::try_mutate_exists(nft_class_id, nft_id, |maybe_nft| {
-					let deposit = maybe_nft.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
+				<DepositData<T>>::try_mutate_exists(nft_id, |maybe_deposit| {
+					let deposit = maybe_deposit.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
 
 					let amm_account = T::AMM::get_pair_id(asset_pair);
-					let mut can_destroy_nft_class = true;
+                    //metadata can be removed only if liq pool don't exists. It can be resumed if
+                    //it's only canceled.
+					let mut can_remove_liq_pool_metadata = true;
 					<LiquidityPoolData<T>>::try_mutate(
 						farm_id,
 						amm_account,
@@ -1133,8 +1138,6 @@ pub mod pallet {
 								//This is intentional. This fn should not fail if liq. pool does not
 								//exist, it should only behave differently.
 								let liq_pool = maybe_liq_pool.as_mut().ok_or(Error::<T>::LiquidityPoolNotFound)?;
-
-								can_destroy_nft_class = liq_pool.canceled;
 
 								<GlobalPoolData<T>>::try_mutate(
 									farm_id,
@@ -1207,12 +1210,16 @@ pub mod pallet {
 										Ok(())
 									},
 								)?;
-							}
+							} else {
+                                //canceled liq. pool can be resumed so metadata can be removed only
+                                //if liq pool doesn't exist.
+                                can_remove_liq_pool_metadata = true;
+                            }
 							Ok(())
 						},
 					)?;
 
-					//NOTE: how to communicate "else" to the user? - no shares or rewards will be transferred?
+					//NOTE: no shares or rewards will be transferred to user if AMM no longer exists.
 					if T::AMM::exists(asset_pair) {
 						let amm_token = T::AMM::get_share_token(asset_pair);
 
@@ -1228,18 +1235,15 @@ pub mod pallet {
 						});
 					}
 
-					*maybe_nft = None;
-					pallet_nft::Pallet::<T>::do_burn(who, nft_class_id, nft_id)?;
+					*maybe_deposit = None;
+					pallet_nft::Pallet::<T>::do_burn(who, T::NftClass::get(), nft_id)?;
 
-					//TODO: rewrite this, nft class will be never destroyed, there will be only 1
-					//class per whole pallet
-					if nfts_in_class.is_one() && can_destroy_nft_class {
-						//*maybe_nft_class = None;
-						//pallet_nft::Pallet::<T>::do_destroy_class(nft_class_id)?;
+					if nfts_in_liq_pool.is_one() && can_remove_liq_pool_metadata {
+						*maybe_liq_pool_metadata = None;
 					} else {
-						*maybe_nft_class = Some((
+						*maybe_liq_pool_metadata = Some((
 							asset_pair,
-							nfts_in_class.checked_sub(1).ok_or(Error::<T>::Overflow)?,
+							nfts_in_liq_pool.checked_sub(1).ok_or(Error::<T>::Overflow)?,
 							farm_id,
 						));
 					}
