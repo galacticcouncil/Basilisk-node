@@ -11,6 +11,23 @@ use primitives::asset::AssetPair;
 use xcm_emulator::TestExt;
 use hydradx_traits::{AMM, pools::SpotPriceProvider};
 use pallet_xyk::XYKSpotPrice;
+use polkadot_primitives::v1::BlockNumber;
+
+pub fn basilisk_run_to_block(to: BlockNumber) {
+	while basilisk_runtime::System::block_number() < to {
+		let b = basilisk_runtime::System::block_number();
+
+		basilisk_runtime::System::on_finalize(b);
+		basilisk_runtime::PriceOracle::on_finalize(b);
+		basilisk_runtime::MultiTransactionPayment::on_finalize(b);
+		
+		basilisk_runtime::System::on_initialize(b + 1);
+		basilisk_runtime::PriceOracle::on_finalize(b);
+		basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
+
+		basilisk_runtime::System::set_block_number(b + 1);
+	}
+}
 
 #[test]
 fn non_native_fee_payment_works() {
@@ -63,9 +80,7 @@ fn non_native_fee_payment_works() {
 		let spot_price = XYKSpotPrice::<basilisk_runtime::Runtime>::spot_price(currency_0, currency_1);
 		assert_eq!(spot_price, Some(Price::from_float(0.5)));
 
-		basilisk_runtime::PriceOracle::on_finalize(1u32);
-		basilisk_runtime::PriceOracle::on_initialize(2);
-		basilisk_runtime::System::set_block_number(2u32);
+		basilisk_run_to_block(2);
 
 		assert_ok!(basilisk_runtime::XYK::buy(
 			basilisk_runtime::Origin::signed(ALICE.into()),
@@ -76,7 +91,7 @@ fn non_native_fee_payment_works() {
 			false,
 		));
 
-		basilisk_runtime::PriceOracle::on_finalize(2u32);
+		basilisk_run_to_block(3);
 
 		assert_eq!(basilisk_runtime::XYK::get_pool_assets(&pair_account), Some(vec![currency_0, currency_1]));
 		
@@ -106,11 +121,7 @@ fn non_native_fee_payment_works() {
 			.into(),
 		]);
 
-		for i in 3..11 {
-            basilisk_runtime::PriceOracle::on_initialize(i);
-            basilisk_runtime::System::set_block_number(i);
-            basilisk_runtime::PriceOracle::on_finalize(i);
-        }
+		basilisk_run_to_block(11);
 
 		let pair_name = basilisk_runtime::PriceOracle::get_name(currency_0, currency_1);
 		let data_ten = basilisk_runtime::PriceOracle::price_data_ten()
