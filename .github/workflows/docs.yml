@@ -16,10 +16,6 @@ jobs:
       with:
         profile: minimal
 
-    - name: Init new repo in dist folder and commit generated files
-      run: |
-        mkdir docs
-
     - name: Generate docs
       run: |
         cargo doc --workspace --all-features --release --no-deps --document-private-items --target-dir ./docs
