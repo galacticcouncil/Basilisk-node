@@ -77,7 +77,7 @@ impl Default for WeightCurveType {
 	}
 }
 
-/// Max weight corresponds to 100%
+/// Max weight corresponds to 100% RRRRRRRRRRRRRRR
 pub const MAX_WEIGHT: LBPWeight = 100_000_000;
 
 /// Max sale duration is 14 days, assuming 6 sec blocks
