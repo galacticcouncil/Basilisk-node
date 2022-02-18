@@ -1332,13 +1332,13 @@ fn close_topup_auction_which_is_already_closed_should_not_work() {
 }
 
 
-/// Claiming locked amount from a TopUp auction without winner
+/// Claiming reserved amounts from a TopUp auction
 ///
 /// Happy path
 /// 
 /// 
 #[test]
-fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
+fn claim_reserved_amounts_from_topup_auction_without_winner_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.reserve_price = Some(1_500);
@@ -1371,7 +1371,7 @@ fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
 		let bob_balance_before = Balances::free_balance(&BOB);
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
 
-		assert_ok!(AuctionsModule::claim_locked_amount(
+		assert_ok!(AuctionsModule::claim_reserved_amounts(
 			Origin::signed(BOB),
 			BOB,
 			0
@@ -1388,7 +1388,7 @@ fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
 
 		assert_noop!(
-			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			AuctionsModule::claim_reserved_amounts(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::NoReservedAmountAvailableToClaim
 		);
 
@@ -1401,7 +1401,7 @@ fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
 		// Bob claims for Charlie
 		let charlie_balance_before = Balances::free_balance(&CHARLIE);
 
-		assert_ok!(AuctionsModule::claim_locked_amount(
+		assert_ok!(AuctionsModule::claim_reserved_amounts(
 			Origin::signed(BOB),
 			CHARLIE,
 			0
@@ -1416,7 +1416,7 @@ fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
 }
 
 #[test]
-fn claim_locked_amount_from_topup_auction_with_winner_should_not_work() {
+fn claim_reserved_amounts_from_topup_auction_with_winner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.reserve_price = Some(1_500);
@@ -1446,24 +1446,24 @@ fn claim_locked_amount_from_topup_auction_with_winner_should_not_work() {
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
 		assert_noop!(
-			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			AuctionsModule::claim_reserved_amounts(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::CannotClaimWonAuction
 		);
 	});
 }
 
 #[test]
-fn claim_locked_amount_from_nonexisting_auction_should_not_work() {
+fn claim_reserved_amounts_from_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			AuctionsModule::claim_reserved_amounts(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::NoReservedAmountAvailableToClaim
 		);
 	});
 }
 
 #[test]
-fn claim_locked_amount_from_running_topup_auction_should_not_work() {
+fn claim_reserved_amounts_from_running_topup_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.reserve_price = Some(1_500);
@@ -1489,14 +1489,14 @@ fn claim_locked_amount_from_running_topup_auction_should_not_work() {
 		));
 
 		assert_noop!(
-			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			AuctionsModule::claim_reserved_amounts(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::AuctionEndTimeNotReached
 		);
 	});
 }
 
 #[test]
-fn claim_locked_amount_from_not_closed_topup_auction_should_not_work() {
+fn claim_reserved_amounts_from_not_closed_topup_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let mut general_auction_data = valid_general_auction_data();
 		general_auction_data.reserve_price = Some(1_500);
@@ -1524,7 +1524,7 @@ fn claim_locked_amount_from_not_closed_topup_auction_should_not_work() {
 		run_to_block::<Test>(22);
 
 		assert_noop!(
-			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			AuctionsModule::claim_reserved_amounts(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::CloseAuctionBeforeClaimingReservedAmounts
 		);
 	});

@@ -406,8 +406,8 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::auction_claim_locked_amounts())]
-		pub fn claim_locked_amount(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+		#[pallet::weight(<T as Config>::WeightInfo::claim_reserved_amounts())]
+		pub fn claim_reserved_amounts(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 			ensure!(claimable_amount > Zero::zero(), Error::<T>::NoReservedAmountAvailableToClaim);
 
