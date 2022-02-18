@@ -251,8 +251,14 @@ pub mod pallet {
 		NoChangeOfAuctionType,
 		/// next_bid_min is invalid
 		InvalidNextBidMin,
-		// TopUp locked amount is invalid
+		// TopUp reserved amount is invalid
 		InvalidReservedAmount,
+		// TopUp bidder does not have claim to a reserved amount
+		NoReservedAmountAvailableToClaim,
+		// TopUp auction is closed and won, funds should be transferred to seller
+		CannotClaimWonAuction,
+		// Claims of reserved amounts are only available on TopUp
+		ClaimsNotSupportedForThisAuctionType
 	}
 
 	#[pallet::call]
@@ -402,18 +408,30 @@ pub mod pallet {
 		pub fn claim_locked_amount(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 
-			if claimable_amount > Zero::zero() {
-				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-					&Pallet::<T>::get_auction_subaccount_id(&auction_id),
-					&bidder,
-					claimable_amount,
-					ExistenceRequirement::AllowDeath,
-				)?;
+			ensure!(claimable_amount > Zero::zero(), Error::<T>::NoReservedAmountAvailableToClaim);
 
-				<ReservedAmounts<T>>::remove(bidder, auction_id);
+			let maybe_auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
+
+			match maybe_auction {
+				Auction::TopUp(auction) => {
+					ensure!(Pallet::<T>::is_auction_ended(&auction.general_data), Error::<T>::AuctionEndTimeNotReached);
+					ensure!(!Pallet::<T>::is_auction_won(&auction.general_data), Error::<T>::CannotClaimWonAuction);
+
+					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+						&Pallet::<T>::get_auction_subaccount_id(&auction_id),
+						&bidder,
+						claimable_amount,
+						ExistenceRequirement::AllowDeath,
+					)?;
+
+					<ReservedAmounts<T>>::remove(bidder, auction_id);
+
+					Ok(())
+				},
+				_ => {
+					Err(Error::<T>::ClaimsNotSupportedForThisAuctionType.into())
+				}
 			}
-
-			Ok(())
 		}
 	}
 }

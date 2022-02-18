@@ -1389,11 +1389,10 @@ fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
 		let bob_balance_before = Balances::free_balance(&BOB);
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
 
-		assert_ok!(AuctionsModule::claim_locked_amount(
-			Origin::signed(BOB),
-			BOB,
-			0
-		));
+		assert_noop!(
+			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::NoReservedAmountAvailableToClaim
+		);
 
 		let bob_balance_after = Balances::free_balance(&BOB);
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
