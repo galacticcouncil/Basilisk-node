@@ -87,6 +87,8 @@ pub const KSM_FARM: PoolId = 2;
 pub const GC_FARM: PoolId = 3;
 pub const ACA_FARM: PoolId = 4;
 
+pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 1;
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -247,6 +249,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
+    pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 }
 
 impl Config for Test {
@@ -259,6 +262,7 @@ impl Config for Test {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
+    type NftClass = NftClass;
 	type AMM = Amm;
 }
 

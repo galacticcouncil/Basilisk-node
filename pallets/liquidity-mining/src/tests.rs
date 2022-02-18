@@ -21,7 +21,8 @@ use crate::mock::{
 	Tokens, ACA, ACA_FARM, ACCOUNT_WITH_1M, ALICE, AMM_POOLS, BOB, BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID,
 	BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM,
 	BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID, BSX_TO1_AMM, BSX_TO1_SHARE_ID, BSX_TO2_AMM,
-	BSX_TO2_SHARE_ID, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_FARM, TO1, TO2, TREASURY,
+	BSX_TO2_SHARE_ID, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_FARM, LIQ_MINING_NFT_CLASS, TO1, TO2,
+	TREASURY,
 };
 
 use frame_support::{assert_err, assert_noop, assert_ok};
@@ -92,6 +93,35 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 3] = [
 	},
 ];
 
+thread_local! {
+	static PREDEFINED_LIQ_POOLS: [LiquidityPoolYieldFarm<Test>; 2] = [
+		LiquidityPoolYieldFarm {
+			id: 4,
+			updated_at: 0,
+			total_shares: 0,
+			total_valued_shares: 0,
+			accumulated_rpvs: 0,
+			accumulated_rpz: 0,
+			loyalty_curve: Some(LoyaltyCurve::default()),
+			stake_in_global_pool: 0,
+			multiplier: FixedU128::from(5),
+			canceled: false,
+		},
+		LiquidityPoolYieldFarm {
+			id: 5,
+			updated_at: 0,
+			total_shares: 0,
+			total_valued_shares: 0,
+			accumulated_rpvs: 0,
+			accumulated_rpz: 0,
+			loyalty_curve: Some(LoyaltyCurve::default()),
+			stake_in_global_pool: 0,
+			multiplier: FixedU128::from(10),
+			canceled: false,
+		},
+	]
+}
+
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
 
@@ -99,34 +129,34 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::create_farm(
 			Origin::root(),
 			100_000_000_000,
-			BlockNumber::from(300_u32),
-			BlockNumber::from(1_000_u32),
-			BSX,
-			BSX,
+			PREDEFINED_GLOBAL_POOLS[0].planned_yielding_periods,
+			PREDEFINED_GLOBAL_POOLS[0].blocks_per_period,
+			PREDEFINED_GLOBAL_POOLS[0].incentivized_asset,
+			PREDEFINED_GLOBAL_POOLS[0].reward_currency,
 			ALICE,
-			Permill::from_percent(20),
+			PREDEFINED_GLOBAL_POOLS[0].yield_per_period,
 		));
 
 		assert_ok!(LiquidityMining::create_farm(
 			Origin::root(),
 			1_000_000_000,
-			BlockNumber::from(5_000_u32),
-			BlockNumber::from(10_000_u32),
-			BSX,
-			KSM,
+			PREDEFINED_GLOBAL_POOLS[1].planned_yielding_periods,
+			PREDEFINED_GLOBAL_POOLS[1].blocks_per_period,
+			PREDEFINED_GLOBAL_POOLS[1].incentivized_asset,
+			PREDEFINED_GLOBAL_POOLS[1].reward_currency,
 			BOB,
-			Permill::from_percent(38),
+			PREDEFINED_GLOBAL_POOLS[1].yield_per_period,
 		));
 
 		assert_ok!(LiquidityMining::create_farm(
 			Origin::root(),
 			30_000_000_000,
-			BlockNumber::from(500_u32),
-			BlockNumber::from(100_u32),
-			BSX,
-			BSX,
+			PREDEFINED_GLOBAL_POOLS[2].planned_yielding_periods,
+			PREDEFINED_GLOBAL_POOLS[2].blocks_per_period,
+			PREDEFINED_GLOBAL_POOLS[2].incentivized_asset,
+			PREDEFINED_GLOBAL_POOLS[2].reward_currency,
 			GC,
-			Permill::from_percent(50),
+			PREDEFINED_GLOBAL_POOLS[2].yield_per_period,
 		));
 
 		expect_events(vec![
@@ -140,8 +170,14 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				incentivized_asset: PREDEFINED_GLOBAL_POOLS[0].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[0].max_reward_per_period,
 			}),
-			//frame_system::Event::NewAccount(187989685649991564771226578797).into(),
-			//orml_tokens::Event::Endowed(4_000, 187989685649991564771226578797, 1_000_000_000).into(),
+			mock::Event::System(frame_system::Event::NewAccount {
+				account: 187989685649991564771226578797,
+			}),
+			mock::Event::Tokens(orml_tokens::Event::Endowed {
+				currency_id: 4_000,
+				who: 187989685649991564771226578797,
+				amount: 1_000_000_000,
+			}),
 			mock::Event::LiquidityMining(Event::FarmCreated {
 				farm_id: PREDEFINED_GLOBAL_POOLS[1].id,
 				owner: PREDEFINED_GLOBAL_POOLS[1].owner,
@@ -152,8 +188,14 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				incentivized_asset: PREDEFINED_GLOBAL_POOLS[1].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[1].max_reward_per_period,
 			}),
-			//frame_system::Event::NewAccount(267217848164255902364770529133).into(),
-			//orml_tokens::Event::Endowed(1_000, 267217848164255902364770529133, 30_000_000_000).into(),
+			mock::Event::System(frame_system::Event::NewAccount {
+				account: 267217848164255902364770529133,
+			}),
+			mock::Event::Tokens(orml_tokens::Event::Endowed {
+				currency_id: 1_000,
+				who: 267217848164255902364770529133,
+				amount: 30_000_000_000,
+			}),
 			mock::Event::LiquidityMining(Event::FarmCreated {
 				farm_id: PREDEFINED_GLOBAL_POOLS[2].id,
 				owner: PREDEFINED_GLOBAL_POOLS[2].owner,
@@ -232,16 +274,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TO1,
 			},
-			FixedU128::from(5_u128),
-			Some(LoyaltyCurve::default()),
+			PREDEFINED_LIQ_POOLS.with(|v| v[0].multiplier),
+			PREDEFINED_LIQ_POOLS.with(|v| v[0].loyalty_curve.clone()),
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 4,
-			multiplier: FixedU128::from(5),
-			nft_class: 0,
-			loyalty_curve: Some(LoyaltyCurve::default()),
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[0].id),
+			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[0].multiplier),
+			nft_class: LIQ_MINING_NFT_CLASS,
+			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[0].loyalty_curve.clone()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TO1,
@@ -255,16 +297,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TO2,
 			},
-			FixedU128::from(10_u128),
-			Some(LoyaltyCurve::default()),
+			PREDEFINED_LIQ_POOLS.with(|v| v[1].multiplier),
+			PREDEFINED_LIQ_POOLS.with(|v| v[1].loyalty_curve.clone()),
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 5,
-			multiplier: FixedU128::from(10),
-			nft_class: 1,
-			loyalty_curve: Some(LoyaltyCurve::default()),
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[1].id),
+			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[1].multiplier),
+			nft_class: LIQ_MINING_NFT_CLASS,
+			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[1].loyalty_curve.clone()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TO2,
@@ -274,6 +316,17 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 	ext
 }
+
+//This are nft_id for deposits in "predefined_test_ext_with_deposits()"
+const PREDEFINED_NFT_IDS: [u128; 7] = [
+	4294967300_u128,
+	8589934596_u128,
+	12884901892_u128,
+	17179869189_u128,
+	25769803781_u128,
+	30064771077_u128,
+	34359738372_u128,
+];
 
 pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 	let mut ext = predefined_test_ext();
@@ -310,12 +363,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 4,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[0].id),
 			who: ALICE,
 			lp_token: BSX_TO1_SHARE_ID,
 			amount: 50,
-			nft_class: 0,
-			nft_instance_id: 0,
+			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_NFT_IDS[0],
 		})]);
 
 		// DEPOSIT 2 (deposit in same period):
@@ -325,12 +378,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 4,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[0].id),
 			who: BOB,
 			lp_token: BSX_TO1_SHARE_ID,
 			amount: 80,
-			nft_class: 0,
-			nft_instance_id: 1,
+			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_NFT_IDS[1],
 		})]);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
@@ -340,12 +393,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 5,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[1].id),
 			who: BOB,
 			lp_token: BSX_TO2_SHARE_ID,
 			amount: 25,
-			nft_class: 1,
-			nft_instance_id: 0,
+			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_NFT_IDS[2],
 		})]);
 
 		// DEPOSIT 4 (new period):
@@ -361,12 +414,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 5,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[1].id),
 			who: BOB,
 			lp_token: BSX_TO2_SHARE_ID,
 			amount: 800,
-			nft_class: 1,
-			nft_instance_id: 1,
+			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_NFT_IDS[3],
 		})]);
 
 		// DEPOSIT 5 (same period, second liq pool yield farm):
@@ -382,12 +435,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 5,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[1].id),
 			who: ALICE,
 			lp_token: BSX_TO2_SHARE_ID,
 			amount: 87,
-			nft_class: 1,
-			nft_instance_id: 2,
+			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_NFT_IDS[4],
 		})]);
 
 		// DEPOSIT 6 (same period):
@@ -403,12 +456,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 5,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[1].id),
 			who: ALICE,
 			lp_token: BSX_TO2_SHARE_ID,
 			amount: 48,
-			nft_class: 1,
-			nft_instance_id: 3,
+			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_NFT_IDS[5],
 		})]);
 
 		// DEPOSIT 7 : (same period differen liq poll farm)
@@ -424,12 +477,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: 4,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[0].id),
 			who: ALICE,
 			lp_token: BSX_TO1_SHARE_ID,
 			amount: 486,
-			nft_class: 0,
-			nft_instance_id: 2,
+			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_NFT_IDS[6],
 		})]);
 
 		assert_eq!(
@@ -455,39 +508,37 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
-				id: 4,
 				updated_at: 25,
 				accumulated_rpvs: 60,
 				accumulated_rpz: 12,
 				total_shares: 616,
 				total_valued_shares: 45_540,
-				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 227_700,
-				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
-				canceled: false,
+				..PREDEFINED_LIQ_POOLS.with(|v| v[0].clone())
 			},
 		);
 
 		assert_eq!(
 			LiquidityMining::liquidity_pool(GC_FARM, BSX_TO2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
-				id: 5,
 				updated_at: 25,
 				accumulated_rpvs: 120,
 				accumulated_rpz: 12,
 				total_shares: 960,
 				total_valued_shares: 47_629,
-				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 476_290,
-				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
-				canceled: false,
+				..PREDEFINED_LIQ_POOLS.with(|v| v[1].clone())
 			},
 		);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 3, GC_FARM));
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 4, GC_FARM));
+		assert_eq!(
+			LiquidityMining::liq_pool_meta(PREDEFINED_LIQ_POOLS.with(|v| v[0].id)).unwrap(),
+			(amm_1, 3, GC_FARM)
+		);
+		assert_eq!(
+			LiquidityMining::liq_pool_meta(PREDEFINED_LIQ_POOLS.with(|v| v[1].id)).unwrap(),
+			(amm_2, 4, GC_FARM)
+		);
 
 		assert_eq!(Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account), 616);
 		assert_eq!(Tokens::free_balance(BSX_TO2_SHARE_ID, &pallet_account), 960);
@@ -1709,7 +1760,7 @@ fn claim_from_global_pool_should_work() {
 		global_pool.accumulated_rewards = t.5;
 		global_pool.paid_accumulated_rewards = t.6;
 
-		let mut liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, FixedU128::from(10_u128), 1);
+		let mut liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, FixedU128::from(10_u128));
 		liq_pool.accumulated_rpz = t.2;
 
 		assert_eq!(
@@ -1736,7 +1787,7 @@ fn claim_from_global_pool_should_work() {
 
 		assert_eq!(global_pool, rhs_global_pool);
 
-		let mut rhs_liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, FixedU128::from(10_u128), 1);
+		let mut rhs_liq_pool = LiquidityPoolYieldFarm::new(liq_pool_id, t.0, None, FixedU128::from(10_u128));
 		rhs_liq_pool.accumulated_rpz = t.9;
 
 		assert_eq!(liq_pool, rhs_liq_pool);
@@ -2082,7 +2133,6 @@ fn update_pool_should_work() {
 			loyalty_curve: None,
 			stake_in_global_pool: Balance::from(10_000_u32),
 			multiplier: FixedU128::from(10_u128),
-			nft_class: 1,
 			canceled: false,
 		};
 
@@ -2139,7 +2189,6 @@ fn update_pool_should_work() {
 					loyalty_curve: None,
 					stake_in_global_pool: Balance::from(10_000_u32),
 					multiplier: FixedU128::from(10_u128),
-					nft_class: 1,
 					canceled: false,
 				}
 			);
@@ -2482,7 +2531,6 @@ fn add_liquidity_pool_should_work() {
 				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(20_000_u128),
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				nft_class: 2,
 				canceled: false,
 			},
 			BSX_ACA_AMM,
@@ -2509,7 +2557,6 @@ fn add_liquidity_pool_should_work() {
 				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(10_000_u128),
 				loyalty_curve: None,
-				nft_class: 3,
 				canceled: false,
 			},
 			BSX_KSM_AMM,
@@ -2539,7 +2586,6 @@ fn add_liquidity_pool_should_work() {
 					initial_reward_percentage: FixedU128::from_inner(100_000_000_000_000_000),
 					scale_coef: 50,
 				}),
-				nft_class: 4,
 				canceled: false,
 			},
 			BSX_ETH_AMM,
@@ -2569,7 +2615,6 @@ fn add_liquidity_pool_should_work() {
 					initial_reward_percentage: FixedU128::from_inner(1),
 					scale_coef: 0,
 				}),
-				nft_class: 5,
 				canceled: false,
 			},
 			BSX_ETH_AMM,
@@ -2598,7 +2643,7 @@ fn add_liquidity_pool_should_work() {
 				farm_id,
 				liq_pool_farm_id: pool.id,
 				multiplier: pool.multiplier,
-				nft_class: pool.nft_class,
+				nft_class: LIQ_MINING_NFT_CLASS,
 				loyalty_curve: pool.loyalty_curve.clone(),
 				asset_pair: assets,
 			})]);
@@ -2758,7 +2803,6 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			stake_in_global_pool: 0,
 			multiplier: FixedU128::from(10_000_u128),
-			nft_class: 2,
 			canceled: false,
 		};
 		assert_eq!(
@@ -2770,7 +2814,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 			farm_id: ALICE_FARM,
 			liq_pool_farm_id: existing_pool.id,
 			multiplier: existing_pool.multiplier,
-			nft_class: existing_pool.nft_class,
+			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: existing_pool.loyalty_curve,
 			asset_pair: AssetPair {
 				asset_in: BSX,
@@ -3023,15 +3067,14 @@ fn deposit_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 12_500,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 1, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (amm_1, 1, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(0, 0).unwrap(),
+			LiquidityMining::deposit(0).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
@@ -3096,15 +3139,14 @@ fn deposit_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 33_300,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 2, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (amm_1, 2, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(0, 1).unwrap(),
+			LiquidityMining::deposit(1).unwrap(),
 			Deposit {
 				shares: 80,
 				valued_shares: 4_160,
@@ -3172,15 +3214,14 @@ fn deposit_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 2_000,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
 
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 1, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(1).unwrap(), (amm_2, 1, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(1, 0).unwrap(),
+			LiquidityMining::deposit(0).unwrap(),
 			Deposit {
 				shares: 25,
 				valued_shares: 200,
@@ -3256,15 +3297,14 @@ fn deposit_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 466_000,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
 
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 2, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(1).unwrap(), (amm_2, 2, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(1, 1).unwrap(),
+			LiquidityMining::deposit(1).unwrap(),
 			Deposit {
 				shares: 800,
 				valued_shares: 46_400,
@@ -3340,15 +3380,14 @@ fn deposit_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 468_610,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
 
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 3, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(1).unwrap(), (amm_2, 3, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(1, 2).unwrap(),
+			LiquidityMining::deposit(2).unwrap(),
 			Deposit {
 				shares: 87,
 				valued_shares: 261,
@@ -3429,15 +3468,14 @@ fn deposit_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 476_290,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
 
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 4, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(1).unwrap(), (amm_2, 4, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(1, 3).unwrap(),
+			LiquidityMining::deposit(3).unwrap(),
 			Deposit {
 				shares: 48,
 				valued_shares: 768,
@@ -3519,15 +3557,14 @@ fn deposit_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 227_700,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 3, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (amm_1, 3, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(0, 2).unwrap(),
+			LiquidityMining::deposit(2).unwrap(),
 			Deposit {
 				shares: 486,
 				valued_shares: 38_880,
@@ -3629,7 +3666,7 @@ fn claim_rewards_should_work() {
 		let liq_pool_bsx_to1_rewarad_balance = Tokens::free_balance(BSX, &bsx_to1_lm_account);
 
 		//claim A1.1  (dep A1 1-th time)
-		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
+		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
@@ -3640,7 +3677,7 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(0, 0).unwrap(),
+			LiquidityMining::deposit(0).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
@@ -3662,7 +3699,7 @@ fn claim_rewards_should_work() {
 		let liq_pool_bsx_to2_rewarad_balance = Tokens::free_balance(BSX, &bsx_to2_lm_account);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
-		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 1, 2));
+		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 2));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
@@ -3673,7 +3710,7 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(1, 2).unwrap(),
+			LiquidityMining::deposit(2).unwrap(),
 			Deposit {
 				shares: 87,
 				valued_shares: 261,
@@ -3716,7 +3753,6 @@ fn claim_rewards_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 476_290,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
@@ -3735,7 +3771,7 @@ fn claim_rewards_should_work() {
 		let liq_pool_bsx_to1_rewarad_balance = Tokens::free_balance(BSX, &bsx_to1_lm_account);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
-		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
+		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
@@ -3746,7 +3782,7 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(0, 0).unwrap(),
+			LiquidityMining::deposit(0).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
@@ -3789,7 +3825,6 @@ fn claim_rewards_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 227_700,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
@@ -3806,7 +3841,6 @@ fn claim_rewards_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 476_290,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
@@ -3827,7 +3861,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 		let bsx_to1_lm_account = LiquidityMining::pool_account_id(4).unwrap();
 		let liq_pool_bsx_to1_rewarad_balance = Tokens::free_balance(BSX, &bsx_to1_lm_account);
 
-		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
+		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
@@ -3838,7 +3872,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(0, 0).unwrap(),
+			LiquidityMining::deposit(0).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
@@ -3856,20 +3890,8 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 		);
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0),
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0),
 			Error::<Test>::DoubleClaimInThePeriod
-		);
-	});
-}
-
-#[test]
-fn claim_rewards_invalid_nft_class_should_not_work() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		let invalid_nft_class = 5486;
-
-		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), invalid_nft_class, 0),
-			Error::<Test>::NftClassDoesNotExists
 		);
 	});
 }
@@ -3877,11 +3899,20 @@ fn claim_rewards_invalid_nft_class_should_not_work() {
 #[test]
 fn claim_rewards_invalid_nft_id_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let invalid_nft_id = 684;
+		const INVALID_NFT_CLASS: u128 = 5486;
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, invalid_nft_id),
-			Error::<Test>::NftDoesNotExist
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), INVALID_NFT_CLASS),
+			Error::<Test>::InvalidNftId
+		);
+
+		//Liq. pool metadata not found
+		// id from poolId: u32::max_value() nftIdSequence: 168_453_145
+		const NOT_FOUND_ID: u128 = 723_500_752_978_313_215;
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), NOT_FOUND_ID),
+			Error::<Test>::LiquidityPoolNotFound
 		);
 	});
 }
@@ -3901,7 +3932,7 @@ fn claim_rewards_from_canceled_pool_should_not_work() {
 		));
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0),
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0),
 			Error::<Test>::LiquidityMiningCanceled
 		);
 	});
@@ -3928,7 +3959,7 @@ fn claim_rewards_from_removed_pool_should_not_work() {
 		));
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0),
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0),
 			Error::<Test>::LiquidityPoolNotFound
 		);
 	});
@@ -3940,7 +3971,7 @@ fn claim_rewards_not_deposit_owner_should_not_work() {
 		const NOT_OWNER: u128 = BOB;
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(NOT_OWNER), 0, 0),
+			LiquidityMining::claim_rewards(Origin::signed(NOT_OWNER), 0),
 			Error::<Test>::NotDepositOwner
 		);
 	});
@@ -3975,7 +4006,7 @@ fn withdraw_shares_should_work() {
 		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
 		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 0));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
@@ -4025,7 +4056,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 215_200,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
@@ -4067,9 +4097,9 @@ fn withdraw_shares_should_work() {
 			global_pool_bsx_balance + 70_094
 		);
 
-		assert_eq!(LiquidityMining::deposit(0, 0), None);
+		assert_eq!(LiquidityMining::deposit(0), None);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 2, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (amm_1, 2, GC_FARM));
 
 		run_to_block(12_800);
 
@@ -4082,7 +4112,7 @@ fn withdraw_shares_should_work() {
 		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
 		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 1, 2));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 2));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::FarmAccRPZUpdated {
@@ -4144,7 +4174,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 215_200,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
@@ -4161,7 +4190,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 473_680,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
@@ -4204,9 +4232,9 @@ fn withdraw_shares_should_work() {
 			global_pool_bsx_balance + 32_786 - 24_290_790
 		);
 
-		assert_eq!(LiquidityMining::deposit(1, 2), None);
+		assert_eq!(LiquidityMining::deposit(2), None);
 
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 3, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(1).unwrap(), (amm_2, 3, GC_FARM));
 
 		// withdraw 3A
 		let alice_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
@@ -4217,7 +4245,7 @@ fn withdraw_shares_should_work() {
 		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
 		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 2));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 2));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::LiquidityPoolAccRPVSUpdated {
@@ -4273,7 +4301,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 20_800,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
@@ -4316,9 +4343,9 @@ fn withdraw_shares_should_work() {
 			global_pool_bsx_balance + 2_441_971 - 10_975_200
 		);
 
-		assert_eq!(LiquidityMining::deposit(0, 2), None);
+		assert_eq!(LiquidityMining::deposit(2), None);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 1, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (amm_1, 1, GC_FARM));
 
 		// withdraw 2A
 		let bob_amm_1_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &BOB);
@@ -4328,7 +4355,7 @@ fn withdraw_shares_should_work() {
 		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
 		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 0, 1));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
@@ -4378,7 +4405,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
@@ -4415,9 +4441,9 @@ fn withdraw_shares_should_work() {
 			global_pool_bsx_balance + 267_429
 		);
 
-		assert_eq!(LiquidityMining::deposit(0, 1), None);
+		assert_eq!(LiquidityMining::deposit(1), None);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (amm_1, 0, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (amm_1, 0, GC_FARM));
 
 		// withdraw 1B
 		let bob_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
@@ -4427,7 +4453,7 @@ fn withdraw_shares_should_work() {
 		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
 		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1, 0));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 0));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
@@ -4477,7 +4503,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(5_u128),
-				nft_class: 0,
 				canceled: false,
 			},
 		);
@@ -4494,7 +4519,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 471_680,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
@@ -4530,9 +4554,9 @@ fn withdraw_shares_should_work() {
 			global_pool_bsx_balance + 30_001
 		);
 
-		assert_eq!(LiquidityMining::deposit(1, 0), None);
+		assert_eq!(LiquidityMining::deposit(0), None);
 
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 2, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(1).unwrap(), (amm_2, 2, GC_FARM));
 
 		// withdraw 4B
 		let alice_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &ALICE);
@@ -4542,7 +4566,7 @@ fn withdraw_shares_should_work() {
 		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
 		let liq_pool_amm_2_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_2_account);
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 1, 3));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 3));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
@@ -4592,7 +4616,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 464_000,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
@@ -4631,9 +4654,9 @@ fn withdraw_shares_should_work() {
 			global_pool_bsx_balance + 96_473
 		);
 
-		assert_eq!(LiquidityMining::deposit(1, 3), None);
+		assert_eq!(LiquidityMining::deposit(3), None);
 
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 1, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(1).unwrap(), (amm_2, 1, GC_FARM));
 
 		// withdraw 2B
 		let bob_amm_2_shares_balance = Tokens::free_balance(BSX_TO2_SHARE_ID, &BOB);
@@ -4641,7 +4664,7 @@ fn withdraw_shares_should_work() {
 		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
 		let liq_pool_amm_1_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &liq_pool_amm_1_account);
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1, 1));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
@@ -4692,7 +4715,6 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(10_u128),
-				nft_class: 1,
 				canceled: false,
 			},
 		);
@@ -4725,9 +4747,9 @@ fn withdraw_shares_should_work() {
 			global_pool_bsx_balance + 5_911_539
 		);
 
-		assert_eq!(LiquidityMining::deposit(1, 1), None);
+		assert_eq!(LiquidityMining::deposit(1), None);
 
-		assert_eq!(LiquidityMining::nft_class(1).unwrap(), (amm_2, 0, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(1).unwrap(), (amm_2, 0, GC_FARM));
 	});
 }
 
@@ -4762,7 +4784,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM).unwrap();
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 0));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0));
 
 		let user_reward = 444_230;
 		expect_events(vec![
@@ -4792,7 +4814,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}
 		);
 
-		assert_eq!(LiquidityMining::deposit(0, 0), None);
+		assert_eq!(LiquidityMining::deposit(0), None);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
@@ -4817,7 +4839,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			liq_pool_bsx_balance - user_reward - unclaimable_rewards
 		);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 2, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (assets, 2, GC_FARM));
 
 		//2-nd withdraw
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
@@ -4834,7 +4856,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		let shares_amount = 486;
 		let valued_shares_amount = 38_880;
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 2));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 2));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
@@ -4863,7 +4885,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}
 		);
 
-		assert_eq!(LiquidityMining::deposit(0, 2), None);
+		assert_eq!(LiquidityMining::deposit(2), None);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
@@ -4887,7 +4909,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			liq_pool_bsx_balance - user_reward - unclaimable_rewards
 		);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 1, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (assets, 1, GC_FARM));
 
 		//3-th withdraw
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
@@ -4903,7 +4925,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		let unclaimable_rewards = 228_572;
 		let shares_amount = 80;
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 0, 1));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
@@ -4933,7 +4955,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}
 		);
 
-		assert_eq!(LiquidityMining::deposit(0, 3), None);
+		assert_eq!(LiquidityMining::deposit(3), None);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account),
@@ -4958,7 +4980,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		);
 
 		//last withdraw should destroy nft class
-		assert_eq!(LiquidityMining::nft_class(0), None);
+		assert_eq!(LiquidityMining::liq_pool_meta(0), None);
 	});
 }
 
@@ -4971,7 +4993,7 @@ fn claim_and_reward_in_same_period_should_work() {
 		let alice_lp_tokens_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE);
 		const LIQ_POOL_ID: PoolId = 4;
 
-		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, 0));
+		assert_ok!(LiquidityMining::claim_rewards(Origin::signed(ALICE), 0));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
 			farm_id: GC_FARM,
@@ -4982,7 +5004,7 @@ fn claim_and_reward_in_same_period_should_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(0, 0).unwrap(),
+			LiquidityMining::deposit(0).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
@@ -4999,7 +5021,7 @@ fn claim_and_reward_in_same_period_should_work() {
 			liq_pool_bsx_to1_rewarad_balance - 79_906
 		);
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0, 0));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0));
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TO1_SHARE_ID, &ALICE),
@@ -5052,7 +5074,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
 		//1-th withdraw
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), nft_class_id, 0));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 0));
 
 		let shares_amount = 50;
 
@@ -5065,7 +5087,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			//pallet_uniques::Event::Burned(0, 0, 1).into(),
 		]);
 
-		assert_eq!(LiquidityMining::deposit(nft_class_id, 0), None);
+		assert_eq!(LiquidityMining::deposit(0), None);
 
 		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
@@ -5088,7 +5110,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		let pallet_shares_balance = Tokens::free_balance(BSX_TO1_SHARE_ID, &pallet_account);
 		let shares_amount = 486;
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), nft_class_id, 2));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(ALICE), 2));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
@@ -5099,7 +5121,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			//pallet_uniques::Event::Burned(0, 2, 1).into(),
 		]);
 
-		assert_eq!(LiquidityMining::deposit(nft_class_id, 2), None);
+		assert_eq!(LiquidityMining::deposit(2), None);
 
 		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
@@ -5121,7 +5143,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		let bob_new_bsx_balance = Tokens::free_balance(BSX, &BOB);
 		let shares_amount = 80;
 
-		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), nft_class_id, 1));
+		assert_ok!(LiquidityMining::withdraw_shares(Origin::signed(BOB), 1));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
@@ -5133,7 +5155,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			//pallet_uniques::Event::Destroyed(0).into(),
 		]);
 
-		assert_eq!(LiquidityMining::deposit(nft_class_id, 3), None);
+		assert_eq!(LiquidityMining::deposit(3), None);
 
 		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
@@ -5147,7 +5169,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		assert_eq!(Tokens::free_balance(BSX, &BOB), bob_new_bsx_balance);
 		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_pool_bsx_balance);
 
-		assert_eq!(LiquidityMining::nft_class(nft_class_id), None);
+		assert_eq!(LiquidityMining::liq_pool_meta(0), None);
 	});
 }
 
@@ -5157,8 +5179,8 @@ fn withdraw_shares_invalid_nft_class_should_not_work() {
 		let invalid_nft_class = 684;
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), invalid_nft_class, 0),
-			Error::<Test>::NftClassDoesNotExists
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0),
+			Error::<Test>::LiquidityPoolNotFound
 		);
 	});
 }
@@ -5169,7 +5191,7 @@ fn withdraw_shares_invalid_nft_id_should_not_work() {
 		let invalid_nft_id = 684;
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), 0, invalid_nft_id),
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), invalid_nft_id),
 			Error::<Test>::NftDoesNotExist
 		);
 	});
@@ -5181,7 +5203,7 @@ fn withdraw_shares_not_owner_should_not_work() {
 		const NOT_OWNER: u128 = BOB;
 
 		assert_noop!(
-			LiquidityMining::withdraw_shares(Origin::signed(NOT_OWNER), 0, 0),
+			LiquidityMining::withdraw_shares(Origin::signed(NOT_OWNER), 0),
 			Error::<Test>::NotDepositOwner
 		);
 	});
@@ -5238,7 +5260,7 @@ fn cancel_liquidity_pool_should_work() {
 			}
 		);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 3, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (assets, 3, GC_FARM));
 
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), liq_pool_bsx_balance);
 		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), global_pool_bsx_balance);
@@ -5297,7 +5319,7 @@ fn cancel_liquidity_pool_should_work() {
 			}
 		);
 
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 3, GC_FARM));
+		assert_eq!(LiquidityMining::liq_pool_meta(0).unwrap(), (assets, 3, GC_FARM));
 
 		//"last reward" from update pool
 		assert_eq!(
@@ -5409,11 +5431,14 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 			}
 		);
 
-		//liq pool struct should be removed from storage
+		//liq. pool struct should be removed from storage
 		assert_eq!(LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM), None);
 
-		//nft class info should stay in storage until add deposits will be withdrawn
-		assert_eq!(LiquidityMining::nft_class(0).unwrap(), (assets, 3, GC_FARM));
+		//liq. pool meta should stay in storage until all deposits are withdrawn
+		assert_eq!(
+			LiquidityMining::liq_pool_meta(liq_pool_id).unwrap(),
+			(assets, 3, GC_FARM)
+		);
 
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
 		//unpaid rewards should be transfered back to global_pool account
@@ -5468,11 +5493,11 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 			}
 		);
 
-		//liq pool struct should be removed from storage
+		//liq. pool struct should be removed from storage
 		assert_eq!(LiquidityMining::liquidity_pool(GC_FARM, BSX_TO1_AMM), None);
 
-		//nft class info should removed from storage if no deposits are left
-		assert_eq!(LiquidityMining::nft_class(0), None);
+		//liq. pool metadata should removed from storage if no deposits are left
+		assert_eq!(LiquidityMining::liq_pool_meta(liq_pool_id), None);
 
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
 		//unpaid rewards should be transfered back to global_pool account
@@ -6003,7 +6028,6 @@ fn do_claim_rewards_should_work() {
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			stake_in_global_pool: 0,
 			multiplier: FixedU128::from(100),
-			nft_class: 0,
 			canceled: false,
 		};
 

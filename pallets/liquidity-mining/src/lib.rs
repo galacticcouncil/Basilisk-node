@@ -502,7 +502,7 @@ pub mod pallet {
 	type DepositData<T: Config> = StorageMap<_, Twox64Concat, NftInstanceIdOf<T>, Deposit<T>, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn liq_pool_metadata)] //(asset_pair, amount of existing nfts, globalPoolId)
+	#[pallet::getter(fn liq_pool_meta)] //(asset_pair, amount of existing nfts, globalPoolId)
 	type LiquidityPoolMetadata<T: Config> =
 		StorageMap<_, Twox64Concat, PoolId, (AssetPair, u64, GlobalPoolId), OptionQuery>;
 
@@ -927,7 +927,7 @@ pub mod pallet {
 						)?;
 
 						//TODO: test this
-						if let Some((_, nfts_in_class, _)) = Self::liq_pool_metadata(liq_pool.id) {
+						if let Some((_, nfts_in_class, _)) = Self::liq_pool_meta(liq_pool.id) {
 							if nfts_in_class.is_zero() {
 								<LiquidityPoolMetadata<T>>::remove(liq_pool.id);
 							}
@@ -1054,7 +1054,7 @@ pub mod pallet {
 
 			let liq_pool_id = Self::get_pool_id_from_nft_id(nft_id)?;
 
-			//This is same same as liq pool not found in this case. Liq. pool metadata CAN exist
+			//This is same as liq pool not found in this case. Liq. pool metadata CAN exist
 			//without liq. pool but liq. pool CAN'T exist without metadata.
 			let (asset_pair, _, farm_id) =
 				<LiquidityPoolMetadata<T>>::get(liq_pool_id).ok_or(Error::<T>::LiquidityPoolNotFound)?;
