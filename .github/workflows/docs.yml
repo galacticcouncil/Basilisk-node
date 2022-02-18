@@ -18,7 +18,7 @@ jobs:
 
     - name: Generate docs
       run: |
-        cargo doc --workspace --all-features --release --no-deps --document-private-items --target-dir ./docs
+        cargo doc --workspace --all-features --release --no-deps --document-private-items --target-dir ./generated_docs
 
     - name: Init new repo in dist folder and commit generated files
       run: |
@@ -36,4 +36,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: gh-pages
         force: true
-        directory: ./docs
+        directory: ./generated_docs/doc
