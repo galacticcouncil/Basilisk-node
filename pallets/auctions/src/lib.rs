@@ -258,7 +258,9 @@ pub mod pallet {
 		// TopUp auction is closed and won, funds should be transferred to seller
 		CannotClaimWonAuction,
 		// Claims of reserved amounts are only available on TopUp
-		ClaimsNotSupportedForThisAuctionType
+		ClaimsNotSupportedForThisAuctionType,
+		// Auction should be closed before claims are made
+		CloseAuctionBeforeClaimingReservedAmounts
 	}
 
 	#[pallet::call]
@@ -407,14 +409,13 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::auction_claim_locked_amounts())]
 		pub fn claim_locked_amount(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
-
 			ensure!(claimable_amount > Zero::zero(), Error::<T>::NoReservedAmountAvailableToClaim);
 
 			let maybe_auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
-
 			match maybe_auction {
 				Auction::TopUp(auction) => {
 					ensure!(Pallet::<T>::is_auction_ended(&auction.general_data), Error::<T>::AuctionEndTimeNotReached);
+					ensure!(auction.general_data.closed, Error::<T>::CloseAuctionBeforeClaimingReservedAmounts);
 					ensure!(!Pallet::<T>::is_auction_won(&auction.general_data), Error::<T>::CannotClaimWonAuction);
 
 					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(

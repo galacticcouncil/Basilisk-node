@@ -1349,8 +1349,6 @@ fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
 
 		run_to_block::<Test>(11);
 
-		
-
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
 			0,
@@ -1414,5 +1412,120 @@ fn claim_locked_amount_from_topup_auction_without_winner_should_work() {
 
 		let final_auction_account_balance = Balances::free_balance(&get_auction_subaccount_id(0));
 		assert_eq!(final_auction_account_balance, Zero::zero());
+	});
+}
+
+#[test]
+fn claim_locked_amount_from_topup_auction_with_winner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.reserve_price = Some(1_500);
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(11);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		run_to_block::<Test>(12);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(2_000_u32)
+		));
+
+		run_to_block::<Test>(22);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		assert_noop!(
+			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::CannotClaimWonAuction
+		);
+	});
+}
+
+#[test]
+fn claim_locked_amount_from_nonexisting_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::NoReservedAmountAvailableToClaim
+		);
+	});
+}
+
+#[test]
+fn claim_locked_amount_from_running_topup_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.reserve_price = Some(1_500);
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(11);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		run_to_block::<Test>(12);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+
+		assert_noop!(
+			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::AuctionEndTimeNotReached
+		);
+	});
+}
+
+#[test]
+fn claim_locked_amount_from_not_closed_topup_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.reserve_price = Some(1_500);
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(11);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		run_to_block::<Test>(12);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+
+		run_to_block::<Test>(22);
+
+		assert_noop!(
+			AuctionsModule::claim_locked_amount(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::CloseAuctionBeforeClaimingReservedAmounts
+		);
 	});
 }
