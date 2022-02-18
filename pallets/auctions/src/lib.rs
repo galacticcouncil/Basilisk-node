@@ -411,12 +411,12 @@ pub mod pallet {
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 			ensure!(claimable_amount > Zero::zero(), Error::<T>::NoReservedAmountAvailableToClaim);
 
-			let maybe_auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
-			match maybe_auction {
-				Auction::TopUp(auction) => {
-					ensure!(Pallet::<T>::is_auction_ended(&auction.general_data), Error::<T>::AuctionEndTimeNotReached);
-					ensure!(auction.general_data.closed, Error::<T>::CloseAuctionBeforeClaimingReservedAmounts);
-					ensure!(!Pallet::<T>::is_auction_won(&auction.general_data), Error::<T>::CannotClaimWonAuction);
+			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
+			match auction {
+				Auction::TopUp(auction_object) => {
+					ensure!(Pallet::<T>::is_auction_ended(&auction_object.general_data), Error::<T>::AuctionEndTimeNotReached);
+					ensure!(auction_object.general_data.closed, Error::<T>::CloseAuctionBeforeClaimingReservedAmounts);
+					ensure!(!Pallet::<T>::is_auction_won(&auction_object.general_data), Error::<T>::CannotClaimWonAuction);
 
 					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 						&Pallet::<T>::get_auction_subaccount_id(&auction_id),
@@ -639,8 +639,7 @@ impl<T: Config> Pallet<T> {
 
 	/// A helper function which checks whether an auction ending block has been reached
 	fn is_auction_ended(general_auction_data: &GeneralAuctionData<T>) -> bool {
-		let block_number = <frame_system::Pallet<T>>::block_number();
-		block_number >= general_auction_data.end
+		<frame_system::Pallet<T>>::block_number() >= general_auction_data.end
 	}
 
 	/// A helper function which checks whether an auction is won
