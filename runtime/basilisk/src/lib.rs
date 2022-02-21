@@ -751,6 +751,7 @@ parameter_types! {
 	pub const BidAddBlocks: u32 = 10; // Increase end time to avoid sniping
 	pub const BidStepPerc: u32 = 10; // Next bid step in percent
 	pub const MinAuctionDuration: u32 = 10; // Minimum auction duration
+	pub const BidMinAmount: u32 = 1; // Minimum bid amount
 }
 
 impl pallet_auctions::Config for Runtime {
@@ -764,6 +765,8 @@ impl pallet_auctions::Config for Runtime {
 	type BidAddBlocks = BidAddBlocks;
 	type BidStepPerc = BidStepPerc;
 	type MinAuctionDuration = MinAuctionDuration;
+	type BidMinAmount = BidMinAmount;
+	type PalletId = AuctionsPalletId;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
