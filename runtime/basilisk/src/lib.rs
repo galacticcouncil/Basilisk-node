@@ -766,6 +766,7 @@ impl pallet_auctions::Config for Runtime {
 	type BidStepPerc = BidStepPerc;
 	type MinAuctionDuration = MinAuctionDuration;
 	type BidMinAmount = BidMinAmount;
+	type PalletId = AuctionsPalletId;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

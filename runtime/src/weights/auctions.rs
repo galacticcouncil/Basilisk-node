@@ -75,4 +75,9 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
+	fn claim_reserved_amounts() -> Weight {
+		(32_486_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
 }

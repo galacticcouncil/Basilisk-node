@@ -1,5 +1,5 @@
 use crate as pallet_auctions;
-use frame_support::{parameter_types, traits::Everything};
+use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
@@ -62,6 +62,8 @@ parameter_types! {
 	pub const BidStepPerc: u32 = 10;
 	pub const MinAuctionDuration: u32 = 10;
 	pub const BidMinAmount: u32 = 1;
+	pub const AuctionsPalletId: PalletId = PalletId(*b"auctions");
+
 }
 
 impl pallet_auctions::Config for Test {
@@ -76,6 +78,7 @@ impl pallet_auctions::Config for Test {
 	type BidStepPerc = BidStepPerc;
 	type MinAuctionDuration = MinAuctionDuration;
 	type BidMinAmount = BidMinAmount;
+	type PalletId = AuctionsPalletId;
 }
 
 parameter_types! {
