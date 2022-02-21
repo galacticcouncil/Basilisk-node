@@ -16,7 +16,7 @@ jobs:
         run: |
           cargo doc --workspace --all-features --release --no-deps --document-private-items --target-dir ./generated_docs
           cd generated_docs/doc
-          echo '<meta http-equiv="refresh" content="0; url=https://roznovjak.github.io/Basilisk-node/basilisk/index.html">' > index.html
+          echo '<meta http-equiv="refresh" content="0; url=https://galacticcouncil.github.io/Basilisk-node/basilisk/index.html">' > index.html
           git init
           git add -A
           git config --local user.email "action@github.com"
