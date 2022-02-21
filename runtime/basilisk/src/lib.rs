@@ -760,13 +760,13 @@ impl pallet_auctions::Config for Runtime {
 	type AuctionId = u64;
 	type Currency = Balances;
 	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Runtime>;
-	type CurrencyBalance = Balance;
 	type AuctionsStringLimit = AuctionsStringLimit;
 	type BidAddBlocks = BidAddBlocks;
 	type BidStepPerc = BidStepPerc;
 	type MinAuctionDuration = MinAuctionDuration;
 	type BidMinAmount = BidMinAmount;
 	type PalletId = AuctionsPalletId;
+	type Randomness = pallet_auctions::Random;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

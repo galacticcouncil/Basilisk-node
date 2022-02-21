@@ -93,13 +93,30 @@ fn valid_topup_specific_data() -> TopUpAuctionData {
 
 fn bid_object(amount: BalanceOf::<Test>, block_number: <Test as frame_system::Config>::BlockNumber) -> Bid<Test> {
 	Bid {
-		amount: amount,
-		block_number: block_number
+		amount,
+		block_number,
 	}
 }
 
 fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) -> AccountId {
 	<Test as pallet::Config>::PalletId::get().into_sub_account(("ac", auction_id))
+}
+
+/// Candle auction tests
+fn candle_auction_object(
+	general_data: GeneralAuctionData<Test>,
+	specific_data: CandleAuctionData,
+) -> Auction<Test> {
+	let auction_data = CandleAuction {
+		general_data,
+		specific_data,
+	};
+
+	Auction::Candle(auction_data)
+}
+
+fn valid_candle_specific_data() -> CandleAuctionData {
+	CandleAuctionData {}
 }
 
 /// Creating an English auction
@@ -204,7 +221,7 @@ fn create_english_auction_with_invalid_next_bid_min_should_not_work() {
 		);
 		
 		general_auction_data.reserve_price = Some(20);
-		let auction = english_auction_object(general_auction_data.clone(), valid_english_specific_data());
+		let auction = english_auction_object(general_auction_data, valid_english_specific_data());
 
 		// next_bid_min cannot be different from reserve_price
 		assert_noop!(
@@ -803,7 +820,7 @@ fn create_topup_auction_with_invalid_next_bid_min_should_not_work() {
 		let mut general_auction_data = valid_general_auction_data();
 
 		general_auction_data.next_bid_min = 0;
-		let auction = topup_auction_object(general_auction_data.clone(), valid_topup_specific_data());
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
 
 		// next_bid_min is below BidMinAmount
 		assert_noop!(
@@ -931,14 +948,14 @@ fn update_topup_auction_with_nonexisting_auction_should_not_work() {
 #[test]
 fn update_topup_auction_with_invalid_next_bid_min_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = topup_auction_object(valid_general_auction_data().clone(), valid_topup_specific_data());
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		let mut updated_general_data = valid_general_auction_data();
 		updated_general_data.next_bid_min = 0;
 
-		let auction = topup_auction_object(updated_general_data.clone(), valid_topup_specific_data());
+		let auction = topup_auction_object(updated_general_data, valid_topup_specific_data());
 
 		// next_bid_min is below BidMinAmount
 		assert_noop!(
@@ -1527,5 +1544,30 @@ fn claim_reserved_amounts_from_not_closed_topup_auction_should_not_work() {
 			AuctionsModule::claim_reserved_amounts(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::CloseAuctionBeforeClaimingReservedAmounts
 		);
+	});
+}
+// multiple bidders multiple bids
+#[test]
+fn candle_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		System::set_block_number(12);
+		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 100));
+		System::set_block_number(13);
+		assert_ok!(AuctionsModule::bid(Origin::signed(CHARLIE), 0, 200));
+		System::set_block_number(14);
+		assert_ok!(AuctionsModule::bid(Origin::signed(DAVE), 0, 350));
+		System::set_block_number(15);
+		assert_ok!(AuctionsModule::bid(Origin::signed(EVE), 0, 666));
+
+		// Happy path
+		run_to_block::<Test>(25);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		
 	});
 }

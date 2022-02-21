@@ -1,10 +1,10 @@
-use crate as pallet_auctions;
-use frame_support::{parameter_types, traits::Everything, PalletId};
+use crate::{self as pallet_auctions, Randomness};
+use frame_support::{parameter_types, traits::{Everything}, PalletId};
 use frame_system as system;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
+	traits::{BlakeTwo256, IdentityLookup}, DispatchError,
 };
 use system::EnsureRoot;
 
@@ -66,12 +66,19 @@ parameter_types! {
 
 }
 
+pub struct Random;
+impl Randomness<u64> for Random {
+	fn get_random_block_from_range(_from: u64, _to: u64) -> Result<u64, DispatchError> {
+		Ok(42)
+	}
+}
+
 impl pallet_auctions::Config for Test {
 	type Event = Event;
 	type Balance = Balance;
 	type AuctionId = u64;
 	type Currency = Balances;
-	type CurrencyBalance = Balance;
+	type Randomness = Random;
 	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Test>;
 	type AuctionsStringLimit = AuctionsStringLimit;
 	type BidAddBlocks = BidAddBlocks;

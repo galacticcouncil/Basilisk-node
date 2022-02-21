@@ -1,7 +1,9 @@
 pub use crate::Config;
 use codec::{Decode, Encode};
 use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
+use primitives::BlockNumber;
 use scale_info::TypeInfo;
+use sp_runtime::DispatchError;
 
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 	fn create(&self, sender: AccountId, auction: &NftAuction) -> DispatchResult;
@@ -15,10 +17,22 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 	fn validate_general_data(&self) -> DispatchResult;
 }
 
+pub trait Randomness<BlockNumber> {
+	fn get_random_block_from_range(from: BlockNumber, to: BlockNumber) -> Result<BlockNumber, DispatchError>;
+}
+
+pub struct Random;
+impl Randomness<BlockNumber> for Random {
+	fn get_random_block_from_range(_from: BlockNumber, _to: BlockNumber) -> Result<BlockNumber, DispatchError> {
+		Ok(42)
+	}
+}
+
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub enum Auction<T: Config> {
 	English(EnglishAuction<T>),
 	TopUp(TopUpAuction<T>),
+	Candle(CandleAuction<T>),
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -40,10 +54,25 @@ pub struct Bid<T: Config> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct CandleAuction<T: Config> {
+	pub general_data: GeneralAuctionData<T>,
+	pub specific_data: CandleAuctionData,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct Winner<AccountId, Balance> {
+	pub bidder: AccountId,
+	pub amount: Balance,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct EnglishAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct TopUpAuctionData {}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct CandleAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct GeneralAuctionData<T: Config> {
@@ -63,6 +92,7 @@ pub struct GeneralAuctionData<T: Config> {
 
 /// Define type aliases for better readability
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+pub type WinnerOf<T> = Winner<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
 impl<T: Config> sp_std::fmt::Debug for Bid<T> {
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
