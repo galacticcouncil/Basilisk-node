@@ -1,9 +1,9 @@
 [package]
 name = 'pallet-xyk'
-version = '3.2.0'
+version = '3.4.4'
 description = 'XYK automated market maker'
 authors = ['GalacticCouncil']
-edition = '2018'
+edition = '2021'
 homepage = 'https://github.com/galacticcouncil/basilisk-node'
 license = 'Apache 2.0'
 repository = 'https://github.com/galacticcouncil/basilisk-node'
@@ -20,7 +20,7 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 primitive-types = { default-features = false, version = '0.8.0' }
 serde = { features = ['derive'], optional = true, version = '1.0.101' }
 
-hydra-dx-math = { default-features = false, version = "3.4.0" }
+hydra-dx-math = { default-features = false, version = "4.1.1" }
 
 # Local dependencies
 primitives = {path = '../../primitives', default-features = false}
@@ -31,7 +31,7 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "63b32194e7b9aff6a6350d2d4434525de4eec7c1", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="34190daa5716fa478e981357dc579f3efa48428f", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "main", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false, optional = true }

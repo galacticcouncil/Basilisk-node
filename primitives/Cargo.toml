@@ -1,8 +1,8 @@
 [package]
 name = "primitives"
-version = "6.0.0"
+version = "6.1.6"
 authors = ["GalacticCouncil"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [build-dependencies]
@@ -18,11 +18,11 @@ serde = { features = ["derive"], optional = true, version = "1.0.101" }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 
 [dev-dependencies]
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 
 [features]
 default = ["std"]
@@ -32,5 +32,6 @@ std = [
     "serde",
     "frame-support/std",
     "sp-std/std",
+    "sp-runtime/std",
     "scale-info/std",
 ]

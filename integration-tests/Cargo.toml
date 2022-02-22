@@ -1,8 +1,8 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.1.0"
+version = "0.2.6"
 authors = ["GalacticCouncil"]
-edition = "2018"
+edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
@@ -19,16 +19,15 @@ trie-db = { version = "0.22.6", default-features = false }
 smallvec = "1.6.1"
 
 # local dependencies
-pallet-transaction-multi-payment = {path = "../pallets/transaction-multi-payment", default-features = false}
-pallet-multi-payment-benchmarking = { path = "../pallets/transaction-multi-payment/benchmarking", optional=true, default-features= false}
-pallet-exchange = {path = "../pallets/exchange", default-features=false}
-pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional=true, default-features=false}
-pallet-asset-registry = {path = "../pallets/asset-registry",default-features=false}
-pallet-xyk = { path = "../pallets/xyk",default-features=false}
-pallet-duster= { path = "../pallets/duster",default-features=false}
-pallet-xyk-rpc-runtime-api = {path = "../pallets/xyk/rpc/runtime-api",default-features=false}
-pallet-nft = { path = '../pallets/nft', default-features = false }
-pallet-lbp = { path = '../pallets/lbp', default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", branch="main", default-features = false}
+pallet-exchange = { path = "../pallets/exchange", default-features=false}
+pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
+pallet-asset-registry = { path = "../pallets/asset-registry",default-features = false}
+pallet-xyk = { path = "../pallets/xyk",default-features = false}
+pallet-duster= { path = "../pallets/duster",default-features = false}
+pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
+pallet-nft = { path = "../pallets/nft", default-features = false }
+pallet-lbp = { path = "../pallets/lbp", default-features = false }
 pallet-auctions = { path = '../pallets/auctions', default-features = false }
 
 primitives = { default-features = false, path = "../primitives" }
@@ -113,7 +112,7 @@ basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.16" }
 
 [dev-dependencies]
-xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", rev = "4d3bb9dd4fa2cd554a9970ffff816d9346269eaa" }
+xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
 
 [features]
 default = ["std"]

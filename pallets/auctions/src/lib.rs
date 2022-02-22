@@ -120,6 +120,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
@@ -198,7 +199,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
 	/// Stores auction owner by ID
-	pub(crate) type AuctionOwnerById<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, T::AccountId, ValueQuery>;
+	pub(crate) type AuctionOwnerById<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, T::AccountId, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
@@ -804,7 +805,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		if let Some(winner) = &self.general_data.last_bid {
 			let dest = T::Lookup::unlookup(winner.0.clone());
 			let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
-			pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
+			pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0.into(), self.general_data.token.1.into(), dest)?;
 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.0);
 			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 				&winner.0,
@@ -915,7 +916,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 			if let Some(winner) = &self.general_data.last_bid {
 				let dest = T::Lookup::unlookup(winner.0.clone());
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
-				pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
+				pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0.into(), self.general_data.token.1.into(), dest)?;
 
 				let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
 				let transfer_amount =
@@ -987,7 +988,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 			if let Some(winner) = Winners::<T>::get(auction_id, winning_block) {
 				let dest = T::Lookup::unlookup(winner.bidder.clone());
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
-				pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0, self.general_data.token.1, dest)?;
+				pallet_nft::Pallet::<T>::transfer(source, self.general_data.token.0.into(), self.general_data.token.1.into(), dest)?;
 				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.bidder);
 				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 					&winner.bidder,

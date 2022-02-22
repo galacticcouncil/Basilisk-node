@@ -1,8 +1,10 @@
 use super::*;
 use crate as pallet_nft;
 
+use frame_support::traits::Everything;
+use frame_support::{parameter_types, weights::Weight};
 use frame_system::EnsureRoot;
-use frame_support::{parameter_types, weights::Weight, traits::Everything};
+use primitives::nft::{ClassType, NftPermissions};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
@@ -35,19 +37,24 @@ frame_support::construct_runtime!(
 );
 
 parameter_types! {
-	pub ClassBondAmount: Balance = 100;
-	pub MaxMetadataLength: u32 = 256;
+	pub ReserveClassIdUpTo: u128 = 999;
 }
 
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type NftClassId = primitives::ClassId;
+	type NftInstanceId = primitives::InstanceId;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 100_000 * BSX; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 1_000 * BSX; // 1/100 UNIT deposit to create asset instance
+	pub const ClassDeposit: Balance = 10_000 * BSX; // 1 UNIT deposit to create asset class
+	pub const InstanceDeposit: Balance = 100 * BSX; // 1/100 UNIT deposit to create asset instance
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = 1000 * BSX;
@@ -58,8 +65,8 @@ parameter_types! {
 
 impl pallet_uniques::Config for Test {
 	type Event = Event;
-	type ClassId = u32;
-	type InstanceId = u32;
+	type ClassId = primitives::ClassId;
+	type InstanceId = primitives::InstanceId;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type ClassDeposit = ClassDeposit;
@@ -104,6 +111,7 @@ impl frame_system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -119,15 +127,21 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = ReserveIdentifier;
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
-pub const CLASS_ID: <Test as pallet_uniques::Config>::ClassId = 0;
-pub const TOKEN_ID: <Test as pallet_uniques::Config>::InstanceId = 0;
+pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 1000;
+pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1001;
+pub const CLASS_ID_2: <Test as pallet_uniques::Config>::ClassId = 1002;
+pub const CLASS_ID_RESERVED: <Test as pallet_uniques::Config>::ClassId = 42;
+pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
+pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
+pub const INSTANCE_ID_2: <Test as pallet_uniques::Config>::InstanceId = 2;
+pub const NON_EXISTING_CLASS_ID: <Test as pallet_uniques::Config>::ClassId = 999;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {
@@ -141,7 +155,7 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![(ALICE, 1_000_000 * BSX), (BOB, 6_666_666 * BSX)],
+			balances: vec![(ALICE, 200_000 * BSX), (BOB, 150_000 * BSX), (CHARLIE, 15_000 * BSX)],
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

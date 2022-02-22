@@ -1,8 +1,8 @@
 [package]
 name = "pallet-lbp-rpc"
-version = "1.0.0"
+version = "1.0.4"
 authors = ["GalacticCouncil"]
-edition = "2018"
+edition = "2021"
 license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/basilisk-node"
 

@@ -1,6 +1,7 @@
 use super::*;
 use crate::mock::*;
 use frame_support::{assert_noop, assert_ok, BoundedVec};
+use primitives::nft::ClassType;
 use sp_std::convert::TryInto;
 use sp_core::{crypto::AccountId32};
 
@@ -30,15 +31,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_ok!(Nft::create_class(
 			Origin::signed(ALICE),
 			NFT_CLASS_ID_1,
-			ALICE,
+			ClassType::Marketplace,
 			bvec![0]
 		));
 		assert_ok!(Nft::mint(
 			Origin::signed(ALICE),
 			NFT_CLASS_ID_1,
 			0u16.into(),
-			ALICE,
-			10u8,
 			bvec![0]
 		));
 	});
@@ -144,7 +143,7 @@ fn create_english_auction_should_work() {
 			assert_eq!(data.general_data.next_bid_min, 1)
 		}
 
-		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), Some(ALICE));
 	});
 }
 
@@ -777,7 +776,7 @@ fn create_topup_auction_should_work() {
 			assert_eq!(data.general_data.next_bid_min, 1)
 		}
 
-		assert_eq!(AuctionsModule::auction_owner_by_id(0), ALICE);
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), Some(ALICE));
 	});
 }
 

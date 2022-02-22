@@ -7,6 +7,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use system::EnsureRoot;
+use primitives::{nft::{ClassType, NftPermissions}, ReserveIdentifier};
 
 mod auction {
 	// Re-export needed for `impl_outer_event!`.
@@ -43,17 +44,27 @@ pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
-pub const NFT_CLASS_ID_1: u32 = 123;
+pub const NFT_CLASS_ID_1: u32 = 1230;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 
+parameter_types! {
+	pub ReserveClassIdUpTo: u32 = 999;
+}
+
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type NftClassId = u32;
+	type NftInstanceId = u32;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {
@@ -112,7 +123,7 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = ReserveIdentifier;
 }
 
 impl system::Config for Test {
@@ -139,6 +150,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
