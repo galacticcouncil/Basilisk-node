@@ -1,13 +1,16 @@
 use crate::{self as pallet_auctions};
-use frame_support::{parameter_types, traits::{Everything}, PalletId};
+use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
+use primitives::{
+	nft::{ClassType, NftPermissions},
+	ReserveIdentifier,
+};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use system::EnsureRoot;
-use primitives::{nft::{ClassType, NftPermissions}, ReserveIdentifier};
 
 mod auction {
 	// Re-export needed for `impl_outer_event!`.
@@ -79,8 +82,7 @@ parameter_types! {
 
 pub struct TestRandomness<T>(sp_std::marker::PhantomData<T>);
 
-impl<Output: codec::Decode + Default, T> frame_support::traits::Randomness<Output, T::BlockNumber>
-	for TestRandomness<T>
+impl<Output: codec::Decode + Default, T> frame_support::traits::Randomness<Output, T::BlockNumber> for TestRandomness<T>
 where
 	T: frame_system::Config,
 {
