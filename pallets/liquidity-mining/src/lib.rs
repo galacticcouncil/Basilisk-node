@@ -46,6 +46,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+mod migration;
 pub mod weights;
 
 pub use pallet::*;
@@ -228,7 +229,11 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn on_runtime_upgrade() -> frame_support::weights::Weight {
+			migration::init_nft_class::<T>()
+		}
+	}
 
 	#[pallet::config]
 	pub trait Config:
@@ -1127,9 +1132,9 @@ pub mod pallet {
 					let deposit = maybe_deposit.as_mut().ok_or(Error::<T>::NftDoesNotExist)?;
 
 					let amm_account = T::AMM::get_pair_id(asset_pair);
-                    //metadata can be removed only if liq pool don't exists. It can be resumed if
-                    //it's only canceled.
-					let mut can_remove_liq_pool_metadata = true;
+					//metadata can be removed only if liq pool don't exists. It can be resumed if
+					//it's only canceled.
+					let mut can_remove_liq_pool_metadata = false;
 					<LiquidityPoolData<T>>::try_mutate(
 						farm_id,
 						amm_account,
@@ -1211,10 +1216,10 @@ pub mod pallet {
 									},
 								)?;
 							} else {
-                                //canceled liq. pool can be resumed so metadata can be removed only
-                                //if liq pool doesn't exist.
-                                can_remove_liq_pool_metadata = true;
-                            }
+								//canceled liq. pool can be resumed so metadata can be removed only
+								//if liq pool doesn't exist.
+								can_remove_liq_pool_metadata = true;
+							}
 							Ok(())
 						},
 					)?;
