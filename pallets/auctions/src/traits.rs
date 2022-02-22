@@ -1,9 +1,7 @@
 pub use crate::Config;
 use codec::{Decode, Encode};
 use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
-use primitives::BlockNumber;
 use scale_info::TypeInfo;
-use sp_runtime::DispatchError;
 
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 	fn create(&self, sender: AccountId, auction: &NftAuction) -> DispatchResult;
@@ -15,17 +13,6 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 	fn close(&mut self, auction_id: &AuctionId) -> DispatchResult;
 
 	fn validate_general_data(&self) -> DispatchResult;
-}
-
-pub trait Randomness<BlockNumber> {
-	fn get_random_block_from_range(from: BlockNumber, to: BlockNumber) -> Result<BlockNumber, DispatchError>;
-}
-
-pub struct Random;
-impl Randomness<BlockNumber> for Random {
-	fn get_random_block_from_range(_from: BlockNumber, _to: BlockNumber) -> Result<BlockNumber, DispatchError> {
-		Ok(42)
-	}
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]

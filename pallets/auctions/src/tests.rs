@@ -1567,7 +1567,6 @@ fn candle_auction_should_work() {
 		run_to_block::<Test>(25);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
-
-		
 	});
 }
+

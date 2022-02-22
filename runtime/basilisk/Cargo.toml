@@ -48,6 +48,8 @@ pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
 pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12", default-features = false }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.12" }
+
 
 # HydraDX dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="34190daa5716fa478e981357dc579f3efa48428f", default-features = false }
@@ -189,6 +191,7 @@ std = [
     "pallet-balances/std",
     "pallet-elections-phragmen/std",
     "pallet-nft/std",
+    "pallet-randomness-collective-flip/std",
     "pallet-session/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",

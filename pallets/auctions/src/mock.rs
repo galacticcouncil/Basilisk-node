@@ -1,10 +1,10 @@
-use crate::{self as pallet_auctions, Randomness};
+use crate::{self as pallet_auctions};
 use frame_support::{parameter_types, traits::{Everything}, PalletId};
 use frame_system as system;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup}, DispatchError,
+	traits::{BlakeTwo256, IdentityLookup},
 };
 use system::EnsureRoot;
 
@@ -66,10 +66,20 @@ parameter_types! {
 
 }
 
-pub struct Random;
-impl Randomness<u64> for Random {
-	fn get_random_block_from_range(_from: u64, _to: u64) -> Result<u64, DispatchError> {
-		Ok(42)
+pub struct TestRandomness<T>(sp_std::marker::PhantomData<T>);
+
+impl<Output: codec::Decode + Default, T> frame_support::traits::Randomness<Output, T::BlockNumber>
+	for TestRandomness<T>
+where
+	T: frame_system::Config,
+{
+	fn random(subject: &[u8]) -> (Output, T::BlockNumber) {
+		use sp_runtime::traits::TrailingZeroInput;
+
+		(
+			Output::decode(&mut TrailingZeroInput::new(subject)).unwrap_or_default(),
+			frame_system::Pallet::<T>::block_number(),
+		)
 	}
 }
 
@@ -78,7 +88,7 @@ impl pallet_auctions::Config for Test {
 	type Balance = Balance;
 	type AuctionId = u64;
 	type Currency = Balances;
-	type Randomness = Random;
+	type Randomness = TestRandomness<Test>;
 	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Test>;
 	type AuctionsStringLimit = AuctionsStringLimit;
 	type BidAddBlocks = BidAddBlocks;
