@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "38.0.0"
+version = "45.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1265,7 +1265,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8026,7 +8026,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.6"
+version = "6.1.7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8643,7 +8643,6 @@ dependencies = [
  "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-registry",
- "pallet-auctions",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -8665,7 +8664,6 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
@@ -11162,7 +11160,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "38.0.0"
+version = "45.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
