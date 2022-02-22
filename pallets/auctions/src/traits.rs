@@ -19,6 +19,7 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 pub enum Auction<T: Config> {
 	English(EnglishAuction<T>),
 	TopUp(TopUpAuction<T>),
+	Candle(CandleAuction<T>),
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -40,10 +41,25 @@ pub struct Bid<T: Config> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct CandleAuction<T: Config> {
+	pub general_data: GeneralAuctionData<T>,
+	pub specific_data: CandleAuctionData,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct Winner<AccountId, Balance> {
+	pub bidder: AccountId,
+	pub amount: Balance,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct EnglishAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct TopUpAuctionData {}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct CandleAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct GeneralAuctionData<T: Config> {
@@ -63,6 +79,7 @@ pub struct GeneralAuctionData<T: Config> {
 
 /// Define type aliases for better readability
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+pub type WinnerOf<T> = Winner<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
 impl<T: Config> sp_std::fmt::Debug for Bid<T> {
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {

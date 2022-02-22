@@ -1,6 +1,10 @@
-use crate as pallet_auctions;
+use crate::{self as pallet_auctions};
 use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
+use primitives::{
+	nft::{ClassType, NftPermissions},
+	ReserveIdentifier,
+};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
@@ -43,17 +47,27 @@ pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
-pub const NFT_CLASS_ID_1: u32 = 123;
+pub const NFT_CLASS_ID_1: u32 = 1230;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 
+parameter_types! {
+	pub ReserveClassIdUpTo: u32 = 999;
+}
+
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::HydraWeight<Test>;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type NftClassId = u32;
+	type NftInstanceId = u32;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {
@@ -66,12 +80,28 @@ parameter_types! {
 
 }
 
+pub struct TestRandomness<T>(sp_std::marker::PhantomData<T>);
+
+impl<Output: codec::Decode + Default, T> frame_support::traits::Randomness<Output, T::BlockNumber> for TestRandomness<T>
+where
+	T: frame_system::Config,
+{
+	fn random(subject: &[u8]) -> (Output, T::BlockNumber) {
+		use sp_runtime::traits::TrailingZeroInput;
+
+		(
+			Output::decode(&mut TrailingZeroInput::new(subject)).unwrap_or_default(),
+			frame_system::Pallet::<T>::block_number(),
+		)
+	}
+}
+
 impl pallet_auctions::Config for Test {
 	type Event = Event;
 	type Balance = Balance;
 	type AuctionId = u64;
 	type Currency = Balances;
-	type CurrencyBalance = Balance;
+	type Randomness = TestRandomness<Test>;
 	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Test>;
 	type AuctionsStringLimit = AuctionsStringLimit;
 	type BidAddBlocks = BidAddBlocks;
@@ -95,7 +125,7 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = ReserveIdentifier;
 }
 
 impl system::Config for Test {
@@ -122,6 +152,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
