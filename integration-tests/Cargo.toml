@@ -28,6 +28,8 @@ pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../pallets/nft", default-features = false }
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
+pallet-liquidity-mining = { path = "../pallets/liquidity-mining", default-features=false}
+pallet-liquidity-mining-benchmarking = { path = "../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
 
 primitives = { default-features = false, path = "../primitives" }
 
@@ -178,4 +180,5 @@ std = [
     "pallet-collator-selection/std",
     "pallet-authorship/std",
     "basilisk-runtime/std",
+    "pallet-liquidity-mining/std",
 ]

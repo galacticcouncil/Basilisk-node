@@ -30,7 +30,7 @@ use primitives::nft::{ClassType, NftPermissions};
 use primitives::ReserveIdentifier;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee, Amount, AssetId, Balance,
+	Amount, AssetId, Balance,
 };
 use sp_core::H256;
 use sp_runtime::{
@@ -55,6 +55,8 @@ pub const _ACA: AssetId = 3000;
 pub const KSM: AssetId = 4000;
 pub const _DOT: AssetId = 5000;
 pub const _ETH: AssetId = 6000;
+
+pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -81,7 +83,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 63;
 	pub static MockBlockNumberProvider: u64 = 0;
 	pub const BSXAssetId: AssetId = BSX;
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
 	pub RegistryStringLimit: u32 = 100;
 }
 
@@ -116,6 +118,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 impl crate::Config for Test {}
@@ -125,6 +128,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
+    pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 }
 
 impl pallet_liquidity_mining::Config for Test {
@@ -137,19 +141,24 @@ impl pallet_liquidity_mining::Config for Test {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
+    type NftClass = NftClass;
 	type AMM = XYK;
+}
+
+parameter_types! {
+	pub ReserveClassIdUpTo: u128 = 999;
 }
 
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type TokenDeposit = InstanceDeposit;
-	type NftClassId = u32;
-	type NftInstanceId = u32;
+	type NftClassId = primitives::ClassId;
+	type NftInstanceId = primitives::InstanceId;
 	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
+    type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {
@@ -182,8 +191,8 @@ parameter_types! {
 
 impl pallet_uniques::Config for Test {
 	type Event = Event;
-	type ClassId = u32;
-	type InstanceId = u32;
+	type ClassId = primitives::ClassId;
+	type InstanceId = primitives::InstanceId;
 	type Currency = Balances;
 	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
 	type ClassDeposit = ClassDeposit;
@@ -195,7 +204,6 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
-	type InstanceReserveStrategy = ();
 }
 
 parameter_type_with_key! {

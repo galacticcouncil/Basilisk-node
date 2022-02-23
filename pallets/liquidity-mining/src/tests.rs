@@ -6136,6 +6136,7 @@ fn resume_liquidity_pool_should_work() {
 				stake_in_global_pool: liq_pool_stake_in_global_pool,
 				accumulated_rpz: 62_996,
 				multiplier: new_multiplier,
+                updated_at: 134_200,
 				..liq_pool
 			}
 		);

@@ -200,6 +200,8 @@ benchmarks! {
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert!(LiquidityMining::<T>::liquidity_pool(1, xyk_id).is_some());
+
+		assert_eq!(LiquidityMining::<T>::liq_pool_meta(2).unwrap(), (assets, 0, 1));
 	}
 
 	update_liquidity_pool {
@@ -232,6 +234,9 @@ benchmarks! {
 	}
 
 	cancel_liquidity_pool {
+		//init nft class for liq. mining
+		pallet_liquidity_mining::migration::init_nft_class::<T>();
+
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
@@ -271,8 +276,12 @@ benchmarks! {
 	}
 
 	remove_liquidity_pool {
+		//init nft class for liq. mining
+		pallet_liquidity_mining::migration::init_nft_class::<T>();
+
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
+		let liq_provider = funded_account::<T>("liq_provider", 2);
 
 		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
@@ -290,6 +299,17 @@ benchmarks! {
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().canceled, false);
+
+		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
+
+		lm_deposit_shares::<T>(liq_provider.clone(), assets, 10_000)?;
+
+		set_block_number::<T>(200_000);
+
+		LiquidityMining::<T>::withdraw_shares(
+            RawOrigin::Signed(liq_provider.clone()).into(), 
+            <<T as pallet_nft::Config>::NftInstanceId>::from(4_294_967_298_u128)
+        )?;
 
 		LiquidityMining::<T>::cancel_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
 
@@ -300,9 +320,13 @@ benchmarks! {
 	verify {
 		assert!(LiquidityMining::<T>::liquidity_pool(1, xyk_id).is_none());
 		assert_eq!(LiquidityMining::<T>::global_pool(1).unwrap().liq_pools_count, 0);
+		assert!(LiquidityMining::<T>::liq_pool_meta(1).is_none());
 	}
 
 	deposit_shares {
+		//init nft class for liq. mining
+		pallet_liquidity_mining::migration::init_nft_class::<T>();
+
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
@@ -331,10 +355,8 @@ benchmarks! {
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
 		assert_eq!(LiquidityMining::<T>::liquidity_pool(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
 
-
 		assert!(LiquidityMining::<T>::deposit(
-			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
-			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
+			<<T as pallet_nft::Config>::NftInstanceId>::from(4_294_967_298_u128)
 		).is_none());
 
 	}: {
@@ -342,12 +364,14 @@ benchmarks! {
 	}
 	verify {
 		assert!(LiquidityMining::<T>::deposit(
-			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
-			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
+			<<T as pallet_nft::Config>::NftInstanceId>::from(4_294_967_298_u128)
 		).is_some());
 	}
 
 	claim_rewards {
+		//init nft class for liq. mining
+		pallet_liquidity_mining::migration::init_nft_class::<T>();
+
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
@@ -378,22 +402,22 @@ benchmarks! {
 
 		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), 1, assets, 10_000)?;
 
-		assert!(LiquidityMining::<T>::deposit(
-			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
-			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
-		).is_some());
+		assert!(LiquidityMining::<T>::deposit(4_294_967_298_u128).is_some());
 
 		set_block_number::<T>(400_000);
 
 		let liq_provider_bsx_balance = T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone());
 	}: {
-		LiquidityMining::<T>::claim_rewards(RawOrigin::Signed(liq_provider.clone()).into(), <<T as pallet_nft::Config>::NftClassId>::from(0_u32), <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32))?
+		LiquidityMining::<T>::claim_rewards(RawOrigin::Signed(liq_provider.clone()).into(), 4_294_967_298_u128)?
 	}
 	verify {
 		assert!(T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone()).gt(&liq_provider_bsx_balance));
 	}
 
 	withdraw_shares {
+		//init nft class for liq. mining
+		pallet_liquidity_mining::migration::init_nft_class::<T>();
+
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
@@ -424,25 +448,21 @@ benchmarks! {
 
 		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), 1, assets, 10_000)?;
 
-		assert!(LiquidityMining::<T>::deposit(
-			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
-			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
-		).is_some());
+		assert!(LiquidityMining::<T>::deposit(4_294_967_298_u128).is_some());
 
 		set_block_number::<T>(400_000);
 
 		let liq_provider_bsx_balance = T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone());
 	}: {
-		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), <<T as pallet_nft::Config>::NftClassId>::from(0_u32), <<T as pallet_nft::Config>::NftInstanceId>::from(0_u32))?
+		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), 4_294_967_298_u128)?
 	}
 	verify {
 		assert!(T::MultiCurrency::free_balance(BSX.into(), &liq_provider.clone()).gt(&liq_provider_bsx_balance));
-		assert!(LiquidityMining::<T>::deposit(
-			<<T as pallet_nft::Config>::NftClassId>::from(0_u32),
-			<<T as pallet_nft::Config>::NftInstanceId>::from(0_u32)
-		).is_none());
+		assert!(LiquidityMining::<T>::deposit(4_294_967_298_u128).is_none());
 	}
 
+    //NOTE: This is same no matter if `update_global_pool()` is called because `GlobalPool`will be
+    //read/written either way.
 	resume_liquidity_pool {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);

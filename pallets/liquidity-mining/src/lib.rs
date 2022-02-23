@@ -46,7 +46,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-mod migration;
+pub mod migration;
 pub mod weights;
 
 pub use pallet::*;
@@ -854,9 +854,9 @@ pub mod pallet {
 
 					ensure!(global_pool.owner == who, Error::<T>::Forbidden);
 
-					// update accRPZ TODO: maybe replace with maybe_update_pools() - check spec
 					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 					if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
+
 						let reward_per_period = Self::get_global_pool_reward_per_period(
 							global_pool.yield_per_period.into(),
 							global_pool.total_shares_z,
@@ -874,6 +874,7 @@ pub mod pallet {
 						.ok_or(Error::<T>::Overflow)?;
 
 					liq_pool.accumulated_rpz = global_pool.accumulated_rpz;
+					liq_pool.updated_at = now_period;
 					liq_pool.stake_in_global_pool = new_stake_in_global_poll;
 					liq_pool.canceled = false;
 					liq_pool.multiplier = multiplier;
@@ -931,7 +932,6 @@ pub mod pallet {
 							unpaid_rew,
 						)?;
 
-						//TODO: test this
 						if let Some((_, nfts_in_class, _)) = Self::liq_pool_meta(liq_pool.id) {
 							if nfts_in_class.is_zero() {
 								<LiquidityPoolMetadata<T>>::remove(liq_pool.id);
