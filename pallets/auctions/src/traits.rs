@@ -6,13 +6,13 @@ use scale_info::TypeInfo;
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 	fn create(&self, sender: AccountId, auction: &NftAuction) -> DispatchResult;
 
-	fn update(&self, sender: AccountId, auction_id: AuctionId, auction: NftAuction) -> DispatchResult;
+	fn update(self, sender: AccountId, auction_id: AuctionId) -> DispatchResult;
 
 	fn bid(&mut self, auction_id: &AuctionId, bidder: AccountId, bid: &Bid) -> DispatchResult;
 
 	fn close(&mut self, auction_id: &AuctionId) -> DispatchResult;
 
-	fn validate_general_data(&self) -> DispatchResult;
+	fn validate_data(&self) -> DispatchResult;
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -43,7 +43,7 @@ pub struct Bid<T: Config> {
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct CandleAuction<T: Config> {
 	pub general_data: GeneralAuctionData<T>,
-	pub specific_data: CandleAuctionData,
+	pub specific_data: CandleAuctionData<T>,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -59,7 +59,9 @@ pub struct EnglishAuctionData {}
 pub struct TopUpAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct CandleAuctionData {}
+pub struct CandleAuctionData<T: Config> {
+	pub closing_start: <T as frame_system::Config>::BlockNumber
+}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct GeneralAuctionData<T: Config> {

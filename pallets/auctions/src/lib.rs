@@ -35,7 +35,7 @@
 //!
 //! - `close`
 //!
-//! - `validate_general_data`
+//! - `validate_data`
 //!
 //! The auction types share the same store called Auctions. Auction types are represented in a struct which holds
 //! two other structs with general_data (eg auction name, start, end) and specific_data for the given auction type.
@@ -172,6 +172,12 @@ pub mod pallet {
 
 		#[pallet::constant]
 		type PalletId: Get<PalletId>;
+
+		#[pallet::constant]
+		type CandleDefaultDuration: Get<u32>;
+
+		#[pallet::constant]
+		type CandleDefaultClosingPeriodDuration: Get<u32>;
 	}
 
 	#[pallet::storage]
@@ -263,7 +269,7 @@ pub mod pallet {
 		InvalidReservedAmount,
 		/// TopUp bidder does not have claim to a reserved amount
 		NoReservedAmountAvailableToClaim,
-		/// TopUp auction is closed and won, funds should be transferred to seller
+		/// Auction is closed and won, the bid funds are transferred to seller
 		CannotClaimWonAuction,
 		/// Claims of reserved amounts are only available on TopUp
 		ClaimsNotSupportedForThisAuctionType,
@@ -273,6 +279,12 @@ pub mod pallet {
 		NoWinnerFound,
 		/// Secure hashes should always be bigger than u32
 		UnsecureHash,
+		/// Candle auction must have default duration
+		CandleAuctionMustHaveDefaultDuration,
+		/// Candle auction must have default closing period duration
+		CandleAuctionMustHaveDefaultClosingPeriodDuration,
+		/// Candle auction cannot have a reserve price
+		CandleAuctionDoesNotSupportReservePrice
 	}
 
 	#[pallet::call]
@@ -297,9 +309,7 @@ pub mod pallet {
 					auction_object.create(sender, &auction)?;
 				}
 				Auction::Candle(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::validate_create(&auction_object.general_data)?;
-					Self::handle_create(sender, &auction, &auction_object.general_data)?;
+					auction_object.create(sender, &auction)?;
 				}
 			}
 
@@ -316,16 +326,15 @@ pub mod pallet {
 		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
-			match &updated_auction {
+			match updated_auction {
 				Auction::English(auction_object) => {
-					auction_object.update(sender, id, updated_auction.clone())?;
+					auction_object.update(sender, id)?;
 				}
 				Auction::TopUp(auction_object) => {
-					auction_object.update(sender, id, updated_auction.clone())?;
+					auction_object.update(sender, id)?;
 				}
 				Auction::Candle(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::handle_update(sender, id, updated_auction.clone(), &auction_object.general_data)?;
+					auction_object.update(sender, id)?;
 				}
 			}
 
@@ -583,27 +592,7 @@ impl<T: Config> Pallet<T> {
 
 		Ok(())
 	}
-
-	///
-	/// Handles auction update
-	///
-	fn handle_update(
-		sender: <T>::AccountId,
-		auction_id: T::AuctionId,
-		updated_auction: Auction<T>,
-		general_data: &GeneralAuctionData<T>,
-	) -> DispatchResult {
-		<Auctions<T>>::try_mutate(auction_id, |auction_result| -> DispatchResult {
-			if auction_result.is_some() {
-				Self::validate_update(sender, general_data)?;
-				*auction_result = Some(updated_auction);
-				Ok(())
-			} else {
-				Err(Error::<T>::AuctionNotExist.into())
-			}
-		})
-	}
-
+	
 	///
 	/// Handles auction destroy
 	///
@@ -746,18 +735,28 @@ impl<T: Config> Pallet<T> {
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for EnglishAuction<T> {
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
+		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.general_data)?;
 		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
 
 		Ok(())
 	}
 
-	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
-		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+		self.validate_data()?;
 
-		Ok(())
+		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+
+			if let Auction::English(english_auction) = auction_result {
+				Pallet::<T>::validate_update(sender, &english_auction.general_data)?;
+				*english_auction = self;
+
+				Ok(())
+			} else {
+				Err(Error::<T>::NoChangeOfAuctionType.into())
+			}
+		})
 	}
 
 	///
@@ -824,7 +823,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		Ok(())
 	}
 
-	fn validate_general_data(&self) -> DispatchResult {
+	fn validate_data(&self) -> DispatchResult {
 		Pallet::<T>::validate_general_data(&self.general_data)?;
 
 		if let Some(reserve_price) = self.general_data.reserve_price {
@@ -848,18 +847,28 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for TopUpAuction<T> {
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
+		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.general_data)?;
 		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
 
 		Ok(())
 	}
 
-	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
-		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+		self.validate_data()?;
 
-		Ok(())
+		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+
+			if let Auction::TopUp(topup_auction) = auction_result {
+				Pallet::<T>::validate_update(sender, &topup_auction.general_data)?;
+				*topup_auction = self;
+
+				Ok(())
+			} else {
+				Err(Error::<T>::NoChangeOfAuctionType.into())
+			}
+		})
 	}
 
 	///
@@ -945,7 +954,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		Ok(())
 	}
 
-	fn validate_general_data(&self) -> DispatchResult {
+	fn validate_data(&self) -> DispatchResult {
 		Pallet::<T>::validate_general_data(&self.general_data)
 	}
 }
@@ -1019,21 +1028,45 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	}
 
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
+		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.general_data)?;
 		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
 
 		Ok(())
 	}
 
-	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
-		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+		self.validate_data()?;
 
-		Ok(())
+		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+
+			if let Auction::Candle(candle_auction) = auction_result {
+				Pallet::<T>::validate_update(sender, &candle_auction.general_data)?;
+				*candle_auction = self;
+
+				Ok(())
+			} else {
+				Err(Error::<T>::NoChangeOfAuctionType.into())
+			}
+		})
 	}
 
-	fn validate_general_data(&self) -> DispatchResult {
-		Pallet::<T>::validate_general_data(&self.general_data)
+	fn validate_data(&self) -> DispatchResult {
+		Pallet::<T>::validate_general_data(&self.general_data)?;
+
+		ensure!(
+			self.general_data.end == self.general_data.start + T::CandleDefaultDuration::get().into(),
+			Error::<T>::CandleAuctionMustHaveDefaultDuration
+		);
+
+		ensure!(self.general_data.reserve_price.is_none(), Error::<T>::CandleAuctionDoesNotSupportReservePrice);
+
+		ensure!(
+			self.specific_data.closing_start == self.general_data.end - T::CandleDefaultClosingPeriodDuration::get().into(),
+			Error::<T>::CandleAuctionMustHaveDefaultClosingPeriodDuration
+		);
+
+		Ok(())
 	}
 }

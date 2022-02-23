@@ -91,7 +91,7 @@ fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) ->
 }
 
 /// Candle auction tests
-fn candle_auction_object(general_data: GeneralAuctionData<Test>, specific_data: CandleAuctionData) -> Auction<Test> {
+fn candle_auction_object(general_data: GeneralAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
 	let auction_data = CandleAuction {
 		general_data,
 		specific_data,
@@ -100,8 +100,24 @@ fn candle_auction_object(general_data: GeneralAuctionData<Test>, specific_data: 
 	Auction::Candle(auction_data)
 }
 
-fn valid_candle_specific_data() -> CandleAuctionData {
-	CandleAuctionData {}
+fn valid_candle_general_auction_data() -> GeneralAuctionData<Test> {
+	GeneralAuctionData {
+		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
+		reserve_price: None,
+		last_bid: None,
+		start: 10u64,
+		end: 99_366u64,
+		closed: false,
+		owner: ALICE,
+		token: (NFT_CLASS_ID_1, 0u16.into()),
+		next_bid_min: 1,
+	}
+}
+
+fn valid_candle_specific_data() -> CandleAuctionData<Test> {
+	CandleAuctionData {
+		closing_start: 27_366
+	}
 }
 
 /// Creating an English auction
@@ -426,6 +442,28 @@ fn update_english_auction_after_auction_start_should_not_work() {
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
 			Error::<Test>::AuctionAlreadyStarted,
+		);
+	});
+}
+
+/// Error NoChangeOfAuctionType
+#[test]
+fn update_english_auction_with_mismatching_types_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = topup_auction_object(valid_general_auction_data(), valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
+
+		run_to_block::<Test>(5);
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::NoChangeOfAuctionType,
 		);
 	});
 }
@@ -905,7 +943,7 @@ fn update_topup_auction_should_work() {
 		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction));
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
-		if let Auction::English(data) = auction_result {
+		if let Auction::TopUp(data) = auction_result {
 			assert_eq!(
 				String::from_utf8(data.general_data.name.to_vec()).unwrap(),
 				"Auction renamed"
@@ -1006,6 +1044,28 @@ fn update_topup_auction_after_auction_start_should_not_work() {
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
 			Error::<Test>::AuctionAlreadyStarted,
+		);
+	});
+}
+
+/// Error NoChangeOfAuctionType
+#[test]
+fn update_topup_auction_with_mismatching_types_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction = topup_auction_object(updated_general_data, valid_topup_specific_data());
+
+		run_to_block::<Test>(5);
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::NoChangeOfAuctionType,
 		);
 	});
 }
@@ -1530,26 +1590,460 @@ fn claim_reserved_amounts_from_not_closed_topup_auction_should_not_work() {
 		);
 	});
 }
-// multiple bidders multiple bids
+
+// -------------- Candle auction tests -------------- //
+///
+/// Creating a Candle auction
+///
+/// Happy path
+///
 #[test]
-fn candle_auction_should_work() {
+fn create_candle_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = candle_auction_object(valid_general_auction_data(), valid_candle_specific_data());
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		System::set_block_number(12);
-		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 100));
-		System::set_block_number(13);
-		assert_ok!(AuctionsModule::bid(Origin::signed(CHARLIE), 0, 200));
-		System::set_block_number(14);
-		assert_ok!(AuctionsModule::bid(Origin::signed(DAVE), 0, 350));
-		System::set_block_number(15);
-		assert_ok!(AuctionsModule::bid(Origin::signed(EVE), 0, 666));
+		expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
 
-		// Happy path
-		run_to_block::<Test>(25);
+		let auction = AuctionsModule::auctions(0).unwrap();
 
-		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+		if let Auction::Candle(data) = auction {
+			assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+			assert_eq!(data.general_data.reserve_price, None);
+			assert_eq!(data.general_data.last_bid, None);
+			assert_eq!(data.general_data.start, 10u64);
+			assert_eq!(data.general_data.end, 99_366u64);
+			assert_eq!(data.general_data.owner, ALICE);
+			assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+			assert_eq!(data.general_data.next_bid_min, 1);
+			assert_eq!(data.specific_data.closing_start, 27_366);
+		}
+
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), Some(ALICE));
 	});
 }
+
+/// Error InvalidTimeConfiguration
+#[test]
+fn create_candle_auction_without_end_time_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_candle_general_auction_data();
+		general_auction_data.end = 0u64;
+
+		let auction = candle_auction_object(general_auction_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidTimeConfiguration
+		);
+	});
+}
+
+/// Error InvalidTimeConfiguration (duration too short)
+#[test]
+fn create_candle_auction_with_duration_shorter_than_minimum_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_candle_general_auction_data();
+		general_auction_data.end = 20u64;
+
+		let auction = candle_auction_object(general_auction_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidTimeConfiguration
+		);
+	});
+}
+
+/// Error InvalidNextBidMin
+#[test]
+fn create_candle_auction_with_invalid_next_bid_min_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_candle_general_auction_data();
+
+		general_auction_data.next_bid_min = 0;
+		let auction = candle_auction_object(general_auction_data, valid_candle_specific_data());
+
+		// next_bid_min is below BidMinAmount
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+	});
+}
+
+/// Error EmptyAuctionName
+#[test]
+fn create_candle_auction_with_empty_name_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_candle_general_auction_data();
+		general_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
+
+		let auction = candle_auction_object(general_auction_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::EmptyAuctionName
+		);
+	});
+}
+
+/// Error NotATokenOwner
+#[test]
+fn create_candle_auction_when_not_token_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_candle_general_auction_data();
+		general_auction_data.owner = BOB;
+
+		let auction = candle_auction_object(general_auction_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::NotATokenOwner
+		);
+	});
+}
+
+/// Error CannotSetAuctionClosed
+#[test]
+fn create_candle_auction_with_closed_true_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_candle_general_auction_data();
+		general_auction_data.closed = true;
+
+		let auction = candle_auction_object(general_auction_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::CannotSetAuctionClosed
+		);
+	});
+}
+
+/// Error TokenFrozen
+#[test]
+fn create_candle_auction_with_frozen_token_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::TokenFrozen
+		);
+	});
+	// TODO test frozen NFT transfer
+}
+
+/// Error CandleAuctionMustHaveDefaultDuration
+#[test]
+fn create_candle_auction_with_different_than_default_duration_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_candle_general_auction_data();
+		general_auction_data.end = 99_367;
+
+		let auction = candle_auction_object(general_auction_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::CandleAuctionMustHaveDefaultDuration
+		);
+	});
+}
+
+/// Error CandleAuctionMustHaveDefaultClosingPeriodDuration
+#[test]
+fn create_candle_auction_with_different_than_default_closing_period_duration_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut specific_data = valid_candle_specific_data();
+		specific_data.closing_start = 27_367;
+
+		let auction = candle_auction_object(valid_candle_general_auction_data(), specific_data);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::CandleAuctionMustHaveDefaultClosingPeriodDuration
+		);
+	});
+}
+
+/// Error CandleAuctionMustHaveDefaultClosingPeriodDuration
+#[test]
+fn create_candle_auction_with_reserve_price_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_candle_general_auction_data();
+		general_auction_data.reserve_price = Some(100);
+
+		let auction = candle_auction_object(general_auction_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::CandleAuctionDoesNotSupportReservePrice
+		);
+	});
+}
+
+///
+/// Updating a Candle auction
+///
+/// Happy path
+///
+#[test]
+fn update_candle_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(3);
+
+		let mut updated_general_data = valid_candle_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction_data = CandleAuction {
+			general_data: updated_general_data,
+			specific_data: valid_candle_specific_data(),
+		};
+		let auction = Auction::Candle(auction_data);
+
+		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction));
+
+		let auction_result = AuctionsModule::auctions(0).unwrap();
+		if let Auction::Candle(data) = auction_result {
+			assert_eq!(
+				String::from_utf8(data.general_data.name.to_vec()).unwrap(),
+				"Auction renamed"
+			);
+		}
+	});
+}
+
+/// Error AuctionNotExist
+#[test]
+fn update_candle_auction_with_nonexisting_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::AuctionNotExist,
+		);
+	});
+}
+
+/// Error InvalidNextBidMin
+#[test]
+fn update_candle_auction_with_invalid_next_bid_min_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_candle_general_auction_data();
+		updated_general_data.next_bid_min = 0;
+
+		let auction = candle_auction_object(updated_general_data, valid_candle_specific_data());
+
+		// next_bid_min is below BidMinAmount
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::InvalidNextBidMin
+		);
+	});
+}
+
+/// Error CannotSetAuctionClosed
+#[test]
+fn update_candle_auction_with_closed_true_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_candle_general_auction_data();
+		updated_general_data.closed = true;
+
+		let auction = candle_auction_object(updated_general_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::CannotSetAuctionClosed,
+		);
+	});
+}
+
+/// Error NotAuctionOwner
+#[test]
+fn update_candle_auction_by_non_auction_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_candle_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction = candle_auction_object(updated_general_data, valid_candle_specific_data());
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(BOB), 0, auction),
+			Error::<Test>::NotAuctionOwner,
+		);
+	});
+}
+
+/// Error AuctionAlreadyStarted
+#[test]
+fn update_candle_auction_after_auction_start_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_candle_general_auction_data();
+		updated_general_data.start = 18;
+		updated_general_data.end = 99_374;
+
+		let mut updated_specific_data = valid_candle_specific_data();
+		updated_specific_data.closing_start = 27_374;
+
+		let auction = candle_auction_object(updated_general_data, updated_specific_data);
+
+		run_to_block::<Test>(15);
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::AuctionAlreadyStarted,
+		);
+	});
+}
+
+/// Error NoChangeOfAuctionType
+#[test]
+fn update_candle_auction_with_mismatching_types_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = english_auction_object(valid_general_auction_data(), valid_english_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_general_data = valid_candle_general_auction_data();
+		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
+
+		let auction = candle_auction_object(updated_general_data, valid_candle_specific_data());
+
+		run_to_block::<Test>(5);
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::NoChangeOfAuctionType,
+		);
+	});
+}
+
+///
+/// Destroying a Candle auction
+///
+/// Happy path
+///
+#[test]
+fn destroy_candle_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(3);
+
+		assert_ok!(AuctionsModule::destroy(Origin::signed(ALICE), 0));
+
+		assert_eq!(AuctionsModule::auctions(0), None);
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
+
+		expect_event(crate::Event::<Test>::AuctionDestroyed(0));
+
+		// NFT can be transferred
+		assert_ok!(Nft::transfer(
+			Origin::signed(ALICE),
+			NFT_CLASS_ID_1,
+			0u16.into(),
+			CHARLIE
+		));
+		assert_ok!(Nft::transfer(
+			Origin::signed(CHARLIE),
+			NFT_CLASS_ID_1,
+			0u16.into(),
+			ALICE
+		));
+	});
+}
+
+/// Error AuctionNotExist
+#[test]
+fn destroy_candle_auction_with_nonexisting_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		assert_noop!(
+			AuctionsModule::destroy(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionNotExist,
+		);
+	});
+}
+
+/// Error NotAuctionOwner
+#[test]
+fn destroy_candle_auction_by_non_auction_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		assert_noop!(
+			AuctionsModule::destroy(Origin::signed(BOB), 0),
+			Error::<Test>::NotAuctionOwner,
+		);
+	});
+}
+
+/// Error AuctionAlreadyStarted
+#[test]
+fn destroy_candle_auction_after_auction_started_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(10);
+
+		assert_noop!(
+			AuctionsModule::destroy(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionAlreadyStarted,
+		);
+	});
+}
+
+// // multiple bidders multiple bids
+// #[test]
+// fn candle_auction_should_work() {
+// 	predefined_test_ext().execute_with(|| {
+// 		let auction = candle_auction_object(valid_general_auction_data(), valid_candle_specific_data());
+
+// 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+// 		System::set_block_number(12);
+// 		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 100));
+// 		System::set_block_number(13);
+// 		assert_ok!(AuctionsModule::bid(Origin::signed(CHARLIE), 0, 200));
+// 		System::set_block_number(14);
+// 		assert_ok!(AuctionsModule::bid(Origin::signed(DAVE), 0, 350));
+// 		System::set_block_number(15);
+// 		assert_ok!(AuctionsModule::bid(Origin::signed(EVE), 0, 666));
+
+// 		// Happy path
+// 		run_to_block::<Test>(25);
+
+// 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+// 	});
+// }
