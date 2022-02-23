@@ -4122,6 +4122,8 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: amm_1_liq_pool_id,
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 50,
@@ -4256,6 +4258,8 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: amm_2_liq_pool_id,
 				who: ALICE,
 				lp_token: BSX_TO2_SHARE_ID,
 				amount: 87,
@@ -4401,6 +4405,8 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: amm_1_liq_pool_id,
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 486,
@@ -4522,6 +4528,8 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: amm_1_liq_pool_id,
 				who: BOB,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 80,
@@ -4640,6 +4648,8 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: amm_2_liq_pool_id,
 				who: BOB,
 				lp_token: BSX_TO2_SHARE_ID,
 				amount: 25,
@@ -4773,6 +4783,8 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: amm_2_liq_pool_id,
 				who: ALICE,
 				lp_token: BSX_TO2_SHARE_ID,
 				amount: 48,
@@ -4891,6 +4903,8 @@ fn withdraw_shares_should_work() {
 				account: 29533360621462889584138678125,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: amm_2_liq_pool_id,
 				who: BOB,
 				lp_token: BSX_TO2_SHARE_ID,
 				amount: 800,
@@ -5026,6 +5040,8 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: liq_pool_id,
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 50,
@@ -5112,6 +5128,8 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: liq_pool_id,
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -5196,6 +5214,8 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: liq_pool_id,
 				who: BOB,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -5308,6 +5328,8 @@ fn claim_and_withdraw_in_same_period_should_work() {
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: liq_pool_id,
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: 50,
@@ -5370,6 +5392,8 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: liq_pool_id_removed,
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -5421,6 +5445,8 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: liq_pool_id_removed,
 				who: ALICE,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -5471,6 +5497,8 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				liq_pool_farm_id: liq_pool_id_removed,
 				who: BOB,
 				lp_token: BSX_TO1_SHARE_ID,
 				amount: shares_amount,
@@ -6136,7 +6164,7 @@ fn resume_liquidity_pool_should_work() {
 				stake_in_global_pool: liq_pool_stake_in_global_pool,
 				accumulated_rpz: 62_996,
 				multiplier: new_multiplier,
-                updated_at: 134_200,
+				updated_at: 134_200,
 				..liq_pool
 			}
 		);

@@ -128,7 +128,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
-    pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
+	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 }
 
 impl pallet_liquidity_mining::Config for Test {
@@ -141,7 +141,7 @@ impl pallet_liquidity_mining::Config for Test {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
-    type NftClass = NftClass;
+	type NftClass = NftClass;
 	type AMM = XYK;
 }
 
@@ -158,7 +158,7 @@ impl pallet_nft::Config for Test {
 	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
-    type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {

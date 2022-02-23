@@ -413,9 +413,10 @@ pub mod pallet {
 			reward_currency: T::CurrencyId,
 		},
 
-		//TODO: add farm, pool_id, asset_pair
 		/// Withdraw shares.
 		SharesWithdrawn {
+			farm_id: GlobalPoolId,
+			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			lp_token: T::CurrencyId,
 			amount: Balance,
@@ -735,28 +736,8 @@ pub mod pallet {
 
 					ensure!(who == global_pool.owner, Error::<T>::Forbidden);
 
-					//TODO: maybe replace this wich maybe_update_pools() - check spec
 					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
-					if !global_pool.total_shares_z.is_zero() {
-						let reward_per_period = Self::get_global_pool_reward_per_period(
-							global_pool.yield_per_period.into(),
-							global_pool.total_shares_z,
-							global_pool.max_reward_per_period,
-						)?;
-						Self::update_global_pool(global_pool, now_period, reward_per_period)?;
-					}
-
-					if !liq_pool.total_shares.is_zero() {
-						let pool_reward =
-							Self::claim_from_global_pool(global_pool, liq_pool, liq_pool.stake_in_global_pool)?;
-						Self::update_liq_pool(
-							liq_pool,
-							pool_reward,
-							now_period,
-							global_pool.id,
-							global_pool.reward_currency,
-						)?;
-					}
+					Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 
 					let new_stake_in_global_pool =
 						Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
@@ -854,9 +835,9 @@ pub mod pallet {
 
 					ensure!(global_pool.owner == who, Error::<T>::Forbidden);
 
+					//update accRPZ
 					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 					if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
-
 						let reward_per_period = Self::get_global_pool_reward_per_period(
 							global_pool.yield_per_period.into(),
 							global_pool.total_shares_z,
@@ -1234,6 +1215,8 @@ pub mod pallet {
 						//NOTE: Theoretically neither `GlobalPool` nor
 						//`LiquidityPoolYieldFarm` may not exist
 						Self::deposit_event(Event::SharesWithdrawn {
+							farm_id,
+							liq_pool_farm_id: liq_pool_id,
 							who: who.clone(),
 							lp_token: amm_token,
 							amount: deposit.shares,
@@ -1592,33 +1575,35 @@ impl<T: Config> Pallet<T> {
 
 	fn do_claim_rewards(
 		who: AccountIdOf<T>,
-		d: &mut Deposit<T>,
+		deposit: &mut Deposit<T>,
 		liq_pool: &LiquidityPoolYieldFarm<T>,
 		now_period: PeriodOf<T>,
 		reward_currency: T::CurrencyId,
 	) -> Result<(Balance, Balance), DispatchError> {
-		let periods = now_period.checked_sub(&d.entered_at).ok_or(Error::<T>::Overflow)?;
+		let periods = now_period
+			.checked_sub(&deposit.entered_at)
+			.ok_or(Error::<T>::Overflow)?;
 
-		if d.updated_at == now_period {
+		if deposit.updated_at == now_period {
 			return Ok((0, 0));
 		}
 
 		let loyalty_multiplier = Self::get_loyalty_multiplier(periods, liq_pool.loyalty_curve.clone())?;
 
 		let (rewards, unclaimable_rewards) = Self::get_user_reward(
-			d.accumulated_rpvs,
-			d.valued_shares,
-			d.accumulated_claimed_rewards,
+			deposit.accumulated_rpvs,
+			deposit.valued_shares,
+			deposit.accumulated_claimed_rewards,
 			liq_pool.accumulated_rpvs,
 			loyalty_multiplier,
 		)?;
 
-		d.accumulated_claimed_rewards = d
+		deposit.accumulated_claimed_rewards = deposit
 			.accumulated_claimed_rewards
 			.checked_add(rewards)
 			.ok_or(Error::<T>::Overflow)?;
 
-		d.updated_at = now_period;
+		deposit.updated_at = now_period;
 
 		let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
 		T::MultiCurrency::transfer(reward_currency, &liq_pool_account, &who, rewards)?;

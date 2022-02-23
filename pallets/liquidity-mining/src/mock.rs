@@ -249,7 +249,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
-    pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
+	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 }
 
 impl Config for Test {
@@ -262,7 +262,7 @@ impl Config for Test {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
-    type NftClass = NftClass;
+	type NftClass = NftClass;
 	type AMM = Amm;
 }
 

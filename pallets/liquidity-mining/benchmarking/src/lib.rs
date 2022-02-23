@@ -307,9 +307,9 @@ benchmarks! {
 		set_block_number::<T>(200_000);
 
 		LiquidityMining::<T>::withdraw_shares(
-            RawOrigin::Signed(liq_provider.clone()).into(), 
-            <<T as pallet_nft::Config>::NftInstanceId>::from(4_294_967_298_u128)
-        )?;
+			RawOrigin::Signed(liq_provider.clone()).into(),
+			<<T as pallet_nft::Config>::NftInstanceId>::from(4_294_967_298_u128)
+		)?;
 
 		LiquidityMining::<T>::cancel_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
 
@@ -461,8 +461,8 @@ benchmarks! {
 		assert!(LiquidityMining::<T>::deposit(4_294_967_298_u128).is_none());
 	}
 
-    //NOTE: This is same no matter if `update_global_pool()` is called because `GlobalPool`will be
-    //read/written either way.
+	//NOTE: This is same no matter if `update_global_pool()` is called because `GlobalPool`will be
+	//read/written either way.
 	resume_liquidity_pool {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);

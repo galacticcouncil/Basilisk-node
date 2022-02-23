@@ -34,7 +34,7 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 		)
 		.unwrap();
 
-		//TODO: this is not correct weight, set this proper values 
+		//TODO: this is not correct weight, set this proper values
 		T::DbWeight::get().reads_writes(2, 3)
 	} else {
 		0
@@ -45,21 +45,24 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 mod tests {
 	use super::*;
 	use crate::mock::Test;
-    use frame_support::assert_noop;
+	use frame_support::assert_noop;
 
 	#[test]
 	fn init_nft_class_migration_should_work() {
 		sp_io::TestExternalities::default().execute_with(|| {
-            init_nft_class::<Test>();
+			init_nft_class::<Test>();
 
 			let pallet_account = <Pallet<Test>>::account_id();
 
-			assert_noop!(pallet_nft::Pallet::<Test>::do_create_class(
-				pallet_account,
-				mock::LIQ_MINING_NFT_CLASS,
-				ClassType::LiquidityMining,
-				vec![].try_into().unwrap(),
-			), pallet_uniques::Error::<Test>::InUse);
+			assert_noop!(
+				pallet_nft::Pallet::<Test>::do_create_class(
+					pallet_account,
+					mock::LIQ_MINING_NFT_CLASS,
+					ClassType::LiquidityMining,
+					vec![].try_into().unwrap(),
+				),
+				pallet_uniques::Error::<Test>::InUse
+			);
 		});
 	}
 }
