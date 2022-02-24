@@ -1,12 +1,14 @@
 name: Deploy docs to GitHub pages
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - master
       - generate_docs
 jobs:
   generate-and-deploy-docs:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
