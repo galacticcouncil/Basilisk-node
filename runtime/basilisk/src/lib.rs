@@ -810,6 +810,7 @@ parameter_types! {
 	pub const BidMinAmount: u32 = 1; // Minimum bid amount
 	pub const CandleDefaultDuration: u32 = 99_356; // Default duration of candle auctions
 	pub const CandleDefaultClosingPeriodDuration: u32 = 72_000; // Default duration of the closing period of a candle auctions
+	pub const CandleDefaultClosingRangesCount: u32 = 100; // Default count of closing periods for candle auctions
 }
 
 impl pallet_auctions::Config for Runtime {
@@ -827,6 +828,7 @@ impl pallet_auctions::Config for Runtime {
 	type Randomness = RandomnessCollectiveFlip;
 	type CandleDefaultDuration = CandleDefaultDuration;
 	type CandleDefaultClosingPeriodDuration = CandleDefaultClosingPeriodDuration;
+	type CandleDefaultClosingRangesCount = CandleDefaultClosingRangesCount;
 }
 
 impl pallet_randomness_collective_flip::Config for Runtime {}

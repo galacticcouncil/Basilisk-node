@@ -78,6 +78,7 @@ use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure,
+	sp_runtime::FixedPointNumber,
 	traits::{
 		tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, Get, LockIdentifier, LockableCurrency,
 		Randomness, WithdrawReasons,
@@ -94,6 +95,7 @@ use sp_runtime::{
 	},
 	Permill,
 };
+
 use sp_std::result;
 pub use traits::*;
 use weights::WeightInfo;
@@ -178,6 +180,9 @@ pub mod pallet {
 
 		#[pallet::constant]
 		type CandleDefaultClosingPeriodDuration: Get<u32>;
+
+		#[pallet::constant]
+		type CandleDefaultClosingRangesCount: Get<u32>;
 	}
 
 	#[pallet::storage]
@@ -284,7 +289,9 @@ pub mod pallet {
 		/// Candle auction must have default closing period duration
 		CandleAuctionMustHaveDefaultClosingPeriodDuration,
 		/// Candle auction cannot have a reserve price
-		CandleAuctionDoesNotSupportReservePrice
+		CandleAuctionDoesNotSupportReservePrice,
+		/// Math overflow
+		Overflow
 	}
 
 	#[pallet::call]
@@ -592,7 +599,7 @@ impl<T: Config> Pallet<T> {
 
 		Ok(())
 	}
-	
+
 	///
 	/// Handles auction destroy
 	///
@@ -727,6 +734,20 @@ impl<T: Config> Pallet<T> {
 		let (random_seed, _) = T::Randomness::random(&(T::PalletId::get(), seed).encode());
 		let random_number = <u32>::decode(&mut random_seed.as_ref()).unwrap_or_default();
 		random_number
+	}
+
+	fn determine_candle_closing_range(bid: &Bid<T>, auction: &CandleAuction<T>) -> u32 {
+		let block_number = bid.block_number;
+		let closing_start = auction.specific_data.closing_start;
+		let end = auction.general_data.end;
+
+		 if block_number < closing_start {
+			1
+		 } else if (closing_start..end).contains(&block_number) {
+			let block_relative_position = ((end - closing_start).into() as f32 / (block_number - closing_start).into() as f32).into() as f32;
+		 } else {
+			T::CandleDefaultClosingRangesCount::get().into()
+		 }
 	}
 }
 
@@ -964,28 +985,63 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for CandleAuction<T> {
 	///
-	/// Places a bid on an CandleAuction
+	/// Places a bid on an TopUpAuction
 	///
 	/// the same functionality as bidding on English auction
 	///
 	/// Also registers individual bids for the final settlement
 	///
-	fn bid(&mut self, _auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
-		// Lock / Unlock funds
-		if let Some(current_bid) = &self.general_data.last_bid {
-			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
-		}
-		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, bid.amount, WithdrawReasons::all());
+	fn bid(&mut self, auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+		// Trasnfer funds to the subaccount of the auction
+		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+			&bidder,
+			&Pallet::<T>::get_auction_subaccount_id(auction_id),
+			bid.amount,
+			ExistenceRequirement::KeepAlive,
+		)?;
 
-		self.general_data.last_bid = Some((bidder, bid.amount));
+		self.general_data.last_bid = Some((bidder.clone(), bid.amount));
+
 		// Set next minimal bid
 		Pallet::<T>::set_next_bid_min(&mut self.general_data, bid.amount)?;
+
+		<ReservedAmounts<T>>::try_mutate(&bidder, auction_id, |locked_amount| -> DispatchResult {
+			*locked_amount = locked_amount
+				.checked_add(&bid.amount)
+				.ok_or(Error::<T>::InvalidReservedAmount)?;
+
+			Ok(())
+		})?;
 
 		// Avoid auction sniping
 		Pallet::<T>::avoid_auction_sniping(&mut self.general_data)?;
 
 		Ok(())
 	}
+
+	// ///
+	// /// Places a bid on an CandleAuction
+	// ///
+	// /// the same functionality as bidding on English auction
+	// ///
+	// /// Also registers individual bids for the final settlement
+	// ///
+	// fn bid(&mut self, _auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+	// 	// Lock / Unlock funds
+	// 	if let Some(current_bid) = &self.general_data.last_bid {
+	// 		<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
+	// 	}
+	// 	<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, bid.amount, WithdrawReasons::all());
+
+	// 	self.general_data.last_bid = Some((bidder, bid.amount));
+	// 	// Set next minimal bid
+	// 	Pallet::<T>::set_next_bid_min(&mut self.general_data, bid.amount)?;
+
+	// 	// Avoid auction sniping
+	// 	Pallet::<T>::avoid_auction_sniping(&mut self.general_data)?;
+
+	// 	Ok(())
+	// }
 
 	///
 	/// Closes a Candle auction

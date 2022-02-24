@@ -79,6 +79,7 @@ parameter_types! {
 	pub const AuctionsPalletId: PalletId = PalletId(*b"auctions");
 	pub const CandleDefaultDuration: u32 = 99_356;
 	pub const CandleDefaultClosingPeriodDuration: u32 = 72_000;
+	pub const CandleDefaultClosingRangesCount: u32 = 100;
 }
 
 pub struct TestRandomness<T>(sp_std::marker::PhantomData<T>);
@@ -112,6 +113,7 @@ impl pallet_auctions::Config for Test {
 	type PalletId = AuctionsPalletId;
 	type CandleDefaultDuration = CandleDefaultDuration;
 	type CandleDefaultClosingPeriodDuration = CandleDefaultClosingPeriodDuration;
+	type CandleDefaultClosingRangesCount = CandleDefaultClosingRangesCount;
 }
 
 parameter_types! {
