@@ -15,6 +15,11 @@ members = [
   'integration-tests',
 ]
 
+[workspace.metadata.dylint]
+libraries = [
+  { git = "https://github.com/kaiserkarel/substrace" },
+]
+
 [patch."https://github.com/paritytech/substrate"]
 frame-benchmarking = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }
 frame-benchmarking-cli = { git = "https://github.com/paritytech//substrate", rev = "4aeb95f7f38fcd519e2628f32f79044a8fef99d5" }

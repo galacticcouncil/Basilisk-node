@@ -1,3 +1,10 @@
+#![warn(
+	clippy::disallowed_method,
+	clippy::indexing_slicing,
+	clippy::todo,
+	clippy::unwrap_used,
+	clippy::panic
+)]
 use substrate_wasm_builder::WasmBuilder;
 
 fn main() {

@@ -31,7 +31,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - id: set-backend-key-name
         name: Set Backend Key Name
-        run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV    
+        run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV
       - id: determine-runner
         name: Determine runner
         run: if $IS_LOCAL; then echo "::set-output name=runner::${{ env.S3_BACKEND_KEY_NAME }}"; else echo "::set-output name=runner::ubuntu-latest"; fi;
@@ -86,8 +86,7 @@ jobs:
         uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
         with:
           profile: minimal
-      - name: Install clippy
-        run: rustup component add clippy
+      - run: make substrace
       - name: Run clippy
         run: make clippy
         continue-on-error: false

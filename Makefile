@@ -27,6 +27,12 @@ coverage:
 clippy:
 	cargo clippy --release --all-targets --all-features -- -D warnings
 
+.PHONY: substrace
+substrace:
+	cargo install cargo-dylint
+	cargo install dylint-link
+	cargo dylint substrace --workspace
+
 .PHONY: format
 format:
 	cargo fmt
