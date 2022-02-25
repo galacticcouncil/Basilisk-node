@@ -4963,7 +4963,7 @@ fn withdraw_shares_should_work() {
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
 		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
-		let bsx_tk1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
+		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
 		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
 
 		let expected_claimed_rewards = 295_207;
@@ -5056,7 +5056,7 @@ fn withdraw_shares_should_work() {
 		//liq pool balances checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
-			bsx_tk1_liq_pool_bsx_balance
+			bsx_tkn1_liq_pool_bsx_balance
 		);
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account),
@@ -5188,6 +5188,166 @@ fn withdraw_shares_should_work() {
 			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
 			(bsx_tkn2_assets, 0, GC_FARM)
 		);
+	});
+}
+
+#[test]
+fn withdraw_shares_from_destroyed_farm_should_work() {
+	//this is the case when liq. pools was removed and global pool was destroyed. Only deposits stayed in
+	//the storage. In this case only amm shares should be withdrawn
+
+	let bsx_tkn1_assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TKN1,
+	};
+
+	let bsx_tkn2_assets = AssetPair {
+		asset_in: BSX,
+		asset_out: TKN2,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let bsx_tkn1_amm_account =
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
+		let bsx_tkn2_amm_account =
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn2_assets)).unwrap().0);
+
+		//check if farm and pools exist
+		assert!(LiquidityMining::liquidity_pool(GC_FARM, bsx_tkn1_amm_account).is_some());
+		assert!(LiquidityMining::liquidity_pool(GC_FARM, bsx_tkn2_amm_account).is_some());
+		assert!(LiquidityMining::global_pool(GC_FARM).is_some());
+
+		//cancel all liq. pools in the farm
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			bsx_tkn1_assets
+		));
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			bsx_tkn2_assets
+		));
+
+		//remove all liq. pools from farm
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			bsx_tkn1_assets
+		));
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(GC),
+			GC_FARM,
+			bsx_tkn2_assets
+		));
+
+		//withdraw all undistributed rewards form global pool before destroying
+		assert_ok!(LiquidityMining::withdraw_undistributed_rewards(
+			Origin::signed(GC),
+			GC_FARM
+		));
+
+		//destroy farm
+		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM));
+
+		//check if farm and pools was removed from storage
+		assert!(LiquidityMining::liquidity_pool(GC_FARM, bsx_tkn1_amm_account).is_none());
+		assert!(LiquidityMining::liquidity_pool(GC_FARM, bsx_tkn2_amm_account).is_none());
+		assert!(LiquidityMining::global_pool(GC_FARM).is_none());
+
+		let pallet_account = LiquidityMining::account_id();
+
+		let test_data = vec![
+			(ALICE, 0, 50, 2, BSX_TKN1_LIQ_POOL_ID, BSX_TKN1_SHARE_ID),
+			(BOB, 1, 80, 1, BSX_TKN1_LIQ_POOL_ID, BSX_TKN1_SHARE_ID),
+			(BOB, 2, 25, 3, BSX_TKN2_LIQ_POOL_ID, BSX_TKN2_SHARE_ID),
+			(BOB, 3, 800, 2, BSX_TKN2_LIQ_POOL_ID, BSX_TKN2_SHARE_ID),
+			(ALICE, 4, 87, 1, BSX_TKN2_LIQ_POOL_ID, BSX_TKN2_SHARE_ID),
+			(ALICE, 5, 48, 0, BSX_TKN2_LIQ_POOL_ID, BSX_TKN2_SHARE_ID),
+			(ALICE, 6, 486, 0, BSX_TKN1_LIQ_POOL_ID, BSX_TKN1_SHARE_ID),
+		];
+
+		for (caller, nft_id_index, withdrawn_shares, deposits_left, liq_pool_farm_id, lp_token) in test_data {
+			let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
+			let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
+			let bsx_tkn1_caller_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &caller);
+			let bsx_tkn2_caller_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &caller);
+
+			//withdraw
+			assert_ok!(LiquidityMining::withdraw_shares(
+				Origin::signed(caller),
+				PREDEFINED_NFT_IDS[nft_id_index]
+			));
+
+			expect_events(vec![
+				mock::Event::LiquidityMining(Event::SharesWithdrawn {
+					farm_id: GC_FARM,
+					who: caller,
+					amount: withdrawn_shares,
+					liq_pool_farm_id,
+					lp_token,
+				}),
+				mock::Event::Uniques(pallet_uniques::Event::Burned {
+					owner: caller,
+					class: LIQ_MINING_NFT_CLASS,
+					instance: PREDEFINED_NFT_IDS[nft_id_index],
+				}),
+				mock::Event::NFT(pallet_nft::Event::InstanceBurned {
+					owner: caller,
+					class_id: LIQ_MINING_NFT_CLASS,
+					instance_id: PREDEFINED_NFT_IDS[nft_id_index],
+				}),
+			]);
+
+			let mut bsx_tkn1_shares_withdrawn = 0;
+			let mut bsx_tkn2_shares_withdrawn = 0;
+
+			if liq_pool_farm_id == BSX_TKN1_LIQ_POOL_ID {
+				bsx_tkn1_shares_withdrawn = withdrawn_shares;
+			} else {
+				bsx_tkn2_shares_withdrawn = withdrawn_shares;
+			}
+
+			//check pool account shares balance
+			assert_eq!(
+				Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
+				bsx_tkn1_pallet_amm_shares_balance - bsx_tkn1_shares_withdrawn
+			);
+			assert_eq!(
+				Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account),
+				bsx_tkn2_pallet_amm_shares_balance - bsx_tkn2_shares_withdrawn
+			);
+
+			//check user balances
+			assert_eq!(
+				Tokens::free_balance(BSX_TKN1_SHARE_ID, &caller),
+				bsx_tkn1_caller_amm_shares_balance + bsx_tkn1_shares_withdrawn
+			);
+			assert_eq!(
+				Tokens::free_balance(BSX_TKN2_SHARE_ID, &caller),
+				bsx_tkn2_caller_shares_balance + bsx_tkn2_shares_withdrawn
+			);
+
+			//check if deposit was removed
+			assert_eq!(LiquidityMining::deposit(PREDEFINED_NFT_IDS[nft_id_index]), None);
+
+			//check if liq. pool meta was updated
+			if deposits_left.is_zero() {
+				// last deposit should remove liq. pool metadata
+				assert!(LiquidityMining::liq_pool_meta(liq_pool_farm_id).is_none());
+			} else {
+				let assets = if liq_pool_farm_id == BSX_TKN1_LIQ_POOL_ID {
+					bsx_tkn1_assets
+				} else {
+					bsx_tkn2_assets
+				};
+
+				assert_eq!(
+					LiquidityMining::liq_pool_meta(liq_pool_farm_id).unwrap(),
+					(assets, deposits_left, GC_FARM)
+				);
+			}
+		}
 	});
 }
 
@@ -6115,7 +6275,7 @@ fn remove_liquidity_pool_non_canceled_liq_pool_should_not_work() {
 
 #[test]
 fn remove_liquidity_pool_not_owner_should_not_work() {
-	let bsx_tk1_assets = AssetPair {
+	let bsx_tkn1 = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
 	};
@@ -6126,11 +6286,11 @@ fn remove_liquidity_pool_not_owner_should_not_work() {
 		assert_ok!(LiquidityMining::cancel_liquidity_pool(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tk1_assets
+			bsx_tkn1
 		));
 
 		assert_noop!(
-			LiquidityMining::remove_liquidity_pool(Origin::signed(NOT_OWNER), GC_FARM, bsx_tk1_assets),
+			LiquidityMining::remove_liquidity_pool(Origin::signed(NOT_OWNER), GC_FARM, bsx_tkn1),
 			Error::<Test>::Forbidden
 		);
 	});

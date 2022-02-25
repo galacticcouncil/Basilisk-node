@@ -31,7 +31,6 @@
 //for audit:
 // * check if nft is manipulable only by this pallet
 
-// * make sure nft minted event happen
 // * make sure in the docs: 1-th reward for next whole period
 
 // add test for 0 multiplier (liq. pool)
@@ -1100,7 +1099,7 @@ pub mod pallet {
 
 			let liq_pool_id = Self::get_pool_id_from_nft_id(nft_id)?;
 			<LiquidityPoolMetadata<T>>::try_mutate_exists(liq_pool_id, |maybe_liq_pool_metadata| {
-				//This is same same as liq pool not found in this case. Liq. pool metadata CAN exist
+				//This is same as liq pool not found in this case. Liq. pool metadata CAN exist
 				//without liq. pool but liq. pool CAN'T exist without metadata.
 				//If metadata doesn't exist, user CAN'T withdraw.
 				let (asset_pair, nfts_in_liq_pool, farm_id) =
