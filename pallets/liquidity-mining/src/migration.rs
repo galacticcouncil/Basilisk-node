@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use frame_support::traits::GetStorageVersion;
+use frame_support::{traits::GetStorageVersion, BoundedVec};
 use primitives::nft::ClassType;
 
 #[allow(dead_code)]
@@ -30,12 +30,11 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 			pallet_account,
 			T::NftClass::get(),
 			ClassType::LiquidityMining,
-			vec![].try_into().unwrap(),
+			BoundedVec::default(),
 		)
 		.unwrap();
 
-		//TODO: this is not correct weight, set this proper values
-		T::DbWeight::get().reads_writes(2, 3)
+		T::DbWeight::get().reads_writes(2, 4)
 	} else {
 		0
 	}

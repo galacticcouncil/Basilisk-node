@@ -57,8 +57,8 @@ pub const BSX_DOT_SHARE_ID: AssetId = 102;
 pub const BSX_ETH_SHARE_ID: AssetId = 103;
 pub const BSX_HDX_SHARE_ID: AssetId = 104;
 
-pub const BSX_TO1_SHARE_ID: AssetId = 105;
-pub const BSX_TO2_SHARE_ID: AssetId = 106;
+pub const BSX_TKN1_SHARE_ID: AssetId = 105;
+pub const BSX_TKN2_SHARE_ID: AssetId = 106;
 
 pub const BSX: AssetId = 1000;
 pub const HDX: AssetId = 2000;
@@ -66,16 +66,16 @@ pub const ACA: AssetId = 3000;
 pub const KSM: AssetId = 4000;
 pub const DOT: AssetId = 5000;
 pub const ETH: AssetId = 6000;
-pub const TO1: AssetId = 7_001;
-pub const TO2: AssetId = 7_002;
+pub const TKN1: AssetId = 7_001;
+pub const TKN2: AssetId = 7_002;
 
 pub const BSX_ACA_AMM: AccountId = 11_000;
 pub const BSX_KSM_AMM: AccountId = 11_001;
 pub const BSX_DOT_AMM: AccountId = 11_002;
 pub const BSX_ETH_AMM: AccountId = 11_003;
 pub const BSX_HDX_AMM: AccountId = 11_004;
-pub const BSX_TO1_AMM: AccountId = 11_005;
-pub const BSX_TO2_AMM: AccountId = 11_006;
+pub const BSX_TKN1_AMM: AccountId = 11_005;
+pub const BSX_TKN2_AMM: AccountId = 11_006;
 pub const DEFAULT_AMM: AccountId = 11_007;
 
 pub const BSX_ACA_LM_POOL: PoolId = 12_000;
@@ -220,7 +220,7 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		Balance::from(0_u32)
 	}
 
-	// Only fn bellow are used by liq. mining pallet
+	// Fn bellow are used by liq. mining pallet
 	fn exists(assets: AssetPair) -> bool {
 		AMM_POOLS.with(|v| v.borrow().contains_key(&asset_pair_to_map_key(assets)))
 	}
@@ -356,28 +356,28 @@ impl Default for ExtBuilder {
 				(ALICE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(ALICE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(ALICE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
-				(ALICE, BSX_TO1_SHARE_ID, 3_000_000),
-				(ALICE, BSX_TO2_SHARE_ID, 3_000_000),
+				(ALICE, BSX_TKN1_SHARE_ID, 3_000_000),
+				(ALICE, BSX_TKN2_SHARE_ID, 3_000_000),
 				(ALICE, BSX, INITIAL_BALANCE),
 				(ACCOUNT_WITH_1M, BSX, 1_000_000),
 				(BOB, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
-				(BOB, BSX_TO1_SHARE_ID, 2_000_000),
-				(BOB, BSX_TO2_SHARE_ID, 2_000_000),
+				(BOB, BSX_TKN1_SHARE_ID, 2_000_000),
+				(BOB, BSX_TKN2_SHARE_ID, 2_000_000),
 				(BOB, BSX, INITIAL_BALANCE),
 				(BOB, KSM, INITIAL_BALANCE),
 				(CHARLIE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(CHARLIE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(CHARLIE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
-				(CHARLIE, BSX_TO1_SHARE_ID, 5_000_000),
-				(CHARLIE, BSX_TO2_SHARE_ID, 5_000_000),
+				(CHARLIE, BSX_TKN1_SHARE_ID, 5_000_000),
+				(CHARLIE, BSX_TKN2_SHARE_ID, 5_000_000),
 				(CHARLIE, BSX, INITIAL_BALANCE),
 				(DAVE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
-				(DAVE, BSX_TO1_SHARE_ID, 10_000_000),
-				(DAVE, BSX_TO2_SHARE_ID, 10_000_000),
+				(DAVE, BSX_TKN1_SHARE_ID, 10_000_000),
+				(DAVE, BSX_TKN2_SHARE_ID, 10_000_000),
 				(DAVE, BSX, INITIAL_BALANCE),
 				(GC, BSX, INITIAL_BALANCE),
 				(TREASURY, BSX, 1_000_000_000_000_000_000),
@@ -403,7 +403,7 @@ impl ExtBuilder {
 	}
 }
 
-pub fn run_to_block(n: u64) {
+pub fn set_block_number(n: u64) {
 	MockBlockNumberProvider::set(n);
 	System::set_block_number(n);
 }

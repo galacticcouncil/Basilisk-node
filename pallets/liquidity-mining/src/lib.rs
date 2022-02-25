@@ -62,7 +62,7 @@ const MAX_NFT_INSTANCE_SEQUENCER: u128 = 79_228_162_514_264_337_593_543_950_335;
 use frame_support::{
 	ensure,
 	sp_runtime::traits::{BlockNumberProvider, One, Zero},
-	transactional, PalletId,
+	transactional, BoundedVec, PalletId,
 };
 use frame_system::ensure_signed;
 
@@ -80,10 +80,7 @@ use frame_support::{
 };
 use hydradx_traits::AMM;
 use scale_info::TypeInfo;
-use sp_std::{
-	convert::{From, Into, TryInto},
-	vec,
-};
+use sp_std::convert::{From, Into, TryInto};
 
 use primitives::nft::ClassType;
 use primitives::{asset::AssetPair, Balance};
@@ -1001,7 +998,7 @@ pub mod pallet {
 						who.clone(),
 						T::NftClass::get(),
 						nft_id,
-						vec![].try_into().unwrap(),
+						BoundedVec::default(),
 					)?;
 
 					let d = Deposit::new(shares_amount, valued_shares, liq_pool.accumulated_rpvs, now_period);
