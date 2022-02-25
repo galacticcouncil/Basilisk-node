@@ -2024,26 +2024,111 @@ fn destroy_candle_auction_after_auction_started_should_not_work() {
 	});
 }
 
-// // multiple bidders multiple bids
-// #[test]
-// fn candle_auction_should_work() {
-// 	predefined_test_ext().execute_with(|| {
-// 		let auction = candle_auction_object(valid_general_auction_data(), valid_candle_specific_data());
+/// Bidding on a Candle auction
+///
+/// Happy path with 2 bidders
+#[test]
+fn bid_candle_auction_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
 
-// 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-// 		System::set_block_number(12);
-// 		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, 100));
-// 		System::set_block_number(13);
-// 		assert_ok!(AuctionsModule::bid(Origin::signed(CHARLIE), 0, 200));
-// 		System::set_block_number(14);
-// 		assert_ok!(AuctionsModule::bid(Origin::signed(DAVE), 0, 350));
-// 		System::set_block_number(15);
-// 		assert_ok!(AuctionsModule::bid(Origin::signed(EVE), 0, 666));
+		run_to_block::<Test>(20);
 
-// 		// Happy path
-// 		run_to_block::<Test>(25);
+		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
+		let bob_balance_before = Balances::free_balance(&BOB);
+		let charlie_balance_before = Balances::free_balance(&CHARLIE);
 
-// 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
-// 	});
-// }
+		// First bidder, bid before start of closing period
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+		let bob_balance_after = Balances::free_balance(&BOB);
+
+		// The bid amount is transferred to the auction subaccount
+		assert_eq!(
+			auction_subaccount_balance_before.saturating_add(1_000),
+			auction_subaccount_balance_after
+		);
+		assert_eq!(bob_balance_before.saturating_sub(1_000), bob_balance_after);
+
+		// The bidder is set as highest bidder for the current range
+		assert_eq!(
+			AuctionsModule::highest_bidders_by_auction_closing_range(0, 1).unwrap(),
+			BOB
+		);
+
+		// Second bidder, in the beginning of the closing period
+		run_to_block::<Test>(27_368);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+		expect_event(crate::Event::<Test>::BidPlaced(0, CHARLIE, bid_object(1100, 27_368)));
+
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+		let charlie_balance_after = Balances::free_balance(&CHARLIE);
+
+		// The difference between bid amount and last bid is transferred to the auction subaccount
+		assert_eq!(
+			auction_subaccount_balance_before.saturating_add(2_100),
+			auction_subaccount_balance_after
+		);
+		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
+
+		// The bidder is set as highest bidder for the current range
+		assert_eq!(
+			AuctionsModule::highest_bidders_by_auction_closing_range(0, 1).unwrap(),
+			CHARLIE
+		);
+
+		// Third bidder = First bidder (repeated bid), at the end of the closing period
+		run_to_block::<Test>(99_356);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_500_u32)
+		));
+		expect_event(crate::Event::<Test>::BidPlaced(0, BOB, bid_object(1500, 99_356)));
+
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+		let bob_balance_after = Balances::free_balance(&BOB);
+
+		// The difference between bid amount and last bid is transferred to the auction subaccount
+		assert_eq!(
+			auction_subaccount_balance_before.saturating_add(3_600),
+			auction_subaccount_balance_after
+		);
+		assert_eq!(bob_balance_before.saturating_sub(2_500), bob_balance_after);
+
+		// The bidder is set as highest bidder for the current range
+		assert_eq!(
+			AuctionsModule::highest_bidders_by_auction_closing_range(0, 99).unwrap(),
+			BOB
+		);
+
+		let auction = AuctionsModule::auctions(0).unwrap();
+		if let Auction::TopUp(data) = auction {
+			// Next bid step is updated
+			assert_eq!(data.general_data.next_bid_min, 1650);
+
+			// Auction time is extended with 1 block when end time is less than 10 blocks away
+			assert_eq!(data.general_data.end, 24u64);
+		}
+
+		// Bids on TopUp auctions are stored in order to validate the claim_bids extrinsic
+		let locked_amount_bob = AuctionsModule::reserved_amounts(BOB, 0);
+		assert_eq!(locked_amount_bob, 2500);
+
+		let locked_amount_charlie = AuctionsModule::reserved_amounts(CHARLIE, 0);
+		assert_eq!(locked_amount_charlie, 1_100);
+	});
+}

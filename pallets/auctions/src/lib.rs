@@ -78,7 +78,6 @@ use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure,
-	sp_runtime::FixedPointNumber,
 	traits::{
 		tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, Get, LockIdentifier, LockableCurrency,
 		Randomness, WithdrawReasons,
@@ -97,6 +96,8 @@ use sp_runtime::{
 };
 
 use sp_std::result;
+use sp_std::convert::TryInto;
+
 pub use traits::*;
 use weights::WeightInfo;
 
@@ -201,6 +202,13 @@ pub mod pallet {
 	pub(crate) type ReservedAmounts<T: Config> =
 		StorageDoubleMap<_, Twox64Concat, T::AccountId, Twox64Concat, T::AuctionId, BalanceOf<T>, ValueQuery>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn highest_bidders_by_auction_closing_range)]
+	/// Stores the higest bidder by auction and closing range
+	pub(crate) type HighestBiddersByAuctionClosingRange<T: Config> =
+	StorageDoubleMap<_, Twox64Concat, T::AuctionId, Twox64Concat, u32, T::AccountId, OptionQuery>;
+
+	/// TODO remove
 	#[pallet::storage]
 	#[pallet::getter(fn winners)]
 	/// Tracks who was winning during an auction
@@ -736,18 +744,24 @@ impl<T: Config> Pallet<T> {
 		random_number
 	}
 
-	fn determine_candle_closing_range(bid: &Bid<T>, auction: &CandleAuction<T>) -> u32 {
-		let block_number = bid.block_number;
-		let closing_start = auction.specific_data.closing_start;
-		let end = auction.general_data.end;
+	fn determine_candle_closing_range(bid: &Bid<T>, auction: &CandleAuction<T>) -> Result<u32, Error<T>> {
+		let block_number: u32 = bid.block_number.try_into().map_err(|_| Error::<T>::Overflow)?;
+		let closing_start: u32 = auction.specific_data.closing_start.try_into().map_err(|_| Error::<T>::Overflow)?;
+		let end: u32 = auction.general_data.end.try_into().map_err(|_| Error::<T>::Overflow)?;
 
-		 if block_number < closing_start {
-			1
-		 } else if (closing_start..end).contains(&block_number) {
-			let block_relative_position = ((end - closing_start).into() as f32 / (block_number - closing_start).into() as f32).into() as f32;
-		 } else {
-			T::CandleDefaultClosingRangesCount::get().into()
-		 }
+		if block_number < closing_start {
+			Ok(One::one())
+		} else if (closing_start..end).contains(&block_number) {
+			let auction_duration = end.checked_sub(closing_start).ok_or(Error::<T>::Overflow)?;
+			let block_spread = block_number.checked_sub(closing_start).ok_or( Error::<T>::Overflow)?;
+			let multiplied_block_spread = block_spread.checked_mul(100).ok_or(Error::<T>::Overflow)?;
+
+			let closing_range = multiplied_block_spread.checked_div(auction_duration).ok_or(Error::<T>::Overflow)?;
+
+			Ok(if closing_range.is_zero() { One::one() } else { closing_range })
+		} else {
+			Ok(T::CandleDefaultClosingRangesCount::get().into())
+		}
 	}
 }
 
@@ -985,13 +999,22 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for CandleAuction<T> {
 	///
-	/// Places a bid on an TopUpAuction
-	///
-	/// the same functionality as bidding on English auction
-	///
-	/// Also registers individual bids for the final settlement
+	/// Places a bid on an CandleAuction
 	///
 	fn bid(&mut self, auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+		let closing_period_range = Pallet::<T>::determine_candle_closing_range(bid, self);
+		match closing_period_range {
+			Ok(range) => {
+				// <HighestBiddersByAuctionClosingRange<T>>::insert(&auction_id, &range, bidder.clone());
+				<HighestBiddersByAuctionClosingRange<T>>::mutate(&auction_id, &range, |highest_bidder| -> DispatchResult {
+					*highest_bidder = Some(bidder.clone());
+	
+					Ok(())
+				})?;
+			},
+			Err(err) => { return Err(err.into()); }
+		}
+
 		// Trasnfer funds to the subaccount of the auction
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 			&bidder,
