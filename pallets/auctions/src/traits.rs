@@ -47,12 +47,6 @@ pub struct CandleAuction<T: Config> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct Winner<AccountId, Balance> {
-	pub bidder: AccountId,
-	pub amount: Balance,
-}
-
-#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct EnglishAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -60,7 +54,8 @@ pub struct TopUpAuctionData {}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct CandleAuctionData<T: Config> {
-	pub closing_start: <T as frame_system::Config>::BlockNumber
+	pub closing_start: <T as frame_system::Config>::BlockNumber,
+	pub winner: Option<<T as frame_system::Config>::AccountId>
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -81,7 +76,6 @@ pub struct GeneralAuctionData<T: Config> {
 
 /// Define type aliases for better readability
 pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-pub type WinnerOf<T> = Winner<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
 impl<T: Config> sp_std::fmt::Debug for Bid<T> {
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {

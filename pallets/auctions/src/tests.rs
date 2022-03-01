@@ -116,7 +116,8 @@ fn valid_candle_general_auction_data() -> GeneralAuctionData<Test> {
 
 fn valid_candle_specific_data() -> CandleAuctionData<Test> {
 	CandleAuctionData {
-		closing_start: 27_366
+		closing_start: 27_366,
+		winner: None
 	}
 }
 
@@ -134,16 +135,23 @@ fn create_english_auction_should_work() {
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 
-		if let Auction::English(data) = auction {
-			assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
-			assert_eq!(data.general_data.reserve_price, None);
-			assert_eq!(data.general_data.last_bid, None);
-			assert_eq!(data.general_data.start, 10u64);
-			assert_eq!(data.general_data.end, 21u64);
-			assert_eq!(data.general_data.owner, ALICE);
-			assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-			assert_eq!(data.general_data.next_bid_min, 1)
-		}
+		let auction_check = match auction {
+			Auction::English(data) => {
+				assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+				assert_eq!(data.general_data.reserve_price, None);
+				assert_eq!(data.general_data.last_bid, None);
+				assert_eq!(data.general_data.start, 10u64);
+				assert_eq!(data.general_data.end, 21u64);
+				assert_eq!(data.general_data.owner, ALICE);
+				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+				assert_eq!(data.general_data.next_bid_min, 1);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), Some(ALICE));
 	});
@@ -322,12 +330,20 @@ fn update_english_auction_should_work() {
 		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction));
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
-		if let Auction::English(data) = auction_result {
-			assert_eq!(
-				String::from_utf8(data.general_data.name.to_vec()).unwrap(),
-				"Auction renamed"
-			);
-		}
+
+		let auction_check = match auction_result {
+			Auction::English(data) => {
+				assert_eq!(
+					String::from_utf8(data.general_data.name.to_vec()).unwrap(),
+					"Auction renamed"
+				);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 	});
 }
 
@@ -587,13 +603,20 @@ fn bid_english_auction_should_work() {
 		assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		if let Auction::English(data) = auction {
-			// Next bid step is updated
-			assert_eq!(data.general_data.next_bid_min, 1210);
+		let auction_check = match auction {
+			Auction::English(data) => {
+				// Next bid step is updated
+				assert_eq!(data.general_data.next_bid_min, 1210);
 
-			// Auction time is extended with 1 block when end time is less than 10 blocks away
-			assert_eq!(data.general_data.end, 22u64);
-		}
+				// Auction time is extended with 1 block when end time is less than 10 blocks away
+				assert_eq!(data.general_data.end, 22u64);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 	});
 }
 
@@ -723,10 +746,17 @@ fn close_english_auction_should_work() {
 		assert_eq!(bob_balance_before.saturating_sub(bid), bob_balance_after);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		if let Auction::English(data) = auction {
-			// Attributed closed is updated
-			assert!(data.general_data.closed);
-		}
+		let auction_check = match auction {
+			Auction::English(data) => {
+				// Attributed closed is updated
+				assert!(data.general_data.closed);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 	});
 }
 
@@ -786,17 +816,23 @@ fn create_topup_auction_should_work() {
 		expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
+		let auction_check = match auction {
+			Auction::TopUp(data) => {
+				assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+				assert_eq!(data.general_data.reserve_price, None);
+				assert_eq!(data.general_data.last_bid, None);
+				assert_eq!(data.general_data.start, 10u64);
+				assert_eq!(data.general_data.end, 21u64);
+				assert_eq!(data.general_data.owner, ALICE);
+				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+				assert_eq!(data.general_data.next_bid_min, 1);
 
-		if let Auction::TopUp(data) = auction {
-			assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
-			assert_eq!(data.general_data.reserve_price, None);
-			assert_eq!(data.general_data.last_bid, None);
-			assert_eq!(data.general_data.start, 10u64);
-			assert_eq!(data.general_data.end, 21u64);
-			assert_eq!(data.general_data.owner, ALICE);
-			assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-			assert_eq!(data.general_data.next_bid_min, 1)
-		}
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), Some(ALICE));
 	});
@@ -943,12 +979,19 @@ fn update_topup_auction_should_work() {
 		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction));
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
-		if let Auction::TopUp(data) = auction_result {
-			assert_eq!(
-				String::from_utf8(data.general_data.name.to_vec()).unwrap(),
-				"Auction renamed"
-			);
-		}
+		let auction_check = match auction_result {
+			Auction::TopUp(data) => {
+				assert_eq!(
+					String::from_utf8(data.general_data.name.to_vec()).unwrap(),
+					"Auction renamed"
+				);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 	});
 }
 
@@ -1224,13 +1267,20 @@ fn bid_topup_auction_should_work() {
 		assert_eq!(bob_balance_before.saturating_sub(2_500), bob_balance_after);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		if let Auction::TopUp(data) = auction {
-			// Next bid step is updated
-			assert_eq!(data.general_data.next_bid_min, 1650);
+		let auction_check = match auction {
+			Auction::TopUp(data) => {
+				// Next bid step is updated
+				assert_eq!(data.general_data.next_bid_min, 1650);
 
-			// Auction time is extended with 1 block when end time is less than 10 blocks away
-			assert_eq!(data.general_data.end, 24u64);
-		}
+				// Auction time is extended with 1 block when end time is less than 10 blocks away
+				assert_eq!(data.general_data.end, 24u64);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 
 		// Bids on TopUp auctions are stored in order to validate the claim_bids extrinsic
 		let locked_amount_bob = AuctionsModule::reserved_amounts(BOB, 0);
@@ -1295,10 +1345,16 @@ fn close_topup_auction_with_winner_should_work() {
 		assert_ok!(Nft::transfer(Origin::signed(CHARLIE), NFT_CLASS_ID_1, 0u16.into(), BOB));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		if let Auction::TopUp(data) = auction {
-			// Attributed closed is updated
-			assert!(data.general_data.closed);
-		}
+		let auction_check = match auction {
+			Auction::TopUp(data) => {
+				assert!(data.general_data.closed);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 	});
 }
 
@@ -1353,10 +1409,16 @@ fn close_topup_auction_without_winner_should_work() {
 		assert_ok!(Nft::transfer(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), BOB));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		if let Auction::TopUp(data) = auction {
-			// Attributed closed is updated
-			assert!(data.general_data.closed);
-		}
+		let auction_check = match auction {
+			Auction::TopUp(data) => {
+				assert!(data.general_data.closed);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 	});
 }
 
@@ -1607,18 +1669,24 @@ fn create_candle_auction_should_work() {
 		expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
+		let auction_check = match auction {
+			Auction::Candle(data) => {
+				assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
+				assert_eq!(data.general_data.reserve_price, None);
+				assert_eq!(data.general_data.last_bid, None);
+				assert_eq!(data.general_data.start, 10u64);
+				assert_eq!(data.general_data.end, 99_366u64);
+				assert_eq!(data.general_data.owner, ALICE);
+				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+				assert_eq!(data.general_data.next_bid_min, 1);
+				assert_eq!(data.specific_data.closing_start, 27_366);
 
-		if let Auction::Candle(data) = auction {
-			assert_eq!(String::from_utf8(data.general_data.name.to_vec()).unwrap(), "Auction 0");
-			assert_eq!(data.general_data.reserve_price, None);
-			assert_eq!(data.general_data.last_bid, None);
-			assert_eq!(data.general_data.start, 10u64);
-			assert_eq!(data.general_data.end, 99_366u64);
-			assert_eq!(data.general_data.owner, ALICE);
-			assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
-			assert_eq!(data.general_data.next_bid_min, 1);
-			assert_eq!(data.specific_data.closing_start, 27_366);
-		}
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), Some(ALICE));
 	});
@@ -1812,13 +1880,20 @@ fn update_candle_auction_should_work() {
 
 		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction));
 
-		let auction_result = AuctionsModule::auctions(0).unwrap();
-		if let Auction::Candle(data) = auction_result {
-			assert_eq!(
-				String::from_utf8(data.general_data.name.to_vec()).unwrap(),
-				"Auction renamed"
-			);
-		}
+		let auction = AuctionsModule::auctions(0).unwrap();
+		let auction_check = match auction {
+			Auction::Candle(data) => {
+				assert_eq!(
+					String::from_utf8(data.general_data.name.to_vec()).unwrap(),
+					"Auction renamed"
+				);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 	});
 }
 
@@ -2116,13 +2191,20 @@ fn bid_candle_auction_should_work() {
 		);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		if let Auction::TopUp(data) = auction {
-			// Next bid step is updated
-			assert_eq!(data.general_data.next_bid_min, 1650);
+		let auction_check = match auction {
+			Auction::Candle(data) => {
+				// Next bid step is updated
+				assert_eq!(data.general_data.next_bid_min, 1650);
 
-			// Auction time is extended with 1 block when end time is less than 10 blocks away
-			assert_eq!(data.general_data.end, 24u64);
-		}
+				// Auction time is extended with 1 block when end time is less than 10 blocks away
+				assert_eq!(data.general_data.end, 99_366);
+
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
 
 		// Bids on TopUp auctions are stored in order to validate the claim_bids extrinsic
 		let locked_amount_bob = AuctionsModule::reserved_amounts(BOB, 0);
@@ -2130,5 +2212,122 @@ fn bid_candle_auction_should_work() {
 
 		let locked_amount_charlie = AuctionsModule::reserved_amounts(CHARLIE, 0);
 		assert_eq!(locked_amount_charlie, 1_100);
+	});
+}
+
+/// Closing a Candle auction
+///
+/// Happy path
+#[test]
+fn close_candle_auction_with_winner_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(20);
+
+		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
+		let alice_balance_before = Balances::free_balance(&ALICE);
+		let bob_balance_before = Balances::free_balance(&BOB);
+		let charlie_balance_before = Balances::free_balance(&CHARLIE);
+
+		// First bidder, bid before start of closing period
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		// Second bidder, in the beginning of the closing period
+		run_to_block::<Test>(27_368);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+
+		// Third bidder = First bidder (repeated bid), at the end of the closing period
+		run_to_block::<Test>(99_356);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_500_u32)
+		));
+
+		run_to_block::<Test>(99_376);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		run_to_block::<Test>(99_377);
+
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+		let alice_balance_after = Balances::free_balance(&ALICE);
+		let bob_balance_after = Balances::free_balance(&BOB);
+		let charlie_balance_after = Balances::free_balance(&CHARLIE);
+
+		// Alice receives all bids from winner Charlie
+		assert_eq!(alice_balance_before.saturating_add(1_100), alice_balance_after);
+		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
+
+		// Funds of Bob remain reserved in the auction subaccount, available to claim
+		assert_eq!(auction_subaccount_balance_before.saturating_add(2_500), auction_subaccount_balance_after);
+		assert_eq!(bob_balance_before.saturating_sub(2_500), bob_balance_after);
+
+		// // NFT can be transferred; Current version of nft pallet has no ownership check
+		assert_ok!(Nft::transfer(Origin::signed(CHARLIE), NFT_CLASS_ID_1, 0u16.into(), BOB));
+
+		let auction = AuctionsModule::auctions(0).unwrap();
+
+		let auction_check = match auction {
+			Auction::Candle(data) => {
+				assert!(data.general_data.closed);
+				assert_eq!(data.specific_data.winner.unwrap(), CHARLIE);
+				Ok(())
+			},
+			_ => Err(())
+		};
+
+		assert_ok!(auction_check);
+	});
+}
+
+/// Error AuctionEndTimeNotReached
+#[test]
+fn close_candle_auction_before_auction_end_time_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(21);
+
+		assert_noop!(
+			AuctionsModule::close(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionEndTimeNotReached,
+		);
+	});
+}
+
+/// Error AuctionClosed
+#[test]
+fn close_candle_auction_which_is_already_closed_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(99_366);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		run_to_block::<Test>(99_367);
+
+		assert_noop!(
+			AuctionsModule::close(Origin::signed(ALICE), 0),
+			Error::<Test>::AuctionClosed,
+		);
 	});
 }
