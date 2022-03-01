@@ -727,11 +727,11 @@ impl<T: Config> Pallet<T> {
 
 		// Best effort attempt to remove bias from modulus operator.
 		for i in 1..10 {
-			if random_number < u32::MAX - u32::MAX % difference {
+			if random_number < u32::MAX.saturating_sub(u32::MAX % difference) {
 				break;
 			}
 
-			random_number = Self::generate_random_number(i).into();
+			random_number = Self::generate_random_number(i);
 		}
 
 		Ok(from + (random_number % difference))
@@ -759,7 +759,7 @@ impl<T: Config> Pallet<T> {
 
 			Ok(if closing_range.is_zero() { One::one() } else { closing_range })
 		} else {
-			Ok(T::CandleDefaultClosingRangesCount::get().into())
+			Ok(T::CandleDefaultClosingRangesCount::get())
 		}
 	}
 }
@@ -1101,13 +1101,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 		if Pallet::<T>::is_auction_won(&self.general_data) {
 			let winning_closing_range = Pallet::<T>::choose_random_block_from_range(
-				Zero::zero(), T::CandleDefaultClosingRangesCount::get().into()
+				Zero::zero(), T::CandleDefaultClosingRangesCount::get()
 			)?;
 
 			self.specific_data.winning_closing_range = Some(winning_closing_range);
 
 			let mut maybe_winner: Option<T::AccountId> = None;
-			let mut i = winning_closing_range.clone();
+			let mut i = winning_closing_range;
 			while i >= One::one() {
 				let bidder = <HighestBiddersByAuctionClosingRange<T>>::get(&auction_id, i);
 
@@ -1141,7 +1141,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					);
 
 					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-						&auction_account,
+						auction_account,
 						&self.general_data.owner,
 						reserved_amount,
 						ExistenceRequirement::AllowDeath,
