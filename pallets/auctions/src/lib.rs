@@ -54,7 +54,7 @@
 //!
 //! ## Implemented Auction types
 //!
-//! ### EnglishAuction
+//! ### Auction::English
 //!
 //! In an English auction, participants place bids in a running auction. Once the auction has reached its end time,
 //! the highest bid wins.
@@ -719,18 +719,15 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	fn choose_random_block_from_range(
-		from: T::BlockNumber,
-		to: T::BlockNumber,
-	) -> Result<T::BlockNumber, DispatchError> {
-		ensure!(from < to && from != 0u32.into(), Error::<T>::InvalidTimeConfiguration);
-		let mut random_number = T::BlockNumber::from(Self::generate_random_number(0u32));
+	fn choose_random_block_from_range(from: u32, to: u32) -> Result<u32, DispatchError> {
+		ensure!(from < to, Error::<T>::InvalidTimeConfiguration);
+		let mut random_number = Self::generate_random_number(0u32);
 
 		let difference = to - from;
 
 		// Best effort attempt to remove bias from modulus operator.
 		for i in 1..10 {
-			if random_number < T::BlockNumber::from(u32::MAX) - T::BlockNumber::from(u32::MAX) % difference {
+			if random_number < u32::MAX - u32::MAX % difference {
 				break;
 			}
 
@@ -861,7 +858,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	}
 
 	/// English auctions do not implement reserved amounts and there are no claims
-	fn claim(&self, auction_id: &T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+	fn claim(&self, _auction_id: &T::AuctionId, _bidder: T::AccountId, _amount: BalanceOf<T>) -> DispatchResult {
 		Err(Error::<T>::ClaimsNotSupportedForThisAuctionType.into())
 	}
 
@@ -1103,7 +1100,10 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		self.general_data.closed = true;
 
 		if Pallet::<T>::is_auction_won(&self.general_data) {
-			let winning_closing_range: u32 = 90;
+			let winning_closing_range = Pallet::<T>::choose_random_block_from_range(
+				Zero::zero(), T::CandleDefaultClosingRangesCount::get().into()
+			)?;
+
 			let mut maybe_winner: Option<T::AccountId> = None;
 
 			let mut i = winning_closing_range.clone();
@@ -1118,36 +1118,37 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 				i = i.saturating_sub(One::one());
 			}
 
-			if let Some(winner) = maybe_winner {
-				let dest = T::Lookup::unlookup(winner.clone());
-				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
-				pallet_nft::Pallet::<T>::transfer(
-					source,
-					self.general_data.token.0.into(),
-					self.general_data.token.1.into(),
-					dest,
-				)?;
+			match maybe_winner {
+				Some(winner) => {
+					let dest = T::Lookup::unlookup(winner.clone());
+					let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
+					pallet_nft::Pallet::<T>::transfer(
+						source,
+						self.general_data.token.0.into(),
+						self.general_data.token.1.into(),
+						dest,
+					)?;
 
-				self.specific_data.winner = Some(winner.clone());
+					self.specific_data.winner = Some(winner.clone());
 
-				let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
-				let reserved_amount = <ReservedAmounts<T>>::get(&winner, &auction_id);
+					let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+					let reserved_amount = <ReservedAmounts<T>>::get(&winner, &auction_id);
 
-				ensure!(
-					reserved_amount > Zero::zero(),
-					Error::<T>::NoReservedAmountAvailableToClaim
-				);
+					ensure!(
+						reserved_amount > Zero::zero(),
+						Error::<T>::NoReservedAmountAvailableToClaim
+					);
 
-				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-					&auction_account,
-					&self.general_data.owner,
-					reserved_amount,
-					ExistenceRequirement::AllowDeath,
-				)?;
+					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+						&auction_account,
+						&self.general_data.owner,
+						reserved_amount,
+						ExistenceRequirement::AllowDeath,
+					)?;
 
-				<ReservedAmounts<T>>::remove(&winner, &auction_id);
-			} else {
-				return Err(Error::<T>::ErrorDeterminingAuctionWinner.into())
+					<ReservedAmounts<T>>::remove(&winner, &auction_id);
+				},
+				None => return Err(Error::<T>::ErrorDeterminingAuctionWinner.into())
 			}
 		}
 
