@@ -117,7 +117,8 @@ fn valid_candle_general_auction_data() -> GeneralAuctionData<Test> {
 fn valid_candle_specific_data() -> CandleAuctionData<Test> {
 	CandleAuctionData {
 		closing_start: 27_366,
-		winner: None
+		winner: None,
+		winning_closing_range: None
 	}
 }
 
@@ -2284,6 +2285,10 @@ fn close_candle_auction_with_winner_should_work() {
 			Auction::Candle(data) => {
 				assert!(data.general_data.closed);
 				assert_eq!(data.specific_data.winner.unwrap(), CHARLIE);
+
+				// In the tests the winning closing range is deterministic because the same blocks will always return same randomness
+				assert_eq!(data.specific_data.winning_closing_range.unwrap(), 69);
+
 				Ok(())
 			},
 			_ => Err(())

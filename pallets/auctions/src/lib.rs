@@ -1104,8 +1104,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 				Zero::zero(), T::CandleDefaultClosingRangesCount::get().into()
 			)?;
 
-			let mut maybe_winner: Option<T::AccountId> = None;
+			self.specific_data.winning_closing_range = Some(winning_closing_range);
 
+			let mut maybe_winner: Option<T::AccountId> = None;
 			let mut i = winning_closing_range.clone();
 			while i >= One::one() {
 				let bidder = <HighestBiddersByAuctionClosingRange<T>>::get(&auction_id, i);

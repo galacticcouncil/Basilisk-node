@@ -57,6 +57,7 @@ pub struct TopUpAuctionData {}
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct CandleAuctionData<T: Config> {
 	pub closing_start: <T as frame_system::Config>::BlockNumber,
+	pub winning_closing_range: Option<u32>,
 	pub winner: Option<<T as frame_system::Config>::AccountId>
 }
 
