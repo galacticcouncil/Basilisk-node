@@ -12,6 +12,8 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 
 	fn close(&mut self, auction_id: &AuctionId) -> DispatchResult;
 
+	fn claim(&self, auction_id: &AuctionId, bidder: AccountId, amount: BalanceOf) -> DispatchResult;
+
 	fn validate_data(&self) -> DispatchResult;
 }
 

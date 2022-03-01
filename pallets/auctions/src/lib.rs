@@ -277,7 +277,7 @@ pub mod pallet {
 		NoReservedAmountAvailableToClaim,
 		/// Auction is closed and won, the bid funds are transferred to seller
 		CannotClaimWonAuction,
-		/// Claims of reserved amounts are only available on TopUp
+		/// Claims of reserved amounts are only available on certain auction types
 		ClaimsNotSupportedForThisAuctionType,
 		/// Auction should be closed before claims are made
 		CloseAuctionBeforeClaimingReservedAmounts,
@@ -461,12 +461,8 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::claim_reserved_amounts())]
-		pub fn claim_reserved_amounts(
-			_origin: OriginFor<T>,
-			bidder: T::AccountId,
-			auction_id: T::AuctionId,
-		) -> DispatchResult {
+		#[pallet::weight(<T as Config>::WeightInfo::claim())]
+		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId, ) -> DispatchResult {
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 			ensure!(
 				claimable_amount > Zero::zero(),
@@ -475,33 +471,18 @@ pub mod pallet {
 
 			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
 			match auction {
+				Auction::English(auction_object) => {
+					auction_object.claim(&auction_id, bidder, claimable_amount)?;
+				},
 				Auction::TopUp(auction_object) => {
-					ensure!(
-						Pallet::<T>::is_auction_ended(&auction_object.general_data),
-						Error::<T>::AuctionEndTimeNotReached
-					);
-					ensure!(
-						auction_object.general_data.closed,
-						Error::<T>::CloseAuctionBeforeClaimingReservedAmounts
-					);
-					ensure!(
-						!Pallet::<T>::is_auction_won(&auction_object.general_data),
-						Error::<T>::CannotClaimWonAuction
-					);
-
-					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-						&Pallet::<T>::get_auction_subaccount_id(&auction_id),
-						&bidder,
-						claimable_amount,
-						ExistenceRequirement::AllowDeath,
-					)?;
-
-					<ReservedAmounts<T>>::remove(bidder, auction_id);
-
-					Ok(())
+					auction_object.claim(&auction_id, bidder, claimable_amount)?;
+				},
+				Auction::Candle(auction_object) => {
+					auction_object.claim(&auction_id, bidder, claimable_amount)?;
 				}
-				_ => Err(Error::<T>::ClaimsNotSupportedForThisAuctionType.into()),
 			}
+
+			Ok(())
 		}
 	}
 }
@@ -664,6 +645,32 @@ impl<T: Config> Pallet<T> {
 			Pallet::is_auction_ended(general_auction_data),
 			Error::<T>::AuctionEndTimeNotReached
 		);
+
+		Ok(())
+	}
+
+	fn validate_claim(general_auction_data: &GeneralAuctionData<T>) -> DispatchResult {
+		ensure!(
+			Pallet::<T>::is_auction_ended(general_auction_data),
+			Error::<T>::AuctionEndTimeNotReached
+		);
+		ensure!(
+			general_auction_data.closed,
+			Error::<T>::CloseAuctionBeforeClaimingReservedAmounts
+		);
+
+		Ok(())
+	}
+
+	fn handle_claim(bidder: T::AccountId, auction_id: &T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
+		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+			&Pallet::<T>::get_auction_subaccount_id(auction_id),
+			&bidder,
+			amount,
+			ExistenceRequirement::AllowDeath,
+		)?;
+
+		<ReservedAmounts<T>>::remove(bidder, auction_id);
 
 		Ok(())
 	}
@@ -853,6 +860,11 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		Ok(())
 	}
 
+	/// English auctions do not implement reserved amounts and there are no claims
+	fn claim(&self, auction_id: &T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+		Err(Error::<T>::ClaimsNotSupportedForThisAuctionType.into())
+	}
+
 	fn validate_data(&self) -> DispatchResult {
 		Pallet::<T>::validate_general_data(&self.general_data)?;
 
@@ -977,6 +989,19 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		}
 
 		self.general_data.closed = true;
+
+		Ok(())
+	}
+
+	fn claim(&self, auction_id: &T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+		Pallet::<T>::validate_claim(&self.general_data)?;
+
+		ensure!(
+			!Pallet::<T>::is_auction_won(&self.general_data),
+			Error::<T>::CannotClaimWonAuction
+		);
+
+		Pallet::<T>::handle_claim(bidder, auction_id, amount)?;
 
 		Ok(())
 	}
@@ -1125,6 +1150,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 				return Err(Error::<T>::ErrorDeterminingAuctionWinner.into())
 			}
 		}
+
+		Ok(())
+	}
+
+	fn claim(&self, auction_id: &T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+		Pallet::<T>::validate_claim(&self.general_data)?;
+		Pallet::<T>::handle_claim(bidder, auction_id, amount)?;
 
 		Ok(())
 	}
