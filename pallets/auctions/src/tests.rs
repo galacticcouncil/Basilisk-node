@@ -2222,7 +2222,6 @@ fn bid_candle_auction_should_work() {
 fn close_candle_auction_with_winner_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
-
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		run_to_block::<Test>(20);
@@ -2328,6 +2327,178 @@ fn close_candle_auction_which_is_already_closed_should_not_work() {
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionClosed,
+		);
+	});
+}
+
+/// Claiming reserved amounts from a Candle auction
+///
+/// Happy path
+///
+///
+#[test]
+fn claim_candle_auction_by_losing_bidder_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(20);
+
+		let bob_balance_before = Balances::free_balance(&BOB);
+
+		// First bidder, bid before start of closing period
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		// Second bidder, in the beginning of the closing period
+		run_to_block::<Test>(27_368);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+
+		// Third bidder = First bidder (repeated bid), at the end of the closing period
+		run_to_block::<Test>(99_356);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_500_u32)
+		));
+
+		run_to_block::<Test>(99_376);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		run_to_block::<Test>(99_377);
+		
+		// Alice claims for Bob
+		assert_ok!(AuctionsModule::claim(Origin::signed(ALICE), BOB, 0));
+
+		let bob_balance_after = Balances::free_balance(&BOB);
+		let auction_subaccount_balance = Balances::free_balance(&get_auction_subaccount_id(0));
+
+		assert_eq!(bob_balance_before, bob_balance_after);
+		assert_eq!(auction_subaccount_balance, Zero::zero());
+
+		// Bob cannot claim twice
+		assert_noop!(
+			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::NoReservedAmountAvailableToClaim
+		);
+	});
+}
+
+#[test]
+fn claim_candle_auction_by_winning_bidder_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(20);
+
+		// First bidder, bid before start of closing period
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		// Second bidder, in the beginning of the closing period
+		run_to_block::<Test>(27_368);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+
+		// Third bidder = First bidder (repeated bid), at the end of the closing period
+		run_to_block::<Test>(99_356);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_500_u32)
+		));
+
+		run_to_block::<Test>(99_376);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		run_to_block::<Test>(99_377);
+		
+		// Winner of the auction tries to claim, not possible because the reserved amount was transferred at close
+		assert_noop!(
+			AuctionsModule::claim(Origin::signed(CHARLIE), CHARLIE, 0),
+			Error::<Test>::NoReservedAmountAvailableToClaim
+		);
+	});
+}
+
+#[test]
+fn claim_running_candle_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(20);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		run_to_block::<Test>(202);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+
+		assert_noop!(
+			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::AuctionEndTimeNotReached
+		);
+	});
+}
+
+#[test]
+fn claim_candle_not_closed_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		run_to_block::<Test>(20);
+
+		// First bidder, bid before start of closing period
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		// Second bidder, in the beginning of the closing period
+		run_to_block::<Test>(27_368);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_100_u32)
+		));
+
+		run_to_block::<Test>(99_377);
+		
+		assert_noop!(
+			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::CloseAuctionBeforeClaimingReservedAmounts
 		);
 	});
 }
