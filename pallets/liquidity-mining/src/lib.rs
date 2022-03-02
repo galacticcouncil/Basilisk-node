@@ -31,9 +31,9 @@
 //! # Liquidity mining pallet
 //!
 //! ## Overview
-//! 
+//!
 //! This pallet provide functionality for liquidity mining program with time incentive(loyalty
-//! factor). 
+//! factor).
 //! Users are rewarded for each period they stay in liq. mining program.
 //!
 //! Reward per one period is derived from the user's loyalty factor which grows with time(periods)
@@ -48,6 +48,7 @@
 
 // TODO:
 // * [BUG] add_liquiity_pool() -  check if added AMM have incentivized_asset in pair + test
+// * add test deposit/claim/withdraw with different reward and incentivized currency
 
 // add to docs blocks are related to relay chain blocks
 
@@ -1105,7 +1106,7 @@ pub mod pallet {
 					Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 
 					let valued_shares =
-						Self::get_valued_shares(shares_amount, amm_account, global_pool.reward_currency)?;
+						Self::get_valued_shares(shares_amount, amm_account, global_pool.incentivized_asset)?;
 					let shares_in_global_pool_for_deposit =
 						Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
 
@@ -1217,8 +1218,8 @@ pub mod pallet {
 						ensure!(deposit.updated_at != now_period, Error::<T>::DoubleClaimInThePeriod);
 
 						Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
-    
-                        //do_claim_rewards() is doing rewards calculation and tranfer
+
+						//do_claim_rewards() is doing rewards calculation and tranfer
 						let (reward, _) = Self::do_claim_rewards(
 							who.clone(),
 							deposit,
@@ -1242,27 +1243,27 @@ pub mod pallet {
 		}
 
 		/// Withdraw LP shares from liq. mining. with reward claiming if possible.
-        ///
-        /// Cases for transfer LP shares and claimed rewards:
-        ///
-        /// * liq. mining is active(liq. pool is not canceled) - claim and transfer rewards(if it
-        /// wasn't claimed in this period) and transfer LP shares.
-        /// * liq. mining is canceled - claim and transfer rewards(if it
-        /// wasn't claimed in this period) and transfer LP shares. 
-        /// * liq. pool was removed - only LP shares will be transferred.
-        /// * farm was destroyed - only LP shares will be transferred.
-        /// * SPECIAL CASE: AMM pool does not exist - claiming based on liq. pool/farm state, LP
-        /// shares will not be transfered.
 		///
-        /// This function transfer user's unclaimable rewards back to global pool's account.
-        ///
+		/// Cases for transfer LP shares and claimed rewards:
+		///
+		/// * liq. mining is active(liq. pool is not canceled) - claim and transfer rewards(if it
+		/// wasn't claimed in this period) and transfer LP shares.
+		/// * liq. mining is canceled - claim and transfer rewards(if it
+		/// wasn't claimed in this period) and transfer LP shares.
+		/// * liq. pool was removed - only LP shares will be transferred.
+		/// * farm was destroyed - only LP shares will be transferred.
+		/// * SPECIAL CASE: AMM pool does not exist - claiming based on liq. pool/farm state, LP
+		/// shares will not be transfered.
+		///
+		/// This function transfer user's unclaimable rewards back to global pool's account.
+		///
 		/// Parameters:
 		/// - `origin`: account owner of deposit(nft).
 		/// - `nft_id`: nft id representing deposit in the liq. pool.
 		///
 		/// Emits:
-        /// * `RewardClaimed` if claim happen
-        /// * `SharesWithdrawn` event when successful
+		/// * `RewardClaimed` if claim happen
+		/// * `SharesWithdrawn` event when successful
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_shares())]
 		#[transactional]
 		pub fn withdraw_shares(origin: OriginFor<T>, nft_id: NftInstanceIdOf<T>) -> DispatchResultWithPostInfo {
@@ -1286,7 +1287,7 @@ pub mod pallet {
 
 					let amm_account = T::AMM::get_pair_id(asset_pair);
 					//Metadata can be removed only if the liq. pool doesn't exist. Liq. pool can be
-                    //resumed if it's only canceled.
+					//resumed if it's only canceled.
 					let mut can_remove_liq_pool_metadata = false;
 					<LiquidityPoolData<T>>::try_mutate(
 						farm_id,
@@ -1378,15 +1379,15 @@ pub mod pallet {
 					)?;
 
 					//NOTE: no LP shares will be transferred to the user if AMM doesn't exist
-                    //anymore.
+					//anymore.
 					if T::AMM::exists(asset_pair) {
 						let amm_token = T::AMM::get_share_token(asset_pair);
 
 						let pallet_account = Self::account_id();
 						T::MultiCurrency::transfer(amm_token, &pallet_account, &who, deposit.shares)?;
 
-                        //NOTE: Theoretically neither `GlobalPool` nor `LiquidityPoolYieldFarm` may
-                        //not exits at this point.
+						//NOTE: Theoretically neither `GlobalPool` nor `LiquidityPoolYieldFarm` may
+						//not exits at this point.
 						Self::deposit_event(Event::SharesWithdrawn {
 							farm_id,
 							liq_pool_farm_id: liq_pool_id,
@@ -1399,7 +1400,7 @@ pub mod pallet {
 					*maybe_deposit = None;
 					pallet_nft::Pallet::<T>::do_burn(who, T::NftClass::get(), nft_id)?;
 
-                    //Last withdrawn from removed liq. pool should destroy metadata.
+					//Last withdrawn from removed liq. pool should destroy metadata.
 					if nfts_in_liq_pool.is_one() && can_remove_liq_pool_metadata {
 						*maybe_liq_pool_metadata = None;
 					} else {
@@ -1417,7 +1418,7 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-    /// This function return new unused `PoolId` usable for liq. or global pool or error.
+	/// This function return new unused `PoolId` usable for liq. or global pool or error.
 	fn get_next_pool_id() -> Result<PoolId, Error<T>> {
 		PoolIdSequencer::<T>::try_mutate(|current_id| {
 			*current_id = current_id.checked_add(1).ok_or(Error::<T>::Overflow)?;
@@ -1427,9 +1428,9 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// This function return new unused `NftInstanceIdOf<T>` with encoded `liq_pool_id` into it or
-    /// error.
-    ///
-    /// 4 most significant bytes of `NftInstanceIdOf<T>` are reserved for liq. pool id(`u32`).
+	/// error.
+	///
+	/// 4 most significant bytes of `NftInstanceIdOf<T>` are reserved for liq. pool id(`u32`).
 	fn get_next_nft_id(liq_pool_id: PoolId) -> Result<NftInstanceIdOf<T>, Error<T>> {
 		Self::validate_pool_id(liq_pool_id)?;
 
@@ -1473,7 +1474,7 @@ impl<T: Config> Pallet<T> {
 		Ok(T::PalletId::get().into_sub_account(pool_id))
 	}
 
-	/// This function return now period number or error. 
+	/// This function return now period number or error.
 	fn get_now_period(blocks_per_period: BlockNumberFor<T>) -> Result<PeriodOf<T>, Error<T>> {
 		Self::get_period_number(T::BlockNumberProvider::current_block_number(), blocks_per_period)
 	}
@@ -1487,17 +1488,17 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// This function calculate loyalty multiplier or error.
-    ///
+	///
 	/// `t = periodNow - periodAdded`
 	/// `𝞣 = t/[(initial_reward_percentage + 1) * scale_coef]`
-    /// `num = [𝞣 + (𝞣 * initial_reward_percentage) + initial_reward_percentage]`
-    /// `denom = [𝞣 + (𝞣 * initial_reward_percentage) + 1]`
+	/// `num = [𝞣 + (𝞣 * initial_reward_percentage) + initial_reward_percentage]`
+	/// `denom = [𝞣 + (𝞣 * initial_reward_percentage) + 1]`
 	///
 	/// `loyalty_multiplier = num/denom`
 	fn get_loyalty_multiplier(periods: PeriodOf<T>, curve: Option<LoyaltyCurve>) -> Result<FixedU128, Error<T>> {
 		let curve = match curve {
 			Some(v) => v,
-			None => return Ok(FixedU128::one()),    //no loyalty curve mean no loyalty multiplier
+			None => return Ok(FixedU128::one()), //no loyalty curve mean no loyalty multiplier
 		};
 
 		//b.is_one() is special case - this case is prevented by loyalty curve params validation
@@ -1538,8 +1539,8 @@ impl<T: Config> Pallet<T> {
 		num.checked_div(&denom).ok_or(Error::<T>::Overflow)
 	}
 
-    /// This function return `GlobalPool`'s reward per one period or error.
-    /// Reward per period is capped by `max_reward_per_period`.
+	/// This function return `GlobalPool`'s reward per one period or error.
+	/// Reward per period is capped by `max_reward_per_period`.
 	fn get_global_pool_reward_per_period(
 		yield_per_period: FixedU128,
 		total_pool_shares_z: Balance,
@@ -1550,25 +1551,25 @@ impl<T: Config> Pallet<T> {
 			.ok_or(Error::<T>::Overflow)?
 			.min(max_reward_per_period))
 	}
-    
-    /// This function calculate and update `accumulated_rpz` and all associated properties of `GlobalPool` if
-    /// conditions are met and emit `FarmAccRPZUpdated` event.
+
+	/// This function calculate and update `accumulated_rpz` and all associated properties of `GlobalPool` if
+	/// conditions are met and emit `FarmAccRPZUpdated` event.
 	fn update_global_pool(
 		global_pool: &mut GlobalPool<T>,
 		now_period: PeriodOf<T>,
 		reward_per_period: Balance,
 	) -> Result<(), Error<T>> {
-        // Pool should be updated only once in the same period.
+		// Pool should be updated only once in the same period.
 		if global_pool.updated_at == now_period {
 			return Ok(());
 		}
 
-        // Nothing to update if there is no stake in the pool.
+		// Nothing to update if there is no stake in the pool.
 		if global_pool.total_shares_z.is_zero() {
 			return Ok(());
 		}
 
-        // Number of periods since last pool update.
+		// Number of periods since last pool update.
 		let periods_since_last_update: Balance = TryInto::<u128>::try_into(
 			now_period
 				.checked_sub(&global_pool.updated_at)
@@ -1579,8 +1580,8 @@ impl<T: Config> Pallet<T> {
 		let global_pool_account = Self::pool_account_id(global_pool.id)?;
 		let left_to_distribute = T::MultiCurrency::free_balance(global_pool.reward_currency, &global_pool_account);
 
-        // Calculate reward for all periods since last update capped by balance on `GlobalPool`
-        // account.
+		// Calculate reward for all periods since last update capped by balance on `GlobalPool`
+		// account.
 		let reward = periods_since_last_update
 			.checked_mul(reward_per_period)
 			.ok_or(Error::<T>::Overflow)?
@@ -1606,7 +1607,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-    /// This function calculate and return reward per share or error.
+	/// This function calculate and return reward per share or error.
 	fn get_accumulated_rps(
 		accumulated_rps_now: Balance,
 		total_shares: Balance,
@@ -1619,7 +1620,7 @@ impl<T: Config> Pallet<T> {
 			.ok_or(Error::<T>::Overflow)
 	}
 
-    /// This function calculate and return `(user_rewards, unclaimable_rewards)`.
+	/// This function calculate and return `(user_rewards, unclaimable_rewards)`.
 	fn get_user_reward(
 		accumulated_rpvs: Balance,
 		valued_shares: Balance, // Value of shares at the time of entry in incentivized tokens.
@@ -1650,7 +1651,7 @@ impl<T: Config> Pallet<T> {
 		Ok((user_rewards, unclaimable_rewards))
 	}
 
-    /// This function calculate and return liq. pool's reward from `GlobalPool`.
+	/// This function calculate and return liq. pool's reward from `GlobalPool`.
 	fn claim_from_global_pool(
 		global_pool: &mut GlobalPool<T>,
 		liq_pool: &mut LiquidityPoolYieldFarm<T>,
@@ -1678,9 +1679,9 @@ impl<T: Config> Pallet<T> {
 		Ok(reward)
 	}
 
-    /// This function calculate and update `accumulated_rpvz` and all associated properties of `LiquidityPoolYieldFarm` if
-    /// conditions are met and emit `FarmAccRPVSUpdated` event. Function also transfer
-    /// `pool_rewareds` from `GlobalPool` account to `LiquidityPoolYieldFarm` account.
+	/// This function calculate and update `accumulated_rpvz` and all associated properties of `LiquidityPoolYieldFarm` if
+	/// conditions are met and emit `FarmAccRPVSUpdated` event. Function also transfer
+	/// `pool_rewareds` from `GlobalPool` account to `LiquidityPoolYieldFarm` account.
 	fn update_liq_pool(
 		pool: &mut LiquidityPoolYieldFarm<T>,
 		pool_rewards: Balance,
@@ -1721,7 +1722,7 @@ impl<T: Config> Pallet<T> {
 		T::MultiCurrency::transfer(reward_currency, &global_pool_account, &pool_account, pool_rewards)
 	}
 
-    /// This function return error if `pool_id` is not valid.
+	/// This function return error if `pool_id` is not valid.
 	fn validate_pool_id(pool_id: PoolId) -> Result<(), Error<T>> {
 		if pool_id.is_zero() {
 			return Err(Error::<T>::InvalidPoolId);
@@ -1730,8 +1731,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-
-    /// This function is used to validate input data before creating new farm (`GlobalPool`).
+	/// This function is used to validate input data before creating new farm (`GlobalPool`).
 	fn validate_create_farm_data(
 		total_rewards: Balance,
 		planned_yielding_periods: PeriodOf<T>,
@@ -1755,24 +1755,26 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-    /// This function calculate liq. pool's shares amount in `GlobalPool` or error.
+	/// This function calculate liq. pool's shares amount in `GlobalPool` or error.
 	fn get_global_pool_shares(valued_shares: Balance, multiplier: PoolMultiplier) -> Result<Balance, Error<T>> {
 		multiplier.checked_mul_int(valued_shares).ok_or(Error::<T>::Overflow)
 	}
 
-    /// This function calculate account's valued shares[`Balance`] or error.
+	/// This function calculate account's valued shares[`Balance`] or error.
 	fn get_valued_shares(
 		shares: Balance,
 		amm: AccountIdOf<T>,
-		reward_currency: T::CurrencyId,
+		incentivized_asset: T::CurrencyId,
 	) -> Result<Balance, Error<T>> {
-		let reward_currency_balance = T::MultiCurrency::free_balance(reward_currency, &amm);
+		let incentivized_asset_balance = T::MultiCurrency::free_balance(incentivized_asset, &amm);
 
-		shares.checked_mul(reward_currency_balance).ok_or(Error::<T>::Overflow)
+		shares
+			.checked_mul(incentivized_asset_balance)
+			.ok_or(Error::<T>::Overflow)
 	}
 
-    /// This function performs the user's claim from liq. pool and transfer claimed rewards to user.
-    /// Function return `(claimed rewards, unclaimable rewards)` or error.
+	/// This function performs the user's claim from liq. pool and transfer claimed rewards to user.
+	/// Function return `(claimed rewards, unclaimable rewards)` or error.
 	fn do_claim_rewards(
 		who: AccountIdOf<T>,
 		deposit: &mut Deposit<T>,
@@ -1784,7 +1786,7 @@ impl<T: Config> Pallet<T> {
 			.checked_sub(&deposit.entered_at)
 			.ok_or(Error::<T>::Overflow)?;
 
-        // Only one claim per period is allowed.
+		// Only one claim per period is allowed.
 		if deposit.updated_at == now_period {
 			return Ok((0, 0));
 		}
