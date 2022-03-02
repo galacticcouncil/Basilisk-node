@@ -95,8 +95,8 @@ use sp_runtime::{
 	Permill,
 };
 
-use sp_std::result;
 use sp_std::convert::TryInto;
+use sp_std::result;
 
 pub use traits::*;
 use weights::WeightInfo;
@@ -206,7 +206,7 @@ pub mod pallet {
 	#[pallet::getter(fn highest_bidders_by_auction_closing_range)]
 	/// Stores the higest bidder by auction and closing range
 	pub(crate) type HighestBiddersByAuctionClosingRange<T: Config> =
-	StorageDoubleMap<_, Twox64Concat, T::AuctionId, Twox64Concat, u32, T::AccountId, OptionQuery>;
+		StorageDoubleMap<_, Twox64Concat, T::AuctionId, Twox64Concat, u32, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
@@ -230,7 +230,7 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		/// Auction does not exist
-		AuctionNotExist,
+		AuctionDoesNotExist,
 		/// Auction has not started yet
 		AuctionNotStarted,
 		/// Auction has already started
@@ -294,7 +294,7 @@ pub mod pallet {
 		/// Math overflow
 		Overflow,
 		/// Error when determining the auction winner
-		ErrorDeterminingAuctionWinner
+		ErrorDeterminingAuctionWinner,
 	}
 
 	#[pallet::call]
@@ -361,7 +361,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_auction())]
 		pub fn destroy(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
-			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
+			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 			match &auction {
 				Auction::English(auction_object) => {
@@ -397,7 +397,7 @@ pub mod pallet {
 			};
 
 			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 				match auction {
 					Auction::English(auction_object) => {
@@ -438,7 +438,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::close_auction())]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
 			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 				match auction {
 					Auction::English(auction_object) => {
@@ -462,21 +462,21 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::claim())]
-		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId, ) -> DispatchResult {
+		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 			ensure!(
 				claimable_amount > Zero::zero(),
 				Error::<T>::NoReservedAmountAvailableToClaim
 			);
 
-			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
+			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 			match auction {
 				Auction::English(auction_object) => {
 					auction_object.claim(&auction_id, bidder, claimable_amount)?;
-				},
+				}
 				Auction::TopUp(auction_object) => {
 					auction_object.claim(&auction_id, bidder, claimable_amount)?;
-				},
+				}
 				Auction::Candle(auction_object) => {
 					auction_object.claim(&auction_id, bidder, claimable_amount)?;
 				}
@@ -502,7 +502,11 @@ impl<T: Config> Pallet<T> {
 		ensure!(
 			general_data.start >= Zero::zero()
 				&& general_data.end > Zero::zero()
-				&& general_data.end > general_data.start + T::MinAuctionDuration::get().into(),
+				&& general_data.end
+					> general_data
+						.start
+						.checked_add(&T::BlockNumber::from(T::MinAuctionDuration::get()))
+						.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::InvalidTimeConfiguration
 		);
 		ensure!(!general_data.name.is_empty(), Error::<T>::EmptyAuctionName);
@@ -689,7 +693,9 @@ impl<T: Config> Pallet<T> {
 			.checked_sub(&block_number)
 			.ok_or(Error::<T>::TimeUnderflow)?;
 		if time_left < <T as crate::Config>::BidAddBlocks::get().into() {
-			general_auction_data.end = block_number + <T as crate::Config>::BidAddBlocks::get().into();
+			general_auction_data.end = block_number
+				.checked_add(&T::BlockNumber::from(<T as crate::Config>::BidAddBlocks::get()))
+				.ok_or(Error::<T>::Overflow)?;
 		}
 
 		Ok(())
@@ -723,7 +729,7 @@ impl<T: Config> Pallet<T> {
 		ensure!(from < to, Error::<T>::InvalidTimeConfiguration);
 		let mut random_number = Self::generate_random_number(0u32);
 
-		let difference = to - from;
+		let difference = to.checked_sub(from).ok_or(Error::<T>::Overflow)?;
 
 		// Best effort attempt to remove bias from modulus operator.
 		for i in 1..10 {
@@ -734,7 +740,12 @@ impl<T: Config> Pallet<T> {
 			random_number = Self::generate_random_number(i);
 		}
 
-		Ok(from + (random_number % difference))
+		// Caution: Remainder (%) operator only safe with unsigned
+		let result = from
+			.checked_add(random_number % difference)
+			.ok_or(Error::<T>::Overflow)?;
+
+		Ok(result)
 	}
 
 	fn generate_random_number(seed: u32) -> u32 {
@@ -745,19 +756,29 @@ impl<T: Config> Pallet<T> {
 
 	fn determine_candle_closing_range(bid: &Bid<T>, auction: &CandleAuction<T>) -> Result<u32, Error<T>> {
 		let block_number: u32 = bid.block_number.try_into().map_err(|_| Error::<T>::Overflow)?;
-		let closing_start: u32 = auction.specific_data.closing_start.try_into().map_err(|_| Error::<T>::Overflow)?;
+		let closing_start: u32 = auction
+			.specific_data
+			.closing_start
+			.try_into()
+			.map_err(|_| Error::<T>::Overflow)?;
 		let end: u32 = auction.general_data.end.try_into().map_err(|_| Error::<T>::Overflow)?;
 
 		if block_number < closing_start {
 			Ok(One::one())
 		} else if (closing_start..end).contains(&block_number) {
 			let auction_duration = end.checked_sub(closing_start).ok_or(Error::<T>::Overflow)?;
-			let block_spread = block_number.checked_sub(closing_start).ok_or( Error::<T>::Overflow)?;
+			let block_spread = block_number.checked_sub(closing_start).ok_or(Error::<T>::Overflow)?;
 			let multiplied_block_spread = block_spread.checked_mul(100).ok_or(Error::<T>::Overflow)?;
 
-			let closing_range = multiplied_block_spread.checked_div(auction_duration).ok_or(Error::<T>::Overflow)?;
+			let closing_range = multiplied_block_spread
+				.checked_div(auction_duration)
+				.ok_or(Error::<T>::Overflow)?;
 
-			Ok(if closing_range.is_zero() { One::one() } else { closing_range })
+			Ok(if closing_range.is_zero() {
+				One::one()
+			} else {
+				closing_range
+			})
 		} else {
 			Ok(T::CandleDefaultClosingRangesCount::get())
 		}
@@ -780,7 +801,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		self.validate_data()?;
 
 		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 			if let Auction::English(english_auction) = auction_result {
 				Pallet::<T>::validate_update(sender, &english_auction.general_data)?;
@@ -887,7 +908,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for TopUpAuction<T> {
 	///
 	/// Creates a TopUp Auction
-	/// 
+	///
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
 		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.general_data)?;
@@ -898,12 +919,12 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 	///
 	/// Updates a TopUp Auction
-	/// 
+	///
 	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 		self.validate_data()?;
 
 		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 			if let Auction::TopUp(topup_auction) = auction_result {
 				Pallet::<T>::validate_update(sender, &topup_auction.general_data)?;
@@ -1014,7 +1035,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for CandleAuction<T> {
 	///
 	/// Creates a Candle Auction
-	/// 
+	///
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
 		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.general_data)?;
@@ -1025,12 +1046,12 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 	///
 	/// Updates a Candle Auction
-	/// 
+	///
 	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 		self.validate_data()?;
 
 		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 			if let Auction::Candle(candle_auction) = auction_result {
 				Pallet::<T>::validate_update(sender, &candle_auction.general_data)?;
@@ -1051,13 +1072,19 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		match closing_period_range {
 			Ok(range) => {
 				// <HighestBiddersByAuctionClosingRange<T>>::insert(&auction_id, &range, bidder.clone());
-				<HighestBiddersByAuctionClosingRange<T>>::mutate(&auction_id, &range, |highest_bidder| -> DispatchResult {
-					*highest_bidder = Some(bidder.clone());
-	
-					Ok(())
-				})?;
-			},
-			Err(err) => { return Err(err.into()); }
+				<HighestBiddersByAuctionClosingRange<T>>::mutate(
+					&auction_id,
+					&range,
+					|highest_bidder| -> DispatchResult {
+						*highest_bidder = Some(bidder.clone());
+
+						Ok(())
+					},
+				)?;
+			}
+			Err(err) => {
+				return Err(err.into());
+			}
 		}
 
 		// Trasnfer funds to the subaccount of the auction
@@ -1100,9 +1127,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		self.general_data.closed = true;
 
 		if Pallet::<T>::is_auction_won(&self.general_data) {
-			let winning_closing_range = Pallet::<T>::choose_random_block_from_range(
-				Zero::zero(), T::CandleDefaultClosingRangesCount::get()
-			)?;
+			let winning_closing_range =
+				Pallet::<T>::choose_random_block_from_range(Zero::zero(), T::CandleDefaultClosingRangesCount::get())?;
 
 			self.specific_data.winning_closing_range = Some(winning_closing_range);
 
@@ -1148,8 +1174,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					)?;
 
 					<ReservedAmounts<T>>::remove(&winner, &auction_id);
-				},
-				None => return Err(Error::<T>::ErrorDeterminingAuctionWinner.into())
+				}
+				None => return Err(Error::<T>::ErrorDeterminingAuctionWinner.into()),
 			}
 		}
 
@@ -1166,15 +1192,30 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	fn validate_data(&self) -> DispatchResult {
 		Pallet::<T>::validate_general_data(&self.general_data)?;
 
+		let default_duration = self
+			.general_data
+			.start
+			.checked_add(&T::BlockNumber::from(T::CandleDefaultDuration::get()))
+			.ok_or(Error::<T>::Overflow)?;
+
 		ensure!(
-			self.general_data.end == self.general_data.start + T::CandleDefaultDuration::get().into(),
+			self.general_data.end == default_duration,
 			Error::<T>::CandleAuctionMustHaveDefaultDuration
 		);
 
-		ensure!(self.general_data.reserve_price.is_none(), Error::<T>::CandleAuctionDoesNotSupportReservePrice);
+		ensure!(
+			self.general_data.reserve_price.is_none(),
+			Error::<T>::CandleAuctionDoesNotSupportReservePrice
+		);
+
+		let closing_period_duration = self
+			.general_data
+			.end
+			.checked_sub(&T::BlockNumber::from(T::CandleDefaultClosingPeriodDuration::get()))
+			.ok_or(Error::<T>::Overflow)?;
 
 		ensure!(
-			self.specific_data.closing_start == self.general_data.end - T::CandleDefaultClosingPeriodDuration::get().into(),
+			self.specific_data.closing_start == closing_period_duration,
 			Error::<T>::CandleAuctionMustHaveDefaultClosingPeriodDuration
 		);
 

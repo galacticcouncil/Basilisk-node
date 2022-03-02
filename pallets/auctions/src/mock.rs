@@ -47,7 +47,9 @@ pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
-pub const NFT_CLASS_ID_1: u32 = 1230;
+// Classes reserved up to 999 so available ids starting from 1000
+pub const NFT_CLASS_ID_1: u32 = 1001;
+pub const NFT_INSTANCE_ID_1: u32 = 1;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -228,6 +230,6 @@ pub fn expect_event<E: Into<TestEvent>>(e: E) {
 	assert_eq!(last_event(), e.into());
 }
 
-pub fn run_to_block<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
+pub fn set_block_number<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
 	frame_system::Pallet::<T>::set_block_number(n);
 }
