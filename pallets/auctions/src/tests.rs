@@ -20,7 +20,7 @@ fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, AuctionsStringLimit>,
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
-	ext.execute_with(|| run_to_block::<Test>(1));
+	ext.execute_with(|| set_block_number::<Test>(1));
 	ext
 }
 
@@ -34,7 +34,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			ClassType::Marketplace,
 			bvec![0]
 		));
-		assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), bvec![0]));
+		assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, NFT_INSTANCE_ID_1, bvec![0]));
 	});
 
 	ext
@@ -49,7 +49,7 @@ fn valid_general_auction_data() -> GeneralAuctionData<Test> {
 		end: 21u64,
 		closed: false,
 		owner: ALICE,
-		token: (NFT_CLASS_ID_1, 0u16.into()),
+		token: (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1),
 		next_bid_min: 1,
 	}
 }
@@ -109,7 +109,7 @@ fn valid_candle_general_auction_data() -> GeneralAuctionData<Test> {
 		end: 99_366u64,
 		closed: false,
 		owner: ALICE,
-		token: (NFT_CLASS_ID_1, 0u16.into()),
+		token: (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1),
 		next_bid_min: 1,
 	}
 }
@@ -144,7 +144,7 @@ fn create_english_auction_should_work() {
 				assert_eq!(data.general_data.start, 10u64);
 				assert_eq!(data.general_data.end, 21u64);
 				assert_eq!(data.general_data.owner, ALICE);
-				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1));
 				assert_eq!(data.general_data.next_bid_min, 1);
 
 				Ok(())
@@ -317,7 +317,7 @@ fn update_english_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(3);
+		set_block_number::<Test>(3);
 
 		let mut updated_general_data = valid_general_auction_data();
 		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
@@ -348,7 +348,7 @@ fn update_english_auction_should_work() {
 	});
 }
 
-/// Error AuctionNotExist
+/// Error AuctionDoesNotExist
 #[test]
 fn update_english_auction_with_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
@@ -356,7 +356,7 @@ fn update_english_auction_with_nonexisting_auction_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
-			Error::<Test>::AuctionNotExist,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -454,7 +454,7 @@ fn update_english_auction_after_auction_start_should_not_work() {
 
 		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
 
-		run_to_block::<Test>(10);
+		set_block_number::<Test>(10);
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -476,7 +476,7 @@ fn update_english_auction_with_mismatching_types_should_not_work() {
 
 		let auction = english_auction_object(updated_general_data, valid_english_specific_data());
 
-		run_to_block::<Test>(5);
+		set_block_number::<Test>(5);
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -497,12 +497,12 @@ fn destroy_english_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(3);
+		set_block_number::<Test>(3);
 
 		assert_ok!(AuctionsModule::destroy(Origin::signed(ALICE), 0));
 
 		assert_eq!(AuctionsModule::auctions(0), None);
-		assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_event(crate::Event::<Test>::AuctionDestroyed(0));
 
@@ -510,25 +510,25 @@ fn destroy_english_auction_should_work() {
 		assert_ok!(Nft::transfer(
 			Origin::signed(ALICE),
 			NFT_CLASS_ID_1,
-			0u16.into(),
+			NFT_INSTANCE_ID_1,
 			CHARLIE
 		));
 		assert_ok!(Nft::transfer(
 			Origin::signed(CHARLIE),
 			NFT_CLASS_ID_1,
-			0u16.into(),
+			NFT_INSTANCE_ID_1,
 			ALICE
 		));
 	});
 }
 
-/// Error AuctionNotExist
+/// Error AuctionDoesNotExist
 #[test]
 fn destroy_english_auction_with_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
 			AuctionsModule::destroy(Origin::signed(ALICE), 0),
-			Error::<Test>::AuctionNotExist,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -556,7 +556,7 @@ fn destroy_english_auction_after_auction_started_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(10);
+		set_block_number::<Test>(10);
 
 		assert_noop!(
 			AuctionsModule::destroy(Origin::signed(ALICE), 0),
@@ -575,7 +575,7 @@ fn bid_english_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		// First highest bidder
 		assert_ok!(AuctionsModule::bid(
@@ -591,7 +591,7 @@ fn bid_english_auction_should_work() {
 		);
 
 		// Second highest bidder
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -629,7 +629,7 @@ fn bid_english_auction_before_auction_start_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(10);
+		set_block_number::<Test>(10);
 
 		assert_noop!(
 			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
@@ -646,7 +646,7 @@ fn bid_english_auction_by_auction_owner_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_noop!(
 			AuctionsModule::bid(Origin::signed(ALICE), 0, BalanceOf::<Test>::from(2_000_u32)),
@@ -663,7 +663,7 @@ fn bid_english_auction_with_bid_amount_zero_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_noop!(
 			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::zero()),
@@ -680,7 +680,7 @@ fn bid_english_auction_with_second_bid_below_first_bid_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		// First bid
 		assert_ok!(AuctionsModule::bid(
@@ -689,7 +689,7 @@ fn bid_english_auction_with_second_bid_below_first_bid_should_not_work() {
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_noop!(
 			AuctionsModule::bid(Origin::signed(CHARLIE), 0, BalanceOf::<Test>::from(1_099_u32)),
@@ -706,7 +706,7 @@ fn bid_english_auction_after_auction_end_time_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(22);
+		set_block_number::<Test>(22);
 
 		assert_noop!(
 			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
@@ -725,7 +725,7 @@ fn close_english_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		let bid = BalanceOf::<Test>::from(1_000_u32);
 		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, bid));
@@ -733,15 +733,15 @@ fn close_english_auction_should_work() {
 		let alice_balance_before = Balances::free_balance(&ALICE);
 		let bob_balance_before = Balances::free_balance(&BOB);
 
-		run_to_block::<Test>(21);
+		set_block_number::<Test>(21);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
 		let alice_balance_after = Balances::free_balance(&ALICE);
 		let bob_balance_after = Balances::free_balance(&BOB);
 
-		// NFT can be transferred; Current version of nft pallet has no ownership check
-		assert_ok!(Nft::transfer(Origin::signed(BOB), NFT_CLASS_ID_1, 0u16.into(), CHARLIE));
+		// The auction winner is the new owner of the NFT
+		assert_eq!(Nft::owner(NFT_CLASS_ID_1, NFT_INSTANCE_ID_1), Some(BOB));
 
 		assert_eq!(alice_balance_before.saturating_add(bid), alice_balance_after);
 		assert_eq!(bob_balance_before.saturating_sub(bid), bob_balance_after);
@@ -769,7 +769,7 @@ fn close_english_auction_before_auction_end_time_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
@@ -786,11 +786,11 @@ fn close_english_auction_which_is_already_closed_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(21);
+		set_block_number::<Test>(21);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
-		run_to_block::<Test>(23);
+		set_block_number::<Test>(23);
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
@@ -825,7 +825,7 @@ fn create_topup_auction_should_work() {
 				assert_eq!(data.general_data.start, 10u64);
 				assert_eq!(data.general_data.end, 21u64);
 				assert_eq!(data.general_data.owner, ALICE);
-				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1));
 				assert_eq!(data.general_data.next_bid_min, 1);
 
 				Ok(())
@@ -966,7 +966,7 @@ fn update_topup_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(3);
+		set_block_number::<Test>(3);
 
 		let mut updated_general_data = valid_general_auction_data();
 		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
@@ -996,7 +996,7 @@ fn update_topup_auction_should_work() {
 	});
 }
 
-/// Error AuctionNotExist
+/// Error AuctionDoesNotExist
 #[test]
 fn update_topup_auction_with_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
@@ -1004,7 +1004,7 @@ fn update_topup_auction_with_nonexisting_auction_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
-			Error::<Test>::AuctionNotExist,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -1083,7 +1083,7 @@ fn update_topup_auction_after_auction_start_should_not_work() {
 
 		let auction = topup_auction_object(updated_general_data, valid_topup_specific_data());
 
-		run_to_block::<Test>(10);
+		set_block_number::<Test>(10);
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -1105,7 +1105,7 @@ fn update_topup_auction_with_mismatching_types_should_not_work() {
 
 		let auction = topup_auction_object(updated_general_data, valid_topup_specific_data());
 
-		run_to_block::<Test>(5);
+		set_block_number::<Test>(5);
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -1126,12 +1126,12 @@ fn destroy_topup_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(3);
+		set_block_number::<Test>(3);
 
 		assert_ok!(AuctionsModule::destroy(Origin::signed(ALICE), 0));
 
 		assert_eq!(AuctionsModule::auctions(0), None);
-		assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_event(crate::Event::<Test>::AuctionDestroyed(0));
 
@@ -1139,25 +1139,25 @@ fn destroy_topup_auction_should_work() {
 		assert_ok!(Nft::transfer(
 			Origin::signed(ALICE),
 			NFT_CLASS_ID_1,
-			0u16.into(),
+			NFT_INSTANCE_ID_1,
 			CHARLIE
 		));
 		assert_ok!(Nft::transfer(
 			Origin::signed(CHARLIE),
 			NFT_CLASS_ID_1,
-			0u16.into(),
+			NFT_INSTANCE_ID_1,
 			ALICE
 		));
 	});
 }
 
-/// Error AuctionNotExist
+/// Error AuctionDoesNotExist
 #[test]
 fn destroy_topup_auction_with_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
 			AuctionsModule::destroy(Origin::signed(ALICE), 0),
-			Error::<Test>::AuctionNotExist,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -1185,7 +1185,7 @@ fn destroy_topup_auction_after_auction_started_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(10);
+		set_block_number::<Test>(10);
 
 		assert_noop!(
 			AuctionsModule::destroy(Origin::signed(ALICE), 0),
@@ -1204,7 +1204,7 @@ fn bid_topup_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
 		let bob_balance_before = Balances::free_balance(&BOB);
@@ -1228,7 +1228,7 @@ fn bid_topup_auction_should_work() {
 		assert_eq!(bob_balance_before.saturating_sub(1_000), bob_balance_after);
 
 		// Second bidder
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -1248,7 +1248,7 @@ fn bid_topup_auction_should_work() {
 		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 
 		// Third bidder = First bidder
-		run_to_block::<Test>(14);
+		set_block_number::<Test>(14);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -1302,7 +1302,7 @@ fn close_topup_auction_with_winner_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		let alice_balance_before = Balances::free_balance(&ALICE);
 		let bob_balance_before = Balances::free_balance(&BOB);
@@ -1314,7 +1314,7 @@ fn close_topup_auction_with_winner_should_work() {
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -1322,7 +1322,7 @@ fn close_topup_auction_with_winner_should_work() {
 			BalanceOf::<Test>::from(1_100_u32)
 		));
 
-		run_to_block::<Test>(22);
+		set_block_number::<Test>(22);
 
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
 
@@ -1342,8 +1342,8 @@ fn close_topup_auction_with_winner_should_work() {
 			auction_subaccount_balance_after
 		);
 
-		// NFT can be transferred; Current version of nft pallet has no ownership check
-		assert_ok!(Nft::transfer(Origin::signed(CHARLIE), NFT_CLASS_ID_1, 0u16.into(), BOB));
+		// The auction winner is the new owner of the NFT
+		assert_eq!(Nft::owner(NFT_CLASS_ID_1, NFT_INSTANCE_ID_1), Some(CHARLIE));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
@@ -1369,7 +1369,7 @@ fn close_topup_auction_without_winner_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		let alice_balance_before = Balances::free_balance(&ALICE);
 		let bob_balance_before = Balances::free_balance(&BOB);
@@ -1381,7 +1381,7 @@ fn close_topup_auction_without_winner_should_work() {
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -1389,7 +1389,7 @@ fn close_topup_auction_without_winner_should_work() {
 			BalanceOf::<Test>::from(1_100_u32)
 		));
 
-		run_to_block::<Test>(22);
+		set_block_number::<Test>(22);
 
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
 
@@ -1406,8 +1406,8 @@ fn close_topup_auction_without_winner_should_work() {
 		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 		assert_eq!(auction_subaccount_balance_before, auction_subaccount_balance_after);
 
-		// NFT can be transferred by its original owner again
-		assert_ok!(Nft::transfer(Origin::signed(ALICE), NFT_CLASS_ID_1, 0u16.into(), BOB));
+		// The auction winner is the new owner of the NFT
+		assert_eq!(Nft::owner(NFT_CLASS_ID_1, NFT_INSTANCE_ID_1), Some(ALICE));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
@@ -1431,7 +1431,7 @@ fn close_topup_auction_before_auction_end_time_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
@@ -1448,11 +1448,11 @@ fn close_topup_auction_which_is_already_closed_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(21);
+		set_block_number::<Test>(21);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
-		run_to_block::<Test>(23);
+		set_block_number::<Test>(23);
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
@@ -1476,7 +1476,7 @@ fn claim_topup_auction_without_winner_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -1484,7 +1484,7 @@ fn claim_topup_auction_without_winner_should_work() {
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -1492,7 +1492,7 @@ fn claim_topup_auction_without_winner_should_work() {
 			BalanceOf::<Test>::from(1_100_u32)
 		));
 
-		run_to_block::<Test>(22);
+		set_block_number::<Test>(22);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
@@ -1549,7 +1549,7 @@ fn claim_topup_auction_with_winner_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -1557,7 +1557,7 @@ fn claim_topup_auction_with_winner_should_not_work() {
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -1565,7 +1565,7 @@ fn claim_topup_auction_with_winner_should_not_work() {
 			BalanceOf::<Test>::from(2_000_u32)
 		));
 
-		run_to_block::<Test>(22);
+		set_block_number::<Test>(22);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
@@ -1596,7 +1596,7 @@ fn claim_running_topup_auction_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -1604,7 +1604,7 @@ fn claim_running_topup_auction_should_not_work() {
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -1629,7 +1629,7 @@ fn claim_topup_not_closed_auction_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(11);
+		set_block_number::<Test>(11);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -1637,7 +1637,7 @@ fn claim_topup_not_closed_auction_should_not_work() {
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		run_to_block::<Test>(12);
+		set_block_number::<Test>(12);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -1645,7 +1645,7 @@ fn claim_topup_not_closed_auction_should_not_work() {
 			BalanceOf::<Test>::from(1_100_u32)
 		));
 
-		run_to_block::<Test>(22);
+		set_block_number::<Test>(22);
 
 		assert_noop!(
 			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
@@ -1678,7 +1678,7 @@ fn create_candle_auction_should_work() {
 				assert_eq!(data.general_data.start, 10u64);
 				assert_eq!(data.general_data.end, 99_366u64);
 				assert_eq!(data.general_data.owner, ALICE);
-				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, 0u16.into()));
+				assert_eq!(data.general_data.token, (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1));
 				assert_eq!(data.general_data.next_bid_min, 1);
 				assert_eq!(data.specific_data.closing_start, 27_366);
 
@@ -1868,7 +1868,7 @@ fn update_candle_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(3);
+		set_block_number::<Test>(3);
 
 		let mut updated_general_data = valid_candle_general_auction_data();
 		updated_general_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
@@ -1898,7 +1898,7 @@ fn update_candle_auction_should_work() {
 	});
 }
 
-/// Error AuctionNotExist
+/// Error AuctionDoesNotExist
 #[test]
 fn update_candle_auction_with_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
@@ -1906,7 +1906,7 @@ fn update_candle_auction_with_nonexisting_auction_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
-			Error::<Test>::AuctionNotExist,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -1989,7 +1989,7 @@ fn update_candle_auction_after_auction_start_should_not_work() {
 
 		let auction = candle_auction_object(updated_general_data, updated_specific_data);
 
-		run_to_block::<Test>(15);
+		set_block_number::<Test>(15);
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -2011,7 +2011,7 @@ fn update_candle_auction_with_mismatching_types_should_not_work() {
 
 		let auction = candle_auction_object(updated_general_data, valid_candle_specific_data());
 
-		run_to_block::<Test>(5);
+		set_block_number::<Test>(5);
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -2032,12 +2032,12 @@ fn destroy_candle_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(3);
+		set_block_number::<Test>(3);
 
 		assert_ok!(AuctionsModule::destroy(Origin::signed(ALICE), 0));
 
 		assert_eq!(AuctionsModule::auctions(0), None);
-		assert_eq!(AuctionsModule::auction_owner_by_id(0), Default::default());
+		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_event(crate::Event::<Test>::AuctionDestroyed(0));
 
@@ -2045,25 +2045,25 @@ fn destroy_candle_auction_should_work() {
 		assert_ok!(Nft::transfer(
 			Origin::signed(ALICE),
 			NFT_CLASS_ID_1,
-			0u16.into(),
+			NFT_INSTANCE_ID_1,
 			CHARLIE
 		));
 		assert_ok!(Nft::transfer(
 			Origin::signed(CHARLIE),
 			NFT_CLASS_ID_1,
-			0u16.into(),
+			NFT_INSTANCE_ID_1,
 			ALICE
 		));
 	});
 }
 
-/// Error AuctionNotExist
+/// Error AuctionDoesNotExist
 #[test]
 fn destroy_candle_auction_with_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
 			AuctionsModule::destroy(Origin::signed(ALICE), 0),
-			Error::<Test>::AuctionNotExist,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -2091,7 +2091,7 @@ fn destroy_candle_auction_after_auction_started_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(10);
+		set_block_number::<Test>(10);
 
 		assert_noop!(
 			AuctionsModule::destroy(Origin::signed(ALICE), 0),
@@ -2110,7 +2110,7 @@ fn bid_candle_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(20);
+		set_block_number::<Test>(20);
 
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
 		let bob_balance_before = Balances::free_balance(&BOB);
@@ -2140,7 +2140,7 @@ fn bid_candle_auction_should_work() {
 		);
 
 		// Second bidder, in the beginning of the closing period
-		run_to_block::<Test>(27_368);
+		set_block_number::<Test>(27_368);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -2166,7 +2166,7 @@ fn bid_candle_auction_should_work() {
 		);
 
 		// Third bidder = First bidder (repeated bid), at the end of the closing period
-		run_to_block::<Test>(99_356);
+		set_block_number::<Test>(99_356);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -2225,7 +2225,7 @@ fn close_candle_auction_with_winner_should_work() {
 		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(20);
+		set_block_number::<Test>(20);
 
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
 		let alice_balance_before = Balances::free_balance(&ALICE);
@@ -2240,7 +2240,7 @@ fn close_candle_auction_with_winner_should_work() {
 		));
 
 		// Second bidder, in the beginning of the closing period
-		run_to_block::<Test>(27_368);
+		set_block_number::<Test>(27_368);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -2249,7 +2249,7 @@ fn close_candle_auction_with_winner_should_work() {
 		));
 
 		// Third bidder = First bidder (repeated bid), at the end of the closing period
-		run_to_block::<Test>(99_356);
+		set_block_number::<Test>(99_356);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -2257,11 +2257,11 @@ fn close_candle_auction_with_winner_should_work() {
 			BalanceOf::<Test>::from(1_500_u32)
 		));
 
-		run_to_block::<Test>(99_376);
+		set_block_number::<Test>(99_376);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
-		run_to_block::<Test>(99_377);
+		set_block_number::<Test>(99_377);
 
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let alice_balance_after = Balances::free_balance(&ALICE);
@@ -2276,8 +2276,8 @@ fn close_candle_auction_with_winner_should_work() {
 		assert_eq!(auction_subaccount_balance_before.saturating_add(2_500), auction_subaccount_balance_after);
 		assert_eq!(bob_balance_before.saturating_sub(2_500), bob_balance_after);
 
-		// // NFT can be transferred; Current version of nft pallet has no ownership check
-		assert_ok!(Nft::transfer(Origin::signed(CHARLIE), NFT_CLASS_ID_1, 0u16.into(), BOB));
+		// The auction winner is the new owner of the NFT
+		assert_eq!(Nft::owner(NFT_CLASS_ID_1, NFT_INSTANCE_ID_1), Some(CHARLIE));
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 
@@ -2306,7 +2306,7 @@ fn close_candle_auction_before_auction_end_time_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(21);
+		set_block_number::<Test>(21);
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
@@ -2323,11 +2323,11 @@ fn close_candle_auction_which_is_already_closed_should_not_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(99_366);
+		set_block_number::<Test>(99_366);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
-		run_to_block::<Test>(99_367);
+		set_block_number::<Test>(99_367);
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
@@ -2347,7 +2347,7 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(20);
+		set_block_number::<Test>(20);
 
 		let bob_balance_before = Balances::free_balance(&BOB);
 
@@ -2359,7 +2359,7 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 		));
 
 		// Second bidder, in the beginning of the closing period
-		run_to_block::<Test>(27_368);
+		set_block_number::<Test>(27_368);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -2368,7 +2368,7 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 		));
 
 		// Third bidder = First bidder (repeated bid), at the end of the closing period
-		run_to_block::<Test>(99_356);
+		set_block_number::<Test>(99_356);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -2376,11 +2376,11 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 			BalanceOf::<Test>::from(1_500_u32)
 		));
 
-		run_to_block::<Test>(99_376);
+		set_block_number::<Test>(99_376);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
-		run_to_block::<Test>(99_377);
+		set_block_number::<Test>(99_377);
 		
 		// Alice claims for Bob
 		assert_ok!(AuctionsModule::claim(Origin::signed(ALICE), BOB, 0));
@@ -2400,12 +2400,12 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 }
 
 #[test]
-fn claim_candle_auction_by_winning_bidder_should_work() {
+fn claim_candle_auction_by_winning_bidder_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(20);
+		set_block_number::<Test>(20);
 
 		// First bidder, bid before start of closing period
 		assert_ok!(AuctionsModule::bid(
@@ -2415,7 +2415,7 @@ fn claim_candle_auction_by_winning_bidder_should_work() {
 		));
 
 		// Second bidder, in the beginning of the closing period
-		run_to_block::<Test>(27_368);
+		set_block_number::<Test>(27_368);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -2424,7 +2424,7 @@ fn claim_candle_auction_by_winning_bidder_should_work() {
 		));
 
 		// Third bidder = First bidder (repeated bid), at the end of the closing period
-		run_to_block::<Test>(99_356);
+		set_block_number::<Test>(99_356);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -2432,11 +2432,11 @@ fn claim_candle_auction_by_winning_bidder_should_work() {
 			BalanceOf::<Test>::from(1_500_u32)
 		));
 
-		run_to_block::<Test>(99_376);
+		set_block_number::<Test>(99_376);
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
-		run_to_block::<Test>(99_377);
+		set_block_number::<Test>(99_377);
 		
 		// Winner of the auction tries to claim, not possible because the reserved amount was transferred at close
 		assert_noop!(
@@ -2452,7 +2452,7 @@ fn claim_running_candle_auction_should_not_work() {
 		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(20);
+		set_block_number::<Test>(20);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
@@ -2460,7 +2460,7 @@ fn claim_running_candle_auction_should_not_work() {
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		run_to_block::<Test>(202);
+		set_block_number::<Test>(202);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -2481,7 +2481,7 @@ fn claim_candle_not_closed_auction_should_not_work() {
 		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		run_to_block::<Test>(20);
+		set_block_number::<Test>(20);
 
 		// First bidder, bid before start of closing period
 		assert_ok!(AuctionsModule::bid(
@@ -2491,7 +2491,7 @@ fn claim_candle_not_closed_auction_should_not_work() {
 		));
 
 		// Second bidder, in the beginning of the closing period
-		run_to_block::<Test>(27_368);
+		set_block_number::<Test>(27_368);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -2499,7 +2499,7 @@ fn claim_candle_not_closed_auction_should_not_work() {
 			BalanceOf::<Test>::from(1_100_u32)
 		));
 
-		run_to_block::<Test>(99_377);
+		set_block_number::<Test>(99_377);
 		
 		assert_noop!(
 			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
