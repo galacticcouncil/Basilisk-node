@@ -47,9 +47,6 @@
 //! enters liq. mining and is burned when he exits. NFT representing deposit is tradable.
 
 // TODO:
-// * [BUG] add_liquiity_pool() -  check if added AMM have incentivized_asset in pair + test
-// * add test deposit/claim/withdraw with different reward and incentivized currency
-
 // add to docs blocks are related to relay chain blocks
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -376,6 +373,9 @@ pub mod pallet {
 
 		/// Multiple claims in the same period is not allowed.
 		DoubleClaimInThePeriod,
+
+		/// Farm's `incentivized_asset` is missing in provided asset pair.
+		MissingIncentivizedAsset,
 	}
 
 	#[pallet::event]
@@ -743,6 +743,12 @@ pub mod pallet {
 				let global_pool = maybe_pool.as_mut().ok_or(Error::<T>::FarmNotFound)?;
 
 				ensure!(who == global_pool.owner, Error::<T>::Forbidden);
+
+				ensure!(
+					Into::<T::CurrencyId>::into(asset_pair.asset_in) == global_pool.incentivized_asset
+						|| Into::<T::CurrencyId>::into(asset_pair.asset_out) == global_pool.incentivized_asset,
+					Error::<T>::MissingIncentivizedAsset
+				);
 
 				let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 				ensure!(

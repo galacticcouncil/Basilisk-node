@@ -56,9 +56,10 @@ pub const BSX_KSM_SHARE_ID: AssetId = 101;
 pub const BSX_DOT_SHARE_ID: AssetId = 102;
 pub const BSX_ETH_SHARE_ID: AssetId = 103;
 pub const BSX_HDX_SHARE_ID: AssetId = 104;
-
 pub const BSX_TKN1_SHARE_ID: AssetId = 105;
 pub const BSX_TKN2_SHARE_ID: AssetId = 106;
+pub const KSM_DOT_SHARE_ID: AssetId = 107;
+pub const ACA_KSM_SHARE_ID: AssetId = 108;
 
 pub const BSX: AssetId = 1000;
 pub const HDX: AssetId = 2000;
@@ -77,6 +78,8 @@ pub const BSX_HDX_AMM: AccountId = 11_004;
 pub const BSX_TKN1_AMM: AccountId = 11_005;
 pub const BSX_TKN2_AMM: AccountId = 11_006;
 pub const DEFAULT_AMM: AccountId = 11_007;
+pub const KSM_DOT_AMM: AccountId = 11_008;
+pub const ACA_KSM_AMM: AccountId = 11_009;
 
 pub const BSX_ACA_LM_POOL: PoolId = 12_000;
 pub const BSX_KSM_LM_POOL: PoolId = 12_001;
@@ -358,6 +361,7 @@ impl Default for ExtBuilder {
 				(ALICE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
 				(ALICE, BSX_TKN1_SHARE_ID, 3_000_000),
 				(ALICE, BSX_TKN2_SHARE_ID, 3_000_000),
+				(ALICE, ACA_KSM_SHARE_ID, 3_000_000),
 				(ALICE, BSX, INITIAL_BALANCE),
 				(ACCOUNT_WITH_1M, BSX, 1_000_000),
 				(BOB, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
@@ -365,6 +369,7 @@ impl Default for ExtBuilder {
 				(BOB, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
 				(BOB, BSX_TKN1_SHARE_ID, 2_000_000),
 				(BOB, BSX_TKN2_SHARE_ID, 2_000_000),
+				(BOB, ACA_KSM_SHARE_ID, 2_000_000),
 				(BOB, BSX, INITIAL_BALANCE),
 				(BOB, KSM, INITIAL_BALANCE),
 				(CHARLIE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
@@ -373,6 +378,8 @@ impl Default for ExtBuilder {
 				(CHARLIE, BSX_TKN1_SHARE_ID, 5_000_000),
 				(CHARLIE, BSX_TKN2_SHARE_ID, 5_000_000),
 				(CHARLIE, BSX, INITIAL_BALANCE),
+				(CHARLIE, KSM, INITIAL_BALANCE),
+				(CHARLIE, ACA, INITIAL_BALANCE),
 				(DAVE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
 				(DAVE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
