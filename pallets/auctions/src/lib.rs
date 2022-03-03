@@ -30,7 +30,7 @@
 //! - `create`
 //!
 //! - `update`
-//!
+//! 
 //! - `bid`
 //!
 //! - `close`
@@ -347,7 +347,6 @@ pub mod pallet {
 					auction_object.update(sender, id)?;
 				}
 			}
-
 			Ok(())
 		}
 
@@ -355,6 +354,7 @@ pub mod pallet {
 		/// Destroys an existing auction which has not yet started
 		///
 		/// - validates write action
+		/// - unfreezes NFT
 		/// - destroys auction
 		/// - deposits AuctionDestroyed event
 		///
@@ -366,15 +366,18 @@ pub mod pallet {
 			match &auction {
 				Auction::English(auction_object) => {
 					Self::validate_update(sender, &auction_object.general_data)?;
-					Self::handle_destroy(id, &auction_object.general_data)?;
+					Self::unfreeze_nft(&auction_object.general_data)?;
+					Self::handle_destroy(id)?;
 				}
 				Auction::TopUp(auction_object) => {
 					Self::validate_update(sender, &auction_object.general_data)?;
-					Self::handle_destroy(id, &auction_object.general_data)?;
+					Self::unfreeze_nft(&auction_object.general_data)?;
+					Self::handle_destroy(id)?;
 				}
 				Auction::Candle(auction_object) => {
 					Self::validate_update(sender, &auction_object.general_data)?;
-					Self::handle_destroy(id, &auction_object.general_data)?;
+					Self::unfreeze_nft(&auction_object.general_data)?;
+					Self::handle_destroy(id)?;
 				}
 			}
 
@@ -402,15 +405,15 @@ pub mod pallet {
 				match auction {
 					Auction::English(auction_object) => {
 						Self::validate_bid(&bidder, &auction_object.general_data, &bid)?;
-						auction_object.bid(&auction_id, bidder.clone(), &bid)?;
+						auction_object.bid(auction_id, bidder.clone(), &bid)?;
 					}
 					Auction::TopUp(auction_object) => {
 						Self::validate_bid(&bidder, &auction_object.general_data, &bid)?;
-						auction_object.bid(&auction_id, bidder.clone(), &bid)?;
+						auction_object.bid(auction_id, bidder.clone(), &bid)?;
 					}
 					Auction::Candle(auction_object) => {
 						Self::validate_bid(&bidder, &auction_object.general_data, &bid)?;
-						auction_object.bid(&auction_id, bidder.clone(), &bid)?;
+						auction_object.bid(auction_id, bidder.clone(), &bid)?;
 					}
 				}
 
@@ -437,32 +440,42 @@ pub mod pallet {
 		///
 		#[pallet::weight(<T as Config>::WeightInfo::close_auction())]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
+			let mut destroy_auction_data = false;
+
 			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
 				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 				match auction {
 					Auction::English(auction_object) => {
 						Self::validate_close(&auction_object.general_data)?;
-						auction_object.close(&auction_id)?;
+						destroy_auction_data = auction_object.close(auction_id)?;
 					}
 					Auction::TopUp(auction_object) => {
 						Self::validate_close(&auction_object.general_data)?;
-						auction_object.close(&auction_id)?;
+						destroy_auction_data = auction_object.close(auction_id)?;
 					}
 					Auction::Candle(auction_object) => {
 						Self::validate_close(&auction_object.general_data)?;
-						auction_object.close(&auction_id)?;
+						destroy_auction_data = auction_object.close(auction_id)?;
 					}
 				}
-
+				
 				Self::deposit_event(Event::AuctionClosed(auction_id));
-
+				
 				Ok(())
-			})
+			})?;
+
+			if destroy_auction_data {
+				Self::handle_destroy(auction_id)?;
+			}
+
+			Ok(())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::claim())]
 		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+			let destroy_auction_data: bool;
+
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 			ensure!(
 				claimable_amount > Zero::zero(),
@@ -472,14 +485,18 @@ pub mod pallet {
 			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 			match auction {
 				Auction::English(auction_object) => {
-					auction_object.claim(&auction_id, bidder, claimable_amount)?;
+					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
 				}
 				Auction::TopUp(auction_object) => {
-					auction_object.claim(&auction_id, bidder, claimable_amount)?;
+					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
 				}
 				Auction::Candle(auction_object) => {
-					auction_object.claim(&auction_id, bidder, claimable_amount)?;
+					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
 				}
+			}
+
+			if destroy_auction_data {
+				Self::handle_destroy(auction_id)?;
 			}
 
 			Ok(())
@@ -596,17 +613,22 @@ impl<T: Config> Pallet<T> {
 	/// - removes record from Auctions
 	/// - deposits AuctionDestroyed event
 	///
-	fn handle_destroy(auction_id: T::AuctionId, general_data: &GeneralAuctionData<T>) -> DispatchResult {
+	fn handle_destroy(auction_id: T::AuctionId) -> DispatchResult {
+		<AuctionOwnerById<T>>::remove(auction_id);
+		<Auctions<T>>::remove(auction_id);
+		<HighestBiddersByAuctionClosingRange<T>>::remove_prefix(auction_id, None);
+
+		Self::deposit_event(Event::AuctionDestroyed(auction_id));
+
+		Ok(())
+	}
+
+	fn unfreeze_nft(general_data: &GeneralAuctionData<T>) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
 			RawOrigin::Signed(general_data.owner.clone()).into(),
 			general_data.token.0,
 			general_data.token.1,
 		)?;
-
-		<AuctionOwnerById<T>>::remove(auction_id);
-		<Auctions<T>>::remove(auction_id);
-
-		Self::deposit_event(Event::AuctionDestroyed(auction_id));
 
 		Ok(())
 	}
@@ -666,7 +688,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn handle_claim(bidder: T::AccountId, auction_id: &T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
+	fn handle_claim(bidder: T::AccountId, auction_id: T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 			&Pallet::<T>::get_auction_subaccount_id(auction_id),
 			&bidder,
@@ -701,7 +723,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn get_auction_subaccount_id(auction_id: &T::AuctionId) -> T::AccountId {
+	fn get_auction_subaccount_id(auction_id: T::AuctionId) -> T::AccountId {
 		T::PalletId::get().into_sub_account(("ac", auction_id))
 	}
 
@@ -822,7 +844,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// - updates auction.general_data.last_bid and auction.general_data.next_bid_min
 	/// - if necessary, increases auction end time to prevent sniping
 	///
-	fn bid(&mut self, _auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+	fn bid(&mut self, _auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
 		// Lock / Unlock funds
 		if let Some(current_bid) = &self.general_data.last_bid {
 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
@@ -848,12 +870,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// - transfers the amount of the bid from the account of the bidder to the owner of the auction
 	/// - sets auction.general_data.closed to true
 	///
-	fn close(&mut self, _auction_id: &T::AuctionId) -> DispatchResult {
-		pallet_uniques::Pallet::<T>::thaw(
-			RawOrigin::Signed(self.general_data.owner.clone()).into(),
-			self.general_data.token.0,
-			self.general_data.token.1,
-		)?;
+	fn close(&mut self, _auction_id: T::AuctionId) -> Result<bool, DispatchError> {
+		Pallet::<T>::unfreeze_nft(&self.general_data)?;
+
 		// there is a bid so let's determine a winner and transfer tokens
 		if let Some(winner) = &self.general_data.last_bid {
 			let dest = T::Lookup::unlookup(winner.0.clone());
@@ -875,11 +894,14 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 		self.general_data.closed = true;
 
-		Ok(())
+		// Auction and related data can be pruned
+		// self.destroy(auction_id)?;
+
+		Ok(true)
 	}
 
 	/// English auctions do not implement reserved amounts and there are no claims
-	fn claim(&self, _auction_id: &T::AuctionId, _bidder: T::AccountId, _amount: BalanceOf<T>) -> DispatchResult {
+	fn claim(&self, _auction_id: T::AuctionId, _bidder: T::AccountId, _amount: BalanceOf<T>) -> Result<bool, DispatchError> {
 		Err(Error::<T>::ClaimsNotSupportedForThisAuctionType.into())
 	}
 
@@ -944,7 +966,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Also registers individual bids for the final settlement
 	///
-	fn bid(&mut self, auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
 		// Trasnfer funds to the subaccount of the auction
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 			&bidder,
@@ -975,15 +997,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Closes a TopUpAuction
 	///
-	fn close(&mut self, auction_id: &T::AuctionId) -> DispatchResult {
-		pallet_uniques::Pallet::<T>::thaw(
-			RawOrigin::Signed(self.general_data.owner.clone()).into(),
-			self.general_data.token.0,
-			self.general_data.token.1,
-		)?;
+	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
+		let mut destroy_auction_data = false;
 
-		if Pallet::<T>::is_auction_won(&self.general_data) {
-			if let Some(winner) = &self.general_data.last_bid {
+		Pallet::<T>::unfreeze_nft(&self.general_data)?;
+
+		if let Some(winner) = &self.general_data.last_bid {
+			if Pallet::<T>::is_auction_won(&self.general_data) {
 				let dest = T::Lookup::unlookup(winner.0.clone());
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
 				pallet_nft::Pallet::<T>::transfer(
@@ -1003,15 +1023,22 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					transfer_amount,
 					ExistenceRequirement::AllowDeath,
 				)?;
+
+				// Auction and related data can be pruned
+				destroy_auction_data = true;
 			}
+		} else {
+			destroy_auction_data = true;
 		}
 
 		self.general_data.closed = true;
 
-		Ok(())
+		Ok(destroy_auction_data)
 	}
 
-	fn claim(&self, auction_id: &T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+	fn claim(&self, auction_id: T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> Result<bool, DispatchError> {
+		let mut destroy_auction_data = false;
+
 		Pallet::<T>::validate_claim(&self.general_data)?;
 
 		ensure!(
@@ -1021,7 +1048,15 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 		Pallet::<T>::handle_claim(bidder, auction_id, amount)?;
 
-		Ok(())
+		let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+		let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+
+		// Auction and related data can be pruned
+		if auction_balance.is_zero() {
+			destroy_auction_data = true;
+		}
+
+		Ok(destroy_auction_data)
 	}
 
 	fn validate_data(&self) -> DispatchResult {
@@ -1067,7 +1102,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Places a bid on an CandleAuction
 	///
-	fn bid(&mut self, auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
 		let closing_period_range = Pallet::<T>::determine_candle_closing_range(bid, self);
 		match closing_period_range {
 			Ok(range) => {
@@ -1117,12 +1152,10 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Closes a Candle auction
 	///
-	fn close(&mut self, auction_id: &T::AuctionId) -> DispatchResult {
-		pallet_uniques::Pallet::<T>::thaw(
-			RawOrigin::Signed(self.general_data.owner.clone()).into(),
-			self.general_data.token.0,
-			self.general_data.token.1,
-		)?;
+	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
+		let mut destroy_auction_data = false;
+
+		Pallet::<T>::unfreeze_nft(&self.general_data)?;
 
 		self.general_data.closed = true;
 
@@ -1159,6 +1192,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					self.specific_data.winner = Some(winner.clone());
 
 					let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+					let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
 					let reserved_amount = <ReservedAmounts<T>>::get(&winner, &auction_id);
 
 					ensure!(
@@ -1174,19 +1208,35 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					)?;
 
 					<ReservedAmounts<T>>::remove(&winner, &auction_id);
+
+					// Only one bidder: Auction and related data can be pruned
+					if reserved_amount == auction_balance {
+						destroy_auction_data = true;
+					}
 				}
 				None => return Err(Error::<T>::ErrorDeterminingAuctionWinner.into()),
 			}
+		} else {
+			destroy_auction_data = true;
 		}
 
-		Ok(())
+		Ok(destroy_auction_data)
 	}
 
-	fn claim(&self, auction_id: &T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> DispatchResult {
+	fn claim(&self, auction_id: T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> Result<bool, DispatchError> {
+		let mut destroy_auction_data = false;
+
 		Pallet::<T>::validate_claim(&self.general_data)?;
 		Pallet::<T>::handle_claim(bidder, auction_id, amount)?;
 
-		Ok(())
+		let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+		let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+
+		if auction_balance.is_zero() {
+			destroy_auction_data = true;
+		}
+
+		Ok(destroy_auction_data)
 	}
 
 	fn validate_data(&self) -> DispatchResult {

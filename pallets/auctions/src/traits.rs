@@ -1,6 +1,8 @@
 pub use crate::Config;
 use codec::{Decode, Encode};
-use frame_support::{dispatch::DispatchResult, traits::Currency, BoundedVec};
+use frame_support::{
+	dispatch::DispatchResult, traits::Currency, BoundedVec, pallet_prelude::DispatchError
+};
 use scale_info::TypeInfo;
 
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
@@ -8,11 +10,11 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 
 	fn update(self, sender: AccountId, auction_id: AuctionId) -> DispatchResult;
 
-	fn bid(&mut self, auction_id: &AuctionId, bidder: AccountId, bid: &Bid) -> DispatchResult;
+	fn bid(&mut self, auction_id: AuctionId, bidder: AccountId, bid: &Bid) -> DispatchResult;
 
-	fn close(&mut self, auction_id: &AuctionId) -> DispatchResult;
+	fn close(&mut self, auction_id: AuctionId) -> Result<bool, DispatchError>;
 
-	fn claim(&self, auction_id: &AuctionId, bidder: AccountId, amount: BalanceOf) -> DispatchResult;
+	fn claim(&self, auction_id: AuctionId, bidder: AccountId, amount: BalanceOf) -> Result<bool, DispatchError>;
 
 	fn validate_data(&self) -> DispatchResult;
 }

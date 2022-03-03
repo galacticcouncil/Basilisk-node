@@ -746,18 +746,11 @@ fn close_english_auction_should_work() {
 		assert_eq!(alice_balance_before.saturating_add(bid), alice_balance_after);
 		assert_eq!(bob_balance_before.saturating_sub(bid), bob_balance_after);
 
-		let auction = AuctionsModule::auctions(0).unwrap();
-		let auction_check = match auction {
-			Auction::English(data) => {
-				// Attributed closed is updated
-				assert!(data.general_data.closed);
+		set_block_number::<Test>(22);
 
-				Ok(())
-			},
-			_ => Err(())
-		};
-
-		assert_ok!(auction_check);
+		// Auction data is destroyed
+		assert!(matches!(AuctionsModule::auctions(0), None));
+		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
 	});
 }
 
@@ -794,7 +787,7 @@ fn close_english_auction_which_is_already_closed_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
-			Error::<Test>::AuctionClosed,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -1345,17 +1338,9 @@ fn close_topup_auction_with_winner_should_work() {
 		// The auction winner is the new owner of the NFT
 		assert_eq!(Nft::owner(NFT_CLASS_ID_1, NFT_INSTANCE_ID_1), Some(CHARLIE));
 
-		let auction = AuctionsModule::auctions(0).unwrap();
-		let auction_check = match auction {
-			Auction::TopUp(data) => {
-				assert!(data.general_data.closed);
-
-				Ok(())
-			},
-			_ => Err(())
-		};
-
-		assert_ok!(auction_check);
+		// Auction data is destroyed
+		assert!(matches!(AuctionsModule::auctions(0), None));
+		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
 	});
 }
 
@@ -1409,6 +1394,7 @@ fn close_topup_auction_without_winner_should_work() {
 		// The auction winner is the new owner of the NFT
 		assert_eq!(Nft::owner(NFT_CLASS_ID_1, NFT_INSTANCE_ID_1), Some(ALICE));
 
+		// Auction data is not destroyed
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
 			Auction::TopUp(data) => {
@@ -1422,6 +1408,26 @@ fn close_topup_auction_without_winner_should_work() {
 		assert_ok!(auction_check);
 	});
 }
+
+#[test]
+fn close_topup_auction_without_bidders_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut general_auction_data = valid_general_auction_data();
+		general_auction_data.reserve_price = Some(1_500);
+
+		let auction = topup_auction_object(general_auction_data, valid_topup_specific_data());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		set_block_number::<Test>(22);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		// Auction data is destroyed
+		assert!(matches!(AuctionsModule::auctions(0), None));
+		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
+	});
+}		
 
 /// Error AuctionEndTimeNotReached
 #[test]
@@ -1456,7 +1462,7 @@ fn close_topup_auction_which_is_already_closed_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
-			Error::<Test>::AuctionClosed,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -1536,6 +1542,10 @@ fn claim_topup_auction_without_winner_should_work() {
 
 		let final_auction_account_balance = Balances::free_balance(&get_auction_subaccount_id(0));
 		assert_eq!(final_auction_account_balance, Zero::zero());
+
+		// Auction data is destroyed
+		assert!(matches!(AuctionsModule::auctions(0), None));
+		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
 	});
 }
 
@@ -1571,7 +1581,7 @@ fn claim_topup_auction_with_winner_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
-			Error::<Test>::CannotClaimWonAuction
+			Error::<Test>::AuctionDoesNotExist
 		);
 	});
 }
@@ -2298,6 +2308,61 @@ fn close_candle_auction_with_winner_should_work() {
 	});
 }
 
+#[test]
+fn close_candle_auction_with_single_bidder_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		set_block_number::<Test>(20);
+
+		let alice_balance_before = Balances::free_balance(&ALICE);
+		let bob_balance_before = Balances::free_balance(&BOB);
+
+		// First bidder, bid before start of closing period
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		set_block_number::<Test>(99_377);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+		let alice_balance_after = Balances::free_balance(&ALICE);
+		let bob_balance_after = Balances::free_balance(&BOB);
+
+		// Alice receives all auction funds from single bidder BOB
+		assert_eq!(alice_balance_before.saturating_add(1_000), alice_balance_after);
+		assert_eq!(bob_balance_before.saturating_sub(1_000), bob_balance_after);
+		assert!(auction_subaccount_balance_after.is_zero());
+
+		// Auction data is destroyed
+		assert!(matches!(AuctionsModule::auctions(0), None));
+		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
+		assert!(matches!(AuctionsModule::highest_bidders_by_auction_closing_range(0, 1), None));
+	});
+}
+
+#[test]
+fn close_candle_auction_without_bidders_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = candle_auction_object(valid_candle_general_auction_data(), valid_candle_specific_data());
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		set_block_number::<Test>(99_377);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		// Auction data is destroyed
+		assert!(matches!(AuctionsModule::auctions(0), None));
+		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
+		assert!(matches!(AuctionsModule::highest_bidders_by_auction_closing_range(0, 1), None));
+	});
+}
+
 /// Error AuctionEndTimeNotReached
 #[test]
 fn close_candle_auction_before_auction_end_time_should_not_work() {
@@ -2331,7 +2396,7 @@ fn close_candle_auction_which_is_already_closed_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
-			Error::<Test>::AuctionClosed,
+			Error::<Test>::AuctionDoesNotExist,
 		);
 	});
 }
@@ -2396,6 +2461,11 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::NoReservedAmountAvailableToClaim
 		);
+
+		// Auction data is destroyed
+		assert!(matches!(AuctionsModule::auctions(0), None));
+		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
+		assert!(matches!(AuctionsModule::highest_bidders_by_auction_closing_range(0, 1), None));
 	});
 }
 
