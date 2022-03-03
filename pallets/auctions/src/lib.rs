@@ -35,13 +35,27 @@
 //!
 //! - `close`
 //!
-//! - `validate_general_data`
+//! - `validate_data`
 //!
-//! The auction types share the same store called Auctions. Auction types are represented in a struct which holds
+//! ## Storage
+//! 
+//! The pallet implements the following stores:
+//! 
+//! - `Auctions` - holds auctions from different types. Auction types are represented in a struct which holds
 //! two other structs with general_data (eg auction name, start, end) and specific_data for the given auction type.
-//! Besides Auctions, there are are two other stores: NextAuctionId and AuctionOwnerById.
+//! 
+//! - `AuctionOwnerById` - index for auction owner by auction id
+//! 
+//! - `NextAuctionId` - index for next auction id
+//! 
+//! - `ReservedAmounts` - store for bid amounts which are reserved until an auction has closed. Used by Auction::TopUp
+//! and Auction::Candle
+//! 
+//! - `HighestBiddersByAuctionClosingRange` - stores the highest bid per closing range (1-100) of an Auction::Candle
+//! 
 //!
 //! ## Dispatchable Functions
+//! 
 //! - `create` - create an auction
 //!
 //! - `update` - update an auction
@@ -50,21 +64,54 @@
 //!
 //! - `bid` - place a bid on an auctio
 //!
-//! - `close` - close an auction after the end time has lapsed. Not done in a hook for better chain performance.
+//! - `close` - close an auction after the end time has lapsed. Not done in a hook for better chain performance
+//! 
+//! - `claim` - claim assets from reserved amount, after auction has closed
 //!
 //! ## Implemented Auction types
 //!
-//! ### EnglishAuction
+//! ### Auction::English
 //!
 //! In an English auction, participants place bids in a running auction. Once the auction has reached its end time,
-//! the highest bid wins.
+//! the highest bid wins and the NFT is transferred to the winner.
+//! 
+//! The amount is reserved by placing a lock on the highest bid which is updated once the bidder is overbid. The lock
+//! is removed once the auction closes.
 //!
 //! The implementation of English auction allows sellers to set a reserve price for the NFT
 //! (auction.general_data.reserve_price). The reserve_price acts as a minimum starting bid, preventing bidders
 //! from placing bids below the reserve_price.
+//! 
 //! When creating an English auction with a reserve_price, auction.general_data.reserve_price must be equal to
 //! auction.general_data.next_bid_min.
-//!
+//! 
+//! ### Auction::TopUp
+//! 
+//! Top up auctions are traditionally used for charitive purposes. Users place bid which are accumulated. At the end,
+//! if the sum of all bids has reached the reserve_price, the seller gets all bid amounts, and the NFT is transferred
+//! to the last (highest) bidder.
+//! 
+//! When a user places a bid, the amount is transferred to a subaccount held by the auction. If the auction is not won,
+//! bidders are able to claim back the amounts corresponding to their bids.
+//! 
+//! ### Auction::Candle
+//! 
+//! Candle auctions are used to incentivize bidders to bring out their bids early. At auction close, a randomness
+//! algorithm choses a winning bid from the closing period.
+//! 
+//! The first implementation uses the default length of Kusama parachain auctions: 99_356 blocks (apprx 6d 21h) 
+//! with a closing period of 72_000 blocks (apprx 5d).
+//! 
+//! For better runtime performance, the closing period is divided into 100 ranges. When a user places a bid, it is
+//! stored as the highest bid for the current period. All bid amounts are transferred to a subaccount held by the
+//! auction.
+//! 
+//! Once the auction is closed and the winning closing range is determined by the randomness, the total amount bid
+//! by the winning bidder is transferred to the auction owner, and the NFT is transferred to the winner. The reserved
+//! amounts bid by other users are available to be claimed.
+//! 
+//! ## Auction sniping
+//! 
 //! To avoid auction sniping, the pallet extends the end time of the auction for any late bids which are placed
 //! shortly before auction close.
 //!
@@ -94,7 +141,10 @@ use sp_runtime::{
 	},
 	Permill,
 };
+
+use sp_std::convert::TryInto;
 use sp_std::result;
+
 pub use traits::*;
 use weights::WeightInfo;
 
@@ -170,8 +220,21 @@ pub mod pallet {
 		#[pallet::constant]
 		type BidMinAmount: Get<u32>;
 
+		/// Pallet ID (used for generating a subaccount)
 		#[pallet::constant]
 		type PalletId: Get<PalletId>;
+
+		/// The default duration of a Candle auction
+		#[pallet::constant]
+		type CandleDefaultDuration: Get<u32>;
+
+		/// The default duration of the closing period of a Candle auction
+		#[pallet::constant]
+		type CandleDefaultClosingPeriodDuration: Get<u32>;
+
+		/// The default count of closing ranges of a Candle auction
+		#[pallet::constant]
+		type CandleDefaultClosingRangesCount: Get<u32>;
 	}
 
 	#[pallet::storage]
@@ -186,15 +249,15 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn reserved_amounts)]
-	/// Stores bids placed by an account on a given auction
+	/// Stores reserved amounts which were bid on a given auction
 	pub(crate) type ReservedAmounts<T: Config> =
 		StorageDoubleMap<_, Twox64Concat, T::AccountId, Twox64Concat, T::AuctionId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn winners)]
-	/// Tracks who was winning during an auction
-	pub(crate) type Winners<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::AuctionId, Twox64Concat, T::BlockNumber, WinnerOf<T>, OptionQuery>;
+	#[pallet::getter(fn highest_bidders_by_auction_closing_range)]
+	/// Stores the higest bidder by auction and closing range
+	pub(crate) type HighestBiddersByAuctionClosingRange<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, T::AuctionId, Twox64Concat, u32, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
@@ -218,7 +281,7 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		/// Auction does not exist
-		AuctionNotExist,
+		AuctionDoesNotExist,
 		/// Auction has not started yet
 		AuctionNotStarted,
 		/// Auction has already started
@@ -263,9 +326,9 @@ pub mod pallet {
 		InvalidReservedAmount,
 		/// TopUp bidder does not have claim to a reserved amount
 		NoReservedAmountAvailableToClaim,
-		/// TopUp auction is closed and won, funds should be transferred to seller
+		/// Auction is closed and won, the bid funds are transferred to seller
 		CannotClaimWonAuction,
-		/// Claims of reserved amounts are only available on TopUp
+		/// Claims of reserved amounts are only available on certain auction types
 		ClaimsNotSupportedForThisAuctionType,
 		/// Auction should be closed before claims are made
 		CloseAuctionBeforeClaimingReservedAmounts,
@@ -273,6 +336,16 @@ pub mod pallet {
 		NoWinnerFound,
 		/// Secure hashes should always be bigger than u32
 		UnsecureHash,
+		/// Candle auction must have default duration
+		CandleAuctionMustHaveDefaultDuration,
+		/// Candle auction must have default closing period duration
+		CandleAuctionMustHaveDefaultClosingPeriodDuration,
+		/// Candle auction cannot have a reserve price
+		CandleAuctionDoesNotSupportReservePrice,
+		/// Math overflow
+		Overflow,
+		/// Error when determining the auction winner
+		ErrorDeterminingAuctionWinner,
 	}
 
 	#[pallet::call]
@@ -280,11 +353,8 @@ pub mod pallet {
 		///
 		/// Creates a new auction for a given Auction type
 		///
-		/// - validates auction.general_data
-		/// - validates logic specific to create action
-		/// - creates auction
-		/// - deposits AuctionCreated event
-		///
+		/// - calls the create() implementation on the given Auction type
+		/// 
 		#[pallet::weight(<T as Config>::WeightInfo::create_auction())]
 		pub fn create(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
@@ -297,9 +367,7 @@ pub mod pallet {
 					auction_object.create(sender, &auction)?;
 				}
 				Auction::Candle(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::validate_create(&auction_object.general_data)?;
-					Self::handle_create(sender, &auction, &auction_object.general_data)?;
+					auction_object.create(sender, &auction)?;
 				}
 			}
 
@@ -308,27 +376,24 @@ pub mod pallet {
 
 		///
 		/// Updates an existing auction which has not yet started
-		///
-		/// - validates auction.general_data
-		/// - validates write action & updates auction
-		///
+		/// 
+		/// - calls the update() implementation on the given Auction type
+		/// 
 		#[pallet::weight(<T as Config>::WeightInfo::update_auction())]
 		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
-			match &updated_auction {
+			match updated_auction {
 				Auction::English(auction_object) => {
-					auction_object.update(sender, id, updated_auction.clone())?;
+					auction_object.update(sender, id)?;
 				}
 				Auction::TopUp(auction_object) => {
-					auction_object.update(sender, id, updated_auction.clone())?;
+					auction_object.update(sender, id)?;
 				}
 				Auction::Candle(auction_object) => {
-					Self::validate_general_data(&auction_object.general_data)?;
-					Self::handle_update(sender, id, updated_auction.clone(), &auction_object.general_data)?;
+					auction_object.update(sender, id)?;
 				}
 			}
-
 			Ok(())
 		}
 
@@ -336,26 +401,29 @@ pub mod pallet {
 		/// Destroys an existing auction which has not yet started
 		///
 		/// - validates write action
-		/// - destroys auction
-		/// - deposits AuctionDestroyed event
+		/// - unfreezes NFT
+		/// - calls destroy helper function
 		///
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_auction())]
 		pub fn destroy(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
-			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionNotExist)?;
+			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 			match &auction {
 				Auction::English(auction_object) => {
 					Self::validate_update(sender, &auction_object.general_data)?;
-					Self::handle_destroy(id, &auction_object.general_data)?;
+					Self::unfreeze_nft(&auction_object.general_data)?;
+					Self::handle_destroy(id)?;
 				}
 				Auction::TopUp(auction_object) => {
 					Self::validate_update(sender, &auction_object.general_data)?;
-					Self::handle_destroy(id, &auction_object.general_data)?;
+					Self::unfreeze_nft(&auction_object.general_data)?;
+					Self::handle_destroy(id)?;
 				}
 				Auction::Candle(auction_object) => {
 					Self::validate_update(sender, &auction_object.general_data)?;
-					Self::handle_destroy(id, &auction_object.general_data)?;
+					Self::unfreeze_nft(&auction_object.general_data)?;
+					Self::handle_destroy(id)?;
 				}
 			}
 
@@ -378,20 +446,20 @@ pub mod pallet {
 			};
 
 			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 				match auction {
 					Auction::English(auction_object) => {
 						Self::validate_bid(&bidder, &auction_object.general_data, &bid)?;
-						auction_object.bid(&auction_id, bidder.clone(), &bid)?;
+						auction_object.bid(auction_id, bidder.clone(), &bid)?;
 					}
 					Auction::TopUp(auction_object) => {
 						Self::validate_bid(&bidder, &auction_object.general_data, &bid)?;
-						auction_object.bid(&auction_id, bidder.clone(), &bid)?;
+						auction_object.bid(auction_id, bidder.clone(), &bid)?;
 					}
 					Auction::Candle(auction_object) => {
 						Self::validate_bid(&bidder, &auction_object.general_data, &bid)?;
-						auction_object.bid(&auction_id, bidder.clone(), &bid)?;
+						auction_object.bid(auction_id, bidder.clone(), &bid)?;
 					}
 				}
 
@@ -409,80 +477,86 @@ pub mod pallet {
 		///
 		/// All auctions which have reached their auction end time must be closed by calling this exstrinsic.
 		///
-		/// The reason for not automating this in a hook is to preserve chain performance (similar to claiming
+		/// The reason for not automating this in a hook is better runtime performance (similar to claiming
 		/// staking rewards in Substrate).
 		///
 		/// - validates auction close
 		/// - calls the implementation of close() on the given Auction type
+		/// - if necessary, calls the helper function for destroying all auction-related data
 		/// - deposits AuctionClosed event
 		///
 		#[pallet::weight(<T as Config>::WeightInfo::close_auction())]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
+			let mut destroy_auction_data = false;
+
 			<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
-				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionNotExist)?;
+				let auction = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 				match auction {
 					Auction::English(auction_object) => {
 						Self::validate_close(&auction_object.general_data)?;
-						auction_object.close(&auction_id)?;
+						destroy_auction_data = auction_object.close(auction_id)?;
 					}
 					Auction::TopUp(auction_object) => {
 						Self::validate_close(&auction_object.general_data)?;
-						auction_object.close(&auction_id)?;
+						destroy_auction_data = auction_object.close(auction_id)?;
 					}
 					Auction::Candle(auction_object) => {
 						Self::validate_close(&auction_object.general_data)?;
-						auction_object.close(&auction_id)?;
+						destroy_auction_data = auction_object.close(auction_id)?;
 					}
 				}
-
+				
 				Self::deposit_event(Event::AuctionClosed(auction_id));
-
+				
 				Ok(())
-			})
+			})?;
+
+			if destroy_auction_data {
+				Self::handle_destroy(auction_id)?;
+			}
+
+			Ok(())
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::claim_reserved_amounts())]
-		pub fn claim_reserved_amounts(
-			_origin: OriginFor<T>,
-			bidder: T::AccountId,
-			auction_id: T::AuctionId,
-		) -> DispatchResult {
+		///
+		/// Claims amounts reserved in an auction
+		///
+		/// For TopUp and Candle auctions, all bids are transferred to a subaccount help by the auction.
+		/// After auction close, the reserved amounts of losing bidders can be claimed back.
+		///
+		/// - fetches claimable amount
+		/// - calls claim() implementation on the Auction type
+		/// - if necessary, calls the helper function for destroying all auction-related data
+		///
+		#[pallet::weight(<T as Config>::WeightInfo::claim())]
+		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+			let destroy_auction_data: bool;
+
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 			ensure!(
 				claimable_amount > Zero::zero(),
 				Error::<T>::NoReservedAmountAvailableToClaim
 			);
 
-			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionNotExist)?;
+			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 			match auction {
-				Auction::TopUp(auction_object) => {
-					ensure!(
-						Pallet::<T>::is_auction_ended(&auction_object.general_data),
-						Error::<T>::AuctionEndTimeNotReached
-					);
-					ensure!(
-						auction_object.general_data.closed,
-						Error::<T>::CloseAuctionBeforeClaimingReservedAmounts
-					);
-					ensure!(
-						!Pallet::<T>::is_auction_won(&auction_object.general_data),
-						Error::<T>::CannotClaimWonAuction
-					);
-
-					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-						&Pallet::<T>::get_auction_subaccount_id(&auction_id),
-						&bidder,
-						claimable_amount,
-						ExistenceRequirement::AllowDeath,
-					)?;
-
-					<ReservedAmounts<T>>::remove(bidder, auction_id);
-
-					Ok(())
+				Auction::English(auction_object) => {
+					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
 				}
-				_ => Err(Error::<T>::ClaimsNotSupportedForThisAuctionType.into()),
+				Auction::TopUp(auction_object) => {
+					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
+				}
+				Auction::Candle(auction_object) => {
+					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
+				}
 			}
+
+			if destroy_auction_data {
+				Self::handle_destroy(auction_id)?;
+			}
+
+			Ok(())
 		}
 	}
 }
@@ -502,7 +576,11 @@ impl<T: Config> Pallet<T> {
 		ensure!(
 			general_data.start >= Zero::zero()
 				&& general_data.end > Zero::zero()
-				&& general_data.end > general_data.start + T::MinAuctionDuration::get().into(),
+				&& general_data.end
+					> general_data
+						.start
+						.checked_add(&T::BlockNumber::from(T::MinAuctionDuration::get()))
+						.ok_or(Error::<T>::Overflow)?,
 			Error::<T>::InvalidTimeConfiguration
 		);
 		ensure!(!general_data.name.is_empty(), Error::<T>::EmptyAuctionName);
@@ -585,26 +663,6 @@ impl<T: Config> Pallet<T> {
 	}
 
 	///
-	/// Handles auction update
-	///
-	fn handle_update(
-		sender: <T>::AccountId,
-		auction_id: T::AuctionId,
-		updated_auction: Auction<T>,
-		general_data: &GeneralAuctionData<T>,
-	) -> DispatchResult {
-		<Auctions<T>>::try_mutate(auction_id, |auction_result| -> DispatchResult {
-			if auction_result.is_some() {
-				Self::validate_update(sender, general_data)?;
-				*auction_result = Some(updated_auction);
-				Ok(())
-			} else {
-				Err(Error::<T>::AuctionNotExist.into())
-			}
-		})
-	}
-
-	///
 	/// Handles auction destroy
 	///
 	/// - unfreezes NFT
@@ -612,17 +670,25 @@ impl<T: Config> Pallet<T> {
 	/// - removes record from Auctions
 	/// - deposits AuctionDestroyed event
 	///
-	fn handle_destroy(auction_id: T::AuctionId, general_data: &GeneralAuctionData<T>) -> DispatchResult {
+	fn handle_destroy(auction_id: T::AuctionId) -> DispatchResult {
+		<AuctionOwnerById<T>>::remove(auction_id);
+		<Auctions<T>>::remove(auction_id);
+		<HighestBiddersByAuctionClosingRange<T>>::remove_prefix(auction_id, None);
+
+		Self::deposit_event(Event::AuctionDestroyed(auction_id));
+
+		Ok(())
+	}
+
+	/// 
+	/// Unfreezes NFT (called after auction close)
+	/// 
+	fn unfreeze_nft(general_data: &GeneralAuctionData<T>) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
 			RawOrigin::Signed(general_data.owner.clone()).into(),
 			general_data.token.0,
 			general_data.token.1,
 		)?;
-
-		<AuctionOwnerById<T>>::remove(auction_id);
-		<Auctions<T>>::remove(auction_id);
-
-		Self::deposit_event(Event::AuctionDestroyed(auction_id));
 
 		Ok(())
 	}
@@ -669,6 +735,40 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	///
+	/// Validates certain aspects relevant to the claim action
+	///
+	fn validate_claim(general_auction_data: &GeneralAuctionData<T>) -> DispatchResult {
+		ensure!(
+			Pallet::<T>::is_auction_ended(general_auction_data),
+			Error::<T>::AuctionEndTimeNotReached
+		);
+		ensure!(
+			general_auction_data.closed,
+			Error::<T>::CloseAuctionBeforeClaimingReservedAmounts
+		);
+
+		Ok(())
+	}
+
+	///
+	/// Helper function for handling a claim
+	/// 
+	/// It transfers the reserved amount to the bidder after which destroys the record from store
+	///
+	fn handle_claim(bidder: T::AccountId, auction_id: T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
+		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+			&Pallet::<T>::get_auction_subaccount_id(auction_id),
+			&bidder,
+			amount,
+			ExistenceRequirement::AllowDeath,
+		)?;
+
+		<ReservedAmounts<T>>::remove(bidder, auction_id);
+
+		Ok(())
+	}
+
 	fn set_next_bid_min(general_auction_data: &mut GeneralAuctionData<T>, amount: BalanceOf<T>) -> DispatchResult {
 		let bid_step = Permill::from_percent(<T as crate::Config>::BidStepPerc::get()).mul_floor(amount);
 		general_auction_data.next_bid_min = amount.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
@@ -676,6 +776,9 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
+	///
+	/// Helper function which extends auction end time if necessary to prevent auction sniping
+	/// 
 	fn avoid_auction_sniping(general_auction_data: &mut GeneralAuctionData<T>) -> DispatchResult {
 		let block_number = <frame_system::Pallet<T>>::block_number();
 		let time_left = general_auction_data
@@ -683,13 +786,18 @@ impl<T: Config> Pallet<T> {
 			.checked_sub(&block_number)
 			.ok_or(Error::<T>::TimeUnderflow)?;
 		if time_left < <T as crate::Config>::BidAddBlocks::get().into() {
-			general_auction_data.end = block_number + <T as crate::Config>::BidAddBlocks::get().into();
+			general_auction_data.end = block_number
+				.checked_add(&T::BlockNumber::from(<T as crate::Config>::BidAddBlocks::get()))
+				.ok_or(Error::<T>::Overflow)?;
 		}
 
 		Ok(())
 	}
 
-	fn get_auction_subaccount_id(auction_id: &T::AuctionId) -> T::AccountId {
+	///
+	/// Generates AccountID of auction subaccount
+	/// 
+	fn get_auction_subaccount_id(auction_id: T::AuctionId) -> T::AccountId {
 		T::PalletId::get().into_sub_account(("ac", auction_id))
 	}
 
@@ -713,31 +821,63 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	fn choose_random_block_from_range(
-		from: T::BlockNumber,
-		to: T::BlockNumber,
-	) -> Result<T::BlockNumber, DispatchError> {
-		ensure!(from < to && from != 0u32.into(), Error::<T>::InvalidTimeConfiguration);
-		let mut random_number = T::BlockNumber::from(Self::generate_random_number(0u32));
+	fn choose_random_block_from_range(from: u32, to: u32) -> Result<u32, DispatchError> {
+		ensure!(from < to, Error::<T>::InvalidTimeConfiguration);
+		let mut random_number = Self::generate_random_number(0u32);
 
-		let difference = to - from;
+		let difference = to.checked_sub(from).ok_or(Error::<T>::Overflow)?;
 
 		// Best effort attempt to remove bias from modulus operator.
 		for i in 1..10 {
-			if random_number < T::BlockNumber::from(u32::MAX) - T::BlockNumber::from(u32::MAX) % difference {
+			if random_number < u32::MAX.saturating_sub(u32::MAX % difference) {
 				break;
 			}
 
-			random_number = Self::generate_random_number(i).into();
+			random_number = Self::generate_random_number(i);
 		}
 
-		Ok(from + (random_number % difference))
+		// Caution: Remainder (%) operator only safe with unsigned
+		let result = from
+			.checked_add(random_number % difference)
+			.ok_or(Error::<T>::Overflow)?;
+
+		Ok(result)
 	}
 
 	fn generate_random_number(seed: u32) -> u32 {
 		let (random_seed, _) = T::Randomness::random(&(T::PalletId::get(), seed).encode());
 		let random_number = <u32>::decode(&mut random_seed.as_ref()).unwrap_or_default();
 		random_number
+	}
+
+	fn determine_candle_closing_range(bid: &Bid<T>, auction: &CandleAuction<T>) -> Result<u32, Error<T>> {
+		let block_number: u32 = bid.block_number.try_into().map_err(|_| Error::<T>::Overflow)?;
+		let closing_start: u32 = auction
+			.specific_data
+			.closing_start
+			.try_into()
+			.map_err(|_| Error::<T>::Overflow)?;
+		let end: u32 = auction.general_data.end.try_into().map_err(|_| Error::<T>::Overflow)?;
+
+		if block_number < closing_start {
+			Ok(One::one())
+		} else if (closing_start..end).contains(&block_number) {
+			let auction_duration = end.checked_sub(closing_start).ok_or(Error::<T>::Overflow)?;
+			let block_spread = block_number.checked_sub(closing_start).ok_or(Error::<T>::Overflow)?;
+			let multiplied_block_spread = block_spread.checked_mul(100).ok_or(Error::<T>::Overflow)?;
+
+			let closing_range = multiplied_block_spread
+				.checked_div(auction_duration)
+				.ok_or(Error::<T>::Overflow)?;
+
+			Ok(if closing_range.is_zero() {
+				One::one()
+			} else {
+				closing_range
+			})
+		} else {
+			Ok(T::CandleDefaultClosingRangesCount::get())
+		}
 	}
 }
 
@@ -746,18 +886,28 @@ impl<T: Config> Pallet<T> {
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for EnglishAuction<T> {
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
+		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.general_data)?;
 		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
 
 		Ok(())
 	}
 
-	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
-		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+		self.validate_data()?;
 
-		Ok(())
+		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
+
+			if let Auction::English(english_auction) = auction_result {
+				Pallet::<T>::validate_update(sender, &english_auction.general_data)?;
+				*english_auction = self;
+
+				Ok(())
+			} else {
+				Err(Error::<T>::NoChangeOfAuctionType.into())
+			}
+		})
 	}
 
 	///
@@ -768,7 +918,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// - updates auction.general_data.last_bid and auction.general_data.next_bid_min
 	/// - if necessary, increases auction end time to prevent sniping
 	///
-	fn bid(&mut self, _auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+	fn bid(&mut self, _auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
 		// Lock / Unlock funds
 		if let Some(current_bid) = &self.general_data.last_bid {
 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
@@ -794,12 +944,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// - transfers the amount of the bid from the account of the bidder to the owner of the auction
 	/// - sets auction.general_data.closed to true
 	///
-	fn close(&mut self, _auction_id: &T::AuctionId) -> DispatchResult {
-		pallet_uniques::Pallet::<T>::thaw(
-			RawOrigin::Signed(self.general_data.owner.clone()).into(),
-			self.general_data.token.0,
-			self.general_data.token.1,
-		)?;
+	fn close(&mut self, _auction_id: T::AuctionId) -> Result<bool, DispatchError> {
+		Pallet::<T>::unfreeze_nft(&self.general_data)?;
+
 		// there is a bid so let's determine a winner and transfer tokens
 		if let Some(winner) = &self.general_data.last_bid {
 			let dest = T::Lookup::unlookup(winner.0.clone());
@@ -821,10 +968,21 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 		self.general_data.closed = true;
 
-		Ok(())
+		// Auction and related data can be pruned
+		// self.destroy(auction_id)?;
+
+		Ok(true)
 	}
 
-	fn validate_general_data(&self) -> DispatchResult {
+	/// English auctions do not implement reserved amounts and there are no claims
+	fn claim(&self, _auction_id: T::AuctionId, _bidder: T::AccountId, _amount: BalanceOf<T>) -> Result<bool, DispatchError> {
+		Err(Error::<T>::ClaimsNotSupportedForThisAuctionType.into())
+	}
+
+	///
+	/// Validates general and specific auction data
+	/// 
+	fn validate_data(&self) -> DispatchResult {
 		Pallet::<T>::validate_general_data(&self.general_data)?;
 
 		if let Some(reserve_price) = self.general_data.reserve_price {
@@ -847,29 +1005,41 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 /// Implementation of TopUpAuction
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for TopUpAuction<T> {
+	///
+	/// Creates a TopUp Auction
+	///
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
+		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.general_data)?;
 		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
 
 		Ok(())
 	}
 
-	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
-		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+	///
+	/// Updates a TopUp Auction
+	///
+	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+		self.validate_data()?;
 
-		Ok(())
+		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
+
+			if let Auction::TopUp(topup_auction) = auction_result {
+				Pallet::<T>::validate_update(sender, &topup_auction.general_data)?;
+				*topup_auction = self;
+
+				Ok(())
+			} else {
+				Err(Error::<T>::NoChangeOfAuctionType.into())
+			}
+		})
 	}
 
 	///
 	/// Places a bid on an TopUpAuction
 	///
-	/// the same functionality as bidding on English auction
-	///
-	/// Also registers individual bids for the final settlement
-	///
-	fn bid(&mut self, auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
 		// Trasnfer funds to the subaccount of the auction
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 			&bidder,
@@ -900,24 +1070,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Closes a TopUpAuction
 	///
-	/// Processes the final settlement of tokens as follows:
-	///
-	/// Winner (highest bidder) pays the price for an NFT to its owner
-	/// NFT is transferred to the winner
-	/// First bidder does not pay anything
-	/// Everyone else has to pay the difference between his and next lowest bid
-	///
-	/// TODO: implement reserve_price after refactoring bid and close fns
-	///
-	fn close(&mut self, auction_id: &T::AuctionId) -> DispatchResult {
-		pallet_uniques::Pallet::<T>::thaw(
-			RawOrigin::Signed(self.general_data.owner.clone()).into(),
-			self.general_data.token.0,
-			self.general_data.token.1,
-		)?;
+	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
+		let mut destroy_auction_data = false;
 
-		if Pallet::<T>::is_auction_won(&self.general_data) {
-			if let Some(winner) = &self.general_data.last_bid {
+		Pallet::<T>::unfreeze_nft(&self.general_data)?;
+
+		if let Some(winner) = &self.general_data.last_bid {
+			if Pallet::<T>::is_auction_won(&self.general_data) {
 				let dest = T::Lookup::unlookup(winner.0.clone());
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
 				pallet_nft::Pallet::<T>::transfer(
@@ -937,15 +1096,49 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					transfer_amount,
 					ExistenceRequirement::AllowDeath,
 				)?;
+
+				// Auction and related data can be pruned
+				destroy_auction_data = true;
 			}
+		} else {
+			destroy_auction_data = true;
 		}
 
 		self.general_data.closed = true;
 
-		Ok(())
+		Ok(destroy_auction_data)
 	}
 
-	fn validate_general_data(&self) -> DispatchResult {
+	///
+	/// Claims reserved amounts which were bid on a TopUp auction
+	/// 
+	fn claim(&self, auction_id: T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> Result<bool, DispatchError> {
+		let mut destroy_auction_data = false;
+
+		Pallet::<T>::validate_claim(&self.general_data)?;
+
+		ensure!(
+			!Pallet::<T>::is_auction_won(&self.general_data),
+			Error::<T>::CannotClaimWonAuction
+		);
+
+		Pallet::<T>::handle_claim(bidder, auction_id, amount)?;
+
+		let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+		let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+
+		// Auction and related data can be pruned
+		if auction_balance.is_zero() {
+			destroy_auction_data = true;
+		}
+
+		Ok(destroy_auction_data)
+	}
+
+	///
+	/// Validates general auction data
+	///
+	fn validate_data(&self) -> DispatchResult {
 		Pallet::<T>::validate_general_data(&self.general_data)
 	}
 }
@@ -955,22 +1148,79 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for CandleAuction<T> {
 	///
+	/// Creates a Candle Auction
+	///
+	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
+		self.validate_data()?;
+		Pallet::<T>::validate_create(&self.general_data)?;
+		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
+
+		Ok(())
+	}
+
+	///
+	/// Updates a Candle Auction
+	///
+	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
+		self.validate_data()?;
+
+		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
+			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
+
+			if let Auction::Candle(candle_auction) = auction_result {
+				Pallet::<T>::validate_update(sender, &candle_auction.general_data)?;
+				*candle_auction = self;
+
+				Ok(())
+			} else {
+				Err(Error::<T>::NoChangeOfAuctionType.into())
+			}
+		})
+	}
+
+	///
 	/// Places a bid on an CandleAuction
 	///
-	/// the same functionality as bidding on English auction
-	///
-	/// Also registers individual bids for the final settlement
-	///
-	fn bid(&mut self, _auction_id: &T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
-		// Lock / Unlock funds
-		if let Some(current_bid) = &self.general_data.last_bid {
-			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
-		}
-		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, bid.amount, WithdrawReasons::all());
+	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+		let closing_period_range = Pallet::<T>::determine_candle_closing_range(bid, self);
+		match closing_period_range {
+			Ok(range) => {
+				// <HighestBiddersByAuctionClosingRange<T>>::insert(&auction_id, &range, bidder.clone());
+				<HighestBiddersByAuctionClosingRange<T>>::mutate(
+					&auction_id,
+					&range,
+					|highest_bidder| -> DispatchResult {
+						*highest_bidder = Some(bidder.clone());
 
-		self.general_data.last_bid = Some((bidder, bid.amount));
+						Ok(())
+					},
+				)?;
+			}
+			Err(err) => {
+				return Err(err.into());
+			}
+		}
+
+		// Trasnfer funds to the subaccount of the auction
+		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+			&bidder,
+			&Pallet::<T>::get_auction_subaccount_id(auction_id),
+			bid.amount,
+			ExistenceRequirement::KeepAlive,
+		)?;
+
+		self.general_data.last_bid = Some((bidder.clone(), bid.amount));
+
 		// Set next minimal bid
 		Pallet::<T>::set_next_bid_min(&mut self.general_data, bid.amount)?;
+
+		<ReservedAmounts<T>>::try_mutate(&bidder, auction_id, |locked_amount| -> DispatchResult {
+			*locked_amount = locked_amount
+				.checked_add(&bid.amount)
+				.ok_or(Error::<T>::InvalidReservedAmount)?;
+
+			Ok(())
+		})?;
 
 		// Avoid auction sniping
 		Pallet::<T>::avoid_auction_sniping(&mut self.general_data)?;
@@ -981,59 +1231,129 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Closes a Candle auction
 	///
-	///
-	///
-	fn close(&mut self, auction_id: &T::AuctionId) -> DispatchResult {
-		pallet_uniques::Pallet::<T>::thaw(
-			RawOrigin::Signed(self.general_data.owner.clone()).into(),
-			self.general_data.token.0,
-			self.general_data.token.1,
-		)?;
-		// there is a bid so let's determine a winner and transfer tokens
-		if self.general_data.last_bid.is_some() {
-			let winning_block =
-				Pallet::<T>::choose_random_block_from_range(self.general_data.start, self.general_data.end)?;
+	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
+		let mut destroy_auction_data = false;
 
-			if let Some(winner) = Winners::<T>::get(auction_id, winning_block) {
-				let dest = T::Lookup::unlookup(winner.bidder.clone());
-				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
-				pallet_nft::Pallet::<T>::transfer(
-					source,
-					self.general_data.token.0.into(),
-					self.general_data.token.1.into(),
-					dest,
-				)?;
-				<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.bidder);
-				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-					&winner.bidder,
-					&self.general_data.owner,
-					winner.amount,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
-		}
+		Pallet::<T>::unfreeze_nft(&self.general_data)?;
 
 		self.general_data.closed = true;
 
-		Ok(())
+		if Pallet::<T>::is_auction_won(&self.general_data) {
+			let winning_closing_range =
+				Pallet::<T>::choose_random_block_from_range(Zero::zero(), T::CandleDefaultClosingRangesCount::get())?;
+
+			self.specific_data.winning_closing_range = Some(winning_closing_range);
+
+			let mut maybe_winner: Option<T::AccountId> = None;
+			let mut i = winning_closing_range;
+			while i >= One::one() {
+				let bidder = <HighestBiddersByAuctionClosingRange<T>>::get(&auction_id, i);
+
+				if let Some(highest_bidder) = bidder {
+					maybe_winner = Some(highest_bidder);
+					break;
+				}
+
+				i = i.saturating_sub(One::one());
+			}
+
+			match maybe_winner {
+				Some(winner) => {
+					let dest = T::Lookup::unlookup(winner.clone());
+					let source = T::Origin::from(frame_system::RawOrigin::Signed(self.general_data.owner.clone()));
+					pallet_nft::Pallet::<T>::transfer(
+						source,
+						self.general_data.token.0.into(),
+						self.general_data.token.1.into(),
+						dest,
+					)?;
+
+					self.specific_data.winner = Some(winner.clone());
+
+					let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+					let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+					let reserved_amount = <ReservedAmounts<T>>::get(&winner, &auction_id);
+
+					ensure!(
+						reserved_amount > Zero::zero(),
+						Error::<T>::NoReservedAmountAvailableToClaim
+					);
+
+					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+						auction_account,
+						&self.general_data.owner,
+						reserved_amount,
+						ExistenceRequirement::AllowDeath,
+					)?;
+
+					<ReservedAmounts<T>>::remove(&winner, &auction_id);
+
+					// Only one bidder: Auction and related data can be pruned
+					if reserved_amount == auction_balance {
+						destroy_auction_data = true;
+					}
+				}
+				None => return Err(Error::<T>::ErrorDeterminingAuctionWinner.into()),
+			}
+		} else {
+			destroy_auction_data = true;
+		}
+
+		Ok(destroy_auction_data)
 	}
 
-	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
-		Pallet::<T>::validate_create(&self.general_data)?;
-		Pallet::<T>::handle_create(sender, auction, &self.general_data)?;
+	///
+	/// Claims reserved amounts which were bid on a Candle auction
+	/// 
+	fn claim(&self, auction_id: T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> Result<bool, DispatchError> {
+		let mut destroy_auction_data = false;
 
-		Ok(())
+		Pallet::<T>::validate_claim(&self.general_data)?;
+		Pallet::<T>::handle_claim(bidder, auction_id, amount)?;
+
+		let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+		let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+
+		if auction_balance.is_zero() {
+			destroy_auction_data = true;
+		}
+
+		Ok(destroy_auction_data)
 	}
 
-	fn update(&self, sender: T::AccountId, auction_id: T::AuctionId, auction: Auction<T>) -> DispatchResult {
-		self.validate_general_data()?;
-		Pallet::<T>::handle_update(sender, auction_id, auction, &self.general_data)?;
+	///
+	/// Validates general and specific auction data
+	/// 
+	fn validate_data(&self) -> DispatchResult {
+		Pallet::<T>::validate_general_data(&self.general_data)?;
+
+		let default_duration = self
+			.general_data
+			.start
+			.checked_add(&T::BlockNumber::from(T::CandleDefaultDuration::get()))
+			.ok_or(Error::<T>::Overflow)?;
+
+		ensure!(
+			self.general_data.end == default_duration,
+			Error::<T>::CandleAuctionMustHaveDefaultDuration
+		);
+
+		ensure!(
+			self.general_data.reserve_price.is_none(),
+			Error::<T>::CandleAuctionDoesNotSupportReservePrice
+		);
+
+		let closing_period_duration = self
+			.general_data
+			.end
+			.checked_sub(&T::BlockNumber::from(T::CandleDefaultClosingPeriodDuration::get()))
+			.ok_or(Error::<T>::Overflow)?;
+
+		ensure!(
+			self.specific_data.closing_start == closing_period_duration,
+			Error::<T>::CandleAuctionMustHaveDefaultClosingPeriodDuration
+		);
 
 		Ok(())
-	}
-
-	fn validate_general_data(&self) -> DispatchResult {
-		Pallet::<T>::validate_general_data(&self.general_data)
 	}
 }

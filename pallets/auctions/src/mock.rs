@@ -47,7 +47,9 @@ pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
-pub const NFT_CLASS_ID_1: u32 = 1230;
+// Classes reserved up to 999 so available ids starting from 1000
+pub const NFT_CLASS_ID_1: u32 = 1001;
+pub const NFT_INSTANCE_ID_1: u32 = 1;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -77,7 +79,9 @@ parameter_types! {
 	pub const MinAuctionDuration: u32 = 10;
 	pub const BidMinAmount: u32 = 1;
 	pub const AuctionsPalletId: PalletId = PalletId(*b"auctions");
-
+	pub const CandleDefaultDuration: u32 = 99_356;
+	pub const CandleDefaultClosingPeriodDuration: u32 = 72_000;
+	pub const CandleDefaultClosingRangesCount: u32 = 100;
 }
 
 pub struct TestRandomness<T>(sp_std::marker::PhantomData<T>);
@@ -109,6 +113,9 @@ impl pallet_auctions::Config for Test {
 	type MinAuctionDuration = MinAuctionDuration;
 	type BidMinAmount = BidMinAmount;
 	type PalletId = AuctionsPalletId;
+	type CandleDefaultDuration = CandleDefaultDuration;
+	type CandleDefaultClosingPeriodDuration = CandleDefaultClosingPeriodDuration;
+	type CandleDefaultClosingRangesCount = CandleDefaultClosingRangesCount;
 }
 
 parameter_types! {
@@ -223,6 +230,6 @@ pub fn expect_event<E: Into<TestEvent>>(e: E) {
 	assert_eq!(last_event(), e.into());
 }
 
-pub fn run_to_block<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
+pub fn set_block_number<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
 	frame_system::Pallet::<T>::set_block_number(n);
 }
