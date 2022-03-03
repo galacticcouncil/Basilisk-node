@@ -122,6 +122,7 @@ fn valid_candle_specific_data() -> CandleAuctionData<Test> {
 	}
 }
 
+// -------------- English auction tests -------------- //
 /// Creating an English auction
 ///
 /// Happy path
@@ -793,8 +794,6 @@ fn close_english_auction_which_is_already_closed_should_not_work() {
 }
 
 // -------------- TopUp auction tests -------------- //
-// functionality is the same as the English auctions //
-// so handlers and helpers are exempt from testing   //
 ///
 /// Creating a TopUp auction
 ///
