@@ -1,17 +1,20 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
 
-use frame_support::{assert_ok, traits::{OnFinalize, OnInitialize}};
+use frame_support::{
+	assert_ok,
+	traits::{OnFinalize, OnInitialize},
+};
 
-use pallet_price_oracle::{PriceInfo, BucketQueueT};
+use pallet_price_oracle::{BucketQueueT, PriceInfo};
 use pallet_transaction_multi_payment::Price;
 
+use hydradx_traits::{pools::SpotPriceProvider, AMM};
 use orml_traits::currency::MultiCurrency;
-use primitives::asset::AssetPair;
-use xcm_emulator::TestExt;
-use hydradx_traits::{AMM, pools::SpotPriceProvider};
 use pallet_xyk::XYKSpotPrice;
 use polkadot_primitives::v1::BlockNumber;
+use primitives::asset::AssetPair;
+use xcm_emulator::TestExt;
 
 pub fn basilisk_run_to_block(to: BlockNumber) {
 	while basilisk_runtime::System::block_number() < to {
@@ -20,7 +23,7 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 		basilisk_runtime::System::on_finalize(b);
 		basilisk_runtime::PriceOracle::on_finalize(b);
 		basilisk_runtime::MultiTransactionPayment::on_finalize(b);
-		
+
 		basilisk_runtime::System::on_initialize(b + 1);
 		basilisk_runtime::PriceOracle::on_finalize(b);
 		basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
@@ -34,7 +37,6 @@ fn non_native_fee_payment_works() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
-
 		let currency_0 = 0;
 		let currency_1 = 1;
 
@@ -54,24 +56,24 @@ fn non_native_fee_payment_works() {
 			asset_out: currency_1,
 		});
 
-        assert_ok!(basilisk_runtime::Balances::set_balance(
+		assert_ok!(basilisk_runtime::Balances::set_balance(
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
 			2_000_000_000_000 * BSX,
 			0,
 		));
 
-        assert_ok!(basilisk_runtime::Tokens::set_balance(
+		assert_ok!(basilisk_runtime::Tokens::set_balance(
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
-            1,
+			1,
 			2_000_000_000_000 * BSX,
 			0,
 		));
-			
+
 		assert_ok!(basilisk_runtime::XYK::create_pool(
 			basilisk_runtime::Origin::signed(ALICE.into()),
-			currency_0, // 1000 BSX 
+			currency_0, // 1000 BSX
 			currency_1, // 500 KSM (500_000_033_400_002)
 			1_000 * BSX,
 			Price::from_float(0.5),
@@ -93,8 +95,11 @@ fn non_native_fee_payment_works() {
 
 		basilisk_run_to_block(3);
 
-		assert_eq!(basilisk_runtime::XYK::get_pool_assets(&pair_account), Some(vec![currency_0, currency_1]));
-		
+		assert_eq!(
+			basilisk_runtime::XYK::get_pool_assets(&pair_account),
+			Some(vec![currency_0, currency_1])
+		);
+
 		// ------------ DAVE ------------
 		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
 			basilisk_runtime::Origin::signed(DAVE.into()),
@@ -114,28 +119,24 @@ fn non_native_fee_payment_works() {
 				FALLBACK.into(),
 			)
 			.into(),
-			pallet_transaction_multi_payment::Event::CurrencySet(
-				DAVE.into(),
-				1,
-			)
-			.into(),
+			pallet_transaction_multi_payment::Event::CurrencySet(DAVE.into(), 1).into(),
 		]);
 
 		basilisk_run_to_block(11);
 
 		let pair_name = basilisk_runtime::PriceOracle::get_name(currency_0, currency_1);
 		let data_ten = basilisk_runtime::PriceOracle::price_data_ten()
-            .iter()
-            .find(|&x| x.0 == pair_name)
-            .unwrap()
-            .1;
-		
+			.iter()
+			.find(|&x| x.0 == pair_name)
+			.unwrap()
+			.1;
+
 		assert_eq!(
-            data_ten.get_last(),
-            PriceInfo {
-                avg_price: Price::from_inner(535331905781590000),
-                volume: 35_331_905_781_585
-            }
-        );
+			data_ten.get_last(),
+			PriceInfo {
+				avg_price: Price::from_inner(535331905781590000),
+				volume: 35_331_905_781_585
+			}
+		);
 	});
 }
