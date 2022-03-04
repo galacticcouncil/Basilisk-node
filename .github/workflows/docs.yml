@@ -1,0 +1,32 @@
+name: Deploy docs to GitHub pages
+
+on:
+  push:
+    branches:
+      - master
+      - generate_docs
+jobs:
+  generate-and-deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Generate docs
+        run: |
+          cargo doc --workspace --all-features --release --document-private-items --target-dir ./generated_docs
+          cd generated_docs/doc
+          echo '<meta http-equiv="refresh" content="0; url=./basilisk/index.html">' > index.html
+          git init
+          git add -A
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m 'deploy docs'
+      - name: Deploy docs
+        uses: ad-m/github-push-action@v0.5.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          force: true
+          directory: ./generated_docs/doc
