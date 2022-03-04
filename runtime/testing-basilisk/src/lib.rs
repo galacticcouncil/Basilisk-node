@@ -56,7 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, U128CurrencyToVote, InstanceFilter},
+	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -131,8 +131,11 @@ pub fn native_version() -> NativeVersion {
 
 use common_runtime::adapter::OrmlTokensAdapter;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
+use primitives::{
+	nft::{ClassType, NftPermissions},
+	ClassId, InstanceId,
+};
 use smallvec::smallvec;
-use primitives::{nft::{ClassType, NftPermissions}, ClassId, InstanceId};
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
