@@ -44,7 +44,7 @@ fn transfer_from_relay_chain() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			3 * BSX
+			1003 * BSX
 		);
 	});
 }
@@ -129,7 +129,7 @@ fn transfer_from_hydra() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			3 * BSX
+			1003 * BSX
 		);
 	});
 }
@@ -176,6 +176,6 @@ fn transfer_insufficient_amount_should_fail() {
 
 	Basilisk::execute_with(|| {
 		// Xcm should fail therefore nothing should be deposit into beneficiary account
-		assert_eq!(basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)), 0);
+		assert_eq!(basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)), 1000 * BSX);
 	});
 }

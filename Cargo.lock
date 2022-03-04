@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "38.0.0"
+version = "39.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -6458,7 +6458,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.4"
+version = "3.4.5"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8653,7 +8653,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8674,6 +8674,8 @@ dependencies = [
  "getrandom 0.2.4",
  "hash-db",
  "hex-literal",
+ "hydra-dx-math",
+ "hydradx-traits",
  "kusama-runtime",
  "memory-db 0.27.0",
  "orml-currencies",
@@ -8698,6 +8700,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-liquidity-mining-benchmarking",
  "pallet-nft",
+ "pallet-price-oracle",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
@@ -11185,7 +11188,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "38.0.0"
+version = "39.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
