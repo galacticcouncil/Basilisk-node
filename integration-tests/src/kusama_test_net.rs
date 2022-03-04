@@ -155,7 +155,6 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
-
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext
@@ -204,7 +203,6 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		&mut t,
 	)
 	.unwrap();
-
 
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
