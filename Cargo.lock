@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "39.0.0"
+version = "40.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11188,7 +11188,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "39.0.0"
+version = "40.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
