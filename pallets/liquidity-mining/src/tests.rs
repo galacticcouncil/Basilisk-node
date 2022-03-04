@@ -6749,7 +6749,7 @@ fn resume_liquidity_pool_should_work() {
 		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
 		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 
-		let new_multiplier = FixedU128::from(7490_000);
+		let new_multiplier = FixedU128::from(7_490_000);
 
 		assert!(liq_pool.canceled);
 		assert!(liq_pool.stake_in_global_pool.is_zero());
@@ -6816,7 +6816,7 @@ fn resume_liquidity_pool_non_canceled_pool_should_not_work() {
 	};
 
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let new_multiplier = FixedU128::from(7490_000);
+		let new_multiplier = FixedU128::from(7_490_000);
 
 		assert_noop!(
 			LiquidityMining::resume_liquidity_pool(Origin::signed(GC), GC_FARM, bsx_tkn1_assets, new_multiplier),
@@ -6833,7 +6833,7 @@ fn resume_liquidity_pool_not_owner_should_not_work() {
 	};
 
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let new_multiplier = FixedU128::from(7490_000);
+		let new_multiplier = FixedU128::from(7_490_000);
 
 		assert_noop!(
 			LiquidityMining::resume_liquidity_pool(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, new_multiplier),
@@ -7019,6 +7019,7 @@ fn do_claim_rewards_should_work() {
 			canceled: false,
 		};
 
+		#[allow(clippy::type_complexity)]
 		let test_data: [(
 			Deposit<Test>,
 			LiquidityPoolYieldFarm<Test>,
@@ -7053,7 +7054,7 @@ fn do_claim_rewards_should_work() {
 				},
 				LiquidityPoolYieldFarm {
 					loyalty_curve: Some(LoyaltyCurve {
-						initial_reward_percentage: FixedU128::from_float(0.674_651_900_400_000_000_000f64),
+						initial_reward_percentage: FixedU128::from_float(0.674_651_900_4_f64),
 						scale_coef: 360,
 					}),
 					accumulated_rpvs: 10_743,
@@ -7086,7 +7087,7 @@ fn do_claim_rewards_should_work() {
 			Origin::root(),
 			liq_pool_account,
 			BSX,
-			1_000_0000_0000_0000_0000_000,
+			10_000_000_000_000_000_000_000,
 			0
 		));
 
