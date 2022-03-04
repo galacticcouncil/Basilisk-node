@@ -1,9 +1,13 @@
 #![cfg(test)]
 pub use basilisk_runtime::AccountId;
+use pallet_transaction_multi_payment::Price;
 use primitives::Balance;
 
 pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
+pub const CHARLIE: [u8; 32] = [6u8; 32];
+pub const DAVE: [u8; 32] = [7u8; 32];
+pub const FALLBACK: [u8; 32] = [99u8; 32];
 
 pub const BSX: Balance = 1_000_000_000_000;
 
@@ -171,7 +175,12 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
-		balances: vec![(AccountId::from(ALICE), 200 * 1_000_000_000_000)],
+		balances: vec![
+			(AccountId::from(ALICE), 200 * BSX),
+			(AccountId::from(BOB), 1000 * BSX),
+			(AccountId::from(CHARLIE), 1000 * BSX),
+			(AccountId::from(DAVE), 1000 * BSX)
+		],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -192,7 +201,12 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
-		balances: vec![(AccountId::from(ALICE), 1, 200 * 1_000_000_000_000)],
+		balances: vec![
+			(AccountId::from(ALICE), 1, 200 * BSX),
+			(AccountId::from(BOB), 1, 1_000 * BSX),
+			(AccountId::from(CHARLIE), 1, 1000 * BSX),
+			(AccountId::from(DAVE), 1, 1_000 * BSX),
+		],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -205,8 +219,30 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
+	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
+		currencies: vec![(1, Price::from(1))],
+		fallback_account: Some(FALLBACK.into()),
+		account_currencies: vec![],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
 
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext
+}
+
+fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
+	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
+		.into_iter()
+		.rev()
+		.take(n)
+		.rev()
+		.map(|e| e.event)
+		.collect()
+}
+
+pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
+	assert_eq!(last_basilisk_events(e.len()), e);
 }
