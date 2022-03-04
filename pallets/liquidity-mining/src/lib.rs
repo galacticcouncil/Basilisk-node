@@ -123,6 +123,7 @@ pub struct GlobalPool<T: Config> {
 }
 
 impl<T: Config> GlobalPool<T> {
+	#[allow(clippy::too_many_arguments)]
 	fn new(
 		id: GlobalPoolId,
 		updated_at: PeriodOf<T>,
@@ -168,6 +169,7 @@ pub struct LiquidityPoolYieldFarm<T: Config> {
 }
 
 impl<T: Config> LiquidityPoolYieldFarm<T> {
+	#[allow(clippy::too_many_arguments)]
 	fn new(
 		id: PoolId,
 		updated_at: PeriodOf<T>,
@@ -557,6 +559,7 @@ pub mod pallet {
 		/// - `yield_per_period`: percentage return on `reward_currency` of all pools p.a.
 		///
 		/// Emits `FarmCreated` event when successful.
+		#[allow(clippy::too_many_arguments)]
 		#[pallet::weight(<T as Config>::WeightInfo::create_farm())]
 		#[transactional]
 		pub fn create_farm(
