@@ -159,7 +159,6 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
-
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext
@@ -179,7 +178,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			(AccountId::from(ALICE), 200 * BSX),
 			(AccountId::from(BOB), 1000 * BSX),
 			(AccountId::from(CHARLIE), 1000 * BSX),
-			(AccountId::from(DAVE), 1000 * BSX)
+			(AccountId::from(DAVE), 1000 * BSX),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -226,7 +225,6 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
-
 
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));

@@ -176,6 +176,9 @@ fn transfer_insufficient_amount_should_fail() {
 
 	Basilisk::execute_with(|| {
 		// Xcm should fail therefore nothing should be deposit into beneficiary account
-		assert_eq!(basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)), 1000 * BSX);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			1000 * BSX
+		);
 	});
 }
