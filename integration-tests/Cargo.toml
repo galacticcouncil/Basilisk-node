@@ -77,7 +77,7 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "relea
 polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "main", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false, optional = true }
