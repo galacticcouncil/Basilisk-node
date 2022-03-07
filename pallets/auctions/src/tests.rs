@@ -24,13 +24,14 @@ macro_rules! bvec {
 		vec![$( $x )*].try_into().unwrap()
 	}
 }
-pub fn new_test_ext() -> sp_io::TestExternalities {
+
+fn new_test_ext() -> sp_io::TestExternalities {
   let mut ext = ExtBuilder::default().build();
   ext.execute_with(|| set_block_number::<Test>(1));
   ext
 }
 
-pub fn predefined_test_ext() -> sp_io::TestExternalities {
+fn predefined_test_ext() -> sp_io::TestExternalities {
   let mut ext = new_test_ext();
 
   ext.execute_with(|| {
@@ -46,11 +47,11 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
   ext
 }
 
-pub fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, AuctionsStringLimit>, Error<Test>> {
+fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, AuctionsStringLimit>, Error<Test>> {
   name.try_into().map_err(|_| Error::<Test>::TooLong)
 }
 
-pub fn valid_general_auction_data() -> GeneralAuctionData<Test> {
+fn valid_general_auction_data() -> GeneralAuctionData<Test> {
 	GeneralAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		reserve_price: None,
@@ -65,7 +66,7 @@ pub fn valid_general_auction_data() -> GeneralAuctionData<Test> {
 }
 
 /// English auction tests
-pub fn english_auction_object(general_data: GeneralAuctionData<Test>, specific_data: EnglishAuctionData) -> Auction<Test> {
+fn english_auction_object(general_data: GeneralAuctionData<Test>, specific_data: EnglishAuctionData) -> Auction<Test> {
 	let auction_data = EnglishAuction {
 		general_data,
 		specific_data,
@@ -74,12 +75,12 @@ pub fn english_auction_object(general_data: GeneralAuctionData<Test>, specific_d
 	Auction::English(auction_data)
 }
 
-pub fn valid_english_specific_data() -> EnglishAuctionData {
+fn valid_english_specific_data() -> EnglishAuctionData {
 	EnglishAuctionData {}
 }
 
 /// TopUp auction tests
-pub fn topup_auction_object(general_data: GeneralAuctionData<Test>, specific_data: TopUpAuctionData) -> Auction<Test> {
+fn topup_auction_object(general_data: GeneralAuctionData<Test>, specific_data: TopUpAuctionData) -> Auction<Test> {
 	let auction_data = TopUpAuction {
 		general_data,
 		specific_data,
@@ -88,20 +89,20 @@ pub fn topup_auction_object(general_data: GeneralAuctionData<Test>, specific_dat
 	Auction::TopUp(auction_data)
 }
 
-pub fn valid_topup_specific_data() -> TopUpAuctionData {
+fn valid_topup_specific_data() -> TopUpAuctionData {
 	TopUpAuctionData {}
 }
 
-pub fn bid_object(amount: BalanceOf<Test>, block_number: <Test as frame_system::Config>::BlockNumber) -> Bid<Test> {
+fn bid_object(amount: BalanceOf<Test>, block_number: <Test as frame_system::Config>::BlockNumber) -> Bid<Test> {
 	Bid { amount, block_number }
 }
 
-pub fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) -> AccountId32 {
+fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) -> AccountId32 {
 	<Test as pallet::Config>::PalletId::get().into_sub_account(("ac", auction_id))
 }
 
 /// Candle auction tests
-pub fn candle_auction_object(general_data: GeneralAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
+fn candle_auction_object(general_data: GeneralAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
 	let auction_data = CandleAuction {
 		general_data,
 		specific_data,
@@ -110,7 +111,7 @@ pub fn candle_auction_object(general_data: GeneralAuctionData<Test>, specific_da
 	Auction::Candle(auction_data)
 }
 
-pub fn valid_candle_general_auction_data() -> GeneralAuctionData<Test> {
+fn valid_candle_general_auction_data() -> GeneralAuctionData<Test> {
 	GeneralAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		reserve_price: None,
@@ -124,7 +125,7 @@ pub fn valid_candle_general_auction_data() -> GeneralAuctionData<Test> {
 	}
 }
 
-pub fn valid_candle_specific_data() -> CandleAuctionData<Test> {
+fn valid_candle_specific_data() -> CandleAuctionData<Test> {
 	CandleAuctionData {
 		closing_start: 27_366,
 		winner: None,
