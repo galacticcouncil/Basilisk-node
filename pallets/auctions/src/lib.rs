@@ -968,9 +968,6 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 		self.general_data.closed = true;
 
-		// Auction and related data can be pruned
-		// self.destroy(auction_id)?;
-
 		Ok(true)
 	}
 
