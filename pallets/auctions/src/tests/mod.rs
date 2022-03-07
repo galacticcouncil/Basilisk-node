@@ -8,15 +8,12 @@ use sp_std::convert::TryInto;
 pub type AuctionsModule = Pallet<Test>;
 
 #[cfg(test)]
-#[path = "tests/english_tests.rs"]
 mod english_tests;
 
 #[cfg(test)]
-#[path = "tests/topup_tests.rs"]
 mod topup_tests;
 
 #[cfg(test)]
-#[path = "tests/candle_tests.rs"]
 mod candle_tests;
 
 macro_rules! bvec {
