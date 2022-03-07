@@ -106,9 +106,9 @@ fn non_native_fee_payment_works() {
 			currency_1,
 		));
 
-		//let dave_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(DAVE));
-		//let expected_diff = 344_454_200_415;
-		//assert_eq!(dave_balance, bob_balance - expected_diff);
+		let dave_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(DAVE));
+		let expected_diff = 197_453_601_724;
+		assert_eq!(dave_balance, bob_balance + expected_diff);
 
 		expect_basilisk_events(vec![
 			pallet_transaction_multi_payment::Event::FeeWithdrawn(
