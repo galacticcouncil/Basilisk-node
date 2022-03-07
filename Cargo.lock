@@ -3211,7 +3211,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.5.0"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=polkadot-v0.9.16#d250a168ff2f16ce2101dde72a6d9471d2b1aaf1"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=809dfcd05861bddc49581fa753fb353f53709000#809dfcd05861bddc49581fa753fb353f53709000"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5688,7 +5688,7 @@ dependencies = [
 [[package]]
 name = "pallet-faucet"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=polkadot-v0.9.16#d250a168ff2f16ce2101dde72a6d9471d2b1aaf1"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=809dfcd05861bddc49581fa753fb353f53709000#809dfcd05861bddc49581fa753fb353f53709000"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6022,7 +6022,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.2.1"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=polkadot-v0.9.16#d250a168ff2f16ce2101dde72a6d9471d2b1aaf1"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=809dfcd05861bddc49581fa753fb353f53709000#809dfcd05861bddc49581fa753fb353f53709000"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6067,7 +6067,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.2.0"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=polkadot-v0.9.16#d250a168ff2f16ce2101dde72a6d9471d2b1aaf1"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=809dfcd05861bddc49581fa753fb353f53709000#809dfcd05861bddc49581fa753fb353f53709000"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6242,8 +6242,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "7.0.0"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=polkadot-v0.9.16#d250a168ff2f16ce2101dde72a6d9471d2b1aaf1"
+version = "7.0.1"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=809dfcd05861bddc49581fa753fb353f53709000#809dfcd05861bddc49581fa753fb353f53709000"
 dependencies = [
  "frame-support",
  "frame-system",
