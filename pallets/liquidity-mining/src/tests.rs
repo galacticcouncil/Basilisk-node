@@ -474,7 +474,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
-			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
 			nft_instance_id: PREDEFINED_NFT_IDS[0],
 		})]);
 
@@ -497,7 +497,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: BOB,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
-			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
 			nft_instance_id: PREDEFINED_NFT_IDS[1],
 		})]);
 
@@ -520,7 +520,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
-			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
 			nft_instance_id: PREDEFINED_NFT_IDS[2],
 		})]);
 
@@ -544,7 +544,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
-			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
 			nft_instance_id: PREDEFINED_NFT_IDS[3],
 		})]);
 
@@ -568,7 +568,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
-			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
 			nft_instance_id: PREDEFINED_NFT_IDS[4],
 		})]);
 
@@ -592,7 +592,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
-			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
 			nft_instance_id: PREDEFINED_NFT_IDS[5],
 		})]);
 
@@ -616,7 +616,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
-			nft_class: LIQ_MINING_NFT_CLASS,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
 			nft_instance_id: PREDEFINED_NFT_IDS[6],
 		})]);
 
@@ -3268,7 +3268,7 @@ fn deposit_shares_should_work() {
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
-				nft_class: LIQ_MINING_NFT_CLASS,
+				nft_class_id: LIQ_MINING_NFT_CLASS,
 				nft_instance_id: PREDEFINED_NFT_IDS[0],
 			}),
 		]);
@@ -3364,7 +3364,7 @@ fn deposit_shares_should_work() {
 				who: BOB,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
-				nft_class: LIQ_MINING_NFT_CLASS,
+				nft_class_id: LIQ_MINING_NFT_CLASS,
 				nft_instance_id: PREDEFINED_NFT_IDS[1],
 			}),
 		]);
@@ -3463,7 +3463,7 @@ fn deposit_shares_should_work() {
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
-				nft_class: LIQ_MINING_NFT_CLASS,
+				nft_class_id: LIQ_MINING_NFT_CLASS,
 				nft_instance_id: PREDEFINED_NFT_IDS[2],
 			}),
 		]);
@@ -3567,7 +3567,7 @@ fn deposit_shares_should_work() {
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
-				nft_class: LIQ_MINING_NFT_CLASS,
+				nft_class_id: LIQ_MINING_NFT_CLASS,
 				nft_instance_id: PREDEFINED_NFT_IDS[3],
 			}),
 		]);
@@ -3669,7 +3669,7 @@ fn deposit_shares_should_work() {
 				who: ALICE,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: 87,
-				nft_class: LIQ_MINING_NFT_CLASS,
+				nft_class_id: LIQ_MINING_NFT_CLASS,
 				nft_instance_id: PREDEFINED_NFT_IDS[4],
 			}),
 		]);
@@ -3770,7 +3770,7 @@ fn deposit_shares_should_work() {
 				who: ALICE,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
-				nft_class: LIQ_MINING_NFT_CLASS,
+				nft_class_id: LIQ_MINING_NFT_CLASS,
 				nft_instance_id: PREDEFINED_NFT_IDS[5],
 			}),
 		]);
@@ -3870,7 +3870,7 @@ fn deposit_shares_should_work() {
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
-				nft_class: LIQ_MINING_NFT_CLASS,
+				nft_class_id: LIQ_MINING_NFT_CLASS,
 				nft_instance_id: PREDEFINED_NFT_IDS[6],
 			}),
 		]);
@@ -7179,10 +7179,10 @@ fn get_next_nft_id_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::get_next_nft_id(u32::max_value()),
-			Error::<Test>::NftIdOwerflow
+			Error::<Test>::NftIdOverflow
 		);
 
-		assert_noop!(LiquidityMining::get_next_nft_id(1), Error::<Test>::NftIdOwerflow);
+		assert_noop!(LiquidityMining::get_next_nft_id(1), Error::<Test>::NftIdOverflow);
 	});
 }
 

@@ -70,6 +70,9 @@ type PoolMultiplier = FixedU128;
 //This value is result of: u128::from_le_bytes([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0])
 //This is necessary because first 4 bytes of NftInstanceIdOf (u128) is reserved to encode liq_pool_id (u32) into NftInstanceIdOf.
 const MAX_NFT_INSTANCE_SEQUENCER: u128 = 79_228_162_514_264_337_593_543_950_335;
+//consts bellow are use to necode/decode liq. pool into/from NftInstanceId.
+const POOL_ID_BYTES: usize = 4;
+const NFT_SEQUENCE_BYTES: usize = 12;
 
 use frame_support::{
 	ensure,
@@ -94,8 +97,7 @@ use hydradx_traits::AMM;
 use scale_info::TypeInfo;
 use sp_std::convert::{From, Into, TryInto};
 
-use primitives::nft::ClassType;
-use primitives::{asset::AssetPair, Balance};
+use primitives::{asset::AssetPair, nft::ClassType, Balance};
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
@@ -353,7 +355,7 @@ pub mod pallet {
 		NftDoesNotExist,
 
 		/// Max number of nft id was reached.
-		NftIdOwerflow,
+		NftIdOverflow,
 
 		/// Nft id is not valid.
 		InvalidNftId,
@@ -370,7 +372,7 @@ pub mod pallet {
 		/// Account is not deposit owner.
 		NotDepositOwner,
 
-		/// Can't determine deposit owner.
+		/// Nft pallet didn't return an owner.
 		CantFindDepositOwner,
 
 		/// Multiple claims in the same period is not allowed.
@@ -415,7 +417,7 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			amount: Balance,
 			lp_token: T::CurrencyId,
-			nft_class: NftClassIdOf<T>,
+			nft_class_id: NftClassIdOf<T>,
 			nft_instance_id: NftInstanceIdOf<T>,
 		},
 
@@ -555,7 +557,7 @@ pub mod pallet {
 		/// - `incentivized_asset`: asset to be incentivized in AMM pools. All liq. pools added into
 		/// liq. mining program have to have `incentivized_asset` in their pair.
 		/// - `reward_currency`: payoff currency of rewards.
-		/// - `owner`: liq. mining owner.
+		/// - `owner`: liq. mining farm owner.
 		/// - `yield_per_period`: percentage return on `reward_currency` of all pools p.a.
 		///
 		/// Emits `FarmCreated` event when successful.
@@ -1037,13 +1039,13 @@ pub mod pallet {
 						let global_pool_account = Self::pool_account_id(global_pool.id)?;
 						let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
 
-						let unpaid_rew =
+						let unpaid_reward =
 							T::MultiCurrency::total_balance(global_pool.reward_currency, &liq_pool_account);
 						T::MultiCurrency::transfer(
 							global_pool.reward_currency,
 							&liq_pool_account,
 							&global_pool_account,
-							unpaid_rew,
+							unpaid_reward,
 						)?;
 
 						if let Some((_, nfts_in_class, _)) = Self::liq_pool_meta(liq_pool.id) {
@@ -1170,7 +1172,7 @@ pub mod pallet {
 						who,
 						amount: shares_amount,
 						lp_token: amm_share_token,
-						nft_class: T::NftClass::get(),
+						nft_class_id: T::NftClass::get(),
 						nft_instance_id: nft_id,
 					});
 
@@ -1446,12 +1448,12 @@ impl<T: Config> Pallet<T> {
 		NftInstanceSequencer::<T>::try_mutate(|current_id| {
 			*current_id = current_id.checked_add(1).ok_or(Error::<T>::Overflow)?;
 
-			ensure!(MAX_NFT_INSTANCE_SEQUENCER.ge(current_id), Error::<T>::NftIdOwerflow);
+			ensure!(MAX_NFT_INSTANCE_SEQUENCER.ge(current_id), Error::<T>::NftIdOverflow);
 
-			let mut id_bytes: [u8; 16] = [0; 16];
+			let mut id_bytes: [u8; POOL_ID_BYTES + NFT_SEQUENCE_BYTES] = [0; POOL_ID_BYTES + NFT_SEQUENCE_BYTES];
 
-			id_bytes[..4].copy_from_slice(&liq_pool_id.to_le_bytes());
-			id_bytes[4..].copy_from_slice(&current_id.to_le_bytes()[..12]);
+			id_bytes[..POOL_ID_BYTES].copy_from_slice(&liq_pool_id.to_le_bytes());
+			id_bytes[POOL_ID_BYTES..].copy_from_slice(&current_id.to_le_bytes()[..NFT_SEQUENCE_BYTES]);
 
 			Ok(u128::from_le_bytes(id_bytes))
 		})
@@ -1459,12 +1461,12 @@ impl<T: Config> Pallet<T> {
 
 	/// This function return decoded liq. pool id from `NftInstanceIdOf<T>`
 	fn get_pool_id_from_nft_id(nft_id: NftInstanceIdOf<T>) -> Result<PoolId, Error<T>> {
-		//largest invalid nft id
+		//4_294_967_296(largest invalid nft id) = encoded NftInstanceId from (1,1) - 1
 		ensure!(4_294_967_296_u128.lt(&nft_id), Error::<T>::InvalidNftId);
 
-		let mut pool_id_bytes = [0; 4];
+		let mut pool_id_bytes = [0; POOL_ID_BYTES];
 
-		pool_id_bytes.copy_from_slice(&nft_id.to_le_bytes()[..4]);
+		pool_id_bytes.copy_from_slice(&nft_id.to_le_bytes()[..POOL_ID_BYTES]);
 
 		Ok(PoolId::from_le_bytes(pool_id_bytes))
 	}
