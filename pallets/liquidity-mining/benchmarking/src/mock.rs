@@ -26,11 +26,13 @@ use frame_system as system;
 use frame_system::EnsureSigned;
 use hydradx_traits::AssetPairAccountIdFor;
 use orml_traits::parameter_type_with_key;
-use primitives::nft::{ClassType, NftPermissions};
-use primitives::ReserveIdentifier;
 use primitives::{
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	Amount, AssetId, Balance,
+	constants::{
+		chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+		currency::NATIVE_EXISTENTIAL_DEPOSIT,
+	},
+	nft::{ClassType, NftPermissions},
+	Amount, AssetId, Balance, ReserveIdentifier,
 };
 use sp_core::H256;
 use sp_runtime::{
@@ -38,7 +40,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 };
 
-use primitives::constants::currency::NATIVE_EXISTENTIAL_DEPOSIT;
+pub const UNITS: Balance = 1_000_000_000_000;
 
 pub type AccountId = u128;
 pub type BlockNumber = u64;
@@ -50,11 +52,7 @@ pub const DAVE: AccountId = 4;
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
 pub const BSX: AssetId = 1000;
-pub const _HDX: AssetId = 2000;
-pub const _ACA: AssetId = 3000;
 pub const KSM: AssetId = 4000;
-pub const _DOT: AssetId = 5000;
-pub const _ETH: AssetId = 6000;
 
 pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 1;
 
@@ -179,14 +177,14 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 0; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 0; // 1/100 UNIT deposit to create asset instance
-	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
-	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
-	pub const UniquesMetadataDepositBase: Balance = 0;
-	pub const AttributeDepositBase: Balance = 0;
-	pub const DepositPerByte: Balance = 0;
-	pub const UniquesStringLimit: u32 = 128;
+	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
+	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
+	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
+	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
+	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
+	pub const AttributeDepositBase: Balance = 10 * UNITS;
+	pub const DepositPerByte: Balance = UNITS;
+	pub const UniquesStringLimit: u32 = 60;
 }
 
 impl pallet_uniques::Config for Test {

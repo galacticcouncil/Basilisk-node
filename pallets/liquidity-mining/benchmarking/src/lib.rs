@@ -497,24 +497,8 @@ benchmarks! {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
-	use crate::mock::{new_test_ext, Test};
-	use frame_support::assert_ok;
+	use super::Pallet;
+	use frame_benchmarking::impl_benchmark_test_suite;
 
-	#[test]
-	fn test_benchmarks() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_create_farm());
-			assert_ok!(Pallet::<Test>::test_benchmark_destroy_farm());
-			assert_ok!(Pallet::<Test>::test_benchmark_withdraw_undistributed_rewards());
-			assert_ok!(Pallet::<Test>::test_benchmark_add_liquidity_pool());
-			assert_ok!(Pallet::<Test>::test_benchmark_update_liquidity_pool());
-			assert_ok!(Pallet::<Test>::test_benchmark_cancel_liquidity_pool());
-			assert_ok!(Pallet::<Test>::test_benchmark_remove_liquidity_pool());
-			assert_ok!(Pallet::<Test>::test_benchmark_deposit_shares());
-			assert_ok!(Pallet::<Test>::test_benchmark_claim_rewards());
-			assert_ok!(Pallet::<Test>::test_benchmark_withdraw_shares());
-			assert_ok!(Pallet::<Test>::test_benchmark_resume_liquidity_pool());
-		});
-	}
+	impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);
 }

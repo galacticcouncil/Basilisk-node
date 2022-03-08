@@ -1265,7 +1265,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.6.2"
+version = "1.7.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8653,7 +8653,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.7"
+version = "0.3.0"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
