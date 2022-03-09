@@ -200,6 +200,7 @@ pub mod destroy_farm;
 pub mod remove_liquidity_pool;
 pub mod resume_liquidity_pool;
 pub mod test_ext;
+#[allow(clippy::module_inception)]
 pub mod tests;
 pub mod update_liquidity_pool;
 pub mod withdraw_shares;
