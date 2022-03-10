@@ -8,13 +8,13 @@ use sp_std::convert::TryInto;
 pub type AuctionsModule = Pallet<Test>;
 
 #[cfg(test)]
-mod english_tests;
+mod english;
 
 #[cfg(test)]
-mod topup_tests;
+mod topup;
 
 #[cfg(test)]
-mod candle_tests;
+mod candle;
 
 macro_rules! bvec {
 	($( $x:tt )*) => {
