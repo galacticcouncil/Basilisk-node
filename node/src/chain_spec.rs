@@ -430,7 +430,7 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 		// Name
 		"Basilisk testnet",
 		// ID
-		"basilisk_karura",
+		"basilisk_karura_testnet",
 		ChainType::Live,
 		move || {
 			testnet_parachain_genesis(
@@ -443,11 +443,11 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 					(
 						// 5HNkDbx2F9TbE9hGoY1TxxzEM4oZPAzisUmVNwjxjaShhtaf
 						hex!["eaef883d17243a8f4622bd22be73a51b0ed635066063a402d5c65b55e391486d"].into(),
-						hex!["24bcc906635829a590fe47491340b3701ed8b7f8b81c18b4feff00e8dbea0072"].unchecked_into(),
+						hex!["eaef883d17243a8f4622bd22be73a51b0ed635066063a402d5c65b55e391486d"].unchecked_into(),
 					),
 					(
 						// 5CtsfM2uXEbFPmL3uMrg4fPC8LkmANCVVXFQxmUGKU2CmBmB
-						hex!["eaef883d17243a8f4622bd22be73a51b0ed635066063a402d5c65b55e391486d"].into(),
+						hex!["24bcc906635829a590fe47491340b3701ed8b7f8b81c18b4feff00e8dbea0072"].into(),
 						hex!["24bcc906635829a590fe47491340b3701ed8b7f8b81c18b4feff00e8dbea0072"].unchecked_into(),
 					),
 				],
@@ -469,10 +469,10 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 		},
 		// Bootnodes
 		vec![
-			"/dns/p2p-01.basilisk-karura.hydradx.io/tcp/30333/p2p/12D3KooWK7h9waDaJsiBGkqMMVNzK3V8xaxXgzrJd8FUaoTU3Kqk"
+			"/dns/p2p-01.basilisk-karura-testnet.hydradx.io/tcp/30333/p2p/12D3KooWK7h9waDaJsiBGkqMMVNzK3V8xaxXgzrJd8FUaoTU3Kqk"
 				.parse()
 				.unwrap(),
-			"/dns/p2p-02.basilisk-karura.hydradx.io/tcp/30333/p2p/12D3KooWHCHDhVJEZcw8jjyx6e1cKCUyfS4QrSXFmzfDX8eB79SC"
+			"/dns/p2p-02.basilisk-karura-testnet.hydradx.io/tcp/30333/p2p/12D3KooWHCHDhVJEZcw8jjyx6e1cKCUyfS4QrSXFmzfDX8eB79SC"
 				.parse()
 				.unwrap()
 		],
