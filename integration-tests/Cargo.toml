@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.3.0"
+version = "0.2.7"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -29,8 +29,6 @@ pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../pallets/nft", default-features = false }
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
-pallet-liquidity-mining = { path = "../pallets/liquidity-mining", default-features=false}
-pallet-liquidity-mining-benchmarking = { path = "../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
 
 primitives = { default-features = false, path = "../primitives" }
 
@@ -188,5 +186,4 @@ std = [
     "basilisk-runtime/std",
     "hydradx-traits/std",
     "pallet-price-oracle/std",
-    "pallet-liquidity-mining/std",
 ]

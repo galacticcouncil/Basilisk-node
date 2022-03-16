@@ -8653,7 +8653,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.3.0"
+version = "0.2.7"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8697,8 +8697,6 @@ dependencies = [
  "pallet-exchange",
  "pallet-exchange-benchmarking",
  "pallet-lbp",
- "pallet-liquidity-mining",
- "pallet-liquidity-mining-benchmarking",
  "pallet-nft",
  "pallet-price-oracle",
  "pallet-scheduler",
