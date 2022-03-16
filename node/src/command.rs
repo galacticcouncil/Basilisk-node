@@ -54,6 +54,7 @@ fn load_spec(id: &str, is_testing: bool) -> std::result::Result<Box<dyn sc_servi
 			"rococo" => Box::new(chain_spec::rococo_parachain_config()?),
 			"local" => Box::new(chain_spec::local_parachain_config()?),
 			"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
+			"karura-testnet" => Box::new(chain_spec::karura_testnet_parachain_config()?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
 	}
@@ -119,6 +120,7 @@ impl SubstrateCli for Cli {
 				"local" => Box::new(chain_spec::local_parachain_config()?),
 				"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
 				"rococo" => Box::new(chain_spec::rococo_parachain_config()?),
+				"karura-testnet" => Box::new(chain_spec::karura_testnet_parachain_config()?),
 				path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 			})
 		}
