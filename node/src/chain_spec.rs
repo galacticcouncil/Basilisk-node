@@ -340,7 +340,6 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 }
 
 pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
-	let para_id = 2038;
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -378,7 +377,7 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 					hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].into(), // collator-02
 				],
 				true,
-				para_id.into(),
+				PARA_ID.into(),
 				//technical committee
 				vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()], // same as sudo
 				vec![],
@@ -415,7 +414,7 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo".into(),
-			para_id,
+			para_id: PARA_ID,
 		},
 	))
 }
