@@ -56,6 +56,10 @@ impl pallet_marketplace::Config for Test {
 	type RoyaltyBondAmount = RoyaltyBondAmount;
 }
 
+parameter_types! {
+	pub ReserveClassIdUpTo: u32 = 999;
+}
+
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
@@ -65,6 +69,7 @@ impl pallet_nft::Config for Test {
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {
@@ -108,6 +113,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -145,8 +151,9 @@ pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 
 pub const UNITS: Balance = 100_000_000_000;
 
-pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 0;
-pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1;
+pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 1000;
+pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1001;
+pub const CLASS_ID_2: <Test as pallet_uniques::Config>::ClassId = 1002;
 
 pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
 pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;

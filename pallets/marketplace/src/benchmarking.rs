@@ -31,7 +31,8 @@ fn unit(d: u32) -> u128 {
 }
 
 fn create_class_and_mint<T: Config>(
-	class_id: u32,
+	class_id: T::NftClassId,
+	instance_id: T::NftInstanceId,
 ) -> (
 	T::AccountId,
 	T::AccountId,
@@ -47,23 +48,19 @@ fn create_class_and_mint<T: Config>(
 
 	assert!(NFT::Pallet::<T>::create_class(
 		RawOrigin::Signed(caller.clone()).into(),
+		class_id,
 		Default::default(),
 		metadata.clone()
 	)
 	.is_ok());
 
-	assert!(NFT::Pallet::<T>::mint(
-		RawOrigin::Signed(caller.clone()).into(),
-		class_id.into(),
-		metadata.clone()
-	)
-	.is_ok());
+	assert!(NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, instance_id, metadata.clone()).is_ok());
 	(caller, caller2, caller_lookup, metadata)
 }
 
 benchmarks! {
 	buy {
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0);
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
 		Marketplace::<T>::set_price(RawOrigin::Signed(caller).into(), 0u16.into(), 0u16.into(), Some(u32::max_value().into()))?;
 	}: _(RawOrigin::Signed(caller2.clone()), 0u16.into(), 0u16.into())
 	verify {
@@ -71,14 +68,14 @@ benchmarks! {
 	}
 
 	set_price {
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0);
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), Some(u32::max_value().into()))
 	verify {
 		assert_eq!(Marketplace::<T>::prices(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)), Some(u32::max_value().into()))
 	}
 
 	make_offer {
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0);
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
 	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), unit(1_000).saturated_into(), 666u32.into())
 	verify {
 		assert_eq!(
@@ -89,7 +86,7 @@ benchmarks! {
 
 	withdraw_offer {
 		let caller2 = create_account::<T>("caller2", 0);
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0);
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
 		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), 0u32.into(), 0u32.into(), unit(1_000).saturated_into(), 666u32.into())?;
 	}: _(RawOrigin::Signed(caller2.clone()), 0u32.into(), 0u32.into(), caller2.clone())
 	verify {
@@ -101,7 +98,7 @@ benchmarks! {
 
 	accept_offer {
 		let caller2 = create_account::<T>("caller2", 0);
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0);
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
 		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), 0u32.into(), 0u32.into(), unit(1_000).saturated_into(), 666u32.into())?;
 	}: _(RawOrigin::Signed(caller), 0u32.into(), 0u32.into(), caller2.clone())
 	verify {

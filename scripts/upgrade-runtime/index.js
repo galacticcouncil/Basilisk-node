@@ -47,7 +47,7 @@ async function main() {
       sections.includes(section)
     )
     .forEach(({event: {data, method, section}}) =>
-      console.log(`event ${section}.${method}`,data.toHuman())
+      console.log(`event ${section}.${method}`,data.toString())
     ));
 
   const onEvent = (event, callback) => api.query.system.events(events => events
@@ -64,7 +64,7 @@ async function main() {
   console.log(`connected to ${chain} ${nodeVersion}`);
   console.log(`current runtime version ${specVersion}`);
 
-  assert.equal(hdxAddress(sudoKey), hdxAddress(from.addressRaw), `imported account doesn't match sudo key`);
+  assert.equal(hdxAddress(sudoKey.unwrap()), hdxAddress(from.addressRaw), `imported account doesn't match sudo key`);
   const setCode = api.tx.system.setCode(code);
   const sudo = api.tx.sudo.sudoUncheckedWeight(setCode, 100);
 

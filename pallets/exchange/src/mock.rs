@@ -31,12 +31,11 @@ use pallet_xyk as xyk;
 
 use frame_support::traits::{Everything, GenesisBuild, Get};
 use frame_system::EnsureSigned;
+use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
-	fee,
 	AssetId, Balance,
 };
-use hydradx_traits::AssetPairAccountIdFor;
 use std::cell::RefCell;
 
 pub type Amount = i128;
@@ -88,7 +87,7 @@ parameter_types! {
 
 	pub const HDXAssetId: AssetId = HDX;
 
-	pub ExchangeFeeRate: fee::Fee = fee::Fee::default();
+	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
 
 	pub RegistryStringLimit: u32 = 100;
 }
@@ -116,6 +115,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_type_with_key! {

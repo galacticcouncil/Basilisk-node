@@ -47,6 +47,7 @@ pub mod pallet {
 	const RESERVE_ID: ReserveIdentifier = ReserveIdentifier::Marketplace;
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
@@ -126,7 +127,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(
-				pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id) == Some(sender.clone()),
+				pallet_nft::Pallet::<T>::owner(class_id, instance_id) == Some(sender.clone()),
 				Error::<T>::NotTheTokenOwner
 			);
 
@@ -205,7 +206,7 @@ pub mod pallet {
 			Offers::<T>::try_mutate_exists(token_id, maker, |maybe_offer| -> DispatchResult {
 				let offer = maybe_offer.take().ok_or(Error::<T>::UnknownOffer)?;
 
-				let owner = pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id)
+				let owner = pallet_nft::Pallet::<T>::owner(class_id, instance_id)
 					.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
 				ensure!(
@@ -281,7 +282,7 @@ pub mod pallet {
 				Error::<T>::RoyaltyAlreadySet
 			);
 			ensure!(royalty <= 100, Error::<T>::NotInRange);
-			let owner = pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id)
+			let owner = pallet_nft::Pallet::<T>::owner(class_id, instance_id)
 				.ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);
 
@@ -366,7 +367,7 @@ impl<T: Config> Pallet<T> {
 		is_offer: bool,
 	) -> DispatchResult {
 		let owner =
-			pallet_nft::Pallet::<T>::instance_owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+			pallet_nft::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
