@@ -38,16 +38,13 @@
 //!
 //! Reward per one period is derived from the user's loyalty factor which grows with time(periods)
 //! the user is in the liq. mining and amount of LP shares user locked into deposit.
-//! User's loyalty factor is reseted if the user exits and reenters liq. mining pool.
-//! User can claim rewards without penalties(loyalty factor is no reseted), only withdrawing shares
+//! User's loyalty factor is reset if the user exits and reenters liquidity mining pool.
+//! User can claim rewards without resetting loyalty factor, only withdrawing shares
 //! is penalized by loyalty factor reset.
-//! User is rewarded from the next period he enters.
+//! User is rewarded from the next period after he enters.
 //!
-//! User's deposit in liq. mining pool is represented by NFT which is minted for the user when he
+//! User deposit in liquidity mining pool is represented by an NFT which is minted for the user when he
 //! enters liq. mining and is burned when he exits. NFT representing deposit is tradable.
-
-// TODO:
-// add to docs blocks are related to relay chain blocks
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
@@ -70,7 +67,7 @@ type PoolMultiplier = FixedU128;
 //This value is result of: u128::from_le_bytes([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0])
 //This is necessary because first 4 bytes of NftInstanceIdOf (u128) is reserved to encode liq_pool_id (u32) into NftInstanceIdOf.
 const MAX_NFT_INSTANCE_SEQUENCER: u128 = 79_228_162_514_264_337_593_543_950_335;
-//consts bellow are use to necode/decode liq. pool into/from NftInstanceId.
+//consts bellow are use to encode/decode liq. pool into/from NftInstanceId.
 const POOL_ID_BYTES: usize = 4;
 const NFT_SEQUENCE_BYTES: usize = 12;
 
@@ -106,6 +103,9 @@ type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 pub type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
 pub type NftInstanceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
 
+/// This struct represents the state a of single liquidity mining program. `LiquidityPoolYieldFarm`s are rewarded from
+/// `GlobalPool` based on their stake in `GlobalPool`. `LiquidityPoolYieldFarm` stake in `GlobalPool` is derived from
+/// users stake in `LiquidityPoolYieldFarm`.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, RuntimeDebugNoBound, TypeInfo)]
 pub struct GlobalPool<T: Config> {
 	id: GlobalPoolId,
@@ -481,7 +481,7 @@ pub mod pallet {
 			multiplier: PoolMultiplier,
 		},
 
-		/// Farm's `accumulated_rpz` was updated.
+		/// Farm's(`GlobalPool`) accumulated reward per share was updated.
 		FarmAccRPZUpdated {
 			farm_id: GlobalPoolId,
 			accumulated_rpz: Balance,
@@ -519,7 +519,7 @@ pub mod pallet {
 		Twox64Concat,
 		GlobalPoolId,
 		Twox64Concat,
-		AccountIdOf<T>, //amm_pool_id   //TODO: create alias amm_pool_id
+		AccountIdOf<T>,
 		LiquidityPoolYieldFarm<T>,
 		OptionQuery,
 	>;
@@ -546,7 +546,7 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `origin`: account allowed to create new liq. mining program.
-		/// - `total_rewards`: total rewards planned to distribute during. This rewards will be
+		/// - `total_rewards`: total rewards planned to distribute. This rewards will be
 		/// distributed between all liq. pools in liq. mining program.
 		/// - `planned_yielding_periods`: planned number of periods to distribute `total_rewards`.
 		/// WARN: THIS IS NOT HARD DEADLINE. Not all rewards have to be distributed in
