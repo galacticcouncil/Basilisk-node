@@ -1264,7 +1264,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "frame-support",
  "frame-system",

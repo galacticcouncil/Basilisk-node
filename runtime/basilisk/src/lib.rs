@@ -1118,6 +1118,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_price_oracle, PriceOracle);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
+			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1176,6 +1177,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_price_oracle, PriceOracle);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
+			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 
 			// Substrate pallets

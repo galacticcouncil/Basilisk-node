@@ -1,5 +1,4 @@
 #![cfg(feature = "runtime-benchmarks")]
-#![allow(clippy::useless_conversion)]
 
 use super::*;
 
@@ -15,6 +14,8 @@ use NFT::BoundedVecOfUnq;
 
 const SEED: u32 = 0;
 const ENDOWMENT: u32 = 1_000_000;
+const CLASS_ID_0: u32 = 1_000_000;
+const INSTANCE_ID_0: u32 = 0;
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
@@ -54,56 +55,62 @@ fn create_class_and_mint<T: Config>(
 	)
 	.is_ok());
 
-	assert!(NFT::Pallet::<T>::mint(RawOrigin::Signed(caller.clone()).into(), class_id, instance_id, metadata.clone()).is_ok());
+	assert!(NFT::Pallet::<T>::mint(
+		RawOrigin::Signed(caller.clone()).into(),
+		class_id,
+		instance_id,
+		metadata.clone()
+	)
+	.is_ok());
 	(caller, caller2, caller_lookup, metadata)
 }
 
 benchmarks! {
 	buy {
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
-		Marketplace::<T>::set_price(RawOrigin::Signed(caller).into(), 0u16.into(), 0u16.into(), Some(u32::max_value().into()))?;
-	}: _(RawOrigin::Signed(caller2.clone()), 0u16.into(), 0u16.into())
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
+		Marketplace::<T>::set_price(RawOrigin::Signed(caller).into(), CLASS_ID_0.into(), INSTANCE_ID_0.into(), Some(u32::max_value().into()))?;
+	}: _(RawOrigin::Signed(caller2.clone()), CLASS_ID_0.into(), INSTANCE_ID_0.into())
 	verify {
-		assert_eq!(pallet_uniques::Pallet::<T>::owner(T::NftClassId::from(0u32).into(), T::NftInstanceId::from(0u32).into()), Some(caller2))
+		assert_eq!(pallet_uniques::Pallet::<T>::owner(T::NftClassId::from(CLASS_ID_0).into(), T::NftInstanceId::from(INSTANCE_ID_0).into()), Some(caller2))
 	}
 
 	set_price {
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
-	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), Some(u32::max_value().into()))
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
+	}: _(RawOrigin::Signed(caller.clone()), CLASS_ID_0.into(), INSTANCE_ID_0.into(), Some(u32::max_value().into()))
 	verify {
-		assert_eq!(Marketplace::<T>::prices(T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)), Some(u32::max_value().into()))
+		assert_eq!(Marketplace::<T>::prices(T::NftClassId::from(CLASS_ID_0), T::NftInstanceId::from(INSTANCE_ID_0)), Some(u32::max_value().into()))
 	}
 
 	make_offer {
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
-	}: _(RawOrigin::Signed(caller.clone()), 0u32.into(), 0u32.into(), unit(1_000).saturated_into(), 666u32.into())
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
+	}: _(RawOrigin::Signed(caller.clone()), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(1_000).saturated_into(), 666u32.into())
 	verify {
 		assert_eq!(
-			Marketplace::<T>::offers((T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)), caller.clone()),
+			Marketplace::<T>::offers((T::NftClassId::from(CLASS_ID_0), T::NftInstanceId::from(INSTANCE_ID_0)), caller.clone()),
 			Some( Offer {maker: caller, amount: unit(1_000).saturated_into(), expires: T::BlockNumber::from(666u32)})
 		)
 	}
 
 	withdraw_offer {
 		let caller2 = create_account::<T>("caller2", 0);
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
-		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), 0u32.into(), 0u32.into(), unit(1_000).saturated_into(), 666u32.into())?;
-	}: _(RawOrigin::Signed(caller2.clone()), 0u32.into(), 0u32.into(), caller2.clone())
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
+		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(1_000).saturated_into(), 666u32.into())?;
+	}: _(RawOrigin::Signed(caller2.clone()), CLASS_ID_0.into(), INSTANCE_ID_0.into(), caller2.clone())
 	verify {
 		assert_eq!(
-			Marketplace::<T>::offers((T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)), caller2),
+			Marketplace::<T>::offers((T::NftClassId::from(CLASS_ID_0), T::NftInstanceId::from(INSTANCE_ID_0)), caller2),
 			None
 		)
 	}
 
 	accept_offer {
 		let caller2 = create_account::<T>("caller2", 0);
-		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(0u32.into(), 0u32.into());
-		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), 0u32.into(), 0u32.into(), unit(1_000).saturated_into(), 666u32.into())?;
-	}: _(RawOrigin::Signed(caller), 0u32.into(), 0u32.into(), caller2.clone())
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
+		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(1_000).saturated_into(), 666u32.into())?;
+	}: _(RawOrigin::Signed(caller), CLASS_ID_0.into(), INSTANCE_ID_0.into(), caller2.clone())
 	verify {
 		assert_eq!(
-			Marketplace::<T>::offers((T::NftClassId::from(0u32), T::NftInstanceId::from(0u32)), caller2),
+			Marketplace::<T>::offers((T::NftClassId::from(CLASS_ID_0), T::NftInstanceId::from(INSTANCE_ID_0)), caller2),
 			None
 		)
 	}
