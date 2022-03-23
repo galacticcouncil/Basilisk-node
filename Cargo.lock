@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "39.0.0"
+version = "50.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -5954,7 +5954,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.2.0"
+version = "2.2.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8621,7 +8621,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -11155,7 +11155,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "39.0.0"
+version = "50.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
