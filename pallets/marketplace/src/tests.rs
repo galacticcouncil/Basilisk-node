@@ -24,12 +24,7 @@ fn set_price_works() {
 			Default::default(),
 			metadata.clone()
 		));
-		assert_ok!(NFT::mint(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			metadata
-		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -43,14 +38,29 @@ fn set_price_works() {
 			Error::<Test>::NotTheTokenOwner
 		);
 
-		assert_ok!(Market::set_price(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, Some(10)));
+		assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(10)
+		));
 
-		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(ALICE, CLASS_ID_0, INSTANCE_ID_0, Some(10)));
+		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(
+			ALICE,
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(10),
+		));
 		assert_eq!(last_event(), event);
 
 		assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), Some(10));
 
-		assert_ok!(Market::set_price(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, None));
+		assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			None
+		));
 		assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
 
 		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(ALICE, CLASS_ID_0, INSTANCE_ID_0, None));
@@ -69,12 +79,7 @@ fn buy_works() {
 			Default::default(),
 			metadata.clone()
 		));
-		assert_ok!(NFT::mint(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			metadata
-		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -88,16 +93,29 @@ fn buy_works() {
 			Error::<Test>::ClassOrInstanceUnknown
 		);
 
-		assert_noop!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0), Error::<Test>::NotForSale);
+		assert_noop!(
+			Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0),
+			Error::<Test>::NotForSale
+		);
 
-		assert_ok!(Market::set_price(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, Some(22_222 * UNITS)));
+		assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(22_222 * UNITS)
+		));
 
 		assert_noop!(
 			Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0),
 			pallet_balances::Error::<Test, _>::InsufficientBalance
 		);
 
-		assert_ok!(Market::set_price(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, Some(1024 * UNITS)));
+		assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(1024 * UNITS)
+		));
 
 		assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
 
@@ -108,7 +126,13 @@ fn buy_works() {
 		assert_eq!(Balances::free_balance(CHARLIE), 150_256 * UNITS);
 		assert_eq!(Balances::free_balance(DAVE), 200_000 * UNITS);
 
-		let event = Event::Marketplace(crate::Event::TokenSold(ALICE, BOB, CLASS_ID_0, INSTANCE_ID_0, 768 * UNITS));
+		let event = Event::Marketplace(crate::Event::TokenSold(
+			ALICE,
+			BOB,
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			768 * UNITS,
+		));
 		assert_eq!(last_event(), event);
 	});
 }
@@ -124,12 +148,7 @@ fn buy_works_2() {
 			Default::default(),
 			metadata.clone()
 		));
-		assert_ok!(NFT::mint(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			metadata
-		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -137,9 +156,17 @@ fn buy_works_2() {
 			CHARLIE,
 			20,
 		));
-		assert_ok!(Market::set_price(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, Some(100 * UNITS)));
+		assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(100 * UNITS)
+		));
 		assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
-		assert_eq!(pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0), Some(BOB));
+		assert_eq!(
+			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
+			Some(BOB)
+		);
 		assert_eq!(Balances::total_balance(&ALICE), 200_080 * UNITS);
 		assert_eq!(Balances::total_balance(&BOB), 14_900 * UNITS);
 		assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * UNITS);
@@ -191,12 +218,7 @@ fn trading_works() {
 			INSTANCE_ID_0,
 			metadata.clone()
 		));
-		assert_ok!(NFT::mint(
-			Origin::signed(BOB),
-			CLASS_ID_1,
-			INSTANCE_ID_1,
-			metadata
-		));
+		assert_ok!(NFT::mint(Origin::signed(BOB), CLASS_ID_1, INSTANCE_ID_1, metadata));
 
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
@@ -266,7 +288,12 @@ fn offering_works() {
 			INSTANCE_ID_0,
 			metadata.clone()
 		));
-		assert_ok!(NFT::do_create_class(ALICE, CLASS_ID_1, ClassType::LiquidityMining, metadata));
+		assert_ok!(NFT::do_create_class(
+			ALICE,
+			CLASS_ID_1,
+			ClassType::LiquidityMining,
+			metadata
+		));
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -275,12 +302,23 @@ fn offering_works() {
 			20,
 		));
 
-		assert_ok!(Market::set_price(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, Some(100 * UNITS)));
+		assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(100 * UNITS)
+		));
 		assert_noop!(
 			Market::make_offer(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0, 0, 1),
 			Error::<Test>::OfferTooLow
 		);
-		assert_ok!(Market::make_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, 50 * UNITS, 1));
+		assert_ok!(Market::make_offer(
+			Origin::signed(DAVE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			50 * UNITS,
+			1
+		));
 		assert_ok!(Market::make_offer(Origin::signed(ALICE), 3, 0, 50 * UNITS, 1));
 		assert_noop!(
 			Market::make_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, 50 * UNITS, 1),
@@ -298,8 +336,19 @@ fn offering_works() {
 			Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, DAVE),
 			Error::<Test>::OfferExpired
 		);
-		assert_ok!(Market::withdraw_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, DAVE));
-		assert_ok!(Market::make_offer(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0, 50 * UNITS, 666));
+		assert_ok!(Market::withdraw_offer(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			DAVE
+		));
+		assert_ok!(Market::make_offer(
+			Origin::signed(BOB),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			50 * UNITS,
+			666
+		));
 		assert_noop!(
 			Market::accept_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, BOB),
 			Error::<Test>::AcceptNotAuthorized
@@ -314,8 +363,16 @@ fn offering_works() {
 			})
 		);
 		assert_eq!(frame_system::Pallet::<Test>::block_number(), 1);
-		assert_ok!(Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, BOB));
-		assert_eq!(pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0), Some(BOB));
+		assert_ok!(Market::accept_offer(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			BOB
+		));
+		assert_eq!(
+			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
+			Some(BOB)
+		);
 		// Total = 20_000 + 50 - 10 = 20_040
 		assert_eq!(Balances::total_balance(&ALICE), 200_040 * UNITS);
 		assert_eq!(Balances::total_balance(&BOB), 14_950 * UNITS);
@@ -334,12 +391,7 @@ fn add_royalty_works() {
 			Default::default(),
 			metadata.clone()
 		));
-		assert_ok!(NFT::mint(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			metadata
-		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
 
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
