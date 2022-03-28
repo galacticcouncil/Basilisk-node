@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  RELAY_CHAIN_VERSION: v0.9.16
+  RELAY_CHAIN_VERSION: v0.9.17-rc4
 
 jobs:
   pop-runner-instance:
