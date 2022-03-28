@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - master
-      - generate_docs
-  pull_request:
 
 jobs:
   generate-and-deploy-docs:
