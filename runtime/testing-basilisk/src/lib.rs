@@ -131,7 +131,7 @@ pub fn native_version() -> NativeVersion {
 
 use common_runtime::adapter::OrmlTokensAdapter;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
-use pallet_nft::{ClassType, NftPermissions, ClassId, InstanceId};
+use pallet_nft::{ClassId, ClassType, InstanceId, NftPermissions};
 use smallvec::smallvec;
 
 pub struct WeightToFee;
