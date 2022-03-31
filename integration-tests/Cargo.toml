@@ -29,7 +29,6 @@ pallet-asset-registry = { path = "../pallets/asset-registry",default-features = 
 pallet-xyk = { path = "../pallets/xyk",default-features = false}
 pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
-pallet-nft = { path = "../pallets/nft", default-features = false }
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
 
 primitives = { default-features = false, path = "../primitives" }
@@ -39,6 +38,7 @@ pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "ea256f621e51439a0cceecac7ab991dbbc9126d1", default-features = false}
 
 hydra-dx-math = { default-features = false, version = "4.1.1" }
 

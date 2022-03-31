@@ -23,13 +23,13 @@ pallet-exchange = { path = "../../pallets/exchange", default-features=false}
 pallet-asset-registry = { path = "../../pallets/asset-registry",default-features = false}
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
-pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 
-# HydraDX dependencies
+# Warehouse dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false }
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false}
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "ea256f621e51439a0cceecac7ab991dbbc9126d1", default-features = false}
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }

@@ -5992,20 +5992,17 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.2.1"
+version = "2.2.2"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=ea256f621e51439a0cceecac7ab991dbbc9126d1#ea256f621e51439a0cceecac7ab991dbbc9126d1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "orml-utilities",
- "pallet-balances",
  "pallet-uniques",
  "parity-scale-codec",
- "primitives",
  "scale-info",
  "serde",
- "sp-core",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]
