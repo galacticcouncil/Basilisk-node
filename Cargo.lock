@@ -8081,7 +8081,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.7"
+version = "6.1.8"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8658,7 +8658,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.8"
+version = "0.2.9"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
