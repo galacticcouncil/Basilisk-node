@@ -13,7 +13,7 @@ use frame_system::ensure_signed;
 
 use primitives::{nft::NftPermission, ReserveIdentifier};
 use sp_runtime::{
-	traits::{AtLeast32BitUnsigned, CheckedAdd, One, StaticLookup, Zero},
+	traits::{AtLeast32BitUnsigned, StaticLookup, Zero},
 	DispatchError,
 };
 pub use types::*;
@@ -44,6 +44,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
@@ -52,7 +53,14 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 		type ProtocolOrigin: EnsureOrigin<Self::Origin>;
-		type NftClassId: Member + Parameter + Default + Copy + HasCompact + AtLeast32BitUnsigned + Into<Self::ClassId>;
+		type NftClassId: Member
+			+ Parameter
+			+ Default
+			+ Copy
+			+ HasCompact
+			+ AtLeast32BitUnsigned
+			+ Into<Self::ClassId>
+			+ From<Self::ClassId>;
 		type NftInstanceId: Member
 			+ Parameter
 			+ Default
@@ -63,18 +71,10 @@ pub mod pallet {
 			+ From<Self::InstanceId>;
 		type ClassType: Member + Parameter + Default + Copy;
 		type Permissions: NftPermission<Self::ClassType>;
+		/// Class IDs reserved for runtime up to the following constant
+		#[pallet::constant]
+		type ReserveClassIdUpTo: Get<Self::NftClassId>;
 	}
-
-	/// Next available class ID.
-	#[pallet::storage]
-	#[pallet::getter(fn next_class_id)]
-	pub(super) type NextClassId<T: Config> = StorageValue<_, T::NftClassId, ValueQuery>;
-
-	/// Next available token ID.
-	#[pallet::storage]
-	#[pallet::getter(fn next_instance_id)]
-	pub(super) type NextInstanceId<T: Config> =
-		StorageMap<_, Twox64Concat, T::NftClassId, T::NftInstanceId, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn classes)]
@@ -91,25 +91,27 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Creates an NFT class of the given class
 		/// and sets its metadata
-		/// Class ID is chosen automatically from the sequence
 		///
 		/// Parameters:
+		/// - `class_id`: Identifier of a class
 		/// - `class_type`: The class type determines its purpose and usage
 		/// - `metadata`: Arbitrary data about a class, e.g. IPFS hash or name
+		///
+		/// Emits ClassCreated event
 		#[pallet::weight(<T as Config>::WeightInfo::create_class())]
 		#[transactional]
 		pub fn create_class(
 			origin: OriginFor<T>,
+			class_id: T::NftClassId,
 			class_type: T::ClassType,
 			metadata: BoundedVecOfUnq<T>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
+			ensure!(T::ReserveClassIdUpTo::get() < class_id, Error::<T>::IdReserved);
 			ensure!(T::Permissions::can_create(&class_type), Error::<T>::NotPermitted);
 
-			let (class_id, class_type) = Self::do_create_class(sender.clone(), Default::default(), metadata)?;
-
-			Self::deposit_event(Event::ClassCreated(sender, class_id, class_type));
+			Self::do_create_class(sender, class_id, Default::default(), metadata)?;
 
 			Ok(())
 		}
@@ -119,10 +121,16 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `class_id`: The class of the asset to be minted.
+		/// - `instance_id`: The class of the asset to be minted.
 		/// - `metadata`: Arbitrary data about an instance, e.g. IPFS hash or symbol
 		#[pallet::weight(<T as Config>::WeightInfo::mint())]
 		#[transactional]
-		pub fn mint(origin: OriginFor<T>, class_id: T::NftClassId, metadata: BoundedVecOfUnq<T>) -> DispatchResult {
+		pub fn mint(
+			origin: OriginFor<T>,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+			metadata: BoundedVecOfUnq<T>,
+		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			let class_type = Self::classes(class_id)
@@ -131,9 +139,7 @@ pub mod pallet {
 
 			ensure!(T::Permissions::can_mint(&class_type), Error::<T>::NotPermitted);
 
-			let instance_id = Self::do_mint(sender.clone(), class_id, metadata)?;
-
-			Self::deposit_event(Event::InstanceMinted(sender, class_id, instance_id));
+			Self::do_mint(sender, class_id, instance_id, metadata)?;
 
 			Ok(())
 		}
@@ -164,9 +170,7 @@ pub mod pallet {
 
 			ensure!(T::Permissions::can_transfer(&class_type), Error::<T>::NotPermitted);
 
-			Self::do_transfer(class_id, instance_id, sender.clone(), dest.clone())?;
-
-			Self::deposit_event(Event::InstanceTransferred(sender, dest, class_id, instance_id));
+			Self::do_transfer(class_id, instance_id, sender, dest)?;
 
 			Ok(())
 		}
@@ -187,9 +191,7 @@ pub mod pallet {
 
 			ensure!(T::Permissions::can_burn(&class_type), Error::<T>::NotPermitted);
 
-			Self::do_burn(sender.clone(), class_id, instance_id)?;
-
-			Self::deposit_event(Event::InstanceBurned(sender, class_id, instance_id));
+			Self::do_burn(sender, class_id, instance_id)?;
 
 			Ok(())
 		}
@@ -209,9 +211,7 @@ pub mod pallet {
 
 			ensure!(T::Permissions::can_destroy(&class_type), Error::<T>::NotPermitted);
 
-			Self::do_destroy_class(class_id)?;
-
-			Self::deposit_event(Event::ClassDestroyed(sender, class_id));
+			Self::do_destroy_class(sender, class_id)?;
 
 			Ok(().into())
 		}
@@ -223,16 +223,36 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// A class was created \[sender, class_id, class_type\]
-		ClassCreated(T::AccountId, T::NftClassId, T::ClassType),
-		/// An instance was minted \[class_type, sender, class_id, instance_id\]
-		InstanceMinted(T::AccountId, T::NftClassId, T::NftInstanceId),
+		/// A class was created \[owner, class_id, class_type\]
+		ClassCreated {
+			owner: T::AccountId,
+			class_id: T::NftClassId,
+			class_type: T::ClassType,
+		},
+		/// An instance was minted \[owner, class_id, instance_id\]
+		InstanceMinted {
+			owner: T::AccountId,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+		},
 		/// An instance was transferred \[from, to, class_id, instance_id\]
-		InstanceTransferred(T::AccountId, T::AccountId, T::NftClassId, T::NftInstanceId),
+		InstanceTransferred {
+			from: T::AccountId,
+			to: T::AccountId,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+		},
 		/// An instance was burned \[sender, class_id, instance_id\]
-		InstanceBurned(T::AccountId, T::NftClassId, T::NftInstanceId),
-		/// A class was destroyed \[sender, class_id\]
-		ClassDestroyed(T::AccountId, T::NftClassId),
+		InstanceBurned {
+			owner: T::AccountId,
+			class_id: T::NftClassId,
+			instance_id: T::NftInstanceId,
+		},
+		/// A class was destroyed \[class_id\]
+		ClassDestroyed {
+			owner: T::AccountId,
+			class_id: T::NftClassId,
+		},
 	}
 
 	#[pallet::error]
@@ -245,45 +265,30 @@ pub mod pallet {
 		TokenClassNotEmpty,
 		/// Class does not exist
 		ClassUnknown,
-		/// Shares has to be set for liquidity mining
-		SharesNotSet,
+		/// Instance does not exist
+		InstanceUnknown,
 		/// Operation not permitted
 		NotPermitted,
+		/// ID reserved for runtime
+		IdReserved,
 	}
 }
 
 impl<T: Config> Pallet<T> {
-	pub fn get_next_class_id() -> Result<T::NftClassId, Error<T>> {
-		NextClassId::<T>::try_mutate(|id| {
-			let current_id = *id;
-			*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableClassId)?;
-			Ok(current_id)
-		})
-	}
-
-	pub fn get_next_instance_id(class_id: T::NftClassId) -> Result<T::NftInstanceId, Error<T>> {
-		NextInstanceId::<T>::try_mutate(class_id, |id| {
-			let current_id = *id;
-			*id = id.checked_add(&One::one()).ok_or(Error::<T>::NoAvailableInstanceId)?;
-			Ok(current_id)
-		})
-	}
-
 	pub fn class_owner(class_id: T::NftClassId) -> Option<T::AccountId> {
 		pallet_uniques::Pallet::<T>::class_owner(&class_id.into())
 	}
 
-	pub fn instance_owner(class_id: T::NftClassId, instance_id: T::NftInstanceId) -> Option<T::AccountId> {
+	pub fn owner(class_id: T::NftClassId, instance_id: T::NftInstanceId) -> Option<T::AccountId> {
 		pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
 	}
 
 	pub fn do_create_class(
 		owner: T::AccountId,
+		class_id: T::NftClassId,
 		class_type: T::ClassType,
 		metadata: BoundedVecOfUnq<T>,
 	) -> Result<(T::NftClassId, T::ClassType), DispatchError> {
-		let class_id = Self::get_next_class_id()?;
-
 		let deposit_info = match T::Permissions::has_deposit(&class_type) {
 			false => (Zero::zero(), true),
 			true => (T::ClassDeposit::get(), false),
@@ -295,10 +300,20 @@ impl<T: Config> Pallet<T> {
 			owner.clone(),
 			deposit_info.0,
 			deposit_info.1,
-			pallet_uniques::Event::Created(class_id.into(), owner.clone(), owner),
+			pallet_uniques::Event::Created {
+				class: class_id.into(),
+				creator: owner.clone(),
+				owner: owner.clone(),
+			},
 		)?;
 
 		Classes::<T>::insert(class_id, ClassInfo { class_type, metadata });
+
+		Self::deposit_event(Event::ClassCreated {
+			owner,
+			class_id,
+			class_type,
+		});
 
 		Ok((class_id, class_type))
 	}
@@ -306,13 +321,18 @@ impl<T: Config> Pallet<T> {
 	pub fn do_mint(
 		owner: T::AccountId,
 		class_id: T::NftClassId,
+		instance_id: T::NftInstanceId,
 		metadata: BoundedVecOfUnq<T>,
 	) -> Result<T::NftInstanceId, DispatchError> {
-		let instance_id = Self::get_next_instance_id(class_id)?;
-
-		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner, |_details| Ok(()))?;
+		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
 
 		Instances::<T>::insert(class_id, instance_id, InstanceInfo { metadata });
+
+		Self::deposit_event(Event::InstanceMinted {
+			owner,
+			class_id,
+			instance_id,
+		});
 
 		Ok(instance_id)
 	}
@@ -330,10 +350,16 @@ impl<T: Config> Pallet<T> {
 		pallet_uniques::Pallet::<T>::do_transfer(
 			class_id.into(),
 			instance_id.into(),
-			to,
-			|_class_details, instance_details| {
-				let is_permitted = instance_details.owner == from;
-				ensure!(is_permitted, Error::<T>::NotPermitted);
+			to.clone(),
+			|_class_details, _instance_details| {
+				let owner = Self::owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
+				ensure!(owner == from, Error::<T>::NotPermitted);
+				Self::deposit_event(Event::InstanceTransferred {
+					from,
+					to,
+					class_id,
+					instance_id,
+				});
 				Ok(())
 			},
 		)
@@ -343,25 +369,33 @@ impl<T: Config> Pallet<T> {
 		pallet_uniques::Pallet::<T>::do_burn(
 			class_id.into(),
 			instance_id.into(),
-			|_class_details, instance_details| {
-				let is_permitted = instance_details.owner == owner;
-				ensure!(is_permitted, Error::<T>::NotPermitted);
+			|_class_details, _instance_details| {
+				let iowner = Self::owner(class_id, instance_id).ok_or(Error::<T>::InstanceUnknown)?;
+				ensure!(owner == iowner, Error::<T>::NotPermitted);
 				Ok(())
 			},
 		)?;
 
 		Instances::<T>::remove(class_id, instance_id);
 
+		Self::deposit_event(Event::InstanceBurned {
+			owner,
+			class_id,
+			instance_id,
+		});
+
 		Ok(())
 	}
 
-	pub fn do_destroy_class(class_id: T::NftClassId) -> DispatchResultWithPostInfo {
+	pub fn do_destroy_class(owner: T::AccountId, class_id: T::NftClassId) -> DispatchResultWithPostInfo {
 		let witness =
 			pallet_uniques::Pallet::<T>::get_destroy_witness(&class_id.into()).ok_or(Error::<T>::ClassUnknown)?;
 
 		ensure!(witness.instances == 0u32, Error::<T>::TokenClassNotEmpty);
-		pallet_uniques::Pallet::<T>::do_destroy_class(class_id.into(), witness, None)?;
+		pallet_uniques::Pallet::<T>::do_destroy_class(class_id.into(), witness, Some(owner.clone()))?;
 		Classes::<T>::remove(class_id);
+
+		Self::deposit_event(Event::ClassDestroyed { owner, class_id });
 		Ok(().into())
 	}
 }
