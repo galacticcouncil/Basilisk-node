@@ -40,6 +40,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
@@ -81,7 +82,8 @@ pub mod pallet {
 
 			let metadata: pallet_nft::BoundedVecOfUnq<T> = b"metadata".to_vec().try_into().unwrap();
 
-			let instance_id = pallet_nft::Pallet::<T>::do_mint(pallet_account.clone(), class_id, metadata)?;
+			// TODO - instance ID similar to LiqMin pallet
+			let instance_id = pallet_nft::Pallet::<T>::do_mint(pallet_account.clone(), class_id, 1u32.into(), metadata)?;
 
 			let class_info = Self::classes_redeemables(class_id).ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 

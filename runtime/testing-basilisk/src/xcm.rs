@@ -11,7 +11,7 @@ use polkadot_xcm::latest::Error;
 use sp_runtime::traits::Convert;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
-	EnsureXcmOrigin, FixedWeightBounds, LocationInverter, ParentIsDefault, RelayChainAsNative,
+	EnsureXcmOrigin, FixedWeightBounds, LocationInverter, ParentIsPreset, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, TakeWeightCredit,
 };
@@ -66,6 +66,7 @@ parameter_types! {
 	/// The amount of weight an XCM operation takes. This is a safe overestimate.
 	pub const BaseXcmWeight: Weight = 100_000_000;
 	pub const MaxInstructions: u32 = 100;
+	pub const MaxAssetsForTransfer: usize = 2;
 }
 
 pub struct TradePassthrough();
@@ -111,7 +112,10 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
-	type VersionWrapper = ();
+	type VersionWrapper = PolkadotXcm;
+	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+	type ControllerOrigin = crate::EnsureMajorityCouncilOrRoot;
+	type ControllerOriginConverter = XcmOriginToCallOrigin;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -131,10 +135,16 @@ impl orml_xtokens::Config for Runtime {
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
+	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 }
 
 impl orml_unknown_tokens::Config for Runtime {
 	type Event = Event;
+}
+
+impl orml_xcm::Config for Runtime {
+	type Event = Event;
+	type SovereignOrigin = crate::EnsureMajorityCouncilOrRoot;
 }
 
 impl pallet_xcm::Config for Runtime {
@@ -145,7 +155,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
-	type XcmReserveTransferFilter = Nothing;
+	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Origin = Origin;
@@ -156,11 +166,10 @@ impl pallet_xcm::Config for Runtime {
 
 pub struct CurrencyIdConvert;
 
-// Note: stub implementation
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
 		match id {
-			0 => Some(MultiLocation::new(
+			CORE_ASSET_ID => Some(MultiLocation::new(
 				1,
 				X2(Parachain(ParachainInfo::get().into()), GeneralKey(id.encode())),
 			)),
@@ -186,7 +195,22 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
 					// we currently have only one native asset
 					match currency_id {
-						0 => Some(currency_id),
+						CORE_ASSET_ID => Some(currency_id),
+						_ => None,
+					}
+				} else {
+					None
+				}
+			}
+			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
+			MultiLocation {
+				parents: 0,
+				interior: X1(GeneralKey(key)),
+			} => {
+				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
+					// we currently have only one native asset
+					match currency_id {
+						CORE_ASSET_ID => Some(currency_id),
 						_ => None,
 					}
 				} else {
@@ -237,7 +261,7 @@ pub type XcmRouter = (
 /// `Transact` in order to determine the dispatch Origin.
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the default `AccountId`.
-	ParentIsDefault<AccountId>,
+	ParentIsPreset<AccountId>,
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
@@ -252,4 +276,5 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	LocationToAccountId,
 	AssetId,
 	CurrencyIdConvert,
+	(),
 >;

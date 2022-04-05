@@ -1,7 +1,8 @@
 use crate::chain_spec;
 use std::path::PathBuf;
 use std::{fmt, str::FromStr};
-use structopt::StructOpt;
+use std::error::Error;
+use clap::Parser;
 
 #[derive(Debug, Clone)]
 pub struct RuntimeInstanceError(String);
@@ -13,7 +14,9 @@ impl fmt::Display for RuntimeInstanceError {
 	}
 }
 
-#[derive(Debug, StructOpt)]
+impl Error for RuntimeInstanceError {}
+
+#[derive(Debug, Parser)]
 pub enum RuntimeInstance {
 	Basilisk,
 	Testing,
@@ -60,31 +63,31 @@ impl FromStr for RuntimeInstance {
 	}
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub struct RunCmd {
-	#[structopt(flatten)]
+	#[clap(flatten)]
 	pub base: cumulus_client_cli::RunCmd,
 
 	/// Specify the runtime used by the node.
-	#[structopt(default_value, long, possible_values = &RuntimeInstance::variants(), case_insensitive = true)]
+	#[clap(default_value_t, long, possible_values = RuntimeInstance::variants(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }
 
-#[derive(Debug, StructOpt)]
-#[structopt(settings = &[
-	structopt::clap::AppSettings::GlobalVersion,
-	structopt::clap::AppSettings::ArgsNegateSubcommands,
-	structopt::clap::AppSettings::SubcommandsNegateReqs,
-])]
+#[derive(Debug, Parser)]
+#[clap(
+    propagate_version = true,
+    args_conflicts_with_subcommands = true,
+    subcommand_negates_reqs = true
+)]
 pub struct Cli {
-	#[structopt(subcommand)]
+	#[clap(subcommand)]
 	pub subcommand: Option<Subcommand>,
 
-	#[structopt(flatten)]
+	#[clap(flatten)]
 	pub run: RunCmd,
 
 	/// Relaychain arguments
-	#[structopt(raw = true)]
+	#[clap(raw = true)]
 	pub relaychain_args: Vec<String>,
 }
 
@@ -106,18 +109,18 @@ impl RelayChainCli {
 		para_config: &sc_service::Configuration,
 		relay_chain_args: impl Iterator<Item = &'a String>,
 	) -> Self {
-		let extension = chain_spec::Extensions::try_get(&para_config.chain_spec);
+		let extension = chain_spec::Extensions::try_get(&*para_config.chain_spec);
 		let chain_id = extension.map(|e| e.relay_chain.clone());
 		let base_path = para_config.base_path.as_ref().map(|x| x.path().join("polkadot"));
 		Self {
 			base_path,
 			chain_id,
-			base: polkadot_cli::RunCmd::from_iter(relay_chain_args),
+			base: polkadot_cli::RunCmd::parse_from(relay_chain_args),
 		}
 	}
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub enum Subcommand {
 	/// Build a chain specification.
 	BuildSpec(sc_cli::BuildSpecCmd),
@@ -141,15 +144,15 @@ pub enum Subcommand {
 	Revert(sc_cli::RevertCmd),
 
 	/// The custom benchmark subcommmand benchmarking runtime pallets.
-	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
+	#[clap(name = "benchmark", about = "Benchmark runtime pallets.")]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
 	/// Export the genesis state of the parachain.
-	#[structopt(name = "export-genesis-state")]
+	#[clap(name = "export-genesis-state")]
 	ExportGenesisState(ExportGenesisStateCommand),
 
 	/// Export the genesis wasm of the parachain.
-	#[structopt(name = "export-genesis-wasm")]
+	#[clap(name = "export-genesis-wasm")]
 	ExportGenesisWasm(ExportGenesisWasmCommand),
 
 	/// Try some command against runtime state.
@@ -162,45 +165,45 @@ pub enum Subcommand {
 }
 
 /// Command for exporting the genesis state of the parachain
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub struct ExportGenesisStateCommand {
 	/// Output file name or stdout if unspecified.
-	#[structopt(parse(from_os_str))]
+	#[clap(parse(from_os_str))]
 	pub output: Option<PathBuf>,
 
 	/// Id of the parachain this state is for.
-	#[structopt(long, default_value = "200")]
+	#[clap(long, default_value = "200")]
 	pub parachain_id: u32,
 
 	/// Write output in binary. Default is to write in hex.
-	#[structopt(short, long)]
+	#[clap(short, long)]
 	pub raw: bool,
 
 	/// The name of the chain for that the genesis state should be exported.
-	#[structopt(long)]
+	#[clap(long)]
 	pub chain: Option<String>,
 
 	/// Specify the runtime used by the node.
-	#[structopt(default_value, long, possible_values = &RuntimeInstance::variants(), case_insensitive = true)]
+	#[clap(default_value_t, long, possible_values = RuntimeInstance::variants(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }
 
 /// Command for exporting the genesis wasm file.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub struct ExportGenesisWasmCommand {
 	/// Output file name or stdout if unspecified.
-	#[structopt(parse(from_os_str))]
+	#[clap(parse(from_os_str))]
 	pub output: Option<PathBuf>,
 
 	/// Write output in binary. Default is to write in hex.
-	#[structopt(short, long)]
+	#[clap(short, long)]
 	pub raw: bool,
 
 	/// The name of the chain for that the genesis wasm file should be exported.
-	#[structopt(long)]
+	#[clap(long)]
 	pub chain: Option<String>,
 
 	/// Specify the runtime used by the node.
-	#[structopt(default_value, long, possible_values = &RuntimeInstance::variants(), case_insensitive = true)]
+	#[clap(default_value_t, long, possible_values = RuntimeInstance::variants(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }
