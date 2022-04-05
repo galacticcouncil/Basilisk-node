@@ -5331,7 +5331,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.1.10"
+version = "1.1.11"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5699,7 +5699,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.7"
+version = "5.2.8"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5723,7 +5723,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.9"
+version = "3.3.10"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5856,7 +5856,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.3.3"
+version = "4.3.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6461,7 +6461,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.6"
+version = "3.4.7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
