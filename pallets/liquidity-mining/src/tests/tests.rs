@@ -2096,3 +2096,17 @@ fn get_pool_id_from_nft_id_should_work() {
 		}
 	});
 }
+
+#[test]
+fn get_pool_id_from_nft_id_should_not_work() {
+	new_test_ext().execute_with(|| {
+		let test_data = vec![0, 132_342_314, 4_294_967_296];
+
+		for nft_id in test_data {
+			assert_noop!(
+				LiquidityMining::get_pool_id_from_nft_id(nft_id),
+				Error::<Test>::InvalidNftId
+			);
+		}
+	});
+}

@@ -66,8 +66,9 @@ type PoolMultiplier = FixedU128;
 
 //This value is result of: u128::from_le_bytes([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0])
 //This is necessary because first 4 bytes of NftInstanceIdOf (u128) is reserved to encode liq_pool_id (u32) into NftInstanceIdOf.
+//For more details look at `get_next_nft_id()`.
 const MAX_NFT_INSTANCE_SEQUENCER: u128 = 79_228_162_514_264_337_593_543_950_335;
-//consts bellow are use to encode/decode liq. pool into/from NftInstanceId.
+//consts bellow are used to encode/decode liq. pool into/from NftInstanceId.
 const POOL_ID_BYTES: usize = 4;
 const NFT_SEQUENCE_BYTES: usize = 12;
 
