@@ -542,6 +542,8 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-liquidity-mining",
+ "pallet-liquidity-mining-benchmarking",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
@@ -5908,6 +5910,59 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-liquidity-mining"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydradx-traits",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-nft",
+ "pallet-uniques",
+ "parity-scale-codec",
+ "primitives",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-liquidity-mining-benchmarking"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "hydradx-traits",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-asset-registry",
+ "pallet-balances",
+ "pallet-liquidity-mining",
+ "pallet-nft",
+ "pallet-uniques",
+ "pallet-xyk",
+ "parity-scale-codec",
+ "primitives",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-membership"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
@@ -11237,6 +11292,8 @@ dependencies = [
  "pallet-faucet",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-liquidity-mining",
+ "pallet-liquidity-mining-benchmarking",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
