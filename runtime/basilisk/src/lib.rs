@@ -133,6 +133,7 @@ impl Contains<Call> for BaseFilter {
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
 			Call::Currencies(_) => false,
+			Call::LiquidityMining(_) => false,
 			_ => true,
 		}
 	}
