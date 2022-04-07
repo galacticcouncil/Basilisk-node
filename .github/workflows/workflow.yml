@@ -86,6 +86,8 @@ jobs:
         uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
         with:
           profile: minimal
+      - name: Check formatting
+        run: cargo fmt --quiet --check
       - name: Install clippy
         run: rustup component add clippy
       - name: Run clippy
