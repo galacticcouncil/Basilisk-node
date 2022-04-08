@@ -3,7 +3,7 @@ use crate::Config;
 
 use frame_support::{
 	parameter_types,
-	traits::{Everything, Nothing},
+	traits::{Everything, Nothing}, PalletId,
 };
 
 use frame_system as system;
@@ -12,8 +12,11 @@ use orml_traits::parameter_type_with_key;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
+	traits::{BlakeTwo256, IdentityLookup, OpaqueKeys},
 };
+ 
+use sp_runtime::RuntimeAppPublic;
+use sp_runtime::testing::UintAuthorityId;
 
 use sp_std::vec::Vec;
 
@@ -49,6 +52,8 @@ frame_support::construct_runtime!(
 		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		CollatorRewards: collator_rewards::{Pallet, Storage, Event<T>},
+        CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>, Config<T>},
+        Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
 	}
 );
 
@@ -167,3 +172,73 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
+impl pallet_session::Config for Test {
+	type Event = Event;
+	type ValidatorId = <Self as frame_system::Config>::AccountId;
+	// we don't have stash and controller, thus we don't need the convert as well.
+	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
+	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
+	type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
+	type SessionManager = CollatorSelection;
+	type SessionHandler = TestSessionHandler;
+	type Keys = MockSessionKeys;
+	type WeightInfo = ();
+}
+
+sp_runtime::impl_opaque_keys! {
+	pub struct MockSessionKeys {
+		// a key for aura authoring
+		pub aura: UintAuthorityId,
+	}
+}
+
+impl From<UintAuthorityId> for MockSessionKeys {
+	fn from(aura: sp_runtime::testing::UintAuthorityId) -> Self {
+		Self { aura }
+	}
+}
+
+parameter_types! {
+	pub static SessionHandlerCollators: Vec<u64> = Vec::new();
+	pub static SessionChangeBlock: u64 = 0;
+}
+
+pub struct TestSessionHandler;
+impl pallet_session::SessionHandler<u64> for TestSessionHandler {
+	const KEY_TYPE_IDS: &'static [sp_runtime::KeyTypeId] = &[UintAuthorityId::ID];
+	fn on_genesis_session<Ks: OpaqueKeys>(keys: &[(u64, Ks)]) {
+		SessionHandlerCollators::set(keys.into_iter().map(|(a, _)| *a).collect::<Vec<_>>())
+	}
+	fn on_new_session<Ks: OpaqueKeys>(_: bool, keys: &[(u64, Ks)], _: &[(u64, Ks)]) {
+		SessionChangeBlock::set(System::block_number());
+		dbg!(keys.len());
+		SessionHandlerCollators::set(keys.into_iter().map(|(a, _)| *a).collect::<Vec<_>>())
+	}
+	fn on_before_session_ending() {}
+	fn on_disabled(_: u32) {}
+}
+
+// pallet collator selection
+parameter_types! {
+	pub const PotId: PalletId = PalletId(*b"PotStake");
+	pub const MaxCandidates: u32 = 20;
+	pub const MinCandidates: u32 = 4;
+	pub const MaxInvulnerables: u32 = 10;
+}
+
+impl pallet_collator_selection::Config for Test {
+	type Event = Event;
+	type Currency = Balances;
+	//allow 1/2 of council to execute privileged collator selection operations. (require code from: feat/initial_chain_setup)
+	type UpdateOrigin = frame_system::EnsureRoot<AccountId>;
+	type PotId = PotId;
+	type MaxCandidates = MaxCandidates;
+	type MinCandidates = MinCandidates;
+	type MaxInvulnerables = MaxInvulnerables;
+	// should be a multiple of session or things will get inconsistent
+	type KickThreshold = Period;
+	type ValidatorId = <Self as frame_system::Config>::AccountId;
+	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
+	type ValidatorRegistration = Session;
+	type WeightInfo = ();
+}

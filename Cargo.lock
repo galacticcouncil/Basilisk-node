@@ -5593,6 +5593,7 @@ dependencies = [
  "orml-traits",
  "pallet-aura",
  "pallet-balances",
+ "pallet-collator-selection",
  "pallet-session",
  "parity-scale-codec",
  "rand 0.8.5",

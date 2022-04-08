@@ -44,6 +44,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
+pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
 
 [features]
 default = ["std"]
@@ -53,6 +54,7 @@ runtime-benchmarks = [
     "frame-support/runtime-benchmarks",
     "rand/std",
     "pallet-session/std",
+    "pallet-collator-selection/std",
 ]
 std = [
     "serde",
@@ -67,4 +69,5 @@ std = [
     "pallet-balances/std",
     "pallet-aura/std",
     "frame-benchmarking/std",
+    "pallet-collator-selection/std",
 ]
