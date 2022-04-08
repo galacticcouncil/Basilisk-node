@@ -60,9 +60,26 @@ pub mod weights;
 
 pub use pallet::*;
 
-type PoolId = u32;
-type GlobalPoolId = PoolId;
-type PoolMultiplier = FixedU128;
+use codec::{Decode, Encode};
+use frame_support::{
+	ensure,
+	sp_runtime::traits::{BlockNumberProvider, One, Zero},
+	transactional, BoundedVec, PalletId,
+};
+use frame_support::{
+	pallet_prelude::*,
+	sp_runtime::{traits::AccountIdConversion, FixedPointNumber, RuntimeDebug},
+};
+use frame_system::ensure_signed;
+use hydradx_traits::AMM;
+use orml_traits::MultiCurrency;
+use primitives::{asset::AssetPair, nft::ClassType, Balance};
+use scale_info::TypeInfo;
+use sp_arithmetic::{
+	traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
+	FixedU128, Permill,
+};
+use sp_std::convert::{From, Into, TryInto};
 
 //This value is result of: u128::from_le_bytes([255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0])
 //This is necessary because first 4 bytes of NftInstanceIdOf (u128) is reserved to encode liq_pool_id (u32) into NftInstanceIdOf.
@@ -72,31 +89,9 @@ const MAX_NFT_INSTANCE_SEQUENCER: u128 = 79_228_162_514_264_337_593_543_950_335;
 const POOL_ID_BYTES: usize = 4;
 const NFT_SEQUENCE_BYTES: usize = 12;
 
-use frame_support::{
-	ensure,
-	sp_runtime::traits::{BlockNumberProvider, One, Zero},
-	transactional, BoundedVec, PalletId,
-};
-use frame_system::ensure_signed;
-
-use sp_arithmetic::{
-	traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
-	FixedU128, Permill,
-};
-
-use orml_traits::MultiCurrency;
-
-use codec::{Decode, Encode};
-use frame_support::{
-	pallet_prelude::*,
-	sp_runtime::{traits::AccountIdConversion, FixedPointNumber, RuntimeDebug},
-};
-use hydradx_traits::AMM;
-use scale_info::TypeInfo;
-use sp_std::convert::{From, Into, TryInto};
-
-use primitives::{asset::AssetPair, nft::ClassType, Balance};
-
+type PoolId = u32;
+type GlobalPoolId = PoolId;
+type PoolMultiplier = FixedU128;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
 type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
@@ -139,11 +134,11 @@ impl<T: Config> GlobalPool<T> {
 		max_reward_per_period: Balance,
 	) -> Self {
 		Self {
-			accumulated_rewards: Default::default(),
-			accumulated_rpz: Default::default(),
-			paid_accumulated_rewards: Default::default(),
-			total_shares_z: Default::default(),
-			liq_pools_count: Default::default(),
+			accumulated_rewards: Zero::zero(),
+			accumulated_rpz: Zero::zero(),
+			paid_accumulated_rewards: Zero::zero(),
+			total_shares_z: Zero::zero(),
+			liq_pools_count: Zero::zero(),
 			id,
 			updated_at,
 			reward_currency,
@@ -180,11 +175,11 @@ impl<T: Config> LiquidityPoolYieldFarm<T> {
 		multiplier: PoolMultiplier,
 	) -> Self {
 		Self {
-			accumulated_rpvs: Default::default(),
-			accumulated_rpz: Default::default(),
-			stake_in_global_pool: Default::default(),
-			total_shares: Default::default(),
-			total_valued_shares: Default::default(),
+			accumulated_rpvs: Zero::zero(),
+			accumulated_rpz: Zero::zero(),
+			stake_in_global_pool: Zero::zero(),
+			total_shares: Zero::zero(),
+			total_valued_shares: Zero::zero(),
 			canceled: false,
 			id,
 			updated_at,
@@ -227,7 +222,7 @@ impl<T: Config> Deposit<T> {
 			shares,
 			valued_shares,
 			accumulated_rpvs,
-			accumulated_claimed_rewards: Default::default(),
+			accumulated_claimed_rewards: Zero::zero(),
 		}
 	}
 }

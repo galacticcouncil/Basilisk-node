@@ -1,6 +1,6 @@
 [package]
 name = "pallet-liquidity-mining"
-version = "0.1.0"
+version = "1.0.0"
 description = "Liquidity mining"
 authors = ["GalacticCouncil"]
 edition = "2018"
