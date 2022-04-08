@@ -29,7 +29,7 @@ use pallet_session as session;
 
 const SEED: u32 = 0;
 
-fn keys<T: Config + session::Config>(c: u32) -> <T as session::Config>::Keys {
+fn keys<T: Config >(c: u32) -> T::AuthorityId {
 	use rand::{RngCore, SeedableRng};
 
 	let keys = {
@@ -47,18 +47,17 @@ fn keys<T: Config + session::Config>(c: u32) -> <T as session::Config>::Keys {
 }
 
 benchmarks! {
-    where_clause{ where T: pallet_session::Config}
 
     on_new_session {
         let who: T::AccountId = account("c1", 1, SEED);
 
     use rand::{RngCore, SeedableRng};
 
-    let keys = keys::<T>(1);
+    let keys: T::AuthorityId = keys::<T>(1);
 
         let collators = vec![(&who, keys)];
     }: {
-        CollatorRewards::on_new_session(true, collators.into_iter(), vec![].into_iter()) 
+        CollatorRewards::<T>::on_new_session(true, collators.into_iter(), vec![].into_iter())
         
     } verify {
         assert!(false);
