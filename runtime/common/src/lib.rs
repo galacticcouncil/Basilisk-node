@@ -243,7 +243,7 @@ parameter_types! {
 
 // pallet session
 parameter_types! {
-	pub const Period: u32 = 4 * HOURS;
+	pub const Period: u32 = 1 * MINUTES;
 	pub const Offset: u32 = 0;
 }
 

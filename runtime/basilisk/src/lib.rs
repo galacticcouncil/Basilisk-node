@@ -96,6 +96,7 @@ pub mod opaque {
 	impl_opaque_keys! {
 		pub struct SessionKeys {
 			pub aura: Aura,
+            pub crew: CollatorRewards,
 		}
 	}
 }
@@ -539,6 +540,23 @@ impl pallet_nft::Config for Runtime {
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
+parameter_types! {
+    pub const RewardPerCollator: Balance = 1_000_000_000_000_000;
+    pub const RewardCurrencyId: AssetId = CORE_ASSET_ID;
+    pub const GcCollators: Vec<AccountId> = vec![];
+}
+
+impl pallet_collator_rewards::Config for Runtime {
+    type Event = Event;
+    type Balance = Balance;
+    type CurrencyId = AssetId;
+    type Currency = Currencies;
+    type RewardPerCollator = RewardPerCollator;
+    type NotRewardedCollators = GcCollators;
+    type RewardCurrencyId = RewardCurrencyId;
+    type AuthorityId = AuraId;
+}
+
 type EnsureMajorityCouncilOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
 	frame_system::EnsureRoot<AccountId>,
@@ -872,6 +890,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
+		CollatorRewards: pallet_collator_rewards::{Pallet, Storage, Event<T> } = 156,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
@@ -885,6 +904,8 @@ construct_runtime!(
 		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>} = 153,
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>} = 154,
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event} = 155,
+
+        
 
 		// TEMPORARY - always last. Sudo will be removed at some point.
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 255,
@@ -1108,6 +1129,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_collator_rewards, CollatorRewards);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
@@ -1166,6 +1188,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_collator_rewards, CollatorRewards);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);

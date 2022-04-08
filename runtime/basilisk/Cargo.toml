@@ -38,6 +38,7 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
+pallet-collator-rewards = { path = "../../pallets/collator-rewards", default-features = false}
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
@@ -151,6 +152,7 @@ runtime-benchmarks = [
     "pallet-tips/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "orml-benchmarking",
+    "pallet-collator-rewards/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -180,6 +182,7 @@ std = [
     "pallet-xcm/std",
     "parachain-info/std",
     "pallet-xyk/std",
+    "pallet-collator-rewards/std",
     "pallet-duster/std",
     "pallet-xyk-rpc-runtime-api/std",
     "pallet-lbp-rpc-runtime-api/std",

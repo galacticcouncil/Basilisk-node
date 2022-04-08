@@ -533,6 +533,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-democracy",
@@ -4543,9 +4544,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.14"
+version = "0.4.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
+checksum = "6389c490849ff5bc16be905ae24bc913a9c8892e19b2341dbc175e14c341c2b8"
 dependencies = [
  "cfg-if 1.0.0",
  "value-bag",
@@ -5577,6 +5578,33 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-collator-rewards"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "log",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-aura",
+ "pallet-balances",
+ "pallet-session",
+ "parity-scale-codec",
+ "rand 0.8.5",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
 ]
 
 [[package]]

@@ -13,6 +13,7 @@ members = [
   'pallets/exchange',
   'pallets/asset-registry',
   'integration-tests',
+  'pallets/collator-rewards',
 ]
 
 [patch."https://github.com/paritytech/substrate"]

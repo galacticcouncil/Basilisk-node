@@ -697,7 +697,7 @@ fn parachain_genesis(
 					(
 						acc.clone(),                                    // account id
 						acc,                                            // validator id
-						basilisk_runtime::opaque::SessionKeys { aura }, // session keys
+						basilisk_runtime::opaque::SessionKeys { aura: aura.clone(), crew: aura }, // session keys
 					)
 				})
 				.collect(),
@@ -798,7 +798,7 @@ fn testnet_parachain_genesis(
 					(
 						acc.clone(),                                    // account id
 						acc,                                            // validator id
-						basilisk_runtime::opaque::SessionKeys { aura }, // session keys
+						basilisk_runtime::opaque::SessionKeys { aura: aura.clone(), crew: aura }, // session keys
 					)
 				})
 				.collect(),
