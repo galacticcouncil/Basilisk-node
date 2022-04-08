@@ -298,7 +298,7 @@ jobs:
         with:
           name: basilisk_runtime.compact.compressed.wasm
           path: scripts/upgrade-runtime
-      - uses: dawidd6/action-download-artifact@v2
+      - uses: dawidd6/action-download-artifact@v2.17.0
         name: Download basilisk binary from master (legacy)
         with:
           workflow: tests.yml
