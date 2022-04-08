@@ -5747,23 +5747,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-faucet"
-version = "0.1.1"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=d0c99033c5d1f686a31cc311b8d96af2a3de9d76#d0c99033c5d1f686a31cc311b8d96af2a3de9d76"
-dependencies = [
- "frame-support",
- "frame-system",
- "orml-tokens",
- "orml-traits",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-gilt"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
@@ -11234,7 +11217,6 @@ dependencies = [
  "pallet-elections-phragmen",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
- "pallet-faucet",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
  "pallet-nft",

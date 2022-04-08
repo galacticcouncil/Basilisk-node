@@ -200,5 +200,4 @@ cumulus-relay-chain-local = { git = "https://github.com/paritytech//cumulus", re
 pallet-price-oracle = { git = "https://github.com/galacticcouncil//warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76"}
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76"}
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76"}
-pallet-faucet= { git = "https://github.com/galacticcouncil//warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76"}
 hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76"}

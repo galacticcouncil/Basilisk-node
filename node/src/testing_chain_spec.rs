@@ -29,7 +29,7 @@ use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use testing_basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, FaucetConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig,
+	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig,
 	SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
 	NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
@@ -264,13 +264,15 @@ pub fn k8s_testnet_parachain_config() -> Result<ChainSpec, String> {
 				// Pre-funded accounts
 				vec![
 					hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
+					hex!["2e004ce52dd68ec64093d887dbbcc69c7a5333673a7acec6109b08056e89f538"].into(),
 					hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into(), //acc from ../res/basilisk-vesting-lbp-test.json
 					hex!["8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"].into(), //acc from ../res/basilisk-vesting-lbp-test.json
 				],
 				true,
 				PARA_ID.into(),
 				//technical committee
-				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()], // TREASURY - Fallback for multi tx payment
+				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()], 
+				// TREASURY - Fallback for multi tx payment
 				vec![],
 				hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
 				get_vesting_config_for_test(),
@@ -453,11 +455,6 @@ fn testnet_parachain_genesis(
 					})
 					.collect()
 			},
-		},
-		faucet: FaucetConfig {
-			rampage: true,
-			mint_limit: 5,
-			mintable_currencies: vec![0, 1, 2],
 		},
 		treasury: Default::default(),
 		elections: ElectionsConfig {
