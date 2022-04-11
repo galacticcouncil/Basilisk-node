@@ -86,8 +86,6 @@ jobs:
         uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
         with:
           profile: minimal
-      - name: Check formatting
-        run: cargo fmt --quiet --check
       - name: Install clippy
         run: rustup component add clippy
       - name: Run clippy
@@ -371,3 +369,18 @@ jobs:
       - name: Evaluate result
         if: contains(env.VERSION_UPDATE, 'have not been updated')
         run: exit 1
+
+  check-formatting:
+    needs: pop-runner-instance
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
+      - run: cargo fmt --quiet --check
+
