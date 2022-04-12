@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "40.0.0"
+version = "41.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -542,6 +542,8 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-liquidity-mining",
+ "pallet-liquidity-mining-benchmarking",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
@@ -1277,7 +1279,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.6.3"
+version = "1.7.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5905,6 +5907,59 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-liquidity-mining"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydradx-traits",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-nft",
+ "pallet-uniques",
+ "parity-scale-codec",
+ "primitives",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-liquidity-mining-benchmarking"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "hydradx-traits",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-asset-registry",
+ "pallet-balances",
+ "pallet-liquidity-mining",
+ "pallet-nft",
+ "pallet-uniques",
+ "pallet-xyk",
+ "parity-scale-codec",
+ "primitives",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -11191,7 +11246,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "40.0.0"
+version = "41.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11237,6 +11292,8 @@ dependencies = [
  "pallet-faucet",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-liquidity-mining",
+ "pallet-liquidity-mining-benchmarking",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
