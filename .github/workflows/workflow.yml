@@ -299,13 +299,6 @@ jobs:
           name: basilisk_runtime.compact.compressed.wasm
           path: scripts/upgrade-runtime
       - uses: dawidd6/action-download-artifact@v2
-        name: Download basilisk binary from master (legacy)
-        with:
-          workflow: tests.yml
-          branch: master
-          name: basilisk
-          path: target/release
-      - uses: dawidd6/action-download-artifact@v2
         name: Download basilisk binary from master
         with:
           workflow: workflow.yml
