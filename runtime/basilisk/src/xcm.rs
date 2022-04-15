@@ -2,8 +2,9 @@ use super::{AssetId, *};
 
 use codec::{Decode, Encode};
 use cumulus_primitives_core::ParaId;
-use frame_support::PalletId;
-use frame_support::traits::{Everything, Nothing};
+use frame_support::{PalletId,
+	traits::{Everything, Nothing},
+};
 pub use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset, DepositToAlternative};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
@@ -16,8 +17,9 @@ use xcm_builder::{
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, TakeWeightCredit,
 };
-use xcm_executor::traits::WeightTrader;
-use xcm_executor::{Assets, Config, XcmExecutor};
+use xcm_executor::{Assets, Config, XcmExecutor,
+	traits::WeightTrader
+};
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
@@ -271,6 +273,7 @@ pub type LocationToAccountId = (
 );
 
 parameter_types! {
+	// The account which receives multi-currency tokens from failed attempts to deposit them
 	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account();
 }
 
