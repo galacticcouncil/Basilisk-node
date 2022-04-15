@@ -252,3 +252,11 @@ parameter_types! {
 	pub MinVestedTransfer: Balance = 100_000;
 	pub const MaxVestingSchedules: u32 = 15;
 }
+
+// pallet liquidity mining
+parameter_types! {
+	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
+	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
+	pub const MinTotalFarmRewards: Balance = NATIVE_EXISTENTIAL_DEPOSIT * 1_000;
+	pub const NftClass: primitives::ClassId = 1;
+}
