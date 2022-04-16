@@ -1,8 +1,7 @@
 use super::*;
 use crate::mock::*;
-use frame_support::{assert_ok, BoundedVec};
+use frame_support::{assert_ok};
 use primitives::nft::ClassType;
-use sp_core::crypto::AccountId32;
 use sp_std::convert::TryInto;
 
 pub type AuctionsModule = Pallet<Test>;
@@ -42,90 +41,4 @@ fn predefined_test_ext() -> sp_io::TestExternalities {
   });
 
   ext
-}
-
-fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, AuctionsStringLimit>, Error<Test>> {
-  name.try_into().map_err(|_| Error::<Test>::TooLong)
-}
-
-fn valid_common_auction_data() -> CommonAuctionData<Test> {
-	CommonAuctionData {
-		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
-		reserve_price: None,
-		last_bid: None,
-		start: 10u64,
-		end: 21u64,
-		closed: false,
-		owner: ALICE,
-		token: (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1),
-		next_bid_min: 1,
-	}
-}
-
-/// English auction tests
-fn english_auction_object(common_data: CommonAuctionData<Test>, specific_data: EnglishAuctionData) -> Auction<Test> {
-	let auction_data = EnglishAuction {
-		common_data,
-		specific_data,
-	};
-
-	Auction::English(auction_data)
-}
-
-fn valid_english_specific_data() -> EnglishAuctionData {
-	EnglishAuctionData {}
-}
-
-/// TopUp auction tests
-fn topup_auction_object(common_data: CommonAuctionData<Test>, specific_data: TopUpAuctionData) -> Auction<Test> {
-	let auction_data = TopUpAuction {
-		common_data,
-		specific_data,
-	};
-
-	Auction::TopUp(auction_data)
-}
-
-fn valid_topup_specific_data() -> TopUpAuctionData {
-	TopUpAuctionData {}
-}
-
-fn bid_object(amount: BalanceOf<Test>, block_number: <Test as frame_system::Config>::BlockNumber) -> Bid<Test> {
-	Bid { amount, block_number }
-}
-
-fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) -> AccountId32 {
-	<Test as pallet::Config>::PalletId::get().into_sub_account(("ac", auction_id))
-}
-
-/// Candle auction tests
-fn candle_auction_object(common_data: CommonAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
-	let auction_data = CandleAuction {
-		common_data,
-		specific_data,
-	};
-
-	Auction::Candle(auction_data)
-}
-
-fn valid_candle_common_auction_data() -> CommonAuctionData<Test> {
-	CommonAuctionData {
-		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
-		reserve_price: None,
-		last_bid: None,
-		start: 10u64,
-		end: 99_366u64,
-		closed: false,
-		owner: ALICE,
-		token: (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1),
-		next_bid_min: 1,
-	}
-}
-
-fn valid_candle_specific_data() -> CandleAuctionData<Test> {
-	CandleAuctionData {
-		closing_start: 27_366,
-		winner: None,
-		winning_closing_range: None
-	}
 }
