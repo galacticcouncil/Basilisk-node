@@ -28,13 +28,13 @@ pub enum Auction<T: Config> {
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct EnglishAuction<T: Config> {
-	pub general_data: GeneralAuctionData<T>,
+	pub common_data: CommonAuctionData<T>,
 	pub specific_data: EnglishAuctionData,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct TopUpAuction<T: Config> {
-	pub general_data: GeneralAuctionData<T>,
+	pub common_data: CommonAuctionData<T>,
 	pub specific_data: TopUpAuctionData,
 }
 
@@ -46,7 +46,7 @@ pub struct Bid<T: Config> {
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct CandleAuction<T: Config> {
-	pub general_data: GeneralAuctionData<T>,
+	pub common_data: CommonAuctionData<T>,
 	pub specific_data: CandleAuctionData<T>,
 }
 
@@ -64,7 +64,7 @@ pub struct CandleAuctionData<T: Config> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct GeneralAuctionData<T: Config> {
+pub struct CommonAuctionData<T: Config> {
 	pub name: BoundedVec<u8, <T as crate::Config>::AuctionsStringLimit>,
 	pub reserve_price: Option<BalanceOf<T>>,
 	pub last_bid: Option<(<T as frame_system::Config>::AccountId, BalanceOf<T>)>,

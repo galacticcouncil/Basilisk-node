@@ -48,8 +48,8 @@ fn to_bounded_name(name: Vec<u8>) -> Result<BoundedVec<u8, AuctionsStringLimit>,
   name.try_into().map_err(|_| Error::<Test>::TooLong)
 }
 
-fn valid_general_auction_data() -> GeneralAuctionData<Test> {
-	GeneralAuctionData {
+fn valid_common_auction_data() -> CommonAuctionData<Test> {
+	CommonAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		reserve_price: None,
 		last_bid: None,
@@ -63,9 +63,9 @@ fn valid_general_auction_data() -> GeneralAuctionData<Test> {
 }
 
 /// English auction tests
-fn english_auction_object(general_data: GeneralAuctionData<Test>, specific_data: EnglishAuctionData) -> Auction<Test> {
+fn english_auction_object(common_data: CommonAuctionData<Test>, specific_data: EnglishAuctionData) -> Auction<Test> {
 	let auction_data = EnglishAuction {
-		general_data,
+		common_data,
 		specific_data,
 	};
 
@@ -77,9 +77,9 @@ fn valid_english_specific_data() -> EnglishAuctionData {
 }
 
 /// TopUp auction tests
-fn topup_auction_object(general_data: GeneralAuctionData<Test>, specific_data: TopUpAuctionData) -> Auction<Test> {
+fn topup_auction_object(common_data: CommonAuctionData<Test>, specific_data: TopUpAuctionData) -> Auction<Test> {
 	let auction_data = TopUpAuction {
-		general_data,
+		common_data,
 		specific_data,
 	};
 
@@ -99,17 +99,17 @@ fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) ->
 }
 
 /// Candle auction tests
-fn candle_auction_object(general_data: GeneralAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
+fn candle_auction_object(common_data: CommonAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
 	let auction_data = CandleAuction {
-		general_data,
+		common_data,
 		specific_data,
 	};
 
 	Auction::Candle(auction_data)
 }
 
-fn valid_candle_general_auction_data() -> GeneralAuctionData<Test> {
-	GeneralAuctionData {
+fn valid_candle_common_auction_data() -> CommonAuctionData<Test> {
+	CommonAuctionData {
 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
 		reserve_price: None,
 		last_bid: None,
