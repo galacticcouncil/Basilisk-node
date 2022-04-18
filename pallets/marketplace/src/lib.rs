@@ -178,7 +178,7 @@ pub mod pallet {
 
 			<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, amount)?;
 
-			Self::deposit_event(Event::OfferPlaced(sender, class_id, instance_id, amount));
+			Self::deposit_event(Event::OfferPlaced(sender, class_id, instance_id, amount, expires));
 
 			Ok(())
 		}
@@ -317,8 +317,8 @@ pub mod pallet {
 			T::NftInstanceId,
 			BalanceOf<T>,
 		),
-		/// Offer was placed on a token \[offerer, class_id, instance_id, price\]
-		OfferPlaced(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>),
+		/// Offer was placed on a token \[offerer, class_id, instance_id, price, expires\]
+		OfferPlaced(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>, T::BlockNumber),
 		/// Offer was withdrawn \[sender, class_id, instance_id\]
 		OfferWithdrawn(T::AccountId, T::NftClassId, T::NftInstanceId),
 		/// Offer was accepted \[sender, class_id, instance_id\]
