@@ -38,6 +38,8 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
+pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features=false}
+pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
@@ -151,6 +153,7 @@ runtime-benchmarks = [
     "pallet-tips/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "orml-benchmarking",
+    "pallet-liquidity-mining-benchmarking",
 ]
 std = [
     "codec/std",
@@ -223,6 +226,7 @@ std = [
     "pallet-uniques/std",
     "scale-info/std",
     "pallet-preimage/std",
+    "pallet-liquidity-mining/std",
 ]
 try-runtime= [
     "frame-try-runtime",
