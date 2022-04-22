@@ -26,7 +26,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, One},
 };
 
-use frame_support::traits::{Everything, GenesisBuild, Get};
+use frame_support::traits::{Everything, Nothing, GenesisBuild, Get};
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool};
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
@@ -137,7 +137,7 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = Everything;
+	type DustRemovalWhitelist = Nothing;
 }
 
 pub struct AssetPairAccountIdTest();
