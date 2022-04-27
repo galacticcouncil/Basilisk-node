@@ -1280,7 +1280,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.7.0"
+version = "1.7.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5926,7 +5926,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6083,7 +6083,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.2.1"
+version = "2.2.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8752,7 +8752,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.8"
+version = "0.2.9"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
