@@ -38,3 +38,9 @@ build-docs:
 .PHONY: clean
 clean:
 	cargo clean
+
+.PHONY: docker
+docker: build
+	ln -f $(CURDIR)/target/release/basilisk $(CURDIR)/basilisk
+	docker build --tag basilisk .
+	rm $(CURDIR)/basilisk
