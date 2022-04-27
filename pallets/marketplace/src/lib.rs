@@ -266,7 +266,7 @@ pub mod pallet {
 		/// - `instance_id`: The instance value of the asset to be minted.
 		/// - `author`: Receiver of the royalty
 		/// - `royalty`: Percentage reward from each trade for the author
-		#[pallet::weight(<T as Config>::WeightInfo::mint_for_marketplace())]
+		#[pallet::weight(<T as Config>::WeightInfo::add_royalty())]
 		#[transactional]
 		pub fn add_royalty(
 			origin: OriginFor<T>,

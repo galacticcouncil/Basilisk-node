@@ -83,18 +83,18 @@ benchmarks! {
 
 	make_offer {
 		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
-	}: _(RawOrigin::Signed(caller.clone()), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(1_000).saturated_into(), 666u32.into())
+	}: _(RawOrigin::Signed(caller.clone()), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(100_000).saturated_into(), 666u32.into())
 	verify {
 		assert_eq!(
 			Marketplace::<T>::offers((T::NftClassId::from(CLASS_ID_0), T::NftInstanceId::from(INSTANCE_ID_0)), caller.clone()),
-			Some( Offer {maker: caller, amount: unit(1_000).saturated_into(), expires: T::BlockNumber::from(666u32)})
+			Some( Offer {maker: caller, amount: unit(100_000).saturated_into(), expires: T::BlockNumber::from(666u32)})
 		)
 	}
 
 	withdraw_offer {
 		let caller2 = create_account::<T>("caller2", 0);
 		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
-		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(1_000).saturated_into(), 666u32.into())?;
+		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(100_000).saturated_into(), 666u32.into())?;
 	}: _(RawOrigin::Signed(caller2.clone()), CLASS_ID_0.into(), INSTANCE_ID_0.into(), caller2.clone())
 	verify {
 		assert_eq!(
@@ -106,7 +106,7 @@ benchmarks! {
 	accept_offer {
 		let caller2 = create_account::<T>("caller2", 0);
 		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
-		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(1_000).saturated_into(), 666u32.into())?;
+		Marketplace::<T>::make_offer(RawOrigin::Signed(caller2.clone()).into(), CLASS_ID_0.into(), INSTANCE_ID_0.into(), unit(100_000).saturated_into(), 666u32.into())?;
 	}: _(RawOrigin::Signed(caller), CLASS_ID_0.into(), INSTANCE_ID_0.into(), caller2.clone())
 	verify {
 		assert_eq!(
@@ -115,7 +115,15 @@ benchmarks! {
 		)
 	}
 
-
+	add_royalty {
+		let caller2 = create_account::<T>("caller2", 0);
+		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
+	}: _(RawOrigin::Signed(caller), CLASS_ID_0.into(), INSTANCE_ID_0.into(), caller2, 25u8)
+	verify {
+		assert!(
+			MarketplaceInstances::<T>::contains_key(T::NftClassId::from(CLASS_ID_0), T::NftInstanceId::from(INSTANCE_ID_0))
+		)
+	}
 }
 
 #[cfg(test)]
