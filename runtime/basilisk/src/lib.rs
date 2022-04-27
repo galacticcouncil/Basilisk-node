@@ -128,7 +128,8 @@ impl Contains<Call> for BaseFilter {
 		match call {
 			Call::XYK(_) => false,
 			Call::Exchange(_) => false,
-			//Call::NFT(_) => false,
+			Call::NFT(_) => false,
+			Call::Marketplace(_) => false,
 			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
