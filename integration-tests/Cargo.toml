@@ -119,7 +119,7 @@ basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17" }
 
 [dev-dependencies]
-xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.17" }
+xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
 
 [features]
 default = ["std"]

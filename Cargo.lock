@@ -1282,7 +1282,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.7.1"
+version = "1.7.2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -12677,7 +12677,7 @@ dependencies = [
 [[package]]
 name = "xcm-emulator"
 version = "0.1.0"
-source = "git+https://github.com/zqhxuyuan/xcm-simulator?branch=v0.9.17#9edc62cbb4a893520f84b544c024a75eb68812f5"
+source = "git+https://github.com/zqhxuyuan/xcm-simulator?branch=v0.9.16#9edc62cbb4a893520f84b544c024a75eb68812f5"
 dependencies = [
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
