@@ -130,6 +130,7 @@ impl Contains<Call> for BaseFilter {
 			Call::Exchange(_) => false,
 			Call::NFT(_) => false,
 			Call::Marketplace(_) => false,
+			Call::Auctions(_) => false,
 			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
