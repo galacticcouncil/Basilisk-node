@@ -1,4 +1,4 @@
-name: "Semantic Pull Request"
+name: Semantic
 
 on:
   pull_request_target:
