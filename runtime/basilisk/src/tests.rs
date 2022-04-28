@@ -37,7 +37,7 @@ fn extrinsic_base_fee_is_correct() {
 // Useful to calculate how much single transfer costs in native currency with fee components breakdown
 fn transfer_cost() {
 	let call = pallet_balances::Call::<Runtime>::transfer {
-		dest: Default::default(),
+		dest: AccountId::new([0; 32]),
 		value: Default::default(),
 	};
 	let info = call.get_dispatch_info();

@@ -228,12 +228,14 @@ pub mod pallet {
 			owner: T::AccountId,
 			class_id: T::NftClassId,
 			class_type: T::ClassType,
+			metadata: BoundedVecOfUnq<T>,
 		},
 		/// An instance was minted \[owner, class_id, instance_id\]
 		InstanceMinted {
 			owner: T::AccountId,
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
+			metadata: BoundedVecOfUnq<T>,
 		},
 		/// An instance was transferred \[from, to, class_id, instance_id\]
 		InstanceTransferred {
@@ -307,12 +309,19 @@ impl<T: Config> Pallet<T> {
 			},
 		)?;
 
-		Classes::<T>::insert(class_id, ClassInfo { class_type, metadata });
+		Classes::<T>::insert(
+			class_id,
+			ClassInfo {
+				class_type,
+				metadata: metadata.clone(),
+			},
+		);
 
 		Self::deposit_event(Event::ClassCreated {
 			owner,
 			class_id,
 			class_type,
+			metadata,
 		});
 
 		Ok((class_id, class_type))
@@ -326,12 +335,19 @@ impl<T: Config> Pallet<T> {
 	) -> Result<T::NftInstanceId, DispatchError> {
 		pallet_uniques::Pallet::<T>::do_mint(class_id.into(), instance_id.into(), owner.clone(), |_details| Ok(()))?;
 
-		Instances::<T>::insert(class_id, instance_id, InstanceInfo { metadata });
+		Instances::<T>::insert(
+			class_id,
+			instance_id,
+			InstanceInfo {
+				metadata: metadata.clone(),
+			},
+		);
 
 		Self::deposit_event(Event::InstanceMinted {
 			owner,
 			class_id,
 			instance_id,
+			metadata,
 		});
 
 		Ok(instance_id)

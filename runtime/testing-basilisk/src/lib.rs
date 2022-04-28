@@ -56,7 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, U128CurrencyToVote, InstanceFilter},
+	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -113,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 45,
+	spec_version: 43,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -131,8 +131,11 @@ pub fn native_version() -> NativeVersion {
 
 use common_runtime::adapter::OrmlTokensAdapter;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
+use primitives::{
+	nft::{ClassType, NftPermissions},
+	ClassId, InstanceId,
+};
 use smallvec::smallvec;
-use primitives::{nft::{ClassType, NftPermissions}, ClassId, InstanceId};
 
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
@@ -744,7 +747,9 @@ impl EnsureOrigin<Origin> for EnsureRootOrTreasury {
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn successful_origin() -> Origin {
-		Origin::from(RawOrigin::Signed(Default::default()))
+		let zero_account_id = AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+			.expect("infinite length input; no invalid inputs for type; qed");
+		Origin::from(RawOrigin::Signed(zero_account_id))
 	}
 }
 
@@ -758,9 +763,35 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
+parameter_types! {
+	pub const MinimumOfferAmount: Balance = 10000 * UNITS;
+	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
+}
+
+impl pallet_marketplace::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
+	type MinimumOfferAmount = MinimumOfferAmount;
+	type RoyaltyBondAmount = RoyaltyBondAmount;
+}
+
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
 	type RelaychainBlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+}
+
+impl pallet_liquidity_mining::Config for Runtime {
+	type Event = Event;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type CreateOrigin = EnsureRoot<AccountId>;
+	type PalletId = LMPalletId;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type NftClass = NftClass;
+	type AMM = XYK;
+	type WeightInfo = ();
 }
 
 impl pallet_faucet::Config for Runtime {
@@ -864,11 +895,13 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
+		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 156,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
-		Auctions: pallet_auctions::{Pallet, Call, Storage, Event<T>} = 109,
+		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
+		Auctions: pallet_auctions::{Pallet, Call, Storage, Event<T>} = 110,
 
 		// ORML related modules - starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
@@ -1096,6 +1129,7 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 
@@ -1103,8 +1137,10 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_price_oracle, PriceOracle);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
-			//list_benchmark!(list, extra, pallet_nft, NFT);
+			list_benchmark!(list, extra, pallet_nft, NFT);
+			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
@@ -1128,9 +1164,11 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl pallet_exchange_benchmarking::Config for Runtime {}
+			impl pallet_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
@@ -1155,6 +1193,8 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			//add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);

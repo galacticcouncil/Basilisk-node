@@ -131,40 +131,27 @@ pub mod nft {
 
 	impl NftPermission<ClassType> for NftPermissions {
 		fn can_create(class_type: &ClassType) -> bool {
-			matches!(*class_type,
-				ClassType::Marketplace
-			)
+			matches!(*class_type, ClassType::Marketplace)
 		}
 
 		fn can_mint(class_type: &ClassType) -> bool {
-			matches!(*class_type,
-				ClassType::Marketplace
-			)
+			matches!(*class_type, ClassType::Marketplace)
 		}
 
 		fn can_transfer(class_type: &ClassType) -> bool {
-			matches!(*class_type,
-				ClassType::Marketplace
-				| ClassType::LiquidityMining
-			)
+			matches!(*class_type, ClassType::Marketplace | ClassType::LiquidityMining)
 		}
 
 		fn can_burn(class_type: &ClassType) -> bool {
-			matches!(*class_type,
-				ClassType::Marketplace
-			)
+			matches!(*class_type, ClassType::Marketplace)
 		}
 
 		fn can_destroy(class_type: &ClassType) -> bool {
-			matches!(*class_type,
-				ClassType::Marketplace
-			)
+			matches!(*class_type, ClassType::Marketplace)
 		}
 
 		fn has_deposit(class_type: &ClassType) -> bool {
-			matches!(*class_type,
-				ClassType::Marketplace
-			)
+			matches!(*class_type, ClassType::Marketplace)
 		}
 	}
 }
