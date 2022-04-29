@@ -446,6 +446,7 @@ impl pallet_lbp::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = common_runtime::weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type OnRemoveLiquidity = pallet_xyk::CreatePool<Runtime>;
 }
 
 impl pallet_price_oracle::Config for Runtime {

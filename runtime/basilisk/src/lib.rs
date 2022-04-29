@@ -482,12 +482,13 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
+	type WeightInfo = common_runtime::weights::lbp::BasiliskWeight<Runtime>;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
-	type WeightInfo = common_runtime::weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type OnRemoveLiquidity = pallet_xyk::CreatePool<Runtime>;
 }
 
 impl pallet_price_oracle::Config for Runtime {

@@ -44,6 +44,8 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
+pallet-xyk = { path = "../xyk", default-features = false }
+pallet-asset-registry = {path = '../asset-registry', default-features = false}
 
 [features]
 default = ["std"]

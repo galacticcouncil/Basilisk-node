@@ -24,7 +24,7 @@
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
-	DispatchError, RuntimeDebug,
+	DispatchError, RuntimeDebug, Perbill,
 };
 use frame_support::{
 	dispatch::DispatchResult,
@@ -39,7 +39,7 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
-	Amount, AssetId, Balance,
+	Amount, AssetId, Balance, OnRemoveLbpLiquidity,
 };
 
 use scale_info::TypeInfo;
@@ -223,6 +223,9 @@ pub mod pallet {
 
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
+
+		/// Handler to perform some action when liquidity is removed from a pool. In our case to create a XYK pool.
+		type OnRemoveLiquidity: OnRemoveLbpLiquidity<Self::AccountId, AssetId, Balance>;
 	}
 
 	#[pallet::hooks]
@@ -627,12 +630,14 @@ pub mod pallet {
 		/// The dispatch origin for this call must be signed by the pool owner.
 		///
 		/// Parameters:
-		/// - `amount_a`: The identifier of the asset and the amount to add.
+		/// - `pool_id`: The identifier of the pool to remove liquidity from
+		/// - `transfer_to_xyk`: Optionally create a XYK pool and transfer there some percentage of the pool liquidity.
+		/// The rest is transferred to LBP owner. If set to zero, XYK pool is not created.
 		///
 		/// Emits 'LiquidityRemoved' when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
 		#[transactional]
-		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResult {
+		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>, transfer_to_xyk: Perbill) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
@@ -658,7 +663,13 @@ pub mod pallet {
 
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
 
-			Ok(())
+			 let amount_a_perbill: Balance = transfer_to_xyk * amount_a;
+			 let amount_b_perbill: Balance = transfer_to_xyk * amount_b;
+			 if amount_a_perbill.is_zero() || amount_b_perbill.is_zero() {
+				  Ok(())
+			 } else {
+				 T::OnRemoveLiquidity::on_end_of_lbp(who, asset_a, asset_b, amount_a_perbill, amount_b_perbill)
+			 }
 		}
 
 		/// Trade `asset_in` for `asset_out`.

@@ -21,6 +21,7 @@ use super::*;
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
+use sp_runtime::Perbill;
 
 use primitives::AssetId;
 
@@ -98,11 +99,21 @@ benchmarks! {
 		LBP::<T>::create_pool(RawOrigin::Root.into(), caller.clone(), ASSET_A_ID, ASSET_A_AMOUNT, ASSET_B_ID, ASSET_B_AMOUNT, INITIAL_WEIGHT, FINAL_WEIGHT, WeightCurveType::Linear, DEFAULT_FEE, caller.clone(), 0)?;
 		ensure!(PoolData::<T>::contains_key(&pool_id), "Pool does not exist.");
 
-	}: _(RawOrigin::Signed(caller.clone()), pool_id.clone())
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &caller), 999_999_000_000_000);
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &caller), 999_998_000_000_000);
+
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &pool_id), 1_000_000_000);
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &pool_id), 2_000_000_000);
+
+	}: _(RawOrigin::Signed(caller.clone()), pool_id.clone(), Perbill::from_percent(25))
 	verify {
 		assert!(!PoolData::<T>::contains_key(&pool_id));
-		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &caller), 1000000000000000);
-		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &caller), 1000000000000000);
+
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &pool_id), 0);
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &pool_id), 0);
+
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &caller), 1_000_000_000_000_000); // TODO: wrong result !!!
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &caller), 999_999_500_000_000);
 	}
 
 	sell {

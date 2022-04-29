@@ -29,10 +29,13 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
-use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
+use frame_support::{
+	dispatch::{DispatchResult, RawOrigin},
+	traits::Get,
+	ensure, transactional};
 use frame_system::ensure_signed;
 use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
-use primitives::{asset::AssetPair, AssetId, Balance, Price};
+use primitives::{asset::AssetPair, AssetId, Balance, Price, OnRemoveLbpLiquidity};
 use sp_std::{vec, vec::Vec};
 
 use frame_support::sp_runtime::FixedPointNumber;
@@ -969,4 +972,14 @@ impl CanCreatePool<AssetId> for AllowAllPools {
 	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
 		true
 	}
+}
+
+/// Used in the LBP config. Creates pool when the liquidity is removed from LBP pool.
+pub struct CreatePool<T>(sp_std::marker::PhantomData<T>);
+
+impl<T: Config> OnRemoveLbpLiquidity<T::AccountId, AssetId, Balance> for CreatePool<T> {
+    fn on_end_of_lbp(origin: T::AccountId, asset_a: AssetId, asset_b: AssetId, amount_a: Balance, amount_b: Balance) -> DispatchResult {
+		let initial_price = Price::from((amount_b, amount_a));
+		Pallet::<T>::create_pool(RawOrigin::Signed(origin).into(), asset_a, asset_b, amount_a, initial_price)
+    }
 }

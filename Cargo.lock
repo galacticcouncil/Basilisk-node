@@ -5868,6 +5868,8 @@ dependencies = [
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
+ "pallet-asset-registry",
+ "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "primitives",
