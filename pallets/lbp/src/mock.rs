@@ -276,6 +276,17 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
+		pallet_asset_registry::GenesisConfig::<Test> {
+			asset_names: vec![
+				(b"KUSD".to_vec(), 1_000_000u128),
+				(b"BSX".to_vec(), 1_000_000u128),
+				(b"ETH".to_vec(), 1_000_000u128),],
+			native_asset_name: b"HDX".to_vec(),
+			native_existential_deposit: EXISTENTIAL_DEPOSIT,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
 		t.into()
 	}
 }

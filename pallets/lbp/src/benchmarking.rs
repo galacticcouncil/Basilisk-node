@@ -112,7 +112,7 @@ benchmarks! {
 		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &pool_id), 0);
 		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &pool_id), 0);
 
-		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &caller), 1_000_000_000_000_000); // TODO: wrong result !!!
+		assert_eq!(T::MultiCurrency::free_balance(ASSET_A_ID, &caller), 999_999_750_000_000); // TODO: wrong result !!!
 		assert_eq!(T::MultiCurrency::free_balance(ASSET_B_ID, &caller), 999_999_500_000_000);
 	}
 

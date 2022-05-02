@@ -1411,8 +1411,8 @@ fn remove_liquidity_and_create_xyk_should_work() {
 				pool_balance_b_before,
 			)
 			.into(),
-			pallet_asset_registry::Event::Registered(1, vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0].try_into().unwrap(), pallet_asset_registry::AssetType::PoolShare(KUSD, BSX)).into(),
-			pallet_xyk::Event::PoolCreated(ALICE, KUSD, BSX, pool_balance_a_before / 4, 1, xyk_pool_id).into(),
+			pallet_asset_registry::Event::Registered(4, vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0].try_into().unwrap(), pallet_asset_registry::AssetType::PoolShare(KUSD, BSX)).into(),
+			pallet_xyk::Event::PoolCreated(ALICE, KUSD, BSX, pool_balance_a_before / 4, 4, xyk_pool_id).into(),
 			frame_system::Event::NewAccount { account: xyk_pool_id }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: KUSD,
@@ -1427,7 +1427,7 @@ fn remove_liquidity_and_create_xyk_should_work() {
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
-				currency_id: 1,
+				currency_id: 4,
 				who: ALICE,
 				amount: 250_000_000,
 			}
@@ -1479,8 +1479,8 @@ fn remove_liquidity_and_transfer_everything_to_xyk_should_work() {
 				pool_balance_b_before,
 			)
 			.into(),
-			pallet_asset_registry::Event::Registered(1, vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0].try_into().unwrap(), pallet_asset_registry::AssetType::PoolShare(KUSD, BSX)).into(),
-			pallet_xyk::Event::PoolCreated(ALICE, KUSD, BSX, pool_balance_a_before, 1, xyk_pool_id).into(),
+			pallet_asset_registry::Event::Registered(4, vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0].try_into().unwrap(), pallet_asset_registry::AssetType::PoolShare(KUSD, BSX)).into(),
+			pallet_xyk::Event::PoolCreated(ALICE, KUSD, BSX, pool_balance_a_before, 4, xyk_pool_id).into(),
 			frame_system::Event::NewAccount { account: xyk_pool_id }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: KUSD,
@@ -1495,7 +1495,7 @@ fn remove_liquidity_and_transfer_everything_to_xyk_should_work() {
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
-				currency_id: 1,
+				currency_id: 4,
 				who: ALICE,
 				amount: 1_000_000_000,
 			}
