@@ -372,3 +372,82 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	(),
 >;
 
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use frame_support::weights::IdentityFee;
+	use sp_runtime::traits::One;
+
+	const TEST_ASSET_ID: AssetId = 123;
+
+	struct MockOracle;
+	impl PriceOracle for MockOracle {
+		fn price(currency: AssetId) -> Option<Price> {
+			match currency {
+				CORE_ASSET_ID => Some(Price::one()),
+				TEST_ASSET_ID => Some(Price::from_float(0.5)),
+				_ => None,
+			}
+		}
+	}
+
+	struct MockConvert;
+	impl Convert<AssetId, Option<MultiLocation>> for MockConvert {
+		fn convert(id: AssetId) -> Option<MultiLocation> {
+			match id {
+				CORE_ASSET_ID | TEST_ASSET_ID => Some(MultiLocation::new(
+					0,
+					X1(GeneralKey(id.encode())),
+				)),
+				_ => None
+			}
+		}
+	}
+
+	impl Convert<MultiLocation, Option<AssetId>> for MockConvert {
+		fn convert(location: MultiLocation) -> Option<AssetId> {
+			match location {
+				MultiLocation {
+					parents: 0,
+					interior: X1(GeneralKey(key)),
+				} => {
+					if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
+						// we currently have only one native asset
+						match currency_id {
+							CORE_ASSET_ID | TEST_ASSET_ID => Some(currency_id),
+							_ => None,
+						}
+					} else {
+						None
+					}
+				}
+				_ => None,
+			}
+		}
+	}
+	
+	impl Convert<MultiAsset, Option<AssetId>> for MockConvert {
+		fn convert(asset: MultiAsset) -> Option<AssetId> {
+			if let MultiAsset {
+				id: Concrete(location), ..
+			} = asset
+			{
+				Self::convert(location)
+			} else {
+				None
+			}
+		}
+	}
+
+	#[test]
+	fn multi_currency_trader() {
+		type Trader = MultiCurrencyTrader<IdentityFee<Balance>, MockOracle, MockConvert>;
+
+		let mut trader = Trader::new();
+		let payment: MultiAsset = (Concrete(MockConvert::convert(CORE_ASSET_ID).unwrap()), 1_000_000).into();
+
+		let res = dbg!(trader.buy_weight(1_000_000, payment.into()));
+		assert!(.is_ok());
+		assert!(res.unwrap().is_empty());
+	}
+}
