@@ -8,7 +8,9 @@ use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::latest::prelude::*;
 use polkadot_xcm::latest::Error;
-use sp_runtime::traits::Convert;
+use primitives::Price;
+use sp_runtime::{traits::{Convert, Saturating}, FixedPointNumber, SaturatedConversion};
+use sp_std::collections::btree_map::BTreeMap;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
 	EnsureXcmOrigin, FixedWeightBounds, LocationInverter, ParentIsPreset, RelayChainAsNative,
@@ -81,40 +83,45 @@ impl WeightTrader for TradePassthrough {
 	}
 }
 
+pub trait PriceOracle {
+	fn price(currency: AssetId) -> Option<Price>;
+}
+
+impl PriceOracle for MultiTransactionPayment {
+	fn price(currency: AssetId) -> Option<Price> {
+		MultiTransactionPayment::currency_price(currency)
+	}
+}
+
 /// Weight trader which uses the `TransactionPayment` pallet to set the right price for weight and then
 /// places any weight bought into the right account.
 pub struct MultiCurrencyTrader<
-	WeightToFee: WeightToFeePolynomial<Balance = Currency::Balance>,
-	AssetId: Get<MultiLocation>,
-	AccountId,
-	Currency: CurrencyT<AccountId>,
-	OnUnbalanced: OnUnbalancedT<Currency::NegativeImbalance>,
-	AcceptedCurrencyPrices: pallet_transaction_multi_payment::Config,
+	WeightToFee: WeightToFeePolynomial<Balance = Balance>,
+	AcceptedCurrencyPrices: PriceOracle,
 	ConvertCurrency: Convert<MultiAsset, Option<AssetId>>,
 > {
 	weight: Weight,
-	paid_assets: BTreeMap<(AssetId, Price), u128>,
-	_phantom: PhantomData<(WeightToFee, AssetId, AccountId, Currency, OnUnbalanced, AcceptedCurrencyPrices, ConvertCurrency)>,
+	paid_assets: BTreeMap<(MultiLocation, Price), u128>,
+	_phantom: PhantomData<(WeightToFee, AcceptedCurrencyPrices, ConvertCurrency)>,
 }
 
 impl<
-	WeightToFee: WeightToFeePolynomial<Balance = Currency::Balance>,
-	AssetId: Get<MultiLocation>,
-	AccountId,
-	Currency: CurrencyT<AccountId>,
-	OnUnbalanced: OnUnbalancedT<Currency::NegativeImbalance>,
-	AcceptedCurrencyPrices: pallet_transaction_multi_payment::Config,
+	WeightToFee: WeightToFeePolynomial<Balance = Balance>,
+	AcceptedCurrencyPrices: PriceOracle,
 	ConvertCurrency: Convert<MultiAsset, Option<AssetId>>,
 	>
-	MultiCurrencyTrader<WeightToFee, AssetId, AccountId, Currency, OnUnbalanced, AcceptedCurrencyPrices, ConvertCurrency>
+	MultiCurrencyTrader<WeightToFee, AcceptedCurrencyPrices, ConvertCurrency>
 {
-	fn get_asset_and_price(&mut self, weight: Weight, &payment: Assets) -> Option<(Multilocation, Price)> {
+	fn get_asset_and_price(&mut self, payment: &Assets) -> Option<(MultiLocation, Price)> {
 		if let Some(asset) = payment.fungible_assets_iter().next() {
 			// TODO: consider optimizing out the clone
-			CurrencyConvert::convert(asset.id.clone())
+			ConvertCurrency::convert(asset.clone())
 				.and_then(|currency| {
-					AcceptedCurrencyPrices::currency_price(currency)
-				}).and_then(|price| (asset.id.clone(), price))
+					AcceptedCurrencyPrices::price(currency)
+				}).and_then(|price| match asset.id.clone() {
+					Concrete(location) => Some((location, price)),
+					_ => None,
+				})
 		} else {
 			None
 		}
@@ -122,14 +129,10 @@ impl<
 }
 
 impl<
-		WeightToFee: WeightToFeePolynomial<Balance = Currency::Balance>,
-		AssetId: Get<MultiLocation>,
-		AccountId,
-		Currency: CurrencyT<AccountId>,
-		OnUnbalanced: OnUnbalancedT<Currency::NegativeImbalance>,
-		AcceptedCurrencyPrices: pallet_transaction_multi_payment::Config,
+		WeightToFee: WeightToFeePolynomial<Balance = Balance>,
+		AcceptedCurrencyPrices: PriceOracle,
 		ConvertCurrency: Convert<MultiAsset, Option<AssetId>>,
-	> WeightTrader for MultiCurrencyTrader<WeightToFee, AssetId, AccountId, Currency, OnUnbalanced, AcceptedCurrencyPrices, ConvertCurrency>
+	> WeightTrader for MultiCurrencyTrader<WeightToFee, AcceptedCurrencyPrices, ConvertCurrency>
 {
 	fn new() -> Self {
 		Self { weight: 0, paid_assets: Default::default(), _phantom: PhantomData }
@@ -137,46 +140,36 @@ impl<
 
 	fn buy_weight(&mut self, weight: Weight, payment: Assets) -> Result<Assets, XcmError> {
 		log::trace!(target: "xcm::weight", "MultiCurrencyTrader::buy_weight weight: {:?}, payment: {:?}", weight, payment);
-		let (asset_id, price) = self.get_asset_and_price(weight, &payment).ok_or(XcmError::TooExpensive)?;
-		let fee = WeightToFee::calc(weight);
+		let (asset_loc, price) = self.get_asset_and_price(&payment).ok_or(XcmError::TooExpensive)?;
+		let fee = WeightToFee::calc(&weight);
 		let converted_fee = price.checked_mul_int(fee).ok_or(XcmError::Overflow)?;
 		let amount: u128 = converted_fee.try_into().map_err(|_| XcmError::Overflow)?;
-		let required = (Concrete(asset_id), amount).into();
+		let required = (Concrete(asset_loc.clone()), amount).into();
 		let unused = payment.checked_sub(required).map_err(|_| XcmError::TooExpensive)?;
 		self.weight = self.weight.saturating_add(weight);
-		match self.assets.get_mut(&(asset_id, price)) {
+		let key = (asset_loc, price);
+		match self.paid_assets.get_mut(&key) {
 			Some(v) => v.saturating_accrue(amount),
-			None => self.assets.insert((asset_id, price), amount),
+			None => { self.paid_assets.insert(key, amount); },
 		}
 		Ok(unused)
 	}
 
 	/// Will refund up to `weight` from the first asset tracked by the trader.
 	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
-		log::trace!(target: "xcm::weight", "MultiCurrencyTrader::refund_weight weight: {:?}", weight);
+		log::trace!(target: "xcm::weight", "MultiCurrencyTrader::refund_weight weight: {:?}, paid_assets: {:?}", weight, self.paid_assets);
 		let weight = weight.min(self.weight);
 		self.weight -= weight; // Will not underflow because of `min()` above.
 		let fee = WeightToFee::calc(&weight);
-		if let Some(((asset_id, price), amount) = self.assets.iter_mut().next() {
+		if let Some(((asset_loc, price), amount)) = self.paid_assets.iter_mut().next() {
 			let converted_fee: u128 = price.saturating_mul_int(fee).saturated_into();
 			let refund = converted_fee.min(*amount);
-			amount -= refund; // Will not underflow because of `min()` above.
-			Some((Concrete(asset_id), refund).into())
+			// TODO: remove entry when new amount is 0
+			*amount -= refund; // Will not underflow because of `min()` above.
+			Some((Concrete(asset_loc.clone()), refund).into())
 		} else {
 			None
 		}
-	}
-}
-impl<
-		WeightToFee: WeightToFeePolynomial<Balance = Currency::Balance>,
-		AssetId: Get<MultiLocation>,
-		AccountId,
-		Currency: CurrencyT<AccountId>,
-		OnUnbalanced: OnUnbalancedT<Currency::NegativeImbalance>,
-	> Drop for MultiCurrencyTrader<WeightToFee, AssetId, AccountId, Currency, OnUnbalanced, AcceptedCurrencyPrices, ConvertCurrency>
-{
-	fn drop(&mut self) {
-		OnUnbalanced::on_unbalanced(Currency::issue(self.1));
 	}
 }
 
@@ -194,7 +187,7 @@ impl Config for XcmConfig {
 
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type Trader = TradePassthrough;
+	type Trader = MultiCurrencyTrader<WeightToFee, MultiTransactionPayment, CurrencyIdConvert>;
 
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;

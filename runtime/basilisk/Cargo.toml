@@ -25,6 +25,7 @@ hash-db = { version = "0.15.2", default-features = false }
 memory-db = { version = "0.27.0", default-features = false }
 trie-db = { version = "0.22.6", default-features = false }
 smallvec = "1.6.1"
+log = { version = "0.4.17", default-features = false }
 
 # local dependencies
 primitives = { default-features = false, path = "../../primitives" }
