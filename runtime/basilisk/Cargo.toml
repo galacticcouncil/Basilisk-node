@@ -221,6 +221,7 @@ std = [
     "pallet-treasury/std",
     "pallet-collective/std",
     "pallet-democracy/std",
+    "pallet-proxy/std",
     "pallet-scheduler/std",
     "pallet-tips/std",
     "pallet-collator-selection/std",
