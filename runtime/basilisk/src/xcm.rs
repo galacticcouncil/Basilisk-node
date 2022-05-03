@@ -81,6 +81,105 @@ impl WeightTrader for TradePassthrough {
 	}
 }
 
+/// Weight trader which uses the `TransactionPayment` pallet to set the right price for weight and then
+/// places any weight bought into the right account.
+pub struct MultiCurrencyTrader<
+	WeightToFee: WeightToFeePolynomial<Balance = Currency::Balance>,
+	AssetId: Get<MultiLocation>,
+	AccountId,
+	Currency: CurrencyT<AccountId>,
+	OnUnbalanced: OnUnbalancedT<Currency::NegativeImbalance>,
+	AcceptedCurrencyPrices: pallet_transaction_multi_payment::Config,
+	ConvertCurrency: Convert<MultiAsset, Option<AssetId>>,
+> {
+	weight: Weight,
+	paid_assets: BTreeMap<(AssetId, Price), u128>,
+	_phantom: PhantomData<(WeightToFee, AssetId, AccountId, Currency, OnUnbalanced, AcceptedCurrencyPrices, ConvertCurrency)>,
+}
+
+impl<
+	WeightToFee: WeightToFeePolynomial<Balance = Currency::Balance>,
+	AssetId: Get<MultiLocation>,
+	AccountId,
+	Currency: CurrencyT<AccountId>,
+	OnUnbalanced: OnUnbalancedT<Currency::NegativeImbalance>,
+	AcceptedCurrencyPrices: pallet_transaction_multi_payment::Config,
+	ConvertCurrency: Convert<MultiAsset, Option<AssetId>>,
+	>
+	MultiCurrencyTrader<WeightToFee, AssetId, AccountId, Currency, OnUnbalanced, AcceptedCurrencyPrices, ConvertCurrency>
+{
+	fn get_asset_and_price(&mut self, weight: Weight, &payment: Assets) -> Option<(Multilocation, Price)> {
+		if let Some(asset) = payment.fungible_assets_iter().next() {
+			// TODO: consider optimizing out the clone
+			CurrencyConvert::convert(asset.id.clone())
+				.and_then(|currency| {
+					AcceptedCurrencyPrices::currency_price(currency)
+				}).and_then(|price| (asset.id.clone(), price))
+		} else {
+			None
+		}
+	}
+}
+
+impl<
+		WeightToFee: WeightToFeePolynomial<Balance = Currency::Balance>,
+		AssetId: Get<MultiLocation>,
+		AccountId,
+		Currency: CurrencyT<AccountId>,
+		OnUnbalanced: OnUnbalancedT<Currency::NegativeImbalance>,
+		AcceptedCurrencyPrices: pallet_transaction_multi_payment::Config,
+		ConvertCurrency: Convert<MultiAsset, Option<AssetId>>,
+	> WeightTrader for MultiCurrencyTrader<WeightToFee, AssetId, AccountId, Currency, OnUnbalanced, AcceptedCurrencyPrices, ConvertCurrency>
+{
+	fn new() -> Self {
+		Self { weight: 0, paid_assets: Default::default(), _phantom: PhantomData }
+	}
+
+	fn buy_weight(&mut self, weight: Weight, payment: Assets) -> Result<Assets, XcmError> {
+		log::trace!(target: "xcm::weight", "MultiCurrencyTrader::buy_weight weight: {:?}, payment: {:?}", weight, payment);
+		let (asset_id, price) = self.get_asset_and_price(weight, &payment).ok_or(XcmError::TooExpensive)?;
+		let fee = WeightToFee::calc(weight);
+		let converted_fee = price.checked_mul_int(fee).ok_or(XcmError::Overflow)?;
+		let amount: u128 = converted_fee.try_into().map_err(|_| XcmError::Overflow)?;
+		let required = (Concrete(asset_id), amount).into();
+		let unused = payment.checked_sub(required).map_err(|_| XcmError::TooExpensive)?;
+		self.weight = self.weight.saturating_add(weight);
+		match self.assets.get_mut(&(asset_id, price)) {
+			Some(v) => v.saturating_accrue(amount),
+			None => self.assets.insert((asset_id, price), amount),
+		}
+		Ok(unused)
+	}
+
+	/// Will refund up to `weight` from the first asset tracked by the trader.
+	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
+		log::trace!(target: "xcm::weight", "MultiCurrencyTrader::refund_weight weight: {:?}", weight);
+		let weight = weight.min(self.weight);
+		self.weight -= weight; // Will not underflow because of `min()` above.
+		let fee = WeightToFee::calc(&weight);
+		if let Some(((asset_id, price), amount) = self.assets.iter_mut().next() {
+			let converted_fee: u128 = price.saturating_mul_int(fee).saturated_into();
+			let refund = converted_fee.min(*amount);
+			amount -= refund; // Will not underflow because of `min()` above.
+			Some((Concrete(asset_id), refund).into())
+		} else {
+			None
+		}
+	}
+}
+impl<
+		WeightToFee: WeightToFeePolynomial<Balance = Currency::Balance>,
+		AssetId: Get<MultiLocation>,
+		AccountId,
+		Currency: CurrencyT<AccountId>,
+		OnUnbalanced: OnUnbalancedT<Currency::NegativeImbalance>,
+	> Drop for MultiCurrencyTrader<WeightToFee, AssetId, AccountId, Currency, OnUnbalanced, AcceptedCurrencyPrices, ConvertCurrency>
+{
+	fn drop(&mut self) {
+		OnUnbalanced::on_unbalanced(Currency::issue(self.1));
+	}
+}
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -279,3 +378,4 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	CurrencyIdConvert,
 	(),
 >;
+
