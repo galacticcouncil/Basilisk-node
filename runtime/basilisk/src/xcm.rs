@@ -83,6 +83,8 @@ impl WeightTrader for TradePassthrough {
 	}
 }
 
+/// Very simple price oracle trait.
+/// TODO: Move to correct location and properly define the price oracle interface.
 pub trait PriceOracle {
 	fn price(currency: AssetId) -> Option<Price>;
 }
@@ -93,8 +95,9 @@ impl PriceOracle for MultiTransactionPayment {
 	}
 }
 
-/// Weight trader which uses the `TransactionPayment` pallet to set the right price for weight and then
-/// places any weight bought into the right account.
+/// Weight trader which uses `WeightToFee` in combination with a `PriceOracle` to set the right
+/// price for weight. Keeps track of the assets used used to pay for weight and can refund them one
+/// by one (interface only allows returning one asset per refund).
 pub struct MultiCurrencyTrader<
 	WeightToFee: WeightToFeePolynomial<Balance = Balance>,
 	AcceptedCurrencyPrices: PriceOracle,
@@ -112,6 +115,8 @@ impl<
 	>
 	MultiCurrencyTrader<WeightToFee, AcceptedCurrencyPrices, ConvertCurrency>
 {
+	/// Get the asset id of the first asset in `payment` and try to determine its price via the
+	/// price oracle.
 	fn get_asset_and_price(&mut self, payment: &Assets) -> Option<(MultiLocation, Price)> {
 		if let Some(asset) = payment.fungible_assets_iter().next() {
 			// TODO: consider optimizing out the clone
@@ -138,6 +143,8 @@ impl<
 		Self { weight: 0, paid_assets: Default::default(), _phantom: PhantomData }
 	}
 
+	/// Will try to buy weight with the first asset in `payment`.
+	/// The fee is determined by `WeightToFee` in combination with the determined price.
 	fn buy_weight(&mut self, weight: Weight, payment: Assets) -> Result<Assets, XcmError> {
 		log::trace!(target: "xcm::weight", "MultiCurrencyTrader::buy_weight weight: {:?}, payment: {:?}", weight, payment);
 		let (asset_loc, price) = self.get_asset_and_price(&payment).ok_or(XcmError::TooExpensive)?;
