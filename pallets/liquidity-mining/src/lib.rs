@@ -287,7 +287,7 @@ pub mod pallet {
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
-		/// NFT class id for liq. mining deposit nfts.
+		/// NFT class id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
 		type NftClass: Get<primitives::ClassId>;
 
 		/// Weight information for extrinsic in this module.
