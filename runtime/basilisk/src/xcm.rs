@@ -9,7 +9,7 @@ use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::latest::prelude::*;
 use polkadot_xcm::latest::Error;
 use primitives::Price;
-use sp_runtime::{traits::{Convert, Saturating}, FixedPointNumber, SaturatedConversion};
+use sp_runtime::{traits::{Convert, Saturating, Zero}, FixedPointNumber, SaturatedConversion};
 use sp_std::collections::btree_map::BTreeMap;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
@@ -164,9 +164,14 @@ impl<
 		if let Some(((asset_loc, price), amount)) = self.paid_assets.iter_mut().next() {
 			let converted_fee: u128 = price.saturating_mul_int(fee).saturated_into();
 			let refund = converted_fee.min(*amount);
-			// TODO: remove entry when new amount is 0
 			*amount -= refund; // Will not underflow because of `min()` above.
-			Some((Concrete(asset_loc.clone()), refund).into())
+
+			let refund_asset = asset_loc.clone();
+			if amount.is_zero() {
+				let key = (asset_loc.clone(), price.clone());
+				self.paid_assets.remove(&key);
+			}
+			Some((Concrete(refund_asset), refund).into())
 		} else {
 			None
 		}
@@ -447,7 +452,6 @@ mod tests {
 		let payment: MultiAsset = (Concrete(MockConvert::convert(CORE_ASSET_ID).unwrap()), 1_000_000).into();
 
 		let res = dbg!(trader.buy_weight(1_000_000, payment.into()));
-		assert!(.is_ok());
 		assert!(res.unwrap().is_empty());
 	}
 }
