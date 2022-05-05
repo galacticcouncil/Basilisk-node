@@ -242,6 +242,13 @@ pub mod pallet {
 		fn on_runtime_upgrade() -> frame_support::weights::Weight {
 			migration::init_nft_class::<T>()
 		}
+
+		fn integrity_test() {
+			assert!(
+				T::NftClass::get() <= T::ReserveClassIdUpTo::get(),
+				"`NftClass` must be within the range of reserved NFT class IDs"
+			);
+		}
 	}
 
 	#[pallet::config]
