@@ -3195,6 +3195,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydra-dx-math"
+version = "4.2.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=3e0e6774d52184b00e758dc822564e5a893773f5#3e0e6774d52184b00e758dc822564e5a893773f5"
+dependencies = [
+ "fixed",
+ "lazy_static",
+ "num-traits",
+ "parity-scale-codec",
+ "primitive-types 0.8.0",
+ "sp-arithmetic",
+]
+
+[[package]]
 name = "hydradx-traits"
 version = "0.5.1"
 source = "git+https://github.com/galacticcouncil//warehouse?rev=d0c99033c5d1f686a31cc311b8d96af2a3de9d76#d0c99033c5d1f686a31cc311b8d96af2a3de9d76"
@@ -5720,7 +5733,7 @@ version = "5.2.7"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math",
+ "hydra-dx-math 4.1.1",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5879,7 +5892,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math",
+ "hydra-dx-math 4.1.1",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5930,6 +5943,7 @@ version = "1.0.1"
 dependencies = [
  "frame-support",
  "frame-system",
+ "hydra-dx-math 4.2.0",
  "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
@@ -6561,7 +6575,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math",
+ "hydra-dx-math 4.1.1",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -8773,7 +8787,7 @@ dependencies = [
  "getrandom 0.2.5",
  "hash-db",
  "hex-literal",
- "hydra-dx-math",
+ "hydra-dx-math 4.1.1",
  "hydradx-traits",
  "kusama-runtime",
  "memory-db 0.27.0",
