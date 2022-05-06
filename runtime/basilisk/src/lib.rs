@@ -105,7 +105,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 41,
+	spec_version: 43,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -129,11 +129,15 @@ impl Contains<Call> for BaseFilter {
 			Call::XYK(_) => false,
 			Call::Exchange(_) => false,
 			Call::NFT(_) => false,
+			Call::Marketplace(_) => false,
 			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
 			Call::Currencies(_) => false,
 			Call::LiquidityMining(_) => false,
+			Call::PolkadotXcm(_) => false,
+			Call::OrmlXcm(_) => false,
+			Call::XTokens(_) => false,
 			_ => true,
 		}
 	}
@@ -778,6 +782,18 @@ impl orml_vesting::Config for Runtime {
 }
 
 parameter_types! {
+	pub const MinimumOfferAmount: Balance = 10000 * UNITS;
+	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
+}
+
+impl pallet_marketplace::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
+	type MinimumOfferAmount = MinimumOfferAmount;
+	type RoyaltyBondAmount = RoyaltyBondAmount;
+}
+
+parameter_types! {
 	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
 	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
@@ -892,6 +908,7 @@ construct_runtime!(
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
+		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
@@ -1124,6 +1141,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_price_oracle, PriceOracle);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
+			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 
@@ -1185,6 +1203,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_price_oracle, PriceOracle);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
+			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 

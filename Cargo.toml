@@ -8,6 +8,7 @@ members = [
   'runtime/basilisk',
   'runtime/testing-basilisk',
   'pallets/nft',
+  'pallets/marketplace',
   'pallets/duster',
   'pallets/xyk',
   'pallets/exchange',

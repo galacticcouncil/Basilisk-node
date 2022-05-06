@@ -1,6 +1,6 @@
 [package]
 name = "testing-basilisk-runtime"
-version = "41.0.0"
+version = "43.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -38,6 +38,7 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
+pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features=false}
 pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
 
@@ -137,6 +138,7 @@ runtime-benchmarks = [
     "pallet-timestamp/runtime-benchmarks",
     "pallet-nft/runtime-benchmarks",
     "pallet-xyk/runtime-benchmarks",
+    "pallet-marketplace/runtime-benchmarks",
     "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
     "pallet-price-oracle/runtime-benchmarks",
@@ -190,6 +192,7 @@ std = [
     "pallet-balances/std",
     "pallet-elections-phragmen/std",
     "pallet-nft/std",
+    "pallet-marketplace/std",
     "pallet-session/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",
