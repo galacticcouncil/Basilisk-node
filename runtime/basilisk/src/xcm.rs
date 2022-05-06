@@ -199,6 +199,8 @@ impl Config for XcmConfig {
 
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
+	// We calculate weight fees the same way as for regular extrinsics and use the prices and choice
+	// of accepted currencies of the transaction payment pallet.
 	type Trader = MultiCurrencyTrader<WeightToFee, MultiTransactionPayment, CurrencyIdConvert>;
 
 	type ResponseHandler = PolkadotXcm;
@@ -391,6 +393,7 @@ mod tests {
 	use sp_runtime::traits::One;
 
 	const TEST_ASSET_ID: AssetId = 123;
+	const CHEAP_ASSET_ID: AssetId = 420;
 
 	struct MockOracle;
 	impl PriceOracle for MockOracle {
@@ -398,6 +401,7 @@ mod tests {
 			match currency {
 				CORE_ASSET_ID => Some(Price::one()),
 				TEST_ASSET_ID => Some(Price::from_float(0.5)),
+				CHEAP_ASSET_ID => Some(Price::saturating_from_integer(4)),
 				_ => None,
 			}
 		}
@@ -407,7 +411,7 @@ mod tests {
 	impl Convert<AssetId, Option<MultiLocation>> for MockConvert {
 		fn convert(id: AssetId) -> Option<MultiLocation> {
 			match id {
-				CORE_ASSET_ID | TEST_ASSET_ID => Some(MultiLocation::new(
+				CORE_ASSET_ID | TEST_ASSET_ID | CHEAP_ASSET_ID => Some(MultiLocation::new(
 					0,
 					X1(GeneralKey(id.encode())),
 				)),
@@ -426,7 +430,7 @@ mod tests {
 					if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
 						// we currently have only one native asset
 						match currency_id {
-							CORE_ASSET_ID | TEST_ASSET_ID => Some(currency_id),
+							CORE_ASSET_ID | TEST_ASSET_ID | CHEAP_ASSET_ID => Some(currency_id),
 							_ => None,
 						}
 					} else {
@@ -451,14 +455,37 @@ mod tests {
 		}
 	}
 
+	type Trader = MultiCurrencyTrader<IdentityFee<Balance>, MockOracle, MockConvert>;
+
 	#[test]
-	fn multi_currency_trader() {
-		type Trader = MultiCurrencyTrader<IdentityFee<Balance>, MockOracle, MockConvert>;
+	fn can_buy_weight() {
+		let core_id = MockConvert::convert(CORE_ASSET_ID).unwrap();
+		let test_id = MockConvert::convert(TEST_ASSET_ID).unwrap();
+		let cheap_id = MockConvert::convert(CHEAP_ASSET_ID).unwrap();
 
 		let mut trader = Trader::new();
-		let payment: MultiAsset = (Concrete(MockConvert::convert(CORE_ASSET_ID).unwrap()), 1_000_000).into();
 
-		let res = dbg!(trader.buy_weight(1_000_000, payment.into()));
-		assert!(res.unwrap().is_empty());
+		let core_payment: MultiAsset = (Concrete(core_id), 1_000_000).into();
+		let res = dbg!(trader.buy_weight(1_000_000, core_payment.into()));
+		assert!(res.expect("buy_weight should succeed because payment == weight").is_empty());
+		
+		let test_payment: MultiAsset = (Concrete(test_id), 500_000).into();
+		let res = dbg!(trader.buy_weight(1_000_000, test_payment.into()));
+		assert!(res.expect("buy_weight should succeed because payment == 0.5 * weight").is_empty());
+
+		let cheap_payment: MultiAsset = (Concrete(cheap_id), 4_000_000).into();
+		let res = dbg!(trader.buy_weight(1_000_000, cheap_payment.into()));
+		assert!(res.expect("buy_weight should succeed because payment == 4 * weight").is_empty());
+	}
+
+	#[test]
+	fn cannot_buy_with_too_few_tokens() {
+		let core_id = MockConvert::convert(CORE_ASSET_ID).unwrap();
+
+		let mut trader = Trader::new();
+
+		let core_payment: MultiAsset = (Concrete(core_id), 69).into();
+		let res = dbg!(trader.buy_weight(1_000_000, core_payment.into()));
+		assert_eq!(res, Err(XcmError::TooExpensive));
 	}
 }

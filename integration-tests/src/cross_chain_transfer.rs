@@ -44,7 +44,7 @@ fn transfer_from_relay_chain() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1003 * BSX
+			10028 * BSX / 10 // 3 BSX - fees
 		);
 	});
 }
@@ -129,7 +129,7 @@ fn transfer_from_hydra() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1003 * BSX
+			10028 * BSX / 10 // 3 * BSX - fees
 		);
 	});
 }

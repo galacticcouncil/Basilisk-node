@@ -165,7 +165,8 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 }
 
 pub fn basilisk_ext() -> sp_io::TestExternalities {
-	use basilisk_runtime::{NativeExistentialDeposit, Runtime, System};
+	use basilisk_runtime::{MultiTransactionPayment, NativeExistentialDeposit, Runtime, System};
+	use frame_support::traits::OnInitialize;
 
 	let existential_deposit = NativeExistentialDeposit::get();
 
@@ -227,7 +228,11 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| {
+		System::set_block_number(1);
+		// Make sure the prices are up-to-date.
+		MultiTransactionPayment::on_initialize(1);
+	});
 	ext
 }
 
