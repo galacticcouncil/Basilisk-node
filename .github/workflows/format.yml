@@ -20,4 +20,4 @@ jobs:
         uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
         with:
           profile: minimal
-      - run: cargo fmt --quiet --check
+      - run: cargo fmt --check
