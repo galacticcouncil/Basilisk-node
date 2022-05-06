@@ -38,6 +38,8 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
+pallet-auctions = { path = '../../pallets/auctions', default-features = false }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.17" }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features=false}
 pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
@@ -227,6 +229,7 @@ std = [
     "pallet-authorship/std",
     "scale-info/std",
     "pallet-preimage/std",
+    "pallet-auctions/std",
     "pallet-liquidity-mining/std",
 ]
 try-runtime= [

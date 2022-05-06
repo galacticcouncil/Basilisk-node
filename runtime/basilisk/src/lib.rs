@@ -130,6 +130,7 @@ impl Contains<Call> for BaseFilter {
 			Call::Exchange(_) => false,
 			Call::NFT(_) => false,
 			Call::Marketplace(_) => false,
+			Call::Auctions(_) => false,
 			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
@@ -821,6 +822,37 @@ impl pallet_uniques::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const AuctionsStringLimit: u32 = 128; // limit length of auction name
+	pub const BidAddBlocks: u32 = 10; // Increase end time to avoid sniping
+	pub const BidStepPerc: u32 = 10; // Next bid step in percent
+	pub const MinAuctionDuration: u32 = 10; // Minimum auction duration
+	pub const BidMinAmount: u32 = 1; // Minimum bid amount
+	pub const CandleDefaultDuration: u32 = 99_356; // Default duration of candle auctions
+	pub const CandleDefaultClosingPeriodDuration: u32 = 72_000; // Default duration of the closing period of a candle auctions
+	pub const CandleDefaultClosingRangesCount: u32 = 100; // Default count of closing periods for candle auctions
+}
+
+impl pallet_auctions::Config for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AuctionId = u64;
+	type Currency = Balances;
+	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Runtime>;
+	type AuctionsStringLimit = AuctionsStringLimit;
+	type BidAddBlocks = BidAddBlocks;
+	type BidStepPerc = BidStepPerc;
+	type MinAuctionDuration = MinAuctionDuration;
+	type BidMinAmount = BidMinAmount;
+	type PalletId = AuctionsPalletId;
+	type Randomness = RandomnessCollectiveFlip;
+	type CandleDefaultDuration = CandleDefaultDuration;
+	type CandleDefaultClosingPeriodDuration = CandleDefaultClosingPeriodDuration;
+	type CandleDefaultClosingRangesCount = CandleDefaultClosingRangesCount;
+}
+
+impl pallet_randomness_collective_flip::Config for Runtime {}
+
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
@@ -886,6 +918,7 @@ construct_runtime!(
 		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config} = 18,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 19,
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>} = 20,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 21,
 
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned} = 50,
@@ -909,6 +942,7 @@ construct_runtime!(
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
+		Auctions: pallet_auctions::{Pallet, Call, Storage, Event<T>} = 110,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
@@ -1143,6 +1177,8 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			//list_benchmark!(list, extra, pallet_auctions, Auctions);
+
 			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);

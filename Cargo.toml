@@ -12,6 +12,7 @@ members = [
   'pallets/duster',
   'pallets/xyk',
   'pallets/exchange',
+  'pallets/auctions',
   'pallets/asset-registry',
   'pallets/liquidity-mining',
   'integration-tests',
@@ -54,6 +55,7 @@ pallet-nicks = { git = "https://github.com/paritytech//substrate", rev = "22d40c
 pallet-offences = { git = "https://github.com/paritytech//substrate", rev = "22d40c761a985482f93bbbea5ba4199bdba74f8e" }
 pallet-offences-benchmarking = { git = "https://github.com/paritytech//substrate", rev = "22d40c761a985482f93bbbea5ba4199bdba74f8e" }
 pallet-proxy = { git = "https://github.com/paritytech//substrate", rev = "22d40c761a985482f93bbbea5ba4199bdba74f8e" }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech//substrate", rev = "22d40c761a985482f93bbbea5ba4199bdba74f8e" }
 pallet-recovery = { git = "https://github.com/paritytech//substrate", rev = "22d40c761a985482f93bbbea5ba4199bdba74f8e" }
 pallet-scheduler = { git = "https://github.com/paritytech//substrate", rev = "22d40c761a985482f93bbbea5ba4199bdba74f8e" }
 pallet-session = { git = "https://github.com/paritytech//substrate", rev = "22d40c761a985482f93bbbea5ba4199bdba74f8e" }

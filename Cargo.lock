@@ -530,6 +530,7 @@ dependencies = [
  "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-registry",
+ "pallet-auctions",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -549,6 +550,7 @@ dependencies = [
  "pallet-preimage",
  "pallet-price-oracle",
  "pallet-proxy",
+ "pallet-randomness-collective-flip",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
@@ -1280,7 +1282,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.7.1"
+version = "1.7.2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5372,6 +5374,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-auctions"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=63b32194e7b9aff6a6350d2d4434525de4eec7c1)",
+ "pallet-balances",
+ "pallet-nft",
+ "pallet-uniques",
+ "parity-scale-codec",
+ "primitives",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-aura"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
@@ -6198,6 +6221,20 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-randomness-collective-flip"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "safe-mix",
+ "scale-info",
  "sp-runtime",
  "sp-std",
 ]
@@ -8175,7 +8212,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.7"
+version = "6.1.8"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8752,7 +8789,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.9"
+version = "0.2.10"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8860,6 +8897,15 @@ name = "rustc-hex"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e75f6a532d0fd9f7f13144f392b6ad56a32696bfcd9c78f797f16bbb6f072d6"
+
+[[package]]
+name = "rustc_version"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
+dependencies = [
+ "semver 0.9.0",
+]
 
 [[package]]
 name = "rustc_version"
@@ -8973,6 +9019,15 @@ name = "ryu"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73b4b750c782965c211b42f022f59af1fbceabdd026623714f104152f1ec149f"
+
+[[package]]
+name = "safe-mix"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d3d055a2582e6b00ed7a31c1524040aa391092bf636328350813f3a0605215c"
+dependencies = [
+ "rustc_version 0.2.3",
+]
 
 [[package]]
 name = "salsa20"
@@ -11316,6 +11371,7 @@ dependencies = [
  "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-registry",
+ "pallet-auctions",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -11336,6 +11392,7 @@ dependencies = [
  "pallet-preimage",
  "pallet-price-oracle",
  "pallet-proxy",
+ "pallet-randomness-collective-flip",
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",

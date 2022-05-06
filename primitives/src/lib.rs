@@ -91,6 +91,7 @@ pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 pub enum ReserveIdentifier {
 	Nft,
 	Marketplace,
+	Auction,
 
 	// always the last, indicate number of variants
 	Count,
