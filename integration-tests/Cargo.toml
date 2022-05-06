@@ -30,6 +30,7 @@ pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../pallets/nft", default-features = false }
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
+pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
 
 primitives = { default-features = false, path = "../primitives" }
 
@@ -156,6 +157,7 @@ std = [
     "pallet-balances/std",
     "pallet-elections-phragmen/std",
     "pallet-nft/std",
+    "pallet-marketplace/std",
     "pallet-session/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",

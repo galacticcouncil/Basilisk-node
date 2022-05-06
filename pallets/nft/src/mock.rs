@@ -142,6 +142,7 @@ pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
 pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
 pub const INSTANCE_ID_2: <Test as pallet_uniques::Config>::InstanceId = 2;
 pub const NON_EXISTING_CLASS_ID: <Test as pallet_uniques::Config>::ClassId = 999;
+pub const TOKEN_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {
