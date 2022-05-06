@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "41.0.0"
+version = "43.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -40,6 +40,7 @@ pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features=false}
 pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
+pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
@@ -136,6 +137,7 @@ runtime-benchmarks = [
     "pallet-collective/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
     "pallet-nft/runtime-benchmarks",
+    "pallet-marketplace/runtime-benchmarks",
     "pallet-xyk/runtime-benchmarks",
     "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
@@ -151,7 +153,6 @@ runtime-benchmarks = [
     "pallet-scheduler/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
     "pallet-tips/runtime-benchmarks",
-    "pallet-uniques/runtime-benchmarks",
     "orml-benchmarking",
     "pallet-liquidity-mining-benchmarking",
 ]
@@ -192,6 +193,7 @@ std = [
     "pallet-balances/std",
     "pallet-elections-phragmen/std",
     "pallet-nft/std",
+    "pallet-marketplace/std",
     "pallet-session/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",

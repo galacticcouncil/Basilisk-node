@@ -229,7 +229,6 @@ jobs:
         run: sudo docker tag basilisk:latest ${{ env.ECR_URL }}/basilisk
       - run: sudo docker push ${{ env.ECR_URL }}/basilisk:latest
 
-
   run-external-deployment:
     needs: build-and-publish-docker-image
     runs-on: ubuntu-latest
@@ -360,5 +359,6 @@ jobs:
           message: |
             ${{ env.VERSION_UPDATE }}
       - name: Evaluate result
-        if: contains(env.VERSION_UPDATE, 'have not been updated')
+        if: contains(env.VERSION_UPDATE, 'have not been updated') || contains(env.VERSION_UPDATE, 'versions don''t match')
         run: exit 1
+
