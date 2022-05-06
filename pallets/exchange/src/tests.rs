@@ -995,13 +995,11 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				},
 				IntentionType::SELL,
 				user_3_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 1,
-						error: 3,
-						message: None,
-					}
-				),
+				DispatchError::Module(ModuleError {
+					index: 1,
+					error: 3,
+					message: None,
+				}),
 			)
 			.into(),
 			xyk::Event::SellExecuted(
@@ -1098,13 +1096,11 @@ fn buy_trade_limits_respected_for_matched_intention() {
 				},
 				IntentionType::BUY,
 				user_3_buy_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 1,
-						error: 2,
-						message: None,
-					}
-				),
+				DispatchError::Module(ModuleError {
+					index: 1,
+					error: 2,
+					message: None,
+				}),
 			)
 			.into(),
 			xyk::Event::BuyExecuted(
@@ -2575,13 +2571,11 @@ fn discount_tests_with_error() {
 				},
 				IntentionType::SELL,
 				user_4_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 2,
-						error: 20,
-						message: None,
-					}
-				),
+				DispatchError::Module(ModuleError {
+					index: 2,
+					error: 20,
+					message: None,
+				}),
 			)
 			.into(),
 			Event::IntentionResolveErrorEvent(
@@ -2592,13 +2586,11 @@ fn discount_tests_with_error() {
 				},
 				IntentionType::BUY,
 				user_2_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						  index: 2,
-						  error: 20,
-						  message: None,
-					}
-				),
+				DispatchError::Module(ModuleError {
+					index: 2,
+					error: 20,
+					message: None,
+				}),
 			)
 			.into(),
 			Event::IntentionResolveErrorEvent(
@@ -2609,13 +2601,11 @@ fn discount_tests_with_error() {
 				},
 				IntentionType::SELL,
 				user_3_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 2,
-						error: 20,
-						message: None,
-					}
-				),
+				DispatchError::Module(ModuleError {
+					index: 2,
+					error: 20,
+					message: None,
+				}),
 			)
 			.into(),
 		]);
@@ -3284,13 +3274,11 @@ fn simple_sell_sell_with_error_should_not_pass() {
 				},
 				IntentionType::SELL,
 				user_2_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 2,
-						error: 9,
-						message: None,
-					}
-				),
+				DispatchError::Module(ModuleError {
+					index: 2,
+					error: 9,
+					message: None,
+				}),
 			)
 			.into(),
 			Event::IntentionResolveErrorEvent(
@@ -3301,13 +3289,11 @@ fn simple_sell_sell_with_error_should_not_pass() {
 				},
 				IntentionType::SELL,
 				user_3_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 2,
-						error: 9,
-						message: None,
-					}
-				),
+				DispatchError::Module(ModuleError {
+					index: 2,
+					error: 9,
+					message: None,
+				}),
 			)
 			.into(),
 		]);
