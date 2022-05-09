@@ -22,8 +22,8 @@ use crate::mock::{
 	INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
 };
 pub use crate::mock::{
-	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, XYKPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
-	HDX, KUSD,
+	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, XYKPallet, ALICE, BOB, BSX,
+	CHARLIE, ETH, HDX, KUSD,
 };
 use frame_support::{assert_err, assert_noop, assert_ok};
 use hydradx_traits::{AMMTransfer, LockedBalance};
@@ -1321,7 +1321,11 @@ fn remove_liquidity_should_work() {
 		let pool_balance_a_before = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
 
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID, Perbill::zero()));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(ALICE),
+			KUSD_BSX_POOL_ID,
+			Perbill::zero()
+		));
 
 		let pool_balance_a_after = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
@@ -1372,15 +1376,34 @@ fn remove_liquidity_and_create_xyk_should_work() {
 		let pool_balance_a_before = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
 
-		assert_eq!(XYKPallet::exists(AssetPair {asset_in: KUSD, asset_out: BSX}), false);
-		let xyk_pool_id = XYKPallet::get_pair_id(AssetPair {asset_in: KUSD, asset_out: BSX});
+		assert_eq!(
+			XYKPallet::exists(AssetPair {
+				asset_in: KUSD,
+				asset_out: BSX
+			}),
+			false
+		);
+		let xyk_pool_id = XYKPallet::get_pair_id(AssetPair {
+			asset_in: KUSD,
+			asset_out: BSX,
+		});
 
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID, Perbill::from_percent(25)));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(ALICE),
+			KUSD_BSX_POOL_ID,
+			Perbill::from_percent(25)
+		));
 
 		assert_eq!(Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID), 0);
 		assert_eq!(Currency::free_balance(BSX, &KUSD_BSX_POOL_ID), 0);
 
-		assert_eq!(XYKPallet::exists(AssetPair {asset_in: KUSD, asset_out: BSX}), true);
+		assert_eq!(
+			XYKPallet::exists(AssetPair {
+				asset_in: KUSD,
+				asset_out: BSX
+			}),
+			true
+		);
 
 		assert_eq!(Currency::free_balance(KUSD, &xyk_pool_id), pool_balance_a_before / 4);
 		assert_eq!(Currency::free_balance(BSX, &xyk_pool_id), pool_balance_b_before / 4);
@@ -1395,44 +1418,14 @@ fn remove_liquidity_and_create_xyk_should_work() {
 			user_balance_b_before.saturating_add(pool_balance_b_before * 3 / 4)
 		);
 
+		let xyk_share_token = XYKPallet::get_share_token(AssetPair {
+			asset_in: KUSD,
+			asset_out: BSX,
+		});
+		assert_eq!(Currency::free_balance(xyk_share_token, &ALICE), 250_000_000);
+
 		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
 		assert!(!<PoolData<Test>>::contains_key(KUSD_BSX_POOL_ID));
-
-		expect_events(vec![
-			frame_system::Event::KilledAccount {
-				account: KUSD_BSX_POOL_ID,
-			}
-			.into(),
-			Event::LiquidityRemoved(
-				KUSD_BSX_POOL_ID,
-				KUSD,
-				BSX,
-				pool_balance_a_before,
-				pool_balance_b_before,
-			)
-			.into(),
-			pallet_asset_registry::Event::Registered(4, vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0].try_into().unwrap(), pallet_asset_registry::AssetType::PoolShare(KUSD, BSX)).into(),
-			pallet_xyk::Event::PoolCreated(ALICE, KUSD, BSX, pool_balance_a_before / 4, 4, xyk_pool_id).into(),
-			frame_system::Event::NewAccount { account: xyk_pool_id }.into(),
-			orml_tokens::Event::Endowed {
-				currency_id: KUSD,
-				who: xyk_pool_id,
-				amount: pool_balance_a_before / 4,
-			}
-			.into(),
-			orml_tokens::Event::Endowed {
-				currency_id: BSX,
-				who: xyk_pool_id,
-				amount: pool_balance_b_before / 4,
-			}
-			.into(),
-			orml_tokens::Event::Endowed {
-				currency_id: 4,
-				who: ALICE,
-				amount: 250_000_000,
-			}
-			.into(),
-		]);
 	});
 }
 
@@ -1447,15 +1440,34 @@ fn remove_liquidity_and_transfer_everything_to_xyk_should_work() {
 		let pool_balance_a_before = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
 
-		assert_eq!(XYKPallet::exists(AssetPair {asset_in: KUSD, asset_out: BSX}), false);
-		let xyk_pool_id = XYKPallet::get_pair_id(AssetPair {asset_in: KUSD, asset_out: BSX});
+		assert_eq!(
+			XYKPallet::exists(AssetPair {
+				asset_in: KUSD,
+				asset_out: BSX
+			}),
+			false
+		);
+		let xyk_pool_id = XYKPallet::get_pair_id(AssetPair {
+			asset_in: KUSD,
+			asset_out: BSX,
+		});
 
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID, Perbill::from_percent(100)));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(ALICE),
+			KUSD_BSX_POOL_ID,
+			Perbill::from_percent(100)
+		));
 
 		assert_eq!(Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID), 0);
 		assert_eq!(Currency::free_balance(BSX, &KUSD_BSX_POOL_ID), 0);
 
-		assert_eq!(XYKPallet::exists(AssetPair {asset_in: KUSD, asset_out: BSX}), true);
+		assert_eq!(
+			XYKPallet::exists(AssetPair {
+				asset_in: KUSD,
+				asset_out: BSX
+			}),
+			true
+		);
 
 		assert_eq!(Currency::free_balance(KUSD, &xyk_pool_id), pool_balance_a_before);
 		assert_eq!(Currency::free_balance(BSX, &xyk_pool_id), pool_balance_b_before);
@@ -1463,44 +1475,14 @@ fn remove_liquidity_and_transfer_everything_to_xyk_should_work() {
 		assert_eq!(Currency::free_balance(KUSD, &ALICE), user_balance_a_before);
 		assert_eq!(Currency::free_balance(BSX, &ALICE), user_balance_b_before);
 
+		let xyk_share_token = XYKPallet::get_share_token(AssetPair {
+			asset_in: KUSD,
+			asset_out: BSX,
+		});
+		assert_eq!(Currency::free_balance(xyk_share_token, &ALICE), 1_000_000_000);
+
 		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
 		assert!(!<PoolData<Test>>::contains_key(KUSD_BSX_POOL_ID));
-
-		expect_events(vec![
-			frame_system::Event::KilledAccount {
-				account: KUSD_BSX_POOL_ID,
-			}
-			.into(),
-			Event::LiquidityRemoved(
-				KUSD_BSX_POOL_ID,
-				KUSD,
-				BSX,
-				pool_balance_a_before,
-				pool_balance_b_before,
-			)
-			.into(),
-			pallet_asset_registry::Event::Registered(4, vec![208, 7, 0, 0, 72, 68, 84, 184, 11, 0, 0].try_into().unwrap(), pallet_asset_registry::AssetType::PoolShare(KUSD, BSX)).into(),
-			pallet_xyk::Event::PoolCreated(ALICE, KUSD, BSX, pool_balance_a_before, 4, xyk_pool_id).into(),
-			frame_system::Event::NewAccount { account: xyk_pool_id }.into(),
-			orml_tokens::Event::Endowed {
-				currency_id: KUSD,
-				who: xyk_pool_id,
-				amount: pool_balance_a_before,
-			}
-			.into(),
-			orml_tokens::Event::Endowed {
-				currency_id: BSX,
-				who: xyk_pool_id,
-				amount: pool_balance_b_before,
-			}
-			.into(),
-			orml_tokens::Event::Endowed {
-				currency_id: 4,
-				who: ALICE,
-				amount: 1_000_000_000,
-			}
-			.into(),
-		]);
 	});
 }
 
@@ -1513,7 +1495,11 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 		let pool_balance_a_before = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
 
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID, Perbill::zero()));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(ALICE),
+			KUSD_BSX_POOL_ID,
+			Perbill::zero()
+		));
 
 		let pool_balance_a_after = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
@@ -1572,7 +1558,11 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 		let pool_balance_a_before = Currency::free_balance(HDX, &HDX_BSX_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(BSX, &HDX_BSX_POOL_ID);
 
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), HDX_BSX_POOL_ID, Perbill::zero()));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(ALICE),
+			HDX_BSX_POOL_ID,
+			Perbill::zero()
+		));
 
 		let pool_balance_a_after = Currency::free_balance(HDX, &HDX_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &HDX_BSX_POOL_ID);
@@ -1654,7 +1644,11 @@ fn remove_liquidity_from_finalized_pool_should_work() {
 		let pool_balance_a_before = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_before = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
 
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID, Perbill::zero()));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(ALICE),
+			KUSD_BSX_POOL_ID,
+			Perbill::zero()
+		));
 
 		let pool_balance_a_after = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
@@ -2926,7 +2920,11 @@ fn simulate_lbp_event_should_work() {
 		assert_eq!(Currency::free_balance(asset_out, &lbp_participant), 1_000_374_999_991);
 
 		// remove liquidity from the pool
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(pool_owner), pool_account, Perbill::zero()));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(pool_owner),
+			pool_account,
+			Perbill::zero()
+		));
 
 		assert_eq!(Currency::free_balance(asset_in, &pool_account), 0);
 		assert_eq!(Currency::free_balance(asset_out, &pool_account), 0);
@@ -3314,7 +3312,11 @@ fn can_create_should_work() {
 			asset_pair.asset_out
 		));
 
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID, Perbill::zero()));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(ALICE),
+			KUSD_BSX_POOL_ID,
+			Perbill::zero()
+		));
 		// pool was destroyed
 		assert!(DisallowWhenLBPPoolRunning::<Test>::can_create(
 			asset_pair.asset_in,
@@ -3418,7 +3420,11 @@ fn collected_fees_should_be_locked_and_unlocked_after_liquidity_is_removed() {
 		);
 
 		// unlocked after liquidity is removed from pool
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID, Perbill::zero()));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(ALICE),
+			KUSD_BSX_POOL_ID,
+			Perbill::zero()
+		));
 		assert_eq!(
 			<Test as pallet::Config>::LockedBalance::get_by_lock(COLLECTOR_LOCK_ID, fee_asset, fee_collector),
 			0
@@ -3554,7 +3560,11 @@ fn simulate_lbp_event_with_repayment() {
 		assert_eq!(Currency::free_balance(sold_asset, &lbp_participant), 1_000_374_999_991);
 
 		// remove liquidity from the pool
-		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(pool_owner), pool_account, Perbill::zero()));
+		assert_ok!(LBPPallet::remove_liquidity(
+			Origin::signed(pool_owner),
+			pool_account,
+			Perbill::zero()
+		));
 
 		assert_eq!(Currency::free_balance(accumulated_asset, &pool_account), 0);
 		assert_eq!(Currency::free_balance(sold_asset, &pool_account), 0);
