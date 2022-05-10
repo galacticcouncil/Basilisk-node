@@ -72,8 +72,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 			let source = T::Origin::from(frame_system::RawOrigin::Signed(self.common_data.owner.clone()));
 			pallet_nft::Pallet::<T>::transfer(
 				source,
-				self.common_data.token.0.into(),
-				self.common_data.token.1.into(),
+				self.common_data.token.0,
+				self.common_data.token.1,
 				dest,
 			)?;
 			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.0);

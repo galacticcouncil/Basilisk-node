@@ -44,8 +44,8 @@ fn nft_class_id<T: Config>(id: u16) -> <T as pallet_nft::Config>::NftClassId
 	<T as pallet_nft::Config>::NftClassId::from(id)
 }
 
-fn nft_instance_id<T: Config>(id: u16) -> <T as pallet_uniques::Config>::InstanceId {
-	<T as pallet_uniques::Config>::InstanceId::from(id)
+fn nft_instance_id<T: Config>(id: u16) -> <T as pallet_nft::Config>::NftInstanceId {
+	<T as pallet_nft::Config>::NftInstanceId::from(id)
 }
 
 fn candle_common_data<T: Config>(owner: T::AccountId) -> CommonAuctionData<T>

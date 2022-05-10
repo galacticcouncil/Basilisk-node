@@ -593,7 +593,7 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::InvalidTimeConfiguration
 		);
 		ensure!(!common_data.name.is_empty(), Error::<T>::EmptyAuctionName);
-		let token_owner = pallet_uniques::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
+		let token_owner = pallet_nft::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
 		ensure!(
 			token_owner == Some(common_data.owner.clone()),
 			Error::<T>::NotATokenOwner
@@ -614,7 +614,7 @@ impl<T: Config> Pallet<T> {
 	/// Validates certain aspects relevant to the create action
 	///
 	fn validate_create(common_data: &CommonAuctionData<T>) -> DispatchResult {
-		let is_transferrable = pallet_uniques::Pallet::<T>::can_transfer(&common_data.token.0, &common_data.token.1);
+		let is_transferrable = pallet_uniques::Pallet::<T>::can_transfer(&common_data.token.0.into(), &common_data.token.1.into());
 		ensure!(is_transferrable, Error::<T>::TokenFrozen);
 
 		Ok(())
@@ -647,8 +647,8 @@ impl<T: Config> Pallet<T> {
 
 		pallet_uniques::Pallet::<T>::freeze(
 			RawOrigin::Signed(sender.clone()).into(),
-			common_data.token.0,
-			common_data.token.1,
+			common_data.token.0.into(),
+			common_data.token.1.into(),
 		)?;
 
 		Self::deposit_event(Event::AuctionCreated(sender, auction_id));
@@ -695,8 +695,8 @@ impl<T: Config> Pallet<T> {
 	fn unfreeze_nft(common_data: &CommonAuctionData<T>) -> DispatchResult {
 		pallet_uniques::Pallet::<T>::thaw(
 			RawOrigin::Signed(common_data.owner.clone()).into(),
-			common_data.token.0,
-			common_data.token.1,
+			common_data.token.0.into(),
+			common_data.token.1.into(),
 		)?;
 
 		Ok(())

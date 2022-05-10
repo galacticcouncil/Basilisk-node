@@ -74,8 +74,8 @@ pub struct CommonAuctionData<T: Config> {
 	pub closed: bool,
 	pub owner: <T as frame_system::Config>::AccountId,
 	pub token: (
-		<T as pallet_uniques::Config>::ClassId,
-		<T as pallet_uniques::Config>::InstanceId,
+		<T as pallet_nft::Config>::NftClassId,
+		<T as pallet_nft::Config>::NftInstanceId,
 	),
 }
 
