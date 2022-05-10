@@ -390,7 +390,7 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 mod tests {
 	use super::*;
 	use frame_support::weights::IdentityFee;
-	use sp_runtime::traits::{Bounded, One};
+	use sp_runtime::traits::One;
 
 	const TEST_ASSET_ID: AssetId = 123;
 	const CHEAP_ASSET_ID: AssetId = 420;
