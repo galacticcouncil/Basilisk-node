@@ -63,6 +63,7 @@ fn deposit_shares_should_work() {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
 				instance_id: PREDEFINED_NFT_IDS[0],
+				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
@@ -159,6 +160,7 @@ fn deposit_shares_should_work() {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
 				instance_id: PREDEFINED_NFT_IDS[1],
+				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
@@ -258,6 +260,7 @@ fn deposit_shares_should_work() {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
 				instance_id: PREDEFINED_NFT_IDS[2],
+				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
@@ -362,6 +365,7 @@ fn deposit_shares_should_work() {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
 				instance_id: PREDEFINED_NFT_IDS[3],
+				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
@@ -464,6 +468,7 @@ fn deposit_shares_should_work() {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
 				instance_id: PREDEFINED_NFT_IDS[4],
+				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
@@ -565,6 +570,7 @@ fn deposit_shares_should_work() {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
 				instance_id: PREDEFINED_NFT_IDS[5],
+				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
@@ -665,6 +671,7 @@ fn deposit_shares_should_work() {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
 				instance_id: PREDEFINED_NFT_IDS[6],
+				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
