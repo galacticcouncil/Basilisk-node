@@ -56,8 +56,8 @@ fn candle_common_data<T: Config>(owner: T::AccountId) -> CommonAuctionData<T>
 			.unwrap(),
 		reserve_price: None,
 		last_bid: None,
-		start: 10.into(),
-		end: 99_366.into(),
+		start: 10u32.into(),
+		end: 99_366u32.into(),
 		closed: false,
 		owner,
 		token: (
@@ -69,11 +69,9 @@ fn candle_common_data<T: Config>(owner: T::AccountId) -> CommonAuctionData<T>
 }
 
 fn candle_specific_data<T: Config>() -> CandleAuctionData<T>
-where
-	<T as frame_system::Config>::BlockNumber: From<u32>
 {
 	CandleAuctionData {
-		closing_start: 27_366.into(),
+		closing_start: 27_366u32.into(),
 		winner: None,
 		winning_closing_range: None,
 	}

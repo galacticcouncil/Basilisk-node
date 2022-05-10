@@ -41,7 +41,7 @@ pub struct TopUpAuction<T: Config> {
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct Bid<T: Config> {
 	pub amount: BalanceOf<T>,
-	pub block_number: T::BlockNumber,
+	pub block_number: <T as frame_system::Config>::BlockNumber,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
