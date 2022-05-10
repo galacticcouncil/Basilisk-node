@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "43.0.0"
+version = "44.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -221,6 +221,7 @@ std = [
     "pallet-treasury/std",
     "pallet-collective/std",
     "pallet-democracy/std",
+    "pallet-proxy/std",
     "pallet-scheduler/std",
     "pallet-tips/std",
     "pallet-collator-selection/std",
