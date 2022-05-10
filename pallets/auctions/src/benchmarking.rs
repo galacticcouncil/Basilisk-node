@@ -7,7 +7,6 @@ use sp_runtime::traits::UniqueSaturatedInto;
 // use crate::Pallet as Auctions;
 use frame_system::RawOrigin;
 use pallet_nft as Nft;
-use primitives::nft::ClassType;
 
 const SEED: u32 = 1;
 const INITIAL_BALANCE: u128 = 10_000;
@@ -82,7 +81,7 @@ fn prepare_environment<T: Config>(owner: T::AccountId) -> DispatchResult
 	Nft::Pallet::<T>::create_class(
 		RawOrigin::Signed(owner.clone()).into(),
 		nft_class_id(NFT_CLASS_ID_1),
-		Nft::Pallet::<T>::ClassType::Marketplace,
+		<T as pallet_nft::Config>::ClassType::Marketplace,
 		vec![0; <T as pallet_uniques::Config>::StringLimit::get() as usize]
 			.try_into()
 			.unwrap()
