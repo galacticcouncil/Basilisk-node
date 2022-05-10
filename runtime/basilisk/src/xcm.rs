@@ -147,7 +147,7 @@ impl<
 	/// The fee is determined by `WeightToFee` in combination with the determined price.
 	fn buy_weight(&mut self, weight: Weight, payment: Assets) -> Result<Assets, XcmError> {
 		log::trace!(target: "xcm::weight", "MultiCurrencyTrader::buy_weight weight: {:?}, payment: {:?}", weight, payment);
-		let (asset_loc, price) = self.get_asset_and_price(&payment).ok_or(XcmError::TooExpensive)?;
+		let (asset_loc, price) = self.get_asset_and_price(&payment).ok_or(XcmError::AssetNotFound)?;
 		let fee = WeightToFee::calc(&weight);
 		let converted_fee = price.checked_mul_int(fee).ok_or(XcmError::Overflow)?;
 		let amount: u128 = converted_fee.try_into().map_err(|_| XcmError::Overflow)?;
@@ -390,10 +390,11 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 mod tests {
 	use super::*;
 	use frame_support::weights::IdentityFee;
-	use sp_runtime::traits::One;
+	use sp_runtime::traits::{Bounded, One};
 
 	const TEST_ASSET_ID: AssetId = 123;
 	const CHEAP_ASSET_ID: AssetId = 420;
+	const OVERFLOW_ASSET_ID: AssetId = 1_000;
 
 	struct MockOracle;
 	impl PriceOracle for MockOracle {
@@ -402,6 +403,7 @@ mod tests {
 				CORE_ASSET_ID => Some(Price::one()),
 				TEST_ASSET_ID => Some(Price::from_float(0.5)),
 				CHEAP_ASSET_ID => Some(Price::saturating_from_integer(4)),
+				OVERFLOW_ASSET_ID => Some(Price::saturating_from_integer(2_147_483_647)),
 				_ => None,
 			}
 		}
@@ -411,7 +413,7 @@ mod tests {
 	impl Convert<AssetId, Option<MultiLocation>> for MockConvert {
 		fn convert(id: AssetId) -> Option<MultiLocation> {
 			match id {
-				CORE_ASSET_ID | TEST_ASSET_ID | CHEAP_ASSET_ID => Some(MultiLocation::new(
+				CORE_ASSET_ID | TEST_ASSET_ID | CHEAP_ASSET_ID | OVERFLOW_ASSET_ID => Some(MultiLocation::new(
 					0,
 					X1(GeneralKey(id.encode())),
 				)),
@@ -430,7 +432,7 @@ mod tests {
 					if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
 						// we currently have only one native asset
 						match currency_id {
-							CORE_ASSET_ID | TEST_ASSET_ID | CHEAP_ASSET_ID => Some(currency_id),
+							CORE_ASSET_ID | TEST_ASSET_ID | CHEAP_ASSET_ID | OVERFLOW_ASSET_ID => Some(currency_id),
 							_ => None,
 						}
 					} else {
@@ -484,8 +486,82 @@ mod tests {
 
 		let mut trader = Trader::new();
 
-		let core_payment: MultiAsset = (Concrete(core_id), 69).into();
-		let res = dbg!(trader.buy_weight(1_000_000, core_payment.into()));
+		let payment: MultiAsset = (Concrete(core_id), 69).into();
+		let res = dbg!(trader.buy_weight(1_000_000, payment.into()));
 		assert_eq!(res, Err(XcmError::TooExpensive));
+	}
+
+	#[test]
+	fn cannot_buy_with_unknown_token() {
+		let unknown_token = GeneralKey(9876u32.encode());
+
+		let mut trader = Trader::new();
+		let payment: MultiAsset = (Concrete(unknown_token.into()), 1_000_000).into();
+		let res = dbg!(trader.buy_weight(1_000_000, payment.into()));
+		assert_eq!(res, Err(XcmError::AssetNotFound));
+	}
+
+	#[test]
+	fn overflow_errors() {
+		// Create a mock fee calculator that always returns `max_value`.
+		pub struct MaxFee;
+		impl WeightToFeePolynomial for MaxFee
+		{
+			type Balance = Balance;
+
+			fn polynomial() -> WeightToFeeCoefficients<Balance> {
+				smallvec!(WeightToFeeCoefficient {
+					coeff_integer: Balance::max_value(),
+					coeff_frac: Perbill::zero(),
+					negative: false,
+					degree: 1,
+				})
+			}
+		}
+		type Trader = MultiCurrencyTrader<MaxFee, MockOracle, MockConvert>;
+
+		let overflow_id = MockConvert::convert(OVERFLOW_ASSET_ID).unwrap();
+
+		let mut trader = Trader::new();
+
+		let amount = 1_000;
+		let payment: MultiAsset = (Concrete(overflow_id), amount).into();
+		let weight = 1_000;
+		let res = dbg!(trader.buy_weight(weight, payment.into()));
+		assert_eq!(res, Err(XcmError::Overflow));
+	}
+
+	#[test]
+	fn refunds_first_asset_completely() {
+		let core_id = MockConvert::convert(CORE_ASSET_ID).unwrap();
+
+		let mut trader = Trader::new();
+
+		let weight = 1_000_000;
+		let tokens = 1_000_000;
+		let core_payment: MultiAsset = (Concrete(core_id), tokens).into();
+		let res = dbg!(trader.buy_weight(weight, core_payment.clone().into()));
+		assert!(res.expect("buy_weight should succeed because payment == weight").is_empty());
+		assert_eq!(trader.refund_weight(weight), Some(core_payment.into()));
+	}
+
+	#[test]
+	fn needs_multiple_refunds_for_multiple_currencies() {
+		let core_id = MockConvert::convert(CORE_ASSET_ID).unwrap();
+		let test_id = MockConvert::convert(TEST_ASSET_ID).unwrap();
+
+		let mut trader = Trader::new();
+
+		let weight = 1_000_000;
+		let core_payment: MultiAsset = (Concrete(core_id), 1_000_000).into();
+		let res = dbg!(trader.buy_weight(weight, core_payment.clone().into()));
+		assert!(res.expect("buy_weight should succeed because payment == weight").is_empty());
+
+		let test_payment: MultiAsset = (Concrete(test_id), 500_000).into();
+		let res = dbg!(trader.buy_weight(weight, test_payment.clone().into()));
+		assert!(res.expect("buy_weight should succeed because payment == 0.5 * weight").is_empty());
+
+		assert_eq!(trader.refund_weight(weight), Some(core_payment.into()));
+		assert_eq!(trader.refund_weight(weight), Some(test_payment.into()));
 	}
 }
