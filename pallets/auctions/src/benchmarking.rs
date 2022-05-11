@@ -8,6 +8,7 @@ use crate::Pallet as Auctions;
 use pallet_nft as Nft;
 use frame_system::RawOrigin;
 use primitives::nft::ClassType;
+use codec::EncodeLike;
 
 const SEED: u32 = 1;
 const INITIAL_BALANCE: u128 = 10_000;
@@ -104,6 +105,7 @@ where <T as pallet_nft::Config>::ClassType: std::convert::From<primitives::nft::
 benchmarks! {
 	where_clause {
 		where <T as pallet_nft::Config>::ClassType: std::convert::From<primitives::nft::ClassType>,
+		T::AccountId: EncodeLike<<T as pallet::Config>::AuctionId>,
 	}
 
 	create {
@@ -114,7 +116,7 @@ benchmarks! {
 		let auction = candle_auction_object::<T>(owner.clone());
 	}: _(RawOrigin::Signed(owner.clone()), auction)
 	verify {
-		//assert_eq!(Auctions::<T>::auction_owner_by_id(0), Some(owner));
+		assert_eq!(Auctions::<T>::auction_owner_by_id(owner.clone()), Some(owner));
 	}
 
 	update {
