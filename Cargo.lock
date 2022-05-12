@@ -542,7 +542,7 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 1.2.0",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
  "pallet-nft",
@@ -5939,7 +5939,24 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "1.0.1"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math 4.2.0",
+ "hydradx-traits",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-liquidity-mining"
+version = "1.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5949,6 +5966,7 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "pallet-balances",
+ "pallet-liquidity-mining 1.0.0",
  "pallet-nft",
  "pallet-uniques",
  "parity-scale-codec",
@@ -5976,7 +5994,7 @@ dependencies = [
  "orml-traits",
  "pallet-asset-registry",
  "pallet-balances",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 1.2.0",
  "pallet-nft",
  "pallet-uniques",
  "pallet-xyk",
@@ -11343,7 +11361,7 @@ dependencies = [
  "pallet-faucet",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 1.2.0",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
  "pallet-nft",

@@ -107,6 +107,7 @@ frame_support::construct_runtime!(
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
+		WarehouseLM: pallet_liquidity_mining::{Pallet, Storage, Event<T>},
 	}
 );
 
@@ -248,6 +249,22 @@ pub fn asset_pair_to_map_key(assets: AssetPair) -> String {
 }
 
 parameter_types! {
+	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
+	pub const MinDeposit: Balance = 1;
+}
+
+impl pallet_liquidity_mining::Config for Test {
+	type Event = Event;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Tokens;
+	type PalletId = WarehouseLMPalletId;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type MinDeposit = MinDeposit;
+	type BlockNumberProvider = MockBlockNumberProvider;
+}
+
+parameter_types! {
 	pub const MaxLocks: u32 = 1;
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
@@ -257,7 +274,6 @@ parameter_types! {
 
 impl Config for Test {
 	type Event = Event;
-	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
 	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();

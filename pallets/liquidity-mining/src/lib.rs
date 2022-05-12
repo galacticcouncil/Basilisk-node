@@ -74,7 +74,7 @@ use frame_system::ensure_signed;
 use hydra_dx_math::liquidity_mining as math;
 use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
-use primitives::{asset::AssetPair, nft::ClassType, Balance};
+use primitives::{asset::AssetPair, nft::ClassType, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_arithmetic::{
 	traits::{CheckedDiv, CheckedSub},
@@ -94,9 +94,9 @@ type PoolId = u32;
 type GlobalPoolId = PoolId;
 type PoolMultiplier = FixedU128;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
-type AssetIdOf<T> = <T as pallet::Config>::CurrencyId;
 type BlockNumberFor<T> = <T as frame_system::Config>::BlockNumber;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
+type MultiCurrencyOf<T> = <T as pallet::Config>::MultiCurrency;
 pub type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
 pub type NftInstanceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
 
@@ -110,13 +110,13 @@ pub struct GlobalPool<T: Config> {
 	pub updated_at: PeriodOf<T>,
 	total_shares_z: Balance,
 	accumulated_rpz: Balance,
-	reward_currency: AssetIdOf<T>,
+	reward_currency: AssetId,
 	accumulated_rewards: Balance,
 	paid_accumulated_rewards: Balance,
 	yield_per_period: Permill,
 	planned_yielding_periods: PeriodOf<T>,
 	blocks_per_period: BlockNumberFor<T>,
-	incentivized_asset: AssetIdOf<T>,
+	incentivized_asset: AssetId,
 	max_reward_per_period: Balance,
 	pub liq_pools_count: u32,
 }
@@ -126,12 +126,12 @@ impl<T: Config> GlobalPool<T> {
 	fn new(
 		id: GlobalPoolId,
 		updated_at: PeriodOf<T>,
-		reward_currency: T::CurrencyId,
+		reward_currency: AssetId,
 		yield_per_period: Permill,
 		planned_yielding_periods: PeriodOf<T>,
 		blocks_per_period: T::BlockNumber,
 		owner: AccountIdOf<T>,
-		incentivized_asset: T::CurrencyId,
+		incentivized_asset: AssetId,
 		max_reward_per_period: Balance,
 	) -> Self {
 		Self {
@@ -253,18 +253,15 @@ pub mod pallet {
 			ClassType = ClassType,
 			NftClassId = primitives::ClassId,
 			NftInstanceId = primitives::InstanceId,
-		>
+		> + pallet_liquidity_mining::Config<CurrencyId = AssetId>
 	{
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
-		/// Asset type.
-		type CurrencyId: Parameter + Member + Copy + MaybeSerializeDeserialize + Ord + From<u32>;
-
 		/// Currency for transfers.
-		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = Self::CurrencyId, Balance = Balance>;
+		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = AssetId, Balance = Balance>;
 
 		/// AMM helper functions.
-		type AMM: AMM<Self::AccountId, Self::CurrencyId, AssetPair, Balance>;
+		type AMM: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
 
 		/// The origin account that can create new liquidity mining program.
 		type CreateOrigin: EnsureOrigin<Self::Origin>;
@@ -386,11 +383,11 @@ pub mod pallet {
 		FarmCreated {
 			farm_id: GlobalPoolId,
 			owner: AccountIdOf<T>,
-			reward_currency: AssetIdOf<T>,
+			reward_currency: AssetId,
 			yield_per_period: Permill,
 			planned_yielding_periods: PeriodOf<T>,
 			blocks_per_period: BlockNumberFor<T>,
-			incentivized_asset: AssetIdOf<T>,
+			incentivized_asset: AssetId,
 			max_reward_per_period: Balance,
 		},
 
@@ -413,7 +410,7 @@ pub mod pallet {
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			amount: Balance,
-			lp_token: T::CurrencyId,
+			lp_token: AssetId,
 			nft_class_id: NftClassIdOf<T>,
 			nft_instance_id: NftInstanceIdOf<T>,
 		},
@@ -424,7 +421,7 @@ pub mod pallet {
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			claimed: Balance,
-			reward_currency: T::CurrencyId,
+			reward_currency: AssetId,
 		},
 
 		/// LP tokens was withdrawn.
@@ -432,7 +429,7 @@ pub mod pallet {
 			farm_id: GlobalPoolId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
-			lp_token: T::CurrencyId,
+			lp_token: AssetId,
 			amount: Balance,
 		},
 
@@ -465,7 +462,7 @@ pub mod pallet {
 		UndistributedRewardsWithdrawn {
 			farm_id: GlobalPoolId,
 			who: AccountIdOf<T>,
-			reward_currency: T::CurrencyId,
+			reward_currency: AssetId,
 			amount: Balance,
 		},
 
@@ -566,57 +563,32 @@ pub mod pallet {
 			total_rewards: Balance,
 			planned_yielding_periods: PeriodOf<T>,
 			blocks_per_period: BlockNumberFor<T>,
-			incentivized_asset: AssetIdOf<T>,
-			reward_currency: AssetIdOf<T>,
+			incentivized_asset: AssetId,
+			reward_currency: AssetId,
 			owner: AccountIdOf<T>,
 			yield_per_period: Permill,
 		) -> DispatchResult {
 			T::CreateOrigin::ensure_origin(origin)?;
 
-			Self::validate_create_farm_data(
+			let (farm_id, max_reward_per_period) = pallet_liquidity_mining::Pallet::<T>::create_farm(
 				total_rewards,
 				planned_yielding_periods,
 				blocks_per_period,
+				incentivized_asset,
+				reward_currency,
+				owner.clone(),
 				yield_per_period,
 			)?;
 
-			ensure!(
-				T::MultiCurrency::free_balance(reward_currency, &owner) >= total_rewards,
-				Error::<T>::InsufficientRewardCurrencyBalance
-			);
-
-			let planned_periods =
-				TryInto::<u128>::try_into(planned_yielding_periods).map_err(|_e| Error::<T>::Overflow)?;
-			let max_reward_per_period = total_rewards.checked_div(planned_periods).ok_or(Error::<T>::Overflow)?;
-			let now_period = Self::get_now_period(blocks_per_period)?;
-			let pool_id = Self::get_next_pool_id()?;
-
-			let global_pool = GlobalPool::new(
-				pool_id,
-				now_period,
+			Self::deposit_event(Event::FarmCreated {
+				farm_id,
+				owner,
 				reward_currency,
 				yield_per_period,
 				planned_yielding_periods,
 				blocks_per_period,
-				owner,
 				incentivized_asset,
 				max_reward_per_period,
-			);
-
-			<GlobalPoolData<T>>::insert(&global_pool.id, &global_pool);
-
-			let global_pool_account = Self::pool_account_id(global_pool.id)?;
-			T::MultiCurrency::transfer(reward_currency, &global_pool.owner, &global_pool_account, total_rewards)?;
-
-			Self::deposit_event(Event::FarmCreated {
-				farm_id: global_pool.id,
-				owner: global_pool.owner,
-				reward_currency: global_pool.reward_currency,
-				yield_per_period: global_pool.yield_per_period,
-				planned_yielding_periods: global_pool.planned_yielding_periods,
-				blocks_per_period: global_pool.blocks_per_period,
-				incentivized_asset: global_pool.incentivized_asset,
-				max_reward_per_period: global_pool.max_reward_per_period,
 			});
 
 			Ok(())
@@ -647,7 +619,7 @@ pub mod pallet {
 
 				let global_pool_account = Self::pool_account_id(global_pool.id)?;
 				ensure!(
-					T::MultiCurrency::free_balance(global_pool.reward_currency, &global_pool_account).is_zero(),
+					MultiCurrencyOf::<T>::free_balance(global_pool.reward_currency, &global_pool_account).is_zero(),
 					Error::<T>::RewardBalanceIsNotZero
 				);
 
@@ -683,9 +655,9 @@ pub mod pallet {
 			let global_pool_account = Self::pool_account_id(global_pool.id)?;
 
 			let undistributed_reward =
-				T::MultiCurrency::total_balance(global_pool.reward_currency, &global_pool_account);
+				MultiCurrencyOf::<T>::total_balance(global_pool.reward_currency, &global_pool_account);
 
-			T::MultiCurrency::transfer(
+			MultiCurrencyOf::<T>::transfer(
 				global_pool.reward_currency,
 				&global_pool_account,
 				&who,
@@ -747,8 +719,8 @@ pub mod pallet {
 				ensure!(who == global_pool.owner, Error::<T>::Forbidden);
 
 				ensure!(
-					Into::<T::CurrencyId>::into(asset_pair.asset_in) == global_pool.incentivized_asset
-						|| Into::<T::CurrencyId>::into(asset_pair.asset_out) == global_pool.incentivized_asset,
+					Into::<AssetId>::into(asset_pair.asset_in) == global_pool.incentivized_asset
+						|| Into::<AssetId>::into(asset_pair.asset_out) == global_pool.incentivized_asset,
 					Error::<T>::MissingIncentivizedAsset
 				);
 
@@ -1040,9 +1012,9 @@ pub mod pallet {
 						let global_pool_account = Self::pool_account_id(global_pool.id)?;
 						let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
 
-						let unpaid_reward =
-							T::MultiCurrency::total_balance(global_pool.reward_currency, &liq_pool_account);
-						T::MultiCurrency::transfer(
+						let unpaid_reward: Balance =
+							MultiCurrencyOf::<T>::total_balance(global_pool.reward_currency, &liq_pool_account);
+						MultiCurrencyOf::<T>::transfer(
 							global_pool.reward_currency,
 							&liq_pool_account,
 							&global_pool_account,
@@ -1099,7 +1071,7 @@ pub mod pallet {
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
 			ensure!(
-				T::MultiCurrency::free_balance(amm_share_token, &who) >= shares_amount,
+				MultiCurrencyOf::<T>::free_balance(amm_share_token, &who) >= shares_amount,
 				Error::<T>::InsufficientAmmSharesBalance
 			);
 
@@ -1144,7 +1116,7 @@ pub mod pallet {
 						.ok_or(Error::<T>::Overflow)?;
 
 					let pallet_account = Self::account_id();
-					T::MultiCurrency::transfer(amm_share_token, &who, &pallet_account, shares_amount)?;
+					MultiCurrencyOf::<T>::transfer(amm_share_token, &who, &pallet_account, shares_amount)?;
 
 					let nft_id = Self::get_next_nft_id(liq_pool.id)?;
 					let _ = pallet_nft::Pallet::<T>::do_mint(
@@ -1362,7 +1334,7 @@ pub mod pallet {
 												.ok_or(Error::<T>::Overflow)?;
 										}
 
-										T::MultiCurrency::transfer(
+										MultiCurrencyOf::<T>::transfer(
 											global_pool.reward_currency,
 											&liq_pool_account,
 											&global_pool_account,
@@ -1398,7 +1370,7 @@ pub mod pallet {
 						let amm_token = T::AMM::get_share_token(asset_pair);
 
 						let pallet_account = Self::account_id();
-						T::MultiCurrency::transfer(amm_token, &pallet_account, &who, deposit.shares)?;
+						MultiCurrencyOf::<T>::transfer(amm_token, &pallet_account, &who, deposit.shares)?;
 
 						//NOTE: Theoretically neither `GlobalPool` nor `LiquidityPoolYieldFarm` may
 						//not exits at this point.
@@ -1476,7 +1448,7 @@ impl<T: Config> Pallet<T> {
 
 	/// Account id of pot holding all the shares
 	fn account_id() -> AccountIdOf<T> {
-		T::PalletId::get().into_account()
+		<T as pallet::Config>::PalletId::get().into_account()
 	}
 
 	/// This function return account from `PoolId` or error.
@@ -1485,12 +1457,15 @@ impl<T: Config> Pallet<T> {
 	pub fn pool_account_id(pool_id: PoolId) -> Result<AccountIdOf<T>, Error<T>> {
 		Self::validate_pool_id(pool_id)?;
 
-		Ok(T::PalletId::get().into_sub_account(pool_id))
+		Ok(<T as pallet::Config>::PalletId::get().into_sub_account(pool_id))
 	}
 
 	/// This function return now period number or error.
 	fn get_now_period(blocks_per_period: BlockNumberFor<T>) -> Result<PeriodOf<T>, Error<T>> {
-		Self::get_period_number(T::BlockNumberProvider::current_block_number(), blocks_per_period)
+		Self::get_period_number(
+			<T as pallet::Config>::BlockNumberProvider::current_block_number(),
+			blocks_per_period,
+		)
 	}
 
 	/// This function return period number from block number(`block`) and `blocks_per_period` or error.
@@ -1543,7 +1518,7 @@ impl<T: Config> Pallet<T> {
 		.map_err(|_e| Error::<T>::Overflow)?;
 
 		let global_pool_account = Self::pool_account_id(global_pool.id)?;
-		let left_to_distribute = T::MultiCurrency::free_balance(global_pool.reward_currency, &global_pool_account);
+		let left_to_distribute = MultiCurrencyOf::<T>::free_balance(global_pool.reward_currency, &global_pool_account);
 
 		// Calculate reward for all periods since last update capped by balance on `GlobalPool`
 		// account.
@@ -1609,7 +1584,7 @@ impl<T: Config> Pallet<T> {
 		pool_rewards: Balance,
 		period_now: BlockNumberFor<T>,
 		global_pool_id: PoolId,
-		reward_currency: T::CurrencyId,
+		reward_currency: AssetId,
 	) -> DispatchResult {
 		if pool.updated_at == period_now {
 			return Ok(());
@@ -1625,7 +1600,7 @@ impl<T: Config> Pallet<T> {
 		pool.updated_at = period_now;
 
 		let global_pool_balance =
-			T::MultiCurrency::free_balance(reward_currency, &Self::pool_account_id(global_pool_id)?);
+			MultiCurrencyOf::<T>::free_balance(reward_currency, &Self::pool_account_id(global_pool_id)?);
 
 		ensure!(
 			global_pool_balance >= pool_rewards,
@@ -1642,7 +1617,7 @@ impl<T: Config> Pallet<T> {
 			total_valued_shares: pool.total_valued_shares,
 		});
 
-		T::MultiCurrency::transfer(reward_currency, &global_pool_account, &pool_account, pool_rewards)
+		MultiCurrencyOf::<T>::transfer(reward_currency, &global_pool_account, &pool_account, pool_rewards)
 	}
 
 	/// This function return error if `pool_id` is not valid.
@@ -1662,12 +1637,12 @@ impl<T: Config> Pallet<T> {
 		yield_per_period: Permill,
 	) -> DispatchResult {
 		ensure!(
-			total_rewards >= T::MinTotalFarmRewards::get(),
+			total_rewards >= <T as pallet::Config>::MinTotalFarmRewards::get(),
 			Error::<T>::InvalidTotalRewards
 		);
 
 		ensure!(
-			planned_yielding_periods >= T::MinPlannedYieldingPeriods::get(),
+			planned_yielding_periods >= <T as pallet::Config>::MinPlannedYieldingPeriods::get(),
 			Error::<T>::InvalidPlannedYieldingPeriods
 		);
 
@@ -1682,9 +1657,9 @@ impl<T: Config> Pallet<T> {
 	fn get_valued_shares(
 		shares: Balance,
 		amm: AccountIdOf<T>,
-		incentivized_asset: T::CurrencyId,
+		incentivized_asset: AssetId,
 	) -> Result<Balance, Error<T>> {
-		let incentivized_asset_balance = T::MultiCurrency::free_balance(incentivized_asset, &amm);
+		let incentivized_asset_balance = MultiCurrencyOf::<T>::free_balance(incentivized_asset, &amm);
 
 		shares
 			.checked_mul(incentivized_asset_balance)
@@ -1698,7 +1673,7 @@ impl<T: Config> Pallet<T> {
 		deposit: &mut Deposit<T>,
 		liq_pool: &LiquidityPoolYieldFarm<T>,
 		now_period: PeriodOf<T>,
-		reward_currency: T::CurrencyId,
+		reward_currency: AssetId,
 	) -> Result<(Balance, Balance), DispatchError> {
 		let periods = now_period
 			.checked_sub(&deposit.entered_at)
@@ -1728,7 +1703,7 @@ impl<T: Config> Pallet<T> {
 		deposit.updated_at = now_period;
 
 		let liq_pool_account = Self::pool_account_id(liq_pool.id)?;
-		T::MultiCurrency::transfer(reward_currency, &liq_pool_account, &who, rewards)?;
+		MultiCurrencyOf::<T>::transfer(reward_currency, &liq_pool_account, &who, rewards)?;
 
 		Ok((rewards, unclaimable_rewards))
 	}
