@@ -16,6 +16,9 @@
 // limitations under the License.
 
 use super::*;
+use pallet_liquidity_mining::GlobalPool;
+use pallet_liquidity_mining::LiquidityPoolYieldFarm;
+use pallet_liquidity_mining::LoyaltyCurve;
 use test_ext::*;
 
 #[test]
@@ -99,7 +102,7 @@ fn claim_rewards_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 30,
@@ -119,7 +122,7 @@ fn claim_rewards_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 30,
@@ -180,7 +183,7 @@ fn claim_rewards_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 1_258,
@@ -200,7 +203,7 @@ fn claim_rewards_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 1_258,
@@ -216,7 +219,7 @@ fn claim_rewards_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 30,

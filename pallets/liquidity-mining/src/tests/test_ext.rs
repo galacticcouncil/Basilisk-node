@@ -16,6 +16,9 @@
 // limitations under the License.
 
 use super::*;
+use pallet_liquidity_mining::GlobalPool;
+use pallet_liquidity_mining::LiquidityPoolYieldFarm;
+use pallet_liquidity_mining::LoyaltyCurve;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -75,7 +78,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::FarmCreated {
-				farm_id: PREDEFINED_GLOBAL_POOLS[0].id,
+				id: PREDEFINED_GLOBAL_POOLS[0].id,
 				owner: PREDEFINED_GLOBAL_POOLS[0].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[0].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_POOLS[0].yield_per_period,
@@ -85,15 +88,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[0].max_reward_per_period,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
-				account: 187989685649991564771226578797,
+				account: 192282548550198434755674140525,
 			}),
 			mock::Event::Tokens(orml_tokens::Event::Endowed {
 				currency_id: 4_000,
-				who: 187989685649991564771226578797,
+				who: 192282548550198434755674140525,
 				amount: 1_000_000_000,
 			}),
 			mock::Event::LiquidityMining(Event::FarmCreated {
-				farm_id: PREDEFINED_GLOBAL_POOLS[1].id,
+				id: PREDEFINED_GLOBAL_POOLS[1].id,
 				owner: PREDEFINED_GLOBAL_POOLS[1].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[1].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_POOLS[1].yield_per_period,
@@ -103,15 +106,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[1].max_reward_per_period,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
-				account: 267217848164255902364770529133,
+				account: 271510711064462772349218090861,
 			}),
 			mock::Event::Tokens(orml_tokens::Event::Endowed {
 				currency_id: 1_000,
-				who: 267217848164255902364770529133,
+				who: 271510711064462772349218090861,
 				amount: 30_000_000_000,
 			}),
 			mock::Event::LiquidityMining(Event::FarmCreated {
-				farm_id: PREDEFINED_GLOBAL_POOLS[2].id,
+				id: PREDEFINED_GLOBAL_POOLS[2].id,
 				owner: PREDEFINED_GLOBAL_POOLS[2].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[2].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_POOLS[2].yield_per_period,
@@ -121,15 +124,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[2].max_reward_per_period,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
-				account: 346446010678520239958314479469,
+				account: 350738873578727109942762041197,
 			}),
 			mock::Event::Tokens(orml_tokens::Event::Endowed {
 				currency_id: 3_000,
-				who: 346446010678520239958314479469,
+				who: 350738873578727109942762041197,
 				amount: 30_000_000_000,
 			}),
 			mock::Event::LiquidityMining(Event::FarmCreated {
-				farm_id: PREDEFINED_GLOBAL_POOLS[3].id,
+				id: PREDEFINED_GLOBAL_POOLS[3].id,
 				owner: PREDEFINED_GLOBAL_POOLS[3].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[3].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_POOLS[3].yield_per_period,
@@ -302,10 +305,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			asset_out: TKN2,
 		};
 
+		//NOTE: this should be LiquidityMining - shares are transfered to LiquidityMining account
+		//not to WarehouseLM.
 		let pallet_account = LiquidityMining::account_id();
-		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let bsx_tkn1_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
+		let global_pool_account = WarehouseLM::pool_account_id(GC_FARM).unwrap();
+		let bsx_tkn1_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let bsx_tkn2_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
 		let bsx_tkn1_amm_account =
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
 		let bsx_tkn2_amm_account =
@@ -478,7 +483,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 25,
@@ -498,7 +503,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				updated_at: 25,
 				accumulated_rpvs: 60,
@@ -511,7 +516,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				updated_at: 25,
 				accumulated_rpvs: 120,
@@ -524,16 +529,10 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		);
 
 		//liq. pool meta check (nfts count)
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 3, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
 
 		//liq. pool meta check (nfts count)
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 4, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (4, GC_FARM));
 
 		//shares amount check on pallet account, sum of all deposits grouped by shares id
 		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 616);

@@ -16,6 +16,10 @@
 // limitations under the License.
 
 use super::*;
+use pallet_liquidity_mining::Deposit;
+use pallet_liquidity_mining::GlobalPool;
+use pallet_liquidity_mining::LiquidityPoolYieldFarm;
+use pallet_liquidity_mining::LoyaltyCurve;
 use test_ext::*;
 
 #[test]
@@ -33,10 +37,12 @@ fn deposit_shares_should_work() {
 			asset_out: TKN2,
 		};
 
+		//NOTE: this should be LiquidityMining - shares are transfered to LiquidityMining account
+		//not to WarehouseLM.
 		let pallet_account = LiquidityMining::account_id();
-		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let bsx_tkn1_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
+		let global_pool_account = WarehouseLM::pool_account_id(GC_FARM).unwrap();
+		let bsx_tkn1_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let bsx_tkn2_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
 		let bsx_tkn1_amm_account =
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
 		let bsx_tkn2_amm_account =
@@ -77,7 +83,7 @@ fn deposit_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 0,
@@ -97,7 +103,7 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 0,
@@ -112,13 +118,10 @@ fn deposit_shares_should_work() {
 			},
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 1, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (1, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
 			Deposit {
 				shares: deposited_amount,
 				valued_shares: 2_500,
@@ -174,7 +177,7 @@ fn deposit_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 18,
@@ -194,7 +197,7 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 18,
@@ -209,13 +212,10 @@ fn deposit_shares_should_work() {
 			},
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 2, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (2, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[1]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[1]).unwrap(),
 			Deposit {
 				shares: deposited_amount,
 				valued_shares: 4_160,
@@ -274,7 +274,7 @@ fn deposit_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 18,
@@ -294,7 +294,7 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 0,
@@ -309,13 +309,10 @@ fn deposit_shares_should_work() {
 			},
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 1, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (1, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[2]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[2]).unwrap(),
 			Deposit {
 				shares: deposited_amount,
 				valued_shares: 200,
@@ -379,7 +376,7 @@ fn deposit_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 20,
@@ -399,7 +396,7 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 20,
@@ -414,13 +411,10 @@ fn deposit_shares_should_work() {
 			},
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 2, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (2, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[3]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[3]).unwrap(),
 			Deposit {
 				shares: deposited_amount,
 				valued_shares: 46_400,
@@ -482,7 +476,7 @@ fn deposit_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 25,
@@ -502,7 +496,7 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 25,
@@ -517,13 +511,10 @@ fn deposit_shares_should_work() {
 			},
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 3, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[4]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[4]).unwrap(),
 			Deposit {
 				shares: deposited_amount,
 				valued_shares: 261,
@@ -584,7 +575,7 @@ fn deposit_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 25,
@@ -604,7 +595,7 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 25,
@@ -619,13 +610,10 @@ fn deposit_shares_should_work() {
 			},
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 4, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (4, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[5]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[5]).unwrap(),
 			Deposit {
 				shares: deposited_amount,
 				valued_shares: 768,
@@ -685,7 +673,7 @@ fn deposit_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 25,
@@ -705,7 +693,7 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 25,
@@ -720,13 +708,10 @@ fn deposit_shares_should_work() {
 			},
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 3, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[6]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[6]).unwrap(),
 			Deposit {
 				shares: deposited_amount,
 				valued_shares: 38_880,
@@ -782,7 +767,7 @@ fn deposit_shares_should_work() {
 		));
 
 		assert_eq!(
-			LiquidityMining::deposit(4294967303).unwrap(),
+			WarehouseLM::deposit(4294967303).unwrap(),
 			Deposit {
 				shares: deposited_amount,
 				valued_shares: deposited_amount * ksm_balance_in_amm,
@@ -805,7 +790,7 @@ fn deposit_shares_zero_deposit_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, 0),
-			Error::<Test>::InvalidDepositAmount
+			pallet_liquidity_mining::Error::<Test>::InvalidDepositAmount
 		);
 	});
 }
@@ -835,7 +820,7 @@ fn deposit_shares_non_existing_liq_pool_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_dot_assets, 10_000),
-			Error::<Test>::LiquidityPoolNotFound
+			pallet_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
 		);
 	});
 }
@@ -856,7 +841,7 @@ fn deposit_shares_canceled_liq_pool_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, 10_000),
-			Error::<Test>::LiquidityMiningCanceled
+			pallet_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
 		);
 	});
 }

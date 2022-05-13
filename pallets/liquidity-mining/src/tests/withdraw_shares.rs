@@ -16,6 +16,9 @@
 // limitations under the License.
 
 use super::*;
+use pallet_liquidity_mining::GlobalPool;
+use pallet_liquidity_mining::LiquidityPoolYieldFarm;
+use pallet_liquidity_mining::LoyaltyCurve;
 use test_ext::*;
 
 #[test]
@@ -81,7 +84,7 @@ fn withdraw_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 25,
@@ -101,7 +104,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 25,
@@ -216,7 +219,7 @@ fn withdraw_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 128,
@@ -237,7 +240,7 @@ fn withdraw_shares_should_work() {
 
 		// this pool should not change
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 25,
@@ -253,7 +256,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 128,
@@ -361,7 +364,7 @@ fn withdraw_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 128,
@@ -381,7 +384,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 128,
@@ -483,7 +486,7 @@ fn withdraw_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 128,
@@ -503,7 +506,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 128,
@@ -601,7 +604,7 @@ fn withdraw_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 128,
@@ -621,7 +624,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 128,
@@ -637,7 +640,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 128,
@@ -736,7 +739,7 @@ fn withdraw_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 128,
@@ -756,7 +759,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 128,
@@ -855,7 +858,7 @@ fn withdraw_shares_should_work() {
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				id: GC_FARM,
 				updated_at: 128,
@@ -875,7 +878,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 128,
@@ -1001,8 +1004,8 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn2_assets)).unwrap().0);
 
 		//check if farm and pools exist
-		assert!(LiquidityMining::liquidity_pool(GC_FARM, bsx_tkn1_amm_account).is_some());
-		assert!(LiquidityMining::liquidity_pool(GC_FARM, bsx_tkn2_amm_account).is_some());
+		assert!(WarehouseLM::liquidity_pool(GC_FARM, bsx_tkn1_amm_account).is_some());
+		assert!(WarehouseLM::liquidity_pool(GC_FARM, bsx_tkn2_amm_account).is_some());
 		assert!(LiquidityMining::global_pool(GC_FARM).is_some());
 
 		//cancel all liq. pools in the farm
@@ -1039,8 +1042,8 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM));
 
 		//check if farm and pools was removed from storage
-		assert!(LiquidityMining::liquidity_pool(GC_FARM, bsx_tkn1_amm_account).is_none());
-		assert!(LiquidityMining::liquidity_pool(GC_FARM, bsx_tkn2_amm_account).is_none());
+		assert!(WarehouseLM::liquidity_pool(GC_FARM, bsx_tkn1_amm_account).is_none());
+		assert!(WarehouseLM::liquidity_pool(GC_FARM, bsx_tkn2_amm_account).is_none());
 		assert!(LiquidityMining::global_pool(GC_FARM).is_none());
 
 		let pallet_account = LiquidityMining::account_id();
@@ -1168,7 +1171,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
 		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
-		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
+		let liq_pool = WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
@@ -1206,7 +1209,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				total_shares: liq_pool.total_shares - 50,
 				total_valued_shares: liq_pool.total_valued_shares - 2500,
@@ -1252,7 +1255,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
 		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
-		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
+		let liq_pool = WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
 
 		let user_reward = 5_137_714;
 		let unclaimable_rewards = 2_055_086;
@@ -1294,7 +1297,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				total_shares: liq_pool.total_shares - shares_amount,
 				total_valued_shares: liq_pool.total_valued_shares - valued_shares_amount,
@@ -1339,7 +1342,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		let bob_bsx_balance = Tokens::free_balance(BSX, &BOB);
 
 		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
-		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
+		let liq_pool = WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
 
 		let user_reward = 603_428;
 		let unclaimable_rewards = 228_572;
@@ -1380,7 +1383,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				total_shares: 0,
 				total_valued_shares: 0,
@@ -1529,7 +1532,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			bsx_tkn1_assets
 		));
 
-		assert_eq!(LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM), None);
+		assert_eq!(WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM), None);
 
 		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
 

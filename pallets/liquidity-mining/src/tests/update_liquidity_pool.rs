@@ -16,6 +16,9 @@
 // limitations under the License.
 
 use super::*;
+use pallet_liquidity_mining::GlobalPool;
+use pallet_liquidity_mining::LiquidityPoolYieldFarm;
+use pallet_liquidity_mining::LoyaltyCurve;
 use test_ext::*;
 
 #[test]
@@ -28,8 +31,8 @@ fn update_liquidity_pool_should_work() {
 		};
 
 		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
-		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
-		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let liq_pool = WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
+		let global_pool = WarehouseLM::global_pool(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::update_liquidity_pool(
 			Origin::signed(GC),
@@ -39,14 +42,14 @@ fn update_liquidity_pool_should_work() {
 		));
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				multiplier: new_multiplier,
 				..liq_pool
 			}
 		);
 
-		assert_eq!(LiquidityMining::global_pool(GC_FARM).unwrap(), global_pool);
+		assert_eq!(WarehouseLM::global_pool(GC_FARM).unwrap(), global_pool);
 	});
 
 	//liq. pool with deposits
@@ -58,8 +61,8 @@ fn update_liquidity_pool_should_work() {
 
 		//same period as last pool update so no pool(global or liq. pool) updated
 		let new_multiplier: PoolMultiplier = FixedU128::from(10_000_u128);
-		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
-		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let liq_pool = WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
+		let global_pool = WarehouseLM::global_pool(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::update_liquidity_pool(
 			Origin::signed(GC),
@@ -69,7 +72,7 @@ fn update_liquidity_pool_should_work() {
 		));
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				stake_in_global_pool: 455_400_000,
 				multiplier: new_multiplier,
@@ -78,7 +81,7 @@ fn update_liquidity_pool_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				total_shares_z: 455_876_290,
 				..global_pool
@@ -88,8 +91,8 @@ fn update_liquidity_pool_should_work() {
 		//different period so pool update should happen
 		set_block_number(5_000);
 		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
-		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
-		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let liq_pool = WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
+		let global_pool = WarehouseLM::global_pool(GC_FARM).unwrap();
 
 		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
 		let liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
@@ -105,7 +108,7 @@ fn update_liquidity_pool_should_work() {
 		));
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
+			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
 				updated_at: 50,
 				accumulated_rpvs: 30_060,
@@ -117,7 +120,7 @@ fn update_liquidity_pool_should_work() {
 		);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
+			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				updated_at: 50,
 				accumulated_rpz: 15,

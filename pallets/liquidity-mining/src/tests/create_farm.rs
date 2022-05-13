@@ -21,7 +21,7 @@ use test_ext::*;
 #[test]
 fn create_farm_should_work() {
 	new_test_ext().execute_with(|| {
-		let farm_id = 1;
+		let id = 1;
 		let total_rewards: Balance = 50_000_000_000;
 		let reward_currency = BSX;
 		let planned_yielding_periods: BlockNumber = 1_000_000_000_u64;
@@ -35,7 +35,7 @@ fn create_farm_should_work() {
 
 		set_block_number(created_at_block);
 
-		let pool_account = WarehouseLM::pool_account_id(farm_id).unwrap();
+		let pool_account = WarehouseLM::pool_account_id(id).unwrap();
 		assert_eq!(Tokens::free_balance(reward_currency, &pool_account), 0);
 
 		assert_ok!(LiquidityMining::create_farm(
@@ -59,7 +59,7 @@ fn create_farm_should_work() {
 		let updated_at = created_at_block / blocks_per_period;
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::FarmCreated {
-			farm_id,
+			id,
 			owner,
 			reward_currency,
 			yield_per_period,
@@ -70,9 +70,9 @@ fn create_farm_should_work() {
 		})]);
 
 		assert_eq!(
-			WarehouseLM::global_pool(farm_id).unwrap(),
+			WarehouseLM::global_pool(id).unwrap(),
 			pallet_liquidity_mining::GlobalPool::new(
-				farm_id,
+				id,
 				updated_at,
 				reward_currency,
 				yield_per_period,

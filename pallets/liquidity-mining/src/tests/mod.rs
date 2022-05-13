@@ -37,6 +37,10 @@ const ALICE_FARM: u32 = BSX_FARM;
 const BOB_FARM: u32 = KSM_FARM;
 const CHARLIE_FARM: u32 = ACA_FARM;
 
+use pallet_liquidity_mining::GlobalPool;
+use pallet_liquidity_mining::LiquidityPoolYieldFarm;
+use pallet_liquidity_mining::LoyaltyCurve;
+
 const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 4] = [
 	GlobalPool {
 		id: ALICE_FARM,

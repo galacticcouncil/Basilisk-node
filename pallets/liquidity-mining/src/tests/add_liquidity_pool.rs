@@ -16,6 +16,9 @@
 // limitations under the License.
 
 use super::*;
+use pallet_liquidity_mining::GlobalPool;
+use pallet_liquidity_mining::LiquidityPoolYieldFarm;
+use pallet_liquidity_mining::LoyaltyCurve;
 use test_ext::*;
 
 #[test]
@@ -155,11 +158,11 @@ fn add_liquidity_pool_should_work() {
 				asset_pair: assets,
 			})]);
 
-			assert_eq!(LiquidityMining::global_pool(farm_id).unwrap(), global_pool);
+			assert_eq!(WarehouseLM::global_pool(farm_id).unwrap(), global_pool);
 		}
 
 		for (_, pool, amm_id, _, farm_id, _, _) in test_data {
-			assert_eq!(LiquidityMining::liquidity_pool(farm_id, amm_id).unwrap(), pool);
+			assert_eq!(WarehouseLM::liquidity_pool(farm_id, amm_id).unwrap(), pool);
 		}
 	});
 }
@@ -172,14 +175,14 @@ fn add_liquidity_pool_missing_incentivized_asset_should_not_work() {
 				Origin::signed(ALICE),
 				ALICE_FARM,
 				AssetPair {
-					//neither KSM nor DOT is incetivized in farm
+					//neither KSM nor DOT is incetivized in the farm
 					asset_in: KSM,
 					asset_out: DOT,
 				},
 				FixedU128::from(10_000_u128),
 				None
 			),
-			Error::<Test>::MissingIncentivizedAsset
+			pallet_liquidity_mining::Error::<Test>::MissingIncentivizedAsset
 		);
 	});
 }
@@ -198,7 +201,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 				FixedU128::from(10_000_u128),
 				None
 			),
-			Error::<Test>::Forbidden
+			pallet_liquidity_mining::Error::<Test>::Forbidden
 		);
 
 		assert_noop!(
@@ -212,7 +215,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 				FixedU128::from(10_000_u128),
 				Some(LoyaltyCurve::default())
 			),
-			Error::<Test>::Forbidden
+			pallet_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
 }
@@ -259,7 +262,7 @@ fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
 					FixedU128::from(10_000_u128),
 					c
 				),
-				Error::<Test>::InvalidInitialRewardPercentage
+				pallet_liquidity_mining::Error::<Test>::InvalidInitialRewardPercentage
 			);
 		}
 	});
@@ -279,7 +282,7 @@ fn add_liquidity_pool_invalid_multiplier_should_not_work() {
 				FixedU128::from(0_u128),
 				Some(LoyaltyCurve::default())
 			),
-			Error::<Test>::InvalidMultiplier
+			pallet_liquidity_mining::Error::<Test>::InvalidMultiplier
 		);
 	});
 }
@@ -317,7 +320,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 		let aca_ksm_amm_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(aca_ksm_assets)).unwrap().0);
 
 		//check if liq. pool for aca ksm assets pair exist
-		assert!(LiquidityMining::liquidity_pool(CHARLIE_FARM, aca_ksm_amm_account).is_some());
+		assert!(WarehouseLM::liquidity_pool(CHARLIE_FARM, aca_ksm_amm_account).is_some());
 
 		//try to add same amm second time in the same block(period)
 		assert_noop!(
@@ -328,7 +331,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 				FixedU128::from(9_000_u128),
 				Some(LoyaltyCurve::default()),
 			),
-			Error::<Test>::LiquidityPoolAlreadyExists
+			pallet_liquidity_mining::Error::<Test>::LiquidityPoolAlreadyExists
 		);
 
 		//try to add same amm second time in later block(period)
@@ -342,7 +345,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 				FixedU128::from(9_000_u128),
 				Some(LoyaltyCurve::default()),
 			),
-			Error::<Test>::LiquidityPoolAlreadyExists
+			pallet_liquidity_mining::Error::<Test>::LiquidityPoolAlreadyExists
 		);
 	});
 }

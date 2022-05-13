@@ -73,7 +73,7 @@ fn withdraw_undistributed_rewards_non_existing_farm_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
 			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(GC), NON_EXISTING_FARM),
-			Error::<Test>::FarmNotFound
+			pallet_liquidity_mining::Error::<Test>::FarmNotFound
 		);
 	});
 }
@@ -117,7 +117,7 @@ fn withdraw_undistributed_rewards_not_owner_should_not_work() {
 		const NOT_OWNER: u128 = ALICE;
 		assert_noop!(
 			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(NOT_OWNER), GC_FARM),
-			Error::<Test>::Forbidden
+			pallet_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
 }
@@ -174,7 +174,7 @@ fn withdraw_undistributed_rewards_not_empty_farm_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(GC), GC_FARM),
-			Error::<Test>::FarmIsNotEmpty
+			pallet_liquidity_mining::Error::<Test>::FarmIsNotEmpty
 		);
 	});
 }
