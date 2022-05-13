@@ -22,7 +22,7 @@ serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
 # HydraDX dependencies
 hydra-dx-math = { default-features = false, version = "4.0.0" }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
 
 ## Local dependencies
 primitives = { default-features = false, path = "../../primitives" }

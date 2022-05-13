@@ -27,10 +27,10 @@ pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 
 # Warehouse dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1", default-features = false }
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1", default-features = false}
-pallet-asset-registry = { git = "https://github.com/galacticcouncil//warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false}
+pallet-asset-registry = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/weight-trader", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
