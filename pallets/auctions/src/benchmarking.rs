@@ -14,7 +14,7 @@ const INITIAL_BALANCE: u128 = 10_000;
 const UNITS: u128 = 1_000_000_000_000;
 
 const NFT_INSTANCE_ID_1: u16 = 1;
-const NFT_CLASS_ID_1: u16 = 1001;
+const NFT_CLASS_ID_1: u32 = 1_000_000;
 
 fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
@@ -38,7 +38,7 @@ fn candle_auction_object<T: Config>(owner: T::AccountId) -> Auction<T> {
 	Auction::Candle(auction_data)
 }
 
-fn nft_class_id<T: Config>(id: u16) -> <T as pallet_nft::Config>::NftClassId {
+fn nft_class_id<T: Config>(id: u32) -> <T as pallet_nft::Config>::NftClassId {
 	<T as pallet_nft::Config>::NftClassId::from(id)
 }
 
@@ -48,7 +48,7 @@ fn nft_instance_id<T: Config>(id: u16) -> <T as pallet_nft::Config>::NftInstance
 
 fn candle_common_data<T: Config>(owner: T::AccountId) -> CommonAuctionData<T> {
 	CommonAuctionData {
-		name: vec![0; <T as pallet::Config>::AuctionsStringLimit::get() as usize]
+		name: sp_std::vec![0; <T as pallet::Config>::AuctionsStringLimit::get() as usize]
 			.try_into()
 			.unwrap(),
 		reserve_price: None,
@@ -75,13 +75,13 @@ fn candle_specific_data<T: Config>() -> CandleAuctionData<T> {
 
 fn prepare_environment<T: Config>(owner: T::AccountId) -> DispatchResult
 where
-	<T as pallet_nft::Config>::ClassType: std::convert::From<primitives::nft::ClassType>,
+	<T as pallet_nft::Config>::ClassType: sp_std::convert::From<primitives::nft::ClassType>,
 {
 	Nft::Pallet::<T>::create_class(
 		RawOrigin::Signed(owner.clone()).into(),
 		nft_class_id::<T>(NFT_CLASS_ID_1),
 		ClassType::Marketplace.into(),
-		vec![0; <T as pallet_uniques::Config>::StringLimit::get() as usize]
+		sp_std::vec![0; <T as pallet_uniques::Config>::StringLimit::get() as usize]
 			.try_into()
 			.unwrap(),
 	)?;
@@ -90,7 +90,7 @@ where
 		RawOrigin::Signed(owner).into(),
 		nft_class_id::<T>(NFT_CLASS_ID_1),
 		nft_instance_id::<T>(NFT_INSTANCE_ID_1),
-		vec![0; <T as pallet_uniques::Config>::StringLimit::get() as usize]
+		sp_std::vec![0; <T as pallet_uniques::Config>::StringLimit::get() as usize]
 			.try_into()
 			.unwrap(),
 	)?;
@@ -101,8 +101,8 @@ where
 benchmarks! {
 	where_clause {
 		where
-			<T as pallet_nft::Config>::ClassType: std::convert::From<primitives::nft::ClassType>,
-			T::AuctionId: std::convert::From<u8>
+			<T as pallet_nft::Config>::ClassType: sp_std::convert::From<primitives::nft::ClassType>,
+			T::AuctionId: sp_std::convert::From<u8>
 	}
 
 	create {
@@ -116,20 +116,6 @@ benchmarks! {
 		assert_eq!(Auctions::<T>::auction_owner_by_id(T::AuctionId::from(0u8)), Some(owner));
 	}
 
-	update {
-	}: {
-	} verify {
-	}
-
-	destroy {
-	}: {
-	} verify {
-	}
-
-	bid {
-	}: {
-	} verify {
-	}
 }
 
 #[cfg(test)]
@@ -137,6 +123,21 @@ mod tests {
 	use super::Pallet;
 	use crate::mock::*;
 	use frame_benchmarking::impl_benchmark_test_suite;
-
+	
 	impl_benchmark_test_suite!(Pallet, super::ExtBuilder::default().build(), super::Test);
 }
+
+// update {
+// }: {
+// } verify {
+// }
+
+// destroy {
+// }: {
+// } verify {
+// }
+
+// bid {
+// }: {
+// } verify {
+// }

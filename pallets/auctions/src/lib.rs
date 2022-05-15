@@ -157,8 +157,10 @@ use sp_std::result;
 pub use traits::*;
 use weights::WeightInfo;
 
-mod benchmarking;
 pub mod traits;
+
+#[cfg(any(feature = "runtime-benchmarks", test))]
+mod benchmarking;
 pub mod weights;
 
 #[cfg(test)]
