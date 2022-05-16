@@ -5718,7 +5718,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.8"
+version = "5.2.9"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6540,7 +6540,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.7"
+version = "3.4.8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
