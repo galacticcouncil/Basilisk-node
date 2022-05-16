@@ -29,7 +29,7 @@ use sp_runtime::{
 
 use pallet_xyk as xyk;
 
-use frame_support::traits::{Everything, Nothing, GenesisBuild, Get};
+use frame_support::traits::{Everything, GenesisBuild, Get, Nothing};
 use frame_system::EnsureSigned;
 use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
