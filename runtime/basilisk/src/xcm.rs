@@ -2,10 +2,11 @@ use super::{AssetId, *};
 
 use codec::{Decode, Encode};
 use cumulus_primitives_core::ParaId;
-use frame_support::{PalletId,
+use frame_support::{
 	traits::{Everything, Nothing},
+	PalletId,
 };
-pub use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset, DepositToAlternative};
+pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::latest::prelude::*;
@@ -17,9 +18,7 @@ use xcm_builder::{
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
 	TakeWeightCredit,
 };
-use xcm_executor::{Assets, Config, XcmExecutor,
-	traits::WeightTrader
-};
+use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
