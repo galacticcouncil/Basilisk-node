@@ -714,7 +714,7 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		let block_number = <frame_system::Pallet<T>>::block_number();
 		ensure!(bidder != &common_auction_data.owner, Error::<T>::CannotBidOnOwnAuction);
-		ensure!(block_number > common_auction_data.start, Error::<T>::AuctionNotStarted);
+		ensure!(block_number >= common_auction_data.start, Error::<T>::AuctionNotStarted);
 		ensure!(
 			block_number < common_auction_data.end,
 			Error::<T>::AuctionEndTimeReached
