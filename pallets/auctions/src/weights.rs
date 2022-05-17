@@ -36,37 +36,130 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_auctions.
-pub trait WeightInfo {    fn create_english() -> Weight;    fn update_english() -> Weight;    fn destroy_english() -> Weight;    fn create_candle() -> Weight;    fn update_candle() -> Weight;    fn destroy_candle() -> Weight;    fn bid_candle() -> Weight;    fn create_topup() -> Weight;    fn update_topup() -> Weight;    fn destroy_topup() -> Weight;}
+pub trait WeightInfo {
+	fn create_english() -> Weight;
+	fn update_english() -> Weight;
+	fn destroy_english() -> Weight;
+	fn create_candle() -> Weight;
+	fn update_candle() -> Weight;
+	fn destroy_candle() -> Weight;
+	fn bid_candle() -> Weight;
+	fn create_topup() -> Weight;
+	fn update_topup() -> Weight;
+	fn destroy_topup() -> Weight;
+}
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
-impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {	fn create_english() -> Weight {
-		(20_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(3 as Weight))			.saturating_add(T::DbWeight::get().writes(4 as Weight))	}	fn update_english() -> Weight {
-		(10_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(2 as Weight))			.saturating_add(T::DbWeight::get().writes(1 as Weight))	}	fn destroy_english() -> Weight {
-		(20_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(3 as Weight))			.saturating_add(T::DbWeight::get().writes(3 as Weight))	}	fn create_candle() -> Weight {
-		(19_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(3 as Weight))			.saturating_add(T::DbWeight::get().writes(4 as Weight))	}	fn update_candle() -> Weight {
-		(8_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(2 as Weight))			.saturating_add(T::DbWeight::get().writes(1 as Weight))	}	fn destroy_candle() -> Weight {
-		(26_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(3 as Weight))			.saturating_add(T::DbWeight::get().writes(3 as Weight))	}	fn bid_candle() -> Weight {
-		(28_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(5 as Weight))			.saturating_add(T::DbWeight::get().writes(5 as Weight))	}	fn create_topup() -> Weight {
-		(19_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(3 as Weight))			.saturating_add(T::DbWeight::get().writes(4 as Weight))	}	fn update_topup() -> Weight {
-		(11_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(2 as Weight))			.saturating_add(T::DbWeight::get().writes(1 as Weight))	}	fn destroy_topup() -> Weight {
-		(22_000_000 as Weight)			.saturating_add(T::DbWeight::get().reads(3 as Weight))			.saturating_add(T::DbWeight::get().writes(3 as Weight))	}}
+impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
+	fn create_english() -> Weight {
+		(19_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn update_english() -> Weight {
+		(8_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	fn destroy_english() -> Weight {
+		(22_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn create_candle() -> Weight {
+		(19_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn update_candle() -> Weight {
+		(8_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	fn destroy_candle() -> Weight {
+		(21_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+	fn bid_candle() -> Weight {
+		(27_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+	}
+	fn create_topup() -> Weight {
+		(22_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn update_topup() -> Weight {
+		(9_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	fn destroy_topup() -> Weight {
+		(21_000_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
+}
 
 // For backwards compatibility and tests
-impl WeightInfo for () {    fn create_english() -> Weight {
-        (20_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(3 as Weight))            .saturating_add(RocksDbWeight::get().writes(4 as Weight))    }    fn update_english() -> Weight {
-        (10_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(2 as Weight))            .saturating_add(RocksDbWeight::get().writes(1 as Weight))    }    fn destroy_english() -> Weight {
-        (20_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(3 as Weight))            .saturating_add(RocksDbWeight::get().writes(3 as Weight))    }    fn create_candle() -> Weight {
-        (19_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(3 as Weight))            .saturating_add(RocksDbWeight::get().writes(4 as Weight))    }    fn update_candle() -> Weight {
-        (8_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(2 as Weight))            .saturating_add(RocksDbWeight::get().writes(1 as Weight))    }    fn destroy_candle() -> Weight {
-        (26_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(3 as Weight))            .saturating_add(RocksDbWeight::get().writes(3 as Weight))    }    fn bid_candle() -> Weight {
-        (28_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(5 as Weight))            .saturating_add(RocksDbWeight::get().writes(5 as Weight))    }    fn create_topup() -> Weight {
-        (19_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(3 as Weight))            .saturating_add(RocksDbWeight::get().writes(4 as Weight))    }    fn update_topup() -> Weight {
-        (11_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(2 as Weight))            .saturating_add(RocksDbWeight::get().writes(1 as Weight))    }    fn destroy_topup() -> Weight {
-        (22_000_000 as Weight)            .saturating_add(RocksDbWeight::get().reads(3 as Weight))            .saturating_add(RocksDbWeight::get().writes(3 as Weight))    }}
+impl WeightInfo for () {
+	fn create_english() -> Weight {
+		(19_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn update_english() -> Weight {
+		(8_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
+	fn destroy_english() -> Weight {
+		(22_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn create_candle() -> Weight {
+		(19_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn update_candle() -> Weight {
+		(8_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
+	fn destroy_candle() -> Weight {
+		(21_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+	fn bid_candle() -> Weight {
+		(27_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
+	}
+	fn create_topup() -> Weight {
+		(22_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn update_topup() -> Weight {
+		(9_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
+	fn destroy_topup() -> Weight {
+		(21_000_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	}
+}

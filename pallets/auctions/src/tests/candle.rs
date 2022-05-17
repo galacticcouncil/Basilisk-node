@@ -10,7 +10,10 @@ use frame_support::{assert_noop, assert_ok};
 #[test]
 fn create_candle_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -29,8 +32,8 @@ fn create_candle_auction_should_work() {
 				assert_eq!(data.specific_data.closing_start, 27_366);
 
 				Ok(())
-			},
-			_ => Err(())
+			}
+			_ => Err(()),
 		};
 
 		assert_ok!(auction_check);
@@ -46,7 +49,7 @@ fn create_candle_auction_without_end_time_should_not_work() {
 		let mut common_auction_data = mocked_candle_common_data::<Test>(ALICE);
 		common_auction_data.end = 0u64;
 
-		let auction = mocked_candle_auction_object(common_auction_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(common_auction_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -62,7 +65,7 @@ fn create_candle_auction_with_duration_shorter_than_minimum_should_not_work() {
 		let mut common_auction_data = mocked_candle_common_data::<Test>(ALICE);
 		common_auction_data.end = 20u64;
 
-		let auction = mocked_candle_auction_object(common_auction_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(common_auction_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -78,7 +81,7 @@ fn create_candle_auction_with_invalid_next_bid_min_should_not_work() {
 		let mut common_auction_data = mocked_candle_common_data::<Test>(ALICE);
 
 		common_auction_data.next_bid_min = 0;
-		let auction = mocked_candle_auction_object(common_auction_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(common_auction_data, mocked_candle_specific_data::<Test>());
 
 		// next_bid_min is below BidMinAmount
 		assert_noop!(
@@ -95,7 +98,7 @@ fn create_candle_auction_with_empty_name_should_not_work() {
 		let mut common_auction_data = mocked_candle_common_data::<Test>(ALICE);
 		common_auction_data.name = to_bounded_name(b"".to_vec()).unwrap();
 
-		let auction = mocked_candle_auction_object(common_auction_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(common_auction_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -111,7 +114,7 @@ fn create_candle_auction_when_not_token_owner_should_not_work() {
 		let mut common_auction_data = mocked_candle_common_data::<Test>(ALICE);
 		common_auction_data.owner = BOB;
 
-		let auction = mocked_candle_auction_object(common_auction_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(common_auction_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -127,7 +130,7 @@ fn create_candle_auction_with_closed_true_should_not_work() {
 		let mut common_auction_data = mocked_candle_common_data::<Test>(ALICE);
 		common_auction_data.closed = true;
 
-		let auction = mocked_candle_auction_object(common_auction_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(common_auction_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -140,11 +143,17 @@ fn create_candle_auction_with_closed_true_should_not_work() {
 #[test]
 fn create_candle_auction_with_frozen_token_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -161,7 +170,7 @@ fn create_candle_auction_with_different_than_default_duration_should_not_work() 
 		let mut common_auction_data = mocked_candle_common_data::<Test>(ALICE);
 		common_auction_data.end = 99_367;
 
-		let auction = mocked_candle_auction_object(common_auction_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(common_auction_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -174,7 +183,7 @@ fn create_candle_auction_with_different_than_default_duration_should_not_work() 
 #[test]
 fn create_candle_auction_with_different_than_default_closing_period_duration_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let mut specific_data = candle_specific_data::<Test>();
+		let mut specific_data = mocked_candle_specific_data::<Test>();
 		specific_data.closing_start = 27_367;
 
 		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), specific_data);
@@ -193,7 +202,7 @@ fn create_candle_auction_with_reserve_price_should_not_work() {
 		let mut common_auction_data = mocked_candle_common_data::<Test>(ALICE);
 		common_auction_data.reserve_price = Some(100);
 
-		let auction = mocked_candle_auction_object(common_auction_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(common_auction_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
@@ -210,7 +219,10 @@ fn create_candle_auction_with_reserve_price_should_not_work() {
 #[test]
 fn update_candle_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -221,7 +233,7 @@ fn update_candle_auction_should_work() {
 
 		let auction_data = CandleAuction {
 			common_data: updated_common_data,
-			specific_data: candle_specific_data::<Test>(),
+			specific_data: mocked_candle_specific_data::<Test>(),
 		};
 		let auction = Auction::Candle(auction_data);
 
@@ -236,8 +248,8 @@ fn update_candle_auction_should_work() {
 				);
 
 				Ok(())
-			},
-			_ => Err(())
+			}
+			_ => Err(()),
 		};
 
 		assert_ok!(auction_check);
@@ -248,7 +260,10 @@ fn update_candle_auction_should_work() {
 #[test]
 fn update_candle_auction_with_nonexisting_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -261,14 +276,17 @@ fn update_candle_auction_with_nonexisting_auction_should_not_work() {
 #[test]
 fn update_candle_auction_with_invalid_next_bid_min_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		let mut updated_common_data = mocked_candle_common_data::<Test>(ALICE);
 		updated_common_data.next_bid_min = 0;
 
-		let auction = mocked_candle_auction_object(updated_common_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(updated_common_data, mocked_candle_specific_data::<Test>());
 
 		// next_bid_min is below BidMinAmount
 		assert_noop!(
@@ -282,14 +300,17 @@ fn update_candle_auction_with_invalid_next_bid_min_should_not_work() {
 #[test]
 fn update_candle_auction_with_closed_true_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		let mut updated_common_data = mocked_candle_common_data::<Test>(ALICE);
 		updated_common_data.closed = true;
 
-		let auction = mocked_candle_auction_object(updated_common_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(updated_common_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
@@ -302,14 +323,17 @@ fn update_candle_auction_with_closed_true_should_not_work() {
 #[test]
 fn update_candle_auction_by_non_auction_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		let mut updated_common_data = mocked_candle_common_data::<Test>(ALICE);
 		updated_common_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
 
-		let auction = mocked_candle_auction_object(updated_common_data, candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(updated_common_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(BOB), 0, auction),
@@ -322,7 +346,10 @@ fn update_candle_auction_by_non_auction_owner_should_not_work() {
 #[test]
 fn update_candle_auction_after_auction_start_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -330,7 +357,7 @@ fn update_candle_auction_after_auction_start_should_not_work() {
 		updated_common_data.start = 18;
 		updated_common_data.end = 99_374;
 
-		let mut updated_specific_data = candle_specific_data::<Test>();
+		let mut updated_specific_data = mocked_candle_specific_data::<Test>();
 		updated_specific_data.closing_start = 27_374;
 
 		let auction = mocked_candle_auction_object(updated_common_data, updated_specific_data);
@@ -348,14 +375,17 @@ fn update_candle_auction_after_auction_start_should_not_work() {
 #[test]
 fn update_candle_auction_with_mismatching_types_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = english_auction_object(valid_common_auction_data(), valid_english_specific_data());
+		let auction = mocked_candle_auction_object::<Test>(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-		let mut updated_common_data = mocked_candle_common_data::<Test>(ALICE);
+		let mut updated_common_data = mocked_english_common_data::<Test>(ALICE);
 		updated_common_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
 
-		let auction = mocked_candle_auction_object(updated_common_data, candle_specific_data::<Test>());
+		let auction = mocked_english_auction_object(updated_common_data, mocked_english_specific_data::<Test>());
 
 		set_block_number::<Test>(5);
 
@@ -374,7 +404,10 @@ fn update_candle_auction_with_mismatching_types_should_not_work() {
 #[test]
 fn destroy_candle_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -418,7 +451,10 @@ fn destroy_candle_auction_with_nonexisting_auction_should_not_work() {
 #[test]
 fn destroy_candle_auction_by_non_auction_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -433,7 +469,10 @@ fn destroy_candle_auction_by_non_auction_owner_should_not_work() {
 #[test]
 fn destroy_candle_auction_after_auction_started_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -452,7 +491,10 @@ fn destroy_candle_auction_after_auction_started_should_not_work() {
 #[test]
 fn bid_candle_auction_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -547,8 +589,8 @@ fn bid_candle_auction_should_work() {
 				assert_eq!(data.common_data.end, 99_366);
 
 				Ok(())
-			},
-			_ => Err(())
+			}
+			_ => Err(()),
 		};
 
 		assert_ok!(auction_check);
@@ -568,7 +610,10 @@ fn bid_candle_auction_should_work() {
 #[test]
 fn close_candle_auction_with_winner_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		set_block_number::<Test>(20);
@@ -619,11 +664,17 @@ fn close_candle_auction_with_winner_should_work() {
 		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 
 		// Funds of Bob remain reserved in the auction subaccount, available to claim
-		assert_eq!(auction_subaccount_balance_before.saturating_add(2_500), auction_subaccount_balance_after);
+		assert_eq!(
+			auction_subaccount_balance_before.saturating_add(2_500),
+			auction_subaccount_balance_after
+		);
 		assert_eq!(bob_balance_before.saturating_sub(2_500), bob_balance_after);
 
 		// The auction winner is the new owner of the NFT
-		assert_eq!(Nft::owner(mocked_nft_class_id_1::<Test>(), mocked_nft_instance_id_1::<Test>()), Some(CHARLIE));
+		assert_eq!(
+			Nft::owner(mocked_nft_class_id_1::<Test>(), mocked_nft_instance_id_1::<Test>()),
+			Some(CHARLIE)
+		);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 
@@ -636,8 +687,8 @@ fn close_candle_auction_with_winner_should_work() {
 				assert_eq!(data.specific_data.winning_closing_range.unwrap(), 69);
 
 				Ok(())
-			},
-			_ => Err(())
+			}
+			_ => Err(()),
 		};
 
 		assert_ok!(auction_check);
@@ -647,7 +698,10 @@ fn close_candle_auction_with_winner_should_work() {
 #[test]
 fn close_candle_auction_with_single_bidder_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		set_block_number::<Test>(20);
@@ -678,14 +732,20 @@ fn close_candle_auction_with_single_bidder_should_work() {
 		// Auction data is destroyed
 		assert!(matches!(AuctionsModule::auctions(0), None));
 		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
-		assert!(matches!(AuctionsModule::highest_bidders_by_auction_closing_range(0, 1), None));
+		assert!(matches!(
+			AuctionsModule::highest_bidders_by_auction_closing_range(0, 1),
+			None
+		));
 	});
 }
 
 #[test]
 fn close_candle_auction_without_bidders_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		set_block_number::<Test>(99_377);
@@ -695,7 +755,10 @@ fn close_candle_auction_without_bidders_should_work() {
 		// Auction data is destroyed
 		assert!(matches!(AuctionsModule::auctions(0), None));
 		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
-		assert!(matches!(AuctionsModule::highest_bidders_by_auction_closing_range(0, 1), None));
+		assert!(matches!(
+			AuctionsModule::highest_bidders_by_auction_closing_range(0, 1),
+			None
+		));
 	});
 }
 
@@ -703,7 +766,10 @@ fn close_candle_auction_without_bidders_should_work() {
 #[test]
 fn close_candle_auction_before_auction_end_time_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -720,7 +786,10 @@ fn close_candle_auction_before_auction_end_time_should_not_work() {
 #[test]
 fn close_candle_auction_which_is_already_closed_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
@@ -745,7 +814,10 @@ fn close_candle_auction_which_is_already_closed_should_not_work() {
 #[test]
 fn claim_candle_auction_by_losing_bidder_should_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		set_block_number::<Test>(20);
@@ -782,7 +854,7 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
 		set_block_number::<Test>(99_377);
-		
+
 		// Alice claims for Bob
 		assert_ok!(AuctionsModule::claim(Origin::signed(ALICE), BOB, 0));
 
@@ -801,14 +873,20 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 		// Auction data is destroyed
 		assert!(matches!(AuctionsModule::auctions(0), None));
 		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
-		assert!(matches!(AuctionsModule::highest_bidders_by_auction_closing_range(0, 1), None));
+		assert!(matches!(
+			AuctionsModule::highest_bidders_by_auction_closing_range(0, 1),
+			None
+		));
 	});
 }
 
 #[test]
 fn claim_candle_auction_by_winning_bidder_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		set_block_number::<Test>(20);
@@ -843,7 +921,7 @@ fn claim_candle_auction_by_winning_bidder_should_not_work() {
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
 		set_block_number::<Test>(99_377);
-		
+
 		// Winner of the auction tries to claim, not possible because the reserved amount was transferred at close
 		assert_noop!(
 			AuctionsModule::claim(Origin::signed(CHARLIE), CHARLIE, 0),
@@ -855,7 +933,10 @@ fn claim_candle_auction_by_winning_bidder_should_not_work() {
 #[test]
 fn claim_running_candle_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		set_block_number::<Test>(20);
@@ -884,7 +965,10 @@ fn claim_running_candle_auction_should_not_work() {
 #[test]
 fn claim_candle_not_closed_auction_should_not_work() {
 	predefined_test_ext().execute_with(|| {
-		let auction = mocked_candle_auction_object(mocked_candle_common_data::<Test>(ALICE), candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
 		set_block_number::<Test>(20);
@@ -906,7 +990,7 @@ fn claim_candle_not_closed_auction_should_not_work() {
 		));
 
 		set_block_number::<Test>(99_377);
-		
+
 		assert_noop!(
 			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::CloseAuctionBeforeClaimingReservedAmounts
