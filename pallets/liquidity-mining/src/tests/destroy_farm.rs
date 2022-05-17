@@ -49,7 +49,7 @@ fn destroy_farm_should_work() {
 fn destroy_farm_not_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		//transfer all rewards from farm account
-		let farm_account = LiquidityMining::pool_account_id(BOB_FARM).unwrap();
+		let farm_account = WarehouseLM::pool_account_id(BOB_FARM).unwrap();
 		let _ = Tokens::transfer_all(
 			Origin::signed(farm_account),
 			TREASURY,
@@ -86,7 +86,7 @@ fn destroy_farm_with_pools_should_not_work() {
 	//all rewards was distributed but liq. pool still exist in the farm
 	predefined_test_ext().execute_with(|| {
 		//transfer all rewards from farm account
-		let farm_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let farm_account = WarehouseLM::pool_account_id(GC_FARM).unwrap();
 		let _ = Tokens::transfer_all(
 			Origin::signed(farm_account),
 			TREASURY,

@@ -16,9 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use pallet_liquidity_mining::GlobalPool;
-use pallet_liquidity_mining::LiquidityPoolYieldFarm;
-use pallet_liquidity_mining::LoyaltyCurve;
+use sp_runtime::traits::One;
 use test_ext::*;
 
 #[test]

@@ -81,10 +81,6 @@ pub const DEFAULT_AMM: AccountId = 11_007;
 pub const KSM_DOT_AMM: AccountId = 11_008;
 pub const ACA_KSM_AMM: AccountId = 11_009;
 
-pub const BSX_ACA_LM_POOL: PoolId = 12_000;
-pub const BSX_KSM_LM_POOL: PoolId = 12_001;
-pub const BSX_DOT_LM_POOL: PoolId = 12_002;
-
 pub const BSX_FARM: PoolId = 1;
 pub const KSM_FARM: PoolId = 2;
 pub const GC_FARM: PoolId = 3;
@@ -154,7 +150,7 @@ impl system::Config for Test {
 pub struct Amm;
 
 thread_local! {
-	pub static AMM_POOLS: RefCell<HashMap<String, (AccountId, AssetId)>> = RefCell::new(HashMap::new());
+	pub static AMM_POOLS: RefCell<HashMap<String, (AccountId, AssetId, AssetPair)>> = RefCell::new(HashMap::new());
 }
 
 impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
@@ -170,8 +166,16 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		0_u32.into()
 	}
 
-	fn get_pool_assets(_pool_account_id: &AccountId) -> Option<Vec<AssetId>> {
-		None
+	fn get_pool_assets(pool_account_id: &AccountId) -> Option<Vec<AssetId>> {
+        AMM_POOLS.with(|amm_pools| {
+			for (_k, v) in amm_pools.borrow().iter() {
+				if v.0 == *pool_account_id {
+					return Some(vec![v.2.asset_in, v.2.asset_out]);
+				}
+			}
+
+            None
+		})
 	}
 
 	fn get_spot_price_unchecked(_asset_a: AssetId, _asset_b: AssetId, _amount: Balance) -> Balance {

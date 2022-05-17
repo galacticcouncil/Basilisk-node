@@ -18,7 +18,6 @@
 use super::*;
 use pallet_liquidity_mining::GlobalPool;
 use pallet_liquidity_mining::LiquidityPoolYieldFarm;
-use pallet_liquidity_mining::LoyaltyCurve;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -145,74 +144,83 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 		let amm_mock_data = vec![
 			(
+				BSX_ACA_AMM,
+				BSX_ACA_SHARE_ID,
 				AssetPair {
 					asset_in: BSX,
 					asset_out: ACA,
 				},
-				(BSX_ACA_AMM, BSX_ACA_SHARE_ID),
 			),
 			(
+				BSX_KSM_AMM,
+				BSX_KSM_SHARE_ID,
 				AssetPair {
 					asset_in: KSM,
 					asset_out: BSX,
 				},
-				(BSX_KSM_AMM, BSX_KSM_SHARE_ID),
 			),
 			(
+				BSX_DOT_AMM,
+				BSX_DOT_SHARE_ID,
 				AssetPair {
 					asset_in: BSX,
 					asset_out: DOT,
 				},
-				(BSX_DOT_AMM, BSX_DOT_SHARE_ID),
 			),
 			(
+				BSX_ETH_AMM,
+				BSX_ETH_SHARE_ID,
 				AssetPair {
 					asset_in: BSX,
 					asset_out: ETH,
 				},
-				(BSX_ETH_AMM, BSX_ETH_SHARE_ID),
 			),
 			(
+				BSX_HDX_AMM,
+				BSX_HDX_SHARE_ID,
 				AssetPair {
 					asset_in: BSX,
 					asset_out: HDX,
 				},
-				(BSX_HDX_AMM, BSX_HDX_SHARE_ID),
 			),
 			(
+				BSX_TKN1_AMM,
+				BSX_TKN1_SHARE_ID,
 				AssetPair {
 					asset_in: BSX,
 					asset_out: TKN1,
 				},
-				(BSX_TKN1_AMM, BSX_TKN1_SHARE_ID),
 			),
 			(
+				BSX_TKN2_AMM,
+				BSX_TKN2_SHARE_ID,
 				AssetPair {
 					asset_in: BSX,
 					asset_out: TKN2,
 				},
-				(BSX_TKN2_AMM, BSX_TKN2_SHARE_ID),
 			),
 			(
+				KSM_DOT_AMM,
+				KSM_DOT_SHARE_ID,
 				AssetPair {
 					asset_in: KSM,
 					asset_out: DOT,
 				},
-				(KSM_DOT_AMM, KSM_DOT_SHARE_ID),
 			),
 			(
+				ACA_KSM_AMM,
+				ACA_KSM_SHARE_ID,
 				AssetPair {
 					asset_in: ACA,
 					asset_out: KSM,
 				},
-				(ACA_KSM_AMM, ACA_KSM_SHARE_ID),
 			),
 		];
 
 		AMM_POOLS.with(|h| {
 			let mut hm = h.borrow_mut();
-			for (k, v) in amm_mock_data {
-				hm.insert(asset_pair_to_map_key(k), v);
+			for v in amm_mock_data {
+				hm.insert(asset_pair_to_map_key(v.2), v);
 			}
 		});
 

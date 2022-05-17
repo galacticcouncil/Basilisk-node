@@ -19,14 +19,15 @@ use super::*;
 use pallet_liquidity_mining::GlobalPool;
 use pallet_liquidity_mining::LiquidityPoolYieldFarm;
 use pallet_liquidity_mining::LoyaltyCurve;
+use pallet_liquidity_mining::Deposit;
 use test_ext::*;
 
 #[test]
 fn claim_rewards_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
+		let bsx_tkn1_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let bsx_tkn2_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
 		let bsx_tkn1_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
 
 		let expected_claimed_rewards = 79_906;
@@ -46,7 +47,7 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
@@ -90,7 +91,7 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[4]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[4]).unwrap(),
 			Deposit {
 				shares: 87,
 				valued_shares: 261,
@@ -171,7 +172,7 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
@@ -274,7 +275,7 @@ fn claim_rewards_should_work() {
 		));
 
 		assert_eq!(
-			LiquidityMining::deposit(4294967303).unwrap(),
+			WarehouseLM::deposit(4294967303).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2500,
@@ -298,7 +299,7 @@ fn claim_rewards_should_work() {
 fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let bsx_tkn1_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
 		let bsx_tkn1_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
 
 		//1-th claim should work ok
@@ -316,7 +317,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
 			Deposit {
 				shares: 50,
 				valued_shares: 2_500,
@@ -336,34 +337,13 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 		//second claim should fail
 		assert_noop!(
 			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_NFT_IDS[0]),
-			Error::<Test>::DoubleClaimInThePeriod
+			pallet_liquidity_mining::Error::<Test>::DoubleClaimInThePeriod
 		);
 	});
 }
 
 #[test]
-fn claim_rewards_invalid_nft_id_should_not_work() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		const INVALID_NFT_CLASS: u128 = 5486;
-
-		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), INVALID_NFT_CLASS),
-			Error::<Test>::InvalidNftId
-		);
-
-		//liq. pool metadata not found
-		//not_found_id is combination of: liq. pool id: u32::max_value() nftIdSequence: 168_453_145
-		const NOT_FOUND_ID: u128 = 723_500_752_978_313_215;
-
-		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), NOT_FOUND_ID),
-			Error::<Test>::LiquidityPoolNotFound
-		);
-	});
-}
-
-#[test]
-fn claim_rewards_from_canceled_pool_should_not_work() {
+fn claim_rewards_from_canceled_pool_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let bsx_tkn1_assets = AssetPair {
 			asset_in: BSX,
@@ -377,11 +357,50 @@ fn claim_rewards_from_canceled_pool_should_not_work() {
 			bsx_tkn1_assets
 		));
 
-		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_NFT_IDS[0]),
-			Error::<Test>::LiquidityMiningCanceled
+
+		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
+		let bsx_tkn1_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let bsx_tkn1_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
+
+		let expected_claimed_rewards = 79_906;
+
+		assert_ok!(LiquidityMining::claim_rewards(
+			Origin::signed(ALICE),
+			PREDEFINED_NFT_IDS[0]
+		));
+
+		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
+			farm_id: GC_FARM,
+			liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
+			who: ALICE,
+			claimed: expected_claimed_rewards,
+			reward_currency: BSX,
+		})]);
+
+		assert_eq!(
+			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			Deposit {
+				shares: 50,
+				valued_shares: 2_500,
+				accumulated_rpvs: 0,
+				accumulated_claimed_rewards: expected_claimed_rewards,
+				entered_at: 18,
+				updated_at: 25,
+			}
 		);
-	});
+
+		//check if claimed rewards was transfered
+		assert_eq!(
+			Tokens::free_balance(BSX, &ALICE),
+			alice_bsx_balance + expected_claimed_rewards
+		);
+
+		//check balance on liq. pool account
+		assert_eq!(
+			Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account),
+			bsx_tkn1_liq_pool_reward_balance - expected_claimed_rewards
+		);
+    });
 }
 
 #[test]
@@ -408,7 +427,7 @@ fn claim_rewards_from_removed_pool_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_NFT_IDS[0]),
-			Error::<Test>::LiquidityPoolNotFound
+			pallet_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
 		);
 	});
 }

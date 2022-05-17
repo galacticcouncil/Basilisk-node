@@ -19,19 +19,16 @@ use super::*;
 use crate::mock::{
 	asset_pair_to_map_key, set_block_number, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin,
 	Test, Tokens, WarehouseLM, ACA, ACA_FARM, ACA_KSM_AMM, ACA_KSM_SHARE_ID, ACCOUNT_WITH_1M, ALICE, AMM_POOLS, BOB,
-	BSX, BSX_ACA_AMM, BSX_ACA_LM_POOL, BSX_ACA_SHARE_ID, BSX_DOT_AMM, BSX_DOT_LM_POOL, BSX_DOT_SHARE_ID, BSX_ETH_AMM,
-	BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM, BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_LM_POOL, BSX_KSM_SHARE_ID,
+	BSX, BSX_ACA_AMM, BSX_ACA_SHARE_ID, BSX_DOT_AMM, BSX_DOT_SHARE_ID, BSX_ETH_AMM,
+	BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM, BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_SHARE_ID,
 	BSX_TKN1_AMM, BSX_TKN1_SHARE_ID, BSX_TKN2_AMM, BSX_TKN2_SHARE_ID, CHARLIE, DOT, ETH, GC, GC_FARM, HDX,
 	INITIAL_BALANCE, KSM, KSM_DOT_AMM, KSM_DOT_SHARE_ID, KSM_FARM, LIQ_MINING_NFT_CLASS, TKN1, TKN2, TREASURY,
 };
 
-use frame_support::{assert_err, assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok};
 use primitives::Balance;
-
-use sp_arithmetic::traits::CheckedSub;
 use sp_runtime::traits::BadOrigin;
 
-use std::cmp::Ordering;
 
 const ALICE_FARM: u32 = BSX_FARM;
 const BOB_FARM: u32 = KSM_FARM;
@@ -164,23 +161,6 @@ const PREDEFINED_NFT_IDS: [u128; 7] = [
 	30064771077,
 ];
 
-//NOTE: look at approx pallet - https://github.com/brendanzab/approx
-fn is_approx_eq_fixedu128(num_1: FixedU128, num_2: FixedU128, delta: FixedU128) -> bool {
-	let diff = match num_1.cmp(&num_2) {
-		Ordering::Less => num_2.checked_sub(&num_1).unwrap(),
-		Ordering::Greater => num_1.checked_sub(&num_2).unwrap(),
-		Ordering::Equal => return true,
-	};
-
-	if diff.cmp(&delta) == Ordering::Greater {
-		println!("diff: {:?}; delta: {:?}; n1: {:?}; n2: {:?}", diff, delta, num_1, num_2);
-
-		false
-	} else {
-		true
-	}
-}
-
 fn last_events(n: usize) -> Vec<TestEvent> {
 	frame_system::Pallet::<Test>::events()
 		.into_iter()
@@ -204,8 +184,6 @@ pub mod destroy_farm;
 pub mod remove_liquidity_pool;
 pub mod resume_liquidity_pool;
 pub mod test_ext;
-#[allow(clippy::module_inception)]
-pub mod tests;
 pub mod update_liquidity_pool;
 pub mod withdraw_shares;
 pub mod withdraw_undistributed_rewards;

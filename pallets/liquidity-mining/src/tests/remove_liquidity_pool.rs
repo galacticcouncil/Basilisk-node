@@ -27,8 +27,8 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 	};
 
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let global_pool_account = WarehouseLM::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
 
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
@@ -64,7 +64,7 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 		);
 
 		//liq. pool should be removed from storage
-		assert_eq!(LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM), None);
+		assert_eq!(WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM), None);
 
 		//liq. pool meta should stay in storage until all deposits are withdrawn
 		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
@@ -87,8 +87,8 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 	};
 
 	predefined_test_ext().execute_with(|| {
-		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let global_pool_account = WarehouseLM::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
 
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
@@ -124,10 +124,10 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 		);
 
 		//liq. pool should be removed from storage
-		assert_eq!(LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM), None);
+		assert_eq!(WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM), None);
 
 		//liq. pool metadata should be removed from storage if no deposits are left
-		assert_eq!(LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID), None);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID), None);
 
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
 

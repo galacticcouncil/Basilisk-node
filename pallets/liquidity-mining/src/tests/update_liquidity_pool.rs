@@ -18,7 +18,6 @@
 use super::*;
 use pallet_liquidity_mining::GlobalPool;
 use pallet_liquidity_mining::LiquidityPoolYieldFarm;
-use pallet_liquidity_mining::LoyaltyCurve;
 use test_ext::*;
 
 #[test]
@@ -94,8 +93,8 @@ fn update_liquidity_pool_should_work() {
 		let liq_pool = WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
 		let global_pool = WarehouseLM::global_pool(GC_FARM).unwrap();
 
-		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let global_pool_account = WarehouseLM::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
 
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
@@ -157,7 +156,7 @@ fn update_liquidity_pool_zero_multiplier_should_not_work() {
 				bsx_tkn1_assets,
 				FixedU128::from(0_u128)
 			),
-			Error::<Test>::InvalidMultiplier
+			pallet_liquidity_mining::Error::<Test>::InvalidMultiplier
 		);
 	});
 }
@@ -183,7 +182,7 @@ fn update_liquidity_pool_canceled_pool_should_not_work() {
 				bsx_tkn1_liq_pool,
 				FixedU128::from(10_001)
 			),
-			Error::<Test>::LiquidityMiningCanceled
+			pallet_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
 		);
 	});
 }
@@ -210,7 +209,7 @@ fn update_liquidity_pool_not_owner_should_not_work() {
 				bsx_tkn1_assets,
 				FixedU128::from(10_001_u128)
 			),
-			Error::<Test>::LiquidityMiningCanceled
+			pallet_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
 		);
 	});
 }

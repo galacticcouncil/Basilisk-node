@@ -155,7 +155,7 @@ fn withdraw_undistributed_rewards_not_empty_farm_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::withdraw_undistributed_rewards(Origin::signed(GC), GC_FARM),
-			Error::<Test>::FarmIsNotEmpty
+			pallet_liquidity_mining::Error::<Test>::FarmIsNotEmpty
 		);
 	});
 
