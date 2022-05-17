@@ -162,6 +162,8 @@ mod benchmarking;
 pub mod weights;
 use weights::WeightInfo;
 
+mod mocked_auction_objects;
+
 #[cfg(test)]
 mod mock;
 
@@ -495,7 +497,8 @@ pub mod pallet {
 		/// - if necessary, calls the helper function for destroying all auction-related data
 		/// - deposits AuctionClosed event
 		///
-		#[pallet::weight(<T as Config>::WeightInfo::close_candle())]
+		/// TODO: Change weights fn
+		#[pallet::weight(<T as Config>::WeightInfo::create_candle())]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
 			let mut destroy_auction_data = false;
 

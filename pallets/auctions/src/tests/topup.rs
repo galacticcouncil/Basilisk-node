@@ -25,7 +25,7 @@ fn create_topup_auction_should_work() {
         assert_eq!(data.common_data.start, 10u64);
         assert_eq!(data.common_data.end, 21u64);
         assert_eq!(data.common_data.owner, ALICE);
-        assert_eq!(data.common_data.token, nft_token::<Test>());
+        assert_eq!(data.common_data.token, mocked_nft_token::<Test>());
         assert_eq!(data.common_data.next_bid_min, 1);
 
         Ok(())
@@ -338,14 +338,14 @@ fn destroy_topup_auction_should_work() {
     // NFT can be transferred
     assert_ok!(Nft::transfer(
       Origin::signed(ALICE),
-      nft_class_id::<Test>(NFT_CLASS_ID_1),
-      nft_instance_id::<Test>(NFT_INSTANCE_ID_1),
+      mocked_nft_class_id_1::<Test>(),
+      mocked_nft_instance_id_1::<Test>(),
       CHARLIE
     ));
     assert_ok!(Nft::transfer(
       Origin::signed(CHARLIE),
-      nft_class_id::<Test>(NFT_CLASS_ID_1),
-      nft_instance_id::<Test>(NFT_INSTANCE_ID_1),
+      mocked_nft_class_id_1::<Test>(),
+      mocked_nft_instance_id_1::<Test>(),
       ALICE
     ));
   });
@@ -543,7 +543,7 @@ fn close_topup_auction_with_winner_should_work() {
     );
 
     // The auction winner is the new owner of the NFT
-    assert_eq!(Nft::owner(nft_class_id::<Test>(NFT_CLASS_ID_1), nft_instance_id::<Test>(NFT_INSTANCE_ID_1)), Some(CHARLIE));
+    assert_eq!(Nft::owner(mocked_nft_class_id_1::<Test>(), mocked_nft_instance_id_1::<Test>()), Some(CHARLIE));
 
     // Auction data is destroyed
     assert!(matches!(AuctionsModule::auctions(0), None));
@@ -599,7 +599,7 @@ fn close_topup_auction_without_winner_should_work() {
     assert_eq!(auction_subaccount_balance_before, auction_subaccount_balance_after);
 
     // The auction winner is the new owner of the NFT
-    assert_eq!(Nft::owner(nft_class_id::<Test>(NFT_CLASS_ID_1), nft_instance_id::<Test>(NFT_INSTANCE_ID_1)), Some(ALICE));
+    assert_eq!(Nft::owner(mocked_nft_class_id_1::<Test>(), mocked_nft_instance_id_1::<Test>()), Some(ALICE));
 
     // Auction data is not destroyed
     let auction = AuctionsModule::auctions(0).unwrap();

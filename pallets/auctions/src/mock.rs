@@ -249,8 +249,8 @@ pub fn valid_common_auction_data() -> CommonAuctionData<Test> {
 		closed: false,
 		owner: ALICE,
 		token: (
-			NFT_CLASS_ID_1,
-			NFT_INSTANCE_ID_1.into()
+			ZNFT_CLASS_ID_1,
+			ZNFT_INSTANCE_ID_1.into()
 		),
 		next_bid_min: 1,
 	}
@@ -288,63 +288,16 @@ pub fn bid_object(amount: BalanceOf<Test>, block_number: <Test as frame_system::
 	Bid { amount, block_number }
 }
 
-pub fn nft_token<T: Config>() -> (<T as pallet_nft::Config>::NftClassId, <T as pallet_nft::Config>::NftInstanceId) {
-	(nft_class_id::<T>(NFT_CLASS_ID_1), nft_instance_id::<T>(NFT_INSTANCE_ID_1))
-}
+
 
 pub fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) -> AccountId32 {
 	<Test as pallet::Config>::PalletId::get().into_sub_account(("ac", auction_id))
 }
 
+pub const ZNFT_INSTANCE_ID_1: u16 = 1;
+pub const ZNFT_CLASS_ID_1: u32 = 1_000_000;
 
-// Candle Auction object
-pub fn candle_auction_object<T: Config>(
-	common_data: CommonAuctionData<T>,
-	specific_data: CandleAuctionData<T>,
-) -> Auction<T> {
-	let auction_data = CandleAuction {
-		common_data,
-		specific_data,
-	};
-
-	Auction::Candle(auction_data)
-}
-
-pub fn candle_common_data<T: Config>(owner: T::AccountId) -> CommonAuctionData<T> {
-	CommonAuctionData {
-		name: sp_std::vec![0; <T as pallet::Config>::AuctionsStringLimit::get() as usize]
-			.try_into()
-			.unwrap(),
-		reserve_price: None,
-		last_bid: None,
-		start: 10u32.into(),
-		end: 99_366u32.into(),
-		closed: false,
-		owner,
-		token: nft_token::<T>(),
-		next_bid_min: BalanceOf::<T>::from(1u32),
-	}
-}
-pub const NFT_INSTANCE_ID_1: u16 = 1;
-pub const NFT_CLASS_ID_1: u32 = 1_000_000;
-pub fn candle_specific_data<T: Config>() -> CandleAuctionData<T> {
-	CandleAuctionData {
-		closing_start: 27_366u32.into(),
-		winner: None,
-		winning_closing_range: None,
-	}
-}
-
-pub fn nft_class_id<T: Config>(id: u32) -> <T as pallet_nft::Config>::NftClassId {
-	<T as pallet_nft::Config>::NftClassId::from(id)
-}
-
-pub fn nft_instance_id<T: Config>(id: u16) -> <T as pallet_nft::Config>::NftInstanceId {
-	<T as pallet_nft::Config>::NftInstanceId::from(id)
-}
-
-
-// pub fn candle_auction_object(common_data: CommonAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
+// pub fn mocked_candle_auction_object(common_data: CommonAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
 // 	let auction_data = CandleAuction {
 // 		common_data,
 // 		specific_data,
