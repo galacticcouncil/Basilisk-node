@@ -1,10 +1,15 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use super::*;
+
 use frame_benchmarking::{account, benchmarks};
 use sp_runtime::traits::UniqueSaturatedInto;
 
+
 use crate::Pallet as Auctions;
+
+mod crate::mock;
+
 use frame_system::RawOrigin;
 use pallet_nft as Nft;
 use primitives::nft::ClassType;
@@ -13,8 +18,8 @@ const SEED: u32 = 1;
 const INITIAL_BALANCE: u128 = 10_000;
 const UNITS: u128 = 1_000_000_000_000;
 
-const NFT_INSTANCE_ID_1: u16 = 1;
-const NFT_CLASS_ID_1: u32 = 1_000_000;
+// const NFT_INSTANCE_ID_1: u16 = 1;
+// const NFT_CLASS_ID_1: u32 = 1_000_000;
 
 //
 // Helper functions
@@ -28,13 +33,13 @@ fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	caller
 }
 
-fn nft_class_id<T: Config>(id: u32) -> <T as pallet_nft::Config>::NftClassId {
-	<T as pallet_nft::Config>::NftClassId::from(id)
-}
+// fn nft_class_id<T: Config>(id: u32) -> <T as pallet_nft::Config>::NftClassId {
+// 	<T as pallet_nft::Config>::NftClassId::from(id)
+// }
 
-fn nft_instance_id<T: Config>(id: u16) -> <T as pallet_nft::Config>::NftInstanceId {
-	<T as pallet_nft::Config>::NftInstanceId::from(id)
-}
+// fn nft_instance_id<T: Config>(id: u16) -> <T as pallet_nft::Config>::NftInstanceId {
+// 	<T as pallet_nft::Config>::NftInstanceId::from(id)
+// }
 
 fn prepare_environment<T: Config>(owner: T::AccountId) -> DispatchResult
 where
@@ -98,44 +103,44 @@ fn english_specific_data<T: Config>() -> EnglishAuctionData {
 }
 
 // Candle Auction object
-fn candle_auction_object<T: Config>(
-	common_data: CommonAuctionData<T>,
-	specific_data: CandleAuctionData<T>,
-) -> Auction<T> {
-	let auction_data = CandleAuction {
-		common_data,
-		specific_data,
-	};
+// fn candle_auction_object<T: Config>(
+// 	common_data: CommonAuctionData<T>,
+// 	specific_data: CandleAuctionData<T>,
+// ) -> Auction<T> {
+// 	let auction_data = CandleAuction {
+// 		common_data,
+// 		specific_data,
+// 	};
 
-	Auction::Candle(auction_data)
-}
+// 	Auction::Candle(auction_data)
+// }
 
-fn candle_common_data<T: Config>(owner: T::AccountId) -> CommonAuctionData<T> {
-	CommonAuctionData {
-		name: sp_std::vec![0; <T as pallet::Config>::AuctionsStringLimit::get() as usize]
-			.try_into()
-			.unwrap(),
-		reserve_price: None,
-		last_bid: None,
-		start: 10u32.into(),
-		end: 99_366u32.into(),
-		closed: false,
-		owner,
-		token: (
-			nft_class_id::<T>(NFT_CLASS_ID_1),
-			nft_instance_id::<T>(NFT_INSTANCE_ID_1),
-		),
-		next_bid_min: BalanceOf::<T>::from(1u32),
-	}
-}
+// fn candle_common_data<T: Config>(owner: T::AccountId) -> CommonAuctionData<T> {
+// 	CommonAuctionData {
+// 		name: sp_std::vec![0; <T as pallet::Config>::AuctionsStringLimit::get() as usize]
+// 			.try_into()
+// 			.unwrap(),
+// 		reserve_price: None,
+// 		last_bid: None,
+// 		start: 10u32.into(),
+// 		end: 99_366u32.into(),
+// 		closed: false,
+// 		owner,
+// 		token: (
+// 			nft_class_id::<T>(NFT_CLASS_ID_1),
+// 			nft_instance_id::<T>(NFT_INSTANCE_ID_1),
+// 		),
+// 		next_bid_min: BalanceOf::<T>::from(1u32),
+// 	}
+// }
 
-fn candle_specific_data<T: Config>() -> CandleAuctionData<T> {
-	CandleAuctionData {
-		closing_start: 27_366u32.into(),
-		winner: None,
-		winning_closing_range: None,
-	}
-}
+// fn candle_specific_data<T: Config>() -> CandleAuctionData<T> {
+// 	CandleAuctionData {
+// 		closing_start: 27_366u32.into(),
+// 		winner: None,
+// 		winning_closing_range: None,
+// 	}
+// }
 
 // TopUp Auction Object
 fn topup_auction_object<T: Config>(common_data: CommonAuctionData<T>, specific_data: TopUpAuctionData) -> Auction<T> {

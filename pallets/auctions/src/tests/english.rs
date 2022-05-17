@@ -24,7 +24,7 @@ fn create_english_auction_should_work() {
         assert_eq!(data.common_data.start, 10u64);
         assert_eq!(data.common_data.end, 21u64);
         assert_eq!(data.common_data.owner, ALICE);
-        assert_eq!(data.common_data.token, (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1));
+        assert_eq!(data.common_data.token, nft_token::<Test>());
         assert_eq!(data.common_data.next_bid_min, 1);
 
         Ok(())
@@ -389,14 +389,14 @@ fn destroy_english_auction_should_work() {
     // NFT can be transferred
     assert_ok!(Nft::transfer(
       Origin::signed(ALICE),
-      NFT_CLASS_ID_1,
-      NFT_INSTANCE_ID_1,
+      nft_class_id::<Test>(NFT_CLASS_ID_1),
+      nft_instance_id::<Test>(NFT_INSTANCE_ID_1),
       CHARLIE
     ));
     assert_ok!(Nft::transfer(
       Origin::signed(CHARLIE),
-      NFT_CLASS_ID_1,
-      NFT_INSTANCE_ID_1,
+      nft_class_id::<Test>(NFT_CLASS_ID_1),
+      nft_instance_id::<Test>(NFT_INSTANCE_ID_1),
       ALICE
     ));
   });
@@ -509,7 +509,7 @@ fn bid_english_auction_before_auction_start_should_not_work() {
 
     assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
-    set_block_number::<Test>(10);
+    set_block_number::<Test>(9);
 
     assert_noop!(
       AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
@@ -621,7 +621,7 @@ fn close_english_auction_should_work() {
     let bob_balance_after = Balances::free_balance(&BOB);
 
     // The auction winner is the new owner of the NFT
-    assert_eq!(Nft::owner(NFT_CLASS_ID_1, NFT_INSTANCE_ID_1), Some(BOB));
+    assert_eq!(Nft::owner(nft_class_id::<Test>(NFT_CLASS_ID_1), nft_instance_id::<Test>(NFT_INSTANCE_ID_1)), Some(BOB));
 
     assert_eq!(alice_balance_before.saturating_add(bid), alice_balance_after);
     assert_eq!(bob_balance_before.saturating_sub(bid), bob_balance_after);

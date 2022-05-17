@@ -1,5 +1,5 @@
 use super::*;
-use crate::{self as pallet_auctions};
+use crate::{self as pallet};
 use frame_support::{BoundedVec, parameter_types, traits::Everything, PalletId};
 use frame_system as system;
 use primitives::{
@@ -32,7 +32,7 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Auctions: pallet_auctions::{Pallet, Call, Storage, Event<T>},
+		Auctions: pallet::{Pallet, Call, Storage, Event<T>},
 		Nft: pallet_nft::{Pallet, Call, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
@@ -49,8 +49,8 @@ pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 // Classes reserved up to 999 so available ids starting from 1000
-pub const NFT_CLASS_ID_1: u32 = 1001;
-pub const NFT_INSTANCE_ID_1: u32 = 1;
+// pub const NFT_CLASS_ID_1: u32 = 1001;
+// pub const NFT_INSTANCE_ID_1: u32 = 1;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -101,13 +101,13 @@ where
 	}
 }
 
-impl pallet_auctions::Config for Test {
+impl pallet::Config for Test {
 	type Event = Event;
 	type Balance = Balance;
 	type AuctionId = u64;
 	type Currency = Balances;
 	type Randomness = TestRandomness<Test>;
-	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Test>;
+	type WeightInfo = pallet::weights::BasiliskWeight<Test>;
 	type AuctionsStringLimit = AuctionsStringLimit;
 	type BidAddBlocks = BidAddBlocks;
 	type BidStepPerc = BidStepPerc;
@@ -248,7 +248,10 @@ pub fn valid_common_auction_data() -> CommonAuctionData<Test> {
 		end: 21u64,
 		closed: false,
 		owner: ALICE,
-		token: (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1),
+		token: (
+			NFT_CLASS_ID_1,
+			NFT_INSTANCE_ID_1.into()
+		),
 		next_bid_min: 1,
 	}
 }
@@ -285,12 +288,20 @@ pub fn bid_object(amount: BalanceOf<Test>, block_number: <Test as frame_system::
 	Bid { amount, block_number }
 }
 
+pub fn nft_token<T: Config>() -> (<T as pallet_nft::Config>::NftClassId, <T as pallet_nft::Config>::NftInstanceId) {
+	(nft_class_id::<T>(NFT_CLASS_ID_1), nft_instance_id::<T>(NFT_INSTANCE_ID_1))
+}
+
 pub fn get_auction_subaccount_id(auction_id: <Test as pallet::Config>::AuctionId) -> AccountId32 {
 	<Test as pallet::Config>::PalletId::get().into_sub_account(("ac", auction_id))
 }
 
-/// Candle auction tests
-pub fn candle_auction_object(common_data: CommonAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
+
+// Candle Auction object
+pub fn candle_auction_object<T: Config>(
+	common_data: CommonAuctionData<T>,
+	specific_data: CandleAuctionData<T>,
+) -> Auction<T> {
 	let auction_data = CandleAuction {
 		common_data,
 		specific_data,
@@ -299,24 +310,67 @@ pub fn candle_auction_object(common_data: CommonAuctionData<Test>, specific_data
 	Auction::Candle(auction_data)
 }
 
-pub fn valid_candle_common_auction_data() -> CommonAuctionData<Test> {
+pub fn candle_common_data<T: Config>(owner: T::AccountId) -> CommonAuctionData<T> {
 	CommonAuctionData {
-		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
+		name: sp_std::vec![0; <T as pallet::Config>::AuctionsStringLimit::get() as usize]
+			.try_into()
+			.unwrap(),
 		reserve_price: None,
 		last_bid: None,
-		start: 10u64,
-		end: 99_366u64,
+		start: 10u32.into(),
+		end: 99_366u32.into(),
 		closed: false,
-		owner: ALICE,
-		token: (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1),
-		next_bid_min: 1,
+		owner,
+		token: nft_token::<T>(),
+		next_bid_min: BalanceOf::<T>::from(1u32),
+	}
+}
+pub const NFT_INSTANCE_ID_1: u16 = 1;
+pub const NFT_CLASS_ID_1: u32 = 1_000_000;
+pub fn candle_specific_data<T: Config>() -> CandleAuctionData<T> {
+	CandleAuctionData {
+		closing_start: 27_366u32.into(),
+		winner: None,
+		winning_closing_range: None,
 	}
 }
 
-pub fn valid_candle_specific_data() -> CandleAuctionData<Test> {
-	CandleAuctionData {
-		closing_start: 27_366,
-		winner: None,
-		winning_closing_range: None
-	}
+pub fn nft_class_id<T: Config>(id: u32) -> <T as pallet_nft::Config>::NftClassId {
+	<T as pallet_nft::Config>::NftClassId::from(id)
 }
+
+pub fn nft_instance_id<T: Config>(id: u16) -> <T as pallet_nft::Config>::NftInstanceId {
+	<T as pallet_nft::Config>::NftInstanceId::from(id)
+}
+
+
+// pub fn candle_auction_object(common_data: CommonAuctionData<Test>, specific_data: CandleAuctionData<Test>) -> Auction<Test> {
+// 	let auction_data = CandleAuction {
+// 		common_data,
+// 		specific_data,
+// 	};
+
+// 	Auction::Candle(auction_data)
+// }
+
+// pub fn valid_candle_common_auction_data() -> CommonAuctionData<Test> {
+// 	CommonAuctionData {
+// 		name: to_bounded_name(b"Auction 0".to_vec()).unwrap(),
+// 		reserve_price: None,
+// 		last_bid: None,
+// 		start: 10u64,
+// 		end: 99_366u64,
+// 		closed: false,
+// 		owner: ALICE,
+// 		token: (NFT_CLASS_ID_1, NFT_INSTANCE_ID_1),
+// 		next_bid_min: 1,
+// 	}
+// }
+
+// pub fn valid_candle_specific_data() -> CandleAuctionData<Test> {
+// 	CandleAuctionData {
+// 		closing_start: 27_366,
+// 		winner: None,
+// 		winning_closing_range: None
+// 	}
+// }

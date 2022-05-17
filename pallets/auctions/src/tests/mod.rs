@@ -37,7 +37,7 @@ fn predefined_test_ext() -> sp_io::TestExternalities {
       ClassType::Marketplace,
       bvec![0]
     ));
-    assert_ok!(Nft::mint(Origin::signed(ALICE), NFT_CLASS_ID_1, NFT_INSTANCE_ID_1, bvec![0]));
+    assert_ok!(Nft::mint(Origin::signed(ALICE), nft_class_id::<Test>(NFT_CLASS_ID_1), nft_instance_id::<Test>(NFT_INSTANCE_ID_1), bvec![0]));
   });
 
   ext
