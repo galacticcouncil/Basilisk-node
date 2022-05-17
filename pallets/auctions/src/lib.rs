@@ -155,13 +155,12 @@ use sp_std::convert::TryInto;
 use sp_std::result;
 
 pub use traits::*;
-use weights::WeightInfo;
-
 pub mod traits;
 
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarking;
 pub mod weights;
+use weights::WeightInfo;
 
 #[cfg(test)]
 mod mock;
@@ -366,7 +365,7 @@ pub mod pallet {
 		///
 		/// - calls the create() implementation on the given Auction type
 		/// 
-		#[pallet::weight(<T as Config>::WeightInfo::create_auction())]
+		#[pallet::weight(<T as Config>::WeightInfo::create_candle())]
 		pub fn create(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -390,7 +389,7 @@ pub mod pallet {
 		/// 
 		/// - calls the update() implementation on the given Auction type
 		/// 
-		#[pallet::weight(<T as Config>::WeightInfo::update_auction())]
+		#[pallet::weight(<T as Config>::WeightInfo::update_candle())]
 		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -415,7 +414,7 @@ pub mod pallet {
 		/// - unfreezes NFT
 		/// - calls destroy helper function
 		///
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_auction())]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_candle())]
 		pub fn destroy(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionDoesNotExist)?;
@@ -448,7 +447,7 @@ pub mod pallet {
 		/// - calls the bid() implementation on the given Auction type
 		/// - deposits BidPlaced event
 		///
-		#[pallet::weight(<T as Config>::WeightInfo::bid())]
+		#[pallet::weight(<T as Config>::WeightInfo::bid_candle())]
 		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
 			let bidder = ensure_signed(origin)?;
 			let bid = Bid {
@@ -496,7 +495,7 @@ pub mod pallet {
 		/// - if necessary, calls the helper function for destroying all auction-related data
 		/// - deposits AuctionClosed event
 		///
-		#[pallet::weight(<T as Config>::WeightInfo::close_auction())]
+		#[pallet::weight(<T as Config>::WeightInfo::close_candle())]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
 			let mut destroy_auction_data = false;
 
@@ -540,7 +539,8 @@ pub mod pallet {
 		/// - calls claim() implementation on the Auction type
 		/// - if necessary, calls the helper function for destroying all auction-related data
 		///
-		#[pallet::weight(<T as Config>::WeightInfo::claim())]
+		/// TODO change weight
+		#[pallet::weight(<T as Config>::WeightInfo::create_candle())]
 		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 			let destroy_auction_data: bool;
 
