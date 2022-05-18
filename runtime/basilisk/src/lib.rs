@@ -1130,7 +1130,6 @@ impl_runtime_apis! {
 			use frame_support::traits::StorageInfoTrait;
 			use orml_benchmarking::list_benchmark as orml_list_benchmark;
 
-			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
@@ -1139,7 +1138,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_price_oracle, PriceOracle);
-			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
@@ -1160,6 +1158,7 @@ impl_runtime_apis! {
 			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
 			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
+			orml_list_benchmark!(list, extra, pallet_exchange, benchmarking::exchange);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1173,12 +1172,10 @@ impl_runtime_apis! {
 
 			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
-			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
-			impl pallet_exchange_benchmarking::Config for Runtime {}
 			impl pallet_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
@@ -1201,7 +1198,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_price_oracle, PriceOracle);
-			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
@@ -1223,6 +1219,7 @@ impl_runtime_apis! {
 			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
 			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
 			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
+			orml_add_benchmark!(params, batches, pallet_exchange, benchmarking::exchange);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

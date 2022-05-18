@@ -24,7 +24,6 @@ pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/w
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false}
 
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
-pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-xyk = { path = "../pallets/xyk",default-features = false}
 pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}

@@ -539,7 +539,6 @@ dependencies = [
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-exchange",
- "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
  "pallet-liquidity-mining",
@@ -5741,31 +5740,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-exchange-benchmarking"
-version = "3.3.10"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "hydradx-traits",
- "orml-tokens",
- "orml-traits",
- "pallet-asset-registry",
- "pallet-exchange",
- "pallet-xyk",
- "parity-scale-codec",
- "primitives",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
 name = "pallet-gilt"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
@@ -8778,7 +8752,6 @@ dependencies = [
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-exchange",
- "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
@@ -11310,7 +11283,6 @@ dependencies = [
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-exchange",
- "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
  "pallet-liquidity-mining",

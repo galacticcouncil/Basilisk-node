@@ -2,17 +2,19 @@
 
 pub mod currencies;
 pub mod duster;
+pub mod exchange;
 pub mod multi_payment;
 pub mod tokens;
 pub mod vesting;
 
-use crate::AssetRegistry;
-use crate::XYK;
+use crate::{AssetRegistry, Currencies, XYK};
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
 
 use common_runtime::AccountId;
+use orml_traits::MultiCurrencyExtended;
 use primitives::{AssetId, Balance, Price};
+use sp_runtime::traits::SaturatedConversion;
 use sp_std::vec::Vec;
 
 pub const BSX: Balance = primitives::constants::currency::UNITS;
@@ -44,5 +46,13 @@ pub fn create_pool(who: AccountId, asset_a: AssetId, asset_b: AssetId, amount: B
 		asset_b,
 		amount,
 		price
+	));
+}
+
+pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
+	assert_ok!(<Currencies as MultiCurrencyExtended<_>>::update_balance(
+		currency_id,
+		who,
+		balance.saturated_into()
 	));
 }

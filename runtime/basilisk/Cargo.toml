@@ -30,7 +30,6 @@ smallvec = "1.6.1"
 primitives = { default-features = false, path = "../../primitives" }
 common-runtime = { path = '../common', default-features = false }
 pallet-exchange = { path = "../../pallets/exchange", default-features=false}
-pallet-exchange-benchmarking = { path = "../../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",default-features = false}
@@ -139,7 +138,6 @@ runtime-benchmarks = [
     "pallet-nft/runtime-benchmarks",
     "pallet-marketplace/runtime-benchmarks",
     "pallet-xyk/runtime-benchmarks",
-    "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
     "pallet-price-oracle/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
