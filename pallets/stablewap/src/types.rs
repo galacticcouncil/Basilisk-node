@@ -42,3 +42,32 @@ impl<AssetId: Copy> From<&PoolAssets<AssetId>> for Vec<AssetId> {
 		vec![assets.0, assets.1]
 	}
 }
+
+impl<AssetId> From<PoolAssets<AssetId>> for Vec<AssetId> {
+	fn from(assets: PoolAssets<AssetId>) -> Self {
+		vec![assets.0, assets.1]
+	}
+}
+
+pub struct PoolAssetIterator<AssetId> {
+	iter: sp_std::vec::IntoIter<AssetId>,
+}
+
+impl<'a, AssetId: Copy> IntoIterator for &'a PoolAssets<AssetId> {
+	type Item = AssetId;
+	type IntoIter = PoolAssetIterator<AssetId>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		let v: Vec<AssetId> = self.into();
+
+		PoolAssetIterator { iter: v.into_iter() }
+	}
+}
+
+impl<AssetId> Iterator for PoolAssetIterator<AssetId> {
+	type Item = AssetId;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.iter.next()
+	}
+}

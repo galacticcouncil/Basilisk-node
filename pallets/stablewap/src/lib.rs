@@ -125,10 +125,8 @@ pub mod pallet {
 
 			ensure!(pool_assets.is_valid(), Error::<T>::SameAssets);
 
-			let assets: Vec<T::AssetId> = (&pool_assets).into();
-
-			for asset in assets.iter() {
-				ensure!(T::AssetRegistry::exists(*asset), Error::<T>::AssetNotRegistered);
+			for asset in (&pool_assets).into_iter() {
+				ensure!(T::AssetRegistry::exists(asset), Error::<T>::AssetNotRegistered);
 			}
 
 			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
@@ -136,8 +134,11 @@ pub mod pallet {
 
 				let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some("sts"));
 
-				let share_asset =
-					T::AssetRegistry::get_or_create_shared_asset(share_asset_ident, assets, Balance::zero())?;
+				let share_asset = T::AssetRegistry::get_or_create_shared_asset(
+					share_asset_ident,
+					(&pool_assets).into(),
+					Balance::zero(),
+				)?;
 
 				*maybe_pool = Some(PoolInfo {
 					share_asset,
