@@ -4,17 +4,17 @@
 
 use codec::HasCompact;
 use frame_support::{
-    BoundedVec,
-    dispatch::{DispatchResult, DispatchResultWithPostInfo},
-    ensure,
-    traits::{Get, NamedReservableCurrency, tokens::nonfungibles::*}, transactional,
+	dispatch::{DispatchResult, DispatchResultWithPostInfo},
+	ensure,
+	traits::{tokens::nonfungibles::*, Get, NamedReservableCurrency},
+	transactional, BoundedVec,
 };
 use frame_system::ensure_signed;
 
 use primitives::{nft::NftPermission, ReserveIdentifier};
 use sp_runtime::{
-    DispatchError,
-    traits::{AtLeast32BitUnsigned, StaticLookup, Zero},
+	traits::{AtLeast32BitUnsigned, StaticLookup, Zero},
+	DispatchError,
 };
 pub use types::*;
 use weights::WeightInfo;

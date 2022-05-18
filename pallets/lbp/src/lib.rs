@@ -23,23 +23,23 @@
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
-    DispatchError,
-    RuntimeDebug, traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
+	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
+	DispatchError, RuntimeDebug,
 };
 use frame_support::{
-    dispatch::DispatchResult,
-    ensure,
-    traits::{EnsureOrigin, Get, LockIdentifier},
-    transactional,
+	dispatch::DispatchResult,
+	ensure,
+	traits::{EnsureOrigin, Get, LockIdentifier},
+	transactional,
 };
 use frame_system::ensure_signed;
 pub use hydra_dx_math::types::LBPWeight;
-use hydradx_traits::{AMM, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, LockedBalance};
+use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, LockedBalance, AMM};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 use primitives::{
-    Amount,
-    asset::AssetPair,
-    AssetId, Balance, constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
+	asset::AssetPair,
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
+	Amount, AssetId, Balance,
 };
 
 use scale_info::TypeInfo;

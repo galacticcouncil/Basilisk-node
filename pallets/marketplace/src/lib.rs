@@ -3,14 +3,15 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::{
-    dispatch::DispatchResult,
-    ensure,
-    traits::{Currency, ExistenceRequirement, NamedReservableCurrency}, transactional,
+	dispatch::DispatchResult,
+	ensure,
+	traits::{Currency, ExistenceRequirement, NamedReservableCurrency},
+	transactional,
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
-    Percent,
-    traits::{Saturating, StaticLookup},
+	traits::{Saturating, StaticLookup},
+	Percent,
 };
 
 use types::*;
@@ -28,7 +29,8 @@ mod mock;
 mod tests;
 
 type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-pub type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
+pub type OfferOf<T> =
+	Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
 type RoyaltyOf<T> = Royalty<<T as frame_system::Config>::AccountId>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
