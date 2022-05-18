@@ -1136,7 +1136,6 @@ impl_runtime_apis! {
 			let mut list = Vec::<BenchmarkList>::new();
 
 			list_benchmark!(list, extra, pallet_xyk, XYK);
-			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_price_oracle, PriceOracle);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
@@ -1159,6 +1158,7 @@ impl_runtime_apis! {
 			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_list_benchmark!(list, extra, pallet_exchange, benchmarking::exchange);
+			orml_list_benchmark!(list, extra, pallet_lbp, benchmarking::lbp);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1196,7 +1196,6 @@ impl_runtime_apis! {
 
 			// Basilisk pallets
 			add_benchmark!(params, batches, pallet_xyk, XYK);
-			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_price_oracle, PriceOracle);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
@@ -1220,6 +1219,7 @@ impl_runtime_apis! {
 			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
 			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_add_benchmark!(params, batches, pallet_exchange, benchmarking::exchange);
+			orml_add_benchmark!(params, batches, pallet_lbp, benchmarking::lbp);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

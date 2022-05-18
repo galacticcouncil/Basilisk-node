@@ -23,23 +23,23 @@
 
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
-	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
-	DispatchError, RuntimeDebug,
+    DispatchError,
+    RuntimeDebug, traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
 };
 use frame_support::{
-	dispatch::DispatchResult,
-	ensure,
-	traits::{EnsureOrigin, Get, LockIdentifier},
-	transactional,
+    dispatch::DispatchResult,
+    ensure,
+    traits::{EnsureOrigin, Get, LockIdentifier},
+    transactional,
 };
 use frame_system::ensure_signed;
-use hydra_dx_math::types::LBPWeight;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, LockedBalance, AMM};
+pub use hydra_dx_math::types::LBPWeight;
+use hydradx_traits::{AMM, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, LockedBalance};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 use primitives::{
-	asset::AssetPair,
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
-	Amount, AssetId, Balance,
+    Amount,
+    asset::AssetPair,
+    AssetId, Balance, constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 };
 
 use scale_info::TypeInfo;
@@ -53,8 +53,6 @@ mod mock;
 
 #[cfg(test)]
 mod tests;
-
-mod benchmarking;
 
 #[allow(clippy::all)]
 pub mod weights;

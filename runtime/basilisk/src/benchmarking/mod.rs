@@ -6,6 +6,7 @@ pub mod exchange;
 pub mod multi_payment;
 pub mod tokens;
 pub mod vesting;
+pub mod lbp;
 
 use crate::{AssetRegistry, Currencies, XYK};
 use frame_support::assert_ok;
