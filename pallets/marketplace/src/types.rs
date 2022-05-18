@@ -9,11 +9,11 @@ use scale_info::TypeInfo;
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct Offer<AccountId, Balance, BlockNumber> {
 	/// User who made the offer
-	pub(super) maker: AccountId,
+	pub maker: AccountId,
 	/// Offered amount
-	pub(super) amount: Balance,
+	pub amount: Balance,
 	/// After this block the offer can't be accepted
-	pub(super) expires: BlockNumber,
+	pub expires: BlockNumber,
 }
 
 #[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]

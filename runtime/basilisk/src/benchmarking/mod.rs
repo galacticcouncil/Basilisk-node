@@ -7,6 +7,7 @@ pub mod multi_payment;
 pub mod tokens;
 pub mod vesting;
 pub mod lbp;
+pub mod marketplace;
 
 use crate::{AssetRegistry, Currencies, XYK};
 use frame_support::assert_ok;
@@ -16,7 +17,7 @@ use common_runtime::AccountId;
 use orml_traits::MultiCurrencyExtended;
 use primitives::{AssetId, Balance, Price};
 use sp_runtime::traits::SaturatedConversion;
-use sp_std::vec::Vec;
+use sp_std::{vec, vec::Vec};
 
 pub const BSX: Balance = primitives::constants::currency::UNITS;
 
