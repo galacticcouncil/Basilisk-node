@@ -45,7 +45,7 @@ pub mod pallet {
 	use codec::HasCompact;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use hydradx_traits::ShareTokenRegistry;
+	use hydradx_traits::{Registry, ShareTokenRegistry};
 	use sp_runtime::traits::Zero;
 	use sp_runtime::Permill;
 
@@ -104,6 +104,9 @@ pub mod pallet {
 
 		/// A pool with given assets already exists.
 		PoolExists,
+
+		/// One or more assets are not registered in AssetRegistry
+		AssetNotRegistered,
 	}
 
 	#[pallet::call]
@@ -122,16 +125,19 @@ pub mod pallet {
 
 			ensure!(pool_assets.is_valid(), Error::<T>::SameAssets);
 
+			let assets: Vec<T::AssetId> = (&pool_assets).into();
+
+			for asset in assets.iter() {
+				ensure!(T::AssetRegistry::exists(*asset), Error::<T>::AssetNotRegistered);
+			}
+
 			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
 				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
 
 				let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some("sts"));
 
-				let share_asset = T::AssetRegistry::get_or_create_shared_asset(
-					share_asset_ident,
-					(&pool_assets).into(),
-					Balance::zero(),
-				)?;
+				let share_asset =
+					T::AssetRegistry::get_or_create_shared_asset(share_asset_ident, assets, Balance::zero())?;
 
 				*maybe_pool = Some(PoolInfo {
 					share_asset,
