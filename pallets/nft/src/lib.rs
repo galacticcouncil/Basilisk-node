@@ -4,22 +4,21 @@
 
 use codec::HasCompact;
 use frame_support::{
-	dispatch::{DispatchResult, DispatchResultWithPostInfo},
-	ensure,
-	traits::{tokens::nonfungibles::*, Get, NamedReservableCurrency},
-	transactional, BoundedVec,
+    BoundedVec,
+    dispatch::{DispatchResult, DispatchResultWithPostInfo},
+    ensure,
+    traits::{Get, NamedReservableCurrency, tokens::nonfungibles::*}, transactional,
 };
 use frame_system::ensure_signed;
 
 use primitives::{nft::NftPermission, ReserveIdentifier};
 use sp_runtime::{
-	traits::{AtLeast32BitUnsigned, StaticLookup, Zero},
-	DispatchError,
+    DispatchError,
+    traits::{AtLeast32BitUnsigned, StaticLookup, Zero},
 };
 pub use types::*;
 use weights::WeightInfo;
 
-mod benchmarking;
 pub mod types;
 pub mod weights;
 

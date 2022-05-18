@@ -8,6 +8,7 @@ pub mod tokens;
 pub mod vesting;
 pub mod lbp;
 pub mod marketplace;
+pub mod nft;
 
 use crate::{AssetRegistry, Currencies, XYK};
 use frame_support::assert_ok;
