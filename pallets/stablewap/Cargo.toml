@@ -24,6 +24,9 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false }
 
+# HydraDX dependencies
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1", default-features = false }
+
 # third party
 log = { version = "0.4.14", default-features = false }
 

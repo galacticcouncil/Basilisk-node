@@ -6290,6 +6290,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hydradx-traits",
  "log",
  "pallet-balances",
  "parity-scale-codec",

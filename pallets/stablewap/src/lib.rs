@@ -16,12 +16,21 @@
 //! # Stableswap pallet
 //!
 //! TBD
+//!
+//!
+//! Questions:
+//! 1. who can create pools
+//! 2. pool owner needed to know ?
+//! 3. creation fee?
+//! 4. fees = trade fee and admin fee?!
+//! 5.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet_prelude::DispatchResult;
 use frame_support::transactional;
 
+mod traits;
 mod types;
 pub mod weights;
 
@@ -31,10 +40,14 @@ use weights::WeightInfo;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::types::Balance;
+	use crate::traits::ShareAccountIdFor;
+	use crate::types::{Balance, FixedBalance, PoolAssets, PoolInfo};
 	use codec::HasCompact;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	use hydradx_traits::ShareTokenRegistry;
+	use sp_runtime::traits::Zero;
+	use sp_runtime::Permill;
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(crate) trait Store)]
@@ -48,6 +61,7 @@ pub mod pallet {
 		/// Identifier for the class of asset.
 		type AssetId: Member
 			+ Parameter
+			+ PartialOrd
 			+ Default
 			+ Copy
 			+ HasCompact
@@ -55,28 +69,84 @@ pub mod pallet {
 			+ MaxEncodedLen
 			+ TypeInfo;
 
+		type ShareAccountId: ShareAccountIdFor<PoolAssets<Self::AssetId>>;
+
+		type AssetRegistry: ShareTokenRegistry<Self::AssetId, Vec<u8>, Balance, DispatchError>;
+
+		/// The origin which can create a new pool
+		type CreatePoolOrigin: EnsureOrigin<Self::Origin>;
+
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: weights::WeightInfo;
 	}
 
+	/// Existing pools
+	#[pallet::storage]
+	#[pallet::getter(fn pools)]
+	pub type Pools<T: Config> =
+		StorageMap<_, Blake2_128Concat, PoolAssets<T::AssetId>, PoolInfo<T::AssetId, Balance, FixedBalance>>;
+
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {}
+	pub enum Event<T: Config> {
+		/// A pool was created.
+		PoolCreated {
+			assets: PoolAssets<T::AssetId>,
+			amplification: FixedBalance,
+		},
+	}
 
 	#[pallet::error]
 	#[cfg_attr(test, derive(PartialEq))]
-	pub enum Error<T> {}
+	pub enum Error<T> {
+		/// Creating a pool with same assets is not allowed.
+		SameAssets,
+
+		/// A pool with given assets already exists.
+		PoolExists,
+	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		#[transactional]
 		pub fn create_pool(
-			_origin: OriginFor<T>,
-			_assets: (T::AssetId, T::AssetId),
-			_amplification: Balance,
+			origin: OriginFor<T>,
+			assets: (T::AssetId, T::AssetId),
+			amplification: FixedBalance,
+			fee: Permill,
 		) -> DispatchResult {
-			Ok(())
+			T::CreatePoolOrigin::ensure_origin(origin)?;
+
+			let pool_assets: PoolAssets<T::AssetId> = assets.into();
+
+			ensure!(pool_assets.is_valid(), Error::<T>::SameAssets);
+
+			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
+				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
+
+				let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some("sts"));
+
+				let share_asset = T::AssetRegistry::get_or_create_shared_asset(
+					share_asset_ident,
+					(&pool_assets).into(),
+					Balance::zero(),
+				)?;
+
+				*maybe_pool = Some(PoolInfo {
+					share_asset,
+					amplification,
+					balances: Default::default(),
+					fee,
+				});
+
+				Self::deposit_event(Event::PoolCreated {
+					assets: pool_assets.clone(),
+					amplification,
+				});
+
+				Ok(())
+			})
 		}
 	}
 
