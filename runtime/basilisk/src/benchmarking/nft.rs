@@ -15,9 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{Runtime, Uniques, NFT};
-
 use super::{vec, AccountId};
+use crate::{Runtime, Uniques, NFT};
 
 use frame_benchmarking::account;
 use frame_support::{
