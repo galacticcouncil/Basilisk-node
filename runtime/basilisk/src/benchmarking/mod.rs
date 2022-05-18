@@ -3,12 +3,12 @@
 pub mod currencies;
 pub mod duster;
 pub mod exchange;
-pub mod multi_payment;
-pub mod tokens;
-pub mod vesting;
 pub mod lbp;
 pub mod marketplace;
+pub mod multi_payment;
 pub mod nft;
+pub mod tokens;
+pub mod vesting;
 pub mod xyk;
 
 use crate::{AssetRegistry, Currencies, XYK};

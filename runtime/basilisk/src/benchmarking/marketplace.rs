@@ -15,18 +15,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{Runtime, Marketplace, NFT, Uniques};
+use crate::{Marketplace, Runtime, Uniques, NFT};
 
-use super::{AccountId, vec};
+use super::{vec, AccountId};
 
 use frame_benchmarking::account;
-use frame_support::{
-	BoundedVec,
-	traits::Currency,
-};
+use frame_support::{traits::Currency, BoundedVec};
 use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
-use sp_runtime::{traits::{StaticLookup, UniqueSaturatedInto}, SaturatedConversion};
+use sp_runtime::{
+	traits::{StaticLookup, UniqueSaturatedInto},
+	SaturatedConversion,
+};
 use sp_std::convert::TryInto;
 
 type BoundedVecOfUnq = pallet_nft::BoundedVecOfUnq<Runtime>;
@@ -44,7 +44,10 @@ fn create_funded_account(name: &'static str, index: u32) -> AccountId {
 	let caller: AccountId = account(name, index, SEED);
 
 	let amount = unit(ENDOWMENT);
-	drop(<Runtime as pallet_nft::Config>::Currency::deposit_creating(&caller, amount.unique_saturated_into()));
+	drop(<Runtime as pallet_nft::Config>::Currency::deposit_creating(
+		&caller,
+		amount.unique_saturated_into(),
+	));
 
 	caller
 }
@@ -57,12 +60,7 @@ fn unit(d: u32) -> u128 {
 fn create_class_and_mint(
 	class_id: NftClassId,
 	instance_id: NftInstanceId,
-) -> (
-	AccountId,
-	AccountId,
-	<Lookup as StaticLookup>::Source,
-	BoundedVecOfUnq,
-) {
+) -> (AccountId, AccountId, <Lookup as StaticLookup>::Source, BoundedVecOfUnq) {
 	let caller = create_funded_account("caller", 0);
 	let caller2 = create_funded_account("caller2", 1);
 

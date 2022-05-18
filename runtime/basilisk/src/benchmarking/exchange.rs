@@ -15,19 +15,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{Exchange, Runtime, XYK};
 use super::{create_pool, register_asset, update_balance, AccountId, AssetId, Balance, Price};
+use crate::{Exchange, Runtime, XYK};
 
 use frame_benchmarking::{account, BenchmarkError};
-use frame_support::{
-	dispatch::DispatchResult,
-	traits::OnFinalize,
-};
+use frame_support::{dispatch::DispatchResult, traits::OnFinalize};
 use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrency;
-use sp_runtime::traits::{BlakeTwo256, Hash};
 use primitives::constants::currency::DOLLARS;
+use sp_runtime::traits::{BlakeTwo256, Hash};
 
 const INITIAL_ASSET_BALANCE: Balance = 1_000_000_000_000_000;
 const MAX_INTENTIONS_IN_BLOCK: u32 = 1000;

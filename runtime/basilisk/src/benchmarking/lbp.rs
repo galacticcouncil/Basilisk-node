@@ -15,15 +15,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{Tokens, LBP, NativeAssetId, Runtime};
 use super::{register_asset, update_balance, AccountId, AssetId, Balance};
+use crate::{NativeAssetId, Runtime, Tokens, LBP};
 
 use pallet_lbp::{LBPWeight, WeightCurveType};
 
 use frame_benchmarking::{account, BenchmarkError};
-use orml_benchmarking::runtime_benchmarks;
-use frame_system::RawOrigin;
 use frame_support::ensure;
+use frame_system::RawOrigin;
+use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrency;
 
 const SEED: u32 = 1;

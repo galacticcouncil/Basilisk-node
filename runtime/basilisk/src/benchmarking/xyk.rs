@@ -15,15 +15,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{Runtime, XYK, Tokens};
 use super::{register_asset, update_balance, AccountId, AssetId, Balance, Price};
+use crate::{Runtime, Tokens, XYK};
 
-use frame_benchmarking::{account};
+use frame_benchmarking::account;
 use frame_benchmarking::BenchmarkError;
 use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
-use sp_std::prelude::*;
 use orml_traits::MultiCurrency;
+use sp_std::prelude::*;
 
 const SEED: u32 = 1;
 const ENDOWMENT: Balance = 1_000_000_000_000_000;
