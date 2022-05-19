@@ -3,7 +3,7 @@ use super::{AssetId, *};
 use codec::{Decode, Encode};
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::{Everything, Nothing};
-use hydradx_adapters::MultiCurrencyAdapter;
+use hydradx_adapters::MultiCurrencyTrader;
 pub use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
@@ -18,7 +18,7 @@ use xcm_builder::{
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
 	TakeWeightCredit,
 };
-use xcm_executor::{Assets, Config, XcmExecutor};
+use xcm_executor::{Assets, Config, traits::WeightTrader, XcmExecutor};
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
@@ -99,7 +99,7 @@ impl Config for XcmConfig {
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	// We calculate weight fees the same way as for regular extrinsics and use the prices and choice
 	// of accepted currencies of the transaction payment pallet.
-	type Trader = MultiCurrencyTrader<AssetId, Balance, WeightToFee, MultiTransactionPayment, CurrencyIdConvert>;
+	type Trader = MultiCurrencyTrader<AssetId, Balance, WeightToFee, MtpOracle, CurrencyIdConvert>;
 
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;

@@ -146,7 +146,7 @@ impl Contains<Call> for BaseFilter {
 use common_runtime::adapter::OrmlTokensAdapter;
 use primitives::{
 	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId,
+	ClassId, InstanceId, Price,
 };
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
@@ -178,7 +178,8 @@ impl WeightToFeePolynomial for WeightToFee {
 	}
 }
 
-impl PriceOracle<AssetId, Price> for MultiTransactionPayment {
+pub struct MtpOracle;
+impl hydradx_traits::PriceOracle<AssetId, Price> for MtpOracle {
 	fn price(currency: AssetId) -> Option<Price> {
 		MultiTransactionPayment::currency_price(currency)
 	}
