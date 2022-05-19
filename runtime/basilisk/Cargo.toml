@@ -49,6 +49,7 @@ pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", b
 pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 
 # Warehouse dependencies
+hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false}
@@ -204,6 +205,7 @@ std = [
     "pallet-lbp/std",
     "pallet-price-oracle/std",
     "pallet-utility/std",
+    "hydradx-adapters/std",
     "hydradx-traits/std",
     "sp-api/std",
     "sp-block-builder/std",

@@ -178,6 +178,12 @@ impl WeightToFeePolynomial for WeightToFee {
 	}
 }
 
+impl PriceOracle<AssetId, Price> for MultiTransactionPayment {
+	fn price(currency: AssetId) -> Option<Price> {
+		MultiTransactionPayment::currency_price(currency)
+	}
+}
+
 // Relay chain Block number provider.
 // Reason why the implementation is different for benchmarks is that it is not possible
 // to set or change the block number in a benchmark using parachain system pallet.
