@@ -291,3 +291,4 @@ pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse"
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/weight-trader" }
 pallet-asset-registry = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/weight-trader" }
 hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/weight-trader" }
+hydradx-adapters = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/weight-trader" }
