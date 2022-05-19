@@ -45,7 +45,7 @@ pub mod pallet {
 	use super::*;
 	use crate::math::{calculate_buy_changes, calculate_sell_changes};
 	use crate::traits::ShareAccountIdFor;
-	use crate::types::{order_assets_amounts, AssetAmounts, Balance, FixedBalance, PoolAssets, PoolInfo};
+	use crate::types::{Balance, FixedBalance, PoolAssets, PoolId, PoolInfo};
 	use codec::HasCompact;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
@@ -93,21 +93,23 @@ pub mod pallet {
 	/// Existing pools
 	#[pallet::storage]
 	#[pallet::getter(fn pools)]
-	pub type Pools<T: Config> =
-		StorageMap<_, Blake2_128Concat, PoolAssets<T::AssetId>, PoolInfo<T::AssetId, Balance, FixedBalance>>;
+	pub type Pools<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T::AssetId>, PoolInfo<T::AssetId, FixedBalance>>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// A pool was created.
 		PoolCreated {
+			id: PoolId<T::AssetId>,
 			assets: PoolAssets<T::AssetId>,
 			amplification: FixedBalance,
 		},
 		/// Liquidity of an asset was added to Omnipool.
 		LiquidityAdded {
+			id: PoolId<T::AssetId>,
 			from: T::AccountId,
-			amounts: AssetAmounts<Balance>,
+			asset: T::AssetId,
+			amount: Balance,
 		},
 		/// Sell trade executed.
 		SellExecuted {
@@ -139,11 +141,14 @@ pub mod pallet {
 		/// A pool with given assets already exists.
 		PoolExists,
 
+		/// Asset is not in the pool.
+		AssetNotInPool,
+
 		/// One or more assets are not registered in AssetRegistry
 		AssetNotRegistered,
 
-		/// Invalid asset amounts provided. Amounts must be greater than zero.
-		InvalidAssetAmounts,
+		/// Invalid asset amount provided. Amount must be greater than zero.
+		InvalidAssetAmount,
 
 		/// Balance of an asset is nto sufficient to perform a trade.
 		InsufficientBalance,
@@ -175,81 +180,87 @@ pub mod pallet {
 				ensure!(T::AssetRegistry::exists(asset), Error::<T>::AssetNotRegistered);
 			}
 
-			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
+			let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some(POOL_IDENTIFIER));
+
+			let share_asset = T::AssetRegistry::get_or_create_shared_asset(
+				share_asset_ident,
+				(&pool_assets).into(),
+				Balance::zero(),
+			)?;
+
+			let pool_id = PoolId(share_asset);
+
+			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
 				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
 
-				let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some(POOL_IDENTIFIER));
-
-				let share_asset = T::AssetRegistry::get_or_create_shared_asset(
-					share_asset_ident,
-					(&pool_assets).into(),
-					Balance::zero(),
-				)?;
-
 				*maybe_pool = Some(PoolInfo {
-					share_asset,
+					assets: pool_assets.clone(),
 					amplification,
-					balances: Default::default(),
 					fee,
 				});
 
-				Self::deposit_event(Event::PoolCreated {
-					assets: pool_assets.clone(),
-					amplification,
-				});
-
 				Ok(())
-			})
+			})?;
+
+			Self::deposit_event(Event::PoolCreated {
+				id: pool_id,
+				assets: pool_assets,
+				amplification,
+			});
+
+			Ok(())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
 		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
-			assets: (T::AssetId, T::AssetId),
-			amounts: (Balance, Balance),
+			pool_id: PoolId<T::AssetId>,
+			asset: T::AssetId,
+			amount: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let (pool_assets, assets_amounts) = order_assets_amounts(assets, amounts);
+			ensure!(amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
 
-			ensure!(assets_amounts.valid(), Error::<T>::InvalidAssetAmounts);
+			ensure!(
+				T::Currency::free_balance(asset, &who) >= amount,
+				Error::<T>::InsufficientBalance
+			);
 
-			// TODO: check if balances of who are sufficient
+			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
+				let pool = maybe_pool.as_ref().ok_or(Error::<T>::PoolNotFound)?;
 
-			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
-				let pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
+				ensure!(pool.assets.contains(asset), Error::<T>::AssetNotInPool);
 
-				let delta_changes =
-					calculate_add_liquidity_changes(pool, &assets_amounts).ok_or(ArithmeticError::Overflow)?;
+				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
-				let pool_account = T::ShareAccountId::from_assets(&pool_assets, Some(POOL_IDENTIFIER));
+				let asset_reserve = T::Currency::free_balance(asset, &pool_account);
 
-				pool.add_amounts(&delta_changes.delta_amounts)
+				let delta_changes = calculate_add_liquidity_changes(pool, asset, asset_reserve, amount)
 					.ok_or(ArithmeticError::Overflow)?;
 
-				T::Currency::deposit(pool.share_asset, &who, delta_changes.share_amount)?;
-
-				for (asset, amount) in (&pool_assets)
-					.into_iter()
-					.zip((&delta_changes.delta_amounts).into_iter())
-				{
-					T::Currency::transfer(asset, &who, &pool_account, amount)?;
-				}
-
-				Self::deposit_event(Event::LiquidityAdded {
-					from: who,
-					amounts: assets_amounts,
-				});
+				T::Currency::deposit(pool_id.0, &who, delta_changes.share_amount)?;
+				T::Currency::transfer(asset, &who, &pool_account, amount)?;
 
 				Ok(())
-			})
+			})?;
+
+			Self::deposit_event(Event::LiquidityAdded {
+				id: pool_id,
+				from: who,
+				asset,
+				amount,
+			});
+
+			Ok(())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]
 		#[transactional]
 		pub fn sell(
 			origin: OriginFor<T>,
+			pool_id: PoolId<T::AssetId>,
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
 			amount: Balance,
@@ -262,10 +273,12 @@ pub mod pallet {
 				Error::<T>::InsufficientBalance
 			);
 
-			let pool_assets: PoolAssets<T::AssetId> = (asset_in, asset_out).into();
+			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
+				let pool = maybe_pool.as_ref().ok_or(Error::<T>::PoolNotFound)?;
 
-			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
-				let pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
+				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+
+				//TODO: retrieve asset reserves
 
 				let updated_state =
 					calculate_sell_changes(pool, asset_in, asset_out, amount).ok_or(ArithmeticError::Overflow)?;
@@ -274,10 +287,6 @@ pub mod pallet {
 					updated_state.delta_amount_out >= min_bought,
 					Error::<T>::BuyLimitNotReached
 				);
-
-				*pool = updated_state.pool;
-
-				let pool_account = T::ShareAccountId::from_assets(&pool_assets, Some(POOL_IDENTIFIER));
 
 				T::Currency::transfer(asset_in, &who, &pool_account, amount)?;
 				T::Currency::transfer(asset_out, &pool_account, &who, updated_state.delta_amount_out)?;
@@ -298,6 +307,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn buy(
 			origin: OriginFor<T>,
+			pool_id: PoolId<T::AssetId>,
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
 			amount: Balance,
@@ -305,10 +315,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let pool_assets: PoolAssets<T::AssetId> = (asset_in, asset_out).into();
+			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
+				let pool = maybe_pool.as_ref().ok_or(Error::<T>::PoolNotFound)?;
 
-			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
-				let pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
+				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
 				let updated_state =
 					calculate_buy_changes(pool, asset_in, asset_out, amount).ok_or(ArithmeticError::Overflow)?;
@@ -320,10 +330,6 @@ pub mod pallet {
 					T::Currency::free_balance(asset_in, &who) >= amount_in,
 					Error::<T>::InsufficientBalance
 				);
-
-				*pool = updated_state.pool;
-
-				let pool_account = T::ShareAccountId::from_assets(&pool_assets, Some(POOL_IDENTIFIER));
 
 				T::Currency::transfer(asset_in, &who, &pool_account, amount_in)?;
 				T::Currency::transfer(asset_out, &pool_account, &who, amount)?;

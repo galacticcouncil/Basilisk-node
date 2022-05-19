@@ -9,26 +9,28 @@ use sp_runtime::traits::{CheckedAdd, Zero};
 pub type Balance = u128;
 pub type FixedBalance = FixedU128;
 
+#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+pub struct PoolId<AssetId>(pub AssetId);
+
+//////////////
+
 #[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct PoolInfo<AssetId, Balance, FixedBalance> {
-	pub(crate) share_asset: AssetId,
+pub struct PoolInfo<AssetId, FixedBalance> {
+	pub(crate) assets: PoolAssets<AssetId>,
 	pub(crate) amplification: FixedBalance,
-	pub(crate) balances: AssetAmounts<Balance>,
 	pub(crate) fee: Permill,
 }
 
-impl<AssetId, Balance, FixedBalance> PoolInfo<AssetId, Balance, FixedBalance>
-where
-	Balance: CheckedAdd,
-{
-	pub fn add_amounts(&mut self, amounts: &AssetAmounts<Balance>) -> Option<()> {
-		self.balances = self.balances.checked_add(amounts)?;
-		Some(())
-	}
-}
+//////////////
 
 #[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolAssets<AssetId>(AssetId, AssetId);
+
+impl<AssetId: PartialEq> PoolAssets<AssetId> {
+	pub fn contains(&self, value: AssetId) -> bool {
+		self.0 == value || self.1 == value
+	}
+}
 
 impl<AssetId: PartialOrd> From<(AssetId, AssetId)> for PoolAssets<AssetId> {
 	fn from(assets: (AssetId, AssetId)) -> Self {
@@ -80,6 +82,8 @@ impl<AssetId> Iterator for PoolAssetIterator<AssetId> {
 		self.iter.next()
 	}
 }
+
+//////////////
 
 #[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo, Default)]
 pub struct AssetAmounts<Balance>(pub Balance, pub Balance);
@@ -138,16 +142,5 @@ impl<Balance> Iterator for AssetAmountIterator<Balance> {
 
 	fn next(&mut self) -> Option<Self::Item> {
 		self.iter.next()
-	}
-}
-
-pub(crate) fn order_assets_amounts<AssetId: PartialOrd>(
-	assets: (AssetId, AssetId),
-	amounts: (Balance, Balance),
-) -> (PoolAssets<AssetId>, AssetAmounts<Balance>) {
-	if assets.0 < assets.1 {
-		(assets.into(), amounts.into())
-	} else {
-		(assets.into(), (amounts.1, amounts.0).into())
 	}
 }
