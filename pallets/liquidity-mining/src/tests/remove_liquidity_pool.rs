@@ -16,8 +16,8 @@
 // limitations under the License.
 
 use super::*;
-use pallet_liquidity_mining::GlobalPool;
 use test_ext::*;
+use warehouse_liquidity_mining::GlobalPool;
 
 #[test]
 fn remove_liquidity_pool_with_deposits_should_work() {
@@ -149,7 +149,7 @@ fn remove_liquidity_pool_non_canceled_liq_pool_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
 			LiquidityMining::remove_liquidity_pool(Origin::signed(GC), GC_FARM, bsx_tkn1_assets),
-			pallet_liquidity_mining::Error::<Test>::LiquidityMiningIsNotCanceled
+			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningIsNotCanceled
 		);
 	});
 }
@@ -172,7 +172,7 @@ fn remove_liquidity_pool_not_owner_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::remove_liquidity_pool(Origin::signed(NOT_OWNER), GC_FARM, bsx_tkn1),
-			pallet_liquidity_mining::Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
 }
@@ -187,7 +187,7 @@ fn remove_liquidity_pool_liq_pool_does_not_exists_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
 			LiquidityMining::remove_liquidity_pool(Origin::signed(GC), GC_FARM, bsx_dot_assets),
-			pallet_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
+			warehouse_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
 		);
 	});
 }

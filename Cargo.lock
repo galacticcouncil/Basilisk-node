@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "43.0.0"
+version = "44.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -542,6 +542,7 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-liquidity-mining 1.0.0",
  "pallet-liquidity-mining 1.2.0",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
@@ -1280,7 +1281,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.7.1"
+version = "1.8.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5950,6 +5951,7 @@ dependencies = [
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
+ "serde",
  "sp-arithmetic",
  "sp-std",
 ]
@@ -5994,6 +5996,7 @@ dependencies = [
  "orml-traits",
  "pallet-asset-registry",
  "pallet-balances",
+ "pallet-liquidity-mining 1.0.0",
  "pallet-liquidity-mining 1.2.0",
  "pallet-nft",
  "pallet-uniques",
@@ -11315,7 +11318,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "43.0.0"
+version = "44.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11361,6 +11364,7 @@ dependencies = [
  "pallet-faucet",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-liquidity-mining 1.0.0",
  "pallet-liquidity-mining 1.2.0",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",

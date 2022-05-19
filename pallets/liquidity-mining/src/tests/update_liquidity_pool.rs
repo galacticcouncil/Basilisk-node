@@ -16,9 +16,9 @@
 // limitations under the License.
 
 use super::*;
-use pallet_liquidity_mining::GlobalPool;
-use pallet_liquidity_mining::LiquidityPoolYieldFarm;
 use test_ext::*;
+use warehouse_liquidity_mining::GlobalPool;
+use warehouse_liquidity_mining::LiquidityPoolYieldFarm;
 
 #[test]
 fn update_liquidity_pool_should_work() {
@@ -156,7 +156,7 @@ fn update_liquidity_pool_zero_multiplier_should_not_work() {
 				bsx_tkn1_assets,
 				FixedU128::from(0_u128)
 			),
-			pallet_liquidity_mining::Error::<Test>::InvalidMultiplier
+			warehouse_liquidity_mining::Error::<Test>::InvalidMultiplier
 		);
 	});
 }
@@ -182,7 +182,7 @@ fn update_liquidity_pool_canceled_pool_should_not_work() {
 				bsx_tkn1_liq_pool,
 				FixedU128::from(10_001)
 			),
-			pallet_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
+			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
 		);
 	});
 }
@@ -209,7 +209,7 @@ fn update_liquidity_pool_not_owner_should_not_work() {
 				bsx_tkn1_assets,
 				FixedU128::from(10_001_u128)
 			),
-			pallet_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
+			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
 		);
 	});
 }

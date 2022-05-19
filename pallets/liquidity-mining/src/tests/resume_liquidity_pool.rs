@@ -91,7 +91,7 @@ fn resume_liquidity_pool_non_existing_pool_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::resume_liquidity_pool(Origin::signed(GC), GC_FARM, bsx_ksm_assets, new_multiplier),
-			pallet_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
+			warehouse_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
 		);
 	});
 }
@@ -108,7 +108,7 @@ fn resume_liquidity_pool_non_canceled_pool_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::resume_liquidity_pool(Origin::signed(GC), GC_FARM, bsx_tkn1_assets, new_multiplier),
-			pallet_liquidity_mining::Error::<Test>::LiquidityMiningIsNotCanceled
+			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningIsNotCanceled
 		);
 	});
 }
@@ -125,7 +125,7 @@ fn resume_liquidity_pool_not_owner_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::resume_liquidity_pool(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, new_multiplier),
-			pallet_liquidity_mining::Error::<Test>::LiquidityMiningIsNotCanceled
+			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningIsNotCanceled
 		);
 	});
 }

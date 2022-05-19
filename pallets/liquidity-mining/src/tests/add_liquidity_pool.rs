@@ -180,7 +180,7 @@ fn add_liquidity_pool_missing_incentivized_asset_should_not_work() {
 				FixedU128::from(10_000_u128),
 				None
 			),
-			pallet_liquidity_mining::Error::<Test>::MissingIncentivizedAsset
+			warehouse_liquidity_mining::Error::<Test>::MissingIncentivizedAsset
 		);
 	});
 }
@@ -199,7 +199,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 				FixedU128::from(10_000_u128),
 				None
 			),
-			pallet_liquidity_mining::Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 
 		assert_noop!(
@@ -213,7 +213,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 				FixedU128::from(10_000_u128),
 				Some(LoyaltyCurve::default())
 			),
-			pallet_liquidity_mining::Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
 }
@@ -260,7 +260,7 @@ fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
 					FixedU128::from(10_000_u128),
 					c
 				),
-				pallet_liquidity_mining::Error::<Test>::InvalidInitialRewardPercentage
+				warehouse_liquidity_mining::Error::<Test>::InvalidInitialRewardPercentage
 			);
 		}
 	});
@@ -280,7 +280,7 @@ fn add_liquidity_pool_invalid_multiplier_should_not_work() {
 				FixedU128::from(0_u128),
 				Some(LoyaltyCurve::default())
 			),
-			pallet_liquidity_mining::Error::<Test>::InvalidMultiplier
+			warehouse_liquidity_mining::Error::<Test>::InvalidMultiplier
 		);
 	});
 }
@@ -329,7 +329,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 				FixedU128::from(9_000_u128),
 				Some(LoyaltyCurve::default()),
 			),
-			pallet_liquidity_mining::Error::<Test>::LiquidityPoolAlreadyExists
+			warehouse_liquidity_mining::Error::<Test>::LiquidityPoolAlreadyExists
 		);
 
 		//try to add same amm second time in later block(period)
@@ -343,7 +343,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 				FixedU128::from(9_000_u128),
 				Some(LoyaltyCurve::default()),
 			),
-			pallet_liquidity_mining::Error::<Test>::LiquidityPoolAlreadyExists
+			warehouse_liquidity_mining::Error::<Test>::LiquidityPoolAlreadyExists
 		);
 	});
 }

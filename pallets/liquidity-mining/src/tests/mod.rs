@@ -19,24 +19,23 @@ use super::*;
 use crate::mock::{
 	asset_pair_to_map_key, set_block_number, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin,
 	Test, Tokens, WarehouseLM, ACA, ACA_FARM, ACA_KSM_AMM, ACA_KSM_SHARE_ID, ACCOUNT_WITH_1M, ALICE, AMM_POOLS, BOB,
-	BSX, BSX_ACA_AMM, BSX_ACA_SHARE_ID, BSX_DOT_AMM, BSX_DOT_SHARE_ID, BSX_ETH_AMM,
-	BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM, BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_SHARE_ID,
-	BSX_TKN1_AMM, BSX_TKN1_SHARE_ID, BSX_TKN2_AMM, BSX_TKN2_SHARE_ID, CHARLIE, DOT, ETH, GC, GC_FARM, HDX,
-	INITIAL_BALANCE, KSM, KSM_DOT_AMM, KSM_DOT_SHARE_ID, KSM_FARM, LIQ_MINING_NFT_CLASS, TKN1, TKN2, TREASURY,
+	BSX, BSX_ACA_AMM, BSX_ACA_SHARE_ID, BSX_DOT_AMM, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_FARM,
+	BSX_HDX_AMM, BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_TKN1_AMM, BSX_TKN1_SHARE_ID, BSX_TKN2_AMM,
+	BSX_TKN2_SHARE_ID, CHARLIE, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_DOT_AMM, KSM_DOT_SHARE_ID,
+	KSM_FARM, LIQ_MINING_NFT_CLASS, TKN1, TKN2, TREASURY,
 };
 
 use frame_support::{assert_noop, assert_ok};
 use primitives::Balance;
 use sp_runtime::traits::BadOrigin;
 
-
 const ALICE_FARM: u32 = BSX_FARM;
 const BOB_FARM: u32 = KSM_FARM;
 const CHARLIE_FARM: u32 = ACA_FARM;
 
-use pallet_liquidity_mining::GlobalPool;
-use pallet_liquidity_mining::LiquidityPoolYieldFarm;
-use pallet_liquidity_mining::LoyaltyCurve;
+use warehouse_liquidity_mining::GlobalPool;
+use warehouse_liquidity_mining::LiquidityPoolYieldFarm;
+use warehouse_liquidity_mining::LoyaltyCurve;
 
 const PREDEFINED_GLOBAL_POOLS: [GlobalPool<Test>; 4] = [
 	GlobalPool {

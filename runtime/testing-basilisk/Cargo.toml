@@ -1,6 +1,6 @@
 [package]
 name = "testing-basilisk-runtime"
-version = "43.0.0"
+version = "44.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -34,6 +34,7 @@ pallet-exchange-benchmarking = { path = "../../pallets/exchange/benchmarking", o
 pallet-asset-registry = { path = "../../pallets/asset-registry",default-features = false}
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", path = "../../../warehouse/liquidity-mining", default-features=false}   #TODO: change this to link to warehouse
 pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",default-features = false}
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
@@ -228,6 +229,7 @@ std = [
     "scale-info/std",
     "pallet-preimage/std",
     "pallet-liquidity-mining/std",
+    "warehouse-liquidity-mining/std",
 ]
 try-runtime= [
     "frame-try-runtime",

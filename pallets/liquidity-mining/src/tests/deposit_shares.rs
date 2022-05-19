@@ -16,11 +16,11 @@
 // limitations under the License.
 
 use super::*;
-use pallet_liquidity_mining::Deposit;
-use pallet_liquidity_mining::GlobalPool;
-use pallet_liquidity_mining::LiquidityPoolYieldFarm;
-use pallet_liquidity_mining::LoyaltyCurve;
 use test_ext::*;
+use warehouse_liquidity_mining::Deposit;
+use warehouse_liquidity_mining::GlobalPool;
+use warehouse_liquidity_mining::LiquidityPoolYieldFarm;
+use warehouse_liquidity_mining::LoyaltyCurve;
 
 #[test]
 fn deposit_shares_should_work() {
@@ -132,6 +132,12 @@ fn deposit_shares_should_work() {
 			},
 		);
 
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[0]).unwrap(),
+			bsx_tkn1_amm_account
+		);
+
 		//check if shares was transferd from extrinsic caller
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
@@ -224,6 +230,12 @@ fn deposit_shares_should_work() {
 				entered_at: 18,
 				updated_at: 18,
 			},
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[1]).unwrap(),
+			bsx_tkn1_amm_account
 		);
 
 		//check if shares was transfered from deposit owner
@@ -321,6 +333,12 @@ fn deposit_shares_should_work() {
 				entered_at: 18,
 				updated_at: 18,
 			},
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[2]).unwrap(),
+			bsx_tkn2_amm_account
 		);
 
 		//check if shares was transfered from deposit owner
@@ -425,6 +443,12 @@ fn deposit_shares_should_work() {
 			},
 		);
 
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[3]).unwrap(),
+			bsx_tkn2_amm_account
+		);
+
 		//check if shares was transfered from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB),
@@ -523,6 +547,12 @@ fn deposit_shares_should_work() {
 				entered_at: 25,
 				updated_at: 25,
 			},
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[4]).unwrap(),
+			bsx_tkn2_amm_account
 		);
 
 		//check if shares was transfered from deposit owner
@@ -624,6 +654,12 @@ fn deposit_shares_should_work() {
 			},
 		);
 
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[5]).unwrap(),
+			bsx_tkn2_amm_account
+		);
+
 		//check if shares was transfered from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
@@ -722,6 +758,12 @@ fn deposit_shares_should_work() {
 			},
 		);
 
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[6]).unwrap(),
+			bsx_tkn1_amm_account
+		);
+
 		//check if shares was transfered from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
@@ -790,7 +832,7 @@ fn deposit_shares_zero_deposit_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, 0),
-			pallet_liquidity_mining::Error::<Test>::InvalidDepositAmount
+			warehouse_liquidity_mining::Error::<Test>::InvalidDepositAmount
 		);
 	});
 }
@@ -820,7 +862,7 @@ fn deposit_shares_non_existing_liq_pool_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_dot_assets, 10_000),
-			pallet_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
+			warehouse_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
 		);
 	});
 }
@@ -841,7 +883,7 @@ fn deposit_shares_canceled_liq_pool_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, 10_000),
-			pallet_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
+			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
 		);
 	});
 }

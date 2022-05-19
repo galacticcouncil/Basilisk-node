@@ -63,7 +63,7 @@ fn destroy_farm_not_owner_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::destroy_farm(Origin::signed(ALICE), BOB_FARM),
-			pallet_liquidity_mining::Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 
 		assert_eq!(WarehouseLM::global_pool(BOB_FARM).unwrap(), PREDEFINED_GLOBAL_POOLS[1]);
@@ -76,7 +76,7 @@ fn destroy_farm_farm_not_exists_should_not_work() {
 		const NON_EXISTING_FARM: u32 = 999_999_999;
 		assert_noop!(
 			LiquidityMining::destroy_farm(Origin::signed(ALICE), NON_EXISTING_FARM),
-			pallet_liquidity_mining::Error::<Test>::FarmNotFound
+			warehouse_liquidity_mining::Error::<Test>::FarmNotFound
 		);
 	});
 }
@@ -100,7 +100,7 @@ fn destroy_farm_with_pools_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM),
-			pallet_liquidity_mining::Error::<Test>::FarmIsNotEmpty
+			warehouse_liquidity_mining::Error::<Test>::FarmIsNotEmpty
 		);
 
 		assert_eq!(WarehouseLM::global_pool(GC_FARM).unwrap(), PREDEFINED_GLOBAL_POOLS[2]);
@@ -116,7 +116,7 @@ fn destroy_farm_with_undistributed_rewards_and_no_pools_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::destroy_farm(Origin::signed(BOB), BOB_FARM),
-			pallet_liquidity_mining::Error::<Test>::RewardBalanceIsNotZero
+			warehouse_liquidity_mining::Error::<Test>::RewardBalanceIsNotZero
 		);
 
 		assert_eq!(WarehouseLM::global_pool(BOB_FARM).unwrap(), PREDEFINED_GLOBAL_POOLS[1]);
@@ -132,7 +132,7 @@ fn destroy_farm_healthy_farm_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM),
-			pallet_liquidity_mining::Error::<Test>::FarmIsNotEmpty
+			warehouse_liquidity_mining::Error::<Test>::FarmIsNotEmpty
 		);
 
 		assert_eq!(WarehouseLM::global_pool(GC_FARM).unwrap(), PREDEFINED_GLOBAL_POOLS[2]);

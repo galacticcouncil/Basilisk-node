@@ -16,11 +16,11 @@
 // limitations under the License.
 
 use super::*;
-use pallet_liquidity_mining::GlobalPool;
-use pallet_liquidity_mining::LiquidityPoolYieldFarm;
-use pallet_liquidity_mining::LoyaltyCurve;
-use pallet_liquidity_mining::Deposit;
 use test_ext::*;
+use warehouse_liquidity_mining::Deposit;
+use warehouse_liquidity_mining::GlobalPool;
+use warehouse_liquidity_mining::LiquidityPoolYieldFarm;
+use warehouse_liquidity_mining::LoyaltyCurve;
 
 #[test]
 fn claim_rewards_should_work() {
@@ -337,7 +337,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 		//second claim should fail
 		assert_noop!(
 			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_NFT_IDS[0]),
-			pallet_liquidity_mining::Error::<Test>::DoubleClaimInThePeriod
+			warehouse_liquidity_mining::Error::<Test>::DoubleClaimInThePeriod
 		);
 	});
 }
@@ -356,7 +356,6 @@ fn claim_rewards_from_canceled_pool_should_work() {
 			GC_FARM,
 			bsx_tkn1_assets
 		));
-
 
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 		let bsx_tkn1_liq_pool_account = WarehouseLM::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
@@ -400,7 +399,7 @@ fn claim_rewards_from_canceled_pool_should_work() {
 			Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account),
 			bsx_tkn1_liq_pool_reward_balance - expected_claimed_rewards
 		);
-    });
+	});
 }
 
 #[test]
@@ -427,7 +426,7 @@ fn claim_rewards_from_removed_pool_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_NFT_IDS[0]),
-			pallet_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
+			warehouse_liquidity_mining::Error::<Test>::LiquidityPoolNotFound
 		);
 	});
 }

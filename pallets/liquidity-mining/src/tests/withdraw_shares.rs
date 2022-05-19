@@ -16,11 +16,11 @@
 // limitations under the License.
 
 use super::*;
-use pallet_liquidity_mining::Deposit;
-use pallet_liquidity_mining::GlobalPool;
-use pallet_liquidity_mining::LiquidityPoolYieldFarm;
-use pallet_liquidity_mining::LoyaltyCurve;
 use test_ext::*;
+use warehouse_liquidity_mining::Deposit;
+use warehouse_liquidity_mining::GlobalPool;
+use warehouse_liquidity_mining::LiquidityPoolYieldFarm;
+use warehouse_liquidity_mining::LoyaltyCurve;
 
 #[test]
 fn withdraw_shares_should_work() {
@@ -147,6 +147,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]), None);
+		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[0]), None);
 
 		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (2, GC_FARM));
 
@@ -169,12 +170,12 @@ fn withdraw_shares_should_work() {
 		));
 
 		expect_events(vec![
-			mock::Event::WarehouseLM(pallet_liquidity_mining::Event::FarmAccRPZUpdated {
+			mock::Event::WarehouseLM(warehouse_liquidity_mining::Event::FarmAccRPZUpdated {
 				farm_id: GC_FARM,
 				accumulated_rpz: 63,
 				total_shares_z: 691_490,
 			}),
-			mock::Event::WarehouseLM(pallet_liquidity_mining::Event::LiquidityPoolAccRPVSUpdated {
+			mock::Event::WarehouseLM(warehouse_liquidity_mining::Event::LiquidityPoolAccRPVSUpdated {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: BSX_TKN2_LIQ_POOL_ID,
 				accumulated_rpvs: 630,
@@ -296,6 +297,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[4]), None);
+		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[4]), None);
 
 		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
 
@@ -316,7 +318,7 @@ fn withdraw_shares_should_work() {
 		));
 
 		expect_events(vec![
-			mock::Event::WarehouseLM(pallet_liquidity_mining::Event::LiquidityPoolAccRPVSUpdated {
+			mock::Event::WarehouseLM(warehouse_liquidity_mining::Event::LiquidityPoolAccRPVSUpdated {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
 				accumulated_rpvs: 315,
@@ -422,6 +424,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[6]), None);
+		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[6]), None);
 
 		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (1, GC_FARM));
 
@@ -540,6 +543,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[1]), None);
+		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[1]), None);
 
 		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (0, GC_FARM));
 
@@ -672,6 +676,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[2]), None);
+		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[2]), None);
 
 		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (2, GC_FARM));
 
@@ -787,6 +792,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[5]), None);
+		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[5]), None);
 
 		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (1, GC_FARM));
 
@@ -900,6 +906,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[2]), None);
+		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[2]), None);
 
 		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (0, GC_FARM));
 	});
@@ -1296,10 +1303,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			liq_pool_bsx_balance - user_reward - unclaimable_rewards
 		);
 
-		assert_eq!(
-			WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			( 1, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (1, GC_FARM));
 
 		//3-th withdraw
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
@@ -1321,7 +1325,6 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		));
 
 		expect_events(vec![
-
 			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
@@ -1388,10 +1391,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 
 		//Last withdraw should NOT remove pool_metadata because liq. pool can be
 		//resumed in the future
-		assert_eq!(
-			WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(0, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (0, GC_FARM));
 	});
 }
 
@@ -1554,10 +1554,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]), None);
 
-		assert_eq!(
-			WarehouseLM::liq_pool_meta(liq_pool_id_removed).unwrap(),
-			(2, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(liq_pool_id_removed).unwrap(), (2, GC_FARM));
 
 		assert_eq!(WarehouseLM::global_pool(GC_FARM).unwrap(), global_pool);
 
@@ -1609,10 +1606,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_eq!(WarehouseLM::global_pool(GC_FARM).unwrap(), global_pool);
 
-		assert_eq!(
-			WarehouseLM::liq_pool_meta(liq_pool_id_removed).unwrap(),
-			(1, GC_FARM)
-		);
+		assert_eq!(WarehouseLM::liq_pool_meta(liq_pool_id_removed).unwrap(), (1, GC_FARM));
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),

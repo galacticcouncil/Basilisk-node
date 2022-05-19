@@ -103,7 +103,7 @@ frame_support::construct_runtime!(
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
-		WarehouseLM: pallet_liquidity_mining::{Pallet, Storage, Event<T>},
+		WarehouseLM: warehouse_liquidity_mining::{Pallet, Storage, Event<T>},
 	}
 );
 
@@ -167,14 +167,14 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 	}
 
 	fn get_pool_assets(pool_account_id: &AccountId) -> Option<Vec<AssetId>> {
-        AMM_POOLS.with(|amm_pools| {
+		AMM_POOLS.with(|amm_pools| {
 			for (_k, v) in amm_pools.borrow().iter() {
 				if v.0 == *pool_account_id {
 					return Some(vec![v.2.asset_in, v.2.asset_out]);
 				}
 			}
 
-            None
+			None
 		})
 	}
 
@@ -257,7 +257,7 @@ parameter_types! {
 	pub const MinDeposit: Balance = 1;
 }
 
-impl pallet_liquidity_mining::Config for Test {
+impl warehouse_liquidity_mining::Config for Test {
 	type Event = Event;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
@@ -266,6 +266,8 @@ impl pallet_liquidity_mining::Config for Test {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinDeposit = MinDeposit;
 	type BlockNumberProvider = MockBlockNumberProvider;
+	type AmmPoolId = AccountId;
+	type Handler = LiquidityMining;
 }
 
 parameter_types! {

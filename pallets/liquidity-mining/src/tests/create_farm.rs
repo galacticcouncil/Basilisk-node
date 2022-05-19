@@ -71,7 +71,7 @@ fn create_farm_should_work() {
 
 		assert_eq!(
 			WarehouseLM::global_pool(id).unwrap(),
-			pallet_liquidity_mining::GlobalPool::new(
+			warehouse_liquidity_mining::GlobalPool::new(
 				id,
 				updated_at,
 				reward_currency,
@@ -128,7 +128,7 @@ fn create_farm_invalid_data_should_not_work() {
 				ALICE,
 				Permill::from_percent(20)
 			),
-			pallet_liquidity_mining::Error::<Test>::InvalidTotalRewards
+			warehouse_liquidity_mining::Error::<Test>::InvalidTotalRewards
 		);
 
 		//planned_yielding_periods bellow min. limit
@@ -143,7 +143,7 @@ fn create_farm_invalid_data_should_not_work() {
 				ALICE,
 				Permill::from_percent(20)
 			),
-			pallet_liquidity_mining::Error::<Test>::InvalidPlannedYieldingPeriods
+			warehouse_liquidity_mining::Error::<Test>::InvalidPlannedYieldingPeriods
 		);
 
 		//blocks_per_period is 0.
@@ -158,7 +158,7 @@ fn create_farm_invalid_data_should_not_work() {
 				ALICE,
 				Permill::from_percent(20)
 			),
-			pallet_liquidity_mining::Error::<Test>::InvalidBlocksPerPeriod
+			warehouse_liquidity_mining::Error::<Test>::InvalidBlocksPerPeriod
 		);
 
 		//yield_per_period is 0.
@@ -173,7 +173,7 @@ fn create_farm_invalid_data_should_not_work() {
 				ALICE,
 				Permill::from_percent(0)
 			),
-			pallet_liquidity_mining::Error::<Test>::InvalidYieldPerPeriod
+			warehouse_liquidity_mining::Error::<Test>::InvalidYieldPerPeriod
 		);
 	});
 }
@@ -194,7 +194,7 @@ fn create_farm_with_inssufficient_balance_should_not_work() {
 				Permill::from_percent(20)
 			),
 			//This error is from warehouse liq. mining pallet
-			pallet_liquidity_mining::Error::<Test>::InsufficientRewardCurrencyBalance
+			warehouse_liquidity_mining::Error::<Test>::InsufficientRewardCurrencyBalance
 		);
 	});
 }
