@@ -43,8 +43,9 @@ const POOL_IDENTIFIER: &str = "sts";
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use crate::math::{calculate_buy_changes, calculate_sell_changes};
 	use crate::traits::ShareAccountIdFor;
-	use crate::types::{order_assets_amounts, Balance, FixedBalance, PoolAssets, PoolInfo};
+	use crate::types::{order_assets_amounts, AssetAmounts, Balance, FixedBalance, PoolAssets, PoolInfo};
 	use codec::HasCompact;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
@@ -103,6 +104,27 @@ pub mod pallet {
 			assets: PoolAssets<T::AssetId>,
 			amplification: FixedBalance,
 		},
+		/// Liquidity of an asset was added to Omnipool.
+		LiquidityAdded {
+			from: T::AccountId,
+			amounts: AssetAmounts<Balance>,
+		},
+		/// Sell trade executed.
+		SellExecuted {
+			who: T::AccountId,
+			asset_in: T::AssetId,
+			asset_out: T::AssetId,
+			amount_in: Balance,
+			amount_out: Balance,
+		},
+		/// Buy trade executed.
+		BuyExecuted {
+			who: T::AccountId,
+			asset_in: T::AssetId,
+			asset_out: T::AssetId,
+			amount_in: Balance,
+			amount_out: Balance,
+		},
 	}
 
 	#[pallet::error]
@@ -122,6 +144,15 @@ pub mod pallet {
 
 		/// Invalid asset amounts provided. Amounts must be greater than zero.
 		InvalidAssetAmounts,
+
+		/// Balance of an asset is nto sufficient to perform a trade.
+		InsufficientBalance,
+
+		/// Minimum limit has not been reached during trade.
+		BuyLimitNotReached,
+
+		/// Maximum limit has been exceeded during trade.
+		SellLimitExceeded,
 	}
 
 	#[pallet::call]
@@ -171,7 +202,7 @@ pub mod pallet {
 			})
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
+		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
 		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
@@ -205,6 +236,105 @@ pub mod pallet {
 				{
 					T::Currency::transfer(asset, &who, &pool_account, amount)?;
 				}
+
+				Self::deposit_event(Event::LiquidityAdded {
+					from: who,
+					amounts: assets_amounts,
+				});
+
+				Ok(())
+			})
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::sell())]
+		#[transactional]
+		pub fn sell(
+			origin: OriginFor<T>,
+			asset_in: T::AssetId,
+			asset_out: T::AssetId,
+			amount: Balance,
+			min_bought: Balance,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			ensure!(
+				T::Currency::free_balance(asset_in, &who) >= amount,
+				Error::<T>::InsufficientBalance
+			);
+
+			let pool_assets: PoolAssets<T::AssetId> = (asset_in, asset_out).into();
+
+			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
+				let pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
+
+				let updated_state =
+					calculate_sell_changes(pool, asset_in, asset_out, amount).ok_or(ArithmeticError::Overflow)?;
+
+				ensure!(
+					updated_state.delta_amount_out >= min_bought,
+					Error::<T>::BuyLimitNotReached
+				);
+
+				*pool = updated_state.pool;
+
+				let pool_account = T::ShareAccountId::from_assets(&pool_assets, Some(POOL_IDENTIFIER));
+
+				T::Currency::transfer(asset_in, &who, &pool_account, amount)?;
+				T::Currency::transfer(asset_out, &pool_account, &who, updated_state.delta_amount_out)?;
+
+				Self::deposit_event(Event::SellExecuted {
+					who,
+					asset_in,
+					asset_out,
+					amount_in: amount,
+					amount_out: updated_state.delta_amount_out,
+				});
+
+				Ok(())
+			})
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::buy())]
+		#[transactional]
+		pub fn buy(
+			origin: OriginFor<T>,
+			asset_in: T::AssetId,
+			asset_out: T::AssetId,
+			amount: Balance,
+			max_sold: Balance,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			let pool_assets: PoolAssets<T::AssetId> = (asset_in, asset_out).into();
+
+			Pools::<T>::try_mutate(&pool_assets, |maybe_pool| -> DispatchResult {
+				let pool = maybe_pool.as_mut().ok_or(Error::<T>::PoolNotFound)?;
+
+				let updated_state =
+					calculate_buy_changes(pool, asset_in, asset_out, amount).ok_or(ArithmeticError::Overflow)?;
+
+				let amount_in = updated_state.delta_amount_out;
+
+				ensure!(amount_in <= max_sold, Error::<T>::BuyLimitNotReached);
+				ensure!(
+					T::Currency::free_balance(asset_in, &who) >= amount_in,
+					Error::<T>::InsufficientBalance
+				);
+
+				*pool = updated_state.pool;
+
+				let pool_account = T::ShareAccountId::from_assets(&pool_assets, Some(POOL_IDENTIFIER));
+
+				T::Currency::transfer(asset_in, &who, &pool_account, amount_in)?;
+				T::Currency::transfer(asset_out, &pool_account, &who, amount)?;
+
+				Self::deposit_event(Event::BuyExecuted {
+					who,
+					asset_in,
+					asset_out,
+					amount_in,
+					amount_out: amount,
+				});
 
 				Ok(())
 			})

@@ -9,7 +9,7 @@ use sp_runtime::traits::{CheckedAdd, Zero};
 pub type Balance = u128;
 pub type FixedBalance = FixedU128;
 
-#[derive(Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+#[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolInfo<AssetId, Balance, FixedBalance> {
 	pub(crate) share_asset: AssetId,
 	pub(crate) amplification: FixedBalance,
@@ -81,7 +81,7 @@ impl<AssetId> Iterator for PoolAssetIterator<AssetId> {
 	}
 }
 
-#[derive(Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo, Default)]
+#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo, Default)]
 pub struct AssetAmounts<Balance>(pub Balance, pub Balance);
 
 impl<Balance> From<(Balance, Balance)> for AssetAmounts<Balance> {
