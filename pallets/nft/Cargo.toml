@@ -1,6 +1,6 @@
 [package]
 name = "pallet-nft"
-version = "2.2.2"
+version = "2.2.3"
 description = "Simple NFT pallet for creating tokens"
 authors = ["GalacticCoucil"]
 edition = "2021"
