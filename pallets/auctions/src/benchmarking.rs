@@ -116,17 +116,17 @@ benchmarks! {
 		let bidder_1 = create_account::<T>("bidder_1", 1);
 		let bid_amount = 5u128.saturating_mul(UNITS);
 
-    Auctions::<T>::bid(RawOrigin::Signed(bidder_1).into(), 0.into(), bid_amount.into())?;
+	Auctions::<T>::bid(RawOrigin::Signed(bidder_1).into(), 0.into(), bid_amount.into())?;
 
 		frame_system::Pallet::<T>::set_block_number(20u32.into());
 
-    let bidder_2 = create_account::<T>("bidder_2", 2);
+	let bidder_2 = create_account::<T>("bidder_2", 2);
 		let bid_amount = 10u128.saturating_mul(UNITS);
 	}: { Auctions::<T>::bid(RawOrigin::Signed(bidder_2.clone()).into(), 0.into(), bid_amount.into())?; }
 	verify {
-    let auction = Auctions::<T>::auctions(T::AuctionId::from(0u8)).unwrap();
+	let auction = Auctions::<T>::auctions(T::AuctionId::from(0u8)).unwrap();
 
-    let auction_check = match auction {
+	let auction_check = match auction {
 			Auction::English(data) => {
 				assert_eq!(data.common_data.last_bid, Some((bidder_2, bid_amount.into())));
 
@@ -137,6 +137,30 @@ benchmarks! {
 
 		assert_eq!(auction_check, Ok(()));
 	}
+
+  close_english {
+	let owner = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let auction = mocked_english_auction_object::<T>(mocked_english_common_data::<T>(owner.clone()), mocked_english_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
+
+		frame_system::Pallet::<T>::set_block_number(10u32.into());
+
+		let bidder = create_account::<T>("bidder", 1);
+		let bid_amount = 5u128.saturating_mul(UNITS);
+
+	Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?;
+
+		frame_system::Pallet::<T>::set_block_number(21u32.into());
+  } : { Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?; }
+  verify {
+	assert_eq!(
+	  Nft::Pallet::<T>::owner(mocked_nft_class_id_1::<T>(), mocked_nft_instance_id_1::<T>()),
+	  Some(bidder)
+	)
+  }
+
 
   // Candle Auction benchmarks
   create_candle {
@@ -243,19 +267,19 @@ benchmarks! {
 		let owner = create_account::<T>("auction_owner", 0);
 		prepare_environment::<T>(owner.clone())?;
 
-		let auction = mocked_english_auction_object::<T>(mocked_english_common_data::<T>(owner.clone()), mocked_english_specific_data::<T>());
-		Auctions::<T>::create(RawOrigin::Signed(owner).into(), auction)?;
+		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
 
 		frame_system::Pallet::<T>::set_block_number(20u32.into());
 
-    let bidder = create_account::<T>("bidder", 1);
+	let bidder = create_account::<T>("bidder", 1);
 		let bid_amount = 5u128.saturating_mul(UNITS);
 	}: { Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?; }
 	verify {
 		let auction = Auctions::<T>::auctions(T::AuctionId::from(0u8)).unwrap();
 
-    let auction_check = match auction {
-			Auction::English(data) => {
+	let auction_check = match auction {
+			Auction::TopUp(data) => {
 				assert_eq!(data.common_data.last_bid, Some((bidder, bid_amount.into())));
 
 				Ok(())
@@ -265,6 +289,28 @@ benchmarks! {
 
 		assert_eq!(auction_check, Ok(()));
 	}
+
+  close_topup {
+	let owner = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
+
+		frame_system::Pallet::<T>::set_block_number(10u32.into());
+
+	let bidder = create_account::<T>("bidder", 1);
+		let bid_amount = 5u128.saturating_mul(UNITS);
+	Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?;
+
+		frame_system::Pallet::<T>::set_block_number(21u32.into());
+  } : { Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?; }
+  verify {
+	assert_eq!(
+	  Nft::Pallet::<T>::owner(mocked_nft_class_id_1::<T>(), mocked_nft_instance_id_1::<T>()),
+	  Some(bidder)
+	)
+  }
 }
 
 #[cfg(test)]
