@@ -7,7 +7,6 @@ use sp_core::RuntimeDebug;
 use sp_runtime::traits::{CheckedAdd, Zero};
 
 pub type Balance = u128;
-pub type FixedBalance = FixedU128;
 
 #[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolId<AssetId>(pub AssetId);
@@ -15,9 +14,9 @@ pub struct PoolId<AssetId>(pub AssetId);
 //////////////
 
 #[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct PoolInfo<AssetId, FixedBalance> {
+pub struct PoolInfo<AssetId, Balance> {
 	pub(crate) assets: PoolAssets<AssetId>,
-	pub(crate) amplification: FixedBalance,
+	pub(crate) amplification: Balance,
 	pub(crate) fee: Permill,
 }
 

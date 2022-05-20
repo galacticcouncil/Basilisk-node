@@ -45,7 +45,7 @@ pub mod pallet {
 	use super::*;
 	use crate::math::{calculate_buy_changes, calculate_sell_changes};
 	use crate::traits::ShareAccountIdFor;
-	use crate::types::{Balance, FixedBalance, PoolAssets, PoolId, PoolInfo};
+	use crate::types::{Balance, PoolAssets, PoolId, PoolInfo};
 	use codec::HasCompact;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
@@ -93,7 +93,7 @@ pub mod pallet {
 	/// Existing pools
 	#[pallet::storage]
 	#[pallet::getter(fn pools)]
-	pub type Pools<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T::AssetId>, PoolInfo<T::AssetId, FixedBalance>>;
+	pub type Pools<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T::AssetId>, PoolInfo<T::AssetId, Balance>>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
@@ -102,7 +102,7 @@ pub mod pallet {
 		PoolCreated {
 			id: PoolId<T::AssetId>,
 			assets: PoolAssets<T::AssetId>,
-			amplification: FixedBalance,
+			amplification: Balance,
 		},
 		/// Liquidity of an asset was added to Omnipool.
 		LiquidityAdded {
@@ -167,7 +167,7 @@ pub mod pallet {
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			assets: (T::AssetId, T::AssetId),
-			amplification: FixedBalance,
+			amplification: Balance,
 			fee: Permill,
 		) -> DispatchResult {
 			T::CreatePoolOrigin::ensure_origin(origin)?;

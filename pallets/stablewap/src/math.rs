@@ -1,7 +1,7 @@
-use crate::types::{Balance, FixedBalance, PoolInfo};
+use crate::types::{Balance, PoolInfo};
 use primitive_types::U256;
-use sp_runtime::FixedPointNumber;
 use sp_runtime::traits::{CheckedMul, Zero};
+use sp_runtime::FixedPointNumber;
 
 const NUMBER_OF_ASSETS_PER_POOL: u128 = 2;
 
@@ -24,7 +24,7 @@ pub(crate) struct AssetAmountChanges<Balance> {
 }
 
 pub(crate) fn calculate_add_liquidity_changes<AssetId>(
-	_pool: &PoolInfo<AssetId, FixedBalance>,
+	_pool: &PoolInfo<AssetId, Balance>,
 	_asset: AssetId,
 	_reserve: Balance,
 	_amount: Balance,
@@ -37,7 +37,7 @@ pub(crate) struct TradeChanges {
 }
 
 pub(crate) fn calculate_sell_changes<AssetId>(
-	_pool: &PoolInfo<AssetId, FixedBalance>,
+	_pool: &PoolInfo<AssetId, Balance>,
 	_asset_in: AssetId,
 	_asset_out: AssetId,
 	_amount: Balance,
@@ -48,7 +48,7 @@ pub(crate) fn calculate_sell_changes<AssetId>(
 }
 
 pub(crate) fn calculate_buy_changes<AssetId>(
-	_pool: &PoolInfo<AssetId, FixedBalance>,
+	_pool: &PoolInfo<AssetId, Balance>,
 	_asset_in: AssetId,
 	_asset_out: AssetId,
 	_amount: Balance,
@@ -58,9 +58,9 @@ pub(crate) fn calculate_buy_changes<AssetId>(
 	})
 }
 
-fn calculate_ann(amplification: FixedBalance) -> Option<FixedBalance> {
-	let n_coins = FixedBalance::from(NUMBER_OF_ASSETS_PER_POOL as u128);
-	(0..NUMBER_OF_ASSETS_PER_POOL).try_fold(amplification, |acc, _| acc.checked_mul(&n_coins))
+fn calculate_ann(amplification: Balance) -> Option<Balance> {
+	let n_coins = Balance::from(NUMBER_OF_ASSETS_PER_POOL as u128);
+	(0..NUMBER_OF_ASSETS_PER_POOL).try_fold(amplification, |acc, _| acc.checked_mul(n_coins))
 }
 
 fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Balance> {
@@ -136,12 +136,7 @@ fn calculate_y_given_out(
 	calculate_y(new_reserve_out, d, ann, precision)
 }
 
-fn calculate_y(
-	reserve: Balance,
-	d: Balance,
-	ann: Balance,
-	precision: Balance,
-) -> Option<Balance> {
+fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -> Option<Balance> {
 	let (d_hp, two_hp, n_coins_hp, ann_hp, new_reserve_hp, precision_hp) =
 		to_u256!(d, 2u128, NUMBER_OF_ASSETS_PER_POOL, ann, reserve, precision);
 
@@ -178,18 +173,9 @@ fn calculate_y(
 
 #[test]
 fn test_ann() {
-	assert_eq!(
-		calculate_ann(FixedBalance::from(1u128)),
-		Some(FixedBalance::from(4u128))
-	);
-	assert_eq!(
-		calculate_ann(FixedBalance::from_float(0.5)),
-		Some(FixedBalance::from(2u128))
-	);
-	assert_eq!(
-		calculate_ann(FixedBalance::from_float(100.0)),
-		Some(FixedBalance::from(400u128))
-	);
+	assert_eq!(calculate_ann(Balance::from(1u128)), Some(Balance::from(4u128)));
+	assert_eq!(calculate_ann(Balance::from(10u128)), Some(Balance::from(40u128)));
+	assert_eq!(calculate_ann(Balance::from(100u128)), Some(Balance::from(400u128)));
 }
 
 #[test]
