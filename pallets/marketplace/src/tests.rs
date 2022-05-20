@@ -1,3 +1,5 @@
+#![allow(clippy::redundant_field_names)]
+
 use frame_support::{assert_noop, assert_ok};
 
 use super::*;
@@ -45,12 +47,12 @@ fn set_price_works() {
 			Some(10)
 		));
 
-		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(
-			ALICE,
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			Some(10),
-		));
+		let event = Event::Marketplace(crate::Event::TokenPriceUpdated {
+			owner: ALICE,
+			class_id: CLASS_ID_0,
+			instance_id: INSTANCE_ID_0,
+			price: Some(10),
+		});
 		assert_eq!(last_event(), event);
 
 		assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), Some(10));
@@ -63,7 +65,12 @@ fn set_price_works() {
 		));
 		assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
 
-		let event = Event::Marketplace(crate::Event::TokenPriceUpdated(ALICE, CLASS_ID_0, INSTANCE_ID_0, None));
+		let event = Event::Marketplace(crate::Event::TokenPriceUpdated {
+			owner: ALICE,
+			class_id: CLASS_ID_0,
+			instance_id: INSTANCE_ID_0,
+			price: None,
+		});
 		assert_eq!(last_event(), event);
 	});
 }
@@ -126,13 +133,13 @@ fn buy_works() {
 		assert_eq!(Balances::free_balance(CHARLIE), 150_256 * UNITS);
 		assert_eq!(Balances::free_balance(DAVE), 200_000 * UNITS);
 
-		let event = Event::Marketplace(crate::Event::TokenSold(
-			ALICE,
-			BOB,
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			768 * UNITS,
-		));
+		let event = Event::Marketplace(crate::Event::TokenSold {
+			owner: ALICE,
+			buyer: BOB,
+			class_id: CLASS_ID_0,
+			instance_id: INSTANCE_ID_0,
+			price: 768 * UNITS,
+		});
 		assert_eq!(last_event(), event);
 	});
 }
