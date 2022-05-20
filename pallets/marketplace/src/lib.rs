@@ -332,14 +332,14 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// The price for a token was updated \[owner, class_id, instance_id, price\]
+		/// The price for a token was updated
 		TokenPriceUpdated {
 			owner: T::AccountId,
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
 			price: Option<BalanceOf<T>>,
 		},
-		/// Token was sold to a new owner \[owner, buyer, class_id, instance_id, price\]
+		/// Token was sold to a new owner
 		TokenSold {
 			owner: T::AccountId,
 			buyer: T::AccountId,
@@ -347,7 +347,7 @@ pub mod pallet {
 			instance_id: T::NftInstanceId,
 			price: BalanceOf<T>,
 		},
-		/// Offer was placed on a token \[offerer, class_id, instance_id, price, expires\]
+		/// Offer was placed on a token
 		OfferPlaced {
 			offerer: T::AccountId,
 			class_id: T::NftClassId,
@@ -355,20 +355,20 @@ pub mod pallet {
 			price: BalanceOf<T>,
 			expires: T::BlockNumber,
 		},
-		/// Offer was withdrawn \[sender, class_id, instance_id\]
+		/// Offer was withdrawn
 		OfferWithdrawn {
 			sender: T::AccountId,
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
 		},
-		/// Offer was accepted \[sender, class_id, instance_id\]
+		/// Offer was accepted
 		OfferAccepted {
 			sender: T::AccountId,
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
 			amount: BalanceOf<T>,
 		},
-		/// Royalty hs been paid to the author \[class_id, instance_id, author, royalty, royalty_amount\]
+		/// Royalty hs been paid to the author
 		RoyaltyPaid {
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
@@ -376,7 +376,7 @@ pub mod pallet {
 			royalty: u8,
 			royalty_amount: BalanceOf<T>,
 		},
-		/// Marketplace data has been added \[class_type, sender, class_id, instance_id\]
+		/// Marketplace data has been added
 		RoyaltyAdded {
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,

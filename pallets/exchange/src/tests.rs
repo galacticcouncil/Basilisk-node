@@ -76,14 +76,14 @@ fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: P
 	});
 	let share_token = XYKPallet::share_token(pair_account);
 
-	expect_event(xyk::Event::PoolCreated(
-		user,
-		asset_a,
-		asset_b,
-		shares,
-		share_token,
-		pair_account,
-	));
+	expect_event(xyk::Event::PoolCreated {
+        who: user,
+        asset_a: asset_a,
+        asset_b: asset_b,
+        initial_shares_amount: shares,
+        share_token: share_token,
+        pool_account_id: pair_account
+    });
 
 	let amount_b = price.saturating_mul_int(amount);
 
@@ -235,16 +235,16 @@ fn sell_test_pool_finalization_states() {
 				fee_amount: 8000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				1000000000000,
-				1976316673268,
-				asset_b,
-				3960554454,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 1000000000000,
+				sale_price: 1976316673268,
+				fee_asset: asset_b,
+				fee_amount: 3960554454,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -393,16 +393,16 @@ fn sell_test_standard() {
 				fee_amount: 8000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				3000,
-				2000,
-				1000000000000,
-				1976316673268,
-				2000,
-				3960554454,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: 3000,
+				asset_out: 2000,
+				amount: 1000000000000,
+				sale_price: 1976316673268,
+				fee_asset: 2000,
+				fee_amount: 3960554454,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -522,16 +522,16 @@ fn sell_test_inverse_standard() {
 				amount: 2000000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				3,
-				2000,
-				3000,
-				2000000000000,
-				988118811882,
-				3000,
-				1980198018,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: 3,
+				asset_in: 2000,
+				asset_out: 3000,
+				amount: 2000000000000,
+				sale_price: 988118811882,
+				fee_asset: 3000,
+				fee_amount: 1980198018,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_3,
@@ -764,16 +764,16 @@ fn sell_test_single_eth_sells() {
 				intention_id: user_3_sell_intention_id,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_3,
-				asset_a,
-				asset_b,
-				2000000000000,
-				3913725490196,
-				asset_b,
-				7843137254,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_3,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 2000000000000,
+				sale_price: 3913725490196,
+				fee_asset: asset_b,
+				fee_amount: 7843137254,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_3,
@@ -784,16 +784,16 @@ fn sell_test_single_eth_sells() {
 				pool_account_id: pair_account,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				1000000000000,
-				1899942737485,
-				asset_b,
-				3807500474,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 1000000000000,
+				sale_price: 1899942737485,
+				fee_asset: asset_b,
+				fee_amount: 3807500474,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -883,16 +883,16 @@ fn sell_test_single_dot_sells() {
 				intention_id: user_3_sell_intention_id,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_3,
-				asset_b,
-				asset_a,
-				2000000000000,
-				988118811882,
-				asset_a,
-				1980198018,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_3,
+				asset_in: asset_b,
+				asset_out: asset_a,
+				amount: 2000000000000,
+				sale_price: 988118811882,
+				fee_asset: asset_a,
+				fee_amount: 1980198018,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_3,
@@ -903,16 +903,16 @@ fn sell_test_single_dot_sells() {
 				pool_account_id: pair_account,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				1000000000000,
-				486767770570,
-				asset_a,
-				975486514,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_b,
+				asset_out: asset_a,
+				amount: 1000000000000,
+				sale_price: 486767770570,
+				fee_asset: asset_a,
+				fee_amount: 975486514,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -1004,16 +1004,16 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				}),
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				1000000000000,
-				1976237623763,
-				asset_b,
-				3960396038,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 1000000000000,
+				sale_price: 1976237623763,
+				fee_asset: asset_b,
+				fee_amount: 3960396038,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -1105,16 +1105,16 @@ fn buy_trade_limits_respected_for_matched_intention() {
 				}),
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				1000000000000,
-				502512562815,
-				asset_a,
-				1005025124,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 1000000000000,
+				buy_price: 502512562815,
+				fee_asset: asset_a,
+				fee_amount: 1005025124,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -1553,16 +1553,16 @@ fn sell_test_group_sells() {
 				fee_amount: 6000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				6000000000000,
-				11298164364955,
-				asset_b,
-				22641611952,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_4,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 6000000000000,
+				sale_price: 11298164364955,
+				fee_asset: asset_b,
+				fee_amount: 22641611952,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_4,
@@ -1765,16 +1765,16 @@ fn sell_test_mixed_buy_sells() {
 				fee_amount: 6000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				8500000000000,
-				15636903108671,
-				asset_b,
-				31336479174,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_4,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 8500000000000,
+				sale_price: 15636903108671,
+				fee_asset: asset_b,
+				fee_amount: 31336479174,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_4,
@@ -1785,16 +1785,16 @@ fn sell_test_mixed_buy_sells() {
 				pool_account_id: pair_account,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				5000000000000,
-				3024573404240,
-				asset_a,
-				6049146808,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 5000000000000,
+				buy_price: 3024573404240,
+				fee_asset: asset_a,
+				fee_amount: 6049146808,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -1943,16 +1943,16 @@ fn discount_tests_no_discount() {
 				fee_amount: 6000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				8500000000000,
-				15636903108671,
-				asset_b,
-				31336479174,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_4,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 8500000000000,
+				sale_price: 15636903108671,
+				fee_asset: asset_b,
+				fee_amount: 31336479174,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_4,
@@ -1963,16 +1963,16 @@ fn discount_tests_no_discount() {
 				pool_account_id: pair_account,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				5000000000000,
-				3024573404240,
-				asset_a,
-				6049146808,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 5000000000000,
+				buy_price: 3024573404240,
+				fee_asset: asset_a,
+				fee_amount: 6049146808,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -2127,16 +2127,16 @@ fn discount_tests_with_discount() {
 				fee_amount: 6000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				8500000000000,
-				15657271820139,
-				asset_b,
-				10967767706,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_4,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 8500000000000,
+				sale_price: 15657271820139,
+				fee_asset: asset_b,
+				fee_amount: 10967767706,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_4,
@@ -2147,16 +2147,16 @@ fn discount_tests_with_discount() {
 				pool_account_id: pair_account,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				5000000000000,
-				3024916906330,
-				asset_a,
-				2117441830,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 5000000000000,
+				buy_price: 3024916906330,
+				fee_asset: asset_a,
+				fee_amount: 2117441830,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -2395,16 +2395,16 @@ fn buy_test_group_buys() {
 				amount: 5010000000000,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				7500000000000,
-				16216216216217,
-				asset_b,
-				32432432432,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_4,
+				asset_out: asset_a,
+				asset_in: asset_b,
+				amount: 7500000000000,
+				buy_price: 16216216216217,
+				fee_asset: asset_b,
+				fee_amount: 32432432432,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_4,
@@ -2440,16 +2440,16 @@ fn buy_test_group_buys() {
 				fee_amount: 10000000000,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_3,
-				asset_b,
-				asset_a,
-				3000000000000,
-				1301307129904,
-				asset_a,
-				2602614258,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_3,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 3000000000000,
+				buy_price: 1301307129904,
+				fee_asset: asset_a,
+				fee_amount: 2602614258,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_3,
@@ -2721,7 +2721,16 @@ fn simple_sell_sell() {
 				fee_amount: 2,
 			}
 			.into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2995, 2000, 4, pair_account).into(),
+			xyk::Event::SellExecuted {
+				who: 2,
+				asset_in: 3000,
+				asset_out: 2000,
+				amount: 1500,
+				sale_price: 2995,
+				fee_asset: 2000,
+				fee_amount: 4,
+				pool_account_id: pair_account
+			}.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
 				intention_type: IntentionType::SELL,
@@ -2817,7 +2826,16 @@ fn simple_buy_buy() {
 				amount: 1002,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(2, 3000, 2000, 1500, 3001, 2000, 6, pair_account).into(),
+			xyk::Event::BuyExecuted {
+				who: 2,
+				asset_out: 3000,
+				asset_in: 2000,
+				amount: 1500,
+				buy_price: 3001,
+				fee_asset: 2000,
+				fee_amount: 6,
+				pool_account_id: pair_account
+			}.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
 				intention_type: IntentionType::BUY,
@@ -2956,7 +2974,16 @@ fn simple_sell_buy() {
 				fee_amount: 8,
 			}
 			.into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1000, 1997, 2000, 2, pair_account).into(),
+			xyk::Event::SellExecuted {
+				who: 2,
+				asset_in: 3000,
+				asset_out: 2000,
+				amount: 1000,
+				sale_price: 1997,
+				fee_asset: 2000,
+				fee_amount: 2,
+				pool_account_id: pair_account
+			}.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
 				intention_type: IntentionType::SELL,
@@ -3053,7 +3080,16 @@ fn simple_buy_sell() {
 				amount: 2004,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(user_2, 3000, 2000, 1000, 2001, 2000, 4, pair_account).into(),
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: 3000,
+				asset_in: 2000,
+				amount: 1000,
+				buy_price: 2001,
+				fee_asset: 2000,
+				fee_amount: 4,
+				pool_account_id: pair_account
+			}.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
 				intention_type: IntentionType::BUY,
@@ -3136,16 +3172,16 @@ fn single_sell_intention_test() {
 				intention_id: user_2_sell_intention_id,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				2,
-				3000,
-				2000,
-				2000000000000,
-				3913725490196,
-				2000,
-				7843137254,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: 2,
+				asset_in: 3000,
+				asset_out: 2000,
+				amount: 2000000000000,
+				sale_price: 3913725490196,
+				fee_asset: 2000,
+				fee_amount: 7843137254,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -3213,16 +3249,16 @@ fn single_buy_intention_test() {
 				intention_id: user_2_sell_intention_id,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				2,
-				3000,
-				2000,
-				2000000000000,
-				4081632653062,
-				2000,
-				8163265306,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: 2,
+				asset_out: 3000,
+				asset_in: 2000,
+				amount: 2000000000000,
+				buy_price: 4081632653062,
+				fee_asset: 2000,
+				fee_amount: 8163265306,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -3431,16 +3467,16 @@ fn matching_limits_buy_buy_should_work() {
 				amount: 100200000000000,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				3,
-				asset_b,
-				asset_a,
-				20_000_000_000_000,
-				10101010101011,
-				asset_a,
-				20202020202,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: 3,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 20_000_000_000_000,
+				buy_price: 10101010101011,
+				fee_asset: asset_a,
+				fee_amount: 20202020202,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_3,
@@ -3567,16 +3603,16 @@ fn matching_limits_sell_buy_should_work() {
 				amount: 30000000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				3,
-				asset_a,
-				asset_b,
-				20_000_000_000_000,
-				39137254901961,
-				asset_b,
-				78431372548,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: 3,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 20_000_000_000_000,
+				sale_price: 39137254901961,
+				fee_asset: asset_b,
+				fee_amount: 78431372548,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_3,
@@ -3842,16 +3878,16 @@ fn matching_limit_scenario_2() {
 				fee_amount: 180000000000,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				100_00000000000,
-				20201983477752,
-				asset_b,
-				40403966954,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_a,
+				asset_in: asset_b,
+				amount: 100_00000000000,
+				buy_price: 20201983477752,
+				fee_asset: asset_b,
+				fee_amount: 40403966954,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -3981,16 +4017,16 @@ fn matching_limit_scenario_3() {
 				fee_amount: 200000000000,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				50_000_000_000_000,
-				105262050094717,
-				asset_b,
-				210524100188,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_a,
+				asset_in: asset_b,
+				amount: 50_000_000_000_000,
+				buy_price: 105262050094717,
+				fee_asset: asset_b,
+				fee_amount: 210524100188,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: user_2,
@@ -4713,16 +4749,16 @@ fn execute_amm_transfer_should_work() {
 		));
 
 		expect_events(vec![
-			xyk::Event::BuyExecuted(
-				ALICE,
-				DOT,
-				HDX,
-				1_000_000_000_000,
-				1_000_000_000,
-				HDX,
-				1000000,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: ALICE,
+				asset_out: DOT,
+				asset_in: HDX,
+				amount: 1_000_000_000_000,
+				buy_price: 1_000_000_000,
+				fee_asset: HDX,
+				fee_amount: 1000000,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: ALICE,
@@ -4733,16 +4769,16 @@ fn execute_amm_transfer_should_work() {
 				pool_account_id: pair_account,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				ALICE,
-				HDX,
-				DOT,
-				1_000_000_000_000,
-				1_000_000_000,
-				HDX,
-				1000000,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: ALICE,
+				asset_in: HDX,
+				asset_out: DOT,
+				amount: 1_000_000_000_000,
+				sale_price: 1_000_000_000,
+				fee_asset: HDX,
+				fee_amount: 1000000,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: ALICE,
@@ -4802,16 +4838,16 @@ fn resolve_single_intention_should_work() {
 		});
 
 		expect_events(vec![
-			xyk::Event::BuyExecuted(
-				ALICE,
-				HDX,
-				DOT,
-				2_000_000_000,
-				27_778_549_405,
-				DOT,
-				55_557_098,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: ALICE,
+				asset_out: HDX,
+				asset_in: DOT,
+				amount: 2_000_000_000,
+				buy_price: 27_778_549_405,
+				fee_asset: DOT,
+				fee_amount: 55_557_098,
+				pool_account_id: pair_account
+			}
 			.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: ALICE,
@@ -4822,7 +4858,16 @@ fn resolve_single_intention_should_work() {
 				pool_account_id: pair_account,
 			}
 			.into(),
-			xyk::Event::SellExecuted(ALICE, DOT, HDX, 150000000, 10777799, HDX, 21598, pair_account).into(),
+			xyk::Event::SellExecuted {
+				who: ALICE,
+				asset_in: DOT,
+				asset_out: HDX,
+				amount: 150000000,
+				sale_price: 10777799,
+				fee_asset: HDX,
+				fee_amount: 21598,
+				pool_account_id: pair_account
+			}.into(),
 			Event::IntentionResolvedAMMTrade {
 				who: ALICE,
 				intention_type: IntentionType::SELL,
