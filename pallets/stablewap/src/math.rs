@@ -123,7 +123,7 @@ fn calculate_y_given_in(
 
 	let d = calculate_d(&[reserve_in, reserve_out], ann, precision)?;
 
-	calculate_y(new_reserve_in, d, ann, precision)?.checked_add(Balance::one())
+	calculate_y(new_reserve_in, d, ann, precision)
 }
 
 fn calculate_y_given_out(
@@ -137,7 +137,7 @@ fn calculate_y_given_out(
 
 	let d = calculate_d(&[reserve_in, reserve_out], ann, precision)?;
 
-	calculate_y(new_reserve_out, d, ann, precision)?.checked_add(Balance::one())
+	calculate_y(new_reserve_out, d, ann, precision)
 }
 
 fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -> Option<Balance> {
@@ -163,10 +163,10 @@ fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -
 
 		if y > y_prev {
 			if y.checked_sub(y_prev)? <= precision_hp {
-				return to_balance!(y);
+				return to_balance!(y)?.checked_add(Balance::one());
 			}
 		} else if y_prev.checked_sub(y)? <= precision_hp {
-			return to_balance!(y);
+			return to_balance!(y)?.checked_add(Balance::one());
 		}
 	}
 
