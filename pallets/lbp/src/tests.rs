@@ -16,6 +16,7 @@
 // limitations under the License.
 
 #![allow(clippy::bool_assert_comparison)]
+#![allow(clippy::redundant_field_names)]
 use super::*;
 use crate::mock::{
 	generate_trades, run_to_sale_end, run_to_sale_start, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
@@ -88,8 +89,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_eq!(<PoolData<Test>>::get(KUSD_BSX_POOL_ID).unwrap(), pool_data2);
 
 		expect_events(vec![
-			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, 1_000_000_000, 2_000_000_000).into(),
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, pool_data2).into(),
+			Event::LiquidityAdded{who: KUSD_BSX_POOL_ID, asset_a: KUSD, asset_b: BSX, amount_a: 1_000_000_000, amount_b: 2_000_000_000}.into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: pool_data2}.into(),
 		]);
 	});
 	ext
@@ -364,13 +365,13 @@ fn create_pool_should_work() {
 
 		assert!(<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
 
-		expect_events(vec![Event::LiquidityAdded(
-			KUSD_BSX_POOL_ID,
-			KUSD,
-			BSX,
-			1_000_000_000,
-			2_000_000_000,
-		)
+		expect_events(vec![Event::LiquidityAdded{
+			who: KUSD_BSX_POOL_ID,
+			asset_a: KUSD,
+			asset_b: BSX,
+			amount_a: 1_000_000_000,
+			amount_b: 2_000_000_000,
+		}
 		.into()]);
 	});
 }
@@ -435,13 +436,13 @@ fn create_same_pool_should_not_work() {
 			Error::<Test>::PoolAlreadyExists
 		);
 
-		expect_events(vec![Event::LiquidityAdded(
-			KUSD_BSX_POOL_ID,
-			KUSD,
-			BSX,
-			1_000_000_000,
-			2_000_000_000,
-		)
+		expect_events(vec![Event::LiquidityAdded{
+			who: KUSD_BSX_POOL_ID,
+			asset_a: KUSD,
+			asset_b: BSX,
+			amount_a: 1_000_000_000,
+			amount_b: 2_000_000_000,
+		}
 		.into()]);
 	});
 }
@@ -766,12 +767,12 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_6.repay_target, repayment);
 
 		expect_events(vec![
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, updated_pool_data_1).into(),
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, updated_pool_data_2).into(),
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, updated_pool_data_3).into(),
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, updated_pool_data_4).into(),
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, updated_pool_data_5).into(),
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, updated_pool_data_6).into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: updated_pool_data_1}.into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: updated_pool_data_2}.into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: updated_pool_data_3}.into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: updated_pool_data_4}.into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: updated_pool_data_5}.into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: updated_pool_data_6}.into(),
 		]);
 	});
 }
@@ -945,8 +946,8 @@ fn update_pool_owner_by_new_owner_should_work() {
 		let pool_data2 = LBPPallet::pool_data(KUSD_BSX_POOL_ID).unwrap();
 
 		expect_events(vec![
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, pool_data1).into(),
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, pool_data2).into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: pool_data1}.into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: pool_data2}.into(),
 		]);
 	});
 }
@@ -988,7 +989,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 
 		let pool_data = LBPPallet::pool_data(KUSD_BSX_POOL_ID).unwrap();
 
-		expect_events(vec![Event::PoolUpdated(KUSD_BSX_POOL_ID, pool_data).into()]);
+		expect_events(vec![Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: pool_data}.into()]);
 	});
 }
 
@@ -1083,8 +1084,8 @@ fn update_pool_interval_should_work() {
 		assert_eq!(updated_pool_data.end, Some(20));
 
 		expect_events(vec![
-			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, 1_000_000_000, 2_000_000_000).into(),
-			Event::PoolUpdated(KUSD_BSX_POOL_ID, updated_pool_data).into(),
+			Event::LiquidityAdded{who: KUSD_BSX_POOL_ID, asset_a: KUSD, asset_b: BSX, amount_a: 1_000_000_000, amount_b: 2_000_000_000}.into(),
+			Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: updated_pool_data}.into(),
 		]);
 	});
 }
@@ -1160,9 +1161,9 @@ fn add_liquidity_should_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(added_b));
 
 		expect_events(vec![
-			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, added_a, added_b).into(),
-			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, added_a, 0).into(),
-			Event::LiquidityAdded(KUSD_BSX_POOL_ID, BSX, KUSD, added_b, added_a).into(),
+			Event::LiquidityAdded{who: KUSD_BSX_POOL_ID, asset_a: KUSD, asset_b: BSX, amount_a: added_a, amount_b: added_b}.into(),
+			Event::LiquidityAdded{who: KUSD_BSX_POOL_ID, asset_a: KUSD, asset_b: BSX, amount_a: added_a, amount_b: 0}.into(),
+			Event::LiquidityAdded{who: KUSD_BSX_POOL_ID, asset_a: BSX, asset_b: KUSD, amount_a: added_b, amount_b: added_a}.into(),
 		]);
 	});
 }
@@ -1294,8 +1295,8 @@ fn add_liquidity_after_sale_started_should_work() {
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(1_000));
 
 		expect_events(vec![
-			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, 1_000, 1_000).into(),
-			Event::LiquidityAdded(KUSD_BSX_POOL_ID, KUSD, BSX, 1_000, 1_000).into(),
+			Event::LiquidityAdded{who: KUSD_BSX_POOL_ID, asset_a: KUSD, asset_b: BSX, amount_a: 1_000, amount_b: 1_000}.into(),
+			Event::LiquidityAdded{who: KUSD_BSX_POOL_ID, asset_a: KUSD, asset_b: BSX, amount_a: 1_000, amount_b: 1_000}.into(),
 		]);
 	});
 }
@@ -1349,13 +1350,13 @@ fn remove_liquidity_should_work() {
 				account: KUSD_BSX_POOL_ID,
 			}
 			.into(),
-			Event::LiquidityRemoved(
-				KUSD_BSX_POOL_ID,
-				KUSD,
-				BSX,
-				pool_balance_a_before,
-				pool_balance_b_before,
-			)
+			Event::LiquidityRemoved{
+				who: KUSD_BSX_POOL_ID,
+				asset_a: KUSD,
+				asset_b: BSX,
+				amount_a: pool_balance_a_before,
+				amount_b: pool_balance_b_before,
+			}
 			.into(),
 		]);
 	});
@@ -1397,13 +1398,13 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 				account: KUSD_BSX_POOL_ID,
 			}
 			.into(),
-			Event::LiquidityRemoved(
-				KUSD_BSX_POOL_ID,
-				KUSD,
-				BSX,
-				pool_balance_a_before,
-				pool_balance_b_before,
-			)
+			Event::LiquidityRemoved{
+				who: KUSD_BSX_POOL_ID,
+				asset_a: KUSD,
+				asset_b: BSX,
+				amount_a: pool_balance_a_before,
+				amount_b: pool_balance_b_before,
+			}
 			.into(),
 		]);
 
@@ -1456,7 +1457,7 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 				account: HDX_BSX_POOL_ID,
 			}
 			.into(),
-			Event::LiquidityRemoved(HDX_BSX_POOL_ID, HDX, BSX, pool_balance_a_before, pool_balance_b_before).into(),
+			Event::LiquidityRemoved{who: HDX_BSX_POOL_ID, asset_a: HDX, asset_b: BSX, amount_a: pool_balance_a_before, amount_b: pool_balance_b_before}.into(),
 		]);
 	});
 }
@@ -1538,13 +1539,13 @@ fn remove_liquidity_from_finalized_pool_should_work() {
 				account: KUSD_BSX_POOL_ID,
 			}
 			.into(),
-			Event::LiquidityRemoved(
-				KUSD_BSX_POOL_ID,
-				KUSD,
-				BSX,
-				pool_balance_a_before,
-				pool_balance_b_before,
-			)
+			Event::LiquidityRemoved{
+				who: KUSD_BSX_POOL_ID,
+				asset_a: KUSD,
+				asset_b: BSX,
+				amount_a: pool_balance_a_before,
+				amount_b: pool_balance_b_before,
+			}
 			.into(),
 		]);
 	});
@@ -1708,9 +1709,9 @@ fn execute_sell_should_work() {
 
 		assert_ok!(LBPPallet::execute_sell(&t));
 
-		expect_events(vec![Event::SellExecuted(
-			ALICE, asset_in, asset_out, amount_in, amount_out, asset_in, 1_000,
-		)
+		expect_events(vec![Event::SellExecuted{
+			who: ALICE, asset_in: asset_in, asset_out: asset_out, amount: amount_in, sale_price: amount_out, fee_asset: asset_in, fee_amount: 1_000,
+		}
 		.into()]);
 
 		assert_eq!(Currency::free_balance(asset_in, &ALICE), 999_998_991_999_000);
@@ -1720,9 +1721,9 @@ fn execute_sell_should_work() {
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
 
-		expect_events(vec![Event::SellExecuted(
-			ALICE, asset_in, asset_out, 8_000_000, 20_000_000, asset_in, 1_000,
-		)
+		expect_events(vec![Event::SellExecuted{
+			who: ALICE, asset_in: asset_in, asset_out: asset_out, amount: 8_000_000, sale_price: 20_000_000, fee_asset: asset_in, fee_amount: 1_000,
+		}
 		.into()]);
 	});
 }
@@ -1838,9 +1839,9 @@ fn execute_buy_should_work() {
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_008_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
 
-		expect_events(vec![Event::BuyExecuted(
-			ALICE, asset_out, asset_in, 8_000_000, 20_000_000, asset_in, 1_000,
-		)
+		expect_events(vec![Event::BuyExecuted{
+			who: ALICE, asset_out: asset_out, asset_in: asset_in, amount: 8_000_000, buy_price: 20_000_000, fee_asset: asset_in, fee_amount: 1_000,
+		}
 		.into()]);
 	});
 }
@@ -2193,8 +2194,8 @@ fn buy_should_work() {
 				amount: 35_860,
 			}
 			.into(),
-			Event::BuyExecuted(buyer, BSX, KUSD, 17_894_737, 10_000_000, KUSD, 35_860).into(),
-			Event::PoolCreated(pool_id2, pool_data1).into(),
+			Event::BuyExecuted{who: buyer, asset_out: BSX, asset_in: KUSD, amount: 17_894_737, buy_price: 10_000_000, fee_asset: KUSD, fee_amount: 35_860}.into(),
+			Event::PoolCreated{ pool_account_id: pool_id2, pool_data: pool_data1}.into(),
 			frame_system::Event::NewAccount { account: pool_id2 }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: HDX,
@@ -2208,15 +2209,15 @@ fn buy_should_work() {
 				amount: 2_000_000_000,
 			}
 			.into(),
-			Event::LiquidityAdded(pool_id2, HDX, BSX, 1_000_000_000, 2_000_000_000).into(),
-			Event::PoolUpdated(pool_id2, pool_data2).into(),
+			Event::LiquidityAdded{who: pool_id2, asset_a: HDX, asset_b: BSX, amount_a: 1_000_000_000, amount_b: 2_000_000_000}.into(),
+			Event::PoolUpdated{pool_account_id: pool_id2, pool_data: pool_data2}.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_in,
 				who: CHARLIE,
 				amount: 3710,
 			}
 			.into(),
-			Event::BuyExecuted(buyer, asset_out, asset_in, 1_851_962, 10_000_000, 0, 3710).into(),
+			Event::BuyExecuted{who: buyer, asset_out: asset_out, asset_in: asset_in, amount: 1_851_962, buy_price: 10_000_000, fee_asset: 0, fee_amount: 3710}.into(),
 		]);
 	});
 }
@@ -2247,9 +2248,9 @@ fn update_pool_data_after_sale_should_not_work() {
 
 		set_block_number::<Test>(41);
 
-		expect_events(vec![Event::BuyExecuted(
-			buyer, BSX, KUSD, 17_894_737, 10_000_000, KUSD, 35_860,
-		)
+		expect_events(vec![Event::BuyExecuted{
+			who: buyer, asset_out: BSX, asset_in: KUSD, amount: 17_894_737, buy_price: 10_000_000, fee_asset: KUSD, fee_amount: 35_860,
+		}
 		.into()]);
 
 		assert_noop!(
@@ -2352,8 +2353,8 @@ fn sell_should_work() {
 				amount: 20_000,
 			}
 			.into(),
-			Event::SellExecuted(buyer, KUSD, BSX, 9_980_000, 5_605_137, KUSD, 20_000).into(),
-			Event::PoolCreated(pool_id2, pool_data1).into(),
+			Event::SellExecuted{who: buyer, asset_in: KUSD, asset_out: BSX, amount: 9_980_000, sale_price: 5_605_137, fee_asset: KUSD, fee_amount: 20_000}.into(),
+			Event::PoolCreated{pool_account_id: pool_id2, pool_data: pool_data1}.into(),
 			frame_system::Event::NewAccount { account: pool_id2 }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_in,
@@ -2367,15 +2368,15 @@ fn sell_should_work() {
 				amount: 2_000_000_000,
 			}
 			.into(),
-			Event::LiquidityAdded(pool_id2, HDX, BSX, 1_000_000_000, 2_000_000_000).into(),
-			Event::PoolUpdated(pool_id2, pool_data2).into(),
+			Event::LiquidityAdded{who: pool_id2, asset_a: HDX, asset_b: BSX, amount_a: 1_000_000_000, amount_b: 2_000_000_000}.into(),
+			Event::PoolUpdated{pool_account_id: pool_id2, pool_data: pool_data2}.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_in,
 				who: CHARLIE,
 				amount: 3_686,
 			}
 			.into(),
-			Event::SellExecuted(buyer, asset_out, asset_in, 10_000_000, 1_839_319, 0, 3_686).into(),
+			Event::SellExecuted{who: buyer, asset_in: asset_out, asset_out: asset_in, amount: 10_000_000, sale_price: 1_839_319, fee_asset: 0, fee_amount: 3_686}.into(),
 		]);
 	});
 }
