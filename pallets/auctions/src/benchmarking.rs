@@ -289,8 +289,8 @@ benchmarks! {
 		Auctions::<T>::bid(RawOrigin::Signed(bidder_2).into(), 0.into(), bid_amount_2.into())?;
 
 		frame_system::Pallet::<T>::set_block_number(99_367u32.into());
-		Auctions::<T>::close(RawOrigin::Signed(owner.clone()).into(), 0.into())?;
-	} : { Auctions::<T>::claim(RawOrigin::Signed(bidder_1.clone()).into(), bidder_1.into(), 0.into())?; }
+		Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?;
+	} : { Auctions::<T>::claim(RawOrigin::Signed(bidder_1.clone()).into(), bidder_1, 0.into())?; }
 	verify { assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)), None) }
 
 	//
@@ -340,7 +340,7 @@ benchmarks! {
 		prepare_environment::<T>(owner.clone())?;
 
 		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
-		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
+		Auctions::<T>::create(RawOrigin::Signed(owner).into(), auction)?;
 
 		frame_system::Pallet::<T>::set_block_number(20u32.into());
 
@@ -383,6 +383,27 @@ benchmarks! {
 			Some(bidder)
 		)
 	}
+
+	claim_topup {
+		let owner = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let mut topup_common_data = mocked_topup_common_data::<T>(owner.clone());
+		topup_common_data.reserve_price = Some(50u128.saturating_mul(UNITS).into());
+
+		let auction = mocked_topup_auction_object::<T>(topup_common_data, mocked_topup_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
+
+		frame_system::Pallet::<T>::set_block_number(10u32.into());
+
+		let bidder = create_account::<T>("bidder", 1);
+		let bid_amount = 5u128.saturating_mul(UNITS);
+		Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?;
+
+		frame_system::Pallet::<T>::set_block_number(21u32.into());
+		Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?;
+	} : { Auctions::<T>::claim(RawOrigin::Signed(bidder.clone()).into(), bidder, 0.into())?;  }
+	verify { assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)), None) }
 }
 
 #[cfg(test)]
