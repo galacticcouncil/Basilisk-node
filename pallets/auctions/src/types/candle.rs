@@ -39,24 +39,17 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// Places a bid on an CandleAuction
 	///
 	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
-		let closing_period_range = Pallet::<T>::determine_candle_closing_range(bid, self);
-		match closing_period_range {
-			Ok(range) => {
-				// <HighestBiddersByAuctionClosingRange<T>>::insert(&auction_id, &range, bidder.clone());
-				<HighestBiddersByAuctionClosingRange<T>>::mutate(
-					&auction_id,
-					&range,
-					|highest_bidder| -> DispatchResult {
-						*highest_bidder = Some(bidder.clone());
+		let closing_period_range = Pallet::<T>::determine_candle_closing_range(bid, self)?;
 
-						Ok(())
-					},
-				)?;
-			}
-			Err(err) => {
-				return Err(err.into());
-			}
-		}
+		<HighestBiddersByAuctionClosingRange<T>>::mutate(
+			&auction_id,
+			&closing_period_range,
+			|highest_bidder| -> DispatchResult {
+				*highest_bidder = Some(bidder.clone());
+
+				Ok(())
+			},
+		)?;
 
 		// Trasnfer funds to the subaccount of the auction
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
@@ -97,7 +90,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 		if Pallet::<T>::is_auction_won(&self.common_data) {
 			let winning_closing_range =
-				Pallet::<T>::choose_random_block_from_range(Zero::zero(), T::CandleDefaultClosingRangesCount::get())?;
+				Pallet::<T>::choose_random_block_from_range(One::one(), T::CandleDefaultClosingRangesCount::get())?;
 
 			self.specific_data.winning_closing_range = Some(winning_closing_range);
 
