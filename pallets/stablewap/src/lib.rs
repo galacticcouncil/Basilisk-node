@@ -39,6 +39,9 @@ use crate::types::Balance;
 pub use pallet::*;
 use weights::WeightInfo;
 
+#[cfg(test)]
+mod tests;
+
 const POOL_IDENTIFIER: &str = "sts";
 const PRECISION: Balance = 1u128;
 
@@ -235,6 +238,7 @@ pub mod pallet {
 				ensure!(pool.assets.contains(asset), Error::<T>::AssetNotInPool);
 
 				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+				let share_issuance = T::Currency::total_issuance(pool_id.0);
 
 				let reserves = AssetAmounts(
 					T::Currency::free_balance(pool.assets.0, &pool_account),
@@ -253,8 +257,14 @@ pub mod pallet {
 					)
 				};
 
-				let share_amount = calculate_add_liquidity_shares(pool, &reserves, &new_reserves, PRECISION, PRECISION)
-					.ok_or(ArithmeticError::Overflow)?;
+				let share_amount = calculate_add_liquidity_shares(
+					&reserves,
+					&new_reserves,
+					PRECISION,
+					pool.amplification,
+					share_issuance,
+				)
+				.ok_or(ArithmeticError::Overflow)?;
 
 				T::Currency::deposit(pool_id.0, &who, share_amount)?;
 				T::Currency::transfer(asset, &who, &pool_account, amount)?;
@@ -300,8 +310,9 @@ pub mod pallet {
 				let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
 				let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
 
-				let amount_out = calculate_out_given_in(pool, reserve_in, reserve_out, amount_in, PRECISION)
-					.ok_or(ArithmeticError::Overflow)?;
+				let amount_out =
+					calculate_out_given_in(reserve_in, reserve_out, amount_in, PRECISION, pool.amplification)
+						.ok_or(ArithmeticError::Overflow)?;
 
 				ensure!(amount_out >= min_bought, Error::<T>::BuyLimitNotReached);
 
@@ -343,8 +354,9 @@ pub mod pallet {
 				let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
 				let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
 
-				let amount_in = calculate_in_given_out(pool, reserve_in, reserve_out, amount_out, PRECISION)
-					.ok_or(ArithmeticError::Overflow)?;
+				let amount_in =
+					calculate_in_given_out(reserve_in, reserve_out, amount_out, PRECISION, pool.amplification)
+						.ok_or(ArithmeticError::Overflow)?;
 
 				ensure!(amount_in <= max_sold, Error::<T>::BuyLimitNotReached);
 

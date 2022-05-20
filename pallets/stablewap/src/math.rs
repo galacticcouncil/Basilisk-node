@@ -1,4 +1,4 @@
-use crate::types::{AssetAmounts, Balance, PoolInfo};
+use crate::types::{AssetAmounts, Balance};
 use primitive_types::U256;
 use sp_runtime::traits::Zero;
 
@@ -18,14 +18,14 @@ macro_rules! to_balance {
 	};
 }
 
-pub(crate) fn calculate_add_liquidity_shares<AssetId>(
-	pool: &PoolInfo<AssetId, Balance>,
+pub(crate) fn calculate_add_liquidity_shares(
 	initial_reserves: &AssetAmounts<Balance>,
 	updated_reserves: &AssetAmounts<Balance>,
 	precision: Balance,
+	amplification: Balance,
 	_share_issuance: Balance,
 ) -> Option<Balance> {
-	let ann = calculate_ann(pool.amplification)?;
+	let ann = calculate_ann(amplification)?;
 
 	let initial_d = calculate_d(&[initial_reserves.0, initial_reserves.1], ann, precision)?;
 	let updated_d = calculate_d(&[updated_reserves.0, updated_reserves.1], ann, precision)?;
@@ -40,26 +40,26 @@ pub(crate) fn calculate_add_liquidity_shares<AssetId>(
 	Some(share_amount)
 }
 
-pub(crate) fn calculate_out_given_in<AssetId>(
-	pool: &PoolInfo<AssetId, Balance>,
+pub(crate) fn calculate_out_given_in(
 	reserve_in: Balance,
 	reserve_out: Balance,
 	amount_in: Balance,
 	precision: Balance,
+	amplification: Balance,
 ) -> Option<Balance> {
-	let ann = calculate_ann(pool.amplification)?;
+	let ann = calculate_ann(amplification)?;
 	let new_reserve_out = calculate_y_given_in(amount_in, reserve_in, reserve_out, ann, precision)?;
 	reserve_out.checked_sub(new_reserve_out)
 }
 
-pub(crate) fn calculate_in_given_out<AssetId>(
-	pool: &PoolInfo<AssetId, Balance>,
+pub(crate) fn calculate_in_given_out(
 	reserve_in: Balance,
 	reserve_out: Balance,
 	amount_out: Balance,
 	precision: Balance,
+	amplification: Balance,
 ) -> Option<Balance> {
-	let ann = calculate_ann(pool.amplification)?;
+	let ann = calculate_ann(amplification)?;
 	let new_reserve_in = calculate_y_given_out(amount_out, reserve_in, reserve_out, ann, precision)?;
 	new_reserve_in.checked_sub(reserve_in)
 }
@@ -69,7 +69,7 @@ fn calculate_ann(amplification: Balance) -> Option<Balance> {
 	(0..NUMBER_OF_ASSETS_PER_POOL).try_fold(amplification, |acc, _| acc.checked_mul(n_coins))
 }
 
-fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Balance> {
+pub(crate) fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Balance> {
 	let n_coins = NUMBER_OF_ASSETS_PER_POOL;
 
 	let xp_hp: [U256; 2] = [to_u256!(xp[0]), to_u256!(xp[1])];

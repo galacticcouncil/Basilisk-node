@@ -44,6 +44,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false}
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false}
 sp-tracing = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false}
+proptest = "1.0.0"
 
 [features]
 default = ['std']
