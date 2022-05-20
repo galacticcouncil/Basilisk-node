@@ -16,27 +16,31 @@ fn asset_reserve() -> impl Strategy<Value = Balance> {
 	RESERVE_RANGE.0..RESERVE_RANGE.1
 }
 
+fn amplification() -> impl Strategy<Value = Balance> {
+	5..10000u128
+}
+
 proptest! {
 	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn test_out_given_in(amount_in in trade_amount(),
 		reserve_in in  asset_reserve(),
 		reserve_out in  asset_reserve(),
+		amp in amplification(),
 	) {
-		let amp = 1u128;
-		let ann = 4u128;
+		let ann = amp * 4u128;
 
 		let precision = 1u128;
 
-		let _d1 = calculate_d(&[reserve_in, reserve_out], ann, precision).unwrap();
+		let d1 = calculate_d(&[reserve_in, reserve_out], ann, precision).unwrap();
 
 		let result = calculate_out_given_in(reserve_in, reserve_out, amount_in, precision, amp);
 
 		assert!(result.is_some());
 
-		let _d2 = calculate_d(&[reserve_in + amount_in, reserve_out - result.unwrap() ], ann, precision).unwrap();
+		let d2 = calculate_d(&[reserve_in + amount_in, reserve_out - result.unwrap() ], ann, precision).unwrap();
 
-		//assert!(d2 >= d1);
+		assert!(d2 >= d1);
 	}
 }
 
@@ -46,9 +50,9 @@ proptest! {
 	fn test_in_given_out(amount_out in trade_amount(),
 		reserve_in in  asset_reserve(),
 		reserve_out in  asset_reserve(),
+		amp in amplification(),
 	) {
-		let amp = 1u128;
-		let ann = 4u128;
+		let ann = amp*4u128;
 
 		let precision = 1u128;
 

@@ -1,6 +1,6 @@
 use crate::types::{AssetAmounts, Balance};
 use primitive_types::U256;
-use sp_runtime::traits::Zero;
+use sp_runtime::traits::{One, Zero};
 
 const NUMBER_OF_ASSETS_PER_POOL: u128 = 2;
 
@@ -123,7 +123,7 @@ fn calculate_y_given_in(
 
 	let d = calculate_d(&[reserve_in, reserve_out], ann, precision)?;
 
-	calculate_y(new_reserve_in, d, ann, precision)
+	calculate_y(new_reserve_in, d, ann, precision)?.checked_add(Balance::one())
 }
 
 fn calculate_y_given_out(
@@ -206,7 +206,7 @@ fn test_y_given_in() {
 	assert_eq!(calculate_d(&reserves, ann, precision), Some(2940u128));
 	assert_eq!(
 		calculate_y_given_in(amount_in, reserves[0], reserves[1], ann, precision),
-		Some(2000u128 - 126u128)
+		Some(2000u128 - 125u128)
 	);
 	assert_eq!(
 		calculate_d(&[1100u128, 2000u128 - 126u128], ann, precision),

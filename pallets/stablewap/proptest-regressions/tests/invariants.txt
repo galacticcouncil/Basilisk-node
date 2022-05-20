@@ -6,3 +6,4 @@
 # everyone who runs the test benefits from these saved cases.
 cc 528bd5438ad774a6d43bc2e0945b2940b9ca23cefd0445dba5b17fa5699e32fd # shrinks to amount_in = 252649137694646, reserve_in = 366203121532323139, reserve_out = 103084885067224931
 cc 6e1a35383a41c49fa88fe082ceeb4568c2dd1d056868c46772d8ef5f98f1e135 # shrinks to amount_out = 2158891198075413, reserve_in = 100000000000000000, reserve_out = 334683715330669418
+cc 9e6dd315f9cc4c323933c76d7c97cc4517da8cfe95a7f5eaef0e0f5ca1b8845f # shrinks to amount_out = 149995093294966, reserve_in = 371633500413611594, reserve_out = 6899390198932469982
