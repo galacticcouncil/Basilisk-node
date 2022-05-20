@@ -1,5 +1,3 @@
-#![allow(clippy::redundant_field_names)]
-
 use frame_support::{assert_noop, assert_ok};
 
 use super::*;

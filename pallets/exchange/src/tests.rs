@@ -15,8 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![allow(clippy::redundant_field_names)]
-
 use super::*;
 pub use crate::mock::{
 	Currency, EndowedAmount, Event as TestEvent, Exchange, ExtBuilder, Origin, System, Test, ALICE, BOB, CHARLIE, DAVE,
@@ -78,10 +76,10 @@ fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: P
 
 	expect_event(xyk::Event::PoolCreated {
         who: user,
-        asset_a: asset_a,
-        asset_b: asset_b,
+        asset_a,
+        asset_b,
         initial_shares_amount: shares,
-        share_token: share_token,
+        share_token,
         pool_account_id: pair_account
     });
 
@@ -190,8 +188,8 @@ fn sell_test_pool_finalization_states() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -199,8 +197,8 @@ fn sell_test_pool_finalization_states() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_3_sell_intention_id,
@@ -348,8 +346,8 @@ fn sell_test_standard() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -357,8 +355,8 @@ fn sell_test_standard() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_3_sell_intention_id,
@@ -494,8 +492,8 @@ fn sell_test_inverse_standard() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -632,8 +630,8 @@ fn sell_test_exact_match() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -748,8 +746,8 @@ fn sell_test_single_eth_sells() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -757,8 +755,8 @@ fn sell_test_single_eth_sells() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_3_sell_intention_id,
@@ -973,8 +971,8 @@ fn sell_trade_limits_respected_for_matched_intention() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -1083,8 +1081,8 @@ fn buy_trade_limits_respected_for_matched_intention() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 100_000_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_3_buy_intention_id,
@@ -1224,8 +1222,8 @@ fn sell_test_single_multiple_sells() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -1242,8 +1240,8 @@ fn sell_test_single_multiple_sells() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_4,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_4_sell_intention_id,
@@ -1472,8 +1470,8 @@ fn sell_test_group_sells() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_4,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 10_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_4_sell_intention_id,
@@ -1721,8 +1719,8 @@ fn sell_test_mixed_buy_sells() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_4,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 10_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_4_sell_intention_id,
@@ -1899,8 +1897,8 @@ fn discount_tests_no_discount() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_4,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 10_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_4_sell_intention_id,
@@ -2083,8 +2081,8 @@ fn discount_tests_with_discount() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_4,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 10_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_4_sell_intention_id,
@@ -2229,8 +2227,8 @@ fn buy_test_exact_match() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -2376,8 +2374,8 @@ fn buy_test_group_buys() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_4,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 10_000_000_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_4_sell_intention_id,
@@ -2558,8 +2556,8 @@ fn discount_tests_with_error() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_4,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 10_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_4_sell_intention_id,
@@ -2668,8 +2666,8 @@ fn simple_sell_sell() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -2798,8 +2796,8 @@ fn simple_buy_buy() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -2929,8 +2927,8 @@ fn simple_sell_buy() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -2938,8 +2936,8 @@ fn simple_sell_buy() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_3_sell_intention_id,
@@ -3052,8 +3050,8 @@ fn simple_buy_sell() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -3061,8 +3059,8 @@ fn simple_buy_sell() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_3_sell_intention_id,
@@ -3165,8 +3163,8 @@ fn single_sell_intention_test() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000_000_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -3242,8 +3240,8 @@ fn single_buy_intention_test() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000_000_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -3330,8 +3328,8 @@ fn simple_sell_sell_with_error_should_not_pass() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 2_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -3439,8 +3437,8 @@ fn matching_limits_buy_buy_should_work() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 100 * one,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -3575,8 +3573,8 @@ fn matching_limits_sell_buy_should_work() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 30 * one,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -3584,8 +3582,8 @@ fn matching_limits_sell_buy_should_work() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 50 * one,
 				intention_type: IntentionType::SELL,
 				intention_id: user_3_sell_intention_id,
@@ -3706,8 +3704,8 @@ fn exact_match_limit_should_work() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 50 * one,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -3825,8 +3823,8 @@ fn matching_limit_scenario_2() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 100 * one,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -3964,8 +3962,8 @@ fn matching_limit_scenario_3() {
 		expect_events(vec![
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 150 * one,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -5032,8 +5030,8 @@ fn direct_sell_sell_transfers_without_other_asset_should_work() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -5172,8 +5170,8 @@ fn direct_buy_buy_transfers_without_other_asset_should_work() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -5312,8 +5310,8 @@ fn direct_sell_buy_transfers_without_other_asset_should_work() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
@@ -5321,8 +5319,8 @@ fn direct_sell_buy_transfers_without_other_asset_should_work() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_3_sell_intention_id,
@@ -5444,8 +5442,8 @@ fn direct_buy_sell_transfers_without_other_asset_should_work() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_2,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000,
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
@@ -5453,8 +5451,8 @@ fn direct_buy_sell_transfers_without_other_asset_should_work() {
 			.into(),
 			Event::IntentionRegistered {
 				who: user_3,
-				asset_a: asset_a,
-				asset_b: asset_b,
+				asset_a,
+				asset_b,
 				amount: 1_000_000,
 				intention_type: IntentionType::SELL,
 				intention_id: user_3_sell_intention_id,

@@ -16,7 +16,6 @@
 // limitations under the License.
 
 #![allow(clippy::bool_assert_comparison)]
-#![allow(clippy::redundant_field_names)]
 use super::*;
 use crate::mock::{
 	generate_trades, run_to_sale_end, run_to_sale_start, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
@@ -989,7 +988,7 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 
 		let pool_data = LBPPallet::pool_data(KUSD_BSX_POOL_ID).unwrap();
 
-		expect_events(vec![Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data: pool_data}.into()]);
+		expect_events(vec![Event::PoolUpdated{pool_account_id: KUSD_BSX_POOL_ID, pool_data}.into()]);
 	});
 }
 
@@ -1710,7 +1709,7 @@ fn execute_sell_should_work() {
 		assert_ok!(LBPPallet::execute_sell(&t));
 
 		expect_events(vec![Event::SellExecuted{
-			who: ALICE, asset_in: asset_in, asset_out: asset_out, amount: amount_in, sale_price: amount_out, fee_asset: asset_in, fee_amount: 1_000,
+			who: ALICE, asset_in, asset_out, amount: amount_in, sale_price: amount_out, fee_asset: asset_in, fee_amount: 1_000,
 		}
 		.into()]);
 
@@ -1722,7 +1721,7 @@ fn execute_sell_should_work() {
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
 
 		expect_events(vec![Event::SellExecuted{
-			who: ALICE, asset_in: asset_in, asset_out: asset_out, amount: 8_000_000, sale_price: 20_000_000, fee_asset: asset_in, fee_amount: 1_000,
+			who: ALICE, asset_in, asset_out, amount: 8_000_000, sale_price: 20_000_000, fee_asset: asset_in, fee_amount: 1_000,
 		}
 		.into()]);
 	});
@@ -1840,7 +1839,7 @@ fn execute_buy_should_work() {
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_980_000_000);
 
 		expect_events(vec![Event::BuyExecuted{
-			who: ALICE, asset_out: asset_out, asset_in: asset_in, amount: 8_000_000, buy_price: 20_000_000, fee_asset: asset_in, fee_amount: 1_000,
+			who: ALICE, asset_out, asset_in, amount: 8_000_000, buy_price: 20_000_000, fee_asset: asset_in, fee_amount: 1_000,
 		}
 		.into()]);
 	});
@@ -2217,7 +2216,7 @@ fn buy_should_work() {
 				amount: 3710,
 			}
 			.into(),
-			Event::BuyExecuted{who: buyer, asset_out: asset_out, asset_in: asset_in, amount: 1_851_962, buy_price: 10_000_000, fee_asset: 0, fee_amount: 3710}.into(),
+			Event::BuyExecuted{who: buyer, asset_out, asset_in, amount: 1_851_962, buy_price: 10_000_000, fee_asset: 0, fee_amount: 3710}.into(),
 		]);
 	});
 }
