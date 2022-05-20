@@ -1,8 +1,23 @@
 use crate::types::{Balance, FixedBalance, PoolInfo};
+use primitive_types::U256;
 use sp_runtime::traits::{CheckedMul, Zero};
 use sp_runtime::FixedU128;
 
-const NUMBER_OF_ASSETS_PER_POOL: u8 = 2u8;
+const NUMBER_OF_ASSETS_PER_POOL: u128 = 2;
+
+#[macro_export]
+macro_rules! to_u256 {
+    ($($x:expr),+) => (
+        {($(U256::from($x)),+)}
+    );
+}
+
+#[macro_export]
+macro_rules! to_balance {
+	($x:expr) => {
+		Balance::try_from($x).ok()
+	};
+}
 
 pub(crate) struct AssetAmountChanges<Balance> {
 	pub share_amount: Balance,
@@ -48,47 +63,45 @@ fn calculate_ann(amplification: FixedBalance) -> Option<FixedBalance> {
 	(0..NUMBER_OF_ASSETS_PER_POOL).try_fold(amplification, |acc, _| acc.checked_mul(&n_coins))
 }
 
-fn calculate_d(xp: &[Balance; 2], ann: Balance) -> Option<Balance> {
-	let prec = Balance::from(10_000_u128);
-	let zero = Balance::zero();
-	let one = Balance::from(1_u128);
+fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Balance> {
+	let n_coins = NUMBER_OF_ASSETS_PER_POOL;
 
-	let n_coins = Balance::from(NUMBER_OF_ASSETS_PER_POOL);
+	let xp_hp: [U256; 2] = [to_u256!(xp[0]), to_u256!(xp[1])];
 
-	let mut s = zero;
+	let s_hp = xp_hp.iter().try_fold(U256::zero(), |acc, v| acc.checked_add(*v))?;
 
-	for x in xp.iter() {
-		s = s.checked_add(*x)?;
-	}
-	if s == zero {
-		return Some(zero);
+	if s_hp == U256::zero() {
+		return Some(Balance::zero());
 	}
 
-	let mut d = s;
+	let mut d = s_hp;
+
+	let (n_coins_hp, ann_hp, precision_hp) = to_u256!(n_coins, ann, precision);
 
 	for _ in 0..255 {
-		let mut d_p = d;
-		for x in xp.iter() {
-			d_p = d_p.checked_mul(d)?.checked_div(x.checked_mul(&n_coins)?)?;
-		}
+		let d_p = xp_hp
+			.iter()
+			.try_fold(d, |acc, v| acc.checked_mul(d)?.checked_div(v.checked_mul(n_coins_hp)?))?;
 		let d_prev = d;
-		d = ann
-			.checked_mul(s)?
-			.checked_add(d_p.checked_mul(n_coins)?)?
+
+		d = ann_hp
+			.checked_mul(s_hp)?
+			.checked_add(d_p.checked_mul(n_coins_hp)?)?
 			.checked_mul(d)?
 			.checked_div(
-				ann.checked_sub(one)?
+				ann_hp
+					.checked_sub(U256::one())?
 					.checked_mul(d)?
-					.checked_add(n_coins.checked_add(one)?.checked_mul(d_p)?)?,
+					.checked_add(n_coins_hp.checked_add(U256::one())?.checked_mul(d_p)?)?,
 			)?;
 
 		if d > d_prev {
-			if d.checked_sub(d_prev)? <= prec {
-				return Some(d);
+			if d.checked_sub(d_prev)? <= precision_hp {
+				return to_balance!(d);
 			}
 		} else {
-			if d_prev.checked_sub(d)? <= prec {
-				return Some(d);
+			if d_prev.checked_sub(d)? <= precision_hp {
+				return to_balance!(d);
 			}
 		}
 	}
@@ -101,7 +114,7 @@ fn calculate_y(reserve_in: Balance, reserve_out: Balance, ann: Balance) -> Optio
 	let two = Balance::from(2_u128);
 	let n_coins = Balance::from(NUMBER_OF_ASSETS_PER_POOL);
 
-	let d = calculate_d(&[reserve_in, reserve_out], ann)?;
+	let d = calculate_d(&[reserve_in, reserve_out], ann, prec)?;
 
 	let mut c = d;
 	let mut s = zero;
@@ -149,9 +162,18 @@ fn test_ann() {
 #[cfg(test)]
 #[test]
 fn test_d() {
+	let precision = Balance::from(10_000_u128);
+
 	let reserves = [1000u128, 1000u128];
 	let ann = 4u128;
-	assert_eq!(calculate_d(&reserves, ann), Some(2000u128));
+	assert_eq!(calculate_d(&reserves, ann, precision), Some(2000u128));
+
+	let reserves = [1000_000_000_000_000_000_000u128, 1000_000_000_000_000_000_000u128];
+	let ann = 4u128;
+	assert_eq!(
+		calculate_d(&reserves, ann, precision),
+		Some(2000_000_000_000_000_000_000u128)
+	);
 }
 
 #[cfg(test)]

@@ -32,6 +32,7 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 
 # third party
 log = { version = "0.4.14", default-features = false }
+primitive-types = "0.11.1"
 
 # Optional imports for benchmarking
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false , optional = true}
