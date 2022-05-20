@@ -170,12 +170,12 @@ fn withdraw_shares_should_work() {
 		));
 
 		expect_events(vec![
-			mock::Event::WarehouseLM(warehouse_liquidity_mining::Event::FarmAccRPZUpdated {
+			mock::Event::LiquidityMining(Event::FarmAccRPZUpdated {
 				farm_id: GC_FARM,
 				accumulated_rpz: 63,
 				total_shares_z: 691_490,
 			}),
-			mock::Event::WarehouseLM(warehouse_liquidity_mining::Event::LiquidityPoolAccRPVSUpdated {
+			mock::Event::LiquidityMining(Event::LiquidityPoolAccRPVSUpdated {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: BSX_TKN2_LIQ_POOL_ID,
 				accumulated_rpvs: 630,
@@ -318,7 +318,7 @@ fn withdraw_shares_should_work() {
 		));
 
 		expect_events(vec![
-			mock::Event::WarehouseLM(warehouse_liquidity_mining::Event::LiquidityPoolAccRPVSUpdated {
+			mock::Event::LiquidityMining(Event::LiquidityPoolAccRPVSUpdated {
 				farm_id: GC_FARM,
 				liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
 				accumulated_rpvs: 315,

@@ -67,13 +67,12 @@ use frame_support::{
 };
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::ensure_signed;
-use hydradx_traits::AMM;
+use hydradx_traits_amm::AMM;
 use orml_traits::MultiCurrency;
 use primitives::{asset::AssetPair, nft::ClassType, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_arithmetic::{FixedU128, Permill};
 use sp_std::convert::{From, Into};
-use warehouse_liquidity_mining::LiquidityMiningHandler;
 
 type PoolId = u32;
 type GlobalPoolId = PoolId;
@@ -829,8 +828,32 @@ impl<T: Config> Pallet<T> {
 	}
 }
 
-impl<T: Config> LiquidityMiningHandler<AssetId, T::AccountId> for Pallet<T> {
+impl<T: Config> hydradx_traits::liquidity_mining::Handler<AssetId, T::AccountId, GlobalPoolId, PoolId, Balance>
+	for Pallet<T>
+{
 	fn get_balance_in_amm(asset: AssetId, amm_id: T::AccountId) -> Balance {
 		MultiCurrencyOf::<T>::free_balance(asset, &amm_id)
+	}
+
+	fn on_accumulated_rpz_update(farm_id: GlobalPoolId, accumulated_rpz: Balance, total_shares_z: Balance) {
+		Self::deposit_event(Event::FarmAccRPZUpdated {
+			farm_id,
+			accumulated_rpz,
+			total_shares_z,
+		});
+	}
+
+	fn on_accumulated_rpvs_update(
+		farm_id: GlobalPoolId,
+		liq_pool_farm_id: PoolId,
+		accumulated_rpvs: Balance,
+		total_valued_shares: Balance,
+	) {
+		Self::deposit_event(Event::LiquidityPoolAccRPVSUpdated {
+			farm_id,
+			liq_pool_farm_id,
+			accumulated_rpvs,
+			total_valued_shares,
+		});
 	}
 }

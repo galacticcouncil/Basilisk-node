@@ -73,7 +73,7 @@ frame_support::construct_runtime!(
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 		Currency: orml_tokens::{Pallet, Event<T>},
 		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
-		WarehouseLM: warehouse_liquidity_mining::{Pallet, Storage, Event<T>},
+		WarehouseLM: warehouse_liquidity_mining::{Pallet, Storage},
 	}
 );
 
@@ -128,7 +128,6 @@ parameter_types! {
 }
 
 impl warehouse_liquidity_mining::Config for Test {
-	type Event = Event;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currency;
 	type PalletId = WarehouseLMPalletId;

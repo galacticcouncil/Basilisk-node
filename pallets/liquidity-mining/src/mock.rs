@@ -26,7 +26,7 @@ use frame_support::{
 	PalletId,
 };
 use frame_system as system;
-use hydradx_traits::AMM;
+use hydradx_traits_amm::AMM;
 use orml_traits::parameter_type_with_key;
 use primitives::nft::{ClassType, NftPermissions};
 use primitives::ReserveIdentifier;
@@ -103,7 +103,7 @@ frame_support::construct_runtime!(
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
-		WarehouseLM: warehouse_liquidity_mining::{Pallet, Storage, Event<T>},
+		WarehouseLM: warehouse_liquidity_mining::{Pallet, Storage},
 	}
 );
 
@@ -189,20 +189,20 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		_min_bought: Balance,
 		_discount: bool,
 	) -> Result<
-		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		frame_support::sp_runtime::DispatchError,
 	> {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
 
 	fn execute_buy(
-		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_transfer: &hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
 
 	fn execute_sell(
-		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_transfer: &hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
@@ -214,7 +214,7 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		_max_limit: Balance,
 		_discount: bool,
 	) -> Result<
-		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		frame_support::sp_runtime::DispatchError,
 	> {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
@@ -258,7 +258,6 @@ parameter_types! {
 }
 
 impl warehouse_liquidity_mining::Config for Test {
-	type Event = Event;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
 	type PalletId = WarehouseLMPalletId;

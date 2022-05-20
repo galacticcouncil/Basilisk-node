@@ -781,7 +781,6 @@ impl pallet_relaychain_info::Config for Runtime {
 }
 
 impl warehouse_liquidity_mining::Config for Runtime {
-	type Event = Event;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currencies;
 	type PalletId = WarehouseLMPalletId;
@@ -874,7 +873,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
-		WarehouseLiquidityMining: warehouse_liquidity_mining::{Pallet, Storage, Event<T>} = 110,
+		WarehouseLiquidityMining: warehouse_liquidity_mining::{Pallet, Storage} = 110,
 		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 111,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,

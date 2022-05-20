@@ -827,7 +827,6 @@ impl pallet_relaychain_info::Config for Runtime {
 }
 
 impl warehouse_liquidity_mining::Config for Runtime {
-	type Event = Event;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currencies;
 	type PalletId = WarehouseLMPalletId;
@@ -920,7 +919,7 @@ construct_runtime!(
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
-		WarehouseLiquidityMining: warehouse_liquidity_mining::{Pallet, Storage, Event<T>} = 110,
+		WarehouseLiquidityMining: warehouse_liquidity_mining::{Pallet, Storage} = 110,
 		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 111,
 
 		// ORML related modules - runtime module index for orml starts at 150
