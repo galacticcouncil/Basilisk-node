@@ -45,14 +45,13 @@ const PRECISION: Balance = 1u128;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::math::{calculate_buy_changes, calculate_sell_changes};
+	use crate::math::{calculate_add_liquidity_shares, calculate_in_given_out, calculate_out_given_in};
 	use crate::traits::ShareAccountIdFor;
 	use crate::types::{AssetAmounts, Balance, PoolAssets, PoolId, PoolInfo};
 	use codec::HasCompact;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 	use hydradx_traits::{Registry, ShareTokenRegistry};
-	use math::calculate_add_liquidity_changes;
 	use orml_traits::MultiCurrency;
 	use sp_runtime::traits::Zero;
 	use sp_runtime::ArithmeticError;
@@ -254,10 +253,10 @@ pub mod pallet {
 					)
 				};
 
-				let delta_changes = calculate_add_liquidity_changes(pool, &reserves, &new_reserves, PRECISION, PRECISION)
+				let share_amount = calculate_add_liquidity_shares(pool, &reserves, &new_reserves, PRECISION, PRECISION)
 					.ok_or(ArithmeticError::Overflow)?;
 
-				T::Currency::deposit(pool_id.0, &who, delta_changes.share_amount)?;
+				T::Currency::deposit(pool_id.0, &who, share_amount)?;
 				T::Currency::transfer(asset, &who, &pool_account, amount)?;
 
 				Ok(())
@@ -280,40 +279,41 @@ pub mod pallet {
 			pool_id: PoolId<T::AssetId>,
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
-			amount: Balance,
+			amount_in: Balance,
 			min_bought: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(
-				T::Currency::free_balance(asset_in, &who) >= amount,
+				T::Currency::free_balance(asset_in, &who) >= amount_in,
 				Error::<T>::InsufficientBalance
 			);
 
 			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
 				let pool = maybe_pool.as_ref().ok_or(Error::<T>::PoolNotFound)?;
 
+				ensure!(pool.assets.contains(asset_in), Error::<T>::AssetNotInPool);
+				ensure!(pool.assets.contains(asset_out), Error::<T>::AssetNotInPool);
+
 				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
-				//TODO: retrieve asset reserves
+				let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
+				let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
 
-				let updated_state =
-					calculate_sell_changes(pool, asset_in, asset_out, amount).ok_or(ArithmeticError::Overflow)?;
+				let amount_out = calculate_out_given_in(pool, reserve_in, reserve_out, amount_in, PRECISION)
+					.ok_or(ArithmeticError::Overflow)?;
 
-				ensure!(
-					updated_state.delta_amount_out >= min_bought,
-					Error::<T>::BuyLimitNotReached
-				);
+				ensure!(amount_out >= min_bought, Error::<T>::BuyLimitNotReached);
 
-				T::Currency::transfer(asset_in, &who, &pool_account, amount)?;
-				T::Currency::transfer(asset_out, &pool_account, &who, updated_state.delta_amount_out)?;
+				T::Currency::transfer(asset_in, &who, &pool_account, amount_in)?;
+				T::Currency::transfer(asset_out, &pool_account, &who, amount_out)?;
 
 				Self::deposit_event(Event::SellExecuted {
 					who,
 					asset_in,
 					asset_out,
-					amount_in: amount,
-					amount_out: updated_state.delta_amount_out,
+					amount_in,
+					amount_out,
 				});
 
 				Ok(())
@@ -327,7 +327,7 @@ pub mod pallet {
 			pool_id: PoolId<T::AssetId>,
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
-			amount: Balance,
+			amount_out: Balance,
 			max_sold: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -335,28 +335,33 @@ pub mod pallet {
 			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
 				let pool = maybe_pool.as_ref().ok_or(Error::<T>::PoolNotFound)?;
 
+				ensure!(pool.assets.contains(asset_in), Error::<T>::AssetNotInPool);
+				ensure!(pool.assets.contains(asset_out), Error::<T>::AssetNotInPool);
+
 				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
-				let updated_state =
-					calculate_buy_changes(pool, asset_in, asset_out, amount).ok_or(ArithmeticError::Overflow)?;
+				let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
+				let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
 
-				let amount_in = updated_state.delta_amount_out;
+				let amount_in = calculate_in_given_out(pool, reserve_in, reserve_out, amount_out, PRECISION)
+					.ok_or(ArithmeticError::Overflow)?;
 
 				ensure!(amount_in <= max_sold, Error::<T>::BuyLimitNotReached);
+
 				ensure!(
 					T::Currency::free_balance(asset_in, &who) >= amount_in,
 					Error::<T>::InsufficientBalance
 				);
 
 				T::Currency::transfer(asset_in, &who, &pool_account, amount_in)?;
-				T::Currency::transfer(asset_out, &pool_account, &who, amount)?;
+				T::Currency::transfer(asset_out, &pool_account, &who, amount_out)?;
 
 				Self::deposit_event(Event::BuyExecuted {
 					who,
 					asset_in,
 					asset_out,
 					amount_in,
-					amount_out: amount,
+					amount_out,
 				});
 
 				Ok(())

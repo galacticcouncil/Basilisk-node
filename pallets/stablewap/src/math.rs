@@ -18,17 +18,13 @@ macro_rules! to_balance {
 	};
 }
 
-pub(crate) struct AssetAmountChanges<Balance> {
-	pub share_amount: Balance,
-}
-
-pub(crate) fn calculate_add_liquidity_changes<AssetId>(
+pub(crate) fn calculate_add_liquidity_shares<AssetId>(
 	pool: &PoolInfo<AssetId, Balance>,
 	initial_reserves: &AssetAmounts<Balance>,
 	updated_reserves: &AssetAmounts<Balance>,
 	precision: Balance,
-	share_issuance: Balance,
-) -> Option<AssetAmountChanges<Balance>> {
+	_share_issuance: Balance,
+) -> Option<Balance> {
 	let ann = calculate_ann(pool.amplification)?;
 
 	let initial_d = calculate_d(&[initial_reserves.0, initial_reserves.1], ann, precision)?;
@@ -38,44 +34,38 @@ pub(crate) fn calculate_add_liquidity_changes<AssetId>(
 		return None;
 	}
 
-	let share_amount = if share_issuance > Balance::zero() {
-		// TODO: fee accounting
-		updated_d
-	} else {
-		updated_d
-	};
+	// TODO: fee accounting - question - fee in add liquidity only if share_issuance > 0 ??!
+	let share_amount = updated_d;
 
-	Some(AssetAmountChanges { share_amount })
+	Some(share_amount)
 }
 
-pub(crate) struct TradeChanges {
-	pub delta_amount_out: Balance,
+pub(crate) fn calculate_out_given_in<AssetId>(
+	pool: &PoolInfo<AssetId, Balance>,
+	reserve_in: Balance,
+	reserve_out: Balance,
+	amount_in: Balance,
+	precision: Balance,
+) -> Option<Balance> {
+	let ann = calculate_ann(pool.amplification)?;
+	let new_reserve_out = calculate_y_given_in(amount_in, reserve_in, reserve_out, ann, precision)?;
+	reserve_out.checked_sub(new_reserve_out)
 }
 
-pub(crate) fn calculate_sell_changes<AssetId>(
-	_pool: &PoolInfo<AssetId, Balance>,
-	_asset_in: AssetId,
-	_asset_out: AssetId,
-	_amount: Balance,
-) -> Option<TradeChanges> {
-	Some(TradeChanges {
-		delta_amount_out: Balance::zero(),
-	})
-}
-
-pub(crate) fn calculate_buy_changes<AssetId>(
-	_pool: &PoolInfo<AssetId, Balance>,
-	_asset_in: AssetId,
-	_asset_out: AssetId,
-	_amount: Balance,
-) -> Option<TradeChanges> {
-	Some(TradeChanges {
-		delta_amount_out: Balance::zero(),
-	})
+pub(crate) fn calculate_in_given_out<AssetId>(
+	pool: &PoolInfo<AssetId, Balance>,
+	reserve_in: Balance,
+	reserve_out: Balance,
+	amount_out: Balance,
+	precision: Balance,
+) -> Option<Balance> {
+	let ann = calculate_ann(pool.amplification)?;
+	let new_reserve_in = calculate_y_given_out(amount_out, reserve_in, reserve_out, ann, precision)?;
+	new_reserve_in.checked_sub(reserve_in)
 }
 
 fn calculate_ann(amplification: Balance) -> Option<Balance> {
-	let n_coins = Balance::from(NUMBER_OF_ASSETS_PER_POOL as u128);
+	let n_coins = NUMBER_OF_ASSETS_PER_POOL as u128;
 	(0..NUMBER_OF_ASSETS_PER_POOL).try_fold(amplification, |acc, _| acc.checked_mul(n_coins))
 }
 
@@ -115,10 +105,8 @@ fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Ba
 			if d.checked_sub(d_prev)? <= precision_hp {
 				return to_balance!(d);
 			}
-		} else {
-			if d_prev.checked_sub(d)? <= precision_hp {
-				return to_balance!(d);
-			}
+		} else if d_prev.checked_sub(d)? <= precision_hp {
+			return to_balance!(d);
 		}
 	}
 	None
@@ -177,10 +165,8 @@ fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -
 			if y.checked_sub(y_prev)? <= precision_hp {
 				return to_balance!(y);
 			}
-		} else {
-			if y_prev.checked_sub(y)? <= precision_hp {
-				return to_balance!(y);
-			}
+		} else if y_prev.checked_sub(y)? <= precision_hp {
+			return to_balance!(y);
 		}
 	}
 
@@ -189,14 +175,14 @@ fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -
 
 #[test]
 fn test_ann() {
-	assert_eq!(calculate_ann(Balance::from(1u128)), Some(Balance::from(4u128)));
-	assert_eq!(calculate_ann(Balance::from(10u128)), Some(Balance::from(40u128)));
-	assert_eq!(calculate_ann(Balance::from(100u128)), Some(Balance::from(400u128)));
+	assert_eq!(calculate_ann(1u128), Some(4u128));
+	assert_eq!(calculate_ann(10u128), Some(40u128));
+	assert_eq!(calculate_ann(100u128), Some(400u128));
 }
 
 #[test]
 fn test_d() {
-	let precision = Balance::from(1_u128);
+	let precision = 1_u128;
 
 	let reserves = [1000u128, 1000u128];
 	let ann = 4u128;
@@ -212,7 +198,7 @@ fn test_d() {
 
 #[test]
 fn test_y_given_in() {
-	let precision = Balance::from(1_u128);
+	let precision = 1_u128;
 	let reserves = [1000u128, 2000u128];
 	let ann = 4u128;
 
@@ -230,7 +216,7 @@ fn test_y_given_in() {
 
 #[test]
 fn test_y_given_out() {
-	let precision = Balance::from(1_u128);
+	let precision = 1_u128;
 	let reserves = [1000u128, 2000u128];
 	let ann = 4u128;
 
