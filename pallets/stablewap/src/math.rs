@@ -1,5 +1,6 @@
 use crate::types::{Balance, FixedBalance, PoolInfo};
 use primitive_types::U256;
+use sp_runtime::FixedPointNumber;
 use sp_runtime::traits::{CheckedMul, Zero};
 
 const NUMBER_OF_ASSETS_PER_POOL: u128 = 2;
@@ -107,7 +108,7 @@ fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Ba
 	None
 }
 
-fn calculate_y(
+fn calculate_y_given_in(
 	amount: Balance,
 	reserve_in: Balance,
 	reserve_out: Balance,
@@ -118,8 +119,31 @@ fn calculate_y(
 
 	let d = calculate_d(&[reserve_in, reserve_out], ann, precision)?;
 
+	calculate_y(new_reserve_in, d, ann, precision)
+}
+
+fn calculate_y_given_out(
+	amount: Balance,
+	reserve_in: Balance,
+	reserve_out: Balance,
+	ann: Balance,
+	precision: Balance,
+) -> Option<Balance> {
+	let new_reserve_out = reserve_out.checked_sub(amount)?;
+
+	let d = calculate_d(&[reserve_in, reserve_out], ann, precision)?;
+
+	calculate_y(new_reserve_out, d, ann, precision)
+}
+
+fn calculate_y(
+	reserve: Balance,
+	d: Balance,
+	ann: Balance,
+	precision: Balance,
+) -> Option<Balance> {
 	let (d_hp, two_hp, n_coins_hp, ann_hp, new_reserve_hp, precision_hp) =
-		to_u256!(d, 2u128, NUMBER_OF_ASSETS_PER_POOL, ann, new_reserve_in, precision);
+		to_u256!(d, 2u128, NUMBER_OF_ASSETS_PER_POOL, ann, reserve, precision);
 
 	let s = new_reserve_hp;
 	let mut c = d_hp;
@@ -152,7 +176,6 @@ fn calculate_y(
 	None
 }
 
-#[cfg(test)]
 #[test]
 fn test_ann() {
 	assert_eq!(
@@ -169,7 +192,6 @@ fn test_ann() {
 	);
 }
 
-#[cfg(test)]
 #[test]
 fn test_d() {
 	let precision = Balance::from(1_u128);
@@ -186,9 +208,8 @@ fn test_d() {
 	);
 }
 
-#[cfg(test)]
 #[test]
-fn test_y() {
+fn test_y_given_in() {
 	let precision = Balance::from(1_u128);
 	let reserves = [1000u128, 2000u128];
 	let ann = 4u128;
@@ -196,15 +217,33 @@ fn test_y() {
 	let amount_in = 100u128;
 	assert_eq!(calculate_d(&reserves, ann, precision), Some(2940u128));
 	assert_eq!(
-		calculate_y(amount_in, reserves[0], reserves[1], ann, precision),
+		calculate_y_given_in(amount_in, reserves[0], reserves[1], ann, precision),
 		Some(2000u128 - 126u128)
 	);
 	assert_eq!(
 		calculate_d(&[1100u128, 2000u128 - 126u128], ann, precision),
 		Some(2939u128)
 	);
+}
+
+#[test]
+fn test_y_given_out() {
+	let precision = Balance::from(1_u128);
+	let reserves = [1000u128, 2000u128];
+	let ann = 4u128;
+
+	let amount_out = 100u128;
+
+	let expected_in = 79u128;
+
+	assert_eq!(calculate_d(&reserves, ann, precision), Some(2940u128));
+
 	assert_eq!(
-		calculate_y(amount_in, reserves[1], reserves[0], ann, precision),
-		Some(923u128)
+		calculate_y_given_out(amount_out, reserves[0], reserves[1], ann, precision),
+		Some(1000u128 + expected_in)
+	);
+	assert_eq!(
+		calculate_d(&[1000u128 + expected_in, 2000u128 - amount_out], ann, precision),
+		Some(2939u128)
 	);
 }
