@@ -35,17 +35,19 @@ mod traits;
 mod types;
 pub mod weights;
 
+use crate::types::Balance;
 pub use pallet::*;
 use weights::WeightInfo;
 
 const POOL_IDENTIFIER: &str = "sts";
+const PRECISION: Balance = 1u128;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
 	use crate::math::{calculate_buy_changes, calculate_sell_changes};
 	use crate::traits::ShareAccountIdFor;
-	use crate::types::{Balance, PoolAssets, PoolId, PoolInfo};
+	use crate::types::{AssetAmounts, Balance, PoolAssets, PoolId, PoolInfo};
 	use codec::HasCompact;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
@@ -235,9 +237,24 @@ pub mod pallet {
 
 				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
-				let asset_reserve = T::Currency::free_balance(asset, &pool_account);
+				let reserves = AssetAmounts(
+					T::Currency::free_balance(pool.assets.0, &pool_account),
+					T::Currency::free_balance(pool.assets.1, &pool_account),
+				);
 
-				let delta_changes = calculate_add_liquidity_changes(pool, asset, asset_reserve, amount)
+				let new_reserves = if asset == pool.assets.0 {
+					AssetAmounts(
+						reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
+						reserves.1,
+					)
+				} else {
+					AssetAmounts(
+						reserves.0,
+						reserves.1.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
+					)
+				};
+
+				let delta_changes = calculate_add_liquidity_changes(pool, &reserves, &new_reserves, PRECISION, PRECISION)
 					.ok_or(ArithmeticError::Overflow)?;
 
 				T::Currency::deposit(pool_id.0, &who, delta_changes.share_amount)?;

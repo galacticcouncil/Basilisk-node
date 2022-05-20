@@ -1,4 +1,4 @@
-use sp_runtime::{FixedU128, Permill};
+use sp_runtime::Permill;
 use std::ops::Add;
 
 use codec::{Decode, Encode, MaxEncodedLen};
@@ -23,7 +23,7 @@ pub struct PoolInfo<AssetId, Balance> {
 //////////////
 
 #[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct PoolAssets<AssetId>(AssetId, AssetId);
+pub struct PoolAssets<AssetId>(pub AssetId, pub AssetId);
 
 impl<AssetId: PartialEq> PoolAssets<AssetId> {
 	pub fn contains(&self, value: AssetId) -> bool {

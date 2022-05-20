@@ -1,7 +1,6 @@
-use crate::types::{Balance, PoolInfo};
+use crate::types::{AssetAmounts, Balance, PoolInfo};
 use primitive_types::U256;
-use sp_runtime::traits::{CheckedMul, Zero};
-use sp_runtime::FixedPointNumber;
+use sp_runtime::traits::Zero;
 
 const NUMBER_OF_ASSETS_PER_POOL: u128 = 2;
 
@@ -24,12 +23,29 @@ pub(crate) struct AssetAmountChanges<Balance> {
 }
 
 pub(crate) fn calculate_add_liquidity_changes<AssetId>(
-	_pool: &PoolInfo<AssetId, Balance>,
-	_asset: AssetId,
-	_reserve: Balance,
-	_amount: Balance,
+	pool: &PoolInfo<AssetId, Balance>,
+	initial_reserves: &AssetAmounts<Balance>,
+	updated_reserves: &AssetAmounts<Balance>,
+	precision: Balance,
+	share_issuance: Balance,
 ) -> Option<AssetAmountChanges<Balance>> {
-	None
+	let ann = calculate_ann(pool.amplification)?;
+
+	let initial_d = calculate_d(&[initial_reserves.0, initial_reserves.1], ann, precision)?;
+	let updated_d = calculate_d(&[updated_reserves.0, updated_reserves.1], ann, precision)?;
+
+	if updated_d <= initial_d {
+		return None;
+	}
+
+	let share_amount = if share_issuance > Balance::zero() {
+		// TODO: fee accounting
+		updated_d
+	} else {
+		updated_d
+	};
+
+	Some(AssetAmountChanges { share_amount })
 }
 
 pub(crate) struct TradeChanges {
