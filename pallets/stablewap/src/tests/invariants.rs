@@ -64,6 +64,6 @@ proptest! {
 
 		let _d2 = calculate_d(&[reserve_in + result.unwrap(), reserve_out - amount_out ], ann, precision).unwrap();
 
-		//assert!(_d2 >= _d1);
+		assert!(_d2 >= _d1);
 	}
 }

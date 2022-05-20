@@ -137,7 +137,7 @@ fn calculate_y_given_out(
 
 	let d = calculate_d(&[reserve_in, reserve_out], ann, precision)?;
 
-	calculate_y(new_reserve_out, d, ann, precision)
+	calculate_y(new_reserve_out, d, ann, precision)?.checked_add(Balance::one())
 }
 
 fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -> Option<Balance> {
@@ -209,8 +209,8 @@ fn test_y_given_in() {
 		Some(2000u128 - 125u128)
 	);
 	assert_eq!(
-		calculate_d(&[1100u128, 2000u128 - 126u128], ann, precision),
-		Some(2939u128)
+		calculate_d(&[1100u128, 2000u128 - 125u128], ann, precision),
+		Some(2940u128)
 	);
 }
 
@@ -222,7 +222,7 @@ fn test_y_given_out() {
 
 	let amount_out = 100u128;
 
-	let expected_in = 79u128;
+	let expected_in = 80u128;
 
 	assert_eq!(calculate_d(&reserves, ann, precision), Some(2940u128));
 
@@ -232,6 +232,6 @@ fn test_y_given_out() {
 	);
 	assert_eq!(
 		calculate_d(&[1000u128 + expected_in, 2000u128 - amount_out], ann, precision),
-		Some(2939u128)
+		Some(2940u128)
 	);
 }
