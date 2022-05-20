@@ -149,7 +149,11 @@ fn dust_account_native_works() {
 			}
 			.into(),
 			// duster
-			Event::Dusted(*ALICE, 500).into(),
+			Event::Dusted {
+				account_id: *ALICE,
+				amount: 500,
+			}
+			.into(),
 			//reward transfer
 			pallet_balances::Event::Transfer {
 				from: *TREASURY,
@@ -258,7 +262,11 @@ fn native_existential_deposit() {
 			}
 			.into(),
 			// duster
-			Event::Dusted(*ALICE, 300).into(),
+			Event::Dusted {
+				account_id: *ALICE,
+				amount: 300,
+			}
+			.into(),
 			//reward transfer
 			pallet_balances::Event::Transfer {
 				from: *TREASURY,
