@@ -1,7 +1,6 @@
 use crate::types::{Balance, FixedBalance, PoolInfo};
 use primitive_types::U256;
 use sp_runtime::traits::{CheckedMul, Zero};
-use sp_runtime::FixedU128;
 
 const NUMBER_OF_ASSETS_PER_POOL: u128 = 2;
 
@@ -108,36 +107,44 @@ fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Ba
 	None
 }
 
-fn calculate_y(reserve_in: Balance, reserve_out: Balance, ann: Balance) -> Option<Balance> {
-	let prec = Balance::from(10_000_u128);
-	let zero = Balance::zero();
-	let two = Balance::from(2_u128);
-	let n_coins = Balance::from(NUMBER_OF_ASSETS_PER_POOL);
+fn calculate_y(
+	amount: Balance,
+	reserve_in: Balance,
+	reserve_out: Balance,
+	ann: Balance,
+	precision: Balance,
+) -> Option<Balance> {
+	let new_reserve_in = reserve_in.checked_add(amount)?;
 
-	let d = calculate_d(&[reserve_in, reserve_out], ann, prec)?;
+	let d = calculate_d(&[reserve_in, reserve_out], ann, precision)?;
 
-	let mut c = d;
-	let mut s = zero;
-	s = s.checked_add(reserve_in)?;
-	c = c.checked_mul(d)?.checked_div(reserve_in.checked_mul(2u128)?)?;
-	c = c.checked_mul(d)?.checked_div(ann.checked_mul(n_coins)?)?;
-	let b = s.checked_add(d.checked_div(ann)?)?;
-	let mut y = d;
+	let (d_hp, two_hp, n_coins_hp, ann_hp, new_reserve_hp, precision_hp) =
+		to_u256!(d, 2u128, NUMBER_OF_ASSETS_PER_POOL, ann, new_reserve_in, precision);
+
+	let s = new_reserve_hp;
+	let mut c = d_hp;
+
+	c = c.checked_mul(d_hp)?.checked_div(new_reserve_hp.checked_mul(two_hp)?)?;
+
+	c = c.checked_mul(d_hp)?.checked_div(ann_hp.checked_mul(n_coins_hp)?)?;
+
+	let b = s.checked_add(d_hp.checked_div(ann_hp)?)?;
+	let mut y = d_hp;
 
 	for _ in 0..255 {
 		let y_prev = y;
 		y = y
 			.checked_mul(y)?
 			.checked_add(c)?
-			.checked_div(two.checked_mul(y)?.checked_add(b)?.checked_sub(d)?)?;
+			.checked_div(two_hp.checked_mul(y)?.checked_add(b)?.checked_sub(d_hp)?)?;
 
 		if y > y_prev {
-			if y.checked_sub(y_prev)? <= prec {
-				return Some(y);
+			if y.checked_sub(y_prev)? <= precision_hp {
+				return to_balance!(y);
 			}
 		} else {
-			if y_prev.checked_sub(y)? <= prec {
-				return Some(y);
+			if y_prev.checked_sub(y)? <= precision_hp {
+				return to_balance!(y);
 			}
 		}
 	}
@@ -148,13 +155,16 @@ fn calculate_y(reserve_in: Balance, reserve_out: Balance, ann: Balance) -> Optio
 #[cfg(test)]
 #[test]
 fn test_ann() {
-	assert_eq!(calculate_ann(FixedU128::from(1u128)), Some(FixedBalance::from(4u128)));
 	assert_eq!(
-		calculate_ann(FixedU128::from_float(0.5)),
+		calculate_ann(FixedBalance::from(1u128)),
+		Some(FixedBalance::from(4u128))
+	);
+	assert_eq!(
+		calculate_ann(FixedBalance::from_float(0.5)),
 		Some(FixedBalance::from(2u128))
 	);
 	assert_eq!(
-		calculate_ann(FixedU128::from_float(100.0)),
+		calculate_ann(FixedBalance::from_float(100.0)),
 		Some(FixedBalance::from(400u128))
 	);
 }
@@ -162,25 +172,39 @@ fn test_ann() {
 #[cfg(test)]
 #[test]
 fn test_d() {
-	let precision = Balance::from(10_000_u128);
+	let precision = Balance::from(1_u128);
 
 	let reserves = [1000u128, 1000u128];
 	let ann = 4u128;
 	assert_eq!(calculate_d(&reserves, ann, precision), Some(2000u128));
 
-	let reserves = [1000_000_000_000_000_000_000u128, 1000_000_000_000_000_000_000u128];
+	let reserves = [1_000_000_000_000_000_000_000u128, 1_000_000_000_000_000_000_000u128];
 	let ann = 4u128;
 	assert_eq!(
 		calculate_d(&reserves, ann, precision),
-		Some(2000_000_000_000_000_000_000u128)
+		Some(2_000_000_000_000_000_000_000u128)
 	);
 }
 
 #[cfg(test)]
 #[test]
 fn test_y() {
+	let precision = Balance::from(1_u128);
 	let reserves = [1000u128, 2000u128];
 	let ann = 4u128;
-	assert_eq!(calculate_y(reserves[0], reserves[1], ann), Some(2189u128));
-	assert_eq!(calculate_y(reserves[1], reserves[0], ann), Some(1663u128));
+
+	let amount_in = 100u128;
+	assert_eq!(calculate_d(&reserves, ann, precision), Some(2940u128));
+	assert_eq!(
+		calculate_y(amount_in, reserves[0], reserves[1], ann, precision),
+		Some(2000u128 - 126u128)
+	);
+	assert_eq!(
+		calculate_d(&[1100u128, 2000u128 - 126u128], ann, precision),
+		Some(2939u128)
+	);
+	assert_eq!(
+		calculate_y(amount_in, reserves[1], reserves[0], ann, precision),
+		Some(923u128)
+	);
 }
