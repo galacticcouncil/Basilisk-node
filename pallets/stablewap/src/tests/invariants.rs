@@ -19,7 +19,7 @@ fn asset_reserve() -> impl Strategy<Value = Balance> {
 proptest! {
 	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
-	fn test_y_give_in(amount_in in trade_amount(),
+	fn test_out_given_in(amount_in in trade_amount(),
 		reserve_in in  asset_reserve(),
 		reserve_out in  asset_reserve(),
 	) {
