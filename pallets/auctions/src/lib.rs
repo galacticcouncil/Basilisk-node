@@ -367,7 +367,11 @@ pub mod pallet {
 		///
 		/// - calls the create() implementation on the given Auction type
 		/// 
-		#[pallet::weight(<T as Config>::WeightInfo::create_candle())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::create_english()
+				.max(<T as Config>::WeightInfo::create_topup())
+				.max(<T as Config>::WeightInfo::create_candle())
+		)]
 		pub fn create(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -391,7 +395,11 @@ pub mod pallet {
 		/// 
 		/// - calls the update() implementation on the given Auction type
 		/// 
-		#[pallet::weight(<T as Config>::WeightInfo::update_candle())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::update_english()
+				.max(<T as Config>::WeightInfo::update_topup())
+				.max(<T as Config>::WeightInfo::update_candle())
+		)]
 		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -416,7 +424,11 @@ pub mod pallet {
 		/// - unfreezes NFT
 		/// - calls destroy helper function
 		///
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_candle())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::destroy_english()
+				.max(<T as Config>::WeightInfo::destroy_topup())
+				.max(<T as Config>::WeightInfo::destroy_candle())
+		)]
 		pub fn destroy(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionDoesNotExist)?;
@@ -449,7 +461,11 @@ pub mod pallet {
 		/// - calls the bid() implementation on the given Auction type
 		/// - deposits BidPlaced event
 		///
-		#[pallet::weight(<T as Config>::WeightInfo::bid_candle())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::bid_english()
+				.max(<T as Config>::WeightInfo::bid_topup())
+				.max(<T as Config>::WeightInfo::bid_candle())
+		)]
 		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
 			let bidder = ensure_signed(origin)?;
 			let bid = Bid {
@@ -497,8 +513,11 @@ pub mod pallet {
 		/// - if necessary, calls the helper function for destroying all auction-related data
 		/// - deposits AuctionClosed event
 		///
-		/// TODO: Change weights fn
-		#[pallet::weight(<T as Config>::WeightInfo::create_candle())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::close_english()
+				.max(<T as Config>::WeightInfo::close_topup())
+				.max(<T as Config>::WeightInfo::close_candle())
+		)]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
 			let mut destroy_auction_data = false;
 
@@ -541,9 +560,10 @@ pub mod pallet {
 		/// - fetches claimable amount
 		/// - calls claim() implementation on the Auction type
 		/// - if necessary, calls the helper function for destroying all auction-related data
-		///
-		/// TODO change weight
-		#[pallet::weight(<T as Config>::WeightInfo::create_candle())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::claim_topup()
+				.max(<T as Config>::WeightInfo::claim_candle())
+		)]
 		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 			let destroy_auction_data: bool;
 

@@ -166,6 +166,118 @@ benchmarks! {
 	}
 
 	//
+	// TopUp Auction benchmarks
+	//
+	create_topup {
+		let owner: T::AccountId = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
+	}: { Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?; }
+	verify {
+		assert_eq!(Auctions::<T>::auction_owner_by_id(T::AuctionId::from(0u8)), Some(owner));
+	}
+
+	update_topup {
+		let owner: T::AccountId = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
+
+		let mut updated_common_data = mocked_topup_common_data::<T>(owner.clone());
+		updated_common_data.start = 11u32.into();
+		updated_common_data.end = 99_367u32.into();
+
+
+		let updated_auction = mocked_topup_auction_object::<T>(updated_common_data, mocked_topup_specific_data::<T>());
+	}: { Auctions::<T>::update(RawOrigin::Signed(owner.clone()).into(), 0.into(), updated_auction.clone())?; }
+	verify {
+		assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)).unwrap(), updated_auction);
+	}
+
+	destroy_topup {
+		let owner: T::AccountId = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
+	}: { Auctions::<T>::destroy(RawOrigin::Signed(owner.clone()).into(), 0.into())?; }
+	verify {
+		assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)), None);
+	}
+
+	bid_topup {
+		let owner = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner).into(), auction)?;
+
+		frame_system::Pallet::<T>::set_block_number(20u32.into());
+
+		let bidder = create_account::<T>("bidder", 1);
+		let bid_amount = 5u128.saturating_mul(UNITS);
+	}: { Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?; }
+	verify {
+		let auction = Auctions::<T>::auctions(T::AuctionId::from(0u8)).unwrap();
+
+		let auction_check = match auction {
+			Auction::TopUp(data) => {
+			assert_eq!(data.common_data.last_bid, Some((bidder, bid_amount.into())));
+
+			Ok(())
+			}
+			_ => Err(()),
+		};
+
+		assert_eq!(auction_check, Ok(()));
+	}
+
+	close_topup {
+		let owner = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
+
+		frame_system::Pallet::<T>::set_block_number(10u32.into());
+
+		let bidder = create_account::<T>("bidder", 1);
+		let bid_amount = 5u128.saturating_mul(UNITS);
+		Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?;
+
+		frame_system::Pallet::<T>::set_block_number(21u32.into());
+	} : { Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?; }
+	verify {
+		assert_eq!(
+			Nft::Pallet::<T>::owner(mocked_nft_class_id_1::<T>(), mocked_nft_instance_id_1::<T>()),
+			Some(bidder)
+		)
+	}
+
+	claim_topup {
+		let owner = create_account::<T>("auction_owner", 0);
+		prepare_environment::<T>(owner.clone())?;
+
+		let mut topup_common_data = mocked_topup_common_data::<T>(owner.clone());
+		topup_common_data.reserve_price = Some(50u128.saturating_mul(UNITS).into());
+
+		let auction = mocked_topup_auction_object::<T>(topup_common_data, mocked_topup_specific_data::<T>());
+		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
+
+		frame_system::Pallet::<T>::set_block_number(10u32.into());
+
+		let bidder = create_account::<T>("bidder", 1);
+		let bid_amount = 5u128.saturating_mul(UNITS);
+		Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?;
+
+		frame_system::Pallet::<T>::set_block_number(21u32.into());
+		Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?;
+	} : { Auctions::<T>::claim(RawOrigin::Signed(bidder.clone()).into(), bidder, 0.into())?;  }
+	verify { assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)), None) }
+
+	//
 	// Candle Auction benchmarks
 	//
 	create_candle {
@@ -291,118 +403,6 @@ benchmarks! {
 		frame_system::Pallet::<T>::set_block_number(99_367u32.into());
 		Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?;
 	} : { Auctions::<T>::claim(RawOrigin::Signed(bidder_1.clone()).into(), bidder_1, 0.into())?; }
-	verify { assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)), None) }
-
-	//
-	// TopUp Auction benchmarks
-	//
-	create_topup {
-		let owner: T::AccountId = create_account::<T>("auction_owner", 0);
-		prepare_environment::<T>(owner.clone())?;
-
-		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
-	}: { Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?; }
-	verify {
-		assert_eq!(Auctions::<T>::auction_owner_by_id(T::AuctionId::from(0u8)), Some(owner));
-	}
-
-	update_topup {
-		let owner: T::AccountId = create_account::<T>("auction_owner", 0);
-		prepare_environment::<T>(owner.clone())?;
-
-		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
-		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
-
-		let mut updated_common_data = mocked_topup_common_data::<T>(owner.clone());
-		updated_common_data.start = 11u32.into();
-		updated_common_data.end = 99_367u32.into();
-
-
-		let updated_auction = mocked_topup_auction_object::<T>(updated_common_data, mocked_topup_specific_data::<T>());
-	}: { Auctions::<T>::update(RawOrigin::Signed(owner.clone()).into(), 0.into(), updated_auction.clone())?; }
-	verify {
-		assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)).unwrap(), updated_auction);
-	}
-
-	destroy_topup {
-		let owner: T::AccountId = create_account::<T>("auction_owner", 0);
-		prepare_environment::<T>(owner.clone())?;
-
-		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
-		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
-	}: { Auctions::<T>::destroy(RawOrigin::Signed(owner.clone()).into(), 0.into())?; }
-	verify {
-		assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)), None);
-	}
-
-	bid_topup {
-		let owner = create_account::<T>("auction_owner", 0);
-		prepare_environment::<T>(owner.clone())?;
-
-		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
-		Auctions::<T>::create(RawOrigin::Signed(owner).into(), auction)?;
-
-		frame_system::Pallet::<T>::set_block_number(20u32.into());
-
-		let bidder = create_account::<T>("bidder", 1);
-		let bid_amount = 5u128.saturating_mul(UNITS);
-	}: { Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?; }
-	verify {
-		let auction = Auctions::<T>::auctions(T::AuctionId::from(0u8)).unwrap();
-
-		let auction_check = match auction {
-			Auction::TopUp(data) => {
-			assert_eq!(data.common_data.last_bid, Some((bidder, bid_amount.into())));
-
-			Ok(())
-			}
-			_ => Err(()),
-		};
-
-		assert_eq!(auction_check, Ok(()));
-	}
-
-	close_topup {
-		let owner = create_account::<T>("auction_owner", 0);
-		prepare_environment::<T>(owner.clone())?;
-
-		let auction = mocked_topup_auction_object::<T>(mocked_topup_common_data::<T>(owner.clone()), mocked_topup_specific_data::<T>());
-		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
-
-		frame_system::Pallet::<T>::set_block_number(10u32.into());
-
-		let bidder = create_account::<T>("bidder", 1);
-		let bid_amount = 5u128.saturating_mul(UNITS);
-		Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?;
-
-		frame_system::Pallet::<T>::set_block_number(21u32.into());
-	} : { Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?; }
-	verify {
-		assert_eq!(
-			Nft::Pallet::<T>::owner(mocked_nft_class_id_1::<T>(), mocked_nft_instance_id_1::<T>()),
-			Some(bidder)
-		)
-	}
-
-	claim_topup {
-		let owner = create_account::<T>("auction_owner", 0);
-		prepare_environment::<T>(owner.clone())?;
-
-		let mut topup_common_data = mocked_topup_common_data::<T>(owner.clone());
-		topup_common_data.reserve_price = Some(50u128.saturating_mul(UNITS).into());
-
-		let auction = mocked_topup_auction_object::<T>(topup_common_data, mocked_topup_specific_data::<T>());
-		Auctions::<T>::create(RawOrigin::Signed(owner.clone()).into(), auction)?;
-
-		frame_system::Pallet::<T>::set_block_number(10u32.into());
-
-		let bidder = create_account::<T>("bidder", 1);
-		let bid_amount = 5u128.saturating_mul(UNITS);
-		Auctions::<T>::bid(RawOrigin::Signed(bidder.clone()).into(), 0.into(), bid_amount.into())?;
-
-		frame_system::Pallet::<T>::set_block_number(21u32.into());
-		Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?;
-	} : { Auctions::<T>::claim(RawOrigin::Signed(bidder.clone()).into(), bidder, 0.into())?;  }
 	verify { assert_eq!(Auctions::<T>::auctions(T::AuctionId::from(0u8)), None) }
 }
 
