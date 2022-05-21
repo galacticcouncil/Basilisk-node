@@ -48,9 +48,6 @@ pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
-// Classes reserved up to 999 so available ids starting from 1000
-// pub const NFT_CLASS_ID_1: u32 = 1001;
-// pub const NFT_INSTANCE_ID_1: u32 = 1;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
