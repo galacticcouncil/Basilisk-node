@@ -7,6 +7,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Creates a Candle Auction
 	///
+	#[require_transactional]
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
 		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.common_data)?;
@@ -18,6 +19,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Updates a Candle Auction
 	///
+	#[require_transactional]
 	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 		self.validate_data()?;
 
@@ -38,6 +40,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Places a bid on an CandleAuction
 	///
+	#[require_transactional]
 	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
 		let closing_period_range = Pallet::<T>::determine_candle_closing_range(bid, self)?;
 
@@ -51,7 +54,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 			},
 		)?;
 
-		// Trasnfer funds to the subaccount of the auction
+		// Transfer funds to the subaccount of the auction
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 			&bidder,
 			&Pallet::<T>::get_auction_subaccount_id(auction_id),
@@ -81,6 +84,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Closes a Candle auction
 	///
+	#[require_transactional]
 	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
 		let mut destroy_auction_data = false;
 
@@ -121,7 +125,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					self.specific_data.winner = Some(winner.clone());
 
 					let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
-					let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+					let auction_balance =
+						<<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
 					let reserved_amount = <ReservedAmounts<T>>::get(&winner, &auction_id);
 
 					ensure!(
@@ -154,8 +159,14 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 	///
 	/// Claims reserved amounts which were bid on a Candle auction
-	/// 
-	fn claim(&self, auction_id: T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> Result<bool, DispatchError> {
+	///
+	#[require_transactional]
+	fn claim(
+		&self,
+		auction_id: T::AuctionId,
+		bidder: T::AccountId,
+		amount: BalanceOf<T>,
+	) -> Result<bool, DispatchError> {
 		let mut destroy_auction_data = false;
 
 		Pallet::<T>::validate_claim(&self.common_data)?;
@@ -173,7 +184,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 	///
 	/// Validates common and specific auction data
-	/// 
+	///
 	fn validate_data(&self) -> DispatchResult {
 		Pallet::<T>::validate_common_data(&self.common_data)?;
 
@@ -209,7 +220,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 }
 
 impl<T: Config> Pallet<T> {
-  fn choose_random_block_from_range(from: u32, to: u32) -> Result<u32, DispatchError> {
+	fn choose_random_block_from_range(from: u32, to: u32) -> Result<u32, DispatchError> {
 		ensure!(from < to, Error::<T>::InvalidTimeConfiguration);
 		let mut random_number = Self::generate_random_number(0u32);
 

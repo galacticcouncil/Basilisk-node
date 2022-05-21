@@ -7,6 +7,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Creates a TopUp Auction
 	///
+	#[require_transactional]
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
 		self.validate_data()?;
 		Pallet::<T>::validate_create(&self.common_data)?;
@@ -18,6 +19,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Updates a TopUp Auction
 	///
+	#[require_transactional]
 	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 		self.validate_data()?;
 
@@ -38,8 +40,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Places a bid on an TopUpAuction
 	///
+	#[require_transactional]
 	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
-		// Trasnfer funds to the subaccount of the auction
+		// Transfer funds to the subaccount of the auction
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 			&bidder,
 			&Pallet::<T>::get_auction_subaccount_id(auction_id),
@@ -69,6 +72,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Closes a TopUpAuction
 	///
+	#[require_transactional]
 	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
 		let mut destroy_auction_data = false;
 
@@ -78,12 +82,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 			if Pallet::<T>::is_auction_won(&self.common_data) {
 				let dest = T::Lookup::unlookup(winner.0.clone());
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.common_data.owner.clone()));
-				pallet_nft::Pallet::<T>::transfer(
-					source,
-					self.common_data.token.0,
-					self.common_data.token.1,
-					dest,
-				)?;
+				pallet_nft::Pallet::<T>::transfer(source, self.common_data.token.0, self.common_data.token.1, dest)?;
 
 				let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
 				let transfer_amount =
@@ -110,8 +109,14 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 	///
 	/// Claims reserved amounts which were bid on a TopUp auction
-	/// 
-	fn claim(&self, auction_id: T::AuctionId, bidder: T::AccountId, amount: BalanceOf<T>) -> Result<bool, DispatchError> {
+	///
+	#[require_transactional]
+	fn claim(
+		&self,
+		auction_id: T::AuctionId,
+		bidder: T::AccountId,
+		amount: BalanceOf<T>,
+	) -> Result<bool, DispatchError> {
 		let mut destroy_auction_data = false;
 
 		Pallet::<T>::validate_claim(&self.common_data)?;
