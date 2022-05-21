@@ -370,8 +370,7 @@ benchmarks! {
 				assert!(data.common_data.closed);
 				assert_eq!(data.specific_data.winner.unwrap(), bidder_2);
 
-				// In the tests the winning closing range is deterministic because the same blocks will always return same randomness
-				assert_eq!(data.specific_data.winning_closing_range.unwrap(), 1);
+				assert_eq!(data.specific_data.winning_closing_range.unwrap(), 61);
 
 				Ok(())
 			}
