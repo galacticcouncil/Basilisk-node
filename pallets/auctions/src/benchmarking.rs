@@ -8,7 +8,7 @@ use sp_runtime::traits::UniqueSaturatedInto;
 use crate::Pallet as Auctions;
 
 // Contains mock of objects shared between tests and benchmarking
-use crate::mocked_auction_objects::*;
+use crate::mocked_objects::*;
 
 use frame_system::RawOrigin;
 use pallet_nft as Nft;

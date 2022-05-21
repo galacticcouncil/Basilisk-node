@@ -162,7 +162,7 @@ mod benchmarking;
 pub mod weights;
 use weights::WeightInfo;
 
-mod mocked_auction_objects;
+mod mocked_objects;
 
 #[cfg(test)]
 mod mock;

@@ -1,7 +1,7 @@
 use super::*;
 
 use crate::mock::*;
-use crate::mocked_auction_objects::*;
+use crate::mocked_objects::*;
 
 use frame_support::{assert_ok, BoundedVec};
 use primitives::nft::ClassType;
