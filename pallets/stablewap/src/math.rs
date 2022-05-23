@@ -235,3 +235,15 @@ fn test_y_given_out() {
 		Some(2940u128)
 	);
 }
+
+#[test]
+fn test_d_case() {
+	let amp = 400u128;
+	let ann = amp * 4u128;
+
+	let precision = 1u128;
+
+	let result = calculate_d(&[500000000000008580273458u128, 10u128], ann, precision);
+
+	assert!(result.is_none()); // TODO: should converge
+}
