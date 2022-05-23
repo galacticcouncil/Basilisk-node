@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "46.0.0"
+version = "47.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -5964,7 +5964,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -11268,7 +11268,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "46.0.0"
+version = "47.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",

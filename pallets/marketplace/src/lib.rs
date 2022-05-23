@@ -249,8 +249,8 @@ pub mod pallet {
 
 				if offer.expires > <frame_system::Pallet<T>>::block_number() {
 					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
-					Self::do_buy(offer.maker, class_id, instance_id, true)?;
-					Self::deposit_event(Event::OfferAccepted(sender, class_id, instance_id, offer.amount));
+					Self::do_buy(offer.maker.clone(), class_id, instance_id, true)?;
+					Self::deposit_event(Event::OfferAccepted(sender, class_id, instance_id, offer.amount, offer.maker));
 					Ok(())
 				} else {
 					Err(Error::<T>::OfferExpired.into())
@@ -327,8 +327,8 @@ pub mod pallet {
 		),
 		/// Offer was withdrawn \[sender, class_id, instance_id\]
 		OfferWithdrawn(T::AccountId, T::NftClassId, T::NftInstanceId),
-		/// Offer was accepted \[sender, class_id, instance_id\]
-		OfferAccepted(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>),
+		/// Offer was accepted \[sender, class_id, instance_id, amount, maker\]
+		OfferAccepted(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>, T::AccountId),
 		/// Royalty hs been paid to the author \[class_id, instance_id, author, royalty, royalty_amount\]
 		RoyaltyPaid(T::NftClassId, T::NftInstanceId, T::AccountId, u8, BalanceOf<T>),
 		/// Marketplace data has been added \[class_type, sender, class_id, instance_id\]
