@@ -243,6 +243,13 @@ pub mod pallet {
 		fn on_runtime_upgrade() -> frame_support::weights::Weight {
 			migration::init_nft_class::<T>()
 		}
+
+		fn integrity_test() {
+			assert!(
+				T::NftClass::get() <= T::ReserveClassIdUpTo::get(),
+				"`NftClass` must be within the range of reserved NFT class IDs"
+			);
+		}
 	}
 
 	#[pallet::config]
@@ -281,7 +288,7 @@ pub mod pallet {
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
-		/// NFT class id for liq. mining deposit nfts.
+		/// NFT class id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
 		type NftClass: Get<primitives::ClassId>;
 
 		/// Weight information for extrinsic in this module.
