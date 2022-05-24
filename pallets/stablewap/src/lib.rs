@@ -91,7 +91,7 @@ pub mod pallet {
 		type AssetRegistry: ShareTokenRegistry<Self::AssetId, Vec<u8>, Balance, DispatchError>;
 
 		/// The origin which can create a new pool
-		type CreatePoolOrigin: EnsureOrigin<Self::Origin>;
+		type CreatePoolOrigin: EnsureOrigin<Self::Origin, Success = Self::AccountId>;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: weights::WeightInfo;
@@ -175,6 +175,9 @@ pub mod pallet {
 
 		/// Maximum limit has been exceeded during trade.
 		SellLimitExceeded,
+
+		/// Initial liquidity of asset must be > 0.
+		InvalidInitialLiquidity,
 	}
 
 	#[pallet::call]
@@ -184,10 +187,11 @@ pub mod pallet {
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			assets: (T::AssetId, T::AssetId),
+			initial_liquidity: (Balance, Balance),
 			amplification: Balance,
 			fee: Permill,
 		) -> DispatchResult {
-			T::CreatePoolOrigin::ensure_origin(origin)?;
+			let who = T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			let pool_assets: PoolAssets<T::AssetId> = assets.into();
 
@@ -196,6 +200,15 @@ pub mod pallet {
 			for asset in (&pool_assets).into_iter() {
 				ensure!(T::AssetRegistry::exists(asset), Error::<T>::AssetNotRegistered);
 			}
+
+			ensure!(
+				initial_liquidity.0 >= Balance::zero(),
+				Error::<T>::InvalidInitialLiquidity
+			);
+			ensure!(
+				initial_liquidity.1 >= Balance::zero(),
+				Error::<T>::InvalidInitialLiquidity
+			);
 
 			let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some(POOL_IDENTIFIER));
 
@@ -207,17 +220,41 @@ pub mod pallet {
 
 			let pool_id = PoolId(share_asset);
 
-			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
-				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
+			let pool = Pools::<T>::try_mutate(
+				&pool_id,
+				|maybe_pool| -> Result<PoolInfo<T::AssetId, Balance>, DispatchError> {
+					ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
 
-				*maybe_pool = Some(PoolInfo {
-					assets: pool_assets.clone(),
-					amplification,
-					fee,
-				});
+					let pool = PoolInfo {
+						assets: pool_assets.clone(),
+						amplification,
+						fee,
+					};
 
-				Ok(())
-			})?;
+					*maybe_pool = Some(pool.clone());
+
+					Ok(pool)
+				},
+			)?;
+
+			// Add initial liquidity
+			let reserves: AssetAmounts<Balance> = initial_liquidity.into();
+
+			let share_amount = calculate_add_liquidity_shares(
+				&AssetAmounts::default(),
+				&reserves,
+				PRECISION,
+				pool.amplification,
+				Balance::zero(),
+			)
+			.ok_or(ArithmeticError::Overflow)?;
+
+			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+
+			T::Currency::transfer(assets.0, &who, &pool_account, initial_liquidity.0)?;
+			T::Currency::transfer(assets.1, &who, &pool_account, initial_liquidity.1)?;
+
+			T::Currency::deposit(pool_id.0, &who, share_amount)?;
 
 			Self::deposit_event(Event::PoolCreated {
 				id: pool_id,
