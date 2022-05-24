@@ -48,7 +48,10 @@ const PRECISION: Balance = 1u128;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::math::{calculate_add_liquidity_shares, calculate_in_given_out, calculate_out_given_in};
+	use crate::math::{
+		calculate_add_liquidity_shares, calculate_in_given_out, calculate_out_given_in,
+		calculate_remove_liquidity_amounts,
+	};
 	use crate::traits::ShareAccountIdFor;
 	use crate::types::{AssetAmounts, Balance, PoolAssets, PoolId, PoolInfo};
 	use codec::HasCompact;
@@ -115,6 +118,13 @@ pub mod pallet {
 			asset: T::AssetId,
 			amount: Balance,
 		},
+		/// Liquidity removed.
+		LiquidityRemoved {
+			id: PoolId<T::AssetId>,
+			who: T::AccountId,
+			shares: Balance,
+			amounts: (Balance, Balance),
+		},
 		/// Sell trade executed.
 		SellExecuted {
 			who: T::AccountId,
@@ -156,6 +166,9 @@ pub mod pallet {
 
 		/// Balance of an asset is nto sufficient to perform a trade.
 		InsufficientBalance,
+
+		/// Balance of an share asset is nto sufficient to withdraw liquiduity.
+		InsufficientShares,
 
 		/// Minimum limit has not been reached during trade.
 		BuyLimitNotReached,
@@ -278,6 +291,49 @@ pub mod pallet {
 				asset,
 				amount,
 			});
+
+			Ok(())
+		}
+
+		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
+		#[transactional]
+		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T::AssetId>, amount: Balance) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			ensure!(amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
+
+			ensure!(
+				T::Currency::free_balance(pool_id.0, &who) >= amount,
+				Error::<T>::InsufficientShares
+			);
+
+			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
+				let pool = maybe_pool.as_ref().ok_or(Error::<T>::PoolNotFound)?;
+
+				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+
+				let reserve_i = T::Currency::free_balance(pool.assets.0, &pool_account);
+				let reserve_j = T::Currency::free_balance(pool.assets.1, &pool_account);
+
+				let share_issuance = T::Currency::total_issuance(pool_id.0);
+
+				let amounts =
+					calculate_remove_liquidity_amounts(&(reserve_i, reserve_j).into(), amount, share_issuance)
+						.ok_or(ArithmeticError::Overflow)?;
+
+				for (asset, amount) in pool.assets.into_iter().zip(amounts.into_iter()) {
+					T::Currency::transfer(asset, &pool_account, &who, amount)?;
+				}
+
+				Self::deposit_event(Event::LiquidityRemoved {
+					id: pool_id.clone(),
+					who,
+					shares: amount,
+					amounts: (amounts.0, amounts.1),
+				});
+
+				Ok(())
+			})?;
 
 			Ok(())
 		}

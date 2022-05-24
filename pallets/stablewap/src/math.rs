@@ -40,6 +40,27 @@ pub(crate) fn calculate_add_liquidity_shares(
 	Some(share_amount)
 }
 
+pub(crate) fn calculate_remove_liquidity_amounts(
+	reserves: &AssetAmounts<Balance>,
+	shares: Balance,
+	share_asset_issuance: Balance,
+) -> Option<AssetAmounts<Balance>> {
+	let (shares_hp, issuance_hp) = to_u256!(shares, share_asset_issuance);
+
+	let calculate_amount = |asset_reserve: Balance| {
+		to_balance!(to_u256!(asset_reserve)
+			.checked_mul(shares_hp)?
+			.checked_div(issuance_hp)?)
+	};
+
+	// Let's do it quickly for two asset for now. It could be written is iterator and collect when > 2 assets in a pool.
+
+	let amount_i = calculate_amount(reserves.0)?;
+	let amount_j = calculate_amount(reserves.1)?;
+
+	Some((amount_i, amount_j).into())
+}
+
 pub(crate) fn calculate_out_given_in(
 	reserve_in: Balance,
 	reserve_out: Balance,
