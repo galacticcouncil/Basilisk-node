@@ -33,7 +33,7 @@
 //! ## Overview
 //!
 //! This pallet provide functionality for liquidity mining program with time incentive(loyalty
-//! factor).
+//! factor) for basilisk.
 //! Users are rewarded for each period they stay in liq. mining program.
 //!
 //! Reward per one period is derived from the user's loyalty factor which grows with time(periods)
@@ -161,6 +161,9 @@ pub mod pallet {
 
 		/// Account is not deposit owner.
 		NotDepositOwner,
+
+		/// AMM did not return assets for given `amm_pool_id`
+		CantGetAmmAssets,
 	}
 
 	#[pallet::event]
@@ -648,13 +651,12 @@ pub mod pallet {
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			let (liq_pool_farm_id, deposit_id) =
-				warehouse_liquidity_mining::Pallet::<T>::deposit_shares(farm_id, shares_amount, amm_pool_id.clone())?;
-
-			//NOTE: maybe create trait for this and only implement it: "lock_shares(...), unlock_shares(...)"
-			//transfer shares from user to pallet account
-			let pallet_account = Self::account_id();
-			MultiCurrencyOf::<T>::transfer(amm_share_token, &who, &pallet_account, shares_amount)?;
+			let (liq_pool_farm_id, deposit_id) = warehouse_liquidity_mining::Pallet::<T>::deposit_shares(
+				who.clone(),
+				farm_id,
+				shares_amount,
+				amm_pool_id.clone(),
+			)?;
 
 			//mint nft representing deposit
 			let _ =
@@ -679,9 +681,6 @@ pub mod pallet {
 		///
 		/// This function calculate user rewards from liq. mining and transfer rewards to `origin`
 		/// account. Claiming in the same period is allowed only once.
-		///
-		/// WARN: User have to use `withdraw_shares()` if liq. pool is canceled, removed or whole
-		/// farm is destroyed.
 		///
 		/// Parameters:
 		/// - `origin`: account owner of deposit(nft).
@@ -734,10 +733,10 @@ pub mod pallet {
 		/// wasn't claimed in this period) and transfer LP shares.
 		/// * liq. pool was removed - only LP shares will be transferred.
 		/// * farm was destroyed - only LP shares will be transferred.
-		/// * SPECIAL CASE: AMM pool does not exist - claiming based on liq. pool/farm state, LP
+		/// * SPECIAL CASE: AMM pool does not exist - claim may happen if liq. pool is still active, LP
 		/// shares will not be transfered.
 		///
-		/// This function transfer user's unclaimable rewards back to global pool's account.
+		/// User's unclaimable rewards will be transfered back to global pool's account.
 		///
 		/// Parameters:
 		/// - `origin`: account owner of deposit(nft).
@@ -793,24 +792,15 @@ pub mod pallet {
 						unclaimable_rewards,
 					)?;
 
-				if let Some(assets) = T::AMM::get_pool_assets(amm_pool_id) {
-					let asset_pair = AssetPair::new(assets[0], assets[1]);
-
-					//NOTE: this is important AMM:get_share_token() return `0` if amm doesn't exist
-					if T::AMM::exists(asset_pair) {
-						let lp_token = T::AMM::get_share_token(asset_pair);
-
-						let pallet_account = Self::account_id();
-						MultiCurrencyOf::<T>::transfer(lp_token, &pallet_account, &who, withdrawn_amount)?;
-
-						Self::deposit_event(Event::SharesWithdrawn {
-							farm_id,
-							liq_pool_farm_id,
-							who: who.clone(),
-							lp_token,
-							amount: withdrawn_amount,
-						});
-					}
+				if !withdrawn_amount.is_zero() {
+					let lp_token = Self::get_lp_token(amm_pool_id)?;
+					Self::deposit_event(Event::SharesWithdrawn {
+						farm_id,
+						liq_pool_farm_id,
+						who: who.clone(),
+						lp_token,
+						amount: withdrawn_amount,
+					});
 				}
 
 				// metada and nft cleanup
@@ -822,14 +812,34 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	/// Account id of pot holding all the shares
+	/// Account id of pot holding all the LP shares
 	fn account_id() -> AccountIdOf<T> {
 		<T as pallet::Config>::PalletId::get().into_account()
 	}
+
+	fn get_lp_token(amm_pool_id: &AccountIdOf<T>) -> Result<AssetId, Error<T>> {
+		let assets = T::AMM::get_pool_assets(amm_pool_id).ok_or(Error::<T>::CantGetAmmAssets)?;
+		let asset_pair = AssetPair::new(assets[0], assets[1]);
+
+		//NOTE: this check is important AMM:get_share_token() return `0` if amm doesn't exist
+		if !T::AMM::exists(asset_pair) {
+			return Err(Error::<T>::AmmPoolDoesNotExist);
+		}
+
+		Ok(T::AMM::get_share_token(asset_pair))
+	}
 }
 
-impl<T: Config> hydradx_traits::liquidity_mining::Handler<AssetId, T::AccountId, GlobalPoolId, PoolId, Balance>
-	for Pallet<T>
+impl<T: Config>
+	hydradx_traits::liquidity_mining::Handler<
+		AssetId,
+		T::AccountId,
+		GlobalPoolId,
+		PoolId,
+		Balance,
+		warehouse_liquidity_mining::DepositId,
+		T::AccountId,
+	> for Pallet<T>
 {
 	fn get_balance_in_amm(asset: AssetId, amm_id: T::AccountId) -> Balance {
 		MultiCurrencyOf::<T>::free_balance(asset, &amm_id)
@@ -855,5 +865,47 @@ impl<T: Config> hydradx_traits::liquidity_mining::Handler<AssetId, T::AccountId,
 			accumulated_rpvs,
 			total_valued_shares,
 		});
+	}
+
+	fn lock_lp_tokens(
+		amm_pool_id: T::AccountId,
+		who: T::AccountId,
+		amount: Balance,
+		_deposit_id: warehouse_liquidity_mining::DepositId,
+	) -> Result<(), DispatchError> {
+		let lp_token = Self::get_lp_token(&amm_pool_id)?;
+
+		let pallet_account = Self::account_id();
+		MultiCurrencyOf::<T>::transfer(lp_token, &who, &pallet_account, amount)?;
+
+		Ok(())
+	}
+
+	fn unlock_lp_tokens(
+		amm_pool_id: T::AccountId,
+		who: T::AccountId,
+		amount: Balance,
+		_deposit_id: warehouse_liquidity_mining::DepositId,
+	) -> Result<(), DispatchError> {
+		let lp_token = match Self::get_lp_token(&amm_pool_id) {
+			Ok(t) => t,
+			Err(e) => {
+				match e {
+					Error::<T>::AmmPoolDoesNotExist => {
+						//This is intentional. This function should not fail if amm doesn't exist
+						//anymore. It should do nothing.
+						return Ok(());
+					}
+					_ => {
+						return Err(e.into());
+					}
+				}
+			}
+		};
+
+		let pallet_account = Self::account_id();
+		MultiCurrencyOf::<T>::transfer(lp_token, &pallet_account, &who, amount)?;
+
+		Ok(())
 	}
 }

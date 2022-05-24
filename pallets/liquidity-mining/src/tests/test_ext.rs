@@ -518,7 +518,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 				accumulated_rpz: 12,
 				total_shares: 616,
 				total_valued_shares: 45_540,
-				stake_in_global_pool: 227_700,
 				..PREDEFINED_LIQ_POOLS.with(|v| v[0].clone())
 			},
 		);
@@ -531,7 +530,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 				accumulated_rpz: 12,
 				total_shares: 960,
 				total_valued_shares: 47_629,
-				stake_in_global_pool: 476_290,
 				..PREDEFINED_LIQ_POOLS.with(|v| v[1].clone())
 			},
 		);

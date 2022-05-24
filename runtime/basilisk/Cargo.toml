@@ -38,7 +38,7 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
-warehouse-liquidity-mining = { package="pallet-liquidity-mining", path = "../../../warehouse/liquidity-mining", default-features=false}   #TODO: change this to link to warehouse
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", rev = "bde8c7322d3177d6fb18079f1507781745e6fe8c", git = "https://github.com/galacticcouncil/warehouse", default-features = false }
 pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features=false}
 pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }

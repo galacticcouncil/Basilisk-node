@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use super::*;
+use sp_runtime::FixedPointNumber;
 use test_ext::*;
 use warehouse_liquidity_mining::GlobalPool;
 use warehouse_liquidity_mining::LiquidityPoolYieldFarm;
@@ -49,10 +50,14 @@ fn cancel_liquidity_pool_should_work() {
 			asset_pair: bsx_tkn1_assets,
 		})]);
 
+		let stake_in_global_pool = liq_pool
+			.multiplier
+			.checked_mul_int(liq_pool.total_valued_shares)
+			.unwrap();
+
 		assert_eq!(
 			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
-				stake_in_global_pool: 0,
 				canceled: true,
 				multiplier: 0.into(),
 				..liq_pool
@@ -62,10 +67,7 @@ fn cancel_liquidity_pool_should_work() {
 		assert_eq!(
 			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
-				total_shares_z: global_pool
-					.total_shares_z
-					.checked_sub(liq_pool.stake_in_global_pool)
-					.unwrap(),
+				total_shares_z: global_pool.total_shares_z.checked_sub(stake_in_global_pool).unwrap(),
 				..global_pool
 			}
 		);
@@ -106,22 +108,23 @@ fn cancel_liquidity_pool_should_work() {
 				updated_at: 100,
 				accumulated_rpvs: 245,
 				accumulated_rpz: 49,
-				stake_in_global_pool: 0,
 				canceled: true,
 				multiplier: 0.into(),
 				..liq_pool
 			}
 		);
 
+		let stake_in_global_pool = liq_pool
+			.multiplier
+			.checked_mul_int(liq_pool.total_valued_shares)
+			.unwrap();
+
 		assert_eq!(
 			WarehouseLM::global_pool(GC_FARM).unwrap(),
 			GlobalPool {
 				updated_at: 100,
 				accumulated_rpz: 49,
-				total_shares_z: global_pool
-					.total_shares_z
-					.checked_sub(liq_pool.stake_in_global_pool)
-					.unwrap(),
+				total_shares_z: global_pool.total_shares_z.checked_sub(stake_in_global_pool).unwrap(),
 				accumulated_rewards: 18_206_375,
 				paid_accumulated_rewards: 9_589_300,
 				..global_pool

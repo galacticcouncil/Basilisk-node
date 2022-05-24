@@ -73,7 +73,6 @@ fn update_liquidity_pool_should_work() {
 		assert_eq!(
 			WarehouseLM::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
 			LiquidityPoolYieldFarm {
-				stake_in_global_pool: 455_400_000,
 				multiplier: new_multiplier,
 				..liq_pool
 			}
@@ -113,7 +112,6 @@ fn update_liquidity_pool_should_work() {
 				accumulated_rpvs: 30_060,
 				accumulated_rpz: 15,
 				multiplier: new_multiplier,
-				stake_in_global_pool: 227_700_000,
 				..liq_pool
 			}
 		);

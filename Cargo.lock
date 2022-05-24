@@ -3223,6 +3223,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.6.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=bde8c7322d3177d6fb18079f1507781745e6fe8c#bde8c7322d3177d6fb18079f1507781745e6fe8c"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5953,6 +5954,7 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=bde8c7322d3177d6fb18079f1507781745e6fe8c#bde8c7322d3177d6fb18079f1507781745e6fe8c"
 dependencies = [
  "frame-support",
  "frame-system",

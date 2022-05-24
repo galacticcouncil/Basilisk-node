@@ -18,14 +18,15 @@ serde = { features = ["derive"], optional = true, version = "1.0.101" }
 sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-nft = { path = "../nft", default-features = false, version = "2.2.0" }
 pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
-warehouse-liquidity-mining = { package="pallet-liquidity-mining", path = "../../../warehouse/liquidity-mining", default-features = false }   #TODO: fix this
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", rev = "bde8c7322d3177d6fb18079f1507781745e6fe8c", git = "https://github.com/galacticcouncil/warehouse", default-features = false }
 
 # ORML dependencies
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
 
 # HydraDX dependencies
 hydradx-traits-amm = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false }
-hydradx-traits = { path = "../../../warehouse/traits", version="0.6.0", default-features = false }  #TODO: fix this
+
+hydradx-traits = { rev = "bde8c7322d3177d6fb18079f1507781745e6fe8c", git = "https://github.com/galacticcouncil/warehouse", version="0.6.0", default-features = false }
 
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="3e0e6774d52184b00e758dc822564e5a893773f5", default-features = false }
 
