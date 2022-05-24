@@ -93,7 +93,8 @@ fn calculate_ann(amplification: Balance) -> Option<Balance> {
 pub(crate) fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Balance> {
 	let n_coins = NUMBER_OF_ASSETS_PER_POOL;
 
-	let xp_hp: [U256; 2] = [to_u256!(xp[0]), to_u256!(xp[1])];
+	let mut xp_hp: [U256; 2] = [to_u256!(xp[0]), to_u256!(xp[1])];
+	xp_hp.sort();
 
 	let s_hp = xp_hp.iter().try_fold(U256::zero(), |acc, v| acc.checked_add(*v))?;
 
@@ -266,5 +267,17 @@ fn test_d_case() {
 
 	let result = calculate_d(&[500000000000008580273458u128, 10u128], ann, precision);
 
-	assert!(result.is_none()); // TODO: should converge
+	assert!(!result.is_none()); // TODO: should converge
+}
+
+#[test]
+fn test_d_case2() {
+	let amp = 168u128;
+	let ann = amp * 4u128;
+
+	let precision = 1u128;
+
+	let result = calculate_d(&[500000000000000000000010u128, 11u128], ann, precision);
+
+	assert!(!result.is_none()); // TODO: should converge
 }
