@@ -281,18 +281,15 @@ pub mod pallet {
 
 				T::Currency::deposit(pool_id.0, &who, share_amount)?;
 				T::Currency::transfer(asset, &who, &pool_account, amount)?;
+				Self::deposit_event(Event::LiquidityAdded {
+					id: pool_id.clone(),
+					from: who,
+					asset,
+					amount,
+				});
 
 				Ok(())
-			})?;
-
-			Self::deposit_event(Event::LiquidityAdded {
-				id: pool_id,
-				from: who,
-				asset,
-				amount,
-			});
-
-			Ok(())
+			})
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
@@ -333,9 +330,7 @@ pub mod pallet {
 				});
 
 				Ok(())
-			})?;
-
-			Ok(())
+			})
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]
