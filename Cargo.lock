@@ -3208,7 +3208,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#170ae16551e2f295868b19d0d26f961a215fd73d"
+source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#ba0580be85256ea6513fb6f50bc6acae9ac65df4"
 dependencies = [
  "frame-support",
  "hydradx-traits",
@@ -3218,13 +3218,14 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "xcm",
+ "xcm-builder",
  "xcm-executor",
 ]
 
 [[package]]
 name = "hydradx-traits"
 version = "0.5.1"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#170ae16551e2f295868b19d0d26f961a215fd73d"
+source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#ba0580be85256ea6513fb6f50bc6acae9ac65df4"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5359,7 +5360,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "1.2.0"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#170ae16551e2f295868b19d0d26f961a215fd73d"
+source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#ba0580be85256ea6513fb6f50bc6acae9ac65df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6164,7 +6165,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.2.2"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#170ae16551e2f295868b19d0d26f961a215fd73d"
+source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#ba0580be85256ea6513fb6f50bc6acae9ac65df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6209,7 +6210,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.2.1"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#170ae16551e2f295868b19d0d26f961a215fd73d"
+source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#ba0580be85256ea6513fb6f50bc6acae9ac65df4"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6385,7 +6386,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "7.0.2"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#170ae16551e2f295868b19d0d26f961a215fd73d"
+source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/weight-trader#ba0580be85256ea6513fb6f50bc6acae9ac65df4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -11663,7 +11664,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.10.2",
+ "parking_lot 0.11.2",
  "regex",
  "serde",
  "serde_json",
