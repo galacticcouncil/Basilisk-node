@@ -87,8 +87,8 @@ fn add_liquidity_works() {
 fn remove_all_liquidity_works() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
-			(BOB, 1, 200 * ONE),
-			(BOB, 2, 200 * ONE),
+			(BOB, 1, 100 * ONE),
+			(BOB, 2, 100 * ONE),
 			(ALICE, 1, 200 * ONE),
 			(ALICE, 2, 200 * ONE),
 		])
@@ -123,8 +123,8 @@ fn remove_all_liquidity_works() {
 
 			assert_ok!(Stableswap::remove_liquidity(Origin::signed(BOB), pool_id, shares));
 
-			assert_balance!(BOB, asset_a, 214_307_901_731_016u128);
-			assert_balance!(BOB, asset_b, 185_730_926_298_262u128);
+			assert_balance!(BOB, asset_a, 114_307_901_731_016u128);
+			assert_balance!(BOB, asset_b, 85_730_926_298_262u128);
 
 			assert_balance!(BOB, pool_id.0, 0u128);
 
