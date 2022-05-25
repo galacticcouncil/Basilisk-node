@@ -130,8 +130,8 @@ jobs:
         run: cargo build --release --locked --features runtime-benchmarks
       - name: Version info
         run: ./target/release/basilisk --version
-      - name: Run benchmarktests
-        run: make test-benchmarks
+      - name: Run benchmarks
+        run: ./target/release/basilisk benchmark --chain dev --execution wasm --wasm-execution compiled --pallet \* --steps=1 --repeat=1 --extrinsic \* --heap-pages=4096
       - name: Upload benchmarking binary
         uses: actions/upload-artifact@v2
         with:
