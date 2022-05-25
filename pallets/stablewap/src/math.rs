@@ -97,6 +97,7 @@ fn calculate_ann(amplification: Balance) -> Option<Balance> {
 
 pub(crate) fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Balance> {
 	let n_coins = NUMBER_OF_ASSETS_PER_POOL;
+	let two_u256 = to_u256!(2_u128);
 
 	let mut xp_hp: [U256; 2] = [to_u256!(xp[0]), to_u256!(xp[1])];
 	xp_hp.sort();
@@ -126,7 +127,12 @@ pub(crate) fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -
 					.checked_sub(U256::one())?
 					.checked_mul(d)?
 					.checked_add(n_coins_hp.checked_add(U256::one())?.checked_mul(d_p)?)?,
-			)?;
+			)?.checked_add(two_u256)?;  // adding two here is sufficient to account for rounding
+										// errors, AS LONG AS the minimum reserves are 2 for each
+										// asset. I.e., as long as xp_hp[0] >= 2 and xp_hp[1] >= 2
+
+										// adding two guarantees that this function will return
+										// a value larger than or equal to the correct D invariant
 
 		if d > d_prev {
 			if d.checked_sub(d_prev)? <= precision_hp {
@@ -213,13 +219,13 @@ fn test_d() {
 
 	let reserves = [1000u128, 1000u128];
 	let ann = 4u128;
-	assert_eq!(calculate_d(&reserves, ann, precision), Some(2000u128));
+	assert_eq!(calculate_d(&reserves, ann, precision), Some(2000u128 + 2u128));
 
 	let reserves = [1_000_000_000_000_000_000_000u128, 1_000_000_000_000_000_000_000u128];
 	let ann = 4u128;
 	assert_eq!(
 		calculate_d(&reserves, ann, precision),
-		Some(2_000_000_000_000_000_000_000u128)
+		Some(2_000_000_000_000_000_000_000u128 + 2u128)
 	);
 }
 
