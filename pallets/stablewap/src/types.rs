@@ -20,6 +20,15 @@ pub struct PoolInfo<AssetId, Balance> {
 	pub(crate) fee: Permill,
 }
 
+impl<AssetId, Balance> PoolInfo<AssetId, Balance>
+where
+	AssetId: PartialEq,
+{
+	pub(crate) fn contains_asset(&self, asset: AssetId) -> bool {
+		self.assets.contains(asset)
+	}
+}
+
 //////////////
 
 #[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]

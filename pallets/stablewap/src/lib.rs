@@ -268,20 +268,27 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
 		#[transactional]
-		pub fn add_liquidity(origin: OriginFor<T>, pool_id: PoolId<T::AssetId>, amount: Balance) -> DispatchResult {
+		pub fn add_liquidity(
+			origin: OriginFor<T>,
+			pool_id: PoolId<T::AssetId>,
+			asset: T::AssetId,
+			amount: Balance,
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
 
+			// Ensure that who has enought balance of each asset
+			ensure!(
+				T::Currency::free_balance(asset, &who) >= amount,
+				Error::<T>::InsufficientBalance
+			);
+
+			// NOTE: THIS IS WIP!! The following mess needs refactor. just for POC if math to make sure math is right!.
+
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
 
-			// Ensure that who has enought balance of each asset
-			for asset in pool.assets.into_iter() {
-				ensure!(
-					T::Currency::free_balance(asset, &who) >= amount,
-					Error::<T>::InsufficientBalance
-				);
-			}
+			ensure!(pool.contains_asset(asset), Error::<T>::AssetNotInPool);
 
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
@@ -291,9 +298,28 @@ pub mod pallet {
 				T::Currency::free_balance(pool.assets.1, &pool_account),
 			);
 
-			let new_reserves = AssetAmounts(
-				reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
-				reserves.1.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
+			let (new_reserves, asset_b_amount) = if asset == pool.assets.0 {
+				let asset_reserve = reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?;
+
+				let asset_b_reserve = (reserves.1 * asset_reserve) / reserves.0;
+
+				(
+					AssetAmounts(asset_reserve, asset_b_reserve),
+					asset_b_reserve - reserves.1,
+				)
+			} else {
+				let asset_reserve = reserves.1.checked_add(amount).ok_or(ArithmeticError::Overflow)?;
+
+				let asset_a_reserve = (reserves.0 * asset_reserve) / reserves.1;
+				(
+					AssetAmounts(asset_a_reserve, asset_reserve),
+					asset_a_reserve - reserves.0,
+				)
+			};
+
+			ensure!(
+				T::Currency::free_balance(pool.assets.1, &who) >= asset_b_amount,
+				Error::<T>::InsufficientBalance
 			);
 
 			let share_amount = calculate_add_liquidity_shares(
@@ -307,8 +333,12 @@ pub mod pallet {
 
 			T::Currency::deposit(pool_id.0, &who, share_amount)?;
 
-			for asset in pool.assets.into_iter() {
-				T::Currency::transfer(asset, &who, &pool_account, amount)?;
+			T::Currency::transfer(asset, &who, &pool_account, amount)?;
+
+			if asset == pool.assets.0 {
+				T::Currency::transfer(pool.assets.1, &who, &pool_account, asset_b_amount)?;
+			} else {
+				T::Currency::transfer(pool.assets.0, &who, &pool_account, asset_b_amount)?;
 			}
 
 			Self::deposit_event(Event::LiquidityAdded {

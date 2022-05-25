@@ -73,13 +73,18 @@ fn add_liquidity_works() {
 
 			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
 
-			assert_ok!(Stableswap::add_liquidity(Origin::signed(BOB), pool_id, amount_added));
+			assert_ok!(Stableswap::add_liquidity(
+				Origin::signed(BOB),
+				pool_id,
+				asset_a,
+				amount_added
+			));
 
 			assert_balance!(BOB, asset_a, 100 * ONE);
-			assert_balance!(BOB, asset_b, 100 * ONE);
-			assert_balance!(BOB, pool_id.0, 200028462782014u128);
+			assert_balance!(BOB, asset_b, 150 * ONE);
+			assert_balance!(BOB, pool_id.0, 149953401556131u128);
 			assert_balance!(pool_account, asset_a, 200 * ONE);
-			assert_balance!(pool_account, asset_b, 150 * ONE);
+			assert_balance!(pool_account, asset_b, 100 * ONE);
 		});
 }
 
@@ -115,21 +120,26 @@ fn remove_all_liquidity_works() {
 
 			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
 
-			assert_ok!(Stableswap::add_liquidity(Origin::signed(BOB), pool_id, amount_added));
+			assert_ok!(Stableswap::add_liquidity(
+				Origin::signed(BOB),
+				pool_id,
+				asset_a,
+				amount_added
+			));
 
 			let shares = Tokens::free_balance(pool_id.0, &BOB);
 
-			assert_eq!(shares, 200028462782014u128);
+			assert_eq!(shares, 149953401556131u128);
 
 			assert_ok!(Stableswap::remove_liquidity(Origin::signed(BOB), pool_id, shares));
 
-			assert_balance!(BOB, asset_a, 114_307_901_731_016u128);
-			assert_balance!(BOB, asset_b, 85_730_926_298_262u128);
+			assert_balance!(BOB, asset_a, 100 * ONE);
+			assert_balance!(BOB, asset_b, 100 * ONE);
 
 			assert_balance!(BOB, pool_id.0, 0u128);
 
-			assert_balance!(pool_account, asset_a, 85692098268984u128);
-			assert_balance!(pool_account, asset_b, 64269073701738u128);
+			assert_balance!(pool_account, asset_a, 100 * ONE);
+			assert_balance!(pool_account, asset_b, 50 * ONE);
 		});
 }
 
