@@ -30,20 +30,19 @@
 use frame_support::pallet_prelude::DispatchResult;
 use frame_support::transactional;
 
+pub use pallet::*;
+
 mod math;
 mod traits;
 mod types;
 pub mod weights;
 
-use crate::types::Balance;
-pub use pallet::*;
 use weights::WeightInfo;
 
 #[cfg(test)]
 mod tests;
 
 const POOL_IDENTIFIER: &str = "sts";
-const PRECISION: Balance = 1u128;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -93,8 +92,11 @@ pub mod pallet {
 		/// The origin which can create a new pool
 		type CreatePoolOrigin: EnsureOrigin<Self::Origin, Success = Self::AccountId>;
 
+		#[pallet::constant]
+		type Precision: Get<Balance>;
+
 		/// Weight information for extrinsics in this pallet.
-		type WeightInfo: weights::WeightInfo;
+		type WeightInfo: WeightInfo;
 	}
 
 	/// Existing pools
@@ -242,7 +244,7 @@ pub mod pallet {
 			let share_amount = calculate_add_liquidity_shares(
 				&AssetAmounts::default(),
 				&reserves,
-				PRECISION,
+				T::Precision::get(),
 				pool.amplification,
 				Balance::zero(),
 			)
@@ -294,9 +296,14 @@ pub mod pallet {
 				reserves.1.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
 			);
 
-			let share_amount =
-				calculate_add_liquidity_shares(&reserves, &new_reserves, PRECISION, pool.amplification, share_issuance)
-					.ok_or(ArithmeticError::Overflow)?;
+			let share_amount = calculate_add_liquidity_shares(
+				&reserves,
+				&new_reserves,
+				T::Precision::get(),
+				pool.amplification,
+				share_issuance,
+			)
+			.ok_or(ArithmeticError::Overflow)?;
 
 			T::Currency::deposit(pool_id.0, &who, share_amount)?;
 
@@ -305,7 +312,7 @@ pub mod pallet {
 			}
 
 			Self::deposit_event(Event::LiquidityAdded {
-				id: pool_id.clone(),
+				id: pool_id,
 				from: who,
 				amount,
 			});
@@ -344,7 +351,7 @@ pub mod pallet {
 				}
 
 				Self::deposit_event(Event::LiquidityRemoved {
-					id: pool_id.clone(),
+					id: pool_id,
 					who,
 					shares: amount,
 					amounts: (amounts.0, amounts.1),
@@ -382,9 +389,14 @@ pub mod pallet {
 				let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
 				let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
 
-				let amount_out =
-					calculate_out_given_in(reserve_in, reserve_out, amount_in, PRECISION, pool.amplification)
-						.ok_or(ArithmeticError::Overflow)?;
+				let amount_out = calculate_out_given_in(
+					reserve_in,
+					reserve_out,
+					amount_in,
+					T::Precision::get(),
+					pool.amplification,
+				)
+				.ok_or(ArithmeticError::Overflow)?;
 
 				ensure!(amount_out >= min_bought, Error::<T>::BuyLimitNotReached);
 
@@ -426,9 +438,14 @@ pub mod pallet {
 				let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
 				let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
 
-				let amount_in =
-					calculate_in_given_out(reserve_in, reserve_out, amount_out, PRECISION, pool.amplification)
-						.ok_or(ArithmeticError::Overflow)?;
+				let amount_in = calculate_in_given_out(
+					reserve_in,
+					reserve_out,
+					amount_out,
+					T::Precision::get(),
+					pool.amplification,
+				)
+				.ok_or(ArithmeticError::Overflow)?;
 
 				ensure!(amount_in <= max_sold, Error::<T>::BuyLimitNotReached);
 

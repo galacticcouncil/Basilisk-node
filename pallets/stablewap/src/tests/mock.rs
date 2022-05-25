@@ -117,6 +117,7 @@ impl orml_tokens::Config for Test {
 parameter_types! {
 	pub const HDXAssetId: AssetId = HDX;
 	pub const DAIAssetId: AssetId = DAI;
+	pub const Precision: Balance = 1;
 }
 
 impl Config for Test {
@@ -126,6 +127,7 @@ impl Config for Test {
 	type ShareAccountId = AccountIdConstructor;
 	type AssetRegistry = DummyRegistry<Test>;
 	type CreatePoolOrigin = EnsureSigned<u64>;
+	type Precision = Precision;
 	type WeightInfo = ();
 }
 

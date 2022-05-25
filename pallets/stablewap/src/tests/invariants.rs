@@ -1,5 +1,5 @@
 use crate::math::{calculate_d, calculate_in_given_out, calculate_out_given_in};
-use crate::Balance;
+use crate::types::Balance;
 use proptest::prelude::*;
 use proptest::proptest;
 
@@ -61,15 +61,15 @@ proptest! {
 
 		let precision = 1u128;
 
-		let d1 = calculate_d(&[reserve_in, reserve_out], ann, precision).unwrap();
+		let _d1 = calculate_d(&[reserve_in, reserve_out], ann, precision).unwrap();
 
 		let result = calculate_out_given_in(reserve_in, reserve_out, amount_in, precision, amp);
 
 		assert!(result.is_some());
 
-		let d2 = calculate_d(&[reserve_in + amount_in, reserve_out - result.unwrap() ], ann, precision);
+		let _d2 = calculate_d(&[reserve_in + amount_in, reserve_out - result.unwrap() ], ann, precision).unwrap();
 
-		assert!(!d2.is_none())
+		//assert!(d2 >= d1);
 	}
 }
 
@@ -109,14 +109,14 @@ proptest! {
 
 		let precision = 1u128;
 
-		let _d1 = calculate_d(&[reserve_in, reserve_out], ann, precision).unwrap();
+		let d1 = calculate_d(&[reserve_in, reserve_out], ann, precision).unwrap();
 
 		let result = calculate_in_given_out(reserve_in, reserve_out, amount_out, precision, amp);
 
 		assert!(result.is_some());
 
-		let _d2 = calculate_d(&[reserve_in + result.unwrap(), reserve_out - amount_out ], ann, precision).unwrap();
+		let d2 = calculate_d(&[reserve_in + result.unwrap(), reserve_out - amount_out ], ann, precision).unwrap();
 
-		assert!(_d2 >= _d1);
+		assert!(d2 >= d1);
 	}
 }
