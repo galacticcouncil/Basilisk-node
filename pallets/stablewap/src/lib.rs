@@ -115,7 +115,6 @@ pub mod pallet {
 		LiquidityAdded {
 			id: PoolId<T::AssetId>,
 			from: T::AccountId,
-			asset: T::AssetId,
 			amount: Balance,
 		},
 		/// Liquidity removed.
@@ -267,66 +266,51 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
 		#[transactional]
-		pub fn add_liquidity(
-			origin: OriginFor<T>,
-			pool_id: PoolId<T::AssetId>,
-			asset: T::AssetId,
-			amount: Balance,
-		) -> DispatchResult {
+		pub fn add_liquidity(origin: OriginFor<T>, pool_id: PoolId<T::AssetId>, amount: Balance) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
 
-			ensure!(
-				T::Currency::free_balance(asset, &who) >= amount,
-				Error::<T>::InsufficientBalance
+			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
+
+			// Ensure that who has enought balance of each asset
+			for asset in pool.assets.into_iter() {
+				ensure!(
+					T::Currency::free_balance(asset, &who) >= amount,
+					Error::<T>::InsufficientBalance
+				);
+			}
+
+			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+			let share_issuance = T::Currency::total_issuance(pool_id.0);
+
+			let reserves = AssetAmounts(
+				T::Currency::free_balance(pool.assets.0, &pool_account),
+				T::Currency::free_balance(pool.assets.1, &pool_account),
 			);
 
-			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
-				let pool = maybe_pool.as_ref().ok_or(Error::<T>::PoolNotFound)?;
+			let new_reserves = AssetAmounts(
+				reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
+				reserves.1.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
+			);
 
-				ensure!(pool.assets.contains(asset), Error::<T>::AssetNotInPool);
+			let share_amount =
+				calculate_add_liquidity_shares(&reserves, &new_reserves, PRECISION, pool.amplification, share_issuance)
+					.ok_or(ArithmeticError::Overflow)?;
 
-				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
-				let share_issuance = T::Currency::total_issuance(pool_id.0);
+			T::Currency::deposit(pool_id.0, &who, share_amount)?;
 
-				let reserves = AssetAmounts(
-					T::Currency::free_balance(pool.assets.0, &pool_account),
-					T::Currency::free_balance(pool.assets.1, &pool_account),
-				);
-
-				let new_reserves = if asset == pool.assets.0 {
-					AssetAmounts(
-						reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
-						reserves.1,
-					)
-				} else {
-					AssetAmounts(
-						reserves.0,
-						reserves.1.checked_add(amount).ok_or(ArithmeticError::Overflow)?,
-					)
-				};
-
-				let share_amount = calculate_add_liquidity_shares(
-					&reserves,
-					&new_reserves,
-					PRECISION,
-					pool.amplification,
-					share_issuance,
-				)
-				.ok_or(ArithmeticError::Overflow)?;
-
-				T::Currency::deposit(pool_id.0, &who, share_amount)?;
+			for asset in pool.assets.into_iter() {
 				T::Currency::transfer(asset, &who, &pool_account, amount)?;
-				Self::deposit_event(Event::LiquidityAdded {
-					id: pool_id.clone(),
-					from: who,
-					asset,
-					amount,
-				});
+			}
 
-				Ok(())
-			})
+			Self::deposit_event(Event::LiquidityAdded {
+				id: pool_id.clone(),
+				from: who,
+				amount,
+			});
+
+			Ok(())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]

@@ -15,7 +15,7 @@ fn trade_amount() -> impl Strategy<Value = Balance> {
 }
 
 fn high_trade_amount() -> impl Strategy<Value = Balance> {
-	500_000_000_000*ONE..500_000_000_001 * ONE
+	500_000_000_000 * ONE..500_000_000_001 * ONE
 }
 
 fn asset_reserve() -> impl Strategy<Value = Balance> {

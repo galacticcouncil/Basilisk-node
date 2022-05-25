@@ -8,7 +8,7 @@ use sp_runtime::traits::{CheckedAdd, Zero};
 
 pub type Balance = u128;
 
-#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolId<AssetId>(pub AssetId);
 
 //////////////

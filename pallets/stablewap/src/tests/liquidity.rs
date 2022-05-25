@@ -29,7 +29,12 @@ fn create_pool_works() {
 #[test]
 fn add_liquidity_works() {
 	ExtBuilder::default()
-		.with_endowed_accounts(vec![(BOB, 1, 200 * ONE), (ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
+		.with_endowed_accounts(vec![
+			(BOB, 1, 200 * ONE),
+			(BOB, 2, 200 * ONE),
+			(ALICE, 1, 200 * ONE),
+			(ALICE, 2, 200 * ONE),
+		])
 		.with_registered_asset("one".as_bytes().to_vec(), 1)
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.build()
@@ -50,11 +55,6 @@ fn add_liquidity_works() {
 
 			let amount_added = 100 * ONE;
 
-			assert_ok!(Stableswap::add_liquidity(
-				Origin::signed(BOB),
-				pool_id,
-				asset_a,
-				amount_added,
-			));
+			assert_ok!(Stableswap::add_liquidity(Origin::signed(BOB), pool_id, amount_added,));
 		});
 }
