@@ -332,33 +332,31 @@ pub mod pallet {
 				Error::<T>::InsufficientShares
 			);
 
-			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
-				let pool = maybe_pool.as_ref().ok_or(Error::<T>::PoolNotFound)?;
+			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
+			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
-				let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+			let reserve_i = T::Currency::free_balance(pool.assets.0, &pool_account);
+			let reserve_j = T::Currency::free_balance(pool.assets.1, &pool_account);
 
-				let reserve_i = T::Currency::free_balance(pool.assets.0, &pool_account);
-				let reserve_j = T::Currency::free_balance(pool.assets.1, &pool_account);
+			let share_issuance = T::Currency::total_issuance(pool_id.0);
 
-				let share_issuance = T::Currency::total_issuance(pool_id.0);
+			let amounts = calculate_remove_liquidity_amounts(&(reserve_i, reserve_j).into(), amount, share_issuance)
+				.ok_or(ArithmeticError::Overflow)?;
 
-				let amounts =
-					calculate_remove_liquidity_amounts(&(reserve_i, reserve_j).into(), amount, share_issuance)
-						.ok_or(ArithmeticError::Overflow)?;
+			T::Currency::withdraw(pool_id.0, &who, amount)?;
 
-				for (asset, amount) in pool.assets.into_iter().zip(amounts.into_iter()) {
-					T::Currency::transfer(asset, &pool_account, &who, amount)?;
-				}
+			for (asset, asset_amount) in pool.assets.into_iter().zip(amounts.into_iter()) {
+				T::Currency::transfer(asset, &pool_account, &who, asset_amount)?;
+			}
 
-				Self::deposit_event(Event::LiquidityRemoved {
-					id: pool_id,
-					who,
-					shares: amount,
-					amounts: (amounts.0, amounts.1),
-				});
+			Self::deposit_event(Event::LiquidityRemoved {
+				id: pool_id,
+				who,
+				shares: amount,
+				amounts: (amounts.0, amounts.1),
+			});
 
-				Ok(())
-			})
+			Ok(())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]

@@ -23,21 +23,26 @@ pub(crate) fn calculate_add_liquidity_shares(
 	updated_reserves: &AssetAmounts<Balance>,
 	precision: Balance,
 	amplification: Balance,
-	_share_issuance: Balance,
+	share_issuance: Balance,
 ) -> Option<Balance> {
 	let ann = calculate_ann(amplification)?;
 
 	let initial_d = calculate_d(&[initial_reserves.0, initial_reserves.1], ann, precision)?;
 	let updated_d = calculate_d(&[updated_reserves.0, updated_reserves.1], ann, precision)?;
 
-	if updated_d <= initial_d {
+	if updated_d < initial_d {
 		return None;
 	}
 
 	// TODO: fee accounting - question - fee in add liquidity only if share_issuance > 0 ??!
-	let share_amount = updated_d;
-
-	Some(share_amount)
+	if share_issuance == 0 {
+		Some(updated_d)
+	} else {
+		let share_amount = share_issuance
+			.checked_mul(updated_d - initial_d)?
+			.checked_div(initial_d)?;
+		Some(share_amount)
+	}
 }
 
 pub(crate) fn calculate_remove_liquidity_amounts(

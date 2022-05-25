@@ -31,6 +31,7 @@ use frame_support::{
 };
 use frame_system::EnsureSigned;
 use orml_traits::parameter_type_with_key;
+pub use orml_traits::MultiCurrency;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -51,6 +52,13 @@ pub const ALICE: u64 = 1;
 pub const BOB: u64 = 2;
 
 pub const ONE: Balance = 1_000_000_000_000;
+
+#[macro_export]
+macro_rules! assert_balance {
+	( $x:expr, $y:expr, $z:expr) => {{
+		assert_eq!(Tokens::free_balance($y, &$x), $z);
+	}};
+}
 
 thread_local! {
 	pub static REGISTERED_ASSETS: RefCell<HashMap<AssetId, u32>> = RefCell::new(HashMap::default());
@@ -274,4 +282,8 @@ impl ShareAccountIdFor<PoolAssets<u32>> for AccountIdConstructor {
 
 		buf
 	}
+}
+
+pub(crate) fn retrieve_current_asset_id() -> AssetId {
+	REGISTERED_ASSETS.with(|v| v.borrow().len() as AssetId)
 }
