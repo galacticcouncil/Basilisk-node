@@ -127,6 +127,7 @@ parameter_types! {
 	pub const DAIAssetId: AssetId = DAI;
 	pub const Precision: Balance = 1;
 	pub const MinimumLiquidity: Balance = 1000;
+	pub const MinimumTradingLimit: Balance = 1000;
 }
 
 impl Config for Test {
@@ -138,6 +139,7 @@ impl Config for Test {
 	type CreatePoolOrigin = EnsureSigned<u64>;
 	type Precision = Precision;
 	type MinimumLiquidity = MinimumLiquidity;
+	type MinimumTradingLimit = MinimumTradingLimit;
 	type WeightInfo = ();
 }
 

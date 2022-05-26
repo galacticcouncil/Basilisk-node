@@ -98,6 +98,9 @@ pub mod pallet {
 		#[pallet::constant]
 		type MinimumLiquidity: Get<Balance>;
 
+		#[pallet::constant]
+		type MinimumTradingLimit: Get<Balance>;
+
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -181,6 +184,9 @@ pub mod pallet {
 
 		/// Insufficient liquidity left in the pool after withdrawal.
 		InsufficientLiquidityRemaining,
+
+		/// Amount is less than min trading limit.
+		InsufficientTradingAmount,
 
 		/// Minimum limit has not been reached during trade.
 		BuyLimitNotReached,
@@ -293,7 +299,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			ensure!(amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
+			ensure!(
+				amount >= T::MinimumTradingLimit::get(),
+				Error::<T>::InsufficientTradingAmount
+			);
 
 			// Ensure that who has enough balance of given asset
 			ensure!(
@@ -438,6 +447,11 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			ensure!(
+				amount_in >= T::MinimumTradingLimit::get(),
+				Error::<T>::InsufficientTradingAmount
+			);
+
+			ensure!(
 				T::Currency::free_balance(asset_in, &who) >= amount_in,
 				Error::<T>::InsufficientBalance
 			);
@@ -488,6 +502,11 @@ pub mod pallet {
 			max_sold: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			ensure!(
+				amount_out >= T::MinimumTradingLimit::get(),
+				Error::<T>::InsufficientTradingAmount
+			);
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
 
