@@ -95,6 +95,9 @@ pub mod pallet {
 		#[pallet::constant]
 		type Precision: Get<Balance>;
 
+		#[pallet::constant]
+		type MinimumLiquidity: Get<Balance>;
+
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -172,6 +175,12 @@ pub mod pallet {
 
 		/// Balance of an share asset is nto sufficient to withdraw liquiduity.
 		InsufficientShares,
+
+		/// Liquidity has not reached the required minimum.
+		InsufficientLiquidity,
+
+		/// Insufficient liquidity left in the pool after withdrawal.
+		InsufficientLiquidityRemaining,
 
 		/// Minimum limit has not been reached during trade.
 		BuyLimitNotReached,
@@ -251,6 +260,11 @@ pub mod pallet {
 				Balance::zero(),
 			)
 			.ok_or(ArithmeticError::Overflow)?;
+
+			ensure!(
+				share_amount >= T::MinimumLiquidity::get(),
+				Error::<T>::InsufficientLiquidity
+			);
 
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
@@ -385,6 +399,11 @@ pub mod pallet {
 			);
 
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
+
+			ensure!(
+				share_issuance.saturating_sub(amount) >= T::MinimumLiquidity::get(),
+				Error::<T>::InsufficientLiquidityRemaining
+			);
 
 			let amounts = calculate_remove_liquidity_amounts(&initial_reserves, amount, share_issuance)
 				.ok_or(ArithmeticError::Overflow)?;
