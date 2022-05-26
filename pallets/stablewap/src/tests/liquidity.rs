@@ -34,7 +34,7 @@ fn create_pool_works() {
 			assert_balance!(ALICE, asset_a, 100 * ONE);
 			assert_balance!(ALICE, asset_b, 150 * ONE);
 
-			assert_balance!(ALICE, pool_id.0, 149_953_401_556_131u128);
+			assert_balance!(ALICE, pool_id.0, 149_953_401_556_133u128);
 
 			assert_balance!(pool_account, asset_a, 100 * ONE);
 			assert_balance!(pool_account, asset_b, 50 * ONE);
@@ -133,13 +133,13 @@ fn remove_all_liquidity_works() {
 
 			assert_ok!(Stableswap::remove_liquidity(Origin::signed(BOB), pool_id, shares));
 
-			assert_balance!(BOB, asset_a, 100 * ONE);
-			assert_balance!(BOB, asset_b, 100 * ONE);
+			assert_balance!(BOB, asset_a, 100 * ONE - 1);
+			assert_balance!(BOB, asset_b, 100 * ONE - 1);
 
 			assert_balance!(BOB, pool_id.0, 0u128);
 
-			assert_balance!(pool_account, asset_a, 100 * ONE);
-			assert_balance!(pool_account, asset_b, 50 * ONE);
+			assert_balance!(pool_account, asset_a, 100 * ONE + 1);
+			assert_balance!(pool_account, asset_b, 50 * ONE + 1);
 		});
 }
 

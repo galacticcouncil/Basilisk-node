@@ -127,12 +127,13 @@ pub(crate) fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -
 					.checked_sub(U256::one())?
 					.checked_mul(d)?
 					.checked_add(n_coins_hp.checked_add(U256::one())?.checked_mul(d_p)?)?,
-			)?.checked_add(two_u256)?;  // adding two here is sufficient to account for rounding
-										// errors, AS LONG AS the minimum reserves are 2 for each
-										// asset. I.e., as long as xp_hp[0] >= 2 and xp_hp[1] >= 2
+			)?
+			.checked_add(two_u256)?; // adding two here is sufficient to account for rounding
+						 // errors, AS LONG AS the minimum reserves are 2 for each
+						 // asset. I.e., as long as xp_hp[0] >= 2 and xp_hp[1] >= 2
 
-										// adding two guarantees that this function will return
-										// a value larger than or equal to the correct D invariant
+		// adding two guarantees that this function will return
+		// a value larger than or equal to the correct D invariant
 
 		if d > d_prev {
 			if d.checked_sub(d_prev)? <= precision_hp {
@@ -236,14 +237,14 @@ fn test_y_given_in() {
 	let ann = 4u128;
 
 	let amount_in = 100u128;
-	assert_eq!(calculate_d(&reserves, ann, precision), Some(2940u128));
+	assert_eq!(calculate_d(&reserves, ann, precision), Some(2942u128));
 	assert_eq!(
 		calculate_y_given_in(amount_in, reserves[0], reserves[1], ann, precision),
-		Some(2000u128 - 125u128)
+		Some(2000u128 - 122u128)
 	);
 	assert_eq!(
 		calculate_d(&[1100u128, 2000u128 - 125u128], ann, precision),
-		Some(2940u128)
+		Some(2942u128)
 	);
 }
 
@@ -255,9 +256,9 @@ fn test_y_given_out() {
 
 	let amount_out = 100u128;
 
-	let expected_in = 80u128;
+	let expected_in = 82u128;
 
-	assert_eq!(calculate_d(&reserves, ann, precision), Some(2940u128));
+	assert_eq!(calculate_d(&reserves, ann, precision), Some(2942u128));
 
 	assert_eq!(
 		calculate_y_given_out(amount_out, reserves[0], reserves[1], ann, precision),
@@ -265,7 +266,7 @@ fn test_y_given_out() {
 	);
 	assert_eq!(
 		calculate_d(&[1000u128 + expected_in, 2000u128 - amount_out], ann, precision),
-		Some(2940u128)
+		Some(2945u128)
 	);
 }
 
