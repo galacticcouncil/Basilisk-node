@@ -27,7 +27,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::pallet_prelude::DispatchResult;
+use frame_support::pallet_prelude::{DispatchResult, Get};
 use frame_support::transactional;
 
 pub use pallet::*;
@@ -37,6 +37,7 @@ mod traits;
 mod types;
 pub mod weights;
 
+use crate::types::Balance;
 use weights::WeightInfo;
 
 #[cfg(test)]
@@ -101,6 +102,9 @@ pub mod pallet {
 		#[pallet::constant]
 		type MinimumTradingLimit: Get<Balance>;
 
+		#[pallet::constant]
+		type TradeFee: Get<Permill>;
+
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -141,6 +145,7 @@ pub mod pallet {
 			asset_out: T::AssetId,
 			amount_in: Balance,
 			amount_out: Balance,
+			fee: Balance,
 		},
 		/// Buy trade executed.
 		BuyExecuted {
@@ -475,6 +480,10 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
+			let fee_amount = Self::calculate_fee_amount(amount_out, true).ok_or(ArithmeticError::Overflow)?;
+
+			let amount_out = amount_out.checked_sub(fee_amount).ok_or(ArithmeticError::Underflow)?;
+
 			ensure!(amount_out >= min_bought, Error::<T>::BuyLimitNotReached);
 
 			T::Currency::transfer(asset_in, &who, &pool_account, amount_in)?;
@@ -486,6 +495,7 @@ pub mod pallet {
 				asset_out,
 				amount_in,
 				amount_out,
+				fee: fee_amount,
 			});
 
 			Ok(())
@@ -527,6 +537,10 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
+			let fee_amount = Self::calculate_fee_amount(amount_in, false).ok_or(ArithmeticError::Overflow)?;
+
+			let amount_in = amount_in.checked_add(fee_amount).ok_or(ArithmeticError::Overflow)?;
+
 			ensure!(amount_in <= max_sold, Error::<T>::BuyLimitNotReached);
 
 			ensure!(
@@ -551,4 +565,16 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+}
+
+impl<T: Config> Pallet<T> {
+	//TODO: use enum type for rounding indication
+	fn calculate_fee_amount(amount: Balance, rounding_down: bool) -> Option<Balance> {
+		let fee = T::TradeFee::get();
+		if rounding_down {
+			Some(fee.mul_floor(amount))
+		} else {
+			Some(fee.mul_ceil(amount))
+		}
+	}
 }
