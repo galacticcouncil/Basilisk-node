@@ -178,13 +178,6 @@ impl WeightToFeePolynomial for WeightToFee {
 	}
 }
 
-pub struct MtpOracle;
-impl hydradx_traits::PriceOracle<AssetId, Price> for MtpOracle {
-	fn price(currency: AssetId) -> Option<Price> {
-		MultiTransactionPayment::currency_price(currency)
-	}
-}
-
 // Relay chain Block number provider.
 // Reason why the implementation is different for benchmarks is that it is not possible
 // to set or change the block number in a benchmark using parachain system pallet.
