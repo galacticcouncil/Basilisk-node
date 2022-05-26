@@ -448,8 +448,8 @@ pub mod pallet {
 		pub fn buy(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T::AssetId>,
-			asset_in: T::AssetId,
 			asset_out: T::AssetId,
+			asset_in: T::AssetId,
 			amount_out: Balance,
 			max_sold: Balance,
 		) -> DispatchResult {
