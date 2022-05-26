@@ -89,6 +89,53 @@ fn add_liquidity_works() {
 }
 
 #[test]
+fn add_liquidity_other_asset_works() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, 1, 200 * ONE),
+			(BOB, 2, 200 * ONE),
+			(ALICE, 1, 200 * ONE),
+			(ALICE, 2, 200 * ONE),
+		])
+		.with_registered_asset("one".as_bytes().to_vec(), 1)
+		.with_registered_asset("two".as_bytes().to_vec(), 2)
+		.build()
+		.execute_with(|| {
+			let asset_a: AssetId = 1;
+			let asset_b: AssetId = 2;
+			let amplification: Balance = 100;
+			let initial_liquidity = (100 * ONE, 50 * ONE);
+
+			let pool_id = PoolId(retrieve_current_asset_id());
+
+			assert_ok!(Stableswap::create_pool(
+				Origin::signed(ALICE),
+				(asset_a, asset_b),
+				initial_liquidity,
+				amplification,
+				Permill::from_percent(0)
+			));
+
+			let amount_added = 100 * ONE;
+
+			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+
+			assert_ok!(Stableswap::add_liquidity(
+				Origin::signed(BOB),
+				pool_id,
+				asset_b,
+				amount_added
+			));
+
+			assert_balance!(BOB, asset_a, 0u128);
+			assert_balance!(BOB, asset_b, 100 * ONE);
+			assert_balance!(BOB, pool_id.0, 299906803112262u128);
+			assert_balance!(pool_account, asset_a, 300 * ONE);
+			assert_balance!(pool_account, asset_b, 150 * ONE);
+		});
+}
+
+#[test]
 fn remove_all_liquidity_works() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
