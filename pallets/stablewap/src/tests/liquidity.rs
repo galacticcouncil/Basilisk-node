@@ -143,7 +143,42 @@ fn remove_all_liquidity_works() {
 		});
 }
 
+#[test]
+fn create_pool_with_asset_order_swapped_works() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
+		.with_registered_asset("one".as_bytes().to_vec(), 1)
+		.with_registered_asset("two".as_bytes().to_vec(), 2)
+		.build()
+		.execute_with(|| {
+			let asset_a: AssetId = 1;
+			let asset_b: AssetId = 2;
+			let amplification: Balance = 100;
+
+			let initial_liquidity = (50 * ONE, 100 * ONE);
+
+			let pool_id = PoolId(retrieve_current_asset_id());
+
+			assert_ok!(Stableswap::create_pool(
+				Origin::signed(ALICE),
+				(asset_b, asset_a),
+				initial_liquidity,
+				amplification,
+				Permill::from_percent(0)
+			));
+
+			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+
+			assert_balance!(ALICE, asset_a, 100 * ONE);
+			assert_balance!(ALICE, asset_b, 150 * ONE);
+
+			assert_balance!(ALICE, pool_id.0, 149_953_401_556_133u128);
+
+			assert_balance!(pool_account, asset_a, 100 * ONE);
+			assert_balance!(pool_account, asset_b, 50 * ONE);
+		});
+}
+
 // TODO: add tests for create pool:
 //  - create pool with same asset ids fails
 //  - create pool with same asset ids swapped fails
-//  - create pool with reverted assets ( asset a id > asset b id ) should correctly transfer amounts
