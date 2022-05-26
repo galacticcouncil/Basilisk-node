@@ -113,7 +113,7 @@ fn simple_sell_with_fee_works() {
 				(asset_a, asset_b),
 				initial_liquidity,
 				amplification,
-				Permill::from_percent(0)
+				Permill::from_percent(10)
 			));
 
 			assert_ok!(Stableswap::sell(
@@ -161,7 +161,7 @@ fn simple_buy_with_fee_works() {
 				(asset_a, asset_b),
 				initial_liquidity,
 				amplification,
-				Permill::from_percent(0)
+				Permill::from_percent(10)
 			));
 
 			assert_ok!(Stableswap::buy(

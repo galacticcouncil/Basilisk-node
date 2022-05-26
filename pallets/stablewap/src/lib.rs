@@ -29,6 +29,7 @@
 
 use frame_support::pallet_prelude::{DispatchResult, Get};
 use frame_support::transactional;
+use sp_runtime::Permill;
 
 pub use pallet::*;
 
@@ -480,7 +481,7 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
-			let fee_amount = Self::calculate_fee_amount(amount_out, true).ok_or(ArithmeticError::Overflow)?;
+			let fee_amount = Self::calculate_fee_amount(amount_out, pool.fee, true).ok_or(ArithmeticError::Overflow)?;
 
 			let amount_out = amount_out.checked_sub(fee_amount).ok_or(ArithmeticError::Underflow)?;
 
@@ -537,7 +538,7 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
-			let fee_amount = Self::calculate_fee_amount(amount_in, false).ok_or(ArithmeticError::Overflow)?;
+			let fee_amount = Self::calculate_fee_amount(amount_in, pool.fee, false).ok_or(ArithmeticError::Overflow)?;
 
 			let amount_in = amount_in.checked_add(fee_amount).ok_or(ArithmeticError::Overflow)?;
 
@@ -569,8 +570,7 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	//TODO: use enum type for rounding indication
-	fn calculate_fee_amount(amount: Balance, rounding_down: bool) -> Option<Balance> {
-		let fee = T::TradeFee::get();
+	fn calculate_fee_amount(amount: Balance, fee: Permill, rounding_down: bool) -> Option<Balance> {
 		if rounding_down {
 			Some(fee.mul_floor(amount))
 		} else {
