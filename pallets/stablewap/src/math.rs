@@ -21,8 +21,6 @@ pub(crate) mod two_asset_pool_math {
 	use crate::types::{AssetAmounts, Balance};
 	use sp_runtime::traits::{One, Zero};
 
-	const NUMBER_OF_ASSETS_PER_POOL: u128 = 2;
-
 	/// Calculate shares amount after liquidity is added to the pool.
 	///
 	/// No fee applied. Currently is expected that liquidity of both assets are added to the pool.
@@ -116,8 +114,7 @@ pub(crate) mod two_asset_pool_math {
 	}
 
 	fn calculate_ann(amplification: Balance) -> Option<Balance> {
-		let n_coins = NUMBER_OF_ASSETS_PER_POOL as u128;
-		(0..NUMBER_OF_ASSETS_PER_POOL).try_fold(amplification, |acc, _| acc.checked_mul(n_coins))
+		(0..2).try_fold(amplification, |acc, _| acc.checked_mul(2u128))
 	}
 
 	/// Calculate `d` so the Stableswap invariant does not change.
@@ -140,8 +137,8 @@ pub(crate) mod two_asset_pool_math {
 	/// - `ann`: amplification coefficient multiplied by `2^2` ( number of assets in pool)
 	/// - `precision`:  convergence precision
 	pub(crate) fn calculate_d(xp: &[Balance; 2], ann: Balance, precision: Balance) -> Option<Balance> {
-		let n_coins = NUMBER_OF_ASSETS_PER_POOL;
 		let two_u256 = to_u256!(2_u128);
+		let n_coins = two_u256;
 
 		let mut xp_hp: [U256; 2] = [to_u256!(xp[0]), to_u256!(xp[1])];
 		xp_hp.sort();
@@ -236,9 +233,9 @@ pub(crate) mod two_asset_pool_math {
 	///
 	/// Note: this implementation works only for 2 assets pool!
 	fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -> Option<Balance> {
-		let (d_hp, two_hp, n_coins_hp, ann_hp, new_reserve_hp, precision_hp) =
-			to_u256!(d, 2u128, NUMBER_OF_ASSETS_PER_POOL, ann, reserve, precision);
+		let (d_hp, two_hp, ann_hp, new_reserve_hp, precision_hp) = to_u256!(d, 2u128, ann, reserve, precision);
 
+		let n_coins_hp = two_hp;
 		let s = new_reserve_hp;
 		let mut c = d_hp;
 
