@@ -62,12 +62,6 @@ impl<AssetId: Copy> From<&PoolAssets<AssetId>> for Vec<AssetId> {
 	}
 }
 
-impl<AssetId> From<PoolAssets<AssetId>> for Vec<AssetId> {
-	fn from(assets: PoolAssets<AssetId>) -> Self {
-		vec![assets.0, assets.1]
-	}
-}
-
 pub struct PoolAssetIterator<AssetId> {
 	iter: sp_std::vec::IntoIter<AssetId>,
 }

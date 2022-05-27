@@ -1,4 +1,4 @@
-use crate::math::{calculate_d, calculate_in_given_out, calculate_out_given_in};
+use crate::math::two_asset_pool_math::{calculate_d, calculate_in_given_out, calculate_out_given_in};
 use crate::types::Balance;
 use proptest::prelude::*;
 use proptest::proptest;

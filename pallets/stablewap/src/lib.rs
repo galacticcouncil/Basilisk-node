@@ -17,13 +17,6 @@
 //!
 //! TBD
 //!
-//!
-//! Questions:
-//! 1. who can create pools
-//! 2. pool owner needed to know ?
-//! 3. creation fee?
-//! 4. fees = trade fee and admin fee?!
-//! 5.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -49,7 +42,7 @@ const POOL_IDENTIFIER: &str = "sts";
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::math::{
+	use crate::math::two_asset_pool_math::{
 		calculate_add_liquidity_shares, calculate_asset_b_reserve, calculate_in_given_out, calculate_out_given_in,
 		calculate_remove_liquidity_amounts,
 	};
@@ -87,8 +80,10 @@ pub mod pallet {
 		/// Multi currency mechanism
 		type Currency: MultiCurrency<Self::AccountId, CurrencyId = Self::AssetId, Balance = Balance>;
 
+		/// Account ID constructor
 		type ShareAccountId: ShareAccountIdFor<PoolAssets<Self::AssetId>, AccountId = Self::AccountId>;
 
+		/// Asset registry mechnanism
 		type AssetRegistry: ShareTokenRegistry<Self::AssetId, Vec<u8>, Balance, DispatchError>;
 
 		/// The origin which can create a new pool
@@ -203,6 +198,22 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Create a 2-asset pool with initial liquidity for both assets.
+		///
+		/// Both assets must be correctly registered in `T::AssetRegistry`
+		///
+		/// Initial liquidity must be > 0.
+		///
+		/// Origin is given corresponding amount of shares.
+		///
+		/// Parameters:
+		/// - `origin`: Must be T::CreatePoolOrigin
+		/// - `assets`: Asset ids tuple
+		/// - `initial_liquidity`: Corresponding initial liquidity of `assets`
+		/// - `amplification`: Pool amplification
+		/// - `fee`: trade fee to be applied in sell/buy trades
+		///
+		/// Emits `PoolCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		#[transactional]
 		pub fn create_pool(
@@ -292,6 +303,26 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Add liquidity to selected 2-asset pool.
+		///
+		/// LP must provide liquidity of both assets by specifying amount of asset a.
+		///
+		/// Amount of asset b is calculated so the ratio does not change:
+		///
+		/// new_reserve_b = (reserve_a + amount) * reserve_b / reserve_a
+		/// amount_b = new_reserve_b - reserve_b
+		///
+		/// LP must have sufficient amount of asset a/b - amount_a and amount_b.
+		///
+		/// Origin is given corresponding amount of shares.
+		///
+		/// Parameters:
+		/// - `origin`: Must be T::CreatePoolOrigin
+		/// - `pool_id`: Pool Id
+		/// - `asset`: Asset id
+		/// - `amount`: liquidity amount of `asset` to be added to the pool.
+		///
+		/// Emits `LiquidityAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
 		#[transactional]
 		pub fn add_liquidity(
@@ -390,6 +421,18 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Remove liquidity from selected 2-asset pool in the form of burning shares.
+		///
+		/// LP receives certain amount of both assets.
+		///
+		/// Partial withdrawal is alloed.
+		///
+		/// Parameters:
+		/// - `origin`: Must be T::CreatePoolOrigin
+		/// - `pool_id`: Pool Id
+		/// - `amount`: Amount of shares to burn
+		///
+		/// Emits `LiquidityRemoved` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
 		#[transactional]
 		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T::AssetId>, amount: Balance) -> DispatchResult {
@@ -437,6 +480,18 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Execute a swap of `asset_in` for `asset_out`.
+		///
+		/// Parameters:
+		/// - `origin`:
+		/// - `pool_id`: Id of a pool
+		/// - `asset_in`: ID of asset sold to the pool
+		/// - `asset_out`: ID of asset bought from the pool
+		/// - `amount`: Amount of asset sold
+		/// - `min_buy_amount`: Minimum amount required to receive
+		///
+		/// Emits `SellExecuted` event when successful.
+		///
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]
 		#[transactional]
 		pub fn sell(
@@ -445,7 +500,7 @@ pub mod pallet {
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
 			amount_in: Balance,
-			min_bought: Balance,
+			min_buy_amount: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -482,7 +537,7 @@ pub mod pallet {
 
 			let amount_out = amount_out.checked_sub(fee_amount).ok_or(ArithmeticError::Underflow)?;
 
-			ensure!(amount_out >= min_bought, Error::<T>::BuyLimitNotReached);
+			ensure!(amount_out >= min_buy_amount, Error::<T>::BuyLimitNotReached);
 
 			T::Currency::transfer(asset_in, &who, &pool_account, amount_in)?;
 			T::Currency::transfer(asset_out, &pool_account, &who, amount_out)?;
@@ -499,6 +554,18 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Execute a swap of `asset_out` for `asset_in`.
+		///
+		/// Parameters:
+		/// - `origin`:
+		/// - `pool_id`: Id of a pool
+		/// - `asset_out`: ID of asset bought from the pool
+		/// - `asset_in`: ID of asset sold to the pool
+		/// - `amount`: Amount of asset sold
+		/// - `max_sell_amount`: Maximum amount allowedto be sold
+		///
+		/// Emits `buyExecuted` event when successful.
+		///
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
 		#[transactional]
 		pub fn buy(
@@ -507,7 +574,7 @@ pub mod pallet {
 			asset_out: T::AssetId,
 			asset_in: T::AssetId,
 			amount_out: Balance,
-			max_sold: Balance,
+			max_sell_amount: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -539,7 +606,7 @@ pub mod pallet {
 
 			let amount_in = amount_in.checked_add(fee_amount).ok_or(ArithmeticError::Overflow)?;
 
-			ensure!(amount_in <= max_sold, Error::<T>::BuyLimitNotReached);
+			ensure!(amount_in <= max_sell_amount, Error::<T>::BuyLimitNotReached);
 
 			ensure!(
 				T::Currency::free_balance(asset_in, &who) >= amount_in,
