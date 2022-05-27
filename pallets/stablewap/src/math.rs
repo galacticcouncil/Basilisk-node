@@ -38,7 +38,9 @@ pub(crate) mod two_asset_pool_math {
 		let ann = calculate_ann(amplification)?;
 
 		let initial_d = calculate_d(&[initial_reserves.0, initial_reserves.1], ann, precision)?;
-		let updated_d = calculate_d(&[updated_reserves.0, updated_reserves.1], ann, precision)?;
+		// We must make sure the updated_d is rounded *down* so that we are not giving the new position too many shares.
+		// calculate_d can return a D value that is above the correct D value by up to 2, so we subtract 2.
+		let updated_d = calculate_d(&[updated_reserves.0, updated_reserves.1], ann, precision)?.checked_sub(2_u128)?;
 
 		if updated_d < initial_d {
 			return None;
