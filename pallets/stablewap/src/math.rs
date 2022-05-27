@@ -48,10 +48,9 @@ pub(crate) mod two_asset_pool_math {
 			// if first liquidity added
 			Some(updated_d)
 		} else {
-			let share_amount = share_issuance
-				.checked_mul(updated_d - initial_d)?
-				.checked_div(initial_d)?;
-			Some(share_amount)
+			let (issuance_hp, d_diff, d0) = to_u256!(share_issuance, updated_d - initial_d, initial_d);
+			let share_amount = issuance_hp.checked_mul(d_diff)?.checked_div(d0)?;
+			to_balance!(share_amount)
 		}
 	}
 
