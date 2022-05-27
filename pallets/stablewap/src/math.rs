@@ -233,6 +233,7 @@ pub(crate) mod two_asset_pool_math {
 	/// Note: this implementation works only for 2 assets pool!
 	fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -> Option<Balance> {
 		let (d_hp, two_hp, ann_hp, new_reserve_hp, precision_hp) = to_u256!(d, 2u128, ann, reserve, precision);
+		let MAGiC_TWO: U256 = to_u256!(2_u128);
 
 		let n_coins_hp = two_hp;
 		let s = new_reserve_hp;
@@ -250,14 +251,18 @@ pub(crate) mod two_asset_pool_math {
 			y = y
 				.checked_mul(y)?
 				.checked_add(c)?
-				.checked_div(two_hp.checked_mul(y)?.checked_add(b)?.checked_sub(d_hp)?)?;
+				.checked_div(two_hp.checked_mul(y)?.checked_add(b)?.checked_sub(d_hp)?)?.checked_add(MAGiC_TWO)?;
+			// Adding 2 guarantees that at each iteration, we are rounding so as to *overestimate* compared
+			// to exact division.
+			// Note that while this should guarantee convergence when y is decreasing, it may cause
+			// issues when y is increasing.
 
 			if y > y_prev {
 				if y.checked_sub(y_prev)? <= precision_hp {
-					return to_balance!(y)?.checked_add(Balance::one());
+					return to_balance!(y);
 				}
 			} else if y_prev.checked_sub(y)? <= precision_hp {
-				return to_balance!(y)?.checked_add(Balance::one());
+				return to_balance!(y);
 			}
 		}
 
@@ -297,7 +302,7 @@ pub(crate) mod two_asset_pool_math {
 		assert_eq!(calculate_d(&reserves, ann, precision), Some(2942u128));
 		assert_eq!(
 			calculate_y_given_in(amount_in, reserves[0], reserves[1], ann, precision),
-			Some(2000u128 - 122u128)
+			Some(2000u128 - 121u128)
 		);
 		assert_eq!(
 			calculate_d(&[1100u128, 2000u128 - 125u128], ann, precision),
@@ -313,7 +318,7 @@ pub(crate) mod two_asset_pool_math {
 
 		let amount_out = 100u128;
 
-		let expected_in = 82u128;
+		let expected_in = 83u128;
 
 		assert_eq!(calculate_d(&reserves, ann, precision), Some(2942u128));
 
@@ -323,7 +328,7 @@ pub(crate) mod two_asset_pool_math {
 		);
 		assert_eq!(
 			calculate_d(&[1000u128 + expected_in, 2000u128 - amount_out], ann, precision),
-			Some(2945u128)
+			Some(2946u128)
 		);
 	}
 
