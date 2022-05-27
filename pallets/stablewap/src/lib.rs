@@ -103,9 +103,6 @@ pub mod pallet {
 		#[pallet::constant]
 		type MinimumTradingLimit: Get<Balance>;
 
-		#[pallet::constant]
-		type TradeFee: Get<Permill>;
-
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}

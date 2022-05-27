@@ -98,7 +98,6 @@ fn simple_sell_with_fee_works() {
 		.with_endowed_accounts(vec![(BOB, 1, 200 * ONE), (ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
 		.with_registered_asset("one".as_bytes().to_vec(), 1)
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
-		.with_trade_fee(Permill::from_percent(10))
 		.build()
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
@@ -146,7 +145,6 @@ fn simple_buy_with_fee_works() {
 		.with_endowed_accounts(vec![(BOB, 1, 200 * ONE), (ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
 		.with_registered_asset("one".as_bytes().to_vec(), 1)
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
-		.with_trade_fee(Permill::from_percent(10))
 		.build()
 		.execute_with(|| {
 			let asset_a: AssetId = 1;

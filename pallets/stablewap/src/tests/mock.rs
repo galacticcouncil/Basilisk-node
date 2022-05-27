@@ -36,7 +36,7 @@ use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	DispatchError, Permill,
+	DispatchError,
 };
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -52,10 +52,6 @@ pub const ALICE: u64 = 1;
 pub const BOB: u64 = 2;
 
 pub const ONE: Balance = 1_000_000_000_000;
-
-thread_local! {
-	pub static TRADE_FEE: RefCell<Permill> = RefCell::new(Permill::from_percent(0));
-}
 
 #[macro_export]
 macro_rules! assert_balance {
@@ -132,7 +128,6 @@ parameter_types! {
 	pub const Precision: Balance = 1;
 	pub const MinimumLiquidity: Balance = 1000;
 	pub const MinimumTradingLimit: Balance = 1000;
-	pub TradeFee: Permill= TRADE_FEE.with(|v| *v.borrow());
 }
 
 impl Config for Test {
@@ -145,14 +140,12 @@ impl Config for Test {
 	type Precision = Precision;
 	type MinimumLiquidity = MinimumLiquidity;
 	type MinimumTradingLimit = MinimumTradingLimit;
-	type TradeFee = TradeFee;
 	type WeightInfo = ();
 }
 
 pub struct ExtBuilder {
 	endowed_accounts: Vec<(u64, AssetId, Balance)>,
 	registered_assets: Vec<(Vec<u8>, AssetId)>,
-	trade_fee: Permill,
 }
 
 impl Default for ExtBuilder {
@@ -166,11 +159,9 @@ impl Default for ExtBuilder {
 		ASSET_IDENTS.with(|v| {
 			v.borrow_mut().clear();
 		});
-		TRADE_FEE.with(|v| *v.borrow_mut() = Permill::from_percent(0));
 		Self {
 			endowed_accounts: vec![],
 			registered_assets: vec![],
-			trade_fee: Permill::from_percent(0),
 		}
 	}
 }
@@ -185,17 +176,9 @@ impl ExtBuilder {
 		self.registered_assets.push((name, asset));
 		self
 	}
-	pub fn with_trade_fee(mut self, fee: Permill) -> Self {
-		self.trade_fee = fee;
-		self
-	}
 
 	pub fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
-
-		TRADE_FEE.with(|v| {
-			*v.borrow_mut() = self.trade_fee;
-		});
 
 		let mut all_assets: Vec<(Vec<u8>, AssetId)> =
 			vec![("DAI".as_bytes().to_vec(), DAI), ("HDX".as_bytes().to_vec(), HDX)];
