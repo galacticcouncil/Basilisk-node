@@ -13,7 +13,7 @@ use sp_core::{sr25519::Signature, H256};
 
 use sp_runtime::{
 	testing::{Header, TestXt},
-	traits::{BlakeTwo256, Extrinsic as ExtrinsicT, IdentifyAccount, IdentityLookup, Verify},
+	traits::{BlakeTwo256, Extrinsic as ExtrinsicT, IdentifyAccount, IdentityLookup, Verify, One},
 };
 
 use frame_support::weights::Weight;
@@ -116,11 +116,9 @@ where
 	}
 }
 
-use sp_runtime::traits::Zero;
-
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		One::one()
 	};
 }
 
