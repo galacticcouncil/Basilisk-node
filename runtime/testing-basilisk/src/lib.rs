@@ -295,6 +295,10 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
+parameter_types! {
+	pub TreasuryAccount: AccountId = Treasury::account_id();
+}
+
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
 	type AcceptedCurrencyOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
@@ -304,6 +308,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = ();
+	type FeeReceiver = TreasuryAccount;
 }
 
 impl pallet_sudo::Config for Runtime {
