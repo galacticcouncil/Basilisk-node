@@ -14,10 +14,9 @@ use polkadot_xcm::latest::prelude::*;
 use polkadot_xcm::latest::Error;
 use primitives::Price;
 use sp_runtime::{
-	traits::{Convert, Saturating, Zero},
-	FixedPointNumber, SaturatedConversion,
+	traits::{Convert},
 };
-use sp_std::collections::btree_map::BTreeMap;
+
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
 	EnsureXcmOrigin, FixedWeightBounds, LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,

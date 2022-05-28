@@ -342,7 +342,7 @@ impl pallet_transaction_payment::Config for Runtime {
 }
 
 parameter_types! {
-	pub FeeReceiver: AccountId = Treasury::account_id();
+	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
 impl pallet_transaction_multi_payment::Config for Runtime {
@@ -354,7 +354,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;
-	type FeeReceiver = FeeReceiver;
+	type FeeReceiver = TreasuryAccount;
 }
 
 impl pallet_sudo::Config for Runtime {
