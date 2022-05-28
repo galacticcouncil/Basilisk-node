@@ -46,6 +46,10 @@ fn transfer_from_relay_chain() {
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
 			10028 * BSX / 10 // 3 BSX - fees
 		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			2 * BSX / 10 // fees should go to treasury
+		);
 	});
 }
 
@@ -130,6 +134,10 @@ fn transfer_from_hydra() {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
 			10028 * BSX / 10 // 3 * BSX - fees
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			2 * BSX / 10 // fees should go to treasury
 		);
 	});
 }
