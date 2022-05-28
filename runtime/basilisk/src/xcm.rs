@@ -6,14 +6,17 @@ use frame_support::{
 	traits::{Everything, Nothing},
 	PalletId,
 };
-use hydradx_adapters::MultiCurrencyTrader;
+use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::latest::prelude::*;
 use polkadot_xcm::latest::Error;
 use primitives::Price;
-use sp_runtime::{traits::{Convert, Saturating, Zero}, FixedPointNumber, SaturatedConversion};
+use sp_runtime::{
+	traits::{Convert, Saturating, Zero},
+	FixedPointNumber, SaturatedConversion,
+};
 use sp_std::collections::btree_map::BTreeMap;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
@@ -21,7 +24,7 @@ use xcm_builder::{
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
 	TakeWeightCredit,
 };
-use xcm_executor::{Assets, Config, traits::WeightTrader, XcmExecutor};
+use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
@@ -102,7 +105,22 @@ impl Config for XcmConfig {
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	// We calculate weight fees the same way as for regular extrinsics and use the prices and choice
 	// of accepted currencies of the transaction payment pallet. Burn fee revenue.
-	type Trader = MultiCurrencyTrader<AssetId, Balance, WeightToFee, MultiTransactionPayment, CurrencyIdConvert, ()>;
+	type Trader = MultiCurrencyTrader<
+		AssetId,
+		Balance,
+		WeightToFee,
+		MultiTransactionPayment,
+		CurrencyIdConvert,
+		ToFeeReceiver<
+			AccountId,
+			AssetId,
+			Balance,
+			Price,
+			CurrencyIdConvert,
+			DepositAll<Runtime>,
+			MultiTransactionPayment,
+		>,
+	>;
 
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
