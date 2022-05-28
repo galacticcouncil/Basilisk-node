@@ -6,7 +6,7 @@ use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
 	traits::{Currency, ExistenceRequirement, NamedReservableCurrency},
-	transactional, BoundedVec,
+	transactional,
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
