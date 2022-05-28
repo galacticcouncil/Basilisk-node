@@ -116,7 +116,7 @@ fn non_native_fee_payment_works() {
 				1,
 				462_676_500_000,
 				265_222_898_276,
-				FALLBACK.into(),
+				basilisk_runtime::Treasury::account_id(),
 			)
 			.into(),
 			pallet_transaction_multi_payment::Event::CurrencySet(DAVE.into(), 1).into(),

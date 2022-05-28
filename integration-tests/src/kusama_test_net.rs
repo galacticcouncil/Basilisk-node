@@ -7,7 +7,6 @@ pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
 pub const CHARLIE: [u8; 32] = [6u8; 32];
 pub const DAVE: [u8; 32] = [7u8; 32];
-pub const FALLBACK: [u8; 32] = [99u8; 32];
 
 pub const BSX: Balance = 1_000_000_000_000;
 
@@ -195,7 +194,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 2000.into(),
+			parachain_id: 2000u32.into(),
 		},
 		&mut t,
 	)
@@ -221,7 +220,6 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
 		currencies: vec![(1, Price::from(1))],
-		fallback_account: Some(FALLBACK.into()),
 		account_currencies: vec![],
 	}
 	.assimilate_storage(&mut t)
