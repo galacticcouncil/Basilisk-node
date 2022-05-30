@@ -5,6 +5,7 @@ use crate as lbp;
 use crate::{AssetPairAccountIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild, LockIdentifier, Nothing};
+use frame_system::EnsureSigned;
 use hydradx_traits::LockedBalance;
 use orml_traits::parameter_type_with_key;
 use primitives::constants::chain::{
@@ -15,7 +16,6 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use frame_system::EnsureSigned;
 use std::collections::BTreeMap;
 
 pub type Amount = i128;
@@ -193,7 +193,7 @@ impl AssetPairAccountIdFor<AssetId, u64> for XykAssetPairAccountIdTest {
 		if a > b {
 			std::mem::swap(&mut a, &mut b);
 		}
-		(a * 10_000 + b) as u64
+		(a * 10_000 + b + 10_000) as u64
 	}
 }
 
@@ -280,7 +280,8 @@ impl ExtBuilder {
 			asset_names: vec![
 				(b"KUSD".to_vec(), 1_000_000u128),
 				(b"BSX".to_vec(), 1_000_000u128),
-				(b"ETH".to_vec(), 1_000_000u128),],
+				(b"ETH".to_vec(), 1_000_000u128),
+			],
 			native_asset_name: b"HDX".to_vec(),
 			native_existential_deposit: EXISTENTIAL_DEPOSIT,
 		}

@@ -24,7 +24,7 @@
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
-	DispatchError, RuntimeDebug, Perbill,
+	DispatchError, Perbill, RuntimeDebug,
 };
 use frame_support::{
 	dispatch::DispatchResult,
@@ -301,6 +301,9 @@ pub mod pallet {
 
 		/// Not more than one fee collector per asset id
 		FeeCollectorWithAssetAlreadyUsed,
+
+		/// Final weights are not 50/50
+		InvalidFinalWeights,
 	}
 
 	#[pallet::event]
@@ -663,13 +666,18 @@ pub mod pallet {
 
 			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
 
-			 let amount_a_perbill: Balance = transfer_to_xyk * amount_a;
-			 let amount_b_perbill: Balance = transfer_to_xyk * amount_b;
-			 if amount_a_perbill.is_zero() || amount_b_perbill.is_zero() {
-				  Ok(())
-			 } else {
-				 T::OnRemoveLiquidity::on_end_of_lbp(who, asset_a, asset_b, amount_a_perbill, amount_b_perbill)
-			 }
+			let amount_a_perbill: Balance = transfer_to_xyk * amount_a;
+			let amount_b_perbill: Balance = transfer_to_xyk * amount_b;
+			// test final values because multiplication of small non-zero values can result in zero value
+			if amount_a_perbill.is_zero() || amount_b_perbill.is_zero() {
+				Ok(())
+			} else {
+				ensure!(
+					pool_data.final_weight == MAX_WEIGHT / 2,
+					Error::<T>::InvalidFinalWeights
+				);
+				T::OnRemoveLiquidity::on_end_of_lbp(who, asset_a, asset_b, amount_a_perbill, amount_b_perbill)
+			}
 		}
 
 		/// Trade `asset_in` for `asset_out`.

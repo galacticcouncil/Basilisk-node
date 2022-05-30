@@ -1368,48 +1368,82 @@ fn remove_liquidity_should_work() {
 #[test]
 fn remove_liquidity_and_create_xyk_should_work() {
 	predefined_test_ext().execute_with(|| {
+		// create a pool that ends with 50/50 weights
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			HDX,
+			1_000_000_000,
+			BSX,
+			2_000_000_000,
+			20_000_000,
+			50_000_000,
+			WeightCurveType::Linear,
+			DEFAULT_FEE,
+			CHARLIE,
+			0,
+		));
+
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			HDX_BSX_POOL_ID,
+			None,
+			SALE_START,
+			SALE_END,
+			None,
+			None,
+			None,
+			None,
+			None,
+		));
+
 		set_block_number::<Test>(41);
 
-		let user_balance_a_before = Currency::free_balance(KUSD, &ALICE);
+		assert_err!(
+			LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID, Perbill::from_percent(25)),
+			Error::<Test>::InvalidFinalWeights
+		);
+
+		let user_balance_a_before = Currency::free_balance(HDX, &ALICE);
 		let user_balance_b_before = Currency::free_balance(BSX, &ALICE);
 
-		let pool_balance_a_before = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
-		let pool_balance_b_before = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
+		let pool_balance_a_before = Currency::free_balance(HDX, &HDX_BSX_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(BSX, &HDX_BSX_POOL_ID);
 
 		assert_eq!(
 			XYKPallet::exists(AssetPair {
-				asset_in: KUSD,
+				asset_in: HDX,
 				asset_out: BSX
 			}),
 			false
 		);
 		let xyk_pool_id = XYKPallet::get_pair_id(AssetPair {
-			asset_in: KUSD,
+			asset_in: HDX,
 			asset_out: BSX,
 		});
 
 		assert_ok!(LBPPallet::remove_liquidity(
 			Origin::signed(ALICE),
-			KUSD_BSX_POOL_ID,
+			HDX_BSX_POOL_ID,
 			Perbill::from_percent(25)
 		));
 
-		assert_eq!(Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID), 0);
-		assert_eq!(Currency::free_balance(BSX, &KUSD_BSX_POOL_ID), 0);
+		assert_eq!(Currency::free_balance(HDX, &HDX_BSX_POOL_ID), 0);
+		assert_eq!(Currency::free_balance(BSX, &HDX_BSX_POOL_ID), 0);
 
 		assert_eq!(
 			XYKPallet::exists(AssetPair {
-				asset_in: KUSD,
+				asset_in: HDX,
 				asset_out: BSX
 			}),
 			true
 		);
 
-		assert_eq!(Currency::free_balance(KUSD, &xyk_pool_id), pool_balance_a_before / 4);
+		assert_eq!(Currency::free_balance(HDX, &xyk_pool_id), pool_balance_a_before / 4);
 		assert_eq!(Currency::free_balance(BSX, &xyk_pool_id), pool_balance_b_before / 4);
 
 		assert_eq!(
-			Currency::free_balance(KUSD, &ALICE),
+			Currency::free_balance(HDX, &ALICE),
 			user_balance_a_before.saturating_add(pool_balance_a_before * 3 / 4)
 		);
 
@@ -1419,70 +1453,99 @@ fn remove_liquidity_and_create_xyk_should_work() {
 		);
 
 		let xyk_share_token = XYKPallet::get_share_token(AssetPair {
-			asset_in: KUSD,
+			asset_in: HDX,
 			asset_out: BSX,
 		});
 		assert_eq!(Currency::free_balance(xyk_share_token, &ALICE), 250_000_000);
 
-		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
-		assert!(!<PoolData<Test>>::contains_key(KUSD_BSX_POOL_ID));
+		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, HDX));
+		assert!(!<PoolData<Test>>::contains_key(HDX_BSX_POOL_ID));
 	});
 }
 
 #[test]
 fn remove_liquidity_and_transfer_everything_to_xyk_should_work() {
-	predefined_test_ext().execute_with(|| {
+	new_test_ext().execute_with(|| {
+		// create a pool that ends with 50/50 weights
+		assert_ok!(LBPPallet::create_pool(
+			Origin::root(),
+			ALICE,
+			HDX,
+			1_000_000_000,
+			BSX,
+			2_000_000_000,
+			20_000_000,
+			50_000_000,
+			WeightCurveType::Linear,
+			DEFAULT_FEE,
+			CHARLIE,
+			0,
+		));
+
+		assert_ok!(LBPPallet::update_pool_data(
+			Origin::signed(ALICE),
+			HDX_BSX_POOL_ID,
+			None,
+			SALE_START,
+			SALE_END,
+			None,
+			None,
+			None,
+			None,
+			None,
+		));
+
 		set_block_number::<Test>(41);
 
-		let user_balance_a_before = Currency::free_balance(KUSD, &ALICE);
+		let user_balance_a_before = Currency::free_balance(HDX, &ALICE);
 		let user_balance_b_before = Currency::free_balance(BSX, &ALICE);
 
-		let pool_balance_a_before = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
-		let pool_balance_b_before = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
+		let pool_balance_a_before = Currency::free_balance(HDX, &HDX_BSX_POOL_ID);
+		let pool_balance_b_before = Currency::free_balance(BSX, &HDX_BSX_POOL_ID);
 
 		assert_eq!(
 			XYKPallet::exists(AssetPair {
-				asset_in: KUSD,
+				asset_in: HDX,
 				asset_out: BSX
 			}),
 			false
 		);
 		let xyk_pool_id = XYKPallet::get_pair_id(AssetPair {
-			asset_in: KUSD,
+			asset_in: HDX,
 			asset_out: BSX,
 		});
 
 		assert_ok!(LBPPallet::remove_liquidity(
 			Origin::signed(ALICE),
-			KUSD_BSX_POOL_ID,
+			HDX_BSX_POOL_ID,
 			Perbill::from_percent(100)
 		));
 
-		assert_eq!(Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID), 0);
-		assert_eq!(Currency::free_balance(BSX, &KUSD_BSX_POOL_ID), 0);
+		assert_eq!(Currency::free_balance(HDX, &HDX_BSX_POOL_ID), 0);
+		assert_eq!(Currency::free_balance(BSX, &HDX_BSX_POOL_ID), 0);
 
 		assert_eq!(
 			XYKPallet::exists(AssetPair {
-				asset_in: KUSD,
+				asset_in: HDX,
 				asset_out: BSX
 			}),
 			true
 		);
 
-		assert_eq!(Currency::free_balance(KUSD, &xyk_pool_id), pool_balance_a_before);
+		assert_eq!(Currency::free_balance(HDX, &xyk_pool_id), pool_balance_a_before);
 		assert_eq!(Currency::free_balance(BSX, &xyk_pool_id), pool_balance_b_before);
 
-		assert_eq!(Currency::free_balance(KUSD, &ALICE), user_balance_a_before);
+		assert_eq!(Currency::free_balance(HDX, &ALICE), user_balance_a_before);
 		assert_eq!(Currency::free_balance(BSX, &ALICE), user_balance_b_before);
 
 		let xyk_share_token = XYKPallet::get_share_token(AssetPair {
-			asset_in: KUSD,
+			asset_in: HDX,
 			asset_out: BSX,
 		});
 		assert_eq!(Currency::free_balance(xyk_share_token, &ALICE), 1_000_000_000);
 
-		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, KUSD));
-		assert!(!<PoolData<Test>>::contains_key(KUSD_BSX_POOL_ID));
+		assert!(!<FeeCollectorWithAsset<Test>>::contains_key(CHARLIE, HDX));
+		assert!(!<PoolData<Test>>::contains_key(HDX_BSX_POOL_ID));
 	});
 }
 
