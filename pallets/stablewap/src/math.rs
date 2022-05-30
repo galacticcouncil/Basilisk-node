@@ -19,7 +19,7 @@ pub(crate) mod two_asset_pool_math {
 
 	use super::*;
 	use crate::types::{AssetAmounts, Balance};
-	use sp_runtime::traits::{One, Zero};
+	use sp_runtime::traits::Zero;
 
 	/// Calculate shares amount after liquidity is added to the pool.
 	///
@@ -235,7 +235,6 @@ pub(crate) mod two_asset_pool_math {
 	/// Note: this implementation works only for 2 assets pool!
 	fn calculate_y(reserve: Balance, d: Balance, ann: Balance, precision: Balance) -> Option<Balance> {
 		let (d_hp, two_hp, ann_hp, new_reserve_hp, precision_hp) = to_u256!(d, 2u128, ann, reserve, precision);
-		let MAGiC_TWO: U256 = to_u256!(2_u128);
 
 		let n_coins_hp = two_hp;
 		let s = new_reserve_hp;
@@ -253,7 +252,8 @@ pub(crate) mod two_asset_pool_math {
 			y = y
 				.checked_mul(y)?
 				.checked_add(c)?
-				.checked_div(two_hp.checked_mul(y)?.checked_add(b)?.checked_sub(d_hp)?)?.checked_add(MAGiC_TWO)?;
+				.checked_div(two_hp.checked_mul(y)?.checked_add(b)?.checked_sub(d_hp)?)?
+				.checked_add(two_hp)?;
 			// Adding 2 guarantees that at each iteration, we are rounding so as to *overestimate* compared
 			// to exact division.
 			// Note that while this should guarantee convergence when y is decreasing, it may cause
