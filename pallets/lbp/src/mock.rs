@@ -5,11 +5,14 @@ use crate as lbp;
 use crate::{AssetPairAccountIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild, LockIdentifier, Nothing};
-use frame_system::EnsureSigned;
+use frame_system::{EnsureSigned, RawOrigin};
 use hydradx_traits::LockedBalance;
 use orml_traits::parameter_type_with_key;
-use primitives::constants::chain::{
-	AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+use primitives::{
+	Price,
+	constants::chain::{
+		AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+	}
 };
 use sp_core::H256;
 use sp_runtime::{
@@ -229,6 +232,15 @@ impl pallet_asset_registry::Config for Test {
 	type WeightInfo = ();
 }
 
+pub struct CreatePool;
+
+impl OnRemoveLbpLiquidity<AccountId, AssetId, Balance> for CreatePool {
+	fn on_end_of_lbp(origin: AccountId, asset_a: AssetId, asset_b: AssetId, amount_a: Balance, amount_b: Balance) -> DispatchResult {
+		let initial_price = Price::from((amount_b, amount_a));
+		XYKPallet::create_pool(RawOrigin::Signed(origin).into(), asset_a, asset_b, amount_a, initial_price)
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
@@ -242,7 +254,7 @@ impl Config for Test {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type BlockNumberProvider = System;
-	type OnRemoveLiquidity = pallet_xyk::CreatePool<Self>;
+	type OnRemoveLiquidity = CreatePool;
 }
 
 pub struct ExtBuilder {
