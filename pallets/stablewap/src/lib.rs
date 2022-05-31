@@ -604,6 +604,8 @@ pub mod pallet {
 			let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
 			let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
 
+			ensure!(reserve_out > amount_out, Error::<T>::InsufficientLiquidity);
+
 			let amount_in = calculate_in_given_out(
 				reserve_in,
 				reserve_out,
@@ -617,7 +619,7 @@ pub mod pallet {
 
 			let amount_in = amount_in.checked_add(fee_amount).ok_or(ArithmeticError::Overflow)?;
 
-			ensure!(amount_in <= max_sell_amount, Error::<T>::BuyLimitNotReached);
+			ensure!(amount_in <= max_sell_amount, Error::<T>::SellLimitExceeded);
 
 			ensure!(
 				T::Currency::free_balance(asset_in, &who) >= amount_in,
