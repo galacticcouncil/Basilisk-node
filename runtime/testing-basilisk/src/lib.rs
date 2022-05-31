@@ -56,6 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
+	dispatch::DispatchResult,
 	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
@@ -113,7 +114,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 46,
+	spec_version: 47,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -133,7 +134,7 @@ use common_runtime::adapter::OrmlTokensAdapter;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 use primitives::{
 	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId,
+	ClassId, InstanceId, OnRemoveLbpLiquidity, Price,
 };
 use smallvec::smallvec;
 
@@ -433,6 +434,17 @@ impl pallet_exchange::Config for Runtime {
 	type WeightInfo = common_runtime::weights::exchange::BasiliskWeight<Runtime>;
 }
 
+
+/// Creates pool when the liquidity is removed from LBP pool.
+pub struct CreatePool;
+
+impl OnRemoveLbpLiquidity<AccountId, AssetId, Balance> for CreatePool {
+	fn on_end_of_lbp(origin: AccountId, asset_a: AssetId, asset_b: AssetId, amount_a: Balance, amount_b: Balance) -> DispatchResult {
+		let initial_price = Price::from((amount_b, amount_a));
+		XYK::create_pool(RawOrigin::Signed(origin).into(), asset_a, asset_b, amount_a, initial_price)
+	}
+}
+
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
@@ -446,6 +458,7 @@ impl pallet_lbp::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = common_runtime::weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type OnRemoveLiquidity = CreatePool;
 }
 
 impl pallet_price_oracle::Config for Runtime {

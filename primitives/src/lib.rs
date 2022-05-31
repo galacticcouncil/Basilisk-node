@@ -27,6 +27,7 @@ use serde::{Deserialize, Serialize};
 use scale_info::TypeInfo;
 
 use frame_support::sp_runtime::FixedU128;
+use frame_support::dispatch::DispatchResult;
 use sp_runtime::RuntimeDebug;
 
 pub mod asset;
@@ -153,4 +154,9 @@ pub mod nft {
 			matches!(*class_type, ClassType::Marketplace)
 		}
 	}
+}
+
+/// Used in the LBP config to perform some action when the liquidity is removed from a pool.
+pub trait OnRemoveLbpLiquidity<AccountId, AssetId, Balance> {
+	fn on_end_of_lbp(origin: AccountId, asset_a: AssetId, asset_b: AssetId, amount_a: Balance, amount_b: Balance) -> DispatchResult;
 }

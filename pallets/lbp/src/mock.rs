@@ -5,10 +5,14 @@ use crate as lbp;
 use crate::{AssetPairAccountIdFor, Config};
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild, LockIdentifier, Nothing};
+use frame_system::{EnsureSigned, RawOrigin};
 use hydradx_traits::LockedBalance;
 use orml_traits::parameter_type_with_key;
-use primitives::constants::chain::{
-	AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+use primitives::{
+	Price,
+	constants::chain::{
+		AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
+	}
 };
 use sp_core::H256;
 use sp_runtime::{
@@ -78,6 +82,8 @@ frame_support::construct_runtime!(
 		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		 LBPPallet: lbp::{Pallet, Call, Storage, Event<T>},
 		 Currency: orml_tokens::{Pallet, Event<T>},
+		 XYKPallet: pallet_xyk::{Pallet, Call, Storage, Event<T>},
+		 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
 	 }
 
 );
@@ -136,16 +142,16 @@ impl orml_tokens::Config for Test {
 	type DustRemovalWhitelist = Nothing;
 }
 
-pub struct AssetPairAccountIdTest();
+pub struct LbpAssetPairAccountIdTest;
 
-impl AssetPairAccountIdFor<AssetId, u64> for AssetPairAccountIdTest {
+impl AssetPairAccountIdFor<AssetId, u64> for LbpAssetPairAccountIdTest {
 	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> u64 {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
 			std::mem::swap(&mut a, &mut b);
 		}
-		(a * 1000 + b) as u64
+		(a * 1_000 + b) as u64
 	}
 }
 
@@ -181,19 +187,74 @@ impl LockedBalance<AssetId, AccountId, Balance> for MultiLockedBalance {
 	}
 }
 
+pub struct XykAssetPairAccountIdTest;
+
+impl AssetPairAccountIdFor<AssetId, u64> for XykAssetPairAccountIdTest {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> u64 {
+		let mut a = asset_a as u128;
+		let mut b = asset_b as u128;
+		if a > b {
+			std::mem::swap(&mut a, &mut b);
+		}
+		(a * 10_000 + b + 10_000) as u64
+	}
+}
+
+impl pallet_xyk::Config for Test {
+	type Event = Event;
+	type AssetRegistry = AssetRegistry;
+	type AssetPairAccountId = XykAssetPairAccountIdTest;
+	type Currency = Currency;
+	type NativeAssetId = NativeAssetId;
+	type WeightInfo = ();
+	type GetExchangeFee = ExchangeFeeRate;
+	type MinTradingLimit = MinTradingLimit;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type MaxInRatio = MaxInRatio;
+	type MaxOutRatio = MaxOutRatio;
+	type CanCreatePool = pallet_xyk::AllowAllPools;
+	type AMMHandler = ();
+}
+
+parameter_types! {
+	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
+	pub RegistryStringLimit: u32 = 100;
+}
+
+impl pallet_asset_registry::Config for Test {
+	type Event = Event;
+	type RegistryOrigin = EnsureSigned<AccountId>;
+	type AssetId = AssetId;
+	type Balance = Balance;
+	type AssetNativeLocation = u8;
+	type StringLimit = RegistryStringLimit;
+	type NativeAssetId = NativeAssetId;
+	type WeightInfo = ();
+}
+
+pub struct CreatePool;
+
+impl OnRemoveLbpLiquidity<AccountId, AssetId, Balance> for CreatePool {
+	fn on_end_of_lbp(origin: AccountId, asset_a: AssetId, asset_b: AssetId, amount_a: Balance, amount_b: Balance) -> DispatchResult {
+		let initial_price = Price::from((amount_b, amount_a));
+		XYKPallet::create_pool(RawOrigin::Signed(origin).into(), asset_a, asset_b, amount_a, initial_price)
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
 	type LockedBalance = MultiLockedBalance;
 	type CreatePoolOrigin = frame_system::EnsureRoot<u64>;
 	type LBPWeightFunction = lbp::LBPWeightFunction;
-	type AssetPairAccountId = AssetPairAccountIdTest;
+	type AssetPairAccountId = LbpAssetPairAccountIdTest;
 	type WeightInfo = ();
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type BlockNumberProvider = System;
+	type OnRemoveLiquidity = CreatePool;
 }
 
 pub struct ExtBuilder {
@@ -223,6 +284,18 @@ impl ExtBuilder {
 
 		orml_tokens::GenesisConfig::<Test> {
 			balances: self.endowed_accounts,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
+		pallet_asset_registry::GenesisConfig::<Test> {
+			asset_names: vec![
+				(b"KUSD".to_vec(), 1_000_000u128),
+				(b"BSX".to_vec(), 1_000_000u128),
+				(b"ETH".to_vec(), 1_000_000u128),
+			],
+			native_asset_name: b"HDX".to_vec(),
+			native_existential_deposit: EXISTENTIAL_DEPOSIT,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

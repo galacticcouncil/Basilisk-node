@@ -3,10 +3,9 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::{
+	ensure, transactional,
 	dispatch::DispatchResult,
-	ensure,
 	traits::{Currency, ExistenceRequirement, NamedReservableCurrency},
-	transactional, BoundedVec,
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{

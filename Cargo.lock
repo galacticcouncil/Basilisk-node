@@ -415,7 +415,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "6.2.0"
+version = "6.3.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "46.0.0"
+version = "47.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -5871,7 +5871,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.3.4"
+version = "5.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5881,6 +5881,8 @@ dependencies = [
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
+ "pallet-asset-registry",
+ "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "primitives",
@@ -6554,7 +6556,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.8"
+version = "3.5.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8174,7 +8176,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.7"
+version = "6.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -11282,7 +11284,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "46.0.0"
+version = "47.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",

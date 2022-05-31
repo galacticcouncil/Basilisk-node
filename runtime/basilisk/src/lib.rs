@@ -56,6 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
+	dispatch::DispatchResult,
 	traits::{Contains, EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
@@ -105,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 46,
+	spec_version: 47,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -146,7 +147,7 @@ impl Contains<Call> for BaseFilter {
 use common_runtime::adapter::OrmlTokensAdapter;
 use primitives::{
 	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId,
+	ClassId, InstanceId, OnRemoveLbpLiquidity, Price,
 };
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
@@ -479,6 +480,17 @@ impl pallet_exchange::Config for Runtime {
 	type WeightInfo = common_runtime::weights::exchange::BasiliskWeight<Runtime>;
 }
 
+
+/// Creates pool when the liquidity is removed from LBP pool.
+pub struct CreatePool;
+
+impl OnRemoveLbpLiquidity<AccountId, AssetId, Balance> for CreatePool {
+    fn on_end_of_lbp(origin: AccountId, asset_a: AssetId, asset_b: AssetId, amount_a: Balance, amount_b: Balance) -> DispatchResult {
+		let initial_price = Price::from((amount_b, amount_a));
+		XYK::create_pool(RawOrigin::Signed(origin).into(), asset_a, asset_b, amount_a, initial_price)
+    }
+}
+
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
@@ -486,12 +498,13 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
+	type WeightInfo = common_runtime::weights::lbp::BasiliskWeight<Runtime>;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
-	type WeightInfo = common_runtime::weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type OnRemoveLiquidity = CreatePool;
 }
 
 impl pallet_price_oracle::Config for Runtime {
