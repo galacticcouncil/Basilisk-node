@@ -117,7 +117,7 @@ pub mod pallet {
 			initial_liquidity: (Balance, Balance),
 			amplification: Balance,
 		},
-		/// Liquidity of an asset was added to Omnipool.
+		/// Liquidity of an asset was added to a pool.
 		LiquidityAdded {
 			id: PoolId<T::AssetId>,
 			from: T::AccountId,
@@ -174,7 +174,7 @@ pub mod pallet {
 		/// Balance of an asset is nto sufficient to perform a trade.
 		InsufficientBalance,
 
-		/// Balance of an share asset is nto sufficient to withdraw liquiduity.
+		/// Balance of an share asset is nto sufficient to withdraw liquidity.
 		InsufficientShares,
 
 		/// Liquidity has not reached the required minimum.
@@ -355,7 +355,7 @@ pub mod pallet {
 				T::Currency::free_balance(pool.assets.1, &pool_account),
 			);
 
-			// Work out which asset's amount has be calculated based on given provided asset by LP
+			// Work out which asset's amount has to be calculated based on given provided asset by LP
 			// Calculate correct amount of second asset which LP has to provided too.
 			// Update initial reserves.
 			let (asset_b_id, asset_b_amount, new_reserves) = if asset == pool.assets.0 {
@@ -391,7 +391,7 @@ pub mod pallet {
 			};
 
 			ensure!(
-				T::Currency::free_balance(pool.assets.1, &who) >= asset_b_amount,
+				T::Currency::free_balance(asset_b_id, &who) >= asset_b_amount,
 				Error::<T>::InsufficientBalance
 			);
 
@@ -633,7 +633,6 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	//TODO: use enum type for rounding indication
 	fn calculate_fee_amount(amount: Balance, fee: Permill, rounding_down: bool) -> Option<Balance> {
 		if rounding_down {
 			Some(fee.mul_floor(amount))
