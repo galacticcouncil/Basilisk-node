@@ -1,8 +1,8 @@
-use crate::assert_balance;
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
 use crate::types::{PoolAssets, PoolId};
-use frame_support::assert_ok;
+use crate::{assert_balance, Error};
+use frame_support::{assert_noop, assert_ok};
 use sp_runtime::Permill;
 
 #[test]
@@ -227,5 +227,95 @@ fn remove_partial_liquidity_works() {
 
 			assert_eq!(a_diff, lp_a);
 			assert_eq!(b_diff, lp_b);
+		});
+}
+
+#[test]
+fn add_liquidity_with_insufficient_amount_fails() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, 1000, 200 * ONE),
+			(BOB, 2000, 200 * ONE),
+			(ALICE, 1000, 200 * ONE),
+			(ALICE, 2000, 200 * ONE),
+		])
+		.with_registered_asset("one".as_bytes().to_vec(), 1000)
+		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.build()
+		.execute_with(|| {
+			let asset_a: AssetId = 1000;
+			let asset_b: AssetId = 2000;
+			let amplification: Balance = 100;
+			let initial_liquidity = (100 * ONE, 50 * ONE);
+
+			let pool_id = PoolId(retrieve_current_asset_id());
+
+			assert_ok!(Stableswap::create_pool(
+				Origin::signed(ALICE),
+				(asset_a, asset_b),
+				initial_liquidity,
+				amplification,
+				Permill::from_percent(0)
+			));
+
+			assert_noop!(
+				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, asset_a, 100u128),
+				Error::<Test>::InsufficientTradingAmount
+			);
+
+			assert_noop!(
+				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, asset_a, 1000 * ONE,),
+				Error::<Test>::InsufficientBalance
+			);
+		});
+}
+
+#[test]
+fn add_liquidity_with_invalid_data_fails() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, 1000, 200 * ONE),
+			(BOB, 3000, 200 * ONE),
+			(ALICE, 1000, 200 * ONE),
+			(ALICE, 2000, 200 * ONE),
+		])
+		.with_registered_asset("one".as_bytes().to_vec(), 1000)
+		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.build()
+		.execute_with(|| {
+			let asset_a: AssetId = 1000;
+			let asset_b: AssetId = 2000;
+			let amplification: Balance = 100;
+			let initial_liquidity = (100 * ONE, 50 * ONE);
+
+			let pool_id = PoolId(retrieve_current_asset_id());
+
+			assert_ok!(Stableswap::create_pool(
+				Origin::signed(ALICE),
+				(asset_a, asset_b),
+				initial_liquidity,
+				amplification,
+				Permill::from_percent(0)
+			));
+
+			assert_noop!(
+				Stableswap::add_liquidity(
+					Origin::signed(BOB),
+					PoolId(pool_id.0 + 1), // let's just take next id
+					asset_a,
+					100 * ONE,
+				),
+				Error::<Test>::PoolNotFound
+			);
+
+			assert_noop!(
+				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, 3000, 100 * ONE,),
+				Error::<Test>::AssetNotInPool
+			);
+
+			assert_noop!(
+				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, asset_a, 100 * ONE,),
+				Error::<Test>::InsufficientBalance
+			);
 		});
 }
