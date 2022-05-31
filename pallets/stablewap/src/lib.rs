@@ -194,6 +194,9 @@ pub mod pallet {
 
 		/// Initial liquidity of asset must be > 0.
 		InvalidInitialLiquidity,
+
+		/// Account balance is too low.
+		BalanceTooLow,
 	}
 
 	#[pallet::call]
@@ -242,6 +245,15 @@ pub mod pallet {
 				Error::<T>::InvalidInitialLiquidity
 			);
 
+			ensure!(
+				T::Currency::free_balance(assets.0, &who) >= initial_liquidity.0,
+				Error::<T>::BalanceTooLow,
+			);
+			ensure!(
+				T::Currency::free_balance(assets.1, &who) >= initial_liquidity.1,
+				Error::<T>::BalanceTooLow,
+			);
+
 			let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some(POOL_IDENTIFIER));
 
 			let share_asset = T::AssetRegistry::get_or_create_shared_asset(
@@ -269,7 +281,6 @@ pub mod pallet {
 				},
 			)?;
 
-			// Add initial liquidity
 			let reserves: AssetAmounts<Balance> = initial_liquidity.into();
 
 			let share_amount = calculate_add_liquidity_shares(
