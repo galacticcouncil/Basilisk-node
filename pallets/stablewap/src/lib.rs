@@ -234,11 +234,11 @@ pub mod pallet {
 			}
 
 			ensure!(
-				initial_liquidity.0 >= Balance::zero(),
+				initial_liquidity.0 > Balance::zero(),
 				Error::<T>::InvalidInitialLiquidity
 			);
 			ensure!(
-				initial_liquidity.1 >= Balance::zero(),
+				initial_liquidity.1 > Balance::zero(),
 				Error::<T>::InvalidInitialLiquidity
 			);
 
