@@ -4,7 +4,10 @@ use super::*;
 
 use crate::Pallet as Marketplace;
 use frame_benchmarking::{account, benchmarks, vec};
-use frame_support::traits::Get;
+use frame_support::{
+	BoundedVec,
+	traits::Get
+};
 use frame_system::RawOrigin;
 use pallet_nft as NFT;
 use pallet_uniques as UNQ;

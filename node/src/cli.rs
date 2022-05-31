@@ -1,8 +1,8 @@
 use crate::chain_spec;
+use clap::Parser;
+use std::error::Error;
 use std::path::PathBuf;
 use std::{fmt, str::FromStr};
-use std::error::Error;
-use clap::Parser;
 
 #[derive(Debug, Clone)]
 pub struct RuntimeInstanceError(String);
@@ -75,9 +75,9 @@ pub struct RunCmd {
 
 #[derive(Debug, Parser)]
 #[clap(
-    propagate_version = true,
-    args_conflicts_with_subcommands = true,
-    subcommand_negates_reqs = true
+	propagate_version = true,
+	args_conflicts_with_subcommands = true,
+	subcommand_negates_reqs = true
 )]
 pub struct Cli {
 	#[clap(subcommand)]

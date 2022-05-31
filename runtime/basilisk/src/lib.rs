@@ -106,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 43,
+	spec_version: 47,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -136,6 +136,9 @@ impl Contains<Call> for BaseFilter {
 			Call::Balances(_) => false,
 			Call::Currencies(_) => false,
 			Call::LiquidityMining(_) => false,
+			Call::PolkadotXcm(_) => false,
+			Call::OrmlXcm(_) => false,
+			Call::XTokens(_) => false,
 			_ => true,
 		}
 	}

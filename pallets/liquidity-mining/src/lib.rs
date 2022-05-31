@@ -71,12 +71,13 @@ use frame_support::{
 	sp_runtime::{traits::AccountIdConversion, FixedPointNumber, RuntimeDebug},
 };
 use frame_system::ensure_signed;
+use hydra_dx_math::liquidity_mining as math;
 use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
 use primitives::{asset::AssetPair, nft::ClassType, Balance};
 use scale_info::TypeInfo;
 use sp_arithmetic::{
-	traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub},
+	traits::{CheckedDiv, CheckedSub},
 	FixedU128, Permill,
 };
 use sp_std::convert::{From, Into, TryInto};
@@ -242,6 +243,13 @@ pub mod pallet {
 		fn on_runtime_upgrade() -> frame_support::weights::Weight {
 			migration::init_nft_class::<T>()
 		}
+
+		fn integrity_test() {
+			assert!(
+				T::NftClass::get() <= T::ReserveClassIdUpTo::get(),
+				"`NftClass` must be within the range of reserved NFT class IDs"
+			);
+		}
 	}
 
 	#[pallet::config]
@@ -280,7 +288,7 @@ pub mod pallet {
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
-		/// NFT class id for liq. mining deposit nfts.
+		/// NFT class id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
 		type NftClass: Get<primitives::ClassId>;
 
 		/// Weight information for extrinsic in this module.
@@ -760,11 +768,12 @@ pub mod pallet {
 				// update  global pool accumulated RPZ
 				let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 				if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
-					let reward_per_period = Self::get_global_pool_reward_per_period(
+					let reward_per_period = math::calculate_global_pool_reward_per_period(
 						global_pool.yield_per_period.into(),
 						global_pool.total_shares_z,
 						global_pool.max_reward_per_period,
-					)?;
+					)
+					.map_err(|_e| Error::<T>::Overflow)?;
 					Self::update_global_pool(global_pool, now_period, reward_per_period)?;
 				}
 
@@ -826,7 +835,8 @@ pub mod pallet {
 					Self::maybe_update_pools(global_pool, liq_pool, now_period)?;
 
 					let new_stake_in_global_pool =
-						Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
+						math::calculate_global_pool_shares(liq_pool.total_valued_shares, multiplier)
+							.map_err(|_e| Error::<T>::Overflow)?;
 
 					global_pool.total_shares_z = global_pool
 						.total_shares_z
@@ -953,16 +963,18 @@ pub mod pallet {
 					//update `GlobalPool` accumulated_rpz
 					let now_period = Self::get_now_period(global_pool.blocks_per_period)?;
 					if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
-						let reward_per_period = Self::get_global_pool_reward_per_period(
+						let reward_per_period = math::calculate_global_pool_reward_per_period(
 							global_pool.yield_per_period.into(),
 							global_pool.total_shares_z,
 							global_pool.max_reward_per_period,
-						)?;
+						)
+						.map_err(|_e| Error::<T>::Overflow)?;
 						Self::update_global_pool(global_pool, now_period, reward_per_period)?;
 					}
 
 					let new_stake_in_global_poll =
-						Self::get_global_pool_shares(liq_pool.total_valued_shares, multiplier)?;
+						math::calculate_global_pool_shares(liq_pool.total_valued_shares, multiplier)
+							.map_err(|_e| Error::<T>::Overflow)?;
 
 					global_pool.total_shares_z = global_pool
 						.total_shares_z
@@ -1115,7 +1127,8 @@ pub mod pallet {
 					let valued_shares =
 						Self::get_valued_shares(shares_amount, amm_account, global_pool.incentivized_asset)?;
 					let shares_in_global_pool_for_deposit =
-						Self::get_global_pool_shares(valued_shares, liq_pool.multiplier)?;
+						math::calculate_global_pool_shares(valued_shares, liq_pool.multiplier)
+							.map_err(|_e| Error::<T>::Overflow)?;
 
 					liq_pool.total_shares = liq_pool
 						.total_shares
@@ -1339,10 +1352,11 @@ pub mod pallet {
 											.ok_or(Error::<T>::Overflow)?;
 
 										if !liq_pool.canceled {
-											let shares_in_global_pool_for_deposit = Self::get_global_pool_shares(
+											let shares_in_global_pool_for_deposit = math::calculate_global_pool_shares(
 												deposit.valued_shares,
 												liq_pool.multiplier,
-											)?;
+											)
+											.map_err(|_e| Error::<T>::Overflow)?;
 
 											liq_pool.stake_in_global_pool = liq_pool
 												.stake_in_global_pool
@@ -1494,14 +1508,7 @@ impl<T: Config> Pallet<T> {
 		block.checked_div(&blocks_per_period).ok_or(Error::<T>::Overflow)
 	}
 
-	/// This function calculate loyalty multiplier or error.
-	///
-	/// `t = periodNow - periodAdded`
-	/// `𝞣 = t/[(initial_reward_percentage + 1) * scale_coef]`
-	/// `num = [𝞣 + (𝞣 * initial_reward_percentage) + initial_reward_percentage]`
-	/// `denom = [𝞣 + (𝞣 * initial_reward_percentage) + 1]`
-	///
-	/// `loyalty_multiplier = num/denom`
+	/// This function return loyalty multiplier or error.
 	fn get_loyalty_multiplier(periods: PeriodOf<T>, curve: Option<LoyaltyCurve>) -> Result<FixedU128, Error<T>> {
 		let curve = match curve {
 			Some(v) => v,
@@ -1513,50 +1520,8 @@ impl<T: Config> Pallet<T> {
 			return Ok(FixedU128::one());
 		}
 
-		let denom = curve
-			.initial_reward_percentage
-			.checked_add(&1.into())
-			.ok_or(Error::<T>::Overflow)?
-			.checked_mul(&FixedU128::from(curve.scale_coef as u128))
-			.ok_or(Error::<T>::Overflow)?;
-
-		let periods = FixedU128::from(TryInto::<u128>::try_into(periods).map_err(|_e| Error::<T>::Overflow)?);
-		let tau = periods.checked_div(&denom).ok_or(Error::<T>::Overflow)?;
-
-		//tau * initial_reward_percentage
-		let tau_mul_initial_reward_percentage = tau
-			.checked_mul(&curve.initial_reward_percentage)
-			.ok_or(Error::<T>::Overflow)?;
-
-		//tau + (tau * initial_reward_percentage)
-		let tau_add_tau_mul_initial_reward_percentage = tau
-			.checked_add(&tau_mul_initial_reward_percentage)
-			.ok_or(Error::<T>::Overflow)?;
-
-		//tau + (tau * initial_reward_percentage) + initial_reward_percentage
-		let num = tau_add_tau_mul_initial_reward_percentage
-			.checked_add(&curve.initial_reward_percentage)
-			.ok_or(Error::<T>::Overflow)?;
-
-		//tau + (tau * initial_reward_percentage) + 1
-		let denom = tau_add_tau_mul_initial_reward_percentage
-			.checked_add(&1.into())
-			.ok_or(Error::<T>::Overflow)?;
-
-		num.checked_div(&denom).ok_or(Error::<T>::Overflow)
-	}
-
-	/// This function return `GlobalPool`'s reward per one period or error.
-	/// Reward per period is capped by `max_reward_per_period`.
-	fn get_global_pool_reward_per_period(
-		yield_per_period: FixedU128,
-		total_pool_shares_z: Balance,
-		max_reward_per_period: Balance,
-	) -> Result<Balance, Error<T>> {
-		Ok(yield_per_period
-			.checked_mul_int(total_pool_shares_z)
-			.ok_or(Error::<T>::Overflow)?
-			.min(max_reward_per_period))
+		math::calculate_loyalty_multiplier(periods, curve.initial_reward_percentage, curve.scale_coef)
+			.map_err(|_e| Error::<T>::Overflow)
 	}
 
 	/// This function calculate and update `accumulated_rpz` and all associated properties of `GlobalPool` if
@@ -1596,7 +1561,8 @@ impl<T: Config> Pallet<T> {
 
 		if !reward.is_zero() {
 			global_pool.accumulated_rpz =
-				Self::get_accumulated_rps(global_pool.accumulated_rpz, global_pool.total_shares_z, reward)?;
+				math::calculate_accumulated_rps(global_pool.accumulated_rpz, global_pool.total_shares_z, reward)
+					.map_err(|_e| Error::<T>::Overflow)?;
 			global_pool.accumulated_rewards = global_pool
 				.accumulated_rewards
 				.checked_add(reward)
@@ -1612,50 +1578,6 @@ impl<T: Config> Pallet<T> {
 		});
 
 		Ok(())
-	}
-
-	/// This function calculate and return reward per share or error.
-	fn get_accumulated_rps(
-		accumulated_rps_now: Balance,
-		total_shares: Balance,
-		reward: Balance,
-	) -> Result<Balance, Error<T>> {
-		reward
-			.checked_div(total_shares)
-			.ok_or(Error::<T>::Overflow)?
-			.checked_add(accumulated_rps_now)
-			.ok_or(Error::<T>::Overflow)
-	}
-
-	/// This function calculate and return `(user_rewards, unclaimable_rewards)`.
-	fn get_user_reward(
-		accumulated_rpvs: Balance,
-		valued_shares: Balance, // Value of shares at the time of entry in incentivized tokens.
-		accumulated_claimed_rewards: Balance,
-		accumulated_rpvs_now: Balance,
-		loyalty_multiplier: FixedU128,
-	) -> Result<(Balance, Balance), Error<T>> {
-		let max_rewards = accumulated_rpvs_now
-			.checked_sub(accumulated_rpvs)
-			.ok_or(Error::<T>::Overflow)?
-			.checked_mul(valued_shares)
-			.ok_or(Error::<T>::Overflow)?;
-
-		if max_rewards.is_zero() {
-			return Ok((0, 0));
-		}
-
-		let claimable_rewards = loyalty_multiplier
-			.checked_mul_int(max_rewards)
-			.ok_or(Error::<T>::Overflow)?;
-
-		let unclaimable_rewards = max_rewards.checked_sub(claimable_rewards).ok_or(Error::<T>::Overflow)?;
-
-		let user_rewards = claimable_rewards
-			.checked_sub(accumulated_claimed_rewards)
-			.ok_or(Error::<T>::Overflow)?;
-
-		Ok((user_rewards, unclaimable_rewards))
 	}
 
 	/// This function calculate and return liq. pool's reward from `GlobalPool`.
@@ -1705,7 +1627,8 @@ impl<T: Config> Pallet<T> {
 		}
 
 		pool.accumulated_rpvs =
-			Self::get_accumulated_rps(pool.accumulated_rpvs, pool.total_valued_shares, pool_rewards)?;
+			math::calculate_accumulated_rps(pool.accumulated_rpvs, pool.total_valued_shares, pool_rewards)
+				.map_err(|_e| Error::<T>::Overflow)?;
 		pool.updated_at = period_now;
 
 		let global_pool_balance =
@@ -1762,11 +1685,6 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	/// This function calculate liq. pool's shares amount in `GlobalPool` or error.
-	fn get_global_pool_shares(valued_shares: Balance, multiplier: PoolMultiplier) -> Result<Balance, Error<T>> {
-		multiplier.checked_mul_int(valued_shares).ok_or(Error::<T>::Overflow)
-	}
-
 	/// This function calculate account's valued shares[`Balance`] or error.
 	fn get_valued_shares(
 		shares: Balance,
@@ -1800,13 +1718,14 @@ impl<T: Config> Pallet<T> {
 
 		let loyalty_multiplier = Self::get_loyalty_multiplier(periods, liq_pool.loyalty_curve.clone())?;
 
-		let (rewards, unclaimable_rewards) = Self::get_user_reward(
+		let (rewards, unclaimable_rewards) = math::calculate_user_reward(
 			deposit.accumulated_rpvs,
 			deposit.valued_shares,
 			deposit.accumulated_claimed_rewards,
 			liq_pool.accumulated_rpvs,
 			loyalty_multiplier,
-		)?;
+		)
+		.map_err(|_e| Error::<T>::Overflow)?;
 
 		deposit.accumulated_claimed_rewards = deposit
 			.accumulated_claimed_rewards
@@ -1833,11 +1752,12 @@ impl<T: Config> Pallet<T> {
 
 		if !liq_pool.total_shares.is_zero() && liq_pool.updated_at != now_period {
 			if !global_pool.total_shares_z.is_zero() && global_pool.updated_at != now_period {
-				let rewards = Self::get_global_pool_reward_per_period(
+				let rewards = math::calculate_global_pool_reward_per_period(
 					global_pool.yield_per_period.into(),
 					global_pool.total_shares_z,
 					global_pool.max_reward_per_period,
-				)?;
+				)
+				.map_err(|_e| Error::<T>::Overflow)?;
 
 				Self::update_global_pool(global_pool, now_period, rewards)?;
 			}
@@ -1851,7 +1771,6 @@ impl<T: Config> Pallet<T> {
 				global_pool.reward_currency,
 			)?;
 		}
-
 		Ok(())
 	}
 }

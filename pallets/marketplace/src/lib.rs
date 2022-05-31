@@ -3,10 +3,9 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::{
+	ensure, transactional,
 	dispatch::DispatchResult,
-	ensure,
 	traits::{Currency, ExistenceRequirement, NamedReservableCurrency},
-	transactional, BoundedVec,
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
@@ -318,7 +317,13 @@ pub mod pallet {
 			BalanceOf<T>,
 		),
 		/// Offer was placed on a token \[offerer, class_id, instance_id, price, expires\]
-		OfferPlaced(T::AccountId, T::NftClassId, T::NftInstanceId, BalanceOf<T>, T::BlockNumber),
+		OfferPlaced(
+			T::AccountId,
+			T::NftClassId,
+			T::NftInstanceId,
+			BalanceOf<T>,
+			T::BlockNumber,
+		),
 		/// Offer was withdrawn \[sender, class_id, instance_id\]
 		OfferWithdrawn(T::AccountId, T::NftClassId, T::NftInstanceId),
 		/// Offer was accepted \[sender, class_id, instance_id\]

@@ -114,7 +114,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 43,
+	spec_version: 47,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -807,11 +807,6 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type WeightInfo = ();
 }
 
-impl pallet_faucet::Config for Runtime {
-	type Event = Event;
-	type Currency = Currencies;
-}
-
 parameter_types! {
 	pub const PreimageMaxSize: u32 = 4096 * 1024;
 	pub PreimageBaseDeposit: Balance = deposit(2, 64);
@@ -890,9 +885,6 @@ construct_runtime!(
 		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>} = 153,
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>} = 154,
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event} = 155,
-
-		// Pallets used only in testing runtime - starts at index 200
-		Faucet: pallet_faucet::{Pallet, Call, Storage, Config, Event<T>} = 200,
 
 		// TEMPORARY - always last. Sudo will be removed at some point.
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 255,
