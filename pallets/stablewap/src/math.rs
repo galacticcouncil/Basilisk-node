@@ -343,7 +343,7 @@ pub(crate) mod two_asset_pool_math {
 
 		let result = calculate_d(&[500000000000008580273458u128, 10u128], ann, precision);
 
-		assert!(!result.is_none()); // TODO: should converge
+		assert!(result.is_some());
 	}
 
 	#[test]
@@ -355,6 +355,6 @@ pub(crate) mod two_asset_pool_math {
 
 		let result = calculate_d(&[500000000000000000000010u128, 11u128], ann, precision);
 
-		assert!(!result.is_none()); // TODO: should converge
+		assert!(result.is_some());
 	}
 }
