@@ -319,3 +319,98 @@ fn add_liquidity_with_invalid_data_fails() {
 			);
 		});
 }
+
+#[test]
+fn remove_liquidity_with_invalid_amounts_fails() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, 1000, 100 * ONE),
+			(BOB, 2000, 100 * ONE),
+			(ALICE, 1000, 200 * ONE),
+			(ALICE, 2000, 200 * ONE),
+		])
+		.with_registered_asset("one".as_bytes().to_vec(), 1000)
+		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.build()
+		.execute_with(|| {
+			let asset_a: AssetId = 1000;
+			let asset_b: AssetId = 2000;
+			let amplification: Balance = 100;
+			let initial_liquidity = (100 * ONE, 50 * ONE);
+
+			let pool_id = PoolId(retrieve_current_asset_id());
+
+			assert_ok!(Stableswap::create_pool(
+				Origin::signed(ALICE),
+				(asset_a, asset_b),
+				initial_liquidity,
+				amplification,
+				Permill::from_percent(0)
+			));
+
+			let amount_added = 100 * ONE;
+
+			assert_ok!(Stableswap::add_liquidity(
+				Origin::signed(BOB),
+				pool_id,
+				asset_a,
+				amount_added
+			));
+
+			assert_noop!(
+				Stableswap::remove_liquidity(Origin::signed(BOB), pool_id, 0u128),
+				Error::<Test>::InvalidAssetAmount
+			);
+
+			assert_noop!(
+				Stableswap::remove_liquidity(Origin::signed(BOB), pool_id, 2000 * ONE),
+				Error::<Test>::InsufficientShares
+			);
+		});
+}
+
+#[test]
+fn remove_liquidity_with_invalid_data_fails() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, 1000, 100 * ONE),
+			(BOB, 2000, 100 * ONE),
+			(ALICE, 1000, 200 * ONE),
+			(ALICE, 2000, 200 * ONE),
+		])
+		.with_registered_asset("one".as_bytes().to_vec(), 1000)
+		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.build()
+		.execute_with(|| {
+			let asset_a: AssetId = 1000;
+			let asset_b: AssetId = 2000;
+			let amplification: Balance = 100;
+			let initial_liquidity = (100 * ONE, 50 * ONE);
+
+			let pool_id = PoolId(retrieve_current_asset_id());
+
+			assert_ok!(Stableswap::create_pool(
+				Origin::signed(ALICE),
+				(asset_a, asset_b),
+				initial_liquidity,
+				amplification,
+				Permill::from_percent(0)
+			));
+
+			let amount_added = 100 * ONE;
+
+			assert_ok!(Stableswap::add_liquidity(
+				Origin::signed(BOB),
+				pool_id,
+				asset_a,
+				amount_added
+			));
+
+			assert_ok!(Tokens::set_balance(Origin::root(), BOB, 5, 100 * ONE, 0u128));
+
+			assert_noop!(
+				Stableswap::remove_liquidity(Origin::signed(BOB), PoolId(pool_id.0 + 1), 100 * ONE),
+				Error::<Test>::PoolNotFound
+			);
+		});
+}
