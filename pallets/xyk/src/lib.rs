@@ -50,6 +50,9 @@ mod benchmarking;
 mod impls;
 pub mod weights;
 
+#[cfg(test)]
+mod invariants;
+
 pub use impls::XYKSpotPrice;
 
 use weights::WeightInfo;
