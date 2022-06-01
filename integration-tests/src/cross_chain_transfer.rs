@@ -96,7 +96,7 @@ fn transfer_from_hydra() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralKey(vec![0, 0, 0, 0]))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
 		));
 	});
 
@@ -141,7 +141,7 @@ fn transfer_insufficient_amount_should_fail() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralKey(vec![0, 0, 0, 0]))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
 		));
 	});
 
