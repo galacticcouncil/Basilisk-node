@@ -99,7 +99,7 @@ benchmarks! {
 
 
 	remove_liquidity{
-	let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
+		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
 		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
 		// Note: this is extreme case where calculate_d does around 40 iterations.
@@ -143,10 +143,9 @@ benchmarks! {
 	}
 
 	sell{
-	let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
+		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
 		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
-		// Note: this is extreme case where calculate_d does around 40 iterations.
 		let initial_liquidity = (1_000_000_000_000_000_000_000u128, 10_000_000_000_000u128);
 
 		let amplification = 100u128;
@@ -180,13 +179,42 @@ benchmarks! {
 		assert!(T::Currency::free_balance(token_b, &seller) > 0u128);
 	}
 
-	/*
 	buy{
-	}: _(RawOrigin::Signed(seller.clone()), T::StableCoinAssetId::get(), token_id, amount_buy, sell_max_limit)
-	verify {
-	}
+	let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
+		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
-	 */
+		// Note: this is extreme case where calculate_d does around 40 iterations.
+		let initial_liquidity = (1_000_000_000_000_000u128, 100_000_000_000_000u128);
+
+		let amplification = 100u128;
+		let fee = Permill::from_percent(1);
+		let caller: T::AccountId = account("caller", 0, 1);
+
+		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &caller, 500_000_000_000_000i128)?;
+
+		crate::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(),
+			(token_a,token_b),
+			initial_liquidity,
+			amplification,
+			fee
+		)?;
+
+		// Pool id will be next asset id in registry storage.
+		let next_asset_id:u32 = Into::<u32>::into(token_b) + 1u32;
+		let pool_id = PoolId( next_asset_id.into());
+
+		let buyer: T::AccountId = account("buyer", 0, 1);
+
+		T::Currency::update_balance(token_a, &buyer, 100_000_000_000_000i128)?;
+
+		let amount_buy = 10_000_000_000_000u128;
+		let sell_max_limit = 20_000_000_000_000_000u128;
+
+	}: _(RawOrigin::Signed(buyer.clone()), pool_id, token_b, token_a, amount_buy, sell_max_limit)
+	verify {
+		assert!(T::Currency::free_balance(token_b, &buyer) > 0u128);
+	}
 }
 
 #[cfg(test)]
