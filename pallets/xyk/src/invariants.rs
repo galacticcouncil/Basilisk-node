@@ -17,7 +17,7 @@ macro_rules! assert_eq_approx {
 }
 
 fn asset_reserve() -> impl Strategy<Value = Balance> {
-	1000 * ONE..1_000_0000 * ONE
+	1000 * ONE..10_000_000 * ONE
 }
 
 fn trade_amount() -> impl Strategy<Value = Balance> {
