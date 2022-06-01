@@ -45,7 +45,7 @@ proptest! {
 
 		let d = calculate_d(&[reserve_in, reserve_out], ann, precision);
 
-		assert!(!d.is_none());
+		assert!(d.is_some());
 	}
 }
 
