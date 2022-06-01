@@ -23,6 +23,7 @@ use frame_benchmarking::account;
 use frame_benchmarking::benchmarks;
 use frame_support::pallet_prelude::DispatchError;
 use frame_system::RawOrigin;
+use orml_traits::MultiCurrency;
 use orml_traits::MultiCurrencyExtended;
 use sp_runtime::Permill;
 
@@ -60,15 +61,43 @@ benchmarks! {
 		assert!(<Pools<T>>::get(pool_id).is_some());
 	}
 
-	/*
 	add_liquidity{
-		let lp_provider: T::AccountId = account("provider", 1, 1);
-		let token_id = T::AssetRegistry::create_asset(&b"FCK".to_vec(), 1u128)?;
-		T::Currency::update_balance(token_id, &caller, 500_000_000_000_000i128)?;
+		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
+		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
+
+		// Note: this is extreme case where calculate_d does around 40 iterations.
+		let initial_liquidity = (1_000_000_000_000_000_000_000u128, 10u128);
+
+		let amplification = 100u128;
+		let fee = Permill::from_percent(1);
+		let caller: T::AccountId = account("caller", 0, 1);
+
+		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &caller, 500_000_000_000_000i128)?;
+
+		crate::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(),
+			(token_a,token_b),
+			initial_liquidity,
+			amplification,
+			fee
+		)?;
+
+		// Pool id will be next asset id in registry storage.
+		let next_asset_id:u32 = Into::<u32>::into(token_b) + 1u32;
+		let pool_id = PoolId( next_asset_id.into());
+
+		let lp_provider: T::AccountId = account("provider", 0, 1);
+
+		T::Currency::update_balance(token_a, &lp_provider, 1_000_000_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &lp_provider, 1_000_000_000_000_000_000_000i128)?;
+
 		let liquidity_added = 300_000_000_000_000u128;
-	}: _(RawOrigin::Signed(lp_provider), token_id, liquidity_added)
+	}: _(RawOrigin::Signed(lp_provider.clone()), pool_id, token_a, liquidity_added)
 	verify {
+		assert!(T::Currency::free_balance(pool_id.0, &lp_provider) > 0u128);
 	}
+
+	/*
 
 	remove_liquidity{
 	}: _(RawOrigin::Signed(lp_provider.clone()), current_position_id, liquidity_added)
