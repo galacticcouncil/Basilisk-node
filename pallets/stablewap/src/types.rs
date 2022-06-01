@@ -1,5 +1,5 @@
 use sp_runtime::Permill;
-use std::ops::Add;
+use sp_std::ops::Add;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;

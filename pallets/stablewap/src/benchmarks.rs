@@ -15,27 +15,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/*
 #![cfg(feature = "runtime-benchmarks")]
 
 use super::*;
 
-use sp_runtime::FixedU128;
-
 use frame_benchmarking::account;
 use frame_benchmarking::benchmarks;
+use frame_support::pallet_prelude::DispatchError;
 use frame_system::RawOrigin;
 use orml_traits::MultiCurrencyExtended;
+use sp_runtime::Permill;
+
+use hydradx_traits::Registry;
+
+use crate::types::{Balance, PoolId};
 
 benchmarks! {
-	 where_clause {  where T::AssetId: From<u32>,
+	 where_clause {  where T::AssetId: From<u32> + Into<u32>,
 		T::Currency: MultiCurrencyExtended<T::AccountId, Amount=i128>,
+		T::AssetRegistry: Registry<T::AssetId, Vec<u8>, Balance, DispatchError>,
 		T: crate::pallet::Config
 	}
 
 	create_pool{
-	}: _(RawOrigin::Root, stable_price, native_price)
+		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
+		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
+
+		// Note: this is extreme case where calculate_d does around 40 iterations.
+		let initial_liquidity = (1_000_000_000_000_000_000_000u128, 10u128);
+
+		let amplification = 100u128;
+		let fee = Permill::from_percent(1);
+		let caller: T::AccountId = account("caller", 0, 1);
+
+		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &caller, 500_000_000_000_000i128)?;
+
+		// Pool id will be next asset id in registry storage.
+		let next_asset_id:u32 = Into::<u32>::into(token_b) + 1u32;
+		let pool_id = PoolId( next_asset_id.into());
+
+	}: _(RawOrigin::Signed(caller), (token_a,token_b), initial_liquidity, amplification, fee)
 	verify {
+		assert!(<Pools<T>>::get(pool_id).is_some());
 	}
 
 	/*
@@ -69,11 +91,8 @@ benchmarks! {
 #[cfg(test)]
 mod tests {
 	use super::Pallet;
-	use crate::tests::mock::ExtBuilder;
+	use crate::tests::mock::*;
 	use frame_benchmarking::impl_benchmark_test_suite;
 
 	impl_benchmark_test_suite!(Pallet, super::ExtBuilder::default().build(), super::Test);
 }
-
-
- */

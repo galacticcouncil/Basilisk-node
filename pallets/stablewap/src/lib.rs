@@ -35,7 +35,7 @@ use crate::types::Balance;
 use weights::WeightInfo;
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarks;

@@ -46,7 +46,7 @@ pub type Balance = u128;
 pub type AssetId = u32;
 
 pub const HDX: AssetId = 0;
-pub const DAI: AssetId = 2;
+pub const DAI: AssetId = 1;
 
 pub const ALICE: u64 = 1;
 pub const BOB: u64 = 2;
