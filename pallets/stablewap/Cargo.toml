@@ -61,4 +61,5 @@ std = [
     'sp-std/std',
     "scale-info/std",
     "orml-tokens/std",
+    "frame-benchmarking/std",
 ]
