@@ -37,6 +37,9 @@ use weights::WeightInfo;
 #[cfg(test)]
 mod tests;
 
+#[cfg(any(feature = "runtime-benchmarks", test))]
+mod benchmarks;
+
 const POOL_IDENTIFIER: &str = "sts";
 
 #[frame_support::pallet]

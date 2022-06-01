@@ -1,5 +1,5 @@
 mod creation;
 mod invariants;
 mod liquidity;
-mod mock;
+pub(crate) mod mock;
 mod trades;
