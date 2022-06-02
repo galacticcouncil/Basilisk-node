@@ -192,22 +192,15 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 			MultiLocation {
 				parents,
 				interior: X2(Parachain(id), GeneralIndex(index)),
-			} if parents == 1 && ParaId::from(id) == ParachainInfo::get() => {
+			} if parents == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
 				// Handling native asset for this parachain
-				// we currently have only one native asset
-				match index as u32 {
-					CORE_ASSET_ID => Some(index as u32),
-					_ => None,
-				}
+				Some(CORE_ASSET_ID)
 			}
 			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
 			MultiLocation {
 				parents: 0,
 				interior: X1(GeneralIndex(index)),
-			} => match index as u32 {
-				CORE_ASSET_ID => Some(index as u32),
-				_ => None,
-			},
+			} if (index as u32) == CORE_ASSET_ID => Some(CORE_ASSET_ID),
 			// delegate to asset-registry
 			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
 		}
