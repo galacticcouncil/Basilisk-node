@@ -442,7 +442,7 @@ pub mod pallet {
 		///
 		/// LP receives certain amount of both assets.
 		///
-		/// Partial withdrawal is alloed.
+		/// Partial withdrawal is allowed.
 		///
 		/// Parameters:
 		/// - `origin`: Must be T::CreatePoolOrigin
