@@ -445,7 +445,7 @@ pub mod pallet {
 		/// Partial withdrawal is allowed.
 		///
 		/// Parameters:
-		/// - `origin`: Must be T::CreatePoolOrigin
+		/// - `origin`: origin of the caller
 		/// - `pool_id`: Pool Id
 		/// - `amount`: Amount of shares to burn
 		///
