@@ -87,7 +87,7 @@ impl<AssetId> Iterator for PoolAssetIterator<AssetId> {
 
 //////////////
 
-#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo, Default)]
+#[derive(Clone, PartialEq, Default)]
 pub struct AssetAmounts<Balance>(pub Balance, pub Balance);
 
 impl<Balance> From<(Balance, Balance)> for AssetAmounts<Balance> {

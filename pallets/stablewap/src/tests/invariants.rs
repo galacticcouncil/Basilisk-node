@@ -61,15 +61,15 @@ proptest! {
 
 		let precision = 1u128;
 
-		let _d1 = calculate_d(&[reserve_in, reserve_out], ann, precision).unwrap();
+		let d1 = calculate_d(&[reserve_in, reserve_out], ann, precision).unwrap();
 
 		let result = calculate_out_given_in(reserve_in, reserve_out, amount_in, precision, amp);
 
 		assert!(result.is_some());
 
-		let _d2 = calculate_d(&[reserve_in + amount_in, reserve_out - result.unwrap() ], ann, precision).unwrap();
+		let d2 = calculate_d(&[reserve_in + amount_in, reserve_out - result.unwrap() ], ann, precision).unwrap();
 
-		//assert!(d2 >= d1);
+		assert!(d2 >= d1);
 	}
 }
 
