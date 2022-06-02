@@ -25,7 +25,7 @@ coverage:
 
 .PHONY: clippy
 clippy:
-	cargo clippy --release --locked --all-targets --all-features -- -D warnings
+	cargo clippy --release --locked --all-targets --features=runtime-benchmarks -- -D warnings
 
 .PHONY: format
 format:
