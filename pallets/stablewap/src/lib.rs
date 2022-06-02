@@ -334,7 +334,7 @@ pub mod pallet {
 		/// Origin is given corresponding amount of shares.
 		///
 		/// Parameters:
-		/// - `origin`: Must be T::CreatePoolOrigin
+		/// - `origin`: origin of the caller
 		/// - `pool_id`: Pool Id
 		/// - `asset`: Asset id
 		/// - `amount`: liquidity amount of `asset` to be added to the pool.
