@@ -274,7 +274,7 @@ pub mod pallet {
 
 			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
 
-			ensure!(!(initial_price == Price::zero()), Error::<T>::ZeroInitialPrice);
+			ensure!(initial_price != Price::zero(), Error::<T>::ZeroInitialPrice);
 
 			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
 
