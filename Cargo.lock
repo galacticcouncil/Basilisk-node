@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "46.0.0"
+version = "47.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1047,9 +1047,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.9.1"
+version = "3.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a45a46ab1f2412e53d3a0ade76ffad2025804294569aae387231a0cd6e0899"
+checksum = "37ccbd214614c6783386c1af30caf03192f17891059cecc394b4fb119e363de3"
 
 [[package]]
 name = "byte-slice-cast"
@@ -6607,7 +6607,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.8"
+version = "3.4.9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8875,7 +8875,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.10"
+version = "0.2.11"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -11419,7 +11419,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "46.0.0"
+version = "47.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
