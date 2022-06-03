@@ -297,9 +297,9 @@ checksum = "30696a84d817107fc028e049980e09d5e140e8da8f1caeb17e8e950658a3cea9"
 
 [[package]]
 name = "async-trait"
-version = "0.1.53"
+version = "0.1.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed6aa3524a2dfcf9fe180c51eae2b58738348d819517ceadf95789c51fff7600"
+checksum = "96cf8829f67d2eab0b2dfa42c5d0ef737e0724e4a82b01b3e292456202b19716"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3206,7 +3206,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 [[package]]
 name = "hydra-dx-build-script-utils"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#d60c2960748b92f510f6d69784bf469c2389c69c"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#8fb9a2dab5755ade572bab4fb6bfe7ba427be117"
 dependencies = [
  "cargo-lock",
  "platforms 1.1.0",
@@ -5232,7 +5232,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "orml-traits",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38)",
+ "orml-utilities",
  "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
@@ -5264,7 +5264,7 @@ dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
  "num-traits",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38)",
+ "orml-utilities",
  "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
@@ -5287,19 +5287,6 @@ dependencies = [
  "serde",
  "sp-std",
  "xcm",
-]
-
-[[package]]
-name = "orml-utilities"
-version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=63b32194e7b9aff6a6350d2d4434525de4eec7c1#63b32194e7b9aff6a6350d2d4434525de4eec7c1"
-dependencies = [
- "frame-support",
- "parity-scale-codec 2.3.1",
- "scale-info",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -6008,12 +5995,12 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=63b32194e7b9aff6a6350d2d4434525de4eec7c1)",
+ "orml-utilities",
  "pallet-balances",
  "pallet-nft",
  "pallet-uniques",
@@ -6117,7 +6104,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38)",
+ "orml-utilities",
  "pallet-balances",
  "pallet-uniques",
  "parity-scale-codec 2.3.1",
@@ -6617,7 +6604,7 @@ dependencies = [
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38)",
+ "orml-utilities",
  "pallet-asset-registry",
  "parity-scale-codec 2.3.1",
  "primitive-types 0.8.0",
@@ -11361,9 +11348,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.95"
+version = "1.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbaf6116ab8924f39d52792136fb74fd60a80194cf1b1c6ffa6453eef1c3f942"
+checksum = "0748dd251e24453cb8717f0354206b91557e4ec8703673a4b30208f2abaf1ebf"
 dependencies = [
  "proc-macro2",
  "quote",
