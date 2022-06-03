@@ -13,9 +13,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! # Stableswap pallet
+//! # Stableswap pallet (v1)
 //!
-//! TBD
+//! Curve/stableswap AMM implementation.
+//!
+//! Version v1 - supports only 2 assets pool.
+//!
+//! ## Assumptions
+//!
+//! Only 2 assets pool are possible to create in V1.
+//!
+//! A pool can be created only by allowed `CreatePoolOrigin`.
+//!
+//! LP must be add liquidity of both pool assets. in V1 it is not allowed single token LPing.
+//!
+//! LP specifies an amount of liquidity to be added of one selected asset, the required amount of second pool asset is calculated
+//! in a way that the ratio does not change.
+//!
+//! LP is given certain amount of shares by minting a pool's share token.
+//!
+//! When LP decides to withdraw liquidity, it receives both assets. Single token withdrawal is not supported.
+//!
+//! ### Terminology
+//!
+//! * **LP** - liquidity provider
+//! * **Share Token** - a token representing share asset of specific pool. Each pool has its own share token.
+//! * **Amplification** - curve AMM pool amplification parameter
+//!
+//! ## Interface
+//!
+//! ### Dispatchable functions
+//!
+//! * `create_pool`
+//! * `add_liquidity`
+//! * `remove_liquidity`
+//! * `sell`
+//! * `buy`
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]

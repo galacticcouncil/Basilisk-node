@@ -11,8 +11,10 @@ pub type Balance = u128;
 #[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolId<AssetId>(pub AssetId);
 
-//////////////
-
+/// 2 Asset pool data structure (v1)
+/// `assets`: 2 assets
+/// `amplification`: amp parameter
+/// `fee`: trade fee to be withdrawn on sell/buy
 #[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolInfo<AssetId, Balance> {
 	pub(crate) assets: PoolAssets<AssetId>,
@@ -28,8 +30,6 @@ where
 		self.assets.contains(asset)
 	}
 }
-
-//////////////
 
 #[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolAssets<AssetId>(pub AssetId, pub AssetId);
@@ -87,6 +87,7 @@ impl<AssetId> Iterator for PoolAssetIterator<AssetId> {
 
 //////////////
 
+/// 2 asset pool reserve amounts
 #[derive(Clone, PartialEq, Default)]
 pub struct AssetAmounts<Balance>(pub Balance, pub Balance);
 
