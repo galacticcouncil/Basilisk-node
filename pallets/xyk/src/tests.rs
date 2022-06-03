@@ -70,7 +70,7 @@ fn create_pool_should_work() {
 			asset_b,
 			initial_shares_amount: 100000000000000,
 			share_token,
-			pool_account_id: pair_account,
+			pool: pair_account,
 		}
 		.into()]);
 	});
@@ -119,7 +119,7 @@ fn create_same_pool_should_not_work() {
 			asset_b: asset_a,
 			initial_shares_amount: 2000,
 			share_token,
-			pool_account_id: pair_account,
+			pool: pair_account,
 		}
 		.into()]);
 	});
@@ -217,7 +217,7 @@ fn add_liquidity_should_work() {
 				asset_b,
 				initial_shares_amount: 1000000000000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::LiquidityAdded {
@@ -288,7 +288,7 @@ fn add_liquidity_as_another_user_should_work() {
 				asset_b: asset_a,
 				initial_shares_amount: 1000000000000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::LiquidityAdded {
@@ -358,7 +358,7 @@ fn remove_liquidity_should_work() {
 				asset_b,
 				initial_shares_amount: 100000000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::LiquidityRemoved {
@@ -408,7 +408,7 @@ fn remove_liquidity_without_shares_should_not_work() {
 				asset_b,
 				initial_shares_amount: 100000000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
@@ -495,7 +495,7 @@ fn remove_liquidity_from_reduced_pool_should_not_work() {
 				asset_b,
 				initial_shares_amount: 100000000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			orml_tokens::Event::Transfer {
@@ -673,7 +673,7 @@ fn sell_test() {
 				asset_b,
 				initial_shares_amount: 600000000000000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::SellExecuted {
@@ -684,7 +684,7 @@ fn sell_test() {
 				sale_price: 1363483591788,
 				fee_asset: asset_b,
 				fee_amount: 2732432046,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 		]);
@@ -858,7 +858,7 @@ fn work_flow_happy_path_should_work() {
 				asset_b,
 				initial_shares_amount: 350_000_000_000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
@@ -883,7 +883,7 @@ fn work_flow_happy_path_should_work() {
 				sale_price: 6_486_999_999_986,
 				fee_asset: asset_b,
 				fee_amount: 12_999_999_998,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::SellExecuted {
@@ -894,7 +894,7 @@ fn work_flow_happy_path_should_work() {
 				sale_price: 4_868_493_499_997,
 				fee_asset: asset_b,
 				fee_amount: 9_756_499_998,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::LiquidityRemoved {
@@ -991,7 +991,7 @@ fn sell_with_correct_fees_should_work() {
 				asset_b,
 				initial_shares_amount: 2000000000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::SellExecuted {
@@ -1002,7 +1002,7 @@ fn sell_with_correct_fees_should_work() {
 				sale_price: 19_762_378,
 				fee_asset: asset_b,
 				fee_amount: 39_602,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 		]);
@@ -1084,7 +1084,7 @@ fn discount_sell_fees_should_work() {
 				asset_b: HDX,
 				initial_shares_amount: 10_000,
 				share_token: share_token_native,
-				pool_account_id: native_pair_account,
+				pool: native_pair_account,
 			}
 			.into(),
 			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, asset_b)).into(),
@@ -1113,7 +1113,7 @@ fn discount_sell_fees_should_work() {
 				asset_b,
 				initial_shares_amount: 60_000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::SellExecuted {
@@ -1124,7 +1124,7 @@ fn discount_sell_fees_should_work() {
 				sale_price: 14_993,
 				fee_asset: asset_b,
 				fee_amount: 7,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 		]);
@@ -1293,7 +1293,7 @@ fn single_buy_should_work() {
 				asset_b,
 				initial_shares_amount: 640_000_000_000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			Event::BuyExecuted {
@@ -1304,7 +1304,7 @@ fn single_buy_should_work() {
 				buy_price: 319_999_995_201,
 				fee_asset: asset_b,
 				fee_amount: 639_999_990,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 		]);
@@ -1385,7 +1385,7 @@ fn single_buy_with_discount_should_work() {
 				asset_b,
 				initial_shares_amount: 640_000_000_000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, HDX)).into(),
@@ -1417,7 +1417,7 @@ fn single_buy_with_discount_should_work() {
 				asset_b: HDX,
 				initial_shares_amount: 100_000_000_000,
 				share_token: share_token_native,
-				pool_account_id: native_pair_account,
+				pool: native_pair_account,
 			}
 			.into(),
 			Event::BuyExecuted {
@@ -1428,7 +1428,7 @@ fn single_buy_with_discount_should_work() {
 				buy_price: 319_999_995_201,
 				fee_asset: asset_b,
 				fee_amount: 223_999_993,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 		]);
@@ -1564,7 +1564,7 @@ fn create_pool_small_fixed_point_amount_should_work() {
 			asset_b,
 			initial_shares_amount: 100000000000000,
 			share_token,
-			pool_account_id: pair_account,
+			pool: pair_account,
 		}
 		.into()]);
 	});
@@ -1602,7 +1602,7 @@ fn create_pool_fixed_point_amount_should_work() {
 			asset_b,
 			initial_shares_amount: 100000000000,
 			share_token,
-			pool_account_id: pair_account,
+			pool: pair_account,
 		}
 		.into()]);
 	});
@@ -1794,7 +1794,7 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 				asset_b,
 				initial_shares_amount: 100_000_000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			frame_system::Event::KilledAccount { account: pair_account }.into(),
@@ -1810,7 +1810,7 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 				asset_a,
 				asset_b,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 			frame_system::Event::NewAccount { account: pair_account }.into(),
@@ -1838,7 +1838,7 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 				asset_b,
 				initial_shares_amount: 100_000_000,
 				share_token,
-				pool_account_id: pair_account,
+				pool: pair_account,
 			}
 			.into(),
 		]);

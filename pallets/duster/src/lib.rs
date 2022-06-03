@@ -194,15 +194,15 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Account dusted.
 		Dusted {
-			account_id: T::AccountId,
+			who: T::AccountId,
 			amount: T::Balance,
 		},
 
 		/// Account added to non-dustable list.
-		Added { account_id: T::AccountId },
+		Added { who: T::AccountId },
 
 		/// Account removed from non-dustable list.
-		Removed { account_id: T::AccountId },
+		Removed { who: T::AccountId },
 	}
 
 	#[pallet::call]
@@ -230,7 +230,7 @@ pub mod pallet {
 			Self::transfer_dust(&account, &dust_dest_account, currency_id, dust)?;
 
 			Self::deposit_event(Event::Dusted {
-				account_id: account,
+				who: account,
 				amount: dust,
 			});
 
@@ -249,7 +249,7 @@ pub mod pallet {
 
 			AccountBlacklist::<T>::insert(&account, ());
 
-			Self::deposit_event(Event::Added { account_id: account });
+			Self::deposit_event(Event::Added { who: account });
 
 			Ok(())
 		}
@@ -267,7 +267,7 @@ pub mod pallet {
 				Ok(())
 			})?;
 
-			Self::deposit_event(Event::Removed { account_id: account });
+			Self::deposit_event(Event::Removed { who: account });
 
 			Ok(())
 		}

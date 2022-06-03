@@ -150,7 +150,7 @@ fn dust_account_native_works() {
 			.into(),
 			// duster
 			Event::Dusted {
-				account_id: *ALICE,
+				who: *ALICE,
 				amount: 500,
 			}
 			.into(),
@@ -263,7 +263,7 @@ fn native_existential_deposit() {
 			.into(),
 			// duster
 			Event::Dusted {
-				account_id: *ALICE,
+				who: *ALICE,
 				amount: 300,
 			}
 			.into(),

@@ -305,14 +305,14 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Pool was created by the `CreatePool` origin.
 		PoolCreated {
-			pool_account_id: PoolId<T>,
-			pool_data: Pool<T::AccountId, T::BlockNumber>,
+			pool: PoolId<T>,
+			data: Pool<T::AccountId, T::BlockNumber>,
 		},
 
 		/// Pool data were updated.
 		PoolUpdated {
-			pool_account_id: PoolId<T>,
-			pool_data: Pool<T::AccountId, T::BlockNumber>,
+			pool: PoolId<T>,
+			data: Pool<T::AccountId, T::BlockNumber>,
 		},
 
 		/// New liquidity was provided to the pool.
@@ -477,8 +477,8 @@ pub mod pallet {
 			<FeeCollectorWithAsset<T>>::insert(fee_collector, asset_a, true);
 
 			Self::deposit_event(Event::PoolCreated {
-				pool_account_id: pool_id.clone(),
-				pool_data,
+				pool: pool_id.clone(),
+				data: pool_data,
 			});
 
 			T::MultiCurrency::transfer(asset_a, &pool_owner, &pool_id, asset_a_amount)?;
@@ -580,8 +580,8 @@ pub mod pallet {
 				Self::validate_pool_data(pool)?;
 
 				Self::deposit_event(Event::PoolUpdated {
-					pool_account_id: pool_id,
-					pool_data: (*pool).clone(),
+					pool: pool_id,
+					data: (*pool).clone(),
 				});
 				Ok(())
 			})

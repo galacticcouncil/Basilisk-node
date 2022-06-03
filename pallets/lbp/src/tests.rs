@@ -97,8 +97,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: pool_data2,
+				pool: KUSD_BSX_POOL_ID,
+				data: pool_data2,
 			}
 			.into(),
 		]);
@@ -778,33 +778,33 @@ fn update_pool_data_should_work() {
 
 		expect_events(vec![
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: updated_pool_data_1,
+				pool: KUSD_BSX_POOL_ID,
+				data: updated_pool_data_1,
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: updated_pool_data_2,
+				pool: KUSD_BSX_POOL_ID,
+				data: updated_pool_data_2,
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: updated_pool_data_3,
+				pool: KUSD_BSX_POOL_ID,
+				data: updated_pool_data_3,
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: updated_pool_data_4,
+				pool: KUSD_BSX_POOL_ID,
+				data: updated_pool_data_4,
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: updated_pool_data_5,
+				pool: KUSD_BSX_POOL_ID,
+				data: updated_pool_data_5,
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: updated_pool_data_6,
+				pool: KUSD_BSX_POOL_ID,
+				data: updated_pool_data_6,
 			}
 			.into(),
 		]);
@@ -981,13 +981,13 @@ fn update_pool_owner_by_new_owner_should_work() {
 
 		expect_events(vec![
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: pool_data1,
+				pool: KUSD_BSX_POOL_ID,
+				data: pool_data1,
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: pool_data2,
+				pool: KUSD_BSX_POOL_ID,
+				data: pool_data2,
 			}
 			.into(),
 		]);
@@ -1032,8 +1032,8 @@ fn update_pool_data_for_running_lbp_should_not_work() {
 		let pool_data = LBPPallet::pool_data(KUSD_BSX_POOL_ID).unwrap();
 
 		expect_events(vec![Event::PoolUpdated {
-			pool_account_id: KUSD_BSX_POOL_ID,
-			pool_data,
+			pool: KUSD_BSX_POOL_ID,
+			data: pool_data,
 		}
 		.into()]);
 	});
@@ -1139,8 +1139,8 @@ fn update_pool_interval_should_work() {
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: KUSD_BSX_POOL_ID,
-				pool_data: updated_pool_data,
+				pool: KUSD_BSX_POOL_ID,
+				data: updated_pool_data,
 			}
 			.into(),
 		]);
@@ -2322,8 +2322,8 @@ fn buy_should_work() {
 			}
 			.into(),
 			Event::PoolCreated {
-				pool_account_id: pool_id2,
-				pool_data: pool_data1,
+				pool: pool_id2,
+				data: pool_data1,
 			}
 			.into(),
 			frame_system::Event::NewAccount { account: pool_id2 }.into(),
@@ -2348,8 +2348,8 @@ fn buy_should_work() {
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: pool_id2,
-				pool_data: pool_data2,
+				pool: pool_id2,
+				data: pool_data2,
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
@@ -2520,8 +2520,8 @@ fn sell_should_work() {
 			}
 			.into(),
 			Event::PoolCreated {
-				pool_account_id: pool_id2,
-				pool_data: pool_data1,
+				pool: pool_id2,
+				data: pool_data1,
 			}
 			.into(),
 			frame_system::Event::NewAccount { account: pool_id2 }.into(),
@@ -2546,8 +2546,8 @@ fn sell_should_work() {
 			}
 			.into(),
 			Event::PoolUpdated {
-				pool_account_id: pool_id2,
-				pool_data: pool_data2,
+				pool: pool_id2,
+				data: pool_data2,
 			}
 			.into(),
 			orml_tokens::Event::Endowed {

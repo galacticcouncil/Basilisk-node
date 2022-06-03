@@ -218,7 +218,7 @@ pub mod pallet {
 			asset_b: AssetId,
 			initial_shares_amount: Balance,
 			share_token: AssetId,
-			pool_account_id: T::AccountId,
+			pool: T::AccountId,
 		},
 
 		/// Pool was destroyed.
@@ -227,7 +227,7 @@ pub mod pallet {
 			asset_a: AssetId,
 			asset_b: AssetId,
 			share_token: AssetId,
-			pool_account_id: T::AccountId,
+			pool: T::AccountId,
 		},
 
 		/// Asset sale executed.
@@ -239,7 +239,7 @@ pub mod pallet {
 			sale_price: Balance,
 			fee_asset: AssetId,
 			fee_amount: Balance,
-			pool_account_id: T::AccountId,
+			pool: T::AccountId,
 		},
 
 		/// Asset purchase executed.
@@ -251,7 +251,7 @@ pub mod pallet {
 			buy_price: Balance,
 			fee_asset: AssetId,
 			fee_amount: Balance,
-			pool_account_id: T::AccountId,
+			pool: T::AccountId,
 		},
 	}
 
@@ -353,7 +353,7 @@ pub mod pallet {
 				asset_b,
 				initial_shares_amount: shares_added,
 				share_token,
-				pool_account_id: pair_account.clone(),
+				pool: pair_account.clone(),
 			});
 
 			T::Currency::transfer(asset_a, &who, &pair_account, amount)?;
@@ -554,7 +554,7 @@ pub mod pallet {
 					asset_a,
 					asset_b,
 					share_token,
-					pool_account_id: pair_account,
+					pool: pair_account,
 				});
 			}
 
@@ -822,7 +822,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			sale_price: transfer.amount_out,
 			fee_asset: transfer.fee.0,
 			fee_amount: transfer.fee.1,
-			pool_account_id: pair_account,
+			pool: pair_account,
 		});
 
 		Ok(())
@@ -971,7 +971,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			buy_price: transfer.amount_out,
 			fee_asset: transfer.fee.0,
 			fee_amount: transfer.fee.1,
-			pool_account_id: pair_account,
+			pool: pair_account,
 		});
 
 		Ok(())

@@ -46,9 +46,9 @@ fn set_price_works() {
 		));
 
 		let event = Event::Marketplace(crate::Event::TokenPriceUpdated {
-			owner: ALICE,
-			class_id: CLASS_ID_0,
-			instance_id: INSTANCE_ID_0,
+			who: ALICE,
+			class: CLASS_ID_0,
+			instance: INSTANCE_ID_0,
 			price: Some(10),
 		});
 		assert_eq!(last_event(), event);
@@ -64,9 +64,9 @@ fn set_price_works() {
 		assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
 
 		let event = Event::Marketplace(crate::Event::TokenPriceUpdated {
-			owner: ALICE,
-			class_id: CLASS_ID_0,
-			instance_id: INSTANCE_ID_0,
+			who: ALICE,
+			class: CLASS_ID_0,
+			instance: INSTANCE_ID_0,
 			price: None,
 		});
 		assert_eq!(last_event(), event);
@@ -134,8 +134,8 @@ fn buy_works() {
 		let event = Event::Marketplace(crate::Event::TokenSold {
 			owner: ALICE,
 			buyer: BOB,
-			class_id: CLASS_ID_0,
-			instance_id: INSTANCE_ID_0,
+			class: CLASS_ID_0,
+			instance: INSTANCE_ID_0,
 			price: 768 * UNITS,
 		});
 		assert_eq!(last_event(), event);
