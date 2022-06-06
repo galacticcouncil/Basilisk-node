@@ -511,23 +511,34 @@ fn bid_english_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
 
+		// First highest bidder
 		set_block_number::<Test>(11);
 
-		// First highest bidder
+		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
+		let bob_balance_before = Balances::free_balance(&BOB);
+
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(BOB),
 			0,
 			BalanceOf::<Test>::from(1_000_u32)
 		));
 
-		// Tokens of highest bidder are locked
-		assert_noop!(
-			Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX),
-			pallet_balances::Error::<Test>::LiquidityRestrictions
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+		let bob_balance_after = Balances::free_balance(&BOB);
+
+		// The bid amount is transferred to the auction subaccount
+		assert_eq!(
+			auction_subaccount_balance_before.saturating_add(1_000),
+			auction_subaccount_balance_after
 		);
+		assert_eq!(bob_balance_before.saturating_sub(1_000), bob_balance_after);
 
 		// Second highest bidder
 		set_block_number::<Test>(12);
+
+		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
+		let bob_balance_before = Balances::free_balance(&BOB);
+		let charlie_balance_before = Balances::free_balance(&CHARLIE);
 
 		assert_ok!(AuctionsModule::bid(
 			Origin::signed(CHARLIE),
@@ -536,8 +547,19 @@ fn bid_english_auction_should_work() {
 		));
 		expect_event(crate::Event::<Test>::BidPlaced(0, CHARLIE, bid_object(1100, 12)));
 
-		// Tokens of previous highest bidder are unlocked
-		assert_ok!(Balances::transfer(Origin::signed(BOB), ALICE, 2_000 * BSX));
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
+		let bob_balance_after = Balances::free_balance(&BOB);
+		let charlie_balance_after = Balances::free_balance(&CHARLIE);
+
+		// Previous bidder receives back the reserved amount
+		assert_eq!(bob_balance_before.saturating_add(1_000), bob_balance_after);
+
+		// The bid amount is transferred to the auction subaccount
+		assert_eq!(
+			auction_subaccount_balance_before.saturating_add(100),
+			auction_subaccount_balance_after
+		);
+		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
@@ -689,10 +711,13 @@ fn close_english_auction_should_work() {
 
 		set_block_number::<Test>(21);
 
+		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
+		let alice_balance_before = Balances::free_balance(&ALICE);
+
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
+		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let alice_balance_after = Balances::free_balance(&ALICE);
-		let bob_balance_after = Balances::free_balance(&BOB);
 
 		// The auction winner is the new owner of the NFT
 		assert_eq!(
@@ -701,7 +726,10 @@ fn close_english_auction_should_work() {
 		);
 
 		assert_eq!(alice_balance_before.saturating_add(bid), alice_balance_after);
-		assert_eq!(bob_balance_before.saturating_sub(bid), bob_balance_after);
+		assert_eq!(
+			auction_subaccount_balance_before.saturating_sub(bid),
+			auction_subaccount_balance_after
+		);
 
 		set_block_number::<Test>(22);
 

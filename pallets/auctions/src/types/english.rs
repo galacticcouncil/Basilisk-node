@@ -40,12 +40,24 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// - if necessary, increases auction end time to prevent sniping
 	///
 	#[require_transactional]
-	fn bid(&mut self, _auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
-		// Lock / Unlock funds
+	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
+		// Unreserve funds
 		if let Some(current_bid) = &self.common_data.last_bid {
-			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &current_bid.0);
+			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+				&Pallet::<T>::get_auction_subaccount_id(auction_id),
+				&current_bid.0,
+				current_bid.1,
+				ExistenceRequirement::AllowDeath,
+			)?;
 		}
-		<T as crate::Config>::Currency::set_lock(AUCTION_LOCK_ID, &bidder, bid.amount, WithdrawReasons::all());
+
+		// Reserve funds by transferring to the subaccount of the auction
+		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+			&bidder,
+			&Pallet::<T>::get_auction_subaccount_id(auction_id),
+			bid.amount,
+			ExistenceRequirement::KeepAlive,
+		)?;
 
 		self.common_data.last_bid = Some((bidder, bid.amount));
 		// Set next minimal bid
@@ -67,20 +79,22 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// - sets auction.common_data.closed to true
 	///
 	#[require_transactional]
-	fn close(&mut self, _auction_id: T::AuctionId) -> Result<bool, DispatchError> {
+	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
 		Pallet::<T>::unfreeze_nft(&self.common_data)?;
 
-		// there is a bid so let's determine a winner and transfer tokens
-		if let Some(winner) = &self.common_data.last_bid {
-			let dest = T::Lookup::unlookup(winner.0.clone());
+		// In case of a winning bid:
+		// - transfer NFT
+		// - transfer reserved funds from the auction subaccount
+		if let Some(winning_bid) = &self.common_data.last_bid {
+			let dest = T::Lookup::unlookup(winning_bid.0.clone());
 			let source = T::Origin::from(frame_system::RawOrigin::Signed(self.common_data.owner.clone()));
 			pallet_nft::Pallet::<T>::transfer(source, self.common_data.token.0, self.common_data.token.1, dest)?;
-			<T as crate::Config>::Currency::remove_lock(AUCTION_LOCK_ID, &winner.0);
+
 			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-				&winner.0,
+				&Pallet::<T>::get_auction_subaccount_id(auction_id),
 				&self.common_data.owner,
-				winner.1,
-				ExistenceRequirement::KeepAlive,
+				winning_bid.1,
+				ExistenceRequirement::AllowDeath,
 			)?;
 		}
 

@@ -48,8 +48,8 @@
 //!
 //! - `NextAuctionId` - index for next auction id
 //!
-//! - `ReservedAmounts` - store for bid amounts which are reserved until an auction has closed. Used by Auction::TopUp
-//! and Auction::Candle
+//! - `ReservedAmounts` - store for bid amounts which are reserved until an auction has closed. This enables claim functionality.
+//! 	Used by Auction::TopUp and Auction::Candle
 //!
 //! - `HighestBiddersByAuctionClosingRange` - stores the highest bid per closing range (1-100) of an Auction::Candle
 //!
@@ -77,7 +77,9 @@
 //! In an English auction, participants place bids in a running auction. Once the auction has reached its end time,
 //! the highest bid wins and the NFT is transferred to the winner.
 //!
-//! The amount is reserved by placing a lock on the highest bid which is updated once the bidder is overbid. The lock
+//! The amount is reserved by transferring it to the subaccount of the auction.
+//! 
+//! placing a lock on the highest bid which is updated once the bidder is overbid. The lock
 //! is removed once the auction closes.
 //!
 //! The implementation of English auction allows sellers to set a reserve price for the NFT
@@ -95,8 +97,8 @@
 //! if the sum of all bids has reached the reserve_price, the seller gets all bid amounts, and the NFT is transferred
 //! to the last (highest) bidder.
 //!
-//! When a user places a bid, the amount is transferred to a subaccount held by the auction. If the auction is not won,
-//! bidders are able to claim back the amounts corresponding to their bids.
+//! When a user places a bid, the amount is reserved by transferring it to a subaccount held by the auction. If the
+//! auction is not won, bidders are able to claim back the amounts corresponding to their bids.
 //!
 //! ### Auction::Candle
 //!
@@ -131,10 +133,7 @@ use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure, require_transactional,
-	traits::{
-		tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, Get, LockIdentifier, LockableCurrency,
-		Randomness, WithdrawReasons,
-	},
+	traits::{tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, Get, LockableCurrency, Randomness},
 	transactional, PalletId, Parameter,
 };
 use frame_system::{ensure_signed, RawOrigin};
@@ -169,9 +168,6 @@ mod mock;
 
 #[cfg(test)]
 mod tests;
-
-/// Identifier for the currency lock on accounts
-const AUCTION_LOCK_ID: LockIdentifier = *b"_auction";
 
 pub use pallet::*;
 
