@@ -193,10 +193,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Account dusted.
-		Dusted {
-			who: T::AccountId,
-			amount: T::Balance,
-		},
+		Dusted { who: T::AccountId, amount: T::Balance },
 
 		/// Account added to non-dustable list.
 		Added { who: T::AccountId },
