@@ -287,7 +287,8 @@ fn create_pool_with_invalid_amp_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: u32 = 1;
+			let amplification_min: u32 = 1;
+			let amplification_max: u32 = 10_001;
 
 			let initial_liquidity = (100, 100);
 
@@ -296,7 +297,18 @@ fn create_pool_with_invalid_amp_fails() {
 					Origin::signed(ALICE),
 					(asset_a, asset_b),
 					initial_liquidity,
-					amplification,
+					amplification_min,
+					Permill::from_percent(0)
+				),
+				Error::<Test>::InvalidAmplification
+			);
+
+			assert_noop!(
+				Stableswap::create_pool(
+					Origin::signed(ALICE),
+					(asset_a, asset_b),
+					initial_liquidity,
+					amplification_max,
 					Permill::from_percent(0)
 				),
 				Error::<Test>::InvalidAmplification
