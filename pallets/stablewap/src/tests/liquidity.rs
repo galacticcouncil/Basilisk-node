@@ -20,7 +20,7 @@ fn add_liquidity_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -67,7 +67,7 @@ fn add_liquidity_other_asset_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -114,7 +114,7 @@ fn remove_all_liquidity_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -169,7 +169,7 @@ fn remove_partial_liquidity_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -245,7 +245,7 @@ fn add_liquidity_with_insufficient_amount_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -285,7 +285,7 @@ fn add_liquidity_with_invalid_data_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -335,7 +335,7 @@ fn remove_liquidity_with_invalid_amounts_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -384,7 +384,7 @@ fn remove_liquidity_with_invalid_data_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());

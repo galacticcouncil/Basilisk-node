@@ -16,7 +16,7 @@ fn simple_sell_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 100 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -59,7 +59,7 @@ fn simple_buy_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 100 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -102,7 +102,7 @@ fn simple_sell_with_fee_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 100 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -149,7 +149,7 @@ fn simple_sell_with_small_fee_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 100 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -196,7 +196,7 @@ fn simple_buy_with_fee_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 100 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -248,7 +248,7 @@ fn sell_with_invalidad_amounts_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 100 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
@@ -313,7 +313,7 @@ fn buy_with_invalidad_amounts_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 			let initial_liquidity = (100 * ONE, 100 * ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());

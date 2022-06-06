@@ -10,7 +10,6 @@ const LOW_RESERVE_RANGE: (Balance, Balance) = (10_u128, 11_u128);
 const HIGH_RESERVE_RANGE: (Balance, Balance) = (500_000_000_000 * ONE, 500_000_000_001 * ONE);
 
 fn trade_amount() -> impl Strategy<Value = Balance> {
-	//Just(1000 * ONE)
 	1000..10000 * ONE
 }
 

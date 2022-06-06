@@ -20,6 +20,8 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+use core::ops::RangeInclusive;
+
 use crate as pallet_stableswap;
 
 use crate::Config;
@@ -128,6 +130,7 @@ parameter_types! {
 	pub const Precision: Balance = 1;
 	pub const MinimumLiquidity: Balance = 1000;
 	pub const MinimumTradingLimit: Balance = 1000;
+	pub const AmplificationRange: RangeInclusive<u32> = RangeInclusive::new(2, 10_000);
 }
 
 impl Config for Test {
@@ -139,6 +142,7 @@ impl Config for Test {
 	type CreatePoolOrigin = EnsureSigned<u64>;
 	type Precision = Precision;
 	type MinimumLiquidity = MinimumLiquidity;
+	type AmplificationRange = AmplificationRange;
 	type MinimumTradingLimit = MinimumTradingLimit;
 	type WeightInfo = ();
 }

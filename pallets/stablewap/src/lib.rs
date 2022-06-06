@@ -85,6 +85,7 @@ pub mod pallet {
 	use crate::traits::ShareAccountIdFor;
 	use crate::types::{AssetAmounts, Balance, PoolAssets, PoolId, PoolInfo};
 	use codec::HasCompact;
+	use core::ops::RangeInclusive;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 	use hydradx_traits::{Registry, ShareTokenRegistry};
@@ -133,6 +134,10 @@ pub mod pallet {
 		#[pallet::constant]
 		type MinimumLiquidity: Get<Balance>;
 
+		/// Amplification inclusive range. Pool's amp can be selected from the range only.
+		#[pallet::constant]
+		type AmplificationRange: Get<RangeInclusive<u32>>;
+
 		/// Minimum trading amount
 		#[pallet::constant]
 		type MinimumTradingLimit: Get<Balance>;
@@ -144,7 +149,7 @@ pub mod pallet {
 	/// Existing pools
 	#[pallet::storage]
 	#[pallet::getter(fn pools)]
-	pub type Pools<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T::AssetId>, PoolInfo<T::AssetId, Balance>>;
+	pub type Pools<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T::AssetId>, PoolInfo<T::AssetId>>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
@@ -154,7 +159,7 @@ pub mod pallet {
 			id: PoolId<T::AssetId>,
 			assets: (T::AssetId, T::AssetId),
 			initial_liquidity: (Balance, Balance),
-			amplification: Balance,
+			amplification: u32,
 		},
 		/// Liquidity of an asset was added to a pool.
 		LiquidityAdded {
@@ -236,6 +241,9 @@ pub mod pallet {
 
 		/// Account balance is too low.
 		BalanceTooLow,
+
+		/// Amplification is outside specified range.
+		InvalidAmplification,
 	}
 
 	#[pallet::call]
@@ -262,7 +270,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			assets: (T::AssetId, T::AssetId),
 			initial_liquidity: (Balance, Balance),
-			amplification: Balance,
+			amplification: u32,
 			fee: Permill,
 		) -> DispatchResult {
 			let who = T::CreatePoolOrigin::ensure_origin(origin)?;
@@ -270,6 +278,11 @@ pub mod pallet {
 			let pool_assets: PoolAssets<T::AssetId> = assets.into();
 
 			ensure!(pool_assets.is_valid(), Error::<T>::SameAssets);
+
+			ensure!(
+				T::AmplificationRange::get().contains(&amplification),
+				Error::<T>::InvalidAmplification
+			);
 
 			for asset in (&pool_assets).into_iter() {
 				ensure!(T::AssetRegistry::exists(asset), Error::<T>::AssetNotRegistered);
@@ -303,22 +316,19 @@ pub mod pallet {
 
 			let pool_id = PoolId(share_asset);
 
-			let pool = Pools::<T>::try_mutate(
-				&pool_id,
-				|maybe_pool| -> Result<PoolInfo<T::AssetId, Balance>, DispatchError> {
-					ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
+			let pool = Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> Result<PoolInfo<T::AssetId>, DispatchError> {
+				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
 
-					let pool = PoolInfo {
-						assets: pool_assets.clone(),
-						amplification,
-						fee,
-					};
+				let pool = PoolInfo {
+					assets: pool_assets.clone(),
+					amplification,
+					fee,
+				};
 
-					*maybe_pool = Some(pool.clone());
+				*maybe_pool = Some(pool.clone());
 
-					Ok(pool)
-				},
-			)?;
+				Ok(pool)
+			})?;
 
 			let reserves: AssetAmounts<Balance> = initial_liquidity.into();
 
@@ -326,7 +336,7 @@ pub mod pallet {
 				&AssetAmounts::default(),
 				&reserves,
 				T::Precision::get(),
-				pool.amplification,
+				amplification as Balance,
 				Balance::zero(),
 			)
 			.ok_or(ArithmeticError::Overflow)?;
@@ -451,7 +461,7 @@ pub mod pallet {
 				&initial_reserves,
 				&new_reserves,
 				T::Precision::get(),
-				pool.amplification,
+				pool.amplification as Balance,
 				share_issuance,
 			)
 			.ok_or(ArithmeticError::Overflow)?;
@@ -579,7 +589,7 @@ pub mod pallet {
 				reserve_out,
 				amount_in,
 				T::Precision::get(),
-				pool.amplification,
+				pool.amplification as Balance,
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
@@ -650,7 +660,7 @@ pub mod pallet {
 				reserve_out,
 				amount_out,
 				T::Precision::get(),
-				pool.amplification,
+				pool.amplification as Balance,
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 

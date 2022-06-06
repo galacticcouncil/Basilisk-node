@@ -16,13 +16,13 @@ pub struct PoolId<AssetId>(pub AssetId);
 /// `amplification`: amp parameter
 /// `fee`: trade fee to be withdrawn on sell/buy
 #[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct PoolInfo<AssetId, Balance> {
+pub struct PoolInfo<AssetId> {
 	pub(crate) assets: PoolAssets<AssetId>,
-	pub(crate) amplification: Balance,
+	pub(crate) amplification: u32,
 	pub(crate) fee: Permill,
 }
 
-impl<AssetId, Balance> PoolInfo<AssetId, Balance>
+impl<AssetId> PoolInfo<AssetId>
 where
 	AssetId: PartialEq,
 {

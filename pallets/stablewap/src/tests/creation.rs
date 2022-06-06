@@ -16,7 +16,7 @@ fn create_pool_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
@@ -52,7 +52,7 @@ fn create_pool_with_asset_order_swapped_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 
 			let initial_liquidity = (50 * ONE, 100 * ONE);
 
@@ -83,7 +83,7 @@ fn create_pool_with_same_assets_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 1;
-		let amplification: Balance = 100;
+		let amplification: u32 = 100;
 
 		let initial_liquidity = (50 * ONE, 100 * ONE);
 
@@ -108,7 +108,7 @@ fn create_pool_with_no_registered_assets_fails() {
 		.execute_with(|| {
 			let registered: AssetId = 1000;
 			let not_registered: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 
 			let initial_liquidity = (50 * ONE, 100 * ONE);
 
@@ -146,7 +146,7 @@ fn create_pool_with_zero_initial_liquiduity_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 
 			let initial_liquidity = (0u128, 100 * ONE);
 
@@ -186,7 +186,7 @@ fn create_existing_pool_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
@@ -221,7 +221,7 @@ fn create_pool_with_insufficient_amount_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 
 			let initial_liquidity = (1000 * ONE, 1000 * ONE);
 
@@ -260,7 +260,7 @@ fn create_pool_with_insufficient_liquidity_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: Balance = 100;
+			let amplification: u32 = 100;
 
 			let initial_liquidity = (100, 100);
 
@@ -273,6 +273,33 @@ fn create_pool_with_insufficient_liquidity_fails() {
 					Permill::from_percent(0)
 				),
 				Error::<Test>::InsufficientLiquidity
+			);
+		});
+}
+
+#[test]
+fn create_pool_with_invalid_amp_fails() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(ALICE, 1000, 200 * ONE), (ALICE, 2000, 200 * ONE)])
+		.with_registered_asset("one".as_bytes().to_vec(), 1000)
+		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.build()
+		.execute_with(|| {
+			let asset_a: AssetId = 1000;
+			let asset_b: AssetId = 2000;
+			let amplification: u32 = 1;
+
+			let initial_liquidity = (100, 100);
+
+			assert_noop!(
+				Stableswap::create_pool(
+					Origin::signed(ALICE),
+					(asset_a, asset_b),
+					initial_liquidity,
+					amplification,
+					Permill::from_percent(0)
+				),
+				Error::<Test>::InvalidAmplification
 			);
 		});
 }
