@@ -1174,9 +1174,9 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
-			//list_benchmark!(list, extra, pallet_auctions, Auctions);
 
 			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_auctions, Auctions);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
@@ -1239,6 +1239,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_auctions, Auctions);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);

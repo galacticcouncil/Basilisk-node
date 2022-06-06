@@ -1,4 +1,5 @@
-use crate::{self as pallet_auctions};
+use crate::{self as pallet};
+
 use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
 use primitives::{
@@ -31,7 +32,7 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Auctions: pallet_auctions::{Pallet, Call, Storage, Event<T>},
+		Auctions: pallet::{Pallet, Call, Storage, Event<T>},
 		Nft: pallet_nft::{Pallet, Call, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
@@ -47,9 +48,6 @@ pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
 pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
-// Classes reserved up to 999 so available ids starting from 1000
-pub const NFT_CLASS_ID_1: u32 = 1001;
-pub const NFT_INSTANCE_ID_1: u32 = 1;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -100,13 +98,13 @@ where
 	}
 }
 
-impl pallet_auctions::Config for Test {
+impl pallet::Config for Test {
 	type Event = Event;
 	type Balance = Balance;
 	type AuctionId = u64;
 	type Currency = Balances;
 	type Randomness = TestRandomness<Test>;
-	type WeightInfo = pallet_auctions::weights::BasiliskWeight<Test>;
+	type WeightInfo = pallet::weights::BasiliskWeight<Test>;
 	type AuctionsStringLimit = AuctionsStringLimit;
 	type BidAddBlocks = BidAddBlocks;
 	type BidStepPerc = BidStepPerc;
@@ -217,19 +215,4 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-fn last_event() -> Event {
-	frame_system::Pallet::<Test>::events()
-		.pop()
-		.expect("An event expected")
-		.event
-}
-
-pub fn expect_event<E: Into<TestEvent>>(e: E) {
-	assert_eq!(last_event(), e.into());
-}
-
-pub fn set_block_number<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
-	frame_system::Pallet::<T>::set_block_number(n);
 }

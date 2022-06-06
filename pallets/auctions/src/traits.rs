@@ -1,8 +1,6 @@
 pub use crate::Config;
 use codec::{Decode, Encode};
-use frame_support::{
-	dispatch::DispatchResult, traits::Currency, BoundedVec, pallet_prelude::DispatchError
-};
+use frame_support::{dispatch::DispatchResult, pallet_prelude::DispatchError, traits::Currency, BoundedVec};
 use scale_info::TypeInfo;
 
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
@@ -41,7 +39,7 @@ pub struct TopUpAuction<T: Config> {
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct Bid<T: Config> {
 	pub amount: BalanceOf<T>,
-	pub block_number: T::BlockNumber,
+	pub block_number: <T as frame_system::Config>::BlockNumber,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -60,7 +58,7 @@ pub struct TopUpAuctionData {}
 pub struct CandleAuctionData<T: Config> {
 	pub closing_start: <T as frame_system::Config>::BlockNumber,
 	pub winning_closing_range: Option<u32>,
-	pub winner: Option<<T as frame_system::Config>::AccountId>
+	pub winner: Option<<T as frame_system::Config>::AccountId>,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -74,8 +72,8 @@ pub struct CommonAuctionData<T: Config> {
 	pub closed: bool,
 	pub owner: <T as frame_system::Config>::AccountId,
 	pub token: (
-		<T as pallet_uniques::Config>::ClassId,
-		<T as pallet_uniques::Config>::InstanceId,
+		<T as pallet_nft::Config>::NftClassId,
+		<T as pallet_nft::Config>::NftInstanceId,
 	),
 }
 
