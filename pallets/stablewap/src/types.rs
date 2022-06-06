@@ -6,7 +6,7 @@ use scale_info::TypeInfo;
 use sp_core::RuntimeDebug;
 use sp_runtime::traits::{CheckedAdd, Zero};
 
-pub type Balance = u128;
+pub(crate) type Balance = u128;
 
 #[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolId<AssetId>(pub AssetId);
