@@ -5927,7 +5927,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6503,7 +6503,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.9"
+version = "3.4.10"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
