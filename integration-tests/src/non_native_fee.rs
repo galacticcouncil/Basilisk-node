@@ -144,3 +144,38 @@ fn non_native_fee_payment_works() {
 		);
 	});
 }
+
+#[test]
+fn fee_currency_on_account_lifecycle() {
+	TestNet::reset();
+
+	const HITCHHIKER: [u8; 32] = [42u8; 32];
+
+	Basilisk::execute_with(|| {
+		let currency_1 = 1;
+		let acc_id = AccountId::from(HITCHHIKER);
+
+		assert_eq!(basilisk_runtime::MultiTransactionPayment::get_currency(&acc_id), None);
+
+		// ------------ set on create ------------
+		assert_ok!(basilisk_runtime::Currencies::transfer(
+			basilisk_runtime::Origin::signed(BOB.into()),
+			HITCHHIKER.into(),
+			currency_1,
+			50_000_000_000_000,
+		));
+
+		assert_eq!(basilisk_runtime::Tokens::free_balance(1, &acc_id), 50_000_000_000_000);
+		assert_eq!(basilisk_runtime::MultiTransactionPayment::get_currency(&acc_id), Some(currency_1));
+
+		// ------------ remove on delete ------------
+		assert_ok!(basilisk_runtime::Tokens::transfer_all(
+			basilisk_runtime::Origin::signed(HITCHHIKER.into()),
+			BOB.into(),
+			currency_1,
+			false,
+		));
+
+		assert_eq!(basilisk_runtime::MultiTransactionPayment::get_currency(&acc_id), None);
+	});
+}
