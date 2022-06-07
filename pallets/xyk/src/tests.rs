@@ -963,7 +963,12 @@ fn discount_sell_fees_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, HDX, 10_000, share_token_native, native_pair_account).into(),
-			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, asset_b)).into(),
+			pallet_asset_registry::Event::Registered {
+				asset_id: 1,
+				asset_name: bounded_name,
+				asset_type: AssetType::PoolShare(asset_a, asset_b),
+			}
+			.into(),
 			frame_system::Event::NewAccount { account: pair_account }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_a,
@@ -1230,7 +1235,12 @@ fn single_buy_with_discount_should_work() {
 
 		expect_events(vec![
 			Event::PoolCreated(user_1, asset_a, asset_b, 640_000_000_000, share_token, pair_account).into(),
-			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, HDX)).into(),
+			pallet_asset_registry::Event::Registered {
+				asset_id: 1,
+				asset_name: bounded_name,
+				asset_type: AssetType::PoolShare(asset_a, HDX),
+			}
+			.into(),
 			frame_system::Event::NewAccount {
 				account: native_pair_account,
 			}

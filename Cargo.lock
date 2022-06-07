@@ -508,7 +508,7 @@ dependencies = [
  "getrandom 0.2.6",
  "hash-db",
  "hex-literal",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "memory-db 0.27.0",
  "orml-benchmarking",
  "orml-currencies",
@@ -1283,7 +1283,7 @@ version = "1.7.2"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -3202,18 +3202,6 @@ dependencies = [
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "sp-arithmetic",
-]
-
-[[package]]
-name = "hydradx-traits"
-version = "0.5.1"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-std",
 ]
 
 [[package]]
@@ -5353,13 +5341,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.2.0"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
+version = "1.3.0"
+source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/set-tx-fee-asset-on-new-account#f366704e38c16388ca7a4bdd5ccd1cc173a0d231"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits 0.5.1",
+ "hydradx-traits",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5723,7 +5711,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.1.1",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5748,7 +5736,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5865,7 +5853,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 4.1.1",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
@@ -5916,7 +5904,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.2.0",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -5942,7 +5930,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -6165,7 +6153,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -6385,7 +6373,7 @@ source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/set-t
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "orml-traits",
  "pallet-transaction-payment",
  "parity-scale-codec",
@@ -6548,7 +6536,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 4.1.1",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
@@ -8753,7 +8741,7 @@ dependencies = [
  "hash-db",
  "hex-literal",
  "hydra-dx-math 4.1.1",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "kusama-runtime",
  "memory-db 0.27.0",
  "orml-currencies",
@@ -11285,7 +11273,7 @@ dependencies = [
  "getrandom 0.2.6",
  "hash-db",
  "hex-literal",
- "hydradx-traits 0.6.0",
+ "hydradx-traits",
  "memory-db 0.27.0",
  "orml-currencies",
  "orml-tokens",
@@ -12732,8 +12720,3 @@ dependencies = [
  "cc",
  "libc",
 ]
-
-[[patch.unused]]
-name = "pallet-asset-registry"
-version = "1.3.0"
-source = "git+https://github.com/galacticcouncil//warehouse?branch=apopiak/set-tx-fee-asset-on-new-account#f366704e38c16388ca7a4bdd5ccd1cc173a0d231"

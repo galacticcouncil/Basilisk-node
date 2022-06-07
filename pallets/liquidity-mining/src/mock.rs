@@ -347,7 +347,7 @@ impl orml_tokens::Config for Test {
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
 	type OnNewTokenAccount = ();
-    type OnKilledTokenAccount = ();
+	type OnKilledTokenAccount = ();
 }
 
 pub struct ExtBuilder {
