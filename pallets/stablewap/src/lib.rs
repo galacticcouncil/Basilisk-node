@@ -60,8 +60,8 @@ use sp_runtime::Permill;
 pub use pallet::*;
 
 mod math;
-mod traits;
-mod types;
+pub mod traits;
+pub mod types;
 pub mod weights;
 
 use crate::types::Balance;
@@ -164,7 +164,7 @@ pub mod pallet {
 		/// Liquidity of an asset was added to a pool.
 		LiquidityAdded {
 			id: PoolId<T::AssetId>,
-			from: T::AccountId,
+			who: T::AccountId,
 			assets: (T::AssetId, T::AssetId),
 			amounts: (Balance, Balance),
 		},
@@ -191,6 +191,7 @@ pub mod pallet {
 			asset_out: T::AssetId,
 			amount_in: Balance,
 			amount_out: Balance,
+			fee: Balance,
 		},
 	}
 
@@ -473,7 +474,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::LiquidityAdded {
 				id: pool_id,
-				from: who,
+				who,
 				assets: (asset, asset_b_id),
 				amounts: (amount, asset_b_amount),
 			});
@@ -684,6 +685,7 @@ pub mod pallet {
 				asset_out,
 				amount_in,
 				amount_out,
+				fee: fee_amount,
 			});
 
 			Ok(())
