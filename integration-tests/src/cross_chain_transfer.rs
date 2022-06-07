@@ -200,7 +200,10 @@ fn fee_currency_set_on_xcm_transfer() {
 		));
 
 		// fee currency is not set before XCM transfer
-		assert_eq!(basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)), None);
+		assert_eq!(
+			basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
+		);
 	});
 
 	Hydra::execute_with(|| {
@@ -235,6 +238,9 @@ fn fee_currency_set_on_xcm_transfer() {
 			transfer_amount
 		);
 		// fee currency is set after XCM transfer
-		assert_eq!(basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)), Some(1));
+		assert_eq!(
+			basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			Some(1)
+		);
 	});
 }
