@@ -117,6 +117,8 @@ impl orml_tokens::Config for Test {
 	type OnDust = ();
 	type MaxLocks = ();
 	type DustRemovalWhitelist = Everything;
+	type OnNewTokenAccount = ();
+    type OnKilledTokenAccount = ();
 }
 
 pub struct AssetPairAccountIdTest();

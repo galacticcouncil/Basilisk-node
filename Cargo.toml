@@ -198,8 +198,20 @@ cumulus-relay-chain-interface = { git = "https://github.com/paritytech//cumulus"
 cumulus-relay-chain-local = { git = "https://github.com/paritytech//cumulus", rev = "76479e7fef3af7c8828a44647847b01afd5fefe5" }
 
 [patch."https://github.com/galacticcouncil/warehouse"]
-pallet-price-oracle = { git = "https://github.com/galacticcouncil//warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1"}
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1"}
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1"}
-pallet-asset-registry= { git = "https://github.com/galacticcouncil//warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1"}
-hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1"}
+pallet-price-oracle = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/set-tx-fee-asset-on-new-account"}
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/set-tx-fee-asset-on-new-account"}
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/set-tx-fee-asset-on-new-account"}
+pallet-asset-registry= { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/set-tx-fee-asset-on-new-account"}
+hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/set-tx-fee-asset-on-new-account"}
+
+[patch."https://github.com/open-web3-stack/open-runtime-module-library"]
+orml-currencies = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
+orml-tokens = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
+orml-traits = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
+orml-vesting = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
+orml-benchmarking = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17", optional = true }
+orml-xtokens = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
+orml-xcm-support = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
+orml-unknown-tokens = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
+orml-xcm = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
+orml-utilities = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
