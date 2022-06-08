@@ -120,7 +120,7 @@ pub mod pallet {
 		/// Account ID constructor
 		type ShareAccountId: ShareAccountIdFor<PoolAssets<Self::AssetId>, AccountId = Self::AccountId>;
 
-		/// Asset registry mechnanism
+		/// Asset registry mechanism
 		type AssetRegistry: ShareTokenRegistry<Self::AssetId, Vec<u8>, Balance, DispatchError>;
 
 		/// The origin which can create a new pool
