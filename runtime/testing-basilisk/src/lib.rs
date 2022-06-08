@@ -31,7 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -423,6 +423,20 @@ impl pallet_xyk::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
+}
+
+impl pallet_stableswap::Config for Runtime {
+	type Event = Event;
+	type AssetId = AssetId;
+	type Currency = Currencies;
+	type ShareAccountId = account::AccountIdForStableswap;
+	type AssetRegistry = AssetRegistry;
+	type CreatePoolOrigin = EnsureSigned<AccountId>;
+	type Precision = StableswapPrecision;
+	type MinimumLiquidity = MinPoolLiquidity;
+	type AmplificationRange = StableswapAmplificationRange;
+	type MinimumTradingLimit = MinTradingLimit;
+	type WeightInfo = ();
 }
 
 impl pallet_exchange::Config for Runtime {
@@ -863,6 +877,8 @@ construct_runtime!(
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
+
+		Stableswap: pallet_stableswap::{Pallet, Call, Storage, Event<T>} = 110,
 
 		// ORML related modules - starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,

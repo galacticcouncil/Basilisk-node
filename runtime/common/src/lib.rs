@@ -17,11 +17,13 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod account;
 pub mod adapter;
 pub mod locked_balance;
 pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
+use core::ops::RangeInclusive;
 use frame_support::{
 	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_PER_MICROS, weights::Pays, PalletId,
 	RuntimeDebug,
@@ -259,4 +261,10 @@ parameter_types! {
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = NATIVE_EXISTENTIAL_DEPOSIT * 1_000;
 	pub const NftClass: primitives::ClassId = 1;
+}
+
+// Stableswap
+parameter_types! {
+	pub const StableswapPrecision: Balance = 1u128;
+	pub const StableswapAmplificationRange: RangeInclusive<u32> = RangeInclusive::new(2,10000);
 }

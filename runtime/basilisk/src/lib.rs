@@ -31,7 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -469,6 +469,20 @@ impl pallet_xyk::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
+}
+
+impl pallet_stableswap::Config for Runtime {
+	type Event = Event;
+	type AssetId = AssetId;
+	type Currency = Currencies;
+	type ShareAccountId = account::AccountIdForStableswap;
+	type AssetRegistry = AssetRegistry;
+	type CreatePoolOrigin = EnsureSigned<AccountId>;
+	type Precision = StableswapPrecision;
+	type MinimumLiquidity = MinPoolLiquidity;
+	type AmplificationRange = StableswapAmplificationRange;
+	type MinimumTradingLimit = MinTradingLimit;
+	type WeightInfo = ();
 }
 
 impl pallet_exchange::Config for Runtime {
@@ -910,6 +924,8 @@ construct_runtime!(
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
 
+		Stableswap: pallet_stableswap::{Pallet, Call, Storage, Event<T>} = 110,
+
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>} = 151,
@@ -1144,6 +1160,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_stableswap, Stableswap);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
@@ -1206,6 +1223,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_stableswap, Stableswap);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
