@@ -378,7 +378,7 @@ pub mod pallet {
 		/// Origin is given corresponding amount of shares.
 		///
 		/// Parameters:
-		/// - `origin`: origin of the caller
+		/// - `origin`: liquidity provider
 		/// - `pool_id`: Pool Id
 		/// - `asset`: Asset id
 		/// - `amount`: liquidity amount of `asset` to be added to the pool.
