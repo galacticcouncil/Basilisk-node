@@ -141,9 +141,9 @@ impl Config for Test {
 	type AssetRegistry = DummyRegistry<Test>;
 	type CreatePoolOrigin = EnsureSigned<u64>;
 	type Precision = Precision;
-	type MinimumLiquidity = MinimumLiquidity;
+	type MinPoolLiquidity = MinimumLiquidity;
 	type AmplificationRange = AmplificationRange;
-	type MinimumTradingLimit = MinimumTradingLimit;
+	type MinTradingLimit = MinimumTradingLimit;
 	type WeightInfo = ();
 }
 

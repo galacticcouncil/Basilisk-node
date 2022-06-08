@@ -479,9 +479,9 @@ impl pallet_stableswap::Config for Runtime {
 	type AssetRegistry = AssetRegistry;
 	type CreatePoolOrigin = EnsureSigned<AccountId>;
 	type Precision = StableswapPrecision;
-	type MinimumLiquidity = MinPoolLiquidity;
+	type MinPoolLiquidity = MinPoolLiquidity;
 	type AmplificationRange = StableswapAmplificationRange;
-	type MinimumTradingLimit = MinTradingLimit;
+	type MinTradingLimit = MinTradingLimit;
 	type WeightInfo = ();
 }
 

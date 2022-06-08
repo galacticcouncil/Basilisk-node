@@ -19,6 +19,12 @@
 //!
 //! Version v1 - supports only 2 assets pool.
 //!
+//! ### Terminology
+//!
+//! * **LP** - liquidity provider
+//! * **Share Token** - a token representing share asset of specific pool. Each pool has its own share token.
+//! * **Amplification** - curve AMM pool amplification parameter
+//!
 //! ## Assumptions
 //!
 //! Only 2 assets pool are possible to create in V1.
@@ -33,12 +39,6 @@
 //! LP is given certain amount of shares by minting a pool's share token.
 //!
 //! When LP decides to withdraw liquidity, it receives both assets. Single token withdrawal is not supported.
-//!
-//! ### Terminology
-//!
-//! * **LP** - liquidity provider
-//! * **Share Token** - a token representing share asset of specific pool. Each pool has its own share token.
-//! * **Amplification** - curve AMM pool amplification parameter
 //!
 //! ## Interface
 //!
@@ -133,15 +133,15 @@ pub mod pallet {
 
 		/// Minimum pool liquidity
 		#[pallet::constant]
-		type MinimumLiquidity: Get<Balance>;
+		type MinPoolLiquidity: Get<Balance>;
+
+		/// Minimum trading amount
+		#[pallet::constant]
+		type MinTradingLimit: Get<Balance>;
 
 		/// Amplification inclusive range. Pool's amp can be selected from the range only.
 		#[pallet::constant]
 		type AmplificationRange: Get<RangeInclusive<u32>>;
-
-		/// Minimum trading amount
-		#[pallet::constant]
-		type MinimumTradingLimit: Get<Balance>;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -344,7 +344,7 @@ pub mod pallet {
 			.ok_or(ArithmeticError::Overflow)?;
 
 			ensure!(
-				share_amount >= T::MinimumLiquidity::get(),
+				share_amount >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientLiquidity
 			);
 
@@ -396,7 +396,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			ensure!(
-				amount >= T::MinimumTradingLimit::get(),
+				amount >= T::MinTradingLimit::get(),
 				Error::<T>::InsufficientTradingAmount
 			);
 
@@ -518,7 +518,7 @@ pub mod pallet {
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
 
 			ensure!(
-				share_issuance.saturating_sub(amount) >= T::MinimumLiquidity::get(),
+				share_issuance.saturating_sub(amount) >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientLiquidityRemaining
 			);
 
@@ -567,7 +567,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			ensure!(
-				amount_in >= T::MinimumTradingLimit::get(),
+				amount_in >= T::MinTradingLimit::get(),
 				Error::<T>::InsufficientTradingAmount
 			);
 
@@ -641,7 +641,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			ensure!(
-				amount_out >= T::MinimumTradingLimit::get(),
+				amount_out >= T::MinTradingLimit::get(),
 				Error::<T>::InsufficientTradingAmount
 			);
 
