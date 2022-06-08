@@ -56,6 +56,7 @@
 use frame_support::pallet_prelude::{DispatchResult, Get};
 use frame_support::transactional;
 use sp_runtime::Permill;
+use sp_std::vec::Vec;
 
 pub use pallet::*;
 

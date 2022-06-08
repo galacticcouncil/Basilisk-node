@@ -1,3 +1,5 @@
+use sp_std::vec::Vec;
+
 /// Abstraction over account id and account name creation for `Assets`
 pub trait ShareAccountIdFor<Assets> {
 	type AccountId;
