@@ -439,7 +439,7 @@ pub mod pallet {
 
 			let asset_b_amount = asset_b_reserve
 				.checked_sub(initial_reserves.1)
-				.ok_or(Error::<T>::InvalidAmplification)?;
+				.ok_or(ArithmeticError::Underflow)?;
 
 			ensure!(
 				T::Currency::free_balance(assets.1, &who) >= asset_b_amount,
