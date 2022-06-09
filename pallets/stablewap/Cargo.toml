@@ -26,6 +26,9 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 
+# Math
+hydra-dx-math = { default-features = false, version = "4.4.3" }
+
 # HydraDX dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1", default-features = false }
 

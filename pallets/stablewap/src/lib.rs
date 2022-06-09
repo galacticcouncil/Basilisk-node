@@ -79,7 +79,7 @@ const POOL_IDENTIFIER: &str = "sts";
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::math::two_asset_pool_math::{
+	use crate::math::{
 		calculate_add_liquidity_shares, calculate_asset_b_reserve, calculate_in_given_out, calculate_out_given_in,
 		calculate_remove_liquidity_amounts,
 	};
