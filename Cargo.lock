@@ -3181,23 +3181,10 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4009ee334bd759322746adb417e40b7ae7f5adac5ea016c9ba0a91f5c65c847d"
+version = "4.4.3"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=40ab7ae05679eb374df6f84388547b42b844822b#40ab7ae05679eb374df6f84388547b42b844822b"
 dependencies = [
  "fixed",
- "lazy_static",
- "num-traits",
- "primitive-types 0.8.0",
-]
-
-[[package]]
-name = "hydra-dx-math"
-version = "4.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=3e0e6774d52184b00e758dc822564e5a893773f5#3e0e6774d52184b00e758dc822564e5a893773f5"
-dependencies = [
- "fixed",
- "lazy_static",
  "num-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5706,11 +5693,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.9"
+version = "5.2.10"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5846,13 +5833,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.3.4"
+version = "4.3.5"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5899,11 +5886,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.2.0",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
@@ -6529,13 +6516,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.9"
+version = "3.4.10"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -8719,7 +8706,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.11"
+version = "0.2.12"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8740,7 +8727,6 @@ dependencies = [
  "getrandom 0.2.6",
  "hash-db",
  "hex-literal",
- "hydra-dx-math 4.1.1",
  "hydradx-traits",
  "kusama-runtime",
  "memory-db 0.27.0",
