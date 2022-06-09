@@ -417,44 +417,41 @@ pub mod pallet {
 				T::Currency::free_balance(pool.assets.1, &pool_account),
 			);
 
-			// Work out which asset's amount has to be calculated based on given provided asset by LP
-			// Calculate correct amount of second asset which LP has to provided too.
-			// Update initial reserves.
-			let (asset_b_id, asset_b_amount, new_reserves) = if asset == pool.assets.0 {
-				let asset_reserve = initial_reserves
-					.0
-					.checked_add(amount)
-					.ok_or(ArithmeticError::Overflow)?;
+			// Work out which asset is asset B ( second asset which has to provided by LP )
+			// Update initial reserves in correct order ( asset as is given as params, asset b is second asset)
+			let (assets, updated_a_reserve, initial_reserves) = if asset == pool.assets.0 {
+				let assets = (asset, pool.assets.1);
+				let reserves = AssetAmounts(initial_reserves.0, initial_reserves.1);
+				let updated_a_reserve = reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?;
 
-				let asset_b_reserve = calculate_asset_b_reserve(initial_reserves.1, initial_reserves.0, asset_reserve)
-					.ok_or(ArithmeticError::Overflow)?;
-				(
-					pool.assets.1,
-					asset_b_reserve
-						.checked_sub(initial_reserves.1)
-						.ok_or(ArithmeticError::Underflow)?,
-					AssetAmounts(asset_reserve, asset_b_reserve),
-				)
+				(assets, updated_a_reserve, reserves)
 			} else {
-				let asset_reserve = initial_reserves
-					.1
-					.checked_add(amount)
-					.ok_or(ArithmeticError::Overflow)?;
+				let assets = (asset, pool.assets.0);
+				let reserves = AssetAmounts(initial_reserves.1, initial_reserves.0);
+				let updated_a_reserve = reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?;
 
-				let asset_b_reserve = calculate_asset_b_reserve(initial_reserves.0, initial_reserves.1, asset_reserve)
-					.ok_or(ArithmeticError::Overflow)?;
-				(
-					pool.assets.0,
-					asset_b_reserve
-						.checked_sub(initial_reserves.0)
-						.ok_or(ArithmeticError::Underflow)?,
-					AssetAmounts(asset_b_reserve, asset_reserve),
-				)
+				(assets, updated_a_reserve, reserves)
 			};
 
+			// Calculate new reserve of asset b and work out the difference to get required amount of second asset which has to be provided by LP too.
+			let asset_b_reserve = calculate_asset_b_reserve(initial_reserves.0, initial_reserves.1, updated_a_reserve)
+				.ok_or(ArithmeticError::Overflow)?;
+
+			let asset_b_amount = asset_b_reserve
+				.checked_sub(initial_reserves.1)
+				.ok_or(Error::<T>::InvalidAmplification)?;
+
 			ensure!(
-				T::Currency::free_balance(asset_b_id, &who) >= asset_b_amount,
+				T::Currency::free_balance(assets.1, &who) >= asset_b_amount,
 				Error::<T>::InsufficientBalance
+			);
+
+			let new_reserves = AssetAmounts(
+				updated_a_reserve,
+				initial_reserves
+					.1
+					.checked_add(asset_b_amount)
+					.ok_or(Error::<T>::InvalidAmplification)?,
 			);
 
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
@@ -470,13 +467,13 @@ pub mod pallet {
 
 			T::Currency::deposit(pool_id.0, &who, share_amount)?;
 
-			T::Currency::transfer(asset, &who, &pool_account, amount)?;
-			T::Currency::transfer(asset_b_id, &who, &pool_account, asset_b_amount)?;
+			T::Currency::transfer(assets.0, &who, &pool_account, amount)?;
+			T::Currency::transfer(assets.1, &who, &pool_account, asset_b_amount)?;
 
 			Self::deposit_event(Event::LiquidityAdded {
 				id: pool_id,
 				who,
-				assets: (asset, asset_b_id),
+				assets,
 				amounts: (amount, asset_b_amount),
 			});
 

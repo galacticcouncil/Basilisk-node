@@ -63,10 +63,10 @@ pub(crate) mod two_asset_pool_math {
 	pub(crate) fn calculate_asset_b_reserve(
 		asset_a_reserve: Balance,
 		asset_b_reserve: Balance,
-		updated_reserve: Balance,
+		updated_a_reserve: Balance,
 	) -> Option<Balance> {
-		let (reserve_a, reserve_b, updated_reserve_b) = to_u256!(asset_a_reserve, asset_b_reserve, updated_reserve);
-		let result = reserve_a.checked_mul(updated_reserve_b)?.checked_div(reserve_b)?;
+		let (reserve_a, reserve_b, updated_reserve_a) = to_u256!(asset_a_reserve, asset_b_reserve, updated_a_reserve);
+		let result = updated_reserve_a.checked_mul(reserve_b)?.checked_div(reserve_a)?;
 		to_balance!(result)
 	}
 
