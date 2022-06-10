@@ -25,7 +25,7 @@ in a way that the ratio does not change.
 
 LP is given certain amount of shares by minting a pool's share token.
 
-When LP decides to withdraw liquidity, it receives both assets. Single token withdrawal is not supported.
+When LP decides to withdraw liquidity, they receive both assets. Single token withdrawal is not supported.
 
 ### Interface
 
