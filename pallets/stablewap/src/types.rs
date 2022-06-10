@@ -74,29 +74,6 @@ impl<AssetId: Copy> From<&PoolAssets<AssetId>> for Vec<AssetId> {
 	}
 }
 
-pub struct PoolAssetIterator<AssetId> {
-	iter: sp_std::vec::IntoIter<AssetId>,
-}
-
-impl<'a, AssetId: Copy> IntoIterator for &'a PoolAssets<AssetId> {
-	type Item = AssetId;
-	type IntoIter = PoolAssetIterator<AssetId>;
-
-	fn into_iter(self) -> Self::IntoIter {
-		let v: Vec<AssetId> = self.into();
-
-		PoolAssetIterator { iter: v.into_iter() }
-	}
-}
-
-impl<AssetId> Iterator for PoolAssetIterator<AssetId> {
-	type Item = AssetId;
-
-	fn next(&mut self) -> Option<Self::Item> {
-		self.iter.next()
-	}
-}
-
 /// Pool asset's reserve amounts.
 /// Used together with `PoolAssets` where first reserve is for `PoolAssets.0`
 #[derive(Clone, PartialEq, Default)]
@@ -117,28 +94,5 @@ impl<Balance: PartialOrd + Zero> AssetAmounts<Balance> {
 impl<Balance: Copy> From<&AssetAmounts<Balance>> for Vec<Balance> {
 	fn from(amounts: &AssetAmounts<Balance>) -> Self {
 		vec![amounts.0, amounts.1]
-	}
-}
-
-pub struct AssetAmountIterator<Balance> {
-	iter: sp_std::vec::IntoIter<Balance>,
-}
-
-impl<'a, Balance: Copy> IntoIterator for &'a AssetAmounts<Balance> {
-	type Item = Balance;
-	type IntoIter = AssetAmountIterator<Balance>;
-
-	fn into_iter(self) -> Self::IntoIter {
-		let v: Vec<Balance> = self.into();
-
-		AssetAmountIterator { iter: v.into_iter() }
-	}
-}
-
-impl<Balance> Iterator for AssetAmountIterator<Balance> {
-	type Item = Balance;
-
-	fn next(&mut self) -> Option<Self::Item> {
-		self.iter.next()
 	}
 }

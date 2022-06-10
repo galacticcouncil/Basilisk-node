@@ -288,9 +288,8 @@ pub mod pallet {
 				Error::<T>::InvalidAmplification
 			);
 
-			for asset in (&pool_assets).into_iter() {
-				ensure!(T::AssetRegistry::exists(asset), Error::<T>::AssetNotRegistered);
-			}
+			ensure!(T::AssetRegistry::exists(pool_assets.0), Error::<T>::AssetNotRegistered);
+			ensure!(T::AssetRegistry::exists(pool_assets.1), Error::<T>::AssetNotRegistered);
 
 			let reserves: AssetAmounts<Balance> = initial_liquidity.into();
 
@@ -513,9 +512,8 @@ pub mod pallet {
 			T::Currency::withdraw(pool_id.0, &who, amount)?;
 
 			// Assets are ordered by id in pool.assets. So amounts provided corresponds.
-			for (asset, asset_amount) in pool.assets.into_iter().zip(amounts.into_iter()) {
-				T::Currency::transfer(asset, &pool_account, &who, asset_amount)?;
-			}
+			T::Currency::transfer(pool.assets.0, &pool_account, &who, amounts.0)?;
+			T::Currency::transfer(pool.assets.1, &pool_account, &who, amounts.1)?;
 
 			Self::deposit_event(Event::LiquidityRemoved {
 				id: pool_id,
