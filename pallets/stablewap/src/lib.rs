@@ -340,7 +340,7 @@ pub mod pallet {
 				&AssetAmounts::default(),
 				&reserves,
 				T::Precision::get(),
-				amplification as Balance,
+				amplification.into(),
 				Balance::zero(),
 			)
 			.ok_or(ArithmeticError::Overflow)?;
@@ -462,7 +462,7 @@ pub mod pallet {
 				&initial_reserves,
 				&new_reserves,
 				T::Precision::get(),
-				pool.amplification as Balance,
+				pool.amplification.into(),
 				share_issuance,
 			)
 			.ok_or(ArithmeticError::Overflow)?;
@@ -591,7 +591,7 @@ pub mod pallet {
 				reserve_out,
 				amount_in,
 				T::Precision::get(),
-				pool.amplification as Balance,
+				pool.amplification.into(),
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
@@ -662,7 +662,7 @@ pub mod pallet {
 				reserve_out,
 				amount_out,
 				T::Precision::get(),
-				pool.amplification as Balance,
+				pool.amplification.into(),
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
