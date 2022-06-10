@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "48.0.0"
+version = "49.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -536,6 +536,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
+ "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
@@ -1280,7 +1281,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.8.2"
+version = "1.9.2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -11252,7 +11253,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "48.0.0"
+version = "49.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11301,6 +11302,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
+ "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",

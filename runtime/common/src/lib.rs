@@ -270,3 +270,10 @@ parameter_types! {
 	pub const MaxAdditionalFields: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
 }
+
+// pallet multisig
+parameter_types! {
+ 	pub DepositBase: Balance = deposit(1, 88);
+ 	pub DepositFactor: Balance = deposit(0, 32);
+ 	pub const MaxSignatories: u16 = 100;
+ }
