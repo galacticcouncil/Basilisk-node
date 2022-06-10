@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use super::*;
+use sp_runtime::traits::One;
 use test_ext::*;
 
 #[test]
@@ -27,24 +28,24 @@ fn add_liquidity_pool_should_work() {
 				asset_in: BSX,
 				asset_out: ACA,
 			},
-			LiquidityPoolYieldFarm {
+			YieldFarmData {
 				id: 8,
 				updated_at: 17,
 				total_shares: 0,
 				total_valued_shares: 0,
 				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
-				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(20_000_u128),
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 0,
 			},
 			BSX_ACA_AMM,
 			ALICE,
 			ALICE_FARM,
 			17_850,
-			GlobalPool {
-				liq_pools_count: 1,
+			GlobalFarmData {
+				yield_farms_count: (1, 1),
 				..PREDEFINED_GLOBAL_POOLS[0].clone()
 			},
 		),
@@ -53,24 +54,24 @@ fn add_liquidity_pool_should_work() {
 				asset_in: KSM,
 				asset_out: BSX,
 			},
-			LiquidityPoolYieldFarm {
+			YieldFarmData {
 				id: 9,
 				updated_at: 17,
 				total_shares: 0,
 				total_valued_shares: 0,
 				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
-				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(10_000_u128),
 				loyalty_curve: None,
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 0,
 			},
 			BSX_KSM_AMM,
 			ALICE,
 			ALICE_FARM,
 			17_850,
-			GlobalPool {
-				liq_pools_count: 2,
+			GlobalFarmData {
+				yield_farms_count: (2, 2),
 				..PREDEFINED_GLOBAL_POOLS[0].clone()
 			},
 		),
@@ -79,27 +80,27 @@ fn add_liquidity_pool_should_work() {
 				asset_in: BSX,
 				asset_out: ETH,
 			},
-			LiquidityPoolYieldFarm {
+			YieldFarmData {
 				id: 10,
 				updated_at: 20,
 				total_shares: 0,
 				total_valued_shares: 0,
 				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
-				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(10_000_u128),
 				loyalty_curve: Some(LoyaltyCurve {
 					initial_reward_percentage: FixedU128::from_inner(100_000_000_000_000_000),
 					scale_coef: 50,
 				}),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 0,
 			},
 			BSX_ETH_AMM,
 			ALICE,
 			ALICE_FARM,
 			20_000,
-			GlobalPool {
-				liq_pools_count: 3,
+			GlobalFarmData {
+				yield_farms_count: (3, 3),
 				..PREDEFINED_GLOBAL_POOLS[0].clone()
 			},
 		),
@@ -108,27 +109,27 @@ fn add_liquidity_pool_should_work() {
 				asset_in: BSX,
 				asset_out: ETH,
 			},
-			LiquidityPoolYieldFarm {
+			YieldFarmData {
 				id: 11,
 				updated_at: 2,
 				total_shares: 0,
 				total_valued_shares: 0,
 				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
-				stake_in_global_pool: 0,
 				multiplier: FixedU128::from(50_000_128),
 				loyalty_curve: Some(LoyaltyCurve {
 					initial_reward_percentage: FixedU128::from_inner(1),
 					scale_coef: 0,
 				}),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 0,
 			},
 			BSX_ETH_AMM,
 			BOB,
 			BOB_FARM,
 			20_000,
-			GlobalPool {
-				liq_pools_count: 1,
+			GlobalFarmData {
+				yield_farms_count: (1, 1),
 				..PREDEFINED_GLOBAL_POOLS[1].clone()
 			},
 		),
@@ -155,11 +156,11 @@ fn add_liquidity_pool_should_work() {
 				asset_pair: assets,
 			})]);
 
-			assert_eq!(LiquidityMining::global_pool(farm_id).unwrap(), global_pool);
+			assert_eq!(WarehouseLM::global_farm(farm_id).unwrap(), global_pool);
 		}
 
 		for (_, pool, amm_id, _, farm_id, _, _) in test_data {
-			assert_eq!(LiquidityMining::liquidity_pool(farm_id, amm_id).unwrap(), pool);
+			assert_eq!(WarehouseLM::yield_farm((amm_id, farm_id, pool.id)).unwrap(), pool);
 		}
 	});
 }
@@ -172,14 +173,14 @@ fn add_liquidity_pool_missing_incentivized_asset_should_not_work() {
 				Origin::signed(ALICE),
 				ALICE_FARM,
 				AssetPair {
-					//neither KSM nor DOT is incetivized in farm
+					//neither KSM nor DOT is incetivized in the farm
 					asset_in: KSM,
 					asset_out: DOT,
 				},
 				FixedU128::from(10_000_u128),
 				None
 			),
-			Error::<Test>::MissingIncentivizedAsset
+			warehouse_liquidity_mining::Error::<Test>::MissingIncentivizedAsset
 		);
 	});
 }
@@ -198,7 +199,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 				FixedU128::from(10_000_u128),
 				None
 			),
-			Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 
 		assert_noop!(
@@ -212,7 +213,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 				FixedU128::from(10_000_u128),
 				Some(LoyaltyCurve::default())
 			),
-			Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
 }
@@ -259,7 +260,7 @@ fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
 					FixedU128::from(10_000_u128),
 					c
 				),
-				Error::<Test>::InvalidInitialRewardPercentage
+				warehouse_liquidity_mining::Error::<Test>::InvalidInitialRewardPercentage
 			);
 		}
 	});
@@ -279,7 +280,7 @@ fn add_liquidity_pool_invalid_multiplier_should_not_work() {
 				FixedU128::from(0_u128),
 				Some(LoyaltyCurve::default())
 			),
-			Error::<Test>::InvalidMultiplier
+			warehouse_liquidity_mining::Error::<Test>::InvalidMultiplier
 		);
 	});
 }
@@ -317,7 +318,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 		let aca_ksm_amm_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(aca_ksm_assets)).unwrap().0);
 
 		//check if liq. pool for aca ksm assets pair exist
-		assert!(LiquidityMining::liquidity_pool(CHARLIE_FARM, aca_ksm_amm_account).is_some());
+		assert!(WarehouseLM::active_yield_farm(aca_ksm_amm_account, CHARLIE_FARM).is_some());
 
 		//try to add same amm second time in the same block(period)
 		assert_noop!(
@@ -328,7 +329,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 				FixedU128::from(9_000_u128),
 				Some(LoyaltyCurve::default()),
 			),
-			Error::<Test>::LiquidityPoolAlreadyExists
+			warehouse_liquidity_mining::Error::<Test>::YieldFarmAlreadyExists
 		);
 
 		//try to add same amm second time in later block(period)
@@ -342,7 +343,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 				FixedU128::from(9_000_u128),
 				Some(LoyaltyCurve::default()),
 			),
-			Error::<Test>::LiquidityPoolAlreadyExists
+			warehouse_liquidity_mining::Error::<Test>::YieldFarmAlreadyExists
 		);
 	});
 }

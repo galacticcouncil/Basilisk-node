@@ -26,7 +26,7 @@ use frame_support::{
 	PalletId,
 };
 use frame_system as system;
-use hydradx_traits::AMM;
+use hydradx_traits_amm::AMM;
 use orml_traits::parameter_type_with_key;
 use primitives::nft::{ClassType, NftPermissions};
 use primitives::ReserveIdentifier;
@@ -41,6 +41,11 @@ use std::{cell::RefCell, collections::HashMap};
 pub type AccountId = u128;
 pub type PoolId = crate::PoolId;
 pub type BlockNumber = u64;
+pub type FarmId = u32;
+pub type GlobalFarmId = FarmId;
+pub type YieldFarmId = FarmId;
+pub type FarmMultiplier = FixedU128;
+pub type DepositId = u128;
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
@@ -48,6 +53,7 @@ pub const DAVE: AccountId = 4;
 pub const TREASURY: AccountId = 5;
 pub const ACCOUNT_WITH_1M: AccountId = 6;
 pub const GC: AccountId = 7;
+pub const LP_SHARES_STASH: AccountId = 8;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
@@ -81,10 +87,6 @@ pub const DEFAULT_AMM: AccountId = 11_007;
 pub const KSM_DOT_AMM: AccountId = 11_008;
 pub const ACA_KSM_AMM: AccountId = 11_009;
 
-pub const BSX_ACA_LM_POOL: PoolId = 12_000;
-pub const BSX_KSM_LM_POOL: PoolId = 12_001;
-pub const BSX_DOT_LM_POOL: PoolId = 12_002;
-
 pub const BSX_FARM: PoolId = 1;
 pub const KSM_FARM: PoolId = 2;
 pub const GC_FARM: PoolId = 3;
@@ -107,6 +109,7 @@ frame_support::construct_runtime!(
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
+		WarehouseLM: warehouse_liquidity_mining::{Pallet, Storage},
 	}
 );
 
@@ -152,8 +155,17 @@ impl system::Config for Test {
 
 pub struct Amm;
 
+//TODO: ask Martin - why do we need here thread_local storage
 thread_local! {
-	pub static AMM_POOLS: RefCell<HashMap<String, (AccountId, AssetId)>> = RefCell::new(HashMap::new());
+	pub static AMM_POOLS: RefCell<HashMap<String, (AccountId, AssetId, AssetPair)>> = RefCell::new(HashMap::new());
+
+	//This is used to check if `on_accumulated_rpvs_update()` was called with correct values
+	//`(global_farm_id, yield_farm_id, accumulated_rpvs, total_valued_shares)`
+	pub static RPVS_UPDATED: RefCell<(GlobalFarmId, YieldFarmId, Balance, Balance)> = RefCell::new((0,0,0,0));
+
+	//This is used to check if `on_accumulated_rpz_update()` was called with correct values
+	//`(global_farm_id, accumulated_rpz, total_shares_z)`
+	pub static RPZ_UPDATED: RefCell<(GlobalFarmId, Balance, Balance)> = RefCell::new((0,0,0));
 }
 
 impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
@@ -169,8 +181,16 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		0_u32.into()
 	}
 
-	fn get_pool_assets(_pool_account_id: &AccountId) -> Option<Vec<AssetId>> {
-		None
+	fn get_pool_assets(pool_account_id: &AccountId) -> Option<Vec<AssetId>> {
+		AMM_POOLS.with(|amm_pools| {
+			for (_k, v) in amm_pools.borrow().iter() {
+				if v.0 == *pool_account_id {
+					return Some(vec![v.2.asset_in, v.2.asset_out]);
+				}
+			}
+
+			None
+		})
 	}
 
 	fn get_spot_price_unchecked(_asset_a: AssetId, _asset_b: AssetId, _amount: Balance) -> Balance {
@@ -184,20 +204,20 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		_min_bought: Balance,
 		_discount: bool,
 	) -> Result<
-		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		frame_support::sp_runtime::DispatchError,
 	> {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
 
 	fn execute_buy(
-		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_transfer: &hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
 
 	fn execute_sell(
-		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_transfer: &hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
@@ -209,7 +229,7 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		_max_limit: Balance,
 		_discount: bool,
 	) -> Result<
-		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		frame_support::sp_runtime::DispatchError,
 	> {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
@@ -248,16 +268,118 @@ pub fn asset_pair_to_map_key(assets: AssetPair) -> String {
 }
 
 parameter_types! {
+	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
+	pub const MinDeposit: Balance = 1;
+}
+
+impl warehouse_liquidity_mining::Config for Test {
+	type CurrencyId = AssetId;
+	type MultiCurrency = Tokens;
+	type PalletId = WarehouseLMPalletId;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type MinDeposit = MinDeposit;
+	type BlockNumberProvider = MockBlockNumberProvider;
+	type AmmPoolId = AccountId;
+	type Handler = TestLiquidityMiningHandler;
+	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
+}
+
+pub struct TestLiquidityMiningHandler {}
+
+impl hydradx_traits::liquidity_mining::Handler<AssetId, AccountId, GlobalFarmId, FarmId, Balance, DepositId, AccountId>
+	for TestLiquidityMiningHandler
+{
+	fn get_balance_in_amm(asset: AssetId, amm_pool: AccountId) -> Balance {
+		Tokens::free_balance(asset, &amm_pool)
+	}
+
+	fn on_accumulated_rpz_update(farm_id: GlobalFarmId, accumulated_rpz: Balance, total_shares_z: Balance) {
+		RPZ_UPDATED.with(|v| {
+			let mut p = v.borrow_mut();
+			p.0 = farm_id;
+			p.1 = accumulated_rpz;
+			p.2 = total_shares_z;
+		});
+	}
+
+	fn on_accumulated_rpvs_update(
+		farm_id: GlobalFarmId,
+		liq_pool_farm_id: FarmId,
+		accumulated_rpvs: Balance,
+		total_valued_shares: Balance,
+	) {
+		RPVS_UPDATED.with(|v| {
+			let mut p = v.borrow_mut();
+			p.0 = farm_id;
+			p.1 = liq_pool_farm_id;
+			p.2 = accumulated_rpvs;
+			p.3 = total_valued_shares;
+		});
+	}
+
+	fn lock_lp_tokens(
+		amm_pool_id: AccountId,
+		who: AccountId,
+		amount: Balance,
+		_deposit_id: AccountId,
+	) -> Result<(), DispatchError> {
+		let map = HashMap::from([
+			(BSX_ACA_AMM, BSX_ACA_SHARE_ID),
+			(BSX_KSM_AMM, BSX_KSM_SHARE_ID),
+			(BSX_DOT_AMM, BSX_DOT_SHARE_ID),
+			(BSX_ETH_AMM, BSX_ETH_SHARE_ID),
+			(BSX_HDX_AMM, BSX_HDX_SHARE_ID),
+			(BSX_TKN1_AMM, BSX_TKN1_SHARE_ID),
+			(BSX_TKN2_AMM, BSX_TKN2_SHARE_ID),
+			(KSM_DOT_AMM, KSM_DOT_SHARE_ID),
+			(ACA_KSM_AMM, ACA_KSM_SHARE_ID),
+		]);
+
+		let lp_token = map.get(&amm_pool_id).unwrap();
+
+		Tokens::transfer(Origin::signed(who), LP_SHARES_STASH, *lp_token, amount)?;
+
+		Ok(())
+	}
+
+	fn unlock_lp_tokens(
+		amm_pool_id: AccountId,
+		who: AccountId,
+		amount: Balance,
+		_deposit_id: AccountId,
+	) -> Result<(), DispatchError> {
+		let map = HashMap::from([
+			(BSX_ACA_AMM, BSX_ACA_SHARE_ID),
+			(BSX_KSM_AMM, BSX_KSM_SHARE_ID),
+			(BSX_DOT_AMM, BSX_DOT_SHARE_ID),
+			(BSX_ETH_AMM, BSX_ETH_SHARE_ID),
+			(BSX_HDX_AMM, BSX_HDX_SHARE_ID),
+			(BSX_TKN1_AMM, BSX_TKN1_SHARE_ID),
+			(BSX_TKN2_AMM, BSX_TKN2_SHARE_ID),
+			(KSM_DOT_AMM, KSM_DOT_SHARE_ID),
+			(ACA_KSM_AMM, ACA_KSM_SHARE_ID),
+		]);
+
+		let lp_token = map.get(&amm_pool_id).unwrap();
+
+		Tokens::transfer(Origin::signed(LP_SHARES_STASH), who, *lp_token, amount)?;
+
+		Ok(())
+	}
+}
+
+parameter_types! {
 	pub const MaxLocks: u32 = 1;
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
+	pub const MaxEntriesPerDeposit: u8 = 10; //TODO: ask Martin - is it a good value?
 	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 }
 
 impl Config for Test {
 	type Event = Event;
-	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
 	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();

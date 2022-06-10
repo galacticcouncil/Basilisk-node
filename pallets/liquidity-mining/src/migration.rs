@@ -47,6 +47,7 @@ mod tests {
 	use super::*;
 	use crate::mock::Test;
 	use frame_support::assert_noop;
+	use std::convert::TryInto;
 
 	#[test]
 	fn init_nft_class_migration_should_work() {

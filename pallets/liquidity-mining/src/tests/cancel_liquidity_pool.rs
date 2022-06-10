@@ -16,7 +16,11 @@
 // limitations under the License.
 
 use super::*;
+use sp_runtime::FixedPointNumber;
 use test_ext::*;
+use warehouse_liquidity_mining::YieldFarmData;
+use warehouse_liquidity_mining::YieldFarmState;
+use warehouse_liquidity_mining::{GlobalFarmData, YieldFarm};
 
 #[test]
 fn cancel_liquidity_pool_should_work() {
@@ -27,12 +31,12 @@ fn cancel_liquidity_pool_should_work() {
 
 	//same period
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
-		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
-		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
-		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::cancel_liquidity_pool(
 			Origin::signed(GC),
@@ -47,31 +51,30 @@ fn cancel_liquidity_pool_should_work() {
 			asset_pair: bsx_tkn1_assets,
 		})]);
 
+		let stake_in_global_pool = liq_pool
+			.multiplier
+			.checked_mul_int(liq_pool.total_valued_shares)
+			.unwrap();
+
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
-				stake_in_global_pool: 0,
-				canceled: true,
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
+				state: YieldFarmState::Deleted,
 				multiplier: 0.into(),
 				..liq_pool
 			}
 		);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
-				total_shares_z: global_pool
-					.total_shares_z
-					.checked_sub(liq_pool.stake_in_global_pool)
-					.unwrap(),
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
+				total_shares_z: global_pool.total_shares_z.checked_sub(stake_in_global_pool).unwrap(),
 				..global_pool
 			}
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 3, GC_FARM)
-		);
+		//TODO: ask Martin
+		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
 
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), liq_pool_bsx_balance);
 		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), global_pool_bsx_balance);
@@ -79,12 +82,13 @@ fn cancel_liquidity_pool_should_work() {
 
 	//canelc liq. pool with pools update
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
-		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
+		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
-		let liq_pool = LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap();
-		let global_pool = LiquidityMining::global_pool(GC_FARM).unwrap();
+		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+
+		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		set_block_number(10_000);
 
@@ -102,36 +106,32 @@ fn cancel_liquidity_pool_should_work() {
 		})]);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
 				updated_at: 100,
 				accumulated_rpvs: 245,
 				accumulated_rpz: 49,
-				stake_in_global_pool: 0,
-				canceled: true,
+				state: YieldFarmState::Deleted,
 				multiplier: 0.into(),
 				..liq_pool
 			}
 		);
 
+		let stake_in_global_pool = liq_pool
+			.multiplier
+			.checked_mul_int(liq_pool.total_valued_shares)
+			.unwrap();
+
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
 				updated_at: 100,
 				accumulated_rpz: 49,
-				total_shares_z: global_pool
-					.total_shares_z
-					.checked_sub(liq_pool.stake_in_global_pool)
-					.unwrap(),
+				total_shares_z: global_pool.total_shares_z.checked_sub(stake_in_global_pool).unwrap(),
 				accumulated_rewards: 18_206_375,
 				paid_accumulated_rewards: 9_589_300,
 				..global_pool
 			}
-		);
-
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 3, GC_FARM)
 		);
 
 		assert_eq!(
@@ -156,7 +156,7 @@ fn cancel_liquidity_pool_invalid_liq_pool_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
 			LiquidityMining::cancel_liquidity_pool(Origin::signed(GC), GC_FARM, bsx_dot_assets),
-			Error::<Test>::LiquidityPoolNotFound
+			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
 		);
 	});
 }
@@ -176,9 +176,10 @@ fn cancel_liquidity_pool_liq_pool_already_canceled() {
 			bsx_tkn1_assets
 		));
 
+		//TODO:  notFoundError
 		assert_noop!(
 			LiquidityMining::cancel_liquidity_pool(Origin::signed(GC), GC_FARM, bsx_tkn1_assets),
-			Error::<Test>::LiquidityMiningCanceled
+			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
 }
@@ -195,7 +196,7 @@ fn cancel_liquidity_pool_not_owner_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::cancel_liquidity_pool(Origin::signed(NOT_LIQ_POOL_OWNER), GC_FARM, bsx_tkn1_assets),
-			Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
 }

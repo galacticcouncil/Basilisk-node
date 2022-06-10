@@ -16,7 +16,15 @@
 // limitations under the License.
 
 use super::*;
+use crate::mock::LP_SHARES_STASH;
 use test_ext::*;
+use warehouse_liquidity_mining::Deposit;
+use warehouse_liquidity_mining::DepositData;
+use warehouse_liquidity_mining::GlobalFarmData;
+use warehouse_liquidity_mining::LoyaltyCurve;
+use warehouse_liquidity_mining::YieldFarmData;
+use warehouse_liquidity_mining::YieldFarmEntry;
+use warehouse_liquidity_mining::YieldFarmState;
 
 #[test]
 fn deposit_shares_should_work() {
@@ -33,10 +41,12 @@ fn deposit_shares_should_work() {
 			asset_out: TKN2,
 		};
 
+		//NOTE: this should be LiquidityMining - shares are transfered to LiquidityMining account
+		//not to WarehouseLM.
 		let pallet_account = LiquidityMining::account_id();
-		let global_pool_account = LiquidityMining::pool_account_id(GC_FARM).unwrap();
-		let bsx_tkn1_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = LiquidityMining::pool_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
+		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
 		let bsx_tkn1_amm_account =
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
 		let bsx_tkn2_amm_account =
@@ -54,6 +64,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
+			BSX_TKN1_LIQ_POOL_ID,
 			bsx_tkn1_assets,
 			deposited_amount,
 		));
@@ -62,23 +73,23 @@ fn deposit_shares_should_work() {
 			mock::Event::NFT(pallet_nft::Event::InstanceMinted {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[0],
+				instance_id: PREDEFINED_DEPOSIT_IDS[0],
 				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
 				nft_class_id: LIQ_MINING_NFT_CLASS,
-				nft_instance_id: PREDEFINED_NFT_IDS[0],
+				nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
 			}),
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
 				id: GC_FARM,
 				updated_at: 0,
 				reward_currency: BSX,
@@ -89,16 +100,17 @@ fn deposit_shares_should_work() {
 				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 0,
-				liq_pools_count: 2,
+				yield_farms_count: (2, 2),
 				paid_accumulated_rewards: 0,
 				total_shares_z: 12_500,
-				accumulated_rewards: 0
+				accumulated_rewards: 0,
+				state: GlobalFarmState::Active
 			}
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 0,
 				accumulated_rpvs: 0,
@@ -106,27 +118,33 @@ fn deposit_shares_should_work() {
 				total_shares: 50,
 				total_valued_shares: 2_500,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 12_500,
 				multiplier: FixedU128::from(5_u128),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 1
 			},
 		);
 
 		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 1, GC_FARM)
-		);
-
-		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
-			Deposit {
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
+			DepositData {
 				shares: deposited_amount,
-				valued_shares: 2_500,
-				accumulated_rpvs: 0,
-				accumulated_claimed_rewards: 0,
-				entered_at: 18,
-				updated_at: 18,
-			},
+				amm_pool_id: BSX_TKN1_AMM,
+				yield_farm_entries: vec![YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					valued_shares: 2_500,
+					accumulated_rpvs: 0,
+					accumulated_claimed_rewards: 0,
+					entered_at: 18,
+					updated_at: 18,
+				}],
+			}
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
+			bsx_tkn1_amm_account
 		);
 
 		//check if shares was transferd from extrinsic caller
@@ -137,7 +155,7 @@ fn deposit_shares_should_work() {
 
 		//check if shares was transferd to liq. mining pallet account
 		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
+			Tokens::free_balance(BSX_TKN1_SHARE_ID, &LP_SHARES_STASH),
 			deposited_amount
 		);
 
@@ -151,6 +169,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
+			BSX_TKN1_LIQ_POOL_ID,
 			bsx_tkn1_assets,
 			deposited_amount
 		));
@@ -159,23 +178,23 @@ fn deposit_shares_should_work() {
 			mock::Event::NFT(pallet_nft::Event::InstanceMinted {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[1],
+				instance_id: PREDEFINED_DEPOSIT_IDS[1],
 				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
 				who: BOB,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
 				nft_class_id: LIQ_MINING_NFT_CLASS,
-				nft_instance_id: PREDEFINED_NFT_IDS[1],
+				nft_instance_id: PREDEFINED_DEPOSIT_IDS[1],
 			}),
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
 				id: GC_FARM,
 				updated_at: 18,
 				reward_currency: BSX,
@@ -186,16 +205,17 @@ fn deposit_shares_should_work() {
 				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 9,
-				liq_pools_count: 2,
+				yield_farms_count: (2, 2),
 				paid_accumulated_rewards: 112_500,
 				total_shares_z: 33_300,
 				accumulated_rewards: 0,
+				state: GlobalFarmState::Active
 			}
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 18,
 				accumulated_rpvs: 45,
@@ -203,42 +223,48 @@ fn deposit_shares_should_work() {
 				total_shares: 130,
 				total_valued_shares: 6_660,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 33_300,
 				multiplier: FixedU128::from(5_u128),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 2
 			},
 		);
 
 		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 2, GC_FARM)
-		);
-
-		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[1]).unwrap(),
-			Deposit {
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[1]).unwrap(),
+			DepositData {
 				shares: deposited_amount,
-				valued_shares: 4_160,
-				accumulated_rpvs: 45,
-				accumulated_claimed_rewards: 0,
-				entered_at: 18,
-				updated_at: 18,
-			},
+				amm_pool_id: BSX_TKN1_AMM,
+				yield_farm_entries: vec![YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					valued_shares: 4_160,
+					accumulated_rpvs: 45,
+					accumulated_claimed_rewards: 0,
+					entered_at: 18,
+					updated_at: 18,
+				}],
+			}
 		);
 
-		//check if shares was transfered from deposit owner
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[1]).unwrap(),
+			bsx_tkn1_amm_account
+		);
+
+		//check if shares was transferred from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &BOB),
 			bsx_tkn1_bob_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 130); //130 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &LP_SHARES_STASH), 130); //130 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
 			(30_000_000_000 - 112_500) //total_rewards - sum(claimed rewards by all liq. pools until now)
 		);
 
-		//check if claim from global pool was transfered to liq. pool account
+		//check if claim from global pool was transferred to liq. pool account
 		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account), 112_500);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
@@ -251,6 +277,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
+			BSX_TKN2_LIQ_POOL_ID, //TODO: ask Dani - is it surely this?
 			bsx_tkn2_assets,
 			deposited_amount
 		));
@@ -259,23 +286,23 @@ fn deposit_shares_should_work() {
 			mock::Event::NFT(pallet_nft::Event::InstanceMinted {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[2],
+				instance_id: PREDEFINED_DEPOSIT_IDS[2],
 				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN2_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
 				nft_class_id: LIQ_MINING_NFT_CLASS,
-				nft_instance_id: PREDEFINED_NFT_IDS[2],
+				nft_instance_id: PREDEFINED_DEPOSIT_IDS[2],
 			}),
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
 				id: GC_FARM,
 				updated_at: 18,
 				reward_currency: BSX,
@@ -286,16 +313,17 @@ fn deposit_shares_should_work() {
 				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 9,
-				liq_pools_count: 2,
+				yield_farms_count: (2, 2),
 				paid_accumulated_rewards: 112_500,
 				total_shares_z: 35_300,
 				accumulated_rewards: 0,
+				state: GlobalFarmState::Active
 			}
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 0,
 				accumulated_rpvs: 0,
@@ -303,27 +331,33 @@ fn deposit_shares_should_work() {
 				total_shares: 25,
 				total_valued_shares: 200,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 2_000,
 				multiplier: FixedU128::from(10_u128),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 1
 			},
 		);
 
 		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 1, GC_FARM)
-		);
-
-		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[2]).unwrap(),
-			Deposit {
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[2]).unwrap(),
+			DepositData {
 				shares: deposited_amount,
-				valued_shares: 200,
-				accumulated_rpvs: 0,
-				accumulated_claimed_rewards: 0,
-				entered_at: 18,
-				updated_at: 18,
-			},
+				amm_pool_id: BSX_TKN2_AMM,
+				yield_farm_entries: vec![YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+					valued_shares: 200,
+					accumulated_rpvs: 0,
+					accumulated_claimed_rewards: 0,
+					entered_at: 18,
+					updated_at: 18,
+				}],
+			}
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[2]).unwrap(),
+			bsx_tkn2_amm_account
 		);
 
 		//check if shares was transfered from deposit owner
@@ -331,7 +365,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB),
 			bsx_tkn2_bob_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 25); //25 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 25); //25 - sum of all deposited shares until now
 
 		//pool wasn't updated in this period so no claim from global pool
 		assert_eq!(
@@ -356,6 +390,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
+			BSX_TKN2_LIQ_POOL_ID,
 			bsx_tkn2_assets,
 			deposited_amount
 		));
@@ -364,23 +399,23 @@ fn deposit_shares_should_work() {
 			mock::Event::NFT(pallet_nft::Event::InstanceMinted {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[3],
+				instance_id: PREDEFINED_DEPOSIT_IDS[3],
 				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN2_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
 				nft_class_id: LIQ_MINING_NFT_CLASS,
-				nft_instance_id: PREDEFINED_NFT_IDS[3],
+				nft_instance_id: PREDEFINED_DEPOSIT_IDS[3],
 			}),
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
 				id: GC_FARM,
 				updated_at: 20,
 				reward_currency: BSX,
@@ -391,16 +426,17 @@ fn deposit_shares_should_work() {
 				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 10,
-				liq_pools_count: 2,
+				yield_farms_count: (2, 2),
 				paid_accumulated_rewards: 132_500,
 				total_shares_z: 499_300,
 				accumulated_rewards: 15_300,
+				state: GlobalFarmState::Active
 			}
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 20,
 				accumulated_rpvs: 100,
@@ -408,27 +444,33 @@ fn deposit_shares_should_work() {
 				total_shares: 825,
 				total_valued_shares: 46_600,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 466_000,
 				multiplier: FixedU128::from(10_u128),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 2
 			},
 		);
 
 		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 2, GC_FARM)
-		);
-
-		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[3]).unwrap(),
-			Deposit {
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[3]).unwrap(),
+			DepositData {
 				shares: deposited_amount,
-				valued_shares: 46_400,
-				accumulated_rpvs: 100,
-				accumulated_claimed_rewards: 0,
-				entered_at: 20,
-				updated_at: 20,
-			},
+				amm_pool_id: BSX_TKN2_AMM,
+				yield_farm_entries: vec![YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+					valued_shares: 46_400,
+					accumulated_rpvs: 100,
+					accumulated_claimed_rewards: 0,
+					entered_at: 20,
+					updated_at: 20,
+				}],
+			}
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[3]).unwrap(),
+			bsx_tkn2_amm_account
 		);
 
 		//check if shares was transfered from deposit owner
@@ -436,7 +478,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB),
 			bsx_tkn2_bob_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 825); //825 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 825); //825 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
@@ -459,6 +501,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
+			BSX_TKN2_LIQ_POOL_ID,
 			bsx_tkn2_assets,
 			deposited_amount,
 		));
@@ -467,23 +510,23 @@ fn deposit_shares_should_work() {
 			mock::Event::NFT(pallet_nft::Event::InstanceMinted {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[4],
+				instance_id: PREDEFINED_DEPOSIT_IDS[4],
 				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN2_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
 				who: ALICE,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: 87,
 				nft_class_id: LIQ_MINING_NFT_CLASS,
-				nft_instance_id: PREDEFINED_NFT_IDS[4],
+				nft_instance_id: PREDEFINED_DEPOSIT_IDS[4],
 			}),
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
 				id: GC_FARM,
 				updated_at: 25,
 				reward_currency: BSX,
@@ -494,16 +537,17 @@ fn deposit_shares_should_work() {
 				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 12,
-				liq_pools_count: 2,
+				yield_farms_count: (2, 2),
 				total_shares_z: 501_910,
 				accumulated_rewards: 331_550,
 				paid_accumulated_rewards: 1_064_500,
+				state: GlobalFarmState::Active
 			}
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 25,
 				accumulated_rpvs: 120,
@@ -511,27 +555,33 @@ fn deposit_shares_should_work() {
 				total_shares: 912,
 				total_valued_shares: 46_861,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 468_610,
 				multiplier: FixedU128::from(10_u128),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 3
 			},
 		);
 
 		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 3, GC_FARM)
-		);
-
-		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[4]).unwrap(),
-			Deposit {
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[4]).unwrap(),
+			DepositData {
 				shares: deposited_amount,
-				valued_shares: 261,
-				accumulated_rpvs: 120,
-				accumulated_claimed_rewards: 0,
-				entered_at: 25,
-				updated_at: 25,
-			},
+				amm_pool_id: BSX_TKN2_AMM,
+				yield_farm_entries: vec![YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+					valued_shares: 261,
+					accumulated_rpvs: 120,
+					accumulated_claimed_rewards: 0,
+					entered_at: 25,
+					updated_at: 25,
+				}],
+			}
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[4]).unwrap(),
+			bsx_tkn2_amm_account
 		);
 
 		//check if shares was transfered from deposit owner
@@ -539,7 +589,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
 			bsx_tkn2_alice_shares - 87
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 912); //912 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 912); //912 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
@@ -561,6 +611,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
+			BSX_TKN2_LIQ_POOL_ID,
 			bsx_tkn2_assets,
 			deposited_amount,
 		));
@@ -569,23 +620,23 @@ fn deposit_shares_should_work() {
 			mock::Event::NFT(pallet_nft::Event::InstanceMinted {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[5],
+				instance_id: PREDEFINED_DEPOSIT_IDS[5],
 				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN2_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
 				who: ALICE,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
 				nft_class_id: LIQ_MINING_NFT_CLASS,
-				nft_instance_id: PREDEFINED_NFT_IDS[5],
+				nft_instance_id: PREDEFINED_DEPOSIT_IDS[5],
 			}),
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
 				id: GC_FARM,
 				updated_at: 25,
 				reward_currency: BSX,
@@ -596,16 +647,17 @@ fn deposit_shares_should_work() {
 				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 12,
-				liq_pools_count: 2,
+				yield_farms_count: (2, 2),
 				total_shares_z: 509_590,
 				accumulated_rewards: 331_550,
 				paid_accumulated_rewards: 1_064_500,
+				state: GlobalFarmState::Active
 			}
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN2_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 25,
 				accumulated_rpvs: 120,
@@ -613,27 +665,36 @@ fn deposit_shares_should_work() {
 				total_shares: 960,
 				total_valued_shares: 47_629,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 476_290,
 				multiplier: FixedU128::from(10_u128),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 4
 			},
 		);
 
-		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn2_assets, 4, GC_FARM)
-		);
+		//TODO: Dani
+		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (4, GC_FARM));
 
 		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[5]).unwrap(),
-			Deposit {
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[5]).unwrap(),
+			DepositData {
 				shares: deposited_amount,
-				valued_shares: 768,
-				accumulated_rpvs: 120,
-				accumulated_claimed_rewards: 0,
-				entered_at: 25,
-				updated_at: 25,
-			},
+				amm_pool_id: BSX_TKN2_AMM,
+				yield_farm_entries: vec![YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+					valued_shares: 768,
+					accumulated_rpvs: 120,
+					accumulated_claimed_rewards: 0,
+					entered_at: 25,
+					updated_at: 25,
+				}],
+			}
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[5]).unwrap(),
+			bsx_tkn2_amm_account
 		);
 
 		//check if shares was transfered from deposit owner
@@ -641,7 +702,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
 			bsx_tkn2_alice_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 960); //960 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 960); //960 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
@@ -662,6 +723,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
+			BSX_TKN1_LIQ_POOL_ID,
 			bsx_tkn1_assets,
 			486
 		));
@@ -670,23 +732,23 @@ fn deposit_shares_should_work() {
 			mock::Event::NFT(pallet_nft::Event::InstanceMinted {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[6],
+				instance_id: PREDEFINED_DEPOSIT_IDS[6],
 				metadata: Default::default(),
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
 				nft_class_id: LIQ_MINING_NFT_CLASS,
-				nft_instance_id: PREDEFINED_NFT_IDS[6],
+				nft_instance_id: PREDEFINED_DEPOSIT_IDS[6],
 			}),
 		]);
 
 		assert_eq!(
-			LiquidityMining::global_pool(GC_FARM).unwrap(),
-			GlobalPool {
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
 				id: GC_FARM,
 				updated_at: 25,
 				reward_currency: BSX,
@@ -697,16 +759,17 @@ fn deposit_shares_should_work() {
 				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
 				accumulated_rpz: 12,
-				liq_pools_count: 2,
+				yield_farms_count: (2, 2),
 				total_shares_z: 703_990,
 				accumulated_rewards: 231_650,
 				paid_accumulated_rewards: 1_164_400,
+				state: GlobalFarmState::Active
 			}
 		);
 
 		assert_eq!(
-			LiquidityMining::liquidity_pool(GC_FARM, BSX_TKN1_AMM).unwrap(),
-			LiquidityPoolYieldFarm {
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
 				id: BSX_TKN1_LIQ_POOL_ID,
 				updated_at: 25,
 				accumulated_rpvs: 60,
@@ -714,27 +777,33 @@ fn deposit_shares_should_work() {
 				total_shares: 616,
 				total_valued_shares: 45_540,
 				loyalty_curve: Some(LoyaltyCurve::default()),
-				stake_in_global_pool: 227_700,
 				multiplier: FixedU128::from(5_u128),
-				canceled: false,
+				state: YieldFarmState::Active,
+				entries_count: 3
 			},
 		);
 
 		assert_eq!(
-			LiquidityMining::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(),
-			(bsx_tkn1_assets, 3, GC_FARM)
-		);
-
-		assert_eq!(
-			LiquidityMining::deposit(PREDEFINED_NFT_IDS[6]).unwrap(),
-			Deposit {
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[6]).unwrap(),
+			DepositData {
 				shares: deposited_amount,
-				valued_shares: 38_880,
-				accumulated_rpvs: 60,
-				accumulated_claimed_rewards: 0,
-				entered_at: 25,
-				updated_at: 25,
-			},
+				amm_pool_id: BSX_TKN1_AMM,
+				yield_farm_entries: vec![YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					valued_shares: 38_880,
+					accumulated_rpvs: 60,
+					accumulated_claimed_rewards: 0,
+					entered_at: 25,
+					updated_at: 25,
+				}],
+			}
+		);
+
+		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		assert_eq!(
+			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[6]).unwrap(),
+			bsx_tkn1_amm_account
 		);
 
 		//check if shares was transfered from deposit owner
@@ -742,7 +811,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
 			bsx_tkn1_alice_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 616); //616 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &LP_SHARES_STASH), 616); //616 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
@@ -755,9 +824,9 @@ fn deposit_shares_should_work() {
 	});
 
 	//deposit to farm with different incentivized_asset and reward_currency
-	//charlie's farm inncetivize KSM and reward currency is ACA
+	//charlie's farm incetivize KSM and reward currency is ACA
 	//This test only check if valued shares are correctly calculated if reward and incentivized
-	//assts are different, otherwise pool behaviour is same as in test above.
+	//assets are different, otherwise pool behaviour is same as in test above.
 	predefined_test_ext().execute_with(|| {
 		let aca_ksm_assets = AssetPair {
 			asset_in: ACA,
@@ -777,19 +846,25 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			CHARLIE_FARM,
+			ACA_KSM_LIQ_POOL_ID,
 			aca_ksm_assets,
 			deposited_amount
 		));
 
 		assert_eq!(
-			LiquidityMining::deposit(4294967303).unwrap(),
-			Deposit {
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
+			DepositData {
 				shares: deposited_amount,
-				valued_shares: deposited_amount * ksm_balance_in_amm,
-				accumulated_rpvs: 0,
-				accumulated_claimed_rewards: 0,
-				entered_at: 25,
-				updated_at: 25,
+				amm_pool_id: ACA_KSM_AMM,
+				yield_farm_entries: vec![YieldFarmEntry {
+					global_farm_id: CHARLIE_FARM,
+					yield_farm_id: ACA_KSM_LIQ_POOL_ID,
+					valued_shares: deposited_amount * ksm_balance_in_amm,
+					accumulated_rpvs: 0,
+					accumulated_claimed_rewards: 0,
+					entered_at: 25,
+					updated_at: 25,
+				}],
 			}
 		);
 	});
@@ -804,8 +879,8 @@ fn deposit_shares_zero_deposit_should_not_work() {
 		};
 
 		assert_noop!(
-			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, 0),
-			Error::<Test>::InvalidDepositAmount
+			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1_assets, 0),
+			warehouse_liquidity_mining::Error::<Test>::InvalidDepositAmount
 		);
 	});
 }
@@ -819,7 +894,13 @@ fn deposit_shares_insufficient_shares_balance_should_not_work() {
 		};
 
 		assert_noop!(
-			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, 4_000_000),
+			LiquidityMining::deposit_shares(
+				Origin::signed(ALICE),
+				GC_FARM,
+				BSX_TKN1_LIQ_POOL_ID,
+				bsx_tkn1_assets,
+				4_000_000
+			),
 			Error::<Test>::InsufficientAmmSharesBalance
 		);
 	});
@@ -834,8 +915,14 @@ fn deposit_shares_non_existing_liq_pool_should_not_work() {
 		};
 
 		assert_noop!(
-			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_dot_assets, 10_000),
-			Error::<Test>::LiquidityPoolNotFound
+			LiquidityMining::deposit_shares(
+				Origin::signed(ALICE),
+				GC_FARM,
+				BSX_TKN1_LIQ_POOL_ID,
+				bsx_dot_assets,
+				10_000
+			),
+			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
 		);
 	});
 }
@@ -854,9 +941,10 @@ fn deposit_shares_canceled_liq_pool_should_not_work() {
 			bsx_tkn1_assets
 		));
 
-		assert_noop!(
-			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, bsx_tkn1_assets, 10_000),
-			Error::<Test>::LiquidityMiningCanceled
-		);
+		//TODO: ask Martin - where is the liq mining cancelled error?
+		/*assert_noop!(
+			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM,BSX_TKN1_LIQ_POOL_ID, bsx_tkn1_assets, 10_000),
+			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
+		);*/
 	});
 }
