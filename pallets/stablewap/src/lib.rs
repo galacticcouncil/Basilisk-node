@@ -527,7 +527,7 @@ pub mod pallet {
 			// burn `amount` of shares
 			T::Currency::withdraw(pool_id.0, &who, amount)?;
 
-			// Assets are ordered by id in pool.assets.So amounts provided corresponds.
+			// Assets are ordered by id in pool.assets. So amounts provided corresponds.
 			for (asset, asset_amount) in pool.assets.into_iter().zip(amounts.into_iter()) {
 				T::Currency::transfer(asset, &pool_account, &who, asset_amount)?;
 			}
