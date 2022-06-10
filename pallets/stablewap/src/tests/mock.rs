@@ -269,7 +269,7 @@ pub struct AccountIdConstructor;
 impl ShareAccountIdFor<PoolAssets<u32>> for AccountIdConstructor {
 	type AccountId = u64;
 
-	fn from_assets(assets: &PoolAssets<u32>, _identifier: Option<&str>) -> Self::AccountId {
+	fn from_assets(assets: &PoolAssets<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
 		let mut a = assets.0;
 		let mut b = assets.1;
 		if a > b {
@@ -278,9 +278,9 @@ impl ShareAccountIdFor<PoolAssets<u32>> for AccountIdConstructor {
 		(a * 1000 + b) as u64
 	}
 
-	fn name(assets: &PoolAssets<u32>, identifier: Option<&str>) -> Vec<u8> {
+	fn name(assets: &PoolAssets<u32>, identifier: Option<&[u8]>) -> Vec<u8> {
 		let mut buf: Vec<u8> = if let Some(ident) = identifier {
-			ident.as_bytes().to_vec()
+			ident.to_vec()
 		} else {
 			vec![]
 		};
