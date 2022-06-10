@@ -420,7 +420,7 @@ pub mod pallet {
 			);
 
 			// Work out which asset is asset B ( second asset which has to provided by LP )
-			// Update initial reserves in correct order ( asset as is given as params, asset b is second asset)
+			// Update initial reserves in correct order ( asset a is given as params, asset b is second asset)
 			let (assets, updated_a_reserve, initial_reserves) = if asset == pool.assets.0 {
 				let assets = (asset, pool.assets.1);
 				let reserves = AssetAmounts(initial_reserves.0, initial_reserves.1);
