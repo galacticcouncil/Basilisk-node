@@ -405,28 +405,26 @@ pub mod pallet {
 
 			ensure!(pool.contains_asset(asset), Error::<T>::AssetNotInPool);
 
-			// Load initial pool assets balances.
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
-			let initial_reserves = AssetAmounts(
-				T::Currency::free_balance(pool.assets.0, &pool_account),
-				T::Currency::free_balance(pool.assets.1, &pool_account),
-			);
 
 			// Work out which asset is asset B ( second asset which has to provided by LP )
 			// Update initial reserves in correct order ( asset a is given as params, asset b is second asset)
-			let (assets, updated_a_reserve, initial_reserves) = if asset == pool.assets.0 {
-				let assets = (asset, pool.assets.1);
-				let reserves = AssetAmounts(initial_reserves.0, initial_reserves.1);
-				let updated_a_reserve = reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?;
-
-				(assets, updated_a_reserve, reserves)
-			} else {
-				let assets = (asset, pool.assets.0);
-				let reserves = AssetAmounts(initial_reserves.1, initial_reserves.0);
-				let updated_a_reserve = reserves.0.checked_add(amount).ok_or(ArithmeticError::Overflow)?;
-
-				(assets, updated_a_reserve, reserves)
+			let (assets, initial_reserves) = {
+				let initial = (
+					T::Currency::free_balance(pool.assets.0, &pool_account),
+					T::Currency::free_balance(pool.assets.1, &pool_account),
+				);
+				if asset == pool.assets.0 {
+					((asset, pool.assets.1), AssetAmounts(initial.0, initial.1))
+				} else {
+					((asset, pool.assets.0), AssetAmounts(initial.1, initial.0))
+				}
 			};
+
+			let updated_a_reserve = initial_reserves
+				.0
+				.checked_add(amount)
+				.ok_or(ArithmeticError::Overflow)?;
 
 			// Calculate new reserve of asset b and work out the difference to get required amount of second asset which has to be provided by LP too.
 			let asset_b_reserve = calculate_asset_b_reserve(initial_reserves.0, initial_reserves.1, updated_a_reserve)
@@ -441,13 +439,7 @@ pub mod pallet {
 				Error::<T>::InsufficientBalance
 			);
 
-			let new_reserves = AssetAmounts(
-				updated_a_reserve,
-				initial_reserves
-					.1
-					.checked_add(asset_b_amount)
-					.ok_or(Error::<T>::InvalidAmplification)?,
-			);
+			let new_reserves = AssetAmounts(updated_a_reserve, asset_b_reserve);
 
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
 
