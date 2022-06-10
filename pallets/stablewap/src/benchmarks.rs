@@ -31,6 +31,12 @@ use hydradx_traits::Registry;
 
 use crate::types::{Balance, PoolId};
 
+// Stable benchmarks
+// Worst case scenarios in any stableswap calculates is scenarios where "math" does max number of iterations.
+// Therefore, hydra-dx-features build with "runtime-benchmarks" features forces calculations of D and Y to perform all iterations.
+// it is no longer needed to come up with some extreme scenario where it would do as many as iterations as possible.
+// AS it is, it would not be possible to come up with scenarios where D/Y does not converge( or does max iterations).
+
 benchmarks! {
 	 where_clause {  where T::AssetId: From<u32> + Into<u32>,
 		T::Currency: MultiCurrencyExtended<T::AccountId, Amount=i128>,
@@ -42,15 +48,14 @@ benchmarks! {
 		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
 		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
-		// Note: this is extreme case where calculate_d does around 40 iterations.
-		let initial_liquidity = (1_000_000_000_000_000_000_000u128, 10u128);
+		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
 		let amplification = 100u32;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
-		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000_000_000i128)?;
-		T::Currency::update_balance(token_b, &caller, 500_000_000_000_000i128)?;
+		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &caller, 2_000_000_000_000_000i128)?;
 
 		// Pool id will be next asset id in registry storage.
 		let next_asset_id:u32 = Into::<u32>::into(token_b) + 1u32;
@@ -65,15 +70,14 @@ benchmarks! {
 		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
 		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
-		// Note: this is extreme case where calculate_d does around 40 iterations.
-		let initial_liquidity = (1_000_000_000_000_000_000_000u128, 10u128);
+		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
 		let amplification = 100u32;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
-		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000_000_000i128)?;
-		T::Currency::update_balance(token_b, &caller, 500_000_000_000_000i128)?;
+		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &caller, 2_000_000_000_000_000i128)?;
 
 		crate::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(),
 			(token_a,token_b),
@@ -102,15 +106,14 @@ benchmarks! {
 		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
 		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
-		// Note: this is extreme case where calculate_d does around 40 iterations.
-		let initial_liquidity = (1_000_000_000_000_000_000_000u128, 10u128);
+		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
 		let amplification = 100u32;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
-		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000_000_000i128)?;
-		T::Currency::update_balance(token_b, &caller, 500_000_000_000_000i128)?;
+		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &caller, 2_000_000_000_000_000i128)?;
 
 		crate::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(),
 			(token_a,token_b),
@@ -146,14 +149,14 @@ benchmarks! {
 		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
 		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
-		let initial_liquidity = (1_000_000_000_000_000_000_000u128, 10_000_000_000_000u128);
+		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
 		let amplification = 100u32;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
-		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000_000_000i128)?;
-		T::Currency::update_balance(token_b, &caller, 500_000_000_000_000i128)?;
+		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &caller, 2_000_000_000_000_000i128)?;
 
 		crate::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(),
 			(token_a,token_b),
@@ -183,15 +186,14 @@ benchmarks! {
 	let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
 		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
-		// Note: this is extreme case where calculate_d does around 40 iterations.
-		let initial_liquidity = (1_000_000_000_000_000u128, 100_000_000_000_000u128);
+		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
 		let amplification = 100u32;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
-		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000_000_000i128)?;
-		T::Currency::update_balance(token_b, &caller, 500_000_000_000_000i128)?;
+		T::Currency::update_balance(token_a, &caller, 1_000_000_000_000_000i128)?;
+		T::Currency::update_balance(token_b, &caller, 2_000_000_000_000_000i128)?;
 
 		crate::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(),
 			(token_a,token_b),
