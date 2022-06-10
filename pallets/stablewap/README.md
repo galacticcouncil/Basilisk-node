@@ -4,7 +4,7 @@
 
 Curve/stableswap AMM implementation.
 
-Version v1 - supports only 2 assets pool.
+Version v1 - supports only 2 assets per pool.
 
 #### Terminology
 
