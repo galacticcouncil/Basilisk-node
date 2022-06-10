@@ -594,7 +594,7 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
-			let fee_amount = Self::calculate_fee_amount(amount_out, pool.fee, true).ok_or(ArithmeticError::Overflow)?;
+			let fee_amount = Self::calculate_fee_amount(amount_out, pool.fee, Rounding::Down);
 
 			let amount_out = amount_out.checked_sub(fee_amount).ok_or(ArithmeticError::Underflow)?;
 
@@ -665,7 +665,7 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
-			let fee_amount = Self::calculate_fee_amount(amount_in, pool.fee, false).ok_or(ArithmeticError::Overflow)?;
+			let fee_amount = Self::calculate_fee_amount(amount_in, pool.fee, Rounding::Up);
 
 			let amount_in = amount_in.checked_add(fee_amount).ok_or(ArithmeticError::Overflow)?;
 
@@ -696,12 +696,17 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 }
 
+/// Rounding method to use
+enum Rounding {
+	Down,
+	Up,
+}
+
 impl<T: Config> Pallet<T> {
-	fn calculate_fee_amount(amount: Balance, fee: Permill, rounding_down: bool) -> Option<Balance> {
-		if rounding_down {
-			Some(fee.mul_floor(amount))
-		} else {
-			Some(fee.mul_ceil(amount))
+	fn calculate_fee_amount(amount: Balance, fee: Permill, rounding: Rounding) -> Balance {
+		match rounding {
+			Rounding::Down => fee.mul_floor(amount),
+			Rounding::Up => fee.mul_ceil(amount),
 		}
 	}
 }
