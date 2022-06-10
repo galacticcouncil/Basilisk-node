@@ -3224,8 +3224,8 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.4.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=40ab7ae05679eb374df6f84388547b42b844822b#40ab7ae05679eb374df6f84388547b42b844822b"
+version = "4.4.4"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=0d1817f114aa2930e3aef17620e505b7a445a08f#0d1817f114aa2930e3aef17620e505b7a445a08f"
 dependencies = [
  "fixed",
  "num-traits",
@@ -5740,7 +5740,7 @@ version = "5.2.9"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hydra-dx-math 4.4.3",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5882,7 +5882,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hydra-dx-math 4.4.3",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -6309,7 +6309,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.4.3 (git+https://github.com/galacticcouncil/HydraDX-math?rev=40ab7ae05679eb374df6f84388547b42b844822b)",
+ "hydra-dx-math 4.4.4",
  "hydradx-traits",
  "log",
  "orml-tokens",
@@ -6589,7 +6589,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hydra-dx-math 4.4.3",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -8839,7 +8839,7 @@ dependencies = [
  "getrandom 0.2.6",
  "hash-db",
  "hex-literal",
- "hydra-dx-math 4.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hydra-dx-math 4.4.3",
  "hydradx-traits",
  "kusama-runtime",
  "memory-db 0.27.0",

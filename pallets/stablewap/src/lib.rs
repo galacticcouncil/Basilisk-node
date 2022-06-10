@@ -31,7 +31,7 @@
 //!
 //! A pool can be created only by allowed `CreatePoolOrigin`.
 //!
-//! LP must be add liquidity of both pool assets. in V1 it is not allowed single token LPing.
+//! LP must add liquidity of both pool assets. in V1 it is not allowed single token LPing.
 //!
 //! LP specifies an amount of liquidity to be added of one selected asset, the required amount of second pool asset is calculated
 //! in a way that the ratio does not change.
@@ -74,6 +74,8 @@ pub(crate) mod tests;
 #[cfg(any(feature = "runtime-benchmarks", test))]
 mod benchmarks;
 
+/// Stableswap share token and account id identifier.
+/// Used as identifier to create share token unique names and account ids.
 const POOL_IDENTIFIER: &str = "sts";
 
 #[frame_support::pallet]

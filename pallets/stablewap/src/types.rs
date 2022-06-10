@@ -10,11 +10,14 @@ use sp_runtime::traits::{CheckedAdd, Zero};
 
 pub(crate) type Balance = u128;
 
+/// Pool identifier. Share Asset id is used as pool identifier.
+/// Share asset is unique token for each pool. That means using share asset as pool identifier
+/// does not require additional "tracking" id for newly created pools.
 #[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolId<AssetId>(pub AssetId);
 
-/// 2 Asset pool data structure (v1)
-/// `assets`: 2 assets
+/// Pool properties for 2-asset pool (v1)
+/// `assets`: pool assets
 /// `amplification`: amp parameter
 /// `fee`: trade fee to be withdrawn on sell/buy
 #[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
@@ -26,35 +29,43 @@ pub struct PoolInfo<AssetId> {
 
 impl<AssetId> PoolInfo<AssetId>
 where
-	AssetId: PartialEq,
+	AssetId: PartialOrd,
 {
+	/// Check if an asset is in the pool
 	pub(crate) fn contains_asset(&self, asset: AssetId) -> bool {
 		self.assets.contains(asset)
 	}
 }
 
+/// Assets in a pool.
+/// Supports 2-asset pools.
+/// Asset's tuple is ordered by id where first asset id < second asset id.
 #[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolAssets<AssetId>(pub AssetId, pub AssetId);
 
-impl<AssetId: PartialEq> PoolAssets<AssetId> {
+impl<AssetId: PartialOrd> PoolAssets<AssetId> {
+	pub fn new(asset_a: AssetId, asset_b: AssetId) -> Self {
+		(asset_a, asset_b).into()
+	}
+
 	pub fn contains(&self, value: AssetId) -> bool {
 		self.0 == value || self.1 == value
+	}
+
+	/// PoolAssets is valid only if assets are not equal
+	pub fn is_valid(&self) -> bool {
+		self.0 != self.1
 	}
 }
 
 impl<AssetId: PartialOrd> From<(AssetId, AssetId)> for PoolAssets<AssetId> {
 	fn from(assets: (AssetId, AssetId)) -> Self {
+		// Order assets by id
 		if assets.0 < assets.1 {
 			Self(assets.0, assets.1)
 		} else {
 			Self(assets.1, assets.0)
 		}
-	}
-}
-
-impl<AssetId: PartialEq> PoolAssets<AssetId> {
-	pub fn is_valid(&self) -> bool {
-		self.0 != self.1
 	}
 }
 
@@ -87,9 +98,8 @@ impl<AssetId> Iterator for PoolAssetIterator<AssetId> {
 	}
 }
 
-//////////////
-
-/// 2 asset pool reserve amounts
+/// Pool asset's reserve amounts.
+/// Used together with `PoolAssets` where first reserve is for `PoolAssets.0`
 #[derive(Clone, PartialEq, Default)]
 pub struct AssetAmounts<Balance>(pub Balance, pub Balance);
 
