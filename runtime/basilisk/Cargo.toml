@@ -231,6 +231,7 @@ std = [
     "scale-info/std",
     "pallet-preimage/std",
     "pallet-liquidity-mining/std",
+    "pallet-identity/std",
 ]
 try-runtime= [
     "frame-try-runtime",
