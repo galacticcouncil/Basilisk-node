@@ -152,38 +152,40 @@ fn fee_currency_on_account_lifecycle() {
 	const HITCHHIKER: [u8; 32] = [42u8; 32];
 
 	Basilisk::execute_with(|| {
+		use basilisk_runtime::{Currencies, MultiTransactionPayment, Origin, Tokens};
+
 		assert_eq!(
-			basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			None
 		);
 
 		// ------------ set on create ------------
-		assert_ok!(basilisk_runtime::Currencies::transfer(
-			basilisk_runtime::Origin::signed(BOB.into()),
+		assert_ok!(Currencies::transfer(
+			Origin::signed(BOB.into()),
 			HITCHHIKER.into(),
 			1,
 			50_000_000_000_000,
 		));
 
 		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
+			Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
 			50_000_000_000_000
 		);
 		assert_eq!(
-			basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			Some(1)
 		);
 
 		// ------------ remove on delete ------------
-		assert_ok!(basilisk_runtime::Tokens::transfer_all(
-			basilisk_runtime::Origin::signed(HITCHHIKER.into()),
+		assert_ok!(Tokens::transfer_all(
+			Origin::signed(HITCHHIKER.into()),
 			BOB.into(),
 			1,
 			false,
 		));
 
 		assert_eq!(
-			basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			None
 		);
 	});
