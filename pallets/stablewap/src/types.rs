@@ -110,7 +110,7 @@ impl<Balance> From<(Balance, Balance)> for AssetAmounts<Balance> {
 }
 
 impl<Balance: PartialOrd + Zero> AssetAmounts<Balance> {
-	pub fn valid(&self) -> bool {
+	pub fn is_valid(&self) -> bool {
 		self.0 > Balance::zero() && self.1 > Balance::zero()
 	}
 }

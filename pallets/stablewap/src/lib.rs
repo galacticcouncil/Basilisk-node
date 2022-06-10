@@ -292,14 +292,9 @@ pub mod pallet {
 				ensure!(T::AssetRegistry::exists(asset), Error::<T>::AssetNotRegistered);
 			}
 
-			ensure!(
-				initial_liquidity.0 > Balance::zero(),
-				Error::<T>::InvalidInitialLiquidity
-			);
-			ensure!(
-				initial_liquidity.1 > Balance::zero(),
-				Error::<T>::InvalidInitialLiquidity
-			);
+			let reserves: AssetAmounts<Balance> = initial_liquidity.into();
+
+			ensure!(reserves.is_valid(), Error::<T>::InvalidInitialLiquidity);
 
 			ensure!(
 				T::Currency::free_balance(assets.0, &who) >= initial_liquidity.0,
@@ -333,8 +328,6 @@ pub mod pallet {
 
 				Ok(pool)
 			})?;
-
-			let reserves: AssetAmounts<Balance> = initial_liquidity.into();
 
 			let share_amount = calculate_add_liquidity_shares(
 				&AssetAmounts::default(),
