@@ -184,8 +184,7 @@ impl ExtBuilder {
 	pub fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
-		let mut all_assets: Vec<(Vec<u8>, AssetId)> =
-			vec![("DAI".as_bytes().to_vec(), DAI), ("HDX".as_bytes().to_vec(), HDX)];
+		let mut all_assets: Vec<(Vec<u8>, AssetId)> = vec![(b"DAI".to_vec(), DAI), (b"HDX".to_vec(), HDX)];
 		all_assets.extend(self.registered_assets);
 
 		for (name, asset) in all_assets.into_iter() {
