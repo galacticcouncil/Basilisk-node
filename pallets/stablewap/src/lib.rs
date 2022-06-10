@@ -524,6 +524,7 @@ pub mod pallet {
 			let amounts = calculate_remove_liquidity_amounts(&initial_reserves, amount, share_issuance)
 				.ok_or(ArithmeticError::Overflow)?;
 
+			// burn `amount` of shares
 			T::Currency::withdraw(pool_id.0, &who, amount)?;
 
 			// Assets are ordered by id in pool.assets.So amounts provided corresponds.
