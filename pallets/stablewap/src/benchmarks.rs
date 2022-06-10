@@ -32,10 +32,10 @@ use hydradx_traits::Registry;
 use crate::types::{Balance, PoolId};
 
 // Stable benchmarks
-// Worst case scenarios in any stableswap calculates is scenarios where "math" does max number of iterations.
-// Therefore, hydra-dx-features build with "runtime-benchmarks" features forces calculations of D and Y to perform all iterations.
+// Worst case scenarios in any stableswap calculations are scenarios where "math" does max number of iterations.
+// Therefore, hydra-dx-math build with "runtime-benchmarks" features forces calculations of D and Y to perform all iterations.
 // it is no longer needed to come up with some extreme scenario where it would do as many as iterations as possible.
-// AS it is, it would not be possible to come up with scenarios where D/Y does not converge( or does max iterations).
+// As it is, it would not be possible to come up with scenarios where D/Y does not converge( or does max iterations).
 
 benchmarks! {
 	 where_clause {  where T::AssetId: From<u32> + Into<u32>,
