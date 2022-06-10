@@ -186,6 +186,7 @@ std = [
     "pallet-xyk/std",
     "pallet-duster/std",
     "pallet-xyk-rpc-runtime-api/std",
+    "pallet-lbp-rpc-runtime-api/std",
     "pallet-asset-registry/std",
     "pallet-exchange/std",
     "pallet-aura/std",
@@ -227,6 +228,8 @@ std = [
     "scale-info/std",
     "pallet-preimage/std",
     "pallet-liquidity-mining/std",
+    "pallet-identity/std",
+    "pallet-proxy/std",
 ]
 try-runtime= [
     "frame-try-runtime",
