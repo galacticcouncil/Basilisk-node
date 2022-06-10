@@ -266,5 +266,5 @@ parameter_types! {
 // Stableswap
 parameter_types! {
 	pub const StableswapPrecision: Balance = 1u128;
-	pub const StableswapAmplificationRange: RangeInclusive<u32> = RangeInclusive::new(2,10000);
+	pub const StableswapAmplificationRange: RangeInclusive<u16> = RangeInclusive::new(2,10_000);
 }

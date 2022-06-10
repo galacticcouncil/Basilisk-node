@@ -130,7 +130,7 @@ parameter_types! {
 	pub const Precision: Balance = 1;
 	pub const MinimumLiquidity: Balance = 1000;
 	pub const MinimumTradingLimit: Balance = 1000;
-	pub const AmplificationRange: RangeInclusive<u32> = RangeInclusive::new(2, 10_000);
+	pub const AmplificationRange: RangeInclusive<u16> = RangeInclusive::new(2, 10_000);
 }
 
 impl Config for Test {

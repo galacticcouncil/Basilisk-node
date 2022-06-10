@@ -143,7 +143,7 @@ pub mod pallet {
 
 		/// Amplification inclusive range. Pool's amp can be selected from the range only.
 		#[pallet::constant]
-		type AmplificationRange: Get<RangeInclusive<u32>>;
+		type AmplificationRange: Get<RangeInclusive<u16>>;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -162,7 +162,7 @@ pub mod pallet {
 			id: PoolId<T::AssetId>,
 			assets: (T::AssetId, T::AssetId),
 			initial_liquidity: (Balance, Balance),
-			amplification: u32,
+			amplification: u16,
 		},
 		/// Liquidity of an asset was added to a pool.
 		LiquidityAdded {
@@ -274,7 +274,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			assets: (T::AssetId, T::AssetId),
 			initial_liquidity: (Balance, Balance),
-			amplification: u32,
+			amplification: u16,
 			fee: Permill,
 		) -> DispatchResult {
 			let who = T::CreatePoolOrigin::ensure_origin(origin)?;

@@ -22,7 +22,7 @@ pub struct PoolId<AssetId>(pub AssetId);
 #[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolInfo<AssetId> {
 	pub(crate) assets: PoolAssets<AssetId>,
-	pub(crate) amplification: u32,
+	pub(crate) amplification: u16,
 	pub(crate) fee: Permill,
 }
 

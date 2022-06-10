@@ -16,7 +16,7 @@ fn create_pool_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: u32 = 100;
+			let amplification: u16 = 100;
 
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
@@ -52,7 +52,7 @@ fn create_pool_with_asset_order_swapped_works() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: u32 = 100;
+			let amplification: u16 = 100;
 
 			let initial_liquidity = (50 * ONE, 100 * ONE);
 
@@ -83,7 +83,7 @@ fn create_pool_with_same_assets_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 1;
-		let amplification: u32 = 100;
+		let amplification: u16 = 100;
 
 		let initial_liquidity = (50 * ONE, 100 * ONE);
 
@@ -108,7 +108,7 @@ fn create_pool_with_no_registered_assets_fails() {
 		.execute_with(|| {
 			let registered: AssetId = 1000;
 			let not_registered: AssetId = 2000;
-			let amplification: u32 = 100;
+			let amplification: u16 = 100;
 
 			let initial_liquidity = (50 * ONE, 100 * ONE);
 
@@ -146,7 +146,7 @@ fn create_pool_with_zero_initial_liquiduity_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: u32 = 100;
+			let amplification: u16 = 100;
 
 			let initial_liquidity = (0u128, 100 * ONE);
 
@@ -186,7 +186,7 @@ fn create_existing_pool_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: u32 = 100;
+			let amplification: u16 = 100;
 
 			let initial_liquidity = (100 * ONE, 50 * ONE);
 
@@ -221,7 +221,7 @@ fn create_pool_with_insufficient_amount_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
-			let amplification: u32 = 100;
+			let amplification: u16 = 100;
 
 			let initial_liquidity = (1000 * ONE, 1000 * ONE);
 
@@ -260,7 +260,7 @@ fn create_pool_with_insufficient_liquidity_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification: u32 = 100;
+			let amplification: u16 = 100;
 
 			let initial_liquidity = (100, 100);
 
@@ -287,8 +287,8 @@ fn create_pool_with_invalid_amp_fails() {
 		.execute_with(|| {
 			let asset_a: AssetId = 1000;
 			let asset_b: AssetId = 2000;
-			let amplification_min: u32 = 1;
-			let amplification_max: u32 = 10_001;
+			let amplification_min: u16 = 1;
+			let amplification_max: u16 = 10_001;
 
 			let initial_liquidity = (100, 100);
 
