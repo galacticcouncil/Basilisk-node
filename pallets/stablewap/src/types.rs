@@ -1,12 +1,11 @@
 use sp_runtime::Permill;
-use sp_std::ops::Add;
 use sp_std::vec;
 use sp_std::vec::Vec;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_core::RuntimeDebug;
-use sp_runtime::traits::{CheckedAdd, Zero};
+use sp_runtime::traits::Zero;
 
 pub(crate) type Balance = u128;
 
@@ -115,25 +114,9 @@ impl<Balance: PartialOrd + Zero> AssetAmounts<Balance> {
 	}
 }
 
-impl<Balance: CheckedAdd> Add<Self> for AssetAmounts<Balance> {
-	type Output = Self;
-
-	fn add(self, rhs: Self) -> Self::Output {
-		Self(self.0 + rhs.0, self.1 + rhs.1)
-	}
-}
-
 impl<Balance: Copy> From<&AssetAmounts<Balance>> for Vec<Balance> {
 	fn from(amounts: &AssetAmounts<Balance>) -> Self {
 		vec![amounts.0, amounts.1]
-	}
-}
-
-impl<Balance: CheckedAdd> CheckedAdd for AssetAmounts<Balance> {
-	fn checked_add(&self, v: &Self) -> Option<Self> {
-		let first = self.0.checked_add(&v.0)?;
-		let second = self.1.checked_add(&v.1)?;
-		Some(AssetAmounts(first, second))
 	}
 }
 
