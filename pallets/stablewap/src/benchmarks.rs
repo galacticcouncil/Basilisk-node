@@ -50,7 +50,7 @@ benchmarks! {
 
 		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
-		let amplification = 100u32;
+		let amplification = 100u16;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
@@ -72,7 +72,7 @@ benchmarks! {
 
 		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
-		let amplification = 100u32;
+		let amplification = 100u16;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
@@ -108,7 +108,7 @@ benchmarks! {
 
 		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
-		let amplification = 100u32;
+		let amplification = 100u16;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
@@ -151,7 +151,7 @@ benchmarks! {
 
 		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
-		let amplification = 100u32;
+		let amplification = 100u16;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
@@ -188,7 +188,7 @@ benchmarks! {
 
 		let initial_liquidity = (1_000_000_000_000_000u128, 2_000_000_000_000_000u128);
 
-		let amplification = 100u32;
+		let amplification = 100u16;
 		let fee = Permill::from_percent(1);
 		let caller: T::AccountId = account("caller", 0, 1);
 
