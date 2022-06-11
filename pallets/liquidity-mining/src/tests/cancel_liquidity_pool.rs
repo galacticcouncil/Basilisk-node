@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use super::*;
+use pretty_assertions::assert_eq;
 use sp_runtime::FixedPointNumber;
 use test_ext::*;
 use warehouse_liquidity_mining::YieldFarmData;
@@ -59,7 +60,7 @@ fn cancel_liquidity_pool_should_work() {
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
 			YieldFarmData {
-				state: YieldFarmState::Deleted,
+				state: YieldFarmState::Stopped,
 				multiplier: 0.into(),
 				..liq_pool
 			}
@@ -72,9 +73,6 @@ fn cancel_liquidity_pool_should_work() {
 				..global_pool
 			}
 		);
-
-		//TODO: ask Martin
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
 
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), liq_pool_bsx_balance);
 		assert_eq!(Tokens::free_balance(BSX, &global_pool_account), global_pool_bsx_balance);
@@ -111,7 +109,7 @@ fn cancel_liquidity_pool_should_work() {
 				updated_at: 100,
 				accumulated_rpvs: 245,
 				accumulated_rpz: 49,
-				state: YieldFarmState::Deleted,
+				state: YieldFarmState::Stopped,
 				multiplier: 0.into(),
 				..liq_pool
 			}
@@ -179,7 +177,7 @@ fn cancel_liquidity_pool_liq_pool_already_canceled() {
 		//TODO:  notFoundError
 		assert_noop!(
 			LiquidityMining::cancel_liquidity_pool(Origin::signed(GC), GC_FARM, bsx_tkn1_assets),
-			warehouse_liquidity_mining::Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
 		);
 	});
 }
