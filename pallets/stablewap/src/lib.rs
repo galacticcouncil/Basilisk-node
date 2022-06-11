@@ -309,7 +309,7 @@ pub mod pallet {
 			let share_asset = T::AssetRegistry::get_or_create_shared_asset(
 				share_asset_ident,
 				(&pool_assets).into(),
-				Balance::zero(),
+				T::MinPoolLiquidity::get(),
 			)?;
 
 			let pool_id = PoolId(share_asset);
