@@ -15,7 +15,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Generate docs
         run: |
-          cargo doc --workspace --all-features --release --document-private-items --target-dir ./generated_docs
+          cargo doc --workspace --features=runtime-benchmarks --release --document-private-items --target-dir ./generated_docs
           cd generated_docs/doc
           echo '<meta http-equiv="refresh" content="0; url=./basilisk/index.html">' > index.html
           echo 'rustdocs.bsx.fi' > ./CNAME
