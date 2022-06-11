@@ -19,7 +19,7 @@ impl ShareAccountIdFor<PoolAssets<AssetId>> for AccountIdForStableswap {
 
 	/// Create a name to uniquely identify a share account id for given assets and an identifier.
 	fn name(assets: &PoolAssets<AssetId>, identifier: Option<&[u8]>) -> Vec<u8> {
-		let mut buf: Vec<u8> = identifier.unwrap_or("").to_vec();
+		let mut buf: Vec<u8> = identifier.unwrap_or(b"").to_vec();
 		buf.extend_from_slice(&assets.0.to_le_bytes());
 		buf.extend_from_slice(&assets.1.to_le_bytes());
 		buf
