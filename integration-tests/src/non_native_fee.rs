@@ -111,15 +111,19 @@ fn non_native_fee_payment_works() {
 		assert_eq!(dave_balance, bob_balance + expected_diff);
 
 		expect_basilisk_events(vec![
-			pallet_transaction_multi_payment::Event::FeeWithdrawn(
-				DAVE.into(),
-				1,
-				462_676_500_000,
-				265_222_898_276,
-				FALLBACK.into(),
-			)
+			pallet_transaction_multi_payment::Event::FeeWithdrawn {
+				account_id: DAVE.into(),
+				asset_id: 1,
+				native_fee_amount: 462_676_500_000,
+				non_native_fee_amount: 265_222_898_276,
+				destination_account_id: FALLBACK.into(),
+			}
 			.into(),
-			pallet_transaction_multi_payment::Event::CurrencySet(DAVE.into(), 1).into(),
+			pallet_transaction_multi_payment::Event::CurrencySet {
+				account_id: DAVE.into(),
+				asset_id: 1,
+			}
+			.into(),
 		]);
 
 		basilisk_run_to_block(11);
