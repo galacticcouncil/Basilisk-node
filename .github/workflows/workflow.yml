@@ -101,7 +101,7 @@ jobs:
           fail_ci_if_error: true
       - name: Build runtime
         run: cargo build --release --locked
-        working-directory: runtime
+        working-directory: runtime/basilisk
       - name: Build node
         run: cargo build --release --locked
       - name: Version info
