@@ -17,7 +17,6 @@ substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", bran
 [dependencies]
 getrandom = { version = "0.2.3", features = ["js"] }
 hex-literal = "0.3.1"
-tracing-core = { optional = true, version = "0.1.17" }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 codec = { package = "parity-scale-codec", version = "2.3.1", default-features = false, features = ["derive"] }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
@@ -189,6 +188,7 @@ std = [
     "pallet-xyk/std",
     "pallet-duster/std",
     "pallet-xyk-rpc-runtime-api/std",
+    "pallet-lbp-rpc-runtime-api/std",
     "pallet-asset-registry/std",
     "pallet-exchange/std",
     "pallet-aura/std",
@@ -232,6 +232,8 @@ std = [
     "scale-info/std",
     "pallet-preimage/std",
     "pallet-liquidity-mining/std",
+    "pallet-identity/std",
+    "pallet-proxy/std",
 ]
 try-runtime= [
     "frame-try-runtime",
