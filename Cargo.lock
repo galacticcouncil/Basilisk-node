@@ -5730,7 +5730,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.10"
+version = "3.3.11"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5899,7 +5899,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5924,7 +5924,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining-benchmarking"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8719,7 +8719,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.11"
+version = "0.2.12"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
