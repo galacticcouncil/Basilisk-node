@@ -303,39 +303,57 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Pool was created by the `CreatePool` origin. [pool_id, pool_data]
-		PoolCreated(PoolId<T>, Pool<T::AccountId, T::BlockNumber>),
+		/// Pool was created by the `CreatePool` origin.
+		PoolCreated {
+			pool: PoolId<T>,
+			data: Pool<T::AccountId, T::BlockNumber>,
+		},
 
-		/// Pool data were updated. [pool_id, pool_data]
-		PoolUpdated(PoolId<T>, Pool<T::AccountId, T::BlockNumber>),
+		/// Pool data were updated.
+		PoolUpdated {
+			pool: PoolId<T>,
+			data: Pool<T::AccountId, T::BlockNumber>,
+		},
 
-		/// New liquidity was provided to the pool. [who, asset_a, asset_b, amount_a, amount_b]
-		LiquidityAdded(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// New liquidity was provided to the pool.
+		LiquidityAdded {
+			who: T::AccountId,
+			asset_a: AssetId,
+			asset_b: AssetId,
+			amount_a: BalanceOf<T>,
+			amount_b: BalanceOf<T>,
+		},
 
-		/// Liquidity was removed from the pool and the pool was destroyed. [who, asset_a, asset_b, amount_a, amount_b]
-		LiquidityRemoved(T::AccountId, AssetId, AssetId, BalanceOf<T>, BalanceOf<T>),
+		/// Liquidity was removed from the pool and the pool was destroyed.
+		LiquidityRemoved {
+			who: T::AccountId,
+			asset_a: AssetId,
+			asset_b: AssetId,
+			amount_a: BalanceOf<T>,
+			amount_b: BalanceOf<T>,
+		},
 
-		/// Sale executed. [who, asset_in, asset_out, amount, sale_price, fee_asset, fee_amount]
-		SellExecuted(
-			T::AccountId,
-			AssetId,
-			AssetId,
-			BalanceOf<T>,
-			BalanceOf<T>,
-			AssetId,
-			BalanceOf<T>,
-		),
+		/// Sale executed.
+		SellExecuted {
+			who: T::AccountId,
+			asset_in: AssetId,
+			asset_out: AssetId,
+			amount: BalanceOf<T>,
+			sale_price: BalanceOf<T>,
+			fee_asset: AssetId,
+			fee_amount: BalanceOf<T>,
+		},
 
-		/// Purchase executed. [who, asset_out, asset_in, amount, buy_price, fee_asset, fee_amount]
-		BuyExecuted(
-			T::AccountId,
-			AssetId,
-			AssetId,
-			BalanceOf<T>,
-			BalanceOf<T>,
-			AssetId,
-			BalanceOf<T>,
-		),
+		/// Purchase executed.
+		BuyExecuted {
+			who: T::AccountId,
+			asset_out: AssetId,
+			asset_in: AssetId,
+			amount: BalanceOf<T>,
+			buy_price: BalanceOf<T>,
+			fee_asset: AssetId,
+			fee_amount: BalanceOf<T>,
+		},
 	}
 
 	/// Details of a pool.
@@ -458,18 +476,21 @@ pub mod pallet {
 			<PoolData<T>>::insert(&pool_id, &pool_data);
 			<FeeCollectorWithAsset<T>>::insert(fee_collector, asset_a, true);
 
-			Self::deposit_event(Event::PoolCreated(pool_id.clone(), pool_data));
+			Self::deposit_event(Event::PoolCreated {
+				pool: pool_id.clone(),
+				data: pool_data,
+			});
 
 			T::MultiCurrency::transfer(asset_a, &pool_owner, &pool_id, asset_a_amount)?;
 			T::MultiCurrency::transfer(asset_b, &pool_owner, &pool_id, asset_b_amount)?;
 
-			Self::deposit_event(Event::LiquidityAdded(
-				pool_id,
+			Self::deposit_event(Event::LiquidityAdded {
+				who: pool_id,
 				asset_a,
 				asset_b,
-				asset_a_amount,
-				asset_b_amount,
-			));
+				amount_a: asset_a_amount,
+				amount_b: asset_b_amount,
+			});
 
 			Ok(())
 		}
@@ -558,7 +579,10 @@ pub mod pallet {
 
 				Self::validate_pool_data(pool)?;
 
-				Self::deposit_event(Event::PoolUpdated(pool_id, (*pool).clone()));
+				Self::deposit_event(Event::PoolUpdated {
+					pool: pool_id,
+					data: (*pool).clone(),
+				});
 				Ok(())
 			})
 		}
@@ -614,7 +638,13 @@ pub mod pallet {
 			T::MultiCurrency::transfer(asset_a, &who, &pool_id, amount_a)?;
 			T::MultiCurrency::transfer(asset_b, &who, &pool_id, amount_b)?;
 
-			Self::deposit_event(Event::LiquidityAdded(pool_id, asset_a, asset_b, amount_a, amount_b));
+			Self::deposit_event(Event::LiquidityAdded {
+				who: pool_id,
+				asset_a,
+				asset_b,
+				amount_a,
+				amount_b,
+			});
 
 			Ok(())
 		}
@@ -656,7 +686,13 @@ pub mod pallet {
 			<FeeCollectorWithAsset<T>>::remove(pool_data.fee_collector, pool_data.assets.0);
 			<PoolData<T>>::remove(&pool_id);
 
-			Self::deposit_event(Event::LiquidityRemoved(pool_id, asset_a, asset_b, amount_a, amount_b));
+			Self::deposit_event(Event::LiquidityRemoved {
+				who: pool_id,
+				asset_a,
+				asset_b,
+				amount_a,
+				amount_b,
+			});
 
 			Ok(())
 		}
@@ -1051,15 +1087,15 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		Self::execute_trade(transfer)?;
 
-		Self::deposit_event(Event::<T>::SellExecuted(
-			transfer.origin.clone(),
-			transfer.assets.asset_in,
-			transfer.assets.asset_out,
-			transfer.amount,
-			transfer.amount_out,
-			transfer.fee.0,
-			transfer.fee.1,
-		));
+		Self::deposit_event(Event::<T>::SellExecuted {
+			who: transfer.origin.clone(),
+			asset_in: transfer.assets.asset_in,
+			asset_out: transfer.assets.asset_out,
+			amount: transfer.amount,
+			sale_price: transfer.amount_out,
+			fee_asset: transfer.fee.0,
+			fee_amount: transfer.fee.1,
+		});
 
 		Ok(())
 	}
@@ -1173,15 +1209,15 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, BalanceOf<T>>) -> DispatchResult {
 		Self::execute_trade(transfer)?;
 
-		Self::deposit_event(Event::<T>::BuyExecuted(
-			transfer.origin.clone(),
-			transfer.assets.asset_out,
-			transfer.assets.asset_in,
-			transfer.amount,
-			transfer.amount_out,
-			transfer.fee.0,
-			transfer.fee.1,
-		));
+		Self::deposit_event(Event::<T>::BuyExecuted {
+			who: transfer.origin.clone(),
+			asset_out: transfer.assets.asset_out,
+			asset_in: transfer.assets.asset_in,
+			amount: transfer.amount,
+			buy_price: transfer.amount_out,
+			fee_asset: transfer.fee.0,
+			fee_amount: transfer.fee.1,
+		});
 		Ok(())
 	}
 
