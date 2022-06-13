@@ -494,8 +494,6 @@ fn remove_partial_with_insufficient_remaining_works() {
 			// Withdraw so much that remaining will be below ED
 			let shares_withdrawn = shares - MinimumLiquidity::get() + 1u128;
 
-			dbg!(shares_withdrawn);
-
 			assert_noop!(
 				Stableswap::remove_liquidity(Origin::signed(BOB), pool_id, shares_withdrawn),
 				Error::<Test>::InsufficientShareBalance
