@@ -297,9 +297,9 @@ checksum = "30696a84d817107fc028e049980e09d5e140e8da8f1caeb17e8e950658a3cea9"
 
 [[package]]
 name = "async-trait"
-version = "0.1.53"
+version = "0.1.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed6aa3524a2dfcf9fe180c51eae2b58738348d819517ceadf95789c51fff7600"
+checksum = "96cf8829f67d2eab0b2dfa42c5d0ef737e0724e4a82b01b3e292456202b19716"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "47.0.0"
+version = "48.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -529,6 +529,7 @@ dependencies = [
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-exchange",
+ "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
  "pallet-liquidity-mining",
@@ -1278,7 +1279,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.7.2"
+version = "1.8.2"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2988,7 +2989,7 @@ dependencies = [
  "indexmap",
  "slab",
  "tokio",
- "tokio-util 0.7.2",
+ "tokio-util 0.7.3",
  "tracing",
 ]
 
@@ -3131,9 +3132,9 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "0.2.7"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff8670570af52249509a86f5e3e18a08c60b177071826898fde8997cf5f6bfbb"
+checksum = "75f43d41e26995c17e71ee126451dd3941010b0514a81a9d11f3b341debc2399"
 dependencies = [
  "bytes 1.1.0",
  "fnv",
@@ -3172,7 +3173,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 [[package]]
 name = "hydra-dx-build-script-utils"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#d60c2960748b92f510f6d69784bf469c2389c69c"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#8fb9a2dab5755ade572bab4fb6bfe7ba427be117"
 dependencies = [
  "cargo-lock",
  "platforms 1.1.0",
@@ -4674,9 +4675,9 @@ dependencies = [
 
 [[package]]
 name = "memmap2"
-version = "0.5.3"
+version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "057a3db23999c867821a7a59feb06a578fcb03685e983dff90daf9e7d24ac08f"
+checksum = "d5172b50c23043ff43dd53e51392f36519d9b35a8f3a410d30ece5d1aedd58ae"
 dependencies = [
  "libc",
 ]
@@ -9015,7 +9016,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "impl-trait-for-tuples",
- "memmap2 0.5.3",
+ "memmap2 0.5.4",
  "parity-scale-codec",
  "sc-chain-spec-derive",
  "sc-network",
@@ -11166,9 +11167,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "syn"
-version = "1.0.95"
+version = "1.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbaf6116ab8924f39d52792136fb74fd60a80194cf1b1c6ffa6453eef1c3f942"
+checksum = "0748dd251e24453cb8717f0354206b91557e4ec8703673a4b30208f2abaf1ebf"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -11224,7 +11225,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "47.0.0"
+version = "48.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11266,6 +11267,7 @@ dependencies = [
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-exchange",
+ "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
  "pallet-liquidity-mining",
@@ -11434,9 +11436,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.18.2"
+version = "1.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4903bf0427cf68dddd5aa6a93220756f8be0c34fcfa9f5e6191e103e15a31395"
+checksum = "c51a52ed6686dd62c320f9b89299e9dfb46f730c7a48e635c19f21d116cb1439"
 dependencies = [
  "bytes 1.1.0",
  "libc",
@@ -11453,9 +11455,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-macros"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b557f72f448c511a979e2564e55d74e6c4432fc96ff4f6241bc6bded342643b7"
+checksum = "9724f9a975fb987ef7a3cd9be0350edcbe130698af5b8f7a631e23d42d052484"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -11486,9 +11488,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-stream"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50145484efff8818b5ccd256697f36863f587da82cf8b409c53adf1e840798e3"
+checksum = "df54d54117d6fdc4e4fea40fe1e4e566b3505700e148a6827e59b34b0d2600d9"
 dependencies = [
  "futures-core",
  "pin-project-lite 0.2.9",
@@ -11512,9 +11514,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f988a1a1adc2fb21f9c12aa96441da33a1728193ae0b95d2be22dbd17fcb4e5c"
+checksum = "cc463cd8deddc3770d20f9852143d50bf6094e640b485cb2e189a2099085ff45"
 dependencies = [
  "bytes 1.1.0",
  "futures-core",
@@ -11541,9 +11543,9 @@ checksum = "360dfd1d6d30e05fda32ace2c8c70e9c0a9da713275777f5a4dbb8a1893930c6"
 
 [[package]]
 name = "tracing"
-version = "0.1.34"
+version = "0.1.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d0ecdcb44a79f0fe9844f0c4f33a342cbcbb5117de8001e6ba0dc2351327d09"
+checksum = "a400e31aa60b9d44a52a8ee0343b5b18566b03a8321e0d321f695cf56e940160"
 dependencies = [
  "cfg-if 1.0.0",
  "pin-project-lite 0.2.9",
@@ -11564,11 +11566,11 @@ dependencies = [
 
 [[package]]
 name = "tracing-core"
-version = "0.1.26"
+version = "0.1.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f54c8ca710e81886d498c2fd3331b56c93aa248d49de2222ad2742247c60072f"
+checksum = "7709595b8878a4965ce5e87ebf880a7d39c9afc6837721b21a5a816a8117d921"
 dependencies = [
- "lazy_static",
+ "once_cell",
  "valuable",
 ]
 
