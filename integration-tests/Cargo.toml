@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.2.10"
+version = "0.2.11"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -77,7 +77,7 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "relea
 polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17", default-features = false }
 
 # HydraDX dependencies
-pallet-asset-registry = { git = "https://github.com/galacticcouncil//warehouse", branch = "apopiak/weight-trader", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
 
 # Substrate dependencies
