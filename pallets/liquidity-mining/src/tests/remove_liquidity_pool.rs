@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use super::*;
+use pretty_assertions::assert_eq;
 use test_ext::*;
 use warehouse_liquidity_mining::GlobalFarmData;
 
@@ -40,7 +41,8 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 			bsx_tkn1_assets
 		));
 
-		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
+		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
+		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
 
 		assert_ok!(LiquidityMining::remove_liquidity_pool(
 			Origin::signed(GC),
@@ -57,23 +59,25 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 		})]);
 
 		//TODO: Dani - chheck - otherwise Martin
-		/*assert_eq!(
+		assert_eq!(
 			WarehouseLM::global_farm(GC_FARM).unwrap(),
 			GlobalFarmData {
-				yield_farms_count: global_pool.yield_farms_count.0.checked_sub(1).unwrap(),
-				..global_pool
+				yield_farms_count: (
+					global_farm.yield_farms_count.0.checked_sub(1).unwrap(),
+					global_farm.yield_farms_count.1
+				),
+				..global_farm
 			}
-		);*/
-
-		//liq. pool should be removed from storage
-		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)),
-			None
 		);
 
-		//TODO: Dani
-		//liq. pool meta should stay in storage until all deposits are withdrawn
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
+		//Yield farm is removed from storage only if there are no more farm entries.
+		assert_eq!(
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			YieldFarmData {
+				state: YieldFarmState::Deleted,
+				..yield_farm
+			}
+		);
 
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
 
@@ -137,10 +141,6 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)),
 			None
 		);
-
-		//TODO: Dani
-		//liq. pool metadata should be removed from storage if no deposits are left
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID), None);
 
 		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
 
