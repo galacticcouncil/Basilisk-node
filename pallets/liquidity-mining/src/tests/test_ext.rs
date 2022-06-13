@@ -76,6 +76,28 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_POOLS[3].yield_per_period,
 		));
 
+		assert_ok!(LiquidityMining::create_farm(
+			Origin::root(),
+			30_000_000_000,
+			PREDEFINED_GLOBAL_POOLS[4].planned_yielding_periods,
+			PREDEFINED_GLOBAL_POOLS[4].blocks_per_period,
+			PREDEFINED_GLOBAL_POOLS[4].incentivized_asset,
+			PREDEFINED_GLOBAL_POOLS[4].reward_currency,
+			DAVE,
+			PREDEFINED_GLOBAL_POOLS[4].yield_per_period,
+		));
+
+		assert_ok!(LiquidityMining::create_farm(
+			Origin::root(),
+			30_000_000_000,
+			PREDEFINED_GLOBAL_POOLS[5].planned_yielding_periods,
+			PREDEFINED_GLOBAL_POOLS[5].blocks_per_period,
+			PREDEFINED_GLOBAL_POOLS[5].incentivized_asset,
+			PREDEFINED_GLOBAL_POOLS[5].reward_currency,
+			EVE,
+			PREDEFINED_GLOBAL_POOLS[5].yield_per_period,
+		));
+
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::FarmCreated {
 				id: PREDEFINED_GLOBAL_POOLS[0].id,
@@ -140,6 +162,42 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				blocks_per_period: PREDEFINED_GLOBAL_POOLS[3].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_POOLS[3].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[3].max_reward_per_period,
+			}),
+			mock::Event::System(frame_system::Event::NewAccount {
+				account: 429967036092991447536305991533,
+			}),
+			mock::Event::Tokens(orml_tokens::Event::Endowed {
+				currency_id: 3_000,
+				who: 429967036092991447536305991533,
+				amount: 30_000_000_000,
+			}),
+			mock::Event::LiquidityMining(Event::FarmCreated {
+				id: PREDEFINED_GLOBAL_POOLS[4].id,
+				owner: PREDEFINED_GLOBAL_POOLS[4].owner,
+				reward_currency: PREDEFINED_GLOBAL_POOLS[4].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_POOLS[4].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[4].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_POOLS[4].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_POOLS[4].incentivized_asset,
+				max_reward_per_period: 100000000, //TODO: Dani - why 10000000? it should be 33333333
+			}),
+			mock::Event::System(frame_system::Event::NewAccount {
+				account: 509195198607255785129849941869,
+			}),
+			mock::Event::Tokens(orml_tokens::Event::Endowed {
+				currency_id: 4_000,
+				who: 509195198607255785129849941869,
+				amount: 30_000_000_000,
+			}),
+			mock::Event::LiquidityMining(Event::FarmCreated {
+				id: PREDEFINED_GLOBAL_POOLS[5].id,
+				owner: PREDEFINED_GLOBAL_POOLS[5].owner,
+				reward_currency: PREDEFINED_GLOBAL_POOLS[5].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_POOLS[5].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[5].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_POOLS[5].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_POOLS[5].incentivized_asset,
+				max_reward_per_period: 100000000, //TODO: Dani - why 10000000? it should be 33333333
 			}),
 		]);
 
@@ -291,6 +349,52 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			asset_pair: AssetPair {
 				asset_in: ACA,
 				asset_out: KSM,
+			},
+		})]);
+
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(DAVE),
+			DAVE_FARM,
+			AssetPair {
+				asset_in: BSX,
+				asset_out: TKN1,
+			},
+			PREDEFINED_LIQ_POOLS.with(|v| v[3].multiplier),
+			PREDEFINED_LIQ_POOLS.with(|v| v[3].loyalty_curve.clone()),
+		));
+
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
+			farm_id: DAVE_FARM,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[3].id),
+			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[3].multiplier),
+			nft_class: LIQ_MINING_NFT_CLASS,
+			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[3].loyalty_curve.clone()),
+			asset_pair: AssetPair {
+				asset_in: BSX,
+				asset_out: TKN1,
+			},
+		})]);
+
+		assert_ok!(LiquidityMining::add_liquidity_pool(
+			Origin::signed(EVE),
+			EVE_FARM,
+			AssetPair {
+				asset_in: BSX,
+				asset_out: TKN1,
+			},
+			PREDEFINED_LIQ_POOLS.with(|v| v[4].multiplier),
+			PREDEFINED_LIQ_POOLS.with(|v| v[4].loyalty_curve.clone()),
+		));
+
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
+			farm_id: EVE_FARM,
+			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[4].id),
+			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[4].multiplier),
+			nft_class: LIQ_MINING_NFT_CLASS,
+			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[4].loyalty_curve.clone()),
+			asset_pair: AssetPair {
+				asset_in: BSX,
+				asset_out: TKN1,
 			},
 		})]);
 	});

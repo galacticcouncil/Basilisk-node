@@ -218,6 +218,17 @@ pub mod pallet {
 			nft_instance_id: NftInstanceIdOf<T>,
 		},
 
+		/// LP token was redeposited for a new yield farm entry
+		SharesRedeposited {
+			farm_id: GlobalPoolId,
+			yield_farm_id: PoolId,
+			who: AccountIdOf<T>,
+			amount: Balance,
+			lp_token: AssetId,
+			nft_class_id: NftClassIdOf<T>,
+			nft_instance_id: NftInstanceIdOf<T>,
+		},
+
 		/// Rewards was claimed.
 		RewardClaimed {
 			farm_id: GlobalPoolId,
@@ -651,10 +662,6 @@ pub mod pallet {
 				shares_amount,
 			)?;
 
-			/*if deposit_id > 6 {
-				assert_eq!(3, deposit_id);
-			}*/
-
 			//mint nft representing deposit
 			let _ =
 				pallet_nft::Pallet::<T>::do_mint(who.clone(), T::NftClass::get(), deposit_id, BoundedVec::default())?;
@@ -669,6 +676,47 @@ pub mod pallet {
 				lp_token: amm_share_token,
 				nft_class_id: T::NftClass::get(),
 				nft_instance_id: deposit_id,
+			});
+
+			Ok(())
+		}
+
+		/// This function create yield farm entry for existing deposit. LP shares are not transferred
+		/// and amount of LP shares is based on existing deposit.
+		///
+		/// This function DOESN'T create new deposit.
+		///
+		/// Parameters:
+		/// - `global_farm_id`: global farm identifier.
+		/// - `yield_farm_id`: yield farm identifier redepositing to.
+		/// - `deposit_id`: identifier of the AMM pool.
+		/// Emits `SharesRedeposited` event when successful.
+		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
+		pub fn redeposit_lp_shares(
+			origin: OriginFor<T>,
+			global_farm_id: GlobalPoolId,
+			yield_farm_id: PoolId,
+			asset_pair: AssetPair,
+			nft_id: NftInstanceIdOf<T>,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
+			let amm_share_token = T::AMM::get_share_token(asset_pair);
+
+			let deposit =
+				warehouse_liquidity_mining::Pallet::<T>::deposit(&nft_id).ok_or(Error::<T>::DepositDataNotFound)?;
+
+			warehouse_liquidity_mining::Pallet::<T>::redeposit_lp_shares(global_farm_id, yield_farm_id, nft_id)?;
+
+			Self::deposit_event(Event::SharesRedeposited {
+				farm_id: global_farm_id,
+				yield_farm_id,
+				who,
+				amount: deposit.shares,
+				lp_token: amm_share_token,
+				nft_class_id: T::NftClass::get(),
+				nft_instance_id: nft_id,
 			});
 
 			Ok(())

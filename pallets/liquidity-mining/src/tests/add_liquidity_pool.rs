@@ -29,7 +29,7 @@ fn add_liquidity_pool_should_work() {
 				asset_out: ACA,
 			},
 			YieldFarmData {
-				id: 8,
+				id: 12,
 				updated_at: 17,
 				total_shares: 0,
 				total_valued_shares: 0,
@@ -55,7 +55,7 @@ fn add_liquidity_pool_should_work() {
 				asset_out: BSX,
 			},
 			YieldFarmData {
-				id: 9,
+				id: 13,
 				updated_at: 17,
 				total_shares: 0,
 				total_valued_shares: 0,
@@ -81,7 +81,7 @@ fn add_liquidity_pool_should_work() {
 				asset_out: ETH,
 			},
 			YieldFarmData {
-				id: 10,
+				id: 14,
 				updated_at: 20,
 				total_shares: 0,
 				total_valued_shares: 0,
@@ -110,7 +110,7 @@ fn add_liquidity_pool_should_work() {
 				asset_out: ETH,
 			},
 			YieldFarmData {
-				id: 11,
+				id: 15,
 				updated_at: 2,
 				total_shares: 0,
 				total_valued_shares: 0,

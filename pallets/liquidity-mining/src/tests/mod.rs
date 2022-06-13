@@ -21,8 +21,8 @@ use crate::mock::{
 	Test, Tokens, WarehouseLM, ACA, ACA_FARM, ACA_KSM_AMM, ACA_KSM_SHARE_ID, ACCOUNT_WITH_1M, ALICE, AMM_POOLS, BOB,
 	BSX, BSX_ACA_AMM, BSX_ACA_SHARE_ID, BSX_DOT_AMM, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_FARM,
 	BSX_HDX_AMM, BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_TKN1_AMM, BSX_TKN1_SHARE_ID, BSX_TKN2_AMM,
-	BSX_TKN2_SHARE_ID, CHARLIE, DOT, ETH, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_DOT_AMM, KSM_DOT_SHARE_ID,
-	KSM_FARM, LIQ_MINING_NFT_CLASS, TKN1, TKN2, TREASURY,
+	BSX_TKN2_SHARE_ID, CHARLIE, DAVE, DOT, ETH, EVE, GC, GC_FARM, HDX, INITIAL_BALANCE, KSM, KSM_DOT_AMM,
+	KSM_DOT_SHARE_ID, KSM_FARM, LIQ_MINING_NFT_CLASS, TKN1, TKN2, TREASURY,
 };
 
 use frame_support::{assert_noop, assert_ok};
@@ -32,6 +32,8 @@ use sp_runtime::traits::BadOrigin;
 const ALICE_FARM: u32 = BSX_FARM;
 const BOB_FARM: u32 = KSM_FARM;
 const CHARLIE_FARM: u32 = ACA_FARM;
+const DAVE_FARM: u32 = 5;
+const EVE_FARM: u32 = 6;
 
 use warehouse_liquidity_mining::Config;
 use warehouse_liquidity_mining::GlobalFarmData;
@@ -40,7 +42,7 @@ use warehouse_liquidity_mining::LoyaltyCurve;
 use warehouse_liquidity_mining::YieldFarmData;
 use warehouse_liquidity_mining::YieldFarmState;
 
-const PREDEFINED_GLOBAL_POOLS: [GlobalFarmData<Test>; 4] = [
+const PREDEFINED_GLOBAL_POOLS: [GlobalFarmData<Test>; 6] = [
 	GlobalFarmData {
 		id: ALICE_FARM,
 		updated_at: 0,
@@ -109,14 +111,51 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalFarmData<Test>; 4] = [
 		accumulated_rewards: 0,
 		state: GlobalFarmState::Active,
 	},
+	GlobalFarmData {
+		id: DAVE_FARM,
+		updated_at: 0,
+		reward_currency: ACA,
+		yield_per_period: Permill::from_percent(20),
+		planned_yielding_periods: 300_u64,
+		blocks_per_period: 1_000_u64,
+		owner: DAVE,
+		incentivized_asset: TKN1,
+		max_reward_per_period: 333_333_333,
+		accumulated_rpz: 0,
+		yield_farms_count: (0, 0),
+		paid_accumulated_rewards: 0,
+		total_shares_z: 0,
+		accumulated_rewards: 0,
+		state: GlobalFarmState::Active,
+	},
+	GlobalFarmData {
+		id: EVE_FARM,
+		updated_at: 0,
+		reward_currency: KSM,
+		yield_per_period: Permill::from_percent(20),
+		planned_yielding_periods: 300_u64,
+		blocks_per_period: 1_000_u64,
+		owner: EVE,
+		incentivized_asset: BSX,
+		max_reward_per_period: 333_333_333,
+		accumulated_rpz: 0,
+		yield_farms_count: (0, 0),
+		paid_accumulated_rewards: 0,
+		total_shares_z: 0,
+		accumulated_rewards: 0,
+		state: GlobalFarmState::Active,
+	},
 ];
 
-const BSX_TKN1_LIQ_POOL_ID: u32 = 5;
-const BSX_TKN2_LIQ_POOL_ID: u32 = 6;
-const ACA_KSM_LIQ_POOL_ID: u32 = 7;
+const BSX_TKN1_LIQ_POOL_ID: u32 = 7;
+const BSX_TKN2_LIQ_POOL_ID: u32 = 8;
+const ACA_KSM_LIQ_POOL_ID: u32 = 9;
+const DAVE_BSX_TKN1_YIELD_FARM_ID: u32 = 10;
+const EVE_BSX_TKN1_YIELD_FARM_ID: u32 = 11;
+const EVE_BSX_TKN2_YIELD_FARM_ID: u32 = 12;
 
 thread_local! {
-	static PREDEFINED_LIQ_POOLS: [YieldFarmData<Test>; 3] = [
+	static PREDEFINED_LIQ_POOLS: [YieldFarmData<Test>; 6] = [
 		YieldFarmData {
 			id: BSX_TKN1_LIQ_POOL_ID,
 			updated_at: 0,
@@ -153,9 +192,47 @@ thread_local! {
 			state: YieldFarmState::Active,
 			entries_count: 0
 		},
+		YieldFarmData {
+			id: DAVE_BSX_TKN1_YIELD_FARM_ID,
+			updated_at: 0,
+			total_shares: 0,
+			total_valued_shares: 0,
+			accumulated_rpvs: 0,
+			accumulated_rpz: 0,
+			loyalty_curve: Some(LoyaltyCurve::default()),
+			multiplier: FixedU128::from(10),
+			state: YieldFarmState::Active,
+			entries_count: 0,
+		},
+		YieldFarmData {
+			id: EVE_BSX_TKN1_YIELD_FARM_ID,
+			updated_at: 0,
+			total_shares: 0,
+			total_valued_shares: 0,
+			accumulated_rpvs: 0,
+			accumulated_rpz: 0,
+			loyalty_curve: Some(LoyaltyCurve::default()),
+			multiplier: FixedU128::from(10),
+			state: YieldFarmState::Active,
+			entries_count: 0,
+		},
+
+		YieldFarmData {
+			id: EVE_BSX_TKN2_YIELD_FARM_ID,
+			updated_at: 0,
+			total_shares: 0,
+			total_valued_shares: 0,
+			accumulated_rpvs: 0,
+			accumulated_rpz: 0,
+			loyalty_curve: Some(LoyaltyCurve::default()),
+			multiplier: FixedU128::from(10),
+			state: YieldFarmState::Active,
+			entries_count: 0,
+		},
 	]
 }
 
+//TODO: Dani - do I still need it?
 //nft_ids for deposits from "predefined_test_ext_with_deposits()"
 const PREDEFINED_NFT_IDS: [u128; 7] = [
 	4294967301,
@@ -167,7 +244,6 @@ const PREDEFINED_NFT_IDS: [u128; 7] = [
 	30064771077,
 ];
 
-//TODO: Dani - do I still need it?
 const PREDEFINED_DEPOSIT_IDS: [u128; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
 
 fn last_events(n: usize) -> Vec<TestEvent> {
@@ -181,7 +257,7 @@ fn last_events(n: usize) -> Vec<TestEvent> {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	assert_eq!(last_events(e.len()), e);
+	pretty_assertions::assert_eq!(last_events(e.len()), e);
 }
 
 pub mod add_liquidity_pool;
@@ -190,6 +266,7 @@ pub mod claim_rewards;
 pub mod create_farm;
 pub mod deposit_shares;
 pub mod destroy_farm;
+pub mod redeposit_shares;
 pub mod remove_liquidity_pool;
 pub mod resume_liquidity_pool;
 pub mod test_ext;

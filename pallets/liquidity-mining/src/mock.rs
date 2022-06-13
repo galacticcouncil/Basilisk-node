@@ -50,10 +50,11 @@ pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
 pub const DAVE: AccountId = 4;
-pub const TREASURY: AccountId = 5;
-pub const ACCOUNT_WITH_1M: AccountId = 6;
-pub const GC: AccountId = 7;
-pub const LP_SHARES_STASH: AccountId = 8;
+pub const EVE: AccountId = 5;
+pub const TREASURY: AccountId = 6;
+pub const ACCOUNT_WITH_1M: AccountId = 7;
+pub const GC: AccountId = 8;
+pub const LP_SHARES_STASH: AccountId = 9;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
@@ -508,11 +509,21 @@ impl Default for ExtBuilder {
 				(DAVE, BSX_TKN1_SHARE_ID, 10_000_000),
 				(DAVE, BSX_TKN2_SHARE_ID, 10_000_000),
 				(DAVE, BSX, INITIAL_BALANCE),
+				(DAVE, KSM, INITIAL_BALANCE),
+				(DAVE, ACA, INITIAL_BALANCE),
 				(GC, BSX, INITIAL_BALANCE),
 				(TREASURY, BSX, 1_000_000_000_000_000_000),
 				(TREASURY, ACA, 1_000_000_000_000_000_000),
 				(TREASURY, HDX, 1_000_000_000_000_000_000),
 				(TREASURY, KSM, 1_000_000_000_000_000_000),
+				(EVE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),
+				(EVE, BSX_DOT_SHARE_ID, INITIAL_BALANCE),
+				(EVE, BSX_KSM_SHARE_ID, INITIAL_BALANCE),
+				(EVE, BSX_TKN1_SHARE_ID, 10_000_000),
+				(EVE, BSX_TKN2_SHARE_ID, 10_000_000),
+				(EVE, BSX, INITIAL_BALANCE),
+				(EVE, KSM, INITIAL_BALANCE),
+				(EVE, ACA, INITIAL_BALANCE),
 			],
 		}
 	}
