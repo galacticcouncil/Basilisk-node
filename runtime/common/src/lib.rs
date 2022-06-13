@@ -166,11 +166,11 @@ parameter_types! {
 
 // pallet democracy
 parameter_types! {
-	pub const LaunchPeriod: BlockNumber = 7 * DAYS;
-	pub const VotingPeriod: BlockNumber = 7 * DAYS;
+	pub const LaunchPeriod: BlockNumber = 3 * DAYS;
+	pub const VotingPeriod: BlockNumber = 3 * DAYS;
 	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
 	pub const MinimumDeposit: Balance = 1000 * DOLLARS;
-	pub const EnactmentPeriod: BlockNumber = 7 * DAYS;
+	pub const EnactmentPeriod: BlockNumber = 6 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	// $10,000 / MB
 	pub const PreimageByteDeposit: Balance = 10 * MILLICENTS;
@@ -182,36 +182,36 @@ parameter_types! {
 // pallet elections_phragmen
 parameter_types! {
 	// Bond for candidacy into governance
-	pub const CandidacyBond: Balance = 10_000 * DOLLARS;
+	pub const CandidacyBond: Balance = 5 * DOLLARS;
 	// 1 storage item created, key size is 32 bytes, value size is 16+16.
-	pub const VotingBondBase: Balance = DOLLARS;
+	pub const VotingBondBase: Balance = CENTS;
 	// additional data per vote is 32 bytes (account id).
-	pub const VotingBondFactor: Balance = 50 * CENTS;
+	pub const VotingBondFactor: Balance = CENTS;
 	pub const TermDuration: BlockNumber = 7 * DAYS;
-	pub const DesiredMembers: u32 = 1;
-	pub const DesiredRunnersUp: u32 = 0;
+	pub const DesiredMembers: u32 = 7;
+	pub const DesiredRunnersUp: u32 = 9;
 	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
 }
 
 // pallet collective - council collective
 parameter_types! {
-	pub const CouncilMotionDuration: BlockNumber = 4 * DAYS;
-	pub const CouncilMaxProposals: u32 = 100;
-	pub const CouncilMaxMembers: u32 = 1;
+	pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
+	pub const CouncilMaxProposals: u32 = 13;
+	pub const CouncilMaxMembers: u32 = 7;
 }
 
 // pallet collective - technical collective
 parameter_types! {
-	pub const TechnicalMotionDuration: BlockNumber = 4 * DAYS;
+	pub const TechnicalMotionDuration: BlockNumber = 5 * DAYS;
 	pub const TechnicalMaxProposals: u32 = 20;
 	pub const TechnicalMaxMembers: u32 = 10;
 }
 
 // pallet treasury
 parameter_types! {
-	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 10 * DOLLARS;
-	pub const ProposalBondMaximum: Balance = 50 * DOLLARS;
+	pub const ProposalBond: Permill = Permill::from_percent(3);
+	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
+	pub const ProposalBondMaximum: Balance = 500 * DOLLARS;
 	pub const SpendPeriod: BlockNumber = 3 * DAYS;
 	pub const Burn: Permill = Permill::from_percent(0);
 	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
@@ -226,7 +226,7 @@ parameter_types! {
 // pallet tips
 parameter_types! {
 	pub const DataDepositPerByte: Balance = CENTS;
-	pub const TipCountdown: BlockNumber = 24 * HOURS;
+	pub const TipCountdown: BlockNumber = 2 * HOURS;
 	pub const TipFindersFee: Percent = Percent::from_percent(1);
 	pub const TipReportDepositBase: Balance = 10 * DOLLARS;
 	pub const TipReportDepositPerByte: Balance = CENTS;
@@ -259,4 +259,14 @@ parameter_types! {
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = NATIVE_EXISTENTIAL_DEPOSIT * 1_000;
 	pub const NftClass: primitives::ClassId = 1;
+}
+
+// pallet identity
+parameter_types! {
+	pub const BasicDeposit: Balance = 5 * DOLLARS;
+	pub const FieldDeposit: Balance = DOLLARS;
+	pub const SubAccountDeposit: Balance = 5 * DOLLARS;
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
 }
