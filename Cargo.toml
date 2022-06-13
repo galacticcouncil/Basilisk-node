@@ -13,7 +13,7 @@ members = [
   'pallets/xyk',
   'pallets/exchange',
   'pallets/liquidity-mining',
-  'pallets/stablewap',
+  'pallets/stableswap',
   'integration-tests',
 ]
 
