@@ -248,6 +248,9 @@ pub mod pallet {
 
 		/// Amplification is outside specified range.
 		InvalidAmplification,
+
+		/// Remaining balance of share asset is below asset's existential deposit.
+		InsufficientShareBalance,
 	}
 
 	#[pallet::call]
@@ -451,6 +454,15 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
+			ensure!(!share_amount.is_zero(), Error::<T>::InvalidAssetAmount);
+
+			let current_share_balance = T::Currency::free_balance(pool_id.0, &who);
+
+			ensure!(
+				current_share_balance.saturating_add(share_amount) >= T::MinPoolLiquidity::get(),
+				Error::<T>::InsufficientShareBalance
+			);
+
 			T::Currency::deposit(pool_id.0, &who, share_amount)?;
 
 			T::Currency::transfer(assets.0, &who, &pool_account, amount)?;
@@ -485,9 +497,14 @@ pub mod pallet {
 
 			ensure!(amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
 
+			let current_share_balance = T::Currency::free_balance(pool_id.0, &who);
+
+			ensure!(current_share_balance >= amount, Error::<T>::InsufficientShares);
+
 			ensure!(
-				T::Currency::free_balance(pool_id.0, &who) >= amount,
-				Error::<T>::InsufficientShares
+				current_share_balance == amount
+					|| current_share_balance.saturating_sub(amount) >= T::MinPoolLiquidity::get(),
+				Error::<T>::InsufficientShareBalance
 			);
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
