@@ -35,7 +35,7 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 
 		// cancel liq. pool before removing
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets
@@ -104,7 +104,7 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 
 		//cancel pool before removing
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets
@@ -177,11 +177,7 @@ fn remove_liquidity_pool_not_owner_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		const NOT_OWNER: u128 = ALICE;
 
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
-			Origin::signed(GC),
-			GC_FARM,
-			bsx_tkn1
-		));
+		assert_ok!(LiquidityMining::stop_yield_farm(Origin::signed(GC), GC_FARM, bsx_tkn1));
 
 		assert_noop!(
 			LiquidityMining::remove_liquidity_pool(Origin::signed(NOT_OWNER), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1),

@@ -29,7 +29,7 @@ fn resume_liquidity_pool_should_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		//cancel liq. pool before resuming
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets
@@ -135,7 +135,7 @@ fn resume_liquidity_pool_not_owner_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let new_multiplier = FixedU128::from(7_490_000);
 
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets

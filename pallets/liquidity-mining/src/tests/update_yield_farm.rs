@@ -162,7 +162,7 @@ fn update_yield_farm_canceled_pool_should_not_work() {
 	};
 
 	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_liq_pool
@@ -190,7 +190,7 @@ fn update_yield_farm_not_owner_should_not_work() {
 	};
 
 	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets

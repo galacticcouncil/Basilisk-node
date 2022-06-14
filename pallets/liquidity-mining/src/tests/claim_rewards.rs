@@ -600,7 +600,7 @@ fn claim_rewards_from_canceled_pool_should_work() {
 		};
 
 		//cancel liq. pool before claim test
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets
@@ -666,7 +666,7 @@ fn claim_rewards_from_removed_pool_should_not_work() {
 		};
 
 		//cancel liq. pool before removing
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets

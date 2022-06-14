@@ -1061,13 +1061,13 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 		//NOTE: predefined_deposit_ids[0] is deposited in 3 yield farms now.
 
 		//Stop yield farm.
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(EVE),
 			EVE_FARM,
 			BSX_TKN1_ASSETS
 		));
 		//Stop and destroy all yield farms so it can be flushed.
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(DAVE),
 			DAVE_FARM,
 			BSX_TKN1_ASSETS
@@ -1173,12 +1173,12 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 		assert!(WarehouseLM::global_farm(GC_FARM).is_some());
 
 		//cancel all liq. pools in the farm
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets
 		));
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn2_assets
@@ -1304,7 +1304,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		set_block_number(10_000);
 
 		// cancel liq. pool before withdraw test
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets
@@ -1701,7 +1701,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		set_block_number(10_000);
 
 		//cancel liq. pool before removing
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets

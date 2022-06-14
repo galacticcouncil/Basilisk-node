@@ -934,7 +934,7 @@ fn deposit_shares_canceled_liq_pool_should_not_work() {
 			asset_out: TKN1,
 		};
 
-		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets

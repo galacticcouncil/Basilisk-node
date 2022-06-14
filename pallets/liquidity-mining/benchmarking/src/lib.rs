@@ -228,7 +228,7 @@ benchmarks! {
 		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().multiplier, FixedU128::from(10_000_u128));
 	}
 
-	cancel_liquidity_pool {
+	stop_yield_farm {
 		//init nft class for liq. mining
 		pallet_liquidity_mining::migration::init_nft_class::<T>();
 
@@ -262,7 +262,7 @@ benchmarks! {
 		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
 		assert_eq!(WarehouseLM::<T>::lyield_farm(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
 	}: {
-		LiquidityMining::<T>::cancel_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?
 	}
 	verify {
 		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
@@ -306,7 +306,7 @@ benchmarks! {
 			4_294_967_298_u128
 		)?;
 
-		LiquidityMining::<T>::cancel_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
 
 		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
 	}: {
@@ -479,7 +479,7 @@ benchmarks! {
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
 
-		LiquidityMining::<T>::cancel_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
 
 		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
 	}: {

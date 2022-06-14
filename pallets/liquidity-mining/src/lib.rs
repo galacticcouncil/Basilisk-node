@@ -507,11 +507,7 @@ pub mod pallet {
 		/// Emits `LiquidityMiningCanceled` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
-		pub fn cancel_liquidity_pool(
-			origin: OriginFor<T>,
-			farm_id: GlobalPoolId,
-			asset_pair: AssetPair,
-		) -> DispatchResult {
+		pub fn stop_yield_farm(origin: OriginFor<T>, farm_id: GlobalPoolId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
