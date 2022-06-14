@@ -928,8 +928,8 @@ impl<T: Config>
 	) -> Result<(), DispatchError> {
 		let lp_token = Self::get_lp_token(&amm_pool_id)?;
 
-		let pallet_account = Self::account_id();
-		MultiCurrencyOf::<T>::transfer(lp_token, &who, &pallet_account, amount)?;
+		let service_account_for_lp_shares = Self::account_id();
+		MultiCurrencyOf::<T>::transfer(lp_token, &who, &service_account_for_lp_shares, amount)?;
 
 		Ok(())
 	}
