@@ -30,7 +30,7 @@ fn update_yield_farm_should_work() {
 		};
 
 		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::update_yield_farm(
@@ -41,7 +41,7 @@ fn update_yield_farm_should_work() {
 		));
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				multiplier: new_multiplier,
 				..liq_pool
@@ -60,7 +60,7 @@ fn update_yield_farm_should_work() {
 
 		//same period as last pool update so no pool(global or liq. pool) updated
 		let new_multiplier: PoolMultiplier = FixedU128::from(10_000_u128);
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::update_yield_farm(
@@ -71,7 +71,7 @@ fn update_yield_farm_should_work() {
 		));
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				multiplier: new_multiplier,
 				..liq_pool
@@ -89,11 +89,11 @@ fn update_yield_farm_should_work() {
 		//different period so pool update should happen
 		set_block_number(5_000);
 		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
@@ -106,7 +106,7 @@ fn update_yield_farm_should_work() {
 		));
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				updated_at: 50,
 				accumulated_rpvs: 30_060,

@@ -35,7 +35,7 @@ fn resume_yield_farm_should_work() {
 			bsx_tkn1_assets
 		));
 
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		let new_multiplier = FixedU128::from(7_490_000);
@@ -48,7 +48,7 @@ fn resume_yield_farm_should_work() {
 		assert_ok!(LiquidityMining::resume_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
 			new_multiplier
 		));
@@ -56,7 +56,7 @@ fn resume_yield_farm_should_work() {
 		let liq_pool_stake_in_global_pool = new_multiplier.checked_mul_int(45_540).unwrap();
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				state: YieldFarmState::Active,
 				accumulated_rpz: 62_996,
@@ -93,7 +93,7 @@ fn resume_yield_farm_non_existing_pool_should_not_work() {
 			LiquidityMining::resume_yield_farm(
 				Origin::signed(GC),
 				GC_FARM,
-				BSX_TKN1_LIQ_POOL_ID,
+				BSX_TKN1_YIELD_FARM_ID,
 				bsx_ksm_assets,
 				new_multiplier
 			),
@@ -116,7 +116,7 @@ fn resume_yield_farm_non_canceled_pool_should_not_work() {
 			LiquidityMining::resume_yield_farm(
 				Origin::signed(GC),
 				GC_FARM,
-				BSX_TKN1_LIQ_POOL_ID,
+				BSX_TKN1_YIELD_FARM_ID,
 				bsx_tkn1_assets,
 				new_multiplier
 			),
@@ -145,7 +145,7 @@ fn resume_yield_farm_not_owner_should_not_work() {
 			LiquidityMining::resume_yield_farm(
 				Origin::signed(ALICE),
 				GC_FARM,
-				BSX_TKN1_LIQ_POOL_ID,
+				BSX_TKN1_YIELD_FARM_ID,
 				bsx_tkn1_assets,
 				new_multiplier
 			),

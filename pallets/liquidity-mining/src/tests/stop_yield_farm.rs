@@ -32,11 +32,11 @@ fn stop_yield_farm_should_work() {
 
 	//same period
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::stop_yield_farm(
@@ -47,7 +47,7 @@ fn stop_yield_farm_should_work() {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
+			liq_pool_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: bsx_tkn1_assets,
 		})]);
@@ -58,7 +58,7 @@ fn stop_yield_farm_should_work() {
 			.unwrap();
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				state: YieldFarmState::Stopped,
 				multiplier: 0.into(),
@@ -80,11 +80,11 @@ fn stop_yield_farm_should_work() {
 
 	//canelc liq. pool with pools update
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
@@ -98,13 +98,13 @@ fn stop_yield_farm_should_work() {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
+			liq_pool_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: bsx_tkn1_assets,
 		})]);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				updated_at: 100,
 				accumulated_rpvs: 245,

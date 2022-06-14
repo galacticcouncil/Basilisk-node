@@ -46,7 +46,7 @@ fn create_yield_farm_should_work() {
 			17_850,
 			GlobalFarmData {
 				yield_farms_count: (1, 1),
-				..PREDEFINED_GLOBAL_POOLS[0].clone()
+				..PREDEFINED_GLOBAL_FARMS[0].clone()
 			},
 		),
 		(
@@ -72,7 +72,7 @@ fn create_yield_farm_should_work() {
 			17_850,
 			GlobalFarmData {
 				yield_farms_count: (2, 2),
-				..PREDEFINED_GLOBAL_POOLS[0].clone()
+				..PREDEFINED_GLOBAL_FARMS[0].clone()
 			},
 		),
 		(
@@ -101,7 +101,7 @@ fn create_yield_farm_should_work() {
 			20_000,
 			GlobalFarmData {
 				yield_farms_count: (3, 3),
-				..PREDEFINED_GLOBAL_POOLS[0].clone()
+				..PREDEFINED_GLOBAL_FARMS[0].clone()
 			},
 		),
 		(
@@ -130,7 +130,7 @@ fn create_yield_farm_should_work() {
 			20_000,
 			GlobalFarmData {
 				yield_farms_count: (1, 1),
-				..PREDEFINED_GLOBAL_POOLS[1].clone()
+				..PREDEFINED_GLOBAL_FARMS[1].clone()
 			},
 		),
 	];

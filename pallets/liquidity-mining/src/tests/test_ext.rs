@@ -35,79 +35,79 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			100_000_000_000,
-			PREDEFINED_GLOBAL_POOLS[0].planned_yielding_periods,
-			PREDEFINED_GLOBAL_POOLS[0].blocks_per_period,
-			PREDEFINED_GLOBAL_POOLS[0].incentivized_asset,
-			PREDEFINED_GLOBAL_POOLS[0].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[0].planned_yielding_periods,
+			PREDEFINED_GLOBAL_FARMS[0].blocks_per_period,
+			PREDEFINED_GLOBAL_FARMS[0].incentivized_asset,
+			PREDEFINED_GLOBAL_FARMS[0].reward_currency,
 			ALICE,
-			PREDEFINED_GLOBAL_POOLS[0].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[0].yield_per_period,
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			1_000_000_000,
-			PREDEFINED_GLOBAL_POOLS[1].planned_yielding_periods,
-			PREDEFINED_GLOBAL_POOLS[1].blocks_per_period,
-			PREDEFINED_GLOBAL_POOLS[1].incentivized_asset,
-			PREDEFINED_GLOBAL_POOLS[1].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[1].planned_yielding_periods,
+			PREDEFINED_GLOBAL_FARMS[1].blocks_per_period,
+			PREDEFINED_GLOBAL_FARMS[1].incentivized_asset,
+			PREDEFINED_GLOBAL_FARMS[1].reward_currency,
 			BOB,
-			PREDEFINED_GLOBAL_POOLS[1].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[1].yield_per_period,
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			30_000_000_000,
-			PREDEFINED_GLOBAL_POOLS[2].planned_yielding_periods,
-			PREDEFINED_GLOBAL_POOLS[2].blocks_per_period,
-			PREDEFINED_GLOBAL_POOLS[2].incentivized_asset,
-			PREDEFINED_GLOBAL_POOLS[2].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[2].planned_yielding_periods,
+			PREDEFINED_GLOBAL_FARMS[2].blocks_per_period,
+			PREDEFINED_GLOBAL_FARMS[2].incentivized_asset,
+			PREDEFINED_GLOBAL_FARMS[2].reward_currency,
 			GC,
-			PREDEFINED_GLOBAL_POOLS[2].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[2].yield_per_period,
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			30_000_000_000,
-			PREDEFINED_GLOBAL_POOLS[3].planned_yielding_periods,
-			PREDEFINED_GLOBAL_POOLS[3].blocks_per_period,
-			PREDEFINED_GLOBAL_POOLS[3].incentivized_asset,
-			PREDEFINED_GLOBAL_POOLS[3].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[3].planned_yielding_periods,
+			PREDEFINED_GLOBAL_FARMS[3].blocks_per_period,
+			PREDEFINED_GLOBAL_FARMS[3].incentivized_asset,
+			PREDEFINED_GLOBAL_FARMS[3].reward_currency,
 			CHARLIE,
-			PREDEFINED_GLOBAL_POOLS[3].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[3].yield_per_period,
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			30_000_000_000,
-			PREDEFINED_GLOBAL_POOLS[4].planned_yielding_periods,
-			PREDEFINED_GLOBAL_POOLS[4].blocks_per_period,
-			PREDEFINED_GLOBAL_POOLS[4].incentivized_asset,
-			PREDEFINED_GLOBAL_POOLS[4].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[4].planned_yielding_periods,
+			PREDEFINED_GLOBAL_FARMS[4].blocks_per_period,
+			PREDEFINED_GLOBAL_FARMS[4].incentivized_asset,
+			PREDEFINED_GLOBAL_FARMS[4].reward_currency,
 			DAVE,
-			PREDEFINED_GLOBAL_POOLS[4].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[4].yield_per_period,
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			30_000_000_000,
-			PREDEFINED_GLOBAL_POOLS[5].planned_yielding_periods,
-			PREDEFINED_GLOBAL_POOLS[5].blocks_per_period,
-			PREDEFINED_GLOBAL_POOLS[5].incentivized_asset,
-			PREDEFINED_GLOBAL_POOLS[5].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[5].planned_yielding_periods,
+			PREDEFINED_GLOBAL_FARMS[5].blocks_per_period,
+			PREDEFINED_GLOBAL_FARMS[5].incentivized_asset,
+			PREDEFINED_GLOBAL_FARMS[5].reward_currency,
 			EVE,
-			PREDEFINED_GLOBAL_POOLS[5].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[5].yield_per_period,
 		));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
-				id: PREDEFINED_GLOBAL_POOLS[0].id,
-				owner: PREDEFINED_GLOBAL_POOLS[0].owner,
-				reward_currency: PREDEFINED_GLOBAL_POOLS[0].reward_currency,
-				yield_per_period: PREDEFINED_GLOBAL_POOLS[0].yield_per_period,
-				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[0].planned_yielding_periods,
-				blocks_per_period: PREDEFINED_GLOBAL_POOLS[0].blocks_per_period,
-				incentivized_asset: PREDEFINED_GLOBAL_POOLS[0].incentivized_asset,
-				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[0].max_reward_per_period,
+				id: PREDEFINED_GLOBAL_FARMS[0].id,
+				owner: PREDEFINED_GLOBAL_FARMS[0].owner,
+				reward_currency: PREDEFINED_GLOBAL_FARMS[0].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_FARMS[0].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[0].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_FARMS[0].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_FARMS[0].incentivized_asset,
+				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[0].max_reward_per_period,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 192282548550198434755674140525,
@@ -118,14 +118,14 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				amount: 1_000_000_000,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
-				id: PREDEFINED_GLOBAL_POOLS[1].id,
-				owner: PREDEFINED_GLOBAL_POOLS[1].owner,
-				reward_currency: PREDEFINED_GLOBAL_POOLS[1].reward_currency,
-				yield_per_period: PREDEFINED_GLOBAL_POOLS[1].yield_per_period,
-				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[1].planned_yielding_periods,
-				blocks_per_period: PREDEFINED_GLOBAL_POOLS[1].blocks_per_period,
-				incentivized_asset: PREDEFINED_GLOBAL_POOLS[1].incentivized_asset,
-				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[1].max_reward_per_period,
+				id: PREDEFINED_GLOBAL_FARMS[1].id,
+				owner: PREDEFINED_GLOBAL_FARMS[1].owner,
+				reward_currency: PREDEFINED_GLOBAL_FARMS[1].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_FARMS[1].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[1].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_FARMS[1].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_FARMS[1].incentivized_asset,
+				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[1].max_reward_per_period,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 271510711064462772349218090861,
@@ -136,14 +136,14 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				amount: 30_000_000_000,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
-				id: PREDEFINED_GLOBAL_POOLS[2].id,
-				owner: PREDEFINED_GLOBAL_POOLS[2].owner,
-				reward_currency: PREDEFINED_GLOBAL_POOLS[2].reward_currency,
-				yield_per_period: PREDEFINED_GLOBAL_POOLS[2].yield_per_period,
-				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[2].planned_yielding_periods,
-				blocks_per_period: PREDEFINED_GLOBAL_POOLS[2].blocks_per_period,
-				incentivized_asset: PREDEFINED_GLOBAL_POOLS[2].incentivized_asset,
-				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[2].max_reward_per_period,
+				id: PREDEFINED_GLOBAL_FARMS[2].id,
+				owner: PREDEFINED_GLOBAL_FARMS[2].owner,
+				reward_currency: PREDEFINED_GLOBAL_FARMS[2].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_FARMS[2].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[2].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_FARMS[2].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_FARMS[2].incentivized_asset,
+				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[2].max_reward_per_period,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 350738873578727109942762041197,
@@ -154,14 +154,14 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				amount: 30_000_000_000,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
-				id: PREDEFINED_GLOBAL_POOLS[3].id,
-				owner: PREDEFINED_GLOBAL_POOLS[3].owner,
-				reward_currency: PREDEFINED_GLOBAL_POOLS[3].reward_currency,
-				yield_per_period: PREDEFINED_GLOBAL_POOLS[3].yield_per_period,
-				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[3].planned_yielding_periods,
-				blocks_per_period: PREDEFINED_GLOBAL_POOLS[3].blocks_per_period,
-				incentivized_asset: PREDEFINED_GLOBAL_POOLS[3].incentivized_asset,
-				max_reward_per_period: PREDEFINED_GLOBAL_POOLS[3].max_reward_per_period,
+				id: PREDEFINED_GLOBAL_FARMS[3].id,
+				owner: PREDEFINED_GLOBAL_FARMS[3].owner,
+				reward_currency: PREDEFINED_GLOBAL_FARMS[3].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_FARMS[3].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[3].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_FARMS[3].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_FARMS[3].incentivized_asset,
+				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[3].max_reward_per_period,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 429967036092991447536305991533,
@@ -172,13 +172,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				amount: 30_000_000_000,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
-				id: PREDEFINED_GLOBAL_POOLS[4].id,
-				owner: PREDEFINED_GLOBAL_POOLS[4].owner,
-				reward_currency: PREDEFINED_GLOBAL_POOLS[4].reward_currency,
-				yield_per_period: PREDEFINED_GLOBAL_POOLS[4].yield_per_period,
-				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[4].planned_yielding_periods,
-				blocks_per_period: PREDEFINED_GLOBAL_POOLS[4].blocks_per_period,
-				incentivized_asset: PREDEFINED_GLOBAL_POOLS[4].incentivized_asset,
+				id: PREDEFINED_GLOBAL_FARMS[4].id,
+				owner: PREDEFINED_GLOBAL_FARMS[4].owner,
+				reward_currency: PREDEFINED_GLOBAL_FARMS[4].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_FARMS[4].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[4].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_FARMS[4].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_FARMS[4].incentivized_asset,
 				max_reward_per_period: 100000000, //TODO: Dani - why 10000000? it should be 33333333
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
@@ -190,13 +190,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				amount: 30_000_000_000,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
-				id: PREDEFINED_GLOBAL_POOLS[5].id,
-				owner: PREDEFINED_GLOBAL_POOLS[5].owner,
-				reward_currency: PREDEFINED_GLOBAL_POOLS[5].reward_currency,
-				yield_per_period: PREDEFINED_GLOBAL_POOLS[5].yield_per_period,
-				planned_yielding_periods: PREDEFINED_GLOBAL_POOLS[5].planned_yielding_periods,
-				blocks_per_period: PREDEFINED_GLOBAL_POOLS[5].blocks_per_period,
-				incentivized_asset: PREDEFINED_GLOBAL_POOLS[5].incentivized_asset,
+				id: PREDEFINED_GLOBAL_FARMS[5].id,
+				owner: PREDEFINED_GLOBAL_FARMS[5].owner,
+				reward_currency: PREDEFINED_GLOBAL_FARMS[5].reward_currency,
+				yield_per_period: PREDEFINED_GLOBAL_FARMS[5].yield_per_period,
+				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[5].planned_yielding_periods,
+				blocks_per_period: PREDEFINED_GLOBAL_FARMS[5].blocks_per_period,
+				incentivized_asset: PREDEFINED_GLOBAL_FARMS[5].incentivized_asset,
 				max_reward_per_period: 100000000, //TODO: Dani - why 10000000? it should be 33333333
 			}),
 		]);
@@ -290,16 +290,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TKN1,
 			},
-			PREDEFINED_LIQ_POOLS.with(|v| v[0].multiplier),
-			PREDEFINED_LIQ_POOLS.with(|v| v[0].loyalty_curve.clone()),
+			PREDEFINED_YIELD_FARMS.with(|v| v[0].multiplier),
+			PREDEFINED_YIELD_FARMS.with(|v| v[0].loyalty_curve.clone()),
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[0].id),
-			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[0].multiplier),
+			liq_pool_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[0].id),
+			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[0].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
-			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[0].loyalty_curve.clone()),
+			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[0].loyalty_curve.clone()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TKN1,
@@ -313,16 +313,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TKN2,
 			},
-			PREDEFINED_LIQ_POOLS.with(|v| v[1].multiplier),
-			PREDEFINED_LIQ_POOLS.with(|v| v[1].loyalty_curve.clone()),
+			PREDEFINED_YIELD_FARMS.with(|v| v[1].multiplier),
+			PREDEFINED_YIELD_FARMS.with(|v| v[1].loyalty_curve.clone()),
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[1].id),
-			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[1].multiplier),
+			liq_pool_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[1].id),
+			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[1].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
-			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[1].loyalty_curve.clone()),
+			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[1].loyalty_curve.clone()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TKN2,
@@ -336,16 +336,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: ACA,
 				asset_out: KSM,
 			},
-			PREDEFINED_LIQ_POOLS.with(|v| v[2].multiplier),
-			PREDEFINED_LIQ_POOLS.with(|v| v[2].loyalty_curve.clone()),
+			PREDEFINED_YIELD_FARMS.with(|v| v[2].multiplier),
+			PREDEFINED_YIELD_FARMS.with(|v| v[2].loyalty_curve.clone()),
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: CHARLIE_FARM,
-			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[2].id),
-			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[2].multiplier),
+			liq_pool_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[2].id),
+			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[2].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
-			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[2].loyalty_curve.clone()),
+			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[2].loyalty_curve.clone()),
 			asset_pair: AssetPair {
 				asset_in: ACA,
 				asset_out: KSM,
@@ -359,16 +359,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TKN1,
 			},
-			PREDEFINED_LIQ_POOLS.with(|v| v[3].multiplier),
-			PREDEFINED_LIQ_POOLS.with(|v| v[3].loyalty_curve.clone()),
+			PREDEFINED_YIELD_FARMS.with(|v| v[3].multiplier),
+			PREDEFINED_YIELD_FARMS.with(|v| v[3].loyalty_curve.clone()),
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: DAVE_FARM,
-			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[3].id),
-			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[3].multiplier),
+			liq_pool_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[3].id),
+			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[3].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
-			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[3].loyalty_curve.clone()),
+			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[3].loyalty_curve.clone()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TKN1,
@@ -382,16 +382,16 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				asset_in: BSX,
 				asset_out: TKN1,
 			},
-			PREDEFINED_LIQ_POOLS.with(|v| v[4].multiplier),
-			PREDEFINED_LIQ_POOLS.with(|v| v[4].loyalty_curve.clone()),
+			PREDEFINED_YIELD_FARMS.with(|v| v[4].multiplier),
+			PREDEFINED_YIELD_FARMS.with(|v| v[4].loyalty_curve.clone()),
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: EVE_FARM,
-			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[4].id),
-			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[4].multiplier),
+			liq_pool_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[4].id),
+			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[4].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
-			loyalty_curve: PREDEFINED_LIQ_POOLS.with(|v| v[4].loyalty_curve.clone()),
+			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[4].loyalty_curve.clone()),
 			asset_pair: AssetPair {
 				asset_in: BSX,
 				asset_out: TKN1,
@@ -422,8 +422,8 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		//not to WarehouseLM.
 		let pallet_account = LiquidityMining::account_id();
 		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
+		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let bsx_tkn1_amm_account =
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
 		let bsx_tkn2_amm_account =
@@ -439,14 +439,14 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
 			deposited_amount,
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
@@ -463,14 +463,14 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
 			deposited_amount
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
@@ -487,14 +487,14 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
-			BSX_TKN2_LIQ_POOL_ID,
+			BSX_TKN2_YIELD_FARM_ID,
 			bsx_tkn2_assets,
 			deposited_amount
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
@@ -512,14 +512,14 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
-			BSX_TKN2_LIQ_POOL_ID,
+			BSX_TKN2_YIELD_FARM_ID,
 			bsx_tkn2_assets,
 			deposited_amount
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
@@ -537,14 +537,14 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
-			BSX_TKN2_LIQ_POOL_ID,
+			BSX_TKN2_YIELD_FARM_ID,
 			bsx_tkn2_assets,
 			deposited_amount,
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
@@ -562,14 +562,14 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
-			BSX_TKN2_LIQ_POOL_ID,
+			BSX_TKN2_YIELD_FARM_ID,
 			bsx_tkn2_assets,
 			deposited_amount,
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
@@ -587,14 +587,14 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
 			deposited_amount,
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
@@ -624,7 +624,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				updated_at: 25,
 				accumulated_rpvs: 60,
@@ -632,12 +632,12 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 				total_shares: 616,
 				total_valued_shares: 45_540,
 				entries_count: 3,
-				..PREDEFINED_LIQ_POOLS.with(|v| v[0].clone())
+				..PREDEFINED_YIELD_FARMS.with(|v| v[0].clone())
 			},
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				updated_at: 25,
 				accumulated_rpvs: 120,
@@ -645,7 +645,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 				total_shares: 960,
 				total_valued_shares: 47_629,
 				entries_count: 4,
-				..PREDEFINED_LIQ_POOLS.with(|v| v[1].clone())
+				..PREDEFINED_YIELD_FARMS.with(|v| v[1].clone())
 			},
 		);
 

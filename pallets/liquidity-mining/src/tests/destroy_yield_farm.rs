@@ -29,7 +29,7 @@ fn destroy_yield_farm_with_deposits_should_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
@@ -42,18 +42,18 @@ fn destroy_yield_farm_with_deposits_should_work() {
 		));
 
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
-		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
+		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 
 		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmRemoved {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: bsx_tkn1_assets,
 		})]);
@@ -72,7 +72,7 @@ fn destroy_yield_farm_with_deposits_should_work() {
 
 		//Yield farm is removed from storage only if there are no more farm entries.
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				state: YieldFarmState::Deleted,
 				..yield_farm
@@ -98,7 +98,7 @@ fn destroy_yield_farm_without_deposits_should_work() {
 
 	predefined_test_ext().execute_with(|| {
 		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
+		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
@@ -115,13 +115,13 @@ fn destroy_yield_farm_without_deposits_should_work() {
 		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmRemoved {
 			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: bsx_tkn1_assets,
 		})]);
@@ -138,7 +138,7 @@ fn destroy_yield_farm_without_deposits_should_work() {
 
 		//liq. pool should be removed from storage
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)),
 			None
 		);
 
@@ -161,7 +161,7 @@ fn destroy_yield_farm_non_canceled_liq_pool_should_not_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::destroy_yield_farm(Origin::signed(GC), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1_assets),
+			LiquidityMining::destroy_yield_farm(Origin::signed(GC), GC_FARM, BSX_TKN1_YIELD_FARM_ID, bsx_tkn1_assets),
 			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningIsNotCanceled
 		);
 	});
@@ -180,7 +180,7 @@ fn destroy_yield_farm_not_owner_should_not_work() {
 		assert_ok!(LiquidityMining::stop_yield_farm(Origin::signed(GC), GC_FARM, bsx_tkn1));
 
 		assert_noop!(
-			LiquidityMining::destroy_yield_farm(Origin::signed(NOT_OWNER), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1),
+			LiquidityMining::destroy_yield_farm(Origin::signed(NOT_OWNER), GC_FARM, BSX_TKN1_YIELD_FARM_ID, bsx_tkn1),
 			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
@@ -195,7 +195,7 @@ fn destroy_yield_farm_liq_pool_does_not_exists_should_not_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::destroy_yield_farm(Origin::signed(GC), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_dot_assets),
+			LiquidityMining::destroy_yield_farm(Origin::signed(GC), GC_FARM, BSX_TKN1_YIELD_FARM_ID, bsx_dot_assets),
 			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
 		);
 	});

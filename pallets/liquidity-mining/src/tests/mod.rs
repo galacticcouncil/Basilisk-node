@@ -42,7 +42,7 @@ use warehouse_liquidity_mining::LoyaltyCurve;
 use warehouse_liquidity_mining::YieldFarmData;
 use warehouse_liquidity_mining::YieldFarmState;
 
-const PREDEFINED_GLOBAL_POOLS: [GlobalFarmData<Test>; 6] = [
+const PREDEFINED_GLOBAL_FARMS: [GlobalFarmData<Test>; 6] = [
 	GlobalFarmData {
 		id: ALICE_FARM,
 		updated_at: 0,
@@ -147,17 +147,17 @@ const PREDEFINED_GLOBAL_POOLS: [GlobalFarmData<Test>; 6] = [
 	},
 ];
 
-const BSX_TKN1_LIQ_POOL_ID: u32 = 7;
-const BSX_TKN2_LIQ_POOL_ID: u32 = 8;
-const ACA_KSM_LIQ_POOL_ID: u32 = 9;
+const BSX_TKN1_YIELD_FARM_ID: u32 = 7;
+const BSX_TKN2_YIELD_FARM_ID: u32 = 8;
+const ACA_KSM_YIELD_FARM_ID: u32 = 9;
 const DAVE_BSX_TKN1_YIELD_FARM_ID: u32 = 10;
 const EVE_BSX_TKN1_YIELD_FARM_ID: u32 = 11;
 const EVE_BSX_TKN2_YIELD_FARM_ID: u32 = 12;
 
 thread_local! {
-	static PREDEFINED_LIQ_POOLS: [YieldFarmData<Test>; 6] = [
+	static PREDEFINED_YIELD_FARMS: [YieldFarmData<Test>; 6] = [
 		YieldFarmData {
-			id: BSX_TKN1_LIQ_POOL_ID,
+			id: BSX_TKN1_YIELD_FARM_ID,
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
@@ -169,7 +169,7 @@ thread_local! {
 			entries_count: 0
 		},
 		YieldFarmData {
-			id: BSX_TKN2_LIQ_POOL_ID,
+			id: BSX_TKN2_YIELD_FARM_ID,
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
@@ -181,7 +181,7 @@ thread_local! {
 			entries_count: 0
 		},
 		YieldFarmData {
-			id: ACA_KSM_LIQ_POOL_ID,
+			id: ACA_KSM_YIELD_FARM_ID,
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
@@ -231,18 +231,6 @@ thread_local! {
 		},
 	]
 }
-
-//TODO: Dani - do I still need it?
-//nft_ids for deposits from "predefined_test_ext_with_deposits()"
-const PREDEFINED_NFT_IDS: [u128; 7] = [
-	4294967301,
-	8589934597,
-	12884901894,
-	17179869190,
-	21474836486,
-	25769803782,
-	30064771077,
-];
 
 const PREDEFINED_DEPOSIT_IDS: [u128; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
 

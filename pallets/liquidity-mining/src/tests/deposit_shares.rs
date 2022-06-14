@@ -44,8 +44,8 @@ fn deposit_shares_should_work() {
 		//not to WarehouseLM.
 		let pallet_account = LiquidityMining::account_id();
 		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
+		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let bsx_tkn1_amm_account =
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
 		let bsx_tkn2_amm_account =
@@ -63,7 +63,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
 			deposited_amount,
 		));
@@ -77,7 +77,7 @@ fn deposit_shares_should_work() {
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
@@ -108,9 +108,9 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				id: BSX_TKN1_LIQ_POOL_ID,
+				id: BSX_TKN1_YIELD_FARM_ID,
 				updated_at: 0,
 				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
@@ -130,7 +130,7 @@ fn deposit_shares_should_work() {
 				amm_pool_id: BSX_TKN1_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: GC_FARM,
-					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 					valued_shares: 2_500,
 					accumulated_rpvs: 0,
 					accumulated_claimed_rewards: 0,
@@ -168,7 +168,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
 			deposited_amount
 		));
@@ -182,7 +182,7 @@ fn deposit_shares_should_work() {
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: BOB,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
@@ -213,9 +213,9 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				id: BSX_TKN1_LIQ_POOL_ID,
+				id: BSX_TKN1_YIELD_FARM_ID,
 				updated_at: 18,
 				accumulated_rpvs: 45,
 				accumulated_rpz: 9,
@@ -235,7 +235,7 @@ fn deposit_shares_should_work() {
 				amm_pool_id: BSX_TKN1_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: GC_FARM,
-					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 					valued_shares: 4_160,
 					accumulated_rpvs: 45,
 					accumulated_claimed_rewards: 0,
@@ -276,7 +276,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
-			BSX_TKN2_LIQ_POOL_ID, //TODO: ask Dani - is it surely this?
+			BSX_TKN2_YIELD_FARM_ID, //TODO: ask Dani - is it surely this?
 			bsx_tkn2_assets,
 			deposited_amount
 		));
@@ -290,7 +290,7 @@ fn deposit_shares_should_work() {
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
@@ -321,9 +321,9 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				id: BSX_TKN2_LIQ_POOL_ID,
+				id: BSX_TKN2_YIELD_FARM_ID,
 				updated_at: 0,
 				accumulated_rpvs: 0,
 				accumulated_rpz: 0,
@@ -343,7 +343,7 @@ fn deposit_shares_should_work() {
 				amm_pool_id: BSX_TKN2_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: GC_FARM,
-					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+					yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 					valued_shares: 200,
 					accumulated_rpvs: 0,
 					accumulated_claimed_rewards: 0,
@@ -389,7 +389,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
-			BSX_TKN2_LIQ_POOL_ID,
+			BSX_TKN2_YIELD_FARM_ID,
 			bsx_tkn2_assets,
 			deposited_amount
 		));
@@ -403,7 +403,7 @@ fn deposit_shares_should_work() {
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
@@ -434,9 +434,9 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				id: BSX_TKN2_LIQ_POOL_ID,
+				id: BSX_TKN2_YIELD_FARM_ID,
 				updated_at: 20,
 				accumulated_rpvs: 100,
 				accumulated_rpz: 10,
@@ -456,7 +456,7 @@ fn deposit_shares_should_work() {
 				amm_pool_id: BSX_TKN2_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: GC_FARM,
-					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+					yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 					valued_shares: 46_400,
 					accumulated_rpvs: 100,
 					accumulated_claimed_rewards: 0,
@@ -500,7 +500,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
-			BSX_TKN2_LIQ_POOL_ID,
+			BSX_TKN2_YIELD_FARM_ID,
 			bsx_tkn2_assets,
 			deposited_amount,
 		));
@@ -514,7 +514,7 @@ fn deposit_shares_should_work() {
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: 87,
@@ -545,9 +545,9 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				id: BSX_TKN2_LIQ_POOL_ID,
+				id: BSX_TKN2_YIELD_FARM_ID,
 				updated_at: 25,
 				accumulated_rpvs: 120,
 				accumulated_rpz: 12,
@@ -567,7 +567,7 @@ fn deposit_shares_should_work() {
 				amm_pool_id: BSX_TKN2_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: GC_FARM,
-					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+					yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 					valued_shares: 261,
 					accumulated_rpvs: 120,
 					accumulated_claimed_rewards: 0,
@@ -610,7 +610,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
-			BSX_TKN2_LIQ_POOL_ID,
+			BSX_TKN2_YIELD_FARM_ID,
 			bsx_tkn2_assets,
 			deposited_amount,
 		));
@@ -624,7 +624,7 @@ fn deposit_shares_should_work() {
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: deposited_amount,
@@ -655,9 +655,9 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				id: BSX_TKN2_LIQ_POOL_ID,
+				id: BSX_TKN2_YIELD_FARM_ID,
 				updated_at: 25,
 				accumulated_rpvs: 120,
 				accumulated_rpz: 12,
@@ -680,7 +680,7 @@ fn deposit_shares_should_work() {
 				amm_pool_id: BSX_TKN2_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: GC_FARM,
-					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
+					yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 					valued_shares: 768,
 					accumulated_rpvs: 120,
 					accumulated_claimed_rewards: 0,
@@ -722,7 +722,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
-			BSX_TKN1_LIQ_POOL_ID,
+			BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
 			486
 		));
@@ -736,7 +736,7 @@ fn deposit_shares_should_work() {
 			}),
 			mock::Event::LiquidityMining(Event::SharesDeposited {
 				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: deposited_amount,
@@ -767,9 +767,9 @@ fn deposit_shares_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				id: BSX_TKN1_LIQ_POOL_ID,
+				id: BSX_TKN1_YIELD_FARM_ID,
 				updated_at: 25,
 				accumulated_rpvs: 60,
 				accumulated_rpz: 12,
@@ -789,7 +789,7 @@ fn deposit_shares_should_work() {
 				amm_pool_id: BSX_TKN1_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: GC_FARM,
-					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 					valued_shares: 38_880,
 					accumulated_rpvs: 60,
 					accumulated_claimed_rewards: 0,
@@ -845,7 +845,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			CHARLIE_FARM,
-			ACA_KSM_LIQ_POOL_ID,
+			ACA_KSM_YIELD_FARM_ID,
 			aca_ksm_assets,
 			deposited_amount
 		));
@@ -857,7 +857,7 @@ fn deposit_shares_should_work() {
 				amm_pool_id: ACA_KSM_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: CHARLIE_FARM,
-					yield_farm_id: ACA_KSM_LIQ_POOL_ID,
+					yield_farm_id: ACA_KSM_YIELD_FARM_ID,
 					valued_shares: deposited_amount * ksm_balance_in_amm,
 					accumulated_rpvs: 0,
 					accumulated_claimed_rewards: 0,
@@ -878,7 +878,13 @@ fn deposit_shares_zero_deposit_should_not_work() {
 		};
 
 		assert_noop!(
-			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1_assets, 0),
+			LiquidityMining::deposit_shares(
+				Origin::signed(ALICE),
+				GC_FARM,
+				BSX_TKN1_YIELD_FARM_ID,
+				bsx_tkn1_assets,
+				0
+			),
 			warehouse_liquidity_mining::Error::<Test>::InvalidDepositAmount
 		);
 	});
@@ -896,7 +902,7 @@ fn deposit_shares_insufficient_shares_balance_should_not_work() {
 			LiquidityMining::deposit_shares(
 				Origin::signed(ALICE),
 				GC_FARM,
-				BSX_TKN1_LIQ_POOL_ID,
+				BSX_TKN1_YIELD_FARM_ID,
 				bsx_tkn1_assets,
 				4_000_000
 			),
@@ -917,7 +923,7 @@ fn deposit_shares_non_existing_liq_pool_should_not_work() {
 			LiquidityMining::deposit_shares(
 				Origin::signed(ALICE),
 				GC_FARM,
-				BSX_TKN1_LIQ_POOL_ID,
+				BSX_TKN1_YIELD_FARM_ID,
 				bsx_dot_assets,
 				10_000
 			),

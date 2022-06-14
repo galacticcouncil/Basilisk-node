@@ -26,11 +26,11 @@ fn destroy_global_farm_should_work() {
 		let _ = Tokens::transfer_all(
 			Origin::signed(farm_account),
 			TREASURY,
-			PREDEFINED_GLOBAL_POOLS[1].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[1].reward_currency,
 			false,
 		);
 		assert_eq!(
-			Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[1].reward_currency, &farm_account),
+			Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[1].reward_currency, &farm_account),
 			0
 		);
 
@@ -53,11 +53,11 @@ fn destroy_global_farm_not_owner_should_not_work() {
 		let _ = Tokens::transfer_all(
 			Origin::signed(farm_account),
 			TREASURY,
-			PREDEFINED_GLOBAL_POOLS[1].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[1].reward_currency,
 			false,
 		);
 		assert_eq!(
-			Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[1].reward_currency, &farm_account),
+			Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[1].reward_currency, &farm_account),
 			0
 		);
 
@@ -66,7 +66,7 @@ fn destroy_global_farm_not_owner_should_not_work() {
 			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 
-		assert_eq!(WarehouseLM::global_farm(BOB_FARM).unwrap(), PREDEFINED_GLOBAL_POOLS[1]);
+		assert_eq!(WarehouseLM::global_farm(BOB_FARM).unwrap(), PREDEFINED_GLOBAL_FARMS[1]);
 	});
 }
 
@@ -90,11 +90,11 @@ fn destroy_global_farm_with_pools_should_not_work() {
 		let _ = Tokens::transfer_all(
 			Origin::signed(farm_account),
 			TREASURY,
-			PREDEFINED_GLOBAL_POOLS[2].reward_currency,
+			PREDEFINED_GLOBAL_FARMS[2].reward_currency,
 			false,
 		);
 		assert_eq!(
-			Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[2].reward_currency, &farm_account),
+			Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[2].reward_currency, &farm_account),
 			0
 		);
 
@@ -103,7 +103,7 @@ fn destroy_global_farm_with_pools_should_not_work() {
 			warehouse_liquidity_mining::Error::<Test>::GlobalFarmIsNotEmpty
 		);
 
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), PREDEFINED_GLOBAL_POOLS[2]);
+		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), PREDEFINED_GLOBAL_FARMS[2]);
 	});
 }
 
@@ -112,13 +112,13 @@ fn destroy_global_farm_healthy_farm_should_not_work() {
 	//farm with undistributed rewards and liq. pools
 	predefined_test_ext().execute_with(|| {
 		let farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		assert!(!Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[2].reward_currency, &farm_account).is_zero());
+		assert!(!Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[2].reward_currency, &farm_account).is_zero());
 
 		assert_noop!(
 			LiquidityMining::destroy_global_farm(Origin::signed(GC), GC_FARM),
 			warehouse_liquidity_mining::Error::<Test>::GlobalFarmIsNotEmpty
 		);
 
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), PREDEFINED_GLOBAL_POOLS[2]);
+		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), PREDEFINED_GLOBAL_FARMS[2]);
 	});
 }
