@@ -76,7 +76,7 @@ mod benchmarks;
 
 /// Stableswap share token and account id identifier.
 /// Used as identifier to create share token unique names and account ids.
-const POOL_IDENTIFIER: &[u8] = b"sts";
+pub const POOL_IDENTIFIER: &[u8] = b"sts";
 
 #[frame_support::pallet]
 pub mod pallet {
