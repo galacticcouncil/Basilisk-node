@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::mock::LP_SHARES_STASH;
+use crate::mock::PALLET_SERVICE_ACCOUNT;
 use warehouse_liquidity_mining::YieldFarmData;
 use warehouse_liquidity_mining::{GlobalFarm, GlobalFarmData};
 
@@ -650,8 +650,8 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		);
 
 		//shares amount check on pallet account, sum of all deposits grouped by shares id
-		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &LP_SHARES_STASH), 616);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 960);
+		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &PALLET_SERVICE_ACCOUNT), 616);
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &PALLET_SERVICE_ACCOUNT), 960);
 
 		//reward currency balance check. total_rewards - sum(claimes from global pool)
 		assert_eq!(

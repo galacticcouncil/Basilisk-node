@@ -16,9 +16,8 @@
 // limitations under the License.
 
 use super::*;
-use crate::mock::LP_SHARES_STASH;
+use pretty_assertions::assert_eq;
 use test_ext::*;
-use warehouse_liquidity_mining::Deposit;
 use warehouse_liquidity_mining::DepositData;
 use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::LoyaltyCurve;
@@ -155,7 +154,7 @@ fn deposit_shares_should_work() {
 
 		//check if shares was transferd to liq. mining pallet account
 		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &LP_SHARES_STASH),
+			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
 			deposited_amount
 		);
 
@@ -257,7 +256,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &BOB),
 			bsx_tkn1_bob_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &LP_SHARES_STASH), 130); //130 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 130); //130 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
@@ -365,7 +364,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB),
 			bsx_tkn2_bob_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 25); //25 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 25); //25 - sum of all deposited shares until now
 
 		//pool wasn't updated in this period so no claim from global pool
 		assert_eq!(
@@ -478,7 +477,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB),
 			bsx_tkn2_bob_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 825); //825 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 825); //825 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
@@ -589,7 +588,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
 			bsx_tkn2_alice_shares - 87
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 912); //912 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 912); //912 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
@@ -702,7 +701,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
 			bsx_tkn2_alice_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &LP_SHARES_STASH), 960); //960 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 960); //960 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),
@@ -811,7 +810,7 @@ fn deposit_shares_should_work() {
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
 			bsx_tkn1_alice_shares - deposited_amount
 		);
-		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &LP_SHARES_STASH), 616); //616 - sum of all deposited shares until now
+		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 616); //616 - sum of all deposited shares until now
 
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_pool_account),

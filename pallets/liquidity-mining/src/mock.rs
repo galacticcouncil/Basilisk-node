@@ -54,7 +54,7 @@ pub const EVE: AccountId = 5;
 pub const TREASURY: AccountId = 6;
 pub const ACCOUNT_WITH_1M: AccountId = 7;
 pub const GC: AccountId = 8;
-pub const LP_SHARES_STASH: AccountId = 9;
+pub const PALLET_SERVICE_ACCOUNT: AccountId = 29533360621462889584138678125;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
@@ -339,7 +339,7 @@ impl hydradx_traits::liquidity_mining::Handler<AssetId, AccountId, GlobalFarmId,
 
 		let lp_token = map.get(&amm_pool_id).unwrap();
 
-		Tokens::transfer(Origin::signed(who), LP_SHARES_STASH, *lp_token, amount)?;
+		Tokens::transfer(Origin::signed(who), PALLET_SERVICE_ACCOUNT, *lp_token, amount)?;
 
 		Ok(())
 	}
@@ -364,7 +364,7 @@ impl hydradx_traits::liquidity_mining::Handler<AssetId, AccountId, GlobalFarmId,
 
 		let lp_token = map.get(&amm_pool_id).unwrap();
 
-		Tokens::transfer(Origin::signed(LP_SHARES_STASH), who, *lp_token, amount)?;
+		Tokens::transfer(Origin::signed(PALLET_SERVICE_ACCOUNT), who, *lp_token, amount)?;
 
 		Ok(())
 	}
