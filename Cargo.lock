@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "49.0.0"
+version = "51.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -533,6 +533,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
+ "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
@@ -1275,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.9.0"
+version = "1.9.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -3175,23 +3176,10 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4009ee334bd759322746adb417e40b7ae7f5adac5ea016c9ba0a91f5c65c847d"
+version = "4.4.4"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1bafe7bb96864f5d29bab68061719c541ef06648#1bafe7bb96864f5d29bab68061719c541ef06648"
 dependencies = [
  "fixed",
- "lazy_static",
- "num-traits",
- "primitive-types 0.8.0",
-]
-
-[[package]]
-name = "hydra-dx-math"
-version = "4.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=3e0e6774d52184b00e758dc822564e5a893773f5#3e0e6774d52184b00e758dc822564e5a893773f5"
-dependencies = [
- "fixed",
- "lazy_static",
  "num-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5689,11 +5677,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.3.0"
+version = "5.3.1"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5829,13 +5817,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.4.0"
+version = "4.4.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5882,11 +5870,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "1.2.1"
+version = "1.2.2"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.2.0",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
@@ -6512,13 +6500,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.6.0"
+version = "3.6.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -8702,7 +8690,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.12"
+version = "0.2.13"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8720,7 +8708,6 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
- "hydra-dx-math 4.1.1",
  "hydradx-traits",
  "kusama-runtime",
  "orml-currencies",
@@ -11225,7 +11212,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "49.0.0"
+version = "51.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11271,6 +11258,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
+ "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
