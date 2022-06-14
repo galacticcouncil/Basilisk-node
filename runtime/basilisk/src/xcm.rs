@@ -100,7 +100,8 @@ impl Config for XcmConfig {
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	// We calculate weight fees the same way as for regular extrinsics and use the prices and choice
-	// of accepted currencies of the transaction payment pallet. Burn fee revenue.
+	// of accepted currencies of the transaction payment pallet. Fees go to the same fee receiver as
+	// configured in `MultiTransactionPayment`.
 	type Trader = MultiCurrencyTrader<
 		AssetId,
 		Balance,
