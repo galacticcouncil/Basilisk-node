@@ -260,10 +260,10 @@ fn expect_events(e: Vec<TestEvent>) {
 	pretty_assertions::assert_eq!(last_events(e.len()), e);
 }
 
-pub mod add_liquidity_pool;
 pub mod cancel_liquidity_pool;
 pub mod claim_rewards;
 pub mod create_global_farm;
+pub mod create_yield_farm;
 pub mod deposit_shares;
 pub mod destroy_global_farm;
 pub mod redeposit_shares;

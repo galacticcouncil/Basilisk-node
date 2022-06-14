@@ -127,12 +127,12 @@ fn lm_deposit_shares<T: Config>(caller: T::AccountId, assets: AssetPair, amount:
 	Ok(())
 }
 
-fn lm_add_liquidity_pool<T: Config>(
+fn lm_create_yield_farm<T: Config>(
 	caller: T::AccountId,
 	assets: AssetPair,
 	multiplier: FixedU128,
 ) -> dispatch::DispatchResult {
-	LiquidityMining::<T>::add_liquidity_pool(
+	LiquidityMining::<T>::create_yield_farm(
 		RawOrigin::Signed(caller).into(),
 		1,
 		assets,
@@ -171,7 +171,7 @@ benchmarks! {
 	}
 
 
-	add_liquidity_pool {
+	create_yield_farm {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 
@@ -188,7 +188,7 @@ benchmarks! {
 		};
 
 	}: {
-		LiquidityMining::<T>::add_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?
+		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?
 	}
 	verify {
 		assert_eq!(WarehouseLM::<T>::global_farm(1).unwrap().liq_pools_count, 1);
@@ -215,7 +215,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		LiquidityMining::<T>::add_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?;
+		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?;
 
 		assert_eq!(WarehouseLM::<T>::global_farm(1).unwrap().liq_pools_count, 1);
 
@@ -248,7 +248,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
@@ -290,7 +290,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
@@ -338,7 +338,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller, assets, FixedU128::from(50_000_u128))?;
+		lm_create_yield_farm::<T>(caller, assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
@@ -383,7 +383,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller, assets, FixedU128::from(50_000_u128))?;
+		lm_create_yield_farm::<T>(caller, assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
@@ -429,7 +429,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller, assets, FixedU128::from(50_000_u128))?;
+		lm_create_yield_farm::<T>(caller, assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
@@ -474,7 +474,7 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		lm_add_liquidity_pool::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);

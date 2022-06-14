@@ -20,7 +20,7 @@ use sp_runtime::traits::One;
 use test_ext::*;
 
 #[test]
-fn add_liquidity_pool_should_work() {
+fn create_yield_farm_should_work() {
 	//Note: global_pool.updated_at isn't changed because pool is empty (no liq. pool stake in globalPool)
 	let test_data = vec![
 		(
@@ -139,7 +139,7 @@ fn add_liquidity_pool_should_work() {
 		for (assets, pool, _amm_id, who, farm_id, now, global_pool) in test_data.clone() {
 			set_block_number(now);
 
-			assert_ok!(LiquidityMining::add_liquidity_pool(
+			assert_ok!(LiquidityMining::create_yield_farm(
 				Origin::signed(who),
 				farm_id,
 				assets,
@@ -166,10 +166,10 @@ fn add_liquidity_pool_should_work() {
 }
 
 #[test]
-fn add_liquidity_pool_missing_incentivized_asset_should_not_work() {
+fn create_yield_farm_missing_incentivized_asset_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::add_liquidity_pool(
+			LiquidityMining::create_yield_farm(
 				Origin::signed(ALICE),
 				ALICE_FARM,
 				AssetPair {
@@ -186,10 +186,10 @@ fn add_liquidity_pool_missing_incentivized_asset_should_not_work() {
 }
 
 #[test]
-fn add_liquidity_pool_not_owner_should_not_work() {
+fn create_yield_farm_not_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::add_liquidity_pool(
+			LiquidityMining::create_yield_farm(
 				Origin::signed(BOB),
 				ALICE_FARM,
 				AssetPair {
@@ -203,7 +203,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 		);
 
 		assert_noop!(
-			LiquidityMining::add_liquidity_pool(
+			LiquidityMining::create_yield_farm(
 				Origin::signed(BOB),
 				ALICE_FARM,
 				AssetPair {
@@ -219,7 +219,7 @@ fn add_liquidity_pool_not_owner_should_not_work() {
 }
 
 #[test]
-fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
+fn create_yield_farm_invalid_loyalty_curve_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let curves = vec![
 			Some(LoyaltyCurve {
@@ -250,7 +250,7 @@ fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
 
 		for c in curves {
 			assert_noop!(
-				LiquidityMining::add_liquidity_pool(
+				LiquidityMining::create_yield_farm(
 					Origin::signed(ALICE),
 					ALICE_FARM,
 					AssetPair {
@@ -267,10 +267,10 @@ fn add_liquidity_pool_invalid_loyalty_curve_should_not_work() {
 }
 
 #[test]
-fn add_liquidity_pool_invalid_multiplier_should_not_work() {
+fn create_yield_farm_invalid_multiplier_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::add_liquidity_pool(
+			LiquidityMining::create_yield_farm(
 				Origin::signed(ALICE),
 				ALICE_FARM,
 				AssetPair {
@@ -286,10 +286,10 @@ fn add_liquidity_pool_invalid_multiplier_should_not_work() {
 }
 
 #[test]
-fn add_liquidity_pool_non_existing_amm_should_not_work() {
+fn create_yield_farm_non_existing_amm_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::add_liquidity_pool(
+			LiquidityMining::create_yield_farm(
 				Origin::signed(ALICE),
 				ALICE_FARM,
 				AssetPair {
@@ -306,7 +306,7 @@ fn add_liquidity_pool_non_existing_amm_should_not_work() {
 }
 
 #[test]
-fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
+fn create_yield_farm_add_duplicate_amm_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		set_block_number(20_000);
 
@@ -322,7 +322,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 
 		//try to add same amm second time in the same block(period)
 		assert_noop!(
-			LiquidityMining::add_liquidity_pool(
+			LiquidityMining::create_yield_farm(
 				Origin::signed(CHARLIE),
 				CHARLIE_FARM,
 				aca_ksm_assets,
@@ -336,7 +336,7 @@ fn add_liquidity_pool_add_duplicate_amm_should_not_work() {
 		set_block_number(30_000);
 
 		assert_noop!(
-			LiquidityMining::add_liquidity_pool(
+			LiquidityMining::create_yield_farm(
 				Origin::signed(CHARLIE),
 				CHARLIE_FARM,
 				aca_ksm_assets,

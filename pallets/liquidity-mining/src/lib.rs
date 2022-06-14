@@ -417,7 +417,7 @@ pub mod pallet {
 		/// Emits `LiquidityPoolAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity_pool())]
 		#[transactional]
-		pub fn add_liquidity_pool(
+		pub fn create_yield_farm(
 			origin: OriginFor<T>,
 			farm_id: GlobalPoolId,
 			asset_pair: AssetPair,

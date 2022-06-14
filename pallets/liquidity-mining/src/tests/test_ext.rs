@@ -283,7 +283,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			}
 		});
 
-		assert_ok!(LiquidityMining::add_liquidity_pool(
+		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			AssetPair {
@@ -306,7 +306,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			},
 		})]);
 
-		assert_ok!(LiquidityMining::add_liquidity_pool(
+		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			AssetPair {
@@ -329,7 +329,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			},
 		})]);
 
-		assert_ok!(LiquidityMining::add_liquidity_pool(
+		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(CHARLIE),
 			CHARLIE_FARM,
 			AssetPair {
@@ -352,7 +352,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			},
 		})]);
 
-		assert_ok!(LiquidityMining::add_liquidity_pool(
+		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(DAVE),
 			DAVE_FARM,
 			AssetPair {
@@ -375,7 +375,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			},
 		})]);
 
-		assert_ok!(LiquidityMining::add_liquidity_pool(
+		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(EVE),
 			EVE_FARM,
 			AssetPair {
