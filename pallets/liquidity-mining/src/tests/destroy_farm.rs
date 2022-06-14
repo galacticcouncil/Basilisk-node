@@ -108,22 +108,6 @@ fn destroy_farm_with_pools_should_not_work() {
 }
 
 #[test]
-fn destroy_farm_with_undistributed_rewards_and_no_pools_should_not_work() {
-	//all liq. pool was removed from the farm but there are undistributed rewards on farm account
-	predefined_test_ext().execute_with(|| {
-		let farm_account = WarehouseLM::farm_account_id(BOB_FARM).unwrap();
-		assert!(!Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[1].reward_currency, &farm_account).is_zero());
-
-		assert_noop!(
-			LiquidityMining::destroy_farm(Origin::signed(BOB), BOB_FARM),
-			warehouse_liquidity_mining::Error::<Test>::RewardBalanceIsNotZero
-		);
-
-		assert_eq!(WarehouseLM::global_farm(BOB_FARM).unwrap(), PREDEFINED_GLOBAL_POOLS[1]);
-	});
-}
-
-#[test]
 fn destroy_farm_healthy_farm_should_not_work() {
 	//farm with undistributed rewards and liq. pools
 	predefined_test_ext().execute_with(|| {

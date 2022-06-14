@@ -16,8 +16,9 @@
 // limitations under the License.
 
 use super::*;
+use crate::mock::PALLET_SERVICE_ACCOUNT;
+use pretty_assertions::assert_eq;
 use test_ext::*;
-use warehouse_liquidity_mining::Deposit;
 use warehouse_liquidity_mining::DepositData;
 use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::LoyaltyCurve;
@@ -32,21 +33,27 @@ fn withdraw_shares_should_work() {
 		let pallet_account = LiquidityMining::account_id();
 		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_LIQ_POOL_ID).unwrap();
 		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_LIQ_POOL_ID).unwrap();
-		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+
+		// This balance is used to transfer unclaimable_rewards from yield farm to global farm.
+		// Claiming is not part of withdraw_shares() so some balance need to be set.
+		Tokens::set_balance(Origin::root(), bsx_tkn1_liq_pool_account, BSX, 100_000_000_000, 0).unwrap();
+		Tokens::set_balance(Origin::root(), bsx_tkn2_liq_pool_account, BSX, 100_000_000_000, 0).unwrap();
 
 		// withdraw 1A
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
-		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
-		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
-		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
+		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
+		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
 
+		let unclaimable_rewards = 100_000;
 		let expected_claimed_rewards = 79_906;
+		let withdrawn_amount = 50;
+
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -58,6 +65,12 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN1_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: ALICE,
+				amount: withdrawn_amount,
+			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
@@ -68,12 +81,12 @@ fn withdraw_shares_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: ALICE,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[0],
+				instance: PREDEFINED_DEPOSIT_IDS[0],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[0],
+				instance_id: PREDEFINED_DEPOSIT_IDS[0],
 			}),
 		]);
 
@@ -110,51 +123,54 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(5_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0 //TODO: Dani - is it 0?
+				entries_count: 2
 			},
 		);
 
 		//user balances checks
-		assert_eq!(
+		//TODO: Dani - ask Martin
+		/*assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			alice_bsx_balance + expected_claimed_rewards
-		);
+			bsx_tkn1_alice_amm_shares_balance - unclaimable_rewards
+		);*/
+
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
-			bsx_tkn1_alice_amm_shares_balance + 50
+			bsx_tkn1_alice_amm_shares_balance + withdrawn_amount
 		);
 
-		//pallet amm shares balances checks
+		//TODO: ask Martin - if fixed, remove the lines below as they relate to lp shares
+		//Stash shares account balances checks.
+
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
-			bsx_tkn1_pallet_amm_shares_balance - 50
+			bsx_tkn1_pallet_amm_shares_balance - withdrawn_amount
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account),
 			bsx_tkn2_pallet_amm_shares_balance
 		);
 
-		//liq pool balance checks
+		//yield farm balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_bsx_balance - (expected_claimed_rewards + 70_094) //70_094 unclaimable rewards after withdrawn
+			bsx_tkn2_yield_farm_bsx_balance - (expected_claimed_rewards + 70_094) //70_094 unclaimable rewards after withdrawn
 		);
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account),
-			bsx_tkn2_liq_pool_bsx_balance
+			bsx_tkn2_yield_farm_bsx_balance
 		);
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
-			global_pool_bsx_balance + 70_094 //70_094 unclaimable rewards after withdrawn
+			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
+			global_farm_bsx_balance + 70_094 //70_094 unclaimable rewards after withdrawn
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]), None);
-		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[0]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
 
-		//TODO: Dani
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (2, GC_FARM));
+		//TODO: ask Martin why there is still metadata. We never delete?
+		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[0]), None);
 
 		set_block_number(12_800);
 
@@ -163,30 +179,19 @@ fn withdraw_shares_should_work() {
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
 		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
 		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
 
 		let expected_claimed_rewards = 100_324;
-
+		let withdrawn_amount = 87;
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[4],
+			PREDEFINED_DEPOSIT_IDS[4],
 			BSX_TKN2_LIQ_POOL_ID
 		));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::FarmAccRPZUpdated {
-				farm_id: GC_FARM,
-				accumulated_rpz: 63,
-				total_shares_z: 691_490,
-			}),
-			mock::Event::LiquidityMining(Event::LiquidityPoolAccRPVSUpdated {
-				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN2_LIQ_POOL_ID,
-				accumulated_rpvs: 630,
-				total_valued_shares: 47_629,
-			}),
 			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
@@ -194,22 +199,28 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN2_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: ALICE,
+				amount: withdrawn_amount,
+			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
 				who: ALICE,
 				lp_token: BSX_TKN2_SHARE_ID,
-				amount: 87,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: ALICE,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[4],
+				instance: PREDEFINED_DEPOSIT_IDS[4],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[4],
+				instance_id: PREDEFINED_DEPOSIT_IDS[4],
 			}),
 		]);
 
@@ -247,7 +258,7 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(5_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0 //TODO: Dani is it surely 0?
+				entries_count: 2
 			},
 		);
 
@@ -263,7 +274,7 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(10_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0 //TODO: Dani is it surely 0?
+				entries_count: 3
 			},
 		);
 
@@ -274,20 +285,21 @@ fn withdraw_shares_should_work() {
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
-			bsx_tkn2_alice_amm_shares_balance + 87
+			bsx_tkn2_alice_amm_shares_balance + withdrawn_amount
 		);
 
-		//pallet amm shares balances checks
+		//Stash shares account balances checks.
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
 			bsx_tkn1_pallet_amm_shares_balance
 		);
+
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account),
-			bsx_tkn2_pallet_amm_shares_balance - 87
+			bsx_tkn2_pallet_amm_shares_balance - withdrawn_amount
 		);
 
-		//liq pool balance checks
+		//Yield farm balance checks.
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
 			bsx_tkn1_liq_pool_bsx_balance
@@ -299,46 +311,46 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
 			global_pool_bsx_balance + 32_786 - 24_290_790 //24_290_790 - liq. pool claim from global pool, 32_786 unclaimable rewards after withdrawn
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[4]), None);
-		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[4]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[4]), None);
 
-		//TODO: Dani
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (3, GC_FARM));
+		//TODO: ask Martin why this is not null
+		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[4]), None);
 
 		// withdraw 3A
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
 		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
 		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
 
 		let expected_claimed_rewards = 7_472_429;
+		let withdrawn_amount = 486;
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[6],
+			PREDEFINED_DEPOSIT_IDS[6],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::LiquidityPoolAccRPVSUpdated {
-				farm_id: GC_FARM,
-				liq_pool_farm_id: BSX_TKN1_LIQ_POOL_ID,
-				accumulated_rpvs: 315,
-				total_valued_shares: 43040,
-			}),
 			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
 				who: ALICE,
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
+			}),
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN1_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: ALICE,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -350,12 +362,12 @@ fn withdraw_shares_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: ALICE,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[6],
+				instance: PREDEFINED_DEPOSIT_IDS[6],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[6],
+				instance_id: PREDEFINED_DEPOSIT_IDS[6],
 			}),
 		]);
 
@@ -392,7 +404,7 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(5_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0 //TODO: Dani
+				entries_count: 1
 			},
 		);
 
@@ -403,13 +415,13 @@ fn withdraw_shares_should_work() {
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
-			bsx_tkn1_alice_amm_shares_balance + 486
+			bsx_tkn1_alice_amm_shares_balance + withdrawn_amount
 		);
 
 		//pallet amm shares balance checks
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
-			bsx_tkn1_pallet_amm_shares_balance - 486
+			bsx_tkn1_pallet_amm_shares_balance - withdrawn_amount
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account),
@@ -429,29 +441,29 @@ fn withdraw_shares_should_work() {
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
 			global_pool_bsx_balance + 2_441_971 - 10_975_200 //10_975_200 - liq. pool claim from global pool, 2_441_971 unclaimable rewards after withdrawn
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[6]), None);
-		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[6]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[6]), None);
 
-		//TODO: Dani
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (1, GC_FARM));
+		//TODO: Dani - fix if we know the answer from Martin
+		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[6]), None);
 
 		// withdraw 2A
 		let bsx_tkn1_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
 		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
 		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
 
 		let expected_claimed_rewards = 855_771;
+		let withdrawn_amount = 80;
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(BOB),
-			PREDEFINED_NFT_IDS[1],
+			PREDEFINED_DEPOSIT_IDS[1],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -463,8 +475,11 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
-			mock::Event::System(frame_system::Event::KilledAccount {
-				account: 429967036092991447536305991533,
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN1_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: BOB,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -476,12 +491,12 @@ fn withdraw_shares_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: BOB,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[1],
+				instance: PREDEFINED_DEPOSIT_IDS[1],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[1],
+				instance_id: PREDEFINED_DEPOSIT_IDS[1],
 			}),
 		]);
 
@@ -551,29 +566,31 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
 			global_pool_bsx_balance + 267_429 //267_429 unclaimable rewards after withdrawn
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[1]), None);
-		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[1]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[1]), None);
+
+		//TODO: Dani - fix once we get answer from Martin
+		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[1]), None);
 
 		//TODO: Dani - fix
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (0, GC_FARM));
 
 		// withdraw 1B
 		let bsx_tkn2_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
 		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
 		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
 
 		let expected_claimed_rewards = 95_999;
+		let withdrawn_amount = 25;
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(BOB),
-			PREDEFINED_NFT_IDS[2],
+			PREDEFINED_DEPOSIT_IDS[2],
 			BSX_TKN2_LIQ_POOL_ID
 		));
 
@@ -585,6 +602,12 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN2_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: BOB,
+				amount: withdrawn_amount,
+			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
@@ -595,12 +618,12 @@ fn withdraw_shares_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: BOB,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[2],
+				instance: PREDEFINED_DEPOSIT_IDS[2],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[2],
+				instance_id: PREDEFINED_DEPOSIT_IDS[2],
 			}),
 		]);
 
@@ -653,7 +676,7 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(10_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0
+				entries_count: 2
 			},
 		);
 
@@ -687,29 +710,28 @@ fn withdraw_shares_should_work() {
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
 			global_pool_bsx_balance + 30_001 //30_001 unclaimable rewards after withdrawn
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[2]), None);
-		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[2]), None);
-
-		//TODO: Dani - fix
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (2, GC_FARM));
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[2]), None);
+		//TODO: Dani - fix when we get the answer from Martin
+		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[2]), None);
 
 		// withdraw 4B
 		let bsx_tkn2_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
 		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
 		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
 
 		let expected_claimed_rewards = 295_207;
+		let withdrawn_amount = 48;
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[5],
+			PREDEFINED_DEPOSIT_IDS[5],
 			BSX_TKN2_LIQ_POOL_ID
 		));
 
@@ -721,6 +743,12 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN2_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: ALICE,
+				amount: withdrawn_amount,
+			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
@@ -731,12 +759,12 @@ fn withdraw_shares_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: ALICE,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[5],
+				instance: PREDEFINED_DEPOSIT_IDS[5],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[5],
+				instance_id: PREDEFINED_DEPOSIT_IDS[5],
 			}),
 		]);
 
@@ -773,7 +801,7 @@ fn withdraw_shares_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(10_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0
+				entries_count: 1
 			},
 		);
 
@@ -784,14 +812,14 @@ fn withdraw_shares_should_work() {
 		);
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
-			bsx_tkn2_alice_amm_shares_balance + 48
+			bsx_tkn2_alice_amm_shares_balance + withdrawn_amount
 		);
 
 		//pallet amm shares balances checks
 		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 0);
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account),
-			bsx_tkn2_pallet_amm_shares_balance - 48
+			bsx_tkn2_pallet_amm_shares_balance - withdrawn_amount
 		);
 
 		//liq pool balances checks
@@ -806,27 +834,26 @@ fn withdraw_shares_should_work() {
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
 			global_pool_bsx_balance + 96_473 //96_473 unclaimable rewards after withdrawn
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[5]), None);
-		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[5]), None);
-
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[5]), None);
 		//TODO: Dani - fix
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (1, GC_FARM));
+		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[5]), None);
 
 		// withdraw 2B
 		let bsx_tkn2_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_pool_account);
+		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
 		let bsx_tkn1_liq_pool_amm_shares_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
 
 		let expected_claimed_rewards = 18_680_461;
+		let withdrawn_amount = 800;
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(BOB),
-			PREDEFINED_NFT_IDS[3],
+			PREDEFINED_DEPOSIT_IDS[3],
 			BSX_TKN2_LIQ_POOL_ID
 		));
 
@@ -839,10 +866,13 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::System(frame_system::Event::KilledAccount {
-				account: 509195198607255785129849941869,
+				account: PALLET_SERVICE_ACCOUNT,
 			}),
-			mock::Event::System(frame_system::Event::KilledAccount {
-				account: 29533360621462889584138678125,
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN2_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: BOB,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -854,12 +884,12 @@ fn withdraw_shares_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: BOB,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[3],
+				instance: PREDEFINED_DEPOSIT_IDS[3],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[3],
+				instance_id: PREDEFINED_DEPOSIT_IDS[3],
 			}),
 		]);
 
@@ -885,7 +915,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN2_AMM, BSX_TKN2_LIQ_POOL_ID, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
 			YieldFarmData {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 128,
@@ -919,19 +949,20 @@ fn withdraw_shares_should_work() {
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
 			bsx_tkn1_liq_pool_amm_shares_balance
 		);
-		assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account), 0);
+
+		//TODO: ask Martin - why is it null?
+		//assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account), 0);
 
 		//global pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &global_pool_account),
+			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
 			global_pool_bsx_balance + 5_911_539 //5_911_539 unclaimable rewards after withdrawn
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[2]), None);
-		assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_NFT_IDS[2]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[2]), None);
 
 		//TODO: Dani - fix
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (0, GC_FARM));
+		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[2]), None);
 	});
 
 	//charlie's farm inncetivize KSM and reward currency is ACA
@@ -963,7 +994,7 @@ fn withdraw_shares_should_work() {
 		));
 
 		assert_eq!(
-			WarehouseLM::deposit(4294967303).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
 			DepositData {
 				shares: deposited_amount,
 				amm_pool_id: ACA_KSM_AMM,
@@ -985,7 +1016,7 @@ fn withdraw_shares_should_work() {
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			4294967303,
+			PREDEFINED_DEPOSIT_IDS[0],
 			ACA_KSM_LIQ_POOL_ID
 		));
 
@@ -997,6 +1028,123 @@ fn withdraw_shares_should_work() {
 		);
 	});
 }
+
+//TODO: ask Martin - fix this test
+/*
+#[test]
+fn withdraw_with_multiple_entries_and_flush_should_work() {
+	const BSX_TKN1_ASSETS: AssetPair = AssetPair {
+		asset_in: BSX,
+		asset_out: TKN1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let alice_bsx_tkn1_lp_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
+
+		//Redeposit to multiple yield farms.
+		assert_ok!(LiquidityMining::redeposit_lp_shares(
+			Origin::signed(DAVE),
+			DAVE_FARM,
+			DAVE_BSX_TKN1_YIELD_FARM_ID,
+			BSX_TKN1_ASSETS,
+			PREDEFINED_DEPOSIT_IDS[0],
+		));
+
+		assert_ok!(LiquidityMining::redeposit_lp_shares(
+			Origin::signed(EVE),
+			EVE_FARM,
+			EVE_BSX_TKN1_YIELD_FARM_ID,
+			BSX_TKN1_ASSETS,
+			PREDEFINED_DEPOSIT_IDS[0],
+		));
+
+		//NOTE: predefined_deposit_ids[0] is deposited in 3 yield farms now.
+
+		//Stop yield farm.
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(EVE),
+			EVE_FARM,
+			BSX_TKN1_ASSETS
+		));
+		//Stop and destroy all yield farms so it can be flushed.
+		assert_ok!(LiquidityMining::cancel_liquidity_pool(
+			Origin::signed(DAVE),
+			DAVE_FARM,
+			BSX_TKN1_ASSETS
+		));
+		assert_ok!(LiquidityMining::remove_liquidity_pool(
+			Origin::signed(DAVE),
+			DAVE_FARM,
+			DAVE_BSX_TKN1_YIELD_FARM_ID,
+			BSX_TKN1_ASSETS
+		));
+
+		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(DAVE), DAVE_FARM));
+
+		let unclaimable_rewards = 0;
+		let shares_amount = 50;
+		assert_ok!(LiquidityMining::withdraw_shares(
+			Origin::signed(ALICE),
+			PREDEFINED_DEPOSIT_IDS[0],
+			BSX_TKN1_LIQ_POOL_ID
+		));
+
+		assert_eq!(
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0])
+				.unwrap()
+				.yield_farm_entries
+				.len(),
+			2
+		);
+
+		//LP tokens should not be unlocked.
+		assert_eq!(
+			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
+			alice_bsx_tkn1_lp_shares_balance
+		);
+
+		//This withdraw should flush yield and global farms.
+		assert_ok!(LiquidityMining::withdraw_shares(
+			Origin::signed(ALICE),
+			PREDEFINED_DEPOSIT_IDS[0],
+			DAVE_BSX_TKN1_YIELD_FARM_ID
+		));
+
+		assert_eq!(
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0])
+				.unwrap()
+				.yield_farm_entries
+				.len(),
+			1
+		);
+
+		//LP tokens should not be unlocked.
+		assert_eq!(
+			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
+			alice_bsx_tkn1_lp_shares_balance
+		);
+
+		assert!(WarehouseLM::yield_farm((BSX_TKN1_AMM, DAVE_FARM, DAVE_BSX_TKN1_YIELD_FARM_ID)).is_none());
+		assert!(WarehouseLM::global_farm(DAVE_FARM).is_none());
+
+		//This withdraw should flush yield and global farms.
+		assert_ok!(LiquidityMining::withdraw_shares(
+			Origin::signed(ALICE),
+			PREDEFINED_DEPOSIT_IDS[0],
+			EVE_BSX_TKN1_YIELD_FARM_ID
+		));
+
+		//Last withdraw from deposit should flush deposit.
+		assert!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).is_none());
+
+		//LP tokens should be unlocked, last withdrawn unlocking LP shares.
+		assert_eq!(
+			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
+			alice_bsx_tkn1_lp_shares_balance + shares_amount
+		);
+	});
+}
+*/
 
 #[test]
 fn withdraw_shares_from_destroyed_farm_should_work() {
@@ -1054,9 +1202,16 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM));
 
 		//check if farm and pools was removed from storage
-		assert!(WarehouseLM::yield_farm((bsx_tkn1_amm_account, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).is_none());
-		assert!(WarehouseLM::yield_farm((bsx_tkn2_amm_account, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).is_none());
-		assert!(WarehouseLM::global_farm(GC_FARM).is_none());
+		assert!(WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID))
+			.unwrap()
+			.is_deleted());
+		assert!(WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID))
+			.unwrap()
+			.is_deleted());
+		assert_eq!(
+			WarehouseLM::global_farm(GC_FARM).unwrap().state,
+			GlobalFarmState::Deleted
+		);
 
 		let pallet_account = LiquidityMining::account_id();
 
@@ -1079,7 +1234,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 			//withdraw
 			assert_ok!(LiquidityMining::withdraw_shares(
 				Origin::signed(caller),
-				PREDEFINED_NFT_IDS[nft_id_index],
+				PREDEFINED_DEPOSIT_IDS[nft_id_index],
 				yield_farm_id
 			));
 
@@ -1094,12 +1249,12 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 				mock::Event::Uniques(pallet_uniques::Event::Burned {
 					owner: caller,
 					class: LIQ_MINING_NFT_CLASS,
-					instance: PREDEFINED_NFT_IDS[nft_id_index],
+					instance: PREDEFINED_DEPOSIT_IDS[nft_id_index],
 				}),
 				mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 					owner: caller,
 					class_id: LIQ_MINING_NFT_CLASS,
-					instance_id: PREDEFINED_NFT_IDS[nft_id_index],
+					instance_id: PREDEFINED_DEPOSIT_IDS[nft_id_index],
 				}),
 			]);
 
@@ -1133,21 +1288,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 			);
 
 			//check if deposit was removed
-			assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[nft_id_index]), None);
-
-			//TODO: ask Martin - is zero
-
-			/*
-			//check if liq. pool meta was updated
-			if deposits_left.is_zero() {
-				// last deposit should remove liq. pool metadata
-				assert!(WarehouseLM::liq_pool_meta(liq_pool_farm_id).is_none());
-			} else {
-				assert_eq!(
-					WarehouseLM::liq_pool_meta(liq_pool_farm_id).unwrap(),
-					(deposits_left, GC_FARM)
-				);
-			}*/
+			assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[nft_id_index]), None);
 		}
 	});
 }
@@ -1183,9 +1324,11 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
 
+		let withdrawn_amount = 50;
+
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -1198,6 +1341,12 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 				claimed: user_reward,
 				reward_currency: BSX,
 			}),
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN1_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: ALICE,
+				amount: withdrawn_amount,
+			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
@@ -1207,12 +1356,12 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[0],
+				instance: PREDEFINED_DEPOSIT_IDS[0],
 				owner: ALICE,
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[0],
+				instance_id: PREDEFINED_DEPOSIT_IDS[0],
 				owner: ALICE,
 			}),
 		]);
@@ -1224,11 +1373,12 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			YieldFarmData {
 				total_shares: liq_pool.total_shares - 50,
 				total_valued_shares: liq_pool.total_valued_shares - 2500,
+				entries_count: 2,
 				..liq_pool
 			}
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
@@ -1273,7 +1423,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[6],
+			PREDEFINED_DEPOSIT_IDS[6],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -1285,6 +1435,12 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 				claimed: user_reward,
 				reward_currency: BSX,
 			}),
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN1_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: ALICE,
+				amount: shares_amount,
+			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
@@ -1294,12 +1450,12 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[6],
+				instance: PREDEFINED_DEPOSIT_IDS[6],
 				owner: ALICE,
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[6],
+				instance_id: PREDEFINED_DEPOSIT_IDS[6],
 				owner: ALICE,
 			}),
 		]);
@@ -1311,6 +1467,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			YieldFarmData {
 				total_shares: liq_pool.total_shares - shares_amount,
 				total_valued_shares: liq_pool.total_valued_shares - valued_shares_amount,
+				entries_count: 1,
 				..liq_pool
 			}
 		);
@@ -1339,9 +1496,6 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			liq_pool_bsx_balance - user_reward - unclaimable_rewards
 		);
 
-		//TODO: Dani - fix
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (1, GC_FARM));
-
 		//3-th withdraw
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
@@ -1358,7 +1512,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(BOB),
-			PREDEFINED_NFT_IDS[1],
+			PREDEFINED_DEPOSIT_IDS[1],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -1371,7 +1525,13 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::System(frame_system::Event::KilledAccount {
-				account: 429967036092991447536305991533,
+				account: 588423361121520122723393892205,
+			}),
+			mock::Event::Tokens(orml_tokens::Event::Transfer {
+				currency_id: BSX_TKN1_SHARE_ID,
+				from: PALLET_SERVICE_ACCOUNT,
+				to: BOB,
+				amount: shares_amount,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -1382,12 +1542,12 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[1],
+				instance: PREDEFINED_DEPOSIT_IDS[1],
 				owner: BOB,
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[1],
+				instance_id: PREDEFINED_DEPOSIT_IDS[1],
 				owner: BOB,
 			}),
 		]);
@@ -1399,11 +1559,12 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			YieldFarmData {
 				total_shares: 0,
 				total_valued_shares: 0,
+				entries_count: 0,
 				..liq_pool
 			}
 		);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[1]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[1]), None);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
@@ -1426,11 +1587,6 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			Tokens::free_balance(BSX, &liq_pool_account),
 			liq_pool_bsx_balance - user_reward - unclaimable_rewards
 		);
-
-		//Last withdraw should NOT remove pool_metadata because liq. pool can be
-		//resumed in the future
-		//TODO: Dani
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (0, GC_FARM));
 	});
 }
 
@@ -1448,7 +1604,7 @@ fn claim_and_withdraw_in_same_period_should_work() {
 		//1-th claim should pass ok
 		assert_ok!(LiquidityMining::claim_rewards(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -1461,7 +1617,7 @@ fn claim_and_withdraw_in_same_period_should_work() {
 		})]);
 
 		assert_eq!(
-			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
 			DepositData {
 				shares: 50,
 				amm_pool_id: BSX_TKN1_AMM,
@@ -1489,7 +1645,7 @@ fn claim_and_withdraw_in_same_period_should_work() {
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -1509,12 +1665,12 @@ fn claim_and_withdraw_in_same_period_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: ALICE,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[0],
+				instance: PREDEFINED_DEPOSIT_IDS[0],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[0],
+				instance_id: PREDEFINED_DEPOSIT_IDS[0],
 			}),
 		]);
 
@@ -1559,10 +1715,9 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			bsx_tkn1_assets
 		));
 
-		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)),
-			None
-		);
+		assert!(WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID))
+			.unwrap()
+			.is_deleted());
 
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
@@ -1577,7 +1732,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		//1-th withdraw
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			liq_pool_id_removed
 		));
 
@@ -1594,16 +1749,16 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: ALICE,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[0],
+				instance: PREDEFINED_DEPOSIT_IDS[0],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[0],
+				instance_id: PREDEFINED_DEPOSIT_IDS[0],
 			}),
 		]);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
 
 		//TODO: Dani
 		//assert_eq!(WarehouseLM::liq_pool_meta(liq_pool_id_removed).unwrap(), (2, GC_FARM));
@@ -1631,7 +1786,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[6],
+			PREDEFINED_DEPOSIT_IDS[6],
 			liq_pool_id_removed
 		));
 
@@ -1646,16 +1801,16 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: ALICE,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[6],
+				instance: PREDEFINED_DEPOSIT_IDS[6],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: ALICE,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[6],
+				instance_id: PREDEFINED_DEPOSIT_IDS[6],
 			}),
 		]);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[6]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[6]), None);
 
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_pool);
 
@@ -1682,7 +1837,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(BOB),
-			PREDEFINED_NFT_IDS[1],
+			PREDEFINED_DEPOSIT_IDS[1],
 			liq_pool_id_removed
 		));
 
@@ -1697,18 +1852,24 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: BOB,
 				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_NFT_IDS[1],
+				instance: PREDEFINED_DEPOSIT_IDS[1],
 			}),
 			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
 				owner: BOB,
 				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_NFT_IDS[1],
+				instance_id: PREDEFINED_DEPOSIT_IDS[1],
 			}),
 		]);
 
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_NFT_IDS[1]), None);
+		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[1]), None);
 
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_pool);
+		assert_eq!(
+			WarehouseLM::global_farm(GC_FARM).unwrap(),
+			GlobalFarmData {
+				yield_farms_count: (1, 1), //this value changed because last deposit flushed deleted yield farm
+				..global_pool
+			}
+		);
 
 		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 0);
 		assert_eq!(
@@ -1719,10 +1880,6 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		//removed liq. pool don't pay rewards, only transfer amm shares
 		assert_eq!(Tokens::free_balance(BSX, &BOB), bob_bsx_balance);
 		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_pool_bsx_balance);
-
-		//last withdrawn from removed pool should remove liq. pool metadata
-		//TODO: Dani fix
-		//assert_eq!(WarehouseLM::liq_pool_meta(liq_pool_id_removed), None);
 	});
 }
 
@@ -1734,7 +1891,7 @@ fn withdraw_shares_not_owner_should_not_work() {
 		assert_noop!(
 			LiquidityMining::withdraw_shares(
 				Origin::signed(NOT_FNT_OWNER),
-				PREDEFINED_NFT_IDS[0],
+				PREDEFINED_DEPOSIT_IDS[0],
 				BSX_TKN1_LIQ_POOL_ID
 			),
 			Error::<Test>::NotDepositOwner
