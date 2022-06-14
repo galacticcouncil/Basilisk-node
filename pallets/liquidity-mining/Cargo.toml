@@ -1,6 +1,6 @@
 [package]
 name = "pallet-liquidity-mining"
-version = "1.2.0"
+version = "1.2.2"
 description = "Liquidity mining"
 authors = ["GalacticCouncil"]
 edition = "2018"
@@ -23,8 +23,8 @@ pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "po
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "apopiak/weight-trader", default-features = false }
-hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="3e0e6774d52184b00e758dc822564e5a893773f5", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
+hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1bafe7bb96864f5d29bab68061719c541ef06648", default-features = false }
 
 primitives = { path = "../../primitives", default-features = false }
 
