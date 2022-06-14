@@ -34,6 +34,8 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 
 #[test]
 fn non_native_fee_payment_works() {
+	use pallet_transaction_multi_payment::TransactionMultiPaymentDataProvider;
+
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -116,7 +118,7 @@ fn non_native_fee_payment_works() {
 				asset_id: 1,
 				native_fee_amount: 462_676_500_000,
 				non_native_fee_amount: 265_222_898_276,
-				destination_account_id: FALLBACK.into(),
+				destination_account_id: basilisk_runtime::MultiTransactionPayment::get_fee_receiver(),
 			}
 			.into(),
 			pallet_transaction_multi_payment::Event::CurrencySet {
