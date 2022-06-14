@@ -36,7 +36,7 @@ fn destroy_global_farm_should_work() {
 
 		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(BOB), BOB_FARM));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::FarmDestroyed {
+		expect_events(vec![mock::Event::LiquidityMining(Event::GlobalFarmDestroyed {
 			id: BOB_FARM,
 			who: BOB,
 		})]);

@@ -456,7 +456,7 @@ benchmarks! {
 		assert!(WarehouseLM::<T>::deposit(4_294_967_298_u128).is_none());
 	}
 
-	//NOTE: This is same no matter if `update_global_pool()` is called because `GlobalPool`will be
+	//NOTE: This is same no matter if `update_global_pool()` is called because `GlobalFarm`will be
 	//read/written either way.
 	resume_yield_farm {
 		let caller = funded_account::<T>("caller", 0);

@@ -147,7 +147,7 @@ fn create_yield_farm_should_work() {
 				pool.loyalty_curve.clone()
 			));
 
-			expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
+			expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 				farm_id,
 				liq_pool_farm_id: pool.id,
 				multiplier: pool.multiplier,

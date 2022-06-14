@@ -75,7 +75,7 @@ use sp_arithmetic::{FixedU128, Permill};
 use sp_std::convert::{From, Into};
 
 type PoolId = u32;
-type GlobalPoolId = PoolId;
+type GlobalFarmId = PoolId;
 type PoolMultiplier = FixedU128;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
@@ -182,9 +182,9 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// New farm was created.
-		FarmCreated {
-			id: GlobalPoolId,
+		/// New global farm was created.
+		GlobalFarmCreated {
+			id: GlobalFarmId,
 			owner: AccountIdOf<T>,
 			reward_currency: AssetId,
 			yield_per_period: Permill,
@@ -194,9 +194,9 @@ pub mod pallet {
 			max_reward_per_period: Balance,
 		},
 
-		/// New liq. pool was added into the farm.
-		LiquidityPoolAdded {
-			farm_id: GlobalPoolId,
+		/// New yield farm was added into the farm.
+		YieldFarmCreated {
+			farm_id: GlobalFarmId,
 			liq_pool_farm_id: PoolId,
 			multiplier: PoolMultiplier,
 			nft_class: NftClassIdOf<T>,
@@ -204,12 +204,12 @@ pub mod pallet {
 			loyalty_curve: Option<warehouse_liquidity_mining::LoyaltyCurve>,
 		},
 
-		/// Farm was destroyed.
-		FarmDestroyed { id: PoolId, who: AccountIdOf<T> },
+		/// Global farm was destroyed.
+		GlobalFarmDestroyed { id: PoolId, who: AccountIdOf<T> },
 
 		/// New LP tokens was deposited.
 		SharesDeposited {
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			amount: Balance,
@@ -220,7 +220,7 @@ pub mod pallet {
 
 		/// LP token was redeposited for a new yield farm entry
 		SharesRedeposited {
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			amount: Balance,
@@ -231,7 +231,7 @@ pub mod pallet {
 
 		/// Rewards was claimed.
 		RewardClaimed {
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			claimed: Balance,
@@ -240,7 +240,7 @@ pub mod pallet {
 
 		/// LP tokens was withdrawn.
 		SharesWithdrawn {
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			lp_token: AssetId,
@@ -249,7 +249,7 @@ pub mod pallet {
 
 		/// Liquidity mining for asset pair was canceled.
 		LiquidityMiningCanceled {
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
@@ -257,7 +257,7 @@ pub mod pallet {
 
 		/// Liquidity mining for asset pair was resumed.
 		LiquidityMiningResumed {
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
@@ -266,39 +266,31 @@ pub mod pallet {
 
 		/// Yield farm was removed from farm.
 		YieldFarmRemoved {
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
 		},
 
-		/// Undistributed rewards was withdrawn from farm.
-		UndistributedRewardsWithdrawn {
-			farm_id: GlobalPoolId,
-			who: AccountIdOf<T>,
-			reward_currency: AssetId,
-			amount: Balance,
-		},
-
-		/// Liquidity pool multiplier was updated.
-		LiquidityPoolUpdated {
-			farm_id: GlobalPoolId,
+		/// Yield farm multiplier was updated.
+		YieldFarmUpdated {
+			farm_id: GlobalFarmId,
 			liq_pool_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
 		},
 
-		/// Farm's(`GlobalPool`) accumulated reward per share was updated.
+		/// Farm's(`GlobalFarm`) accumulated reward per share was updated.
 		FarmAccRPZUpdated {
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			accumulated_rpz: Balance,
 			total_shares_z: Balance,
 		},
 
-		/// Liquidity pool's `accumulated_rpvs` was updated.
-		LiquidityPoolAccRPVSUpdated {
-			farm_id: GlobalPoolId,
+		/// Yield farm's `accumulated_rpvs` was updated.
+		YieldFarmAccRPVSUpdated {
+			farm_id: GlobalFarmId,
 			liq_pool_farm_id: PoolId,
 			accumulated_rpvs: Balance,
 			total_valued_shares: Balance,
@@ -362,7 +354,7 @@ pub mod pallet {
 				yield_per_period,
 			)?;
 
-			Self::deposit_event(Event::FarmCreated {
+			Self::deposit_event(Event::GlobalFarmCreated {
 				id,
 				owner,
 				reward_currency,
@@ -384,29 +376,31 @@ pub mod pallet {
 		/// removed from the farm) and all undistributed rewards have to be withdrawn.
 		///
 		/// Parameters:
-		/// - `farm_id`: id of farm to be destroyed.
+		/// - `origin`: account allowed to create new liq. mining program.
+		/// - `farm_id`: id of global farm to be destroyed.
 		///
 		/// Emits `FarmDestroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_farm())]
 		#[transactional]
-		pub fn destroy_global_farm(origin: OriginFor<T>, farm_id: GlobalPoolId) -> DispatchResult {
+		pub fn destroy_global_farm(origin: OriginFor<T>, farm_id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			warehouse_liquidity_mining::Pallet::<T>::destroy_global_farm(who.clone(), farm_id)?;
 
-			Self::deposit_event(Event::FarmDestroyed { id: farm_id, who });
+			Self::deposit_event(Event::GlobalFarmDestroyed { id: farm_id, who });
 			Ok(())
 		}
 
-		/// Add liquidity pool to farm and allow yield farming for given `asset_pair` amm.
+		/// Add yield farm for given `asset_pair` amm.
 		///  
 		/// Only farm owner can perform this action.
 		///
 		/// Only AMMs with `asset_pair` with `incentivized_asset` can be added into the farm. AMM
-		/// for `asset_pair` has to exist to successfully add liq. pool to the farm. Same AMM can
+		/// for `asset_pair` has to exist to successfully add yield farm. Same AMM can
 		/// in the same farm only once.
 		///
 		/// Parameters:
+		/// - `origin`: account allowed to create new liq. mining program.
 		/// - `farm_id`: farm id to which a liq. pool will be added.
 		/// - `asset_pair`: asset pair identifying liq. pool. Liq. mining will be allowed for this
 		/// `asset_pair` and one of the assets in the pair must be `incentivized_asset`.
@@ -419,7 +413,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn create_yield_farm(
 			origin: OriginFor<T>,
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
 			loyalty_curve: Option<warehouse_liquidity_mining::LoyaltyCurve>,
@@ -439,7 +433,7 @@ pub mod pallet {
 				asset_pair.asset_out,
 			)?;
 
-			Self::deposit_event(Event::LiquidityPoolAdded {
+			Self::deposit_event(Event::YieldFarmCreated {
 				farm_id,
 				liq_pool_farm_id,
 				nft_class: T::NftClass::get(),
@@ -451,11 +445,12 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Update liquidity pool multiplier.
+		/// Update yield farm multiplier.
 		///  
 		/// Only farm owner can perform this action.
 		///
 		/// Parameters:
+		/// - `origin`: account allowed to create new liq. mining program.
 		/// - `farm_id`: farm id in which liq. pool will be updated.
 		/// - `asset_pair`: asset pair identifying liq. pool in farm.
 		/// - `multiplier`: new liq. pool multiplier in the farm.
@@ -465,7 +460,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn update_yield_farm(
 			origin: OriginFor<T>,
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
 		) -> DispatchResult {
@@ -480,7 +475,7 @@ pub mod pallet {
 				amm_pool_id,
 			)?;
 
-			Self::deposit_event(Event::LiquidityPoolUpdated {
+			Self::deposit_event(Event::YieldFarmUpdated {
 				farm_id,
 				liq_pool_farm_id,
 				multiplier,
@@ -491,23 +486,24 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Cancel liq. miming for specific liq. pool.
+		/// Stop liq. miming for specific yield farm.
 		///
-		/// This function claims rewards from `GlobalPool` last time and stops liq. pool
-		/// incentivization from a `GlobalPool`. Users will be able to only withdraw
+		/// This function claims rewards from `GlobalFarm` last time and stops liq. pool
+		/// incentivization from a `GlobalFarm`. Users will be able to only withdraw
 		/// shares(with claiming) after calling this function.
 		/// `deposit_shares()` and `claim_rewards()` are not allowed on canceled liq. pool.
 		///  
 		/// Only farm owner can perform this action.
 		///
 		/// Parameters:
+		/// - `origin`: account allowed to create new liq. mining program.
 		/// - `farm_id`: farm id in which liq. pool will be canceled.
 		/// - `asset_pair`: asset pair identifying liq. pool in the farm.
 		///
 		/// Emits `LiquidityMiningCanceled` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
-		pub fn stop_yield_farm(origin: OriginFor<T>, farm_id: GlobalPoolId, asset_pair: AssetPair) -> DispatchResult {
+		pub fn stop_yield_farm(origin: OriginFor<T>, farm_id: GlobalFarmId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
@@ -525,17 +521,19 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Resume liq. miming for canceled liq. pool.
+		/// Resume liq. miming for sopped yield farm.
 		///
-		/// This function resume incentivization from `GlobalPool` and restore full functionality
-		/// for liq. pool. Users will be able to deposit, claim and withdraw again.
+		/// This function resume incentivization from `GlobalFarm` and restore full functionality
+		/// for yield farm. Users will be able to deposit, claim and withdraw again.
 		///
-		/// WARN: Liq. pool is NOT rewarded for time it was canceled.
+		/// WARN: Yield farm is NOT rewarded for time it was stopped.
 		///
 		/// Only farm owner can perform this action.
 		///
 		/// Parameters:
+		/// - `origin`: account allowed to create new liq. mining program.
 		/// - `farm_id`: farm id in which liq. pool will be resumed.
+		/// - `yield_farm_id`: id of yield farm to be resumed.
 		/// - `asset_pair`: asset pair identifying liq. pool in the farm.
 		/// - `multiplier`: liq. pool multiplier in the farm.
 		///
@@ -544,7 +542,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn resume_yield_farm(
 			origin: OriginFor<T>,
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
@@ -572,19 +570,21 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Remove liq. pool for a farm.
+		/// Remove yield farm
 		///
-		/// This function remove liq. pool from the farm and also from storage. Users will be able to
+		/// This function removes yield farm and also from storage. Users will be able to
 		/// only withdraw shares(without claiming rewards from liq. mining). Unpaid rewards will be
-		/// transferred back to farm(`GlobalPool`) account and will be used to distribute to other
-		/// liq. pools in the farm.
+		/// transferred back to farm(`GlobalFarm`) account and will be used to distribute to other
+		/// yield farms in the farm.
 		///
-		/// Liq. pool must be canceled before calling this function.
+		/// Yield farm must be canceled before calling this function.
 		///
 		/// Only farm owner can perform this action.
 		///
 		/// Parameters:
+		/// - `origin`: account allowed to create new liq. mining program.
 		/// - `farm_id`: farm id from which liq. pool should be removed.
+		/// - `yield_farm_id`: id of yield farm to be removed.
 		/// - `asset_pair`: asset pair identifying liq. pool in the farm.
 		///
 		/// Emits `YieldFarmRemoved` event when successful.
@@ -592,7 +592,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn destroy_yield_farm(
 			origin: OriginFor<T>,
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			asset_pair: AssetPair,
 		) -> DispatchResultWithPostInfo {
@@ -626,6 +626,7 @@ pub mod pallet {
 		/// - `origin`: account depositing LP shares. This account have to have at least
 		/// `shares_amount` of LP shares.
 		/// - `farm_id`: id of farm to which user want to deposit LP shares.
+		/// - `yield_farm_id`: id of yield farm to deposit to.
 		/// - `asset_pair`: asset pair identifying LP shares user want to deposit.
 		/// - `shares_amount`: amount of LP shares user want to deposit.
 		///
@@ -634,7 +635,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn deposit_shares(
 			origin: OriginFor<T>,
-			farm_id: GlobalPoolId,
+			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			asset_pair: AssetPair,
 			shares_amount: Balance,
@@ -683,17 +684,20 @@ pub mod pallet {
 		/// This function DOESN'T create new deposit.
 		///
 		/// Parameters:
+		/// - `origin`: account depositing LP shares. This account have to have at least
 		/// - `global_farm_id`: global farm identifier.
 		/// - `yield_farm_id`: yield farm identifier redepositing to.
+		/// - `asset_pair`: asset pair identifying LP shares user want to deposit.
 		/// - `deposit_id`: identifier of the AMM pool.
+		///
 		/// Emits `SharesRedeposited` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
 		pub fn redeposit_lp_shares(
 			origin: OriginFor<T>,
-			global_farm_id: GlobalPoolId,
+			global_farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			asset_pair: AssetPair,
-			nft_id: NftInstanceIdOf<T>,
+			deposit_id: NftInstanceIdOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -701,9 +705,9 @@ pub mod pallet {
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
 			let deposit =
-				warehouse_liquidity_mining::Pallet::<T>::deposit(&nft_id).ok_or(Error::<T>::DepositDataNotFound)?;
+				warehouse_liquidity_mining::Pallet::<T>::deposit(&deposit_id).ok_or(Error::<T>::DepositDataNotFound)?;
 
-			warehouse_liquidity_mining::Pallet::<T>::redeposit_lp_shares(global_farm_id, yield_farm_id, nft_id)?;
+			warehouse_liquidity_mining::Pallet::<T>::redeposit_lp_shares(global_farm_id, yield_farm_id, deposit_id)?;
 
 			Self::deposit_event(Event::SharesRedeposited {
 				farm_id: global_farm_id,
@@ -712,7 +716,7 @@ pub mod pallet {
 				amount: deposit.shares,
 				lp_token: amm_share_token,
 				nft_class_id: T::NftClass::get(),
-				nft_instance_id: nft_id,
+				nft_instance_id: deposit_id,
 			});
 
 			Ok(())
@@ -725,28 +729,29 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `origin`: account owner of deposit(nft).
-		/// - `nft_id`: nft id representing deposit in the liq. pool.
+		/// - `deposit_id`: nft id representing deposit in the liq. pool.
+		/// - `yield_farm_id`: yield farm identifier to claim rewards from.
 		///
 		/// Emits `RewardClaimed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::claim_rewards())]
 		#[transactional]
 		pub fn claim_rewards(
 			origin: OriginFor<T>,
-			nft_id: NftInstanceIdOf<T>,
+			deposit_id: NftInstanceIdOf<T>,
 			yield_farm_id: PoolId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			//NOTE: this should never happen
-			let nft_owner =
-				pallet_nft::Pallet::<T>::owner(T::NftClass::get(), nft_id).ok_or(Error::<T>::CantFindDepositOwner)?;
+			let nft_owner = pallet_nft::Pallet::<T>::owner(T::NftClass::get(), deposit_id)
+				.ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
 			let fail_on_double_claim = true;
 			let (farm_id, reward_currency, claimed, _) = warehouse_liquidity_mining::Pallet::<T>::claim_rewards(
 				who.clone(),
-				nft_id,
+				deposit_id,
 				yield_farm_id,
 				fail_on_double_claim,
 			)?;
@@ -770,18 +775,19 @@ pub mod pallet {
 		///
 		/// * liq. mining is active(liq. pool is not canceled) - claim and transfer rewards(if it
 		/// wasn't claimed in this period) and transfer LP shares.
-		/// * liq. mining is canceled - claim and transfer rewards(if it
+		/// * liq. mining is stopped - claim and transfer rewards(if it
 		/// wasn't claimed in this period) and transfer LP shares.
-		/// * liq. pool was removed - only LP shares will be transferred.
+		/// * liq. pool was destroyed - only LP shares will be transferred.
 		/// * farm was destroyed - only LP shares will be transferred.
 		/// * SPECIAL CASE: AMM pool does not exist - claim may happen if liq. pool is still active, LP
-		/// shares will not be transfered.
+		/// shares will not be transferred.
 		///
-		/// User's unclaimable rewards will be transfered back to global pool's account.
+		/// User's unclaimable rewards will be transferred back to global pool's account.
 		///
 		/// Parameters:
 		/// - `origin`: account owner of deposit(nft).
-		/// - `nft_id`: nft id representing deposit in the liq. pool.
+		/// - `deposit_id`: nft id representing deposit in the liq. pool.
+		/// - `yield_farm_id`: yield farm identifier to dithdraw shares from.
 		///
 		/// Emits:
 		/// * `RewardClaimed` if claim happen
@@ -790,18 +796,18 @@ pub mod pallet {
 		#[transactional]
 		pub fn withdraw_shares(
 			origin: OriginFor<T>,
-			nft_id: NftInstanceIdOf<T>,
+			deposit_id: NftInstanceIdOf<T>,
 			yield_farm_id: PoolId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let nft_owner =
-				pallet_nft::Pallet::<T>::owner(T::NftClass::get(), nft_id).ok_or(Error::<T>::CantFindDepositOwner)?;
+			let nft_owner = pallet_nft::Pallet::<T>::owner(T::NftClass::get(), deposit_id)
+				.ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
 			let mut deposit =
-				warehouse_liquidity_mining::Pallet::<T>::deposit(&nft_id).ok_or(Error::<T>::DepositDataNotFound)?;
+				warehouse_liquidity_mining::Pallet::<T>::deposit(&deposit_id).ok_or(Error::<T>::DepositDataNotFound)?;
 
 			let yield_farm = deposit
 				.get_yield_farm_entry(yield_farm_id)
@@ -818,7 +824,7 @@ pub mod pallet {
 				let (farm_id, reward_currency, claimed, unclaimable) =
 					warehouse_liquidity_mining::Pallet::<T>::claim_rewards(
 						who.clone(),
-						nft_id,
+						deposit_id,
 						yield_farm_id,
 						fail_on_double_claim,
 					)?;
@@ -838,7 +844,7 @@ pub mod pallet {
 
 			let (farm_id, withdrawn_amount) = warehouse_liquidity_mining::Pallet::<T>::withdraw_lp_shares(
 				who.clone(),
-				nft_id,
+				deposit_id,
 				yield_farm_id,
 				unclaimable_rewards,
 			)?;
@@ -855,7 +861,7 @@ pub mod pallet {
 			}
 
 			// metadata and nft cleanup
-			pallet_nft::Pallet::<T>::do_burn(who, T::NftClass::get(), nft_id)
+			pallet_nft::Pallet::<T>::do_burn(who, T::NftClass::get(), deposit_id)
 		}
 	}
 }
@@ -883,7 +889,7 @@ impl<T: Config>
 	hydradx_traits::liquidity_mining::Handler<
 		AssetId,
 		T::AccountId,
-		GlobalPoolId,
+		GlobalFarmId,
 		PoolId,
 		Balance,
 		warehouse_liquidity_mining::DepositId,
@@ -894,7 +900,7 @@ impl<T: Config>
 		MultiCurrencyOf::<T>::free_balance(asset, &amm_id)
 	}
 
-	fn on_accumulated_rpz_update(farm_id: GlobalPoolId, accumulated_rpz: Balance, total_shares_z: Balance) {
+	fn on_accumulated_rpz_update(farm_id: GlobalFarmId, accumulated_rpz: Balance, total_shares_z: Balance) {
 		Self::deposit_event(Event::FarmAccRPZUpdated {
 			farm_id,
 			accumulated_rpz,
@@ -903,12 +909,12 @@ impl<T: Config>
 	}
 
 	fn on_accumulated_rpvs_update(
-		farm_id: GlobalPoolId,
+		farm_id: GlobalFarmId,
 		liq_pool_farm_id: PoolId,
 		accumulated_rpvs: Balance,
 		total_valued_shares: Balance,
 	) {
-		Self::deposit_event(Event::LiquidityPoolAccRPVSUpdated {
+		Self::deposit_event(Event::YieldFarmAccRPVSUpdated {
 			farm_id,
 			liq_pool_farm_id,
 			accumulated_rpvs,

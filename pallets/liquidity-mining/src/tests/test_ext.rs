@@ -99,7 +99,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![
-			mock::Event::LiquidityMining(Event::FarmCreated {
+			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_POOLS[0].id,
 				owner: PREDEFINED_GLOBAL_POOLS[0].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[0].reward_currency,
@@ -117,7 +117,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				who: 192282548550198434755674140525,
 				amount: 1_000_000_000,
 			}),
-			mock::Event::LiquidityMining(Event::FarmCreated {
+			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_POOLS[1].id,
 				owner: PREDEFINED_GLOBAL_POOLS[1].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[1].reward_currency,
@@ -135,7 +135,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				who: 271510711064462772349218090861,
 				amount: 30_000_000_000,
 			}),
-			mock::Event::LiquidityMining(Event::FarmCreated {
+			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_POOLS[2].id,
 				owner: PREDEFINED_GLOBAL_POOLS[2].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[2].reward_currency,
@@ -153,7 +153,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				who: 350738873578727109942762041197,
 				amount: 30_000_000_000,
 			}),
-			mock::Event::LiquidityMining(Event::FarmCreated {
+			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_POOLS[3].id,
 				owner: PREDEFINED_GLOBAL_POOLS[3].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[3].reward_currency,
@@ -171,7 +171,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				who: 429967036092991447536305991533,
 				amount: 30_000_000_000,
 			}),
-			mock::Event::LiquidityMining(Event::FarmCreated {
+			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_POOLS[4].id,
 				owner: PREDEFINED_GLOBAL_POOLS[4].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[4].reward_currency,
@@ -189,7 +189,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				who: 509195198607255785129849941869,
 				amount: 30_000_000_000,
 			}),
-			mock::Event::LiquidityMining(Event::FarmCreated {
+			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_POOLS[5].id,
 				owner: PREDEFINED_GLOBAL_POOLS[5].owner,
 				reward_currency: PREDEFINED_GLOBAL_POOLS[5].reward_currency,
@@ -294,7 +294,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_LIQ_POOLS.with(|v| v[0].loyalty_curve.clone()),
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
+		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[0].id),
 			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[0].multiplier),
@@ -317,7 +317,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_LIQ_POOLS.with(|v| v[1].loyalty_curve.clone()),
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
+		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: GC_FARM,
 			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[1].id),
 			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[1].multiplier),
@@ -340,7 +340,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_LIQ_POOLS.with(|v| v[2].loyalty_curve.clone()),
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
+		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: CHARLIE_FARM,
 			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[2].id),
 			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[2].multiplier),
@@ -363,7 +363,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_LIQ_POOLS.with(|v| v[3].loyalty_curve.clone()),
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
+		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: DAVE_FARM,
 			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[3].id),
 			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[3].multiplier),
@@ -386,7 +386,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_LIQ_POOLS.with(|v| v[4].loyalty_curve.clone()),
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityPoolAdded {
+		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: EVE_FARM,
 			liq_pool_farm_id: PREDEFINED_LIQ_POOLS.with(|v| v[4].id),
 			multiplier: PREDEFINED_LIQ_POOLS.with(|v| v[4].multiplier),
