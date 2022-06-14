@@ -146,7 +146,7 @@ impl Contains<Call> for BaseFilter {
 use common_runtime::adapter::OrmlTokensAdapter;
 use primitives::{
 	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId, Price,
+	ClassId, InstanceId,
 };
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;

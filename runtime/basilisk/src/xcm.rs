@@ -104,6 +104,7 @@ impl Config for XcmConfig {
 	type Trader = MultiCurrencyTrader<
 		AssetId,
 		Balance,
+		Price,
 		WeightToFee,
 		MultiTransactionPayment,
 		CurrencyIdConvert,
