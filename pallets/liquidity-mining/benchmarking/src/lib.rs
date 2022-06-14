@@ -199,7 +199,7 @@ benchmarks! {
 		assert_eq!(WarehouseLM::<T>::liq_pool_meta(2).unwrap(), (0, 1));
 	}
 
-	update_liquidity_pool {
+	update_yield_farm {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 
@@ -222,7 +222,7 @@ benchmarks! {
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
 		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().multiplier, FixedU128::from(50_000_u128));
 	}: {
-		LiquidityMining::<T>::update_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(10_000_u128))?
+		LiquidityMining::<T>::update_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(10_000_u128))?
 	}
 	verify {
 		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().multiplier, FixedU128::from(10_000_u128));

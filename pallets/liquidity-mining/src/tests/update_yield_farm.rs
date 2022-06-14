@@ -21,7 +21,7 @@ use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::YieldFarmData;
 
 #[test]
-fn update_liquidity_pool_should_work() {
+fn update_yield_farm_should_work() {
 	//liq. pool without deposits
 	predefined_test_ext().execute_with(|| {
 		let bsx_tkn1_assets = AssetPair {
@@ -33,7 +33,7 @@ fn update_liquidity_pool_should_work() {
 		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
-		assert_ok!(LiquidityMining::update_liquidity_pool(
+		assert_ok!(LiquidityMining::update_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets,
@@ -63,7 +63,7 @@ fn update_liquidity_pool_should_work() {
 		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
-		assert_ok!(LiquidityMining::update_liquidity_pool(
+		assert_ok!(LiquidityMining::update_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets,
@@ -98,7 +98,7 @@ fn update_liquidity_pool_should_work() {
 		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
 		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
 
-		assert_ok!(LiquidityMining::update_liquidity_pool(
+		assert_ok!(LiquidityMining::update_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets,
@@ -140,7 +140,7 @@ fn update_liquidity_pool_should_work() {
 }
 
 #[test]
-fn update_liquidity_pool_zero_multiplier_should_not_work() {
+fn update_yield_farm_zero_multiplier_should_not_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -148,19 +148,14 @@ fn update_liquidity_pool_zero_multiplier_should_not_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::update_liquidity_pool(
-				Origin::signed(GC),
-				GC_FARM,
-				bsx_tkn1_assets,
-				FixedU128::from(0_u128)
-			),
+			LiquidityMining::update_yield_farm(Origin::signed(GC), GC_FARM, bsx_tkn1_assets, FixedU128::from(0_u128)),
 			warehouse_liquidity_mining::Error::<Test>::InvalidMultiplier
 		);
 	});
 }
 
 #[test]
-fn update_liquidity_pool_canceled_pool_should_not_work() {
+fn update_yield_farm_canceled_pool_should_not_work() {
 	let bsx_tkn1_liq_pool = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -176,7 +171,7 @@ fn update_liquidity_pool_canceled_pool_should_not_work() {
 		//TODO: Dani- where is LiquidityMiningCanceled
 		/*
 		assert_noop!(
-			LiquidityMining::update_liquidity_pool(
+			LiquidityMining::update_yield_farm(
 				Origin::signed(GC),
 				GC_FARM,
 				bsx_tkn1_liq_pool,
@@ -188,7 +183,7 @@ fn update_liquidity_pool_canceled_pool_should_not_work() {
 }
 
 #[test]
-fn update_liquidity_pool_not_owner_should_not_work() {
+fn update_yield_farm_not_owner_should_not_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -206,7 +201,7 @@ fn update_liquidity_pool_not_owner_should_not_work() {
 		//TODO: Dani - where is LiquidityMiningCanceled
 		/*
 		assert_noop!(
-			LiquidityMining::update_liquidity_pool(
+			LiquidityMining::update_yield_farm(
 				Origin::signed(not_owner),
 				GC_FARM,
 				bsx_tkn1_assets,
