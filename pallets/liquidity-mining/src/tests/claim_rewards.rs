@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use super::*;
+use pretty_assertions::assert_eq;
 use test_ext::*;
 use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::LoyaltyCurve;
@@ -35,7 +36,7 @@ fn claim_rewards_should_work() {
 		//claim A1.1  (dep. A1 1-th time)
 		assert_ok!(LiquidityMining::claim_rewards(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -48,7 +49,7 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
 			DepositData {
 				shares: 50,
 				amm_pool_id: BSX_TKN1_AMM,
@@ -85,8 +86,8 @@ fn claim_rewards_should_work() {
 
 		assert_ok!(LiquidityMining::claim_rewards(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[4],
-			BSX_TKN1_LIQ_POOL_ID
+			PREDEFINED_DEPOSIT_IDS[4],
+			BSX_TKN2_LIQ_POOL_ID
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
@@ -98,13 +99,13 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			WarehouseLM::deposit(PREDEFINED_NFT_IDS[4]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[4]).unwrap(),
 			DepositData {
 				shares: 87,
-				amm_pool_id: BSX_TKN1_AMM,
+				amm_pool_id: BSX_TKN2_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: GC_FARM,
-					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					yield_farm_id: BSX_TKN2_LIQ_POOL_ID,
 					valued_shares: 261,
 					accumulated_rpvs: 120,
 					accumulated_claimed_rewards: expected_claimed_rewards,
@@ -136,7 +137,7 @@ fn claim_rewards_should_work() {
 		);
 
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap(),
+			WarehouseLM::yield_farm((BSX_TKN2_AMM, GC_FARM, BSX_TKN2_LIQ_POOL_ID)).unwrap(),
 			YieldFarmData {
 				id: BSX_TKN2_LIQ_POOL_ID,
 				updated_at: 30,
@@ -147,7 +148,7 @@ fn claim_rewards_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(10_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0 //TODO: Dani, is it 0? I added automatically because missing field
+				entries_count: 4
 			},
 		);
 
@@ -173,7 +174,7 @@ fn claim_rewards_should_work() {
 
 		assert_ok!(LiquidityMining::claim_rewards(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -186,7 +187,7 @@ fn claim_rewards_should_work() {
 		})]);
 
 		assert_eq!(
-			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
 			DepositData {
 				shares: 50,
 				amm_pool_id: BSX_TKN1_AMM,
@@ -235,7 +236,7 @@ fn claim_rewards_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(5_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0 //TODO: Dani, is it 0? I added automatically because missing field
+				entries_count: 3
 			},
 		);
 
@@ -251,7 +252,7 @@ fn claim_rewards_should_work() {
 				loyalty_curve: Some(LoyaltyCurve::default()),
 				multiplier: FixedU128::from(10_u128),
 				state: YieldFarmState::Active,
-				entries_count: 0
+				entries_count: 4
 			},
 		);
 
@@ -290,16 +291,16 @@ fn claim_rewards_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			CHARLIE_FARM,
-			ACA_KSM_LIQ_POOL_ID, //TODO: Dani - probably this pool id is fine
+			ACA_KSM_LIQ_POOL_ID,
 			aca_ksm_assets,
 			deposited_amount
 		));
 
 		assert_eq!(
-			WarehouseLM::deposit(4294967303).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
 			DepositData {
 				shares: 50,
-				amm_pool_id: BSX_TKN1_AMM,
+				amm_pool_id: ACA_KSM_AMM,
 				yield_farm_entries: vec![YieldFarmEntry {
 					global_farm_id: CHARLIE_FARM,
 					yield_farm_id: ACA_KSM_LIQ_POOL_ID,
@@ -316,12 +317,224 @@ fn claim_rewards_should_work() {
 
 		assert_ok!(LiquidityMining::claim_rewards(
 			Origin::signed(ALICE),
-			4294967303,
+			PREDEFINED_DEPOSIT_IDS[0],
 			ACA_KSM_LIQ_POOL_ID
 		));
 
 		//alice had 0 ACA before claim
 		assert_eq!(Tokens::free_balance(ACA, &ALICE), expected_claimed_rewards);
+	});
+}
+
+#[test]
+fn claim_rewards_deposit_with_multiple_entries_should_work() {
+	const bsx_tkn1_assets: AssetPair = AssetPair {
+		asset_in: BSX,
+		asset_out: TKN1,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		//predefined_deposit[0] - GC_FARM, BSX_TKN1_AMM
+		set_block_number(50_000);
+		assert_ok!(LiquidityMining::redeposit_lp_shares(
+			Origin::signed(EVE),
+			EVE_FARM,
+			EVE_BSX_TKN1_YIELD_FARM_ID,
+			bsx_tkn1_assets,
+			PREDEFINED_DEPOSIT_IDS[0]
+		));
+
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesRedeposited {
+			farm_id: EVE_FARM,
+			yield_farm_id: EVE_BSX_TKN1_YIELD_FARM_ID,
+			who: EVE,
+			lp_token: BSX_TKN1_SHARE_ID,
+			amount: 50,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
+		})]);
+
+		set_block_number(800_000);
+		//Dave's farm incentivize TKN1 - some balance must be set so `valued_shares` will not be `0`.
+		let bsx_tkn1_amm_account = AMM_POOLS.with(|v| {
+			v.borrow()
+				.get(&asset_pair_to_map_key(AssetPair {
+					asset_in: BSX,
+					asset_out: TKN1,
+				}))
+				.unwrap()
+				.0
+		});
+		Tokens::set_balance(Origin::root(), bsx_tkn1_amm_account, TKN1, 100, 0).unwrap();
+		assert_ok!(LiquidityMining::redeposit_lp_shares(
+			Origin::signed(DAVE),
+			DAVE_FARM,
+			DAVE_BSX_TKN1_YIELD_FARM_ID,
+			bsx_tkn1_assets,
+			PREDEFINED_DEPOSIT_IDS[0]
+		));
+
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesRedeposited {
+			farm_id: DAVE_FARM,
+			yield_farm_id: DAVE_BSX_TKN1_YIELD_FARM_ID,
+			who: DAVE,
+			lp_token: BSX_TKN1_SHARE_ID,
+			amount: 50,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
+		})]);
+
+		let deposit = WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap();
+
+		assert_eq!(
+			deposit.yield_farm_entries,
+			vec![
+				YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					valued_shares: 2_500,
+					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					accumulated_claimed_rewards: 0,
+					accumulated_rpvs: 0,
+					entered_at: 18,
+					updated_at: 18
+				},
+				YieldFarmEntry {
+					global_farm_id: DAVE_FARM,
+					valued_shares: 5_000,
+					yield_farm_id: DAVE_BSX_TKN1_YIELD_FARM_ID,
+					accumulated_claimed_rewards: 0,
+					accumulated_rpvs: 0,
+					entered_at: 800,
+					updated_at: 800
+				},
+				YieldFarmEntry {
+					global_farm_id: EVE_FARM,
+					valued_shares: 4_000,
+					yield_farm_id: EVE_BSX_TKN1_YIELD_FARM_ID,
+					accumulated_claimed_rewards: 0,
+					accumulated_rpvs: 0,
+					entered_at: 50,
+					updated_at: 50
+				},
+			]
+		);
+
+		set_block_number(1_000_000);
+
+		assert_ok!(LiquidityMining::claim_rewards(
+			Origin::signed(ALICE),
+			PREDEFINED_DEPOSIT_IDS[0],
+			EVE_BSX_TKN1_YIELD_FARM_ID
+		));
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(
+				Origin::signed(ALICE),
+				PREDEFINED_DEPOSIT_IDS[0],
+				EVE_BSX_TKN1_YIELD_FARM_ID
+			),
+			warehouse_liquidity_mining::Error::<Test>::DoubleClaimInThePeriod
+		);
+
+		assert_ok!(LiquidityMining::claim_rewards(
+			Origin::signed(ALICE),
+			PREDEFINED_DEPOSIT_IDS[0],
+			BSX_TKN1_LIQ_POOL_ID
+		));
+
+		let deposit = WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap();
+		assert_eq!(
+			deposit.yield_farm_entries,
+			vec![
+				YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					valued_shares: 2_500,
+					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					accumulated_claimed_rewards: 62_177_603,
+					accumulated_rpvs: 0,
+					entered_at: 18,
+					updated_at: 10_000
+				},
+				YieldFarmEntry {
+					global_farm_id: DAVE_FARM,
+					valued_shares: 5_000,
+					yield_farm_id: DAVE_BSX_TKN1_YIELD_FARM_ID,
+					accumulated_claimed_rewards: 0,
+					accumulated_rpvs: 0,
+					entered_at: 800,
+					updated_at: 800
+				},
+				YieldFarmEntry {
+					global_farm_id: EVE_FARM,
+					valued_shares: 4_000,
+					yield_farm_id: EVE_BSX_TKN1_YIELD_FARM_ID,
+					accumulated_claimed_rewards: 7_619_047,
+					accumulated_rpvs: 0,
+					entered_at: 50,
+					updated_at: 1_000
+				},
+			]
+		);
+
+		//Same period different block.
+		set_block_number(1_000_050);
+		assert_noop!(
+			LiquidityMining::claim_rewards(
+				Origin::signed(ALICE),
+				PREDEFINED_DEPOSIT_IDS[0],
+				EVE_BSX_TKN1_YIELD_FARM_ID
+			),
+			warehouse_liquidity_mining::Error::<Test>::DoubleClaimInThePeriod
+		);
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(
+				Origin::signed(ALICE),
+				PREDEFINED_DEPOSIT_IDS[0],
+				EVE_BSX_TKN1_YIELD_FARM_ID
+			),
+			warehouse_liquidity_mining::Error::<Test>::DoubleClaimInThePeriod
+		);
+
+		assert_ok!(LiquidityMining::claim_rewards(
+			Origin::signed(ALICE),
+			PREDEFINED_DEPOSIT_IDS[0],
+			DAVE_BSX_TKN1_YIELD_FARM_ID
+		));
+
+		let deposit = WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap();
+		assert_eq!(
+			deposit.yield_farm_entries,
+			vec![
+				YieldFarmEntry {
+					global_farm_id: GC_FARM,
+					valued_shares: 2_500,
+					yield_farm_id: BSX_TKN1_LIQ_POOL_ID,
+					accumulated_claimed_rewards: 62_177_603,
+					accumulated_rpvs: 0,
+					entered_at: 18,
+					updated_at: 10_000
+				},
+				YieldFarmEntry {
+					global_farm_id: DAVE_FARM,
+					valued_shares: 5_000,
+					yield_farm_id: DAVE_BSX_TKN1_YIELD_FARM_ID,
+					accumulated_claimed_rewards: 8_333_333,
+					accumulated_rpvs: 0,
+					entered_at: 800,
+					updated_at: 1_000
+				},
+				YieldFarmEntry {
+					global_farm_id: EVE_FARM,
+					valued_shares: 4_000,
+					yield_farm_id: EVE_BSX_TKN1_YIELD_FARM_ID,
+					accumulated_claimed_rewards: 7_619_047,
+					accumulated_rpvs: 0,
+					entered_at: 50,
+					updated_at: 1_000
+				},
+			]
+		);
 	});
 }
 
@@ -335,7 +548,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 		//1-th claim should work ok
 		assert_ok!(LiquidityMining::claim_rewards(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -348,7 +561,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 		})]);
 
 		assert_eq!(
-			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
 			DepositData {
 				shares: 50,
 				amm_pool_id: BSX_TKN1_AMM,
@@ -372,7 +585,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 
 		//second claim should fail
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_NFT_IDS[0], BSX_TKN1_LIQ_POOL_ID),
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_DEPOSIT_IDS[0], BSX_TKN1_LIQ_POOL_ID),
 			warehouse_liquidity_mining::Error::<Test>::DoubleClaimInThePeriod
 		);
 	});
@@ -401,7 +614,7 @@ fn claim_rewards_from_canceled_pool_should_work() {
 
 		assert_ok!(LiquidityMining::claim_rewards(
 			Origin::signed(ALICE),
-			PREDEFINED_NFT_IDS[0],
+			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_LIQ_POOL_ID
 		));
 
@@ -414,7 +627,7 @@ fn claim_rewards_from_canceled_pool_should_work() {
 		})]);
 
 		assert_eq!(
-			WarehouseLM::deposit(PREDEFINED_NFT_IDS[0]).unwrap(),
+			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
 			DepositData {
 				shares: 50,
 				amm_pool_id: BSX_TKN1_AMM,
@@ -468,7 +681,7 @@ fn claim_rewards_from_removed_pool_should_not_work() {
 		));
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_NFT_IDS[0], BSX_TKN1_LIQ_POOL_ID),
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_DEPOSIT_IDS[0], BSX_TKN1_LIQ_POOL_ID),
 			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
 		);
 	});
@@ -480,8 +693,14 @@ fn claim_rewards_not_deposit_owner_should_not_work() {
 		const NOT_OWNER: u128 = BOB;
 
 		assert_noop!(
-			LiquidityMining::claim_rewards(Origin::signed(NOT_OWNER), PREDEFINED_NFT_IDS[0], BSX_TKN1_LIQ_POOL_ID),
+			LiquidityMining::claim_rewards(
+				Origin::signed(NOT_OWNER),
+				PREDEFINED_DEPOSIT_IDS[0],
+				BSX_TKN1_LIQ_POOL_ID
+			),
 			Error::<Test>::NotDepositOwner
 		);
 	});
 }
+
+//TODO: Dani - add test claim_rewards_double_claim_should_work
