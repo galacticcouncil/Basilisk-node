@@ -76,7 +76,7 @@ use orml_currencies::BasicCurrencyAdapter;
 
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
-use pallet_transaction_multi_payment::{AddTxAssetOnAccount, MultiCurrencyAdapter, RemoveTxAssetOnKilled};
+use pallet_transaction_multi_payment::{AddTxAssetOnAccount, DepositAll, RemoveTxAssetOnKilled, TransferFees};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -334,7 +334,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for Runtime {
-	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), MultiTransactionPayment>;
+	type OnChargeTransaction = TransferFees<Currencies, MultiTransactionPayment, DepositAll<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
 	type OperationalFeeMultiplier = ();
 	type WeightToFee = WeightToFee;
@@ -879,6 +879,16 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = ();
 }
 
+impl pallet_multisig::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type DepositBase = DepositBase;
+	type DepositFactor = DepositFactor;
+	type MaxSignatories = MaxSignatories;
+	type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -910,6 +920,7 @@ construct_runtime!(
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 19,
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>} = 20,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 21,
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 22,
 
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned} = 50,
