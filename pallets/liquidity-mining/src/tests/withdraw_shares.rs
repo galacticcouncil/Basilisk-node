@@ -31,23 +31,22 @@ fn withdraw_shares_should_work() {
 		const REWARD_CURRENCY: u32 = BSX;
 
 		let pallet_account = LiquidityMining::account_id();
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
+		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 
 		// This balance is used to transfer unclaimable_rewards from yield farm to global farm.
 		// Claiming is not part of withdraw_shares() so some balance need to be set.
-		Tokens::set_balance(Origin::root(), bsx_tkn1_liq_pool_account, BSX, 100_000_000_000, 0).unwrap();
-		Tokens::set_balance(Origin::root(), bsx_tkn2_liq_pool_account, BSX, 100_000_000_000, 0).unwrap();
+		Tokens::set_balance(Origin::root(), bsx_tkn1_yield_farm_account, BSX, 100_000_000_000, 0).unwrap();
+		Tokens::set_balance(Origin::root(), bsx_tkn2_yield_farm_account, BSX, 100_000_000_000, 0).unwrap();
 
 		// withdraw 1A
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
 		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
-		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
+		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account);
 
-		let unclaimable_rewards = 100_000;
 		let expected_claimed_rewards = 79_906;
 		let withdrawn_amount = 50;
 
@@ -153,15 +152,15 @@ fn withdraw_shares_should_work() {
 
 		//yield farm balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
 			bsx_tkn2_yield_farm_bsx_balance - (expected_claimed_rewards + 70_094) //70_094 unclaimable rewards after withdrawn
 		);
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account),
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
 			bsx_tkn2_yield_farm_bsx_balance
 		);
 
-		//global pool balance checks
+		//global farm balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
 			global_farm_bsx_balance + 70_094 //70_094 unclaimable rewards after withdrawn
@@ -179,9 +178,9 @@ fn withdraw_shares_should_work() {
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
-		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
-		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
+		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
+		let bsx_tkn1_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
+		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account);
 
 		let expected_claimed_rewards = 100_324;
 		let withdrawn_amount = 87;
@@ -301,18 +300,18 @@ fn withdraw_shares_should_work() {
 
 		//Yield farm balance checks.
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_bsx_balance
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_bsx_balance
 		);
 
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account),
-			(bsx_tkn2_liq_pool_bsx_balance + 24_290_790 - (expected_claimed_rewards + 32_786)) //24_290_790 - liq. pool claim from global pool, 32_786 unclaimable rewards after withdrawn
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
+			(bsx_tkn2_yield_farm_bsx_balance + 24_290_790 - (expected_claimed_rewards + 32_786)) //24_290_790 - liq. pool claim from global pool, 32_786 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
-			global_pool_bsx_balance + 32_786 - 24_290_790 //24_290_790 - liq. pool claim from global pool, 32_786 unclaimable rewards after withdrawn
+			global_farm_bsx_balance + 32_786 - 24_290_790 //24_290_790 - liq. pool claim from global pool, 32_786 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[4]), None);
@@ -325,9 +324,9 @@ fn withdraw_shares_should_work() {
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
-		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
-		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
+		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
+		let bsx_tkn1_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
+		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account);
 
 		let expected_claimed_rewards = 7_472_429;
 		let withdrawn_amount = 486;
@@ -428,21 +427,21 @@ fn withdraw_shares_should_work() {
 			bsx_tkn2_pallet_amm_shares_balance
 		);
 
-		//liq pool balance checks
+		//yield farm balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_bsx_balance + 10_975_200 - (expected_claimed_rewards + 2_441_971) //10_975_200 - liq. pool claim from global pool, 2_441_971 unclaimable rewards after withdrawn
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_bsx_balance + 10_975_200 - (expected_claimed_rewards + 2_441_971) //10_975_200 - liq. pool claim from global pool, 2_441_971 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account),
-			bsx_tkn2_liq_pool_bsx_balance
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
+			bsx_tkn2_yield_farm_bsx_balance
 		);
 
-		//global pool balance checks
+		//yield farm balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
-			global_pool_bsx_balance + 2_441_971 - 10_975_200 //10_975_200 - liq. pool claim from global pool, 2_441_971 unclaimable rewards after withdrawn
+			global_farm_bsx_balance + 2_441_971 - 10_975_200 //10_975_200 - liq. pool claim from global pool, 2_441_971 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[6]), None);
@@ -454,9 +453,9 @@ fn withdraw_shares_should_work() {
 		let bsx_tkn1_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
-		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
-		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
+		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
+		let bsx_tkn1_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
+		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account);
 
 		let expected_claimed_rewards = 855_771;
 		let withdrawn_amount = 80;
@@ -556,18 +555,18 @@ fn withdraw_shares_should_work() {
 
 		//liq pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_bsx_balance - (expected_claimed_rewards + 267_429) //267_429 unclaimable rewards after withdrawn
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_bsx_balance - (expected_claimed_rewards + 267_429) //267_429 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account),
-			bsx_tkn2_liq_pool_bsx_balance
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
+			bsx_tkn2_yield_farm_bsx_balance
 		);
 
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
-			global_pool_bsx_balance + 267_429 //267_429 unclaimable rewards after withdrawn
+			global_farm_bsx_balance + 267_429 //267_429 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[1]), None);
@@ -581,9 +580,9 @@ fn withdraw_shares_should_work() {
 		let bsx_tkn2_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
-		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
-		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
+		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
+		let bsx_tkn1_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
+		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account);
 
 		let expected_claimed_rewards = 95_999;
 		let withdrawn_amount = 25;
@@ -699,19 +698,19 @@ fn withdraw_shares_should_work() {
 
 		//liq pool balance checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_bsx_balance
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_bsx_balance
 		);
 
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account),
-			bsx_tkn2_liq_pool_bsx_balance - (expected_claimed_rewards + 30_001) //30_001 unclaimable rewards after withdrawn
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
+			bsx_tkn2_yield_farm_bsx_balance - (expected_claimed_rewards + 30_001) //30_001 unclaimable rewards after withdrawn
 		);
 
 		//global pool balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
-			global_pool_bsx_balance + 30_001 //30_001 unclaimable rewards after withdrawn
+			global_farm_bsx_balance + 30_001 //30_001 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[2]), None);
@@ -722,9 +721,9 @@ fn withdraw_shares_should_work() {
 		let bsx_tkn2_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
-		let bsx_tkn1_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
-		let bsx_tkn2_liq_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account);
+		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
+		let bsx_tkn1_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
+		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account);
 
 		let expected_claimed_rewards = 295_207;
 		let withdrawn_amount = 48;
@@ -824,18 +823,18 @@ fn withdraw_shares_should_work() {
 
 		//liq pool balances checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_bsx_balance
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_bsx_balance
 		);
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account),
-			bsx_tkn2_liq_pool_bsx_balance - (expected_claimed_rewards + 96_473) //96_473 unclaimable rewards after withdrawn
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
+			bsx_tkn2_yield_farm_bsx_balance - (expected_claimed_rewards + 96_473) //96_473 unclaimable rewards after withdrawn
 		);
 
 		//global pool balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
-			global_pool_bsx_balance + 96_473 //96_473 unclaimable rewards after withdrawn
+			global_farm_bsx_balance + 96_473 //96_473 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[5]), None);
@@ -845,8 +844,9 @@ fn withdraw_shares_should_work() {
 		// withdraw 2B
 		let bsx_tkn2_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
-		let global_pool_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
-		let bsx_tkn1_liq_pool_amm_shares_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account);
+		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
+		let bsx_tkn1_yield_farm_amm_shares_balance =
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
 
 		let expected_claimed_rewards = 18_680_461;
 		let withdrawn_amount = 800;
@@ -946,17 +946,17 @@ fn withdraw_shares_should_work() {
 
 		//liq pool balances checks
 		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_amm_shares_balance
+			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_amm_shares_balance
 		);
 
 		//TODO: ask Martin - why is it null?
-		//assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_liq_pool_account), 0);
+		//assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account), 0);
 
 		//global pool balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
-			global_pool_bsx_balance + 5_911_539 //5_911_539 unclaimable rewards after withdrawn
+			global_farm_bsx_balance + 5_911_539 //5_911_539 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[2]), None);
@@ -1184,7 +1184,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 			bsx_tkn2_assets
 		));
 
-		//remove all liq. pools from farm
+		//remove all yield farms from farm
 		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
@@ -1201,7 +1201,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 		//destroy farm
 		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(GC), GC_FARM));
 
-		//check if farm and pools was removed from storage
+		//check if farm and yield farms was removed from storage
 		assert!(WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID))
 			.unwrap()
 			.is_deleted());
@@ -1225,7 +1225,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 			(ALICE, 6, 486, 0, BSX_TKN1_YIELD_FARM_ID, BSX_TKN1_SHARE_ID),
 		];
 
-		for (caller, nft_id_index, withdrawn_shares, deposits_left, yield_farm_id, lp_token) in test_data {
+		for (caller, nft_id_index, withdrawn_shares, _, yield_farm_id, lp_token) in test_data {
 			let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 			let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
 			let bsx_tkn1_caller_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &caller);
@@ -1267,7 +1267,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 				bsx_tkn2_shares_withdrawn = withdrawn_shares;
 			}
 
-			//check pool account shares balance
+			//check pallet account shares balance
 			assert_eq!(
 				Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
 				bsx_tkn1_pallet_amm_shares_balance - bsx_tkn1_shares_withdrawn
@@ -1294,7 +1294,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 }
 
 #[test]
-fn withdraw_shares_from_canceled_pool_should_work() {
+fn withdraw_shares_from_stopped_yield_farm_should_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -1303,7 +1303,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		set_block_number(10_000);
 
-		// cancel liq. pool before withdraw test
+		// stop yield farm before withdraw test
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
@@ -1311,18 +1311,18 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		));
 
 		let pallet_account = LiquidityMining::account_id();
-		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 
 		//1-th withdraw
-		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
-		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let yield_farm_bsx_balance = Tokens::free_balance(BSX, &yield_farm_account);
+		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
-		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
+		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
+		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 
 		let withdrawn_amount = 50;
 
@@ -1366,15 +1366,15 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}),
 		]);
 
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_pool);
+		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
 
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				total_shares: liq_pool.total_shares - 50,
-				total_valued_shares: liq_pool.total_valued_shares - 2500,
+				total_shares: yield_farm.total_shares - 50,
+				total_valued_shares: yield_farm.total_valued_shares - 2500,
 				entries_count: 2,
-				..liq_pool
+				..yield_farm
 			}
 		);
 
@@ -1394,27 +1394,24 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 
 		let unclaimable_rewards = 168_270;
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			global_pool_bsx_balance + unclaimable_rewards
+			Tokens::free_balance(BSX, &global_farm_account),
+			global_farm_bsx_balance + unclaimable_rewards
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &liq_pool_account),
-			liq_pool_bsx_balance - user_reward - unclaimable_rewards
+			Tokens::free_balance(BSX, &yield_farm_account),
+			yield_farm_bsx_balance - user_reward - unclaimable_rewards
 		);
 
-		//TODO: Dani - fix
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN1_LIQ_POOL_ID).unwrap(), (2, GC_FARM));
-
 		//2-nd withdraw
-		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
-		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let yield_farm_bsx_balance = Tokens::free_balance(BSX, &yield_farm_account);
+		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
-		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
+		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
+		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 
 		let user_reward = 5_137_714;
 		let unclaimable_rewards = 2_055_086;
@@ -1460,15 +1457,15 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}),
 		]);
 
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_pool);
+		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
 
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				total_shares: liq_pool.total_shares - shares_amount,
-				total_valued_shares: liq_pool.total_valued_shares - valued_shares_amount,
+				total_shares: yield_farm.total_shares - shares_amount,
+				total_valued_shares: yield_farm.total_valued_shares - valued_shares_amount,
 				entries_count: 1,
-				..liq_pool
+				..yield_farm
 			}
 		);
 
@@ -1487,24 +1484,24 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance + user_reward);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			global_pool_bsx_balance + unclaimable_rewards
+			Tokens::free_balance(BSX, &global_farm_account),
+			global_farm_bsx_balance + unclaimable_rewards
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &liq_pool_account),
-			liq_pool_bsx_balance - user_reward - unclaimable_rewards
+			Tokens::free_balance(BSX, &yield_farm_account),
+			yield_farm_bsx_balance - user_reward - unclaimable_rewards
 		);
 
 		//3-th withdraw
-		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
-		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let yield_farm_bsx_balance = Tokens::free_balance(BSX, &yield_farm_account);
+		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn1_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(BSX, &BOB);
 
-		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
+		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
+		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 
 		let user_reward = 603_428;
 		let unclaimable_rewards = 228_572;
@@ -1552,7 +1549,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 			}),
 		]);
 
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_pool);
+		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
 
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
@@ -1560,7 +1557,7 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 				total_shares: 0,
 				total_valued_shares: 0,
 				entries_count: 0,
-				..liq_pool
+				..yield_farm
 			}
 		);
 
@@ -1579,13 +1576,13 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 		assert_eq!(Tokens::free_balance(BSX, &BOB), bob_bsx_balance + user_reward);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			global_pool_bsx_balance + unclaimable_rewards
+			Tokens::free_balance(BSX, &global_farm_account),
+			global_farm_bsx_balance + unclaimable_rewards
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &liq_pool_account),
-			liq_pool_bsx_balance - user_reward - unclaimable_rewards
+			Tokens::free_balance(BSX, &yield_farm_account),
+			yield_farm_bsx_balance - user_reward - unclaimable_rewards
 		);
 	});
 }
@@ -1594,11 +1591,11 @@ fn withdraw_shares_from_canceled_pool_should_work() {
 fn claim_and_withdraw_in_same_period_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn1_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
+		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn1_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
-		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
 
 		let claimed_rewards = 79_906;
 		//1-th claim should pass ok
@@ -1635,13 +1632,13 @@ fn claim_and_withdraw_in_same_period_should_work() {
 
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance + claimed_rewards);
 		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_reward_balance - claimed_rewards
+			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_reward_balance - claimed_rewards
 		);
 
 		//withdraw should pass without claiming additional rewards
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
+		let bsx_tkn1_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
@@ -1679,13 +1676,13 @@ fn claim_and_withdraw_in_same_period_should_work() {
 		//unclaimable rewards are transferd from liq. pool account to global pool account
 		let unclaimable_rewards = 70_094;
 		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_reward_balance - unclaimable_rewards
+			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_reward_balance - unclaimable_rewards
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			global_pool_bsx_balance + unclaimable_rewards
+			Tokens::free_balance(BSX, &global_farm_account),
+			global_farm_bsx_balance + unclaimable_rewards
 		);
 	});
 }
@@ -1719,13 +1716,13 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			.unwrap()
 			.is_deleted());
 
-		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
+		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
-		let liq_pool_id_removed: PoolId = BSX_TKN1_YIELD_FARM_ID;
+		let yield_farm_id_removed: PoolId = BSX_TKN1_YIELD_FARM_ID;
 		let pallet_account = LiquidityMining::account_id();
 		let globa_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
-		let global_pool_bsx_balance = Tokens::free_balance(BSX, &globa_pool_account);
+		let global_farm_bsx_balance = Tokens::free_balance(BSX, &globa_pool_account);
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
@@ -1733,7 +1730,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
 			PREDEFINED_DEPOSIT_IDS[0],
-			liq_pool_id_removed
+			yield_farm_id_removed
 		));
 
 		let shares_amount = 50;
@@ -1741,7 +1738,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
-				yield_farm_id: liq_pool_id_removed,
+				yield_farm_id: yield_farm_id_removed,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: shares_amount,
@@ -1760,10 +1757,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
 
-		//TODO: Dani
-		//assert_eq!(WarehouseLM::liq_pool_meta(liq_pool_id_removed).unwrap(), (2, GC_FARM));
-
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_pool);
+		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
@@ -1776,7 +1770,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		//removed liq. pool don't pay rewards, only transfer amm shares
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance);
-		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_pool_bsx_balance);
+		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_farm_bsx_balance);
 
 		//2-nd withdraw
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
@@ -1787,13 +1781,13 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
 			PREDEFINED_DEPOSIT_IDS[6],
-			liq_pool_id_removed
+			yield_farm_id_removed
 		));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
-				yield_farm_id: liq_pool_id_removed,
+				yield_farm_id: yield_farm_id_removed,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: shares_amount,
@@ -1812,10 +1806,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[6]), None);
 
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_pool);
-
-		//TODO: Dani - fix
-		//assert_eq!(WarehouseLM::liq_pool_meta(liq_pool_id_removed).unwrap(), (1, GC_FARM));
+		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
@@ -1828,7 +1819,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		//removed liq. pool don't pay rewards, only transfer amm shares
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance);
-		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_pool_bsx_balance);
+		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_farm_bsx_balance);
 
 		//3-th withdraw
 		let bsx_tkn1_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &BOB);
@@ -1838,13 +1829,13 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(BOB),
 			PREDEFINED_DEPOSIT_IDS[1],
-			liq_pool_id_removed
+			yield_farm_id_removed
 		));
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
-				yield_farm_id: liq_pool_id_removed,
+				yield_farm_id: yield_farm_id_removed,
 				who: BOB,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: shares_amount,
@@ -1867,7 +1858,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			WarehouseLM::global_farm(GC_FARM).unwrap(),
 			GlobalFarmData {
 				yield_farms_count: (1, 1), //this value changed because last deposit flushed deleted yield farm
-				..global_pool
+				..global_farm
 			}
 		);
 
@@ -1879,7 +1870,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		//removed liq. pool don't pay rewards, only transfer amm shares
 		assert_eq!(Tokens::free_balance(BSX, &BOB), bob_bsx_balance);
-		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_pool_bsx_balance);
+		assert_eq!(Tokens::free_balance(BSX, &globa_pool_account), global_farm_bsx_balance);
 	});
 }
 

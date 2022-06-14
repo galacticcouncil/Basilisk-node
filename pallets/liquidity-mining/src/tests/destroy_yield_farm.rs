@@ -28,11 +28,11 @@ fn destroy_yield_farm_with_deposits_should_work() {
 	};
 
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 
-		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
-		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let yield_farm_bsx_balance = Tokens::free_balance(BSX, &yield_farm_account);
+		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
 
 		// cancel liq. pool before removing
 		assert_ok!(LiquidityMining::stop_yield_farm(
@@ -58,7 +58,6 @@ fn destroy_yield_farm_with_deposits_should_work() {
 			asset_pair: bsx_tkn1_assets,
 		})]);
 
-		//TODO: Dani - chheck - otherwise Martin
 		assert_eq!(
 			WarehouseLM::global_farm(GC_FARM).unwrap(),
 			GlobalFarmData {
@@ -79,12 +78,12 @@ fn destroy_yield_farm_with_deposits_should_work() {
 			}
 		);
 
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
+		assert_eq!(Tokens::free_balance(BSX, &yield_farm_account), 0);
 
-		//unpaid rewards from liq. pool account should be transfered back to global pool account
+		//unpaid rewards from yield farm account should be transferred back to global farm account
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			global_pool_bsx_balance.checked_add(liq_pool_bsx_balance).unwrap()
+			Tokens::free_balance(BSX, &global_farm_account),
+			global_farm_bsx_balance.checked_add(yield_farm_bsx_balance).unwrap()
 		);
 	});
 }
@@ -97,20 +96,20 @@ fn destroy_yield_farm_without_deposits_should_work() {
 	};
 
 	predefined_test_ext().execute_with(|| {
-		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 
-		let liq_pool_bsx_balance = Tokens::free_balance(BSX, &liq_pool_account);
-		let global_pool_bsx_balance = Tokens::free_balance(BSX, &global_pool_account);
+		let yield_farm_bsx_balance = Tokens::free_balance(BSX, &yield_farm_account);
+		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
 
-		//cancel pool before removing
+		//stop yield farm before destroying
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			bsx_tkn1_assets
 		));
 
-		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
+		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
@@ -126,34 +125,34 @@ fn destroy_yield_farm_without_deposits_should_work() {
 			asset_pair: bsx_tkn1_assets,
 		})]);
 
-		let live_farms_count = global_pool.yield_farms_count.0.checked_sub(1).unwrap();
+		let live_farms_count = global_farm.yield_farms_count.0.checked_sub(1).unwrap();
 
 		assert_eq!(
 			WarehouseLM::global_farm(GC_FARM).unwrap(),
 			GlobalFarmData {
 				yield_farms_count: (live_farms_count, live_farms_count),
-				..global_pool
+				..global_farm
 			}
 		);
 
-		//liq. pool should be removed from storage
+		//yield farm should be removed from storage
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)),
 			None
 		);
 
-		assert_eq!(Tokens::free_balance(BSX, &liq_pool_account), 0);
+		assert_eq!(Tokens::free_balance(BSX, &yield_farm_account), 0);
 
-		//unpaid rewards from liq. pool account should be transfered back to global pool account
+		//unpaid rewards from liq. pool account should be transferred back to global farm account
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			global_pool_bsx_balance.checked_add(liq_pool_bsx_balance).unwrap()
+			Tokens::free_balance(BSX, &global_farm_account),
+			global_farm_bsx_balance.checked_add(yield_farm_bsx_balance).unwrap()
 		);
 	});
 }
 
 #[test]
-fn destroy_yield_farm_non_canceled_liq_pool_should_not_work() {
+fn destroy_yield_farm_should_fail_when_yield_farm_is_not_stopped() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -187,7 +186,7 @@ fn destroy_yield_farm_not_owner_should_not_work() {
 }
 
 #[test]
-fn destroy_yield_farm_liq_pool_does_not_exists_should_not_work() {
+fn destroy_yield_farm_should_fail_when_yield_farm_does_not_exist() {
 	let bsx_dot_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: DOT,

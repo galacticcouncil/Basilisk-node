@@ -44,7 +44,6 @@ pub type BlockNumber = u64;
 pub type FarmId = u32;
 pub type GlobalFarmId = FarmId;
 pub type YieldFarmId = FarmId;
-pub type FarmMultiplier = FixedU128;
 pub type DepositId = u128;
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;

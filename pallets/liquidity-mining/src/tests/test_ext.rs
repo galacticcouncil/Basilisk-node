@@ -17,8 +17,8 @@
 
 use super::*;
 use crate::mock::PALLET_SERVICE_ACCOUNT;
+use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::YieldFarmData;
-use warehouse_liquidity_mining::{GlobalFarm, GlobalFarmData};
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -418,12 +418,9 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			asset_out: TKN2,
 		};
 
-		//NOTE: this should be LiquidityMining - shares are transfered to LiquidityMining account
-		//not to WarehouseLM.
-		let pallet_account = LiquidityMining::account_id();
-		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
+		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let bsx_tkn1_amm_account =
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
 		let bsx_tkn2_amm_account =
@@ -655,13 +652,13 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 
 		//reward currency balance check. total_rewards - sum(claimes from global pool)
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
+			Tokens::free_balance(BSX, &global_farm_account),
 			(30_000_000_000 - 1_164_400)
 		);
 
 		//check of claimed amount from global pool (sum of all claims)
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account), 212_400);
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_liq_pool_account), 952_000);
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account), 212_400);
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_yield_farm_account), 952_000);
 
 		//balance check after transfer amm shares
 		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE), 3_000_000 - 536);

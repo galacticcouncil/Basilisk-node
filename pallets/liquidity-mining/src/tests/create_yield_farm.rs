@@ -21,7 +21,7 @@ use test_ext::*;
 
 #[test]
 fn create_yield_farm_should_work() {
-	//Note: global_pool.updated_at isn't changed because pool is empty (no liq. pool stake in globalPool)
+	//Note: global_farm.updated_at isn't changed because farm is empty (no yield farm stake in globalFarm)
 	let test_data = vec![
 		(
 			AssetPair {
@@ -136,7 +136,7 @@ fn create_yield_farm_should_work() {
 	];
 
 	predefined_test_ext().execute_with(|| {
-		for (assets, pool, _amm_id, who, farm_id, now, global_pool) in test_data.clone() {
+		for (assets, pool, _amm_id, who, farm_id, now, global_farm) in test_data.clone() {
 			set_block_number(now);
 
 			assert_ok!(LiquidityMining::create_yield_farm(
@@ -156,7 +156,7 @@ fn create_yield_farm_should_work() {
 				asset_pair: assets,
 			})]);
 
-			assert_eq!(WarehouseLM::global_farm(farm_id).unwrap(), global_pool);
+			assert_eq!(WarehouseLM::global_farm(farm_id).unwrap(), global_farm);
 		}
 
 		for (_, pool, amm_id, _, farm_id, _, _) in test_data {
@@ -317,7 +317,7 @@ fn create_yield_farm_add_duplicate_amm_should_not_work() {
 
 		let aca_ksm_amm_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(aca_ksm_assets)).unwrap().0);
 
-		//check if liq. pool for aca ksm assets pair exist
+		//check if yield farm for aca ksm assets pair exist
 		assert!(WarehouseLM::active_yield_farm(aca_ksm_amm_account, CHARLIE_FARM).is_some());
 
 		//try to add same amm second time in the same block(period)

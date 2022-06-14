@@ -40,12 +40,12 @@ fn deposit_shares_should_work() {
 			asset_out: TKN2,
 		};
 
-		//NOTE: this should be LiquidityMining - shares are transfered to LiquidityMining account
+		//NOTE: this should be LiquidityMining - shares are transferred to LiquidityMining account
 		//not to WarehouseLM.
 		let pallet_account = LiquidityMining::account_id();
-		let global_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
+		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let bsx_tkn1_amm_account =
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
 		let bsx_tkn2_amm_account =
@@ -146,13 +146,13 @@ fn deposit_shares_should_work() {
 			bsx_tkn1_amm_account
 		);
 
-		//check if shares was transferd from extrinsic caller
+		//check if shares was transferred from extrinsic caller
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
 			bsx_tkn1_alice_shares - deposited_amount
 		);
 
-		//check if shares was transferd to liq. mining pallet account
+		//check if shares was transferred to liq. mining pallet account
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
 			deposited_amount
@@ -245,7 +245,7 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
 		assert_eq!(
 			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[1]).unwrap(),
 			bsx_tkn1_amm_account
@@ -259,12 +259,12 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 130); //130 - sum of all deposited shares until now
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			(30_000_000_000 - 112_500) //total_rewards - sum(claimed rewards by all liq. pools until now)
+			Tokens::free_balance(BSX, &global_farm_account),
+			(30_000_000_000 - 112_500) //total_rewards - sum(claimed rewards by all yield farms until now)
 		);
 
-		//check if claim from global pool was transferred to liq. pool account
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account), 112_500);
+		//check if claim from global pool was transferred to yield farm account
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account), 112_500);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
 		let bsx_tkn2_bob_shares = Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB);
@@ -276,7 +276,7 @@ fn deposit_shares_should_work() {
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(BOB),
 			farm_id,
-			BSX_TKN2_YIELD_FARM_ID, //TODO: ask Dani - is it surely this?
+			BSX_TKN2_YIELD_FARM_ID,
 			bsx_tkn2_assets,
 			deposited_amount
 		));
@@ -353,30 +353,30 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
 		assert_eq!(
 			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[2]).unwrap(),
 			bsx_tkn2_amm_account
 		);
 
-		//check if shares was transfered from deposit owner
+		//check if shares was transferred from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB),
 			bsx_tkn2_bob_shares - deposited_amount
 		);
 		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 25); //25 - sum of all deposited shares until now
 
-		//pool wasn't updated in this period so no claim from global pool
+		//pool wasn't updated in this period so no claim from global farm
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			(30_000_000_000 - 112_500) //total_rewards - claimed rewards by liq. pool
+			Tokens::free_balance(BSX, &global_farm_account),
+			(30_000_000_000 - 112_500) //total_rewards - claimed rewards by yield farm
 		);
 
-		// no claim happed for this pool so this is same as after previous deposit
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account), 112_500);
-		//check if claim from global pool was transfered to liq. pool account
-		//(there was no clai for this pool)
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_liq_pool_account), 0);
+		// no claim happed for this yield farm so this is same as after previous deposit
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account), 112_500);
+		//check if claim from global farm was transferred to liq. pool account
+		//(there was no claim for this yield farm)
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_yield_farm_account), 0);
 
 		// DEPOSIT 4 (new period):
 		set_block_number(2051); //period 20
@@ -466,13 +466,13 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
 		assert_eq!(
 			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[3]).unwrap(),
 			bsx_tkn2_amm_account
 		);
 
-		//check if shares was transfered from deposit owner
+		//check if shares was transferred from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB),
 			bsx_tkn2_bob_shares - deposited_amount
@@ -480,16 +480,16 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 825); //825 - sum of all deposited shares until now
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			(30_000_000_000 - 132_500) //total_rewards - sum(claimed rewards by all liq. pools until now)
+			Tokens::free_balance(BSX, &global_farm_account),
+			(30_000_000_000 - 132_500) //total_rewards - sum(claimed rewards by all yield farms until now)
 		);
 
-		//check if claim from global pool was transfered to liq. pool account
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account), 112_500);
-		//check if claim from global pool was transfered to liq. pool account
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_liq_pool_account), 20_000);
+		//check if claim from global pool was transferred to yield farm account
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account), 112_500);
+		//check if claim from global pool was transferred to yield farm account
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_yield_farm_account), 20_000);
 
-		// DEPOSIT 5 (same period, second liq pool yield farm):
+		// DEPOSIT 5 (same period, second yield farm):
 		set_block_number(2_586); //period 20
 		let bsx_tkn2_alice_shares = Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE);
 
@@ -577,13 +577,13 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
 		assert_eq!(
 			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[4]).unwrap(),
 			bsx_tkn2_amm_account
 		);
 
-		//check if shares was transfered from deposit owner
+		//check if shares was transferred from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
 			bsx_tkn2_alice_shares - 87
@@ -591,13 +591,13 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 912); //912 - sum of all deposited shares until now
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			(30_000_000_000 - 1_064_500) //total_rewards - sum(claimed rewards by all liq. pools until now)
+			Tokens::free_balance(BSX, &global_farm_account),
+			(30_000_000_000 - 1_064_500) //total_rewards - sum(claimed rewards by all yield farms until now)
 		);
 
-		//check if claim from global pool was transfered to liq. pool account
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account), 112_500); //total_rewards - sum(claimed rewards by all liq. pools until now)
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_liq_pool_account), 952_000); //total_rewards - sum(claimed rewards by all liq. pools until now)
+		//check if claim from global farm was transferred to yield farm account
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account), 112_500); //total_rewards - sum(claimed rewards by all yield farms until now)
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_yield_farm_account), 952_000); //total_rewards - sum(claimed rewards by all yield farms until now)
 
 		// DEPOSIT 6 (same period):
 		set_block_number(2_596); //period 20
@@ -670,9 +670,6 @@ fn deposit_shares_should_work() {
 			},
 		);
 
-		//TODO: Dani
-		//assert_eq!(WarehouseLM::liq_pool_meta(BSX_TKN2_LIQ_POOL_ID).unwrap(), (4, GC_FARM));
-
 		assert_eq!(
 			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[5]).unwrap(),
 			DepositData {
@@ -690,13 +687,13 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
 		assert_eq!(
 			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[5]).unwrap(),
 			bsx_tkn2_amm_account
 		);
 
-		//check if shares was transfered from deposit owner
+		//check if shares was transferred from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
 			bsx_tkn2_alice_shares - deposited_amount
@@ -704,14 +701,14 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account), 960); //960 - sum of all deposited shares until now
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			(30_000_000_000 - 1_064_500) //total_rewards - sum(claimed rewards by all liq. pools until now)
+			Tokens::free_balance(BSX, &global_farm_account),
+			(30_000_000_000 - 1_064_500) //total_rewards - sum(claimed rewards by all yield farms until now)
 		);
 
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account), 112_500); //total_rewards - sum(claimed rewards by all liq. pools until now)
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_liq_pool_account), 952_000); //total_rewards - sum(claimed rewards by all liq. pools until now)
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account), 112_500); //total_rewards - sum(claimed rewards by all yield farms until now)
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_yield_farm_account), 952_000); //total_rewards - sum(claimed rewards by all yield farms until now)
 
-		// DEPOSIT 7 : (same period differen liq poll farm)
+		// DEPOSIT 7 : (same period differet yield farm)
 		set_block_number(2_596); //period 20
 		let bsx_tkn1_alice_shares = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 
@@ -799,13 +796,13 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: nft_id, value: amm::get_pair_id()
+		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
 		assert_eq!(
 			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[6]).unwrap(),
 			bsx_tkn1_amm_account
 		);
 
-		//check if shares was transfered from deposit owner
+		//check if shares was transferred from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
 			bsx_tkn1_alice_shares - deposited_amount
@@ -813,19 +810,19 @@ fn deposit_shares_should_work() {
 		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 616); //616 - sum of all deposited shares until now
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &global_pool_account),
-			(30_000_000_000 - 1_164_400) //total_rewards - sum(claimed rewards by all liq. pools until now)
+			Tokens::free_balance(BSX, &global_farm_account),
+			(30_000_000_000 - 1_164_400) //total_rewards - sum(claimed rewards by all yield farms until now)
 		);
 
-		//check if claim from global pool was transfered to liq. pool account
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account), 212_400); //total_rewards - sum(claimed rewards by all liq. pools until now)
-		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_liq_pool_account), 952_000); //total_rewards - sum(claimed rewards by all liq. pools until now)
+		//check if claim from global farm was transferred to yield farm account
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account), 212_400); //total_rewards - sum(claimed rewards by all yield farms until now)
+		assert_eq!(Tokens::free_balance(BSX, &bsx_tkn2_yield_farm_account), 952_000); //total_rewards - sum(claimed rewards by all yield farms until now)
 	});
 
 	//deposit to farm with different incentivized_asset and reward_currency
 	//charlie's farm incetivize KSM and reward currency is ACA
 	//This test only check if valued shares are correctly calculated if reward and incentivized
-	//assets are different, otherwise pool behaviour is same as in test above.
+	//assets are different, otherwise farm behaviour is same as in test above.
 	predefined_test_ext().execute_with(|| {
 		let aca_ksm_assets = AssetPair {
 			asset_in: ACA,
@@ -912,7 +909,7 @@ fn deposit_shares_insufficient_shares_balance_should_not_work() {
 }
 
 #[test]
-fn deposit_shares_non_existing_liq_pool_should_not_work() {
+fn deposit_shares_non_existing_yield_farm_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let bsx_dot_assets = AssetPair {
 			asset_in: BSX,
@@ -933,7 +930,7 @@ fn deposit_shares_non_existing_liq_pool_should_not_work() {
 }
 
 #[test]
-fn deposit_shares_canceled_liq_pool_should_not_work() {
+fn deposit_shares_stopped_yield_farm_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let bsx_tkn1_assets = AssetPair {
 			asset_in: BSX,
@@ -946,10 +943,15 @@ fn deposit_shares_canceled_liq_pool_should_not_work() {
 			bsx_tkn1_assets
 		));
 
-		//TODO: ask Martin - where is the liq mining cancelled error?
-		/*assert_noop!(
-			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM,BSX_TKN1_LIQ_POOL_ID, bsx_tkn1_assets, 10_000),
-			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningCanceled
-		);*/
+		assert_noop!(
+			LiquidityMining::deposit_shares(
+				Origin::signed(ALICE),
+				GC_FARM,
+				BSX_TKN1_YIELD_FARM_ID,
+				bsx_tkn1_assets,
+				10_000
+			),
+			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningIsNotActive
+		);
 	});
 }

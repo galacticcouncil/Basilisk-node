@@ -35,7 +35,6 @@ const CHARLIE_FARM: u32 = ACA_FARM;
 const DAVE_FARM: u32 = 5;
 const EVE_FARM: u32 = 6;
 
-use warehouse_liquidity_mining::Config;
 use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::GlobalFarmState;
 use warehouse_liquidity_mining::LoyaltyCurve;

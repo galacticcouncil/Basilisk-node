@@ -27,9 +27,9 @@ use warehouse_liquidity_mining::{DepositData, YieldFarmEntry};
 fn claim_rewards_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn2_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
-		let bsx_tkn1_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
+		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
+		let bsx_tkn1_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
 
 		let expected_claimed_rewards = 79_906;
 
@@ -73,13 +73,13 @@ fn claim_rewards_should_work() {
 
 		//check balance on liq. pool account
 		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_reward_balance - expected_claimed_rewards
+			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_reward_balance - expected_claimed_rewards
 		);
 
 		// claim B3.1
 		set_block_number(3_056);
-		let bsx_tkn2_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn2_liq_pool_account);
+		let bsx_tkn2_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn2_yield_farm_account);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
 		let expected_claimed_rewards = 2_734;
@@ -152,22 +152,22 @@ fn claim_rewards_should_work() {
 			},
 		);
 
-		//check if claimed rewards was transfered
+		//check if claimed rewards was transferred
 		assert_eq!(
 			Tokens::free_balance(BSX, &ALICE),
 			alice_bsx_balance + expected_claimed_rewards
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn2_liq_pool_account),
-			bsx_tkn2_liq_pool_reward_balance + 952_580 - expected_claimed_rewards //952_580 liq. claim from global pool
+			Tokens::free_balance(BSX, &bsx_tkn2_yield_farm_account),
+			bsx_tkn2_yield_farm_reward_balance + 952_580 - expected_claimed_rewards //952_580 liq. claim from global pool
 		);
 
 		//run for log time(longer than planned_yielding_periods) without interaction or claim.
 		//planned_yielding_periods = 500; 100 blocks per period
 		//claim A1.2
 		set_block_number(125_879);
-		let bsx_tkn1_liq_pool_reward_banance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
+		let bsx_tkn1_yield_farm_reward_banance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
 
 		let expected_claimed_rewards = 7_477_183;
@@ -263,8 +263,8 @@ fn claim_rewards_should_work() {
 		);
 
 		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_reward_banance + 140_263_200 - expected_claimed_rewards //140_263_200 liq. claim from global pool
+			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_reward_banance + 140_263_200 - expected_claimed_rewards //140_263_200 liq. claim from global pool
 		);
 	});
 
@@ -328,7 +328,7 @@ fn claim_rewards_should_work() {
 
 #[test]
 fn claim_rewards_deposit_with_multiple_entries_should_work() {
-	const bsx_tkn1_assets: AssetPair = AssetPair {
+	let bsx_tkn1_assets: AssetPair = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
 	};
@@ -542,8 +542,8 @@ fn claim_rewards_deposit_with_multiple_entries_should_work() {
 fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn1_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
+		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn1_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
 
 		//1-th claim should work ok
 		assert_ok!(LiquidityMining::claim_rewards(
@@ -579,8 +579,8 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance + 79_906);
 		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_reward_balance - 79_906
+			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_reward_balance - 79_906
 		);
 
 		//second claim should fail
@@ -592,7 +592,7 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 }
 
 #[test]
-fn claim_rewards_from_canceled_pool_should_work() {
+fn claim_rewards_from_stopped_yield_farm_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let bsx_tkn1_assets = AssetPair {
 			asset_in: BSX,
@@ -607,8 +607,8 @@ fn claim_rewards_from_canceled_pool_should_work() {
 		));
 
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_liq_pool_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn1_liq_pool_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account);
+		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
+		let bsx_tkn1_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
 
 		let expected_claimed_rewards = 79_906;
 
@@ -651,14 +651,14 @@ fn claim_rewards_from_canceled_pool_should_work() {
 
 		//check balance on liq. pool account
 		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn1_liq_pool_account),
-			bsx_tkn1_liq_pool_reward_balance - expected_claimed_rewards
+			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
+			bsx_tkn1_yield_farm_reward_balance - expected_claimed_rewards
 		);
 	});
 }
 
 #[test]
-fn claim_rewards_from_removed_pool_should_not_work() {
+fn claim_rewards_from_destroyed_yield_farm_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let bsx_tkn1_assets = AssetPair {
 			asset_in: BSX,

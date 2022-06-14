@@ -83,7 +83,7 @@ fn destroy_global_farm_farm_not_exists_should_not_work() {
 
 #[test]
 fn destroy_global_farm_with_pools_should_not_work() {
-	//all rewards was distributed but liq. pool still exist in the farm
+	//all rewards was distributed but yield farm still exist in the farm
 	predefined_test_ext().execute_with(|| {
 		//transfer all rewards from farm account
 		let farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
@@ -108,7 +108,7 @@ fn destroy_global_farm_with_pools_should_not_work() {
 }
 
 #[test]
-fn destroy_global_farm_healthy_farm_should_not_work() {
+fn destroy_global_farm_fail_when_farm_is_healthy() {
 	//farm with undistributed rewards and liq. pools
 	predefined_test_ext().execute_with(|| {
 		let farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();

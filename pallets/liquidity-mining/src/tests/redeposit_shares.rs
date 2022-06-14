@@ -119,7 +119,7 @@ fn redeposit_lp_shares_deposit_should_fail_with_error_when_asset_pair_has_invali
 }
 
 #[test]
-fn redeposit_lp_shares_should_fail_with_error_when_desosit_can_not_be_found() {
+fn redeposit_lp_shares_should_fail_with_error_when_deposit_can_not_be_found() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
 			LiquidityMining::redeposit_lp_shares(

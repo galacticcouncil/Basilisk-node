@@ -35,13 +35,13 @@ fn resume_yield_farm_should_work() {
 			bsx_tkn1_assets
 		));
 
-		let liq_pool = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
-		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
+		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
+		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		let new_multiplier = FixedU128::from(7_490_000);
 
-		assert_eq!(liq_pool.state, YieldFarmState::Stopped);
-		assert!(liq_pool.multiplier.is_zero());
+		assert_eq!(yield_farm.state, YieldFarmState::Stopped);
+		assert!(yield_farm.multiplier.is_zero());
 
 		set_block_number(13_420_000);
 
@@ -53,7 +53,7 @@ fn resume_yield_farm_should_work() {
 			new_multiplier
 		));
 
-		let liq_pool_stake_in_global_pool = new_multiplier.checked_mul_int(45_540).unwrap();
+		let yield_farm_stake_in_global_farm = new_multiplier.checked_mul_int(45_540).unwrap();
 
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
@@ -62,25 +62,25 @@ fn resume_yield_farm_should_work() {
 				accumulated_rpz: 62_996,
 				multiplier: new_multiplier,
 				updated_at: 134_200,
-				..liq_pool
+				..yield_farm
 			}
 		);
 
 		assert_eq!(
 			WarehouseLM::global_farm(GC_FARM).unwrap(),
 			GlobalFarmData {
-				total_shares_z: global_pool.total_shares_z + liq_pool_stake_in_global_pool,
+				total_shares_z: global_farm.total_shares_z + yield_farm_stake_in_global_farm,
 				updated_at: 134_200,
 				accumulated_rpz: 62_996,
 				accumulated_rewards: 29_999_067_250,
-				..global_pool
+				..global_farm
 			}
 		);
 	});
 }
 
 #[test]
-fn resume_yield_farm_non_existing_pool_should_not_work() {
+fn resume_yield_farm_should_fail_when_yield_farm_does_not_exist() {
 	let bsx_ksm_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: KSM,
@@ -103,7 +103,7 @@ fn resume_yield_farm_non_existing_pool_should_not_work() {
 }
 
 #[test]
-fn resume_yield_farm_non_canceled_pool_should_not_work() {
+fn resume_yield_farm_should_fail_when_yield_farm_is_not_stopped() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,

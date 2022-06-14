@@ -179,7 +179,7 @@ fn create_global_farm_invalid_data_should_not_work() {
 }
 
 #[test]
-fn create_global_farm_with_inssufficient_balance_should_not_work() {
+fn create_global_farm_with_insufficient_balance_should_not_work() {
 	//owner account balance is 1M BSX
 	new_test_ext().execute_with(|| {
 		assert_noop!(
