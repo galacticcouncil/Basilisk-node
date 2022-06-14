@@ -340,7 +340,7 @@ pub mod pallet {
 		#[allow(clippy::too_many_arguments)]
 		#[pallet::weight(<T as Config>::WeightInfo::create_farm())]
 		#[transactional]
-		pub fn create_farm(
+		pub fn create_global_farm(
 			origin: OriginFor<T>,
 			total_rewards: Balance,
 			planned_yielding_periods: PeriodOf<T>,

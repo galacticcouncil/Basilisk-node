@@ -32,7 +32,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 pub fn predefined_test_ext() -> sp_io::TestExternalities {
 	let mut ext = new_test_ext();
 	ext.execute_with(|| {
-		assert_ok!(LiquidityMining::create_farm(
+		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			100_000_000_000,
 			PREDEFINED_GLOBAL_POOLS[0].planned_yielding_periods,
@@ -43,7 +43,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_POOLS[0].yield_per_period,
 		));
 
-		assert_ok!(LiquidityMining::create_farm(
+		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			1_000_000_000,
 			PREDEFINED_GLOBAL_POOLS[1].planned_yielding_periods,
@@ -54,7 +54,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_POOLS[1].yield_per_period,
 		));
 
-		assert_ok!(LiquidityMining::create_farm(
+		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			30_000_000_000,
 			PREDEFINED_GLOBAL_POOLS[2].planned_yielding_periods,
@@ -65,7 +65,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_POOLS[2].yield_per_period,
 		));
 
-		assert_ok!(LiquidityMining::create_farm(
+		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			30_000_000_000,
 			PREDEFINED_GLOBAL_POOLS[3].planned_yielding_periods,
@@ -76,7 +76,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_POOLS[3].yield_per_period,
 		));
 
-		assert_ok!(LiquidityMining::create_farm(
+		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			30_000_000_000,
 			PREDEFINED_GLOBAL_POOLS[4].planned_yielding_periods,
@@ -87,7 +87,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_POOLS[4].yield_per_period,
 		));
 
-		assert_ok!(LiquidityMining::create_farm(
+		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			30_000_000_000,
 			PREDEFINED_GLOBAL_POOLS[5].planned_yielding_periods,

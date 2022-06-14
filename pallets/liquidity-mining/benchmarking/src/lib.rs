@@ -90,7 +90,7 @@ fn init_farm<T: Config>(
 	owner: T::AccountId,
 	yield_per_period: Permill,
 ) -> dispatch::DispatchResult {
-	LiquidityMining::<T>::create_farm(
+	LiquidityMining::<T>::create_global_farm(
 		RawOrigin::Root.into(),
 		total_rewards * NATIVE_EXISTENTIAL_DEPOSIT,
 		T::BlockNumber::from(1_000_000_u32),
@@ -148,10 +148,10 @@ fn set_block_number<T: Config>(block: u32) {
 }
 
 benchmarks! {
-	create_farm {
+	create_global_farm {
 		let caller = funded_account::<T>("caller", 0);
 	}: {
-		LiquidityMining::<T>::create_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, T::BlockNumber::from(1_000_000_u32), T::BlockNumber::from(1_u32), BSX, BSX, caller.clone(), Permill::from_percent(20))? }
+		LiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, T::BlockNumber::from(1_000_000_u32), T::BlockNumber::from(1_u32), BSX, BSX, caller.clone(), Permill::from_percent(20))? }
 	verify {
 		assert!(WarehouseLM::<T>::global_farm(1).is_some());
 	}

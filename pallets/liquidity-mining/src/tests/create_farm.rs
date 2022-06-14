@@ -19,7 +19,7 @@ use super::*;
 use test_ext::*;
 
 #[test]
-fn create_farm_should_work() {
+fn create_global_farm_should_work() {
 	new_test_ext().execute_with(|| {
 		let id = 1;
 		let total_rewards: Balance = 50_000_000_000;
@@ -38,7 +38,7 @@ fn create_farm_should_work() {
 		let pool_account = WarehouseLM::farm_account_id(id).unwrap();
 		assert_eq!(Tokens::free_balance(reward_currency, &pool_account), 0);
 
-		assert_ok!(LiquidityMining::create_farm(
+		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			total_rewards,
 			planned_yielding_periods,
@@ -87,14 +87,14 @@ fn create_farm_should_work() {
 }
 
 #[test]
-fn create_farm_from_basic_origin_should_not_work() {
+fn create_global_farm_from_basic_origin_should_not_work() {
 	new_test_ext().execute_with(|| {
 		let created_at_block = 15_896;
 
 		set_block_number(created_at_block);
 
 		assert_noop!(
-			LiquidityMining::create_farm(
+			LiquidityMining::create_global_farm(
 				Origin::signed(ALICE),
 				1_000_000,
 				1_000,
@@ -110,7 +110,7 @@ fn create_farm_from_basic_origin_should_not_work() {
 }
 
 #[test]
-fn create_farm_invalid_data_should_not_work() {
+fn create_global_farm_invalid_data_should_not_work() {
 	new_test_ext().execute_with(|| {
 		let created_at_block = 15_896;
 
@@ -118,7 +118,7 @@ fn create_farm_invalid_data_should_not_work() {
 
 		//total_rewards bellow min. limit
 		assert_noop!(
-			LiquidityMining::create_farm(
+			LiquidityMining::create_global_farm(
 				Origin::root(),
 				100,
 				1_000,
@@ -133,7 +133,7 @@ fn create_farm_invalid_data_should_not_work() {
 
 		//planned_yielding_periods bellow min. limit
 		assert_noop!(
-			LiquidityMining::create_farm(
+			LiquidityMining::create_global_farm(
 				Origin::root(),
 				1_000_000,
 				10,
@@ -148,7 +148,7 @@ fn create_farm_invalid_data_should_not_work() {
 
 		//blocks_per_period is 0.
 		assert_noop!(
-			LiquidityMining::create_farm(
+			LiquidityMining::create_global_farm(
 				Origin::root(),
 				1_000_000,
 				1_000,
@@ -163,7 +163,7 @@ fn create_farm_invalid_data_should_not_work() {
 
 		//yield_per_period is 0.
 		assert_noop!(
-			LiquidityMining::create_farm(
+			LiquidityMining::create_global_farm(
 				Origin::root(),
 				1_000_000,
 				1_000,
@@ -179,11 +179,11 @@ fn create_farm_invalid_data_should_not_work() {
 }
 
 #[test]
-fn create_farm_with_inssufficient_balance_should_not_work() {
+fn create_global_farm_with_inssufficient_balance_should_not_work() {
 	//owner account balance is 1M BSX
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::create_farm(
+			LiquidityMining::create_global_farm(
 				Origin::root(),
 				1_000_001,
 				1_000,
