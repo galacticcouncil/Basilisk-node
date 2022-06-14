@@ -1,6 +1,6 @@
 [package]
 name = "testing-basilisk-runtime"
-version = "49.0.0"
+version = "50.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -102,6 +102,7 @@ pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "p
 pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-preimage = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-proxy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
+pallet-multisig = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
@@ -152,6 +153,8 @@ runtime-benchmarks = [
     "pallet-scheduler/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
     "pallet-tips/runtime-benchmarks",
+    "pallet-proxy/runtime-benchmarks",
+    "pallet-multisig/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "pallet-liquidity-mining-benchmarking",
 ]
@@ -222,6 +225,8 @@ std = [
     "pallet-democracy/std",
     "pallet-scheduler/std",
     "pallet-tips/std",
+    "pallet-proxy/std",
+    "pallet-multisig/std",
     "pallet-collator-selection/std",
     "pallet-authorship/std",
     "scale-info/std",
