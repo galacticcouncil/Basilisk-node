@@ -115,7 +115,7 @@ fn add_insufficient_liquidity_fails() {
 			let asset_a: AssetId = 1;
 			let asset_b: AssetId = 2;
 			let amplification: u16 = 100;
-			let initial_liquidity = (100 * ONE, 1 * ONE);
+			let initial_liquidity = (100 * ONE, ONE);
 
 			let pool_id = PoolId(retrieve_current_asset_id());
 
