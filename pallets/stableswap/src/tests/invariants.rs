@@ -4,6 +4,7 @@ use crate::types::{PoolAssets, PoolId};
 use frame_support::assert_ok;
 use sp_runtime::{FixedU128, Permill};
 
+use hydra_dx_math::stableswap::math::two_asset_pool_math::calculate_d;
 use proptest::prelude::*;
 use proptest::proptest;
 
@@ -199,6 +200,13 @@ proptest! {
 					fee,
 				));
 
+				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+
+				let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
+				let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
+				let ann: Balance = amplification as u128 * 2 * 2;
+				let d_prev = calculate_d::<128u8>(&[asset_a_reserve,asset_b_reserve], ann, 1u128).unwrap();
+
 				assert_ok!(Stableswap::sell(
 					Origin::signed(BOB),
 					pool_id,
@@ -208,9 +216,12 @@ proptest! {
 					0u128, // not interested in this
 				));
 
-				//let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+				let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
+				let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
+				let ann: Balance = amplification as u128 * 2 * 2;
+				let d = calculate_d::<128u8>(&[asset_a_reserve,asset_b_reserve], ann, 1u128).unwrap();
 
-				//TODO: add D invariant check before and after sell, but this required calculate_d to be exposed first in math package.
+				 assert!(d >= d_prev);
 			});
 	}
 }
@@ -249,6 +260,13 @@ proptest! {
 					fee,
 				));
 
+				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+
+				let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
+				let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
+				let ann: Balance = amplification as u128 * 2 * 2;
+				let d_prev = calculate_d::<128u8>(&[asset_a_reserve,asset_b_reserve], ann, 1u128).unwrap();
+
 				assert_ok!(Stableswap::buy(
 					Origin::signed(BOB),
 					pool_id,
@@ -257,10 +275,12 @@ proptest! {
 					amount,
 					u128::MAX, // not interested in this
 				));
+				let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
+				let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
+				let ann: Balance = amplification as u128 * 2 * 2;
+				let d = calculate_d::<128u8>(&[asset_a_reserve,asset_b_reserve], ann, 1u128).unwrap();
 
-				//let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
-
-				//TODO: add D invariant check before and after sell, but this required calculate_d to be exposed first in math package.
+				 assert!(d >= d_prev);
 			});
 	}
 }
