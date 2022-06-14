@@ -1079,7 +1079,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 			BSX_TKN1_ASSETS
 		));
 
-		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(DAVE), DAVE_FARM));
+		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(DAVE), DAVE_FARM));
 
 		let unclaimable_rewards = 0;
 		let shares_amount = 50;
@@ -1199,7 +1199,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 		));
 
 		//destroy farm
-		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM));
+		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(GC), GC_FARM));
 
 		//check if farm and pools was removed from storage
 		assert!(WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID))

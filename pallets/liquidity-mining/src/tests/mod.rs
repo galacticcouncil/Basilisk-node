@@ -265,7 +265,7 @@ pub mod cancel_liquidity_pool;
 pub mod claim_rewards;
 pub mod create_global_farm;
 pub mod deposit_shares;
-pub mod destroy_farm;
+pub mod destroy_global_farm;
 pub mod redeposit_shares;
 pub mod remove_liquidity_pool;
 pub mod resume_liquidity_pool;

@@ -389,7 +389,7 @@ pub mod pallet {
 		/// Emits `FarmDestroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_farm())]
 		#[transactional]
-		pub fn destroy_farm(origin: OriginFor<T>, farm_id: GlobalPoolId) -> DispatchResult {
+		pub fn destroy_global_farm(origin: OriginFor<T>, farm_id: GlobalPoolId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			warehouse_liquidity_mining::Pallet::<T>::destroy_global_farm(who.clone(), farm_id)?;

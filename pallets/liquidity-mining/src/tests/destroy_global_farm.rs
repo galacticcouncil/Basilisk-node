@@ -19,7 +19,7 @@ use super::*;
 use test_ext::*;
 
 #[test]
-fn destroy_farm_should_work() {
+fn destroy_global_farm_should_work() {
 	predefined_test_ext().execute_with(|| {
 		//transfer all rewards from farm account
 		let farm_account = WarehouseLM::farm_account_id(BOB_FARM).unwrap();
@@ -34,7 +34,7 @@ fn destroy_farm_should_work() {
 			0
 		);
 
-		assert_ok!(LiquidityMining::destroy_farm(Origin::signed(BOB), BOB_FARM));
+		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(BOB), BOB_FARM));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::FarmDestroyed {
 			id: BOB_FARM,
@@ -46,7 +46,7 @@ fn destroy_farm_should_work() {
 }
 
 #[test]
-fn destroy_farm_not_owner_should_not_work() {
+fn destroy_global_farm_not_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		//transfer all rewards from farm account
 		let farm_account = WarehouseLM::farm_account_id(BOB_FARM).unwrap();
@@ -62,7 +62,7 @@ fn destroy_farm_not_owner_should_not_work() {
 		);
 
 		assert_noop!(
-			LiquidityMining::destroy_farm(Origin::signed(ALICE), BOB_FARM),
+			LiquidityMining::destroy_global_farm(Origin::signed(ALICE), BOB_FARM),
 			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 
@@ -71,18 +71,18 @@ fn destroy_farm_not_owner_should_not_work() {
 }
 
 #[test]
-fn destroy_farm_farm_not_exists_should_not_work() {
+fn destroy_global_farm_farm_not_exists_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		const NON_EXISTING_FARM: u32 = 999_999_999;
 		assert_noop!(
-			LiquidityMining::destroy_farm(Origin::signed(ALICE), NON_EXISTING_FARM),
+			LiquidityMining::destroy_global_farm(Origin::signed(ALICE), NON_EXISTING_FARM),
 			warehouse_liquidity_mining::Error::<Test>::GlobalFarmNotFound
 		);
 	});
 }
 
 #[test]
-fn destroy_farm_with_pools_should_not_work() {
+fn destroy_global_farm_with_pools_should_not_work() {
 	//all rewards was distributed but liq. pool still exist in the farm
 	predefined_test_ext().execute_with(|| {
 		//transfer all rewards from farm account
@@ -99,7 +99,7 @@ fn destroy_farm_with_pools_should_not_work() {
 		);
 
 		assert_noop!(
-			LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM),
+			LiquidityMining::destroy_global_farm(Origin::signed(GC), GC_FARM),
 			warehouse_liquidity_mining::Error::<Test>::GlobalFarmIsNotEmpty
 		);
 
@@ -108,14 +108,14 @@ fn destroy_farm_with_pools_should_not_work() {
 }
 
 #[test]
-fn destroy_farm_healthy_farm_should_not_work() {
+fn destroy_global_farm_healthy_farm_should_not_work() {
 	//farm with undistributed rewards and liq. pools
 	predefined_test_ext().execute_with(|| {
 		let farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		assert!(!Tokens::free_balance(PREDEFINED_GLOBAL_POOLS[2].reward_currency, &farm_account).is_zero());
 
 		assert_noop!(
-			LiquidityMining::destroy_farm(Origin::signed(GC), GC_FARM),
+			LiquidityMining::destroy_global_farm(Origin::signed(GC), GC_FARM),
 			warehouse_liquidity_mining::Error::<Test>::GlobalFarmIsNotEmpty
 		);
 
