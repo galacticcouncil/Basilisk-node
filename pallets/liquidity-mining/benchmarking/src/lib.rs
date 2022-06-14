@@ -270,7 +270,7 @@ benchmarks! {
 		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().updated_at, 200_000_u32.into());
 	}
 
-	remove_liquidity_pool {
+	destroy_yield_farm {
 		//init nft class for liq. mining
 		pallet_liquidity_mining::migration::init_nft_class::<T>();
 
@@ -310,7 +310,7 @@ benchmarks! {
 
 		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
 	}: {
-		LiquidityMining::<T>::remove_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets)?
+		LiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?
 	}
 	verify {
 		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id).is_none());

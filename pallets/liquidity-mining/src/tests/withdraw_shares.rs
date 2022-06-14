@@ -1072,7 +1072,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 			DAVE_FARM,
 			BSX_TKN1_ASSETS
 		));
-		assert_ok!(LiquidityMining::remove_liquidity_pool(
+		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(DAVE),
 			DAVE_FARM,
 			DAVE_BSX_TKN1_YIELD_FARM_ID,
@@ -1185,13 +1185,13 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 		));
 
 		//remove all liq. pools from farm
-		assert_ok!(LiquidityMining::remove_liquidity_pool(
+		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_LIQ_POOL_ID,
 			bsx_tkn1_assets
 		));
-		assert_ok!(LiquidityMining::remove_liquidity_pool(
+		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN2_LIQ_POOL_ID,
@@ -1708,7 +1708,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		));
 
 		//remove liq. pool before test
-		assert_ok!(LiquidityMining::remove_liquidity_pool(
+		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_LIQ_POOL_ID,

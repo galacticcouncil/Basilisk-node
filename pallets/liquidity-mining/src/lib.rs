@@ -590,7 +590,7 @@ pub mod pallet {
 		/// Emits `YieldFarmRemoved` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity_pool())]
 		#[transactional]
-		pub fn remove_liquidity_pool(
+		pub fn destroy_yield_farm(
 			origin: OriginFor<T>,
 			farm_id: GlobalPoolId,
 			yield_farm_id: PoolId,

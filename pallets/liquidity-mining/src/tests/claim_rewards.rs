@@ -673,7 +673,7 @@ fn claim_rewards_from_removed_pool_should_not_work() {
 		));
 
 		//remove liq. pool before claim test
-		assert_ok!(LiquidityMining::remove_liquidity_pool(
+		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_LIQ_POOL_ID,

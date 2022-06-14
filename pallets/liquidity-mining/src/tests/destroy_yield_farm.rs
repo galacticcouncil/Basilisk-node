@@ -21,7 +21,7 @@ use test_ext::*;
 use warehouse_liquidity_mining::GlobalFarmData;
 
 #[test]
-fn remove_liquidity_pool_with_deposits_should_work() {
+fn destroy_yield_farm_with_deposits_should_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -44,7 +44,7 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_LIQ_POOL_ID)).unwrap();
 
-		assert_ok!(LiquidityMining::remove_liquidity_pool(
+		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_LIQ_POOL_ID,
@@ -90,7 +90,7 @@ fn remove_liquidity_pool_with_deposits_should_work() {
 }
 
 #[test]
-fn remove_liquidity_pool_without_deposits_should_work() {
+fn destroy_yield_farm_without_deposits_should_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -112,7 +112,7 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 
 		let global_pool = WarehouseLM::global_farm(GC_FARM).unwrap();
 
-		assert_ok!(LiquidityMining::remove_liquidity_pool(
+		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_LIQ_POOL_ID,
@@ -153,7 +153,7 @@ fn remove_liquidity_pool_without_deposits_should_work() {
 }
 
 #[test]
-fn remove_liquidity_pool_non_canceled_liq_pool_should_not_work() {
+fn destroy_yield_farm_non_canceled_liq_pool_should_not_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -161,14 +161,14 @@ fn remove_liquidity_pool_non_canceled_liq_pool_should_not_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::remove_liquidity_pool(Origin::signed(GC), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1_assets),
+			LiquidityMining::destroy_yield_farm(Origin::signed(GC), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1_assets),
 			warehouse_liquidity_mining::Error::<Test>::LiquidityMiningIsNotCanceled
 		);
 	});
 }
 
 #[test]
-fn remove_liquidity_pool_not_owner_should_not_work() {
+fn destroy_yield_farm_not_owner_should_not_work() {
 	let bsx_tkn1 = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -180,14 +180,14 @@ fn remove_liquidity_pool_not_owner_should_not_work() {
 		assert_ok!(LiquidityMining::stop_yield_farm(Origin::signed(GC), GC_FARM, bsx_tkn1));
 
 		assert_noop!(
-			LiquidityMining::remove_liquidity_pool(Origin::signed(NOT_OWNER), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1),
+			LiquidityMining::destroy_yield_farm(Origin::signed(NOT_OWNER), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_tkn1),
 			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});
 }
 
 #[test]
-fn remove_liquidity_pool_liq_pool_does_not_exists_should_not_work() {
+fn destroy_yield_farm_liq_pool_does_not_exists_should_not_work() {
 	let bsx_dot_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: DOT,
@@ -195,7 +195,7 @@ fn remove_liquidity_pool_liq_pool_does_not_exists_should_not_work() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::remove_liquidity_pool(Origin::signed(GC), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_dot_assets),
+			LiquidityMining::destroy_yield_farm(Origin::signed(GC), GC_FARM, BSX_TKN1_LIQ_POOL_ID, bsx_dot_assets),
 			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
 		);
 	});
