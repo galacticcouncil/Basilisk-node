@@ -174,7 +174,6 @@ proptest! {
 		asset_b_liquidity in asset_reserve(),
 		amount in trade_amount(),
 		amplification in amplification(),
-		fee in trade_fee()
 	) {
 		ExtBuilder::default()
 			.with_endowed_accounts(vec![
@@ -197,7 +196,7 @@ proptest! {
 					(asset_a, asset_b),
 					initial_liquidity,
 					amplification,
-					fee,
+					Permill::from_percent(0),
 				));
 
 				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
@@ -221,7 +220,8 @@ proptest! {
 				let ann: Balance = amplification as u128 * 2 * 2;
 				let d = calculate_d::<128u8>(&[asset_a_reserve,asset_b_reserve], ann, 1u128).unwrap();
 
-				 assert!(d >= d_prev);
+				assert!(d >= d_prev);
+				assert!(d - d_prev <= 10u128);
 			});
 	}
 }
@@ -234,7 +234,6 @@ proptest! {
 		asset_b_liquidity in asset_reserve(),
 		amount in trade_amount(),
 		amplification in amplification(),
-		fee in trade_fee()
 	) {
 		ExtBuilder::default()
 			.with_endowed_accounts(vec![
@@ -257,7 +256,7 @@ proptest! {
 					(asset_a, asset_b),
 					initial_liquidity,
 					amplification,
-					fee,
+					Permill::from_percent(0),
 				));
 
 				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
@@ -280,7 +279,8 @@ proptest! {
 				let ann: Balance = amplification as u128 * 2 * 2;
 				let d = calculate_d::<128u8>(&[asset_a_reserve,asset_b_reserve], ann, 1u128).unwrap();
 
-				 assert!(d >= d_prev);
+				assert!(d >= d_prev);
+				assert!(d - d_prev <= 10u128);
 			});
 	}
 }
