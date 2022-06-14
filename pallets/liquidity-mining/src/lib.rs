@@ -542,7 +542,7 @@ pub mod pallet {
 		/// Emits `LiquidityMiningResumed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::resume_liquidity_pool())]
 		#[transactional]
-		pub fn resume_liquidity_pool(
+		pub fn resume_yield_farm(
 			origin: OriginFor<T>,
 			farm_id: GlobalPoolId,
 			yield_farm_id: PoolId,

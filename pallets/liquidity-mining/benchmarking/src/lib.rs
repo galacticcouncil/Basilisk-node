@@ -458,7 +458,7 @@ benchmarks! {
 
 	//NOTE: This is same no matter if `update_global_pool()` is called because `GlobalPool`will be
 	//read/written either way.
-	resume_liquidity_pool {
+	resume_yield_farm {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 
@@ -483,7 +483,7 @@ benchmarks! {
 
 		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
 	}: {
-		LiquidityMining::<T>::resume_liquidity_pool(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(12_452))?
+		LiquidityMining::<T>::resume_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(12_452))?
 	}
 	verify {
 		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().canceled);

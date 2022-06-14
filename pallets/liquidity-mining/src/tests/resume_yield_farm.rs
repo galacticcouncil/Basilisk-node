@@ -21,7 +21,7 @@ use sp_runtime::FixedPointNumber;
 use test_ext::*;
 
 #[test]
-fn resume_liquidity_pool_should_work() {
+fn resume_yield_farm_should_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -45,7 +45,7 @@ fn resume_liquidity_pool_should_work() {
 
 		set_block_number(13_420_000);
 
-		assert_ok!(LiquidityMining::resume_liquidity_pool(
+		assert_ok!(LiquidityMining::resume_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_LIQ_POOL_ID,
@@ -80,7 +80,7 @@ fn resume_liquidity_pool_should_work() {
 }
 
 #[test]
-fn resume_liquidity_pool_non_existing_pool_should_not_work() {
+fn resume_yield_farm_non_existing_pool_should_not_work() {
 	let bsx_ksm_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: KSM,
@@ -90,7 +90,7 @@ fn resume_liquidity_pool_non_existing_pool_should_not_work() {
 		let new_multiplier = FixedU128::from(7_490_000);
 
 		assert_noop!(
-			LiquidityMining::resume_liquidity_pool(
+			LiquidityMining::resume_yield_farm(
 				Origin::signed(GC),
 				GC_FARM,
 				BSX_TKN1_LIQ_POOL_ID,
@@ -103,7 +103,7 @@ fn resume_liquidity_pool_non_existing_pool_should_not_work() {
 }
 
 #[test]
-fn resume_liquidity_pool_non_canceled_pool_should_not_work() {
+fn resume_yield_farm_non_canceled_pool_should_not_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -113,7 +113,7 @@ fn resume_liquidity_pool_non_canceled_pool_should_not_work() {
 		let new_multiplier = FixedU128::from(7_490_000);
 
 		assert_noop!(
-			LiquidityMining::resume_liquidity_pool(
+			LiquidityMining::resume_yield_farm(
 				Origin::signed(GC),
 				GC_FARM,
 				BSX_TKN1_LIQ_POOL_ID,
@@ -126,7 +126,7 @@ fn resume_liquidity_pool_non_canceled_pool_should_not_work() {
 }
 
 #[test]
-fn resume_liquidity_pool_not_owner_should_not_work() {
+fn resume_yield_farm_not_owner_should_not_work() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,
@@ -142,7 +142,7 @@ fn resume_liquidity_pool_not_owner_should_not_work() {
 		));
 
 		assert_noop!(
-			LiquidityMining::resume_liquidity_pool(
+			LiquidityMining::resume_yield_farm(
 				Origin::signed(ALICE),
 				GC_FARM,
 				BSX_TKN1_LIQ_POOL_ID,
