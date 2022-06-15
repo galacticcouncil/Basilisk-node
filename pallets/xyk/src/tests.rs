@@ -64,14 +64,14 @@ fn create_pool_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000000);
 
-		expect_events(vec![Event::PoolCreated(
-			ALICE,
+		expect_events(vec![Event::PoolCreated {
+			who: ALICE,
 			asset_a,
 			asset_b,
-			100000000000000,
+			initial_shares_amount: 100000000000000,
 			share_token,
-			pair_account,
-		)
+			pool: pair_account,
+		}
 		.into()]);
 	});
 }
@@ -113,14 +113,14 @@ fn create_same_pool_should_not_work() {
 		});
 		let share_token = XYK::share_token(pair_account);
 
-		expect_events(vec![Event::PoolCreated(
-			ALICE,
-			asset_b,
-			asset_a,
-			2000,
+		expect_events(vec![Event::PoolCreated {
+			who: ALICE,
+			asset_a: asset_b,
+			asset_b: asset_a,
+			initial_shares_amount: 2000,
 			share_token,
-			pair_account,
-		)
+			pool: pair_account,
+		}
 		.into()]);
 	});
 }
@@ -211,8 +211,23 @@ fn add_liquidity_should_work() {
 		assert_eq!(XYK::total_liquidity(&pair_account), 1004000000000);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, asset_a, asset_b, 1000000000000, share_token, pair_account).into(),
-			Event::LiquidityAdded(ALICE, asset_a, asset_b, 400000, 4000000000).into(),
+			Event::PoolCreated {
+				who: ALICE,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 1000000000000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			Event::LiquidityAdded {
+				who: ALICE,
+				asset_a,
+				asset_b,
+				amount_a: 400000,
+				amount_b: 4000000000,
+			}
+			.into(),
 		]);
 	});
 }
@@ -267,15 +282,37 @@ fn add_liquidity_as_another_user_should_work() {
 		assert_eq!(XYK::total_liquidity(&pair_account), 1014000000000);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, asset_b, asset_a, 1000000000000, share_token, pair_account).into(),
-			Event::LiquidityAdded(ALICE, asset_b, asset_a, 400000, 4000000000).into(),
+			Event::PoolCreated {
+				who: ALICE,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				initial_shares_amount: 1000000000000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			Event::LiquidityAdded {
+				who: ALICE,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount_a: 400000,
+				amount_b: 4000000000,
+			}
+			.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: 0,
 				who: 2,
 				amount: 10000000000,
 			}
 			.into(),
-			Event::LiquidityAdded(BOB, asset_b, asset_a, 1000000, 10000000000).into(),
+			Event::LiquidityAdded {
+				who: BOB,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount_a: 1000000,
+				amount_b: 10000000000,
+			}
+			.into(),
 		]);
 	});
 }
@@ -315,8 +352,22 @@ fn remove_liquidity_should_work() {
 		assert_eq!(XYK::total_liquidity(&pair_account), 99645000);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, asset_a, asset_b, 100000000, share_token, pair_account).into(),
-			Event::LiquidityRemoved(ALICE, asset_a, asset_b, 355_000).into(),
+			Event::PoolCreated {
+				who: ALICE,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 100000000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			Event::LiquidityRemoved {
+				who: ALICE,
+				asset_a,
+				asset_b,
+				shares: 355_000,
+			}
+			.into(),
 		]);
 	});
 }
@@ -351,7 +402,15 @@ fn remove_liquidity_without_shares_should_not_work() {
 		);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, asset_a, asset_b, 100000000, share_token, pair_account).into(),
+			Event::PoolCreated {
+				who: ALICE,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 100000000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: share_token,
 				who: BOB,
@@ -430,7 +489,15 @@ fn remove_liquidity_from_reduced_pool_should_not_work() {
 		let share_token = XYK::share_token(pair_account);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, asset_a, asset_b, 100000000, share_token, pair_account).into(),
+			Event::PoolCreated {
+				who: ALICE,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 100000000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
 			orml_tokens::Event::Transfer {
 				currency_id: asset_a,
 				from: pair_account,
@@ -600,17 +667,25 @@ fn sell_test() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 598636516408212);
 
 		expect_events(vec![
-			Event::PoolCreated(ALICE, asset_a, asset_b, 600000000000000, share_token, pair_account).into(),
-			Event::SellExecuted(
-				ALICE,
+			Event::PoolCreated {
+				who: ALICE,
 				asset_a,
 				asset_b,
-				456444678,
-				1363483591788,
-				asset_b,
-				2732432046,
-				pair_account,
-			)
+				initial_shares_amount: 600000000000000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			Event::SellExecuted {
+				who: ALICE,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 456444678,
+				sale_price: 1363483591788,
+				fee_asset: asset_b,
+				fee_amount: 2732432046,
+				pool: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -777,39 +852,72 @@ fn work_flow_happy_path_should_work() {
 		assert_eq!(XYK::total_liquidity(&pair_account), 649_999_962_000);
 
 		expect_events(vec![
-			Event::PoolCreated(user_1, asset_a, asset_b, 350_000_000_000, share_token, pair_account).into(),
+			Event::PoolCreated {
+				who: user_1,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 350_000_000_000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: 0,
 				who: 2,
 				amount: 300000000000,
 			}
 			.into(),
-			Event::LiquidityAdded(user_2, asset_a, asset_b, 300_000_000_000, 12_000_000_000_000).into(),
-			Event::SellExecuted(
-				user_2,
+			Event::LiquidityAdded {
+				who: user_2,
 				asset_a,
 				asset_b,
-				216_666_666_666,
-				6_486_999_999_986,
-				asset_b,
-				12_999_999_998,
-				pair_account,
-			)
+				amount_a: 300_000_000_000,
+				amount_b: 12_000_000_000_000,
+			}
 			.into(),
-			Event::SellExecuted(
-				ALICE,
+			Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 216_666_666_666,
+				sale_price: 6_486_999_999_986,
+				fee_asset: asset_b,
+				fee_amount: 12_999_999_998,
+				pool: pair_account,
+			}
+			.into(),
+			Event::SellExecuted {
+				who: ALICE,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 288_888_888_888,
+				sale_price: 4_868_493_499_997,
+				fee_asset: asset_b,
+				fee_amount: 9_756_499_998,
+				pool: pair_account,
+			}
+			.into(),
+			Event::LiquidityRemoved {
+				who: user_2,
 				asset_a,
 				asset_b,
-				288_888_888_888,
-				4_868_493_499_997,
-				asset_b,
-				9_756_499_998,
-				pair_account,
-			)
+				shares: 10_000,
+			}
 			.into(),
-			Event::LiquidityRemoved(user_2, asset_a, asset_b, 10_000).into(),
-			Event::LiquidityRemoved(user_2, asset_b, asset_a, 10_000).into(),
-			Event::LiquidityRemoved(user_2, asset_a, asset_b, 18_000).into(),
+			Event::LiquidityRemoved {
+				who: user_2,
+				asset_b,
+				asset_a,
+				shares: 10_000,
+			}
+			.into(),
+			Event::LiquidityRemoved {
+				who: user_2,
+				asset_a,
+				asset_b,
+				shares: 18_000,
+			}
+			.into(),
 		]);
 	});
 }
@@ -877,17 +985,25 @@ fn sell_with_correct_fees_should_work() {
 		assert_eq!(Currency::free_balance(asset_a, &user_1), 999999989900000);
 		assert_eq!(Currency::free_balance(asset_b, &user_1), 999998019762378);
 		expect_events(vec![
-			Event::PoolCreated(user_1, asset_a, asset_b, 2000000000, share_token, pair_account).into(),
-			Event::SellExecuted(
-				user_1,
+			Event::PoolCreated {
+				who: user_1,
 				asset_a,
 				asset_b,
-				100_000,
-				19_762_378,
-				asset_b,
-				39_602,
-				pair_account,
-			)
+				initial_shares_amount: 2000000000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			Event::SellExecuted {
+				who: user_1,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 100_000,
+				sale_price: 19_762_378,
+				fee_asset: asset_b,
+				fee_amount: 39_602,
+				pool: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -962,8 +1078,21 @@ fn discount_sell_fees_should_work() {
 		let share_token_native = XYK::share_token(native_pair_account);
 
 		expect_events(vec![
-			Event::PoolCreated(user_1, asset_a, HDX, 10_000, share_token_native, native_pair_account).into(),
-			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, asset_b)).into(),
+			Event::PoolCreated {
+				who: user_1,
+				asset_a,
+				asset_b: HDX,
+				initial_shares_amount: 10_000,
+				share_token: share_token_native,
+				pool: native_pair_account,
+			}
+			.into(),
+			pallet_asset_registry::Event::Registered {
+				asset_id: 1,
+				asset_name: bounded_name,
+				asset_type: AssetType::PoolShare(asset_a, asset_b),
+			}
+			.into(),
 			frame_system::Event::NewAccount { account: pair_account }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_a,
@@ -983,8 +1112,26 @@ fn discount_sell_fees_should_work() {
 				amount: 60000,
 			}
 			.into(),
-			Event::PoolCreated(user_1, asset_a, asset_b, 60_000, share_token, pair_account).into(),
-			Event::SellExecuted(user_1, asset_a, asset_b, 10_000, 14_993, asset_b, 7, pair_account).into(),
+			Event::PoolCreated {
+				who: user_1,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 60_000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			Event::SellExecuted {
+				who: user_1,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 10_000,
+				sale_price: 14_993,
+				fee_asset: asset_b,
+				fee_amount: 7,
+				pool: pair_account,
+			}
+			.into(),
 		]);
 	});
 }
@@ -1145,17 +1292,25 @@ fn single_buy_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 960_639_995_191);
 
 		expect_events(vec![
-			Event::PoolCreated(user_1, asset_a, asset_b, 640_000_000_000, share_token, pair_account).into(),
-			Event::BuyExecuted(
-				user_1,
+			Event::PoolCreated {
+				who: user_1,
 				asset_a,
 				asset_b,
-				66_666_666,
-				319_999_995_201,
-				asset_b,
-				639_999_990,
-				pair_account,
-			)
+				initial_shares_amount: 640_000_000_000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			Event::BuyExecuted {
+				who: user_1,
+				asset_out: asset_a,
+				asset_in: asset_b,
+				amount: 66_666_666,
+				buy_price: 319_999_995_201,
+				fee_asset: asset_b,
+				fee_amount: 639_999_990,
+				pool: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -1229,8 +1384,21 @@ fn single_buy_with_discount_should_work() {
 			name.try_into().unwrap();
 
 		expect_events(vec![
-			Event::PoolCreated(user_1, asset_a, asset_b, 640_000_000_000, share_token, pair_account).into(),
-			pallet_asset_registry::Event::Registered(1, bounded_name, AssetType::PoolShare(asset_a, HDX)).into(),
+			Event::PoolCreated {
+				who: user_1,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 640_000_000_000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			pallet_asset_registry::Event::Registered {
+				asset_id: 1,
+				asset_name: bounded_name,
+				asset_type: AssetType::PoolShare(asset_a, HDX),
+			}
+			.into(),
 			frame_system::Event::NewAccount {
 				account: native_pair_account,
 			}
@@ -1253,25 +1421,25 @@ fn single_buy_with_discount_should_work() {
 				amount: 100000000000,
 			}
 			.into(),
-			Event::PoolCreated(
-				user_1,
+			Event::PoolCreated {
+				who: user_1,
 				asset_a,
-				HDX,
-				100_000_000_000,
-				share_token_native,
-				native_pair_account,
-			)
+				asset_b: HDX,
+				initial_shares_amount: 100_000_000_000,
+				share_token: share_token_native,
+				pool: native_pair_account,
+			}
 			.into(),
-			Event::BuyExecuted(
-				user_1,
-				asset_a,
-				asset_b,
-				66_666_666,
-				319_999_995_201,
-				asset_b,
-				223_999_993,
-				pair_account,
-			)
+			Event::BuyExecuted {
+				who: user_1,
+				asset_out: asset_a,
+				asset_in: asset_b,
+				amount: 66_666_666,
+				buy_price: 319_999_995_201,
+				fee_asset: asset_b,
+				fee_amount: 223_999_993,
+				pool: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -1400,14 +1568,14 @@ fn create_pool_small_fixed_point_amount_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000000);
 
-		expect_events(vec![Event::PoolCreated(
-			ALICE,
+		expect_events(vec![Event::PoolCreated {
+			who: ALICE,
 			asset_a,
 			asset_b,
-			100000000000000,
+			initial_shares_amount: 100000000000000,
 			share_token,
-			pair_account,
-		)
+			pool: pair_account,
+		}
 		.into()]);
 	});
 }
@@ -1438,14 +1606,14 @@ fn create_pool_fixed_point_amount_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000);
 
-		expect_events(vec![Event::PoolCreated(
-			ALICE,
+		expect_events(vec![Event::PoolCreated {
+			who: ALICE,
 			asset_a,
 			asset_b,
-			100000000000,
+			initial_shares_amount: 100000000000,
 			share_token,
-			pair_account,
-		)
+			pool: pair_account,
+		}
 		.into()]);
 	});
 }
@@ -1630,10 +1798,31 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 		));
 
 		expect_events(vec![
-			Event::PoolCreated(user, asset_a, asset_b, 100_000_000, share_token, pair_account).into(),
+			Event::PoolCreated {
+				who: user,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 100_000_000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
 			frame_system::Event::KilledAccount { account: pair_account }.into(),
-			Event::LiquidityRemoved(user, asset_a, asset_b, 100_000_000).into(),
-			Event::PoolDestroyed(user, asset_a, asset_b, share_token, pair_account).into(),
+			Event::LiquidityRemoved {
+				who: user,
+				asset_a,
+				asset_b,
+				shares: 100_000_000,
+			}
+			.into(),
+			Event::PoolDestroyed {
+				who: user,
+				asset_a,
+				asset_b,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
 			frame_system::Event::NewAccount { account: pair_account }.into(),
 			orml_tokens::Event::Endowed {
 				currency_id: asset_a,
@@ -1653,7 +1842,15 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 				amount: 100000000,
 			}
 			.into(),
-			Event::PoolCreated(user, asset_a, asset_b, 100_000_000, share_token, pair_account).into(),
+			Event::PoolCreated {
+				who: user,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 100_000_000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
 		]);
 	});
 }

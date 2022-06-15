@@ -123,54 +123,61 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub (crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Intention registered event
-		/// [who, asset a, asset b, amount, intention type, intention id]
-		IntentionRegistered(T::AccountId, AssetId, AssetId, Balance, IntentionType, IntentionId<T>),
+		IntentionRegistered {
+			who: T::AccountId,
+			asset_a: AssetId,
+			asset_b: AssetId,
+			amount: Balance,
+			intention_type: IntentionType,
+			intention_id: IntentionId<T>,
+		},
 
 		/// Intention resolved as AMM Trade
-		/// [who, intention type, intention id, amount, amount sold/bought, pool account id]
-		IntentionResolvedAMMTrade(
-			T::AccountId,
-			IntentionType,
-			IntentionId<T>,
-			Balance,
-			Balance,
-			T::AccountId,
-		),
+		IntentionResolvedAMMTrade {
+			who: T::AccountId,
+			intention_type: IntentionType,
+			intention_id: IntentionId<T>,
+			amount: Balance,
+			amount_sold_or_bought: Balance,
+			pool_account_id: T::AccountId,
+		},
 
 		/// Intention resolved as Direct Trade
-		/// [account A, account B, intention id A, intention id B, amount A, amount B]
-		IntentionResolvedDirectTrade(
-			T::AccountId,
-			T::AccountId,
-			IntentionId<T>,
-			IntentionId<T>,
-			Balance,
-			Balance,
-		),
+		IntentionResolvedDirectTrade {
+			account_id_a: T::AccountId,
+			account_id_b: T::AccountId,
+			intention_id_a: IntentionId<T>,
+			intention_id_b: IntentionId<T>,
+			amount_a: Balance,
+			amount_b: Balance,
+		},
 
 		/// Paid fees event
-		/// [who, intention id, fee receiver, asset id, fee amount]
-		IntentionResolvedDirectTradeFees(T::AccountId, IntentionId<T>, T::AccountId, AssetId, Balance),
+		IntentionResolvedDirectTradeFees {
+			who: T::AccountId,
+			intention_id: IntentionId<T>,
+			fee_receiver: T::AccountId,
+			asset_id: AssetId,
+			fee_amount: Balance,
+		},
 
 		/// Error event - insufficient balance of specified asset
-		/// who, asset, intention type, intention id, error detail
-		InsufficientAssetBalanceEvent(
-			T::AccountId,
-			AssetId,
-			IntentionType,
-			IntentionId<T>,
-			dispatch::DispatchError,
-		),
+		InsufficientAssetBalanceEvent {
+			who: T::AccountId,
+			asset_id: AssetId,
+			intention_type: IntentionType,
+			intention_id: IntentionId<T>,
+			error_detail: dispatch::DispatchError,
+		},
 
 		/// Intention Error Event
-		/// who, assets, sell or buy, intention id, error detail
-		IntentionResolveErrorEvent(
-			T::AccountId,
-			AssetPair,
-			IntentionType,
-			IntentionId<T>,
-			dispatch::DispatchError,
-		),
+		IntentionResolveErrorEvent {
+			who: T::AccountId,
+			asset_ids: AssetPair,
+			intention_type: IntentionType,
+			intention_id: IntentionId<T>,
+			error_detail: dispatch::DispatchError,
+		},
 	}
 
 	#[pallet::error]
@@ -377,24 +384,24 @@ impl<T: Config> Pallet<T> {
 
 		match intention_type {
 			IntentionType::SELL => {
-				Self::deposit_event(Event::IntentionRegistered(
-					who.clone(),
-					assets.asset_in,
-					assets.asset_out,
-					amount_in,
+				Self::deposit_event(Event::IntentionRegistered {
+					who: who.clone(),
+					asset_a: assets.asset_in,
+					asset_b: assets.asset_out,
+					amount: amount_in,
 					intention_type,
 					intention_id,
-				));
+				});
 			}
 			IntentionType::BUY => {
-				Self::deposit_event(Event::IntentionRegistered(
-					who.clone(),
-					assets.asset_out,
-					assets.asset_in,
-					amount_out,
+				Self::deposit_event(Event::IntentionRegistered {
+					who: who.clone(),
+					asset_a: assets.asset_out,
+					asset_b: assets.asset_in,
+					amount: amount_out,
 					intention_type,
 					intention_id,
-				));
+				});
 			}
 		}
 
@@ -464,26 +471,26 @@ impl<T: Config> Pallet<T> {
 			IntentionType::SELL => {
 				T::AMMPool::execute_sell(transfer)?;
 
-				Self::deposit_event(Event::IntentionResolvedAMMTrade(
-					transfer.origin.clone(),
-					IntentionType::SELL,
+				Self::deposit_event(Event::IntentionResolvedAMMTrade {
+					who: transfer.origin.clone(),
+					intention_type: IntentionType::SELL,
 					intention_id,
-					transfer.amount,
-					transfer.amount_out + transfer.fee.1,
-					T::AMMPool::get_pair_id(transfer.assets),
-				));
+					amount: transfer.amount,
+					amount_sold_or_bought: transfer.amount_out + transfer.fee.1,
+					pool_account_id: T::AMMPool::get_pair_id(transfer.assets),
+				});
 			}
 			IntentionType::BUY => {
 				T::AMMPool::execute_buy(transfer)?;
 
-				Self::deposit_event(Event::IntentionResolvedAMMTrade(
-					transfer.origin.clone(),
-					IntentionType::BUY,
+				Self::deposit_event(Event::IntentionResolvedAMMTrade {
+					who: transfer.origin.clone(),
+					intention_type: IntentionType::BUY,
 					intention_id,
-					transfer.amount,
-					transfer.amount_out + transfer.fee.1,
-					T::AMMPool::get_pair_id(transfer.assets),
-				));
+					amount: transfer.amount,
+					amount_sold_or_bought: transfer.amount_out + transfer.fee.1,
+					pool_account_id: T::AMMPool::get_pair_id(transfer.assets),
+				});
 			}
 		};
 
@@ -494,13 +501,13 @@ impl<T: Config> Pallet<T> {
 	///
 	/// Send event with error detail for intention that failed.
 	fn send_intention_error_event(intention: &Intention<T>, error: dispatch::DispatchError) {
-		Self::deposit_event(Event::IntentionResolveErrorEvent(
-			intention.who.clone(),
-			intention.assets,
-			intention.sell_or_buy,
-			intention.intention_id,
-			error,
-		));
+		Self::deposit_event(Event::IntentionResolveErrorEvent {
+			who: intention.who.clone(),
+			asset_ids: intention.assets,
+			intention_type: intention.sell_or_buy,
+			intention_id: intention.intention_id,
+			error_detail: error,
+		});
 	}
 
 	/// Verify sell or buy intention.
@@ -516,13 +523,13 @@ impl<T: Config> Pallet<T> {
 					intention.discount,
 				) {
 					Err(error) => {
-						Self::deposit_event(Event::IntentionResolveErrorEvent(
-							intention.who.clone(),
-							intention.assets,
-							intention.sell_or_buy,
-							intention.intention_id,
-							error,
-						));
+						Self::deposit_event(Event::IntentionResolveErrorEvent {
+							who: intention.who.clone(),
+							asset_ids: intention.assets,
+							intention_type: intention.sell_or_buy,
+							intention_id: intention.intention_id,
+							error_detail: error,
+						});
 						false
 					}
 					_ => true,
@@ -537,13 +544,13 @@ impl<T: Config> Pallet<T> {
 					intention.discount,
 				) {
 					Err(error) => {
-						Self::deposit_event(Event::IntentionResolveErrorEvent(
-							intention.who.clone(),
-							intention.assets,
-							intention.sell_or_buy,
-							intention.intention_id,
-							error,
-						));
+						Self::deposit_event(Event::IntentionResolveErrorEvent {
+							who: intention.who.clone(),
+							asset_ids: intention.assets,
+							intention_type: intention.sell_or_buy,
+							intention_id: intention.intention_id,
+							error_detail: error,
+						});
 						false
 					}
 					_ => true,
