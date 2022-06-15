@@ -337,7 +337,7 @@ fn claim_rewards_deposit_with_multiple_entries_should_work() {
 		//predefined_deposit[0] - GC_FARM, BSX_TKN1_AMM
 		set_block_number(50_000);
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
-			Origin::signed(EVE),
+			Origin::signed(ALICE),
 			EVE_FARM,
 			EVE_BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
@@ -347,7 +347,7 @@ fn claim_rewards_deposit_with_multiple_entries_should_work() {
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesRedeposited {
 			farm_id: EVE_FARM,
 			yield_farm_id: EVE_BSX_TKN1_YIELD_FARM_ID,
-			who: EVE,
+			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: 50,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
@@ -367,7 +367,7 @@ fn claim_rewards_deposit_with_multiple_entries_should_work() {
 		});
 		Tokens::set_balance(Origin::root(), bsx_tkn1_amm_account, TKN1, 100, 0).unwrap();
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
-			Origin::signed(DAVE),
+			Origin::signed(ALICE),
 			DAVE_FARM,
 			DAVE_BSX_TKN1_YIELD_FARM_ID,
 			bsx_tkn1_assets,
@@ -377,7 +377,7 @@ fn claim_rewards_deposit_with_multiple_entries_should_work() {
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesRedeposited {
 			farm_id: DAVE_FARM,
 			yield_farm_id: DAVE_BSX_TKN1_YIELD_FARM_ID,
-			who: DAVE,
+			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: 50,
 			nft_class_id: LIQ_MINING_NFT_CLASS,

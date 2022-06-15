@@ -1,4 +1,4 @@
-// This file is part of Basilisk-node.
+// This file is part of Basilisk-node
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
@@ -35,17 +35,14 @@ fn withdraw_shares_should_work() {
 		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 
-		// This balance is used to transfer unclaimable_rewards from yield farm to global farm.
-		// Claiming is not part of withdraw_shares() so some balance need to be set.
-		Tokens::set_balance(Origin::root(), bsx_tkn1_yield_farm_account, BSX, 100_000_000_000, 0).unwrap();
-		Tokens::set_balance(Origin::root(), bsx_tkn2_yield_farm_account, BSX, 100_000_000_000, 0).unwrap();
-
 		// withdraw 1A
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
 		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
 		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account);
+		let bsx_tkn1_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
+		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 
 		let expected_claimed_rewards = 79_906;
 		let withdrawn_amount = 50;
@@ -64,18 +61,12 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN1_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: ALICE,
-				amount: withdrawn_amount,
-			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
-				amount: 50,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: ALICE,
@@ -127,11 +118,10 @@ fn withdraw_shares_should_work() {
 		);
 
 		//user balances checks
-		//TODO: Dani - ask Martin
-		/*assert_eq!(
+		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			bsx_tkn1_alice_amm_shares_balance - unclaimable_rewards
-		);*/
+			alice_bsx_balance + expected_claimed_rewards
+		);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
@@ -151,7 +141,7 @@ fn withdraw_shares_should_work() {
 		//yield farm balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
-			bsx_tkn2_yield_farm_bsx_balance - (expected_claimed_rewards + 70_094) //70_094 unclaimable rewards after withdrawn
+			bsx_tkn1_yield_farm_bsx_balance - (expected_claimed_rewards + 70_094) //70_094 unclaimable rewards after withdrawn
 		);
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
@@ -195,12 +185,6 @@ fn withdraw_shares_should_work() {
 				who: ALICE,
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
-			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN2_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: ALICE,
-				amount: withdrawn_amount,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -343,12 +327,6 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN1_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: ALICE,
-				amount: withdrawn_amount,
-			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
@@ -472,11 +450,8 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN1_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: BOB,
-				amount: withdrawn_amount,
+			mock::Event::System(frame_system::Event::KilledAccount {
+				account: 588423361121520122723393892205,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -596,12 +571,6 @@ fn withdraw_shares_should_work() {
 				who: BOB,
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
-			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN2_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: BOB,
-				amount: withdrawn_amount,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -738,12 +707,6 @@ fn withdraw_shares_should_work() {
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN2_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: ALICE,
-				amount: withdrawn_amount,
-			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
@@ -862,13 +825,10 @@ fn withdraw_shares_should_work() {
 				reward_currency: BSX,
 			}),
 			mock::Event::System(frame_system::Event::KilledAccount {
-				account: PALLET_SERVICE_ACCOUNT,
+				account: 667651523635784460316937842541,
 			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN2_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: BOB,
-				amount: withdrawn_amount,
+			mock::Event::System(frame_system::Event::KilledAccount {
+				account: 29533360621462889584138678125,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -947,7 +907,7 @@ fn withdraw_shares_should_work() {
 		);
 
 		//TODO: ask Martin - why is it null?
-		//assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account), 0);
+		assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account), 0);
 
 		//global pool balance checks
 		assert_eq!(
@@ -1026,7 +986,6 @@ fn withdraw_shares_should_work() {
 }
 
 //TODO: ask Martin - fix this test
-/*
 #[test]
 fn withdraw_with_multiple_entries_and_flush_should_work() {
 	const BSX_TKN1_ASSETS: AssetPair = AssetPair {
@@ -1039,7 +998,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 
 		//Redeposit to multiple yield farms.
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
-			Origin::signed(DAVE),
+			Origin::signed(ALICE),
 			DAVE_FARM,
 			DAVE_BSX_TKN1_YIELD_FARM_ID,
 			BSX_TKN1_ASSETS,
@@ -1047,7 +1006,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 		));
 
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
-			Origin::signed(EVE),
+			Origin::signed(ALICE),
 			EVE_FARM,
 			EVE_BSX_TKN1_YIELD_FARM_ID,
 			BSX_TKN1_ASSETS,
@@ -1101,7 +1060,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 
 		//This withdraw should flush yield and global farms.
 		assert_ok!(LiquidityMining::withdraw_shares(
-			Origin::signed(DAVE),
+			Origin::signed(ALICE),
 			PREDEFINED_DEPOSIT_IDS[0],
 			DAVE_BSX_TKN1_YIELD_FARM_ID
 		));
@@ -1139,7 +1098,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 			alice_bsx_tkn1_lp_shares_balance + shares_amount
 		);
 	});
-}*/
+}
 
 #[test]
 fn withdraw_shares_from_destroyed_farm_should_work() {
@@ -1336,12 +1295,6 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 				claimed: user_reward,
 				reward_currency: BSX,
 			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN1_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: ALICE,
-				amount: withdrawn_amount,
-			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
@@ -1426,12 +1379,6 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 				who: ALICE,
 				claimed: user_reward,
 				reward_currency: BSX,
-			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN1_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: ALICE,
-				amount: shares_amount,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,
@@ -1518,12 +1465,6 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 			}),
 			mock::Event::System(frame_system::Event::KilledAccount {
 				account: 588423361121520122723393892205,
-			}),
-			mock::Event::Tokens(orml_tokens::Event::Transfer {
-				currency_id: BSX_TKN1_SHARE_ID,
-				from: PALLET_SERVICE_ACCOUNT,
-				to: BOB,
-				amount: shares_amount,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
 				farm_id: GC_FARM,

@@ -29,7 +29,7 @@ fn redeposit_lp_shares_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		set_block_number(50_000);
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
-			Origin::signed(EVE),
+			Origin::signed(ALICE),
 			EVE_FARM,
 			EVE_BSX_TKN1_YIELD_FARM_ID,
 			BSX_TKN1_ASSETS,
@@ -46,7 +46,7 @@ fn redeposit_lp_shares_should_work() {
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesRedeposited {
 			farm_id: EVE_FARM,
 			yield_farm_id: EVE_BSX_TKN1_YIELD_FARM_ID,
-			who: EVE,
+			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: 50,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
@@ -66,7 +66,7 @@ fn redeposit_lp_shares_should_work() {
 		});
 		Tokens::set_balance(Origin::root(), bsx_tkn1_amm_account, TKN1, 100, 0).unwrap();
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
-			Origin::signed(DAVE),
+			Origin::signed(ALICE),
 			DAVE_FARM,
 			DAVE_BSX_TKN1_YIELD_FARM_ID,
 			BSX_TKN1_ASSETS,
@@ -83,7 +83,7 @@ fn redeposit_lp_shares_should_work() {
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesRedeposited {
 			farm_id: DAVE_FARM,
 			yield_farm_id: DAVE_BSX_TKN1_YIELD_FARM_ID,
-			who: DAVE,
+			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: 50,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
@@ -107,29 +107,13 @@ fn redeposit_lp_shares_deposit_should_fail_with_error_when_asset_pair_has_invali
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
 			LiquidityMining::redeposit_lp_shares(
-				Origin::signed(EVE),
+				Origin::signed(ALICE),
 				EVE_FARM,
 				EVE_BSX_TKN1_YIELD_FARM_ID,
 				bsx_with_invalid_assets,
 				PREDEFINED_DEPOSIT_IDS[0],
 			),
 			Error::<Test>::AmmPoolDoesNotExist
-		);
-	});
-}
-
-#[test]
-fn redeposit_lp_shares_should_fail_with_error_when_deposit_can_not_be_found() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::redeposit_lp_shares(
-				Origin::signed(EVE),
-				EVE_FARM,
-				EVE_BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSETS,
-				999_999_999,
-			),
-			Error::<Test>::DepositDataNotFound
 		);
 	});
 }

@@ -701,9 +701,17 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			let nft_owner = pallet_nft::Pallet::<T>::owner(T::NftClass::get(), deposit_id)
+				.ok_or(Error::<T>::CantFindDepositOwner)?;
+
+			//NOTE DANI: warehouse pallet knows nothing about deposit owner so ownership of the
+			//NFT/deposit needs to be checked on this level
+			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
+
 			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
+			//This should never fail because of nft exists.
 			let deposit =
 				warehouse_liquidity_mining::Pallet::<T>::deposit(&deposit_id).ok_or(Error::<T>::DepositDataNotFound)?;
 
@@ -756,6 +764,7 @@ pub mod pallet {
 				fail_on_double_claim,
 			)?;
 
+			println!("claimed amount: {:?}", claimed);
 			if !claimed.is_zero() {
 				Self::deposit_event(Event::RewardClaimed {
 					farm_id,
@@ -829,6 +838,7 @@ pub mod pallet {
 						fail_on_double_claim,
 					)?;
 
+				println!("cliamed rewards: {:?}/{:?}", claimed, unclaimable);
 				if !claimed.is_zero() {
 					Self::deposit_event(Event::RewardClaimed {
 						farm_id,
@@ -861,7 +871,11 @@ pub mod pallet {
 			}
 
 			// metadata and nft cleanup
-			pallet_nft::Pallet::<T>::do_burn(who, T::NftClass::get(), deposit_id)
+			// NOTE: tmp solution, don't create PR with this.
+			if warehouse_liquidity_mining::Pallet::<T>::deposit(&deposit_id).is_none() {
+				pallet_nft::Pallet::<T>::do_burn(who, T::NftClass::get(), deposit_id)?;
+			}
+			Ok(())
 		}
 	}
 }
