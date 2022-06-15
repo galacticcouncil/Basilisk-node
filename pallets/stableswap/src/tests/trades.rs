@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolId};
+use crate::types::{PoolAssets, PoolId, PoolInfo};
 use crate::{assert_balance, Error};
 
 use frame_support::{assert_noop, assert_ok};
@@ -16,9 +16,11 @@ fn simple_sell_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
 			(ALICE, asset_a, 100 * ONE),
 		)
 		.build()
@@ -55,9 +57,11 @@ fn simple_buy_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
 			(ALICE, asset_a, 100 * ONE),
 		)
 		.build()
@@ -95,9 +99,11 @@ fn simple_sell_with_fee_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(10),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(10),
+			},
 			(ALICE, asset_a, 100 * ONE),
 		)
 		.build()
@@ -138,9 +144,11 @@ fn simple_sell_with_small_fee_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_rational(3u32, 1000u32),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_rational(3u32, 1000u32),
+			},
 			(ALICE, asset_a, 100 * ONE),
 		)
 		.build()
@@ -181,9 +189,11 @@ fn simple_buy_with_fee_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(10),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(10),
+			},
 			(ALICE, asset_a, 100 * ONE),
 		)
 		.build()
@@ -229,9 +239,11 @@ fn sell_with_invalidad_amounts_fails() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2000)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
 			(ALICE, asset_a, 100 * ONE),
 		)
 		.build()
@@ -290,9 +302,11 @@ fn buy_with_invalid_amounts_fails() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2000)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
 			(ALICE, asset_a, 100 * ONE),
 		)
 		.build()
