@@ -21,9 +21,9 @@ pub struct PoolId<AssetId>(pub AssetId);
 /// `fee`: trade fee to be withdrawn on sell/buy
 #[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct PoolInfo<AssetId> {
-	pub(crate) assets: PoolAssets<AssetId>,
-	pub(crate) amplification: u16,
-	pub(crate) fee: Permill,
+	pub assets: PoolAssets<AssetId>,
+	pub amplification: u16,
+	pub fee: Permill,
 }
 
 impl<AssetId> PoolInfo<AssetId>
