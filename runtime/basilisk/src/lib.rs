@@ -31,7 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -477,7 +477,7 @@ impl pallet_stableswap::Config for Runtime {
 	type Currency = Currencies;
 	type ShareAccountId = account::AccountIdForStableswap;
 	type AssetRegistry = AssetRegistry;
-	type CreatePoolOrigin = EnsureSigned<AccountId>;
+	type CreatePoolOrigin = EnsureMajorityTechCommitteeOrMajorityCouncil;
 	type Precision = StableswapPrecision;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type AmplificationRange = StableswapAmplificationRange;
@@ -583,6 +583,10 @@ type EnsureUnanimousTechCommitteeOrRoot = EnsureOneOf<
 type EnsureMajorityTechCommitteeOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechnicalCollective>,
 	frame_system::EnsureRoot<AccountId>,
+>;
+type EnsureMajorityTechCommitteeOrMajorityCouncil = EnsureOneOf<
+	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
+	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechnicalCollective>,
 >;
 
 impl pallet_democracy::Config for Runtime {

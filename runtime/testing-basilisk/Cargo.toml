@@ -37,6 +37,7 @@ pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",defaul
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
+pallet-stableswap = { path = '../../pallets/stableswap', default-features = false }
 pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features=false}
 pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
 
@@ -186,6 +187,7 @@ std = [
     "pallet-xcm/std",
     "parachain-info/std",
     "pallet-xyk/std",
+    "pallet-stableswap/std",
     "pallet-duster/std",
     "pallet-xyk-rpc-runtime-api/std",
     "pallet-lbp-rpc-runtime-api/std",

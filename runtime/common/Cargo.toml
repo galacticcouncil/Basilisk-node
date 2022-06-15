@@ -25,6 +25,7 @@ pallet-duster= { path = "../../pallets/duster",default-features = false}
 pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
+pallet-stableswap = { path = '../../pallets/stableswap', default-features = false }
 
 # Warehouse dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
