@@ -179,7 +179,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[4].planned_yielding_periods,
 				blocks_per_period: PREDEFINED_GLOBAL_FARMS[4].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[4].incentivized_asset,
-				max_reward_per_period: 100000000, //TODO: Dani - why 10000000? it should be 33333333
+				max_reward_per_period: 100000000,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 509195198607255785129849941869,
@@ -197,7 +197,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[5].planned_yielding_periods,
 				blocks_per_period: PREDEFINED_GLOBAL_FARMS[5].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[5].incentivized_asset,
-				max_reward_per_period: 100000000, //TODO: Dani - why 10000000? it should be 33333333
+				max_reward_per_period: 100000000,
 			}),
 		]);
 

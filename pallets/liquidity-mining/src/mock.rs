@@ -155,7 +155,6 @@ impl system::Config for Test {
 
 pub struct Amm;
 
-//TODO: ask Martin - why do we need here thread_local storage
 thread_local! {
 	pub static AMM_POOLS: RefCell<HashMap<String, (AccountId, AssetId, AssetPair)>> = RefCell::new(HashMap::new());
 
