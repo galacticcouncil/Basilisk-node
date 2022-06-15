@@ -156,9 +156,6 @@ fn withdraw_shares_should_work() {
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
 
-		//TODO: ask Martin why there is still metadata. We never delete?
-		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[0]), None);
-
 		set_block_number(12_800);
 
 		// withdraw 3B
@@ -298,9 +295,6 @@ fn withdraw_shares_should_work() {
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[4]), None);
 
-		//TODO: ask Martin why this is not null
-		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[4]), None);
-
 		// withdraw 3A
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
@@ -422,9 +416,6 @@ fn withdraw_shares_should_work() {
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[6]), None);
 
-		//TODO: Dani - fix if we know the answer from Martin
-		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[6]), None);
-
 		// withdraw 2A
 		let bsx_tkn1_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &BOB);
 		let bob_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &BOB);
@@ -543,9 +534,6 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[1]), None);
-
-		//TODO: Dani - fix once we get answer from Martin
-		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[1]), None);
 
 		// withdraw 1B
 		let bsx_tkn2_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB);
@@ -679,8 +667,6 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[2]), None);
-		//TODO: Dani - fix when we get the answer from Martin
-		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[2]), None);
 
 		// withdraw 4B
 		let bsx_tkn2_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE);
@@ -797,8 +783,6 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[5]), None);
-		//TODO: Dani - fix
-		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[5]), None);
 
 		// withdraw 2B
 		let bsx_tkn2_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB);
@@ -906,7 +890,6 @@ fn withdraw_shares_should_work() {
 			bsx_tkn1_yield_farm_amm_shares_balance
 		);
 
-		//TODO: ask Martin - why is it null?
 		assert_eq!(Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account), 0);
 
 		//global pool balance checks
@@ -916,9 +899,6 @@ fn withdraw_shares_should_work() {
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[2]), None);
-
-		//TODO: Dani - fix
-		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[2]), None);
 	});
 
 	//charlie's farm inncetivize KSM and reward currency is ACA
@@ -985,7 +965,6 @@ fn withdraw_shares_should_work() {
 	});
 }
 
-//TODO: ask Martin - fix this test
 #[test]
 fn withdraw_with_multiple_entries_and_flush_should_work() {
 	const BSX_TKN1_ASSETS: AssetPair = AssetPair {
