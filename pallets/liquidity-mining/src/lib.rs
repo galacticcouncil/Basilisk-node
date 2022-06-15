@@ -297,12 +297,6 @@ pub mod pallet {
 		},
 	}
 
-	/// Mapping of deposit to amm pool id.
-	#[pallet::storage]
-	#[pallet::getter(fn deposit_meta)]
-	type DepositMetadata<T: Config> =
-		StorageMap<_, Twox64Concat, warehouse_liquidity_mining::DepositId, AccountIdOf<T>, OptionQuery>;
-
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Create new liquidity mining program with proved parameters.
@@ -662,8 +656,6 @@ pub mod pallet {
 			//mint nft representing deposit
 			let _ =
 				pallet_nft::Pallet::<T>::do_mint(who.clone(), T::NftClass::get(), deposit_id, BoundedVec::default())?;
-
-			<DepositMetadata<T>>::insert(deposit_id, amm_pool_id);
 
 			Self::deposit_event(Event::SharesDeposited {
 				farm_id,

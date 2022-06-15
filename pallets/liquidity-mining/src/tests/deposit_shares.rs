@@ -140,12 +140,6 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: nft_id, value: amm::get_pair_id()
-		assert_eq!(
-			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[0]).unwrap(),
-			bsx_tkn1_amm_account
-		);
-
 		//check if shares was transferred from extrinsic caller
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
@@ -243,12 +237,6 @@ fn deposit_shares_should_work() {
 					updated_at: 18,
 				}],
 			}
-		);
-
-		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
-		assert_eq!(
-			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[1]).unwrap(),
-			bsx_tkn1_amm_account
 		);
 
 		//check if shares was transferred from deposit owner
@@ -351,12 +339,6 @@ fn deposit_shares_should_work() {
 					updated_at: 18,
 				}],
 			}
-		);
-
-		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
-		assert_eq!(
-			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[2]).unwrap(),
-			bsx_tkn2_amm_account
 		);
 
 		//check if shares was transferred from deposit owner
@@ -466,12 +448,6 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
-		assert_eq!(
-			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[3]).unwrap(),
-			bsx_tkn2_amm_account
-		);
-
 		//check if shares was transferred from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB),
@@ -575,12 +551,6 @@ fn deposit_shares_should_work() {
 					updated_at: 25,
 				}],
 			}
-		);
-
-		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
-		assert_eq!(
-			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[4]).unwrap(),
-			bsx_tkn2_amm_account
 		);
 
 		//check if shares was transferred from deposit owner
@@ -687,12 +657,6 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
-		assert_eq!(
-			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[5]).unwrap(),
-			bsx_tkn2_amm_account
-		);
-
 		//check if shares was transferred from deposit owner
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN2_SHARE_ID, &ALICE),
@@ -794,12 +758,6 @@ fn deposit_shares_should_work() {
 					updated_at: 25,
 				}],
 			}
-		);
-
-		//deposit meta check; key: deposit_id, value: amm::get_pair_id()
-		assert_eq!(
-			LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[6]).unwrap(),
-			bsx_tkn1_amm_account
 		);
 
 		//check if shares was transferred from deposit owner
