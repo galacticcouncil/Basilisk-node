@@ -756,7 +756,6 @@ pub mod pallet {
 				fail_on_double_claim,
 			)?;
 
-			println!("claimed amount: {:?}", claimed);
 			if !claimed.is_zero() {
 				Self::deposit_event(Event::RewardClaimed {
 					farm_id,
@@ -830,7 +829,6 @@ pub mod pallet {
 						fail_on_double_claim,
 					)?;
 
-				println!("cliamed rewards: {:?}/{:?}", claimed, unclaimable);
 				if !claimed.is_zero() {
 					Self::deposit_event(Event::RewardClaimed {
 						farm_id,
@@ -863,6 +861,7 @@ pub mod pallet {
 			}
 
 			// metadata and nft cleanup
+			// TODO: Dani - ask Martin when he solves it
 			// NOTE: tmp solution, don't create PR with this.
 			if warehouse_liquidity_mining::Pallet::<T>::deposit(&deposit_id).is_none() {
 				pallet_nft::Pallet::<T>::do_burn(who, T::NftClass::get(), deposit_id)?;
