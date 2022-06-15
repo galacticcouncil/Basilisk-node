@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "48.0.0"
+version = "51.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -505,11 +505,8 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "getrandom 0.2.6",
- "hash-db",
  "hex-literal",
  "hydradx-traits",
- "memory-db 0.27.0",
  "orml-benchmarking",
  "orml-currencies",
  "orml-tokens",
@@ -535,6 +532,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
+ "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
@@ -578,8 +576,6 @@ dependencies = [
  "sp-version",
  "substrate-build-script-utils",
  "substrate-wasm-builder",
- "tracing-core",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-executor",
@@ -1279,7 +1275,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.8.2"
+version = "1.9.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2896,10 +2892,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9be70c98951c83b8d2f8f60d7065fa6d5146873094452a1008da8c2f1e4205ad"
 dependencies = [
  "cfg-if 1.0.0",
- "js-sys",
  "libc",
  "wasi 0.10.0+wasi-snapshot-preview1",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -3181,23 +3175,10 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4009ee334bd759322746adb417e40b7ae7f5adac5ea016c9ba0a91f5c65c847d"
+version = "4.4.4"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1bafe7bb96864f5d29bab68061719c541ef06648#1bafe7bb96864f5d29bab68061719c541ef06648"
 dependencies = [
  "fixed",
- "lazy_static",
- "num-traits",
- "primitive-types 0.8.0",
-]
-
-[[package]]
-name = "hydra-dx-math"
-version = "4.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=3e0e6774d52184b00e758dc822564e5a893773f5#3e0e6774d52184b00e758dc822564e5a893773f5"
-dependencies = [
- "fixed",
- "lazy_static",
  "num-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -3206,8 +3187,8 @@ dependencies = [
 
 [[package]]
 name = "hydradx-traits"
-version = "0.5.1"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
+version = "0.6.0"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=c73846ec093357fea1b35da5c56ecb37592d4896#c73846ec093357fea1b35da5c56ecb37592d4896"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -4693,17 +4674,6 @@ dependencies = [
 
 [[package]]
 name = "memory-db"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de006e09d04fc301a5f7e817b75aa49801c4479a8af753764416b085337ddcc5"
-dependencies = [
- "hash-db",
- "hashbrown 0.11.2",
- "parity-util-mem",
-]
-
-[[package]]
-name = "memory-db"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d505169b746dacf02f7d14d8c80b34edfd8212159c63d23c977739a0d960c626"
@@ -5341,8 +5311,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.2.0"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
+version = "1.3.0"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=c73846ec093357fea1b35da5c56ecb37592d4896#c73846ec093357fea1b35da5c56ecb37592d4896"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5641,7 +5611,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "2.2.5"
+version = "2.3.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5706,11 +5676,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.10"
+version = "5.3.2"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5821,13 +5791,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.3.5"
+version = "4.4.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5874,11 +5844,11 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "1.2.0"
+version = "1.2.2"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.2.0",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
@@ -5899,7 +5869,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining-benchmarking"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5928,7 +5898,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "1.0.2"
+version = "1.1.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6032,7 +6002,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.2.3"
+version = "2.3.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6122,8 +6092,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-price-oracle"
-version = "0.2.2"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
+version = "0.3.0"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=c73846ec093357fea1b35da5c56ecb37592d4896#c73846ec093357fea1b35da5c56ecb37592d4896"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6167,8 +6137,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-relaychain-info"
-version = "0.2.1"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
+version = "0.3.0"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=c73846ec093357fea1b35da5c56ecb37592d4896#c73846ec093357fea1b35da5c56ecb37592d4896"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6343,8 +6313,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "7.0.2"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
+version = "7.1.0"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=c73846ec093357fea1b35da5c56ecb37592d4896#c73846ec093357fea1b35da5c56ecb37592d4896"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6504,13 +6474,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.10"
+version = "3.6.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.1.1",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -8694,7 +8664,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.11"
+version = "0.2.14"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8712,13 +8682,8 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
- "getrandom 0.2.6",
- "hash-db",
- "hex-literal",
- "hydra-dx-math 4.1.1",
  "hydradx-traits",
  "kusama-runtime",
- "memory-db 0.27.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -8754,13 +8719,10 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
- "parity-scale-codec",
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
  "primitives",
- "serde",
- "smallvec",
  "sp-api",
  "sp-block-builder",
  "sp-consensus-aura",
@@ -8776,8 +8738,6 @@ dependencies = [
  "sp-transaction-pool",
  "sp-trie",
  "sp-version",
- "tracing-core",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-emulator",
@@ -10843,7 +10803,7 @@ dependencies = [
  "sp-trie",
  "thiserror",
  "tracing",
- "trie-db 0.23.1",
+ "trie-db",
  "trie-root",
 ]
 
@@ -10937,12 +10897,12 @@ version = "5.0.0"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "hash-db",
- "memory-db 0.28.0",
+ "memory-db",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
  "sp-std",
- "trie-db 0.23.1",
+ "trie-db",
  "trie-root",
 ]
 
@@ -11225,7 +11185,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "48.0.0"
+version = "51.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11244,11 +11204,8 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "getrandom 0.2.6",
- "hash-db",
  "hex-literal",
  "hydradx-traits",
- "memory-db 0.27.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -11273,6 +11230,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
+ "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
@@ -11316,8 +11274,6 @@ dependencies = [
  "sp-version",
  "substrate-build-script-utils",
  "substrate-wasm-builder",
- "tracing-core",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-executor",
@@ -11626,18 +11582,6 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
-]
-
-[[package]]
-name = "trie-db"
-version = "0.22.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9eac131e334e81b6b3be07399482042838adcd7957aa0010231d0813e39e02fa"
-dependencies = [
- "hash-db",
- "hashbrown 0.11.2",
- "log",
- "smallvec",
 ]
 
 [[package]]
