@@ -138,9 +138,7 @@ fn withdraw_shares_should_work() {
 			bsx_tkn1_alice_amm_shares_balance + withdrawn_amount
 		);
 
-		//TODO: ask Martin - if fixed, remove the lines below as they relate to lp shares
 		//Stash shares account balances checks.
-
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
 			bsx_tkn1_pallet_amm_shares_balance - withdrawn_amount
@@ -573,8 +571,6 @@ fn withdraw_shares_should_work() {
 
 		//TODO: Dani - fix once we get answer from Martin
 		//assert_eq!(LiquidityMining::deposit_meta(PREDEFINED_DEPOSIT_IDS[1]), None);
-
-		//TODO: Dani - fix
 
 		// withdraw 1B
 		let bsx_tkn2_bob_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &BOB);
@@ -1086,7 +1082,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
 			PREDEFINED_DEPOSIT_IDS[0],
-			BSX_TKN1_LIQ_POOL_ID
+			BSX_TKN1_YIELD_FARM_ID
 		));
 
 		assert_eq!(
@@ -1105,7 +1101,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 
 		//This withdraw should flush yield and global farms.
 		assert_ok!(LiquidityMining::withdraw_shares(
-			Origin::signed(ALICE),
+			Origin::signed(DAVE),
 			PREDEFINED_DEPOSIT_IDS[0],
 			DAVE_BSX_TKN1_YIELD_FARM_ID
 		));
@@ -1143,8 +1139,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 			alice_bsx_tkn1_lp_shares_balance + shares_amount
 		);
 	});
-}
-*/
+}*/
 
 #[test]
 fn withdraw_shares_from_destroyed_farm_should_work() {

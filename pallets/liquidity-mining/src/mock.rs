@@ -374,7 +374,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
-	pub const MaxEntriesPerDeposit: u8 = 10; //TODO: ask Martin - is it a good value?
+	pub const MaxEntriesPerDeposit: u8 = 10;
 	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 }
 
