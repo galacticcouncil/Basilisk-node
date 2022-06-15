@@ -703,4 +703,26 @@ fn claim_rewards_not_deposit_owner_should_not_work() {
 	});
 }
 
-//TODO: Dani - add test claim_rewards_double_claim_should_work
+#[test]
+fn claim_rewards_should_fail_on_double_claim() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_ok!(LiquidityMining::claim_rewards(
+			Origin::signed(ALICE),
+			PREDEFINED_DEPOSIT_IDS[0],
+			BSX_TKN1_YIELD_FARM_ID,
+		));
+
+		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
+			farm_id: GC_FARM,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
+			who: ALICE,
+			claimed: 79_906,
+			reward_currency: BSX,
+		})]);
+
+		assert_noop!(
+			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_DEPOSIT_IDS[0], BSX_TKN1_YIELD_FARM_ID),
+			warehouse_liquidity_mining::Error::<Test>::DoubleClaimInThePeriod
+		);
+	});
+}
