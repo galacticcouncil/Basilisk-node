@@ -33,8 +33,10 @@
 //!
 //! LP must add liquidity of both pool assets. in V1 it is not allowed single token LPing.
 //!
+//! Initial liquidity is first liquidity added to the pool ( or first call of "add_liquidity").
+//!
 //! LP specifies an amount of liquidity to be added of one selected asset, the required amount of second pool asset is calculated
-//! in a way that the ratio does not change.
+//! in a way that the ratio does not change. In case of initial liquidity - this amount is equal to amount of first asset.
 //!
 //! LP is given certain amount of shares by minting a pool's share token.
 //!
@@ -258,14 +260,9 @@ pub mod pallet {
 		///
 		/// Both assets must be correctly registered in `T::AssetRegistry`
 		///
-		/// Initial liquidity must be > 0.
-		///
-		/// Origin is given corresponding amount of shares.
-		///
 		/// Parameters:
 		/// - `origin`: Must be T::CreatePoolOrigin
 		/// - `assets`: Asset ids tuple
-		/// - `initial_liquidity`: Corresponding initial liquidity of `assets`
 		/// - `amplification`: Pool amplification
 		/// - `fee`: trade fee to be applied in sell/buy trades
 		///
@@ -329,7 +326,11 @@ pub mod pallet {
 		///
 		/// LP must provide liquidity of both assets by specifying amount of asset a.
 		///
-		/// Amount of asset b is calculated so the ratio does not change:
+		/// If no liquidity in the pool yet, first call of add_liquidity adds "initial liquidity".
+		///
+		/// Initial liquidity - same amounts of each pool asset.
+		///
+		/// If initial liquidity already in the pool, then amount of asset b is calculated so the ratio does not change:
 		///
 		/// new_reserve_b = (reserve_a + amount) * reserve_b / reserve_a
 		/// amount_b = new_reserve_b - reserve_b
