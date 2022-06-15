@@ -127,7 +127,7 @@ pub mod pallet {
 		type AssetRegistry: ShareTokenRegistry<Self::AssetId, Vec<u8>, Balance, DispatchError>;
 
 		/// The origin which can create a new pool
-		type CreatePoolOrigin: EnsureOrigin<Self::Origin, Success = Self::AccountId>;
+		type CreatePoolOrigin: EnsureOrigin<Self::Origin>;
 
 		/// Precision used in Newton's method to solve math equations iteratively.
 		#[pallet::constant]
@@ -161,7 +161,6 @@ pub mod pallet {
 		PoolCreated {
 			id: PoolId<T::AssetId>,
 			assets: (T::AssetId, T::AssetId),
-			initial_liquidity: (Balance, Balance),
 			amplification: u16,
 		},
 		/// Liquidity of an asset was added to a pool.
@@ -276,11 +275,10 @@ pub mod pallet {
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			assets: (T::AssetId, T::AssetId),
-			initial_liquidity: (Balance, Balance),
 			amplification: u16,
 			fee: Permill,
 		) -> DispatchResult {
-			let who = T::CreatePoolOrigin::ensure_origin(origin)?;
+			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			let pool_assets: PoolAssets<T::AssetId> = assets.into();
 
@@ -294,19 +292,6 @@ pub mod pallet {
 			ensure!(T::AssetRegistry::exists(pool_assets.0), Error::<T>::AssetNotRegistered);
 			ensure!(T::AssetRegistry::exists(pool_assets.1), Error::<T>::AssetNotRegistered);
 
-			let reserves: AssetAmounts<Balance> = initial_liquidity.into();
-
-			ensure!(reserves.is_valid(), Error::<T>::InvalidInitialLiquidity);
-
-			ensure!(
-				T::Currency::free_balance(assets.0, &who) >= initial_liquidity.0,
-				Error::<T>::BalanceTooLow,
-			);
-			ensure!(
-				T::Currency::free_balance(assets.1, &who) >= initial_liquidity.1,
-				Error::<T>::BalanceTooLow,
-			);
-
 			let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some(POOL_IDENTIFIER));
 
 			let share_asset = T::AssetRegistry::get_or_create_shared_asset(
@@ -317,7 +302,7 @@ pub mod pallet {
 
 			let pool_id = PoolId(share_asset);
 
-			let pool = Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> Result<PoolInfo<T::AssetId>, DispatchError> {
+			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
 				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
 
 				let pool = PoolInfo {
@@ -326,36 +311,14 @@ pub mod pallet {
 					fee,
 				};
 
-				*maybe_pool = Some(pool.clone());
+				*maybe_pool = Some(pool);
 
-				Ok(pool)
+				Ok(())
 			})?;
-
-			let share_amount = calculate_add_liquidity_shares(
-				&AssetAmounts::default(),
-				&reserves,
-				T::Precision::get(),
-				amplification.into(),
-				Balance::zero(),
-			)
-			.ok_or(ArithmeticError::Overflow)?;
-
-			ensure!(
-				share_amount >= T::MinPoolLiquidity::get(),
-				Error::<T>::InsufficientLiquidity
-			);
-
-			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
-
-			T::Currency::transfer(assets.0, &who, &pool_account, initial_liquidity.0)?;
-			T::Currency::transfer(assets.1, &who, &pool_account, initial_liquidity.1)?;
-
-			T::Currency::deposit(pool_id.0, &who, share_amount)?;
 
 			Self::deposit_event(Event::PoolCreated {
 				id: pool_id,
 				assets,
-				initial_liquidity,
 				amplification,
 			});
 
@@ -428,11 +391,15 @@ pub mod pallet {
 				.checked_add(amount)
 				.ok_or(ArithmeticError::Overflow)?;
 
-			// Calculate new reserve of asset b and work out the difference to get required amount of second asset which has to be provided by LP too.
-			let asset_b_reserve = calculate_asset_b_reserve(initial_reserves.0, initial_reserves.1, updated_a_reserve)
-				.ok_or(ArithmeticError::Overflow)?;
+			// If first liquidity added to the pool, it required same amounts of both assets
+			let updated_b_reserve = if initial_reserves == AssetAmounts::default() {
+				amount
+			} else {
+				calculate_asset_b_reserve(initial_reserves.0, initial_reserves.1, updated_a_reserve)
+					.ok_or(ArithmeticError::Overflow)?
+			};
 
-			let asset_b_amount = asset_b_reserve
+			let asset_b_amount = updated_b_reserve
 				.checked_sub(initial_reserves.1)
 				.ok_or(ArithmeticError::Underflow)?;
 
@@ -441,7 +408,7 @@ pub mod pallet {
 				Error::<T>::InsufficientBalance
 			);
 
-			let new_reserves = AssetAmounts(updated_a_reserve, asset_b_reserve);
+			let new_reserves = AssetAmounts(updated_a_reserve, updated_b_reserve);
 
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
 

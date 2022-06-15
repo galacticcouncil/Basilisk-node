@@ -8,26 +8,22 @@ use sp_runtime::Permill;
 
 #[test]
 fn simple_sell_works() {
+	let asset_a: AssetId = 1;
+	let asset_b: AssetId = 2;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(BOB, 1, 200 * ONE), (ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
 		.with_registered_asset("one".as_bytes().to_vec(), 1)
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
+		.with_pool(
+			ALICE,
+			(asset_a, asset_b),
+			100u16,
+			Permill::from_percent(0),
+			(ALICE, asset_a, 100 * ONE),
+		)
 		.build()
 		.execute_with(|| {
-			let asset_a: AssetId = 1;
-			let asset_b: AssetId = 2;
-			let amplification: u16 = 100;
-			let initial_liquidity = (100 * ONE, 100 * ONE);
-
-			let pool_id = PoolId(retrieve_current_asset_id());
-
-			assert_ok!(Stableswap::create_pool(
-				Origin::signed(ALICE),
-				(asset_a, asset_b),
-				initial_liquidity,
-				amplification,
-				Permill::from_percent(0)
-			));
+			let pool_id = get_pool_id_at(0);
 
 			assert_ok!(Stableswap::sell(
 				Origin::signed(BOB),
@@ -51,26 +47,22 @@ fn simple_sell_works() {
 
 #[test]
 fn simple_buy_works() {
+	let asset_a: AssetId = 1;
+	let asset_b: AssetId = 2;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(BOB, 1, 200 * ONE), (ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
 		.with_registered_asset("one".as_bytes().to_vec(), 1)
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
+		.with_pool(
+			ALICE,
+			(asset_a, asset_b),
+			100u16,
+			Permill::from_percent(0),
+			(ALICE, asset_a, 100 * ONE),
+		)
 		.build()
 		.execute_with(|| {
-			let asset_a: AssetId = 1;
-			let asset_b: AssetId = 2;
-			let amplification: u16 = 100;
-			let initial_liquidity = (100 * ONE, 100 * ONE);
-
-			let pool_id = PoolId(retrieve_current_asset_id());
-
-			assert_ok!(Stableswap::create_pool(
-				Origin::signed(ALICE),
-				(asset_a, asset_b),
-				initial_liquidity,
-				amplification,
-				Permill::from_percent(0)
-			));
+			let pool_id = get_pool_id_at(0);
 
 			assert_ok!(Stableswap::buy(
 				Origin::signed(BOB),
@@ -94,26 +86,23 @@ fn simple_buy_works() {
 
 #[test]
 fn simple_sell_with_fee_works() {
+	let asset_a: AssetId = 1;
+	let asset_b: AssetId = 2;
+
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(BOB, 1, 200 * ONE), (ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
 		.with_registered_asset("one".as_bytes().to_vec(), 1)
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
+		.with_pool(
+			ALICE,
+			(asset_a, asset_b),
+			100u16,
+			Permill::from_percent(10),
+			(ALICE, asset_a, 100 * ONE),
+		)
 		.build()
 		.execute_with(|| {
-			let asset_a: AssetId = 1;
-			let asset_b: AssetId = 2;
-			let amplification: u16 = 100;
-			let initial_liquidity = (100 * ONE, 100 * ONE);
-
-			let pool_id = PoolId(retrieve_current_asset_id());
-
-			assert_ok!(Stableswap::create_pool(
-				Origin::signed(ALICE),
-				(asset_a, asset_b),
-				initial_liquidity,
-				amplification,
-				Permill::from_percent(10)
-			));
+			let pool_id = get_pool_id_at(0);
 
 			assert_ok!(Stableswap::sell(
 				Origin::signed(BOB),
@@ -141,26 +130,22 @@ fn simple_sell_with_fee_works() {
 
 #[test]
 fn simple_sell_with_small_fee_works() {
+	let asset_a: AssetId = 1;
+	let asset_b: AssetId = 2;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(BOB, 1, 200 * ONE), (ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
 		.with_registered_asset("one".as_bytes().to_vec(), 1)
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
+		.with_pool(
+			ALICE,
+			(asset_a, asset_b),
+			100u16,
+			Permill::from_rational(3u32, 1000u32),
+			(ALICE, asset_a, 100 * ONE),
+		)
 		.build()
 		.execute_with(|| {
-			let asset_a: AssetId = 1;
-			let asset_b: AssetId = 2;
-			let amplification: u16 = 100;
-			let initial_liquidity = (100 * ONE, 100 * ONE);
-
-			let pool_id = PoolId(retrieve_current_asset_id());
-
-			assert_ok!(Stableswap::create_pool(
-				Origin::signed(ALICE),
-				(asset_a, asset_b),
-				initial_liquidity,
-				amplification,
-				Permill::from_rational(3u32, 1000u32)
-			));
+			let pool_id = get_pool_id_at(0);
 
 			assert_ok!(Stableswap::sell(
 				Origin::signed(BOB),
@@ -188,26 +173,22 @@ fn simple_sell_with_small_fee_works() {
 
 #[test]
 fn simple_buy_with_fee_works() {
+	let asset_a: AssetId = 1;
+	let asset_b: AssetId = 2;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(BOB, 1, 200 * ONE), (ALICE, 1, 200 * ONE), (ALICE, 2, 200 * ONE)])
 		.with_registered_asset("one".as_bytes().to_vec(), 1)
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
+		.with_pool(
+			ALICE,
+			(asset_a, asset_b),
+			100u16,
+			Permill::from_percent(10),
+			(ALICE, asset_a, 100 * ONE),
+		)
 		.build()
 		.execute_with(|| {
-			let asset_a: AssetId = 1;
-			let asset_b: AssetId = 2;
-			let amplification: u16 = 100;
-			let initial_liquidity = (100 * ONE, 100 * ONE);
-
-			let pool_id = PoolId(retrieve_current_asset_id());
-
-			assert_ok!(Stableswap::create_pool(
-				Origin::signed(ALICE),
-				(asset_a, asset_b),
-				initial_liquidity,
-				amplification,
-				Permill::from_percent(10)
-			));
+			let pool_id = get_pool_id_at(0);
 
 			assert_ok!(Stableswap::buy(
 				Origin::signed(BOB),
@@ -235,6 +216,8 @@ fn simple_buy_with_fee_works() {
 
 #[test]
 fn sell_with_invalidad_amounts_fails() {
+	let asset_a: AssetId = 1000;
+	let asset_b: AssetId = 2000;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(BOB, 1000, 200 * ONE),
@@ -244,22 +227,16 @@ fn sell_with_invalidad_amounts_fails() {
 		])
 		.with_registered_asset("one".as_bytes().to_vec(), 1000)
 		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.with_pool(
+			ALICE,
+			(asset_a, asset_b),
+			100u16,
+			Permill::from_percent(0),
+			(ALICE, asset_a, 100 * ONE),
+		)
 		.build()
 		.execute_with(|| {
-			let asset_a: AssetId = 1000;
-			let asset_b: AssetId = 2000;
-			let amplification: u16 = 100;
-			let initial_liquidity = (100 * ONE, 100 * ONE);
-
-			let pool_id = PoolId(retrieve_current_asset_id());
-
-			assert_ok!(Stableswap::create_pool(
-				Origin::signed(ALICE),
-				(asset_a, asset_b),
-				initial_liquidity,
-				amplification,
-				Permill::from_percent(0)
-			));
+			let pool_id = get_pool_id_at(0);
 
 			assert_noop!(
 				Stableswap::sell(Origin::signed(BOB), pool_id, asset_a, asset_b, 30, 25 * ONE,),
@@ -299,7 +276,9 @@ fn sell_with_invalidad_amounts_fails() {
 }
 
 #[test]
-fn buy_with_invalidad_amounts_fails() {
+fn buy_with_invalid_amounts_fails() {
+	let asset_a: AssetId = 1000;
+	let asset_b: AssetId = 2000;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(BOB, 1000, 200 * ONE),
@@ -309,22 +288,16 @@ fn buy_with_invalidad_amounts_fails() {
 		])
 		.with_registered_asset("one".as_bytes().to_vec(), 1000)
 		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.with_pool(
+			ALICE,
+			(asset_a, asset_b),
+			100u16,
+			Permill::from_percent(0),
+			(ALICE, asset_a, 100 * ONE),
+		)
 		.build()
 		.execute_with(|| {
-			let asset_a: AssetId = 1000;
-			let asset_b: AssetId = 2000;
-			let amplification: u16 = 100;
-			let initial_liquidity = (100 * ONE, 100 * ONE);
-
-			let pool_id = PoolId(retrieve_current_asset_id());
-
-			assert_ok!(Stableswap::create_pool(
-				Origin::signed(ALICE),
-				(asset_a, asset_b),
-				initial_liquidity,
-				amplification,
-				Permill::from_percent(0)
-			));
+			let pool_id = get_pool_id_at(0);
 
 			assert_noop!(
 				Stableswap::buy(Origin::signed(BOB), pool_id, asset_a, asset_b, 30, 25 * ONE,),

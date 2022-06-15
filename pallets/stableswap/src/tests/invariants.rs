@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolId};
+use crate::types::PoolAssets;
 use frame_support::assert_ok;
 use sp_runtime::{FixedU128, Permill};
 
@@ -46,37 +46,34 @@ proptest! {
 	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn add_liquidity_price_no_changes(
-		asset_a_liquidity in asset_reserve(),
-		asset_b_liquidity in asset_reserve(),
+		initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
 		amplification in amplification(),
 		fee in trade_fee()
 
 	) {
+		let asset_a: AssetId = 1000;
+		let asset_b: AssetId = 2000;
+
 		ExtBuilder::default()
 			.with_endowed_accounts(vec![
-				(BOB, 1, added_liquidity),
-				(BOB, 2, added_liquidity * 1000),
-				(ALICE, 1, asset_a_liquidity),
-				(ALICE, 2, asset_b_liquidity),
+				(BOB, asset_a, added_liquidity),
+				(BOB, asset_b, added_liquidity * 1000),
+				(ALICE, asset_a, initial_liquidity),
+				(ALICE, asset_b, initial_liquidity),
 			])
-			.with_registered_asset("one".as_bytes().to_vec(), 1)
-			.with_registered_asset("two".as_bytes().to_vec(), 2)
+			.with_registered_asset("one".as_bytes().to_vec(), asset_a)
+			.with_registered_asset("two".as_bytes().to_vec(), asset_b)
+			.with_pool(
+				ALICE,
+				(asset_a, asset_b),
+				amplification,
+				fee,
+				(ALICE, asset_a, initial_liquidity),
+			)
 			.build()
 			.execute_with(|| {
-				let asset_a: AssetId = 1;
-				let asset_b: AssetId = 2;
-				let initial_liquidity = (asset_a_liquidity, asset_b_liquidity);
-
-				let pool_id = PoolId(retrieve_current_asset_id());
-
-				assert_ok!(Stableswap::create_pool(
-					Origin::signed(ALICE),
-					(asset_a, asset_b),
-					initial_liquidity,
-					amplification,
-					fee,
-				));
+				let pool_id = get_pool_id_at(0);
 
 				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
 
@@ -106,37 +103,34 @@ proptest! {
 	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn remove_liquidity_price_no_changes(
-		asset_a_liquidity in asset_reserve(),
-		asset_b_liquidity in asset_reserve(),
+		initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
 		amplification in amplification(),
 		fee in trade_fee(),
 		withdraw_percentage in percent(),
 	) {
+
+		let asset_a: AssetId = 1000;
+		let asset_b: AssetId = 2000;
 		ExtBuilder::default()
 			.with_endowed_accounts(vec![
-				(BOB, 1, added_liquidity),
-				(BOB, 2, added_liquidity * 1000),
-				(ALICE, 1, asset_a_liquidity),
-				(ALICE, 2, asset_b_liquidity),
+				(BOB, asset_a, added_liquidity),
+				(BOB, asset_b, added_liquidity * 1000),
+				(ALICE, asset_a, initial_liquidity),
+				(ALICE, asset_b, initial_liquidity),
 			])
-			.with_registered_asset("one".as_bytes().to_vec(), 1)
-			.with_registered_asset("two".as_bytes().to_vec(), 2)
+			.with_registered_asset("one".as_bytes().to_vec(), asset_a)
+			.with_registered_asset("two".as_bytes().to_vec(), asset_b)
+			.with_pool(
+				ALICE,
+				(asset_a, asset_b),
+				amplification,
+				fee,
+				(ALICE, asset_a, initial_liquidity),
+			)
 			.build()
 			.execute_with(|| {
-				let asset_a: AssetId = 1;
-				let asset_b: AssetId = 2;
-				let initial_liquidity = (asset_a_liquidity, asset_b_liquidity);
-
-				let pool_id = PoolId(retrieve_current_asset_id());
-
-				assert_ok!(Stableswap::create_pool(
-					Origin::signed(ALICE),
-					(asset_a, asset_b),
-					initial_liquidity,
-					amplification,
-					fee,
-				));
+				let pool_id = get_pool_id_at(0);
 
 				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
 
@@ -170,34 +164,31 @@ proptest! {
 	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn sell_invariants(
-		asset_a_liquidity in asset_reserve(),
-		asset_b_liquidity in asset_reserve(),
+		initial_liquidity in asset_reserve(),
 		amount in trade_amount(),
 		amplification in amplification(),
 	) {
+		let asset_a: AssetId = 1000;
+		let asset_b: AssetId = 2000;
+
 		ExtBuilder::default()
 			.with_endowed_accounts(vec![
-				(BOB, 1, amount),
-				(ALICE, 1, asset_a_liquidity),
-				(ALICE, 2, asset_b_liquidity),
+				(BOB, asset_a, amount),
+				(ALICE, asset_a, initial_liquidity),
+				(ALICE, asset_b, initial_liquidity),
 			])
-			.with_registered_asset("one".as_bytes().to_vec(), 1)
-			.with_registered_asset("two".as_bytes().to_vec(), 2)
+			.with_registered_asset("one".as_bytes().to_vec(), asset_a)
+			.with_registered_asset("two".as_bytes().to_vec(), asset_b)
+			.with_pool(
+				ALICE,
+				(asset_a, asset_b),
+				amplification,
+				Permill::from_percent(0),
+				(ALICE, asset_a, initial_liquidity),
+			)
 			.build()
 			.execute_with(|| {
-				let asset_a: AssetId = 1;
-				let asset_b: AssetId = 2;
-				let initial_liquidity = (asset_a_liquidity, asset_b_liquidity);
-
-				let pool_id = PoolId(retrieve_current_asset_id());
-
-				assert_ok!(Stableswap::create_pool(
-					Origin::signed(ALICE),
-					(asset_a, asset_b),
-					initial_liquidity,
-					amplification,
-					Permill::from_percent(0),
-				));
+				let pool_id = get_pool_id_at(0);
 
 				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
 
@@ -230,34 +221,32 @@ proptest! {
 	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn buy_invariants(
-		asset_a_liquidity in asset_reserve(),
-		asset_b_liquidity in asset_reserve(),
+		initial_liquidity in asset_reserve(),
 		amount in trade_amount(),
 		amplification in amplification(),
 	) {
+		let asset_a: AssetId = 1;
+		let asset_b: AssetId = 2;
+
 		ExtBuilder::default()
 			.with_endowed_accounts(vec![
-				(BOB, 1, amount * 1000),
-				(ALICE, 1, asset_a_liquidity),
-				(ALICE, 2, asset_b_liquidity),
+				(BOB, asset_a, amount * 1000),
+				(ALICE, asset_a, initial_liquidity),
+				(ALICE, asset_b, initial_liquidity),
 			])
-			.with_registered_asset("one".as_bytes().to_vec(), 1)
-			.with_registered_asset("two".as_bytes().to_vec(), 2)
+			.with_registered_asset("one".as_bytes().to_vec(), asset_a)
+			.with_registered_asset("two".as_bytes().to_vec(), asset_b)
+			.with_pool(
+				ALICE,
+				(asset_a, asset_b),
+				amplification,
+				Permill::from_percent(0),
+				(ALICE, asset_a, initial_liquidity),
+			)
 			.build()
 			.execute_with(|| {
-				let asset_a: AssetId = 1;
-				let asset_b: AssetId = 2;
-				let initial_liquidity = (asset_a_liquidity, asset_b_liquidity);
 
-				let pool_id = PoolId(retrieve_current_asset_id());
-
-				assert_ok!(Stableswap::create_pool(
-					Origin::signed(ALICE),
-					(asset_a, asset_b),
-					initial_liquidity,
-					amplification,
-					Permill::from_percent(0),
-				));
+				let pool_id = get_pool_id_at(0);
 
 				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
 

@@ -26,6 +26,7 @@ use crate as pallet_stableswap;
 
 use crate::Config;
 
+use frame_support::assert_ok;
 use frame_support::traits::{Everything, GenesisBuild};
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -38,7 +39,7 @@ use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	DispatchError,
+	DispatchError, Permill,
 };
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -46,12 +47,13 @@ type Block = frame_system::mocking::MockBlock<Test>;
 
 pub type Balance = u128;
 pub type AssetId = u32;
+pub type AccountId = u64;
 
 pub const HDX: AssetId = 0;
 pub const DAI: AssetId = 1;
 
-pub const ALICE: u64 = 1;
-pub const BOB: u64 = 2;
+pub const ALICE: AccountId = 1;
+pub const BOB: AccountId = 2;
 
 pub const ONE: Balance = 1_000_000_000_000;
 
@@ -65,6 +67,7 @@ macro_rules! assert_balance {
 thread_local! {
 	pub static REGISTERED_ASSETS: RefCell<HashMap<AssetId, u32>> = RefCell::new(HashMap::default());
 	pub static ASSET_IDENTS: RefCell<HashMap<Vec<u8>, u32>> = RefCell::new(HashMap::default());
+	pub static POOL_IDS: RefCell<Vec<PoolId<AssetId>>> = RefCell::new(Vec::new());
 }
 
 construct_runtime!(
@@ -89,7 +92,7 @@ impl frame_system::Config for Test {
 	type BlockNumber = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = u64;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -139,7 +142,7 @@ impl Config for Test {
 	type Currency = Tokens;
 	type ShareAccountId = AccountIdConstructor;
 	type AssetRegistry = DummyRegistry<Test>;
-	type CreatePoolOrigin = EnsureSigned<u64>;
+	type CreatePoolOrigin = EnsureSigned<AccountId>;
 	type Precision = Precision;
 	type MinPoolLiquidity = MinimumLiquidity;
 	type AmplificationRange = AmplificationRange;
@@ -148,8 +151,15 @@ impl Config for Test {
 }
 
 pub struct ExtBuilder {
-	endowed_accounts: Vec<(u64, AssetId, Balance)>,
+	endowed_accounts: Vec<(AccountId, AssetId, Balance)>,
 	registered_assets: Vec<(Vec<u8>, AssetId)>,
+	created_pools: Vec<(
+		AccountId,
+		(AssetId, AssetId),
+		u16,
+		Permill,
+		(AccountId, AssetId, Balance),
+	)>,
 }
 
 impl Default for ExtBuilder {
@@ -163,21 +173,37 @@ impl Default for ExtBuilder {
 		ASSET_IDENTS.with(|v| {
 			v.borrow_mut().clear();
 		});
+		POOL_IDS.with(|v| {
+			v.borrow_mut().clear();
+		});
 		Self {
 			endowed_accounts: vec![],
 			registered_assets: vec![],
+			created_pools: vec![],
 		}
 	}
 }
 
 impl ExtBuilder {
-	pub fn with_endowed_accounts(mut self, accounts: Vec<(u64, AssetId, Balance)>) -> Self {
+	pub fn with_endowed_accounts(mut self, accounts: Vec<(AccountId, AssetId, Balance)>) -> Self {
 		self.endowed_accounts = accounts;
 		self
 	}
 
 	pub fn with_registered_asset(mut self, name: Vec<u8>, asset: AssetId) -> Self {
 		self.registered_assets.push((name, asset));
+		self
+	}
+
+	pub fn with_pool(
+		mut self,
+		who: AccountId,
+		assets: (AssetId, AssetId),
+		amp: u16,
+		fee: Permill,
+		initial_liquidity: (AccountId, AssetId, Balance),
+	) -> Self {
+		self.created_pools.push((who, assets, amp, fee, initial_liquidity));
 		self
 	}
 
@@ -206,13 +232,35 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
-		t.into()
+		let mut r: sp_io::TestExternalities = t.into();
+
+		r.execute_with(|| {
+			for (who, assets, amplification, fee, initial) in self.created_pools {
+				let pool_id = PoolId(retrieve_current_asset_id());
+				assert_ok!(Stableswap::create_pool(Origin::signed(who), assets, amplification, fee,));
+				POOL_IDS.with(|v| {
+					v.borrow_mut().push(pool_id);
+				});
+
+				if initial.2 > Balance::zero() {
+					assert_ok!(Stableswap::add_liquidity(
+						Origin::signed(initial.0),
+						pool_id,
+						initial.1,
+						initial.2,
+					));
+				}
+			}
+		});
+
+		r
 	}
 }
 
 use crate::traits::ShareAccountIdFor;
-use crate::types::PoolAssets;
+use crate::types::{PoolAssets, PoolId};
 use hydradx_traits::{Registry, ShareTokenRegistry};
+use sp_runtime::traits::Zero;
 
 pub struct DummyRegistry<T>(sp_std::marker::PhantomData<T>);
 
@@ -267,7 +315,7 @@ where
 pub struct AccountIdConstructor;
 
 impl ShareAccountIdFor<PoolAssets<u32>> for AccountIdConstructor {
-	type AccountId = u64;
+	type AccountId = AccountId;
 
 	fn from_assets(assets: &PoolAssets<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
 		let mut a = assets.0;
@@ -293,4 +341,8 @@ impl ShareAccountIdFor<PoolAssets<u32>> for AccountIdConstructor {
 
 pub(crate) fn retrieve_current_asset_id() -> AssetId {
 	REGISTERED_ASSETS.with(|v| v.borrow().len() as AssetId)
+}
+
+pub(crate) fn get_pool_id_at(idx: usize) -> PoolId<AssetId> {
+	POOL_IDS.with(|v| v.borrow()[idx])
 }
