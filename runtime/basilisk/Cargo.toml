@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "51.0.0"
+version = "52.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -15,14 +15,10 @@ substrate-build-script-utils = { git = "https://github.com/paritytech/substrate"
 substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17" }
 
 [dependencies]
-getrandom = { version = "0.2.3", features = ["js"] }
 hex-literal = "0.3.1"
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 codec = { package = "parity-scale-codec", version = "2.3.1", default-features = false, features = ["derive"] }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
-hash-db = { version = "0.15.2", default-features = false }
-memory-db = { version = "0.27.0", default-features = false }
-trie-db = { version = "0.22.6", default-features = false }
 smallvec = "1.6.1"
 
 # local dependencies
@@ -48,11 +44,11 @@ pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polka
 pallet-identity = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 
 # Warehouse dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false}
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false}
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
