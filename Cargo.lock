@@ -1276,7 +1276,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.9.2"
+version = "1.9.3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5895,7 +5895,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining-benchmarking"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
