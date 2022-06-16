@@ -260,3 +260,10 @@ parameter_types! {
 	pub const MinTotalFarmRewards: Balance = NATIVE_EXISTENTIAL_DEPOSIT * 1_000;
 	pub const NftClass: primitives::ClassId = 1;
 }
+
+// warehouse liquidity mining
+parameter_types! {
+	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
+	pub const MinDeposit: Balance = 1;      //TODO: set correct value
+	pub const MaxEntriesPerDeposit: u8 = 4;
+}
