@@ -279,7 +279,7 @@ impl pallet_balances::Config for Runtime {
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = primitives::ReserveIdentifier;
+	type ReserveIdentifier = pallet_nft::ReserveIdentifier;
 }
 
 /// Parameterized slow adjusting fee updated based on
