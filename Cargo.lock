@@ -11250,6 +11250,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "hex-literal",
+ "hydradx-adapters",
  "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
