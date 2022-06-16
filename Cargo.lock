@@ -506,6 +506,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "hex-literal",
+ "hydradx-adapters",
  "hydradx-traits",
  "orml-benchmarking",
  "orml-currencies",
@@ -3182,6 +3183,23 @@ dependencies = [
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "sp-arithmetic",
+]
+
+[[package]]
+name = "hydradx-adapters"
+version = "0.1.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=7052eeab309742dccfe7e307c15fc4f780713553#7052eeab309742dccfe7e307c15fc4f780713553"
+dependencies = [
+ "frame-support",
+ "hydradx-traits",
+ "log",
+ "pallet-transaction-multi-payment",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -8634,7 +8652,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -11176,6 +11194,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "hex-literal",
+ "hydradx-adapters",
  "hydradx-traits",
  "orml-currencies",
  "orml-tokens",

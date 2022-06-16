@@ -47,6 +47,7 @@ pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", re
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false}
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
+hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
@@ -199,6 +200,7 @@ std = [
     "pallet-lbp/std",
     "pallet-price-oracle/std",
     "pallet-utility/std",
+    "hydradx-adapters/std",
     "hydradx-traits/std",
     "sp-api/std",
     "sp-block-builder/std",
