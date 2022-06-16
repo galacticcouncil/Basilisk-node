@@ -16,7 +16,6 @@
 // limitations under the License.
 
 use super::*;
-use crate::mock::PALLET_SERVICE_ACCOUNT;
 use pretty_assertions::assert_eq;
 use test_ext::*;
 use warehouse_liquidity_mining::DepositData;
@@ -449,7 +448,7 @@ fn withdraw_shares_should_work() {
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: BOB,
 				lp_token: BSX_TKN1_SHARE_ID,
-				amount: 80,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: BOB,
@@ -565,7 +564,7 @@ fn withdraw_shares_should_work() {
 				yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
-				amount: 25,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: BOB,
@@ -819,7 +818,7 @@ fn withdraw_shares_should_work() {
 				yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
-				amount: 800,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				owner: BOB,
@@ -1015,7 +1014,6 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 
 		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(DAVE), DAVE_FARM));
 
-		let unclaimable_rewards = 0;
 		let shares_amount = 50;
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
@@ -1279,7 +1277,7 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
-				amount: 50,
+				amount: withdrawn_amount,
 			}),
 			mock::Event::Uniques(pallet_uniques::Event::Burned {
 				class: LIQ_MINING_NFT_CLASS,
@@ -1298,7 +1296,7 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				total_shares: yield_farm.total_shares - 50,
+				total_shares: yield_farm.total_shares - withdrawn_amount,
 				total_valued_shares: yield_farm.total_valued_shares - 2500,
 				entries_count: 2,
 				..yield_farm
@@ -1309,12 +1307,12 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
-			bsx_tkn1_pallet_amm_shares_balance - 50
+			bsx_tkn1_pallet_amm_shares_balance - withdrawn_amount
 		);
 
 		assert_eq!(
 			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
-			bsx_tkn1_alice_amm_shares_balance + 50
+			bsx_tkn1_alice_amm_shares_balance + withdrawn_amount
 		);
 
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance + user_reward);
