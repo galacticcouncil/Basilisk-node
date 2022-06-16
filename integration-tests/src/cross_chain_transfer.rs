@@ -241,9 +241,14 @@ fn fee_currency_set_on_xcm_transfer() {
 	});
 
 	Basilisk::execute_with(|| {
+		let fee_amount = 2 * BSX / 10;
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
-			transfer_amount
+			transfer_amount - fee_amount
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			fee_amount // fees should go to treasury
 		);
 		// fee currency is set after XCM transfer
 		assert_eq!(
