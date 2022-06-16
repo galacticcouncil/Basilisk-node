@@ -5612,7 +5612,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "2.3.0"
+version = "2.3.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5677,7 +5677,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.3.2"
+version = "5.3.3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5701,7 +5701,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.12"
+version = "3.3.13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5817,7 +5817,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.4.2"
+version = "4.4.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5870,7 +5870,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "1.2.3"
+version = "1.2.4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6500,7 +6500,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.6.2"
+version = "3.6.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8690,7 +8690,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
