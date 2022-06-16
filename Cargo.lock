@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "54.0.0"
+version = "55.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -531,8 +531,6 @@ dependencies = [
  "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining",
- "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
  "pallet-multisig",
  "pallet-nft",
@@ -5887,60 +5885,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-liquidity-mining"
-version = "1.2.4"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "orml-currencies",
- "orml-tokens",
- "orml-traits",
- "pallet-balances",
- "pallet-nft",
- "pallet-uniques",
- "parity-scale-codec",
- "primitives",
- "scale-info",
- "serde",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-liquidity-mining-benchmarking"
-version = "1.0.4"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "hydradx-traits",
- "orml-currencies",
- "orml-tokens",
- "orml-traits",
- "pallet-asset-registry",
- "pallet-balances",
- "pallet-liquidity-mining",
- "pallet-nft",
- "pallet-uniques",
- "pallet-xyk",
- "parity-scale-codec",
- "primitives",
- "scale-info",
- "serde",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-marketplace"
 version = "1.1.0"
 dependencies = [
@@ -11230,7 +11174,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "54.0.0"
+version = "55.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11274,8 +11218,6 @@ dependencies = [
  "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining",
- "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
  "pallet-multisig",
  "pallet-nft",
