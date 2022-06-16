@@ -39,7 +39,10 @@ use primitives::constants::currency::NATIVE_EXISTENTIAL_DEPOSIT;
 use warehouse_liquidity_mining::LoyaltyCurve;
 
 pub const GLOBAL_FARM_ID: GlobalFarmId = 1;
+pub const GLOBAL_FARM_ID_2: GlobalFarmId = 2;
 pub const YIELD_FARM_ID: YieldFarmId = 2;
+pub const YIELD_FARM_ID_2: YieldFarmId = 3;
+pub const YIELD_FARM_ID_3: YieldFarmId = 4;
 pub const DEPOSIT_ID: u128 = 1;
 
 const SEED: u32 = 0;
@@ -140,9 +143,20 @@ fn lm_create_yield_farm<T: Config>(
 	assets: AssetPair,
 	multiplier: FixedU128,
 ) -> dispatch::DispatchResult {
+	lm_create_yield_farm_for_global_farm::<T>(caller, GLOBAL_FARM_ID, assets, multiplier)?;
+
+	Ok(())
+}
+
+fn lm_create_yield_farm_for_global_farm<T: Config>(
+	caller: T::AccountId,
+	farm_id: GlobalFarmId,
+	assets: AssetPair,
+	multiplier: FixedU128,
+) -> dispatch::DispatchResult {
 	LiquidityMining::<T>::create_yield_farm(
 		RawOrigin::Signed(caller).into(),
-		1,
+		farm_id,
 		assets,
 		multiplier,
 		Some(LoyaltyCurve::default()),
@@ -368,6 +382,59 @@ benchmarks! {
 			DEPOSIT_ID
 		).is_some());
 	}
+
+	redeposit_shares {
+		//init nft class for liq. mining
+		pallet_liquidity_mining::migration::init_nft_class::<T>();
+
+		let caller = funded_account::<T>("caller", 0);
+		let xyk_caller = funded_account::<T>("xyk_caller", 1);
+		let liq_provider = funded_account::<T>("liq_provider", 2);
+
+		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
+
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
+		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
+
+		let global_pool_account = WarehouseLM::<T>::farm_account_id(1).unwrap();
+		assert!(MultiCurrencyOf::<T>::free_balance(BSX, &global_pool_account) == 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT);
+
+		let assets = AssetPair {
+			asset_in: BSX,
+			asset_out: KSM,
+		};
+
+		lm_create_yield_farm_for_global_farm::<T>(caller.clone(),GLOBAL_FARM_ID, assets, FixedU128::from(50_000_u128))?;
+		lm_create_yield_farm_for_global_farm::<T>(caller,GLOBAL_FARM_ID_2, assets, FixedU128::from(50_000_u128))?;
+
+		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID_2)).unwrap().state, YieldFarmState::Active);
+
+		let xyk_id_2 = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id_2.clone(),GLOBAL_FARM_ID_2,YIELD_FARM_ID_3)).unwrap().state, YieldFarmState::Active);
+
+		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
+
+		set_block_number::<T>(200_000);
+
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID_2)).unwrap().updated_at, 0_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id_2.clone(),GLOBAL_FARM_ID_2,YIELD_FARM_ID_3)).unwrap().updated_at, 0_u32.into());
+
+		assert!(WarehouseLM::<T>::deposit(
+			DEPOSIT_ID
+		).is_none());
+
+		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID_2, assets, 10_000)?;
+		assert!(WarehouseLM::<T>::deposit(DEPOSIT_ID).is_some());
+	}: {
+		LiquidityMining::<T>::redeposit_lp_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID_2, YIELD_FARM_ID_3, assets, DEPOSIT_ID)?
+	}
+	verify {
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id_2.clone(),GLOBAL_FARM_ID_2,YIELD_FARM_ID_3)).unwrap().entries_count, 1);
+
+		assert_eq!(WarehouseLM::<T>::deposit(DEPOSIT_ID).unwrap().yield_farm_entries.len(), 2);
+	}
+
 
 	claim_rewards {
 		//init nft class for liq. mining
