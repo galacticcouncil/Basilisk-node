@@ -129,7 +129,6 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
-				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
@@ -208,7 +207,6 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
-				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
@@ -272,9 +270,7 @@ pub fn k8s_testnet_parachain_config() -> Result<ChainSpec, String> {
 				PARA_ID.into(),
 				//technical committee
 				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()],
-				// TREASURY - Fallback for multi tx payment
 				vec![],
-				hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into(),
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
@@ -339,7 +335,6 @@ pub fn moonbase_parachain_config() -> Result<ChainSpec, String> {
 				//technical committee
 				vec![hex!["9eaea650948488ccc720491b8e40be7436359dc4213a6487ba758ed496f9e53f"].into()], // same as sudo
 				vec![],
-				hex!["9eaea650948488ccc720491b8e40be7436359dc4213a6487ba758ed496f9e53f"].into(), // same as sudo
 				vec![],
 				vec![],
 				vec![],
@@ -386,7 +381,6 @@ fn testnet_parachain_genesis(
 	parachain_id: ParaId,
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
-	tx_fee_payment_account: AccountId,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
 	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
@@ -438,7 +432,6 @@ fn testnet_parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: accepted_assets,
-			fallback_account: Some(tx_fee_payment_account),
 			account_currencies: vec![],
 		},
 		tokens: TokensConfig {
