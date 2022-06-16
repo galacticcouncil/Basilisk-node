@@ -1,5 +1,3 @@
-//TODO: Dani - fix it
-/*
 // This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
@@ -127,6 +125,7 @@ impl crate::Config for Test {}
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
 	pub const MinDeposit: Balance = 1;
+	pub const MaxEntriesPerDeposit: u8 = 10;
 }
 
 impl warehouse_liquidity_mining::Config for Test {
@@ -139,6 +138,7 @@ impl warehouse_liquidity_mining::Config for Test {
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type AmmPoolId = AccountId;
 	type Handler = LiquidityMining;
+	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
 }
 
 parameter_types! {
@@ -325,4 +325,3 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext.execute_with(|| System::set_block_number(1));
 	ext
 }
-*/

@@ -1,5 +1,3 @@
-//TODO: Dani - fix it
-/*
 // This file is part of Basilisk-node.
 
 // Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
@@ -24,6 +22,7 @@ mod mock;
 
 use pallet_liquidity_mining::Pallet as LiquidityMining;
 use warehouse_liquidity_mining::Pallet as WarehouseLM;
+use warehouse_liquidity_mining::{GlobalFarmId, YieldFarmId, YieldFarmState};
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::{Pallet as System, RawOrigin};
@@ -35,10 +34,13 @@ use sp_arithmetic::FixedU128;
 use sp_arithmetic::Permill;
 use sp_std::convert::From;
 
+use pallet_xyk as xykpool;
 use primitives::constants::currency::NATIVE_EXISTENTIAL_DEPOSIT;
 use warehouse_liquidity_mining::LoyaltyCurve;
 
-use pallet_xyk as xykpool;
+pub const GLOBAL_FARM_ID: GlobalFarmId = 1;
+pub const YIELD_FARM_ID: YieldFarmId = 2;
+pub const DEPOSIT_ID: u128 = 1;
 
 const SEED: u32 = 0;
 
@@ -122,7 +124,13 @@ fn xyk_add_liquidity<T: Config>(
 }
 
 fn lm_deposit_shares<T: Config>(caller: T::AccountId, assets: AssetPair, amount: Balance) -> dispatch::DispatchResult {
-	LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(caller).into(), 1, assets, amount)?;
+	LiquidityMining::<T>::deposit_shares(
+		RawOrigin::Signed(caller).into(),
+		GLOBAL_FARM_ID,
+		YIELD_FARM_ID,
+		assets,
+		amount,
+	)?;
 
 	Ok(())
 }
@@ -153,7 +161,7 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, T::BlockNumber::from(1_000_000_u32), T::BlockNumber::from(1_u32), BSX, BSX, caller.clone(), Permill::from_percent(20))? }
 	verify {
-		assert!(WarehouseLM::<T>::global_farm(1).is_some());
+		assert!(WarehouseLM::<T>::global_farm(GLOBAL_FARM_ID).is_some());
 	}
 
 	destroy_farm {
@@ -161,13 +169,13 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		assert!(WarehouseLM::<T>::global_farm(1).is_some());
+		assert!(WarehouseLM::<T>::global_farm(GLOBAL_FARM_ID).is_some());
 
 	}: {
-		LiquidityMining::<T>::destroy_farm(RawOrigin::Signed(caller.clone()).into(), 1)?
+		LiquidityMining::<T>::destroy_global_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID)?
 	}
 	verify {
-		assert!(WarehouseLM::<T>::global_farm(1).is_none());
+		assert!(WarehouseLM::<T>::global_farm(GLOBAL_FARM_ID).is_none());
 	}
 
 
@@ -188,15 +196,14 @@ benchmarks! {
 		};
 
 	}: {
-		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?
+		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?
 	}
 	verify {
-		assert_eq!(WarehouseLM::<T>::global_farm(1).unwrap().liq_pools_count, 1);
+		assert_eq!(WarehouseLM::<T>::global_farm(GLOBAL_FARM_ID).unwrap().yield_farms_count, (1,1));
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id).is_some());
 
-		assert_eq!(WarehouseLM::<T>::liq_pool_meta(2).unwrap(), (0, 1));
+		assert!(WarehouseLM::<T>::yield_farm((xyk_id,GLOBAL_FARM_ID,YIELD_FARM_ID)).is_some());
 	}
 
 	update_yield_farm {
@@ -215,17 +222,17 @@ benchmarks! {
 			asset_out: KSM,
 		};
 
-		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?;
+		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?;
 
-		assert_eq!(WarehouseLM::<T>::global_farm(1).unwrap().liq_pools_count, 1);
+		assert_eq!(WarehouseLM::<T>::global_farm(GLOBAL_FARM_ID).unwrap().yield_farms_count, (1,1));
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().multiplier, FixedU128::from(50_000_u128));
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(), GLOBAL_FARM_ID, YIELD_FARM_ID)).unwrap().multiplier, FixedU128::from(50_000_u128));
 	}: {
 		LiquidityMining::<T>::update_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(10_000_u128))?
 	}
 	verify {
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().multiplier, FixedU128::from(10_000_u128));
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id, GLOBAL_FARM_ID, YIELD_FARM_ID)).unwrap().multiplier, FixedU128::from(10_000_u128));
 	}
 
 	stop_yield_farm {
@@ -251,23 +258,23 @@ benchmarks! {
 		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
+
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Active);
 
 		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
 
 		lm_deposit_shares::<T>(liq_provider, assets, 10_000)?;
-
 		set_block_number::<T>(200_000);
 
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
-		assert_eq!(WarehouseLM::<T>::lyield_farm(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().updated_at, 0_u32.into());
+
 	}: {
-		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, assets)?
 	}
 	verify {
-		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Stopped);
 
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().updated_at, 200_000_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().updated_at, 200_000_u32.into());
 	}
 
 	destroy_yield_farm {
@@ -293,8 +300,7 @@ benchmarks! {
 		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
-
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Active);
 		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
 
 		lm_deposit_shares::<T>(liq_provider.clone(), assets, 10_000)?;
@@ -303,19 +309,19 @@ benchmarks! {
 
 		LiquidityMining::<T>::withdraw_shares(
 			RawOrigin::Signed(liq_provider).into(),
-			4_294_967_298_u128
+			DEPOSIT_ID,
+			YIELD_FARM_ID
 		)?;
 
-		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, assets)?;
 
-		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Stopped);
 	}: {
-		LiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?
+		LiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, assets)?
 	}
 	verify {
-		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id).is_none());
-		assert_eq!(WarehouseLM::<T>::global_farm(1).unwrap().liq_pools_count, 0);
-		assert!(WarehouseLM::<T>::liq_pool_meta(1).is_none());
+		assert!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).is_none());
+		assert_eq!(WarehouseLM::<T>::global_farm(GLOBAL_FARM_ID).unwrap().yield_farms_count, (0,0));
 	}
 
 	deposit_shares {
@@ -341,25 +347,25 @@ benchmarks! {
 		lm_create_yield_farm::<T>(caller, assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Active);
 
 		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
 
 		set_block_number::<T>(200_000);
 
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().updated_at, 0_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().updated_at, 0_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id,GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().updated_at, 0_u32.into());
 
 		assert!(WarehouseLM::<T>::deposit(
-			4_294_967_298_u128
+			DEPOSIT_ID
 		).is_none());
 
 	}: {
-		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), 1, assets, 10_000)?
+		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, assets, 10_000)?
 	}
 	verify {
 		assert!(WarehouseLM::<T>::deposit(
-			4_294_967_298_u128
+			DEPOSIT_ID
 		).is_some());
 	}
 
@@ -386,24 +392,24 @@ benchmarks! {
 		lm_create_yield_farm::<T>(caller, assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Active);
 
 		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
 
 		set_block_number::<T>(200_000);
 
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().updated_at, 0_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().updated_at, 0_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id,GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().updated_at, 0_u32.into());
 
-		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), 1, assets, 10_000)?;
+		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, assets, 10_000)?;
 
-		assert!(WarehouseLM::<T>::deposit(4_294_967_298_u128).is_some());
+		assert!(WarehouseLM::<T>::deposit(DEPOSIT_ID).is_some());
 
 		set_block_number::<T>(400_000);
 
 		let liq_provider_bsx_balance = MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider);
 	}: {
-		LiquidityMining::<T>::claim_rewards(RawOrigin::Signed(liq_provider.clone()).into(), 4_294_967_298_u128)?
+		LiquidityMining::<T>::claim_rewards(RawOrigin::Signed(liq_provider.clone()).into(), DEPOSIT_ID, YIELD_FARM_ID)?
 	}
 	verify {
 		assert!(MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider).gt(&liq_provider_bsx_balance));
@@ -432,28 +438,29 @@ benchmarks! {
 		lm_create_yield_farm::<T>(caller, assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Active);
 
 		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
 
 		set_block_number::<T>(200_000);
 
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().updated_at, 0_u32.into());
-		assert_eq!(WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().updated_at, 0_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().updated_at, 0_u32.into());
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id,GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().updated_at, 0_u32.into());
 
-		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), 1, assets, 10_000)?;
+		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, assets, 10_000)?;
 
-		assert!(WarehouseLM::<T>::deposit(4_294_967_298_u128).is_some());
+		assert!(WarehouseLM::<T>::deposit(DEPOSIT_ID).is_some());
 
 		set_block_number::<T>(400_000);
 
 		let liq_provider_bsx_balance = MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider);
 	}: {
-		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), 4_294_967_298_u128)?
+		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), DEPOSIT_ID, YIELD_FARM_ID)?
 	}
 	verify {
 		assert!(MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider).gt(&liq_provider_bsx_balance));
-		assert!(WarehouseLM::<T>::deposit(4_294_967_298_u128).is_none());
+		assert!(WarehouseLM::<T>::deposit(DEPOSIT_ID).is_none());
+
 	}
 
 	//NOTE: This is same no matter if `update_global_pool()` is called because `GlobalFarm`will be
@@ -477,16 +484,16 @@ benchmarks! {
 		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
 
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Active);
 
 		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
 
-		assert!(WarehouseLM::<T>::yield_farm(1, xyk_id.clone()).unwrap().canceled);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Stopped);
 	}: {
-		LiquidityMining::<T>::resume_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(12_452))?
+		LiquidityMining::<T>::resume_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, assets, FixedU128::from(12_452))?
 	}
 	verify {
-		assert!(!WarehouseLM::<T>::yield_farm(1, xyk_id).unwrap().canceled);
+		assert_eq!(WarehouseLM::<T>::yield_farm((xyk_id.clone(),GLOBAL_FARM_ID,YIELD_FARM_ID)).unwrap().state, YieldFarmState::Active);
 	}
 }
 
@@ -497,4 +504,3 @@ mod tests {
 
 	impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);
 }
-*/
