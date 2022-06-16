@@ -12,7 +12,6 @@ members = [
   'pallets/duster',
   'pallets/xyk',
   'pallets/exchange',
-  'pallets/liquidity-mining',
   'integration-tests',
 ]
 
