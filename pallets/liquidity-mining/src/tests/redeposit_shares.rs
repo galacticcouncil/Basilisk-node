@@ -97,7 +97,7 @@ fn redeposit_lp_shares_should_work() {
 }
 
 #[test]
-fn redeposit_lp_shares_deposit_should_fail_with_error_when_asset_pair_has_invalid_asset() {
+fn redeposit_lp_shares_deposit_should_fail_when_asset_pair_has_invalid_asset() {
 	let invalid_asset = 9999;
 	let bsx_with_invalid_assets = AssetPair {
 		asset_in: BSX,
@@ -114,6 +114,22 @@ fn redeposit_lp_shares_deposit_should_fail_with_error_when_asset_pair_has_invali
 				PREDEFINED_DEPOSIT_IDS[0],
 			),
 			Error::<Test>::AmmPoolDoesNotExist
+		);
+	});
+}
+
+#[test]
+fn redeposit_lp_shares_deposit_should_fail_when_called_by_not_the_deposit_owner() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::redeposit_lp_shares(
+				Origin::signed(BOB),
+				EVE_FARM,
+				EVE_BSX_TKN1_YIELD_FARM_ID,
+				BSX_TKN1_ASSETS,
+				PREDEFINED_DEPOSIT_IDS[0],
+			),
+			Error::<Test>::NotDepositOwner
 		);
 	});
 }

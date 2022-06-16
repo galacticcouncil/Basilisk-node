@@ -197,7 +197,7 @@ pub mod pallet {
 		/// New yield farm was added into the farm.
 		YieldFarmCreated {
 			farm_id: GlobalFarmId,
-			liq_pool_farm_id: PoolId,
+			yield_farm_id: PoolId,
 			multiplier: PoolMultiplier,
 			nft_class: NftClassIdOf<T>,
 			asset_pair: AssetPair,
@@ -250,7 +250,7 @@ pub mod pallet {
 		/// Liquidity mining for asset pair was canceled.
 		LiquidityMiningCanceled {
 			farm_id: GlobalFarmId,
-			liq_pool_farm_id: PoolId,
+			yield_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
 		},
@@ -258,7 +258,7 @@ pub mod pallet {
 		/// Liquidity mining for asset pair was resumed.
 		LiquidityMiningResumed {
 			farm_id: GlobalFarmId,
-			liq_pool_farm_id: PoolId,
+			yield_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
@@ -275,7 +275,7 @@ pub mod pallet {
 		/// Yield farm multiplier was updated.
 		YieldFarmUpdated {
 			farm_id: GlobalFarmId,
-			liq_pool_farm_id: PoolId,
+			yield_farm_id: PoolId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
 			multiplier: PoolMultiplier,
@@ -291,7 +291,7 @@ pub mod pallet {
 		/// Yield farm's `accumulated_rpvs` was updated.
 		YieldFarmAccRPVSUpdated {
 			farm_id: GlobalFarmId,
-			liq_pool_farm_id: PoolId,
+			yield_farm_id: PoolId,
 			accumulated_rpvs: Balance,
 			total_valued_shares: Balance,
 		},
@@ -417,7 +417,7 @@ pub mod pallet {
 			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			let liq_pool_farm_id = warehouse_liquidity_mining::Pallet::<T>::create_yield_farm(
+			let yield_farm_id = warehouse_liquidity_mining::Pallet::<T>::create_yield_farm(
 				who,
 				farm_id,
 				multiplier,
@@ -429,7 +429,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::YieldFarmCreated {
 				farm_id,
-				liq_pool_farm_id,
+				yield_farm_id,
 				nft_class: T::NftClass::get(),
 				multiplier,
 				loyalty_curve,
@@ -462,7 +462,7 @@ pub mod pallet {
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			let liq_pool_farm_id = warehouse_liquidity_mining::Pallet::<T>::update_yield_farm_multiplier(
+			let yield_farm_id = warehouse_liquidity_mining::Pallet::<T>::update_yield_farm_multiplier(
 				who.clone(),
 				farm_id,
 				multiplier,
@@ -471,7 +471,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::YieldFarmUpdated {
 				farm_id,
-				liq_pool_farm_id,
+				yield_farm_id,
 				multiplier,
 				who,
 				asset_pair,
@@ -502,12 +502,12 @@ pub mod pallet {
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			let liq_pool_farm_id =
+			let yield_farm_id =
 				warehouse_liquidity_mining::Pallet::<T>::stop_yield_farm(who.clone(), farm_id, amm_pool_id)?;
 
 			Self::deposit_event(Event::LiquidityMiningCanceled {
 				farm_id,
-				liq_pool_farm_id,
+				yield_farm_id,
 				who,
 				asset_pair,
 			});
@@ -545,7 +545,7 @@ pub mod pallet {
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			let liq_pool_farm_id = warehouse_liquidity_mining::Pallet::<T>::resume_yield_farm(
+			let yield_farm_id = warehouse_liquidity_mining::Pallet::<T>::resume_yield_farm(
 				who.clone(),
 				farm_id,
 				yield_farm_id,
@@ -555,7 +555,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::<T>::LiquidityMiningResumed {
 				farm_id,
-				liq_pool_farm_id,
+				yield_farm_id,
 				who,
 				asset_pair,
 				multiplier,
@@ -696,8 +696,6 @@ pub mod pallet {
 			let nft_owner = pallet_nft::Pallet::<T>::owner(T::NftClass::get(), deposit_id)
 				.ok_or(Error::<T>::CantFindDepositOwner)?;
 
-			//NOTE DANI: warehouse pallet knows nothing about deposit owner so ownership of the
-			//NFT/deposit needs to be checked on this level
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
 			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
@@ -915,13 +913,13 @@ impl<T: Config>
 
 	fn on_accumulated_rpvs_update(
 		farm_id: GlobalFarmId,
-		liq_pool_farm_id: PoolId,
+		yield_farm_id: PoolId,
 		accumulated_rpvs: Balance,
 		total_valued_shares: Balance,
 	) {
 		Self::deposit_event(Event::YieldFarmAccRPVSUpdated {
 			farm_id,
-			liq_pool_farm_id,
+			yield_farm_id,
 			accumulated_rpvs,
 			total_valued_shares,
 		});

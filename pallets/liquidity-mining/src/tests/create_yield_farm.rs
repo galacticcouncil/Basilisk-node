@@ -149,7 +149,7 @@ fn create_yield_farm_should_work() {
 
 			expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 				farm_id,
-				liq_pool_farm_id: pool.id,
+				yield_farm_id: pool.id,
 				multiplier: pool.multiplier,
 				nft_class: LIQ_MINING_NFT_CLASS,
 				loyalty_curve: pool.loyalty_curve.clone(),

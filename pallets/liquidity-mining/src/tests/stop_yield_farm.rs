@@ -47,7 +47,7 @@ fn stop_yield_farm_should_work() {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: BSX_TKN1_YIELD_FARM_ID,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: bsx_tkn1_assets,
 		})]);
@@ -98,7 +98,7 @@ fn stop_yield_farm_should_work() {
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
 			farm_id: GC_FARM,
-			liq_pool_farm_id: BSX_TKN1_YIELD_FARM_ID,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: bsx_tkn1_assets,
 		})]);
