@@ -405,7 +405,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "6.3.0"
+version = "6.4.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "51.0.0"
+version = "54.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -505,13 +505,9 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "getrandom 0.2.6",
- "hash-db",
  "hex-literal",
  "hydradx-adapters",
  "hydradx-traits",
- "log",
- "memory-db 0.27.0",
  "orml-benchmarking",
  "orml-currencies",
  "orml-tokens",
@@ -582,7 +578,6 @@ dependencies = [
  "sp-version",
  "substrate-build-script-utils",
  "substrate-wasm-builder",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-executor",
@@ -600,7 +595,7 @@ dependencies = [
 [[package]]
 name = "beefy-gadget"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "beefy-primitives",
  "fnv",
@@ -629,7 +624,7 @@ dependencies = [
 [[package]]
 name = "beefy-gadget-rpc"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "beefy-gadget",
  "beefy-primitives",
@@ -652,12 +647,12 @@ dependencies = [
 [[package]]
 name = "beefy-merkle-tree"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 
 [[package]]
 name = "beefy-primitives"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -1282,7 +1277,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.9.1"
+version = "1.9.3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -2899,10 +2894,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9be70c98951c83b8d2f8f60d7065fa6d5146873094452a1008da8c2f1e4205ad"
 dependencies = [
  "cfg-if 1.0.0",
- "js-sys",
  "libc",
  "wasi 0.10.0+wasi-snapshot-preview1",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -3197,7 +3190,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=7052eeab309742dccfe7e307c15fc4f780713553#7052eeab309742dccfe7e307c15fc4f780713553"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=7052eeab309742dccfe7e307c15fc4f780713553#7052eeab309742dccfe7e307c15fc4f780713553"
 dependencies = [
  "frame-support",
  "hydradx-traits",
@@ -4700,17 +4693,6 @@ dependencies = [
 
 [[package]]
 name = "memory-db"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de006e09d04fc301a5f7e817b75aa49801c4479a8af753764416b085337ddcc5"
-dependencies = [
- "hash-db",
- "hashbrown 0.11.2",
- "parity-util-mem",
-]
-
-[[package]]
-name = "memory-db"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d505169b746dacf02f7d14d8c80b34edfd8212159c63d23c977739a0d960c626"
@@ -5172,7 +5154,7 @@ dependencies = [
 [[package]]
 name = "orml-benchmarking"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5192,7 +5174,7 @@ dependencies = [
 [[package]]
 name = "orml-currencies"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5209,7 +5191,7 @@ dependencies = [
 [[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5224,7 +5206,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -5242,7 +5224,7 @@ dependencies = [
 [[package]]
 name = "orml-unknown-tokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5257,7 +5239,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5271,7 +5253,7 @@ dependencies = [
 [[package]]
 name = "orml-vesting"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5286,7 +5268,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5300,7 +5282,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -5314,7 +5296,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -5442,7 +5424,7 @@ dependencies = [
 [[package]]
 name = "pallet-bags-list"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -5477,7 +5459,7 @@ dependencies = [
 [[package]]
 name = "pallet-beefy"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "beefy-primitives",
  "frame-support",
@@ -5493,7 +5475,7 @@ dependencies = [
 [[package]]
 name = "pallet-beefy-mmr"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "beefy-merkle-tree",
  "beefy-primitives",
@@ -5648,7 +5630,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "2.3.0"
+version = "2.3.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5713,7 +5695,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.3.1"
+version = "5.3.3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5737,7 +5719,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.11"
+version = "3.3.13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5853,7 +5835,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.4.1"
+version = "4.4.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5906,7 +5888,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "1.2.2"
+version = "1.2.4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5931,7 +5913,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining-benchmarking"
-version = "1.0.2"
+version = "1.0.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6139,7 +6121,7 @@ dependencies = [
 [[package]]
 name = "pallet-preimage"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.17#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6536,7 +6518,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.6.1"
+version = "3.6.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8726,7 +8708,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.13"
+version = "0.3.2"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8744,12 +8726,8 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
- "getrandom 0.2.6",
- "hash-db",
- "hex-literal",
  "hydradx-traits",
  "kusama-runtime",
- "memory-db 0.27.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -8786,13 +8764,10 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
- "parity-scale-codec",
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
  "primitives",
- "serde",
- "smallvec",
  "sp-api",
  "sp-block-builder",
  "sp-consensus-aura",
@@ -8808,8 +8783,6 @@ dependencies = [
  "sp-transaction-pool",
  "sp-trie",
  "sp-version",
- "tracing-core",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-emulator",
@@ -10875,7 +10848,7 @@ dependencies = [
  "sp-trie",
  "thiserror",
  "tracing",
- "trie-db 0.23.1",
+ "trie-db",
  "trie-root",
 ]
 
@@ -10969,12 +10942,12 @@ version = "5.0.0"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "hash-db",
- "memory-db 0.28.0",
+ "memory-db",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
  "sp-std",
- "trie-db 0.23.1",
+ "trie-db",
  "trie-root",
 ]
 
@@ -11257,7 +11230,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "51.0.0"
+version = "54.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11276,11 +11249,8 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "getrandom 0.2.6",
- "hash-db",
  "hex-literal",
  "hydradx-traits",
- "memory-db 0.27.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -11350,7 +11320,6 @@ dependencies = [
  "sp-version",
  "substrate-build-script-utils",
  "substrate-wasm-builder",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-executor",
@@ -11659,18 +11628,6 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
-]
-
-[[package]]
-name = "trie-db"
-version = "0.22.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9eac131e334e81b6b3be07399482042838adcd7957aa0010231d0813e39e02fa"
-dependencies = [
- "hash-db",
- "hashbrown 0.11.2",
- "log",
- "smallvec",
 ]
 
 [[package]]
@@ -12727,318 +12684,3 @@ dependencies = [
  "cc",
  "libc",
 ]
-
-[[patch.unused]]
-name = "chain-spec-builder"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "frame-support-test"
-version = "3.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "frame-support-test-compile-pass"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "frame-support-test-pallet"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "generate-bags"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-bench"
-version = "0.9.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-cli"
-version = "3.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-executor"
-version = "3.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-inspect"
-version = "0.9.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-primitives"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-rpc"
-version = "3.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-runtime"
-version = "3.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-runtime-generate-bags"
-version = "3.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-template"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-template-runtime"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "node-testing"
-version = "3.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-asset-tx-payment"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-assets"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-atomic-swap"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-bags-list-fuzzer"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-bags-list-remote-tests"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-child-bounties"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-contracts"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-contracts-primitives"
-version = "5.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-contracts-proc-macro"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-contracts-rpc"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-contracts-rpc-runtime-api"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-conviction-voting"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-example-basic"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-example-offchain-worker"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-example-parallel"
-version = "3.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-lottery"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-node-authorization"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-randomness-collective-flip"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-referenda"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-scored-pool"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-template"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "pallet-transaction-storage"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sc-consensus-manual-seal"
-version = "0.10.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sc-consensus-pow"
-version = "0.10.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sc-network-test"
-version = "0.8.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sc-runtime-test"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sc-service-test"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-api-test"
-version = "2.0.1"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-application-crypto-test"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-arithmetic-fuzzer"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-consensus-pow"
-version = "0.10.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-npos-elections-fuzzer"
-version = "2.0.0-alpha.5"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-runtime-interface-test"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-runtime-interface-test-wasm"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-runtime-interface-test-wasm-deprecated"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-sandbox"
-version = "0.10.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "sp-test-primitives"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "subkey"
-version = "2.0.1"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-frame-cli"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-frame-rpc-support"
-version = "3.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-test-client"
-version = "2.0.1"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-test-runtime"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-test-runtime-client"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-test-runtime-transaction-pool"
-version = "2.0.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-test-utils"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-test-utils-derive"
-version = "0.10.0-dev"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
-
-[[patch.unused]]
-name = "substrate-test-utils-test-crate"
-version = "0.1.0"
-source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"

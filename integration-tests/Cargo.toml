@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.2.13"
+version = "0.3.2"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -9,16 +9,6 @@ license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
-getrandom = { version = "0.2.3", features = ["js"] }
-hex-literal = "0.3.1"
-tracing-core = { optional = true, version = "0.1.17" }
-serde = { features = ["derive"], optional = true, version = "1.0.136" }
-codec = { package = "parity-scale-codec", version = "2.3.1", default-features = false, features = ["derive"] }
-hash-db = { version = "0.15.2", default-features = false }
-memory-db = { version = "0.27.0", default-features = false }
-trie-db = { version = "0.22.6", default-features = false }
-smallvec = "1.6.1"
-
 # local dependencies
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false}
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false}
@@ -122,8 +112,6 @@ xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v
 [features]
 default = ["std"]
 std = [
-    "codec/std",
-    "serde",
     "frame-executive/std",
     "frame-support/std",
     "frame-system/std",

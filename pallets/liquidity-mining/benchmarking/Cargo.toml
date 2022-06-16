@@ -1,6 +1,6 @@
 [package]
 name = "pallet-liquidity-mining-benchmarking"
-version = "1.0.2"
+version = "1.0.4"
 description = "Liquidity Mining Benchmarking Module"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -25,7 +25,7 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 
 # HydraDX dependencies
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
 
 primitives = { path = "../../../primitives", default-features = false }
 
