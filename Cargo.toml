@@ -198,8 +198,8 @@ cumulus-relay-chain-interface = { git = "https://github.com/paritytech//cumulus"
 cumulus-relay-chain-local = { git = "https://github.com/paritytech//cumulus", rev = "76479e7fef3af7c8828a44647847b01afd5fefe5" }
 
 [patch."https://github.com/galacticcouncil/warehouse"]
-pallet-price-oracle = { git = "https://github.com/galacticcouncil//warehouse", rev = "50c82ab02bb5baf99b263342dc5d4cc7e62c7e88"}
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse", rev = "50c82ab02bb5baf99b263342dc5d4cc7e62c7e88"}
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", rev = "50c82ab02bb5baf99b263342dc5d4cc7e62c7e88"}
-pallet-asset-registry= { git = "https://github.com/galacticcouncil//warehouse", rev = "50c82ab02bb5baf99b263342dc5d4cc7e62c7e88"}
-hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", rev = "50c82ab02bb5baf99b263342dc5d4cc7e62c7e88"}
+pallet-price-oracle = { git = "https://github.com/galacticcouncil//warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553"}
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553"}
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553"}
+pallet-asset-registry= { git = "https://github.com/galacticcouncil//warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553"}
+hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553"}
