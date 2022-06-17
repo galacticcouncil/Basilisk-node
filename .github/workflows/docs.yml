@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - fix_docs_build
 
 jobs:
   generate-and-deploy-docs:
