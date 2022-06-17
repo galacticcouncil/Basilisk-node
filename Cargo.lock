@@ -506,6 +506,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "hex-literal",
+ "hydradx-adapters",
  "hydradx-traits",
  "orml-benchmarking",
  "orml-currencies",
@@ -3182,6 +3183,23 @@ dependencies = [
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "sp-arithmetic",
+]
+
+[[package]]
+name = "hydradx-adapters"
+version = "0.1.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=756f47a663911d8e7866c0768471b22b20f6460d#756f47a663911d8e7866c0768471b22b20f6460d"
+dependencies = [
+ "frame-support",
+ "hydradx-traits",
+ "log",
+ "pallet-transaction-multi-payment",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -11174,6 +11192,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "hex-literal",
+ "hydradx-adapters",
  "hydradx-traits",
  "orml-currencies",
  "orml-tokens",
@@ -11539,7 +11558,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.11.2",
+ "parking_lot 0.10.2",
  "regex",
  "serde",
  "serde_json",
@@ -11660,7 +11679,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "rand 0.8.5",
  "static_assertions",
 ]
