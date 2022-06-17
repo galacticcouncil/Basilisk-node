@@ -46,6 +46,7 @@ pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", re
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false}
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
+hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 
 # collator support
