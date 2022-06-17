@@ -264,12 +264,13 @@ pub mod pallet {
 
 				if offer.expires > <frame_system::Pallet<T>>::block_number() {
 					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
-					Self::do_buy(offer.maker, class_id, instance_id, true)?;
+					Self::do_buy(offer.maker.clone(), class_id, instance_id, true)?;
 					Self::deposit_event(Event::OfferAccepted {
 						who: sender,
 						class: class_id,
 						instance: instance_id,
 						amount: offer.amount,
+						maker: offer.maker,
 					});
 					Ok(())
 				} else {
@@ -367,6 +368,7 @@ pub mod pallet {
 			class: T::NftClassId,
 			instance: T::NftInstanceId,
 			amount: BalanceOf<T>,
+			maker: T::AccountId,
 		},
 		/// Royalty hs been paid to the author
 		RoyaltyPaid {
