@@ -17,18 +17,12 @@
 
 use super::*;
 use test_ext::*;
-use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::YieldFarmData;
 
 #[test]
 fn update_yield_farm_should_() {
 	//yield farm without deposits
 	predefined_test_ext().execute_with(|| {
-		let bsx_tkn1_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN1,
-		};
-
 		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
@@ -36,7 +30,7 @@ fn update_yield_farm_should_() {
 		assert_ok!(LiquidityMining::update_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets,
+			BSX_TKN1_ASSET_PAIR,
 			new_multiplier
 		));
 
@@ -54,14 +48,14 @@ fn update_yield_farm_should_() {
 
 #[test]
 fn update_yield_farm_should_fail_with_propagated_error_when_multiplier_is_zero() {
-	let bsx_tkn1_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::update_yield_farm(Origin::signed(GC), GC_FARM, bsx_tkn1_assets, FixedU128::from(0_u128)),
+			LiquidityMining::update_yield_farm(
+				Origin::signed(GC),
+				GC_FARM,
+				BSX_TKN1_ASSET_PAIR,
+				FixedU128::from(0_u128)
+			),
 			warehouse_liquidity_mining::Error::<Test>::InvalidMultiplier
 		);
 	});
@@ -69,14 +63,9 @@ fn update_yield_farm_should_fail_with_propagated_error_when_multiplier_is_zero()
 
 #[test]
 fn update_yield_farm_should_fail_when_caller_is_not_signed() {
-	let bsx_tkn1_yield_farm = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::update_yield_farm(Origin::none(), GC_FARM, bsx_tkn1_yield_farm, FixedU128::from(10_001)),
+			LiquidityMining::update_yield_farm(Origin::none(), GC_FARM, BSX_TKN1_ASSET_PAIR, FixedU128::from(10_001)),
 			BadOrigin
 		);
 	});

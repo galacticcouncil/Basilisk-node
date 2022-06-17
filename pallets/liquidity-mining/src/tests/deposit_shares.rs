@@ -23,14 +23,10 @@ use test_ext::*;
 fn deposit_shares_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let farm_id = GC_FARM;
-		let bsx_tkn1_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN1,
-		};
 
 		let pallet_account = LiquidityMining::account_id();
 		let bsx_tkn1_amm_account =
-			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN1_ASSET_PAIR)).unwrap().0);
 
 		set_block_number(1_800); //18-th period
 
@@ -54,7 +50,7 @@ fn deposit_shares_should_work() {
 			Origin::signed(ALICE),
 			farm_id,
 			BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets,
+			BSX_TKN1_ASSET_PAIR,
 			deposited_amount,
 		));
 
@@ -108,17 +104,12 @@ fn deposit_shares_should_work() {
 #[test]
 fn deposit_shares_should_fail_when_amm_shares_balance_is_insufficient() {
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let bsx_tkn1_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN1,
-		};
-
 		assert_noop!(
 			LiquidityMining::deposit_shares(
 				Origin::signed(ALICE),
 				GC_FARM,
 				BSX_TKN1_YIELD_FARM_ID,
-				bsx_tkn1_assets,
+				BSX_TKN1_ASSET_PAIR,
 				4_000_000
 			),
 			Error::<Test>::InsufficientAmmSharesBalance
@@ -129,13 +120,8 @@ fn deposit_shares_should_fail_when_amm_shares_balance_is_insufficient() {
 #[test]
 fn deposit_shares_should_fail_when_called_by_noy_signed_user() {
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let bsx_tkn1_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN1,
-		};
-
 		assert_noop!(
-			LiquidityMining::deposit_shares(Origin::none(), GC_FARM, BSX_TKN1_YIELD_FARM_ID, bsx_tkn1_assets, 50),
+			LiquidityMining::deposit_shares(Origin::none(), GC_FARM, BSX_TKN1_YIELD_FARM_ID, BSX_TKN1_ASSET_PAIR, 50),
 			BadOrigin
 		);
 	});

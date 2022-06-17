@@ -22,16 +22,11 @@ use test_ext::*;
 
 #[test]
 fn resume_yield_farm_should_work() {
-	let bsx_tkn1_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
@@ -47,7 +42,7 @@ fn resume_yield_farm_should_work() {
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets,
+			BSX_TKN1_ASSET_PAIR,
 			new_multiplier
 		));
 
@@ -79,7 +74,7 @@ fn resume_yield_farm_should_work() {
 			farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
-			asset_pair: bsx_tkn1_assets,
+			asset_pair: BSX_TKN1_ASSET_PAIR,
 			multiplier: new_multiplier,
 		})]);
 	});
@@ -87,11 +82,6 @@ fn resume_yield_farm_should_work() {
 
 #[test]
 fn resume_yield_farm_should_fail_with_propagated_error_when_farm_does_not_exist() {
-	let bsx_ksm_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: KSM,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let new_multiplier = FixedU128::from(7_490_000);
 
@@ -100,7 +90,7 @@ fn resume_yield_farm_should_fail_with_propagated_error_when_farm_does_not_exist(
 				Origin::signed(GC),
 				GC_FARM,
 				BSX_TKN1_YIELD_FARM_ID,
-				bsx_ksm_assets,
+				BSX_KSM_ASSET_PAIR,
 				new_multiplier
 			),
 			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
@@ -110,11 +100,6 @@ fn resume_yield_farm_should_fail_with_propagated_error_when_farm_does_not_exist(
 
 #[test]
 fn resume_yield_farm_should_fail_when_caller_is_not_signed() {
-	let bsx_ksm_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: KSM,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let new_multiplier = FixedU128::from(7_490_000);
 
@@ -123,7 +108,7 @@ fn resume_yield_farm_should_fail_when_caller_is_not_signed() {
 				Origin::none(),
 				GC_FARM,
 				BSX_TKN1_YIELD_FARM_ID,
-				bsx_ksm_assets,
+				BSX_KSM_ASSET_PAIR,
 				new_multiplier
 			),
 			BadOrigin

@@ -272,12 +272,8 @@ fn claim_rewards_should_work() {
 	//This test check if correct currency is transferred if rewards and incentivized
 	//assets are different, otherwise pool behaviour is the same as in test above.
 	predefined_test_ext().execute_with(|| {
-		let aca_ksm_assets = AssetPair {
-			asset_in: ACA,
-			asset_out: KSM,
-		};
-
-		let aca_ksm_amm_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(aca_ksm_assets)).unwrap().0);
+		let aca_ksm_amm_account =
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(ACA_KSM_ASSET_PAIR)).unwrap().0);
 
 		let ksm_balance_in_amm = 50;
 		//this is done because amount of incetivized token in AMM is used in calculations.
@@ -292,7 +288,7 @@ fn claim_rewards_should_work() {
 			Origin::signed(ALICE),
 			CHARLIE_FARM,
 			ACA_KSM_YIELD_FARM_ID,
-			aca_ksm_assets,
+			ACA_KSM_ASSET_PAIR,
 			deposited_amount
 		));
 
@@ -328,11 +324,6 @@ fn claim_rewards_should_work() {
 
 #[test]
 fn claim_rewards_deposit_with_multiple_entries_should_work() {
-	let bsx_tkn1_assets: AssetPair = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		//predefined_deposit[0] - GC_FARM, BSX_TKN1_AMM
 		set_block_number(50_000);
@@ -340,7 +331,7 @@ fn claim_rewards_deposit_with_multiple_entries_should_work() {
 			Origin::signed(ALICE),
 			EVE_FARM,
 			EVE_BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets,
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_DEPOSIT_IDS[0]
 		));
 
@@ -356,21 +347,14 @@ fn claim_rewards_deposit_with_multiple_entries_should_work() {
 
 		set_block_number(800_000);
 		//Dave's farm incentivize TKN1 - some balance must be set so `valued_shares` will not be `0`.
-		let bsx_tkn1_amm_account = AMM_POOLS.with(|v| {
-			v.borrow()
-				.get(&asset_pair_to_map_key(AssetPair {
-					asset_in: BSX,
-					asset_out: TKN1,
-				}))
-				.unwrap()
-				.0
-		});
+		let bsx_tkn1_amm_account =
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN1_ASSET_PAIR)).unwrap().0);
 		Tokens::set_balance(Origin::root(), bsx_tkn1_amm_account, TKN1, 100, 0).unwrap();
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
 			Origin::signed(ALICE),
 			DAVE_FARM,
 			DAVE_BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets,
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_DEPOSIT_IDS[0]
 		));
 
@@ -594,16 +578,11 @@ fn claim_rewards_double_claim_in_the_same_period_should_not_work() {
 #[test]
 fn claim_rewards_from_stopped_yield_farm_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let bsx_tkn1_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN1,
-		};
-
 		//cancel liq. pool before claim test
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
@@ -660,16 +639,11 @@ fn claim_rewards_from_stopped_yield_farm_should_work() {
 #[test]
 fn claim_rewards_from_destroyed_yield_farm_should_not_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let bsx_tkn1_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN1,
-		};
-
-		//cancel liq. pool before removing
+		//cancel yield farm before removing
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		//remove liq. pool before claim test
@@ -677,7 +651,7 @@ fn claim_rewards_from_destroyed_yield_farm_should_not_work() {
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		assert_noop!(

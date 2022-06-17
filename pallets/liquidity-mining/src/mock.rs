@@ -91,6 +91,36 @@ pub const ACA_FARM: PoolId = 4;
 
 pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 1;
 
+pub const BSX_TKN1_ASSET_PAIR: AssetPair = AssetPair {
+	asset_in: BSX,
+	asset_out: TKN1,
+};
+
+pub const BSX_TKN2_ASSET_PAIR: AssetPair = AssetPair {
+	asset_in: BSX,
+	asset_out: TKN2,
+};
+
+pub const BSX_KSM_ASSET_PAIR: AssetPair = AssetPair {
+	asset_in: BSX,
+	asset_out: KSM,
+};
+
+pub const BSX_DOT_ASSET_PAIR: AssetPair = AssetPair {
+	asset_in: BSX,
+	asset_out: DOT,
+};
+
+pub const BSX_ETH_ASSET_PAIR: AssetPair = AssetPair {
+	asset_in: BSX,
+	asset_out: ETH,
+};
+
+pub const ACA_KSM_ASSET_PAIR: AssetPair = AssetPair {
+	asset_in: ACA,
+	asset_out: KSM,
+};
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 

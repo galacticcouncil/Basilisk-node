@@ -903,12 +903,8 @@ fn withdraw_shares_should_work() {
 	//This test check if correct currency is tranfered if rewards and incetvized
 	//assts are different, otherwise pool behaviour is the same as in test above.
 	predefined_test_ext().execute_with(|| {
-		let aca_ksm_assets = AssetPair {
-			asset_in: ACA,
-			asset_out: KSM,
-		};
-
-		let aca_ksm_amm_account = AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(aca_ksm_assets)).unwrap().0);
+		let aca_ksm_amm_account =
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(ACA_KSM_ASSET_PAIR)).unwrap().0);
 
 		let ksm_balance_in_amm = 50;
 		//this is done because amount of incetivized token in AMM is used in calculations.
@@ -923,7 +919,7 @@ fn withdraw_shares_should_work() {
 			Origin::signed(ALICE),
 			CHARLIE_FARM,
 			ACA_KSM_YIELD_FARM_ID,
-			aca_ksm_assets,
+			ACA_KSM_ASSET_PAIR,
 			deposited_amount
 		));
 
@@ -965,11 +961,6 @@ fn withdraw_shares_should_work() {
 
 #[test]
 fn withdraw_with_multiple_entries_and_flush_should_work() {
-	const BSX_TKN1_ASSETS: AssetPair = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let alice_bsx_tkn1_lp_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 
@@ -978,7 +969,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 			Origin::signed(ALICE),
 			DAVE_FARM,
 			DAVE_BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSETS,
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_DEPOSIT_IDS[0],
 		));
 
@@ -986,7 +977,7 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 			Origin::signed(ALICE),
 			EVE_FARM,
 			EVE_BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSETS,
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_DEPOSIT_IDS[0],
 		));
 
@@ -996,19 +987,19 @@ fn withdraw_with_multiple_entries_and_flush_should_work() {
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(EVE),
 			EVE_FARM,
-			BSX_TKN1_ASSETS
+			BSX_TKN1_ASSET_PAIR
 		));
 		//Stop and destroy all yield farms so it can be flushed.
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(DAVE),
 			DAVE_FARM,
-			BSX_TKN1_ASSETS
+			BSX_TKN1_ASSET_PAIR
 		));
 		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(DAVE),
 			DAVE_FARM,
 			DAVE_BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSETS
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(DAVE), DAVE_FARM));
@@ -1081,21 +1072,11 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 	//this is the case when liq. pools was removed and global pool was destroyed. Only deposits stayed in
 	//the storage. In this case only amm shares should be withdrawn
 
-	let bsx_tkn1_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
-	let bsx_tkn2_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN2,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let bsx_tkn1_amm_account =
-			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN1_ASSET_PAIR)).unwrap().0);
 		let bsx_tkn2_amm_account =
-			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn2_assets)).unwrap().0);
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN2_ASSET_PAIR)).unwrap().0);
 
 		//check if farm and pools exist
 		assert!(WarehouseLM::yield_farm((bsx_tkn1_amm_account, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).is_some());
@@ -1106,12 +1087,12 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn2_assets
+			BSX_TKN2_ASSET_PAIR
 		));
 
 		//remove all yield farms from farm
@@ -1119,13 +1100,13 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN2_YIELD_FARM_ID,
-			bsx_tkn2_assets
+			BSX_TKN2_ASSET_PAIR
 		));
 
 		//destroy farm
@@ -1225,11 +1206,6 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 
 #[test]
 fn withdraw_shares_from_stopped_yield_farm_should_work() {
-	let bsx_tkn1_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		set_block_number(10_000);
 
@@ -1237,7 +1213,7 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		let pallet_account = LiquidityMining::account_id();
@@ -1602,18 +1578,13 @@ fn claim_and_withdraw_in_same_period_should_work() {
 #[test]
 fn withdraw_shares_from_removed_pool_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let bsx_tkn1_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN1,
-		};
-
 		set_block_number(10_000);
 
 		//cancel liq. pool before removing
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		//remove liq. pool before test
@@ -1621,7 +1592,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		assert!(WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID))

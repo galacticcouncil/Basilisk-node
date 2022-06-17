@@ -25,11 +25,6 @@ use warehouse_liquidity_mining::YieldFarmState;
 
 #[test]
 fn stop_yield_farm_should_work() {
-	let bsx_tkn1_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
@@ -41,14 +36,14 @@ fn stop_yield_farm_should_work() {
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
 			farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
-			asset_pair: bsx_tkn1_assets,
+			asset_pair: BSX_TKN1_ASSET_PAIR,
 		})]);
 
 		let stake_in_global_farm = yield_farm
@@ -80,14 +75,9 @@ fn stop_yield_farm_should_work() {
 
 #[test]
 fn stop_yield_farm_should_fail_when_caller_is_not_signed() {
-	let bsx_dot_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: DOT,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::stop_yield_farm(Origin::none(), GC_FARM, bsx_dot_assets),
+			LiquidityMining::stop_yield_farm(Origin::none(), GC_FARM, BSX_DOT_ASSET_PAIR),
 			BadOrigin
 		);
 	});
@@ -95,20 +85,15 @@ fn stop_yield_farm_should_fail_when_caller_is_not_signed() {
 
 #[test]
 fn stop_yield_farm_should_fail_with_propagated_error_when_yield_farm_is_already_stopped() {
-	let bsx_tkn1_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			bsx_tkn1_assets
+			BSX_TKN1_ASSET_PAIR
 		));
 
 		assert_noop!(
-			LiquidityMining::stop_yield_farm(Origin::signed(GC), GC_FARM, bsx_tkn1_assets),
+			LiquidityMining::stop_yield_farm(Origin::signed(GC), GC_FARM, BSX_TKN1_ASSET_PAIR),
 			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
 		);
 	});
@@ -116,16 +101,11 @@ fn stop_yield_farm_should_fail_with_propagated_error_when_yield_farm_is_already_
 
 #[test]
 fn stop_yield_farm_not_owner_should_not_work() {
-	let bsx_tkn1_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
 	predefined_test_ext_with_deposits().execute_with(|| {
 		const NOT_LIQ_POOL_OWNER: u128 = ALICE;
 
 		assert_noop!(
-			LiquidityMining::stop_yield_farm(Origin::signed(NOT_LIQ_POOL_OWNER), GC_FARM, bsx_tkn1_assets),
+			LiquidityMining::stop_yield_farm(Origin::signed(NOT_LIQ_POOL_OWNER), GC_FARM, BSX_TKN1_ASSET_PAIR),
 			warehouse_liquidity_mining::Error::<Test>::Forbidden
 		);
 	});

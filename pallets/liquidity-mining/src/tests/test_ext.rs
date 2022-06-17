@@ -218,22 +218,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 					asset_out: BSX,
 				},
 			),
-			(
-				BSX_DOT_AMM,
-				BSX_DOT_SHARE_ID,
-				AssetPair {
-					asset_in: BSX,
-					asset_out: DOT,
-				},
-			),
-			(
-				BSX_ETH_AMM,
-				BSX_ETH_SHARE_ID,
-				AssetPair {
-					asset_in: BSX,
-					asset_out: ETH,
-				},
-			),
+			(BSX_DOT_AMM, BSX_DOT_SHARE_ID, BSX_DOT_ASSET_PAIR),
+			(BSX_ETH_AMM, BSX_ETH_SHARE_ID, BSX_ETH_ASSET_PAIR),
 			(
 				BSX_HDX_AMM,
 				BSX_HDX_SHARE_ID,
@@ -250,14 +236,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 					asset_out: TKN1,
 				},
 			),
-			(
-				BSX_TKN2_AMM,
-				BSX_TKN2_SHARE_ID,
-				AssetPair {
-					asset_in: BSX,
-					asset_out: TKN2,
-				},
-			),
+			(BSX_TKN2_AMM, BSX_TKN2_SHARE_ID, BSX_TKN2_ASSET_PAIR),
 			(
 				KSM_DOT_AMM,
 				KSM_DOT_SHARE_ID,
@@ -266,14 +245,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 					asset_out: DOT,
 				},
 			),
-			(
-				ACA_KSM_AMM,
-				ACA_KSM_SHARE_ID,
-				AssetPair {
-					asset_in: ACA,
-					asset_out: KSM,
-				},
-			),
+			(ACA_KSM_AMM, ACA_KSM_SHARE_ID, ACA_KSM_ASSET_PAIR),
 		];
 
 		AMM_POOLS.with(|h| {
@@ -286,10 +258,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			AssetPair {
-				asset_in: BSX,
-				asset_out: TKN1,
-			},
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_YIELD_FARMS.with(|v| v[0].multiplier),
 			PREDEFINED_YIELD_FARMS.with(|v| v[0].loyalty_curve.clone()),
 		));
@@ -300,19 +269,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[0].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[0].loyalty_curve.clone()),
-			asset_pair: AssetPair {
-				asset_in: BSX,
-				asset_out: TKN1,
-			},
+			asset_pair: BSX_TKN1_ASSET_PAIR,
 		})]);
 
 		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
-			AssetPair {
-				asset_in: BSX,
-				asset_out: TKN2,
-			},
+			BSX_TKN2_ASSET_PAIR,
 			PREDEFINED_YIELD_FARMS.with(|v| v[1].multiplier),
 			PREDEFINED_YIELD_FARMS.with(|v| v[1].loyalty_curve.clone()),
 		));
@@ -323,19 +286,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[1].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[1].loyalty_curve.clone()),
-			asset_pair: AssetPair {
-				asset_in: BSX,
-				asset_out: TKN2,
-			},
+			asset_pair: BSX_TKN2_ASSET_PAIR,
 		})]);
 
 		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(CHARLIE),
 			CHARLIE_FARM,
-			AssetPair {
-				asset_in: ACA,
-				asset_out: KSM,
-			},
+			ACA_KSM_ASSET_PAIR,
 			PREDEFINED_YIELD_FARMS.with(|v| v[2].multiplier),
 			PREDEFINED_YIELD_FARMS.with(|v| v[2].loyalty_curve.clone()),
 		));
@@ -346,19 +303,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[2].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[2].loyalty_curve.clone()),
-			asset_pair: AssetPair {
-				asset_in: ACA,
-				asset_out: KSM,
-			},
+			asset_pair: ACA_KSM_ASSET_PAIR,
 		})]);
 
 		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(DAVE),
 			DAVE_FARM,
-			AssetPair {
-				asset_in: BSX,
-				asset_out: TKN1,
-			},
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_YIELD_FARMS.with(|v| v[3].multiplier),
 			PREDEFINED_YIELD_FARMS.with(|v| v[3].loyalty_curve.clone()),
 		));
@@ -369,19 +320,13 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[3].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[3].loyalty_curve.clone()),
-			asset_pair: AssetPair {
-				asset_in: BSX,
-				asset_out: TKN1,
-			},
+			asset_pair: BSX_TKN1_ASSET_PAIR,
 		})]);
 
 		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(EVE),
 			EVE_FARM,
-			AssetPair {
-				asset_in: BSX,
-				asset_out: TKN1,
-			},
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_YIELD_FARMS.with(|v| v[4].multiplier),
 			PREDEFINED_YIELD_FARMS.with(|v| v[4].loyalty_curve.clone()),
 		));
@@ -392,10 +337,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[4].multiplier),
 			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[4].loyalty_curve.clone()),
-			asset_pair: AssetPair {
-				asset_in: BSX,
-				asset_out: TKN1,
-			},
+			asset_pair: BSX_TKN1_ASSET_PAIR,
 		})]);
 	});
 
@@ -408,23 +350,13 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 	ext.execute_with(|| {
 		let farm_id = GC_FARM; //global pool
 
-		let bsx_tkn1_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN1,
-		};
-
-		let bsx_tkn2_assets = AssetPair {
-			asset_in: BSX,
-			asset_out: TKN2,
-		};
-
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let bsx_tkn1_amm_account =
-			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn1_assets)).unwrap().0);
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN1_ASSET_PAIR)).unwrap().0);
 		let bsx_tkn2_amm_account =
-			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(bsx_tkn2_assets)).unwrap().0);
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN2_ASSET_PAIR)).unwrap().0);
 
 		//DEPOSIT 1:
 		set_block_number(1_800); //18-th period
@@ -437,7 +369,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			Origin::signed(ALICE),
 			farm_id,
 			BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets,
+			BSX_TKN1_ASSET_PAIR,
 			deposited_amount,
 		));
 
@@ -461,7 +393,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			Origin::signed(BOB),
 			farm_id,
 			BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets,
+			BSX_TKN1_ASSET_PAIR,
 			deposited_amount
 		));
 
@@ -485,7 +417,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			Origin::signed(BOB),
 			farm_id,
 			BSX_TKN2_YIELD_FARM_ID,
-			bsx_tkn2_assets,
+			BSX_TKN2_ASSET_PAIR,
 			deposited_amount
 		));
 
@@ -510,7 +442,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			Origin::signed(BOB),
 			farm_id,
 			BSX_TKN2_YIELD_FARM_ID,
-			bsx_tkn2_assets,
+			BSX_TKN2_ASSET_PAIR,
 			deposited_amount
 		));
 
@@ -535,7 +467,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			Origin::signed(ALICE),
 			farm_id,
 			BSX_TKN2_YIELD_FARM_ID,
-			bsx_tkn2_assets,
+			BSX_TKN2_ASSET_PAIR,
 			deposited_amount,
 		));
 
@@ -560,7 +492,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			Origin::signed(ALICE),
 			farm_id,
 			BSX_TKN2_YIELD_FARM_ID,
-			bsx_tkn2_assets,
+			BSX_TKN2_ASSET_PAIR,
 			deposited_amount,
 		));
 
@@ -585,7 +517,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			Origin::signed(ALICE),
 			farm_id,
 			BSX_TKN1_YIELD_FARM_ID,
-			bsx_tkn1_assets,
+			BSX_TKN1_ASSET_PAIR,
 			deposited_amount,
 		));
 

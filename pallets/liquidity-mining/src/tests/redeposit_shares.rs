@@ -19,11 +19,6 @@ use super::*;
 use pretty_assertions::assert_eq;
 use test_ext::*;
 
-const BSX_TKN1_ASSETS: AssetPair = AssetPair {
-	asset_in: BSX,
-	asset_out: TKN1,
-};
-
 #[test]
 fn redeposit_lp_shares_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
@@ -32,7 +27,7 @@ fn redeposit_lp_shares_should_work() {
 			Origin::signed(ALICE),
 			EVE_FARM,
 			EVE_BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSETS,
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_DEPOSIT_IDS[0],
 		));
 
@@ -55,21 +50,14 @@ fn redeposit_lp_shares_should_work() {
 
 		set_block_number(800_000);
 		//Dave's farm incentivize TKN1 - some balance must be set so `valued_shares` will not be `0`.
-		let bsx_tkn1_amm_account = AMM_POOLS.with(|v| {
-			v.borrow()
-				.get(&asset_pair_to_map_key(AssetPair {
-					asset_in: BSX,
-					asset_out: TKN1,
-				}))
-				.unwrap()
-				.0
-		});
+		let bsx_tkn1_amm_account =
+			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN1_ASSET_PAIR)).unwrap().0);
 		Tokens::set_balance(Origin::root(), bsx_tkn1_amm_account, TKN1, 100, 0).unwrap();
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
 			Origin::signed(ALICE),
 			DAVE_FARM,
 			DAVE_BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSETS,
+			BSX_TKN1_ASSET_PAIR,
 			PREDEFINED_DEPOSIT_IDS[0]
 		));
 
@@ -126,7 +114,7 @@ fn redeposit_lp_shares_deposit_should_fail_when_called_by_not_the_deposit_owner(
 				Origin::signed(BOB),
 				EVE_FARM,
 				EVE_BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSETS,
+				BSX_TKN1_ASSET_PAIR,
 				PREDEFINED_DEPOSIT_IDS[0],
 			),
 			Error::<Test>::NotDepositOwner
@@ -143,7 +131,7 @@ fn redeposit_lp_shares_deposit_should_fail_when_called_with_non_known_deposit() 
 				Origin::signed(BOB),
 				EVE_FARM,
 				EVE_BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSETS,
+				BSX_TKN1_ASSET_PAIR,
 				not_known_deposit,
 			),
 			Error::<Test>::CantFindDepositOwner
@@ -160,7 +148,7 @@ fn redeposit_lp_shares_deposit_should_fail_when_called_by_not_signed_user() {
 				Origin::none(),
 				EVE_FARM,
 				EVE_BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSETS,
+				BSX_TKN1_ASSET_PAIR,
 				not_known_deposit,
 			),
 			BadOrigin
