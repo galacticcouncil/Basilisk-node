@@ -532,7 +532,7 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining 1.0.0",
+ "pallet-liquidity-mining 1.0.0 (git+https://github.com/galacticcouncil/warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8)",
  "pallet-liquidity-mining 1.3.0",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
@@ -3220,6 +3220,19 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-std",
+]
+
+[[package]]
+name = "hydradx-traits"
+version = "0.6.0"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8#c0767d0da7d4941531733079758a600f9916f9b8"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-runtime",
  "sp-std",
 ]
 
@@ -5929,12 +5942,32 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "1.0.0"
+source = "git+https://github.com/galacticcouncil//warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8#c0767d0da7d4941531733079758a600f9916f9b8"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math 4.2.0",
+ "hydradx-traits 0.6.0 (git+https://github.com/galacticcouncil//warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8)",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-liquidity-mining"
+version = "1.0.0"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8#c0767d0da7d4941531733079758a600f9916f9b8"
 dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.2.0",
- "hydradx-traits 0.6.0",
+ "hydradx-traits 0.6.0 (git+https://github.com/galacticcouncil/warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8)",
  "orml-tokens",
  "orml-traits",
  "pallet-balances",
@@ -5954,12 +5987,12 @@ dependencies = [
  "frame-system",
  "hydra-dx-math 4.2.0",
  "hydradx-traits 0.5.1",
- "hydradx-traits 0.6.0",
+ "hydradx-traits 0.6.0 (git+https://github.com/galacticcouncil//warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8)",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
  "pallet-balances",
- "pallet-liquidity-mining 1.0.0",
+ "pallet-liquidity-mining 1.0.0 (git+https://github.com/galacticcouncil//warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8)",
  "pallet-nft",
  "pallet-uniques",
  "parity-scale-codec",
@@ -5988,7 +6021,7 @@ dependencies = [
  "orml-traits",
  "pallet-asset-registry",
  "pallet-balances",
- "pallet-liquidity-mining 1.0.0",
+ "pallet-liquidity-mining 1.0.0 (git+https://github.com/galacticcouncil//warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8)",
  "pallet-liquidity-mining 1.3.0",
  "pallet-nft",
  "pallet-uniques",
@@ -11361,7 +11394,7 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining 1.0.0",
+ "pallet-liquidity-mining 1.0.0 (git+https://github.com/galacticcouncil/warehouse?rev=c0767d0da7d4941531733079758a600f9916f9b8)",
  "pallet-liquidity-mining 1.3.0",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
