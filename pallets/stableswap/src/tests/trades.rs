@@ -21,7 +21,11 @@ fn simple_sell_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -62,7 +66,11 @@ fn simple_buy_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -104,7 +112,11 @@ fn simple_sell_with_fee_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(10),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -149,7 +161,11 @@ fn simple_sell_with_small_fee_works() {
 				amplification: 100u16,
 				fee: Permill::from_rational(3u32, 1000u32),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -194,7 +210,11 @@ fn simple_buy_with_fee_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(10),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -244,7 +264,11 @@ fn sell_with_invalidad_amounts_fails() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -307,7 +331,11 @@ fn buy_with_invalid_amounts_fails() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {

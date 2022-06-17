@@ -113,7 +113,11 @@ fn add_liquidity_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -159,7 +163,11 @@ fn add_liquidity_other_asset_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -205,7 +213,11 @@ fn add_insufficient_liquidity_fails() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -239,7 +251,11 @@ fn remove_all_liquidity_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -292,7 +308,11 @@ fn remove_partial_liquidity_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -366,7 +386,11 @@ fn add_liquidity_with_insufficient_amount_fails() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -404,7 +428,11 @@ fn add_liquidity_with_invalid_data_fails() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -452,7 +480,11 @@ fn remove_liquidity_with_invalid_amounts_fails() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -500,7 +532,11 @@ fn remove_liquidity_with_invalid_data_fails() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -543,7 +579,11 @@ fn remove_partial_with_insufficient_remaining_works() {
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
-			(ALICE, asset_a, 100 * ONE),
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {

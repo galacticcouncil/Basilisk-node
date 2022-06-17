@@ -71,7 +71,7 @@ proptest! {
 					amplification,
 					fee,
 				},
-				(ALICE, asset_a, initial_liquidity),
+				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
 			)
 			.build()
 			.execute_with(|| {
@@ -130,7 +130,7 @@ proptest! {
 					amplification,
 					fee,
 				},
-				(ALICE, asset_a, initial_liquidity),
+				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
 			)
 			.build()
 			.execute_with(|| {
@@ -190,7 +190,7 @@ proptest! {
 					amplification,
 					fee: Permill::from_percent(0),
 				},
-				(ALICE, asset_a, initial_liquidity),
+				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
 			)
 			.build()
 			.execute_with(|| {
@@ -249,7 +249,7 @@ proptest! {
 					amplification,
 					fee: Permill::from_percent(0),
 				},
-				(ALICE, asset_a, initial_liquidity),
+				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
 			)
 			.build()
 			.execute_with(|| {

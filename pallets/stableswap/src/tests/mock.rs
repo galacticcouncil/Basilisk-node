@@ -123,6 +123,8 @@ impl orml_tokens::Config for Test {
 	type WeightInfo = ();
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
+	type OnNewTokenAccount = ();
+	type OnKilledTokenAccount = ();
 	type MaxLocks = ();
 	type DustRemovalWhitelist = Everything;
 }
@@ -150,10 +152,16 @@ impl Config for Test {
 	type WeightInfo = ();
 }
 
+pub struct InitialLiquidity {
+	pub(crate) account: AccountId,
+	pub(crate) asset: AssetId,
+	pub(crate) amount: Balance,
+}
+
 pub struct ExtBuilder {
 	endowed_accounts: Vec<(AccountId, AssetId, Balance)>,
 	registered_assets: Vec<(Vec<u8>, AssetId)>,
-	created_pools: Vec<(AccountId, PoolInfo<AssetId>, (AccountId, AssetId, Balance))>,
+	created_pools: Vec<(AccountId, PoolInfo<AssetId>, InitialLiquidity)>,
 }
 
 impl Default for ExtBuilder {
@@ -189,12 +197,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_pool(
-		mut self,
-		who: AccountId,
-		pool: PoolInfo<AssetId>,
-		initial_liquidity: (AccountId, AssetId, Balance),
-	) -> Self {
+	pub fn with_pool(mut self, who: AccountId, pool: PoolInfo<AssetId>, initial_liquidity: InitialLiquidity) -> Self {
 		self.created_pools.push((who, pool, initial_liquidity));
 		self
 	}
@@ -239,12 +242,12 @@ impl ExtBuilder {
 					v.borrow_mut().push(pool_id);
 				});
 
-				if initial.2 > Balance::zero() {
+				if initial.amount > Balance::zero() {
 					assert_ok!(Stableswap::add_liquidity(
-						Origin::signed(initial.0),
+						Origin::signed(initial.account),
 						pool_id,
-						initial.1,
-						initial.2,
+						initial.asset,
+						initial.amount,
 					));
 				}
 			}
