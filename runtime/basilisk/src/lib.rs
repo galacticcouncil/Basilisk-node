@@ -132,11 +132,6 @@ impl Contains<Call> for BaseFilter {
 			Call::Marketplace(_) => false,
 			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
-			Call::Balances(_) => false,
-			Call::Currencies(_) => false,
-			Call::PolkadotXcm(_) => false,
-			Call::OrmlXcm(_) => false,
-			Call::XTokens(_) => false,
 			_ => true,
 		}
 	}
