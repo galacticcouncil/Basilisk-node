@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.3.2"
+version = "0.3.3"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -10,15 +10,15 @@ repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
 # local dependencies
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false}
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false}
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false}
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false}
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false}
 
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-xyk = { path = "../pallets/xyk",default-features = false}
 pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
-pallet-nft = { path = "../pallets/nft", default-features = false }
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
 
@@ -65,8 +65,8 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "relea
 polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17", default-features = false }
 
 # HydraDX dependencies
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "7052eeab309742dccfe7e307c15fc4f780713553", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false, optional = true }

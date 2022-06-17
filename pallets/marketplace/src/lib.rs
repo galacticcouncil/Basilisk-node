@@ -17,7 +17,7 @@ use sp_runtime::{
 use types::*;
 use weights::WeightInfo;
 
-use primitives::ReserveIdentifier;
+use pallet_nft::ReserveIdentifier;
 
 mod benchmarking;
 mod types;

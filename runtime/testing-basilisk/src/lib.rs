@@ -113,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 55,
+	spec_version: 56,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -279,7 +279,7 @@ impl pallet_balances::Config for Runtime {
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = primitives::ReserveIdentifier;
+	type ReserveIdentifier = pallet_nft::ReserveIdentifier;
 }
 
 /// Parameterized slow adjusting fee updated based on
