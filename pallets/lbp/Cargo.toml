@@ -1,6 +1,6 @@
 [package]
 name = "pallet-lbp"
-version = "4.3.4"
+version = "4.4.4"
 description = "HydraDX Liquidity Bootstrapping Pool Pallet"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -21,8 +21,8 @@ primitive-types = { default-features = false, version = "0.8.0" }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
 # HydraDX dependencies
-hydra-dx-math = { default-features = false, version = "4.0.0" }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "e428fd81f84781c4508df72f095e7bed6bb58ea1", default-features = false }
+hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1bafe7bb96864f5d29bab68061719c541ef06648", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 
 ## Local dependencies
 primitives = { default-features = false, path = "../../primitives" }
