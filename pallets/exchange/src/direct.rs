@@ -317,13 +317,13 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 
 	/// Send pallet event in case of insufficient balance.
 	fn send_insufficient_balance_event(intention: &Intention<T>, asset: AssetId) {
-		Pallet::<T>::deposit_event(Event::InsufficientAssetBalanceEvent(
-			intention.who.clone(),
-			asset,
-			intention.sell_or_buy,
-			intention.intention_id,
-			Error::<T>::InsufficientAssetBalance.into(),
-		));
+		Pallet::<T>::deposit_event(Event::InsufficientAssetBalanceEvent {
+			who: intention.who.clone(),
+			asset_id: asset,
+			intention_type: intention.sell_or_buy,
+			intention_id: intention.intention_id,
+			error_detail: Error::<T>::InsufficientAssetBalance.into(),
+		});
 	}
 
 	/// Send pallet event after a fee is transferred.
@@ -334,25 +334,25 @@ impl<'a, T: Config> DirectTradeData<'a, T> {
 		asset: AssetId,
 		amount: Balance,
 	) {
-		Pallet::<T>::deposit_event(Event::IntentionResolvedDirectTradeFees(
-			from.clone(),
-			intention.intention_id,
-			to.clone(),
-			asset,
-			amount,
-		));
+		Pallet::<T>::deposit_event(Event::IntentionResolvedDirectTradeFees {
+			who: from.clone(),
+			intention_id: intention.intention_id,
+			fee_receiver: to.clone(),
+			asset_id: asset,
+			fee_amount: amount,
+		});
 	}
 
 	/// Send event after successful direct trade.
 	fn send_direct_trade_resolve_event(&self) {
-		Pallet::<T>::deposit_event(Event::IntentionResolvedDirectTrade(
-			self.intention_a.who.clone(),
-			self.intention_b.who.clone(),
-			self.intention_a.intention_id,
-			self.intention_b.intention_id,
-			self.amount_from_a,
-			self.amount_from_b,
-		));
+		Pallet::<T>::deposit_event(Event::IntentionResolvedDirectTrade {
+			account_id_a: self.intention_a.who.clone(),
+			account_id_b: self.intention_b.who.clone(),
+			intention_id_a: self.intention_a.intention_id,
+			intention_id_b: self.intention_b.intention_id,
+			amount_a: self.amount_from_a,
+			amount_b: self.amount_from_b,
+		});
 	}
 
 	/// Reserve amount.

@@ -1,9 +1,12 @@
 #![cfg(test)]
 pub use basilisk_runtime::AccountId;
+use pallet_transaction_multi_payment::Price;
 use primitives::Balance;
 
 pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
+pub const CHARLIE: [u8; 32] = [6u8; 32];
+pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const BSX: Balance = 1_000_000_000_000;
 
@@ -18,7 +21,7 @@ use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain
 decl_test_relay_chain! {
 	pub struct KusamaRelay {
 		Runtime = kusama_runtime::Runtime,
-		XcmConfig = kusama_runtime::XcmConfig,
+		XcmConfig = kusama_runtime::xcm_config::XcmConfig,
 		new_ext = kusama_ext(),
 	}
 }
@@ -27,6 +30,8 @@ decl_test_parachain! {
 	pub struct Basilisk{
 		Runtime = basilisk_runtime::Runtime,
 		Origin = basilisk_runtime::Origin,
+		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
+		DmpMessageHandler = basilisk_runtime::DmpQueue,
 		new_ext = basilisk_ext(),
 	}
 }
@@ -35,6 +40,8 @@ decl_test_parachain! {
 	pub struct Hydra{
 		Runtime = basilisk_runtime::Runtime,
 		Origin = basilisk_runtime::Origin,
+		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
+		DmpMessageHandler = basilisk_runtime::DmpQueue,
 		new_ext = hydra_ext(),
 	}
 }
@@ -51,8 +58,9 @@ decl_test_network! {
 
 fn default_parachains_host_configuration() -> HostConfiguration<BlockNumber> {
 	HostConfiguration {
-		validation_upgrade_frequency: 1u32,
-		validation_upgrade_delay: 1,
+		minimum_validation_upgrade_delay: 5,
+		validation_upgrade_cooldown: 5u32,
+		validation_upgrade_delay: 5,
 		code_retention_period: 1200,
 		max_code_size: MAX_CODE_SIZE,
 		max_pov_size: MAX_POV_SIZE,
@@ -150,14 +158,14 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
-
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext
 }
 
 pub fn basilisk_ext() -> sp_io::TestExternalities {
-	use basilisk_runtime::{NativeExistentialDeposit, Runtime, System};
+	use basilisk_runtime::{MultiTransactionPayment, NativeExistentialDeposit, Runtime, System};
+	use frame_support::traits::OnInitialize;
 
 	let existential_deposit = NativeExistentialDeposit::get();
 
@@ -166,7 +174,12 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
-		balances: vec![(AccountId::from(ALICE), 200 * 1_000_000_000_000)],
+		balances: vec![
+			(AccountId::from(ALICE), 200 * BSX),
+			(AccountId::from(BOB), 1000 * BSX),
+			(AccountId::from(CHARLIE), 1000 * BSX),
+			(AccountId::from(DAVE), 1000 * BSX),
+		],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -181,13 +194,18 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 2000.into(),
+			parachain_id: 2000u32.into(),
 		},
 		&mut t,
 	)
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
-		balances: vec![(AccountId::from(ALICE), 1, 200 * 1_000_000_000_000)],
+		balances: vec![
+			(AccountId::from(ALICE), 1, 200 * BSX),
+			(AccountId::from(BOB), 1, 1_000 * BSX),
+			(AccountId::from(CHARLIE), 1, 1000 * BSX),
+			(AccountId::from(DAVE), 1, 1_000 * BSX),
+		],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -200,8 +218,32 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
+	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
+		currencies: vec![(1, Price::from(1))],
+		account_currencies: vec![],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| {
+		System::set_block_number(1);
+		// Make sure the prices are up-to-date.
+		MultiTransactionPayment::on_initialize(1);
+	});
 	ext
+}
+
+fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
+	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
+		.into_iter()
+		.rev()
+		.take(n)
+		.rev()
+		.map(|e| e.event)
+		.collect()
+}
+
+pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
+	assert_eq!(last_basilisk_events(e.len()), e);
 }

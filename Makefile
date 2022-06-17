@@ -25,7 +25,7 @@ coverage:
 
 .PHONY: clippy
 clippy:
-	cargo clippy --release --all-targets --all-features -- -D warnings
+	cargo clippy --release --locked --all-targets --all-features -- -D warnings
 
 .PHONY: format
 format:
@@ -38,3 +38,9 @@ build-docs:
 .PHONY: clean
 clean:
 	cargo clean
+
+.PHONY: docker
+docker: build
+	ln -f $(CURDIR)/target/release/basilisk $(CURDIR)/basilisk
+	docker build --tag basilisk .
+	rm $(CURDIR)/basilisk

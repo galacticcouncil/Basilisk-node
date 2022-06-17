@@ -24,12 +24,12 @@ use orml_traits::parameter_type_with_key;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, Zero},
+	traits::{BlakeTwo256, IdentityLookup, One},
 };
 
 use pallet_xyk as xyk;
 
-use frame_support::traits::{Everything, GenesisBuild, Get};
+use frame_support::traits::{Everything, GenesisBuild, Get, Nothing};
 use frame_system::EnsureSigned;
 use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
@@ -115,11 +115,12 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
-		Zero::zero()
+		One::one()
 	};
 }
 
@@ -132,7 +133,9 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = Everything;
+	type DustRemovalWhitelist = Nothing;
+	type OnNewTokenAccount = ();
+	type OnKilledTokenAccount = ();
 }
 
 pub struct AssetPairAccountIdTest();

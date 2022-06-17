@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
   pull_request:
 
+env:
+  RELAY_CHAIN_VERSION: v0.9.17-rc4
+
 jobs:
   build:
     runs-on: ryzen
@@ -36,7 +39,7 @@ jobs:
           fail_ci_if_error: true
       - name: Build runtime
         run: cargo build --release --locked
-        working-directory: runtime
+        working-directory: runtime/basilisk
       - name: Build node
         run: cargo build --release --locked
       - name: Version info
@@ -45,7 +48,7 @@ jobs:
         run: |
           cp target/release/basilisk target/release/testing-basilisk
           chmod +x ./target/release/testing-basilisk
-          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.jsons
+          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.json
       - name: Upload config file
         uses: actions/upload-artifact@v2
         with:
@@ -159,7 +162,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: v0.9.15
+          tag: ${{ env.RELAY_CHAIN_VERSION }}
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
@@ -194,7 +197,7 @@ jobs:
       - uses: dawidd6/action-download-artifact@v2
         name: Download basilisk binary from master
         with:
-          workflow: tests.yml
+          workflow: workflow.yml
           branch: master
           name: basilisk
           path: target/release
@@ -202,7 +205,7 @@ jobs:
         name: Download relay chain binary
         with:
           repository: paritytech/polkadot
-          tag: v0.9.15
+          tag: ${{ env.RELAY_CHAIN_VERSION }}
           fileName: polkadot
           out-file-path: ../polkadot/target/release
       - run: chmod +x ./basilisk && ./basilisk --version
@@ -252,3 +255,7 @@ jobs:
         with:
           message: |
             ${{ env.VERSION_UPDATE }}
+      - name: Evaluate result
+        if: contains(env.VERSION_UPDATE, 'have not been updated') || contains(env.VERSION_UPDATE, 'versions don''t match') || contains(env.VERSION_UPDATE, 'downgraded')
+        run: exit 1
+

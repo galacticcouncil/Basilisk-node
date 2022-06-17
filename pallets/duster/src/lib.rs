@@ -49,6 +49,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
@@ -59,12 +60,12 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn reward_account)]
 	/// Account to take reward from.
-	pub type RewardAccount<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
+	pub type RewardAccount<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn dust_dest_account)]
 	/// Account to send dust to.
-	pub type DustAccount<T: Config> = StorageValue<_, T::AccountId, ValueQuery>;
+	pub type DustAccount<T: Config> = StorageValue<_, T::AccountId, OptionQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
@@ -122,8 +123,8 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub account_blacklist: Vec<T::AccountId>,
-		pub reward_account: T::AccountId,
-		pub dust_account: T::AccountId,
+		pub reward_account: Option<T::AccountId>,
+		pub dust_account: Option<T::AccountId>,
 	}
 
 	#[cfg(feature = "std")]
@@ -131,8 +132,8 @@ pub mod pallet {
 		fn default() -> Self {
 			GenesisConfig {
 				account_blacklist: vec![],
-				reward_account: Default::default(),
-				dust_account: Default::default(),
+				reward_account: None,
+				dust_account: None,
 			}
 		}
 	}
@@ -144,16 +145,26 @@ pub mod pallet {
 				AccountBlacklist::<T>::insert(account_id, ());
 			});
 
-			if self.reward_account == Default::default() {
+			if self.reward_account == None {
 				panic!("Reward account is not set in genesis config");
 			}
 
-			if self.dust_account == Default::default() {
+			if self.dust_account == None {
 				panic!("Dust account is not set in genesis config");
 			}
 
-			RewardAccount::<T>::put(&self.reward_account);
-			DustAccount::<T>::put(&self.dust_account);
+			RewardAccount::<T>::put(
+				&self
+					.reward_account
+					.clone()
+					.expect("Reward account is not set in genesis config"),
+			);
+			DustAccount::<T>::put(
+				&self
+					.dust_account
+					.clone()
+					.expect("Dust account is not set in genesis config"),
+			);
 		}
 	}
 
@@ -170,19 +181,25 @@ pub mod pallet {
 
 		/// The balance is sufficient to keep account open.
 		BalanceSufficient,
+
+		/// Dust account is not set.
+		DustAccountNotSet,
+
+		/// Reserve account is not set.
+		ReserveAccountNotSet,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Account dusted.
-		Dusted(T::AccountId, T::Balance),
+		Dusted { who: T::AccountId, amount: T::Balance },
 
 		/// Account added to non-dustable list.
-		Added(T::AccountId),
+		Added { who: T::AccountId },
 
 		/// Account removed from non-dustable list.
-		Removed(T::AccountId),
+		Removed { who: T::AccountId },
 	}
 
 	#[pallet::call]
@@ -204,9 +221,15 @@ pub mod pallet {
 
 			ensure!(dustable, Error::<T>::BalanceSufficient);
 
-			Self::transfer_dust(&account, &Self::dust_dest_account(), currency_id, dust)?;
+			// Error should never occur here
+			let dust_dest_account = Self::dust_dest_account().ok_or(Error::<T>::DustAccountNotSet)?;
 
-			Self::deposit_event(Event::Dusted(account, dust));
+			Self::transfer_dust(&account, &dust_dest_account, currency_id, dust)?;
+
+			Self::deposit_event(Event::Dusted {
+				who: account,
+				amount: dust,
+			});
 
 			// Ignore the result, it fails - no problem.
 			let _ = Self::reward_duster(&who, currency_id, dust);
@@ -223,7 +246,7 @@ pub mod pallet {
 
 			AccountBlacklist::<T>::insert(&account, ());
 
-			Self::deposit_event(Event::Added(account));
+			Self::deposit_event(Event::Added { who: account });
 
 			Ok(())
 		}
@@ -241,7 +264,7 @@ pub mod pallet {
 				Ok(())
 			})?;
 
-			Self::deposit_event(Event::Removed(account));
+			Self::deposit_event(Event::Removed { who: account });
 
 			Ok(())
 		}
@@ -259,7 +282,8 @@ impl<T: Config> Pallet<T> {
 
 	/// Send reward to account which did the dusting.
 	fn reward_duster(_duster: &T::AccountId, _currency_id: T::CurrencyId, _dust: T::Balance) -> DispatchResult {
-		let reserve_account = Self::reward_account();
+		// Error should never occur here
+		let reserve_account = Self::reward_account().ok_or(Error::<T>::ReserveAccountNotSet)?;
 		let reward = T::Reward::get();
 
 		T::MultiCurrency::transfer(T::NativeCurrencyId::get(), &reserve_account, _duster, reward)?;
@@ -285,7 +309,9 @@ pub struct DusterWhitelist<T>(PhantomData<T>);
 
 impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
 	fn on_dust(who: &T::AccountId, currency_id: T::CurrencyId, amount: T::Balance) {
-		let _ = Self::transfer_dust(who, &Self::dust_dest_account(), currency_id, amount);
+		if let Some(dust_dest_account) = Self::dust_dest_account() {
+			let _ = Self::transfer_dust(who, &dust_dest_account, currency_id, amount);
+		}
 	}
 }
 

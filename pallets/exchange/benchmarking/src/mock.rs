@@ -98,6 +98,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_type_with_key! {
@@ -116,6 +117,8 @@ impl orml_tokens::Config for Test {
 	type OnDust = ();
 	type MaxLocks = ();
 	type DustRemovalWhitelist = Everything;
+	type OnNewTokenAccount = ();
+	type OnKilledTokenAccount = ();
 }
 
 pub struct AssetPairAccountIdTest();

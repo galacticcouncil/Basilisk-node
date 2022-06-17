@@ -31,7 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use codec::{Decode, Encode};
-use frame_system::{EnsureOneOf, EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -56,7 +56,7 @@ use scale_info::TypeInfo;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Contains, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter, U128CurrencyToVote},
+	traits::{Contains, EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -66,8 +66,6 @@ use hydradx_traits::AssetPairAccountIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
-#[allow(clippy::all)]
-mod weights;
 mod xcm;
 
 mod benchmarking;
@@ -78,7 +76,7 @@ use orml_currencies::BasicCurrencyAdapter;
 
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
-use pallet_transaction_multi_payment::MultiCurrencyAdapter;
+use pallet_transaction_multi_payment::{AddTxAssetOnAccount, DepositAll, RemoveTxAssetOnKilled, TransferFees};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -107,10 +105,11 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 35,
+	spec_version: 57,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
+	state_version: 0,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -128,17 +127,26 @@ impl Contains<Call> for BaseFilter {
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::XYK(_) => false,
-			Call::NFT(_) => false,
 			Call::Exchange(_) => false,
+			Call::NFT(_) => false,
+			Call::Marketplace(_) => false,
+			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
 			Call::Currencies(_) => false,
+			Call::PolkadotXcm(_) => false,
+			Call::OrmlXcm(_) => false,
+			Call::XTokens(_) => false,
 			_ => true,
 		}
 	}
 }
 
 use common_runtime::adapter::OrmlTokensAdapter;
+use primitives::{
+	nft::{ClassType, NftPermissions},
+	ClassId, InstanceId,
+};
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
 
@@ -241,7 +249,8 @@ parameter_types! {
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
-	pub ExtrinsicBaseWeight: Weight = frame_support::weights::constants::ExtrinsicBaseWeight::get();
+
+	pub ExtrinsicBaseWeight: Weight = common_runtime::BasiliskExtrinsicBaseWeight::get();
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -290,9 +299,10 @@ impl frame_system::Config for Runtime {
 	/// What to do if an account is fully reaped from the system.
 	type OnKilledAccount = ();
 	/// Weight information for the extrinsics of this pallet.
-	type SystemWeightInfo = weights::system::BasiliskWeight<Runtime>;
+	type SystemWeightInfo = common_runtime::weights::system::BasiliskWeight<Runtime>;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -300,7 +310,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
-	type WeightInfo = weights::timestamp::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::timestamp::BasiliskWeight<Runtime>;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -312,9 +322,9 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = Treasury;
 	type ExistentialDeposit = NativeExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = weights::balances::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::balances::BasiliskWeight<Runtime>;
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
+	type ReserveIdentifier = pallet_nft::ReserveIdentifier;
 }
 
 /// Parameterized slow adjusting fee updated based on
@@ -323,11 +333,15 @@ pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for Runtime {
-	type OnChargeTransaction = MultiCurrencyAdapter<Balances, (), MultiTransactionPayment>;
+	type OnChargeTransaction = TransferFees<Currencies, MultiTransactionPayment, DepositAll<Runtime>>;
 	type TransactionByteFee = TransactionByteFee;
 	type OperationalFeeMultiplier = ();
 	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
+}
+
+parameter_types! {
+	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
 impl pallet_transaction_multi_payment::Config for Runtime {
@@ -335,10 +349,11 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type AcceptedCurrencyOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
 	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
-	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;
+	type FeeReceiver = TreasuryAccount;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -395,11 +410,13 @@ impl orml_tokens::Config for Runtime {
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
-	type WeightInfo = weights::tokens::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::tokens::BasiliskWeight<Runtime>;
 	type ExistentialDeposits = AssetRegistry;
 	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = pallet_duster::DusterWhitelist<Runtime>;
+	type OnNewTokenAccount = AddTxAssetOnAccount<Runtime>;
+	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
 }
 
 impl orml_currencies::Config for Runtime {
@@ -407,7 +424,7 @@ impl orml_currencies::Config for Runtime {
 	type MultiCurrency = OrmlTokensAdapter<Runtime>;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
-	type WeightInfo = weights::currencies::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::currencies::BasiliskWeight<Runtime>;
 }
 
 impl pallet_duster::Config for Runtime {
@@ -419,17 +436,17 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
-	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::duster::BasiliskWeight<Runtime>;
 }
 
 /// Basilisk Pallets configurations
 
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct AssetLocation(pub polkadot_xcm::latest::MultiLocation);
+pub struct AssetLocation(pub polkadot_xcm::v1::MultiLocation);
 
 impl Default for AssetLocation {
 	fn default() -> Self {
-		AssetLocation(polkadot_xcm::latest::MultiLocation::here())
+		AssetLocation(polkadot_xcm::v1::MultiLocation::here())
 	}
 }
 
@@ -441,7 +458,7 @@ impl pallet_asset_registry::Config for Runtime {
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::asset_registry::BasiliskWeight<Runtime>;
 }
 
 impl pallet_xyk::Config for Runtime {
@@ -450,7 +467,7 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
@@ -465,7 +482,7 @@ impl pallet_exchange::Config for Runtime {
 	type AMMPool = XYK;
 	type Resolver = Exchange;
 	type Currency = Currencies;
-	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::exchange::BasiliskWeight<Runtime>;
 }
 
 impl pallet_lbp::Config for Runtime {
@@ -479,13 +496,13 @@ impl pallet_lbp::Config for Runtime {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
-	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
 impl pallet_price_oracle::Config for Runtime {
 	type Event = Event;
-	type WeightInfo = pallet_price_oracle::weights::HydraWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::price_oracle::BasiliskWeight<Runtime>;
 }
 
 // Parachain Config
@@ -497,7 +514,7 @@ parameter_types! {
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
-	type OnValidationData = pallet_relaychain_info::OnValidationDataHandler<Runtime>;
+	type OnSystemEvent = pallet_relaychain_info::OnValidationDataHandler<Runtime>;
 	type SelfParaId = ParachainInfo;
 
 	type OutboundXcmpMessageSource = XcmpQueue;
@@ -517,47 +534,49 @@ impl parachain_info::Config for Runtime {}
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
+parameter_types! {
+	pub ReserveClassIdUpTo: u128 = 999_999;
+}
+
 impl pallet_nft::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
-	type ClassBondAmount = ClassBondAmount;
+	type NftClassId = ClassId;
+	type NftInstanceId = InstanceId;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
-impl orml_nft::Config for Runtime {
-	type ClassId = u64;
-	type TokenId = u64;
-	type ClassData = pallet_nft::ClassData;
-	type TokenData = pallet_nft::TokenData;
-	type MaxClassMetadata = MaxClassMetadata;
-	type MaxTokenMetadata = MaxTokenMetadata;
-}
+type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
 
-type EnsureMajorityCouncilOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureMajorityCouncilOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureUnanimousCouncilOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureUnanimousCouncilOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureSuperMajorityCouncilOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureSuperMajorityCouncilOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureSuperMajorityTechCommitteeOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureSuperMajorityTechCommitteeOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechnicalCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureUnanimousTechCommitteOrRoot = frame_system::EnsureOneOf<
-	AccountId,
+type EnsureUnanimousTechCommitteeOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
+type EnsureMajorityTechCommitteeOrRoot = EnsureOneOf<
+	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechnicalCollective>,
+	frame_system::EnsureRoot<AccountId>,
+>;
+
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
@@ -575,15 +594,15 @@ impl pallet_democracy::Config for Runtime {
 	type ExternalDefaultOrigin = EnsureUnanimousCouncilOrRoot;
 	/// Two thirds of the technical committee can have an ExternalMajority/ExternalDefault vote
 	/// be tabled immediately and with a shorter voting/enactment period.
-	type FastTrackOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
-	type InstantOrigin = EnsureUnanimousTechCommitteOrRoot;
+	type FastTrackOrigin = EnsureMajorityTechCommitteeOrRoot;
+	type InstantOrigin = EnsureUnanimousTechCommitteeOrRoot;
 	type InstantAllowed = InstantAllowed;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	// To cancel a proposal which has been passed, 2/3 of the council must agree to it.
 	type CancellationOrigin = EnsureSuperMajorityCouncilOrRoot;
 	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
 	// Root must agree.
-	type CancelProposalOrigin = EnsureUnanimousTechCommitteOrRoot;
+	type CancelProposalOrigin = EnsureUnanimousTechCommitteeOrRoot;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// Any single technical committee member may veto a coming council proposal, however they can
 	// only do it once and it lasts only for the cooloff period.
@@ -595,7 +614,7 @@ impl pallet_democracy::Config for Runtime {
 	type Scheduler = Scheduler;
 	type PalletsOrigin = OriginCaller;
 	type MaxVotes = MaxVotes;
-	type WeightInfo = weights::democracy::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::democracy::BasiliskWeight<Runtime>;
 	type MaxProposals = MaxProposals;
 	type VoteLockingPeriod = EnactmentPeriod;
 }
@@ -642,8 +661,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type WeightInfo = ();
 }
 
-type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
-type ManageOrigin = EnsureOneOf<AccountId, EnsureRoot<AccountId>, AllCouncilMembers>;
+type ManageOrigin = EnsureOneOf<EnsureRoot<AccountId>, AllCouncilMembers>;
 
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
@@ -654,10 +672,11 @@ impl pallet_treasury::Config for Runtime {
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
+	type ProposalBondMaximum = ProposalBondMaximum;
 	type SpendPeriod = SpendPeriod;
 	type Burn = Burn;
 	type BurnDestination = ();
-	type WeightInfo = weights::treasury::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::treasury::BasiliskWeight<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
 }
@@ -665,6 +684,7 @@ impl pallet_treasury::Config for Runtime {
 parameter_types! {
 	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(10) * BlockWeights::get().max_block;
 	pub const MaxScheduledPerBlock: u32 = 50;
+	pub const NoPreimagePostponement: Option<u32> = Some(5 * MINUTES);
 }
 
 impl pallet_scheduler::Config for Runtime {
@@ -675,14 +695,16 @@ impl pallet_scheduler::Config for Runtime {
 	type MaximumWeight = MaximumSchedulerWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
-	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::scheduler::BasiliskWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
+	type PreimageProvider = Preimage;
+	type NoPreimagePostponement = NoPreimagePostponement;
 }
 
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
-	type WeightInfo = weights::utility::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::utility::BasiliskWeight<Runtime>;
 	type PalletsOrigin = OriginCaller;
 }
 
@@ -718,7 +740,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
-	type WeightInfo = weights::collator_selection::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::collator_selection::BasiliskWeight<Runtime>;
 }
 
 impl pallet_session::Config for Runtime {
@@ -755,7 +777,9 @@ impl EnsureOrigin<Origin> for EnsureRootOrTreasury {
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn successful_origin() -> Origin {
-		Origin::from(RawOrigin::Signed(Default::default()))
+		let zero_account_id = AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+			.expect("infinite length input; no invalid inputs for type; qed");
+		Origin::from(RawOrigin::Signed(zero_account_id))
 	}
 }
 
@@ -764,14 +788,95 @@ impl orml_vesting::Config for Runtime {
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
 	type VestedTransferOrigin = EnsureRootOrTreasury;
-	type WeightInfo = weights::vesting::BasiliskWeight<Runtime>;
+	type WeightInfo = common_runtime::weights::vesting::BasiliskWeight<Runtime>;
 	type MaxVestingSchedules = MaxVestingSchedules;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+}
+
+parameter_types! {
+	pub const MinimumOfferAmount: Balance = 10000 * UNITS;
+	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
+}
+
+impl pallet_marketplace::Config for Runtime {
+	type Event = Event;
+	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
+	type MinimumOfferAmount = MinimumOfferAmount;
+	type RoyaltyBondAmount = RoyaltyBondAmount;
+}
+
+parameter_types! {
+	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
+	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
+	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
+	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
+	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
+	pub const AttributeDepositBase: Balance = 10 * UNITS;
+	pub const DepositPerByte: Balance = UNITS;
+	pub const UniquesStringLimit: u32 = 60;
+}
+
+impl pallet_uniques::Config for Runtime {
+	type Event = Event;
+	type ClassId = ClassId;
+	type InstanceId = InstanceId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type ClassDeposit = ClassDeposit;
+	type InstanceDeposit = InstanceDeposit;
+	type MetadataDepositBase = UniquesMetadataDepositBase;
+	type AttributeDepositBase = AttributeDepositBase;
+	type DepositPerByte = DepositPerByte;
+	type StringLimit = UniquesStringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type WeightInfo = ();
 }
 
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+}
+
+parameter_types! {
+	pub const PreimageMaxSize: u32 = 4096 * 1024;
+	pub PreimageBaseDeposit: Balance = deposit(2, 64);
+	pub PreimageByteDeposit: Balance = deposit(0, 1);
+}
+
+impl pallet_preimage::Config for Runtime {
+	type WeightInfo = ();
+	type Event = Event;
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type MaxSize = PreimageMaxSize;
+	type BaseDeposit = PreimageBaseDeposit;
+	type ByteDeposit = PreimageByteDeposit;
+}
+
+impl pallet_identity::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type FieldDeposit = FieldDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type MaxAdditionalFields = MaxAdditionalFields;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = EnsureMajorityCouncilOrRoot;
+	type RegistrarOrigin = EnsureMajorityCouncilOrRoot;
+	type WeightInfo = ();
+}
+
+impl pallet_multisig::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type DepositBase = DepositBase;
+	type DepositFactor = DepositFactor;
+	type MaxSignatories = MaxSignatories;
+	type WeightInfo = ();
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -781,63 +886,65 @@ construct_runtime!(
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
+		// Substrate
+		System: frame_system::{Pallet, Call, Config, Storage, Event<T>} = 0,
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 1,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 2,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 3,
+		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 4,
+		Utility: pallet_utility::{Pallet, Call, Event} = 5,
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>} = 6,
+		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>} = 7,
+		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>} = 8,
+		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>} = 9,
+		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>} = 10,
+		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>} = 11,
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 12,
+		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>} = 13,
 
-		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>},
+		Authorship: pallet_authorship::{Pallet, Call, Storage} = 14,
+		CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>, Config<T>} = 15,
+		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 16, // Session must be after collator and before aura
+		Aura: pallet_aura::{Pallet, Config<T>} = 17,
+		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config} = 18,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 19,
+		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>} = 20,
+		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 21,
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 22,
 
-		// Basilisk's registry
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>},
+		// Parachain and XCM - starts at index 50
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned} = 50,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 51,
 
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
-		Democracy: pallet_democracy::{Pallet, Call, Storage, Event<T>},
-		Elections: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Council: pallet_collective::<Instance1>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
-		TechnicalCommittee: pallet_collective::<Instance2>::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
-		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>},
-		Utility: pallet_utility::{Pallet, Call, Event},
-		Vesting: orml_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config} = 52,
+		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin} = 53,
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>} = 54,
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 55,
 
-		// Parachain
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>, ValidateUnsigned},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
+		// Basilisk - runtime module index for basilisk's pallets starts at 100
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Config<T>, Storage, Event<T>} = 100,
+		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>} = 101,
+		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>} = 102,
+		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
+		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
+		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
 
-		// XCM
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config},
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
-		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>},
-		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event},
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>},
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} ,
+		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
+		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
+		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
+		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
 
-		// Collator support
-		Authorship: pallet_authorship::{Pallet, Call, Storage},
-		CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>, Config<T>},
-		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>},
-		Aura: pallet_aura::{Pallet, Config<T>},
-		AuraExt: cumulus_pallet_aura_ext::{Pallet, Config},
+		// ORML related modules - runtime module index for orml starts at 150
+		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
+		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>} = 151,
 
-		// ORML related modules
-		Currencies: orml_currencies::{Pallet, Call, Event<T>},
-		OrmlNft: orml_nft::{Pallet, Storage, Config<T>},
-		Tips: pallet_tips::{Pallet, Call, Storage, Event<T>},
-		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>},
-		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>},
+		// ORML XCM
+		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>} = 153,
+		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>} = 154,
+		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event} = 155,
 
-		// Basilisk related modules
-		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
-		Duster: pallet_duster::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>},
-		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>},
-		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
-		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
-		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>},
-
-		// TEMPORARY
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
+		// TEMPORARY - always last. Sudo will be removed at some point.
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 255,
 	}
 );
 
@@ -956,8 +1063,8 @@ impl_runtime_apis! {
 	}
 
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
-		fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
-			ParachainSystem::collect_collation_info()
+		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {
+			ParachainSystem::collect_collation_info(header)
 		}
 	}
 
@@ -1057,6 +1164,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_price_oracle, PriceOracle);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
+			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1115,6 +1223,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_price_oracle, PriceOracle);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
+			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 
 			// Substrate pallets
@@ -1132,7 +1241,7 @@ impl_runtime_apis! {
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
 			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
 			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
-			orml_add_benchmark!(params, batches, palle_transaction_multi_payment, benchmarking::multi_payment);
+			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
