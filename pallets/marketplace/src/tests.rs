@@ -2,7 +2,6 @@ use frame_support::{assert_noop, assert_ok, BoundedVec};
 
 use super::*;
 use mock::{Event, *};
-use primitives::nft::ClassType;
 use std::convert::TryInto;
 
 type Market = Pallet<Test>;
@@ -293,12 +292,15 @@ fn offering_works() {
 			INSTANCE_ID_0,
 			metadata.clone()
 		));
+		/*
 		assert_ok!(NFT::do_create_class(
 			ALICE,
 			CLASS_ID_1,
 			ClassType::LiquidityMining,
 			metadata
 		));
+
+		 */
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
