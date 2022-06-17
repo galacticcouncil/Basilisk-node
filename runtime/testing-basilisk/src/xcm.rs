@@ -5,6 +5,7 @@ use frame_support::{
 	traits::{Everything, Nothing},
 	PalletId,
 };
+use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
@@ -96,7 +97,26 @@ impl Config for XcmConfig {
 
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type Trader = TradePassthrough;
+	// We calculate weight fees the same way as for regular extrinsics and use the prices and choice
+	// of accepted currencies of the transaction payment pallet. Fees go to the same fee receiver as
+	// configured in `MultiTransactionPayment`.
+	type Trader = MultiCurrencyTrader<
+		AssetId,
+		Balance,
+		Price,
+		WeightToFee,
+		MultiTransactionPayment,
+		CurrencyIdConvert,
+		ToFeeReceiver<
+			AccountId,
+			AssetId,
+			Balance,
+			Price,
+			CurrencyIdConvert,
+			DepositAll<Runtime>,
+			MultiTransactionPayment,
+		>,
+	>;
 
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -167,6 +187,7 @@ impl pallet_xcm::Config for Runtime {
 
 pub struct CurrencyIdConvert;
 use primitives::constants::chain::CORE_ASSET_ID;
+use primitives::Price;
 
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
