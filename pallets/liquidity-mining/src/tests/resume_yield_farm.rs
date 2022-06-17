@@ -28,7 +28,6 @@ fn resume_yield_farm_should_work() {
 	};
 
 	predefined_test_ext_with_deposits().execute_with(|| {
-		//cancel liq. pool before resuming
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
@@ -38,13 +37,12 @@ fn resume_yield_farm_should_work() {
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
-		let new_multiplier = FixedU128::from(7_490_000);
-
 		assert_eq!(yield_farm.state, YieldFarmState::Stopped);
 		assert!(yield_farm.multiplier.is_zero());
 
 		set_block_number(13_420_000);
 
+		let new_multiplier = FixedU128::from(7_490_000);
 		assert_ok!(LiquidityMining::resume_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
@@ -76,11 +74,19 @@ fn resume_yield_farm_should_work() {
 				..global_farm
 			}
 		);
+
+		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningResumed {
+			farm_id: GC_FARM,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
+			who: GC,
+			asset_pair: bsx_tkn1_assets,
+			multiplier: new_multiplier,
+		})]);
 	});
 }
 
 #[test]
-fn resume_yield_farm_should_fail_when_yield_farm_does_not_exist() {
+fn resume_yield_farm_should_fail_with_propagated_error_when_farm_does_not_exist() {
 	let bsx_ksm_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: KSM,
@@ -103,10 +109,10 @@ fn resume_yield_farm_should_fail_when_yield_farm_does_not_exist() {
 }
 
 #[test]
-fn resume_yield_farm_should_fail_when_yield_farm_is_not_stopped() {
-	let bsx_tkn1_assets = AssetPair {
+fn resume_yield_farm_should_fail_when_caller_is_not_signed() {
+	let bsx_ksm_assets = AssetPair {
 		asset_in: BSX,
-		asset_out: TKN1,
+		asset_out: KSM,
 	};
 
 	predefined_test_ext_with_deposits().execute_with(|| {
@@ -114,42 +120,13 @@ fn resume_yield_farm_should_fail_when_yield_farm_is_not_stopped() {
 
 		assert_noop!(
 			LiquidityMining::resume_yield_farm(
-				Origin::signed(GC),
+				Origin::none(),
 				GC_FARM,
 				BSX_TKN1_YIELD_FARM_ID,
-				bsx_tkn1_assets,
+				bsx_ksm_assets,
 				new_multiplier
 			),
-			warehouse_liquidity_mining::Error::<Test>::YieldFarmAlreadyExists
-		);
-	});
-}
-
-#[test]
-fn resume_yield_farm_not_owner_should_not_work() {
-	let bsx_tkn1_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: TKN1,
-	};
-
-	predefined_test_ext_with_deposits().execute_with(|| {
-		let new_multiplier = FixedU128::from(7_490_000);
-
-		assert_ok!(LiquidityMining::stop_yield_farm(
-			Origin::signed(GC),
-			GC_FARM,
-			bsx_tkn1_assets
-		));
-
-		assert_noop!(
-			LiquidityMining::resume_yield_farm(
-				Origin::signed(ALICE),
-				GC_FARM,
-				BSX_TKN1_YIELD_FARM_ID,
-				bsx_tkn1_assets,
-				new_multiplier
-			),
-			warehouse_liquidity_mining::Error::<Test>::Forbidden
+			BadOrigin
 		);
 	});
 }

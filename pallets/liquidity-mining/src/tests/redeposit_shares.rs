@@ -150,3 +150,20 @@ fn redeposit_lp_shares_deposit_should_fail_when_called_with_non_known_deposit() 
 		);
 	});
 }
+
+#[test]
+fn redeposit_lp_shares_deposit_should_fail_when_called_by_not_signed_user() {
+	let not_known_deposit = 9999;
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::redeposit_lp_shares(
+				Origin::none(),
+				EVE_FARM,
+				EVE_BSX_TKN1_YIELD_FARM_ID,
+				BSX_TKN1_ASSETS,
+				not_known_deposit,
+			),
+			BadOrigin
+		);
+	});
+}

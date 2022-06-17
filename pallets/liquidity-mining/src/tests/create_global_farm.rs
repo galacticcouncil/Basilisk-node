@@ -56,8 +56,6 @@ fn create_global_farm_should_work() {
 			(INITIAL_BALANCE - total_rewards)
 		);
 
-		let updated_at = created_at_block / blocks_per_period;
-
 		expect_events(vec![mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 			id,
 			owner,
@@ -69,6 +67,7 @@ fn create_global_farm_should_work() {
 			max_reward_per_period,
 		})]);
 
+		let updated_at = created_at_block / blocks_per_period;
 		assert_eq!(
 			WarehouseLM::global_farm(id).unwrap(),
 			GlobalFarmData::new(
@@ -87,7 +86,7 @@ fn create_global_farm_should_work() {
 }
 
 #[test]
-fn create_global_farm_from_basic_origin_should_not_work() {
+fn create_global_farm_should_fail_when_called_by_basic_origin() {
 	new_test_ext().execute_with(|| {
 		let created_at_block = 15_896;
 
@@ -110,76 +109,7 @@ fn create_global_farm_from_basic_origin_should_not_work() {
 }
 
 #[test]
-fn create_global_farm_invalid_data_should_not_work() {
-	new_test_ext().execute_with(|| {
-		let created_at_block = 15_896;
-
-		set_block_number(created_at_block);
-
-		//total_rewards bellow min. limit
-		assert_noop!(
-			LiquidityMining::create_global_farm(
-				Origin::root(),
-				100,
-				1_000,
-				300,
-				BSX,
-				BSX,
-				ALICE,
-				Permill::from_percent(20)
-			),
-			warehouse_liquidity_mining::Error::<Test>::InvalidTotalRewards
-		);
-
-		//planned_yielding_periods bellow min. limit
-		assert_noop!(
-			LiquidityMining::create_global_farm(
-				Origin::root(),
-				1_000_000,
-				10,
-				300,
-				BSX,
-				BSX,
-				ALICE,
-				Permill::from_percent(20)
-			),
-			warehouse_liquidity_mining::Error::<Test>::InvalidPlannedYieldingPeriods
-		);
-
-		//blocks_per_period is 0.
-		assert_noop!(
-			LiquidityMining::create_global_farm(
-				Origin::root(),
-				1_000_000,
-				1_000,
-				0,
-				BSX,
-				BSX,
-				ALICE,
-				Permill::from_percent(20)
-			),
-			warehouse_liquidity_mining::Error::<Test>::InvalidBlocksPerPeriod
-		);
-
-		//yield_per_period is 0.
-		assert_noop!(
-			LiquidityMining::create_global_farm(
-				Origin::root(),
-				1_000_000,
-				1_000,
-				1,
-				BSX,
-				BSX,
-				ALICE,
-				Permill::from_percent(0)
-			),
-			warehouse_liquidity_mining::Error::<Test>::InvalidYieldPerPeriod
-		);
-	});
-}
-
-#[test]
-fn create_global_farm_with_insufficient_balance_should_not_work() {
+fn create_global_farm_should_fail_with_propagated_error_when_balance_is_insufficient() {
 	//owner account balance is 1M BSX
 	new_test_ext().execute_with(|| {
 		assert_noop!(

@@ -30,7 +30,6 @@ fn stop_yield_farm_should_work() {
 		asset_out: TKN1,
 	};
 
-	//same period
 	predefined_test_ext_with_deposits().execute_with(|| {
 		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
@@ -77,75 +76,10 @@ fn stop_yield_farm_should_work() {
 		assert_eq!(Tokens::free_balance(BSX, &yield_farm_account), yield_farm_bsx_balance);
 		assert_eq!(Tokens::free_balance(BSX, &global_farm_account), global_farm_bsx_balance);
 	});
-
-	//stop yield farm with farm update
-	predefined_test_ext_with_deposits().execute_with(|| {
-		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let yield_farm_bsx_balance = Tokens::free_balance(BSX, &yield_farm_account);
-		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
-		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
-
-		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
-
-		set_block_number(10_000);
-
-		assert_ok!(LiquidityMining::stop_yield_farm(
-			Origin::signed(GC),
-			GC_FARM,
-			bsx_tkn1_assets
-		));
-
-		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
-			farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-			who: GC,
-			asset_pair: bsx_tkn1_assets,
-		})]);
-
-		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
-			YieldFarmData {
-				updated_at: 100,
-				accumulated_rpvs: 245,
-				accumulated_rpz: 49,
-				state: YieldFarmState::Stopped,
-				multiplier: 0.into(),
-				..yield_farm
-			}
-		);
-
-		let stake_in_global_farm = yield_farm
-			.multiplier
-			.checked_mul_int(yield_farm.total_valued_shares)
-			.unwrap();
-
-		assert_eq!(
-			WarehouseLM::global_farm(GC_FARM).unwrap(),
-			GlobalFarmData {
-				updated_at: 100,
-				accumulated_rpz: 49,
-				total_shares_z: global_farm.total_shares_z.checked_sub(stake_in_global_farm).unwrap(),
-				accumulated_rewards: 18_206_375,
-				paid_accumulated_rewards: 9_589_300,
-				..global_farm
-			}
-		);
-
-		assert_eq!(
-			Tokens::free_balance(BSX, &yield_farm_account),
-			yield_farm_bsx_balance + 8_424_900 //8_424_900 - yield farm last claim from global farm
-		);
-
-		assert_eq!(
-			Tokens::free_balance(BSX, &global_farm_account),
-			global_farm_bsx_balance - 8_424_900 //8_424_900 - yield farm last claim from global farm
-		);
-	});
 }
 
 #[test]
-fn stop_yield_farm_should_not_fail_when_yield_farm_is_invalid() {
+fn stop_yield_farm_should_fail_when_caller_is_not_signed() {
 	let bsx_dot_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: DOT,
@@ -153,14 +87,14 @@ fn stop_yield_farm_should_not_fail_when_yield_farm_is_invalid() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::stop_yield_farm(Origin::signed(GC), GC_FARM, bsx_dot_assets),
-			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
+			LiquidityMining::stop_yield_farm(Origin::none(), GC_FARM, bsx_dot_assets),
+			BadOrigin
 		);
 	});
 }
 
 #[test]
-fn stop_yield_farm_should_fail_when_yield_farm_is_already_stopped() {
+fn stop_yield_farm_should_fail_with_propagated_error_when_yield_farm_is_already_stopped() {
 	let bsx_tkn1_assets = AssetPair {
 		asset_in: BSX,
 		asset_out: TKN1,

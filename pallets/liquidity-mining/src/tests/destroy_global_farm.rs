@@ -21,49 +21,27 @@ use test_ext::*;
 #[test]
 fn destroy_global_farm_should_work() {
 	predefined_test_ext().execute_with(|| {
-		//transfer all rewards from farm account
-		let farm_account = WarehouseLM::farm_account_id(BOB_FARM).unwrap();
-		let _ = Tokens::transfer_all(
-			Origin::signed(farm_account),
-			TREASURY,
-			PREDEFINED_GLOBAL_FARMS[1].reward_currency,
-			false,
-		);
-		assert_eq!(
-			Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[1].reward_currency, &farm_account),
-			0
-		);
+		transfer_all_rewards_from_farm_account(BOB_FARM);
 
 		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(BOB), BOB_FARM));
+
+		assert!(WarehouseLM::global_farm(BOB_FARM).is_none());
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::GlobalFarmDestroyed {
 			id: BOB_FARM,
 			who: BOB,
 		})]);
-
-		assert!(WarehouseLM::global_farm(BOB_FARM).is_none());
 	});
 }
 
 #[test]
-fn destroy_global_farm_not_owner_should_not_work() {
+fn destroy_global_farm_should_fail_when_origin_is_not_signed() {
 	predefined_test_ext().execute_with(|| {
-		//transfer all rewards from farm account
-		let farm_account = WarehouseLM::farm_account_id(BOB_FARM).unwrap();
-		let _ = Tokens::transfer_all(
-			Origin::signed(farm_account),
-			TREASURY,
-			PREDEFINED_GLOBAL_FARMS[1].reward_currency,
-			false,
-		);
-		assert_eq!(
-			Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[1].reward_currency, &farm_account),
-			0
-		);
+		transfer_all_rewards_from_farm_account(BOB_FARM);
 
 		assert_noop!(
-			LiquidityMining::destroy_global_farm(Origin::signed(ALICE), BOB_FARM),
-			warehouse_liquidity_mining::Error::<Test>::Forbidden
+			LiquidityMining::destroy_global_farm(mock::Origin::none(), BOB_FARM),
+			BadOrigin
 		);
 
 		assert_eq!(WarehouseLM::global_farm(BOB_FARM).unwrap(), PREDEFINED_GLOBAL_FARMS[1]);
@@ -71,54 +49,31 @@ fn destroy_global_farm_not_owner_should_not_work() {
 }
 
 #[test]
-fn destroy_global_farm_farm_not_exists_should_not_work() {
+fn destroy_global_farm_should_fail_with_propagated_error_when_farm_does_not_exist() {
+	const NON_EXISTING_FARM: u32 = 999_999_999;
+
 	predefined_test_ext().execute_with(|| {
-		const NON_EXISTING_FARM: u32 = 999_999_999;
+		transfer_all_rewards_from_farm_account(BOB_FARM);
+
 		assert_noop!(
-			LiquidityMining::destroy_global_farm(Origin::signed(ALICE), NON_EXISTING_FARM),
+			LiquidityMining::destroy_global_farm(Origin::signed(BOB), NON_EXISTING_FARM),
 			warehouse_liquidity_mining::Error::<Test>::GlobalFarmNotFound
 		);
 	});
 }
 
-#[test]
-fn destroy_global_farm_with_pools_should_not_work() {
-	//all rewards was distributed but yield farm still exist in the farm
-	predefined_test_ext().execute_with(|| {
-		//transfer all rewards from farm account
-		let farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let _ = Tokens::transfer_all(
-			Origin::signed(farm_account),
-			TREASURY,
-			PREDEFINED_GLOBAL_FARMS[2].reward_currency,
-			false,
-		);
-		assert_eq!(
-			Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[2].reward_currency, &farm_account),
-			0
-		);
+fn transfer_all_rewards_from_farm_account(farm_account: u32) -> u128 {
+	let farm_account = WarehouseLM::farm_account_id(farm_account).unwrap();
+	let _ = Tokens::transfer_all(
+		Origin::signed(farm_account),
+		TREASURY,
+		PREDEFINED_GLOBAL_FARMS[1].reward_currency,
+		false,
+	);
+	assert_eq!(
+		Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[1].reward_currency, &farm_account),
+		0
+	);
 
-		assert_noop!(
-			LiquidityMining::destroy_global_farm(Origin::signed(GC), GC_FARM),
-			warehouse_liquidity_mining::Error::<Test>::GlobalFarmIsNotEmpty
-		);
-
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), PREDEFINED_GLOBAL_FARMS[2]);
-	});
-}
-
-#[test]
-fn destroy_global_farm_fail_when_farm_is_healthy() {
-	//farm with undistributed rewards and liq. pools
-	predefined_test_ext().execute_with(|| {
-		let farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		assert!(!Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[2].reward_currency, &farm_account).is_zero());
-
-		assert_noop!(
-			LiquidityMining::destroy_global_farm(Origin::signed(GC), GC_FARM),
-			warehouse_liquidity_mining::Error::<Test>::GlobalFarmIsNotEmpty
-		);
-
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), PREDEFINED_GLOBAL_FARMS[2]);
-	});
+	farm_account
 }

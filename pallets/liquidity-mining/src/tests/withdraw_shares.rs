@@ -34,7 +34,6 @@ fn withdraw_shares_should_work() {
 		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 
-		// withdraw 1A
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
@@ -45,6 +44,14 @@ fn withdraw_shares_should_work() {
 
 		let expected_claimed_rewards = 79_906;
 		let withdrawn_amount = 50;
+
+		let deposit_valued_shares = WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0])
+			.unwrap()
+			.yield_farm_entries[0]
+			.valued_shares;
+
+		let yield_farm_before_withdraw =
+			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
@@ -100,21 +107,13 @@ fn withdraw_shares_should_work() {
 			}
 		);
 
+		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
-			YieldFarmData {
-				id: BSX_TKN1_YIELD_FARM_ID,
-				updated_at: 25,
-				accumulated_rpvs: 60,
-				accumulated_rpz: 12,
-				total_shares: 566,
-				total_valued_shares: 43_040,
-				loyalty_curve: Some(LoyaltyCurve::default()),
-				multiplier: FixedU128::from(5_u128),
-				state: YieldFarmState::Active,
-				entries_count: 2
-			},
+			yield_farm.total_shares,
+			yield_farm_before_withdraw.total_shares - withdrawn_amount
 		);
+		assert_eq!(yield_farm.total_valued_shares, 45540 - deposit_valued_shares);
+		assert_eq!(yield_farm.entries_count, yield_farm_before_withdraw.entries_count - 1);
 
 		//user balances checks
 		assert_eq!(
