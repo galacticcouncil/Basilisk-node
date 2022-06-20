@@ -896,7 +896,6 @@ construct_runtime!(
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
-
 		Stableswap: pallet_stableswap::{Pallet, Call, Storage, Event<T>} = 110,
 
 		// ORML related modules - starts at 150

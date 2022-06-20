@@ -356,6 +356,20 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type FeeReceiver = TreasuryAccount;
 }
 
+impl pallet_stableswap::Config for Runtime {
+	type Event = Event;
+	type AssetId = AssetId;
+	type Currency = Currencies;
+	type ShareAccountId = account::AccountIdForStableswap;
+	type AssetRegistry = AssetRegistry;
+	type CreatePoolOrigin = EnsureMajorityTechCommitteeOrMajorityCouncil;
+	type Precision = StableswapPrecision;
+	type MinPoolLiquidity = MinPoolLiquidity;
+	type AmplificationRange = StableswapAmplificationRange;
+	type MinTradingLimit = MinTradingLimit;
+	type WeightInfo = ();
+}
+
 impl pallet_sudo::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
@@ -576,6 +590,11 @@ type EnsureMajorityTechCommitteeOrRoot = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechnicalCollective>,
 	frame_system::EnsureRoot<AccountId>,
 >;
+type EnsureMajorityTechCommitteeOrMajorityCouncil = EnsureOneOf<
+	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechnicalCollective>,
+	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
+>;
+
 
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
@@ -933,6 +952,7 @@ construct_runtime!(
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
+		Stableswap: pallet_stableswap::{Pallet, Call, Event<T>, Storage} = 110,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
@@ -1166,6 +1186,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_stableswap, Stableswap);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
@@ -1225,6 +1246,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_stableswap, Stableswap);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
