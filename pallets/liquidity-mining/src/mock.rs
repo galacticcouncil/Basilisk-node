@@ -41,7 +41,6 @@ use std::{cell::RefCell, collections::HashMap};
 pub type AccountId = u128;
 pub type PoolId = crate::PoolId;
 pub type BlockNumber = u64;
-pub type YieldFarmId = u32;
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
@@ -187,7 +186,7 @@ thread_local! {
 
 	//This is used to check if `on_accumulated_rpvs_update()` was called with correct values
 	//`(global_farm_id, yield_farm_id, accumulated_rpvs, total_valued_shares)`
-	pub static RPVS_UPDATED: RefCell<(GlobalFarmId, YieldFarmId, Balance, Balance)> = RefCell::new((0,0,0,0));
+	pub static RPVS_UPDATED: RefCell<(GlobalFarmId, u32, Balance, Balance)> = RefCell::new((0,0,0,0));
 
 	//This is used to check if `on_accumulated_rpz_update()` was called with correct values
 	//`(global_farm_id, accumulated_rpz, total_shares_z)`
