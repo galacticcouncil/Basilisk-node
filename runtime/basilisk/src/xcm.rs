@@ -147,6 +147,21 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
+parameter_types! {
+	pub NativeLocation: MultiLocation = MultiLocation::new(1, X2(Parachain(ParachainInfo::get().into()), GeneralIndex(CORE_ASSET_ID.into())));
+}
+
+pub struct EverythingExceptNative<NativeLocation>(PhantomData<NativeLocation>);
+impl<NativeLocation: Get<MultiLocation>> Contains<(MultiLocation, Vec<MultiAsset>)>
+	for EverythingExceptNative<NativeLocation>
+{
+	fn contains((_location, assets): &(MultiLocation, Vec<MultiAsset>)) -> bool {
+		!assets
+			.iter()
+			.any(|asset| asset.is_fungible(Some(Concrete(NativeLocation::get()))))
+	}
+}
+
 impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -178,7 +193,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
-	type XcmReserveTransferFilter = Everything;
+	type XcmReserveTransferFilter = EverythingExceptNative<NativeLocation>;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Origin = Origin;

@@ -257,3 +257,53 @@ fn fee_currency_set_on_xcm_transfer() {
 		);
 	});
 }
+
+#[test]
+fn transfer_of_native_should_fail() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			1,
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+		));
+	});
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::PolkadotXcm::limited_reserve_transfer_assets(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			0,
+			3 * BSX,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			200 * BSX - 3 * BSX
+		);
+	});
+
+	Basilisk::execute_with(|| {
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			10028 * BSX / 10 // 3 * BSX - fees
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			2 * BSX / 10 // fees should go to treasury
+		);
+	});
+}
