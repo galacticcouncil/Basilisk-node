@@ -132,12 +132,22 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 pub fn hydra_ext() -> sp_io::TestExternalities {
 	use basilisk_runtime::{Runtime, System};
 
+	let existential_deposit = 1_000_000_000_u128;
+
 	let mut t = frame_system::GenesisConfig::default()
 		.build_storage::<Runtime>()
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![(AccountId::from(ALICE), 200 * BSX)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	pallet_asset_registry::GenesisConfig::<Runtime> {
+		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128)],
+		native_asset_name: b"HDX".to_vec(),
+		native_existential_deposit: existential_deposit,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
