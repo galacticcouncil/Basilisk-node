@@ -162,37 +162,10 @@ fn transfer_native_pays_fee() {
 		));
 	});
 
-	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(BOB.into()),
-			0,
-			3 * BSX,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(3000),
-						Junction::AccountId32 {
-							id: ALICE,
-							network: NetworkId::Any,
-						}
-					)
-				)
-				.into()
-			),
-			399_600_000_000
-		));
-
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			1_000 * BSX - 3 * BSX
-		);
-	});
-
 	Hydra::execute_with(|| {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
-			0,
+			1,
 			3 * BSX,
 			Box::new(
 				MultiLocation::new(
@@ -213,12 +186,14 @@ fn transfer_native_pays_fee() {
 
 	Basilisk::execute_with(|| {
 		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10028 * BSX / 10 // 3 * BSX - fees
+			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			1000000000000000
+			// 10028 * BSX / 10 // 3 * BSX - fees
 		);
 		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			2 * BSX / 10 // fees should go to treasury
+			basilisk_runtime::Balances::free_balance(&basilisk_runtime::Treasury::account_id()),
+			0
+			// 2 * BSX / 10 // fees should go to treasury
 		);
 	})
 }

@@ -130,9 +130,9 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 }
 
 pub fn hydra_ext() -> sp_io::TestExternalities {
-	use basilisk_runtime::{Runtime, System};
+	use basilisk_runtime::{NativeExistentialDeposit, Runtime, System};
 
-	let existential_deposit = 1_000_000_000_u128;
+	let existential_deposit = NativeExistentialDeposit::get();
 
 	let mut t = frame_system::GenesisConfig::default()
 		.build_storage::<Runtime>()
@@ -154,10 +154,18 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 3000.into(),
+			parachain_id: 3000u32.into(),
 		},
 		&mut t,
 	)
+	.unwrap();
+
+	orml_tokens::GenesisConfig::<Runtime> {
+		balances: vec![
+			(AccountId::from(ALICE), 1, 1_000 * BSX),
+		],
+	}
+	.assimilate_storage(&mut t)
 	.unwrap();
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
