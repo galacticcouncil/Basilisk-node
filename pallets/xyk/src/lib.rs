@@ -45,8 +45,6 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-mod benchmarking;
-
 mod impls;
 pub mod weights;
 

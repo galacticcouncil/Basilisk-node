@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.3.3"
+version = "0.3.4"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -15,7 +15,6 @@ pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", re
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false}
 
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
-pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-xyk = { path = "../pallets/xyk",default-features = false}
 pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}

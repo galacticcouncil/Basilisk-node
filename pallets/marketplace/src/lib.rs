@@ -19,7 +19,6 @@ use weights::WeightInfo;
 
 use pallet_nft::ReserveIdentifier;
 
-mod benchmarking;
 mod types;
 pub mod weights;
 
@@ -30,7 +29,8 @@ mod mock;
 mod tests;
 
 type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
+pub type OfferOf<T> =
+	Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
 type RoyaltyOf<T> = Royalty<<T as frame_system::Config>::AccountId>;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
