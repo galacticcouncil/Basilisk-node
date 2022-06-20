@@ -595,7 +595,6 @@ type EnsureMajorityTechCommitteeOrMajorityCouncil = EnsureOneOf<
 	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
 >;
 
-
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
