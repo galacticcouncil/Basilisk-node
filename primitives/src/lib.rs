@@ -18,7 +18,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::upper_case_acronyms)]
 
-use codec::{Decode, Encode, MaxEncodedLen};
+use codec::{Decode, Encode};
 
 use primitive_types::U256;
 #[cfg(feature = "std")]
@@ -86,18 +86,10 @@ pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 	pub intention_id: IntentionID,
 }
 
-#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, PartialOrd, Ord, MaxEncodedLen, RuntimeDebug, TypeInfo)]
-#[repr(u8)]
-pub enum ReserveIdentifier {
-	Nft,
-	Marketplace,
-
-	// always the last, indicate number of variants
-	Count,
-}
-
 pub mod nft {
 	use super::*;
+
+	use pallet_nft::NftPermission;
 
 	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo)]
 	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
@@ -113,15 +105,6 @@ pub mod nft {
 		fn default() -> Self {
 			ClassType::Marketplace
 		}
-	}
-
-	pub trait NftPermission<InnerClassType> {
-		fn can_create(class_type: &InnerClassType) -> bool;
-		fn can_mint(class_type: &InnerClassType) -> bool;
-		fn can_transfer(class_type: &InnerClassType) -> bool;
-		fn can_burn(class_type: &InnerClassType) -> bool;
-		fn can_destroy(class_type: &InnerClassType) -> bool;
-		fn has_deposit(class_type: &InnerClassType) -> bool;
 	}
 
 	#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
