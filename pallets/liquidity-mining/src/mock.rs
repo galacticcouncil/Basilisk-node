@@ -15,11 +15,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//TODO: put this to tests folder
+
 #![cfg(test)]
 use super::*;
 
 use crate as liq_mining;
 use crate::Config;
+use frame_support::weights::RuntimeDbWeight;
 use frame_support::{
 	parameter_types,
 	traits::{Everything, GenesisBuild, Nothing},
@@ -88,6 +91,9 @@ pub const KSM_FARM: PoolId = 2;
 pub const GC_FARM: PoolId = 3;
 pub const ACA_FARM: PoolId = 4;
 
+pub const INITIAL_READ_WEIGHT: u64 = 1;
+pub const INITIAL_WRITE_WEIGHT: u64 = 1;
+
 pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 1;
 
 pub const BSX_TKN1_ASSET_PAIR: AssetPair = AssetPair {
@@ -143,6 +149,9 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 63;
 	pub static MockBlockNumberProvider: u64 = 0;
+	pub const DbWeight: RuntimeDbWeight = RuntimeDbWeight{
+		read: INITIAL_READ_WEIGHT, write: INITIAL_WRITE_WEIGHT
+	};
 }
 
 impl BlockNumberProvider for MockBlockNumberProvider {
@@ -156,7 +165,7 @@ impl system::Config for Test {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
-	type DbWeight = ();
+	type DbWeight = DbWeight;
 	type Origin = Origin;
 	type Call = Call;
 	type Index = u64;
@@ -182,6 +191,8 @@ impl system::Config for Test {
 pub struct Amm;
 
 thread_local! {
+	pub static NFT_CLASS: RefCell<(u128, u128, u128)>= RefCell::new((0,0,0));
+
 	pub static DEPOSITS: RefCell<HashMap<u128, u128>> = RefCell::new(HashMap::default());
 
 	pub static AMM_POOLS: RefCell<HashMap<String, (AccountId, AssetId, AssetPair)>> = RefCell::new(HashMap::new());
@@ -318,8 +329,7 @@ parameter_types! {
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
 	pub const MaxEntriesPerDeposit: u8 = 10;
-	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
-	pub const NftClassId: u128 = 1;
+	pub const NftClassId: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 	pub const ReserveClassIdUpTo: u128 = 2;
 }
 
@@ -356,8 +366,12 @@ impl<AccountId: From<u128>> Inspect<AccountId> for NftHandlerStub {
 	}
 }
 
-impl<AccountId: From<u128>> Create<AccountId> for NftHandlerStub {
+impl<AccountId: From<u128> + Into<u128> + Copy> Create<AccountId> for NftHandlerStub {
 	fn create_class(_class: &Self::ClassId, _who: &AccountId, _admin: &AccountId) -> DispatchResult {
+		NFT_CLASS.with(|v| {
+			//let mut class = v.borrow_mut();
+			v.replace((*_class, (*_who).into(), (*_admin).into()));
+		});
 		Ok(())
 	}
 }
