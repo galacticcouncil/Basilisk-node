@@ -14,6 +14,7 @@ members = [
   'pallets/exchange',
   'pallets/liquidity-mining',
   'pallets/stableswap',
+  'pallets/stableswap-mining',
   'integration-tests',
 ]
 

@@ -508,7 +508,7 @@ dependencies = [
  "getrandom 0.2.6",
  "hash-db",
  "hex-literal",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "memory-db 0.27.0",
  "orml-benchmarking",
  "orml-currencies",
@@ -533,7 +533,7 @@ dependencies = [
  "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 1.2.2",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
  "pallet-multisig",
@@ -1300,7 +1300,7 @@ version = "1.9.1"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -3199,6 +3199,19 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
+version = "4.2.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=3e0e6774d52184b00e758dc822564e5a893773f5#3e0e6774d52184b00e758dc822564e5a893773f5"
+dependencies = [
+ "fixed",
+ "lazy_static",
+ "num-traits",
+ "parity-scale-codec",
+ "primitive-types 0.8.0",
+ "sp-arithmetic",
+]
+
+[[package]]
+name = "hydra-dx-math"
 version = "4.4.4"
 source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1bafe7bb96864f5d29bab68061719c541ef06648#1bafe7bb96864f5d29bab68061719c541ef06648"
 dependencies = [
@@ -3225,6 +3238,30 @@ dependencies = [
 name = "hydradx-traits"
 version = "0.6.0"
 source = "git+https://github.com/galacticcouncil//warehouse?rev=c73846ec093357fea1b35da5c56ecb37592d4896#c73846ec093357fea1b35da5c56ecb37592d4896"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-std",
+]
+
+[[package]]
+name = "hydradx-traits"
+version = "0.7.0"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-std",
+]
+
+[[package]]
+name = "hydradx-traits"
+version = "0.7.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=482e32f0aa38a4e0bf5cfabeac33828ad0329bf7#482e32f0aa38a4e0bf5cfabeac33828ad0329bf7"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5364,7 +5401,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5728,7 +5765,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.4.4",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5753,7 +5790,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5870,7 +5907,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 4.4.4",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
@@ -5916,12 +5953,29 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=482e32f0aa38a4e0bf5cfabeac33828ad0329bf7#482e32f0aa38a4e0bf5cfabeac33828ad0329bf7"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math 4.2.0",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=482e32f0aa38a4e0bf5cfabeac33828ad0329bf7)",
+ "orml-traits",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-liquidity-mining"
 version = "1.2.2"
 dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.4.4",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -5947,13 +6001,13 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
  "pallet-balances",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 1.2.2",
  "pallet-nft",
  "pallet-uniques",
  "pallet-xyk",
@@ -6170,7 +6224,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -6297,7 +6351,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.4.5",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "log",
  "orml-tokens",
  "orml-traits",
@@ -6311,6 +6365,33 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "sp-tracing",
+]
+
+[[package]]
+name = "pallet-stableswap-mining"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math 4.2.0",
+ "hydradx-traits 0.7.0",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-liquidity-mining 1.0.0",
+ "pallet-nft",
+ "pallet-stableswap",
+ "pallet-uniques",
+ "parity-scale-codec",
+ "primitives",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -6414,7 +6495,7 @@ source = "git+https://github.com/galacticcouncil//warehouse?rev=c73846ec093357fe
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-traits",
  "pallet-transaction-payment",
  "parity-scale-codec",
@@ -6577,7 +6658,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 4.4.4",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
@@ -8826,7 +8907,7 @@ dependencies = [
  "getrandom 0.2.6",
  "hash-db",
  "hex-literal",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "kusama-runtime",
  "memory-db 0.27.0",
  "orml-currencies",
@@ -11370,7 +11451,7 @@ dependencies = [
  "getrandom 0.2.6",
  "hash-db",
  "hex-literal",
- "hydradx-traits",
+ "hydradx-traits 0.6.0",
  "memory-db 0.27.0",
  "orml-currencies",
  "orml-tokens",
@@ -11394,7 +11475,7 @@ dependencies = [
  "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 1.2.2",
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
  "pallet-multisig",
