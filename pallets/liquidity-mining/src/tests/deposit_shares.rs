@@ -54,23 +54,15 @@ fn deposit_shares_should_work() {
 			deposited_amount,
 		));
 
-		expect_events(vec![
-			mock::Event::NFT(pallet_nft::Event::InstanceMinted {
-				owner: ALICE,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[0],
-				metadata: Default::default(),
-			}),
-			mock::Event::LiquidityMining(Event::SharesDeposited {
-				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-				who: ALICE,
-				lp_token: BSX_TKN1_SHARE_ID,
-				amount: deposited_amount,
-				nft_class_id: LIQ_MINING_NFT_CLASS,
-				nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
+			farm_id: GC_FARM,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
+			who: ALICE,
+			lp_token: BSX_TKN1_SHARE_ID,
+			amount: deposited_amount,
+			nft_class_id: LIQ_MINING_NFT_CLASS,
+			nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
+		})]);
 
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().total_shares_z, 12_500);
 

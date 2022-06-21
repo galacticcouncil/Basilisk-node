@@ -74,16 +74,6 @@ fn withdraw_shares_should_work() {
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: withdrawn_amount,
 			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: ALICE,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: ALICE,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[0],
-			}),
 		]);
 
 		assert_eq!(
@@ -187,16 +177,6 @@ fn withdraw_shares_should_work() {
 				who: ALICE,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: withdrawn_amount,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: ALICE,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[4],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: ALICE,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[4],
 			}),
 		]);
 
@@ -326,16 +306,6 @@ fn withdraw_shares_should_work() {
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: 486,
 			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: ALICE,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[6],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: ALICE,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[6],
-			}),
 		]);
 
 		assert_eq!(
@@ -449,16 +419,6 @@ fn withdraw_shares_should_work() {
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: withdrawn_amount,
 			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: BOB,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[1],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: BOB,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[1],
-			}),
 		]);
 
 		assert_eq!(
@@ -564,16 +524,6 @@ fn withdraw_shares_should_work() {
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: withdrawn_amount,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: BOB,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[2],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: BOB,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[2],
 			}),
 		]);
 
@@ -698,16 +648,6 @@ fn withdraw_shares_should_work() {
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: 48,
 			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: ALICE,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[5],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: ALICE,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[5],
-			}),
 		]);
 
 		assert_eq!(
@@ -818,16 +758,6 @@ fn withdraw_shares_should_work() {
 				who: BOB,
 				lp_token: BSX_TKN2_SHARE_ID,
 				amount: withdrawn_amount,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: BOB,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[3],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: BOB,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[3],
 			}),
 		]);
 
@@ -1149,25 +1079,13 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 				yield_farm_id
 			));
 
-			expect_events(vec![
-				mock::Event::LiquidityMining(Event::SharesWithdrawn {
-					farm_id: GC_FARM,
-					who: caller,
-					amount: withdrawn_shares,
-					yield_farm_id,
-					lp_token,
-				}),
-				mock::Event::Uniques(pallet_uniques::Event::Burned {
-					owner: caller,
-					class: LIQ_MINING_NFT_CLASS,
-					instance: PREDEFINED_DEPOSIT_IDS[nft_id_index],
-				}),
-				mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-					owner: caller,
-					class_id: LIQ_MINING_NFT_CLASS,
-					instance_id: PREDEFINED_DEPOSIT_IDS[nft_id_index],
-				}),
-			]);
+			expect_events(vec![mock::Event::LiquidityMining(Event::SharesWithdrawn {
+				farm_id: GC_FARM,
+				who: caller,
+				amount: withdrawn_shares,
+				yield_farm_id,
+				lp_token,
+			})]);
 
 			let mut bsx_tkn1_shares_withdrawn = 0;
 			let mut bsx_tkn2_shares_withdrawn = 0;
@@ -1254,16 +1172,6 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: withdrawn_amount,
 			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[0],
-				owner: ALICE,
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[0],
-				owner: ALICE,
-			}),
 		]);
 
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
@@ -1338,16 +1246,6 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: shares_amount,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[6],
-				owner: ALICE,
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[6],
-				owner: ALICE,
 			}),
 		]);
 
@@ -1424,16 +1322,6 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 				who: BOB,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: shares_amount,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[1],
-				owner: BOB,
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[1],
-				owner: BOB,
 			}),
 		]);
 
@@ -1539,25 +1427,13 @@ fn claim_and_withdraw_in_same_period_should_work() {
 			bsx_tkn1_alice_amm_shares_balance + 50
 		);
 
-		expect_events(vec![
-			mock::Event::LiquidityMining(Event::SharesWithdrawn {
-				farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-				who: ALICE,
-				lp_token: BSX_TKN1_SHARE_ID,
-				amount: 50,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: ALICE,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: ALICE,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesWithdrawn {
+			farm_id: GC_FARM,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
+			who: ALICE,
+			lp_token: BSX_TKN1_SHARE_ID,
+			amount: 50,
+		})]);
 
 		//check if balances didn't change after withdraw which should not claim
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance);
@@ -1618,25 +1494,13 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		let shares_amount = 50;
 
-		expect_events(vec![
-			mock::Event::LiquidityMining(Event::SharesWithdrawn {
-				farm_id: GC_FARM,
-				yield_farm_id: yield_farm_id_removed,
-				who: ALICE,
-				lp_token: BSX_TKN1_SHARE_ID,
-				amount: shares_amount,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: ALICE,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: ALICE,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesWithdrawn {
+			farm_id: GC_FARM,
+			yield_farm_id: yield_farm_id_removed,
+			who: ALICE,
+			lp_token: BSX_TKN1_SHARE_ID,
+			amount: shares_amount,
+		})]);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
 
@@ -1667,25 +1531,13 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			yield_farm_id_removed
 		));
 
-		expect_events(vec![
-			mock::Event::LiquidityMining(Event::SharesWithdrawn {
-				farm_id: GC_FARM,
-				yield_farm_id: yield_farm_id_removed,
-				who: ALICE,
-				lp_token: BSX_TKN1_SHARE_ID,
-				amount: shares_amount,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: ALICE,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[6],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: ALICE,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[6],
-			}),
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesWithdrawn {
+			farm_id: GC_FARM,
+			yield_farm_id: yield_farm_id_removed,
+			who: ALICE,
+			lp_token: BSX_TKN1_SHARE_ID,
+			amount: shares_amount,
+		})]);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[6]), None);
 
@@ -1715,25 +1567,13 @@ fn withdraw_shares_from_removed_pool_should_work() {
 			yield_farm_id_removed
 		));
 
-		expect_events(vec![
-			mock::Event::LiquidityMining(Event::SharesWithdrawn {
-				farm_id: GC_FARM,
-				yield_farm_id: yield_farm_id_removed,
-				who: BOB,
-				lp_token: BSX_TKN1_SHARE_ID,
-				amount: shares_amount,
-			}),
-			mock::Event::Uniques(pallet_uniques::Event::Burned {
-				owner: BOB,
-				class: LIQ_MINING_NFT_CLASS,
-				instance: PREDEFINED_DEPOSIT_IDS[1],
-			}),
-			mock::Event::NFT(pallet_nft::Event::InstanceBurned {
-				owner: BOB,
-				class_id: LIQ_MINING_NFT_CLASS,
-				instance_id: PREDEFINED_DEPOSIT_IDS[1],
-			}),
-		]);
+		expect_events(vec![mock::Event::LiquidityMining(Event::SharesWithdrawn {
+			farm_id: GC_FARM,
+			yield_farm_id: yield_farm_id_removed,
+			who: BOB,
+			lp_token: BSX_TKN1_SHARE_ID,
+			amount: shares_amount,
+		})]);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[1]), None);
 

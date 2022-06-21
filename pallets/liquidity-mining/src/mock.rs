@@ -182,6 +182,8 @@ impl system::Config for Test {
 pub struct Amm;
 
 thread_local! {
+	pub static DEPOSITS: RefCell<HashMap<u128, u128>> = RefCell::new(HashMap::default());
+
 	pub static AMM_POOLS: RefCell<HashMap<String, (AccountId, AssetId, AssetPair)>> = RefCell::new(HashMap::new());
 
 	//This is used to check if `on_accumulated_rpvs_update()` was called with correct values
@@ -317,6 +319,8 @@ parameter_types! {
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
 	pub const MaxEntriesPerDeposit: u8 = 10;
 	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
+	pub const NftClassId: u128 = 1;
+	pub const ReserveClassIdUpTo: u128 = 2;
 }
 
 impl Config for Test {
@@ -328,12 +332,52 @@ impl Config for Test {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
-	type NftClass = NftClass;
 	type AMM = Amm;
+	type NftClassId = NftClassId;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type NFTHandler = NftHandlerStub;
 }
 
-parameter_types! {
-	pub ReserveClassIdUpTo: u128 = 999;
+pub struct NftHandlerStub;
+
+impl<AccountId: From<u128>> Inspect<AccountId> for NftHandlerStub {
+	type InstanceId = u128;
+	type ClassId = u128;
+
+	fn owner(_class: &Self::ClassId, instance: &Self::InstanceId) -> Option<AccountId> {
+		let mut owner: Option<AccountId> = None;
+
+		DEPOSITS.with(|v| {
+			if let Some(o) = v.borrow().get(instance) {
+				owner = Some((*o).into());
+			}
+		});
+		owner
+	}
+}
+
+impl<AccountId: From<u128>> Create<AccountId> for NftHandlerStub {
+	fn create_class(_class: &Self::ClassId, _who: &AccountId, _admin: &AccountId) -> DispatchResult {
+		Ok(())
+	}
+}
+
+impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for NftHandlerStub {
+	fn mint_into(_class: &Self::ClassId, _instance: &Self::InstanceId, _who: &AccountId) -> DispatchResult {
+		DEPOSITS.with(|v| {
+			let mut m = v.borrow_mut();
+			m.insert(*_instance, (*_who).into());
+		});
+		Ok(())
+	}
+
+	fn burn_from(_class: &Self::ClassId, instance: &Self::InstanceId) -> DispatchResult {
+		DEPOSITS.with(|v| {
+			let mut m = v.borrow_mut();
+			m.remove(instance);
+		});
+		Ok(())
+	}
 }
 
 impl pallet_nft::Config for Test {
@@ -417,6 +461,9 @@ pub struct ExtBuilder {
 
 impl Default for ExtBuilder {
 	fn default() -> Self {
+		DEPOSITS.with(|v| {
+			v.borrow_mut().clear();
+		}); //TODO: Dani - do we need it here?
 		Self {
 			endowed_accounts: vec![
 				(ALICE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),

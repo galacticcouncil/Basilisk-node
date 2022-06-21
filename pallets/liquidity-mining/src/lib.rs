@@ -60,16 +60,18 @@ pub mod weights;
 
 pub use pallet::*;
 
+use frame_support::traits::tokens::nonfungibles::{Create, Inspect, Mutate};
 use frame_support::{
 	ensure,
 	sp_runtime::traits::{BlockNumberProvider, Zero},
-	transactional, BoundedVec, PalletId,
+	transactional, PalletId,
 };
+
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::ensure_signed;
 use hydradx_traits_amm::AMM;
 use orml_traits::MultiCurrency;
-use primitives::{asset::AssetPair, nft::ClassType, AssetId, Balance};
+use primitives::{asset::AssetPair, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_arithmetic::{FixedU128, Permill};
 use sp_std::convert::{From, Into};
@@ -80,8 +82,6 @@ type PoolMultiplier = FixedU128;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 type MultiCurrencyOf<T> = <T as pallet::Config>::MultiCurrency;
-pub type NftClassIdOf<T> = <T as pallet_nft::Config>::NftClassId;
-pub type NftInstanceIdOf<T> = <T as pallet_nft::Config>::NftInstanceId;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -101,8 +101,8 @@ pub mod pallet {
 
 		fn integrity_test() {
 			assert!(
-				T::NftClass::get() <= T::ReserveClassIdUpTo::get(),
-				"`NftClass` must be within the range of reserved NFT class IDs"
+				T::NftClassId::get() <= T::ReserveClassIdUpTo::get(),
+				"`NftClassId` must be within the range of reserved NFT class IDs"
 			);
 		}
 	}
@@ -111,11 +111,7 @@ pub mod pallet {
 	pub trait Config:
 		frame_system::Config
 		+ TypeInfo
-		+ pallet_nft::Config<
-			ClassType = ClassType,
-			NftClassId = primitives::ClassId,
-			NftInstanceId = primitives::InstanceId,
-		> + warehouse_liquidity_mining::Config<
+		+ warehouse_liquidity_mining::Config<
 			CurrencyId = AssetId,
 			AmmPoolId = <Self as frame_system::Config>::AccountId,
 			MultiCurrency = <Self as pallet::Config>::MultiCurrency,
@@ -145,7 +141,16 @@ pub mod pallet {
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
 		/// NFT class id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
-		type NftClass: Get<primitives::ClassId>;
+		type NftClassId: Get<primitives::ClassId>;
+
+		/// Class IDs reserved for runtime up to the following constant
+		#[pallet::constant]
+		type ReserveClassIdUpTo: Get<primitives::ClassId>;
+
+		/// Non fungible handling
+		type NFTHandler: Mutate<Self::AccountId>
+			+ Create<Self::AccountId>
+			+ Inspect<Self::AccountId, ClassId = primitives::ClassId, InstanceId = primitives::InstanceId>;
 
 		/// Weight information for extrinsic in this module.
 		type WeightInfo: WeightInfo;
@@ -199,7 +204,7 @@ pub mod pallet {
 			farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			multiplier: PoolMultiplier,
-			nft_class: NftClassIdOf<T>,
+			nft_class: primitives::ClassId,
 			asset_pair: AssetPair,
 			loyalty_curve: Option<warehouse_liquidity_mining::LoyaltyCurve>,
 		},
@@ -214,8 +219,8 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			amount: Balance,
 			lp_token: AssetId,
-			nft_class_id: NftClassIdOf<T>,
-			nft_instance_id: NftInstanceIdOf<T>,
+			nft_class_id: primitives::ClassId,
+			nft_instance_id: primitives::InstanceId,
 		},
 
 		/// LP token was redeposited for a new yield farm entry
@@ -225,8 +230,8 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			amount: Balance,
 			lp_token: AssetId,
-			nft_class_id: NftClassIdOf<T>,
-			nft_instance_id: NftInstanceIdOf<T>,
+			nft_class_id: primitives::ClassId,
+			nft_instance_id: primitives::InstanceId,
 		},
 
 		/// Rewards was claimed.
@@ -430,7 +435,7 @@ pub mod pallet {
 			Self::deposit_event(Event::YieldFarmCreated {
 				farm_id,
 				yield_farm_id,
-				nft_class: T::NftClass::get(),
+				nft_class: T::NftClassId::get(),
 				multiplier,
 				loyalty_curve,
 				asset_pair,
@@ -654,8 +659,7 @@ pub mod pallet {
 			)?;
 
 			//mint nft representing deposit
-			let _ =
-				pallet_nft::Pallet::<T>::do_mint(who.clone(), T::NftClass::get(), deposit_id, BoundedVec::default())?;
+			T::NFTHandler::mint_into(&T::NftClassId::get(), &deposit_id, &who.clone())?;
 
 			Self::deposit_event(Event::SharesDeposited {
 				farm_id,
@@ -663,7 +667,7 @@ pub mod pallet {
 				who,
 				amount: shares_amount,
 				lp_token: amm_share_token,
-				nft_class_id: T::NftClass::get(),
+				nft_class_id: T::NftClassId::get(),
 				nft_instance_id: deposit_id,
 			});
 
@@ -689,12 +693,12 @@ pub mod pallet {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: PoolId,
 			asset_pair: AssetPair,
-			deposit_id: NftInstanceIdOf<T>,
+			deposit_id: primitives::InstanceId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let nft_owner = pallet_nft::Pallet::<T>::owner(T::NftClass::get(), deposit_id)
-				.ok_or(Error::<T>::CantFindDepositOwner)?;
+			let nft_class_id = T::NftClassId::get();
+			let nft_owner = T::NFTHandler::owner(&nft_class_id, &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
@@ -713,7 +717,7 @@ pub mod pallet {
 				who,
 				amount: deposit.shares,
 				lp_token: amm_share_token,
-				nft_class_id: T::NftClass::get(),
+				nft_class_id: nft_class_id,
 				nft_instance_id: deposit_id,
 			});
 
@@ -735,14 +739,14 @@ pub mod pallet {
 		#[transactional]
 		pub fn claim_rewards(
 			origin: OriginFor<T>,
-			deposit_id: NftInstanceIdOf<T>,
+			deposit_id: primitives::InstanceId,
 			yield_farm_id: PoolId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			//NOTE: this should never happen
-			let nft_owner = pallet_nft::Pallet::<T>::owner(T::NftClass::get(), deposit_id)
-				.ok_or(Error::<T>::CantFindDepositOwner)?;
+			let nft_owner =
+				T::NFTHandler::owner(&T::NftClassId::get(), &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
@@ -794,13 +798,13 @@ pub mod pallet {
 		#[transactional]
 		pub fn withdraw_shares(
 			origin: OriginFor<T>,
-			deposit_id: NftInstanceIdOf<T>,
+			deposit_id: primitives::InstanceId,
 			yield_farm_id: PoolId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let nft_owner = pallet_nft::Pallet::<T>::owner(T::NftClass::get(), deposit_id)
-				.ok_or(Error::<T>::CantFindDepositOwner)?;
+			let nft_owner =
+				T::NFTHandler::owner(&T::NftClassId::get(), &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
@@ -859,10 +863,10 @@ pub mod pallet {
 			}
 
 			// metadata and nft cleanup
-			// TODO: Dani - ask Martin when he solves it
+			// TODO: Dani - once we are in the new LM branch, then this can be removed as done implicitly
 			// NOTE: tmp solution, don't create PR with this.
 			if warehouse_liquidity_mining::Pallet::<T>::deposit(&deposit_id).is_none() {
-				pallet_nft::Pallet::<T>::do_burn(who, T::NftClass::get(), deposit_id)?;
+				T::NFTHandler::burn_from(&T::NftClassId::get(), &deposit_id)?;
 			}
 			Ok(())
 		}
