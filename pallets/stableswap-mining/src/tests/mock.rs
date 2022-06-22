@@ -21,26 +21,29 @@ use super::*;
 use crate as stableswap_mining;
 use crate::Config;
 use frame_support::{
+	instances::Instance1,
 	parameter_types,
 	traits::{Everything, GenesisBuild},
 	PalletId,
-    instances::Instance1,
 };
 use frame_system as system;
-use frame_system::{EnsureSigned, EnsureRoot};
+use frame_system::{EnsureRoot, EnsureSigned};
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
-    DispatchError, DispatchResult
+	DispatchError, DispatchResult,
 };
 
-use pallet_stableswap::{types::{PoolId, PoolAssets}, traits::ShareAccountIdFor};
+use pallet_stableswap::{
+	traits::ShareAccountIdFor,
+	types::{PoolAssets, PoolId},
+};
 
+use core::ops::RangeInclusive;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use core::ops::RangeInclusive;
 
 pub type Balance = u128;
 pub type AssetId = u32;
@@ -71,10 +74,10 @@ pub const LIQ_MINING_NFT_CLASS: u128 = 1;
 #[derive(Eq, PartialEq, Copy, Clone, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum ReserveIdentifier {
-    Nft,
-    Marketplace,
-    // always the last, indicate number of variants
-    Count,
+	Nft,
+	Marketplace,
+	// always the last, indicate number of variants
+	Count,
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -87,10 +90,10 @@ frame_support::construct_runtime!(
 	UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-        WarehouseMining: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage},
+		WarehouseMining: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage},
 		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
-        Stableswap: pallet_stableswap::{Pallet, Call, Storage, Event<T>},
-        StableswapMining: stableswap_mining::{Pallet, Call, Event<T>}
+		Stableswap: pallet_stableswap::{Pallet, Call, Storage, Event<T>},
+		StableswapMining: stableswap_mining::{Pallet, Call, Event<T>}
 	}
 );
 
@@ -137,19 +140,19 @@ impl system::Config for Test {
 
 parameter_types! {
 	pub const StableMiningPalletId: PalletId = PalletId(*b"STSP##LM");
-    pub const NFTClass: u128 = LIQ_MINING_NFT_CLASS;
+	pub const NFTClass: u128 = LIQ_MINING_NFT_CLASS;
 }
 
 impl Config for Test {
-    type Event = Event;
-    type MultiCurrency = Tokens;
-    type CreateOrigin = EnsureRoot<AccountId>;
-    type PalletId = StableMiningPalletId;
+	type Event = Event;
+	type MultiCurrency = Tokens;
+	type CreateOrigin = EnsureRoot<AccountId>;
+	type PalletId = StableMiningPalletId;
 	type BlockNumberProvider = MockBlockNumberProvider;
-    type NFTClassId = NFTClass;
-    type NFTHandler = DummyNFT; 
-    //type LiquidityMiningInstance =;
-    type WeightInfo = ();
+	type NFTClassId = NFTClass;
+	type NFTHandler = DummyNFT;
+	//type LiquidityMiningInstance =;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -216,7 +219,7 @@ impl pallet_stableswap::Config for Test {
 use hydradx_traits::{Registry, ShareTokenRegistry};
 
 thread_local! {
-    pub static NFTS: RefCell<HashMap<warehouse_liquidity_mining::DepositId, AccountId>> = RefCell::new(HashMap::default());
+	pub static NFTS: RefCell<HashMap<warehouse_liquidity_mining::DepositId, AccountId>> = RefCell::new(HashMap::default());
 	pub static REGISTERED_ASSETS: RefCell<HashMap<AssetId, u32>> = RefCell::new(HashMap::default());
 	pub static ASSET_IDENTS: RefCell<HashMap<Vec<u8>, u32>> = RefCell::new(HashMap::default());
 	pub static POOL_IDS: RefCell<Vec<PoolId<AssetId>>> = RefCell::new(Vec::new());
@@ -254,7 +257,6 @@ where
 		Ok(T::AssetId::from(assigned))
 	}
 }
-
 
 impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, Balance, DispatchError> for DummyRegistry<T>
 where
@@ -355,20 +357,17 @@ impl Default for ExtBuilder {
 				(ALICE, HDX, INITIAL_BALANCE),
 				(ALICE, KSM, INITIAL_BALANCE),
 				(ALICE, DOT, INITIAL_BALANCE),
-				
-                (BOB, BSX, INITIAL_BALANCE),
+				(BOB, BSX, INITIAL_BALANCE),
 				(BOB, ACA, INITIAL_BALANCE),
 				(BOB, HDX, INITIAL_BALANCE),
 				(BOB, KSM, INITIAL_BALANCE),
 				(BOB, DOT, INITIAL_BALANCE),
-                
-                (CHARLIE, BSX, INITIAL_BALANCE),
+				(CHARLIE, BSX, INITIAL_BALANCE),
 				(CHARLIE, ACA, INITIAL_BALANCE),
 				(CHARLIE, HDX, INITIAL_BALANCE),
 				(CHARLIE, KSM, INITIAL_BALANCE),
 				(CHARLIE, DOT, INITIAL_BALANCE),
-
-                (DAVE, BSX, INITIAL_BALANCE),
+				(DAVE, BSX, INITIAL_BALANCE),
 				(DAVE, ACA, INITIAL_BALANCE),
 				(DAVE, HDX, INITIAL_BALANCE),
 				(DAVE, KSM, INITIAL_BALANCE),
