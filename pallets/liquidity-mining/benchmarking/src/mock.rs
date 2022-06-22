@@ -31,9 +31,10 @@ use primitives::{
 		chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 		currency::NATIVE_EXISTENTIAL_DEPOSIT,
 	},
-	nft::{ClassType, NftPermissions},
-	Amount, AssetId, Balance, ReserveIdentifier,
+	Amount, AssetId, Balance,
 };
+
+use pallet_nft::{ClassType, NftPermissions, ReserveIdentifier};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -54,7 +55,7 @@ pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 pub const BSX: AssetId = 1000;
 pub const KSM: AssetId = 4000;
 
-pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 1;
+pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 9999;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -147,6 +148,7 @@ parameter_types! {
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
 	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
+	pub const ReserveClassIdUpTo: u128 = LIQ_MINING_NFT_CLASS - 1;
 }
 
 impl pallet_liquidity_mining::Config for Test {
@@ -158,12 +160,10 @@ impl pallet_liquidity_mining::Config for Test {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
-	type NftClass = NftClass;
 	type AMM = XYK;
-}
-
-parameter_types! {
-	pub ReserveClassIdUpTo: u128 = 999;
+	type NftClassId = NftClass;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type NFTHandler = NFT;
 }
 
 impl pallet_nft::Config for Test {
