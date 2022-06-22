@@ -29,9 +29,7 @@ use frame_support::{
 	transactional, PalletId,
 };
 use frame_system::ensure_signed;
-use hydradx_traits::liquidity_mining::{
-	AmmProvider, LockableLpShares, Mutate as LiquidityMiningMutate, OnUpdateHandler,
-};
+use hydradx_traits::liquidity_mining::Mutate as LiquidityMiningMutate;
 use orml_traits::MultiCurrency;
 use pallet_stableswap::{traits::ShareAccountIdFor, types::PoolId, POOL_IDENTIFIER};
 use primitives::{AssetId, Balance, InstanceId as NftInstanceId};
@@ -88,17 +86,13 @@ pub mod pallet {
 
 		type LiquidityMiningHandler: LiquidityMiningMutate<
 			Self::AccountId,
+			AssetId,
+			BlockNumberFor<Self>,
 			Error = DispatchError,
-			AssetId = AssetId,  //generic
 			AmmPoolId = PoolId<AssetId>,
 			Balance = Balance,
-			BlockNumber = BlockNumberFor<Self>, //generic
-			DepositId = DepositId,
-			FarmMultiplier = FarmMultiplier,
-			GlobalFarmId = GlobalFarmId,
 			LoyaltyCurve = LoyaltyCurve,
 			Period = PeriodOf<Self>,
-			YieldFarmId = YieldFarmId,
 		>;
 
 		/// Weight information for extrinsic in this module.
@@ -119,6 +113,9 @@ pub mod pallet {
 
 		/// Yield farm entry doesn't exist for given deposit.
 		YieldFarmEntryNotFound,
+
+        /// Provided asset is not in stableswap pool.
+        AssetNotInStableswapPool,
 	}
 
 	#[pallet::event]
@@ -212,9 +209,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
-			let pool_account = ShareAccountIdOf::<T>::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
-
 			let _yield_farm_id =
 				T::LiquidityMiningHandler::update_yield_farm_multiplier(who, global_farm_id, pool_id, multiplier)?;
 
@@ -231,8 +225,6 @@ pub mod pallet {
 			pool_id: PoolId<AssetId>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-
-			let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
 
 			let _stopped_yield_farm_id = T::LiquidityMiningHandler::stop_yield_farm(who, global_farm_id, pool_id)?;
 
@@ -252,7 +244,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
+			ensure!(
+				pallet_stableswap::Pools::<T>::contains_key(pool_id),
+				Error::<T>::StableswapPoolNotFound
+			);
 
 			let _ =
 				T::LiquidityMiningHandler::resume_yield_farm(who, global_farm_id, yield_farm_id, pool_id, multiplier)?;
@@ -272,8 +267,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
-
 			T::LiquidityMiningHandler::destroy_yield_farm(who, global_farm_id, yield_farm_id, pool_id)?;
 
 			//TODO: emit event
@@ -292,19 +285,24 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
+			ensure!(
+				pallet_stableswap::Pools::<T>::contains_key(pool_id),
+				Error::<T>::StableswapPoolNotFound
+			);
 
 			let deposit_id = T::LiquidityMiningHandler::deposit_lp_shares(
-				who.clone(),
 				global_farm_id,
 				yield_farm_id,
 				pool_id,
 				amount,
+				Self::get_asset_balance_in_stableswap_pool,
 			)?;
 
 			T::NFTHandler::mint_into(&T::NFTClassId::get(), &deposit_id, &who)?;
 
-			//TODO: emit event
+			//TODO:
+			// * loock LP tokens
+			// * emit event
 
 			Ok(())
 		}
@@ -330,8 +328,12 @@ pub mod pallet {
 				Error::<T>::StableswapPoolNotFound
 			);
 
-			let _redeposited_shares =
-				T::LiquidityMiningHandler::redeposit_lp_shares(global_farm_id, yield_farm_id, nft_id)?;
+			let _redeposited_shares = T::LiquidityMiningHandler::redeposit_lp_shares(
+				global_farm_id,
+				yield_farm_id,
+				nft_id,
+				Self::get_asset_balance_in_stableswap_pool,
+			)?;
 
 			//TODO: emit event
 
@@ -359,7 +361,6 @@ pub mod pallet {
 			//TODO: emit event
 
 			Ok(())
-			//TODO: claim all
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_shares())]
@@ -377,22 +378,29 @@ pub mod pallet {
 				Error::<T>::NotDepositOwner
 			);
 
-			let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
-			let global_farm_id =
-				T::LiquidityMiningHandler::get_global_farm_id(nft_id, yield_farm_id).ok_or(Error::<T>::DepositNotFound)?;
+			let global_farm_id = T::LiquidityMiningHandler::get_global_farm_id(nft_id, yield_farm_id)
+				.ok_or(Error::<T>::DepositNotFound)?;
 
 			let mut unclaimable_rewards = 0;
-			const FAIL_ON_DOUBLE_CLAIM: bool = true;
 			if T::LiquidityMiningHandler::is_yield_farm_claimable(global_farm_id, yield_farm_id, pool_id) {
 				let (_, _, _claimed, unclaimable) =
-					T::LiquidityMiningHandler::claim_rewards(who, nft_id, yield_farm_id, !FAIL_ON_DOUBLE_CLAIM)?;
+					T::LiquidityMiningHandler::claim_rewards(who, nft_id, yield_farm_id, false)?;
 
 				unclaimable_rewards = unclaimable;
-				//NOTE: THIS IS NOT FINISHED
+
+				//TODO: emit claimed event
 			}
 
+			let (_global_farm_id, _withdrawn_amount, deposit_destroyed) =
+				T::LiquidityMiningHandler::withdraw_lp_shares(nft_id, yield_farm_id, unclaimable_rewards)?;
 
-			//urobit withdraw
+			if deposit_destroyed {
+				T::NFTHandler::burn_from(&T::NFTClassId::get(), &nft_id)?;
+			}
+
+			//TODO:
+			// * unlock lp tokens
+			// * emit event
 
 			Ok(())
 
@@ -401,59 +409,23 @@ pub mod pallet {
 	}
 }
 
-impl<T: Config> AmmProvider<AssetId, T::AccountId, Balance> for Pallet<T> {
-	fn get_balance_in_amm(_asset: AssetId, _amm_pool: T::AccountId) -> Balance {
-		//TODO: implementation
-
-		0
-	}
-}
-
-impl<T: Config> OnUpdateHandler<GlobalFarmId, YieldFarmId, Balance> for Pallet<T> {
-	fn on_accumulated_rpz_update(_global_farm_id: GlobalFarmId, _accumulated_rpz: Balance, _total_shares_z: Balance) {
-		//TODO: implementation
-	}
-
-	/// This handler is called when accumulated rpvs is updated.
-	fn on_accumulated_rpvs_update(
-		_global_farm_id: GlobalFarmId,
-		_yield_farm_id: YieldFarmId,
-		_accumulated_rpvs: Balance,
-		_total_valued_shares: Balance,
-	) {
-		//TODO: implementation
-	}
-}
-
-impl<T: Config> LockableLpShares<T::AccountId, T::AccountId, Balance, DepositId> for Pallet<T> {
-	type Error = DispatchError;
-
-	fn lock_lp_shares(
-		_amm_pool_id: T::AccountId,
-		_who: T::AccountId,
-		_amount: Balance,
-		_deposit_id: DepositId,
-	) -> Result<(), Self::Error> {
-		//TODO: implementation
-
-		Ok(())
-	}
-
-	fn unlock_lp_shares(
-		_amm_pool_id: T::AccountId,
-		_who: T::AccountId,
-		_amount: Balance,
-		_deposit_id: DepositId,
-	) -> Result<(), Self::Error> {
-		//TODO: implementation
-
-		Ok(())
-	}
-}
-
 impl<T: Config> Pallet<T> {
 	/// Account id of pot holding all the shares
 	fn account_id() -> AccountIdOf<T> {
 		<T as pallet::Config>::PalletId::get().into_account()
+	}
+
+	fn get_asset_balance_in_stableswap_pool(
+		asset: AssetId,
+		pool_id: PoolId<AssetId>,
+	) -> Result<Balance, DispatchError> {
+		let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
+
+        ensure!(pool.assets.contains(asset), Error::<T>::AssetNotInStableswapPool);
+
+		let pool_account =
+			<T as pallet_stableswap::Config>::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+
+        Ok(T::MultiCurrency::total_balance(asset, &pool_account))
 	}
 }
