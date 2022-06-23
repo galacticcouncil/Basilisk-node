@@ -24,7 +24,7 @@ pub use pallet::*;
 
 use frame_support::{
 	pallet_prelude::*,
-	sp_runtime::traits::{AccountIdConversion, BlockNumberProvider},
+	sp_runtime::traits::{AccountIdConversion, BlockNumberProvider, Zero},
 	traits::tokens::nonfungibles::{Create, Inspect, Mutate},
 	transactional, PalletId,
 };
@@ -32,13 +32,11 @@ use frame_system::ensure_signed;
 use hydradx_traits::liquidity_mining::Mutate as LiquidityMiningMutate;
 use orml_traits::MultiCurrency;
 use pallet_stableswap::{traits::ShareAccountIdFor, types::PoolId, POOL_IDENTIFIER};
-use primitives::{AssetId, Balance, InstanceId as NftInstanceId};
+use primitives::{AssetId, Balance, ClassId as NftClassId, InstanceId as NftInstanceId};
 use sp_arithmetic::{FixedU128, Permill};
 use sp_std::convert::{From, Into};
 use warehouse_liquidity_mining::{DepositId, FarmMultiplier, GlobalFarmId, LoyaltyCurve, YieldFarmId};
 
-/// NFT class id type of provided nft implementation
-type NFTClassIdOf<T> = <<T as Config>::NFTHandler as Inspect<<T as frame_system::Config>::AccountId>>::ClassId;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 
@@ -76,12 +74,13 @@ pub mod pallet {
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
 		/// NFT class id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
-		type NFTClassId: Get<NFTClassIdOf<Self>>;
+		#[pallet::constant]
+		type NFTClassId: Get<NftClassId>;
 
 		/// Non fungible handling - mint,burn, check owner
 		type NFTHandler: Mutate<Self::AccountId>
 			+ Create<Self::AccountId>
-			+ Inspect<Self::AccountId, InstanceId = DepositId, ClassId = Self::NFTClassId>;
+			+ Inspect<Self::AccountId, InstanceId = DepositId, ClassId = NftClassId>;
 
 		type LiquidityMiningHandler: LiquidityMiningMutate<
 			Self::AccountId,
@@ -122,7 +121,101 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {}
+	pub enum Event<T: Config> {
+		GlobalFarmCreated {
+			owner: AccountIdOf<T>,
+			id: GlobalFarmId,
+			reward_currency: AssetId,
+			yield_per_period: Permill,
+			planned_yielding_periods: PeriodOf<T>,
+			blocks_per_period: BlockNumberFor<T>,
+			incentivized_asset: AssetId,
+			max_reward_per_period: Balance,
+		},
+
+		GlobalFarmDestroyed {
+			who: AccountIdOf<T>,
+			id: GlobalFarmId,
+			reward_currency: AssetId,
+			undistributed_rewards: Balance,
+		},
+
+		YieldFarmCreated {
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			multiplier: FarmMultiplier,
+			nft_class_id: NftInstanceId, //TODO: check if necessary
+			loyalty_curve: Option<LoyaltyCurve>,
+		},
+
+		YieldFarmUpdated {
+			who: AccountIdOf<T>,
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			pool_id: PoolId<AssetId>,
+			multiplier: FarmMultiplier,
+		},
+
+		YieldFarmStopped {
+			who: AccountIdOf<T>,
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			pool_id: PoolId<AssetId>,
+		},
+
+		YieldFarmResumed {
+			who: AccountIdOf<T>,
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			pool_id: PoolId<AssetId>,
+			multiplier: FarmMultiplier,
+		},
+
+		YieldFarmDestroyed {
+			who: AccountIdOf<T>,
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			pool_id: PoolId<AssetId>,
+		},
+
+		LPSharesDeposited {
+			who: AccountIdOf<T>,
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			pool_id: PoolId<AssetId>,
+			nft_instance_id: NftInstanceId,
+			nft_class_id: NftClassId, //TODO: is this needed?
+			lp_token: AssetId,
+			amount: Balance,
+		},
+
+		LPSharesRedeposited {
+			who: AccountIdOf<T>,
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			nft_instance_id: NftInstanceId,
+			nft_class_id: NftClassId, //TODO: is this needed?
+		},
+
+		RewardsClaimed {
+			who: AccountIdOf<T>,
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			nft_instance_id: NftInstanceId,
+			nft_class_id: NftClassId, //TODO: is this needed?
+			reward_currency: AssetId,
+			claimed: Balance,
+		},
+
+		LPSharesWithdrawn {
+			who: AccountIdOf<T>,
+			global_farm_id: GlobalFarmId,
+			yield_farm_id: YieldFarmId,
+			lp_token: AssetId,
+			amount: Balance,
+			//NOTE: do we need info about LP transfer?
+		},
+	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -143,32 +236,46 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::CreateOrigin::ensure_origin(origin)?;
 
-			let (_global_farm_id, _max_reward_per_period) = T::LiquidityMiningHandler::create_global_farm(
+			let (global_farm_id, max_reward_per_period) = T::LiquidityMiningHandler::create_global_farm(
 				total_rewards,
 				planned_yielding_periods,
 				blocks_per_period,
 				incentivized_asset,
 				reward_currency,
-				owner,
+				owner.clone(),
 				yield_per_period,
 				min_deposit,
 				price_adujustment,
 			)?;
 
-			//TODO: deposit event
+			Self::deposit_event(Event::GlobalFarmCreated {
+				owner,
+				id: global_farm_id,
+				reward_currency,
+				yield_per_period,
+				planned_yielding_periods,
+				blocks_per_period,
+				incentivized_asset,
+				max_reward_per_period,
+			});
 
 			Ok(())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_farm())]
 		#[transactional]
-		pub fn destroy_global_farm(origin: OriginFor<T>, farm_id: GlobalFarmId) -> DispatchResult {
+		pub fn destroy_global_farm(origin: OriginFor<T>, id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let (_reward_currency, _undistributed_rewards, _who) =
-				T::LiquidityMiningHandler::destroy_global_farm(who, farm_id)?;
+			let (reward_currency, undistributed_rewards, _who) =
+				T::LiquidityMiningHandler::destroy_global_farm(who.clone(), id)?;
 
-			//TODO: deposit event
+			Self::deposit_event(Event::GlobalFarmDestroyed {
+				who,
+				id,
+				reward_currency,
+				undistributed_rewards,
+			});
 
 			Ok(())
 		}
@@ -186,17 +293,23 @@ pub mod pallet {
 
 			let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
 
-			let _yield_farm_id = T::LiquidityMiningHandler::create_yield_farm(
+			let yield_farm_id = T::LiquidityMiningHandler::create_yield_farm(
 				who,
 				global_farm_id,
 				multiplier,
-				loyalty_curve,
+				loyalty_curve.clone(),
 				pool_id,
 				pool.assets.0,
 				pool.assets.1,
 			)?;
 
-			//TODO: emit event
+			Self::deposit_event(Event::YieldFarmCreated {
+				global_farm_id,
+				yield_farm_id,
+				multiplier,
+				nft_class_id: T::NFTClassId::get(),
+				loyalty_curve,
+			});
 
 			Ok(())
 		}
@@ -211,10 +324,20 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let _yield_farm_id =
-				T::LiquidityMiningHandler::update_yield_farm_multiplier(who, global_farm_id, pool_id, multiplier)?;
+			let yield_farm_id = T::LiquidityMiningHandler::update_yield_farm_multiplier(
+				who.clone(),
+				global_farm_id,
+				pool_id,
+				multiplier,
+			)?;
 
-			//TODO: emit event
+			Self::deposit_event(Event::YieldFarmUpdated {
+				who,
+				global_farm_id,
+				yield_farm_id,
+				pool_id,
+				multiplier,
+			});
 
 			Ok(())
 		}
@@ -228,9 +351,14 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let _stopped_yield_farm_id = T::LiquidityMiningHandler::stop_yield_farm(who, global_farm_id, pool_id)?;
+			let yield_farm_id = T::LiquidityMiningHandler::stop_yield_farm(who.clone(), global_farm_id, pool_id)?;
 
-			//TODO: emit event
+			Self::deposit_event(Event::YieldFarmStopped {
+				who,
+				global_farm_id,
+				yield_farm_id,
+				pool_id,
+			});
 
 			Ok(())
 		}
@@ -251,10 +379,21 @@ pub mod pallet {
 				Error::<T>::StableswapPoolNotFound
 			);
 
-			let _ =
-				T::LiquidityMiningHandler::resume_yield_farm(who, global_farm_id, yield_farm_id, pool_id, multiplier)?;
+			T::LiquidityMiningHandler::resume_yield_farm(
+				who.clone(),
+				global_farm_id,
+				yield_farm_id,
+				pool_id,
+				multiplier,
+			)?;
 
-			//TODO: emit event
+			Self::deposit_event(Event::YieldFarmResumed {
+				who,
+				global_farm_id,
+				yield_farm_id,
+				pool_id,
+				multiplier,
+			});
 
 			Ok(())
 		}
@@ -269,9 +408,14 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			T::LiquidityMiningHandler::destroy_yield_farm(who, global_farm_id, yield_farm_id, pool_id)?;
+			T::LiquidityMiningHandler::destroy_yield_farm(who.clone(), global_farm_id, yield_farm_id, pool_id)?;
 
-			//TODO: emit event
+			Self::deposit_event(Event::YieldFarmDestroyed {
+				who,
+				global_farm_id,
+				yield_farm_id,
+				pool_id,
+			});
 
 			Ok(())
 		}
@@ -309,8 +453,16 @@ pub mod pallet {
 			//Create NFT
 			T::NFTHandler::mint_into(&T::NFTClassId::get(), &deposit_id, &who)?;
 
-			//TODO:
-			// * emit event
+			Self::deposit_event(Event::LPSharesDeposited {
+				who,
+				global_farm_id,
+				yield_farm_id,
+				pool_id,
+				nft_instance_id: deposit_id,
+				nft_class_id: T::NFTClassId::get(),
+				lp_token,
+				amount,
+			});
 
 			Ok(())
 		}
@@ -330,14 +482,20 @@ pub mod pallet {
 				Error::<T>::NotDepositOwner
 			);
 
-			let _redeposited_shares = T::LiquidityMiningHandler::redeposit_lp_shares(
+			let _ = T::LiquidityMiningHandler::redeposit_lp_shares(
 				global_farm_id,
 				yield_farm_id,
 				nft_id,
 				Self::get_asset_balance_in_stableswap_pool,
 			)?;
 
-			//TODO: emit event
+			Self::deposit_event(Event::LPSharesRedeposited {
+				who,
+				global_farm_id,
+				yield_farm_id,
+				nft_instance_id: nft_id,
+				nft_class_id: T::NFTClassId::get(),
+			});
 
 			Ok(())
 		}
@@ -357,10 +515,18 @@ pub mod pallet {
 			);
 
 			const FAIL_ON_DOUBLE_CLAIM: bool = true;
-			let (_global_farm_id, _reward_currency, _claimed, _) =
-				T::LiquidityMiningHandler::claim_rewards(who, nft_id, yield_farm_id, FAIL_ON_DOUBLE_CLAIM)?;
+			let (global_farm_id, reward_currency, claimed, _) =
+				T::LiquidityMiningHandler::claim_rewards(who.clone(), nft_id, yield_farm_id, FAIL_ON_DOUBLE_CLAIM)?;
 
-			//TODO: emit event
+			Self::deposit_event(Event::RewardsClaimed {
+				who,
+				global_farm_id,
+				yield_farm_id,
+				nft_instance_id: nft_id,
+				nft_class_id: T::NFTClassId::get(),
+				reward_currency,
+				claimed,
+			});
 
 			Ok(())
 		}
@@ -387,27 +553,43 @@ pub mod pallet {
 
 			let mut unclaimable_rewards = 0;
 			if T::LiquidityMiningHandler::is_yield_farm_claimable(global_farm_id, yield_farm_id, pool_id) {
-				let (_, _, _claimed, unclaimable) =
+				let (global_farm_id, reward_currency, claimed, unclaimable) =
 					T::LiquidityMiningHandler::claim_rewards(who.clone(), nft_id, yield_farm_id, false)?;
 
 				unclaimable_rewards = unclaimable;
 
-				//TODO: emit claimed event
+				if !claimed.is_zero() {
+					Self::deposit_event(Event::RewardsClaimed {
+						who: who.clone(),
+						global_farm_id,
+						yield_farm_id,
+						nft_instance_id: nft_id,
+						nft_class_id: T::NFTClassId::get(),
+						reward_currency,
+						claimed,
+					});
+				}
 			}
 
-			let (_global_farm_id, withdrawn_amount, deposit_destroyed) =
+			let (global_farm_id, withdrawn_amount, deposit_destroyed) =
 				T::LiquidityMiningHandler::withdraw_lp_shares(nft_id, yield_farm_id, unclaimable_rewards)?;
 
 			if deposit_destroyed {
 				//Unlock LP tokens
-				T::MultiCurrency::transfer(lp_token, &Self::account_id(), &who, withdrawn_amount)?;
+				T::MultiCurrency::transfer(lp_token, &Self::account_id(), &who.clone(), withdrawn_amount)?;
 
 				//Destroy NFT
 				T::NFTHandler::burn_from(&T::NFTClassId::get(), &nft_id)?;
 			}
 
-			//TODO:
-			// * emit event
+			//NOTE: Do we want to emit this event if shares wasn't transfered?
+			Self::deposit_event(Event::LPSharesWithdrawn {
+				who,
+				global_farm_id,
+				yield_farm_id,
+				lp_token,
+				amount: withdrawn_amount,
+			});
 
 			Ok(())
 		}

@@ -90,7 +90,7 @@ frame_support::construct_runtime!(
 	UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		WarehouseMining: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage},
+		WarehouseMining: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
 		Stableswap: pallet_stableswap::{Pallet, Call, Storage, Event<T>},
 		StableswapMining: stableswap_mining::{Pallet, Call, Event<T>}
@@ -140,7 +140,7 @@ impl system::Config for Test {
 
 parameter_types! {
 	pub const StableMiningPalletId: PalletId = PalletId(*b"STSP##LM");
-	pub const NFTClass: u128 = LIQ_MINING_NFT_CLASS;
+	pub const NFTClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 }
 
 impl Config for Test {
@@ -151,7 +151,7 @@ impl Config for Test {
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type NFTClassId = NFTClass;
 	type NFTHandler = DummyNFT;
-	//type LiquidityMiningInstance =;
+    type LiquidityMiningHandler = WarehouseMining;
 	type WeightInfo = ();
 }
 
@@ -165,6 +165,7 @@ parameter_types! {
 }
 
 impl warehouse_liquidity_mining::Config<Instance1> for Test {
+    type Event = Event;
 	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
 	type PalletId = LMPalletId;
@@ -172,7 +173,6 @@ impl warehouse_liquidity_mining::Config<Instance1> for Test {
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type AmmPoolId = AccountId;
-	type LiquidityMiningHandler = StableswapMining;
 	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 }
@@ -306,7 +306,7 @@ pub struct DummyNFT;
 
 impl<AccountId: From<u128>> Inspect<AccountId> for DummyNFT {
 	type InstanceId = warehouse_liquidity_mining::DepositId;
-	type ClassId = NFTClass;
+	type ClassId = primitives::ClassId;
 
 	fn owner(_class: &Self::ClassId, instance: &Self::InstanceId) -> Option<AccountId> {
 		let mut owner: Option<AccountId> = None;
