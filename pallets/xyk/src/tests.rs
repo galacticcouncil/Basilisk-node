@@ -2204,69 +2204,89 @@ fn get_fee_should_work() {
 
 #[test]
 fn bug_scenario() {
-	new_test_ext().execute_with(|| {
-		let asset_a = HDX;
-		let asset_b = DOT;
+	ExtBuilder::default()
+		.with_exchange_fee((0, 0))
+		.build()
+		.execute_with(|| {
+			let asset_a = HDX;
+			let asset_b = DOT;
 
-		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
-			asset_a,
-			asset_b,
-			100 * ONE,
-			Price::from_float(0.6544)
-		));
+			assert_ok!(XYK::create_pool(
+				Origin::signed(ALICE),
+				asset_a,
+				asset_b,
+				100 * ONE,
+				Price::from_float(0.6544)
+			));
 
-		assert_eq!(Currency::free_balance(asset_a, &BOB), 1_000 * ONE);
-		assert_eq!(Currency::free_balance(asset_b, &BOB), 1_000 * ONE);
+			assert_eq!(Currency::free_balance(asset_a, &BOB), 1_000 * ONE);
+			assert_eq!(Currency::free_balance(asset_b, &BOB), 1_000 * ONE);
 
-		let balance_a = Currency::free_balance(asset_a, &BOB);
-		let balance_b = Currency::free_balance(asset_b, &BOB);
+			let balance_a = Currency::free_balance(asset_a, &BOB);
+			let balance_b = Currency::free_balance(asset_b, &BOB);
 
-		let bob_initial_balance = balance_a + balance_b;
+			let bob_initial_balance = balance_a + balance_b;
 
-		assert_eq!(bob_initial_balance, 2000 * ONE);
+			assert_eq!(bob_initial_balance, 2000 * ONE);
 
-		assert_ok!(XYK::add_liquidity(
-			Origin::signed(BOB),
-			asset_b,
-			asset_a,
-			10 * ONE,
-			200 * ONE
-		));
+			assert_ok!(XYK::add_liquidity(
+				Origin::signed(BOB),
+				asset_b,
+				asset_a,
+				10 * ONE,
+				200 * ONE
+			));
 
-		let pair_account = XYK::get_pair_id(AssetPair {
-			asset_in: asset_a,
-			asset_out: asset_b,
+			let pair_account = XYK::get_pair_id(AssetPair {
+				asset_in: asset_a,
+				asset_out: asset_b,
+			});
+			let share_token = XYK::share_token(pair_account);
+
+			let expected_shares = 15_281_173_594_132u128;
+
+			assert_eq!(Currency::free_balance(share_token, &BOB), expected_shares);
+
+			assert_ok!(XYK::sell(
+				Origin::signed(CHARLIE),
+				asset_a,
+				asset_b,
+				10 * ONE,
+				0u128,
+				false,
+			));
+
+			assert_ok!(XYK::remove_liquidity(
+				Origin::signed(BOB),
+				asset_a,
+				asset_b,
+				expected_shares
+			));
+
+			assert_eq!(Currency::free_balance(share_token, &BOB), 0);
+			let balance_a = Currency::free_balance(asset_a, &BOB);
+			let balance_b = Currency::free_balance(asset_b, &BOB);
+
+			let bob_previous_balance = balance_a + balance_b;
+
+			assert_ok!(XYK::add_liquidity(
+				Origin::signed(BOB),
+				asset_b,
+				asset_a,
+				10 * ONE,
+				200 * ONE
+			));
+
+			let shares = Currency::free_balance(share_token, &BOB);
+
+			assert_ok!(XYK::remove_liquidity(Origin::signed(BOB), asset_a, asset_b, shares));
+			let balance_a = Currency::free_balance(asset_a, &BOB);
+			let balance_b = Currency::free_balance(asset_b, &BOB);
+			let bob_new_balance = balance_a + balance_b;
+
+			dbg!(bob_previous_balance);
+			dbg!(bob_new_balance);
+
+			//assert!(bob_new_balance <= bob_previous_balance);
 		});
-		let share_token = XYK::share_token(pair_account);
-
-		let expected_shares = 15_281_173_594_132u128;
-
-		assert_eq!(Currency::free_balance(share_token, &BOB), expected_shares);
-
-		assert_ok!(XYK::sell(
-			Origin::signed(CHARLIE),
-			asset_a,
-			asset_b,
-			30 * ONE,
-			1000000000000,
-			false,
-		));
-
-		assert_ok!(XYK::remove_liquidity(
-			Origin::signed(BOB),
-			asset_a,
-			asset_b,
-			expected_shares
-		));
-
-		assert_eq!(Currency::free_balance(share_token, &BOB), 0);
-		let balance_a = Currency::free_balance(asset_a, &BOB);
-		let balance_b = Currency::free_balance(asset_b, &BOB);
-
-		let _bob_updated_balance = balance_a + balance_b;
-
-		// Bob cannot end up with more that he initially had.
-		// assert!( _bob_updated_balance <= bob_initial_balance);
-	});
 }
