@@ -2264,29 +2264,30 @@ fn bug_scenario() {
 			));
 
 			assert_eq!(Currency::free_balance(share_token, &BOB), 0);
-			let balance_a = Currency::free_balance(asset_a, &BOB);
-			let balance_b = Currency::free_balance(asset_b, &BOB);
 
-			let bob_previous_balance = balance_a + balance_b;
+			for idx in 0..10 {
+				let balance_a = Currency::free_balance(asset_a, &BOB);
+				let balance_b = Currency::free_balance(asset_b, &BOB);
 
-			assert_ok!(XYK::add_liquidity(
-				Origin::signed(BOB),
-				asset_b,
-				asset_a,
-				10 * ONE,
-				200 * ONE
-			));
+				let _bob_previous_balance = balance_a + balance_b;
 
-			let shares = Currency::free_balance(share_token, &BOB);
+				assert_ok!(XYK::add_liquidity(
+					Origin::signed(BOB),
+					asset_b,
+					asset_a,
+					10 * ONE,
+					200 * ONE
+				));
 
-			assert_ok!(XYK::remove_liquidity(Origin::signed(BOB), asset_a, asset_b, shares));
-			let balance_a = Currency::free_balance(asset_a, &BOB);
-			let balance_b = Currency::free_balance(asset_b, &BOB);
-			let bob_new_balance = balance_a + balance_b;
+				let shares = Currency::free_balance(share_token, &BOB);
 
-			dbg!(bob_previous_balance);
-			dbg!(bob_new_balance);
+				assert_ok!(XYK::remove_liquidity(Origin::signed(BOB), asset_a, asset_b, shares));
+				let balance_a = Currency::free_balance(asset_a, &BOB);
+				let balance_b = Currency::free_balance(asset_b, &BOB);
+				let bob_new_balance = balance_a + balance_b;
 
-			//assert!(bob_new_balance <= bob_previous_balance);
+				println!("Seq: {} bob's total balance: {}", idx, bob_new_balance);
+				//assert!(bob_new_balance <= _bob_previous_balance);
+			}
 		});
 }
