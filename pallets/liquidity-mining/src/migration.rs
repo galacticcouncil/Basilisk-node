@@ -64,6 +64,8 @@ mod tests {
 		});
 	}
 
+	//TODO: Dani add test for having storage version 0, so returns 0 weight
+
 	fn assert_that_nft_class_is_created(pallet_account: u128) {
 		mock::NFT_CLASS.borrow().with(|v| {
 			assert_eq!(

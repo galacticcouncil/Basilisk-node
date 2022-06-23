@@ -55,7 +55,7 @@ pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 pub const BSX: AssetId = 1000;
 pub const KSM: AssetId = 4000;
 
-pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 9999;
+pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -148,7 +148,7 @@ parameter_types! {
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
 	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
-	pub const ReserveClassIdUpTo: u128 = LIQ_MINING_NFT_CLASS - 1;
+	pub const ReserveClassIdUpTo: u128 = 9999;
 }
 
 impl pallet_liquidity_mining::Config for Test {
