@@ -41,12 +41,15 @@ pub type AccountId = u64;
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
+pub const CHARLIE: AccountId = 3;
 
 pub const HDX: AssetId = 1000;
 pub const DOT: AssetId = 2000;
 pub const ACA: AssetId = 3000;
 
 pub const HDX_DOT_POOL_ID: AccountId = 1_002_000;
+
+pub const ONE: Balance = 1_000_000_000_000;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -201,6 +204,7 @@ impl Default for ExtBuilder {
 				(BOB, ACA, 1_000_000_000_000_000u128),
 				(ALICE, DOT, 1_000_000_000_000_000u128),
 				(BOB, DOT, 1_000_000_000_000_000u128),
+				(CHARLIE, HDX, 1_000_000_000_000_000u128),
 			],
 		}
 	}
