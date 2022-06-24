@@ -2286,7 +2286,15 @@ fn bug_scenario() {
 				let balance_b = Currency::free_balance(asset_b, &BOB);
 				let bob_new_balance = balance_a + balance_b;
 
-				println!("Seq: {} bob's total balance: {}", idx, bob_new_balance);
+				let balance_pool_a = Currency::free_balance(asset_a, &pair_account);
+				let balance_pool_b = Currency::free_balance(asset_a, &pair_account);
+
+				let total_pool_liquidity = balance_pool_a + balance_pool_b;
+
+				println!(
+					"Step: {} bob's total balance: {}, total pool liquid: {}",
+					idx, bob_new_balance, total_pool_liquidity
+				);
 				//assert!(bob_new_balance <= _bob_previous_balance);
 			}
 		});
