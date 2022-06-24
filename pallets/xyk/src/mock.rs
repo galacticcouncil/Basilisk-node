@@ -29,7 +29,7 @@ use sp_runtime::{
 use frame_support::traits::{Everything, GenesisBuild, Get, Nothing};
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool};
 use primitives::{
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT, DISCOUNTED_FEE},
+	constants::chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	AssetId, Balance,
 };
 

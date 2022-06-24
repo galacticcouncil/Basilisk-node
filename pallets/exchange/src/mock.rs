@@ -33,7 +33,7 @@ use frame_support::traits::{Everything, GenesisBuild, Get, Nothing};
 use frame_system::EnsureSigned;
 use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT, DISCOUNTED_FEE},
+	constants::chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	AssetId, Balance,
 };
 use std::cell::RefCell;
