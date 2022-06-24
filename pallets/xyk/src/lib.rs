@@ -45,6 +45,9 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+#[cfg(test)]
+mod invariants;
+
 mod benchmarking;
 
 mod impls;
