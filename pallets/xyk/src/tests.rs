@@ -876,59 +876,6 @@ fn work_flow_happy_path_should_work() {
 				amount_b: 12_000_000_000_001,
 			}
 			.into(),
-			/*
-
-			// TODO:
-			// Note: removing these events because it is very hard to determine the correct values
-			// without further changes and effort.
-			// But the events are already checked in other tests and balances are verified as part of this test too.
-			// There will be additional task to refactor tests and events checks should be refactored.
-
-			Event::SellExecuted {
-				who: user_2,
-				asset_in: asset_a,
-				asset_out: asset_b,
-				amount: 216_666_666_666,
-				sale_price: 6_486_999_999_986,
-				fee_asset: asset_b,
-				fee_amount: 12_999_999_998,
-				pool: pair_account,
-			}
-			.into(),
-			Event::SellExecuted {
-				who: ALICE,
-				asset_in: asset_a,
-				asset_out: asset_b,
-				amount: 288_888_888_888,
-				sale_price: 4_868_493_499_997,
-				fee_asset: asset_b,
-				fee_amount: 9_756_499_998,
-				pool: pair_account,
-			}
-			.into(),
-			Event::LiquidityRemoved {
-				who: user_2,
-				asset_a,
-				asset_b,
-				shares: 10_000,
-			}
-			.into(),
-			Event::LiquidityRemoved {
-				who: user_2,
-				asset_b,
-				asset_a,
-				shares: 10_000,
-			}
-			.into(),
-			Event::LiquidityRemoved {
-				who: user_2,
-				asset_a,
-				asset_b,
-				shares: 18_000,
-			}
-			.into(),
-
-			 */
 		]);
 	});
 }
@@ -2213,7 +2160,7 @@ fn get_fee_should_work() {
 }
 
 #[test]
-fn bug_scenario() {
+fn cannot_drain_pool() {
 	ExtBuilder::default()
 		.with_exchange_fee((0, 0))
 		.build()
