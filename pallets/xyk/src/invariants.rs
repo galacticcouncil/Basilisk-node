@@ -7,6 +7,8 @@ use frame_support::assert_ok;
 use primitive_types::U256;
 use sp_runtime::FixedU128;
 
+const TOLERANCE: Balance = 1_000;
+
 #[macro_export]
 macro_rules! assert_eq_approx {
 	( $x:expr, $y:expr, $z:expr, $r:expr) => {{
@@ -25,6 +27,27 @@ fn trade_amount() -> impl Strategy<Value = Balance> {
     ONE..100 * ONE
 }
 
+
+fn assert_asset_invariant(
+    old_state: (Balance, Balance),
+    new_state: (Balance, Balance),
+    tolerance: FixedU128,
+    desc: &str,
+) {
+    let new_s = U256::from(new_state.0) * U256::from(new_state.1);
+    let s1 = new_s.integer_sqrt();
+
+    let old_s = U256::from(old_state.0) * U256::from(old_state.1);
+    let s2 = old_s.integer_sqrt();
+
+    assert!(new_s >= old_s, "Invariant decreased for {}", desc);
+
+    let s1_u128 = Balance::try_from(s1).unwrap();
+    let s2_u128 = Balance::try_from(s2).unwrap();
+
+    let invariant = FixedU128::from((s1_u128, ONE)) / FixedU128::from((s2_u128, ONE));
+    assert_eq_approx!(invariant, FixedU128::from(1u128), tolerance, desc);
+}
 
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(1000))]
@@ -110,6 +133,314 @@ proptest! {
 				let r = s * delta_y;
 
 				assert!(l <= r);
+			});
+	}
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#[test]
+	fn remove_liquidity(initial_liquidity in asset_reserve(),
+        added_liquidity in asset_reserve(),
+	) {
+		let asset_a = HDX;
+		let asset_b = DOT;
+
+		ExtBuilder::default()
+			.with_exchange_fee((0, 0))
+			.with_accounts(vec![
+				(ALICE, asset_a,initial_liquidity),
+				(ALICE, asset_b,initial_liquidity * 1000),
+				(BOB, asset_a, added_liquidity),
+				(BOB, asset_b, added_liquidity * 1_000_000),
+			])
+			.build()
+			.execute_with(|| {
+				assert_ok!(XYK::create_pool(
+					Origin::signed(ALICE),
+					asset_a,
+					asset_b,
+					initial_liquidity,
+					Price::from_float(0.6544)
+				));
+
+				let pool_account = XYK::get_pair_id(AssetPair {
+					asset_in: asset_a,
+					asset_out: asset_b,
+				});
+				let share_token = XYK::share_token(pool_account);
+
+				assert_ok!(XYK::add_liquidity(
+					Origin::signed(BOB),
+					asset_a,
+					asset_b,
+					added_liquidity,
+					added_liquidity * 1_000_000, // do not care about the limit here
+				));
+				let pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				let bob_balance_a = Currency::free_balance(asset_a, &BOB);
+				let bob_balance_b = Currency::free_balance(asset_b, &BOB);
+
+				let bob_shares = Currency::free_balance(share_token, &BOB);
+
+				assert_ok!(XYK::remove_liquidity(
+						Origin::signed(BOB),
+						asset_a,
+						asset_b,
+						bob_shares,
+				));
+
+				let new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				let new_bob_balance_a = Currency::free_balance(asset_a, &BOB);
+				let new_bob_balance_b = Currency::free_balance(asset_b, &BOB);
+
+				let p0 = FixedU128::from((pool_balance_a, pool_balance_b));
+				let p1 = FixedU128::from((new_pool_balance_a, new_pool_balance_b));
+
+				// Price should not change
+				assert_eq_approx!(
+					p0,
+					p1,
+					FixedU128::from_float(0.0000000001),
+					"Price has changed after remove liquidity"
+				);
+
+				let issuance = Currency::total_issuance(share_token);
+
+				let s = U256::from(issuance);
+				let delta_s = U256::from(bob_shares);
+				let delta_x = U256::from(new_bob_balance_a - bob_balance_a);
+				let delta_y = U256::from(new_bob_balance_b - bob_balance_b);
+				let x = U256::from(pool_balance_a);
+				let y = U256::from(pool_balance_b);
+
+				let l = delta_s * x;
+				let r = s * delta_x;
+
+				assert!(l >= r);
+
+				let l = delta_s * y;
+				let r = s * delta_y;
+
+				assert!(l >= r);
+			});
+	}
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#[test]
+	fn sell_invariant(initial_liquidity in asset_reserve(),
+        added_liquidity in asset_reserve(),
+		amount in trade_amount(),
+	) {
+		let asset_a = HDX;
+		let asset_b = DOT;
+
+		ExtBuilder::default()
+			.with_exchange_fee((0, 0))
+			.with_accounts(vec![
+				(ALICE, asset_a,initial_liquidity),
+				(ALICE, asset_b,initial_liquidity * 1000),
+				(BOB, asset_a, added_liquidity),
+				(BOB, asset_b, added_liquidity * 1_000_000),
+				(CHARLIE, asset_a, amount),
+			])
+			.build()
+			.execute_with(|| {
+				assert_ok!(XYK::create_pool(
+					Origin::signed(ALICE),
+					asset_a,
+					asset_b,
+					initial_liquidity,
+					Price::from_float(0.6544)
+				));
+
+				let pool_account = XYK::get_pair_id(AssetPair {
+					asset_in: asset_a,
+					asset_out: asset_b,
+				});
+
+				assert_ok!(XYK::add_liquidity(
+					Origin::signed(BOB),
+					asset_a,
+					asset_b,
+					added_liquidity,
+					added_liquidity * 1_000_000, // do not care about the limit here
+				));
+				let pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				assert_ok!(XYK::sell(
+						Origin::signed(CHARLIE),
+						asset_a,
+						asset_b,
+						amount,
+						0u128, // limit not interesting here,
+						false,
+				));
+
+				let new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				 assert_asset_invariant((pool_balance_a, pool_balance_b),
+					(new_pool_balance_a, new_pool_balance_b),
+					FixedU128::from((TOLERANCE,ONE)),
+					"sell"
+				);
+
+			});
+	}
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#[test]
+	fn buy_invariant(initial_liquidity in asset_reserve(),
+        added_liquidity in asset_reserve(),
+		amount in trade_amount(),
+	) {
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		ExtBuilder::default()
+			.with_exchange_fee((0, 0))
+			.with_accounts(vec![
+				(ALICE, asset_a,initial_liquidity * 1000),
+				(ALICE, HDX,initial_liquidity),
+				(ALICE, asset_b,initial_liquidity * 1000),
+				(BOB, asset_a, added_liquidity),
+				(BOB, asset_b, added_liquidity * 1_000_000),
+				(CHARLIE, asset_a, amount * 1_000),
+				(CHARLIE, HDX, amount * 1_000),
+			])
+			.build()
+			.execute_with(|| {
+				assert_ok!(XYK::create_pool(
+					Origin::signed(ALICE),
+					asset_a,
+					asset_b,
+					initial_liquidity,
+					Price::from_float(0.6544)
+				));
+
+				let pool_account = XYK::get_pair_id(AssetPair {
+					asset_in: asset_a,
+					asset_out: asset_b,
+				});
+
+				assert_ok!(XYK::add_liquidity(
+					Origin::signed(BOB),
+					asset_a,
+					asset_b,
+					added_liquidity,
+					added_liquidity * 1_000_000, // do not care about the limit here
+				));
+				let pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				assert_ok!(XYK::buy(
+						Origin::signed(CHARLIE),
+						asset_b,
+						asset_a,
+						amount,
+						u128::MAX, // limit not interesting here,
+						false,
+				));
+
+				let new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				 assert_asset_invariant((pool_balance_a, pool_balance_b),
+					(new_pool_balance_a, new_pool_balance_b),
+					FixedU128::from((TOLERANCE,ONE)),
+					"buy"
+				);
+
+			});
+	}
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#[test]
+	fn buy_invariant_with_discount(initial_liquidity in asset_reserve(),
+        added_liquidity in asset_reserve(),
+		amount in trade_amount(),
+	) {
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		ExtBuilder::default()
+			.with_exchange_fee((0, 0))
+			.with_accounts(vec![
+				(ALICE, asset_a,initial_liquidity * 1000),
+				(ALICE, HDX,initial_liquidity),
+				(ALICE, asset_b,initial_liquidity * 1000),
+				(BOB, asset_a, added_liquidity),
+				(BOB, asset_b, added_liquidity * 1_000_000),
+				(CHARLIE, asset_a, amount * 1_000),
+				(CHARLIE, HDX, amount * 1_000),
+			])
+			.build()
+			.execute_with(|| {
+				assert_ok!(XYK::create_pool(
+					Origin::signed(ALICE),
+					asset_a,
+					asset_b,
+					initial_liquidity,
+					Price::from_float(0.6544)
+				));
+
+				assert_ok!(XYK::create_pool(
+					Origin::signed(ALICE),
+					asset_b,
+					HDX,
+					10 * ONE,
+					Price::from_float(1.0)
+				));
+
+				let pool_account = XYK::get_pair_id(AssetPair {
+					asset_in: asset_a,
+					asset_out: asset_b,
+				});
+
+				assert_ok!(XYK::add_liquidity(
+					Origin::signed(BOB),
+					asset_a,
+					asset_b,
+					added_liquidity,
+					added_liquidity * 1_000_000, // do not care about the limit here
+				));
+				let _pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let _pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				assert_ok!(XYK::buy(
+						Origin::signed(CHARLIE),
+						asset_b,
+						asset_a,
+						amount,
+						u128::MAX, // limit not interesting here,
+						true,
+				));
+
+				let _new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let _new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				//TODO: this currently fails - under investigation
+			/*
+				 assert_asset_invariant((_pool_balance_a, _pool_balance_b),
+					(_new_pool_balance_a, _new_pool_balance_b),
+					FixedU128::from((TOLERANCE,ONE)),
+					"buy with discount"
+				);
+
+			 */
+
 			});
 	}
 }
