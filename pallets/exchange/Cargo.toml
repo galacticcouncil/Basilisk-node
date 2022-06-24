@@ -1,6 +1,6 @@
 [package]
 name = "pallet-exchange"
-version = "5.3.4"
+version = "5.3.5"
 description = "Exchange Module"
 authors = ["GalacticCouncil"]
 edition = "2021"
