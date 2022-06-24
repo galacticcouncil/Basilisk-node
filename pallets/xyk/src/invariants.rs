@@ -20,40 +20,39 @@ macro_rules! assert_eq_approx {
 }
 
 fn asset_reserve() -> impl Strategy<Value = Balance> {
-    1000 * ONE..10_000_000 * ONE
+	1000 * ONE..10_000_000 * ONE
 }
 
 fn trade_amount() -> impl Strategy<Value = Balance> {
-    ONE..100 * ONE
+	ONE..100 * ONE
 }
 
-
 fn assert_asset_invariant(
-    old_state: (Balance, Balance),
-    new_state: (Balance, Balance),
-    tolerance: FixedU128,
-    desc: &str,
+	old_state: (Balance, Balance),
+	new_state: (Balance, Balance),
+	tolerance: FixedU128,
+	desc: &str,
 ) {
-    let new_s = U256::from(new_state.0) * U256::from(new_state.1);
-    let s1 = new_s.integer_sqrt();
+	let new_s = U256::from(new_state.0) * U256::from(new_state.1);
+	let s1 = new_s.integer_sqrt();
 
-    let old_s = U256::from(old_state.0) * U256::from(old_state.1);
-    let s2 = old_s.integer_sqrt();
+	let old_s = U256::from(old_state.0) * U256::from(old_state.1);
+	let s2 = old_s.integer_sqrt();
 
-    assert!(new_s >= old_s, "Invariant decreased for {}", desc);
+	assert!(new_s >= old_s, "Invariant decreased for {}", desc);
 
-    let s1_u128 = Balance::try_from(s1).unwrap();
-    let s2_u128 = Balance::try_from(s2).unwrap();
+	let s1_u128 = Balance::try_from(s1).unwrap();
+	let s2_u128 = Balance::try_from(s2).unwrap();
 
-    let invariant = FixedU128::from((s1_u128, ONE)) / FixedU128::from((s2_u128, ONE));
-    assert_eq_approx!(invariant, FixedU128::from(1u128), tolerance, desc);
+	let invariant = FixedU128::from((s1_u128, ONE)) / FixedU128::from((s2_u128, ONE));
+	assert_eq_approx!(invariant, FixedU128::from(1u128), tolerance, desc);
 }
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn add_liquidity(initial_liquidity in asset_reserve(),
-        added_liquidity in asset_reserve(),
+		added_liquidity in asset_reserve(),
 	) {
 		let asset_a = HDX;
 		let asset_b = DOT;
@@ -138,10 +137,10 @@ proptest! {
 }
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn remove_liquidity(initial_liquidity in asset_reserve(),
-        added_liquidity in asset_reserve(),
+		added_liquidity in asset_reserve(),
 	) {
 		let asset_a = HDX;
 		let asset_b = DOT;
@@ -232,10 +231,10 @@ proptest! {
 }
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn sell_invariant(initial_liquidity in asset_reserve(),
-        added_liquidity in asset_reserve(),
+		added_liquidity in asset_reserve(),
 		amount in trade_amount(),
 	) {
 		let asset_a = HDX;
@@ -298,10 +297,10 @@ proptest! {
 }
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn buy_invariant(initial_liquidity in asset_reserve(),
-        added_liquidity in asset_reserve(),
+		added_liquidity in asset_reserve(),
 		amount in trade_amount(),
 	) {
 		let asset_a = ACA;
@@ -366,10 +365,10 @@ proptest! {
 }
 
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(1000))]
+	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
 	fn buy_invariant_with_discount(initial_liquidity in asset_reserve(),
-        added_liquidity in asset_reserve(),
+		added_liquidity in asset_reserve(),
 		amount in trade_amount(),
 	) {
 		let asset_a = ACA;
