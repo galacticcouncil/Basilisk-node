@@ -29,7 +29,7 @@ use sp_runtime::{
 use frame_support::traits::{Everything, GenesisBuild, Get, Nothing};
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool};
 use primitives::{
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT, DISCOUNTED_FEE},
 	AssetId, Balance,
 };
 
@@ -160,6 +160,7 @@ parameter_types! {
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
 }
 
 pub struct Disallow10_10Pool();
@@ -184,6 +185,7 @@ impl Config for Test {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = Disallow10_10Pool;
 	type AMMHandler = ();
+	type DiscountedFee = DiscountedFee;
 }
 
 pub struct ExtBuilder {
