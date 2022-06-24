@@ -126,6 +126,20 @@ jobs:
         with:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
+
+  build-benchmarks:
+    needs: pop-runner-instance
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: git describe --tags --abbrev=0 --always
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
       - name: Build benchmarking node
         run: cargo build --release --locked --features runtime-benchmarks
       - name: Version info
