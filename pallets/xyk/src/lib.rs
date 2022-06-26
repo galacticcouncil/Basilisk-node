@@ -421,13 +421,8 @@ pub mod pallet {
 
 			ensure!(amount_b <= amount_b_max_limit, Error::<T>::AssetAmountExceededLimit);
 
-			let shares_added = if asset_a < asset_b {
-				hydra_dx_math::xyk::calculate_shares(asset_a_reserve, amount_a, share_issuance)
-					.ok_or(Error::<T>::Overflow)?
-			} else {
-				hydra_dx_math::xyk::calculate_shares(asset_b_reserve, amount_b, share_issuance)
-					.ok_or(Error::<T>::Overflow)?
-			};
+			let shares_added = hydra_dx_math::xyk::calculate_shares(asset_a_reserve, amount_a, share_issuance)
+				.ok_or(Error::<T>::Overflow)?;
 
 			ensure!(!shares_added.is_zero(), Error::<T>::InvalidMintedLiquidity);
 
