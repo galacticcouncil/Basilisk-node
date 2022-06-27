@@ -188,8 +188,16 @@ fn add_liquidity_should_work() {
 			asset_a,
 			asset_b,
 			100_000_000,
-			Price::from(1)
+			Price::from_float(0.654)
 		));
+		let pair_account = XYK::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+		let share_token = XYK::share_token(pair_account);
+
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 65_400_000);
+		assert_eq!(XYK::total_liquidity(&pair_account), 65400000);
 
 		assert_ok!(XYK::add_liquidity(
 			Origin::signed(user),
@@ -199,24 +207,19 @@ fn add_liquidity_should_work() {
 			1_000_000_000_000
 		));
 
-		let pair_account = XYK::get_pair_id(AssetPair {
-			asset_in: asset_a,
-			asset_out: asset_b,
-		});
-		let share_token = XYK::share_token(pair_account);
+		assert_eq!(Currency::free_balance(share_token, &user), 65661600);
 
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 100400001);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 65_661_601);
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 100400000);
 		assert_eq!(Currency::free_balance(asset_a, &user), 999999899600000);
-		assert_eq!(Currency::free_balance(share_token, &user), 100400000);
-		assert_eq!(XYK::total_liquidity(&pair_account), 100400000);
+		assert_eq!(XYK::total_liquidity(&pair_account), 65661600);
 
 		expect_events(vec![
 			Event::PoolCreated {
 				who: ALICE,
 				asset_a,
 				asset_b,
-				initial_shares_amount: 100_000_000,
+				initial_shares_amount: 65400000,
 				share_token,
 				pool: pair_account,
 			}
@@ -226,7 +229,7 @@ fn add_liquidity_should_work() {
 				asset_a,
 				asset_b,
 				amount_a: 400000,
-				amount_b: 400001,
+				amount_b: 261601,
 			}
 			.into(),
 		]);
@@ -234,7 +237,7 @@ fn add_liquidity_should_work() {
 }
 
 #[test]
-fn add_liquidity_mintes_correct_shares() {
+fn add_liquidity_mints_correct_shares() {
 	new_test_ext().execute_with(|| {
 		let user = ALICE;
 		let asset_a = DOT;
@@ -245,14 +248,14 @@ fn add_liquidity_mintes_correct_shares() {
 			asset_a,
 			asset_b,
 			100_000_000,
-			Price::from(1)
+			Price::from_float(0.654)
 		));
 
 		assert_ok!(XYK::add_liquidity(
 			Origin::signed(user),
 			asset_b,
 			asset_a,
-			400_000,
+			261600,
 			1_000_000_000_000
 		));
 
@@ -262,7 +265,7 @@ fn add_liquidity_mintes_correct_shares() {
 		});
 		let share_token = XYK::share_token(pair_account);
 
-		assert_eq!(Currency::free_balance(share_token, &user), 100400000);
+		assert_eq!(Currency::free_balance(share_token, &user), 65661600);
 	});
 }
 
