@@ -32,6 +32,16 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 		let pallet_account = <Pallet<T>>::account_id();
 
 		T::NFTHandler::create_class(&T::NftClassId::get(), &pallet_account, &pallet_account).unwrap();
+		//TODO: Dani fix it at the end when we merge back because we need to go to master, get the latest main where nft is
+		//not locally, and use do_create_class from wh repo OR, we need to add this method to the NFTHandler
+
+		/*pallet_nft::Pallet::<T>::do_create_class(
+			pallet_account,
+			T::NftClassId::get(),
+			ClassType::LiquidityMining,
+			BoundedVec::default(),
+		)
+		.unwrap();*?*/
 
 		StorageVersion::new(STORAGE_VERSION).put::<Pallet<T>>();
 
