@@ -66,7 +66,7 @@ use hydradx_traits::AssetPairAccountIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
-mod xcm;
+pub mod xcm;
 
 mod benchmarking;
 

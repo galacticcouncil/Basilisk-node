@@ -151,14 +151,20 @@ parameter_types! {
 	pub NativeLocation: MultiLocation = MultiLocation::new(1, X2(Parachain(ParachainInfo::get().into()), GeneralIndex(CORE_ASSET_ID.into())));
 }
 
-pub struct EverythingExceptNative<NativeLocation>(PhantomData<NativeLocation>);
-impl<NativeLocation: Get<MultiLocation>> Contains<(MultiLocation, Vec<MultiAsset>)>
-	for EverythingExceptNative<NativeLocation>
+pub struct EverythingExcept<ExcludedLocation>(PhantomData<ExcludedLocation>);
+impl<ExcludedLocation: Get<MultiLocation>> Contains<(MultiLocation, Vec<MultiAsset>)>
+	for EverythingExcept<ExcludedLocation>
 {
 	fn contains((_location, assets): &(MultiLocation, Vec<MultiAsset>)) -> bool {
-		!assets
-			.iter()
-			.any(|asset| asset.is_fungible(Some(Concrete(NativeLocation::get()))))
+		!assets.iter().any(|asset| {
+			let is_fungible = asset.is_fungible(Some(Concrete(ExcludedLocation::get())));
+			log::debug!(
+				"asset: {asset:#?}, excluded: {:#?}, is_fungible: {}",
+				ExcludedLocation::get(),
+				is_fungible
+			);
+			is_fungible
+		})
 	}
 }
 
@@ -193,7 +199,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
-	type XcmReserveTransferFilter = EverythingExceptNative<NativeLocation>;
+	type XcmReserveTransferFilter = EverythingExcept<NativeLocation>;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Origin = Origin;
@@ -208,10 +214,10 @@ use primitives::constants::chain::CORE_ASSET_ID;
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
 		match id {
-			CORE_ASSET_ID => Some(MultiLocation::new(
-				1,
-				X2(Parachain(ParachainInfo::get().into()), GeneralIndex(id.into())),
-			)),
+			// CORE_ASSET_ID => Some(MultiLocation::new(
+			// 	1,
+			// 	X2(Parachain(ParachainInfo::get().into()), GeneralIndex(id.into())),
+			// )),
 			_ => {
 				if let Some(loc) = AssetRegistry::asset_to_location(id) {
 					Some(loc.0)
