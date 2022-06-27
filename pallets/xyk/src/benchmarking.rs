@@ -64,7 +64,7 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, max_limit)
 	verify {
 		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999990000000000);
-		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999990000000000);
+		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999990000000000 - 1); // Due to rounding in favor of pool
 	}
 
 	remove_liquidity {
@@ -76,15 +76,15 @@ benchmarks! {
 		let amount : Balance = 1_000_000_000;
 
 		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), 1, 2, 10_000_000_000, Price::from(2))?;
-		XYK::<T>::add_liquidity(RawOrigin::Signed(caller.clone()).into(), 1, 2, 5_000_000_000, 10_000_000_000)?;
+		XYK::<T>::add_liquidity(RawOrigin::Signed(caller.clone()).into(), 1, 2, 5_000_000_000, 10_100_000_000)?;
 
 		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999995000000000);
-		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999990000000000);
+		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999990000000000 - 1);// Due to rounding in favor of pool
 
 	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount)
 	verify {
 		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999996000000000);
-		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999992000000000);
+		assert_eq!(T::Currency::free_balance(asset_b, &caller), 999992000000000 - 1);// Due to rounding in favor of pool
 	}
 
 	sell {
