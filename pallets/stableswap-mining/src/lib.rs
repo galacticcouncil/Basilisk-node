@@ -144,7 +144,6 @@ pub mod pallet {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
 			multiplier: FarmMultiplier,
-			nft_class_id: NftInstanceId, //TODO: check if necessary
 			loyalty_curve: Option<LoyaltyCurve>,
 		},
 
@@ -184,7 +183,6 @@ pub mod pallet {
 			yield_farm_id: YieldFarmId,
 			pool_id: PoolId<AssetId>,
 			nft_instance_id: NftInstanceId,
-			nft_class_id: NftClassId, //TODO: is this needed?
 			lp_token: AssetId,
 			amount: Balance,
 		},
@@ -194,7 +192,6 @@ pub mod pallet {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
 			nft_instance_id: NftInstanceId,
-			nft_class_id: NftClassId, //TODO: is this needed?
 		},
 
 		RewardsClaimed {
@@ -202,7 +199,6 @@ pub mod pallet {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
 			nft_instance_id: NftInstanceId,
-			nft_class_id: NftClassId, //TODO: is this needed?
 			reward_currency: AssetId,
 			claimed: Balance,
 		},
@@ -213,7 +209,11 @@ pub mod pallet {
 			yield_farm_id: YieldFarmId,
 			lp_token: AssetId,
 			amount: Balance,
-			//NOTE: do we need info about LP transfer?
+		},
+
+		DepositDestroyed {
+			who: AccountIdOf<T>,
+			nft_instance_id: NftInstanceId,
 		},
 	}
 
@@ -307,7 +307,6 @@ pub mod pallet {
 				global_farm_id,
 				yield_farm_id,
 				multiplier,
-				nft_class_id: T::NFTClassId::get(),
 				loyalty_curve,
 			});
 
@@ -459,7 +458,6 @@ pub mod pallet {
 				yield_farm_id,
 				pool_id,
 				nft_instance_id: deposit_id,
-				nft_class_id: T::NFTClassId::get(),
 				lp_token,
 				amount,
 			});
@@ -494,7 +492,6 @@ pub mod pallet {
 				global_farm_id,
 				yield_farm_id,
 				nft_instance_id: nft_id,
-				nft_class_id: T::NFTClassId::get(),
 			});
 
 			Ok(())
@@ -523,7 +520,6 @@ pub mod pallet {
 				global_farm_id,
 				yield_farm_id,
 				nft_instance_id: nft_id,
-				nft_class_id: T::NFTClassId::get(),
 				reward_currency,
 				claimed,
 			});
@@ -564,7 +560,6 @@ pub mod pallet {
 						global_farm_id,
 						yield_farm_id,
 						nft_instance_id: nft_id,
-						nft_class_id: T::NFTClassId::get(),
 						reward_currency,
 						claimed,
 					});
@@ -574,22 +569,26 @@ pub mod pallet {
 			let (global_farm_id, withdrawn_amount, deposit_destroyed) =
 				T::LiquidityMiningHandler::withdraw_lp_shares(nft_id, yield_farm_id, unclaimable_rewards)?;
 
+			Self::deposit_event(Event::LPSharesWithdrawn {
+				who: who.clone(),
+				global_farm_id,
+				yield_farm_id,
+				lp_token,
+				amount: withdrawn_amount,
+			});
+
 			if deposit_destroyed {
 				//Unlock LP tokens
 				T::MultiCurrency::transfer(lp_token, &Self::account_id(), &who.clone(), withdrawn_amount)?;
 
 				//Destroy NFT
 				T::NFTHandler::burn_from(&T::NFTClassId::get(), &nft_id)?;
-			}
 
-			//NOTE: Do we want to emit this event if shares wasn't transfered?
-			Self::deposit_event(Event::LPSharesWithdrawn {
-				who,
-				global_farm_id,
-				yield_farm_id,
-				lp_token,
-				amount: withdrawn_amount,
-			});
+				Self::deposit_event(Event::DepositDestroyed {
+					who,
+					nft_instance_id: nft_id,
+				});
+			}
 
 			Ok(())
 		}
