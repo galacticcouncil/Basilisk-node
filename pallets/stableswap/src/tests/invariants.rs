@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::PoolAssets;
+use crate::types::{PoolAssets, PoolInfo};
 use frame_support::assert_ok;
 use sp_runtime::{FixedU128, Permill};
 
@@ -66,10 +66,12 @@ proptest! {
 			.with_registered_asset("two".as_bytes().to_vec(), asset_b)
 			.with_pool(
 				ALICE,
-				(asset_a, asset_b),
-				amplification,
-				fee,
-				(ALICE, asset_a, initial_liquidity),
+				PoolInfo::<AssetId> {
+					assets: PoolAssets::new(asset_a,asset_b),
+					amplification,
+					fee,
+				},
+				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
 			)
 			.build()
 			.execute_with(|| {
@@ -123,10 +125,12 @@ proptest! {
 			.with_registered_asset("two".as_bytes().to_vec(), asset_b)
 			.with_pool(
 				ALICE,
-				(asset_a, asset_b),
-				amplification,
-				fee,
-				(ALICE, asset_a, initial_liquidity),
+				PoolInfo::<AssetId> {
+					assets: PoolAssets::new(asset_a,asset_b),
+					amplification,
+					fee,
+				},
+				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
 			)
 			.build()
 			.execute_with(|| {
@@ -181,10 +185,12 @@ proptest! {
 			.with_registered_asset("two".as_bytes().to_vec(), asset_b)
 			.with_pool(
 				ALICE,
-				(asset_a, asset_b),
-				amplification,
-				Permill::from_percent(0),
-				(ALICE, asset_a, initial_liquidity),
+				PoolInfo::<AssetId> {
+					assets: PoolAssets::new(asset_a,asset_b),
+					amplification,
+					fee: Permill::from_percent(0),
+				},
+				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
 			)
 			.build()
 			.execute_with(|| {
@@ -238,10 +244,12 @@ proptest! {
 			.with_registered_asset("two".as_bytes().to_vec(), asset_b)
 			.with_pool(
 				ALICE,
-				(asset_a, asset_b),
-				amplification,
-				Permill::from_percent(0),
-				(ALICE, asset_a, initial_liquidity),
+				PoolInfo::<AssetId> {
+					assets: PoolAssets::new(asset_a,asset_b),
+					amplification,
+					fee: Permill::from_percent(0),
+				},
+				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
 			)
 			.build()
 			.execute_with(|| {

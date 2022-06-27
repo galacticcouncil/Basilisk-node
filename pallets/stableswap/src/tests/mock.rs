@@ -39,7 +39,7 @@ use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
-	DispatchError, Permill,
+	DispatchError,
 };
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -123,6 +123,8 @@ impl orml_tokens::Config for Test {
 	type WeightInfo = ();
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
+	type OnNewTokenAccount = ();
+	type OnKilledTokenAccount = ();
 	type MaxLocks = ();
 	type DustRemovalWhitelist = Everything;
 }
@@ -150,16 +152,16 @@ impl Config for Test {
 	type WeightInfo = ();
 }
 
+pub struct InitialLiquidity {
+	pub(crate) account: AccountId,
+	pub(crate) asset: AssetId,
+	pub(crate) amount: Balance,
+}
+
 pub struct ExtBuilder {
 	endowed_accounts: Vec<(AccountId, AssetId, Balance)>,
 	registered_assets: Vec<(Vec<u8>, AssetId)>,
-	created_pools: Vec<(
-		AccountId,
-		(AssetId, AssetId),
-		u16,
-		Permill,
-		(AccountId, AssetId, Balance),
-	)>,
+	created_pools: Vec<(AccountId, PoolInfo<AssetId>, InitialLiquidity)>,
 }
 
 impl Default for ExtBuilder {
@@ -195,15 +197,8 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_pool(
-		mut self,
-		who: AccountId,
-		assets: (AssetId, AssetId),
-		amp: u16,
-		fee: Permill,
-		initial_liquidity: (AccountId, AssetId, Balance),
-	) -> Self {
-		self.created_pools.push((who, assets, amp, fee, initial_liquidity));
+	pub fn with_pool(mut self, who: AccountId, pool: PoolInfo<AssetId>, initial_liquidity: InitialLiquidity) -> Self {
+		self.created_pools.push((who, pool, initial_liquidity));
 		self
 	}
 
@@ -235,19 +230,24 @@ impl ExtBuilder {
 		let mut r: sp_io::TestExternalities = t.into();
 
 		r.execute_with(|| {
-			for (who, assets, amplification, fee, initial) in self.created_pools {
+			for (who, pool, initial) in self.created_pools {
 				let pool_id = PoolId(retrieve_current_asset_id());
-				assert_ok!(Stableswap::create_pool(Origin::signed(who), assets, amplification, fee,));
+				assert_ok!(Stableswap::create_pool(
+					Origin::signed(who),
+					(pool.assets.0, pool.assets.1),
+					pool.amplification,
+					pool.fee,
+				));
 				POOL_IDS.with(|v| {
 					v.borrow_mut().push(pool_id);
 				});
 
-				if initial.2 > Balance::zero() {
+				if initial.amount > Balance::zero() {
 					assert_ok!(Stableswap::add_liquidity(
-						Origin::signed(initial.0),
+						Origin::signed(initial.account),
 						pool_id,
-						initial.1,
-						initial.2,
+						initial.asset,
+						initial.amount,
 					));
 				}
 			}
@@ -258,7 +258,7 @@ impl ExtBuilder {
 }
 
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolId};
+use crate::types::{PoolAssets, PoolId, PoolInfo};
 use hydradx_traits::{Registry, ShareTokenRegistry};
 use sp_runtime::traits::Zero;
 

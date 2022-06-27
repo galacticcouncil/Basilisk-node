@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolId};
+use crate::types::{PoolAssets, PoolId, PoolInfo};
 use crate::{assert_balance, Error};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::Permill;
@@ -108,10 +108,16 @@ fn add_liquidity_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), asset_b)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -152,10 +158,16 @@ fn add_liquidity_other_asset_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -196,10 +208,16 @@ fn add_insufficient_liquidity_fails() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -228,10 +246,16 @@ fn remove_all_liquidity_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -279,10 +303,16 @@ fn remove_partial_liquidity_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -351,10 +381,16 @@ fn add_liquidity_with_insufficient_amount_fails() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2000)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -387,10 +423,16 @@ fn add_liquidity_with_invalid_data_fails() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2000)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -433,10 +475,16 @@ fn remove_liquidity_with_invalid_amounts_fails() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2000)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -479,10 +527,16 @@ fn remove_liquidity_with_invalid_data_fails() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2000)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {
@@ -520,10 +574,16 @@ fn remove_partial_with_insufficient_remaining_works() {
 		.with_registered_asset("two".as_bytes().to_vec(), 2)
 		.with_pool(
 			ALICE,
-			(asset_a, asset_b),
-			100u16,
-			Permill::from_percent(0),
-			(ALICE, asset_a, 100 * ONE),
+			PoolInfo::<AssetId> {
+				assets: PoolAssets::new(asset_a, asset_b),
+				amplification: 100u16,
+				fee: Permill::from_percent(0),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				asset: asset_a,
+				amount: 100 * ONE,
+			},
 		)
 		.build()
 		.execute_with(|| {

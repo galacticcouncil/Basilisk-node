@@ -1,6 +1,6 @@
 [package]
 name = "common-runtime"
-version = "1.9.1"
+version = "1.9.5"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -22,16 +22,16 @@ primitives = {path = '../../primitives', default-features = false}
 pallet-exchange = { path = "../../pallets/exchange", default-features=false}
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
-pallet-nft = { path = "../../pallets/nft", default-features = false }
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-stableswap = { path = '../../pallets/stableswap', default-features = false }
 
 # Warehouse dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false}
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "c73846ec093357fea1b35da5c56ecb37592d4896", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false}
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }

@@ -34,6 +34,8 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 
 #[test]
 fn non_native_fee_payment_works() {
+	use pallet_transaction_multi_payment::TransactionMultiPaymentDataProvider;
+
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -116,7 +118,7 @@ fn non_native_fee_payment_works() {
 				asset_id: 1,
 				native_fee_amount: 462_676_500_000,
 				non_native_fee_amount: 265_222_898_276,
-				destination_account_id: FALLBACK.into(),
+				destination_account_id: basilisk_runtime::MultiTransactionPayment::get_fee_receiver(),
 			}
 			.into(),
 			pallet_transaction_multi_payment::Event::CurrencySet {
@@ -141,6 +143,52 @@ fn non_native_fee_payment_works() {
 				avg_price: Price::from_inner(535331905781590000),
 				volume: 35_331_905_781_585
 			}
+		);
+	});
+}
+
+#[test]
+fn fee_currency_on_account_lifecycle() {
+	TestNet::reset();
+
+	const HITCHHIKER: [u8; 32] = [42u8; 32];
+
+	Basilisk::execute_with(|| {
+		use basilisk_runtime::{Currencies, MultiTransactionPayment, Origin, Tokens};
+
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
+		);
+
+		// ------------ set on create ------------
+		assert_ok!(Currencies::transfer(
+			Origin::signed(BOB.into()),
+			HITCHHIKER.into(),
+			1,
+			50_000_000_000_000,
+		));
+
+		assert_eq!(
+			Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
+			50_000_000_000_000
+		);
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			Some(1)
+		);
+
+		// ------------ remove on delete ------------
+		assert_ok!(Tokens::transfer_all(
+			Origin::signed(HITCHHIKER.into()),
+			BOB.into(),
+			1,
+			false,
+		));
+
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
 		);
 	});
 }
