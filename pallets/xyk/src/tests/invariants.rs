@@ -1,5 +1,5 @@
 use super::mock::*;
-use super::*;
+use crate::*;
 
 use proptest::prelude::*;
 
@@ -87,6 +87,8 @@ proptest! {
 				let bob_balance_a = Currency::free_balance(asset_a, &BOB);
 				let bob_balance_b = Currency::free_balance(asset_b, &BOB);
 
+				let issuance = XYK::total_liquidity(&pool_account);
+
 				assert_ok!(XYK::add_liquidity(
 					Origin::signed(BOB),
 					asset_a,
@@ -114,7 +116,10 @@ proptest! {
 					"Price has changed after add liquidity"
 				);
 
-				let issuance = Currency::total_issuance(share_token);
+				// The following must hold when adding liquidity.
+				// delta_S / S <= delta_X / X
+				// delta_S / S <= delta_Y / Y
+				// where S is total share issuance, X is asset a and Y is asset b
 
 				let s = U256::from(issuance);
 				let delta_s = U256::from(bob_shares);
@@ -123,15 +128,29 @@ proptest! {
 				let x = U256::from(pool_balance_a);
 				let y = U256::from(pool_balance_b);
 
-				let l = delta_s * x;
-				let r = s * delta_x;
+				let left = delta_s * x;
+				let right = s * delta_x;
 
-				assert!(l <= r);
+				assert!(left <= right);
 
-				let l = delta_s * y;
-				let r = s * delta_y;
+				let l = FixedU128::from((bob_shares, issuance));
+				let r = FixedU128::from((bob_balance_a - new_bob_balance_a, pool_balance_a));
 
-				assert!(l <= r);
+				let diff = r - l;
+
+				assert!(diff <= FixedU128::from_float(0.000000001));
+
+				let left = delta_s * y;
+				let right = s * delta_y;
+
+				assert!(left <= right);
+
+				let l = FixedU128::from((bob_shares, issuance));
+				let r = FixedU128::from((bob_balance_b - new_bob_balance_b, pool_balance_b));
+
+				let diff = r - l;
+
+				assert!(diff <= FixedU128::from_float(0.000000001));
 			});
 	}
 }
@@ -184,6 +203,8 @@ proptest! {
 
 				let bob_shares = Currency::free_balance(share_token, &BOB);
 
+				let issuance = XYK::total_liquidity(&pool_account);
+
 				assert_ok!(XYK::remove_liquidity(
 						Origin::signed(BOB),
 						asset_a,
@@ -208,8 +229,6 @@ proptest! {
 					"Price has changed after remove liquidity"
 				);
 
-				let issuance = Currency::total_issuance(share_token);
-
 				let s = U256::from(issuance);
 				let delta_s = U256::from(bob_shares);
 				let delta_x = U256::from(new_bob_balance_a - bob_balance_a);
@@ -217,15 +236,29 @@ proptest! {
 				let x = U256::from(pool_balance_a);
 				let y = U256::from(pool_balance_b);
 
-				let l = delta_s * x;
-				let r = s * delta_x;
+				let left = delta_s * x;
+				let right = s * delta_x;
 
-				assert!(l >= r);
+				assert!(left >= right);
 
-				let l = delta_s * y;
-				let r = s * delta_y;
+				let l = FixedU128::from((bob_shares, issuance));
+				let r = FixedU128::from((new_bob_balance_a - bob_balance_a, pool_balance_a));
 
-				assert!(l >= r);
+				let diff = l - r;
+
+				assert!(diff <= FixedU128::from_float(0.000000001));
+
+				let left = delta_s * y;
+				let right = s * delta_y;
+
+				assert!(left >= right);
+
+				let l = FixedU128::from((bob_shares, issuance));
+				let r = FixedU128::from((new_bob_balance_b - bob_balance_b, pool_balance_b));
+
+				let diff = l - r;
+
+				assert!(diff <= FixedU128::from_float(0.000000001))
 			});
 	}
 }
@@ -430,7 +463,9 @@ proptest! {
 				let _new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
 				let _new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
 
-				//TODO: this currently fails - under investigation
+				// TODO: waiting for https://github.com/galacticcouncil/Basilisk-node/pull/500
+				// Once merged, fee can be set to 0
+				// because this holds only with zero fees.
 			/*
 				 assert_asset_invariant((_pool_balance_a, _pool_balance_b),
 					(_new_pool_balance_a, _new_pool_balance_b),

@@ -15,11 +15,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::*;
-pub use crate::mock::{
+pub use super::mock::{
 	Currency, Event as TestEvent, ExtBuilder, Origin, System, Test, ACA, ALICE, BOB, CHARLIE, DOT, HDX,
 	HDX_DOT_POOL_ID, ONE, XYK,
 };
+use crate::*;
 use frame_support::BoundedVec;
 use frame_support::{assert_noop, assert_ok};
 use hydra_dx_math::MathError;

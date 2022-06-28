@@ -129,12 +129,13 @@ benchmarks! {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::tests::{new_test_ext, Test};
+	use crate::tests::mock::{ExtBuilder, System, Test};
 	use frame_support::assert_ok;
 
 	#[test]
 	fn test_benchmarks() {
-		new_test_ext().execute_with(|| {
+		ExtBuilder::default().build().execute_with(|| {
+			System::set_block_number(1);
 			assert_ok!(Pallet::<Test>::test_benchmark_create_pool());
 			assert_ok!(Pallet::<Test>::test_benchmark_add_liquidity());
 			assert_ok!(Pallet::<Test>::test_benchmark_remove_liquidity());
