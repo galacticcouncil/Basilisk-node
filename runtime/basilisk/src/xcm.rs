@@ -232,13 +232,13 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
-			MultiLocation {
-				parents,
-				interior: X2(Parachain(id), GeneralIndex(index)),
-			} if parents == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
-				// Handling native asset for this parachain
-				Some(CORE_ASSET_ID)
-			}
+			// MultiLocation {
+			// 	parents,
+			// 	interior: X2(Parachain(id), GeneralIndex(index)),
+			// } if parents == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
+			// 	// Handling native asset for this parachain
+			// 	Some(CORE_ASSET_ID)
+			// }
 			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
 			MultiLocation {
 				parents: 0,
