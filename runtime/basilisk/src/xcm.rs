@@ -228,11 +228,6 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
-			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
-			MultiLocation {
-				parents: 0,
-				interior: X1(GeneralIndex(index)),
-			} if (index as u32) == CORE_ASSET_ID => Some(CORE_ASSET_ID),
 			// delegate to asset-registry
 			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
 		}
