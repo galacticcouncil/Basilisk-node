@@ -1,7 +1,7 @@
 #![cfg(test)]
 pub use basilisk_runtime::AccountId;
 use pallet_transaction_multi_payment::Price;
-use primitives::Balance;
+use primitives::{AssetId, Balance};
 
 pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
@@ -9,6 +9,12 @@ pub const CHARLIE: [u8; 32] = [6u8; 32];
 pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const BSX: Balance = 1_000_000_000_000;
+
+pub const KSM_ID: AssetId = 1;
+pub const KSM: Balance = 1_000_000_000_000;
+
+pub const SNEK_ID: AssetId = 2;
+pub const SNEK: Balance = 1_000_000_000_000;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
@@ -27,7 +33,7 @@ decl_test_relay_chain! {
 }
 
 decl_test_parachain! {
-	pub struct Basilisk{
+	pub struct Basilisk {
 		Runtime = basilisk_runtime::Runtime,
 		Origin = basilisk_runtime::Origin,
 		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
@@ -37,7 +43,7 @@ decl_test_parachain! {
 }
 
 decl_test_parachain! {
-	pub struct Hydra{
+	pub struct Hydra {
 		Runtime = basilisk_runtime::Runtime,
 		Origin = basilisk_runtime::Origin,
 		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
@@ -130,7 +136,9 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 }
 
 pub fn hydra_ext() -> sp_io::TestExternalities {
-	use basilisk_runtime::{Runtime, System};
+	use basilisk_runtime::{NativeExistentialDeposit, Runtime, System};
+
+	let existential_deposit = NativeExistentialDeposit::get();
 
 	let mut t = frame_system::GenesisConfig::default()
 		.build_storage::<Runtime>()
@@ -142,12 +150,26 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
+	pallet_asset_registry::GenesisConfig::<Runtime> {
+		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128), (b"TRF".to_vec(), 1_000_000u128)],
+		native_asset_name: b"BSX".to_vec(),
+		native_existential_deposit: existential_deposit,
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 3000.into(),
+			parachain_id: 3000u32.into(),
 		},
 		&mut t,
 	)
+	.unwrap();
+
+	orml_tokens::GenesisConfig::<Runtime> {
+		balances: vec![(AccountId::from(ALICE), SNEK_ID, 200 * SNEK)],
+	}
+	.assimilate_storage(&mut t)
 	.unwrap();
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
@@ -185,7 +207,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
-		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128)],
+		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128), (b"TRF".to_vec(), 1_000_000u128)],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
 	}
@@ -201,10 +223,14 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 1, 200 * BSX),
-			(AccountId::from(BOB), 1, 1_000 * BSX),
-			(AccountId::from(CHARLIE), 1, 1000 * BSX),
-			(AccountId::from(DAVE), 1, 1_000 * BSX),
+			(AccountId::from(ALICE), KSM_ID, 200 * KSM),
+			(AccountId::from(BOB), KSM_ID, 1_000 * KSM),
+			(AccountId::from(CHARLIE), KSM_ID, 1000 * KSM),
+			(AccountId::from(DAVE), KSM_ID, 1_000 * KSM),
+			(AccountId::from(ALICE), SNEK_ID, 200 * SNEK),
+			(AccountId::from(BOB), SNEK_ID, 1_000 * SNEK),
+			(AccountId::from(CHARLIE), SNEK_ID, 1000 * SNEK),
+			(AccountId::from(DAVE), SNEK_ID, 1_000 * SNEK),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -219,7 +245,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
-		currencies: vec![(1, Price::from(1))],
+		currencies: vec![(KSM_ID, Price::from(1)), (SNEK_ID, Price::from(1))],
 		account_currencies: vec![],
 	}
 	.assimilate_storage(&mut t)
