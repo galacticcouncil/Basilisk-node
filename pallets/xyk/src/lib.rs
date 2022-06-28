@@ -417,18 +417,15 @@ pub mod pallet {
 
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
-			let total_liquidity = Self::total_liquidity(&pair_account);
+			let share_issuance = Self::total_liquidity(&pair_account);
 
-			let amount_b_required =
-				hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
-					.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
+			let amount_b = hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
+				.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
 
-			let shares_added = if asset_a < asset_b { amount_a } else { amount_b_required };
+			ensure!(amount_b <= amount_b_max_limit, Error::<T>::AssetAmountExceededLimit);
 
-			ensure!(
-				amount_b_required <= amount_b_max_limit,
-				Error::<T>::AssetAmountExceededLimit
-			);
+			let shares_added = hydra_dx_math::xyk::calculate_shares(asset_a_reserve, amount_a, share_issuance)
+				.ok_or(Error::<T>::Overflow)?;
 
 			ensure!(!shares_added.is_zero(), Error::<T>::InvalidMintedLiquidity);
 
@@ -441,12 +438,12 @@ pub mod pallet {
 				Error::<T>::InsufficientLiquidity
 			);
 
-			let liquidity_amount = total_liquidity
+			let liquidity_amount = share_issuance
 				.checked_add(shares_added)
 				.ok_or(Error::<T>::InvalidLiquidityAmount)?;
 
 			T::Currency::transfer(asset_a, &who, &pair_account, amount_a)?;
-			T::Currency::transfer(asset_b, &who, &pair_account, amount_b_required)?;
+			T::Currency::transfer(asset_b, &who, &pair_account, amount_b)?;
 
 			T::Currency::deposit(share_token, &who, shares_added)?;
 
@@ -457,7 +454,7 @@ pub mod pallet {
 				asset_a,
 				asset_b,
 				amount_a,
-				amount_b: amount_b_required,
+				amount_b,
 			});
 
 			Ok(())

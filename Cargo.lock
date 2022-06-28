@@ -3175,8 +3175,8 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.4.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1bafe7bb96864f5d29bab68061719c541ef06648#1bafe7bb96864f5d29bab68061719c541ef06648"
+version = "4.5.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1cd815cbce846a42d351db3778ff9c07149a6ad2#1cd815cbce846a42d351db3778ff9c07149a6ad2"
 dependencies = [
  "fixed",
  "num-traits",
@@ -5833,7 +5833,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.4.4"
+version = "4.4.5"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
