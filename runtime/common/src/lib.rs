@@ -18,6 +18,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod adapter;
+pub mod filters;
 pub mod locked_balance;
 pub mod weights;
 

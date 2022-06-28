@@ -1,6 +1,5 @@
 use super::{AssetId, *};
 
-use cumulus_primitives_core::ParaId;
 use frame_support::{
 	traits::{Everything, Nothing},
 	PalletId,
@@ -21,6 +20,8 @@ use xcm_builder::{
 	TakeWeightCredit,
 };
 use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
+
+use common_runtime::filters::AllowEverythingExcept;
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
@@ -147,21 +148,6 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-parameter_types! {
-	pub NativeLocation: MultiLocation = MultiLocation::new(1, X2(Parachain(ParachainInfo::get().into()), GeneralIndex(CORE_ASSET_ID.into())));
-}
-
-pub struct EverythingExcept<ExcludedLocation>(PhantomData<ExcludedLocation>);
-impl<ExcludedLocation: Get<MultiLocation>> Contains<(MultiLocation, Vec<MultiAsset>)>
-	for EverythingExcept<ExcludedLocation>
-{
-	fn contains((_location, assets): &(MultiLocation, Vec<MultiAsset>)) -> bool {
-		!assets
-			.iter()
-			.any(|asset| asset.is_fungible(Some(Concrete(ExcludedLocation::get()))))
-	}
-}
-
 impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -185,6 +171,13 @@ impl orml_xcm::Config for Runtime {
 	type SovereignOrigin = crate::EnsureMajorityCouncilOrRoot;
 }
 
+parameter_types! {
+	pub NativeLocation: MultiLocation = MultiLocation::new(
+		1,
+		X2(Parachain(ParachainInfo::get().into()), GeneralIndex(CORE_ASSET_ID.into()))
+	);
+}
+
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
@@ -193,7 +186,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
-	type XcmReserveTransferFilter = EverythingExcept<NativeLocation>;
+	type XcmReserveTransferFilter = AllowEverythingExcept<NativeLocation>;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Origin = Origin;
