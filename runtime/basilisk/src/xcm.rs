@@ -156,7 +156,9 @@ impl<ExcludedLocation: Get<MultiLocation>> Contains<(MultiLocation, Vec<MultiAss
 	for EverythingExcept<ExcludedLocation>
 {
 	fn contains((_location, assets): &(MultiLocation, Vec<MultiAsset>)) -> bool {
-		!assets.iter().any(|asset| asset.is_fungible(Some(Concrete(ExcludedLocation::get()))))
+		!assets
+			.iter()
+			.any(|asset| asset.is_fungible(Some(Concrete(ExcludedLocation::get()))))
 	}
 }
 
