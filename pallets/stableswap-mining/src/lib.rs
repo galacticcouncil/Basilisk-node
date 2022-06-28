@@ -143,6 +143,7 @@ pub mod pallet {
 		YieldFarmCreated {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
+			pool_id: PoolId<AssetId>,
 			multiplier: FarmMultiplier,
 			loyalty_curve: Option<LoyaltyCurve>,
 		},
@@ -306,6 +307,7 @@ pub mod pallet {
 			Self::deposit_event(Event::YieldFarmCreated {
 				global_farm_id,
 				yield_farm_id,
+				pool_id,
 				multiplier,
 				loyalty_curve,
 			});

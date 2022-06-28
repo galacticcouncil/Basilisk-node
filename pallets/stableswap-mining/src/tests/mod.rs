@@ -13,4 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod mock;
+use super::*;
+use frame_support::{assert_noop, assert_ok};
+use mock::*;
+
+macro_rules! assert_last_event {
+	( $x:expr ) => {{
+		pretty_assertions::assert_eq!(System::events().last().expect("events expected").event, $x);
+	}};
+}
+
+pub mod create_global_farm;
+pub(crate) mod mock;
+//pub mod destroy_global_farm;
+pub mod create_yield_farm;
