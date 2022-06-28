@@ -292,7 +292,6 @@ fn fee_currency_set_on_xcm_transfer() {
 
 #[test]
 fn transfer_of_native_should_fail() {
-	env_logger::init();
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
