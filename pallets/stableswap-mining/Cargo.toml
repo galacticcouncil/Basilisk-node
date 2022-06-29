@@ -25,6 +25,7 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 # HydraDX dependencies
 warehouse_liquidity_mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil//warehouse", rev="d5a86e0006dd3c446ccf49cf7a37e37269c404fc", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", rev="d5a86e0006dd3c446ccf49cf7a37e37269c404fc", default-features = false }
+#warehouse_liquidity_mining = { package="pallet-liquidity-mining", path="../../../warehouse/liquidity-mining", default-features = false }
 #hydradx-traits = { path="../../../warehouse/traits", default-features = false }
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="3e0e6774d52184b00e758dc822564e5a893773f5", default-features = false }
 

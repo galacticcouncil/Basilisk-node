@@ -477,6 +477,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			// Owner check
 			ensure!(
 				T::NFTHandler::owner(&T::NFTClassId::get(), &nft_id) == Some(who.clone()),
 				Error::<T>::NotDepositOwner
@@ -531,7 +532,7 @@ pub mod pallet {
 
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_shares())]
 		#[transactional]
-		pub fn withdraw_shares(
+		pub fn withdraw_lp_shares(
 			origin: OriginFor<T>,
 			nft_id: NftInstanceId,
 			yield_farm_id: YieldFarmId,

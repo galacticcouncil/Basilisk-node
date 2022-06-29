@@ -38,7 +38,6 @@ use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 	DispatchError, DispatchResult,
 };
-//use stableswap_mining::*;
 
 pub use pallet_stableswap::{
 	traits::ShareAccountIdFor,
@@ -75,6 +74,7 @@ pub const TKN2: AssetId = 1_007;
 pub const DAI: AssetId = 1_008;
 
 pub const GC_FARM: GlobalFarmId = 1;
+pub const BOB_FARM: GlobalFarmId = 2;
 
 pub const LIQ_MINING_NFT_CLASS: u128 = 1;
 
@@ -222,6 +222,7 @@ thread_local! {
 	pub static REGISTERED_ASSETS: RefCell<HashMap<AssetId, u32>> = RefCell::new(HashMap::default());
 	pub static ASSET_IDENTS: RefCell<HashMap<Vec<u8>, u32>> = RefCell::new(HashMap::default());
 	pub static POOL_IDS: RefCell<Vec<PoolId<AssetId>>> = RefCell::new(Vec::new());
+	pub static DEPOSIT_IDS: RefCell<Vec<DepositId>> = RefCell::new(Vec::new());
 }
 
 pub struct DummyRegistry<T>(sp_std::marker::PhantomData<T>);
@@ -378,6 +379,7 @@ pub struct ExtBuilder {
 		AssetId,
 		AssetId,
 	)>,
+	deposits: Vec<(AccountId, GlobalFarmId, YieldFarmId, PoolId<AssetId>, Balance)>,
 	starting_block: u64,
 }
 
@@ -401,6 +403,7 @@ impl Default for ExtBuilder {
 			created_pools: vec![],
 			global_farms: vec![],
 			yield_farms: vec![],
+			deposits: vec![],
 			starting_block: 1,
 		}
 	}
@@ -430,7 +433,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_global_farms(
+	pub fn with_global_farm(
 		mut self,
 		total_rewards: Balance,
 		planned_yielding_periods: PeriodOf<Test>,
@@ -457,7 +460,7 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_yield_farms(
+	pub fn with_yield_farm(
 		mut self,
 		who: AccountId,
 		global_farm_id: GlobalFarmId,
@@ -475,6 +478,20 @@ impl ExtBuilder {
 			assets.0,
 			assets.1,
 		));
+
+		self
+	}
+
+	pub fn with_deposit(
+		mut self,
+		owner: AccountId,
+		global_farm_id: GlobalFarmId,
+		yield_farm_id: YieldFarmId,
+		pool_id: PoolId<AssetId>,
+		amount: Balance,
+	) -> Self {
+		self.deposits
+			.push((owner, global_farm_id, yield_farm_id, pool_id, amount));
 
 		self
 	}
@@ -569,6 +586,23 @@ impl ExtBuilder {
 					asset_b
 				));
 			}
+
+			//Create deposits
+			let mut i: DepositId = 1;
+			for (owner, global_farm_id, yield_farm_id, pool_id, amount) in self.deposits {
+				assert_ok!(StableswapMining::deposit_lp_shares(
+					Origin::signed(owner),
+					global_farm_id,
+					yield_farm_id,
+					pool_id,
+					amount
+				));
+
+				DEPOSIT_IDS.with(|v| {
+					v.borrow_mut().push(i);
+				});
+				i += 1;
+			}
 		});
 
 		r
@@ -581,4 +615,8 @@ pub(crate) fn retrieve_current_asset_id() -> AssetId {
 
 pub(crate) fn get_pool_id_at(idx: usize) -> PoolId<AssetId> {
 	POOL_IDS.with(|v| v.borrow()[idx])
+}
+
+pub(crate) fn get_deposit_id_at(idx: usize) -> DepositId {
+	DEPOSIT_IDS.with(|v| v.borrow()[idx])
 }

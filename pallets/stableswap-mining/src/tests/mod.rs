@@ -23,7 +23,19 @@ macro_rules! assert_last_event {
 	}};
 }
 
+pub fn has_event(event: mock::Event) -> bool {
+	System::events().iter().any(|record| record.event == event)
+}
+
+pub mod claim_rewards;
 pub mod create_global_farm;
-pub(crate) mod mock;
-//pub mod destroy_global_farm;
 pub mod create_yield_farm;
+pub mod deposit_lp_shares;
+pub mod destroy_global_farm;
+pub mod destroy_yield_farm;
+pub(crate) mod mock;
+pub mod redeposit_lp_shares;
+pub mod resume_yield_farm;
+pub mod stop_yield_farm;
+pub mod update_yield_farm;
+pub mod withdraw_lp_shares;

@@ -16,18 +16,7 @@
 use super::*;
 
 #[test]
-fn destroy_global_farm_should_work() {
-	let owner = ALICE;
-	let total_rewards = 1_000_000_000_000_u128;
-	let planned_yielding_periods = 11_000_000_u64;
-	let blocks_per_period = 100;
-	let incentivized_asset = BSX;
-	let reward_currency = BSX;
-	let yield_per_period = Permill::from_float(0.2);
-	let min_deposit = 100;
-	let price_adujustment: FixedU128 = One::one();
-	let global_farm_id = GC_FARM;
-
+fn update_yield_farm_should_work() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(ALICE, BSX, 1_000 * ONE),
@@ -50,28 +39,38 @@ fn destroy_global_farm_should_work() {
 			},
 		)
 		.with_global_farm(
-			total_rewards,
-			planned_yielding_periods,
-			blocks_per_period,
-			incentivized_asset,
-			reward_currency,
-			owner,
-			yield_per_period,
-			min_deposit,
-			price_adujustment,
+			100 * ONE,
+			1_000_000,
+			1_000,
+			BSX,
+			BSX,
+			GC,
+			Permill::from_float(0.2),
+			1_000,
+			One::one(),
 		)
+		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
 		.build()
 		.execute_with(|| {
-			assert_ok!(StableswapMining::destroy_global_farm(
-				Origin::signed(owner),
-				global_farm_id
+			let owner = GC;
+			let global_farm_id = GC_FARM;
+			let yield_farm_id = 2;
+			let pool_id = get_pool_id_at(0);
+			let new_multiplier = FixedU128::from_float(5.896);
+
+			assert_ok!(StableswapMining::update_yield_farm(
+				Origin::signed(GC),
+				global_farm_id,
+				pool_id,
+				new_multiplier
 			));
 
-			assert_last_event!(crate::Event::GlobalFarmDestroyed {
+			assert_last_event!(crate::Event::YieldFarmUpdated {
 				who: owner,
-				id: global_farm_id,
-				reward_currency,
-				undistributed_rewards: total_rewards,
+				global_farm_id,
+				yield_farm_id,
+				pool_id,
+				multiplier: new_multiplier
 			}
 			.into());
 		});
