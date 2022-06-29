@@ -746,10 +746,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let nft_owner =
+			let deposit_owner =
 				T::NFTHandler::owner(&T::NftClassId::get(), &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
 
-			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
+			ensure!(deposit_owner == who, Error::<T>::NotDepositOwner);
 
 			let fail_on_double_claim = true;
 			let (farm_id, reward_currency, claimed, _) =
