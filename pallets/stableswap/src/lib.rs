@@ -295,7 +295,7 @@ pub mod pallet {
 				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
 
 				let pool = PoolInfo {
-					assets: pool_assets.clone(),
+					assets: pool_assets,
 					amplification,
 					fee,
 				};
