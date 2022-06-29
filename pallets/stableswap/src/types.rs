@@ -12,7 +12,7 @@ pub(crate) type Balance = u128;
 /// Pool identifier. Share Asset id is used as pool identifier.
 /// Share asset is unique token for each pool. That means using share asset as pool identifier
 /// does not require additional "tracking" id for newly created pools.
-#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo, Eq)]
 pub struct PoolId<AssetId>(pub AssetId);
 
 /// Pool properties for 2-asset pool (v1)
