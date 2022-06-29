@@ -33,7 +33,7 @@ fn withdraw_shares_should_work() {
 		//TODO: Dani - refactor tests, we do not need such a long one
 		const REWARD_CURRENCY: u32 = BSX;
 
-		let pallet_account = LiquidityMining::account_id();
+		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
 		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
@@ -1116,7 +1116,7 @@ fn withdraw_shares_from_destroyed_farm_should_work() {
 			.is_deleted());
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().state, FarmState::Deleted);
 
-		let pallet_account = LiquidityMining::account_id();
+		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
 
 		//TODO: Dani - do we need such a big test set? Probably not
 		let test_data = vec![
@@ -1262,7 +1262,7 @@ fn withdraw_shares_from_stopped_yield_farm_should_work() {
 			BSX_TKN1_ASSET_PAIR
 		));
 
-		let pallet_account = LiquidityMining::account_id();
+		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 
@@ -1628,7 +1628,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
 		let yield_farm_id_removed: PoolId = BSX_TKN1_YIELD_FARM_ID;
-		let pallet_account = LiquidityMining::account_id();
+		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
 		let globa_pool_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let global_farm_bsx_balance = Tokens::free_balance(BSX, &globa_pool_account);

@@ -306,14 +306,13 @@ pub mod pallet {
 			total_valued_shares: Balance,
 		},
 
-		//TODO: Dani - add comment
+		/// NFT representing deposit has been destroyed
 		DepositDestroyed {
 			who: AccountIdOf<T>,
 			nft_instance_id: primitives::InstanceId,
 		},
 	}
 
-	//TODO: Dani  extend the documentation with the new function params
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Create new liquidity mining program with proved parameters.
@@ -338,8 +337,10 @@ pub mod pallet {
 		/// - `reward_currency`: payoff currency of rewards.
 		/// - `owner`: liq. mining farm owner.
 		/// - `yield_per_period`: percentage return on `reward_currency` of all pools p.a.
-		///
+		/// - `min_deposit`: minimum amount which can be deposited to the farm
+		/// - `price_adjustment`:
 		/// Emits `FarmCreated` event when successful.
+		//TODO: Ask Martin what price_adjustment is
 		#[allow(clippy::too_many_arguments)]
 		#[pallet::weight(<T as Config>::WeightInfo::create_farm())]
 		#[transactional]
@@ -786,6 +787,7 @@ pub mod pallet {
 		/// - `origin`: account owner of deposit(nft).
 		/// - `deposit_id`: nft id representing deposit in the liq. pool.
 		/// - `yield_farm_id`: yield farm identifier to dithdraw shares from.
+		/// - `asset_pair`: asset pair identifying liq. pool in farm.
 		///
 		/// Emits:
 		/// * `RewardClaimed` if claim happen
@@ -849,15 +851,13 @@ pub mod pallet {
 			}
 
 			if is_destroyed {
-				//TODO: Dani - add test case for this
 				Self::unlock_lp_tokens(amm_pool_id, who.clone(), withdrawn_amount)?;
-
 				T::NFTHandler::burn_from(&T::NftClassId::get(), &deposit_id)?;
 
 				Self::deposit_event(Event::DepositDestroyed {
 					who: who.clone(),
 					nft_instance_id: deposit_id,
-				})
+				});
 			}
 
 			Ok(())
@@ -866,8 +866,7 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-	/// Account id of pot holding all the LP shares
-	fn account_id() -> AccountIdOf<T> {
+	fn account_id_for_all_lp_shares() -> AccountIdOf<T> {
 		<T as pallet::Config>::PalletId::get().into_account()
 	}
 
@@ -886,7 +885,7 @@ impl<T: Config> Pallet<T> {
 	fn lock_lp_tokens(amm_pool_id: T::AccountId, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
 		let lp_token = Self::get_lp_token(&amm_pool_id)?;
 
-		let service_account_for_lp_shares = Self::account_id();
+		let service_account_for_lp_shares = Self::account_id_for_all_lp_shares();
 		MultiCurrencyOf::<T>::transfer(lp_token, &who, &service_account_for_lp_shares, amount)?;
 
 		Ok(())
@@ -895,7 +894,7 @@ impl<T: Config> Pallet<T> {
 	fn unlock_lp_tokens(amm_pool_id: T::AccountId, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
 		let lp_token = Self::get_lp_token(&amm_pool_id)?;
 
-		let service_account_for_lp_shares = Self::account_id();
+		let service_account_for_lp_shares = Self::account_id_for_all_lp_shares();
 		MultiCurrencyOf::<T>::transfer(lp_token, &service_account_for_lp_shares, &who, amount)?;
 
 		Ok(())

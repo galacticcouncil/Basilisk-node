@@ -29,7 +29,7 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 	let version = StorageVersion::get::<Pallet<T>>();
 
 	if version == 0 {
-		let pallet_account = <Pallet<T>>::account_id();
+		let pallet_account = <Pallet<T>>::account_id_for_all_lp_shares();
 
 		T::NFTHandler::create_class(&T::NftClassId::get(), &pallet_account, &pallet_account).unwrap();
 		//TODO: Dani fix it at the end when we merge back because we need to go to master, get the latest main where nft is
@@ -61,7 +61,7 @@ mod tests {
 	#[test]
 	fn init_nft_class_migration_should_work() {
 		sp_io::TestExternalities::default().execute_with(|| {
-			let pallet_account = <Pallet<Test>>::account_id();
+			let pallet_account = <Pallet<Test>>::account_id_for_all_lp_shares();
 
 			let weight = init_nft_class::<Test>();
 

@@ -24,7 +24,7 @@ fn deposit_shares_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let farm_id = GC_FARM;
 
-		let pallet_account = LiquidityMining::account_id();
+		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
 		let bsx_tkn1_amm_account =
 			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN1_ASSET_PAIR)).unwrap().0);
 
