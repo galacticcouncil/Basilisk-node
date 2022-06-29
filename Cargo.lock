@@ -3192,8 +3192,8 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.5.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1cd815cbce846a42d351db3778ff9c07149a6ad2#1cd815cbce846a42d351db3778ff9c07149a6ad2"
+version = "4.4.5"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=6500f90f079325e12f6b4ee47fad6e5a56f6d9b9#6500f90f079325e12f6b4ee47fad6e5a56f6d9b9"
 dependencies = [
  "fixed",
  "num-traits",
@@ -3204,8 +3204,8 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.4.5"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=6500f90f079325e12f6b4ee47fad6e5a56f6d9b9#6500f90f079325e12f6b4ee47fad6e5a56f6d9b9"
+version = "4.5.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1cd815cbce846a42d351db3778ff9c07149a6ad2#1cd815cbce846a42d351db3778ff9c07149a6ad2"
 dependencies = [
  "fixed",
  "num-traits",
@@ -5726,7 +5726,7 @@ version = "5.3.5"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.4.4",
+ "hydra-dx-math 4.5.0",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -5868,7 +5868,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.4.4",
+ "hydra-dx-math 4.5.0",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -6518,7 +6518,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 4.4.4",
+ "hydra-dx-math 4.5.0",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
