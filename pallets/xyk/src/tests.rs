@@ -999,6 +999,7 @@ fn sell_with_correct_fees_should_work() {
 		]);
 	});
 }
+
 #[test]
 fn discount_sell_fees_should_work() {
 	let accounts = vec![
@@ -1124,6 +1125,81 @@ fn discount_sell_fees_should_work() {
 			}
 			.into(),
 		]);
+	});
+}
+
+#[test]
+fn sell_with_zero_discount_should_work() {
+	let accounts = vec![
+		(ALICE, HDX, 1_000_000_000_000_000u128),
+		(ALICE, ACA, 1_000_000_000_000_000u128),
+		(ALICE, DOT, 1_000_000_000_000_000u128),
+	];
+
+	let mut ext: sp_io::TestExternalities = ExtBuilder::default()
+		.with_accounts(accounts)
+		.with_discounted_fee((0, 0))
+		.build();
+	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| {
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			asset_a,
+			HDX,
+			1_000_000_000,
+			Price::from(2)
+		));
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			asset_a,
+			asset_b,
+			200_000_000_000,
+			Price::from(2)
+		));
+
+		let pair_account = XYK::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+		let native_pair_account = XYK::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: HDX,
+		});
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 200_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 400_000_000_000);
+		assert_eq!(Currency::free_balance(asset_a, &native_pair_account), 1_000_000_000);
+		assert_eq!(Currency::free_balance(HDX, &native_pair_account), 2_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &ALICE), 999_799_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &ALICE), 999_600_000_000_000);
+		assert_eq!(Currency::free_balance(HDX, &ALICE), 999_998_000_000_000);
+
+		assert_ok!(XYK::sell(Origin::signed(ALICE), asset_a, asset_b, 10_000, 1_500, true,));
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 200_000_010_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 399_999_980_001);
+		assert_eq!(Currency::free_balance(asset_a, &native_pair_account), 1_000_000_000);
+		assert_eq!(Currency::free_balance(HDX, &native_pair_account), 2_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &ALICE), 999_798_999_990_000);
+		assert_eq!(Currency::free_balance(asset_b, &ALICE), 999_600_000_019_999);
+		assert_eq!(Currency::free_balance(HDX, &ALICE), 999_998_000_000_000);
+
+		expect_events(vec![Event::SellExecuted {
+			who: ALICE,
+			asset_in: asset_a,
+			asset_out: asset_b,
+			amount: 10_000,
+			sale_price: 19_999,
+			fee_asset: asset_b,
+			fee_amount: 0,
+			pool: pair_account,
+		}
+		.into()]);
 	});
 }
 
@@ -1433,6 +1509,90 @@ fn single_buy_with_discount_should_work() {
 			}
 			.into(),
 		]);
+	});
+}
+
+#[test]
+fn buy_with_zero_discount_should_work() {
+	let accounts = vec![
+		(ALICE, HDX, 1_000_000_000_000_000u128),
+		(ALICE, ACA, 1_000_000_000_000_000u128),
+		(ALICE, DOT, 1_000_000_000_000_000u128),
+	];
+
+	let mut ext: sp_io::TestExternalities = ExtBuilder::default()
+		.with_accounts(accounts)
+		.with_discounted_fee((0, 0))
+		.build();
+	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| {
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			asset_a,
+			HDX,
+			1_000_000_000,
+			Price::from(2)
+		));
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			asset_a,
+			asset_b,
+			200_000_000_000,
+			Price::from(2)
+		));
+
+		let pair_account = XYK::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+
+		let native_pair_account = XYK::get_pair_id(AssetPair {
+			asset_in: asset_a,
+			asset_out: HDX,
+		});
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 200_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 400_000_000_000);
+		assert_eq!(Currency::free_balance(asset_a, &native_pair_account), 1_000_000_000);
+		assert_eq!(Currency::free_balance(HDX, &native_pair_account), 2_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &ALICE), 999_799_000_000_000);
+		assert_eq!(Currency::free_balance(asset_b, &ALICE), 999_600_000_000_000);
+		assert_eq!(Currency::free_balance(HDX, &ALICE), 999_998_000_000_000);
+
+		assert_ok!(XYK::buy(
+			Origin::signed(ALICE),
+			asset_a,
+			asset_b,
+			10_000,
+			1_000_000,
+			true,
+		));
+
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 199_999_990_000);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 400_000_020_001);
+		assert_eq!(Currency::free_balance(asset_a, &native_pair_account), 1_000_000_000);
+		assert_eq!(Currency::free_balance(HDX, &native_pair_account), 2_000_000_000);
+
+		assert_eq!(Currency::free_balance(asset_a, &ALICE), 999_799_000_010_000);
+		assert_eq!(Currency::free_balance(asset_b, &ALICE), 999_599_999_979_999);
+		assert_eq!(Currency::free_balance(HDX, &ALICE), 999_998_000_000_000);
+
+		expect_events(vec![Event::BuyExecuted {
+			who: ALICE,
+			asset_out: asset_a,
+			asset_in: asset_b,
+			amount: 10_000,
+			buy_price: 20_001,
+			fee_asset: asset_b,
+			fee_amount: 0,
+			pool: pair_account,
+		}
+		.into()]);
 	});
 }
 
@@ -2124,19 +2284,24 @@ fn buy_with_excesive_amount_should_not_work() {
 #[test]
 fn fee_calculation() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(XYK::calculate_discounted_fee(10000), Ok(7));
-		assert_eq!(XYK::calculate_discounted_fee(100000), Ok(70));
-		assert_eq!(XYK::calculate_discounted_fee(100000), Ok(70));
+		assert_eq!(XYK::calculate_fee(100_000), Ok(200));
+		assert_eq!(XYK::calculate_fee(10_000), Ok(20));
 
-		assert_eq!(XYK::calculate_fee(100000), Ok(200));
-		assert_eq!(XYK::calculate_fee(10000), Ok(20));
+		assert_eq!(XYK::calculate_discounted_fee(9_999), Ok(0));
+		assert_eq!(XYK::calculate_discounted_fee(10_000), Ok(7));
+		assert_eq!(XYK::calculate_discounted_fee(100_000), Ok(70));
 	});
 	ExtBuilder::default()
 		.with_exchange_fee((10, 1000))
+		.with_discounted_fee((10, 1000))
 		.build()
 		.execute_with(|| {
-			assert_eq!(XYK::calculate_fee(100000), Ok(1000));
-			assert_eq!(XYK::calculate_fee(10000), Ok(100));
+			assert_eq!(XYK::calculate_fee(100_000), Ok(1_000));
+			assert_eq!(XYK::calculate_fee(10_000), Ok(100));
+
+			assert_eq!(XYK::calculate_discounted_fee(999), Ok(0));
+			assert_eq!(XYK::calculate_discounted_fee(1_000), Ok(10));
+			assert_eq!(XYK::calculate_discounted_fee(10_000), Ok(100));
 		});
 
 	ExtBuilder::default()
