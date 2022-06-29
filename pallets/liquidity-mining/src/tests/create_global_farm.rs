@@ -22,6 +22,7 @@ use test_ext::*;
 #[test]
 fn create_global_farm_should_work() {
 	new_test_ext().execute_with(|| {
+		//Arrange
 		let id = 1;
 		let total_rewards: Balance = 50_000_000_000;
 		let reward_currency = BSX;
@@ -41,6 +42,7 @@ fn create_global_farm_should_work() {
 		let pool_account = WarehouseLM::farm_account_id(id).unwrap();
 		assert_eq!(Tokens::free_balance(reward_currency, &pool_account), 0);
 
+		//Act
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
 			total_rewards,
@@ -54,7 +56,8 @@ fn create_global_farm_should_work() {
 			price_adjustment
 		));
 
-		//check if total_rewards was transferd to pool account
+		//Assert
+		//check if total_rewards was transferred to pool account
 		assert_eq!(Tokens::free_balance(reward_currency, &pool_account), total_rewards);
 		assert_eq!(
 			Tokens::free_balance(reward_currency, &ALICE),
@@ -93,13 +96,12 @@ fn create_global_farm_should_work() {
 }
 
 #[test]
-fn create_global_farm_should_fail_when_called_by_basic_origin() {
+fn create_global_farm_should_fail_when_called_by_signed_user() {
 	new_test_ext().execute_with(|| {
 		let created_at_block = 15_896;
 
 		set_block_number(created_at_block);
 
-		//TODO: Dani Too many duplication for this create global farm, create plain (so just in memory) builder pattern
 		assert_noop!(
 			LiquidityMining::create_global_farm(
 				Origin::signed(ALICE),
@@ -120,12 +122,14 @@ fn create_global_farm_should_fail_when_called_by_basic_origin() {
 
 #[test]
 fn create_global_farm_should_fail_with_propagated_error_when_balance_is_insufficient() {
-	//owner account balance is 1M BSX
 	new_test_ext().execute_with(|| {
+		let account_balance = 1000000;
+		assert_eq!(Tokens::free_balance(BSX, &ACCOUNT_WITH_1M), account_balance);
+
 		assert_noop!(
 			LiquidityMining::create_global_farm(
 				Origin::root(),
-				1_000_001,
+				account_balance + 1,
 				1_000,
 				1,
 				BSX,
