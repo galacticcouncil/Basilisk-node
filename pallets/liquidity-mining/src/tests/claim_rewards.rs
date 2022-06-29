@@ -16,10 +16,9 @@
 // limitations under the License.
 
 use super::*;
-use crate::mock::AccountId;
 use pretty_assertions::assert_eq;
 use test_ext::*;
-use warehouse_liquidity_mining::{DepositData, YieldFarmEntry};
+use warehouse_liquidity_mining::YieldFarmEntry;
 
 #[test]
 fn claim_rewards_should_work() {
@@ -140,18 +139,6 @@ fn claim_rewards_should_fail_when_double_claim_happens() {
 			warehouse_liquidity_mining::Error::<Test, Instance1>::DoubleClaimInPeriod
 		);
 	});
-}
-
-fn create_deposit_data(
-	shares: Balance,
-	amm_pool_id: AccountId,
-	yield_farms: Vec<YieldFarmEntry<Test, Instance1>>,
-) -> DepositData<Test, Instance1> {
-	let mut deposit_data = DepositData::<Test, Instance1>::new(shares, amm_pool_id);
-	for farm in yield_farms {
-		assert_ok!(deposit_data.add_yield_farm_entry(farm));
-	}
-	deposit_data
 }
 
 fn assert_claim_rewards_of_deposit_yield_farm_entry(deposit_id: u128, expected_claimed_rewards: Balance) {

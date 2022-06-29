@@ -26,6 +26,7 @@ use warehouse_liquidity_mining::YieldFarmData;
 #[test]
 fn stop_yield_farm_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
+		//Arrange
 		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let yield_farm_bsx_balance = Tokens::free_balance(BSX, &yield_farm_account);
@@ -33,12 +34,14 @@ fn stop_yield_farm_should_work() {
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
+		//Act
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_ASSET_PAIR
 		));
 
+		//Assert
 		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
 			farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,

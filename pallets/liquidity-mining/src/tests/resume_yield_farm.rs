@@ -23,6 +23,7 @@ use test_ext::*;
 #[test]
 fn resume_yield_farm_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
+		//Arrange
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
@@ -37,6 +38,7 @@ fn resume_yield_farm_should_work() {
 
 		set_block_number(13_420_000);
 
+		//Act
 		let new_multiplier = FixedU128::from(7_490_000);
 		assert_ok!(LiquidityMining::resume_yield_farm(
 			Origin::signed(GC),
@@ -46,6 +48,7 @@ fn resume_yield_farm_should_work() {
 			new_multiplier
 		));
 
+		//Assert
 		let yield_farm_stake_in_global_farm = new_multiplier.checked_mul_int(45_540).unwrap();
 
 		assert_eq!(
