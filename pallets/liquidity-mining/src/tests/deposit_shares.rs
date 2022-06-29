@@ -17,6 +17,7 @@
 
 use super::*;
 use pretty_assertions::assert_eq;
+use std::borrow::Borrow;
 use test_ext::*;
 
 #[test]
@@ -36,7 +37,6 @@ fn deposit_shares_should_work() {
 		Tokens::set_balance(Origin::root(), bsx_tkn1_amm_account, BSX, 50, 0).unwrap();
 		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 0);
 
-		//TEMP
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().total_shares_z, 0);
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID))
@@ -44,6 +44,8 @@ fn deposit_shares_should_work() {
 				.entries_count,
 			0
 		);
+
+		assert_that_the_number_of_minted_nfts_is_equal_to(0);
 
 		let deposited_amount = 50;
 		assert_ok!(LiquidityMining::deposit_shares(
@@ -77,7 +79,7 @@ fn deposit_shares_should_work() {
 			}
 		);
 
-		//TODO: Dani - check if the NFT is retrieved in instances of NFT pallet.
+		assert_that_the_number_of_minted_nfts_is_equal_to(1);
 
 		//check if shares was transferred from extrinsic caller
 		assert_eq!(
@@ -116,5 +118,12 @@ fn deposit_shares_should_fail_when_called_by_noy_signed_user() {
 			LiquidityMining::deposit_shares(Origin::none(), GC_FARM, BSX_TKN1_YIELD_FARM_ID, BSX_TKN1_ASSET_PAIR, 50),
 			BadOrigin
 		);
+	});
+}
+
+fn assert_that_the_number_of_minted_nfts_is_equal_to(number_of_nfts: usize) {
+	mock::DEPOSITS.borrow().with(|v| {
+		let keys = v.borrow().keys().len();
+		assert_eq!(keys, number_of_nfts);
 	});
 }

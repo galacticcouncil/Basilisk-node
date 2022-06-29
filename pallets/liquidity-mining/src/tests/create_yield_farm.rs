@@ -26,6 +26,7 @@ const BSX_ACA_ASSET_PAIR: AssetPair = AssetPair {
 
 #[test]
 fn create_yield_farm_should_work() {
+	//Arrange
 	let yield_farm = YieldFarmData {
 		id: 12,
 		updated_at: 17,
@@ -48,6 +49,7 @@ fn create_yield_farm_should_work() {
 	predefined_test_ext().execute_with(|| {
 		set_block_number(17_850);
 
+		//Act
 		assert_ok!(LiquidityMining::create_yield_farm(
 			Origin::signed(ALICE),
 			ALICE_FARM,
@@ -56,6 +58,7 @@ fn create_yield_farm_should_work() {
 			yield_farm.loyalty_curve.clone()
 		));
 
+		//Assert
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
 			farm_id: ALICE_FARM,
 			yield_farm_id: yield_farm.id,
