@@ -33,7 +33,7 @@
 //!
 //! LP must add liquidity of both pool assets. in V1 it is not allowed single token LPing.
 //!
-//! Initial liquidity is first liquidity added to the pool ( or first call of "add_liquidity").
+//! Initial liquidity is first liquidity added to the pool (that is first call of `add_liquidity`).
 //!
 //! LP specifies an amount of liquidity to be added of one selected asset, the required amount of second pool asset is calculated
 //! in a way that the ratio does not change. In case of initial liquidity - this amount is equal to amount of first asset.
@@ -41,16 +41,6 @@
 //! LP is given certain amount of shares by minting a pool's share token.
 //!
 //! When LP decides to withdraw liquidity, it receives both assets. Single token withdrawal is not supported.
-//!
-//! ## Interface
-//!
-//! ### Dispatchable functions
-//!
-//! * `create_pool`
-//! * `add_liquidity`
-//! * `remove_liquidity`
-//! * `sell`
-//! * `buy`
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -220,10 +210,10 @@ pub mod pallet {
 		/// Invalid asset amount provided. Amount must be greater than zero.
 		InvalidAssetAmount,
 
-		/// Balance of an asset is nto sufficient to perform a trade.
+		/// Balance of an asset is not sufficient to perform a trade.
 		InsufficientBalance,
 
-		/// Balance of an share asset is nto sufficient to withdraw liquidity.
+		/// Balance of a share asset is not sufficient to withdraw liquidity.
 		InsufficientShares,
 
 		/// Liquidity has not reached the required minimum.
@@ -232,7 +222,7 @@ pub mod pallet {
 		/// Insufficient liquidity left in the pool after withdrawal.
 		InsufficientLiquidityRemaining,
 
-		/// Amount is less than min trading limit.
+		/// Amount is less than the minimum trading amount configured.
 		InsufficientTradingAmount,
 
 		/// Minimum limit has not been reached during trade.
@@ -247,7 +237,7 @@ pub mod pallet {
 		/// Account balance is too low.
 		BalanceTooLow,
 
-		/// Amplification is outside specified range.
+		/// Amplification is outside configured range.
 		InvalidAmplification,
 
 		/// Remaining balance of share asset is below asset's existential deposit.
@@ -256,9 +246,11 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Create a 2-asset pool with initial liquidity for both assets.
+		/// Create a 2-asset pool.
 		///
-		/// Both assets must be correctly registered in `T::AssetRegistry`
+		/// Both assets must be correctly registered in `T::AssetRegistry`.
+		/// Note that this does not seed the pool with liquidity. Use `add_liquidity` to provide
+		/// initial liquidity.
 		///
 		/// Parameters:
 		/// - `origin`: Must be T::CreatePoolOrigin
@@ -266,7 +258,7 @@ pub mod pallet {
 		/// - `amplification`: Pool amplification
 		/// - `fee`: trade fee to be applied in sell/buy trades
 		///
-		/// Emits `PoolCreated` event when successful.
+		/// Emits `PoolCreated` event if successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		#[transactional]
 		pub fn create_pool(
@@ -326,11 +318,11 @@ pub mod pallet {
 		///
 		/// LP must provide liquidity of both assets by specifying amount of asset a.
 		///
-		/// If no liquidity in the pool yet, first call of add_liquidity adds "initial liquidity".
+		/// If there is no liquidity in the pool, yet, the first call of `add_liquidity` adds "initial liquidity".
 		///
 		/// Initial liquidity - same amounts of each pool asset.
 		///
-		/// If initial liquidity already in the pool, then amount of asset b is calculated so the ratio does not change:
+		/// If there is liquidity already in the pool, then the amount of asset b is calculated so the ratio does not change:
 		///
 		/// new_reserve_b = (reserve_a + amount) * reserve_b / reserve_a
 		/// amount_b = new_reserve_b - reserve_b
@@ -373,8 +365,8 @@ pub mod pallet {
 
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
-			// Work out which asset is asset B ( second asset which has to provided by LP )
-			// Update initial reserves in correct order ( asset a is given as params, asset b is second asset)
+			// Work out which asset is asset b (second asset which has to be provided by LP)
+			// Update initial reserves in correct order (asset a is given as a parameter, asset b is second asset)
 			let (assets, initial_reserves) = {
 				let initial = (
 					T::Currency::free_balance(pool.assets.0, &pool_account),
@@ -510,10 +502,10 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Execute a swap of `asset_in` for `asset_out`.
+		/// Execute a swap of `asset_in` for `asset_out` by specifying how much to put in.
 		///
 		/// Parameters:
-		/// - `origin`:
+		/// - `origin`: origin of the caller
 		/// - `pool_id`: Id of a pool
 		/// - `asset_in`: ID of asset sold to the pool
 		/// - `asset_out`: ID of asset bought from the pool
@@ -584,7 +576,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Execute a swap of `asset_out` for `asset_in`.
+		/// Execute a swap of `asset_in` for `asset_out` by specifying how much to get out.
 		///
 		/// Parameters:
 		/// - `origin`:
@@ -592,9 +584,9 @@ pub mod pallet {
 		/// - `asset_out`: ID of asset bought from the pool
 		/// - `asset_in`: ID of asset sold to the pool
 		/// - `amount`: Amount of asset sold
-		/// - `max_sell_amount`: Maximum amount allowedto be sold
+		/// - `max_sell_amount`: Maximum amount allowed to be sold
 		///
-		/// Emits `buyExecuted` event when successful.
+		/// Emits `BuyExecuted` event when successful.
 		///
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
 		#[transactional]

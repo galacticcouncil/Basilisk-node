@@ -560,7 +560,7 @@ fn remove_liquidity_with_invalid_data_fails() {
 }
 
 #[test]
-fn remove_partial_with_insufficient_remaining_works() {
+fn remove_partial_with_insufficient_remaining_fails() {
 	let asset_a: AssetId = 1;
 	let asset_b: AssetId = 2;
 	ExtBuilder::default()

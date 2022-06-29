@@ -44,7 +44,7 @@ benchmarks! {
 		T: crate::pallet::Config
 	}
 
-	create_pool{
+	create_pool {
 		let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128)?;
 		let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128)?;
 
@@ -54,7 +54,7 @@ benchmarks! {
 
 		// Pool id will be next asset id in registry storage.
 		let next_asset_id:u32 = Into::<u32>::into(token_b) + 1u32;
-		let pool_id = PoolId( next_asset_id.into());
+		let pool_id = PoolId(next_asset_id.into());
 
 	}: _(RawOrigin::Signed(caller), (token_a,token_b), amplification, fee)
 	verify {
@@ -82,7 +82,7 @@ benchmarks! {
 
 		// Pool id will be next asset id in registry storage.
 		let next_asset_id:u32 = Into::<u32>::into(token_b) + 1u32;
-		let pool_id = PoolId( next_asset_id.into());
+		let pool_id = PoolId(next_asset_id.into());
 
 		// Worst case is adding additional liquidity and not initial liquidity
 		crate::Pallet::<T>::add_liquidity(RawOrigin::Signed(caller).into(),
@@ -148,7 +148,7 @@ benchmarks! {
 
 	}: _(RawOrigin::Signed(lp_provider.clone()), pool_id, shares)
 	verify {
-		assert!(T::Currency::free_balance(pool_id.0, &lp_provider) == 0u128);
+		assert_eq!(T::Currency::free_balance(pool_id.0, &lp_provider), 0u128);
 	}
 
 	sell{
