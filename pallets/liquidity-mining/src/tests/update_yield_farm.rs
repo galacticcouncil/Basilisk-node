@@ -21,18 +21,28 @@ use warehouse_liquidity_mining::YieldFarmData;
 
 #[test]
 fn update_yield_farm_should_() {
-	//yield farm without deposits
 	predefined_test_ext().execute_with(|| {
+		//Arrange
 		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
+		//Act
 		assert_ok!(LiquidityMining::update_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_ASSET_PAIR,
 			new_multiplier
 		));
+
+		//Assert
+		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmUpdated {
+			farm_id: GC_FARM,
+			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
+			who: GC,
+			asset_pair: BSX_TKN1_ASSET_PAIR,
+			multiplier: new_multiplier,
+		})]);
 
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
