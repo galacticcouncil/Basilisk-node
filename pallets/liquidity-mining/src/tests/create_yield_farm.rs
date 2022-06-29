@@ -35,8 +35,9 @@ fn create_yield_farm_should_work() {
 		accumulated_rpz: 0,
 		multiplier: FixedU128::from(20_000_u128),
 		loyalty_curve: Some(LoyaltyCurve::default()),
-		state: YieldFarmState::Active,
+		state: FarmState::Active,
 		entries_count: 0,
+		_phantom: PhantomData,
 	};
 
 	let global_farm = GlobalFarmData {

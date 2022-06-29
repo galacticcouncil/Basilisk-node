@@ -19,9 +19,9 @@ use super::*;
 use pretty_assertions::assert_eq;
 use sp_runtime::FixedPointNumber;
 use test_ext::*;
+use warehouse_liquidity_mining::FarmState;
 use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::YieldFarmData;
-use warehouse_liquidity_mining::YieldFarmState;
 
 #[test]
 fn stop_yield_farm_should_work() {
@@ -54,7 +54,7 @@ fn stop_yield_farm_should_work() {
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				state: YieldFarmState::Stopped,
+				state: FarmState::Stopped,
 				multiplier: 0.into(),
 				..yield_farm
 			}
@@ -94,7 +94,7 @@ fn stop_yield_farm_should_fail_with_propagated_error_when_yield_farm_is_already_
 
 		assert_noop!(
 			LiquidityMining::stop_yield_farm(Origin::signed(GC), GC_FARM, BSX_TKN1_ASSET_PAIR),
-			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
+			warehouse_liquidity_mining::Error::<Test, Instance1>::YieldFarmNotFound
 		);
 	});
 }
@@ -106,7 +106,7 @@ fn stop_yield_farm_not_owner_should_not_work() {
 
 		assert_noop!(
 			LiquidityMining::stop_yield_farm(Origin::signed(NOT_LIQ_POOL_OWNER), GC_FARM, BSX_TKN1_ASSET_PAIR),
-			warehouse_liquidity_mining::Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test, Instance1>::Forbidden
 		);
 	});
 }

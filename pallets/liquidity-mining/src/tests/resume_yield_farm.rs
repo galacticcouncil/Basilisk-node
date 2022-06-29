@@ -32,7 +32,7 @@ fn resume_yield_farm_should_work() {
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
-		assert_eq!(yield_farm.state, YieldFarmState::Stopped);
+		assert_eq!(yield_farm.state, FarmState::Stopped);
 		assert!(yield_farm.multiplier.is_zero());
 
 		set_block_number(13_420_000);
@@ -51,7 +51,7 @@ fn resume_yield_farm_should_work() {
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				state: YieldFarmState::Active,
+				state: FarmState::Active,
 				accumulated_rpz: 62_996,
 				multiplier: new_multiplier,
 				updated_at: 134_200,
@@ -93,7 +93,7 @@ fn resume_yield_farm_should_fail_with_propagated_error_when_farm_does_not_exist(
 				BSX_KSM_ASSET_PAIR,
 				new_multiplier
 			),
-			warehouse_liquidity_mining::Error::<Test>::YieldFarmNotFound
+			warehouse_liquidity_mining::Error::<Test, Instance1>::YieldFarmNotFound
 		);
 	});
 }

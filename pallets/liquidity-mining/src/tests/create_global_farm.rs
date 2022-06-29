@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use super::*;
+use sp_runtime::traits::One;
 use test_ext::*;
 
 #[test]
@@ -30,6 +31,8 @@ fn create_global_farm_should_work() {
 		let owner = ALICE;
 		let yield_per_period = Permill::from_percent(20);
 		let max_reward_per_period: Balance = total_rewards.checked_div(planned_yielding_periods.into()).unwrap();
+		let min_deposit = 3;
+		let price_adjustment = One::one();
 
 		let created_at_block = 15_896;
 
@@ -46,7 +49,9 @@ fn create_global_farm_should_work() {
 			incentivized_asset,
 			reward_currency,
 			owner,
-			yield_per_period
+			yield_per_period,
+			min_deposit,
+			price_adjustment
 		));
 
 		//check if total_rewards was transferd to pool account
@@ -80,6 +85,8 @@ fn create_global_farm_should_work() {
 				owner,
 				incentivized_asset,
 				max_reward_per_period,
+				min_deposit,
+				price_adjustment
 			)
 		);
 	});
@@ -92,6 +99,7 @@ fn create_global_farm_should_fail_when_called_by_basic_origin() {
 
 		set_block_number(created_at_block);
 
+		//TODO: Dani Too many duplication for this create global farm, create plain (so just in memory) builder pattern
 		assert_noop!(
 			LiquidityMining::create_global_farm(
 				Origin::signed(ALICE),
@@ -101,7 +109,9 @@ fn create_global_farm_should_fail_when_called_by_basic_origin() {
 				BSX,
 				BSX,
 				ALICE,
-				Permill::from_percent(20)
+				Permill::from_percent(20),
+				3,
+				One::one()
 			),
 			BadOrigin
 		);
@@ -121,10 +131,12 @@ fn create_global_farm_should_fail_with_propagated_error_when_balance_is_insuffic
 				BSX,
 				BSX,
 				ACCOUNT_WITH_1M,
-				Permill::from_percent(20)
+				Permill::from_percent(20),
+				3,
+				One::one()
 			),
 			//This error is from warehouse liq. mining pallet
-			warehouse_liquidity_mining::Error::<Test>::InsufficientRewardCurrencyBalance
+			warehouse_liquidity_mining::Error::<Test, Instance1>::InsufficientRewardCurrencyBalance
 		);
 	});
 }

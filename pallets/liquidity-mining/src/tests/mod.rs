@@ -26,9 +26,10 @@ use crate::mock::{
 	KSM_DOT_AMM, KSM_DOT_SHARE_ID, KSM_FARM, LIQ_MINING_NFT_CLASS, TKN1, TREASURY,
 };
 
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, instances::Instance1};
+use lazy_static::lazy_static;
 use primitives::Balance;
-use sp_runtime::traits::BadOrigin;
+use sp_runtime::traits::{BadOrigin, One};
 
 const ALICE_FARM: u32 = BSX_FARM;
 const BOB_FARM: u32 = KSM_FARM;
@@ -36,116 +37,129 @@ const CHARLIE_FARM: u32 = ACA_FARM;
 const DAVE_FARM: u32 = 5;
 const EVE_FARM: u32 = 6;
 
+use warehouse_liquidity_mining::FarmState;
 use warehouse_liquidity_mining::GlobalFarmData;
-use warehouse_liquidity_mining::GlobalFarmState;
 use warehouse_liquidity_mining::LoyaltyCurve;
 use warehouse_liquidity_mining::YieldFarmData;
-use warehouse_liquidity_mining::YieldFarmState;
 
-const PREDEFINED_GLOBAL_FARMS: [GlobalFarmData<Test>; 6] = [
-	GlobalFarmData {
-		id: ALICE_FARM,
-		updated_at: 0,
-		reward_currency: BSX,
-		yield_per_period: Permill::from_percent(20),
-		planned_yielding_periods: 300_u64,
-		blocks_per_period: 1_000_u64,
-		owner: ALICE,
-		incentivized_asset: BSX,
-		max_reward_per_period: 333_333_333,
-		accumulated_rpz: 0,
-		yield_farms_count: (0, 0),
-		paid_accumulated_rewards: 0,
-		total_shares_z: 0,
-		accumulated_rewards: 0,
-		state: GlobalFarmState::Active,
-	},
-	GlobalFarmData {
-		id: BOB_FARM,
-		updated_at: 0,
-		reward_currency: KSM,
-		yield_per_period: Permill::from_percent(38),
-		planned_yielding_periods: 5_000_u64,
-		blocks_per_period: 10_000_u64,
-		owner: BOB,
-		incentivized_asset: BSX,
-		max_reward_per_period: 200_000,
-		accumulated_rpz: 0,
-		yield_farms_count: (0, 0),
-		paid_accumulated_rewards: 0,
-		total_shares_z: 0,
-		accumulated_rewards: 0,
-		state: GlobalFarmState::Active,
-	},
-	GlobalFarmData {
-		id: GC_FARM,
-		updated_at: 0,
-		reward_currency: BSX,
-		yield_per_period: Permill::from_percent(50),
-		planned_yielding_periods: 500_u64,
-		blocks_per_period: 100_u64,
-		owner: GC,
-		incentivized_asset: BSX,
-		max_reward_per_period: 60_000_000,
-		accumulated_rpz: 0,
-		yield_farms_count: (2, 2),
-		paid_accumulated_rewards: 0,
-		total_shares_z: 0,
-		accumulated_rewards: 0,
-		state: GlobalFarmState::Active,
-	},
-	GlobalFarmData {
-		id: CHARLIE_FARM,
-		updated_at: 0,
-		reward_currency: ACA,
-		yield_per_period: Permill::from_percent(50),
-		planned_yielding_periods: 500_u64,
-		blocks_per_period: 100_u64,
-		owner: CHARLIE,
-		incentivized_asset: KSM,
-		max_reward_per_period: 60_000_000,
-		accumulated_rpz: 0,
-		yield_farms_count: (2, 2),
-		paid_accumulated_rewards: 0,
-		total_shares_z: 0,
-		accumulated_rewards: 0,
-		state: GlobalFarmState::Active,
-	},
-	GlobalFarmData {
-		id: DAVE_FARM,
-		updated_at: 0,
-		reward_currency: ACA,
-		yield_per_period: Permill::from_percent(20),
-		planned_yielding_periods: 300_u64,
-		blocks_per_period: 1_000_u64,
-		owner: DAVE,
-		incentivized_asset: TKN1,
-		max_reward_per_period: 333_333_333,
-		accumulated_rpz: 0,
-		yield_farms_count: (0, 0),
-		paid_accumulated_rewards: 0,
-		total_shares_z: 0,
-		accumulated_rewards: 0,
-		state: GlobalFarmState::Active,
-	},
-	GlobalFarmData {
-		id: EVE_FARM,
-		updated_at: 0,
-		reward_currency: KSM,
-		yield_per_period: Permill::from_percent(20),
-		planned_yielding_periods: 300_u64,
-		blocks_per_period: 1_000_u64,
-		owner: EVE,
-		incentivized_asset: BSX,
-		max_reward_per_period: 333_333_333,
-		accumulated_rpz: 0,
-		yield_farms_count: (0, 0),
-		paid_accumulated_rewards: 0,
-		total_shares_z: 0,
-		accumulated_rewards: 0,
-		state: GlobalFarmState::Active,
-	},
-];
+lazy_static! {
+	pub static ref PREDEFINED_GLOBAL_FARMS: [GlobalFarmData<Test, Instance1>; 6] = [
+		GlobalFarmData {
+			id: ALICE_FARM,
+			updated_at: 0,
+			reward_currency: BSX,
+			yield_per_period: Permill::from_percent(20),
+			planned_yielding_periods: 300_u64,
+			blocks_per_period: 1_000_u64,
+			owner: ALICE,
+			incentivized_asset: BSX,
+			max_reward_per_period: 333_333_333,
+			accumulated_rpz: 0,
+			yield_farms_count: (0, 0),
+			paid_accumulated_rewards: 0,
+			total_shares_z: 0,
+			accumulated_rewards: 0,
+			state: FarmState::Active,
+			min_deposit: 1,
+			price_adjustment: One::one(),
+		},
+		GlobalFarmData {
+			id: BOB_FARM,
+			updated_at: 0,
+			reward_currency: KSM,
+			yield_per_period: Permill::from_percent(38),
+			planned_yielding_periods: 5_000_u64,
+			blocks_per_period: 10_000_u64,
+			owner: BOB,
+			incentivized_asset: BSX,
+			max_reward_per_period: 200_000,
+			accumulated_rpz: 0,
+			yield_farms_count: (0, 0),
+			paid_accumulated_rewards: 0,
+			total_shares_z: 0,
+			accumulated_rewards: 0,
+			state: FarmState::Active,
+			min_deposit: 1,
+			price_adjustment: One::one(),
+		},
+		GlobalFarmData {
+			id: GC_FARM,
+			updated_at: 0,
+			reward_currency: BSX,
+			yield_per_period: Permill::from_percent(50),
+			planned_yielding_periods: 500_u64,
+			blocks_per_period: 100_u64,
+			owner: GC,
+			incentivized_asset: BSX,
+			max_reward_per_period: 60_000_000,
+			accumulated_rpz: 0,
+			yield_farms_count: (2, 2),
+			paid_accumulated_rewards: 0,
+			total_shares_z: 0,
+			accumulated_rewards: 0,
+			state: FarmState::Active,
+			min_deposit: 1,
+			price_adjustment: One::one(),
+		},
+		GlobalFarmData {
+			id: CHARLIE_FARM,
+			updated_at: 0,
+			reward_currency: ACA,
+			yield_per_period: Permill::from_percent(50),
+			planned_yielding_periods: 500_u64,
+			blocks_per_period: 100_u64,
+			owner: CHARLIE,
+			incentivized_asset: KSM,
+			max_reward_per_period: 60_000_000,
+			accumulated_rpz: 0,
+			yield_farms_count: (2, 2),
+			paid_accumulated_rewards: 0,
+			total_shares_z: 0,
+			accumulated_rewards: 0,
+			state: FarmState::Active,
+			min_deposit: 1,
+			price_adjustment: One::one(),
+		},
+		GlobalFarmData {
+			id: DAVE_FARM,
+			updated_at: 0,
+			reward_currency: ACA,
+			yield_per_period: Permill::from_percent(20),
+			planned_yielding_periods: 300_u64,
+			blocks_per_period: 1_000_u64,
+			owner: DAVE,
+			incentivized_asset: TKN1,
+			max_reward_per_period: 333_333_333,
+			accumulated_rpz: 0,
+			yield_farms_count: (0, 0),
+			paid_accumulated_rewards: 0,
+			total_shares_z: 0,
+			accumulated_rewards: 0,
+			state: FarmState::Active,
+			min_deposit: 1,
+			price_adjustment: One::one(),
+		},
+		GlobalFarmData {
+			id: EVE_FARM,
+			updated_at: 0,
+			reward_currency: KSM,
+			yield_per_period: Permill::from_percent(20),
+			planned_yielding_periods: 300_u64,
+			blocks_per_period: 1_000_u64,
+			owner: EVE,
+			incentivized_asset: BSX,
+			max_reward_per_period: 333_333_333,
+			accumulated_rpz: 0,
+			yield_farms_count: (0, 0),
+			paid_accumulated_rewards: 0,
+			total_shares_z: 0,
+			accumulated_rewards: 0,
+			state: FarmState::Active,
+			min_deposit: 1,
+			price_adjustment: One::one(),
+		},
+	];
+}
 
 const BSX_TKN1_YIELD_FARM_ID: u32 = 7;
 const BSX_TKN2_YIELD_FARM_ID: u32 = 8;
@@ -155,7 +169,7 @@ const EVE_BSX_TKN1_YIELD_FARM_ID: u32 = 11;
 const EVE_BSX_TKN2_YIELD_FARM_ID: u32 = 12;
 
 thread_local! {
-	static PREDEFINED_YIELD_FARMS: [YieldFarmData<Test>; 6] = [
+	static PREDEFINED_YIELD_FARMS: [YieldFarmData<Test, Instance1>; 6] = [
 		YieldFarmData {
 			id: BSX_TKN1_YIELD_FARM_ID,
 			updated_at: 0,
@@ -165,8 +179,9 @@ thread_local! {
 			accumulated_rpz: 0,
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(5),
-			state: YieldFarmState::Active,
-			entries_count: 0
+			state: FarmState::Active,
+			entries_count: 0,
+			_phantom: PhantomData
 		},
 		YieldFarmData {
 			id: BSX_TKN2_YIELD_FARM_ID,
@@ -177,8 +192,9 @@ thread_local! {
 			accumulated_rpz: 0,
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
-			state: YieldFarmState::Active,
-			entries_count: 0
+			state: FarmState::Active,
+			entries_count: 0,
+			_phantom: PhantomData
 		},
 		YieldFarmData {
 			id: ACA_KSM_YIELD_FARM_ID,
@@ -189,8 +205,9 @@ thread_local! {
 			accumulated_rpz: 0,
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
-			state: YieldFarmState::Active,
-			entries_count: 0
+			state: FarmState::Active,
+			entries_count: 0,
+			_phantom: PhantomData
 		},
 		YieldFarmData {
 			id: DAVE_BSX_TKN1_YIELD_FARM_ID,
@@ -201,8 +218,9 @@ thread_local! {
 			accumulated_rpz: 0,
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
-			state: YieldFarmState::Active,
+			state: FarmState::Active,
 			entries_count: 0,
+			_phantom: PhantomData
 		},
 		YieldFarmData {
 			id: EVE_BSX_TKN1_YIELD_FARM_ID,
@@ -213,8 +231,9 @@ thread_local! {
 			accumulated_rpz: 0,
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
-			state: YieldFarmState::Active,
+			state: FarmState::Active,
 			entries_count: 0,
+			_phantom: PhantomData
 		},
 
 		YieldFarmData {
@@ -226,8 +245,9 @@ thread_local! {
 			accumulated_rpz: 0,
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
-			state: YieldFarmState::Active,
+			state: FarmState::Active,
 			entries_count: 0,
+			_phantom: PhantomData
 		},
 	]
 }
@@ -245,7 +265,8 @@ fn last_events(n: usize) -> Vec<TestEvent> {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	pretty_assertions::assert_eq!(last_events(e.len()), e);
+	let last_events = last_events(e.len());
+	pretty_assertions::assert_eq!(last_events, e);
 }
 
 pub mod claim_rewards;

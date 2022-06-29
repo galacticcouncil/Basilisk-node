@@ -56,7 +56,7 @@ fn update_yield_farm_should_fail_with_propagated_error_when_multiplier_is_zero()
 				BSX_TKN1_ASSET_PAIR,
 				FixedU128::from(0_u128)
 			),
-			warehouse_liquidity_mining::Error::<Test>::InvalidMultiplier
+			warehouse_liquidity_mining::Error::<Test, Instance1>::InvalidMultiplier
 		);
 	});
 }

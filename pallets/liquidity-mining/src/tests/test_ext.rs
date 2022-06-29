@@ -17,6 +17,7 @@
 
 use super::*;
 use crate::mock::PALLET_SERVICE_ACCOUNT;
+use pretty_assertions::assert_eq;
 use warehouse_liquidity_mining::GlobalFarmData;
 use warehouse_liquidity_mining::YieldFarmData;
 
@@ -41,6 +42,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_FARMS[0].reward_currency,
 			ALICE,
 			PREDEFINED_GLOBAL_FARMS[0].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[0].min_deposit,
+			PREDEFINED_GLOBAL_FARMS[0].price_adjustment
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
@@ -52,6 +55,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_FARMS[1].reward_currency,
 			BOB,
 			PREDEFINED_GLOBAL_FARMS[1].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[1].min_deposit,
+			PREDEFINED_GLOBAL_FARMS[1].price_adjustment
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
@@ -63,6 +68,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_FARMS[2].reward_currency,
 			GC,
 			PREDEFINED_GLOBAL_FARMS[2].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[2].min_deposit,
+			PREDEFINED_GLOBAL_FARMS[2].price_adjustment
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
@@ -74,6 +81,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_FARMS[3].reward_currency,
 			CHARLIE,
 			PREDEFINED_GLOBAL_FARMS[3].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[3].min_deposit,
+			PREDEFINED_GLOBAL_FARMS[3].price_adjustment
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
@@ -85,6 +94,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_FARMS[4].reward_currency,
 			DAVE,
 			PREDEFINED_GLOBAL_FARMS[4].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[4].min_deposit,
+			PREDEFINED_GLOBAL_FARMS[4].price_adjustment
 		));
 
 		assert_ok!(LiquidityMining::create_global_farm(
@@ -96,6 +107,8 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			PREDEFINED_GLOBAL_FARMS[5].reward_currency,
 			EVE,
 			PREDEFINED_GLOBAL_FARMS[5].yield_per_period,
+			PREDEFINED_GLOBAL_FARMS[5].min_deposit,
+			PREDEFINED_GLOBAL_FARMS[5].price_adjustment
 		));
 
 		expect_events(vec![
@@ -548,7 +561,9 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 				total_shares_z: 703_990,
 				accumulated_rewards: 231_650,
 				paid_accumulated_rewards: 1_164_400,
-				state: GlobalFarmState::Active
+				state: FarmState::Active,
+				min_deposit: 1,
+				price_adjustment: One::one()
 			}
 		);
 

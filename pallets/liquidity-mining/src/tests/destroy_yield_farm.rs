@@ -68,7 +68,7 @@ fn destroy_yield_farm_with_deposits_should_work() {
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
-				state: YieldFarmState::Deleted,
+				state: FarmState::Deleted,
 				..yield_farm
 			}
 		);
@@ -117,7 +117,7 @@ fn destroy_yield_farm_should_fail_with_propagated_error_when_called_by_not_owner
 				BSX_TKN1_YIELD_FARM_ID,
 				BSX_TKN1_ASSET_PAIR
 			),
-			warehouse_liquidity_mining::Error::<Test>::Forbidden
+			warehouse_liquidity_mining::Error::<Test, Instance1>::Forbidden
 		);
 	});
 }

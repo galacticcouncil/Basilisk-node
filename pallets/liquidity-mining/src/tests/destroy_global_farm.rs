@@ -57,7 +57,7 @@ fn destroy_global_farm_should_fail_with_propagated_error_when_farm_does_not_exis
 
 		assert_noop!(
 			LiquidityMining::destroy_global_farm(Origin::signed(BOB), NON_EXISTING_FARM),
-			warehouse_liquidity_mining::Error::<Test>::GlobalFarmNotFound
+			warehouse_liquidity_mining::Error::<Test, Instance1>::GlobalFarmNotFound
 		);
 	});
 }

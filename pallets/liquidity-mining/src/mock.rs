@@ -24,6 +24,7 @@ use crate as liq_mining;
 use crate::Config;
 use frame_support::weights::RuntimeDbWeight;
 use frame_support::{
+	instances::Instance1,
 	parameter_types,
 	traits::{Everything, GenesisBuild, Nothing},
 	PalletId,
@@ -141,7 +142,7 @@ frame_support::construct_runtime!(
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
-		WarehouseLM: warehouse_liquidity_mining::{Pallet, Storage},
+		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>},
 	}
 );
 
@@ -310,25 +311,28 @@ parameter_types! {
 	pub const MinDeposit: Balance = 1;
 }
 
-impl warehouse_liquidity_mining::Config for Test {
+impl warehouse_liquidity_mining::Config<Instance1> for Test {
 	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
 	type PalletId = WarehouseLMPalletId;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-	type MinDeposit = MinDeposit;
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type AmmPoolId = AccountId;
-	type Handler = LiquidityMining;
 	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
+	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type Event = Event;
 }
 
+//TODO: Dani - organize these to put them always before the given trait impl
 parameter_types! {
 	pub const MaxLocks: u32 = 1;
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
+	#[derive(PartialEq)]
 	pub const MaxEntriesPerDeposit: u8 = 10;
+	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
 	pub const NftClassId: primitives::ClassId = LIQ_MINING_NFT_CLASS;
 	pub const ReserveClassIdUpTo: u128 = 2;
 }
@@ -346,6 +350,7 @@ impl Config for Test {
 	type NftClassId = NftClassId;
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 	type NFTHandler = NftHandlerStub;
+	type LiquidityMiningHandler = WarehouseLM;
 }
 
 pub struct NftHandlerStub;
