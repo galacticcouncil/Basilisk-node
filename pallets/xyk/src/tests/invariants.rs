@@ -409,6 +409,7 @@ proptest! {
 
 		ExtBuilder::default()
 			.with_exchange_fee((0, 0))
+			.with_discounted_fee((0,0))
 			.with_accounts(vec![
 				(ALICE, asset_a,initial_liquidity * 1000),
 				(ALICE, HDX,initial_liquidity),
@@ -463,18 +464,11 @@ proptest! {
 				let _new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
 				let _new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
 
-				// TODO: waiting for https://github.com/galacticcouncil/Basilisk-node/pull/500
-				// Once merged, fee can be set to 0
-				// because this holds only with zero fees.
-			/*
 				 assert_asset_invariant((_pool_balance_a, _pool_balance_b),
 					(_new_pool_balance_a, _new_pool_balance_b),
 					FixedU128::from((TOLERANCE,ONE)),
 					"buy with discount"
 				);
-
-			 */
-
 			});
 	}
 }
