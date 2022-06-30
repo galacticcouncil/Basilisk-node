@@ -84,6 +84,9 @@ pub mod chain {
 
 	/// We allow for
 	pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+
+	/// Discounted XYK fee
+	pub const DISCOUNTED_FEE: (u32, u32) = (7, 10_000); // 0.07%
 }
 
 #[cfg(test)]
