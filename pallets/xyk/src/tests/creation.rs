@@ -1,8 +1,10 @@
 pub use super::mock::*;
 use crate::{Error, Event};
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, BoundedVec};
 use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
+use pallet_asset_registry::AssetType;
+use sp_std::convert::TryInto;
 
 use primitives::asset::AssetPair;
 use primitives::Price;
@@ -35,15 +37,46 @@ fn create_pool_should_work() {
 		assert_eq!(Currency::free_balance(share_token, &ALICE), 100000000000000);
 		assert_eq!(XYK::total_liquidity(&pair_account), 100000000000000);
 
-		expect_events(vec![Event::PoolCreated {
-			who: ALICE,
-			asset_a,
-			asset_b,
-			initial_shares_amount: 100000000000000,
-			share_token,
-			pool: pair_account,
-		}
-		.into()]);
+		let name: Vec<u8> = vec![232, 3, 0, 0, 72, 68, 84, 184, 11, 0, 0];
+		let bounded_name: BoundedVec<u8, <Test as pallet_asset_registry::Config>::StringLimit> =
+			name.try_into().unwrap();
+
+		expect_events(vec![
+			pallet_asset_registry::Event::Registered {
+				asset_id: share_token,
+				asset_name: bounded_name,
+				asset_type: AssetType::PoolShare(HDX, ACA),
+			}
+			.into(),
+			Event::PoolCreated {
+				who: ALICE,
+				asset_a,
+				asset_b,
+				initial_shares_amount: 100000000000000,
+				share_token,
+				pool: pair_account,
+			}
+			.into(),
+			frame_system::Event::NewAccount { account: pair_account }.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: asset_a,
+				who: pair_account,
+				amount: 100000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: asset_b,
+				who: pair_account,
+				amount: 1000000000000000,
+			}
+			.into(),
+			orml_tokens::Event::Endowed {
+				currency_id: share_token,
+				who: ALICE,
+				amount: 100000000000000,
+			}
+			.into(),
+		]);
 	});
 }
 

@@ -42,8 +42,6 @@ fn expect_event<E: Into<TestEvent>>(e: E) {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	println!("left: {:?}\n", frame_system::Pallet::<Test>::events());
-	println!("right: {:?}", e);
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
