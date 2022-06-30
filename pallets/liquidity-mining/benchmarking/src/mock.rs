@@ -18,9 +18,9 @@
 #![cfg(test)]
 
 use frame_support::{
+	instances::Instance1,
 	parameter_types,
 	traits::{Everything, GenesisBuild, Nothing},
-	instances::Instance1,
 	PalletId,
 };
 
@@ -36,7 +36,8 @@ use primitives::{
 	Amount, AssetId, Balance,
 };
 
-use pallet_nft::{ClassType, NftPermissions, ReserveIdentifier};
+use pallet_nft::ReserveIdentifier;
+use primitives::nft::{ClassType, NftPermissions};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -147,7 +148,7 @@ impl warehouse_liquidity_mining::Config<Instance1> for Test {
 
 impl warehouse_liquidity_mining::Config<Instance1> for Test {
 	type CurrencyId = AssetId;
-	type MultiCurrency = Tokens;
+	type MultiCurrency = Currency;
 	type PalletId = WarehouseLMPalletId;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
@@ -157,7 +158,6 @@ impl warehouse_liquidity_mining::Config<Instance1> for Test {
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 	type Event = Event;
 }
-
 
 parameter_types! {
 	pub const MaxLocks: u32 = 1;
@@ -185,7 +185,6 @@ impl pallet_liquidity_mining::Config for Test {
 	type NFTHandler = NFT;
 }*/
 
-
 impl pallet_liquidity_mining::Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
@@ -201,8 +200,6 @@ impl pallet_liquidity_mining::Config for Test {
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
 }
-
-
 
 impl pallet_nft::Config for Test {
 	type Currency = Balances;

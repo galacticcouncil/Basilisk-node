@@ -517,7 +517,7 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 1.3.0",
+ "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -536,7 +536,7 @@ dependencies = [
  "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
  "pallet-multisig",
- "pallet-nft",
+ "pallet-nft 2.5.0",
  "pallet-preimage",
  "pallet-price-oracle",
  "pallet-proxy",
@@ -1287,7 +1287,7 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "orml-vesting",
- "pallet-asset-registry 1.3.0",
+ "pallet-asset-registry",
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-democracy",
@@ -1295,7 +1295,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-lbp",
  "pallet-marketplace",
- "pallet-nft",
+ "pallet-nft 2.5.0",
  "pallet-price-oracle",
  "pallet-scheduler",
  "pallet-timestamp",
@@ -3222,18 +3222,6 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
-]
-
-[[package]]
-name = "hydradx-traits"
-version = "0.5.1"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-std",
 ]
 
 [[package]]
@@ -5384,28 +5372,6 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.2.0"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=e428fd81f84781c4508df72f095e7bed6bb58ea1#e428fd81f84781c4508df72f095e7bed6bb58ea1"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hydradx-traits 0.5.1",
- "orml-traits",
- "parity-scale-codec",
- "primitive-types 0.8.0",
- "scale-info",
- "serde",
- "sp-api",
- "sp-arithmetic",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
-name = "pallet-asset-registry"
 version = "1.3.0"
 source = "git+https://github.com/galacticcouncil//warehouse?rev=756f47a663911d8e7866c0768471b22b20f6460d#756f47a663911d8e7866c0768471b22b20f6460d"
 dependencies = [
@@ -5779,7 +5745,7 @@ dependencies = [
  "hydradx-traits 0.6.0",
  "orml-tokens",
  "orml-traits",
- "pallet-asset-registry 1.3.0",
+ "pallet-asset-registry",
  "pallet-xyk",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5804,7 +5770,7 @@ dependencies = [
  "hydradx-traits 0.6.0",
  "orml-tokens",
  "orml-traits",
- "pallet-asset-registry 1.3.0",
+ "pallet-asset-registry",
  "pallet-exchange",
  "pallet-xyk",
  "parity-scale-codec",
@@ -5994,7 +5960,7 @@ dependencies = [
  "orml-traits",
  "pallet-balances",
  "pallet-liquidity-mining 1.0.0",
- "pallet-nft",
+ "pallet-nft 2.5.0",
  "pallet-uniques",
  "parity-scale-codec",
  "pretty_assertions",
@@ -6020,11 +5986,11 @@ dependencies = [
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
- "pallet-asset-registry 1.2.0",
+ "pallet-asset-registry",
  "pallet-balances",
  "pallet-liquidity-mining 1.0.0",
  "pallet-liquidity-mining 1.3.0",
- "pallet-nft",
+ "pallet-nft 2.5.1",
  "pallet-uniques",
  "pallet-xyk",
  "parity-scale-codec",
@@ -6047,7 +6013,7 @@ dependencies = [
  "frame-system",
  "orml-utilities",
  "pallet-balances",
- "pallet-nft",
+ "pallet-nft 2.5.0",
  "pallet-uniques",
  "parity-scale-codec",
  "primitives",
@@ -6155,6 +6121,21 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-nft"
+version = "2.5.1"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=d7ac7ac4175ca9c13076e0c39f2ebba494f0c82c#d7ac7ac4175ca9c13076e0c39f2ebba494f0c82c"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "orml-utilities",
+ "pallet-uniques",
+ "parity-scale-codec",
+ "scale-info",
  "sp-runtime",
  "sp-std",
 ]
@@ -6624,7 +6605,7 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
- "pallet-asset-registry 1.3.0",
+ "pallet-asset-registry",
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "primitives",
@@ -8249,7 +8230,7 @@ version = "6.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
- "pallet-nft",
+ "pallet-nft 2.5.1",
  "parity-scale-codec",
  "primitive-types 0.10.1",
  "scale-info",
@@ -8843,7 +8824,7 @@ dependencies = [
  "orml-vesting",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 1.3.0",
+ "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -8856,7 +8837,7 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-marketplace",
- "pallet-nft",
+ "pallet-nft 2.5.0",
  "pallet-price-oracle",
  "pallet-scheduler",
  "pallet-session",
@@ -11368,7 +11349,7 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 1.3.0",
+ "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -11384,7 +11365,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-marketplace",
  "pallet-multisig",
- "pallet-nft",
+ "pallet-nft 2.5.0",
  "pallet-preimage",
  "pallet-price-oracle",
  "pallet-proxy",
