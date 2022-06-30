@@ -63,7 +63,6 @@ fn deposit_shares_should_work() {
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
-			nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
 		})]);
 
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().total_shares_z, 12_500);

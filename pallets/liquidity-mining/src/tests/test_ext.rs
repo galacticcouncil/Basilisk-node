@@ -393,7 +393,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
-			nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
 		})]);
 
 		// DEPOSIT 2 (deposit in same period):
@@ -417,7 +416,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
-			nft_instance_id: PREDEFINED_DEPOSIT_IDS[1],
 		})]);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
@@ -441,7 +439,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
-			nft_instance_id: PREDEFINED_DEPOSIT_IDS[2],
 		})]);
 
 		// DEPOSIT 4 (new period):
@@ -466,7 +463,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
-			nft_instance_id: PREDEFINED_DEPOSIT_IDS[3],
 		})]);
 
 		// DEPOSIT 5 (same period, second liq pool yield farm):
@@ -491,7 +487,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
-			nft_instance_id: PREDEFINED_DEPOSIT_IDS[4],
 		})]);
 
 		// DEPOSIT 6 (same period):
@@ -516,7 +511,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
-			nft_instance_id: PREDEFINED_DEPOSIT_IDS[5],
 		})]);
 
 		// DEPOSIT 7 : (same period differen liq poll farm)
@@ -541,7 +535,6 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
 			nft_class_id: LIQ_MINING_NFT_CLASS,
-			nft_instance_id: PREDEFINED_DEPOSIT_IDS[6],
 		})]);
 
 		assert_eq!(

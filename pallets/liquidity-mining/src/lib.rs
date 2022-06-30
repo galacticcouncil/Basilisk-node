@@ -224,10 +224,8 @@ pub mod pallet {
 			amount: Balance,
 			lp_token: AssetId,
 			nft_class_id: primitives::ClassId,
-			nft_instance_id: primitives::InstanceId,
 		},
 
-		//TODO: Dani - remove nft instance id from all events
 		/// LP token was redeposited for a new yield farm entry
 		SharesRedeposited {
 			farm_id: GlobalFarmId,
@@ -236,7 +234,6 @@ pub mod pallet {
 			amount: Balance,
 			lp_token: AssetId,
 			nft_class_id: primitives::ClassId,
-			nft_instance_id: primitives::InstanceId,
 		},
 
 		/// Rewards was claimed.
@@ -669,7 +666,6 @@ pub mod pallet {
 				amount: shares_amount,
 				lp_token: amm_share_token,
 				nft_class_id: T::NftClassId::get(),
-				nft_instance_id: deposit_id,
 			});
 
 			Ok(())
@@ -719,8 +715,7 @@ pub mod pallet {
 				who,
 				amount: shares_amount,
 				lp_token: amm_share_token,
-				nft_class_id: nft_class_id,
-				nft_instance_id: deposit_id,
+				nft_class_id,
 			});
 
 			Ok(())
@@ -808,7 +803,7 @@ pub mod pallet {
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
 			let global_farm_id = T::LiquidityMiningHandler::get_global_farm_id(deposit_id, yield_farm_id)
-				.ok_or(Error::<T>::DepositDataNotFound)?; //TODO Dani - add other erorr
+				.ok_or(Error::<T>::DepositDataNotFound)?;
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
