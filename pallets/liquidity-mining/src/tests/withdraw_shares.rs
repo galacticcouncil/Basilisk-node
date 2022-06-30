@@ -335,3 +335,20 @@ fn withdraw_shares_not_owner_should_not_work() {
 		);
 	});
 }
+
+#[test]
+fn withdraw_shares_should_not_work_when_global_farm_is_not_found() {
+	predefined_test_ext_with_deposits().execute_with(|| {
+		let non_known_farm: u32 = 99999;
+
+		assert_noop!(
+			LiquidityMining::withdraw_shares(
+				Origin::signed(ALICE),
+				PREDEFINED_DEPOSIT_IDS[0],
+				non_known_farm,
+				BSX_TKN1_ASSET_PAIR
+			),
+			Error::<Test>::DepositDataNotFound
+		);
+	});
+}
