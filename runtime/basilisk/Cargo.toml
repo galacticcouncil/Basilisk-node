@@ -33,7 +33,7 @@ pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",defaul
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features=false}
-#TODO: Dani - uncomment - pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
+pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
