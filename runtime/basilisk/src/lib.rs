@@ -850,15 +850,15 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type NftClassId = NftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
-	type ReserveClassIdUpTo = (); //TODO: Dani - ask Martin what to write here
+	type ReserveClassIdUpTo = ReserveClassIdUpTo; //TODO: Dani - ask Martin what to write here
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
 }
 
 //TODO: Dani - ask Martin - do i need to do this?
-type WarehouseCollective = pallet_collective::Instance3;
 
-impl warehouse_liquidity_mining::Config<WarehouseCollective> for Runtime {
+type XYKLiquidityMining = warehouse_liquidity_mining::Instance1;
+impl warehouse_liquidity_mining::Config<XYKLiquidityMining> for Runtime {
 	type CurrencyId = AssetId;
 	type MultiCurrency = Tokens;
 	type PalletId = WarehouseLMPalletId;
