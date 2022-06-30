@@ -1,0 +1,87 @@
+// This file is part of HydraDX.
+
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//TODO: Dani - fix it
+
+use super::*;
+use frame_support::traits::StorageVersion;
+
+const STORAGE_VERSION: u16 = 1;
+const READ_WEIGHT: u64 = 3;
+const WRITE_WEIGHT: u64 = 5;
+
+#[allow(dead_code)]
+pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
+	let version = StorageVersion::get::<Pallet<T>>();
+
+	if version == 0 {
+		let pallet_account = <Pallet<T>>::account_id_for_all_lp_shares();
+
+		T::NFTHandler::create_class(&T::NftClassId::get(), &pallet_account, &pallet_account).unwrap();
+		//TODO: Dani fix it at the end when we merge back because we need to go to master, get the latest main where nft is
+		//not locally, and use do_create_class from wh repo OR, we need to add this method to the NFTHandler
+
+		/*pallet_nft::Pallet::<T>::do_create_class(
+			pallet_account,
+			T::NftClassId::get(),
+			ClassType::LiquidityMining,
+			BoundedVec::default(),
+		)
+		.unwrap();*?*/
+
+		StorageVersion::new(STORAGE_VERSION).put::<Pallet<T>>();
+
+		T::DbWeight::get().reads_writes(READ_WEIGHT, WRITE_WEIGHT)
+	} else {
+		0
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::mock::Test;
+	use std::borrow::Borrow;
+	use std::cell::RefCell;
+
+	#[test]
+	fn init_nft_class_migration_should_work() {
+		sp_io::TestExternalities::default().execute_with(|| {
+			let pallet_account = <Pallet<Test>>::account_id_for_all_lp_shares();
+
+			let weight = init_nft_class::<Test>();
+
+			assert_that_nft_class_is_created(pallet_account);
+			assert_eq!(StorageVersion::get::<Pallet<Test>>(), STORAGE_VERSION);
+			assert_eq!(
+				weight,
+				(READ_WEIGHT * mock::INITIAL_READ_WEIGHT) + (WRITE_WEIGHT * mock::INITIAL_WRITE_WEIGHT)
+			);
+		});
+	}
+
+	//TODO: Dani add test for having storage version 0, so returns 0 weight
+
+	fn assert_that_nft_class_is_created(pallet_account: u128) {
+		mock::NFT_CLASS.borrow().with(|v| {
+			assert_eq!(
+				*v,
+				RefCell::new((mock::LIQ_MINING_NFT_CLASS, pallet_account, pallet_account))
+			)
+		});
+	}
+}

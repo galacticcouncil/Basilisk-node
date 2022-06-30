@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "58.0.0"
+version = "59.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -32,6 +32,8 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
+pallet-liquidity-mining = { path = "../../pallets/liquidity-mining", default-features=false}
+#TODO: Dani - uncomment - pallet-liquidity-mining-benchmarking = { path = "../../pallets/liquidity-mining/benchmarking", optional = true, default-features = false}
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
@@ -48,6 +50,7 @@ pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse",
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
+warehouse_liquidity_mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil//warehouse", rev="d5a86e0006dd3c446ccf49cf7a37e37269c404fc", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
@@ -151,6 +154,7 @@ runtime-benchmarks = [
     "pallet-tips/runtime-benchmarks",
     "pallet-proxy/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
+    #TODO: Dani - "pallet-liquidity-mining-benchmarking",
     "orml-benchmarking",
 ]
 std = [
@@ -200,6 +204,7 @@ std = [
     "pallet-lbp/std",
     "pallet-price-oracle/std",
     "pallet-utility/std",
+    "pallet-liquidity-mining/std",
     "hydradx-traits/std",
     "sp-api/std",
     "sp-block-builder/std",
