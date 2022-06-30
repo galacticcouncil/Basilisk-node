@@ -962,7 +962,7 @@ construct_runtime!(
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
 		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 156,
-		WarehouseLM: warehouse_liquidity_mining::<Instance3>::{Pallet, Storage, Event<T>} = 157,
+		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 157,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
