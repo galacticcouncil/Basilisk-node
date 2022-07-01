@@ -539,18 +539,6 @@ parameter_types! {
 	pub ReserveClassIdUpTo: u128 = 999_999;
 }
 
-impl pallet_nft::Config for Runtime {
-	type Currency = Balances;
-	type Event = Event;
-	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
-	type NftClassId = ClassId;
-	type NftInstanceId = InstanceId;
-	type ProtocolOrigin = EnsureRoot<AccountId>;
-	type ClassType = ClassType;
-	type Permissions = NftPermissions;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
-}
-
 type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
 
 type EnsureMajorityCouncilOrRoot = EnsureOneOf<
@@ -837,6 +825,18 @@ impl pallet_uniques::Config for Runtime {
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+}
+
+impl pallet_nft::Config for Runtime {
+	type Currency = Balances;
+	type Event = Event;
+	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+	type NftClassId = ClassId;
+	type NftInstanceId = InstanceId;
+	type ProtocolOrigin = EnsureRoot<AccountId>;
+	type ClassType = ClassType;
+	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 impl pallet_liquidity_mining::Config for Runtime {
