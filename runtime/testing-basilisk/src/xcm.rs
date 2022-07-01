@@ -19,8 +19,6 @@ use xcm_builder::{
 };
 use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
 
-use common_runtime::filters::AllowEverythingExcept;
-
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
 pub type Barrier = (
@@ -184,7 +182,7 @@ impl pallet_xcm::Config for Runtime {
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
-	type XcmReserveTransferFilter = AllowEverythingExcept<NativeLocation>;
+	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Origin = Origin;
@@ -200,6 +198,10 @@ use primitives::Price;
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
 		match id {
+			CORE_ASSET_ID => Some(MultiLocation::new(
+				1,
+				X2(Parachain(ParachainInfo::get().into()), GeneralIndex(id.into())),
+			)),
 			_ => {
 				if let Some(loc) = AssetRegistry::asset_to_location(id) {
 					Some(loc.0)
@@ -214,6 +216,18 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
 		match location {
+			MultiLocation {
+				parents,
+				interior: X2(Parachain(id), GeneralIndex(index)),
+			} if parents == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
+				// Handling native asset for this parachain
+				Some(CORE_ASSET_ID)
+			}
+			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
+			MultiLocation {
+				parents: 0,
+				interior: X1(GeneralIndex(index)),
+			} if (index as u32) == CORE_ASSET_ID => Some(CORE_ASSET_ID),
 			// delegate to asset-registry
 			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
 		}
