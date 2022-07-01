@@ -56,3 +56,27 @@ orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
 orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
 orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
+
+[features]
+default = ["std"]
+std = [
+    "sp-std/std",
+    "sp-runtime/std",
+    "sp-core/std",
+    "frame-support/std",
+    "frame-system/std",
+    "sp-npos-elections/std",
+    "pallet-transaction-payment/std",
+    "pallet-balances/std",
+    "pallet-treasury/std",
+    "pallet-democracy/std",
+    "pallet-scheduler/std",
+    "pallet-timestamp/std",
+    "pallet-collator-selection/std",
+    "pallet-utility/std",
+    "polkadot-xcm/std",
+    "orml-tokens/std",
+    "orml-traits/std",
+    "orml-currencies/std",
+    "orml-vesting/std",
+]
