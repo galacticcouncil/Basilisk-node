@@ -307,7 +307,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type WeightInfo = common_runtime::weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
-	type NativeAssetId = ();
+	type NativeAssetId = NativeAssetId;
 	type FeeReceiver = TreasuryAccount;
 }
 
@@ -430,6 +430,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
+	type DiscountedFee = DiscountedFee;
 }
 
 impl pallet_exchange::Config for Runtime {

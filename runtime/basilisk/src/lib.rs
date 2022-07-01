@@ -475,6 +475,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
+	type DiscountedFee = DiscountedFee;
 }
 
 impl pallet_exchange::Config for Runtime {

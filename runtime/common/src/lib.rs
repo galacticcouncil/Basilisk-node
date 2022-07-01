@@ -153,6 +153,7 @@ parameter_types! {
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 	pub const RegistryStrLimit: u32 = 32;
+	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
 }
 
 // pallet duster
