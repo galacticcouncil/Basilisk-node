@@ -1,5 +1,6 @@
 use super::{AssetId, *};
 
+use cumulus_primitives_core::ParaId;
 use frame_support::{
 	traits::{Everything, Nothing},
 	PalletId,
