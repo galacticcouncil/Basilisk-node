@@ -7,7 +7,7 @@ use sp_runtime::traits::BlakeTwo256;
 use sp_std::vec::Vec;
 
 /// Account id constructor for given assets and an identifier.
-/// Used to constructor account id for `Assets` which uniquely identifies a pool (xyk,stableswap)
+/// Used to construct account id for `Assets` which uniquely identifies a pool (xyk, stableswap)
 pub struct AccountIdForStableswap;
 
 impl ShareAccountIdFor<PoolAssets<AssetId>> for AccountIdForStableswap {

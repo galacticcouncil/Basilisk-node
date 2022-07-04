@@ -113,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 58,
+	spec_version: 59,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -307,7 +307,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type WeightInfo = common_runtime::weights::payment::BasiliskWeight<Runtime>;
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
-	type NativeAssetId = ();
+	type NativeAssetId = NativeAssetId;
 	type FeeReceiver = TreasuryAccount;
 }
 
@@ -430,6 +430,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
+	type DiscountedFee = DiscountedFee;
 }
 
 impl pallet_stableswap::Config for Runtime {

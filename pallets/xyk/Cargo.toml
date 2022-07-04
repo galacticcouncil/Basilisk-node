@@ -1,6 +1,6 @@
 [package]
 name = 'pallet-xyk'
-version = '3.6.4'
+version = '4.0.1'
 description = 'XYK automated market maker'
 authors = ['GalacticCouncil']
 edition = '2021'
@@ -20,7 +20,7 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 primitive-types = { default-features = false, version = '0.8.0' }
 serde = { features = ['derive'], optional = true, version = '1.0.136' }
 
-hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1bafe7bb96864f5d29bab68061719c541ef06648", default-features = false }
+hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1cd815cbce846a42d351db3778ff9c07149a6ad2", default-features = false }
 
 # Local dependencies
 primitives = {path = '../../primitives', default-features = false}
@@ -46,6 +46,7 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17" }
+proptest = "1.0.0"
 
 [features]
 default = ['std']

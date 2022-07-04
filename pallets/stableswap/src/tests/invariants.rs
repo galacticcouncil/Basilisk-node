@@ -92,11 +92,12 @@ proptest! {
 				let new_asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
 				let new_asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
 
-				assert_eq_approx!(FixedU128::from((asset_a_reserve,asset_b_reserve)),
-					FixedU128::from((new_asset_a_reserve,new_asset_b_reserve)),
+				assert_eq_approx!(
+					FixedU128::from((asset_a_reserve, asset_b_reserve)),
+					FixedU128::from((new_asset_a_reserve, new_asset_b_reserve)),
 					FixedU128::from_float(0.0000000001),
-					"Price has changed after add liquidity");
-
+					"Price has changed after add liquidity"
+				);
 			});
 	}
 }

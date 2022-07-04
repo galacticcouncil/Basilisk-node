@@ -245,7 +245,7 @@ fn simple_buy_with_fee_works() {
 }
 
 #[test]
-fn sell_with_invalidad_amounts_fails() {
+fn sell_with_invalid_amounts_fails() {
 	let asset_a: AssetId = 1000;
 	let asset_b: AssetId = 2000;
 	ExtBuilder::default()
