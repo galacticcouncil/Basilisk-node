@@ -6512,7 +6512,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "4.0.0"
+version = "4.0.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6527,6 +6527,7 @@ dependencies = [
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "primitives",
+ "proptest",
  "scale-info",
  "serde",
  "sp-api",

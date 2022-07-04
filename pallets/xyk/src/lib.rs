@@ -40,9 +40,6 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::Amount;
 
 #[cfg(test)]
-mod mock;
-
-#[cfg(test)]
 mod tests;
 
 mod benchmarking;
