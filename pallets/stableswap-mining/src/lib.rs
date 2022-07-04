@@ -17,6 +17,8 @@
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+use mutagen::mutate;
 //pub mod migration;
 pub mod weights;
 
@@ -41,6 +43,7 @@ type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 
 #[frame_support::pallet]
+#[allow(clippy::too_many_arguments)]
 pub mod pallet {
 	use super::*;
 	use crate::weights::WeightInfo;
@@ -220,7 +223,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[allow(clippy::too_many_arguments)]
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::create_farm())]
 		#[transactional]
 		pub fn create_global_farm(
@@ -263,6 +266,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_farm())]
 		#[transactional]
 		pub fn destroy_global_farm(origin: OriginFor<T>, id: GlobalFarmId) -> DispatchResult {
@@ -281,6 +285,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity_pool())]
 		#[transactional]
 		pub fn create_yield_farm(
@@ -315,6 +320,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::update_liquidity_pool())]
 		#[transactional]
 		pub fn update_yield_farm(
@@ -343,6 +349,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
 		pub fn stop_yield_farm(
@@ -364,6 +371,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::resume_liquidity_pool())]
 		#[transactional]
 		pub fn resume_liquidity_pool(
@@ -399,6 +407,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity_pool())]
 		#[transactional]
 		pub fn destroy_yield_farm(
@@ -421,6 +430,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
 		#[transactional]
 		pub fn deposit_lp_shares(
@@ -467,6 +477,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
 		#[transactional]
 		pub fn redeposit_lp_shares(
@@ -500,6 +511,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::claim_rewards())]
 		#[transactional]
 		pub fn claim_rewards(
@@ -530,6 +542,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[cfg_attr(test, mutate)]
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_shares())]
 		#[transactional]
 		pub fn withdraw_lp_shares(
@@ -557,7 +570,7 @@ pub mod pallet {
 
 				unclaimable_rewards = unclaimable;
 
-				if !claimed.is_zero() {
+				if claimed.gt(&Balance::zero()) {
 					Self::deposit_event(Event::RewardsClaimed {
 						who: who.clone(),
 						global_farm_id,
@@ -582,7 +595,7 @@ pub mod pallet {
 
 			if deposit_destroyed {
 				//Unlock LP tokens
-				T::MultiCurrency::transfer(lp_token, &Self::account_id(), &who.clone(), withdrawn_amount)?;
+				T::MultiCurrency::transfer(lp_token, &Self::account_id(), &who, withdrawn_amount)?;
 
 				//Destroy NFT
 				T::NFTHandler::burn_from(&T::NFTClassId::get(), &nft_id)?;
@@ -604,12 +617,14 @@ impl<T: Config> Pallet<T> {
 		<T as pallet::Config>::PalletId::get().into_account()
 	}
 
+	#[cfg_attr(test, mutate)]
 	fn get_lp_token(id: PoolId<AssetId>) -> Result<AssetId, Error<T>> {
 		let pool = pallet_stableswap::Pallet::<T>::pools(id).ok_or(Error::<T>::StableswapPoolNotFound)?;
 
 		Ok(pool.assets.0)
 	}
 
+	#[cfg_attr(test, mutate)]
 	fn get_asset_balance_in_stableswap_pool(
 		asset: AssetId,
 		pool_id: PoolId<AssetId>,

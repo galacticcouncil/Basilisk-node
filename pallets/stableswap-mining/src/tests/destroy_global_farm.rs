@@ -71,7 +71,7 @@ fn destroy_global_farm_should_work() {
 				who: owner,
 				id: global_farm_id,
 				reward_currency,
-				undistributed_rewards: total_rewards,
+				undistributed_rewards: GLOBAL_FARM_UNDISTRIBUTED_REWARDS,
 			}
 			.into());
 		});

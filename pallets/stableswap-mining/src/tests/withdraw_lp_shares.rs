@@ -85,7 +85,6 @@ fn withdraw_lp_shares_should_work() {
 			// 1-th withdraw
 			let yield_farm_id = 3;
 			let owner_lp_token_balance = Tokens::free_balance(lp_token, &owner);
-			let claimed_amount = 20_000_000 * ONE; //NOTE: this is not withdrawn amount, this is reward.
 			assert_ok!(StableswapMining::withdraw_lp_shares(
 				Origin::signed(owner),
 				nft_instance_id,
@@ -118,17 +117,13 @@ fn withdraw_lp_shares_should_work() {
 			.into());
 
 			//NOTE: lp tokens are returned only if deposit was destroy, this is not this case.
-			pretty_assertions::assert_eq!(
-				Tokens::free_balance(lp_token, &owner),
-				owner_lp_token_balance + claimed_amount
-			);
+			pretty_assertions::assert_eq!(Tokens::free_balance(lp_token, &owner), owner_lp_token_balance);
 
 			//NFT should have not been burned
 			pretty_assertions::assert_eq!(NFTS.with(|v| v.borrow().contains_key(&nft_instance_id)), true);
 
 			// 1-th withdraw
 			let yield_farm_id = 4;
-			let owner_lp_token_balance = Tokens::free_balance(lp_token, &owner);
 			assert_ok!(StableswapMining::withdraw_lp_shares(
 				Origin::signed(owner),
 				nft_instance_id,

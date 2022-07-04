@@ -79,112 +79,7 @@ fn claim_rewards_should_work() {
 }
 
 #[test]
-fn claim_rewards_in_same_period_should_work_when_claiming_different_farm_entry() {
-	ExtBuilder::default()
-		.with_endowed_accounts(vec![
-			(ALICE, BSX, 1_000 * ONE),
-			(ALICE, DAI, 1_000 * ONE),
-			(GC, BSX, 2_000_000_000_000 * ONE),
-			(BOB, HDX, 2_000_000_000_000 * ONE),
-		])
-		.with_registered_asset("BSX".as_bytes().to_vec(), BSX)
-		.with_registered_asset("DAI".as_bytes().to_vec(), DAI)
-		.with_pool(
-			ALICE,
-			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
-				amplification: 100,
-				fee: Permill::from_float(0.1),
-			},
-			InitialLiquidity {
-				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
-			},
-		)
-		.with_global_farm(
-			2_000_000_000_000 * ONE,
-			1_000_000,
-			1_000,
-			BSX,
-			BSX,
-			GC,
-			Permill::from_float(0.2),
-			1_000,
-			FixedU128::one(),
-		)
-		.with_global_farm(
-			2_000_000_000_000 * ONE,
-			1_000_000,
-			1_000,
-			BSX,
-			HDX,
-			BOB,
-			Permill::from_float(0.2),
-			1_000,
-			FixedU128::one(),
-		)
-		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
-		.with_yield_farm(BOB, BOB_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
-		.with_deposit(ALICE, GC_FARM, 3, PoolId(3), 100_000)
-		.build()
-		.execute_with(|| {
-			let owner = ALICE;
-			let global_farm_id = GC_FARM;
-			let yield_farm_id = 3;
-			let nft_instance_id = get_deposit_id_at(0);
-
-			// redeposit lp shares before test
-			assert_ok!(StableswapMining::redeposit_lp_shares(
-				Origin::signed(owner),
-				BOB_FARM,
-				4,
-				nft_instance_id
-			));
-
-			set_block_number(10_000);
-
-			// 1-th claim
-			assert_ok!(StableswapMining::claim_rewards(
-				Origin::signed(owner),
-				nft_instance_id,
-				yield_farm_id
-			));
-
-			assert_last_event!(crate::Event::RewardsClaimed {
-				who: owner,
-				global_farm_id,
-				yield_farm_id,
-				nft_instance_id,
-				reward_currency: BSX,
-				claimed: 20_000_000 * ONE
-			}
-			.into());
-
-			// 2-nd claim
-			let global_farm_id = BOB_FARM;
-			let yield_farm_id = 4;
-
-			assert_ok!(StableswapMining::claim_rewards(
-				Origin::signed(owner),
-				nft_instance_id,
-				yield_farm_id
-			));
-
-			assert_last_event!(crate::Event::RewardsClaimed {
-				who: owner,
-				global_farm_id,
-				yield_farm_id,
-				nft_instance_id,
-				reward_currency: HDX,
-				claimed: 20_000_000 * ONE
-			}
-			.into());
-		});
-}
-
-#[test]
-fn claim_rewards_should_fail_when_second_claim_in_same_period() {
+fn claim_rewards_should_fail_when_second_claim_in_same_period_from_same_farm() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(ALICE, BSX, 1_000 * ONE),
@@ -210,7 +105,7 @@ fn claim_rewards_should_fail_when_second_claim_in_same_period() {
 		.with_global_farm(
 			2_000_000_000_000 * ONE,
 			1_000_000,
-			1_000,
+			1,
 			BSX,
 			BSX,
 			GC,
@@ -247,11 +142,9 @@ fn claim_rewards_should_fail_when_second_claim_in_same_period() {
 			.into());
 
 			//2-nd claim should fail
-			set_block_number(10_500);
-
 			assert_noop!(
 				StableswapMining::claim_rewards(Origin::signed(who), nft_instance_id, yield_farm_id),
-				warehouse_liquidity_mining::Error::<Test, Instance1>::DoubleClaimInPeriod
+				"Dummy Double Claim"
 			);
 		});
 }

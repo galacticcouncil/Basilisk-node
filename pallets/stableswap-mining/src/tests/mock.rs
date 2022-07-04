@@ -21,9 +21,7 @@ use super::*;
 pub(crate) use crate as stableswap_mining;
 use crate::Config;
 pub(crate) use frame_support::{
-	assert_ok,
-	instances::Instance1,
-	parameter_types,
+	assert_ok, parameter_types,
 	sp_runtime::traits::{One, Zero},
 	traits::{Everything, GenesisBuild},
 	PalletId,
@@ -55,28 +53,21 @@ pub type BlockNumber = u64;
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
-pub const DAVE: AccountId = 4;
-pub const EVE: AccountId = 5;
 pub const GC: AccountId = 6;
 
 pub const ONE: Balance = 1_000_000_000_000;
 
-pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
-
 pub const BSX: AssetId = 1000;
 pub const HDX: AssetId = 1001;
-pub const ACA: AssetId = 1002;
-pub const KSM: AssetId = 1003;
-pub const DOT: AssetId = 1004;
-pub const ETH: AssetId = 1005;
-pub const TKN1: AssetId = 1_006;
-pub const TKN2: AssetId = 1_007;
-pub const DAI: AssetId = 1_008;
+pub const KSM: AssetId = 1002;
+pub const DAI: AssetId = 1_003;
 
 pub const GC_FARM: GlobalFarmId = 1;
 pub const BOB_FARM: GlobalFarmId = 2;
 
 pub const LIQ_MINING_NFT_CLASS: u128 = 1;
+
+pub const GLOBAL_FARM_UNDISTRIBUTED_REWARDS: Balance = 1_000_000 * ONE;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -88,7 +79,6 @@ frame_support::construct_runtime!(
 	UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		WarehouseMining: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
 		Stableswap: pallet_stableswap::{Pallet, Call, Storage, Event<T>},
 		StableswapMining: stableswap_mining::{Pallet, Call, Event<T>}
@@ -149,7 +139,7 @@ impl Config for Test {
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type NFTClassId = NFTClass;
 	type NFTHandler = DummyNFT;
-	type LiquidityMiningHandler = WarehouseMining;
+	type LiquidityMiningHandler = DummyLiquidityMining;
 	type WeightInfo = ();
 }
 
@@ -159,19 +149,6 @@ parameter_types! {
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
 	pub const MaxEntriesPerDeposit: u8 = 5;
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 4;
-}
-
-impl warehouse_liquidity_mining::Config<Instance1> for Test {
-	type Event = Event;
-	type CurrencyId = AssetId;
-	type MultiCurrency = Tokens;
-	type PalletId = LMPalletId;
-	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-	type MinTotalFarmRewards = MinTotalFarmRewards;
-	type BlockNumberProvider = MockBlockNumberProvider;
-	type AmmPoolId = pallet_stableswap::types::PoolId<AssetId>;
-	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
-	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 }
 
 parameter_type_with_key! {
@@ -223,6 +200,53 @@ thread_local! {
 	pub static ASSET_IDENTS: RefCell<HashMap<Vec<u8>, u32>> = RefCell::new(HashMap::default());
 	pub static POOL_IDS: RefCell<Vec<PoolId<AssetId>>> = RefCell::new(Vec::new());
 	pub static DEPOSIT_IDS: RefCell<Vec<DepositId>> = RefCell::new(Vec::new());
+
+	pub static GLOBAL_FARMS: RefCell<HashMap<u32, DymmyGlobalFarm>> = RefCell::new(HashMap::default());
+	pub static YIELD_FARMS: RefCell<HashMap<u32, DummyYieldFarm>> = RefCell::new(HashMap::default());
+	pub static DEPOSITS: RefCell<HashMap<u128, DummyDeposit>> = RefCell::new(HashMap::default());
+	pub static DEPOSIT_ENTRIES: RefCell<HashMap<(DepositId, u32), DummyFarmEntry>> = RefCell::new(HashMap::default());
+
+	pub static FARM_ID: RefCell<u32> = RefCell::new(0);
+	pub static DEPOSIT_ID: RefCell<DepositId> = RefCell::new(0);
+}
+
+#[derive(Copy, Clone)]
+pub struct DymmyGlobalFarm {
+	_total_rewards: Balance,
+	_planned_yielding_periods: PeriodOf<Test>,
+	_blocks_per_period: BlockNumber,
+	incentivized_asset: AssetId,
+	reward_currency: AssetId,
+	_owner: AccountId,
+	_yield_per_period: Permill,
+	_min_deposit: Balance,
+	_price_adjustment: FixedU128,
+	_max_reward_per_period: Balance,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct DummyYieldFarm {
+	_global_farm_id: u32,
+	multiplier: FixedU128,
+	amm_pool_id: PoolId<AssetId>,
+	_asset_a: AssetId,
+	_asset_b: AssetId,
+	stopped: bool,
+}
+
+#[derive(Copy, Clone)]
+pub struct DummyDeposit {
+	amm_pool_id: PoolId<AssetId>,
+	shares_amount: Balance,
+	entries: u32,
+}
+
+#[derive(Copy, Clone)]
+pub struct DummyFarmEntry {
+	_yield_farm_id: u32,
+	global_farm_id: u32,
+	_incentivized_asset_balance: Balance,
+	last_claimed: BlockNumber,
 }
 
 pub struct DummyRegistry<T>(sp_std::marker::PhantomData<T>);
@@ -232,14 +256,14 @@ where
 	T::AssetId: Into<AssetId> + From<u32>,
 {
 	fn exists(asset_id: T::AssetId) -> bool {
-		let asset = REGISTERED_ASSETS.with(|v| v.borrow().get(&(asset_id.into())).copied());
+		let asset = REGISTERED_ASSETS.with(|v| v.borrow().get(&asset_id).copied());
 		matches!(asset, Some(_))
 	}
 
 	fn retrieve_asset(name: &Vec<u8>) -> Result<T::AssetId, DispatchError> {
 		let asset_id = ASSET_IDENTS.with(|v| v.borrow().get(name).copied());
 		if let Some(id) = asset_id {
-			Ok(id.into())
+			Ok(id)
 		} else {
 			Err(pallet_stableswap::Error::<Test>::AssetNotRegistered.into())
 		}
@@ -254,7 +278,7 @@ where
 
 		ASSET_IDENTS.with(|v| v.borrow_mut().insert(name.clone(), assigned));
 
-		Ok(T::AssetId::from(assigned))
+		Ok(assigned)
 	}
 }
 
@@ -344,6 +368,309 @@ impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for DummyNFT {
 	}
 }
 
+pub struct DummyLiquidityMining {}
+
+impl DummyLiquidityMining {}
+
+impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> for DummyLiquidityMining {
+	type Error = DispatchError;
+
+	type AmmPoolId = PoolId<AssetId>;
+	type Balance = Balance;
+	type Period = PeriodOf<Test>;
+	type LoyaltyCurve = LoyaltyCurve;
+
+	fn create_global_farm(
+		total_rewards: Self::Balance,
+		planned_yielding_periods: Self::Period,
+		blocks_per_period: BlockNumber,
+		incentivized_asset: AssetId,
+		reward_currency: AssetId,
+		owner: AccountId,
+		yield_per_period: Permill,
+		min_deposit: Self::Balance,
+		price_adjustment: FixedU128,
+	) -> Result<(u32, Self::Balance), Self::Error> {
+		let max_reward_per_period = total_rewards.checked_div(planned_yielding_periods.into()).unwrap();
+		let farm_id = get_next_farm_id();
+
+		GLOBAL_FARMS.with(|v| {
+			v.borrow_mut().insert(
+				farm_id,
+				DymmyGlobalFarm {
+					_total_rewards: total_rewards,
+					_planned_yielding_periods: planned_yielding_periods,
+					_blocks_per_period: blocks_per_period,
+					incentivized_asset,
+					reward_currency,
+					_owner: owner,
+					_yield_per_period: yield_per_period,
+					_min_deposit: min_deposit,
+					_price_adjustment: price_adjustment,
+					_max_reward_per_period: max_reward_per_period,
+				},
+			);
+		});
+
+		Ok((farm_id, max_reward_per_period))
+	}
+
+	fn destroy_global_farm(
+		who: AccountId,
+		global_farm_id: u32,
+	) -> Result<(AssetId, Self::Balance, AccountId), Self::Error> {
+		GLOBAL_FARMS.with(|v| {
+			let g_f = v.borrow_mut().remove_entry(&global_farm_id).unwrap().1;
+
+			Ok((g_f.reward_currency, GLOBAL_FARM_UNDISTRIBUTED_REWARDS, who))
+		})
+	}
+
+	fn create_yield_farm(
+		_who: AccountId,
+		global_farm_id: u32,
+		multiplier: FixedU128,
+		_loyalty_curve: Option<Self::LoyaltyCurve>,
+		amm_pool_id: Self::AmmPoolId,
+		asset_a: AssetId,
+		asset_b: AssetId,
+	) -> Result<u32, Self::Error> {
+		let farm_id = get_next_farm_id();
+
+		YIELD_FARMS.with(|v| {
+			v.borrow_mut().insert(
+				farm_id,
+				DummyYieldFarm {
+					_global_farm_id: global_farm_id,
+					multiplier,
+					amm_pool_id,
+					_asset_a: asset_a,
+					_asset_b: asset_b,
+					stopped: false,
+				},
+			);
+		});
+
+		Ok(farm_id)
+	}
+
+	fn update_yield_farm_multiplier(
+		_who: AccountId,
+		_global_farm_id: u32,
+		amm_pool_id: Self::AmmPoolId,
+		multiplier: FixedU128,
+	) -> Result<u32, Self::Error> {
+		YIELD_FARMS.with(|v| {
+			let mut p = v.borrow_mut();
+
+			let (id, yield_farm) = p.iter_mut().find(|(_, farm)| farm.amm_pool_id == amm_pool_id).unwrap();
+
+			yield_farm.multiplier = multiplier;
+
+			Ok(*id)
+		})
+	}
+
+	fn stop_yield_farm(
+		_who: AccountId,
+		_global_farm_id: u32,
+		amm_pool_id: Self::AmmPoolId,
+	) -> Result<u32, Self::Error> {
+		YIELD_FARMS.with(|v| {
+			let mut p = v.borrow_mut();
+
+			let (id, yield_farm) = p.iter_mut().find(|(_, farm)| farm.amm_pool_id == amm_pool_id).unwrap();
+
+			yield_farm.stopped = true;
+
+			Ok(*id)
+		})
+	}
+
+	fn resume_yield_farm(
+		_who: AccountId,
+		_global_farm_id: u32,
+		yield_farm_id: u32,
+		_amm_pool_id: Self::AmmPoolId,
+		multiplier: FixedU128,
+	) -> Result<(), Self::Error> {
+		YIELD_FARMS.with(|v| {
+			let mut p = v.borrow_mut();
+
+			let yield_farm = p.get_mut(&yield_farm_id).unwrap();
+
+			yield_farm.stopped = true;
+			yield_farm.multiplier = multiplier;
+
+			Ok(())
+		})
+	}
+
+	fn destroy_yield_farm(
+		_who: AccountId,
+		_global_farm_id: u32,
+		yield_farm_id: u32,
+		_amm_pool_id: Self::AmmPoolId,
+	) -> Result<(), Self::Error> {
+		YIELD_FARMS.with(|v| {
+			let _ = v.borrow_mut().remove_entry(&yield_farm_id).unwrap().1;
+		});
+
+		Ok(())
+	}
+
+	fn deposit_lp_shares(
+		global_farm_id: u32,
+		yield_farm_id: u32,
+		amm_pool_id: Self::AmmPoolId,
+		shares_amount: Self::Balance,
+		get_balance_in_amm: fn(AssetId, Self::AmmPoolId) -> Result<Self::Balance, Self::Error>,
+	) -> Result<u128, Self::Error> {
+		let deposit_id = get_next_deposit_id();
+
+		let incentivized_asset = GLOBAL_FARMS.with(|v| v.borrow().get(&global_farm_id).unwrap().incentivized_asset);
+
+		let incentivized_asset_balance = get_balance_in_amm(incentivized_asset, amm_pool_id).unwrap();
+
+		DEPOSITS.with(|v| {
+			v.borrow_mut().insert(
+				deposit_id,
+				DummyDeposit {
+					amm_pool_id,
+					shares_amount,
+					entries: 1,
+				},
+			);
+		});
+
+		DEPOSIT_ENTRIES.with(|v| {
+			v.borrow_mut().insert(
+				(deposit_id, yield_farm_id),
+				DummyFarmEntry {
+					global_farm_id,
+					_yield_farm_id: yield_farm_id,
+					_incentivized_asset_balance: incentivized_asset_balance,
+					last_claimed: MockBlockNumberProvider::get(),
+				},
+			);
+		});
+
+		Ok(deposit_id)
+	}
+
+	fn redeposit_lp_shares(
+		global_farm_id: u32,
+		yield_farm_id: u32,
+		deposit_id: u128,
+		get_balance_in_amm: fn(AssetId, Self::AmmPoolId) -> Result<Self::Balance, Self::Error>,
+	) -> Result<Self::Balance, Self::Error> {
+		let deposit = DEPOSITS.with(|v| {
+			let mut p = v.borrow_mut();
+			let mut deposit = p.get_mut(&deposit_id).unwrap();
+
+			deposit.entries += 1;
+
+			*deposit
+		});
+
+		let incentivized_asset = GLOBAL_FARMS.with(|v| v.borrow().get(&global_farm_id).unwrap().incentivized_asset);
+		let amm_pool_id = deposit.amm_pool_id;
+
+		let incentivized_asset_balance = get_balance_in_amm(incentivized_asset, amm_pool_id).unwrap();
+
+		DEPOSIT_ENTRIES.with(|v| {
+			v.borrow_mut().insert(
+				(deposit_id, yield_farm_id),
+				DummyFarmEntry {
+					_yield_farm_id: yield_farm_id,
+					global_farm_id,
+					_incentivized_asset_balance: incentivized_asset_balance,
+					last_claimed: MockBlockNumberProvider::get(),
+				},
+			)
+		});
+
+		Ok(deposit.shares_amount)
+	}
+
+	fn claim_rewards(
+		_who: AccountId,
+		deposit_id: u128,
+		yield_farm_id: u32,
+		fail_on_doubleclaim: bool,
+	) -> Result<(u32, AssetId, Self::Balance, Self::Balance), Self::Error> {
+		let deposit = DEPOSITS.with(|v| *v.borrow().get(&deposit_id).unwrap());
+
+		DEPOSIT_ENTRIES.with(|v| {
+			let mut p = v.borrow_mut();
+			let yield_farm_entry = p.get_mut(&(deposit_id, yield_farm_id)).unwrap();
+
+			if yield_farm_entry.last_claimed == MockBlockNumberProvider::get() && fail_on_doubleclaim {
+				return Err("Dummy Double Claim".into());
+			}
+
+			let reward_currency = GLOBAL_FARMS.with(|v| {
+				v.borrow()
+					.get(&yield_farm_entry.global_farm_id)
+					.unwrap()
+					.reward_currency
+			});
+
+			let mut claimed = 20_000_000 * ONE;
+			let mut unclaimable = 10_000 * ONE;
+			if deposit.shares_amount.is_zero() {
+				claimed = 0;
+				unclaimable = 200_000 * ONE;
+			}
+
+			if yield_farm_entry.last_claimed == MockBlockNumberProvider::get() {
+				claimed = 0;
+			}
+
+			yield_farm_entry.last_claimed = MockBlockNumberProvider::get();
+
+			Ok((yield_farm_entry.global_farm_id, reward_currency, claimed, unclaimable))
+		})
+	}
+
+	fn withdraw_lp_shares(
+		deposit_id: u128,
+		yield_farm_id: u32,
+		_unclaimable_rewards: Self::Balance,
+	) -> Result<(u32, Self::Balance, bool), Self::Error> {
+		let deposit = DEPOSITS.with(|v| {
+			let mut p = v.borrow_mut();
+			let mut deposit = p.get_mut(&deposit_id).unwrap();
+
+			deposit.entries -= 1;
+
+			*deposit
+		});
+
+		let global_farm_id = DEPOSIT_ENTRIES
+			.with(|v| v.borrow_mut().remove(&(deposit_id, yield_farm_id)))
+			.unwrap()
+			.global_farm_id;
+		let withdrawn_amount = deposit.shares_amount;
+
+		let mut destroyed = false;
+		if deposit.entries.is_zero() {
+			DEPOSITS.with(|v| v.borrow_mut().remove(&deposit_id));
+			destroyed = true;
+		}
+
+		Ok((global_farm_id, withdrawn_amount, destroyed))
+	}
+
+	fn is_yield_farm_claimable(_global_farm_id: u32, yield_farm_id: u32, _amm_pool_id: Self::AmmPoolId) -> bool {
+		!YIELD_FARMS.with(|v| v.borrow().get(&yield_farm_id).unwrap().stopped)
+	}
+
+	fn get_global_farm_id(deposit_id: u128, yield_farm_id: u32) -> Option<u32> {
+		DEPOSIT_ENTRIES.with(|v| Some(v.borrow().get(&(deposit_id, yield_farm_id)).unwrap().global_farm_id))
+	}
+}
+
 pub fn set_block_number(n: u64) {
 	MockBlockNumberProvider::set(n);
 	System::set_block_number(n);
@@ -359,6 +686,7 @@ pub struct ExtBuilder {
 	endowed_accounts: Vec<(AccountId, AssetId, Balance)>,
 	registered_assets: Vec<(Vec<u8>, AssetId)>,
 	created_pools: Vec<(AccountId, PoolInfo<AssetId>, InitialLiquidity)>,
+	#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 	global_farms: Vec<(
 		Balance,
 		PeriodOf<Test>,
@@ -370,6 +698,7 @@ pub struct ExtBuilder {
 		Balance,
 		FixedU128,
 	)>,
+	#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 	yield_farms: Vec<(
 		AccountId,
 		GlobalFarmId,
@@ -397,6 +726,26 @@ impl Default for ExtBuilder {
 		POOL_IDS.with(|v| {
 			v.borrow_mut().clear();
 		});
+		GLOBAL_FARMS.with(|v| {
+			v.borrow_mut().clear();
+		});
+		YIELD_FARMS.with(|v| {
+			v.borrow_mut().clear();
+		});
+		DEPOSITS.with(|v| {
+			v.borrow_mut().clear();
+		});
+		DEPOSIT_ENTRIES.with(|v| {
+			v.borrow_mut().clear();
+		});
+
+		FARM_ID.with(|v| {
+			*v.borrow_mut() = 0;
+		});
+		DEPOSIT_ID.with(|v| {
+			*v.borrow_mut() = 0;
+		});
+
 		Self {
 			endowed_accounts: vec![],
 			registered_assets: vec![],
@@ -427,12 +776,13 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn start_from_block(mut self, block_number: u64) -> Self {
+	pub fn _start_from_block(mut self, block_number: u64) -> Self {
 		self.starting_block = block_number;
 
 		self
 	}
 
+	#[allow(clippy::too_many_arguments)]
 	pub fn with_global_farm(
 		mut self,
 		total_rewards: Balance,
@@ -443,7 +793,7 @@ impl ExtBuilder {
 		owner: AccountId,
 		yield_per_period: Permill,
 		min_deposit: Balance,
-		price_adujustment: FixedU128,
+		price_adjustment: FixedU128,
 	) -> Self {
 		self.global_farms.push((
 			total_rewards,
@@ -454,7 +804,7 @@ impl ExtBuilder {
 			owner,
 			yield_per_period,
 			min_deposit,
-			price_adujustment,
+			price_adjustment,
 		));
 
 		self
@@ -558,10 +908,10 @@ impl ExtBuilder {
 				owner,
 				yield_per_period,
 				min_deposit,
-				price_adujustment,
+				price_adjustment,
 			) in self.global_farms
 			{
-				assert_ok!(WarehouseMining::create_global_farm(
+				let _ = DummyLiquidityMining::create_global_farm(
 					total_rewards,
 					planned_yielding_periods,
 					blocks_per_period,
@@ -570,21 +920,21 @@ impl ExtBuilder {
 					owner,
 					yield_per_period,
 					min_deposit,
-					price_adujustment
-				));
+					price_adjustment,
+				);
 			}
 
 			//Create yield farms
 			for (who, global_farm_id, multiplier, loyalty_curve, amm_pool_id, asset_a, asset_b) in self.yield_farms {
-				assert_ok!(WarehouseMining::create_yield_farm(
+				let _ = DummyLiquidityMining::create_yield_farm(
 					who,
 					global_farm_id,
 					multiplier,
 					loyalty_curve,
 					amm_pool_id,
 					asset_a,
-					asset_b
-				));
+					asset_b,
+				);
 			}
 
 			//Create deposits
@@ -619,4 +969,20 @@ pub(crate) fn get_pool_id_at(idx: usize) -> PoolId<AssetId> {
 
 pub(crate) fn get_deposit_id_at(idx: usize) -> DepositId {
 	DEPOSIT_IDS.with(|v| v.borrow()[idx])
+}
+
+fn get_next_farm_id() -> u32 {
+	FARM_ID.with(|v| {
+		*v.borrow_mut() += 1;
+
+		*v.borrow()
+	})
+}
+
+fn get_next_deposit_id() -> DepositId {
+	DEPOSIT_ID.with(|v| {
+		*v.borrow_mut() += 1;
+
+		*v.borrow()
+	})
 }

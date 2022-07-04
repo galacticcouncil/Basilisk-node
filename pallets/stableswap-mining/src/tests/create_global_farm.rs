@@ -56,8 +56,6 @@ fn create_global_farm_should_work() {
 			let max_reward_per_period = total_rewards.checked_div(planned_yielding_periods.into()).unwrap();
 			let global_farm_id = GC_FARM;
 
-			let owner_balance = Tokens::total_balance(reward_currency, &owner);
-
 			assert_ok!(StableswapMining::create_global_farm(
 				Origin::root(),
 				total_rewards,
@@ -65,7 +63,7 @@ fn create_global_farm_should_work() {
 				blocks_per_period,
 				incentivized_asset,
 				reward_currency,
-				owner.clone(),
+				owner,
 				yield_per_period,
 				min_deposit,
 				price_adujustment,
@@ -82,11 +80,6 @@ fn create_global_farm_should_work() {
 				blocks_per_period,
 			}
 			.into());
-
-			pretty_assertions::assert_eq!(
-				Tokens::total_balance(reward_currency, &owner),
-				owner_balance - total_rewards
-			);
 		});
 }
 
