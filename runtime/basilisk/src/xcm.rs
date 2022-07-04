@@ -200,6 +200,9 @@ use primitives::constants::chain::CORE_ASSET_ID;
 
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
+		// temporary skip of the lint because of temporary change to the match statement
+		// TODO: remove the lint after re-introducing BSX XCM transfers
+		#[allow(clippy::match_single_binding)]
 		match id {
 			_ => {
 				if let Some(loc) = AssetRegistry::asset_to_location(id) {
@@ -214,6 +217,9 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 
 impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: MultiLocation) -> Option<AssetId> {
+		// temporary skip of the lint because of temporary change to the match statement
+		// TODO: remove the lint after re-introducing BSX XCM transfers
+		#[allow(clippy::match_single_binding)]
 		match location {
 			// delegate to asset-registry
 			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
