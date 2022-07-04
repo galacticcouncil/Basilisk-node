@@ -17,6 +17,9 @@
 
 #![cfg(test)]
 
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::borrow::{Borrow, BorrowMut};
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
@@ -39,10 +42,7 @@ use primitives::{
 use pallet_nft::{ReserveIdentifier};
 use primitives::nft::{ClassType,NftPermissions};
 use sp_core::H256;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
-};
+use sp_runtime::{DispatchResult, testing::Header, traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup}};
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
@@ -196,8 +196,8 @@ impl pallet_liquidity_mining::Config for Test {
 	type NftClassId = NftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
-	type ReserveClassIdUpTo = ReserveClassIdUpTo; //TODO: Dani - ask Martin what to write here
-	type NFTHandler = NFT;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type NFTHandler = NftHandlerStub;
 	type LiquidityMiningHandler = WarehouseLM;
 }
 
@@ -340,6 +340,54 @@ impl Default for ExtBuilder {
 				(DAVE, BSX, INITIAL_BALANCE),
 			],
 		}
+	}
+}
+
+//TODO: This logic is duplicated in multiple places. Shall we put it to some helper?
+thread_local! {
+	pub static NFTS: RefCell<HashMap<primitives::InstanceId, AccountId>> = RefCell::new(HashMap::default());
+}
+
+use frame_support::traits::tokens::nonfungibles::{Create, Inspect, Mutate};
+pub struct NftHandlerStub;
+
+impl<AccountId: From<u128>> Inspect<AccountId> for NftHandlerStub {
+	type InstanceId = primitives::InstanceId;
+	type ClassId = primitives::ClassId;
+
+	fn owner(_class: &Self::ClassId, instance: &Self::InstanceId) -> Option<AccountId> {
+		let mut owner: Option<AccountId> = None;
+
+		NFTS.with(|v| {
+			if let Some(o) = v.borrow().get(instance) {
+				owner = Some((*o).into());
+			}
+		});
+		owner
+	}
+}
+
+impl<AccountId: From<u128>> Create<AccountId> for NftHandlerStub {
+	fn create_class(_class: &Self::ClassId, _who: &AccountId, _admin: &AccountId) -> DispatchResult {
+		Ok(())
+	}
+}
+
+impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for NftHandlerStub {
+	fn mint_into(_class: &Self::ClassId, _instance: &Self::InstanceId, _who: &AccountId) -> DispatchResult {
+		NFTS.with(|v| {
+			let mut m = v.borrow_mut();
+			m.insert(*_instance, (*_who).into());
+		});
+		Ok(())
+	}
+
+	fn burn_from(_class: &Self::ClassId, instance: &Self::InstanceId) -> DispatchResult {
+		NFTS.with(|v| {
+			let mut m = v.borrow_mut();
+			m.remove(instance);
+		});
+		Ok(())
 	}
 }
 
