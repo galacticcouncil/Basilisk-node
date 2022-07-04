@@ -27,6 +27,10 @@ fn trade_amount() -> impl Strategy<Value = Balance> {
 	ONE..100 * ONE
 }
 
+fn trade_fee() -> impl Strategy<Value = f64> {
+	0f64..2f64
+}
+
 fn assert_asset_invariant(
 	old_state: (Balance, Balance),
 	new_state: (Balance, Balance),
@@ -53,6 +57,7 @@ proptest! {
 	#[test]
 	fn add_liquidity(initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
+		fee in trade_fee(),
 	) {
 		let asset_a = HDX;
 		let asset_b = DOT;
@@ -72,7 +77,7 @@ proptest! {
 					asset_a,
 					asset_b,
 					initial_liquidity,
-					Price::from_float(0.6544)
+					Price::from_float(fee)
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -160,6 +165,7 @@ proptest! {
 	#[test]
 	fn remove_liquidity(initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
+		fee in trade_fee(),
 	) {
 		let asset_a = HDX;
 		let asset_b = DOT;
@@ -179,7 +185,7 @@ proptest! {
 					asset_a,
 					asset_b,
 					initial_liquidity,
-					Price::from_float(0.6544)
+					Price::from_float(fee)
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -269,6 +275,7 @@ proptest! {
 	fn sell_invariant(initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
 		amount in trade_amount(),
+		fee in trade_fee(),
 	) {
 		let asset_a = HDX;
 		let asset_b = DOT;
@@ -289,7 +296,7 @@ proptest! {
 					asset_a,
 					asset_b,
 					initial_liquidity,
-					Price::from_float(0.6544)
+					Price::from_float(fee)
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -335,6 +342,7 @@ proptest! {
 	fn buy_invariant(initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
 		amount in trade_amount(),
+		fee in trade_fee(),
 	) {
 		let asset_a = ACA;
 		let asset_b = DOT;
@@ -357,7 +365,7 @@ proptest! {
 					asset_a,
 					asset_b,
 					initial_liquidity,
-					Price::from_float(0.6544)
+					Price::from_float(fee)
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -403,6 +411,7 @@ proptest! {
 	fn buy_invariant_with_discount(initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
 		amount in trade_amount(),
+		fee in trade_fee(),
 	) {
 		let asset_a = ACA;
 		let asset_b = DOT;
@@ -426,7 +435,7 @@ proptest! {
 					asset_a,
 					asset_b,
 					initial_liquidity,
-					Price::from_float(0.6544)
+					Price::from_float(fee)
 				));
 
 				assert_ok!(XYK::create_pool(
@@ -479,6 +488,7 @@ proptest! {
 	fn sell_invariant_with_discount(initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
 		amount in trade_amount(),
+		fee in trade_fee(),
 	) {
 		let asset_a = ACA;
 		let asset_b = DOT;
@@ -502,7 +512,7 @@ proptest! {
 					asset_a,
 					asset_b,
 					initial_liquidity,
-					Price::from_float(0.6544)
+					Price::from_float(fee)
 				));
 
 				assert_ok!(XYK::create_pool(
