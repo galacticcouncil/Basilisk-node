@@ -472,3 +472,79 @@ proptest! {
 			});
 	}
 }
+
+proptest! {
+	#![proptest_config(ProptestConfig::with_cases(1000))]
+	#[test]
+	fn sell_invariant_with_discount(initial_liquidity in asset_reserve(),
+		added_liquidity in asset_reserve(),
+		amount in trade_amount(),
+	) {
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		ExtBuilder::default()
+			.with_exchange_fee((0, 0))
+			.with_discounted_fee((0,0))
+			.with_accounts(vec![
+				(ALICE, asset_a,initial_liquidity * 1000),
+				(ALICE, HDX,initial_liquidity),
+				(ALICE, asset_b,initial_liquidity * 1000),
+				(BOB, asset_a, added_liquidity),
+				(BOB, asset_b, added_liquidity * 1_000_000),
+				(CHARLIE, asset_a, amount * 1_000),
+				(CHARLIE, HDX, amount * 1_000),
+			])
+			.build()
+			.execute_with(|| {
+				assert_ok!(XYK::create_pool(
+					Origin::signed(ALICE),
+					asset_a,
+					asset_b,
+					initial_liquidity,
+					Price::from_float(0.6544)
+				));
+
+				assert_ok!(XYK::create_pool(
+					Origin::signed(ALICE),
+					asset_a,
+					HDX,
+					10 * ONE,
+					Price::from_float(1.0)
+				));
+
+				let pool_account = XYK::get_pair_id(AssetPair {
+					asset_in: asset_a,
+					asset_out: asset_b,
+				});
+
+				assert_ok!(XYK::add_liquidity(
+					Origin::signed(BOB),
+					asset_a,
+					asset_b,
+					added_liquidity,
+					added_liquidity * 1_000_000, // do not care about the limit here
+				));
+				let _pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let _pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				assert_ok!(XYK::sell(
+						Origin::signed(CHARLIE),
+						asset_a,
+						asset_b,
+						amount,
+						0u128, // limit not interesting here,
+						true,
+				));
+
+				let _new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+				let _new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+				 assert_asset_invariant((_pool_balance_a, _pool_balance_b),
+					(_new_pool_balance_a, _new_pool_balance_b),
+					FixedU128::from((TOLERANCE,ONE)),
+					"sell with discount"
+				);
+			});
+	}
+}
