@@ -317,13 +317,13 @@ fn buy_with_invalid_amounts_fails() {
 	let asset_b: AssetId = 2000;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
-			(BOB, 1000, 200 * ONE),
+			(BOB, asset_a, 200 * ONE),
 			(BOB, 3000, 200 * ONE),
-			(ALICE, 1000, 200 * ONE),
-			(ALICE, 2000, 200 * ONE),
+			(ALICE, asset_a, 200 * ONE),
+			(ALICE, asset_b, 200 * ONE),
 		])
-		.with_registered_asset("one".as_bytes().to_vec(), 1000)
-		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.with_registered_asset("one".as_bytes().to_vec(), asset_a)
+		.with_registered_asset("two".as_bytes().to_vec(), asset_b)
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
@@ -349,6 +349,11 @@ fn buy_with_invalid_amounts_fails() {
 			assert_noop!(
 				Stableswap::buy(Origin::signed(BOB), pool_id, asset_a, asset_b, 30000 * ONE, 25 * ONE,),
 				Error::<Test>::InsufficientLiquidity
+			);
+
+			assert_noop!(
+				Stableswap::buy(Origin::signed(BOB), pool_id, asset_a, asset_b, 90 * ONE, 30000 * ONE,),
+				Error::<Test>::InsufficientBalance
 			);
 
 			assert_noop!(
