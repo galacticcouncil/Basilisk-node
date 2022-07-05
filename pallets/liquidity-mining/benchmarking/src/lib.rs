@@ -457,6 +457,11 @@ benchmarks! {
 		set_block_number::<T>(400_000);
 
 		let liq_provider_bsx_balance = MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider);
+
+		//Destroy global and yield farm to reach the most computationally heavy path for reliable benchmark calculation
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, ASSET_PAIR)?;
+		LiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR)?;
+		LiquidityMining::<T>::destroy_global_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID)?;
 	}: {
 		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), DEPOSIT_ID, YIELD_FARM_ID, ASSET_PAIR)?
 	}
