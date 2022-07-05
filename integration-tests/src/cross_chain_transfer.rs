@@ -1,10 +1,8 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
-
-use frame_support::{assert_noop, assert_ok};
-
 use polkadot_xcm::latest::prelude::*;
 
+use frame_support::{assert_noop, assert_ok};
 use cumulus_primitives_core::ParaId;
 use orml_traits::currency::MultiCurrency;
 use sp_runtime::traits::AccountIdConversion;
@@ -145,14 +143,7 @@ fn transfer_from_hydra() {
 #[test]
 fn transfer_native_pays_fee() {
 	TestNet::reset();
-
-	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::Origin::root(),
-			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
-		));
-	});
+	let xcm_fee = 200_000_000_000;
 
 	Hydra::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
@@ -162,16 +153,16 @@ fn transfer_native_pays_fee() {
 		));
 	});
 
-	Hydra::execute_with(|| {
+	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
-			1,
-			3 * BSX,
+			0,
+			10 * BSX,
 			Box::new(
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(3000),
 						Junction::AccountId32 {
 							id: BOB,
 							network: NetworkId::Any,
@@ -182,18 +173,61 @@ fn transfer_native_pays_fee() {
 			),
 			399_600_000_000
 		));
+
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			190 * BSX
+		);
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&hydra_sovereign_account()),
+			10 * BSX
+		);
+	});
+
+	Hydra::execute_with(|| {
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			10 * BSX - xcm_fee
+		);
+
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(BOB.into()),
+			1,
+			5 * BSX,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: ALICE,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			5 * BSX - xcm_fee
+		);
 	});
 
 	Basilisk::execute_with(|| {
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			1000000000000000
-			// 10028 * BSX / 10 // 3 * BSX - fees
+			basilisk_runtime::Balances::free_balance(&hydra_sovereign_account()),
+			5 * BSX
 		);
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&basilisk_runtime::Treasury::account_id()),
-			0
-			// 2 * BSX / 10 // fees should go to treasury
+			xcm_fee
+		);
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			195 * BSX - xcm_fee
 		);
 	})
 }
