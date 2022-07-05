@@ -74,7 +74,7 @@ pub const POOL_IDENTIFIER: &[u8] = b"sts";
 pub mod pallet {
 	use super::*;
 	use crate::math::{
-		calculate_add_liquidity_shares, calculate_asset_b_reserve, calculate_in_given_out, calculate_out_given_in,
+		calculate_add_liquidity_shares, calculate_in_given_out, calculate_out_given_in,
 		calculate_remove_liquidity_amounts,
 	};
 	use crate::traits::ShareAccountIdFor;
@@ -384,17 +384,21 @@ pub mod pallet {
 				.checked_add(amount)
 				.ok_or(ArithmeticError::Overflow)?;
 
-			// If first liquidity added to the pool, it required same amounts of both assets
-			let updated_b_reserve = if initial_reserves == AssetAmounts::default() {
+			let asset_b_amount = if initial_reserves == AssetAmounts::default() {
+				// If first liquidity added to the pool, it requires same amounts of both assets
 				amount
 			} else {
-				calculate_asset_b_reserve(initial_reserves.0, initial_reserves.1, updated_a_reserve)
-					.ok_or(ArithmeticError::Overflow)?
+				hydra_dx_math::stableswap::calculate_asset_b_required(
+					initial_reserves.0,
+					initial_reserves.1,
+					updated_a_reserve,
+				)
+				.ok_or(ArithmeticError::Overflow)?
 			};
 
-			let asset_b_amount = updated_b_reserve
-				.checked_sub(initial_reserves.1)
-				.ok_or(ArithmeticError::Underflow)?;
+			let updated_b_reserve = asset_b_amount
+				.checked_add(initial_reserves.1)
+				.ok_or(ArithmeticError::Overflow)?;
 
 			ensure!(
 				T::Currency::free_balance(assets.1, &who) >= asset_b_amount,

@@ -27,7 +27,7 @@ frame-support = { git = "https://github.com/paritytech/substrate", branch = "pol
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 
 # Math
-hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="6500f90f079325e12f6b4ee47fad6e5a56f6d9b9", default-features = false }
+hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="5daf68d9599bfcf2cd4be4b84ab4417601746647", default-features = false }
 
 # HydraDX dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "756f47a663911d8e7866c0768471b22b20f6460d", default-features = false }
@@ -37,7 +37,6 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 
 # third party
 log = { version = "0.4.14", default-features = false }
-primitive-types = { version = "0.11.1", default-features = false }
 
 # Optional imports for benchmarking
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false , optional = true}
