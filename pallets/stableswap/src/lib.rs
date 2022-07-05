@@ -154,11 +154,13 @@ pub mod pallet {
 			id: PoolId<T::AssetId>,
 			assets: (T::AssetId, T::AssetId),
 			amplification: u16,
+			fee: Permill,
 		},
 		/// Liquidity of an asset was added to a pool.
 		LiquidityAdded {
 			id: PoolId<T::AssetId>,
 			who: T::AccountId,
+			shares: Balance,
 			assets: (T::AssetId, T::AssetId),
 			amounts: (Balance, Balance),
 		},
@@ -167,9 +169,10 @@ pub mod pallet {
 			id: PoolId<T::AssetId>,
 			who: T::AccountId,
 			shares: Balance,
+			assets: (T::AssetId, T::AssetId),
 			amounts: (Balance, Balance),
 		},
-		/// Sell trade executed.
+		/// Sell trade executed. Trade fee paid in asset leaving the pool (already subtracted from amount_out).
 		SellExecuted {
 			who: T::AccountId,
 			asset_in: T::AssetId,
@@ -178,7 +181,7 @@ pub mod pallet {
 			amount_out: Balance,
 			fee: Balance,
 		},
-		/// Buy trade executed.
+		/// Buy trade executed. Trade fee paid in asset entering the pool (already included in amount_in).
 		BuyExecuted {
 			who: T::AccountId,
 			asset_in: T::AssetId,
@@ -309,6 +312,7 @@ pub mod pallet {
 				id: pool_id,
 				assets,
 				amplification,
+				fee,
 			});
 
 			Ok(())
@@ -435,6 +439,7 @@ pub mod pallet {
 			Self::deposit_event(Event::LiquidityAdded {
 				id: pool_id,
 				who,
+				shares: share_amount,
 				assets,
 				amounts: (amount, asset_b_amount),
 			});
@@ -500,6 +505,7 @@ pub mod pallet {
 				id: pool_id,
 				who,
 				shares: amount,
+				assets: (pool.assets.0, pool.assets.1),
 				amounts: (amounts.0, amounts.1),
 			});
 
