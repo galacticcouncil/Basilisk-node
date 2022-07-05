@@ -50,20 +50,24 @@ const SEED: u32 = 0;
 
 const BSX: AssetId = 0;
 const KSM: AssetId = 1;
+const ASSET_PAIR : AssetPair = AssetPair {
+		asset_in: BSX,
+		asset_out: KSM,
+		};
+
+const INITIAL_BALANCE: Balance = 100_000_000_000_000_000;
 
 pub trait Config: frame_system::Config + pallet_liquidity_mining::Config + pallet_xyk::Config {
 	type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 }
 
-fn assert_last_event<T: Config>(generic_event: <T as Config>::Event) {
-	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
-}
-
 pub struct Pallet<T: Config>(LiquidityMining<T>);
 
-const INITIAL_BALANCE: Balance = 100_000_000_000_000_000;
-
 type MultiCurrencyOf<T> = <T as pallet_liquidity_mining::Config>::MultiCurrency;
+
+fn init_nft_class_for_liquidity_mining<T: Config>() {
+	pallet_liquidity_mining::migration::init_nft_class::<T>();
+}
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
@@ -178,23 +182,30 @@ fn set_block_number<T: Config>(block: u32) {
 	System::<T>::set_block_number(block.into());
 }
 
+fn assert_last_event<T: Config>(generic_event: <T as Config>::Event) {
+	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+}
+
 benchmarks! {
 	create_global_farm {
 		let caller = funded_account::<T>("caller", 0);
+		let planned_yielding_periods = T::BlockNumber::from(1_000_000_u32);
+		let yield_per_period = Permill::from_percent(20);
+		let blocks_per_period = T::BlockNumber::from(1_u32);
 	}: {
-		LiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, T::BlockNumber::from(1_000_000_u32), T::BlockNumber::from(1_u32), BSX, BSX, caller.clone(), Permill::from_percent(20), 1, One::one())?
+		LiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, planned_yielding_periods, blocks_per_period, BSX, BSX, caller.clone(), yield_per_period, 1, One::one())?
 	}
 	verify {
        assert_last_event::<T>(Event::<T>::GlobalFarmCreated {
-					owner: caller,
-					id: 1,
-					reward_currency: 0,
-					yield_per_period: Permill::from_percent(20),
-					planned_yielding_periods: T::BlockNumber::from(1_000_000_u32),
-					incentivized_asset: 0,
-					max_reward_per_period: 1000000000000,
-					blocks_per_period: T::BlockNumber::from(1u32),
-				}.into());
+				owner: caller,
+				id: GLOBAL_FARM_ID,
+				reward_currency: 0,
+				yield_per_period: yield_per_period,
+				planned_yielding_periods: planned_yielding_periods,
+				incentivized_asset: 0,
+				max_reward_per_period: 1000000000000,
+				blocks_per_period: blocks_per_period,
+			}.into());
 	}
 
 
@@ -214,58 +225,51 @@ benchmarks! {
 	create_yield_farm {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
+		let multiplier = FixedU128::from(50_000_u128);
+		let loyality_curve = Some(LoyaltyCurve::default());
 
 		initialize_pool::<T>(xyk_caller, BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
-
 	}: {
-		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?
+		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR, multiplier, loyality_curve.clone())?
 	} verify {
 		assert_last_event::<T>(Event::<T>::YieldFarmCreated {
 				farm_id: GLOBAL_FARM_ID,
 				yield_farm_id: YIELD_FARM_ID,
-				multiplier: FixedU128::from(50_000_u128),
+				multiplier: multiplier,
 				nft_class: DEPOSIT_ID,
-				loyalty_curve: Some(LoyaltyCurve::default()),
-				asset_pair: assets,
+				loyalty_curve: loyality_curve,
+				asset_pair: ASSET_PAIR,
 			}.into());
 	}
 
 	update_yield_farm {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
+		let new_multiplier = FixedU128::from(10_000_u128);
 
 		initialize_pool::<T>(xyk_caller, BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
-
-		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, assets, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?;
+		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::from(50_000_u128), Some(LoyaltyCurve::default()))?;
 	}: {
-		LiquidityMining::<T>::update_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets, FixedU128::from(10_000_u128))?
+		LiquidityMining::<T>::update_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, ASSET_PAIR, new_multiplier)?
 	} verify {
 		assert_last_event::<T>(Event::<T>::YieldFarmUpdated {
 			farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: caller.clone(),
-			asset_pair: assets,
-			multiplier: FixedU128::from(10_000_u128),
+			asset_pair: ASSET_PAIR,
+			multiplier: new_multiplier,
 		}.into());
 	}
 
 
 	stop_yield_farm {
-		pallet_liquidity_mining::migration::init_nft_class::<T>();
+		init_nft_class_for_liquidity_mining::<T>();
 
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
@@ -275,32 +279,27 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
+		lm_create_yield_farm::<T>(caller.clone(), ASSET_PAIR, FixedU128::from(50_000_u128))?;
 
-		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 
-		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
+		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
-		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
-
-		lm_deposit_shares::<T>(liq_provider, assets, 10_000)?;
+		lm_deposit_shares::<T>(liq_provider, ASSET_PAIR, 10_000)?;
 		set_block_number::<T>(200_000);
 	}: {
-		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, assets)?
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR)?
 	} verify {
 		assert_last_event::<T>(Event::<T>::LiquidityMiningCanceled {
 			farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: caller.clone(),
-			asset_pair: assets,
+			asset_pair: ASSET_PAIR,
 		}.into());
 	}
 
 	destroy_yield_farm {
-		pallet_liquidity_mining::migration::init_nft_class::<T>();
+		init_nft_class_for_liquidity_mining::<T>();
 
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
@@ -310,34 +309,29 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
+		lm_create_yield_farm::<T>(caller.clone(), ASSET_PAIR, FixedU128::from(50_000_u128))?;
 
-		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
+		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
-		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
-
-		lm_deposit_shares::<T>(liq_provider.clone(), assets, 10_000)?;
+		lm_deposit_shares::<T>(liq_provider.clone(), ASSET_PAIR, 10_000)?;
 
 		set_block_number::<T>(200_000);
 
-		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, assets)?;
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR)?;
 	}: {
-		LiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, assets)?
+		LiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR)?
 	} verify {
 		assert_last_event::<T>(Event::<T>::YieldFarmRemoved {
 			farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: caller.clone(),
-			asset_pair: assets,
+			asset_pair: ASSET_PAIR,
 		}.into());
 	}
 
 	deposit_shares {
-		pallet_liquidity_mining::migration::init_nft_class::<T>();
+		init_nft_class_for_liquidity_mining::<T>();
 
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
@@ -347,20 +341,15 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
+		lm_create_yield_farm::<T>(caller.clone(), ASSET_PAIR, FixedU128::from(50_000_u128))?;
 
-		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 
-		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-
-		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
+		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
 		set_block_number::<T>(200_000);
 	}: {
-		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, assets, 10_000)?
+		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, ASSET_PAIR, 10_000)?
 	} verify {
 		assert_last_event::<T>(Event::<T>::SharesDeposited {
 			farm_id: GLOBAL_FARM_ID,
@@ -373,47 +362,41 @@ benchmarks! {
 	}
 
 	redeposit_shares {
-		//init nft class for liq. mining
-		pallet_liquidity_mining::migration::init_nft_class::<T>();
+		init_nft_class_for_liquidity_mining::<T>();
 
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
 		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let shares_amount = 10_000;
 
 		initialize_pool::<T>(xyk_caller.clone(), BSX, KSM, 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, Price::from(10))?;
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
+		lm_create_yield_farm_for_global_farm::<T>(caller.clone(),GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::from(50_000_u128))?;
+		lm_create_yield_farm_for_global_farm::<T>(caller.clone(),GLOBAL_FARM_ID_2, ASSET_PAIR, FixedU128::from(50_000_u128))?;
 
-		lm_create_yield_farm_for_global_farm::<T>(caller.clone(),GLOBAL_FARM_ID, assets, FixedU128::from(50_000_u128))?;
-		lm_create_yield_farm_for_global_farm::<T>(caller.clone(),GLOBAL_FARM_ID_2, assets, FixedU128::from(50_000_u128))?;
-
-		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
+		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, shares_amount, 1_000_000_000)?;
 
 		set_block_number::<T>(200_000);
 
-		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID_2, assets, 10_000)?;
+		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID_2, ASSET_PAIR, shares_amount)?;
 	}: {
-		LiquidityMining::<T>::redeposit_lp_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID_2, YIELD_FARM_ID_3, assets, DEPOSIT_ID)?
+		LiquidityMining::<T>::redeposit_lp_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID_2, YIELD_FARM_ID_3, ASSET_PAIR, DEPOSIT_ID)?
 	} verify {
 		assert_last_event::<T>(Event::<T>::SharesRedeposited {
 			farm_id: GLOBAL_FARM_ID_2,
 			yield_farm_id: YIELD_FARM_ID_3,
 			who: liq_provider.clone(),
 			lp_token: 0,
-			amount: 10_000,
+			amount: shares_amount,
 			nft_class_id: DEPOSIT_ID,
 		}.into());
 	}
 
 	claim_rewards {
-		//init nft class for liq. mining
-		pallet_liquidity_mining::migration::init_nft_class::<T>();
+		init_nft_class_for_liquidity_mining::<T>();
 
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
@@ -423,21 +406,15 @@ benchmarks! {
 
 		init_farm::<T>(INITIAL_BALANCE, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
+		lm_create_yield_farm::<T>(caller.clone(), ASSET_PAIR, FixedU128::from(50_000_u128))?;
 
-		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 
-		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-
-		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
+		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
 		set_block_number::<T>(200_000);
 
-		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, assets, 10_000)?;
-
+		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR, 10_000)?;
 
 		set_block_number::<T>(400_000);
 
@@ -457,8 +434,7 @@ benchmarks! {
 	}
 
 	withdraw_shares {
-		//init nft class for liq. mining
-		pallet_liquidity_mining::migration::init_nft_class::<T>();
+		init_nft_class_for_liquidity_mining::<T>();
 
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
@@ -468,26 +444,21 @@ benchmarks! {
 
 		init_farm::<T>(INITIAL_BALANCE, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
+		lm_create_yield_farm::<T>(caller.clone(), ASSET_PAIR, FixedU128::from(50_000_u128))?;
 
-		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 
-		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-
-		xyk_add_liquidity::<T>(liq_provider.clone(), assets, 10_000, 1_000_000_000)?;
+		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
 		set_block_number::<T>(200_000);
 
-		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, assets, 10_000)?;
+		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, ASSET_PAIR, 10_000)?;
 
 		set_block_number::<T>(400_000);
 
 		let liq_provider_bsx_balance = MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider);
 	}: {
-		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), DEPOSIT_ID, YIELD_FARM_ID, assets)?
+		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), DEPOSIT_ID, YIELD_FARM_ID, ASSET_PAIR)?
 	}
 	verify {
 		assert!(MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider).gt(&liq_provider_bsx_balance));
@@ -507,25 +478,20 @@ benchmarks! {
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
 
-		let assets = AssetPair {
-			asset_in: BSX,
-			asset_out: KSM,
-		};
+		lm_create_yield_farm::<T>(caller.clone(), ASSET_PAIR, FixedU128::from(50_000_u128))?;
 
-		lm_create_yield_farm::<T>(caller.clone(), assets, FixedU128::from(50_000_u128))?;
+		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 
-		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(assets.asset_in, assets.asset_out);
-
-		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, assets)?;
+		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, ASSET_PAIR)?;
 
 	}: {
-		LiquidityMining::<T>::resume_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, assets, FixedU128::from(12_452))?
+		LiquidityMining::<T>::resume_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR, FixedU128::from(12_452))?
 	} verify {
 		assert_last_event::<T>(Event::<T>::LiquidityMiningResumed {
 			farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: caller.clone(),
-			asset_pair: assets,
+			asset_pair: ASSET_PAIR,
 			multiplier: FixedU128::from(12_452),
 		}.into());
 	}

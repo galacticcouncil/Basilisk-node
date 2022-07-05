@@ -19,7 +19,6 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::borrow::{Borrow, BorrowMut};
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
