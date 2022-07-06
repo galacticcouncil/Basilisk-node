@@ -11,6 +11,7 @@ members = [
   'pallets/duster',
   'pallets/xyk',
   'pallets/exchange',
+  'pallets/stableswap',
   'integration-tests',
 ]
 
