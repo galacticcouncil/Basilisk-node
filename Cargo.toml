@@ -195,13 +195,6 @@ parachain-info = { git = "https://github.com/paritytech//cumulus", rev = "76479e
 cumulus-relay-chain-interface = { git = "https://github.com/paritytech//cumulus", rev = "76479e7fef3af7c8828a44647847b01afd5fefe5" }
 cumulus-relay-chain-local = { git = "https://github.com/paritytech//cumulus", rev = "76479e7fef3af7c8828a44647847b01afd5fefe5" }
 
-[patch."https://github.com/galacticcouncil/warehouse"]
-pallet-price-oracle = { git = "https://github.com/galacticcouncil//warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8"}
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil//warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8"}
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil//warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8"}
-pallet-asset-registry= { git = "https://github.com/galacticcouncil//warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8"}
-hydradx-traits = { git = "https://github.com/galacticcouncil//warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8"}
-
 [patch."https://github.com/open-web3-stack/open-runtime-module-library"]
 orml-currencies = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
 orml-tokens = { git = "https://github.com/apopiak/open-runtime-module-library", branch = "apopiak/on-new-account-9-17" }
