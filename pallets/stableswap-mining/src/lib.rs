@@ -15,10 +15,15 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(any(feature = "runtime-benchmarks", test))]
+mod benchmarking;
+
 #[cfg(test)]
 mod tests;
+
 #[cfg(test)]
 use mutagen::mutate;
+
 //pub mod migration;
 pub mod weights;
 

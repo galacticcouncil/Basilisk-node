@@ -6356,6 +6356,7 @@ dependencies = [
 name = "pallet-stableswap-mining"
 version = "0.1.0"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.2.0",
