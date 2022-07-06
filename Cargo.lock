@@ -1291,7 +1291,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.9.6"
+version = "1.9.7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -1313,6 +1313,7 @@ dependencies = [
  "pallet-scheduler",
  "pallet-timestamp",
  "pallet-transaction-multi-payment",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-utility",

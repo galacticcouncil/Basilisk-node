@@ -894,7 +894,7 @@ impl pallet_multisig::Config for Runtime {
 impl pallet_transaction_pause::Config for Runtime {
 	type Event = Event;
 	type UpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
-	type WeightInfo = ();
+	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
