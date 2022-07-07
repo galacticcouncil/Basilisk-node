@@ -875,7 +875,12 @@ fn offering_works() {
 		assert_ok!(NFT::burn(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
 
 		// act & assert
-		assert_ok!(Market::withdraw_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, DAVE));
+		assert_ok!(Market::withdraw_offer(
+			Origin::signed(DAVE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			DAVE
+		));
 		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), DAVE), None);
 		assert_noop!(
 			Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, DAVE),
