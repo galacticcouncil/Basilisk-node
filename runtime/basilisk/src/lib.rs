@@ -105,7 +105,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 61,
+	spec_version: 62,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -137,17 +137,12 @@ impl Contains<Call> for BaseFilter {
 
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
-			Call::XYK(_) => false,
 			Call::Exchange(_) => false,
-			Call::NFT(_) => false,
-			Call::Marketplace(_) => false,
 			Call::Uniques(_) => false,
 			Call::Vesting(_) => false,
-			Call::Balances(_) => false,
 			Call::Currencies(_) => false,
 			Call::PolkadotXcm(_) => false,
 			Call::OrmlXcm(_) => false,
-			Call::XTokens(_) => false,
 			_ => true,
 		}
 	}
