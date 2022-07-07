@@ -124,8 +124,17 @@ fn add_royalty_works() {
 			CHARLIE,
 			20,
 		));
-		assert_eq!(Market::marketplace_instances(CLASS_ID_0, INSTANCE_ID_0), Some(Royalty{author: CHARLIE, royalty: 20}));
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &ALICE), <Test as Config>::RoyaltyBondAmount::get());
+		assert_eq!(
+			Market::marketplace_instances(CLASS_ID_0, INSTANCE_ID_0),
+			Some(Royalty {
+				author: CHARLIE,
+				royalty: 20
+			})
+		);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &ALICE),
+			<Test as Config>::RoyaltyBondAmount::get()
+		);
 		let event = Event::Marketplace(crate::Event::RoyaltyAdded {
 			class: CLASS_ID_0,
 			instance: INSTANCE_ID_0,
@@ -174,7 +183,10 @@ fn make_offer_works() {
 				expires: 1,
 			})
 		);
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB), 50 * UNITS);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
+			50 * UNITS
+		);
 		let event = Event::Marketplace(crate::Event::OfferPlaced {
 			who: BOB,
 			class: CLASS_ID_0,
@@ -236,7 +248,10 @@ fn withdraw_offer_works() {
 			BOB
 		));
 		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB), 0);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
+			0
+		);
 		let event = Event::Marketplace(crate::Event::OfferWithdrawn {
 			who: BOB,
 			class: CLASS_ID_0,
@@ -280,10 +295,16 @@ fn withdraw_offer_works() {
 			Market::withdraw_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, BOB),
 			Error::<Test>::WithdrawNotAuthorized
 		);
-		assert_ok!(
-			Market::withdraw_offer(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0, BOB),
+		assert_ok!(Market::withdraw_offer(
+			Origin::signed(BOB),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			BOB
+		),);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
+			0
 		);
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB), 0);
 		let event = Event::Marketplace(crate::Event::OfferWithdrawn {
 			who: BOB,
 			class: CLASS_ID_0,
@@ -326,9 +347,12 @@ fn accept_offer_works() {
 			Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, BOB),
 			Error::<Test>::OfferExpired
 		);
-		assert_ok!(
-			Market::withdraw_offer(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0, BOB),
-		);
+		assert_ok!(Market::withdraw_offer(
+			Origin::signed(BOB),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			BOB
+		),);
 
 		assert_ok!(Market::make_offer(
 			Origin::signed(BOB),
@@ -364,17 +388,19 @@ fn accept_offer_works() {
 			class: CLASS_ID_0,
 			instance: INSTANCE_ID_0,
 			amount: price,
-			maker: BOB
+			maker: BOB,
 		});
 		assert_eq!(last_event(), event);
-		assert_eq!(
-			Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
+		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
 		assert_eq!(
 			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
 			Some(BOB)
 		);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + price);
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB), 0);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
+			0
+		);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance); // paid from the reserved amount
 	});
 }
@@ -421,19 +447,22 @@ fn accept_offer_with_royalty_works() {
 			class: CLASS_ID_0,
 			instance: INSTANCE_ID_0,
 			amount: price,
-			maker: BOB
+			maker: BOB,
 		});
 		assert_eq!(last_event(), event);
-		assert_eq!(
-			Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
+		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
 		assert_eq!(
 			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
 			Some(BOB)
 		);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 40 * UNITS); // price - royalty
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB), 0);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
+			0
+		);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance); // paid from the reserved amount
-		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance + 10 * UNITS); // royalty
+		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance + 10 * UNITS);
+		// royalty
 	});
 }
 
@@ -472,16 +501,10 @@ fn accept_offer_with_royalty_and_set_price_works() {
 		));
 
 		// too expensive
-		assert_noop!(Market::make_offer(
-			Origin::signed(DAVE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			100_000_000 * UNITS,
-			2),
+		assert_noop!(
+			Market::make_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, 100_000_000 * UNITS, 2),
 			pallet_balances::Error::<Test, _>::InsufficientBalance
 		);
-
-
 
 		let alice_initial_balance = Balances::free_balance(&ALICE);
 		let bob_initial_balance = Balances::free_balance(&BOB);
@@ -498,19 +521,22 @@ fn accept_offer_with_royalty_and_set_price_works() {
 			class: CLASS_ID_0,
 			instance: INSTANCE_ID_0,
 			amount: price,
-			maker: BOB
+			maker: BOB,
 		});
 		assert_eq!(last_event(), event);
-		assert_eq!(
-			Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
+		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
 		assert_eq!(
 			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
 			Some(BOB)
 		);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 40 * UNITS); // price - royalty
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB), 0);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
+			0
+		);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance); // paid from the reserved amount
-		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance + 10 * UNITS); // royalty
+		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance + 10 * UNITS);
+		// royalty
 	});
 }
 
@@ -541,12 +567,10 @@ fn buy_without_royalty_works() {
 			Error::<Test>::ClassOrInstanceUnknown
 		);
 
-		assert_noop!(Market::buy(
-			Origin::signed(CHARLIE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-		),
-		Error::<Test>::NotForSale);
+		assert_noop!(
+			Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,),
+			Error::<Test>::NotForSale
+		);
 
 		assert_ok!(Market::set_price(
 			Origin::signed(ALICE),
@@ -567,20 +591,14 @@ fn buy_without_royalty_works() {
 			Some(100 * UNITS)
 		));
 
-		assert_noop!(Market::buy(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-		),
-		Error::<Test>::BuyFromSelf);
+		assert_noop!(
+			Market::buy(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0,),
+			Error::<Test>::BuyFromSelf
+		);
 
 		let alice_initial_balance = Balances::free_balance(&ALICE);
 		let charlie_initial_balance = Balances::free_balance(&CHARLIE);
-		assert_ok!(Market::buy(
-			Origin::signed(CHARLIE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-		));
+		assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,));
 		// NFT ownership is transferred
 		assert_eq!(
 			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
@@ -605,7 +623,10 @@ fn buy_without_royalty_works() {
 		});
 		assert_eq!(last_event(), event);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + price);
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &CHARLIE), 50 * UNITS);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &CHARLIE),
+			50 * UNITS
+		);
 		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
 	});
 }
@@ -639,12 +660,10 @@ fn buy_with_royalty_works() {
 			2
 		));
 
-		assert_noop!(Market::buy(
-			Origin::signed(CHARLIE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-		),
-		Error::<Test>::NotForSale);
+		assert_noop!(
+			Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,),
+			Error::<Test>::NotForSale
+		);
 
 		assert_ok!(Market::set_price(
 			Origin::signed(ALICE),
@@ -665,21 +684,15 @@ fn buy_with_royalty_works() {
 			Some(100 * UNITS)
 		));
 
-		assert_noop!(Market::buy(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-		),
-		Error::<Test>::BuyFromSelf);
+		assert_noop!(
+			Market::buy(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0,),
+			Error::<Test>::BuyFromSelf
+		);
 
 		let alice_initial_balance = Balances::free_balance(&ALICE);
 		let bob_initial_balance = Balances::free_balance(&BOB);
 		let charlie_initial_balance = Balances::free_balance(&CHARLIE);
-		assert_ok!(Market::buy(
-			Origin::signed(CHARLIE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-		));
+		assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,));
 		// NFT ownership is transferred
 		assert_eq!(
 			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
@@ -697,23 +710,27 @@ fn buy_with_royalty_works() {
 		assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
 		expect_events(vec![
 			crate::Event::RoyaltyPaid {
-			class: CLASS_ID_0,
-			instance: INSTANCE_ID_0,
-			author: BOB,
-			royalty: 20,
-			royalty_amount: 20 * UNITS,
-		}
-		.into(),
+				class: CLASS_ID_0,
+				instance: INSTANCE_ID_0,
+				author: BOB,
+				royalty: 20,
+				royalty_amount: 20 * UNITS,
+			}
+			.into(),
 			crate::Event::TokenSold {
-			owner: ALICE,
-			buyer: CHARLIE,
-			class: CLASS_ID_0,
-			instance: INSTANCE_ID_0,
-			price: 80 * UNITS,
-		}
-		.into()]);
+				owner: ALICE,
+				buyer: CHARLIE,
+				class: CLASS_ID_0,
+				instance: INSTANCE_ID_0,
+				price: 80 * UNITS,
+			}
+			.into(),
+		]);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 80 * UNITS); // price - royalty
-		assert_eq!(<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &CHARLIE), 50 * UNITS);
+		assert_eq!(
+			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &CHARLIE),
+			50 * UNITS
+		);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance + 20 * UNITS); // royalty
 		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
 	});
@@ -832,11 +849,10 @@ fn offering_works() {
 			class: CLASS_ID_0,
 			instance: INSTANCE_ID_0,
 			amount: 50 * UNITS,
-			maker: BOB
+			maker: BOB,
 		});
 		assert_eq!(last_event(), event);
-		assert_eq!(
-			Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
+		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
 		assert_eq!(
 			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
 			Some(BOB)

@@ -517,30 +517,28 @@ fn add_liquidity_overflow_work() {
 	let asset_a = DOT;
 	let asset_b = HDX;
 	ExtBuilder::default()
-		.with_accounts(vec![
-			(ALICE, DOT, Balance::MAX),
-			(ALICE, HDX, Balance::MAX)
-		])
+		.with_accounts(vec![(ALICE, DOT, Balance::MAX), (ALICE, HDX, Balance::MAX)])
 		.build()
 		.execute_with(|| {
+			assert_ok!(XYK::create_pool(
+				Origin::signed(user),
+				asset_a,
+				asset_b,
+				100_000,
+				Price::from_inner(10_u128.pow(33))
+			));
 
-		assert_ok!(XYK::create_pool(
-			Origin::signed(user),
-			asset_a,
-			asset_b,
-			100_000,
-			Price::from_inner(10_u128.pow(33))
-		));
-
-		assert_noop!(XYK::add_liquidity(
-			Origin::signed(user),
-			asset_a,
-			asset_b,
-			10_u128.pow(33),
-			1_000_000_000_000
-		),
-		Error::<Test>::AddAssetAmountInvalid);
-	});
+			assert_noop!(
+				XYK::add_liquidity(
+					Origin::signed(user),
+					asset_a,
+					asset_b,
+					10_u128.pow(33),
+					1_000_000_000_000
+				),
+				Error::<Test>::AddAssetAmountInvalid
+			);
+		});
 }
 
 #[test]

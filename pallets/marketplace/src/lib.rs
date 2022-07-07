@@ -217,19 +217,13 @@ pub mod pallet {
 			Offers::<T>::try_mutate_exists(token_id, maker.clone(), |maybe_offer| -> DispatchResult {
 				let offer = maybe_offer.take().ok_or(Error::<T>::UnknownOffer)?;
 
-				let maybe_owner =
-					 pallet_nft::Pallet::<T>::owner(class_id, instance_id);
+				let maybe_owner = pallet_nft::Pallet::<T>::owner(class_id, instance_id);
 				match maybe_owner {
-					None =>
-					ensure!(
-						  sender == offer.maker,
-						  Error::<T>::WithdrawNotAuthorized
-					 ),
-					Some(owner) =>
-						ensure!(
-						  sender == offer.maker || sender == owner,
-						  Error::<T>::WithdrawNotAuthorized
-					 ),
+					None => ensure!(sender == offer.maker, Error::<T>::WithdrawNotAuthorized),
+					Some(owner) => ensure!(
+						sender == offer.maker || sender == owner,
+						Error::<T>::WithdrawNotAuthorized
+					),
 				};
 
 				<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
@@ -261,8 +255,8 @@ pub mod pallet {
 
 			let token_id = (class_id, instance_id);
 
-			let owner = pallet_nft::Pallet::<T>::owner(class_id, instance_id)
-				.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
+			let owner =
+				pallet_nft::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
 			ensure!(sender == owner, Error::<T>::AcceptNotAuthorized);
 
