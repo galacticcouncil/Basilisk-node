@@ -142,7 +142,6 @@ impl Contains<Call> for BaseFilter {
 			Call::NFT(_) => false,
 			Call::Marketplace(_) => false,
 			Call::Uniques(_) => false,
-			Call::Vesting(_) => false,
 			Call::Balances(_) => false,
 			Call::Currencies(_) => false,
 			Call::PolkadotXcm(_) => false,
