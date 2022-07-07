@@ -739,6 +739,7 @@ fn buy_with_royalty_works() {
 #[test]
 fn offering_works() {
 	new_test_ext().execute_with(|| {
+		// arrange
 		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 			b"metadata".to_vec().try_into().unwrap();
 		assert_ok!(NFT::create_class(
@@ -762,6 +763,7 @@ fn offering_works() {
 			Some(100 * UNITS)
 		));
 
+		// act & assert
 		assert_noop!(
 			Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, DAVE),
 			Error::<Test>::UnknownOffer
@@ -862,7 +864,7 @@ fn offering_works() {
 		assert_eq!(Balances::total_balance(&BOB), 14_950 * UNITS);
 		assert_eq!(Balances::total_balance(&CHARLIE), 150_010 * UNITS);
 
-		// trying to withdraw an offer to non-existing nft throws error
+		// arrange
 		assert_ok!(Market::make_offer(
 			Origin::signed(DAVE),
 			CLASS_ID_0,
@@ -871,10 +873,9 @@ fn offering_works() {
 			1
 		));
 		assert_ok!(NFT::burn(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
-		assert_noop!(
-			Market::withdraw_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, DAVE),
-			Error::<Test>::ClassOrInstanceUnknown
-		);
+
+		// act & assert
+		assert_ok!(Market::withdraw_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, DAVE));
 		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), DAVE), None);
 		assert_noop!(
 			Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, DAVE),
