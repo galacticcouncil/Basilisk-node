@@ -139,7 +139,6 @@ impl Contains<Call> for BaseFilter {
 		match call {
 			Call::Exchange(_) => false,
 			Call::Uniques(_) => false,
-			Call::Vesting(_) => false,
 			Call::PolkadotXcm(_) => false,
 			Call::OrmlXcm(_) => false,
 			_ => true,
