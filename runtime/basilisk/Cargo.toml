@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "60.0.0"
+version = "62.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -48,6 +48,7 @@ pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse",
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
 hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
+pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "7d66f48e26a5b529554b1b93cf6bb4944f170c1b", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
@@ -152,6 +153,7 @@ runtime-benchmarks = [
     "pallet-proxy/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
     "orml-benchmarking",
+    "pallet-transaction-pause/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -195,6 +197,7 @@ std = [
     "pallet-sudo/std",
     "pallet-timestamp/std",
     "pallet-transaction-payment/std",
+    "pallet-transaction-pause/std",
     "pallet-transaction-multi-payment/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-lbp/std",
