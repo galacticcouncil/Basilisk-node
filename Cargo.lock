@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "60.0.0"
+version = "61.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -544,6 +544,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-multi-payment",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
@@ -1290,7 +1291,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.9.6"
+version = "1.9.7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -1312,6 +1313,7 @@ dependencies = [
  "pallet-scheduler",
  "pallet-timestamp",
  "pallet-transaction-multi-payment",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-utility",
@@ -6330,6 +6332,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-transaction-pause"
+version = "0.1.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=7d66f48e26a5b529554b1b93cf6bb4944f170c1b#7d66f48e26a5b529554b1b93cf6bb4944f170c1b"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-transaction-payment"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
@@ -11235,7 +11251,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "60.0.0"
+version = "61.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",

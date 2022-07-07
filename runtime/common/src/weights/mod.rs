@@ -14,6 +14,7 @@ pub mod scheduler;
 pub mod system;
 pub mod timestamp;
 pub mod tokens;
+pub mod transaction_pause;
 pub mod treasury;
 pub mod utility;
 pub mod vesting;
