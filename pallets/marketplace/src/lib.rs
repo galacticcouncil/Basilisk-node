@@ -221,7 +221,10 @@ pub mod pallet {
 					None => false,
 				};
 
-				ensure!(sender == offer.maker || sender_is_owner, Error::<T>::WithdrawNotAuthorized);
+				ensure!(
+					sender == offer.maker || sender_is_owner,
+					Error::<T>::WithdrawNotAuthorized
+				);
 
 				<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
 
