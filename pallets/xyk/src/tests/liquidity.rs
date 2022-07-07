@@ -5,7 +5,7 @@ use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
 
 use primitives::asset::AssetPair;
-use primitives::{Balance, Price};
+use primitives::Price;
 
 #[test]
 fn add_liquidity_should_work() {
