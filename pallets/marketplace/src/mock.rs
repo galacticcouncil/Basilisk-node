@@ -190,3 +190,7 @@ pub fn last_event() -> Event {
 		.expect("An event expected")
 		.event
 }
+
+pub fn expect_events(e: Vec<Event>) {
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
+}

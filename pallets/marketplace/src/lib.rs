@@ -44,7 +44,7 @@ pub mod pallet {
 
 	/// An identifier for a reserve. Used for disambiguating different reserves so that
 	/// they can be individually replaced or removed.
-	const RESERVE_ID: ReserveIdentifier = ReserveIdentifier::Marketplace;
+	pub const RESERVE_ID: ReserveIdentifier = ReserveIdentifier::Marketplace;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -214,16 +214,23 @@ pub mod pallet {
 
 			let token_id = (class_id, instance_id);
 
-			Offers::<T>::try_mutate_exists(token_id, maker, |maybe_offer| -> DispatchResult {
+			Offers::<T>::try_mutate_exists(token_id, maker.clone(), |maybe_offer| -> DispatchResult {
 				let offer = maybe_offer.take().ok_or(Error::<T>::UnknownOffer)?;
 
-				let owner =
-					pallet_nft::Pallet::<T>::owner(class_id, instance_id).ok_or(Error::<T>::ClassOrInstanceUnknown)?;
-
-				ensure!(
-					sender == offer.maker || sender == owner,
-					Error::<T>::WithdrawNotAuthorized
-				);
+				let maybe_owner =
+					 pallet_nft::Pallet::<T>::owner(class_id, instance_id);
+				match maybe_owner {
+					None =>
+					ensure!(
+						  sender == offer.maker,
+						  Error::<T>::WithdrawNotAuthorized
+					 ),
+					Some(owner) =>
+						ensure!(
+						  sender == offer.maker || sender == owner,
+						  Error::<T>::WithdrawNotAuthorized
+					 ),
+				};
 
 				<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
 
@@ -254,7 +261,7 @@ pub mod pallet {
 
 			let token_id = (class_id, instance_id);
 
-			let owner = pallet_uniques::Pallet::<T>::owner(class_id.into(), instance_id.into())
+			let owner = pallet_nft::Pallet::<T>::owner(class_id, instance_id)
 				.ok_or(Error::<T>::ClassOrInstanceUnknown)?;
 
 			ensure!(sender == owner, Error::<T>::AcceptNotAuthorized);
@@ -302,7 +309,7 @@ pub mod pallet {
 				!MarketplaceInstances::<T>::contains_key(class_id, instance_id),
 				Error::<T>::RoyaltyAlreadySet
 			);
-			ensure!(royalty <= 100, Error::<T>::NotInRange);
+			ensure!(royalty < 100, Error::<T>::NotInRange);
 			let owner =
 				pallet_nft::Pallet::<T>::owner(class_id, instance_id).ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);

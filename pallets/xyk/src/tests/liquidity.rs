@@ -5,7 +5,7 @@ use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
 
 use primitives::asset::AssetPair;
-use primitives::Price;
+use primitives::{Balance, Price};
 
 #[test]
 fn add_liquidity_should_work() {
@@ -508,6 +508,38 @@ fn remove_zero_liquidity_from_non_existing_pool_should_not_work() {
 			XYK::remove_liquidity(Origin::signed(ALICE), HDX, ACA, 100),
 			Error::<Test>::TokenPoolNotFound
 		);
+	});
+}
+
+#[test]
+fn add_liquidity_overflow_work() {
+	let user = ALICE;
+	let asset_a = DOT;
+	let asset_b = HDX;
+	ExtBuilder::default()
+		.with_accounts(vec![
+			(ALICE, DOT, Balance::MAX),
+			(ALICE, HDX, Balance::MAX)
+		])
+		.build()
+		.execute_with(|| {
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(user),
+			asset_a,
+			asset_b,
+			100_000,
+			Price::from_inner(10_u128.pow(33))
+		));
+
+		assert_noop!(XYK::add_liquidity(
+			Origin::signed(user),
+			asset_a,
+			asset_b,
+			10_u128.pow(33),
+			1_000_000_000_000
+		),
+		Error::<Test>::AddAssetAmountInvalid);
 	});
 }
 
