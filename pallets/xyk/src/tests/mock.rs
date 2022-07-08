@@ -17,6 +17,7 @@
 
 use crate as xyk;
 use crate::Config;
+use crate::*;
 use frame_support::parameter_types;
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
@@ -249,4 +250,14 @@ impl ExtBuilder {
 
 		t.into()
 	}
+}
+
+pub fn new_test_ext() -> sp_io::TestExternalities {
+	let mut ext = ExtBuilder::default().build();
+	ext.execute_with(|| System::set_block_number(1));
+	ext
+}
+
+pub fn expect_events(e: Vec<Event>) {
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
