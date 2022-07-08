@@ -50,6 +50,9 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+#[cfg(feature = "runtime-benchmarks")]
+use codec::{Decode, Encode};
+
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,

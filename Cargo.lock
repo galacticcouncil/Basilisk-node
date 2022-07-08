@@ -6025,7 +6025,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "3.0.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=e25f53c0f89ebfc64615191d8435f405e2aaa23c#e25f53c0f89ebfc64615191d8435f405e2aaa23c"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=38a1c22978b33dd52e0e012b4f3d5f06d6cf00a1#38a1c22978b33dd52e0e012b4f3d5f06d6cf00a1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
