@@ -52,7 +52,7 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 #[cfg(feature = "runtime-benchmarks")]
-use codec::{Decode, Encode};
+use codec::Decode;
 
 // A few exports that help ease life for downstream crates.
 use frame_support::{
