@@ -1,17 +1,5 @@
-use frame_support::{assert_noop, assert_ok, BoundedVec};
-
 use super::*;
-use mock::{Event, *};
 use pretty_assertions::assert_eq;
-use std::convert::TryInto;
-
-type Market = Pallet<Test>;
-
-fn new_test_ext() -> sp_io::TestExternalities {
-	let mut ext = ExtBuilder::default().build();
-	ext.execute_with(|| System::set_block_number(1));
-	ext
-}
 
 #[test]
 fn set_price_works() {
@@ -710,78 +698,6 @@ fn buy_with_royalty_works() {
 		assert_eq!(<Test as Config>::Currency::reserved_balance(&CHARLIE), 50 * UNITS);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance + 20 * UNITS); // royalty
 		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
-	});
-}
-
-#[test]
-fn make_offer_should_work_when_nft_exists() {
-	new_test_ext().execute_with(|| {
-		// arrange
-		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
-			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			Default::default(),
-			metadata.clone()
-		));
-		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
-
-		// act
-		assert_ok!(Market::make_offer(
-			Origin::signed(CHARLIE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			50 * UNITS,
-			2
-		));
-
-		// assert
-		assert_eq!(
-			Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE),
-			Some(Offer {
-				maker: CHARLIE,
-				amount: 50 * UNITS,
-				expires: 2,
-			})
-		);
-		let event = Event::Marketplace(crate::Event::OfferPlaced {
-			who: CHARLIE,
-			class: CLASS_ID_0,
-			instance: INSTANCE_ID_0,
-			amount: 50 * UNITS,
-			expires: 2,
-		});
-		assert_eq!(last_event(), event);
-	});
-}
-
-#[test]
-fn make_offer_should_fail_when_offer_is_lower_than_minimal_amount() {
-	new_test_ext().execute_with(|| {
-		// arrange
-		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
-			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			Default::default(),
-			metadata.clone()
-		));
-		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
-
-		// act & assert
-		assert_noop!(
-			Market::make_offer(
-				Origin::signed(BOB),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
-				<Test as Config>::MinimumOfferAmount::get() - 1,
-				1
-			),
-			Error::<Test>::OfferTooLow
-		);
-		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE), None);
 	});
 }
 
