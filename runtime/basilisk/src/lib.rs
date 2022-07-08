@@ -30,7 +30,6 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use codec::{Decode, Encode};
 use frame_system::{EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
@@ -50,8 +49,6 @@ use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-
-use scale_info::TypeInfo;
 
 // A few exports that help ease life for downstream crates.
 use frame_support::{
@@ -73,6 +70,7 @@ mod benchmarking;
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
+use orml_tokens::CurrencyAdapter;
 
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
@@ -105,7 +103,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 62,
+	spec_version: 63,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -444,17 +442,6 @@ impl pallet_duster::Config for Runtime {
 	type WeightInfo = common_runtime::weights::duster::BasiliskWeight<Runtime>;
 }
 
-/// Basilisk Pallets configurations
-
-#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct AssetLocation(pub polkadot_xcm::v1::MultiLocation);
-
-impl Default for AssetLocation {
-	fn default() -> Self {
-		AssetLocation(polkadot_xcm::v1::MultiLocation::here())
-	}
-}
-
 impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
 	type RegistryOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
@@ -545,7 +532,6 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Runtime {
-	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftClassId = ClassId;
@@ -804,8 +790,23 @@ parameter_types! {
 	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
 }
 
+pub struct RelayChainAssetId;
+impl Get<AssetId> for RelayChainAssetId {
+	fn get() -> AssetId {
+		let invalid_id = pallet_asset_registry::Pallet::<Runtime>::next_asset_id();
+
+		match pallet_asset_registry::Pallet::<Runtime>::location_to_asset(RELAY_CHAIN_ASSET_LOCATION) {
+			Some(asset_id) => asset_id,
+			None => invalid_id,
+		}
+	}
+}
+
+type RelayChainCurrency = CurrencyAdapter<Runtime, RelayChainAssetId>;
+
 impl pallet_marketplace::Config for Runtime {
 	type Event = Event;
+	type Currency = RelayChainCurrency;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
 	type MinimumOfferAmount = MinimumOfferAmount;
 	type RoyaltyBondAmount = RoyaltyBondAmount;

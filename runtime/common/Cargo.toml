@@ -1,6 +1,6 @@
 [package]
 name = "common-runtime"
-version = "1.9.8"
+version = "1.10.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -30,7 +30,7 @@ hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false}
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "e25f53c0f89ebfc64615191d8435f405e2aaa23c", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "7d66f48e26a5b529554b1b93cf6bb4944f170c1b", default-features = false }
 
 # Substrate dependencies
@@ -48,6 +48,7 @@ pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
 pallet-utility = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
+polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17", default-features = false }
 
 # ORML dependencies
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }

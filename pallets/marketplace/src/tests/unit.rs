@@ -2,6 +2,7 @@ use frame_support::{assert_noop, assert_ok, BoundedVec};
 
 use super::*;
 use mock::{Event, *};
+use pretty_assertions::assert_eq;
 use std::convert::TryInto;
 
 type Market = Pallet<Test>;
@@ -116,7 +117,7 @@ fn add_royalty_works() {
 			Market::add_royalty(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0, CHARLIE, 20),
 			pallet_nft::Error::<Test>::NotPermitted
 		);
-
+		let reserved_before_royalty = <Test as Config>::Currency::reserved_balance(&ALICE);
 		assert_ok!(Market::add_royalty(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
@@ -132,7 +133,7 @@ fn add_royalty_works() {
 			})
 		);
 		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &ALICE),
+			<Test as Config>::Currency::reserved_balance(&ALICE) - reserved_before_royalty,
 			<Test as Config>::RoyaltyBondAmount::get()
 		);
 		let event = Event::Marketplace(crate::Event::RoyaltyAdded {
@@ -183,10 +184,7 @@ fn make_offer_works() {
 				expires: 1,
 			})
 		);
-		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
-			50 * UNITS
-		);
+		assert_eq!(<Test as Config>::Currency::reserved_balance(&BOB), 50 * UNITS);
 		let event = Event::Marketplace(crate::Event::OfferPlaced {
 			who: BOB,
 			class: CLASS_ID_0,
@@ -248,10 +246,7 @@ fn withdraw_offer_works() {
 			BOB
 		));
 		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
-		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
-			0
-		);
+		assert_eq!(<Test as Config>::Currency::reserved_balance(&BOB), 0);
 		let event = Event::Marketplace(crate::Event::OfferWithdrawn {
 			who: BOB,
 			class: CLASS_ID_0,
@@ -301,10 +296,7 @@ fn withdraw_offer_works() {
 			INSTANCE_ID_0,
 			BOB
 		),);
-		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
-			0
-		);
+		assert_eq!(<Test as Config>::Currency::reserved_balance(&BOB), 0);
 		let event = Event::Marketplace(crate::Event::OfferWithdrawn {
 			who: BOB,
 			class: CLASS_ID_0,
@@ -397,10 +389,7 @@ fn accept_offer_works() {
 			Some(BOB)
 		);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + price);
-		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
-			0
-		);
+		assert_eq!(<Test as Config>::Currency::reserved_balance(&BOB), 0);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance); // paid from the reserved amount
 	});
 }
@@ -456,10 +445,7 @@ fn accept_offer_with_royalty_works() {
 			Some(BOB)
 		);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 40 * UNITS); // price - royalty
-		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
-			0
-		);
+		assert_eq!(<Test as Config>::Currency::reserved_balance(&BOB), 0);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance); // paid from the reserved amount
 		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance + 10 * UNITS);
 		// royalty
@@ -530,10 +516,7 @@ fn accept_offer_with_royalty_and_set_price_works() {
 			Some(BOB)
 		);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 40 * UNITS); // price - royalty
-		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &BOB),
-			0
-		);
+		assert_eq!(<Test as Config>::Currency::reserved_balance(&BOB), 0);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance); // paid from the reserved amount
 		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance + 10 * UNITS);
 		// royalty
@@ -623,10 +606,7 @@ fn buy_without_royalty_works() {
 		});
 		assert_eq!(last_event(), event);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + price);
-		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &CHARLIE),
-			50 * UNITS
-		);
+		assert_eq!(<Test as Config>::Currency::reserved_balance(&CHARLIE), 50 * UNITS);
 		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
 	});
 }
@@ -727,12 +707,81 @@ fn buy_with_royalty_works() {
 			.into(),
 		]);
 		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 80 * UNITS); // price - royalty
-		assert_eq!(
-			<Test as pallet_nft::Config>::Currency::reserved_balance_named(&RESERVE_ID, &CHARLIE),
-			50 * UNITS
-		);
+		assert_eq!(<Test as Config>::Currency::reserved_balance(&CHARLIE), 50 * UNITS);
 		assert_eq!(Balances::free_balance(&BOB), bob_initial_balance + 20 * UNITS); // royalty
 		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
+	});
+}
+
+#[test]
+fn make_offer_should_work_when_nft_exists() {
+	new_test_ext().execute_with(|| {
+		// arrange
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
+
+		// act
+		assert_ok!(Market::make_offer(
+			Origin::signed(CHARLIE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			50 * UNITS,
+			2
+		));
+
+		// assert
+		assert_eq!(
+			Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE),
+			Some(Offer {
+				maker: CHARLIE,
+				amount: 50 * UNITS,
+				expires: 2,
+			})
+		);
+		let event = Event::Marketplace(crate::Event::OfferPlaced {
+			who: CHARLIE,
+			class: CLASS_ID_0,
+			instance: INSTANCE_ID_0,
+			amount: 50 * UNITS,
+			expires: 2,
+		});
+		assert_eq!(last_event(), event);
+	});
+}
+
+#[test]
+fn make_offer_should_fail_when_offer_is_lower_than_minimal_amount() {
+	new_test_ext().execute_with(|| {
+		// arrange
+		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+			b"metadata".to_vec().try_into().unwrap();
+		assert_ok!(NFT::create_class(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			Default::default(),
+			metadata.clone()
+		));
+		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
+
+		// act & assert
+		assert_noop!(
+			Market::make_offer(
+				Origin::signed(BOB),
+				CLASS_ID_0,
+				INSTANCE_ID_0,
+				<Test as Config>::MinimumOfferAmount::get() - 1,
+				1
+			),
+			Error::<Test>::OfferTooLow
+		);
+		assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE), None);
 	});
 }
 
@@ -768,7 +817,6 @@ fn offering_works() {
 			Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, DAVE),
 			Error::<Test>::UnknownOffer
 		);
-
 		assert_noop!(
 			Market::make_offer(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0, 0, 1),
 			Error::<Test>::OfferTooLow

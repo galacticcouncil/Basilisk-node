@@ -5,7 +5,7 @@
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{Currency, ExistenceRequirement, NamedReservableCurrency},
+	traits::{Currency, ExistenceRequirement, ReservableCurrency},
 	transactional,
 };
 use frame_system::{ensure_signed, RawOrigin};
@@ -29,7 +29,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
 type RoyaltyOf<T> = Royalty<<T as frame_system::Config>::AccountId>;
 
@@ -85,6 +85,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nft::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type Currency: ReservableCurrency<Self::AccountId>;
 		type WeightInfo: WeightInfo;
 		#[pallet::constant]
 		type MinimumOfferAmount: Get<BalanceOf<Self>>;
@@ -181,7 +182,7 @@ pub mod pallet {
 				},
 			);
 
-			<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, amount)?;
+			<T as Config>::Currency::reserve(&sender, amount)?;
 
 			Self::deposit_event(Event::OfferPlaced {
 				who: sender,
@@ -226,7 +227,7 @@ pub mod pallet {
 					Error::<T>::WithdrawNotAuthorized
 				);
 
-				<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
+				<T as Config>::Currency::unreserve(&offer.maker, offer.amount);
 
 				Self::deposit_event(Event::OfferWithdrawn {
 					who: sender,
@@ -264,7 +265,7 @@ pub mod pallet {
 				let offer = maybe_offer.take().ok_or(Error::<T>::UnknownOffer)?;
 
 				if offer.expires > <frame_system::Pallet<T>>::block_number() {
-					<T as pallet_nft::Config>::Currency::unreserve_named(&RESERVE_ID, &offer.maker, offer.amount);
+					<T as Config>::Currency::unreserve(&offer.maker, offer.amount);
 					Self::do_buy(offer.maker.clone(), class_id, instance_id, true)?;
 					Self::deposit_event(Event::OfferAccepted {
 						who: sender,
@@ -309,7 +310,7 @@ pub mod pallet {
 			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);
 
 			let royalty_bond = T::RoyaltyBondAmount::get();
-			<T as pallet_nft::Config>::Currency::reserve_named(&RESERVE_ID, &sender, royalty_bond)?;
+			<T as Config>::Currency::reserve(&sender, royalty_bond)?;
 
 			MarketplaceInstances::<T>::insert(
 				class_id,
@@ -454,7 +455,7 @@ impl<T: Config> Pallet<T> {
 					price = price.saturating_sub(royalty_amount);
 
 					// Send royalty to author
-					<T as pallet_nft::Config>::Currency::transfer(
+					<T as Config>::Currency::transfer(
 						&buyer,
 						&author,
 						royalty_amount,
@@ -472,7 +473,7 @@ impl<T: Config> Pallet<T> {
 			}
 
 			// Send the net price from current to the previous owner
-			<T as pallet_nft::Config>::Currency::transfer(&buyer, &owner, price, ExistenceRequirement::KeepAlive)?;
+			<T as Config>::Currency::transfer(&buyer, &owner, price, ExistenceRequirement::KeepAlive)?;
 
 			let to = T::Lookup::unlookup(buyer.clone());
 			pallet_nft::Pallet::<T>::transfer(owner_origin, class_id, instance_id, to)?;

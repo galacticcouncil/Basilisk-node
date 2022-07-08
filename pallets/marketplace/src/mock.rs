@@ -49,6 +49,7 @@ parameter_types! {
 
 impl pallet_marketplace::Config for Test {
 	type Event = Event;
+	type Currency = Balances;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Test>;
 	type MinimumOfferAmount = MinimumOfferAmount;
 	type RoyaltyBondAmount = RoyaltyBondAmount;
@@ -59,7 +60,6 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Test {
-	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftClassId = u32;
