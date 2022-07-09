@@ -8,7 +8,7 @@ pub const BOB: [u8; 32] = [5u8; 32];
 pub const CHARLIE: [u8; 32] = [6u8; 32];
 pub const DAVE: [u8; 32] = [7u8; 32];
 
-pub const BSX: Balance = 1_000_000_000_000;
+pub const UNITS: Balance = 1_000_000_000_000;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
@@ -17,6 +17,7 @@ use polkadot_runtime_parachains::configuration::HostConfiguration;
 use sp_runtime::traits::AccountIdConversion;
 
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
+use basilisk_runtime::RELAY_CHAIN_ASSET_LOCATION;
 
 decl_test_relay_chain! {
 	pub struct KusamaRelay {
@@ -103,8 +104,8 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 2002 * BSX),
-			(ParaId::from(2000).into_account(), 10 * BSX),
+			(AccountId::from(ALICE), 2002 * UNITS),
+			(ParaId::from(2000).into_account(), 10 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -137,7 +138,7 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
-		balances: vec![(AccountId::from(ALICE), 200 * BSX)],
+		balances: vec![(AccountId::from(ALICE), 200 * UNITS)],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -175,10 +176,10 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 200 * BSX),
-			(AccountId::from(BOB), 1000 * BSX),
-			(AccountId::from(CHARLIE), 1000 * BSX),
-			(AccountId::from(DAVE), 1000 * BSX),
+			(AccountId::from(ALICE), 200 * UNITS),
+			(AccountId::from(BOB), 1000 * UNITS),
+			(AccountId::from(CHARLIE), 1000 * UNITS),
+			(AccountId::from(DAVE), 1000 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -201,10 +202,10 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 1, 200 * BSX),
-			(AccountId::from(BOB), 1, 1_000 * BSX),
-			(AccountId::from(CHARLIE), 1, 1000 * BSX),
-			(AccountId::from(DAVE), 1, 1_000 * BSX),
+			(AccountId::from(ALICE), 1, 200 * UNITS),
+			(AccountId::from(BOB), 1, 1_000 * UNITS),
+			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
+			(AccountId::from(DAVE), 1, 1_000 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -230,6 +231,12 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		System::set_block_number(1);
 		// Make sure the prices are up-to-date.
 		MultiTransactionPayment::on_initialize(1);
+		// Set KSM location
+		basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			1,
+			basilisk_runtime::AssetLocation(RELAY_CHAIN_ASSET_LOCATION.0)
+		);
 	});
 	ext
 }

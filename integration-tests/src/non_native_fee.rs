@@ -61,7 +61,7 @@ fn non_native_fee_payment_works() {
 		assert_ok!(basilisk_runtime::Balances::set_balance(
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
-			2_000_000_000_000 * BSX,
+			2_000_000_000_000 * UNITS,
 			0,
 		));
 
@@ -69,7 +69,7 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
 			1,
-			2_000_000_000_000 * BSX,
+			2_000_000_000_000 * UNITS,
 			0,
 		));
 
@@ -77,7 +77,7 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			currency_0, // 1000 BSX
 			currency_1, // 500 KSM (500_000_033_400_002)
-			1_000 * BSX,
+			1_000 * UNITS,
 			Price::from_float(0.5),
 		));
 
@@ -90,8 +90,8 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			1,
-			66 * BSX,
-			1_000 * BSX,
+			66 * UNITS,
+			1_000 * UNITS,
 			false,
 		));
 

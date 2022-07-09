@@ -31,24 +31,24 @@ fn transfer_from_relay_chain() {
 				.into()
 				.into()
 			),
-			Box::new((Here, 3 * BSX).into()),
+			Box::new((Here, 3 * UNITS).into()),
 			0,
 		));
 
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&ParaId::from(2000).into_account()),
-			13 * BSX
+			13 * UNITS
 		);
 	});
 
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10028 * BSX / 10 // 3 BSX - fees
+			10028 * UNITS / 10 // 3 BSX - fees
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			2 * BSX / 10 // fees should go to treasury
+			2 * UNITS / 10 // fees should go to treasury
 		);
 	});
 }
@@ -65,7 +65,7 @@ fn transfer_to_relay_chain() {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			1,
-			3 * BSX,
+			3 * UNITS,
 			Box::new(
 				MultiLocation::new(
 					1,
@@ -80,7 +80,7 @@ fn transfer_to_relay_chain() {
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
-			200 * BSX - 3 * BSX
+			200 * UNITS - 3 * UNITS
 		);
 	});
 
@@ -108,7 +108,7 @@ fn transfer_from_hydra() {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
-			3 * BSX,
+			3 * UNITS,
 			Box::new(
 				MultiLocation::new(
 					1,
@@ -126,18 +126,18 @@ fn transfer_from_hydra() {
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * BSX - 3 * BSX
+			200 * UNITS - 3 * UNITS
 		);
 	});
 
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10028 * BSX / 10 // 3 * BSX - fees
+			10028 * UNITS / 10 // 3 * BSX - fees
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			2 * BSX / 10 // fees should go to treasury
+			2 * UNITS / 10 // fees should go to treasury
 		);
 	});
 }
@@ -187,7 +187,7 @@ fn transfer_insufficient_amount_should_fail() {
 		// Xcm should fail therefore nothing should be deposit into beneficiary account
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1000 * BSX
+			1000 * UNITS
 		);
 	});
 }
@@ -198,7 +198,7 @@ fn fee_currency_set_on_xcm_transfer() {
 
 	const HITCHHIKER: [u8; 32] = [42u8; 32];
 
-	let transfer_amount = 100 * BSX;
+	let transfer_amount = 100 * UNITS;
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
@@ -236,12 +236,12 @@ fn fee_currency_set_on_xcm_transfer() {
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * BSX - transfer_amount
+			200 * UNITS - transfer_amount
 		);
 	});
 
 	Basilisk::execute_with(|| {
-		let fee_amount = 2 * BSX / 10;
+		let fee_amount = 2 * UNITS / 10;
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
 			transfer_amount - fee_amount
