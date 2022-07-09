@@ -5,7 +5,7 @@ use basilisk_runtime::{
 	AssetRegistry, Balances, ClassDeposit, InstanceDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount,
 	Tokens, NFT, RELAY_CHAIN_ASSET_LOCATION,
 };
-use frame_support::assert_ok;
+use frame_support::{assert_noop, assert_ok};
 use orml_traits::MultiCurrency;
 use orml_traits::MultiReservableCurrency;
 use primitives::nft::ClassType;
@@ -18,6 +18,13 @@ const ALICE_COLLECTION: ClassId = 13370000;
 
 fn init() {
 	TestNet::reset();
+	Basilisk::execute_with(|| {
+		assert_ok!(AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			KSM,
+			basilisk_runtime::AssetLocation(RELAY_CHAIN_ASSET_LOCATION.0)
+		));
+	});
 }
 
 fn arrange_nft() {
@@ -91,7 +98,7 @@ fn marketplace_should_reserve_ksm_when_royalties_are_added() {
 }
 
 #[test]
-fn marketplace_should_reserve_ksm_when_offer_is_created() {
+fn make_offer_should_reserve_ksm_when_created() {
 	init();
 	arrange_nft();
 	Basilisk::execute_with(|| {
@@ -105,6 +112,24 @@ fn marketplace_should_reserve_ksm_when_offer_is_created() {
 		assert_eq!(
 			Tokens::reserved_balance(KSM, &AccountId::from(BOB)),
 			MinimumOfferAmount::get()
+		);
+	});
+}
+
+#[test]
+fn make_offer_should_fail_when_relay_chain_location_not_registered() {
+	TestNet::reset();
+	arrange_nft();
+	Basilisk::execute_with(|| {
+		assert_noop!(
+			Marketplace::make_offer(
+				Origin::signed(BOB.into()),
+				ALICE_COLLECTION,
+				0,
+				MinimumOfferAmount::get(),
+				10
+			),
+			orml_tokens::Error::<basilisk_runtime::Runtime>::BalanceTooLow
 		);
 	});
 }

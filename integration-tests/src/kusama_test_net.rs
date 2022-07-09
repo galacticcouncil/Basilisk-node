@@ -11,14 +11,12 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 pub const UNITS: Balance = 1_000_000_000_000;
 
 use cumulus_primitives_core::ParaId;
-use frame_support::assert_ok;
 use frame_support::traits::GenesisBuild;
 use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use sp_runtime::traits::AccountIdConversion;
 
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
-use basilisk_runtime::RELAY_CHAIN_ASSET_LOCATION;
 
 decl_test_relay_chain! {
 	pub struct KusamaRelay {
@@ -232,12 +230,6 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		System::set_block_number(1);
 		// Make sure the prices are up-to-date.
 		MultiTransactionPayment::on_initialize(1);
-		// Set KSM location
-		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::Origin::root(),
-			1,
-			basilisk_runtime::AssetLocation(RELAY_CHAIN_ASSET_LOCATION.0)
-		));
 	});
 	ext
 }
