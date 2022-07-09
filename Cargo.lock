@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "62.0.0"
+version = "63.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1291,7 +1291,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.9.8"
+version = "1.10.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -1326,6 +1326,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
+ "xcm",
 ]
 
 [[package]]
@@ -2112,6 +2113,12 @@ dependencies = [
  "rustc_version 0.4.0",
  "syn",
 ]
+
+[[package]]
+name = "diff"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
 
 [[package]]
 name = "digest"
@@ -5335,6 +5342,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21326818e99cfe6ce1e524c2a805c189a99b5ae555a35d19f9a284b427d86afa"
 
 [[package]]
+name = "output_vt100"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "628223faebab4e3e40667ee0b2336d34a5b960ff60ea743ddfdbcf7770bcfb66"
+dependencies = [
+ "winapi 0.3.9",
+]
+
+[[package]]
 name = "owning_ref"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5903,7 +5919,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "1.4.0"
+version = "2.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5913,6 +5929,7 @@ dependencies = [
  "pallet-nft",
  "pallet-uniques",
  "parity-scale-codec",
+ "pretty_assertions",
  "primitives",
  "scale-info",
  "serde",
@@ -6007,8 +6024,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.5.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
+version = "3.0.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=3f4033727e7af4fef209d54c898018fc2d0ccc2d#3f4033727e7af4fef209d54c898018fc2d0ccc2d"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8087,6 +8104,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eb9f9e6e233e5c4a35559a617bf40a4ec447db2e84c20b55a6f83167b7e57872"
 
 [[package]]
+name = "pretty_assertions"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c89f989ac94207d048d92db058e4f6ec7342b0971fc58d1271ca148b799b3563"
+dependencies = [
+ "ansi_term",
+ "ctor",
+ "diff",
+ "output_vt100",
+]
+
+[[package]]
 name = "primitive-types"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8111,7 +8140,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.2.2"
+version = "6.2.3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8717,7 +8746,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -11251,7 +11280,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "62.0.0"
+version = "63.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
