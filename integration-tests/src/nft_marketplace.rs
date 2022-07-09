@@ -55,7 +55,7 @@ fn ksm_should_have_relay_chain_asset_location_on_init() {
 fn bob_should_have_ksm_on_init() {
 	init();
 	Basilisk::execute_with(|| {
-		assert_eq!(Tokens::free_balance(1, &AccountId::from(BOB)), 200 * UNITS);
+		assert_eq!(Tokens::free_balance(1, &AccountId::from(BOB)), 1000 * UNITS);
 	});
 }
 
