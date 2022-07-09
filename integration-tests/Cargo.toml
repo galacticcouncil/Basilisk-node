@@ -12,7 +12,7 @@ repository = "https://github.com/galacticcouncil/Basilisk-node"
 # local dependencies
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false}
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false}
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "38a1c22978b33dd52e0e012b4f3d5f06d6cf00a1", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f4033727e7af4fef209d54c898018fc2d0ccc2d", default-features = false }
 
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}

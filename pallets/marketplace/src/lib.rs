@@ -17,8 +17,6 @@ use sp_runtime::{
 use types::*;
 use weights::WeightInfo;
 
-use pallet_nft::ReserveIdentifier;
-
 mod benchmarking;
 mod types;
 pub mod weights;
@@ -41,10 +39,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-
-	/// An identifier for a reserve. Used for disambiguating different reserves so that
-	/// they can be individually replaced or removed.
-	pub const RESERVE_ID: ReserveIdentifier = ReserveIdentifier::Marketplace;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
