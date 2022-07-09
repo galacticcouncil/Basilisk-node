@@ -789,8 +789,8 @@ impl orml_vesting::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumOfferAmount: Balance = 10000 * UNITS;
-	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
+	pub const MinimumOfferAmount: Balance = UNITS / 100;
+	pub const RoyaltyBondAmount: Balance = UNITS / 100;
 }
 
 pub struct RelayChainAssetId;
