@@ -1,4 +1,5 @@
 #![cfg(test)]
+
 use crate::kusama_test_net::*;
 
 use frame_support::{
@@ -8,6 +9,8 @@ use frame_support::{
 
 use pallet_price_oracle::{BucketQueueT, PriceInfo};
 use pallet_transaction_multi_payment::Price;
+
+use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, Origin, Tokens};
 
 use hydradx_traits::{pools::SpotPriceProvider, AMM};
 use orml_traits::currency::MultiCurrency;
@@ -140,21 +143,19 @@ fn non_native_fee_payment_works() {
 			data_ten.get_last(),
 			PriceInfo {
 				avg_price: Price::from_inner(535331905781590000),
-				volume: 35_331_905_781_585
+				volume: 35_331_905_781_585,
 			}
 		);
 	});
 }
 
+const HITCHHIKER: [u8; 32] = [42u8; 32];
+
 #[test]
 fn fee_currency_on_account_lifecycle() {
 	TestNet::reset();
 
-	const HITCHHIKER: [u8; 32] = [42u8; 32];
-
 	Basilisk::execute_with(|| {
-		use basilisk_runtime::{Currencies, MultiTransactionPayment, Origin, Tokens};
-
 		assert_eq!(
 			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			None
@@ -181,6 +182,86 @@ fn fee_currency_on_account_lifecycle() {
 		assert_ok!(Tokens::transfer_all(
 			Origin::signed(HITCHHIKER.into()),
 			BOB.into(),
+			1,
+			false,
+		));
+
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
+		);
+	});
+}
+
+#[test]
+fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
+	TestNet::reset();
+	Basilisk::execute_with(|| {
+		assert_ok!(Balances::set_balance(Origin::root(), HITCHHIKER.into(), 1 * BSX, 0,));
+
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			1,
+			50_000_000_000_000,
+		));
+
+		assert_eq!(
+			Balances::free_balance(&AccountId::from(HITCHHIKER)),
+			1 * BSX
+		);
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
+		);
+	});
+}
+
+#[test]
+fn fee_currency_should_not_change_when_account_holds_other_token_already() {
+	TestNet::reset();
+	Basilisk::execute_with(|| {
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			1,
+			50_000_000_000_000,
+		));
+
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			2,
+			50_000_000_000,
+		));
+
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			Some(1)
+		);
+	});
+}
+
+#[test]
+fn fee_currency_should_reset_to_default_when_account_spends_tokens() {
+	TestNet::reset();
+	Basilisk::execute_with(|| {
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			1,
+			50_000_000_000_000,
+		));
+
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			2,
+			50_000_000_000,
+		));
+		assert_ok!(Tokens::transfer_all(
+			Origin::signed(HITCHHIKER.into()),
+			ALICE.into(),
 			1,
 			false,
 		));
