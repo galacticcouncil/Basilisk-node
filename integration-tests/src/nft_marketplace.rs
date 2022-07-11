@@ -117,6 +117,7 @@ fn make_offer_should_reserve_ksm_when_created() {
 }
 
 #[test]
+#[ignore] // is not case when the minting is free
 fn create_class_should_fail_when_relay_chain_location_not_registered() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
