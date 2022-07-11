@@ -197,7 +197,7 @@ fn fee_currency_on_account_lifecycle() {
 fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
-		assert_ok!(Balances::set_balance(Origin::root(), HITCHHIKER.into(), 1 * BSX, 0,));
+		assert_ok!(Balances::set_balance(Origin::root(), HITCHHIKER.into(), BSX, 0,));
 
 		assert_ok!(Currencies::transfer(
 			Origin::signed(ALICE.into()),
@@ -206,7 +206,7 @@ fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 			50_000_000_000_000,
 		));
 
-		assert_eq!(Balances::free_balance(&AccountId::from(HITCHHIKER)), 1 * BSX);
+		assert_eq!(Balances::free_balance(&AccountId::from(HITCHHIKER)), BSX);
 		assert_eq!(
 			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			None
