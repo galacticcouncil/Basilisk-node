@@ -206,10 +206,7 @@ fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 			50_000_000_000_000,
 		));
 
-		assert_eq!(
-			Balances::free_balance(&AccountId::from(HITCHHIKER)),
-			1 * BSX
-		);
+		assert_eq!(Balances::free_balance(&AccountId::from(HITCHHIKER)), 1 * BSX);
 		assert_eq!(
 			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			None
