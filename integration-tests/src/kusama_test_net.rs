@@ -234,7 +234,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
+pub fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
 	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
 		.into_iter()
 		.rev()

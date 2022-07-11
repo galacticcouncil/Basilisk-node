@@ -8729,6 +8729,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
+ "env_logger",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",

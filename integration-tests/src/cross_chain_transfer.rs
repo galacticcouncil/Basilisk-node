@@ -143,6 +143,46 @@ fn transfer_from_hydra() {
 }
 
 #[test]
+fn unknown_token_transfer_from_hydra() {
+	TestNet::reset();
+
+	env_logger::init();
+
+	Hydra::execute_with(|| {
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			0,
+			3 * BSX,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			200 * BSX - 3 * BSX
+		);
+	});
+
+	Basilisk::execute_with(|| {
+		for event in last_basilisk_events(20) {
+			println!("{:?}", event);
+		}
+		assert!(false);
+	});
+}
+
+#[test]
 fn transfer_insufficient_amount_should_fail() {
 	TestNet::reset();
 

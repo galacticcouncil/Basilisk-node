@@ -109,6 +109,8 @@ kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "rel
 [dev-dependencies]
 xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
 
+env_logger = "*"
+
 [features]
 default = ["std"]
 std = [
