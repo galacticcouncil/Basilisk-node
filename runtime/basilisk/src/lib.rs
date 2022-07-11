@@ -828,8 +828,8 @@ pub mod ksm {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = ksm::UNITS / 100; // 0.01 KSM
-	pub const InstanceDeposit: Balance = ksm::UNITS / 10000; // 0.0001 KSM
+	pub const ClassDeposit: Balance = 0;
+	pub const InstanceDeposit: Balance = 0;
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
 	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = ksm::deposit(1,129);
