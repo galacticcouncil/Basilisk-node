@@ -133,7 +133,7 @@ fn transfer_from_hydra() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10028 * UNITS / 10 // 3 * BSX - fees
+			10028 * UNITS / 10
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
