@@ -171,8 +171,8 @@ impl WeightToFeePolynomial for WeightToFee {
 	///   - Setting it to `0` will essentially disable the weight fee.
 	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		let p = 5 * CENTS; // 1_000_000_000_000
-		let q = Balance::from(ExtrinsicBaseWeight::get()); // 7_919_840_000
+		let p = 40 * CENTS; // 1_000_000_000_000
+		let q = 10 * Balance::from(ExtrinsicBaseWeight::get()); // 7_919_840_000
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,

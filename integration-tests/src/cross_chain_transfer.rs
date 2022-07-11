@@ -44,11 +44,11 @@ fn transfer_from_relay_chain() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10000 * UNITS / 10
+			10020 * UNITS / 10
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			2 * UNITS / 10 // fees should go to treasury
+			1 * UNITS  // fees should go to treasury
 		);
 	});
 }
@@ -133,11 +133,11 @@ fn transfer_from_hydra() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10000 * UNITS / 10
+			10020 * UNITS / 10
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			2 * UNITS / 10 // fees should go to treasury
+			1 * UNITS // fees should go to treasury
 		);
 	});
 }
@@ -241,7 +241,7 @@ fn fee_currency_set_on_xcm_transfer() {
 	});
 
 	Basilisk::execute_with(|| {
-		let fee_amount = 2 * UNITS / 10;
+		let fee_amount = 1 * UNITS ;
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
 			transfer_amount - fee_amount
