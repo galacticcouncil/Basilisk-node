@@ -106,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 63,
+	spec_version: 64,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -410,6 +410,18 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+pub struct DustRemovalWhitelist;
+impl Contains<AccountId> for DustRemovalWhitelist {
+	fn contains(a: &AccountId) -> bool {
+		// Always whitelists treasury account
+		if *a == TreasuryAccount::get() {
+			return true;
+		}
+		// Check duster whitelist
+		pallet_duster::DusterWhitelist::<Runtime>::contains(a)
+	}
+}
+
 /// Tokens Configurations
 impl orml_tokens::Config for Runtime {
 	type Event = Event;
@@ -420,7 +432,7 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = AssetRegistry;
 	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
-	type DustRemovalWhitelist = pallet_duster::DusterWhitelist<Runtime>;
+	type DustRemovalWhitelist = DustRemovalWhitelist;
 	type OnNewTokenAccount = AddTxAssetOnAccount<Runtime>;
 	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
 }
@@ -442,6 +454,7 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
+	type BlacklistUpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
 	type WeightInfo = common_runtime::weights::duster::BasiliskWeight<Runtime>;
 }
 
