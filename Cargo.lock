@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "63.0.0"
+version = "64.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -5661,7 +5661,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "2.3.1"
+version = "3.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -11280,7 +11280,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "63.0.0"
+version = "64.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
