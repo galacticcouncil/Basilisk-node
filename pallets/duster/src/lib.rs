@@ -33,7 +33,7 @@ use orml_traits::{
 	GetByKey, MultiCurrency, MultiCurrencyExtended,
 };
 
-use frame_system::{ensure_root, ensure_signed};
+use frame_system::ensure_signed;
 
 use sp_std::convert::{TryFrom, TryInto};
 
@@ -115,6 +115,9 @@ pub mod pallet {
 		/// Native Asset Id
 		#[pallet::constant]
 		type NativeCurrencyId: Get<Self::CurrencyId>;
+
+		/// The origin which can manage whiltelist.
+		type BlacklistUpdateOrigin: EnsureOrigin<Self::Origin>;
 
 		/// Weight information for extrinsics in this module.
 		type WeightInfo: WeightInfo;
@@ -242,7 +245,7 @@ pub mod pallet {
 		/// Only root can perform this action.
 		#[pallet::weight((<T as Config>::WeightInfo::add_nondustable_account(), DispatchClass::Normal, Pays::No))]
 		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
-			ensure_root(origin)?;
+			T::BlacklistUpdateOrigin::ensure_origin(origin)?;
 
 			AccountBlacklist::<T>::insert(&account, ());
 
@@ -254,7 +257,7 @@ pub mod pallet {
 		/// Remove account from list of non-dustable accounts. That means account can be dusted again.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_nondustable_account(), DispatchClass::Normal, Pays::No))]
 		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
-			ensure_root(origin)?;
+			T::BlacklistUpdateOrigin::ensure_origin(origin)?;
 
 			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResult {
 				ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);

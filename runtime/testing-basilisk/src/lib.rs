@@ -30,7 +30,7 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use frame_system::{EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
 use orml_tokens::CurrencyAdapter;
 use sp_api::impl_runtime_apis;
 use sp_core::{
@@ -55,6 +55,7 @@ use sp_version::RuntimeVersion;
 use codec::Decode;
 
 // A few exports that help ease life for downstream crates.
+use frame_support::traits::Contains;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
@@ -360,6 +361,18 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+pub struct DustRemovalWhitelist;
+impl Contains<AccountId> for DustRemovalWhitelist {
+	fn contains(a: &AccountId) -> bool {
+		// Always whitelists treasury account
+		if *a == TreasuryAccount::get() {
+			return true;
+		}
+		// Check duster whitelist
+		pallet_duster::DusterWhitelist::<Runtime>::contains(a)
+	}
+}
+
 /// Tokens Configurations
 impl orml_tokens::Config for Runtime {
 	type Event = Event;
@@ -370,7 +383,7 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = AssetRegistry;
 	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
-	type DustRemovalWhitelist = pallet_duster::DusterWhitelist<Runtime>;
+	type DustRemovalWhitelist = DustRemovalWhitelist;
 	type OnNewTokenAccount = AddTxAssetOnAccount<Runtime>;
 	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
 }
@@ -392,6 +405,7 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
+	type BlacklistUpdateOrigin = EnsureSigned<AccountId>;
 	type WeightInfo = common_runtime::weights::duster::BasiliskWeight<Runtime>;
 }
 
