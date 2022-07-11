@@ -55,6 +55,7 @@ use sp_version::RuntimeVersion;
 use codec::Decode;
 
 // A few exports that help ease life for downstream crates.
+use frame_support::traits::Contains;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
@@ -63,7 +64,6 @@ use frame_support::{
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 };
-use frame_support::traits::Contains;
 use hydradx_traits::AssetPairAccountIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
