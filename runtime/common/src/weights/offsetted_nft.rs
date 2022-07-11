@@ -54,12 +54,12 @@ const MINT_OFFSET: u64 = 400;
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_class() -> Weight {
-		( CREATE_CLASS_OFFSET * 41_173_000 as Weight)
+		(CREATE_CLASS_OFFSET * 41_173_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn mint() -> Weight {
-		( MINT_OFFSET * 55_520_000 as Weight)
+		(MINT_OFFSET * 55_520_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
