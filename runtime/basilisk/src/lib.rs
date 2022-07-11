@@ -802,8 +802,8 @@ impl orml_vesting::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumOfferAmount: Balance = 10000 * UNITS;
-	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
+	pub const MinimumOfferAmount: Balance = UNITS / 100;
+	pub const RoyaltyBondAmount: Balance = 0;
 }
 
 pub struct RelayChainAssetId;
@@ -818,24 +818,36 @@ impl Get<AssetId> for RelayChainAssetId {
 	}
 }
 
-type RelayChainCurrency = CurrencyAdapter<Runtime, RelayChainAssetId>;
+type KusamaCurrency = CurrencyAdapter<Runtime, RelayChainAssetId>;
 
 impl pallet_marketplace::Config for Runtime {
 	type Event = Event;
-	type Currency = RelayChainCurrency;
+	type Currency = KusamaCurrency;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
 	type MinimumOfferAmount = MinimumOfferAmount;
 	type RoyaltyBondAmount = RoyaltyBondAmount;
 }
 
+pub mod ksm {
+	use primitives::Balance;
+
+	pub const UNITS: Balance = 1_000_000_000_000;
+	pub const CENTS: Balance = UNITS / 30_000;
+	pub const MILLICENTS: Balance = CENTS / 1_000;
+
+	pub const fn deposit(items: u32, bytes: u32) -> Balance {
+		(items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS) / 10
+	}
+}
+
 parameter_types! {
-	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
-	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
+	pub const ClassDeposit: Balance = 0;
+	pub const InstanceDeposit: Balance = 0;
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
 	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
-	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
-	pub const AttributeDepositBase: Balance = 10 * UNITS;
-	pub const DepositPerByte: Balance = UNITS;
+	pub const UniquesMetadataDepositBase: Balance = ksm::deposit(1,129);
+	pub const AttributeDepositBase: Balance = ksm::deposit(1,0);
+	pub const DepositPerByte: Balance = ksm::deposit(0,1);
 	pub const UniquesStringLimit: u32 = 60;
 }
 
@@ -843,7 +855,7 @@ impl pallet_uniques::Config for Runtime {
 	type Event = Event;
 	type ClassId = ClassId;
 	type InstanceId = InstanceId;
-	type Currency = Balances;
+	type Currency = KusamaCurrency;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type ClassDeposit = ClassDeposit;
 	type InstanceDeposit = InstanceDeposit;

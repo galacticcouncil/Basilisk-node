@@ -64,7 +64,7 @@ fn non_native_fee_payment_works() {
 		assert_ok!(basilisk_runtime::Balances::set_balance(
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
-			2_000_000_000_000 * BSX,
+			2_000_000_000_000 * UNITS,
 			0,
 		));
 
@@ -72,7 +72,7 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
 			1,
-			2_000_000_000_000 * BSX,
+			2_000_000_000_000 * UNITS,
 			0,
 		));
 
@@ -80,7 +80,7 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			currency_0, // 1000 BSX
 			currency_1, // 500 KSM (500_000_033_400_002)
-			1_000 * BSX,
+			1_000 * UNITS,
 			Price::from_float(0.5),
 		));
 
@@ -93,8 +93,8 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			1,
-			66 * BSX,
-			1_000 * BSX,
+			66 * UNITS,
+			1_000 * UNITS,
 			false,
 		));
 
@@ -197,7 +197,7 @@ fn fee_currency_on_account_lifecycle() {
 fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
-		assert_ok!(Balances::set_balance(Origin::root(), HITCHHIKER.into(), BSX, 0,));
+		assert_ok!(Balances::set_balance(Origin::root(), HITCHHIKER.into(), UNITS, 0,));
 
 		assert_ok!(Currencies::transfer(
 			Origin::signed(ALICE.into()),
@@ -206,7 +206,7 @@ fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 			50_000_000_000_000,
 		));
 
-		assert_eq!(Balances::free_balance(&AccountId::from(HITCHHIKER)), BSX);
+		assert_eq!(Balances::free_balance(&AccountId::from(HITCHHIKER)), UNITS);
 		assert_eq!(
 			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			None
