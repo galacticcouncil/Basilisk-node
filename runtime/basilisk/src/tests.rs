@@ -25,14 +25,6 @@ fn full_block_cost() {
 }
 
 #[test]
-// This function tests that the fee for `ExtrinsicBaseWeight` of weight is correct
-fn extrinsic_base_fee_is_correct() {
-	let base_fee = WeightToFee::calc(&ExtrinsicBaseWeight::get());
-	let base_fee_expected = CENTS * 5;
-	assert!(base_fee.max(base_fee_expected) - base_fee.min(base_fee_expected) < MILLICENTS);
-}
-
-#[test]
 // Useful to calculate how much single transfer costs in native currency with fee components breakdown
 fn transfer_cost() {
 	let call = pallet_balances::Call::<Runtime>::transfer {

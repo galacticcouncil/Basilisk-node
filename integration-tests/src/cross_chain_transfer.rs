@@ -241,7 +241,7 @@ fn fee_currency_set_on_xcm_transfer() {
 	});
 
 	Basilisk::execute_with(|| {
-		let fee_amount = 10 * UNITS;
+		let fee_amount = 22 * UNITS;
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
 			transfer_amount - fee_amount
