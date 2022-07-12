@@ -7,6 +7,7 @@ use sp_runtime::codec::Encode;
 use xcm_emulator::TestExt;
 
 #[test]
+#[ignore]
 //TODO: fix this, fees calculcated in this test are apporx 2bsx off.
 fn transaction_fees() {
 	//This test is not correct
@@ -30,6 +31,6 @@ fn transaction_fees() {
 		let fees = TransactionPayment::compute_fee(len, &info, 0);
 
 		//This test is not correct it's approx 1bsx of from real fees
-		println!("fees: {:?}/{:?}", fees / 1_000_000_000, 22.2105);
+		println!("fees: {:?}/{:?}", fees / 1_000_000_000_000, 22);
 	});
 }
