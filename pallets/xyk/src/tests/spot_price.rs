@@ -14,14 +14,7 @@ fn spot_price_provider_should_return_correct_price_when_pool_exists() {
 	let initial = 99_000_000_000_000u128;
 
 	ExtBuilder::default()
-		.with_exchange_fee((0, 0))
-		.with_accounts(vec![
-			(ALICE, asset_a, initial),
-			(ALICE, asset_b, initial),
-			(BOB, asset_a, 1_000),
-			(BOB, asset_b, 1100),
-			(CHARLIE, asset_b, 100 * ONE),
-		])
+		.with_accounts(vec![(ALICE, asset_a, initial), (ALICE, asset_b, initial)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(XYK::create_pool(
@@ -36,7 +29,6 @@ fn spot_price_provider_should_return_correct_price_when_pool_exists() {
 				asset_in: asset_a,
 				asset_out: asset_b,
 			});
-			let share_token = XYK::share_token(pool_account);
 
 			let price = XYKSpotPrice::<Test>::spot_price(asset_a, asset_b);
 
@@ -64,14 +56,7 @@ fn spot_price_provider_should_return_none_when_asset_reserve_is_zero() {
 	let initial = 99_000_000_000_000u128;
 
 	ExtBuilder::default()
-		.with_exchange_fee((0, 0))
-		.with_accounts(vec![
-			(ALICE, asset_a, initial),
-			(ALICE, asset_b, initial),
-			(BOB, asset_a, 1_000),
-			(BOB, asset_b, 1100),
-			(CHARLIE, asset_b, 100 * ONE),
-		])
+		.with_accounts(vec![(ALICE, asset_a, initial), (ALICE, asset_b, initial)])
 		.build()
 		.execute_with(|| {
 			assert_ok!(XYK::create_pool(
