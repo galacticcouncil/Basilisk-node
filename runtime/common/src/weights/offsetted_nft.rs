@@ -48,9 +48,9 @@ use pallet_nft::weights::WeightInfo;
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
-//This consts are here to make `create_class()` and `min()` more expensive.
-const CREATE_CLASS_OFFSET: u64 = 480;
-const MINT_OFFSET: u64 = 380;
+//This consts are here to make `create_class()` and `mint()` more expensive.
+const CREATE_CLASS_OFFSET: u64 = 160;
+const MINT_OFFSET: u64 = 120;
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_class() -> Weight {
