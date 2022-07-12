@@ -31,25 +31,24 @@ fn transfer_from_relay_chain() {
 				.into()
 				.into()
 			),
-			Box::new((Here, 3 * UNITS).into()),
+			Box::new((Here, 300 * UNITS).into()),
 			0,
 		));
 
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&ParaId::from(2000).into_account()),
-			13 * UNITS
+			310 * UNITS
 		);
 	});
 
-	//TODO: investigate bellow 2 asserts. Change was caused by changing of fees.
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10000 * UNITS / 10
+			12780 * UNITS / 10
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			0 // fees should go to treasury
+			22 * UNITS
 		);
 	});
 }
@@ -109,7 +108,7 @@ fn transfer_from_hydra() {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
-			3 * UNITS,
+			30 * UNITS,
 			Box::new(
 				MultiLocation::new(
 					1,
@@ -127,19 +126,18 @@ fn transfer_from_hydra() {
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 3 * UNITS
+			200 * UNITS - 30 * UNITS
 		);
 	});
 
-	//TODO: investigate bellow 2 asserts. Change was caused by changing of fees.
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10000 * UNITS / 10
+			10080 * UNITS / 10
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			0 // fees should go to treasury
+			22 * UNITS // fees should go to treasury
 		);
 	});
 }
