@@ -1,4 +1,5 @@
 # Testing standards
+
 Clean code requires clean tests. Therefore, the following standards and conventions should be applied when writing test code.
 
 ## Test locations
@@ -34,6 +35,7 @@ create_yield_farm_should_return_error_when_amm_pool_does_not_exist()
 ```
 
 ## Test structure
+
 - Arrange-Act-Assert (AAA) pattern should be used to structure tests;
 - Each part should be annotated with the `//Arrange`, `//Act` and `//Assert` comments;
 - Builder pattern is encouraged for the `Arrange` part;
@@ -41,6 +43,7 @@ create_yield_farm_should_return_error_when_amm_pool_does_not_exist()
     - Note that there can be multiple code assertions for one behavior
 
 ## Test targets
+
 Strive for writing tests only for the public (or internal public) APIs, such as extrinsics.
 
 Exceptions:
@@ -48,6 +51,7 @@ Exceptions:
 - business logics where we apply property-based testing
 
 ## Property-based test targets
+
 Property-based testing should be applied in logics where we can set up invariants, mainly in math related logics
 
 ## Helper libraries to be used
