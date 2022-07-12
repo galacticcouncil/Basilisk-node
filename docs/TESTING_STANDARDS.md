@@ -47,6 +47,9 @@ Exceptions:
 - logic-heavy internal functions where we treat them as separate units
 - business logics where we apply property-based testing
 
+## Property-based test targets
+Property-based testing should be applied in logics where we can set up invariants, mainly in math related logics
+
 ## Helper libraries to be used
 
 **PrettyAssertions**
