@@ -37,9 +37,15 @@ const allocation = [
   ['112500000', vesting],
   ['112500000', vesting],
   ['45000000', vesting],
-  ['22500000', vesting],
-  ['11625000000', vesting],
+  ['22500000', vesting]
 ]
+
+const galactic = ['11623062500', {
+    start: '13519714',
+    period: '1752',
+    per_period: '1937500000000000000',
+    period_count: '5999',
+}], 
 
 const total = allocation
   .reduce((acc, [amount]) => acc.plus(amount), new BigNumber(0))
