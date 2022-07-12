@@ -7,7 +7,6 @@ use sp_runtime::codec::Encode;
 use xcm_emulator::TestExt;
 
 #[test]
-#[ignore]
 fn transaction_fees() {
 	//This test is not correct
 	Basilisk::execute_with(|| {
@@ -27,6 +26,6 @@ fn transaction_fees() {
 		let fees = TransactionPayment::compute_fee(len, &info, 0);
 
 		//This test is not correct it's approx 1bsx of from real fees
-		println!("fees: {:?}", fees);
+		println!("fees: {:?}", fees / 1_000_000_000_000);
 	});
 }
