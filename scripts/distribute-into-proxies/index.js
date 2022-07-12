@@ -41,11 +41,11 @@ const allocation = [
 ]
 
 const galactic = ['11623062500', {
-    start: '13519714',
-    period: '1752',
-    per_period: '1937500000000000000',
-    period_count: '5999',
-}], 
+  start: '13519714',
+  period: '1752',
+  per_period: '1937500000000000000',
+  period_count: '5999',
+}]
 
 const total = allocation
   .reduce((acc, [amount]) => acc.plus(amount), new BigNumber(0))
@@ -86,6 +86,7 @@ const totalDistributed = distribution
   .toFixed()
 
 assert.equal(total, totalDistributed, 'total distributed does not match')
+distribution.forEach(({remainder}) => assert.equal(remainder, 0, 'remainder is not zero'));
 
 const bsxAddress = (pubKey) => encodeAddress(pubKey, 10041)
 const sendAndWait = (from, tx, nonce = -1) =>
