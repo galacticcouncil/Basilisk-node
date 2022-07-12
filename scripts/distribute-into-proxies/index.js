@@ -129,9 +129,12 @@ async function main() {
 
   log('funding proxies...')
   const transfers = anonymousProxies.map((anon) =>
-    api.tx.balances.transfer(anon, 500 * UNIT),
+    api.tx.balances.forceTransfer(activeAccount, anon, 500 * UNIT),
   )
-  const receipt2 = await sendAndWait(from, api.tx.utility.batchAll(transfers))
+  const receipt2 = await sendAndWait(
+    from,
+    api.tx.sudo(api.tx.utility.batchAll(transfers)),
+  )
   const transferEvents = receipt2.events.filter(
     ({ event }) => event.method === 'Transfer',
   )
