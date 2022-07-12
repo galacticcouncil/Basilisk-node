@@ -106,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 64,
+	spec_version: 65,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -171,14 +171,13 @@ impl WeightToFeePolynomial for WeightToFee {
 	///   - Setting it to `0` will essentially disable the weight fee.
 	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT
-		let p = CENTS; // 1_000_000_000_000
-		let q = 10 * Balance::from(ExtrinsicBaseWeight::get()); // 7_919_840_000
+		let p = 11 * CENTS;
+		let q = Balance::from(ExtrinsicBaseWeight::get());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,
 			coeff_frac: Perbill::from_rational(p % q, q),
-			coeff_integer: p / q, // 124
+			coeff_integer: p / q,
 		}]
 	}
 }
@@ -549,7 +548,8 @@ parameter_types! {
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
-	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
+	//Generated weight file is not used because we want diffent prices for now.
+	type WeightInfo = weights::offsetted_nft::BasiliskWeight<Runtime>;
 	type NftClassId = ClassId;
 	type NftInstanceId = InstanceId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
