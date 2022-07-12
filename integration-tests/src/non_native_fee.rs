@@ -54,7 +54,7 @@ fn non_native_fee_payment_works() {
 		let bob_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB));
 
 		// 462_676_500_000 (~0.46 UNITS) spent on fee
-		assert_eq!(bob_balance, 972_785_633_333_334);
+		assert_eq!(bob_balance, 974_664_225_000_000);
 
 		let pair_account = basilisk_runtime::XYK::get_pair_id(AssetPair {
 			asset_in: currency_0,
@@ -112,14 +112,14 @@ fn non_native_fee_payment_works() {
 		));
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(DAVE));
-		assert_eq!(dave_balance, 984_399_741_067_256);
+		assert_eq!(dave_balance, 985_476_617_732_727);
 
 		expect_basilisk_events(vec![
 			pallet_transaction_multi_payment::Event::FeeWithdrawn {
 				account_id: DAVE.into(),
 				asset_id: 1,
-				native_fee_amount: 27_214_366_666_666,
-				non_native_fee_amount: 15_600_258_932_744,
+				native_fee_amount: 25_335_775_000_000,
+				non_native_fee_amount: 14_523_382_267_273,
 				destination_account_id: basilisk_runtime::MultiTransactionPayment::get_fee_receiver(),
 			}
 			.into(),

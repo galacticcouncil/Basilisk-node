@@ -28,11 +28,7 @@ fn full_block_cost() {
 // This function tests that the fee for `ExtrinsicBaseWeight` of weight is correct
 fn extrinsic_base_fee_is_correct() {
 	let base_fee = WeightToFee::calc(&ExtrinsicBaseWeight::get());
-	let base_fee_expected = CENTS / 10;
-	println!(
-		"{:?}",
-		base_fee.max(base_fee_expected) - base_fee.min(base_fee_expected)
-	);
+	let base_fee_expected = CENTS * 5;
 	assert!(base_fee.max(base_fee_expected) - base_fee.min(base_fee_expected) < MILLICENTS);
 }
 
