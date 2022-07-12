@@ -37,15 +37,14 @@ const allocation = [
   ['112500000', vesting],
   ['112500000', vesting],
   ['45000000', vesting],
-  ['22500000', vesting]
+  ['22500000', vesting],
+  ['11623062500', {
+    start: '13519714',
+    period: '1752',
+    per_period: '1937500000000000000',
+    period_count: '5999',
+  }]
 ]
-
-const galactic = ['11623062500', {
-  start: '13519714',
-  period: '1752',
-  per_period: '1937500000000000000',
-  period_count: '5999',
-}]
 
 const total = allocation
   .reduce((acc, [amount]) => acc.plus(amount), new BigNumber(0))
@@ -136,11 +135,11 @@ async function main() {
 
   log('funding proxies...')
   const transfers = anonymousProxies.map((anon) =>
-    api.tx.balances.forceTransfer(activeAccount, anon, 500 * UNIT),
+      api.tx.balances.forceTransfer(activeAccount, anon, 1000 * UNIT),
   )
   const receipt2 = await sendAndWait(
-    from,
-    api.tx.sudo(api.tx.utility.batchAll(transfers)),
+      from,
+      api.tx.sudo.sudo(api.tx.utility.batchAll(transfers)),
   )
   const transferEvents = receipt2.events.filter(
     ({ event }) => event.method === 'Transfer',
@@ -173,23 +172,16 @@ async function main() {
   log('all proxies delegated to multisig')
 
   log('distributing funds...')
-  const toTreasury = api.tx.balances.transfer(treasury, total)
+  const toTreasury = api.tx.sudo.sudo(api.tx.balances.forceTransfer(activeAccount, treasury, total))
   const vestings = distribution
-    .map(({ remainder, schedule }, i) => [
-      api.tx.sudo.sudoAs(
-        treasury,
-        api.tx.vesting.vestedTransfer(anonymousProxies[i], schedule),
-      ),
-      //   No remainders
-      //   api.tx.sudo.sudoAs(
-      //     treasury,
-      //     api.tx.balances.transfer(anonymousProxies[i], remainder),
-      //   ),
-    ])
-    .flat()
+      .map(({remainder, schedule}, i) =>
+          api.tx.sudo.sudoAs(
+              treasury,
+              api.tx.vesting.vestedTransfer(anonymousProxies[i], schedule),
+          ));
   const receipt4 = await sendAndWait(
-    from,
-    api.tx.utility.batchAll([toTreasury, ...vestings]),
+      from,
+      api.tx.utility.batchAll([toTreasury, ...vestings]),
   )
   const transferred = receipt4.events
     .filter(({ event }) => event.method === 'Transfer')
