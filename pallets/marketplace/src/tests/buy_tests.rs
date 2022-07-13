@@ -155,7 +155,46 @@ fn buy_should_fail_when_buyer_is_the_owner() {
 }
 
 #[test]
-fn buy_should_work_when_there_is_royalty() {
+fn buy_should_work_when_the_royalty_is_the_minimum() {
+    //Arrange
+    ExtBuilder::default()
+        .with_endowed_accounts(vec![
+            (ALICE, 200_000 * UNITS),
+            (BOB, 15_000 * UNITS),
+            (CHARLIE, 150_000 * UNITS),
+            (DAVE, 200_000 * UNITS),
+        ])
+        .with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+        .build()
+        .execute_with(|| {
+            let min_royalty = 1;
+            assert_ok!(Market::add_royalty(
+                Origin::signed(ALICE),
+                CLASS_ID_0,
+                INSTANCE_ID_0,
+                BOB,
+                min_royalty,
+	    	));
+
+            assert_ok!(Market::set_price(
+                Origin::signed(ALICE),
+                CLASS_ID_0,
+                INSTANCE_ID_0,
+                Some(100 * UNITS)
+            ));
+
+            let alice_initial_balance = Balances::free_balance(&ALICE);
+
+            //Act
+            assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,));
+
+            //Assert
+            assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 99 * UNITS); // price - royalty
+        });
+}
+
+#[test]
+fn buy_should_work_when_there_is_royalty_bigger_than_minimum() {
     //Arrange
     ExtBuilder::default()
         .with_endowed_accounts(vec![
@@ -175,14 +214,6 @@ fn buy_should_work_when_there_is_royalty() {
 			BOB,
 			20,
 		));
-            // make an offer to verify that it is ignored
-            assert_ok!(Market::make_offer(
-			Origin::signed(CHARLIE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			50 * UNITS,
-			2
-		));
 
             assert_ok!(Market::set_price(
 			Origin::signed(ALICE),
@@ -200,8 +231,6 @@ fn buy_should_work_when_there_is_royalty() {
 
             //Assert
             assert_that_nft_ownership_is_transferred_to(CHARLIE);
-
-            assert!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE).is_some());
 
             assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
             expect_events(vec![
@@ -223,7 +252,6 @@ fn buy_should_work_when_there_is_royalty() {
                     .into(),
             ]);
             assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 80 * UNITS); // price - royalty
-            assert_eq!(<Test as Config>::Currency::reserved_balance(&CHARLIE), 50 * UNITS);
             assert_eq!(Balances::free_balance(&BOB), bob_initial_balance + 20 * UNITS); // royalty
             assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
         });
