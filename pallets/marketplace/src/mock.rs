@@ -1,13 +1,17 @@
+use std::borrow::Borrow;
+use std::convert::TryInto;
 use crate as pallet_marketplace;
-use frame_support::{parameter_types, traits::Everything};
+use frame_support::{assert_ok, BoundedVec, parameter_types, traits::Everything};
 use frame_system as system;
 use primitives::nft::{ClassType, NftPermissions};
 use sp_core::{crypto::AccountId32, H256};
+use sp_core::storage::Storage;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use system::EnsureRoot;
+pub use primitives::{Amount, AssetId};
 
 mod marketplace {
 	// Re-export needed for `impl_outer_event!`.
@@ -155,32 +159,69 @@ pub const CLASS_ID_2: <Test as pallet_uniques::Config>::ClassId = 1002;
 pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
 pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
 
-pub struct ExtBuilder;
+pub struct ExtBuilder {
+	endowed_accounts: Vec<(AccountId, Balance)>,
+	minted_nft: Option<(AccountId, <Test as pallet_uniques::Config>::ClassId, <Test as pallet_uniques::Config>::InstanceId)>,
+}
+
 impl Default for ExtBuilder {
 	fn default() -> Self {
-		ExtBuilder
+		ExtBuilder {
+			endowed_accounts: vec![],
+			minted_nft: None,
+		}
 	}
 }
 
 impl ExtBuilder {
+	pub fn with_endowed_accounts(mut self, accounts: Vec<(AccountId, Balance)>) -> Self {
+		self.endowed_accounts = accounts;
+		self
+	}
+
+	pub fn with_minted_nft(mut self, nft: (AccountId, <Test as pallet_uniques::Config>::ClassId, <Test as pallet_uniques::Config>::InstanceId)) -> Self {
+		self.minted_nft = Some(nft);
+		self
+	}
+
 	pub fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
-		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![
-				(ALICE, 200_000 * UNITS),
-				(BOB, 15_000 * UNITS),
-				(CHARLIE, 150_000 * UNITS),
-				(DAVE, 200_000 * UNITS),
-			],
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
+		self.add_account_with_balances(&mut t);
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| self.create_nft());
 		ext
 	}
+
+	fn add_account_with_balances(&self, mut t: &mut Storage) {
+		pallet_balances::GenesisConfig::<Test> {
+			balances: self
+				.endowed_accounts
+				.clone()
+				.iter()
+				.flat_map(|(x, asset)| vec![(x.borrow().clone(), *asset)])
+				.collect(),
+		}
+			.assimilate_storage(&mut t)
+			.unwrap();
+	}
+
+	fn create_nft(&self) {
+		if let Some(nft) = &self.minted_nft {
+			let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+				b"metadata".to_vec().try_into().unwrap();
+			assert_ok!(NFT::create_class(
+					Origin::signed(nft.0.clone()),
+					nft.1,
+					Default::default(),
+					metadata.clone()
+			));
+			assert_ok!(NFT::mint(Origin::signed(nft.0.clone()), nft.1, nft.2, metadata));
+		}
+	}
+
 }
 
 pub fn last_event() -> Event {

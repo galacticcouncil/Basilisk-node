@@ -7,11 +7,9 @@ use std::convert::TryInto;
 
 type Market = Pallet<Test>;
 
-fn new_test_ext() -> sp_io::TestExternalities {
-	let mut ext = ExtBuilder::default().build();
-	ext.execute_with(|| System::set_block_number(1));
-	ext
-}
-
 mod make_offer;
+mod set_price;
+mod add_royalty;
+mod withdraw_offer;
+mod accept_offer;
 mod unit;
