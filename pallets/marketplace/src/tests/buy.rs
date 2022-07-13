@@ -22,7 +22,7 @@ fn buy_should_set_price_to_none_when_successfully_executed() {
 			INSTANCE_ID_0,
 			Some(100 * UNITS)
 		));
-        assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+		assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
 		assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
 	});
 }
@@ -41,7 +41,7 @@ fn buy_should_set_price_to_none_when_offer_accepted() {
 		));
 		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
 
-        assert_ok!(Market::make_offer(
+		assert_ok!(Market::make_offer(
 			Origin::signed(DAVE),
 			CLASS_ID_0,
 			INSTANCE_ID_0,
@@ -49,7 +49,7 @@ fn buy_should_set_price_to_none_when_offer_accepted() {
 			1000000
 		));
 
-        assert_ok!(Market::accept_offer(
+		assert_ok!(Market::accept_offer(
 			Origin::signed(ALICE),
 			CLASS_ID_0,
 			INSTANCE_ID_0,
