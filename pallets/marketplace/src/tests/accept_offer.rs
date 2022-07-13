@@ -265,3 +265,35 @@ fn accept_offer_should_work_when_there_nft_has_royalty_and_price_is_set() {
 			assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance + 10 * UNITS);
 		});
 }
+
+#[test]
+fn buy_should_set_price_to_none_when_offer_accepted() {
+	// arrange
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(ALICE, 200_000_0 * UNITS),
+			(DAVE, 200_000_0 * UNITS),
+		])
+		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.build()
+		.execute_with(|| {
+			assert_ok!(Market::make_offer(
+				Origin::signed(DAVE),
+				CLASS_ID_0,
+				INSTANCE_ID_0,
+				50 * UNITS,
+				1000000
+			));
+
+			// Act
+			assert_ok!(Market::accept_offer(
+				Origin::signed(ALICE),
+				CLASS_ID_0,
+				INSTANCE_ID_0,
+				DAVE
+			));
+
+			// Assert
+			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
+		});
+}
