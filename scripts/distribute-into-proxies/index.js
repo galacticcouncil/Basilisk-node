@@ -57,7 +57,6 @@ const total = allocation
   .reduce((acc, [amount]) => acc.plus(amount), new BigNumber(0))
   .multipliedBy(UNIT)
   .toFixed()
-log('total to be distributed:', total)
 
 function calculateSchedule([amount, { start, period, period_count }]) {
   const total = new BigNumber(amount).multipliedBy(UNIT)
@@ -124,21 +123,24 @@ async function main() {
   const treasuryPubKey = stringToU8a('modlpy/trsry'.padEnd(32, '\0'))
   const treasury = bsxAddress(treasuryPubKey)
   log('treasury account:', treasury)
+  log('controller multisig:', multisig)
+  log('total to be distributed:', total)
 
   log('creating anonymous proxies...')
   const proxies = distribution.map(() =>
-    api.tx.proxy.anonymous('Any', 0, proxyIndex++),
+      api.tx.proxy.anonymous('Any', 0, proxyIndex++),
   )
   const receipt1 = await sendAndWait(from, api.tx.utility.batchAll(proxies))
   const anonymousProxies = receipt1.events
-    .filter(({ event }) => event.method === 'AnonymousCreated')
-    .map(({ event }) => event.data.anonymous.toHuman())
+      .filter(({event}) => event.method === 'AnonymousCreated')
+      .map(({event}) => event.data.anonymous.toHuman())
   assert.equal(
     anonymousProxies.length,
     distribution.length,
     'not all proxies created',
   )
   log('proxies created:', anonymousProxies)
+  log('gc proxy:', anonymousProxies[anonymousProxies.length - 1])
 
   log('funding proxies...')
   const transfers = anonymousProxies.map((anon) =>
