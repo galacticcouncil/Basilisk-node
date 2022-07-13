@@ -1,17 +1,17 @@
-use std::borrow::Borrow;
-use std::convert::TryInto;
 use crate as pallet_marketplace;
-use frame_support::{assert_ok, BoundedVec, parameter_types, traits::Everything};
+use frame_support::{assert_ok, parameter_types, traits::Everything, BoundedVec};
 use frame_system as system;
 use primitives::nft::{ClassType, NftPermissions};
-use sp_core::{crypto::AccountId32, H256};
+pub use primitives::{Amount, AssetId};
 use sp_core::storage::Storage;
+use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
+use std::borrow::Borrow;
+use std::convert::TryInto;
 use system::EnsureRoot;
-pub use primitives::{Amount, AssetId};
 
 mod marketplace {
 	// Re-export needed for `impl_outer_event!`.
@@ -161,7 +161,11 @@ pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
 
 pub struct ExtBuilder {
 	endowed_accounts: Vec<(AccountId, Balance)>,
-	minted_nfts: Vec<(AccountId, <Test as pallet_uniques::Config>::ClassId, <Test as pallet_uniques::Config>::InstanceId)>,
+	minted_nfts: Vec<(
+		AccountId,
+		<Test as pallet_uniques::Config>::ClassId,
+		<Test as pallet_uniques::Config>::InstanceId,
+	)>,
 }
 
 impl Default for ExtBuilder {
@@ -179,7 +183,14 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_minted_nft(mut self, nft: (AccountId, <Test as pallet_uniques::Config>::ClassId, <Test as pallet_uniques::Config>::InstanceId)) -> Self {
+	pub fn with_minted_nft(
+		mut self,
+		nft: (
+			AccountId,
+			<Test as pallet_uniques::Config>::ClassId,
+			<Test as pallet_uniques::Config>::InstanceId,
+		),
+	) -> Self {
 		self.minted_nfts.push(nft);
 		self
 	}
@@ -204,8 +215,8 @@ impl ExtBuilder {
 				.flat_map(|(x, asset)| vec![(x.borrow().clone(), *asset)])
 				.collect(),
 		}
-			.assimilate_storage(&mut t)
-			.unwrap();
+		.assimilate_storage(&mut t)
+		.unwrap();
 	}
 
 	fn create_nft(&self) {
@@ -213,15 +224,14 @@ impl ExtBuilder {
 			let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 				b"metadata".to_vec().try_into().unwrap();
 			assert_ok!(NFT::create_class(
-					Origin::signed(nft.0.clone()),
-					nft.1,
-					Default::default(),
-					metadata.clone()
+				Origin::signed(nft.0.clone()),
+				nft.1,
+				Default::default(),
+				metadata.clone()
 			));
 			assert_ok!(NFT::mint(Origin::signed(nft.0.clone()), nft.1, nft.2, metadata));
 		}
 	}
-
 }
 
 pub fn last_event() -> Event {
