@@ -89,3 +89,22 @@ fn make_offer_should_fail_when_offer_has_been_already_made() {
 			);
 	});
 }
+
+#[test]
+fn make_offer_should_fail_when_offerer_has_not_enough_balance() {
+	//Arrange
+	let balance = 200_000;
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(DAVE, balance  * UNITS),
+		])
+		.build()
+		.execute_with(|| {
+			// Act and assert
+			assert_noop!(
+				Market::make_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, (balance + 1) * UNITS, 2),
+				pallet_balances::Error::<Test, _>::InsufficientBalance
+			);
+		});
+}
+

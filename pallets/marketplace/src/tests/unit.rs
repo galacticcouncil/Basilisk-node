@@ -209,7 +209,7 @@ fn make_offer_works() {
 		assert_ok!(Market::make_offer(Origin::signed(CHARLIE), 2, 2, 50 * UNITS, 1));
 	});
 }
-*/
+
 
 #[test]
 fn accept_offer_with_royalty_and_set_price_works() {
@@ -289,103 +289,9 @@ fn accept_offer_with_royalty_and_set_price_works() {
 		// royalty
 	});
 }
+*/
 
-#[test]
-fn buy_without_royalty_works() {
-	ExtBuilder::default()
-		.with_endowed_accounts(vec![
-			(ALICE, 200_000 * UNITS),
-			(BOB, 15_000 * UNITS),
-			(CHARLIE, 150_000 * UNITS),
-			(DAVE, 200_000 * UNITS),
-		])
-		.build()
-		.execute_with(|| {
-		let price = 100 * UNITS;
-		let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
-			b"metadata".to_vec().try_into().unwrap();
-		assert_ok!(NFT::create_class(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			Default::default(),
-			metadata.clone()
-		));
-		assert_ok!(NFT::mint(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, metadata));
-		// make an offer to verify that it is ignored
-		assert_ok!(Market::make_offer(
-			Origin::signed(CHARLIE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			50 * UNITS,
-			2
-		));
-
-		assert_noop!(
-			Market::buy(Origin::signed(BOB), CLASS_ID_0, CLASS_ID_1),
-			Error::<Test>::ClassOrInstanceUnknown
-		);
-
-		assert_noop!(
-			Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,),
-			Error::<Test>::NotForSale
-		);
-
-		assert_ok!(Market::set_price(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			Some(100_000_000 * UNITS)
-		));
-
-		assert_noop!(
-			Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0),
-			pallet_balances::Error::<Test, _>::InsufficientBalance
-		);
-
-		assert_ok!(Market::set_price(
-			Origin::signed(ALICE),
-			CLASS_ID_0,
-			INSTANCE_ID_0,
-			Some(100 * UNITS)
-		));
-
-		assert_noop!(
-			Market::buy(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0,),
-			Error::<Test>::BuyFromSelf
-		);
-
-		let alice_initial_balance = Balances::free_balance(&ALICE);
-		let charlie_initial_balance = Balances::free_balance(&CHARLIE);
-		assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,));
-		// NFT ownership is transferred
-		assert_eq!(
-			pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
-			Some(CHARLIE)
-		);
-		// existing orders are not removed from the storage
-		assert_eq!(
-			Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE),
-			Some(Offer {
-				maker: CHARLIE,
-				amount: 50 * UNITS,
-				expires: 2,
-			})
-		);
-		assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
-		let event = Event::Marketplace(crate::Event::TokenSold {
-			owner: ALICE,
-			buyer: CHARLIE,
-			class: CLASS_ID_0,
-			instance: INSTANCE_ID_0,
-			price,
-		});
-		assert_eq!(last_event(), event);
-		assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + price);
-		assert_eq!(<Test as Config>::Currency::reserved_balance(&CHARLIE), 50 * UNITS);
-		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
-	});
-}
-
+/*
 #[test]
 fn buy_with_royalty_works() {
 	ExtBuilder::default()
@@ -494,7 +400,7 @@ fn buy_with_royalty_works() {
 		assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
 	});
 }
-
+*/
 #[test]
 fn offering_works() {
 	ExtBuilder::default()

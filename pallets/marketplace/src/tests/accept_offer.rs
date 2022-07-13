@@ -1,6 +1,5 @@
 use super::*;
 use pretty_assertions::assert_eq;
-use primitives::BlockNumber;
 
 const PRICE: Balance = 50 * UNITS;
 
@@ -205,4 +204,70 @@ fn accept_offer_should_fail_when_called_by_not_nft_owner() {
 			    Error::<Test>::AcceptNotAuthorized
 	    	);
         })
+}
+
+#[test]
+fn accept_offer_should_work_when_there_nft_has_royalty_and_price_is_set() {
+    //Arrange
+    ExtBuilder::default()
+        .with_endowed_accounts(vec![
+            (ALICE, 200_000 * UNITS),
+            (BOB, 15_000 * UNITS),
+            (CHARLIE, 150_000 * UNITS),
+        ])
+        .with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+        .build()
+        .execute_with(|| {
+            assert_ok!(Market::add_royalty(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			CHARLIE,
+			20,
+		));
+            assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(100 * UNITS)
+		));
+            assert_ok!(Market::make_offer(
+			Origin::signed(BOB),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			PRICE,
+			2
+		));
+
+            let alice_initial_balance = Balances::free_balance(&ALICE);
+            let bob_initial_balance = Balances::free_balance(&BOB);
+            let charlie_initial_balance = Balances::free_balance(&CHARLIE);
+
+            //Act
+            // price set by the owner is ignored
+            assert_ok!(Market::accept_offer(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			BOB
+		));
+
+            //Assert
+            assert_eq!(last_event(), Event::Marketplace(crate::Event::OfferAccepted {
+                who: ALICE,
+                class: CLASS_ID_0,
+                instance: INSTANCE_ID_0,
+                amount: PRICE,
+                maker: BOB,
+            }));
+            assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
+            assert_eq!(
+                pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
+                Some(BOB)
+            );
+            assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 40 * UNITS); // price - royalty
+            assert_eq!(<Test as Config>::Currency::reserved_balance(&BOB), 0);
+            assert_eq!(Balances::free_balance(&BOB), bob_initial_balance); // paid from the reserved amount
+            assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance + 10 * UNITS);
+        });
 }
