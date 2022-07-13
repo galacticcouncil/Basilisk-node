@@ -1,16 +1,23 @@
 const log = console.log
 console.warn = () => {}
-const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api')
-const { encodeAddress, cryptoWaitReady } = require('@polkadot/util-crypto')
+const {ApiPromise, WsProvider, Keyring} = require('@polkadot/api')
+const {encodeAddress, cryptoWaitReady} = require('@polkadot/util-crypto')
 const assert = require('assert')
-const { stringToU8a } = require('@polkadot/util')
+const {stringToU8a} = require('@polkadot/util')
 const BigNumber = require('bignumber.js')
 
 const ACCOUNT_SECRET = process.env.ACCOUNT_SECRET || '//Alice'
 const RPC = process.env.RPC_SERVER || 'ws://127.0.0.1:9988'
 
 let proxyIndex = 2000
-const multisig = 'bXiGFV6H2JpQYqXFtQtRqXNn7zS22Nco349BE7CvUzBuidraU'
+
+/*
+multisig 2/3
+  bXiU1PF35fddEKHm8CQmaDDFps1iEbMR5MENMX8whHq24b5yq
+  bXjz8UQyoDZArbtkBZ8v12W9X4oCLiYTP45baR8payr4NV7QZ
+  bXkQqxjJ5tZV5p1WTTxoL3Pq3fVSi2MvHtSuMLngcky4qqwSx
+ */
+const multisig = 'bXmakWMpcdEpKZ6n2QEEWgNopANsn9Vj8mHy4c5NjDryuy2EZ'
 const UNIT = 1000000000000
 
 const vesting = {
