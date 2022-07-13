@@ -161,14 +161,14 @@ pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
 
 pub struct ExtBuilder {
 	endowed_accounts: Vec<(AccountId, Balance)>,
-	minted_nft: Option<(AccountId, <Test as pallet_uniques::Config>::ClassId, <Test as pallet_uniques::Config>::InstanceId)>,
+	minted_nfts: Vec<(AccountId, <Test as pallet_uniques::Config>::ClassId, <Test as pallet_uniques::Config>::InstanceId)>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> Self {
 		ExtBuilder {
 			endowed_accounts: vec![],
-			minted_nft: None,
+			minted_nfts: vec![],
 		}
 	}
 }
@@ -180,7 +180,7 @@ impl ExtBuilder {
 	}
 
 	pub fn with_minted_nft(mut self, nft: (AccountId, <Test as pallet_uniques::Config>::ClassId, <Test as pallet_uniques::Config>::InstanceId)) -> Self {
-		self.minted_nft = Some(nft);
+		self.minted_nfts.push(nft);
 		self
 	}
 
@@ -209,7 +209,7 @@ impl ExtBuilder {
 	}
 
 	fn create_nft(&self) {
-		if let Some(nft) = &self.minted_nft {
+		for nft in &self.minted_nfts {
 			let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 				b"metadata".to_vec().try_into().unwrap();
 			assert_ok!(NFT::create_class(

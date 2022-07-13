@@ -63,6 +63,7 @@ fn buy_should_work_when_there_is_no_royalty() {
         });
 }
 
+
 #[test]
 fn buy_should_fail_when_nft_does_not_exist() {
     //Arrange
@@ -227,6 +228,92 @@ fn buy_should_work_when_there_is_royalty() {
             assert_eq!(Balances::free_balance(&CHARLIE), charlie_initial_balance - price);
         });
 }
+
+#[test]
+fn buy_should_work_when_there_is_no_offer_present() {
+    //Arrange
+    ExtBuilder::default()
+        .with_endowed_accounts(vec![
+            (ALICE, 200_000 * UNITS),
+            (BOB, 15_000 * UNITS),
+            (CHARLIE, 150_000 * UNITS),
+        ])
+        .with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+        .build()
+        .execute_with(|| {
+            assert_ok!(Market::add_royalty(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			CHARLIE,
+			20,
+		));
+            assert_ok!(Market::set_price(
+			Origin::signed(ALICE),
+			CLASS_ID_0,
+			INSTANCE_ID_0,
+			Some(100 * UNITS)
+		));
+            //Act
+            assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+
+            //Assert
+            assert_that_nft_ownership_is_transferred_to(BOB);
+
+            assert_eq!(Balances::total_balance(&ALICE), 200_080 * UNITS);
+            assert_eq!(Balances::total_balance(&BOB), 14_900 * UNITS);
+            assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * UNITS);
+            // Reserved:
+            // 10_000 class
+            // 100 instance
+            // 200 royalty
+            assert_eq!(Balances::reserved_balance(&ALICE), 10_300 * UNITS);
+            assert_eq!(Balances::reserved_balance(&BOB), 0);
+            assert_ok!(NFT::burn(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+            assert_eq!(Balances::reserved_balance(&ALICE), 10_200 * UNITS);
+            assert_eq!(Balances::reserved_balance(&BOB), 0);
+        });
+}
+
+#[test]
+fn buy_should_work_when_nfts_are_traded_between_multiple_accounts() {
+    ExtBuilder::default()
+        .with_endowed_accounts(vec![
+            (ALICE, 200_000 * UNITS),
+            (BOB, 15_000 * UNITS),
+            (CHARLIE, 150_000 * UNITS),
+            (DAVE, 200_000 * UNITS),
+        ])
+        .with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+        .with_minted_nft((BOB, CLASS_ID_1, INSTANCE_ID_1))
+        .with_minted_nft((CHARLIE, CLASS_ID_2, INSTANCE_ID_1))
+        .build()
+        .execute_with(|| {
+            assert_ok!(Market::set_price(
+                Origin::signed(ALICE),
+                CLASS_ID_0,
+                INSTANCE_ID_0,
+                Some(100)
+		    ));
+            assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+
+            assert_ok!(Market::set_price(
+                Origin::signed(BOB),
+                CLASS_ID_1,
+                INSTANCE_ID_1,
+                Some(200)));
+            assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_1, INSTANCE_ID_1));
+
+            assert_ok!(Market::set_price(
+                Origin::signed(CHARLIE),
+                CLASS_ID_1,
+                INSTANCE_ID_1,
+                Some(300)
+		    ));
+            assert_ok!(Market::buy(Origin::signed(DAVE), CLASS_ID_1, INSTANCE_ID_1));
+         });
+}
+
 
 fn assert_that_nft_ownership_is_transferred_to(new_owner: AccountId) {
     assert_eq!(

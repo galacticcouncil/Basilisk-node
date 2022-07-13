@@ -146,4 +146,3 @@ fn nft_owner_should_not_have_rights_for_withdrawing_when_nft_is_burned() {
 		    );
         });
 }
-
