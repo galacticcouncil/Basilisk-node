@@ -169,9 +169,9 @@ async function main() {
     .map(([proxy, diff]) => api.tx.balances.forceTransfer(proxy, treasury, diff.toFixed()));
 
   console.log('------ schedule updates')
-  console.log(api.tx.utility.batchAll(neededUpdates).toHex());
+  console.log(api.tx.sudo.sudo(api.tx.utility.batchAll(neededUpdates)).toHex());
   console.log('------ transfer back treasury')
-  console.log(api.tx.utility.batchAll(transferBacks).toHex());
+  console.log(api.tx.sudo.sudo(api.tx.utility.batchAll(transferBacks)).toHex());
 
   process.exit(0)
   const from = keyring.addFromUri(ACCOUNT_SECRET)
