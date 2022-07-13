@@ -8746,7 +8746,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8807,6 +8807,7 @@ dependencies = [
  "polkadot-runtime-parachains",
  "primitives",
  "sp-api",
+ "sp-arithmetic",
  "sp-block-builder",
  "sp-consensus-aura",
  "sp-core",
