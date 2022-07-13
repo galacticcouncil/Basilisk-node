@@ -5,9 +5,10 @@ const { encodeAddress, cryptoWaitReady } = require('@polkadot/util-crypto')
 const assert = require('assert')
 const { stringToU8a } = require('@polkadot/util')
 const BigNumber = require('bignumber.js')
+const jsonDiff = require('json-diff')
 
 const ACCOUNT_SECRET = process.env.ACCOUNT_SECRET || '//Alice'
-const RPC = process.env.RPC_SERVER || 'ws://127.0.0.1:9988'
+const RPC = process.env.RPC_SERVER || 'wss://basilisk-rpc.dwellir.com'
 
 let proxyIndex = 2000
 const multisig = 'bXiGFV6H2JpQYqXFtQtRqXNn7zS22Nco349BE7CvUzBuidraU'
@@ -19,6 +20,26 @@ const vesting = {
   per_period: '',
   period_count: '6000',
 }
+
+
+const deployedProxies = ['bXmgv5dn2GCz6TTZ5dgKMAGQH79PPxB6uKDmRrR2RLUWWmpTv',
+  'bXkeb9mBW5nXNdDhVMnsuwUcAY8UC85rfB1Hds5GzRcJNUR95',
+  'bXj9xqzS9Xj6vSiMEJ4XSWqarfV7zV7K1Qr2sKUSF7LbRaPG8',
+  'bXhtjfkUF9M24sNM9LTpGJSooLG4gzihiMUZXwLsZGCK1sXZR',
+  'bXhAHcgEpYS94STbgnJwtFKCGyNa5zjaYS1vwzGLS8icWTTrN',
+  'bXioQFA5bxKsZfdKmsRuDFNR3qbSsCDGQKNLPXV1ghS6Th5e5',
+  'bXkqxjGmqpvDKgzgqMjGJzNq8w2ZEvecvi3kExkaTq4kvUa8p',
+  'bXkounJ7WHaShUkrsaZDU8jzTKxS24khh6nFYGSxCixc8nQ2A',
+  'bXggiCArH3RSngFi5v53jWgPWAjGnYgCc5LzdrmvhrrmoQZAm',
+  'bXghTpZqM6DfbjGJuSnpsbcrFJfgsAcmabMSkPFaAzjHSiSkw',
+  'bXgkGQrUSgWqzE6zVxnVScZbtN45ktq3phRoKHrrbBq6SWYyr',
+  'bXiUBJWy9LYhvxrBKjhQGJfJHmNS7KXSB74Zo8cWPxDZLiKmh',
+  'bXjKEpwtroiytKeghbHq1xPtaUAUbAbZwNjEof4ambY9S2jDz',
+  'bXkLbmD3F4wQ99Wyoy5ssoowvV1mm9poU3EBxy2RtKZAfiGjh',
+  'bXmBSgpaA9r52LryffpckptGEA2q7QyjbwPhWmJSNzJCYEXmw',
+  'bXmjB1dawfpTVBrpaEbQyPt1ztn4rJp1SxX1gyQZgg1S8AXXx',
+  'bXmpa663XyMmgSgf2qFr3m4Fkp57W5eXsiMQqFNzcCM9upUaS',
+  'bXjhPXLUcU77wg9yTeRqCaRpcKbRTQHdaxhx6r3AqAqfpWDbe'];
 
 const allocation = [
   ['450000000', vesting],
@@ -62,6 +83,7 @@ function calculateSchedule([amount, { start, period, period_count }]) {
   const remainder = total.mod(period_count).toFixed()
 
   return {
+    total: total.plus(1000 * UNIT).toFixed(),
     remainder,
     schedule: {
       start,
@@ -71,7 +93,6 @@ function calculateSchedule([amount, { start, period, period_count }]) {
     },
   }
 }
-
 const distribution = allocation.map(calculateSchedule)
 
 const totalDistributed = distribution
@@ -111,12 +132,51 @@ async function main() {
     api.rpc.system.version(),
   ])
   log(`connected to ${RPC} (${chain} ${nodeVersion})`)
-  const from = keyring.addFromUri(ACCOUNT_SECRET)
-  const activeAccount = bsxAddress(from.addressRaw)
-  log('active account:', activeAccount)
   const treasuryPubKey = stringToU8a('modlpy/trsry'.padEnd(32, '\0'))
   const treasury = bsxAddress(treasuryPubKey)
   log('treasury account:', treasury)
+
+
+
+  const schedules = deployedProxies.map((proxy, i) => {
+    const {schedule, total} = calculateSchedule(allocation[i]);
+    return {proxy, schedules: [api.registry.createType('OrmlVestingVestingSchedule', schedule).toHuman()], balance: total};
+  });
+
+
+  const onchain = await Promise.all(schedules.map(async ({proxy}) => {
+    const [vestingSchedules, account] = await Promise.all([
+      api.query.vesting.vestingSchedules(proxy),
+      api.query.system.account(proxy)
+      ]);
+    return {
+      proxy,
+      schedules: vestingSchedules.toHuman(),
+      balance: new BigNumber(account.data.free).plus(account.data.reserved).toFixed()
+    };
+  }));
+
+  console.log(jsonDiff.diffString(onchain, schedules, {full: true}));
+
+  const scheduleUpdates = deployedProxies.map((proxy, i) => {
+    const {schedule} = calculateSchedule(allocation[i]);
+    return api.tx.vesting.updateVestingSchedules(proxy, [api.registry.createType('OrmlVestingVestingSchedule', schedule)]);
+  });
+
+  const neededUpdates = scheduleUpdates.filter((_,i) => jsonDiff.diff(schedules[i].schedules, onchain[i].schedules));
+  const transferBacks = onchain.map(({proxy, balance}, i) => [proxy, new BigNumber(balance).minus(schedules[i].balance)])
+    .filter(([,diff]) => diff.gt(0))
+    .map(([proxy, diff]) => api.tx.balances.forceTransfer(proxy, treasury, diff.toFixed()));
+
+  console.log('------ schedule updates')
+  console.log(api.tx.utility.batchAll(neededUpdates).toHex());
+  console.log('------ transfer back treasury')
+  console.log(api.tx.utility.batchAll(transferBacks).toHex());
+
+  process.exit(0)
+  const from = keyring.addFromUri(ACCOUNT_SECRET)
+  const activeAccount = bsxAddress(from.addressRaw)
+  log('active account:', activeAccount)
 
   log('creating anonymous proxies...')
   const proxies = distribution.map(() =>
