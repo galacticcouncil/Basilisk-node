@@ -211,7 +211,6 @@ impl ExtBuilder {
 		.unwrap();
 	}
 
-
 	fn create_nft(&self) {
 		for nft in &self.minted_nfts {
 			let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
