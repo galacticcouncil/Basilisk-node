@@ -19,11 +19,11 @@ macro_rules! assert_eq_approx {
 //NOTE: rust encoded call size is differen from UI encoded call size that's why we have asserts for 2 fees.
 
 #[test]
-fn transfer_transaction_fees() {
+fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 	Basilisk::execute_with(|| {
 		let diff = UNITS / 100; //0.01
 
-		let expected_rust_encoded_fees = 45_56 * UNITS / 100; //45.56
+		let expected_rust_encoded_fees = 4_556 * UNITS / 100; //45.56
 		let expected_ui_fees = 4_655 * UNITS / 100; //46.55
 
 		let call = orml_currencies::Call::<basilisk_runtime::Runtime>::transfer {
@@ -34,8 +34,8 @@ fn transfer_transaction_fees() {
 
 		let info = call.get_dispatch_info();
 		//rust encoded fees
-		let len = call.encoded_size() as u32;
-		let rust_encoded_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let rust_encoded_len = call.encoded_size() as u32;
+		let rust_encoded_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
 
 		assert_eq_approx!(
 			rust_encoded_fees,
@@ -45,19 +45,16 @@ fn transfer_transaction_fees() {
 		);
 
 		//UI encoded fees
-		let len = 143; //UI encoded length
-		let ui_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let ui_encoded_len = 143;
+		let ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
 		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI fees are");
 
 		// Min fee adjustment multiplier
 		pallet_transaction_payment::pallet::NextFeeMultiplier::<basilisk_runtime::Runtime>::put(
 			basilisk_runtime::MinimumMultiplier::get(),
 		);
-		let len = call.encoded_size() as u32;
-		let min_multiplier_rust_fees = TransactionPayment::compute_fee(len, &info, 0);
-
-		let len = 143; //UI encoded length
-		let min_multiplier_ui_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let min_multiplier_rust_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
+		let min_multiplier_ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
 
 		println!(
 			"Orml currencies transfer:\n\t UI fees: {}/{} [actual/expected]\n\t Rust encoded fees: {}/{} [actual/expected]\n\t Fees with min. FeeMultiplier: {} [UI], {} [Rust]",
@@ -72,7 +69,7 @@ fn transfer_transaction_fees() {
 }
 
 #[test]
-fn nft_mint_transaction_fees() {
+fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 	Basilisk::execute_with(|| {
 		//NOTE: Price showed by polkadotAPPS is changing at second decimal place between runs.
 		let diff = UNITS / 10; //0.1
@@ -91,8 +88,8 @@ fn nft_mint_transaction_fees() {
 
 		let info = call.get_dispatch_info();
 		//rust encoded fees
-		let len = call.encoded_size() as u32;
-		let rust_encoded_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let rust_encoded_len = call.encoded_size() as u32;
+		let rust_encoded_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
 
 		assert_eq_approx!(
 			rust_encoded_fees,
@@ -102,8 +99,8 @@ fn nft_mint_transaction_fees() {
 		);
 
 		//UI encoded fees
-		let len = 192; //UI encoded length
-		let ui_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let ui_encoded_len = 192;
+		let ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
 
 		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI fees are");
 
@@ -111,11 +108,9 @@ fn nft_mint_transaction_fees() {
 		pallet_transaction_payment::pallet::NextFeeMultiplier::<basilisk_runtime::Runtime>::put(
 			basilisk_runtime::MinimumMultiplier::get(),
 		);
-		let len = call.encoded_size() as u32;
-		let min_multiplier_rust_fees = TransactionPayment::compute_fee(len, &info, 0);
 
-		let len = 192; //UI encoded length
-		let min_multiplier_ui_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let min_multiplier_rust_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
+		let min_multiplier_ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
 
 		println!(
 			"NFT mint:\n\t UI fees: {}/{} [actual/expected]\n\t Rust encoded fees: {}/{} [actual/expected]\n\t Fees with min. FeeMultiplier: {} [UI], {} [Rust]",
@@ -130,7 +125,7 @@ fn nft_mint_transaction_fees() {
 }
 
 #[test]
-fn nft_create_class_transaction_fees() {
+fn transaction_fees_should_be_as_expected_when_nft_class_is_created() {
 	Basilisk::execute_with(|| {
 		//NOTE: Price showed by polkadotAPPS is changing at second decimal place between runs.
 		let diff = UNITS / 10; //0.1
@@ -149,8 +144,8 @@ fn nft_create_class_transaction_fees() {
 
 		let info = call.get_dispatch_info();
 		//rust encoded fees
-		let len = call.encoded_size() as u32;
-		let rust_encoded_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let rust_encoded_len = call.encoded_size() as u32;
+		let rust_encoded_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
 
 		assert_eq_approx!(
 			rust_encoded_fees,
@@ -160,8 +155,8 @@ fn nft_create_class_transaction_fees() {
 		);
 
 		//UI encoded fees
-		let len = 177; //UI encoded length
-		let ui_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let ui_encoded_len = 177; //UI encoded length
+		let ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
 
 		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI encoded fees are");
 
@@ -169,11 +164,9 @@ fn nft_create_class_transaction_fees() {
 		pallet_transaction_payment::pallet::NextFeeMultiplier::<basilisk_runtime::Runtime>::put(
 			basilisk_runtime::MinimumMultiplier::get(),
 		);
-		let len = call.encoded_size() as u32;
-		let min_multiplier_rust_fees = TransactionPayment::compute_fee(len, &info, 0);
 
-		let len = 177; //UI encoded length
-		let min_multiplier_ui_fees = TransactionPayment::compute_fee(len, &info, 0);
+		let min_multiplier_rust_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
+		let min_multiplier_ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
 
 		println!(
 			"NFT create_class\n\t UI fees: {}/{} [actual/expected]\n\t Rust encoded fees: {}/{} [actual/expected]\n\t Fees with min. FeeMultiplier: {} [UI], {} [Rust]",
