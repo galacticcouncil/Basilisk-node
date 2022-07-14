@@ -309,6 +309,15 @@ pub fn asset_pair_to_map_key(assets: AssetPair) -> String {
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
 	pub const MinDeposit: Balance = 1;
+	pub const MaxLocks: u32 = 1;
+	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
+	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
+	pub const MinTotalFarmRewards: Balance = 1_000_000;
+	#[derive(PartialEq)]
+	pub const MaxEntriesPerDeposit: u8 = 10;
+	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
+	pub const NftClassId: primitives::ClassId = LIQ_MINING_NFT_CLASS;
+	pub const ReserveClassIdUpTo: u128 = 2;
 }
 
 impl warehouse_liquidity_mining::Config<Instance1> for Test {
@@ -322,19 +331,6 @@ impl warehouse_liquidity_mining::Config<Instance1> for Test {
 	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 	type Event = Event;
-}
-
-//TODO: Dani - organize these to put them always before the given trait impl
-parameter_types! {
-	pub const MaxLocks: u32 = 1;
-	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
-	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
-	pub const MinTotalFarmRewards: Balance = 1_000_000;
-	#[derive(PartialEq)]
-	pub const MaxEntriesPerDeposit: u8 = 10;
-	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
-	pub const NftClassId: primitives::ClassId = LIQ_MINING_NFT_CLASS;
-	pub const ReserveClassIdUpTo: u128 = 2;
 }
 
 impl Config for Test {
@@ -484,7 +480,7 @@ impl Default for ExtBuilder {
 	fn default() -> Self {
 		DEPOSITS.with(|v| {
 			v.borrow_mut().clear();
-		}); //TODO: Dani - do we need it here?
+		});
 		Self {
 			endowed_accounts: vec![
 				(ALICE, BSX_ACA_SHARE_ID, INITIAL_BALANCE),

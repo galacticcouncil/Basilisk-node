@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//TODO: Dani - fix it
+//TODO: Dani - fix it once we can create nft class for liquidty mining
 
 use super::*;
 use frame_support::traits::StorageVersion;
@@ -73,8 +73,6 @@ mod tests {
 			);
 		});
 	}
-
-	//TODO: Dani add test for having storage version 0, so returns 0 weight
 
 	fn assert_that_nft_class_is_created(pallet_account: u128) {
 		mock::NFT_CLASS.borrow().with(|v| {

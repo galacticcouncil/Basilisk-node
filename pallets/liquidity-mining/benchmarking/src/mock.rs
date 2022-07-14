@@ -133,20 +133,6 @@ parameter_types! {
 	pub const MaxEntriesPerDeposit: u8 = 10;
 }
 
-/* TODO: Dani - delete this
-impl warehouse_liquidity_mining::Config<Instance1> for Test {
-	type Event = Event;
-	type CurrencyId = AssetId;
-	type MultiCurrency = Currency;
-	type PalletId = WarehouseLMPalletId;
-	type MinTotalFarmRewards = MinTotalFarmRewards;
-	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-	type BlockNumberProvider = MockBlockNumberProvider;
-	type AmmPoolId = AccountId;
-	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
-	type MaxYieldFarmsPerGlobalFarm = ();
-}*/
-
 impl warehouse_liquidity_mining::Config<Instance1> for Test {
 	type CurrencyId = AssetId;
 	type MultiCurrency = Currency;
@@ -169,22 +155,6 @@ parameter_types! {
 	pub const ReserveClassIdUpTo: u128 = 9999;
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
 }
-
-/* TODO: Dani - delete this
-impl pallet_liquidity_mining::Config for Test {
-	type Event = Event;
-	type MultiCurrency = Currency;
-	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
-	type WeightInfo = ();
-	type PalletId = LMPalletId;
-	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-	type MinTotalFarmRewards = MinTotalFarmRewards;
-	type BlockNumberProvider = MockBlockNumberProvider;
-	type AMM = XYK;
-	type NftClassId = NftClass;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
-	type NFTHandler = NFT;
-}*/
 
 impl pallet_liquidity_mining::Config for Test {
 	type Event = Event;

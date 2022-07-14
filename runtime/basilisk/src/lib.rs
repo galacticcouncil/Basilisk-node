@@ -850,12 +850,10 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type NftClassId = NftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
-	type ReserveClassIdUpTo = ReserveClassIdUpTo; //TODO: Dani - ask Martin what to write here
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
 }
-
-//TODO: Dani - ask Martin - do i need to do this?
 
 type XYKLiquidityMining = warehouse_liquidity_mining::Instance1;
 impl warehouse_liquidity_mining::Config<XYKLiquidityMining> for Runtime {
@@ -1191,7 +1189,7 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
-			//TODO: Dani add benchmark use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
+			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 
@@ -1202,7 +1200,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
-			//TODO: Dani add benchmark list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
@@ -1234,11 +1232,11 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
-			//TODO: Dani add benchmark use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
+			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl pallet_exchange_benchmarking::Config for Runtime {}
-			//TODO: Dani add benchmark impl pallet_liquidity_mining_benchmarking::Config for Runtime {}
+			impl pallet_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
@@ -1264,7 +1262,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			//TODO: Dani add benchmark add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);

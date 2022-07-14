@@ -154,7 +154,7 @@ runtime-benchmarks = [
     "pallet-tips/runtime-benchmarks",
     "pallet-proxy/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
-    #TODO: Dani - "pallet-liquidity-mining-benchmarking",
+    "pallet-liquidity-mining-benchmarking",
     "orml-benchmarking",
 ]
 std = [

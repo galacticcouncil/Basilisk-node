@@ -798,7 +798,7 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type NftClassId = NftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
-	type ReserveClassIdUpTo = ReserveClassIdUpTo; //TODO: Dani - ask Martin what to write here
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
 }
@@ -907,7 +907,7 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
-		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 156, //TODO: Dani - change this to 107, also the next, and reorder
+		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 156,
 		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 157,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
