@@ -362,7 +362,7 @@ fn buy_should_set_price_to_none_when_successfully_executed() {
 
 			// Assert
 			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
-	});
+		});
 }
 
 fn assert_that_nft_ownership_is_transferred_to(new_owner: AccountId) {

@@ -271,10 +271,7 @@ fn accept_offer_should_work_when_nft_has_royalty_and_price_is_set() {
 fn buy_should_set_price_to_none_when_offer_accepted() {
 	// arrange
 	ExtBuilder::default()
-		.with_endowed_accounts(vec![
-			(ALICE, 200_000_0 * UNITS),
-			(DAVE, 200_000_0 * UNITS),
-		])
+		.with_endowed_accounts(vec![(ALICE, 200_000_0 * UNITS), (DAVE, 200_000_0 * UNITS)])
 		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
 		.build()
 		.execute_with(|| {
