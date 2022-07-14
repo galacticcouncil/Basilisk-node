@@ -159,6 +159,7 @@ pub const CLASS_ID_2: <Test as pallet_uniques::Config>::ClassId = 1002;
 pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
 pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
 
+#[derive(Default)]
 pub struct ExtBuilder {
 	endowed_accounts: Vec<(AccountId, Balance)>,
 	minted_nfts: Vec<(
@@ -166,15 +167,6 @@ pub struct ExtBuilder {
 		<Test as pallet_uniques::Config>::ClassId,
 		<Test as pallet_uniques::Config>::InstanceId,
 	)>,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> Self {
-		ExtBuilder {
-			endowed_accounts: vec![],
-			minted_nfts: vec![],
-		}
-	}
 }
 
 impl ExtBuilder {
@@ -206,7 +198,7 @@ impl ExtBuilder {
 		ext
 	}
 
-	fn add_account_with_balances(&self, mut t: &mut Storage) {
+	fn add_account_with_balances(&self, t: &mut Storage) {
 		pallet_balances::GenesisConfig::<Test> {
 			balances: self
 				.endowed_accounts
@@ -215,9 +207,10 @@ impl ExtBuilder {
 				.flat_map(|(x, asset)| vec![(x.borrow().clone(), *asset)])
 				.collect(),
 		}
-		.assimilate_storage(&mut t)
+		.assimilate_storage(t)
 		.unwrap();
 	}
+
 
 	fn create_nft(&self) {
 		for nft in &self.minted_nfts {
