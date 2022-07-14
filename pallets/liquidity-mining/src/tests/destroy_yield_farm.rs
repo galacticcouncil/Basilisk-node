@@ -21,8 +21,9 @@ use test_ext::*;
 use warehouse_liquidity_mining::GlobalFarmData;
 
 #[test]
-fn destroy_yield_farm_with_deposits_should_work() {
+fn destroy_yield_farm_should_work_when_it_has_deposit() {
 	predefined_test_ext_with_deposits().execute_with(|| {
+		//Arrange
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 
@@ -39,6 +40,7 @@ fn destroy_yield_farm_with_deposits_should_work() {
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 
+		//Act
 		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
@@ -46,6 +48,7 @@ fn destroy_yield_farm_with_deposits_should_work() {
 			BSX_TKN1_ASSET_PAIR
 		));
 
+		//Assert
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmRemoved {
 			farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
@@ -102,6 +105,7 @@ fn destroy_yield_farm_should_fail_when_caller_is_not_signed() {
 #[test]
 fn destroy_yield_farm_should_fail_with_propagated_error_when_called_by_not_owner() {
 	predefined_test_ext_with_deposits().execute_with(|| {
+		//Arrange
 		const NOT_OWNER: u128 = ALICE;
 
 		assert_ok!(LiquidityMining::stop_yield_farm(
@@ -110,6 +114,7 @@ fn destroy_yield_farm_should_fail_with_propagated_error_when_called_by_not_owner
 			BSX_TKN1_ASSET_PAIR
 		));
 
+		//Act and assert
 		assert_noop!(
 			LiquidityMining::destroy_yield_farm(
 				Origin::signed(NOT_OWNER),

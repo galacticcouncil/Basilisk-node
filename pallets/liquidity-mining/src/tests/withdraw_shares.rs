@@ -25,6 +25,7 @@ use warehouse_liquidity_mining::YieldFarmEntry;
 #[test]
 fn withdraw_shares_should_work() {
 	predefined_test_ext_with_deposits().execute_with(|| {
+		//Arrange
 		const REWARD_CURRENCY: u32 = BSX;
 
 		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
@@ -51,6 +52,7 @@ fn withdraw_shares_should_work() {
 		let yield_farm_before_withdraw =
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 
+		//Act
 		assert_ok!(LiquidityMining::withdraw_shares(
 			Origin::signed(ALICE),
 			PREDEFINED_DEPOSIT_IDS[0],
@@ -58,6 +60,7 @@ fn withdraw_shares_should_work() {
 			BSX_TKN1_ASSET_PAIR
 		));
 
+		//Assert
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
 				farm_id: GC_FARM,
@@ -152,7 +155,7 @@ fn withdraw_shares_should_work() {
 }
 
 #[test]
-fn claim_and_withdraw_in_same_period_should_work() {
+fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		//Arrange
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
@@ -253,14 +256,12 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		//Arrange
 		set_block_number(10_000);
 
-		//cancel liq. pool before removing
 		assert_ok!(LiquidityMining::stop_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,
 			BSX_TKN1_ASSET_PAIR
 		));
 
-		//remove liq. pool before test
 		assert_ok!(LiquidityMining::destroy_yield_farm(
 			Origin::signed(GC),
 			GC_FARM,

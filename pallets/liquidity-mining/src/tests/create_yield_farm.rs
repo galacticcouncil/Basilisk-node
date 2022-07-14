@@ -25,7 +25,7 @@ const BSX_ACA_ASSET_PAIR: AssetPair = AssetPair {
 };
 
 #[test]
-fn create_yield_farm_should_work() {
+fn create_yield_farm_should_work_when_global_farm_exist() {
 	//Arrange
 	let yield_farm = YieldFarmData {
 		id: 12,

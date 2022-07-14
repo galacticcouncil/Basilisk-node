@@ -20,9 +20,12 @@ use pretty_assertions::assert_eq;
 use test_ext::*;
 
 #[test]
-fn redeposit_lp_shares_should_work() {
+fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
+	//Arrange
 	predefined_test_ext_with_deposits().execute_with(|| {
 		set_block_number(50_000);
+
+		//Act
 		assert_ok!(LiquidityMining::redeposit_lp_shares(
 			Origin::signed(ALICE),
 			EVE_FARM,
@@ -31,6 +34,7 @@ fn redeposit_lp_shares_should_work() {
 			PREDEFINED_DEPOSIT_IDS[0],
 		));
 
+		//Assert
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, EVE_FARM, EVE_BSX_TKN1_YIELD_FARM_ID))
 				.unwrap()

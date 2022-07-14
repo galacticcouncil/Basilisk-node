@@ -21,7 +21,7 @@ use test_ext::*;
 use warehouse_liquidity_mining::YieldFarmEntry;
 
 #[test]
-fn claim_rewards_should_work() {
+fn claim_rewards_should_work_when_deposit_exist() {
 	predefined_test_ext_with_deposits().execute_with(|| {
 		//Arrange
 		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);

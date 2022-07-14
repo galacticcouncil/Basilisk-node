@@ -22,6 +22,7 @@ use test_ext::*;
 
 #[test]
 fn deposit_shares_should_work() {
+	//Arrange
 	predefined_test_ext().execute_with(|| {
 		let farm_id = GC_FARM;
 
@@ -48,6 +49,8 @@ fn deposit_shares_should_work() {
 		assert_that_the_number_of_minted_nfts_is_equal_to(0);
 
 		let deposited_amount = 50;
+
+		//Act
 		assert_ok!(LiquidityMining::deposit_shares(
 			Origin::signed(ALICE),
 			farm_id,
@@ -56,6 +59,7 @@ fn deposit_shares_should_work() {
 			deposited_amount,
 		));
 
+		//Assert
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
 			farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
