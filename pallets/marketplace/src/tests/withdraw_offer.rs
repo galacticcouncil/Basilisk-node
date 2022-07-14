@@ -2,7 +2,7 @@ use super::*;
 use pretty_assertions::assert_eq;
 
 #[test]
-fn withdraw_offer_should_work_when_offer_is_already_made() {
+fn withdraw_offer_should_work_when_offer_has_been_already_made() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (BOB, 15_000 * UNITS)])

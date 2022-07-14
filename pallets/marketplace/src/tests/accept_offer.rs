@@ -93,6 +93,7 @@ fn accept_offer_should_work_when_there_is_royalty_present() {
 				INSTANCE_ID_0,
 				BOB
 			));
+
 			//Assert
 			assert_eq!(
 				last_event(),
@@ -198,7 +199,7 @@ fn accept_offer_should_fail_when_called_by_not_nft_owner() {
 }
 
 #[test]
-fn accept_offer_should_work_when_there_nft_has_royalty_and_price_is_set() {
+fn accept_offer_should_work_when_nft_has_royalty_and_price_is_set() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![

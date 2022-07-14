@@ -274,6 +274,7 @@ fn buy_should_work_when_there_is_no_offer_present() {
 				INSTANCE_ID_0,
 				Some(100 * UNITS)
 			));
+
 			//Act
 			assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
 
@@ -283,10 +284,8 @@ fn buy_should_work_when_there_is_no_offer_present() {
 			assert_eq!(Balances::total_balance(&ALICE), 200_080 * UNITS);
 			assert_eq!(Balances::total_balance(&BOB), 14_900 * UNITS);
 			assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * UNITS);
-			// Reserved:
-			// 10_000 class
-			// 100 instance
-			// 200 royalty
+
+			// Reserved: 10_000 class, 100 instance, 200 royalty
 			assert_eq!(Balances::reserved_balance(&ALICE), 10_300 * UNITS);
 			assert_eq!(Balances::reserved_balance(&BOB), 0);
 			assert_ok!(NFT::burn(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
