@@ -44,11 +44,11 @@ fn transfer_from_relay_chain() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			12780 * UNITS / 10
+			1_299_999_989_814_815
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			22 * UNITS
+			10_185_185
 		);
 	});
 }
@@ -133,11 +133,11 @@ fn transfer_from_hydra() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			10080 * UNITS / 10
+			1_029_999_989_814_815
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			22 * UNITS // fees should go to treasury
+			10_185_185 // fees should go to treasury
 		);
 	});
 }
@@ -241,7 +241,7 @@ fn fee_currency_set_on_xcm_transfer() {
 	});
 
 	Basilisk::execute_with(|| {
-		let fee_amount = 22 * UNITS;
+		let fee_amount = 10_185_185;
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
 			transfer_amount - fee_amount
@@ -254,6 +254,90 @@ fn fee_currency_set_on_xcm_transfer() {
 		assert_eq!(
 			basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			Some(1)
+		);
+	});
+}
+
+#[test]
+fn transfer_from_hydra_and_back() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			1,
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+		));
+	});
+
+	Hydra::execute_with(|| {
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			0,
+			30 * UNITS,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			200 * UNITS - 30 * UNITS
+		);
+	});
+
+	Basilisk::execute_with(|| {
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			1_029_999_989_814_815
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			10_185_185 // fees should go to treasury
+		);
+
+		//transfer back
+		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
+			basilisk_runtime::Origin::signed(BOB.into()),
+			1,
+		));
+
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(BOB.into()),
+			0,
+			30 * UNITS,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(3000),
+						Junction::AccountId32 {
+							id: ALICE,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			1000 * UNITS - 30 * UNITS
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			35_990_141 // fees should go to treasury
 		);
 	});
 }
