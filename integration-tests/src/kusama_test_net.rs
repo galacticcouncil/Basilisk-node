@@ -130,7 +130,10 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 }
 
 pub fn hydra_ext() -> sp_io::TestExternalities {
-	use basilisk_runtime::{Runtime, System};
+	use basilisk_runtime::{MultiTransactionPayment, NativeExistentialDeposit, Runtime, System};
+	use frame_support::traits::OnInitialize;
+
+	let existential_deposit = NativeExistentialDeposit::get();
 
 	let mut t = frame_system::GenesisConfig::default()
 		.build_storage::<Runtime>()
@@ -142,12 +145,28 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
+	pallet_asset_registry::GenesisConfig::<Runtime> {
+		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128)],
+		native_asset_name: b"HDX".to_vec(),
+		native_existential_deposit: existential_deposit,
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 3000.into(),
+			parachain_id: 3000u32.into(),
 		},
 		&mut t,
 	)
+	.unwrap();
+
+	orml_tokens::GenesisConfig::<Runtime> {
+		balances: vec![
+			(AccountId::from(ALICE), 1, 1_000 * BSX),
+		],
+	}
+	.assimilate_storage(&mut t)
 	.unwrap();
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
@@ -158,8 +177,19 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
+	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
+		currencies: vec![(1, Price::from(1))],
+		account_currencies: vec![],
+	}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
 	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| {
+		System::set_block_number(1);
+		// Make sure the prices are up-to-date.
+		MultiTransactionPayment::on_initialize(1);
+	});
 	ext
 }
 
@@ -247,4 +277,8 @@ fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
 
 pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
 	assert_eq!(last_basilisk_events(e.len()), e);
+}
+
+pub fn hydra_sovereign_account() -> AccountId {
+	polkadot_parachain::primitives::Sibling::from(3000u32).into_account()
 }
