@@ -841,7 +841,7 @@ pub mod pallet {
 					yield_farm_id,
 					who: who.clone(),
 					lp_token,
-					amount: withdrawn_amount.clone(),
+					amount: withdrawn_amount,
 				});
 			}
 
@@ -850,7 +850,7 @@ pub mod pallet {
 				T::NFTHandler::burn_from(&T::NftClassId::get(), &deposit_id)?;
 
 				Self::deposit_event(Event::DepositDestroyed {
-					who: who.clone(),
+					who,
 					nft_instance_id: deposit_id,
 				});
 			}
@@ -896,7 +896,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn mint_nft_representing_deposit(who: T::AccountId, deposit_id: &u128) -> Result<(), DispatchError> {
-		T::NFTHandler::mint_into(&T::NftClassId::get(), &deposit_id, &who.clone())?;
+		T::NFTHandler::mint_into(&T::NftClassId::get(), deposit_id, &who)?;
 
 		Ok(())
 	}
