@@ -18,6 +18,7 @@ use sp_runtime::{
 };
 
 use frame_support::weights::Weight;
+use frame_system::EnsureRoot;
 use primitives::Amount;
 use sp_std::cell::RefCell;
 use sp_std::vec::Vec;
@@ -129,6 +130,7 @@ impl Config for Test {
 	type MinCurrencyDeposits = MinDeposits;
 	type Reward = Reward;
 	type NativeCurrencyId = NativeCurrencyId;
+	type BlacklistUpdateOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = ();
 }
 

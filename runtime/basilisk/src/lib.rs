@@ -30,7 +30,6 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use codec::{Decode, Encode};
 use frame_system::{EnsureRoot, RawOrigin};
 use sp_api::impl_runtime_apis;
 use sp_core::{
@@ -51,7 +50,8 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use scale_info::TypeInfo;
+#[cfg(feature = "runtime-benchmarks")]
+use codec::Decode;
 
 // A few exports that help ease life for downstream crates.
 use frame_support::{
@@ -73,6 +73,7 @@ mod benchmarking;
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
+use orml_tokens::CurrencyAdapter;
 
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
@@ -105,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 62,
+	spec_version: 66,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -170,14 +171,13 @@ impl WeightToFeePolynomial for WeightToFee {
 	///   - Setting it to `0` will essentially disable the weight fee.
 	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT
-		let p = CENTS; // 1_000_000_000_000
-		let q = 10 * Balance::from(ExtrinsicBaseWeight::get()); // 7_919_840_000
+		let p = 11 * CENTS;
+		let q = Balance::from(ExtrinsicBaseWeight::get());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,
 			coeff_frac: Perbill::from_rational(p % q, q),
-			coeff_integer: p / q, // 124
+			coeff_integer: p / q,
 		}]
 	}
 }
@@ -329,7 +329,7 @@ impl pallet_balances::Config for Runtime {
 	type AccountStore = System;
 	type WeightInfo = common_runtime::weights::balances::BasiliskWeight<Runtime>;
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = pallet_nft::ReserveIdentifier;
+	type ReserveIdentifier = ();
 }
 
 /// Parameterized slow adjusting fee updated based on
@@ -409,6 +409,18 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+pub struct DustRemovalWhitelist;
+impl Contains<AccountId> for DustRemovalWhitelist {
+	fn contains(a: &AccountId) -> bool {
+		// Always whitelists treasury account
+		if *a == TreasuryAccount::get() {
+			return true;
+		}
+		// Check duster whitelist
+		pallet_duster::DusterWhitelist::<Runtime>::contains(a)
+	}
+}
+
 /// Tokens Configurations
 impl orml_tokens::Config for Runtime {
 	type Event = Event;
@@ -419,7 +431,7 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = AssetRegistry;
 	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
-	type DustRemovalWhitelist = pallet_duster::DusterWhitelist<Runtime>;
+	type DustRemovalWhitelist = DustRemovalWhitelist;
 	type OnNewTokenAccount = AddTxAssetOnAccount<Runtime>;
 	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
 }
@@ -441,18 +453,8 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
+	type BlacklistUpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
 	type WeightInfo = common_runtime::weights::duster::BasiliskWeight<Runtime>;
-}
-
-/// Basilisk Pallets configurations
-
-#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct AssetLocation(pub polkadot_xcm::v1::MultiLocation);
-
-impl Default for AssetLocation {
-	fn default() -> Self {
-		AssetLocation(polkadot_xcm::v1::MultiLocation::here())
-	}
 }
 
 impl pallet_asset_registry::Config for Runtime {
@@ -545,9 +547,9 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Runtime {
-	type Currency = Balances;
 	type Event = Event;
-	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
+	//Generated weight file is not used because we want diffent prices for now.
+	type WeightInfo = weights::offsetted_nft::BasiliskWeight<Runtime>;
 	type NftClassId = ClassId;
 	type NftInstanceId = InstanceId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
@@ -800,25 +802,52 @@ impl orml_vesting::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumOfferAmount: Balance = 10000 * UNITS;
-	pub const RoyaltyBondAmount: Balance = 2000 * UNITS;
+	pub const MinimumOfferAmount: Balance = UNITS / 100;
+	pub const RoyaltyBondAmount: Balance = 0;
 }
+
+pub struct RelayChainAssetId;
+impl Get<AssetId> for RelayChainAssetId {
+	fn get() -> AssetId {
+		let invalid_id = pallet_asset_registry::Pallet::<Runtime>::next_asset_id();
+
+		match pallet_asset_registry::Pallet::<Runtime>::location_to_asset(RELAY_CHAIN_ASSET_LOCATION) {
+			Some(asset_id) => asset_id,
+			None => invalid_id,
+		}
+	}
+}
+
+type KusamaCurrency = CurrencyAdapter<Runtime, RelayChainAssetId>;
 
 impl pallet_marketplace::Config for Runtime {
 	type Event = Event;
+	type Currency = KusamaCurrency;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
 	type MinimumOfferAmount = MinimumOfferAmount;
 	type RoyaltyBondAmount = RoyaltyBondAmount;
 }
 
+pub mod ksm {
+	use primitives::Balance;
+
+	pub const UNITS: Balance = 1_000_000_000_000;
+	pub const CENTS: Balance = UNITS / 30_000;
+	pub const MILLICENTS: Balance = CENTS / 1_000;
+
+	pub const fn deposit(items: u32, bytes: u32) -> Balance {
+		(items as Balance * 2_000 * CENTS + (bytes as Balance) * 100 * MILLICENTS) / 10
+	}
+}
+
 parameter_types! {
-	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
-	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
+	pub const ClassDeposit: Balance = 0;
+	pub const InstanceDeposit: Balance = 0;
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
 	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
-	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
-	pub const AttributeDepositBase: Balance = 10 * UNITS;
-	pub const DepositPerByte: Balance = UNITS;
+	pub const UniquesMetadataDepositBase: Balance = ksm::deposit(1,129);
+	pub const AttributeDepositBase: Balance = ksm::deposit(1,0);
+	pub const DepositPerByte: Balance = ksm::deposit(0,1);
 	pub const UniquesStringLimit: u32 = 60;
 }
 
@@ -826,7 +855,7 @@ impl pallet_uniques::Config for Runtime {
 	type Event = Event;
 	type ClassId = ClassId;
 	type InstanceId = InstanceId;
-	type Currency = Balances;
+	type Currency = KusamaCurrency;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type ClassDeposit = ClassDeposit;
 	type InstanceDeposit = InstanceDeposit;

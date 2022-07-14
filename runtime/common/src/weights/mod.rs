@@ -7,7 +7,7 @@ pub mod duster;
 pub mod exchange;
 pub mod lbp;
 pub mod marketplace;
-pub mod nft;
+pub mod offsetted_nft;
 pub mod payment;
 pub mod price_oracle;
 pub mod scheduler;
