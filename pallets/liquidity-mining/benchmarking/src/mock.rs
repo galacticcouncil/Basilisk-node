@@ -314,7 +314,6 @@ impl Default for ExtBuilder {
 	}
 }
 
-//TODO: This logic is duplicated in multiple places. Shall we put it to some helper?
 thread_local! {
 	pub static NFTS: RefCell<HashMap<primitives::InstanceId, AccountId>> = RefCell::new(HashMap::default());
 }
