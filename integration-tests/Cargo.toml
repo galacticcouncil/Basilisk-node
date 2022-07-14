@@ -106,11 +106,10 @@ polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", 
 basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17" }
 
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "0183def18220b7cb818184534f490d3453899b5d", default-features = false }
-
 [dev-dependencies]
-pretty_assertions = "1.2.1"
 hex-literal = "0.3.1"
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "0183def18220b7cb818184534f490d3453899b5d" }
+pretty_assertions = "1.2.1"
 xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
 
 [features]
@@ -180,6 +179,4 @@ std = [
     "basilisk-runtime/std",
     "hydradx-traits/std",
     "pallet-price-oracle/std",
-
-    "pallet-relaychain-info/std",
 ]
