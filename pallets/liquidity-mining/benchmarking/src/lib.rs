@@ -50,10 +50,10 @@ const SEED: u32 = 0;
 
 const BSX: AssetId = 0;
 const KSM: AssetId = 1;
-const ASSET_PAIR : AssetPair = AssetPair {
-		asset_in: BSX,
-		asset_out: KSM,
-		};
+const ASSET_PAIR: AssetPair = AssetPair {
+	asset_in: BSX,
+	asset_out: KSM,
+};
 
 const INITIAL_BALANCE: Balance = 100_000_000_000_000_000;
 
@@ -196,7 +196,7 @@ benchmarks! {
 		LiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, planned_yielding_periods, blocks_per_period, BSX, BSX, caller.clone(), yield_per_period, 1, One::one())?
 	}
 	verify {
-       assert_last_event::<T>(Event::<T>::GlobalFarmCreated {
+	   assert_last_event::<T>(Event::<T>::GlobalFarmCreated {
 				owner: caller,
 				id: GLOBAL_FARM_ID,
 				reward_currency: 0,

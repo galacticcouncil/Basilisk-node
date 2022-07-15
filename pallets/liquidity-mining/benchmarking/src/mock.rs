@@ -17,14 +17,14 @@
 
 #![cfg(test)]
 
-use std::cell::RefCell;
-use std::collections::HashMap;
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
 	traits::{Everything, GenesisBuild, Nothing},
 	PalletId,
 };
+use std::cell::RefCell;
+use std::collections::HashMap;
 
 use frame_system as system;
 use frame_system::EnsureSigned;
@@ -32,16 +32,19 @@ use hydradx_traits::AssetPairAccountIdFor;
 use orml_traits::parameter_type_with_key;
 use primitives::{
 	constants::{
-		chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+		chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 		currency::NATIVE_EXISTENTIAL_DEPOSIT,
 	},
 	Amount, AssetId, Balance,
 };
 
-use pallet_nft::{ReserveIdentifier};
-use primitives::nft::{ClassType,NftPermissions};
+use primitives::nft::{ClassType, NftPermissions};
 use sp_core::H256;
-use sp_runtime::{DispatchResult, testing::Header, traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup}};
+use sp_runtime::{
+	testing::Header,
+	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
+	DispatchResult,
+};
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
@@ -173,7 +176,6 @@ impl pallet_liquidity_mining::Config for Test {
 }
 
 impl pallet_nft::Config for Test {
-	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftClassId = primitives::ClassId;
@@ -198,7 +200,7 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = ReserveIdentifier;
+	type ReserveIdentifier = ();
 }
 
 parameter_types! {
@@ -255,14 +257,14 @@ pub struct ExtBuilder {
 
 pub struct AssetPairAccountIdTest();
 
-impl AssetPairAccountIdFor<AssetId, u128> for AssetPairAccountIdTest {
-	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> u128 {
+impl AssetPairAccountIdFor<AssetId, AccountId> for AssetPairAccountIdTest {
+	fn from_assets(asset_a: AssetId, asset_b: AssetId, _: &str) -> AccountId {
 		let mut a = asset_a as u128;
 		let mut b = asset_b as u128;
 		if a > b {
 			std::mem::swap(&mut a, &mut b)
 		}
-		(a * 1000 + b) as u128
+		(a * 1000 + b) as AccountId
 	}
 }
 
@@ -282,6 +284,7 @@ parameter_types! {
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
 }
 
 impl pallet_xyk::Config for Test {
@@ -298,6 +301,7 @@ impl pallet_xyk::Config for Test {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_xyk::AllowAllPools;
 	type AMMHandler = ();
+	type DiscountedFee = DiscountedFee;
 }
 
 impl Default for ExtBuilder {

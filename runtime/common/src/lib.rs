@@ -27,6 +27,8 @@ use frame_support::{
 	RuntimeDebug,
 };
 pub use pallet_transaction_payment::Multiplier;
+use polkadot_xcm::prelude::Here;
+use polkadot_xcm::v1::MultiLocation;
 pub use primitives::constants::{chain::*, currency::*, time::*};
 pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
@@ -71,6 +73,20 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct AssetLocation(pub MultiLocation);
+
+impl Default for AssetLocation {
+	fn default() -> Self {
+		AssetLocation(MultiLocation::here())
+	}
+}
+
+pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(MultiLocation {
+	parents: 1,
+	interior: Here,
+});
 
 // frame system
 parameter_types! {
@@ -152,6 +168,7 @@ parameter_types! {
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 	pub const RegistryStrLimit: u32 = 32;
+	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
 }
 
 // pallet duster

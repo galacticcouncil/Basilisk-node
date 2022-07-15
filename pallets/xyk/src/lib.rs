@@ -40,9 +40,6 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::Amount;
 
 #[cfg(test)]
-mod mock;
-
-#[cfg(test)]
 mod tests;
 
 mod benchmarking;
@@ -115,6 +112,9 @@ pub mod pallet {
 
 		/// AMM handlers
 		type AMMHandler: OnCreatePoolHandler<AssetId> + OnTradeHandler<AssetId, Balance>;
+
+		/// Discounted fee
+		type DiscountedFee: Get<(u32, u32)>;
 	}
 
 	#[pallet::error]
@@ -622,7 +622,7 @@ impl<T: Config> Pallet<T> {
 	/// Calculate discounted trade fee
 	fn calculate_discounted_fee(amount: Balance) -> Result<Balance, DispatchError> {
 		Ok(
-			hydra_dx_math::fee::calculate_pool_trade_fee(amount, (7, 10_000)) // 0.07%
+			hydra_dx_math::fee::calculate_pool_trade_fee(amount, T::DiscountedFee::get())
 				.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?,
 		)
 	}

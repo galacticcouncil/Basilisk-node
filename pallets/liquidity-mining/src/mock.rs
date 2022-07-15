@@ -32,7 +32,6 @@ use frame_support::{
 use frame_system as system;
 use hydradx_traits_amm::AMM;
 use orml_traits::parameter_type_with_key;
-use pallet_nft::ReserveIdentifier;
 use primitives::nft::{ClassType, NftPermissions};
 use primitives::{asset::AssetPair, Amount, AssetId, Balance};
 use sp_core::H256;
@@ -396,7 +395,6 @@ impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for NftHandler
 }
 
 impl pallet_nft::Config for Test {
-	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftClassId = primitives::ClassId;
@@ -421,7 +419,7 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = ReserveIdentifier;
+	type ReserveIdentifier = ();
 }
 
 parameter_types! {
