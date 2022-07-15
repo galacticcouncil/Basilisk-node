@@ -1,6 +1,6 @@
 [package]
 name = "pallet-marketplace"
-version = "2.1.0"
+version = "2.1.1"
 authors = ["GalacticCoucil"]
 description = "The marketplace for trading NFTs"
 edition = "2018"
@@ -23,7 +23,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f4033727e7af4fef209d54c898018fc2d0ccc2d", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "f4bdae9b58853bc755f1cbf2b7c794c6375d38f0", default-features = false }
 
 # local dependency
 primitives = { default-features = false, path = "../../primitives" }

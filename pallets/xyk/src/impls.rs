@@ -3,6 +3,7 @@ use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
 use primitives::asset::AssetPair;
 use primitives::{AssetId, Price};
+use sp_runtime::FixedPointNumber;
 use sp_std::marker::PhantomData;
 
 pub struct XYKSpotPrice<T>(PhantomData<T>);
@@ -23,7 +24,7 @@ impl<T: crate::Config> SpotPriceProvider<AssetId> for XYKSpotPrice<T> {
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
 
-			Some(Price::from((asset_b_reserve, asset_a_reserve)))
+			Price::checked_from_rational(asset_b_reserve, asset_a_reserve)
 		} else {
 			None
 		}
