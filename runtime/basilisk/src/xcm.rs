@@ -136,15 +136,15 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
-	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
-	type ControllerOrigin = crate::EnsureMajorityCouncilOrRoot;
+	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
+	type ControllerOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
 }
 
 impl orml_xtokens::Config for Runtime {
@@ -167,7 +167,7 @@ impl orml_unknown_tokens::Config for Runtime {
 
 impl orml_xcm::Config for Runtime {
 	type Event = Event;
-	type SovereignOrigin = crate::EnsureMajorityCouncilOrRoot;
+	type SovereignOrigin = SuperMajorityCouncilOrRoot;
 }
 
 impl pallet_xcm::Config for Runtime {

@@ -115,7 +115,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 66,
+	spec_version: 67,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -436,6 +436,7 @@ impl pallet_xyk::Config for Runtime {
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
+	type NonDustableWhitelistHandler = Duster;
 }
 
 impl pallet_exchange::Config for Runtime {

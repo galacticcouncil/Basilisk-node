@@ -14,6 +14,7 @@ use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
 use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
+use pretty_assertions::assert_eq;
 use sp_runtime::traits::AccountIdConversion;
 
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
@@ -220,7 +221,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
-		currencies: vec![(1, Price::from(1))],
+		currencies: vec![(1, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
 		account_currencies: vec![],
 	}
 	.assimilate_storage(&mut t)
