@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.5.0"
+version = "0.5.1"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -107,6 +107,9 @@ basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17" }
 
 [dev-dependencies]
+hex-literal = "0.3.1"
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "0183def18220b7cb818184534f490d3453899b5d" }
+pretty_assertions = "1.2.1"
 xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
 
 [features]
