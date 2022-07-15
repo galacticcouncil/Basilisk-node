@@ -26,7 +26,7 @@ mod tests;
 
 pub mod weights;
 
-use frame_support::{dispatch::DispatchResult, traits::Contains, traits::Get};
+use frame_support::{dispatch::DispatchResult, ensure, traits::Contains, traits::Get};
 
 use orml_traits::{
 	arithmetic::{Signed, SimpleArithmetic},
@@ -321,5 +321,26 @@ impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
 impl<T: Config> Contains<T::AccountId> for DusterWhitelist<T> {
 	fn contains(t: &T::AccountId) -> bool {
 		AccountBlacklist::<T>::contains_key(t)
+	}
+}
+
+use hydradx_traits::pools::DustRemovalAccountWhitelist;
+
+impl<T: Config> DustRemovalAccountWhitelist<T::AccountId> for Pallet<T>{
+	type Error = DispatchResult;
+
+	fn add_account(account: &T::AccountId) -> Self::Error {
+		AccountBlacklist::<T>::insert(account, ());
+		Ok(())
+	}
+
+	fn remove_account(account: &T::AccountId) -> Self::Error {
+		AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResult {
+			ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
+
+			*maybe_account = None;
+
+			Ok(())
+		})
 	}
 }

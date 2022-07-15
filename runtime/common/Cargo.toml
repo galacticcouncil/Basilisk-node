@@ -26,12 +26,12 @@ pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 
 # Warehouse dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "0183def18220b7cb818184534f490d3453899b5d", default-features = false }
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "0183def18220b7cb818184534f490d3453899b5d", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "0183def18220b7cb818184534f490d3453899b5d", default-features = false}
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "0183def18220b7cb818184534f490d3453899b5d", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f4033727e7af4fef209d54c898018fc2d0ccc2d", default-features = false }
-pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "7d66f48e26a5b529554b1b93cf6bb4944f170c1b", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "2ad83d4e8d1ef5a70f2d3397470eef08879440a0", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "2ad83d4e8d1ef5a70f2d3397470eef08879440a0", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "2ad83d4e8d1ef5a70f2d3397470eef08879440a0", default-features = false}
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "2ad83d4e8d1ef5a70f2d3397470eef08879440a0", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "2ad83d4e8d1ef5a70f2d3397470eef08879440a0", default-features = false }
+pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "2ad83d4e8d1ef5a70f2d3397470eef08879440a0", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }

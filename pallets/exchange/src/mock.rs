@@ -22,10 +22,7 @@ use frame_support::parameter_types;
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, One},
-};
+use sp_runtime::{DispatchResult, testing::Header, traits::{BlakeTwo256, IdentityLookup, One}};
 
 use pallet_xyk as xyk;
 
@@ -37,6 +34,7 @@ use primitives::{
 	AssetId, Balance,
 };
 use std::cell::RefCell;
+use hydradx_traits::pools::DustRemovalAccountWhitelist;
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -159,6 +157,20 @@ parameter_types! {
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
 }
 
+pub struct Whitelist;
+
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist{
+	type Error = DispatchResult;
+
+	fn add_account(_account: &AccountId) -> Self::Error {
+		Ok(())
+	}
+
+	fn remove_account(_account: &AccountId) -> Self::Error {
+		Ok(())
+	}
+}
+
 impl xyk::Config for Test {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
@@ -174,6 +186,7 @@ impl xyk::Config for Test {
 	type CanCreatePool = pallet_xyk::AllowAllPools;
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
+	type NonDustableWhitelistHandler = Whitelist;
 }
 
 impl Config for Test {
