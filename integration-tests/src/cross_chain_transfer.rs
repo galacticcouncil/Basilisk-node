@@ -261,7 +261,7 @@ fn fee_currency_set_on_xcm_transfer() {
 }
 
 #[test]
-fn unknown_assets_are_trapped() {
+fn assets_should_be_trapped_when_assets_are_unknown() {
 	TestNet::reset();
 
 	Hydra::execute_with(|| {
