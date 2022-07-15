@@ -74,6 +74,7 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
 use orml_tokens::CurrencyAdapter;
+use pallet_collective::EnsureProportionAtLeast;
 
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
@@ -351,7 +352,7 @@ parameter_types! {
 
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
-	type AcceptedCurrencyOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type AcceptedCurrencyOrigin = MajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
 	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
 	type WeightInfo = common_runtime::weights::payment::BasiliskWeight<Runtime>;
@@ -448,13 +449,13 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
-	type BlacklistUpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
+	type BlacklistUpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = common_runtime::weights::duster::BasiliskWeight<Runtime>;
 }
 
 impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
-	type RegistryOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type RegistryOrigin = SuperMajorityTechCommitteeOrRoot;
 	type AssetId = AssetId;
 	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
@@ -492,7 +493,7 @@ impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
-	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type CreatePoolOrigin = SuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type MinTradingLimit = MinTradingLimit;
@@ -553,32 +554,18 @@ impl pallet_nft::Config for Runtime {
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
-type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
-
-type EnsureMajorityCouncilOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
-	frame_system::EnsureRoot<AccountId>,
->;
-type EnsureUnanimousCouncilOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>,
-	frame_system::EnsureRoot<AccountId>,
->;
-type EnsureSuperMajorityCouncilOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>,
-	frame_system::EnsureRoot<AccountId>,
->;
-type EnsureSuperMajorityTechCommitteeOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechnicalCollective>,
-	frame_system::EnsureRoot<AccountId>,
->;
-type EnsureUnanimousTechCommitteeOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
-	frame_system::EnsureRoot<AccountId>,
->;
-type EnsureMajorityTechCommitteeOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechnicalCollective>,
-	frame_system::EnsureRoot<AccountId>,
->;
+type MajorityCouncilOrRoot =
+	EnsureOneOf<EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>, EnsureRoot<AccountId>>;
+type UnanimousCouncilOrRoot =
+	EnsureOneOf<EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>, EnsureRoot<AccountId>>;
+type SuperMajorityCouncilOrRoot =
+	EnsureOneOf<EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>, EnsureRoot<AccountId>>;
+type SuperMajorityTechCommitteeOrRoot =
+	EnsureOneOf<EnsureProportionAtLeast<_2, _3, AccountId, TechnicalCollective>, EnsureRoot<AccountId>>;
+type UnanimousTechCommitteeOrRoot =
+	EnsureOneOf<EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>, EnsureRoot<AccountId>>;
+type MajorityTechCommitteeOrRoot =
+	EnsureOneOf<EnsureProportionAtLeast<_1, _2, AccountId, TechnicalCollective>, EnsureRoot<AccountId>>;
 
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
@@ -589,23 +576,23 @@ impl pallet_democracy::Config for Runtime {
 	type VotingPeriod = VotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
 	/// A straight majority of the council can decide what their next motion is.
-	type ExternalOrigin = EnsureMajorityCouncilOrRoot;
+	type ExternalOrigin = MajorityCouncilOrRoot;
 	/// A majority can have the next scheduled referendum be a straight majority-carries vote
-	type ExternalMajorityOrigin = EnsureMajorityCouncilOrRoot;
+	type ExternalMajorityOrigin = MajorityCouncilOrRoot;
 	/// A unanimous council can have the next scheduled referendum be a straight default-carries
 	/// (NTB) vote.
-	type ExternalDefaultOrigin = EnsureUnanimousCouncilOrRoot;
+	type ExternalDefaultOrigin = UnanimousCouncilOrRoot;
 	/// Two thirds of the technical committee can have an ExternalMajority/ExternalDefault vote
 	/// be tabled immediately and with a shorter voting/enactment period.
-	type FastTrackOrigin = EnsureMajorityTechCommitteeOrRoot;
-	type InstantOrigin = EnsureUnanimousTechCommitteeOrRoot;
+	type FastTrackOrigin = MajorityTechCommitteeOrRoot;
+	type InstantOrigin = UnanimousTechCommitteeOrRoot;
 	type InstantAllowed = InstantAllowed;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	// To cancel a proposal which has been passed, 2/3 of the council must agree to it.
-	type CancellationOrigin = EnsureSuperMajorityCouncilOrRoot;
+	type CancellationOrigin = SuperMajorityCouncilOrRoot;
 	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
 	// Root must agree.
-	type CancelProposalOrigin = EnsureUnanimousTechCommitteeOrRoot;
+	type CancelProposalOrigin = UnanimousTechCommitteeOrRoot;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// Any single technical committee member may veto a coming council proposal, however they can
 	// only do it once and it lasts only for the cooloff period.
@@ -664,13 +651,11 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type WeightInfo = ();
 }
 
-type ManageOrigin = EnsureOneOf<EnsureRoot<AccountId>, AllCouncilMembers>;
-
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
 	type Currency = Balances;
-	type ApproveOrigin = ManageOrigin;
-	type RejectOrigin = ManageOrigin;
+	type ApproveOrigin = SuperMajorityCouncilOrRoot;
+	type RejectOrigin = MajorityCouncilOrRoot;
 	type Event = Event;
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
@@ -732,8 +717,7 @@ impl pallet_tips::Config for Runtime {
 impl pallet_collator_selection::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	//allow 1/2 of council to execute privileged collator selection operations. (require code from: feat/initial_chain_setup)
-	type UpdateOrigin = EnsureMajorityCouncilOrRoot;
+	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
 	type MinCandidates = MinCandidates;
@@ -851,7 +835,7 @@ impl pallet_uniques::Config for Runtime {
 	type ClassId = ClassId;
 	type InstanceId = InstanceId;
 	type Currency = KusamaCurrency;
-	type ForceOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = SuperMajorityCouncilOrRoot;
 	type ClassDeposit = ClassDeposit;
 	type InstanceDeposit = InstanceDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
@@ -894,8 +878,8 @@ impl pallet_identity::Config for Runtime {
 	type MaxAdditionalFields = MaxAdditionalFields;
 	type MaxRegistrars = MaxRegistrars;
 	type Slashed = Treasury;
-	type ForceOrigin = EnsureMajorityCouncilOrRoot;
-	type RegistrarOrigin = EnsureMajorityCouncilOrRoot;
+	type ForceOrigin = MajorityCouncilOrRoot;
+	type RegistrarOrigin = MajorityCouncilOrRoot;
 	type WeightInfo = ();
 }
 
@@ -911,7 +895,7 @@ impl pallet_multisig::Config for Runtime {
 
 impl pallet_transaction_pause::Config for Runtime {
 	type Event = Event;
-	type UpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
+	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
 }
 
