@@ -8810,6 +8810,7 @@ dependencies = [
  "pretty_assertions",
  "primitives",
  "sp-api",
+ "sp-arithmetic",
  "sp-block-builder",
  "sp-consensus-aura",
  "sp-core",
