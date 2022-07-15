@@ -1,16 +1,25 @@
 #![cfg(test)]
-use crate::determine_hash;
 use crate::kusama_test_net::*;
 
 use frame_support::{assert_noop, assert_ok};
 
-use polkadot_xcm::latest::prelude::*;
+use polkadot_xcm::{latest::prelude::*, VersionedMultiAssets};
 
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use orml_traits::currency::MultiCurrency;
-use sp_runtime::traits::AccountIdConversion;
+use sp_core::H256;
+use sp_runtime::traits::{AccountIdConversion, BlakeTwo256, Hash};
 use xcm_emulator::TestExt;
+
+// Determine the hash for assets expected to be have been trapped.
+fn determine_hash<M>(origin: &MultiLocation, assets: M) -> H256
+where
+	M: Into<MultiAssets>,
+{
+	let versioned = VersionedMultiAssets::from(assets.into());
+	BlakeTwo256::hash_of(&(origin, &versioned))
+}
 
 #[test]
 fn transfer_from_relay_chain() {
