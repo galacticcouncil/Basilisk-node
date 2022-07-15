@@ -79,7 +79,6 @@ pallet-aura = { git = "https://github.com/paritytech/substrate", branch = "polka
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
-pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
@@ -148,7 +147,6 @@ std = [
     "pallet-nft/std",
     "pallet-marketplace/std",
     "pallet-session/std",
-    "pallet-sudo/std",
     "pallet-timestamp/std",
     "pallet-transaction-payment/std",
     "pallet-transaction-multi-payment/std",
