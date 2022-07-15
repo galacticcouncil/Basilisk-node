@@ -108,7 +108,7 @@ kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "rel
 
 [dev-dependencies]
 xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
-sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17" }
 
 [features]
 default = ["std"]

@@ -37,17 +37,10 @@ fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 		let rust_encoded_len = call.encoded_size() as u32;
 		let rust_encoded_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
 
-		assert_eq_approx!(
-			rust_encoded_fees,
-			expected_rust_encoded_fees,
-			diff,
-			"Rust encoded fees are"
-		);
-
 		//UI encoded fees
 		let ui_encoded_len = 143;
+		assert_eq!(ui_encoded_len - rust_encoded_len, 99);
 		let ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
-		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI fees are");
 
 		// Min fee adjustment multiplier
 		pallet_transaction_payment::pallet::NextFeeMultiplier::<basilisk_runtime::Runtime>::put(
@@ -65,6 +58,14 @@ fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 			format_num(min_multiplier_ui_fees * 10_000 / UNITS, 4),
 			format_num(min_multiplier_rust_fees * 10_000 / UNITS, 4),
 		);
+
+		assert_eq_approx!(
+			rust_encoded_fees,
+			expected_rust_encoded_fees,
+			diff,
+			"Rust encoded fees are"
+		);
+		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI fees are");
 	});
 }
 
@@ -91,18 +92,10 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 		let rust_encoded_len = call.encoded_size() as u32;
 		let rust_encoded_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
 
-		assert_eq_approx!(
-			rust_encoded_fees,
-			expected_rust_encoded_fees,
-			diff,
-			"Rust encoded fees are"
-		);
-
 		//UI encoded fees
 		let ui_encoded_len = 192;
+		assert_eq!(ui_encoded_len - rust_encoded_len, 105);
 		let ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
-
-		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI fees are");
 
 		// Min fee adjustment multiplier
 		pallet_transaction_payment::pallet::NextFeeMultiplier::<basilisk_runtime::Runtime>::put(
@@ -121,6 +114,14 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 			format_num(min_multiplier_ui_fees * 10_000 / UNITS, 4),
 			format_num(min_multiplier_rust_fees * 10_000 / UNITS, 4),
 		);
+
+		assert_eq_approx!(
+			rust_encoded_fees,
+			expected_rust_encoded_fees,
+			diff,
+			"Rust encoded fees are"
+		);
+		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI fees are");
 	});
 }
 
@@ -147,18 +148,10 @@ fn transaction_fees_should_be_as_expected_when_nft_class_is_created() {
 		let rust_encoded_len = call.encoded_size() as u32;
 		let rust_encoded_fees = TransactionPayment::compute_fee(rust_encoded_len, &info, 0);
 
-		assert_eq_approx!(
-			rust_encoded_fees,
-			expected_rust_encoded_fees,
-			diff,
-			"Rust encoded fees are"
-		);
-
 		//UI encoded fees
-		let ui_encoded_len = 177; //UI encoded length
+		let ui_encoded_len = 177;
+		assert_eq!(ui_encoded_len - rust_encoded_len, 105);
 		let ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
-
-		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI encoded fees are");
 
 		// Min fee adjustment multiplier
 		pallet_transaction_payment::pallet::NextFeeMultiplier::<basilisk_runtime::Runtime>::put(
@@ -177,6 +170,14 @@ fn transaction_fees_should_be_as_expected_when_nft_class_is_created() {
 			format_num(min_multiplier_ui_fees * 10_000 / UNITS, 4),
 			format_num(min_multiplier_rust_fees * 10_000 / UNITS, 4),
 		);
+
+		assert_eq_approx!(
+			rust_encoded_fees,
+			expected_rust_encoded_fees,
+			diff,
+			"Rust encoded fees are"
+		);
+		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "UI encoded fees are");
 	});
 }
 
