@@ -18,7 +18,6 @@
 #![cfg(test)]
 
 use super::*;
-use frame_support::dispatch::DispatchResult;
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild};
 use frame_system as system;
@@ -158,13 +157,13 @@ parameter_types! {
 pub struct Whitelist;
 
 impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
-	type Error = DispatchResult;
+	type Error = DispatchError;
 
-	fn add_account(_account: &AccountId) -> Self::Error {
+	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
 		Ok(())
 	}
 
-	fn remove_account(_account: &AccountId) -> Self::Error {
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
 		Ok(())
 	}
 }

@@ -325,17 +325,18 @@ impl<T: Config> Contains<T::AccountId> for DusterWhitelist<T> {
 }
 
 use hydradx_traits::pools::DustRemovalAccountWhitelist;
+use frame_support::sp_runtime::DispatchError;
 
 impl<T: Config> DustRemovalAccountWhitelist<T::AccountId> for Pallet<T> {
-	type Error = DispatchResult;
+	type Error = DispatchError;
 
-	fn add_account(account: &T::AccountId) -> Self::Error {
+	fn add_account(account: &T::AccountId) -> Result<(), Self::Error> {
 		AccountBlacklist::<T>::insert(account, ());
 		Ok(())
 	}
 
-	fn remove_account(account: &T::AccountId) -> Self::Error {
-		AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResult {
+	fn remove_account(account: &T::AccountId) -> Result<(), Self::Error> {
+		AccountBlacklist::<T>::mutate(&account, |maybe_account| -> Result<(), DispatchError>{
 			ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
 
 			*maybe_account = None;

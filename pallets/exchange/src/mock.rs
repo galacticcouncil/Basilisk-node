@@ -22,11 +22,7 @@ use frame_support::parameter_types;
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup, One},
-	DispatchResult,
-};
+use sp_runtime::{testing::Header, traits::{BlakeTwo256, IdentityLookup, One}, DispatchError};
 
 use pallet_xyk as xyk;
 
@@ -164,13 +160,13 @@ parameter_types! {
 pub struct Whitelist;
 
 impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
-	type Error = DispatchResult;
+	type Error = DispatchError;
 
-	fn add_account(_account: &AccountId) -> Self::Error {
+	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
 		Ok(())
 	}
 
-	fn remove_account(_account: &AccountId) -> Self::Error {
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
 		Ok(())
 	}
 }

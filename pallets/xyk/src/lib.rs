@@ -118,7 +118,7 @@ pub mod pallet {
 		type DiscountedFee: Get<(u32, u32)>;
 
 		/// Account whitelist manager to exclude pool accounts from dusting mechanism.
-		type NonDustableWhitelistHandler: DustRemovalAccountWhitelist<Self::AccountId, Error = DispatchResult>;
+		type NonDustableWhitelistHandler: DustRemovalAccountWhitelist<Self::AccountId, Error = DispatchError>;
 	}
 
 	#[pallet::error]
@@ -553,7 +553,15 @@ pub mod pallet {
 				<TotalLiquidity<T>>::remove(&pair_account);
 
 				// Ignore the failure, this cant stop liquidity removal
-				let _ = T::NonDustableWhitelistHandler::remove_account(&pair_account);
+				let r = T::NonDustableWhitelistHandler::remove_account(&pair_account);
+
+				if r.is_err() {
+					log::trace!(
+					target: "xyk::remova_liquidity", "XYK: Failed to remove account {:?} from dust-removal whitelist. Reason {:?}",
+						pair_account,
+					r
+					);
+				}
 
 				Self::deposit_event(Event::PoolDestroyed {
 					who,

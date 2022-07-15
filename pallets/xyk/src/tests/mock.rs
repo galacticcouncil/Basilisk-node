@@ -267,13 +267,13 @@ pub fn expect_events(e: Vec<Event>) {
 pub struct Whitelist;
 
 impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
-	type Error = DispatchResult;
+	type Error = DispatchError;
 
-	fn add_account(_account: &AccountId) -> Self::Error {
+	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
 		Ok(())
 	}
 
-	fn remove_account(_account: &AccountId) -> Self::Error {
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
 		Ok(())
 	}
 }
