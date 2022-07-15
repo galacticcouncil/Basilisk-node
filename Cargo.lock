@@ -5661,7 +5661,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5727,7 +5727,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.3.7"
+version = "5.3.8"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5751,7 +5751,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.16"
+version = "3.3.17"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5867,7 +5867,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.4.6"
+version = "4.4.7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5920,7 +5920,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "2.1.0"
+version = "2.1.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8141,7 +8141,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.2.3"
+version = "6.2.4"
 dependencies = [
  "frame-support",
  "frame-system",
