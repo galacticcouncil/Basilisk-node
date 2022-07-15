@@ -6507,7 +6507,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
