@@ -221,7 +221,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
-		currencies: vec![(1, Price::from(1))],
+		currencies: vec![(1, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
 		account_currencies: vec![],
 	}
 	.assimilate_storage(&mut t)
