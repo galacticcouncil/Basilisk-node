@@ -49,7 +49,7 @@ fn pair_account_should_be_removed_from_whitelist_when_pool_was_destroyed() {
 	let pair_account = XYK::get_pair_id(asset_pair);
 
 	Basilisk::execute_with(|| {
-		//arange
+		//arrange
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE.into()),
 			asset_a,
