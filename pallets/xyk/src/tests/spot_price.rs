@@ -2,6 +2,7 @@ use super::mock::*;
 use crate::XYKSpotPrice;
 use crate::*;
 use frame_support::assert_ok;
+use frame_support::dispatch::RawOrigin;
 use hydradx_traits::pools::SpotPriceProvider;
 use primitives::asset::AssetPair;
 use primitives::Price;
@@ -24,11 +25,6 @@ fn spot_price_provider_should_return_correct_price_when_pool_exists() {
 				initial,
 				Price::from_float(0.4)
 			));
-
-			let pool_account = XYK::get_pair_id(AssetPair {
-				asset_in: asset_a,
-				asset_out: asset_b,
-			});
 
 			let price = XYKSpotPrice::<Test>::spot_price(asset_a, asset_b);
 
@@ -73,8 +69,13 @@ fn spot_price_provider_should_return_none_when_asset_reserve_is_zero() {
 			});
 
 			// Force the pool balance to be zero in this test
-			let pool_balance = Currency::free_balance(asset_a, &pool_account) as i128;
-			let _ = Currency::update_balance(asset_a, &pool_account, -pool_balance);
+			assert_ok!(Currency::set_balance(
+				RawOrigin::Root.into(),
+				pool_account,
+				asset_a,
+				0u128,
+				0u128
+			));
 
 			let price = XYKSpotPrice::<Test>::spot_price(asset_a, asset_b);
 
