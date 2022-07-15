@@ -326,7 +326,7 @@ impl<T: Config> Contains<T::AccountId> for DusterWhitelist<T> {
 
 use hydradx_traits::pools::DustRemovalAccountWhitelist;
 
-impl<T: Config> DustRemovalAccountWhitelist<T::AccountId> for Pallet<T>{
+impl<T: Config> DustRemovalAccountWhitelist<T::AccountId> for Pallet<T> {
 	type Error = DispatchResult;
 
 	fn add_account(account: &T::AccountId) -> Self::Error {

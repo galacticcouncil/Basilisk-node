@@ -17,8 +17,8 @@
 
 #![cfg(test)]
 
-use frame_support::dispatch::DispatchResult;
 use super::*;
+use frame_support::dispatch::DispatchResult;
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild};
 use frame_system as system;
@@ -30,8 +30,8 @@ use sp_runtime::{
 };
 
 use frame_system::EnsureSigned;
-use hydradx_traits::AssetPairAccountIdFor;
 use hydradx_traits::pools::DustRemovalAccountWhitelist;
+use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	AssetId, Balance,
@@ -157,7 +157,7 @@ parameter_types! {
 
 pub struct Whitelist;
 
-impl DustRemovalAccountWhitelist<AccountId> for Whitelist{
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
 	type Error = DispatchResult;
 
 	fn add_account(_account: &AccountId) -> Self::Error {

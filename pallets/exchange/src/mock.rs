@@ -22,19 +22,23 @@ use frame_support::parameter_types;
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;
-use sp_runtime::{DispatchResult, testing::Header, traits::{BlakeTwo256, IdentityLookup, One}};
+use sp_runtime::{
+	testing::Header,
+	traits::{BlakeTwo256, IdentityLookup, One},
+	DispatchResult,
+};
 
 use pallet_xyk as xyk;
 
 use frame_support::traits::{Everything, GenesisBuild, Get, Nothing};
 use frame_system::EnsureSigned;
+use hydradx_traits::pools::DustRemovalAccountWhitelist;
 use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	AssetId, Balance,
 };
 use std::cell::RefCell;
-use hydradx_traits::pools::DustRemovalAccountWhitelist;
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -159,7 +163,7 @@ parameter_types! {
 
 pub struct Whitelist;
 
-impl DustRemovalAccountWhitelist<AccountId> for Whitelist{
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
 	type Error = DispatchResult;
 
 	fn add_account(_account: &AccountId) -> Self::Error {
