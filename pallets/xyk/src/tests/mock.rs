@@ -35,6 +35,7 @@ use primitives::{
 };
 
 use frame_system::EnsureSigned;
+use hydradx_traits::pools::DustRemovalAccountWhitelist;
 use std::cell::RefCell;
 
 pub type Amount = i128;
@@ -198,6 +199,7 @@ impl Config for Test {
 	type CanCreatePool = Disallow10_10Pool;
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFeeRate;
+	type NonDustableWhitelistHandler = Whitelist;
 }
 
 pub struct ExtBuilder {
@@ -260,4 +262,18 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 
 pub fn expect_events(e: Vec<Event>) {
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
+}
+
+pub struct Whitelist;
+
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
+	type Error = DispatchError;
+
+	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
+
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
 }
