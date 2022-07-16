@@ -28,23 +28,29 @@
 // * total_shares_z         -> Z
 // * multiplier             -> m
 
-//! # Liquidity mining pallet
-//!
 //! ## Overview
 //!
 //! This pallet provide functionality for liquidity mining program with time incentive(loyalty
-//! factor) for basilisk.
+//! factor) and multiple incentives scheme for basilisk.
 //! Users are rewarded for each period they stay in liq. mining program.
 //!
 //! Reward per one period is derived from the user's loyalty factor which grows with time(periods)
 //! the user is in the liq. mining and amount of LP shares user locked into deposit.
-//! User's loyalty factor is reset if the user exits and reenters liquidity mining pool.
+//! User's loyalty factor is reset if the user exits and reenters liquidity mining.
 //! User can claim rewards without resetting loyalty factor, only withdrawing shares
 //! is penalized by loyalty factor reset.
 //! User is rewarded from the next period after he enters.
 //!
-//! User deposit in liquidity mining pool is represented by an NFT which is minted for the user when he
-//! enters liq. mining and is burned when he exits. NFT representing deposit is tradable.
+//! Multiple Incentives
+//!
+//! This feature allow users to redeposit already deposited LP shares to multiple yield farms and
+//! receive incentives from this farms.
+//! Deposit in yield farm is called "farm entry".
+//! Maximal number of redepositing same LP shares is configured by variable: `MaxFarmEntriesPerDeposit`.
+//! Set `MaxFarmEntriesPerDeposit` to `1` to disable multiple incentives scheme. !!!NEVER set this
+//! variable to `0`.
+//! LP shares can be redeposited only to different yield farms running liquidity mining for same
+//! pair of assets.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::unused_unit)]
