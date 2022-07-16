@@ -83,8 +83,6 @@ use scale_info::TypeInfo;
 use sp_arithmetic::{FixedU128, Permill};
 use sp_std::convert::{From, Into};
 
-type PoolId = u32;
-type PoolMultiplier = FixedU128;
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 type MultiCurrencyOf<T> = <T as pallet::Config>::MultiCurrency;
@@ -94,6 +92,7 @@ pub mod pallet {
 	use super::*;
 	use crate::weights::WeightInfo;
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
+	use warehouse_liquidity_mining::{FarmMultiplier, YieldFarmId};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -211,20 +210,20 @@ pub mod pallet {
 		/// New yield farm was added into the farm.
 		YieldFarmCreated {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
-			multiplier: PoolMultiplier,
+			yield_farm_id: YieldFarmId,
+			multiplier: FarmMultiplier,
 			nft_class: primitives::ClassId,
 			asset_pair: AssetPair,
 			loyalty_curve: Option<warehouse_liquidity_mining::LoyaltyCurve>,
 		},
 
 		/// Global farm was destroyed.
-		GlobalFarmDestroyed { id: PoolId, who: AccountIdOf<T> },
+		GlobalFarmDestroyed { id: YieldFarmId, who: AccountIdOf<T> },
 
 		/// New LP tokens was deposited.
 		SharesDeposited {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			who: AccountIdOf<T>,
 			amount: Balance,
 			lp_token: AssetId,
@@ -234,7 +233,7 @@ pub mod pallet {
 		/// LP token was redeposited for a new yield farm entry
 		SharesRedeposited {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			who: AccountIdOf<T>,
 			amount: Balance,
 			lp_token: AssetId,
@@ -244,7 +243,7 @@ pub mod pallet {
 		/// Rewards was claimed.
 		RewardClaimed {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			who: AccountIdOf<T>,
 			claimed: Balance,
 			reward_currency: AssetId,
@@ -253,7 +252,7 @@ pub mod pallet {
 		/// LP tokens was withdrawn.
 		SharesWithdrawn {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			who: AccountIdOf<T>,
 			lp_token: AssetId,
 			amount: Balance,
@@ -262,7 +261,7 @@ pub mod pallet {
 		/// Liquidity mining for asset pair was canceled.
 		LiquidityMiningCanceled {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
 		},
@@ -270,16 +269,16 @@ pub mod pallet {
 		/// Liquidity mining for asset pair was resumed.
 		LiquidityMiningResumed {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
-			multiplier: PoolMultiplier,
+			multiplier: FarmMultiplier,
 		},
 
 		/// Yield farm was removed from farm.
 		YieldFarmRemoved {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
 		},
@@ -287,10 +286,10 @@ pub mod pallet {
 		/// Yield farm multiplier was updated.
 		YieldFarmUpdated {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			who: AccountIdOf<T>,
 			asset_pair: AssetPair,
-			multiplier: PoolMultiplier,
+			multiplier: FarmMultiplier,
 		},
 
 		/// Farm's(`GlobalFarm`) accumulated reward per share was updated.
@@ -303,7 +302,7 @@ pub mod pallet {
 		/// Yield farm's `accumulated_rpvs` was updated.
 		YieldFarmAccRPVSUpdated {
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			accumulated_rpvs: Balance,
 			total_valued_shares: Balance,
 		},
@@ -433,7 +432,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			farm_id: GlobalFarmId,
 			asset_pair: AssetPair,
-			multiplier: PoolMultiplier,
+			multiplier: FarmMultiplier,
 			loyalty_curve: Option<warehouse_liquidity_mining::LoyaltyCurve>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -480,7 +479,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			farm_id: GlobalFarmId,
 			asset_pair: AssetPair,
-			multiplier: PoolMultiplier,
+			multiplier: FarmMultiplier,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -556,9 +555,9 @@ pub mod pallet {
 		pub fn resume_yield_farm(
 			origin: OriginFor<T>,
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			asset_pair: AssetPair,
-			multiplier: PoolMultiplier,
+			multiplier: FarmMultiplier,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -600,7 +599,7 @@ pub mod pallet {
 		pub fn destroy_yield_farm(
 			origin: OriginFor<T>,
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			asset_pair: AssetPair,
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
@@ -638,7 +637,7 @@ pub mod pallet {
 		pub fn deposit_shares(
 			origin: OriginFor<T>,
 			farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			asset_pair: AssetPair,
 			shares_amount: Balance,
 		) -> DispatchResult {
@@ -693,7 +692,7 @@ pub mod pallet {
 		pub fn redeposit_lp_shares(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			asset_pair: AssetPair,
 			deposit_id: primitives::InstanceId,
 		) -> DispatchResult {
@@ -742,7 +741,7 @@ pub mod pallet {
 		pub fn claim_rewards(
 			origin: OriginFor<T>,
 			deposit_id: primitives::InstanceId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -797,7 +796,7 @@ pub mod pallet {
 		pub fn withdraw_shares(
 			origin: OriginFor<T>,
 			deposit_id: primitives::InstanceId,
-			yield_farm_id: PoolId,
+			yield_farm_id: YieldFarmId,
 			asset_pair: AssetPair,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;

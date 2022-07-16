@@ -19,7 +19,7 @@ use super::*;
 use pretty_assertions::assert_eq;
 use sp_runtime::traits::One;
 use test_ext::*;
-use warehouse_liquidity_mining::GlobalFarmData;
+use warehouse_liquidity_mining::{GlobalFarmData, YieldFarmId};
 use warehouse_liquidity_mining::YieldFarmEntry;
 
 #[test]
@@ -275,7 +275,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
-		let yield_farm_id_removed: PoolId = BSX_TKN1_YIELD_FARM_ID;
+		let yield_farm_id_removed: YieldFarmId = BSX_TKN1_YIELD_FARM_ID;
 		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
 		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
 		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);

@@ -40,9 +40,9 @@ use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 };
 use std::{cell::RefCell, collections::HashMap};
+use warehouse_liquidity_mining::YieldFarmId;
 
 pub type AccountId = u128;
-pub type PoolId = crate::PoolId;
 pub type BlockNumber = u64;
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
@@ -86,10 +86,10 @@ pub const DEFAULT_AMM: AccountId = 11_007;
 pub const KSM_DOT_AMM: AccountId = 11_008;
 pub const ACA_KSM_AMM: AccountId = 11_009;
 
-pub const BSX_FARM: PoolId = 1;
-pub const KSM_FARM: PoolId = 2;
-pub const GC_FARM: PoolId = 3;
-pub const ACA_FARM: PoolId = 4;
+pub const BSX_FARM: YieldFarmId = 1;
+pub const KSM_FARM: YieldFarmId = 2;
+pub const GC_FARM: YieldFarmId = 3;
+pub const ACA_FARM: YieldFarmId = 4;
 
 pub const INITIAL_READ_WEIGHT: u64 = 1;
 pub const INITIAL_WRITE_WEIGHT: u64 = 1;

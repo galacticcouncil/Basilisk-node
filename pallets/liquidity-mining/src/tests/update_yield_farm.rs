@@ -17,13 +17,13 @@
 
 use super::*;
 use test_ext::*;
-use warehouse_liquidity_mining::YieldFarmData;
+use warehouse_liquidity_mining::{FarmMultiplier, YieldFarmData};
 
 #[test]
 fn update_yield_farm_should_() {
 	predefined_test_ext().execute_with(|| {
 		//Arrange
-		let new_multiplier: PoolMultiplier = FixedU128::from(5_000_u128);
+		let new_multiplier: FarmMultiplier = FixedU128::from(5_000_u128);
 		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
 		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
 
