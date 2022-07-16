@@ -399,7 +399,7 @@ fn transfer_from_hydra_and_back() {
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			35_990_141 // fees should go to treasury
+			33_508_495 // fees should go to treasury
 		);
 	});
 }
