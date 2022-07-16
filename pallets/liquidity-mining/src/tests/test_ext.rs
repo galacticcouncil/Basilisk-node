@@ -277,10 +277,9 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[0].id),
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[0].multiplier),
-			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[0].loyalty_curve.clone()),
 			asset_pair: BSX_TKN1_ASSET_PAIR,
 		})]);
@@ -294,10 +293,9 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[1].id),
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[1].multiplier),
-			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[1].loyalty_curve.clone()),
 			asset_pair: BSX_TKN2_ASSET_PAIR,
 		})]);
@@ -311,10 +309,9 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
-			farm_id: CHARLIE_FARM,
+			global_farm_id: CHARLIE_FARM,
 			yield_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[2].id),
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[2].multiplier),
-			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[2].loyalty_curve.clone()),
 			asset_pair: ACA_KSM_ASSET_PAIR,
 		})]);
@@ -328,10 +325,9 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
-			farm_id: DAVE_FARM,
+			global_farm_id: DAVE_FARM,
 			yield_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[3].id),
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[3].multiplier),
-			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[3].loyalty_curve.clone()),
 			asset_pair: BSX_TKN1_ASSET_PAIR,
 		})]);
@@ -345,10 +341,9 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
-			farm_id: EVE_FARM,
+			global_farm_id: EVE_FARM,
 			yield_farm_id: PREDEFINED_YIELD_FARMS.with(|v| v[4].id),
 			multiplier: PREDEFINED_YIELD_FARMS.with(|v| v[4].multiplier),
-			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: PREDEFINED_YIELD_FARMS.with(|v| v[4].loyalty_curve.clone()),
 			asset_pair: BSX_TKN1_ASSET_PAIR,
 		})]);
@@ -387,12 +382,11 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount,
-			nft_class_id: LIQ_MINING_NFT_CLASS,
+			amount: deposited_amount
 		})]);
 
 		// DEPOSIT 2 (deposit in same period):
@@ -410,12 +404,11 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount,
-			nft_class_id: LIQ_MINING_NFT_CLASS,
+			amount: deposited_amount
 		})]);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
@@ -433,12 +426,11 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
-			amount: deposited_amount,
-			nft_class_id: LIQ_MINING_NFT_CLASS,
+			amount: deposited_amount
 		})]);
 
 		// DEPOSIT 4 (new period):
@@ -457,12 +449,11 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
-			amount: deposited_amount,
-			nft_class_id: LIQ_MINING_NFT_CLASS,
+			amount: deposited_amount
 		})]);
 
 		// DEPOSIT 5 (same period, second liq pool yield farm):
@@ -481,12 +472,11 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
-			amount: deposited_amount,
-			nft_class_id: LIQ_MINING_NFT_CLASS,
+			amount: deposited_amount
 		})]);
 
 		// DEPOSIT 6 (same period):
@@ -505,12 +495,11 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
-			amount: deposited_amount,
-			nft_class_id: LIQ_MINING_NFT_CLASS,
+			amount: deposited_amount
 		})]);
 
 		// DEPOSIT 7 : (same period differen liq poll farm)
@@ -529,12 +518,11 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount,
-			nft_class_id: LIQ_MINING_NFT_CLASS,
+			amount: deposited_amount
 		})]);
 
 		assert_eq!(

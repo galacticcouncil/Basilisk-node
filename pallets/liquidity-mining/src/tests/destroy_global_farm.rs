@@ -27,7 +27,7 @@ fn destroy_global_farm_should_work() {
 
 		assert!(WarehouseLM::global_farm(BOB_FARM).is_none());
 		expect_events(vec![mock::Event::LiquidityMining(Event::GlobalFarmDestroyed {
-			id: BOB_FARM,
+			global_farm_id: BOB_FARM,
 			who: BOB,
 		})]);
 	});

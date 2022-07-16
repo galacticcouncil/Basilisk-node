@@ -61,12 +61,11 @@ fn deposit_shares_should_work() {
 
 		//Assert
 		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount,
-			nft_class_id: LIQ_MINING_NFT_CLASS,
+			amount: deposited_amount
 		})]);
 
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().total_shares_z, 12_500);

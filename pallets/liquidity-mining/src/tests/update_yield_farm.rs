@@ -37,7 +37,7 @@ fn update_yield_farm_should_() {
 
 		//Assert
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmUpdated {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: BSX_TKN1_ASSET_PAIR,

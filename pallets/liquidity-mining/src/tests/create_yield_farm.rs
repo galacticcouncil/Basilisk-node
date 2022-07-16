@@ -60,10 +60,9 @@ fn create_yield_farm_should_work_when_global_farm_exist() {
 
 		//Assert
 		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
-			farm_id: ALICE_FARM,
+			global_farm_id: ALICE_FARM,
 			yield_farm_id: yield_farm.id,
 			multiplier: yield_farm.multiplier,
-			nft_class: LIQ_MINING_NFT_CLASS,
 			loyalty_curve: yield_farm.loyalty_curve.clone(),
 			asset_pair: BSX_ACA_ASSET_PAIR,
 		})]);

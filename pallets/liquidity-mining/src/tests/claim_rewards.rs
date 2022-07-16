@@ -39,7 +39,7 @@ fn claim_rewards_should_work_when_deposit_exist() {
 
 		//Assert
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			claimed: expected_claimed_rewards,
@@ -127,7 +127,7 @@ fn claim_rewards_should_fail_when_double_claim_happens() {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			claimed: 79_906,

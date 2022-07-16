@@ -49,8 +49,8 @@ fn destroy_yield_farm_should_work_when_it_has_deposit() {
 		));
 
 		//Assert
-		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmRemoved {
-			farm_id: GC_FARM,
+		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmDestroyed {
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: BSX_TKN1_ASSET_PAIR,

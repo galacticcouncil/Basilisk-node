@@ -63,14 +63,14 @@ fn withdraw_shares_should_work() {
 		//Assert
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::RewardClaimed {
-				farm_id: GC_FARM,
+				global_farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
 			}),
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
-				farm_id: GC_FARM,
+				global_farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
@@ -173,7 +173,7 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 		));
 
 		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
-			farm_id: GC_FARM,
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			claimed: claimed_rewards,
@@ -222,7 +222,7 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
-				farm_id: GC_FARM,
+				global_farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
@@ -293,7 +293,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 
 		expect_events(vec![
 			mock::Event::LiquidityMining(Event::SharesWithdrawn {
-				farm_id: GC_FARM,
+				global_farm_id: GC_FARM,
 				yield_farm_id: yield_farm_id_removed,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,

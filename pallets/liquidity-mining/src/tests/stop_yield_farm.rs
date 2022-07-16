@@ -42,8 +42,8 @@ fn stop_yield_farm_should_work() {
 		));
 
 		//Assert
-		expect_events(vec![mock::Event::LiquidityMining(Event::LiquidityMiningCanceled {
-			farm_id: GC_FARM,
+		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmStopped {
+			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: BSX_TKN1_ASSET_PAIR,
