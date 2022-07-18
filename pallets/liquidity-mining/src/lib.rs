@@ -632,7 +632,7 @@ pub mod pallet {
 				Self::get_asset_balance_in_liquidity_mining_pool,
 			)?;
 
-			Self::lock_lp_tokens(amm_pool_id, who.clone(), shares_amount)?;
+			Self::lock_lp_tokens(asset_pair, who.clone(), shares_amount)?;
 			Self::mint_nft_representing_deposit(who.clone(), &deposit_id)?;
 
 			Self::deposit_event(Event::SharesDeposited {
@@ -820,7 +820,7 @@ pub mod pallet {
 			}
 
 			if is_destroyed {
-				Self::unlock_lp_tokens(amm_pool_id, who.clone(), withdrawn_amount)?;
+				Self::unlock_lp_tokens(asset_pair, who.clone(), withdrawn_amount)?;
 				T::NFTHandler::burn_from(&T::NftClassId::get(), &deposit_id)?;
 
 				Self::deposit_event(Event::DepositDestroyed {
@@ -851,8 +851,8 @@ impl<T: Config> Pallet<T> {
 		Ok(T::AMM::get_share_token(asset_pair))
 	}
 
-	fn lock_lp_tokens(amm_pool_id: T::AccountId, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
-		let lp_token = Self::get_lp_token(&amm_pool_id)?;
+	fn lock_lp_tokens(asset_pair: AssetPair, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
+		let lp_token = T::AMM::get_share_token(asset_pair);
 
 		let service_account_for_lp_shares = Self::account_id_for_all_lp_shares();
 		MultiCurrencyOf::<T>::transfer(lp_token, &who, &service_account_for_lp_shares, amount)?;
@@ -860,8 +860,8 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn unlock_lp_tokens(amm_pool_id: T::AccountId, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
-		let lp_token = Self::get_lp_token(&amm_pool_id)?;
+	fn unlock_lp_tokens(asset_pair: AssetPair, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
+		let lp_token = T::AMM::get_share_token(asset_pair);
 
 		let service_account_for_lp_shares = Self::account_id_for_all_lp_shares();
 		MultiCurrencyOf::<T>::transfer(lp_token, &service_account_for_lp_shares, &who, amount)?;
