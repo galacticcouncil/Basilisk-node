@@ -1,7 +1,10 @@
 use crate::mock::*;
 use crate::*;
 
-use frame_support::{assert_noop, assert_ok, BoundedVec};
+use frame_support::{
+	assert_noop, assert_ok, BoundedVec,
+	dispatch::Dispatchable,
+};
 
 use std::convert::TryInto;
 

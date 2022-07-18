@@ -12,7 +12,7 @@ pub const UNITS: Balance = 1_000_000_000_000;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
-use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
+use polkadot_primitives::v2::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use sp_runtime::traits::AccountIdConversion;
 
@@ -72,7 +72,7 @@ fn default_parachains_host_configuration() -> HostConfiguration<BlockNumber> {
 		max_upward_queue_size: 1024 * 1024,
 		max_downward_message_size: 1024,
 		ump_service_total_weight: 4 * 1_000_000_000,
-		max_upward_message_size: 1024 * 1024,
+		max_upward_message_size: 50 * 1024,
 		max_upward_message_num_per_candidate: 5,
 		hrmp_sender_deposit: 0,
 		hrmp_recipient_deposit: 0,
@@ -104,7 +104,7 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
 			(AccountId::from(ALICE), 2002 * UNITS),
-			(ParaId::from(2000).into_account(), 10 * UNITS),
+			(ParaId::from(2000).into_account_truncating(), 10 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)

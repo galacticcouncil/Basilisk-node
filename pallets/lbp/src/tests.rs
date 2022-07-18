@@ -18,14 +18,17 @@
 #![allow(clippy::bool_assert_comparison)]
 use super::*;
 use crate::mock::{
-	generate_trades, run_to_sale_end, run_to_sale_start, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
+	Call, generate_trades, run_to_sale_end, run_to_sale_start, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
 	INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
 };
 pub use crate::mock::{
 	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
 	HDX, KUSD,
 };
-use frame_support::{assert_err, assert_noop, assert_ok};
+use frame_support::{
+	assert_err, assert_noop, assert_ok,
+	dispatch::Dispatchable,
+};
 use hydradx_traits::{AMMTransfer, LockedBalance};
 use sp_runtime::traits::BadOrigin;
 use sp_std::convert::TryInto;
@@ -148,18 +151,7 @@ pub fn predefined_test_ext_with_repay_target() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_events(n: usize) -> Vec<TestEvent> {
-	frame_system::Pallet::<Test>::events()
-		.into_iter()
-		.rev()
-		.take(n)
-		.rev()
-		.map(|e| e.event)
-		.collect()
-}
-
-fn expect_events(e: Vec<TestEvent>) {
-	assert_eq!(last_events(e.len()), e);
+pub fn expect_events(e: Vec<TestEvent>) {
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
@@ -1895,19 +1887,20 @@ fn zero_weight_should_not_work() {
 			Error::<Test>::InvalidWeight
 		);
 
+		let call = Call::LBPPallet(crate::Call::<Test>::update_pool_data {
+				pool_id: KUSD_BSX_POOL_ID,
+				pool_owner: None,
+				start: Some(15),
+				end: Some(18),
+				initial_weight: Some(0),
+				final_weight: Some(80),
+				fee: Some((5, 100)),
+				fee_collector: Some(BOB),
+				repay_target: Some(0),
+            });
+
 		assert_noop!(
-			LBPPallet::update_pool_data(
-				Origin::signed(ALICE),
-				KUSD_BSX_POOL_ID,
-				None,
-				Some(15),
-				Some(18),
-				Some(0),
-				Some(80),
-				Some((5, 100)),
-				Some(BOB),
-				Some(0),
-			),
+			call.dispatch(Origin::signed(ALICE)),
 			Error::<Test>::InvalidWeight
 		);
 	});
@@ -3231,12 +3224,9 @@ fn get_sorted_weight_should_work() {
 			(80_000_000, 20_000_000),
 		);
 
-		assert_eq!(
-			LBPPallet::get_sorted_weight(KUSD, <Test as frame_system::Config>::BlockNumber::from(41u32), &pool)
-				.err()
-				.unwrap()
-				.as_u8(),
-			12_u8, // InvalidWeight
+		assert_err!(
+			LBPPallet::get_sorted_weight(KUSD, <Test as frame_system::Config>::BlockNumber::from(41u32), &pool).map_err(Into::<DispatchError>::into),
+			Error::<Test>::InvalidWeight
 		);
 	});
 }

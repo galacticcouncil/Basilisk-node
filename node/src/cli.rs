@@ -16,7 +16,7 @@ impl fmt::Display for RuntimeInstanceError {
 
 impl Error for RuntimeInstanceError {}
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Clone, Parser)]
 pub enum RuntimeInstance {
 	Basilisk,
 	Testing,
@@ -69,7 +69,7 @@ pub struct RunCmd {
 	pub base: cumulus_client_cli::RunCmd,
 
 	/// Specify the runtime used by the node.
-	#[clap(default_value_t, long, possible_values = RuntimeInstance::variants(), ignore_case = true)]
+	#[clap(default_value_t, long, value_parser = RuntimeInstance::variants(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }
 
@@ -144,7 +144,7 @@ pub enum Subcommand {
 	Revert(sc_cli::RevertCmd),
 
 	/// The custom benchmark subcommmand benchmarking runtime pallets.
-	#[clap(name = "benchmark", about = "Benchmark runtime pallets.")]
+	#[clap(subcommand)]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
 	/// Export the genesis state of the parachain.
@@ -168,12 +168,8 @@ pub enum Subcommand {
 #[derive(Debug, Parser)]
 pub struct ExportGenesisStateCommand {
 	/// Output file name or stdout if unspecified.
-	#[clap(parse(from_os_str))]
+	#[clap(value_parser)]
 	pub output: Option<PathBuf>,
-
-	/// Id of the parachain this state is for.
-	#[clap(long, default_value = "200")]
-	pub parachain_id: u32,
 
 	/// Write output in binary. Default is to write in hex.
 	#[clap(short, long)]
@@ -184,7 +180,7 @@ pub struct ExportGenesisStateCommand {
 	pub chain: Option<String>,
 
 	/// Specify the runtime used by the node.
-	#[clap(default_value_t, long, possible_values = RuntimeInstance::variants(), ignore_case = true)]
+	#[clap(default_value_t, long, value_parser = RuntimeInstance::variants(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }
 
@@ -192,7 +188,7 @@ pub struct ExportGenesisStateCommand {
 #[derive(Debug, Parser)]
 pub struct ExportGenesisWasmCommand {
 	/// Output file name or stdout if unspecified.
-	#[clap(parse(from_os_str))]
+	#[clap(value_parser)]
 	pub output: Option<PathBuf>,
 
 	/// Write output in binary. Default is to write in hex.
@@ -204,6 +200,6 @@ pub struct ExportGenesisWasmCommand {
 	pub chain: Option<String>,
 
 	/// Specify the runtime used by the node.
-	#[clap(default_value_t, long, possible_values = RuntimeInstance::variants(), ignore_case = true)]
+	#[clap(default_value_t, long, value_parser = RuntimeInstance::variants(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }

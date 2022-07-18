@@ -6,13 +6,13 @@ use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
 	traits::{Currency, ExistenceRequirement, ReservableCurrency},
-	transactional,
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
 	traits::{Saturating, StaticLookup},
 	Percent,
 };
+use sp_std::convert::TryInto;
 
 use types::*;
 use weights::WeightInfo;
@@ -97,9 +97,8 @@ pub mod pallet {
 		/// - `class_id`: The identifier of a non-fungible token class
 		/// - `instance_id`: The instance identifier of a class
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
-		#[transactional]
 		pub fn buy(origin: OriginFor<T>, class_id: T::NftClassId, instance_id: T::NftInstanceId) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin)?;
 
 			Self::do_buy(sender, class_id, instance_id, false)
 		}
@@ -112,7 +111,6 @@ pub mod pallet {
 		/// - `instance_id`: The instance identifier of a class
 		/// - `new_price`: price the token will be listed for
 		#[pallet::weight(<T as Config>::WeightInfo::set_price())]
-		#[transactional]
 		pub fn set_price(
 			origin: OriginFor<T>,
 			class_id: T::NftClassId,
@@ -148,7 +146,6 @@ pub mod pallet {
 		/// - `amount`: The amount user is willing to pay
 		/// - `expires`: The block until the current owner can accept the offer
 		#[pallet::weight(<T as Config>::WeightInfo::make_offer())]
-		#[transactional]
 		pub fn make_offer(
 			origin: OriginFor<T>,
 			class_id: T::NftClassId,
@@ -156,7 +153,7 @@ pub mod pallet {
 			amount: BalanceOf<T>,
 			expires: T::BlockNumber,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin)?;
 
 			ensure!(amount >= T::MinimumOfferAmount::get(), Error::<T>::OfferTooLow);
 			ensure!(
@@ -198,18 +195,17 @@ pub mod pallet {
 		/// - `instance_id`: The instance identifier of a class
 		/// - `maker`: User who made the offer
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_offer())]
-		#[transactional]
 		pub fn withdraw_offer(
 			origin: OriginFor<T>,
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
 			maker: T::AccountId,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin)?;
 
 			let token_id = (class_id, instance_id);
 
-			Offers::<T>::try_mutate_exists(token_id, maker.clone(), |maybe_offer| -> DispatchResult {
+			Offers::<T>::try_mutate_exists(token_id, maker, |maybe_offer| -> DispatchResult {
 				let offer = maybe_offer.take().ok_or(Error::<T>::UnknownOffer)?;
 				let sender_is_owner = match pallet_nft::Pallet::<T>::owner(class_id, instance_id) {
 					Some(owner) => sender == owner,
@@ -239,14 +235,13 @@ pub mod pallet {
 		/// - `instance_id`: The instance identifier of a class
 		/// - `maker`: User who made the offer
 		#[pallet::weight(<T as Config>::WeightInfo::accept_offer())]
-		#[transactional]
 		pub fn accept_offer(
 			origin: OriginFor<T>,
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
 			maker: T::AccountId,
 		) -> DispatchResult {
-			let sender = ensure_signed(origin.clone())?;
+			let sender = ensure_signed(origin)?;
 
 			let token_id = (class_id, instance_id);
 
@@ -284,7 +279,6 @@ pub mod pallet {
 		/// - `author`: Receiver of the royalty
 		/// - `royalty`: Percentage reward from each trade for the author
 		#[pallet::weight(<T as Config>::WeightInfo::add_royalty())]
-		#[transactional]
 		pub fn add_royalty(
 			origin: OriginFor<T>,
 			class_id: T::NftClassId,

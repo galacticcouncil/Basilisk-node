@@ -475,8 +475,14 @@ fn accept_offer_with_royalty_and_set_price_works() {
 		));
 
 		// too expensive
+		let call = Call::Marketplace(crate::Call::<Test>::make_offer {
+			class_id: CLASS_ID_0,
+			instance_id: INSTANCE_ID_0,
+			amount: 100_000_000 * UNITS,
+			expires: 2
+		});
 		assert_noop!(
-			Market::make_offer(Origin::signed(DAVE), CLASS_ID_0, INSTANCE_ID_0, 100_000_000 * UNITS, 2),
+			call.dispatch(Origin::signed(DAVE)),
 			pallet_balances::Error::<Test, _>::InsufficientBalance
 		);
 

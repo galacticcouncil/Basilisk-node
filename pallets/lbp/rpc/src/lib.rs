@@ -18,8 +18,11 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use codec::Codec;
-use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
-use jsonrpc_derive::rpc;
+use jsonrpsee::{
+	core::{async_trait, Error as JsonRpseeError, RpcResult},
+	proc_macros::rpc,
+	types::error::{CallError, ErrorCode, ErrorObject},
+};
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{generic::BlockId, traits::Block as BlockT};
@@ -27,10 +30,18 @@ use std::sync::Arc;
 
 pub use pallet_lbp_rpc_runtime_api::LBPApi as LBPRuntimeApi;
 
-#[rpc]
+#[rpc(client, server)]
 pub trait LBPApi<BlockHash, AccountId, AssetId> {
-	#[rpc(name = "lbp_getPoolAccount")]
-	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> Result<AccountId>;
+	#[method(name = "lbp_getPoolAccount")]
+	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> RpcResult<AccountId>;
+}
+
+fn internal_err<T: ToString>(message: T) -> JsonRpseeError {
+    JsonRpseeError::Call(CallError::Custom(ErrorObject::owned(
+        ErrorCode::InternalError.code(),
+        message.to_string(),
+        None::<()>,
+    )))
 }
 
 /// A struct that implements the [`XYKApi`].
@@ -62,7 +73,8 @@ impl From<Error> for i64 {
 	}
 }
 
-impl<C, Block, AccountId, AssetId> LBPApi<<Block as BlockT>::Hash, AccountId, AssetId> for LBP<C, Block>
+#[async_trait]
+impl<C, Block, AccountId, AssetId> LBPApiServer<<Block as BlockT>::Hash, AccountId, AssetId> for LBP<C, Block>
 where
 	Block: BlockT,
 	C: Send + Sync + 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block>,
@@ -70,14 +82,11 @@ where
 	AccountId: Codec,
 	AssetId: Codec,
 {
-	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> Result<AccountId> {
+	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> RpcResult<AccountId> {
 		let api = self.client.runtime_api();
 		let at = BlockId::hash(self.client.info().best_hash);
 
-		api.get_pool_id(&at, asset_a, asset_b).map_err(|e| RpcError {
-			code: ErrorCode::ServerError(Error::RuntimeError.into()),
-			message: "Unable to retrieve pool account address.".into(),
-			data: Some(format!("{:?}", e).into()),
-		})
+		api.get_pool_id(&at, asset_a, asset_b)
+			.map_err(|e| internal_err(format!("Unable to retrieve pool account address: {:?}", e)))
 	}
 }

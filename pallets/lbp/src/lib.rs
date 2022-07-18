@@ -30,7 +30,7 @@ use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
 	traits::{EnsureOrigin, Get, LockIdentifier},
-	transactional,
+	storage::with_storage_layer,
 };
 use frame_system::ensure_signed;
 use hydra_dx_math::types::LBPWeight;
@@ -411,7 +411,6 @@ pub mod pallet {
 		/// This increases the price of the sold asset on every trade. Make sure to only run this with
 		/// previously illiquid assets.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
-		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			pool_owner: T::AccountId,
@@ -514,7 +513,6 @@ pub mod pallet {
 		///
 		/// Emits `PoolUpdated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::update_pool_data())]
-		#[transactional]
 		pub fn update_pool_data(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T>,
@@ -600,7 +598,6 @@ pub mod pallet {
 		///
 		/// Emits `LiquidityAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
-		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
 			amount_a: (AssetId, BalanceOf<T>),
@@ -661,7 +658,6 @@ pub mod pallet {
 		///
 		/// Emits 'LiquidityRemoved' when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
-		#[transactional]
 		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -712,7 +708,6 @@ pub mod pallet {
 		///
 		/// Emits `SellExecuted` when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]
-		#[transactional]
 		pub fn sell(
 			origin: OriginFor<T>,
 			asset_in: AssetId,
@@ -742,7 +737,6 @@ pub mod pallet {
 		///
 		/// Emits `BuyExecuted` when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
-		#[transactional]
 		pub fn buy(
 			origin: OriginFor<T>,
 			asset_out: AssetId,
@@ -864,40 +858,41 @@ impl<T: Config> Pallet<T> {
 		Self::collected_fees(pool) < pool.repay_target
 	}
 
-	#[transactional]
 	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		let pool_account = Self::get_pair_id(transfer.assets);
-		let pool = <PoolData<T>>::try_get(&pool_account).map_err(|_| Error::<T>::PoolNotFound)?;
+		with_storage_layer(|| {
+			let pool_account = Self::get_pair_id(transfer.assets);
+			let pool = <PoolData<T>>::try_get(&pool_account).map_err(|_| Error::<T>::PoolNotFound)?;
 
-		// Transfer assets between pool and user
-		T::MultiCurrency::transfer(
-			transfer.assets.asset_in,
-			&transfer.origin,
-			&pool_account,
-			transfer.amount,
-		)?;
-		T::MultiCurrency::transfer(
-			transfer.assets.asset_out,
-			&pool_account,
-			&transfer.origin,
-			transfer.amount_out,
-		)?;
+			// Transfer assets between pool and user
+			T::MultiCurrency::transfer(
+				transfer.assets.asset_in,
+				&transfer.origin,
+				&pool_account,
+				transfer.amount,
+			)?;
+			T::MultiCurrency::transfer(
+				transfer.assets.asset_out,
+				&pool_account,
+				&transfer.origin,
+				transfer.amount_out,
+			)?;
 
-		// Fee is deducted from the sent out amount of accumulated asset and transferred to the fee collector
-		let (fee_asset, fee_amount) = transfer.fee;
-		let fee_payer = if transfer.assets.asset_in == fee_asset {
-			&transfer.origin
-		} else {
-			&pool_account
-		};
+			// Fee is deducted from the sent out amount of accumulated asset and transferred to the fee collector
+			let (fee_asset, fee_amount) = transfer.fee;
+			let fee_payer = if transfer.assets.asset_in == fee_asset {
+				&transfer.origin
+			} else {
+				&pool_account
+			};
 
-		T::MultiCurrency::transfer(fee_asset, fee_payer, &pool.fee_collector, fee_amount)?;
+			T::MultiCurrency::transfer(fee_asset, fee_payer, &pool.fee_collector, fee_amount)?;
 
-		// Resets lock for total of collected fees
-		let collected_fee_total = Self::collected_fees(&pool) + fee_amount;
-		T::MultiCurrency::set_lock(COLLECTOR_LOCK_ID, fee_asset, &pool.fee_collector, collected_fee_total)?;
+			// Resets lock for total of collected fees
+			let collected_fee_total = Self::collected_fees(&pool) + fee_amount;
+			T::MultiCurrency::set_lock(COLLECTOR_LOCK_ID, fee_asset, &pool.fee_collector, collected_fee_total)?;
 
-		Ok(())
+			Ok(())
+			})
 	}
 
 	/// determines fee rate and applies it to the amount

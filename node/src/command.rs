@@ -16,15 +16,16 @@
 // limitations under the License.
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
-use crate::service::IdentifyVariant;
+use crate::service::{IdentifyVariant, new_partial};
 use crate::{chain_spec, service, testing_chain_spec};
 
 use basilisk_runtime::Block;
 use codec::Encode;
-use cumulus_client_service::genesis::generate_genesis_block;
+use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
+use cumulus_client_cli::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
-use polkadot_parachain::primitives::AccountIdConversion;
+use sp_runtime::traits::AccountIdConversion;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams, NetworkParams, Result,
 	RuntimeVersion, SharedParams, SubstrateCli,
@@ -190,29 +191,29 @@ pub fn run() -> sc_cli::Result<()> {
 		}
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|mut config| {
-				let (client, _backend, import_queue, task_manager) = service::new_partial(&mut config)?;
+			runner.async_run(|config| {
+				let (client, _backend, import_queue, task_manager) = new_partial(&config, true)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|mut config| {
-				let (client, _backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
+			runner.async_run(|config| {
+				let (client, _backend, _import_queue, task_manager) = new_partial(&config, true)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|mut config| {
-				let (client, _backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
+			runner.async_run(|config| {
+				let (client, _backend, _import_queue, task_manager) = new_partial(&config, true)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|mut config| {
-				let (client, _backend, import_queue, task_manager) = service::new_partial(&mut config)?;
+			runner.async_run(|config| {
+				let (client, _backend, import_queue, task_manager) = new_partial(&config, true)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -235,23 +236,42 @@ pub fn run() -> sc_cli::Result<()> {
 		}
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|mut config| {
-				let (client, backend, _import_queue, task_manager) = service::new_partial(&mut config)?;
-				Ok((cmd.run(client, backend), task_manager))
+			runner.async_run(|config| {
+				let (client, backend, _import_queue, task_manager) = new_partial(&config, true)?;
+				Ok((cmd.run(client, backend, None), task_manager))
 			})
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
-			if cfg!(feature = "runtime-benchmarks") {
-				let runner = cli.create_runner(cmd)?;
+			let runner = cli.create_runner(cmd)?;
 
-				runner.sync_run(|config| cmd.run::<Block, service::BasiliskExecutorDispatch>(config))
-			} else {
-				Err("Benchmarking wasn't enabled when building the node. \
-				You can enable it with `--features runtime-benchmarks`."
-					.into())
-			}
-		}
-		Some(Subcommand::ExportGenesisState(params)) => {
+			match cmd {
+			   BenchmarkCmd::Pallet(cmd) => {
+					 if cfg!(feature = "runtime-benchmarks") {
+							runner.sync_run(|config| cmd.run::<Block, service::BasiliskExecutorDispatch>(config))
+					 } else {
+							Err("Benchmarking wasn't enabled when building the node. \
+			   You can enable it with `--features runtime-benchmarks`."
+								.into())
+					 }
+			   }
+			   BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
+					 let partials = crate::service::new_partial_impl::<basilisk_runtime::RuntimeApi, service::BasiliskExecutorDispatch>(&config, false)?;
+					 cmd.run(partials.client)
+			   }),
+			   BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
+					 let (client, backend, _, _) = new_partial(&config, false)?;
+					 let db = backend.expose_db();
+					 let storage = backend.expose_storage();
+
+					 cmd.run(config, client, db, storage)
+			   }),
+			   BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+			   BenchmarkCmd::Machine(cmd) => {
+					 runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()))
+			   }
+	   }
+}
+Some(Subcommand::ExportGenesisState(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
@@ -262,11 +282,11 @@ pub fn run() -> sc_cli::Result<()> {
 				params.runtime.is_testing_runtime()
 			};
 
-			let spec = load_spec(&params.chain.clone().unwrap_or_default(), false)?;
+			let spec = load_spec(&params.chain.clone().unwrap_or_default(), is_testing_runtime)?;
 			let state_version = Cli::native_runtime_version(&spec).state_version();
 
 			let block: Block = generate_genesis_block(
-				&load_spec(&params.chain.clone().unwrap_or_default(), is_testing_runtime)?,
+				&*spec,
 				state_version,
 			)?;
 			let raw_header = block.header().encode();
@@ -354,17 +374,19 @@ pub fn run() -> sc_cli::Result<()> {
 
 				let id = ParaId::from(para_id);
 
-				let parachain_account = AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
+				let parachain_account = AccountIdConversion::<polkadot_primitives::v2::AccountId>::into_account_truncating(&id);
 
 				let state_version = Cli::native_runtime_version(&config.chain_spec).state_version();
 
 				let block: Block =
-					generate_genesis_block(&config.chain_spec, state_version).map_err(|e| format!("{:?}", e))?;
+					generate_genesis_block(&*config.chain_spec, state_version).map_err(|e| format!("{:?}", e))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
 				let task_executor = config.tokio_handle.clone();
 				let polkadot_config = SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
 					.map_err(|err| format!("Relay chain argument error: {}", err))?;
+
+				let collator_options = cli.run.base.collator_options();
 
 				info!("Parachain id: {:?}", para_id);
 				info!("Parachain Account: {}", parachain_account);
@@ -374,7 +396,7 @@ pub fn run() -> sc_cli::Result<()> {
 					if config.role.is_authority() { "yes" } else { "no" }
 				);
 
-				crate::service::start_node(config, polkadot_config, id)
+				crate::service::start_node(config, polkadot_config, collator_options, id)
 					.await
 					.map(|r| r.task_manager)
 					.map_err(Into::into)

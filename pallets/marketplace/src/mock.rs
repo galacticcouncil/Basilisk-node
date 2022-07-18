@@ -1,5 +1,5 @@
 use crate as pallet_marketplace;
-use frame_support::{parameter_types, traits::Everything};
+use frame_support::{parameter_types, traits::{Everything, AsEnsureOriginWithArg, NeverEnsureOrigin}};
 use frame_system as system;
 use primitives::nft::{ClassType, NftPermissions};
 use sp_core::{crypto::AccountId32, H256};
@@ -7,6 +7,7 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
+use sp_std::convert::{TryInto, TryFrom};
 use system::EnsureRoot;
 
 mod marketplace {
@@ -126,12 +127,12 @@ parameter_types! {
 
 impl pallet_uniques::Config for Test {
 	type Event = Event;
-	type ClassId = u32;
-	type InstanceId = u32;
+	type CollectionId = u32;
+	type ItemId = u32;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
-	type ClassDeposit = ClassDeposit;
-	type InstanceDeposit = InstanceDeposit;
+	type CollectionDeposit = ClassDeposit;
+	type ItemDeposit = InstanceDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
@@ -139,6 +140,10 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
+	type Locker = ();
+	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = ();
 }
 
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
@@ -148,12 +153,12 @@ pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 
 pub const UNITS: Balance = 100_000_000_000;
 
-pub const CLASS_ID_0: <Test as pallet_uniques::Config>::ClassId = 1000;
-pub const CLASS_ID_1: <Test as pallet_uniques::Config>::ClassId = 1001;
-pub const CLASS_ID_2: <Test as pallet_uniques::Config>::ClassId = 1002;
+pub const CLASS_ID_0: <Test as pallet_uniques::Config>::CollectionId = 1000;
+pub const CLASS_ID_1: <Test as pallet_uniques::Config>::CollectionId = 1001;
+pub const CLASS_ID_2: <Test as pallet_uniques::Config>::CollectionId = 1002;
 
-pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::InstanceId = 0;
-pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::InstanceId = 1;
+pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::ItemId = 0;
+pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::ItemId = 1;
 
 pub struct ExtBuilder;
 impl Default for ExtBuilder {

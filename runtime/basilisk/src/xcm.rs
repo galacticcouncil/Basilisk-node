@@ -7,6 +7,10 @@ use frame_support::{
 };
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
+use orml_traits::{
+	parameter_type_with_key,
+	location::AbsoluteReserveProvider
+};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::latest::prelude::*;
@@ -92,7 +96,7 @@ impl Config for XcmConfig {
 
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = XcmOriginToCallOrigin;
-	type IsReserve = MultiNativeAsset;
+	type IsReserve = MultiNativeAsset<AbsoluteReserveProvider>;
 
 	type IsTeleporter = (); // disabled
 	type LocationInverter = LocationInverter<Ancestry>;
@@ -139,12 +143,19 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 	type ControllerOrigin = crate::EnsureMajorityCouncilOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
+	type WeightInfo = ();
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+}
+
+parameter_type_with_key! {
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		None
+	};
 }
 
 impl orml_xtokens::Config for Runtime {
@@ -159,6 +170,9 @@ impl orml_xtokens::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type MultiLocationsFilter = Everything;
+	type ReserveProvider = AbsoluteReserveProvider;
+	type MinXcmFee = ParachainMinFee;
 }
 
 impl orml_unknown_tokens::Config for Runtime {
@@ -276,7 +290,7 @@ pub type LocationToAccountId = (
 
 parameter_types! {
 	// The account which receives multi-currency tokens from failed attempts to deposit them
-	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account();
+	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account_truncating();
 }
 
 pub type LocalAssetTransactor = MultiCurrencyAdapter<

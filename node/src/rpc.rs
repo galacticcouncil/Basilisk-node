@@ -7,8 +7,10 @@
 
 use std::sync::Arc;
 
-use basilisk_runtime::{opaque::Block, AccountId, AssetId, Balance, Index};
+use basilisk_runtime::{opaque::Block, AccountId, AssetId, Balance, Hash, Index};
+pub use sc_rpc::SubscriptionTaskExecutor;
 pub use sc_rpc_api::DenyUnsafe;
+use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
@@ -22,15 +24,17 @@ pub struct FullDeps<C, P> {
 	pub pool: Arc<P>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
+	/// Manual seal command sink
+	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 }
 
 /// RPC Extension Builder
-pub type RpcExtension = Result<jsonrpc_core::IoHandler<sc_rpc::Metadata>, sc_service::Error>;
+pub type RpcExtension = jsonrpsee::RpcModule<()>;
 
 /// Instantiate all full RPC extensions.
-pub fn create_full<C, P>(deps: FullDeps<C, P>) -> RpcExtension
+pub fn create_full<C, P>(deps: FullDeps<C, P>) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
 where
-	C: ProvideRuntimeApi<Block>,
+	C: ProvideRuntimeApi<Block> + sc_client_api::BlockBackend<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError>,
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
@@ -40,35 +44,35 @@ where
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
 {
-	use pallet_lbp_rpc::{LBPApi, LBP};
-	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
-	use pallet_xyk_rpc::{XYKApi, XYK};
-	use substrate_frame_rpc_system::{FullSystem, SystemApi};
+	use substrate_frame_rpc_system::{System, SystemApiServer};
+	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
+	use pallet_xyk_rpc::{XYK, XYKApiServer};
+	use pallet_lbp_rpc::{LBP, LBPApiServer};
 
-	let mut io = jsonrpc_core::IoHandler::default();
+	let mut module = RpcExtension::new(());
 	let FullDeps {
 		client,
 		pool,
 		deny_unsafe,
+		command_sink,
 	} = deps;
 
-	io.extend_with(SystemApi::to_delegate(FullSystem::new(
-		client.clone(),
-		pool,
-		deny_unsafe,
-	)));
+	if let Some(command_sink) = command_sink {
+        module.merge(
+            // We provide the rpc handler with the sending end of the channel to allow the rpc
+            // send EngineCommands to the background block authorship task.
+            ManualSeal::new(command_sink).into_rpc(),
+        )?;
+    }
 
-	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(
-		client.clone(),
-	)));
+	module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
+	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 
 	// Extend this RPC with a custom API by using the following syntax.
 	// `YourRpcStruct` should have a reference to a client, which is needed
 	// to call into the runtime.
-	// `io.extend_with(YourRpcTrait::to_delegate(YourRpcStruct::new(ReferenceToClient, ...)));`
+	module.merge(XYK::new(client.clone()).into_rpc())?;
+	module.merge(LBP::new(client).into_rpc())?;
 
-	io.extend_with(XYKApi::to_delegate(XYK::new(client.clone())));
-	io.extend_with(LBPApi::to_delegate(LBP::new(client)));
-
-	Ok(io)
+	Ok(module)
 }

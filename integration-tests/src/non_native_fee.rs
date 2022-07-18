@@ -15,7 +15,7 @@ use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, Origin, To
 use hydradx_traits::{pools::SpotPriceProvider, AMM};
 use orml_traits::currency::MultiCurrency;
 use pallet_xyk::XYKSpotPrice;
-use polkadot_primitives::v1::BlockNumber;
+use polkadot_primitives::v2::BlockNumber;
 use primitives::asset::AssetPair;
 use xcm_emulator::TestExt;
 
