@@ -218,7 +218,9 @@ benchmarks! {
 	} verify {
 		assert_last_event::<T>(Event::<T>::GlobalFarmDestroyed {
 			who: caller.clone(),
-			global_farm_id: GLOBAL_FARM_ID
+			global_farm_id: GLOBAL_FARM_ID,
+			reward_currency: 0,
+			undistributed_rewards: 1_000_000_000_000_000_000
 		}.into());
 	}
 
