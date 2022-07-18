@@ -198,7 +198,7 @@ pub mod pallet {
 			yield_farm_id: YieldFarmId,
 			multiplier: FarmMultiplier,
 			asset_pair: AssetPair,
-			loyalty_curve: Option<warehouse_liquidity_mining::LoyaltyCurve>,
+			loyalty_curve: Option<LoyaltyCurve>,
 		},
 
 		/// Global farm was destroyed.
