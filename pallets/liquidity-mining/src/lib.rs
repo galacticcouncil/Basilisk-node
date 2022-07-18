@@ -488,7 +488,6 @@ pub mod pallet {
 		pub fn stop_yield_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId, asset_pair: AssetPair) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
 			let yield_farm_id = T::LiquidityMiningHandler::stop_yield_farm(who.clone(), global_farm_id, amm_pool_id)?;
@@ -576,7 +575,6 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
-			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
 			T::LiquidityMiningHandler::destroy_yield_farm(who.clone(), global_farm_id, yield_farm_id, amm_pool_id)?;
