@@ -117,7 +117,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 67,
+	spec_version: 68,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -750,7 +750,7 @@ impl EnsureOrigin<Origin> for VestingOrRoot {
 		Into::<Result<RawOrigin<AccountId>, Origin>>::into(o).and_then(|o| match o {
 			RawOrigin::Root => Ok(VestingPalletId::get().into_account()),
 			RawOrigin::Signed(caller) => {
-				if caller == VestingPalletId::get().into_account() || caller == TreasuryPalletId::get().into_account() {
+				if caller == VestingPalletId::get().into_account() {
 					Ok(caller)
 				} else {
 					Err(Origin::from(Some(caller)))

@@ -34,22 +34,6 @@ fn vested_transfer_should_work_when_signed_by_vesting_account() {
 }
 
 #[test]
-fn vested_transfer_should_work_when_signed_by_treasury_account() {
-	new_test_ext().execute_with(|| {
-		let from: AccountId = TreasuryPalletId::get().into_account();
-		let to: AccountId = BOB;
-
-		let vesting_schedule = schedule_object();
-
-		assert_ok!(Vesting::vested_transfer(
-			RawOrigin::Signed(from).into(),
-			to,
-			vesting_schedule
-		));
-	});
-}
-
-#[test]
 fn vested_transfer_should_work_when_sent_from_root() {
 	new_test_ext().execute_with(|| {
 		let to: AccountId = BOB;
