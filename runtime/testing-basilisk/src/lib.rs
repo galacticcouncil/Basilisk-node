@@ -24,6 +24,8 @@
 #![allow(clippy::from_over_into)]
 
 #[cfg(test)]
+mod mock;
+#[cfg(test)]
 mod tests;
 
 // Make the WASM binary available.
