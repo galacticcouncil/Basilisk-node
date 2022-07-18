@@ -80,3 +80,18 @@ fn update_yield_farm_should_fail_when_caller_is_not_signed() {
 		);
 	});
 }
+
+#[test]
+fn update_yield_farm_should_fail_when_amm_pool_does_not_exist() {
+	let unknown_asset_pair: AssetPair = AssetPair {
+		asset_in: 9999,
+		asset_out: 19999,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::update_yield_farm(Origin::signed(GC), GC_FARM, unknown_asset_pair, FixedU128::from(10_001)),
+			Error::<Test>::AmmPoolDoesNotExist
+		);
+	});
+}

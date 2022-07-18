@@ -84,19 +84,31 @@ fn resume_yield_farm_should_work() {
 }
 
 #[test]
-fn resume_yield_farm_should_fail_with_propagated_error_when_farm_does_not_exist() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		let new_multiplier = FixedU128::from(7_490_000);
+fn resume_yield_farm_should_fail_when_amm_pool_does_not_exist() {
+	let unknown_asset_pair: AssetPair = AssetPair {
+		asset_in: 9999,
+		asset_out: 19999,
+	};
 
+	predefined_test_ext_with_deposits().execute_with(|| {
+		//Arrange
+		assert_ok!(LiquidityMining::stop_yield_farm(
+			Origin::signed(GC),
+			GC_FARM,
+			BSX_TKN1_ASSET_PAIR
+		));
+		set_block_number(13_420_000);
+
+		//Act and assert
 		assert_noop!(
 			LiquidityMining::resume_yield_farm(
-				Origin::signed(GC),
-				GC_FARM,
-				BSX_TKN1_YIELD_FARM_ID,
-				BSX_KSM_ASSET_PAIR,
-				new_multiplier
+			Origin::signed(GC),
+			GC_FARM,
+			BSX_TKN1_YIELD_FARM_ID,
+			unknown_asset_pair,
+			FixedU128::from(7_490_000)
 			),
-			warehouse_liquidity_mining::Error::<Test, Instance1>::YieldFarmNotFound
+			Error::<Test>::AmmPoolDoesNotExist
 		);
 	});
 }
@@ -104,15 +116,13 @@ fn resume_yield_farm_should_fail_with_propagated_error_when_farm_does_not_exist(
 #[test]
 fn resume_yield_farm_should_fail_when_caller_is_not_signed() {
 	predefined_test_ext_with_deposits().execute_with(|| {
-		let new_multiplier = FixedU128::from(7_490_000);
-
 		assert_noop!(
 			LiquidityMining::resume_yield_farm(
 				Origin::none(),
 				GC_FARM,
 				BSX_TKN1_YIELD_FARM_ID,
 				BSX_KSM_ASSET_PAIR,
-				new_multiplier
+				FixedU128::from(7_490_000)
 			),
 			BadOrigin
 		);

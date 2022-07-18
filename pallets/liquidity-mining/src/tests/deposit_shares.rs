@@ -123,6 +123,21 @@ fn deposit_shares_should_fail_when_called_by_noy_signed_user() {
 	});
 }
 
+#[test]
+fn deposit_shares_should_fail_when_amm_pool_does_not_exist() {
+	let unknown_asset_pair: AssetPair = AssetPair {
+		asset_in: 9999,
+		asset_out: 19999,
+	};
+
+	predefined_test_ext_with_deposits().execute_with(|| {
+		assert_noop!(
+			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, BSX_TKN1_YIELD_FARM_ID, unknown_asset_pair, 50),
+			Error::<Test>::AmmPoolDoesNotExist
+		);
+	});
+}
+
 fn assert_that_the_number_of_minted_nfts_is_equal_to(number_of_nfts: usize) {
 	mock::DEPOSITS.borrow().with(|v| {
 		let keys = v.borrow().keys().len();
