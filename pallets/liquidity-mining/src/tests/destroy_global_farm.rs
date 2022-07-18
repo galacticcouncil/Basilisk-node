@@ -21,14 +21,14 @@ use test_ext::*;
 #[test]
 fn destroy_global_farm_should_work() {
 	predefined_test_ext().execute_with(|| {
-		transfer_all_rewards_from_farm_account(BOB_FARM);
-
 		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(BOB), BOB_FARM));
 
 		assert!(WarehouseLM::global_farm(BOB_FARM).is_none());
 		expect_events(vec![mock::Event::LiquidityMining(Event::GlobalFarmDestroyed {
 			global_farm_id: BOB_FARM,
 			who: BOB,
+			reward_currency: KSM,
+			undistributed_rewards: BOB_GLOBAL_FARM_TOTAL_REWARDS,
 		})]);
 	});
 }
@@ -36,8 +36,6 @@ fn destroy_global_farm_should_work() {
 #[test]
 fn destroy_global_farm_should_fail_when_origin_is_not_signed() {
 	predefined_test_ext().execute_with(|| {
-		transfer_all_rewards_from_farm_account(BOB_FARM);
-
 		assert_noop!(
 			LiquidityMining::destroy_global_farm(mock::Origin::none(), BOB_FARM),
 			BadOrigin
@@ -52,27 +50,9 @@ fn destroy_global_farm_should_fail_with_propagated_error_when_farm_does_not_exis
 	const NON_EXISTING_FARM: u32 = 999_999_999;
 
 	predefined_test_ext().execute_with(|| {
-		transfer_all_rewards_from_farm_account(BOB_FARM);
-
 		assert_noop!(
 			LiquidityMining::destroy_global_farm(Origin::signed(BOB), NON_EXISTING_FARM),
 			warehouse_liquidity_mining::Error::<Test, Instance1>::GlobalFarmNotFound
 		);
 	});
-}
-
-fn transfer_all_rewards_from_farm_account(farm_account: u32) -> u128 {
-	let farm_account = WarehouseLM::farm_account_id(farm_account).unwrap();
-	let _ = Tokens::transfer_all(
-		Origin::signed(farm_account),
-		TREASURY,
-		PREDEFINED_GLOBAL_FARMS[1].reward_currency,
-		false,
-	);
-	assert_eq!(
-		Tokens::free_balance(PREDEFINED_GLOBAL_FARMS[1].reward_currency, &farm_account),
-		0
-	);
-
-	farm_account
 }

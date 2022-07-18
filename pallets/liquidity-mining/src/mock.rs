@@ -55,6 +55,7 @@ pub const GC: AccountId = 8;
 pub const PALLET_SERVICE_ACCOUNT: AccountId = 29533360621462889584138678125;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
+pub const BOB_GLOBAL_FARM_TOTAL_REWARDS: u128 = 1_000_000_000;
 
 pub const BSX_ACA_SHARE_ID: AssetId = 100;
 pub const BSX_KSM_SHARE_ID: AssetId = 101;

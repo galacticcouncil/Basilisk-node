@@ -202,7 +202,12 @@ pub mod pallet {
 		},
 
 		/// Global farm was destroyed.
-		GlobalFarmDestroyed { global_farm_id: GlobalFarmId, who: AccountIdOf<T> },
+		GlobalFarmDestroyed {
+			global_farm_id: GlobalFarmId,
+			who: AccountIdOf<T>,
+			reward_currency: AssetId,
+			undistributed_rewards: Balance,
+		},
 
 		/// New LP tokens was deposited.
 		SharesDeposited {
@@ -367,9 +372,9 @@ pub mod pallet {
 		pub fn destroy_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			T::LiquidityMiningHandler::destroy_global_farm(who.clone(), global_farm_id)?;
+			let (reward_currency, undistributed_rewards, who) = T::LiquidityMiningHandler::destroy_global_farm(who.clone(), global_farm_id)?;
 
-			Self::deposit_event(Event::GlobalFarmDestroyed { global_farm_id, who });
+			Self::deposit_event(Event::GlobalFarmDestroyed { global_farm_id, who,reward_currency, undistributed_rewards });
 			Ok(())
 		}
 

@@ -48,7 +48,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
-			1_000_000_000,
+			BOB_GLOBAL_FARM_TOTAL_REWARDS,
 			PREDEFINED_GLOBAL_FARMS[1].planned_yielding_periods,
 			PREDEFINED_GLOBAL_FARMS[1].blocks_per_period,
 			PREDEFINED_GLOBAL_FARMS[1].incentivized_asset,
