@@ -415,7 +415,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "6.0.0"
+version = "6.4.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "43.0.0"
+version = "62.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -515,11 +515,9 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "getrandom 0.2.5",
- "hash-db",
  "hex-literal",
+ "hydradx-adapters",
  "hydradx-traits",
- "memory-db 0.27.0",
  "orml-benchmarking",
  "orml-currencies",
  "orml-tokens",
@@ -541,11 +539,11 @@ dependencies = [
  "pallet-elections-phragmen",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
+ "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining",
- "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
+ "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
@@ -558,6 +556,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-multi-payment",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
@@ -590,8 +589,6 @@ dependencies = [
  "sp-version",
  "substrate-build-script-utils",
  "substrate-wasm-builder",
- "tracing-core",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-executor",
@@ -710,6 +707,21 @@ dependencies = [
  "rustc-hash",
  "shlex",
 ]
+
+[[package]]
+name = "bit-set"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e11e16035ea35e4e5997b393eacbf6f63983188f7a2ad25bfb13465f5ad59de"
+dependencies = [
+ "bit-vec",
+]
+
+[[package]]
+name = "bit-vec"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
 
 [[package]]
 name = "bitflags"
@@ -1282,7 +1294,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.7.2"
+version = "1.9.8"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -1304,6 +1316,7 @@ dependencies = [
  "pallet-scheduler",
  "pallet-timestamp",
  "pallet-transaction-multi-payment",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-utility",
@@ -2901,10 +2914,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d39cd93900197114fa1fcb7ae84ca742095eed9442088988ae74fa744e930e77"
 dependencies = [
  "cfg-if 1.0.0",
- "js-sys",
  "libc",
  "wasi 0.10.0+wasi-snapshot-preview1",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -3186,20 +3197,37 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4009ee334bd759322746adb417e40b7ae7f5adac5ea016c9ba0a91f5c65c847d"
+version = "4.5.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1cd815cbce846a42d351db3778ff9c07149a6ad2#1cd815cbce846a42d351db3778ff9c07149a6ad2"
 dependencies = [
  "fixed",
- "lazy_static",
  "num-traits",
+ "parity-scale-codec",
  "primitive-types 0.8.0",
+ "sp-arithmetic",
+]
+
+[[package]]
+name = "hydradx-adapters"
+version = "0.1.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
+dependencies = [
+ "frame-support",
+ "hydradx-traits",
+ "log",
+ "pallet-transaction-multi-payment",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
 ]
 
 [[package]]
 name = "hydradx-traits"
-version = "0.5.1"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=d0c99033c5d1f686a31cc311b8d96af2a3de9d76#d0c99033c5d1f686a31cc311b8d96af2a3de9d76"
+version = "0.6.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -4549,9 +4577,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.14"
+version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
+checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
 dependencies = [
  "cfg-if 1.0.0",
  "value-bag",
@@ -4680,17 +4708,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "memory-db"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de006e09d04fc301a5f7e817b75aa49801c4479a8af753764416b085337ddcc5"
-dependencies = [
- "hash-db",
- "hashbrown 0.11.2",
- "parity-util-mem",
 ]
 
 [[package]]
@@ -5158,7 +5175,7 @@ dependencies = [
 [[package]]
 name = "orml-benchmarking"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5178,12 +5195,12 @@ dependencies = [
 [[package]]
 name = "orml-currencies"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
  "orml-traits",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38)",
+ "orml-utilities",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -5195,7 +5212,7 @@ dependencies = [
 [[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5210,12 +5227,12 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
  "num-traits",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38)",
+ "orml-utilities",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -5228,7 +5245,7 @@ dependencies = [
 [[package]]
 name = "orml-unknown-tokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5243,20 +5260,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=63b32194e7b9aff6a6350d2d4434525de4eec7c1#63b32194e7b9aff6a6350d2d4434525de4eec7c1"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "orml-utilities"
-version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5270,7 +5274,7 @@ dependencies = [
 [[package]]
 name = "orml-vesting"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5285,7 +5289,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5299,7 +5303,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -5313,7 +5317,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38#aac79b3b31953381669a2ffa9b3e9bfe48e87f38"
+source = "git+https://github.com/apopiak/open-runtime-module-library?branch=apopiak/on-new-account-9-17#40965a8e35ab37edcc7f07031b0cc2391fafed2f"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -5350,27 +5354,24 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "1.1.10"
+version = "1.3.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "frame-system-benchmarking",
  "hydradx-traits",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
- "primitives",
  "scale-info",
  "serde",
  "sp-api",
  "sp-arithmetic",
  "sp-core",
- "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
- "xcm",
 ]
 
 [[package]]
@@ -5380,7 +5381,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=63b32194e7b9aff6a6350d2d4434525de4eec7c1)",
+ "orml-utilities",
  "pallet-balances",
  "pallet-nft",
  "pallet-uniques",
@@ -5674,7 +5675,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "2.2.5"
+version = "2.3.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5739,7 +5740,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.2.7"
+version = "5.3.7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5763,7 +5764,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.9"
+version = "3.3.16"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5784,23 +5785,6 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
-]
-
-[[package]]
-name = "pallet-faucet"
-version = "0.1.1"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=d0c99033c5d1f686a31cc311b8d96af2a3de9d76#d0c99033c5d1f686a31cc311b8d96af2a3de9d76"
-dependencies = [
- "frame-support",
- "frame-system",
- "orml-tokens",
- "orml-traits",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -5896,7 +5880,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.3.3"
+version = "4.4.6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5948,66 +5932,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-liquidity-mining"
-version = "1.0.1"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydradx-traits",
- "orml-currencies",
- "orml-tokens",
- "orml-traits",
- "pallet-balances",
- "pallet-nft",
- "pallet-uniques",
- "parity-scale-codec",
- "primitives",
- "scale-info",
- "serde",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-liquidity-mining-benchmarking"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "hydradx-traits",
- "orml-currencies",
- "orml-tokens",
- "orml-traits",
- "pallet-asset-registry",
- "pallet-balances",
- "pallet-liquidity-mining",
- "pallet-nft",
- "pallet-uniques",
- "pallet-xyk",
- "parity-scale-codec",
- "primitives",
- "scale-info",
- "serde",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-marketplace"
-version = "1.0.0"
+version = "1.4.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=63b32194e7b9aff6a6350d2d4434525de4eec7c1)",
+ "orml-utilities",
  "pallet-balances",
  "pallet-nft",
  "pallet-uniques",
@@ -6106,20 +6037,17 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "2.2.2"
+version = "2.5.1"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38)",
- "pallet-balances",
+ "orml-utilities",
  "pallet-uniques",
  "parity-scale-codec",
- "primitives",
  "scale-info",
  "serde",
- "sp-core",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -6196,8 +6124,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-price-oracle"
-version = "0.2.2"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=d0c99033c5d1f686a31cc311b8d96af2a3de9d76#d0c99033c5d1f686a31cc311b8d96af2a3de9d76"
+version = "0.3.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6255,8 +6183,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-relaychain-info"
-version = "0.2.1"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=d0c99033c5d1f686a31cc311b8d96af2a3de9d76#d0c99033c5d1f686a31cc311b8d96af2a3de9d76"
+version = "0.3.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6431,8 +6359,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "7.0.2"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=d0c99033c5d1f686a31cc311b8d96af2a3de9d76#d0c99033c5d1f686a31cc311b8d96af2a3de9d76"
+version = "8.0.1"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6443,6 +6371,20 @@ dependencies = [
  "scale-info",
  "sp-api",
  "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-transaction-pause"
+version = "0.1.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=7d66f48e26a5b529554b1b93cf6bb4944f170c1b#7d66f48e26a5b529554b1b93cf6bb4944f170c1b"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
  "sp-runtime",
  "sp-std",
 ]
@@ -6592,7 +6534,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "3.4.6"
+version = "4.0.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6602,11 +6544,12 @@ dependencies = [
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
- "orml-utilities 0.4.1-dev (git+https://github.com/open-web3-stack/open-runtime-module-library?rev=aac79b3b31953381669a2ffa9b3e9bfe48e87f38)",
+ "orml-utilities",
  "pallet-asset-registry",
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "primitives",
+ "proptest",
  "scale-info",
  "serde",
  "sp-api",
@@ -8212,10 +8155,11 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.1.8"
+version = "6.2.2"
 dependencies = [
  "frame-support",
  "frame-system",
+ "pallet-nft",
  "parity-scale-codec",
  "primitive-types 0.10.1",
  "scale-info",
@@ -8291,6 +8235,26 @@ dependencies = [
  "memchr",
  "parking_lot 0.11.2",
  "thiserror",
+]
+
+[[package]]
+name = "proptest"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e0d9cc07f18492d879586c92b485def06bc850da3118075cd45d50e9c95b0e5"
+dependencies = [
+ "bit-set",
+ "bitflags",
+ "byteorder",
+ "lazy_static",
+ "num-traits",
+ "quick-error 2.0.1",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "rand_xorshift",
+ "regex-syntax",
+ "rusty-fork",
+ "tempfile",
 ]
 
 [[package]]
@@ -8482,6 +8446,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16abd0c1b639e9eb4d7c50c0b8100b0d0f849be2349829c740fe8e6eb4816429"
 dependencies = [
  "rand_core 0.5.1",
+]
+
+[[package]]
+name = "rand_xorshift"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d25bf25ec5ae4a3f1b92f929810509a2f53d7dca2f50b794ff57e3face536c8f"
+dependencies = [
+ "rand_core 0.6.3",
 ]
 
 [[package]]
@@ -8789,7 +8762,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.2.10"
+version = "0.3.5"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8807,13 +8780,8 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
- "getrandom 0.2.5",
- "hash-db",
- "hex-literal",
- "hydra-dx-math",
  "hydradx-traits",
  "kusama-runtime",
- "memory-db 0.27.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -8850,13 +8818,10 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
- "parity-scale-codec",
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
  "primitives",
- "serde",
- "smallvec",
  "sp-api",
  "sp-block-builder",
  "sp-consensus-aura",
@@ -8872,8 +8837,6 @@ dependencies = [
  "sp-transaction-pool",
  "sp-trie",
  "sp-version",
- "tracing-core",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-emulator",
@@ -9002,6 +8965,18 @@ name = "rustversion"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2cc38e8fa666e2de3c4aba7edeb5ffc5246c1c2ed0e3d17e560aeeba736b23f"
+
+[[package]]
+name = "rusty-fork"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb3dcc6e454c328bb824492db107ab7c0ae8fcffe4ad210136ef014458c1bc4f"
+dependencies = [
+ "fnv",
+ "quick-error 1.2.3",
+ "tempfile",
+ "wait-timeout",
+]
 
 [[package]]
 name = "rw-stream-sink"
@@ -10957,7 +10932,7 @@ dependencies = [
  "sp-trie",
  "thiserror",
  "tracing",
- "trie-db 0.23.1",
+ "trie-db",
  "trie-root",
 ]
 
@@ -11051,12 +11026,12 @@ version = "5.0.0"
 source = "git+https://github.com/paritytech//substrate?rev=22d40c761a985482f93bbbea5ba4199bdba74f8e#22d40c761a985482f93bbbea5ba4199bdba74f8e"
 dependencies = [
  "hash-db",
- "memory-db 0.28.0",
+ "memory-db",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
  "sp-std",
- "trie-db 0.23.1",
+ "trie-db",
  "trie-root",
 ]
 
@@ -11338,7 +11313,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "43.0.0"
+version = "62.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11357,11 +11332,9 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "getrandom 0.2.5",
- "hash-db",
  "hex-literal",
+ "hydradx-adapters",
  "hydradx-traits",
- "memory-db 0.27.0",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -11382,12 +11355,11 @@ dependencies = [
  "pallet-elections-phragmen",
  "pallet-exchange",
  "pallet-exchange-benchmarking",
- "pallet-faucet",
+ "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
- "pallet-liquidity-mining",
- "pallet-liquidity-mining-benchmarking",
  "pallet-marketplace",
+ "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
@@ -11432,8 +11404,6 @@ dependencies = [
  "sp-version",
  "substrate-build-script-utils",
  "substrate-wasm-builder",
- "tracing-core",
- "trie-db 0.22.6",
  "xcm",
  "xcm-builder",
  "xcm-executor",
@@ -11732,18 +11702,6 @@ dependencies = [
 
 [[package]]
 name = "trie-db"
-version = "0.22.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9eac131e334e81b6b3be07399482042838adcd7957aa0010231d0813e39e02fa"
-dependencies = [
- "hash-db",
- "hashbrown 0.11.2",
- "log",
- "smallvec",
-]
-
-[[package]]
-name = "trie-db"
 version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d32d034c0d3db64b43c31de38e945f15b40cd4ca6d2dcfc26d4798ce8de4ab83"
@@ -11992,9 +11950,9 @@ checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 
 [[package]]
 name = "value-bag"
-version = "1.0.0-alpha.8"
+version = "1.0.0-alpha.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79923f7731dc61ebfba3633098bf3ac533bbd35ccd8c57e7088d9a5eebe0263f"
+checksum = "2209b78d1249f7e6f3293657c9779fe31ced465df091bbd433a1cf88e916ec55"
 dependencies = [
  "ctor",
  "version_check",
@@ -12017,6 +11975,15 @@ name = "void"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
+
+[[package]]
+name = "wait-timeout"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f200f5b12eb75f8c1ed65abd4b2db8a6e1b138a20de009dacee265a2498f3f6"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "waker-fn"

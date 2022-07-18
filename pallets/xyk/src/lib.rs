@@ -40,9 +40,6 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::Amount;
 
 #[cfg(test)]
-mod mock;
-
-#[cfg(test)]
 mod tests;
 
 mod benchmarking;
@@ -115,6 +112,9 @@ pub mod pallet {
 
 		/// AMM handlers
 		type AMMHandler: OnCreatePoolHandler<AssetId> + OnTradeHandler<AssetId, Balance>;
+
+		/// Discounted fee
+		type DiscountedFee: Get<(u32, u32)>;
 	}
 
 	#[pallet::error]
@@ -194,41 +194,65 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// New liquidity was provided to the pool. [who, asset a, asset b, amount a, amount b]
-		LiquidityAdded(T::AccountId, AssetId, AssetId, Balance, Balance),
+		/// New liquidity was provided to the pool.
+		LiquidityAdded {
+			who: T::AccountId,
+			asset_a: AssetId,
+			asset_b: AssetId,
+			amount_a: Balance,
+			amount_b: Balance,
+		},
 
-		/// Liquidity was removed from the pool. [who, asset a, asset b, shares]
-		LiquidityRemoved(T::AccountId, AssetId, AssetId, Balance),
+		/// Liquidity was removed from the pool.
+		LiquidityRemoved {
+			who: T::AccountId,
+			asset_a: AssetId,
+			asset_b: AssetId,
+			shares: Balance,
+		},
 
-		/// Pool was created. [who, asset a, asset b, initial shares amount, share token, pool account id]
-		PoolCreated(T::AccountId, AssetId, AssetId, Balance, AssetId, T::AccountId),
+		/// Pool was created.
+		PoolCreated {
+			who: T::AccountId,
+			asset_a: AssetId,
+			asset_b: AssetId,
+			initial_shares_amount: Balance,
+			share_token: AssetId,
+			pool: T::AccountId,
+		},
 
-		/// Pool was destroyed. [who, asset a, asset b, share token, pool account id]
-		PoolDestroyed(T::AccountId, AssetId, AssetId, AssetId, T::AccountId),
+		/// Pool was destroyed.
+		PoolDestroyed {
+			who: T::AccountId,
+			asset_a: AssetId,
+			asset_b: AssetId,
+			share_token: AssetId,
+			pool: T::AccountId,
+		},
 
-		/// Asset sale executed. [who, asset in, asset out, amount, sale price, fee asset, fee amount, pool account id]
-		SellExecuted(
-			T::AccountId,
-			AssetId,
-			AssetId,
-			Balance,
-			Balance,
-			AssetId,
-			Balance,
-			T::AccountId,
-		),
+		/// Asset sale executed.
+		SellExecuted {
+			who: T::AccountId,
+			asset_in: AssetId,
+			asset_out: AssetId,
+			amount: Balance,
+			sale_price: Balance,
+			fee_asset: AssetId,
+			fee_amount: Balance,
+			pool: T::AccountId,
+		},
 
-		/// Asset purchase executed. [who, asset out, asset in, amount, buy price, fee asset, fee amount]
-		BuyExecuted(
-			T::AccountId,
-			AssetId,
-			AssetId,
-			Balance,
-			Balance,
-			AssetId,
-			Balance,
-			T::AccountId,
-		),
+		/// Asset purchase executed.
+		BuyExecuted {
+			who: T::AccountId,
+			asset_out: AssetId,
+			asset_in: AssetId,
+			amount: Balance,
+			buy_price: Balance,
+			fee_asset: AssetId,
+			fee_amount: Balance,
+			pool: T::AccountId,
+		},
 	}
 
 	/// Asset id storage for shared pool tokens
@@ -276,7 +300,7 @@ pub mod pallet {
 
 			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
 
-			ensure!(!(initial_price == Price::zero()), Error::<T>::ZeroInitialPrice);
+			ensure!(initial_price != Price::zero(), Error::<T>::ZeroInitialPrice);
 
 			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
 
@@ -323,14 +347,14 @@ pub mod pallet {
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
 
-			Self::deposit_event(Event::PoolCreated(
-				who.clone(),
+			Self::deposit_event(Event::PoolCreated {
+				who: who.clone(),
 				asset_a,
 				asset_b,
-				shares_added,
+				initial_shares_amount: shares_added,
 				share_token,
-				pair_account.clone(),
-			));
+				pool: pair_account.clone(),
+			});
 
 			T::Currency::transfer(asset_a, &who, &pair_account, amount)?;
 			T::Currency::transfer(asset_b, &who, &pair_account, asset_b_amount)?;
@@ -390,18 +414,15 @@ pub mod pallet {
 
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
-			let total_liquidity = Self::total_liquidity(&pair_account);
+			let share_issuance = Self::total_liquidity(&pair_account);
 
-			let amount_b_required =
-				hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
-					.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
+			let amount_b = hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
+				.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
 
-			let shares_added = if asset_a < asset_b { amount_a } else { amount_b_required };
+			ensure!(amount_b <= amount_b_max_limit, Error::<T>::AssetAmountExceededLimit);
 
-			ensure!(
-				amount_b_required <= amount_b_max_limit,
-				Error::<T>::AssetAmountExceededLimit
-			);
+			let shares_added = hydra_dx_math::xyk::calculate_shares(asset_a_reserve, amount_a, share_issuance)
+				.ok_or(Error::<T>::Overflow)?;
 
 			ensure!(!shares_added.is_zero(), Error::<T>::InvalidMintedLiquidity);
 
@@ -414,24 +435,24 @@ pub mod pallet {
 				Error::<T>::InsufficientLiquidity
 			);
 
-			let liquidity_amount = total_liquidity
+			let liquidity_amount = share_issuance
 				.checked_add(shares_added)
 				.ok_or(Error::<T>::InvalidLiquidityAmount)?;
 
 			T::Currency::transfer(asset_a, &who, &pair_account, amount_a)?;
-			T::Currency::transfer(asset_b, &who, &pair_account, amount_b_required)?;
+			T::Currency::transfer(asset_b, &who, &pair_account, amount_b)?;
 
 			T::Currency::deposit(share_token, &who, shares_added)?;
 
 			<TotalLiquidity<T>>::insert(&pair_account, liquidity_amount);
 
-			Self::deposit_event(Event::LiquidityAdded(
+			Self::deposit_event(Event::LiquidityAdded {
 				who,
 				asset_a,
 				asset_b,
 				amount_a,
-				amount_b_required,
-			));
+				amount_b,
+			});
 
 			Ok(())
 		}
@@ -513,14 +534,25 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, liquidity_left);
 
-			Self::deposit_event(Event::LiquidityRemoved(who.clone(), asset_a, asset_b, liquidity_amount));
+			Self::deposit_event(Event::LiquidityRemoved {
+				who: who.clone(),
+				asset_a,
+				asset_b,
+				shares: liquidity_amount,
+			});
 
 			if liquidity_left == 0 {
 				<ShareToken<T>>::remove(&pair_account);
 				<PoolAssets<T>>::remove(&pair_account);
 				<TotalLiquidity<T>>::remove(&pair_account);
 
-				Self::deposit_event(Event::PoolDestroyed(who, asset_a, asset_b, share_token, pair_account));
+				Self::deposit_event(Event::PoolDestroyed {
+					who,
+					asset_a,
+					asset_b,
+					share_token,
+					pool: pair_account,
+				});
 			}
 
 			Ok(())
@@ -590,7 +622,7 @@ impl<T: Config> Pallet<T> {
 	/// Calculate discounted trade fee
 	fn calculate_discounted_fee(amount: Balance) -> Result<Balance, DispatchError> {
 		Ok(
-			hydra_dx_math::fee::calculate_pool_trade_fee(amount, (7, 10_000)) // 0.07%
+			hydra_dx_math::fee::calculate_pool_trade_fee(amount, T::DiscountedFee::get())
 				.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?,
 		)
 	}
@@ -779,16 +811,16 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_out,
 		)?;
 
-		Self::deposit_event(Event::<T>::SellExecuted(
-			transfer.origin.clone(),
-			transfer.assets.asset_in,
-			transfer.assets.asset_out,
-			transfer.amount,
-			transfer.amount_out,
-			transfer.fee.0,
-			transfer.fee.1,
-			pair_account,
-		));
+		Self::deposit_event(Event::<T>::SellExecuted {
+			who: transfer.origin.clone(),
+			asset_in: transfer.assets.asset_in,
+			asset_out: transfer.assets.asset_out,
+			amount: transfer.amount,
+			sale_price: transfer.amount_out,
+			fee_asset: transfer.fee.0,
+			fee_amount: transfer.fee.1,
+			pool: pair_account,
+		});
 
 		Ok(())
 	}
@@ -928,16 +960,16 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_out + transfer.fee.1,
 		)?;
 
-		Self::deposit_event(Event::<T>::BuyExecuted(
-			transfer.origin.clone(),
-			transfer.assets.asset_out,
-			transfer.assets.asset_in,
-			transfer.amount,
-			transfer.amount_out,
-			transfer.fee.0,
-			transfer.fee.1,
-			pair_account,
-		));
+		Self::deposit_event(Event::<T>::BuyExecuted {
+			who: transfer.origin.clone(),
+			asset_out: transfer.assets.asset_out,
+			asset_in: transfer.assets.asset_in,
+			amount: transfer.amount,
+			buy_price: transfer.amount_out,
+			fee_asset: transfer.fee.0,
+			fee_amount: transfer.fee.1,
+			pool: pair_account,
+		});
 
 		Ok(())
 	}

@@ -34,6 +34,8 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 
 #[test]
 fn non_native_fee_payment_works() {
+	use pallet_transaction_multi_payment::TransactionMultiPaymentDataProvider;
+
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -49,7 +51,7 @@ fn non_native_fee_payment_works() {
 		let bob_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB));
 
 		// 462_676_500_000 (~0.46 UNITS) spent on fee
-		assert_eq!(bob_balance, 999_537_323_500_000);
+		assert_eq!(bob_balance, 999_493_284_500_000);
 
 		let pair_account = basilisk_runtime::XYK::get_pair_id(AssetPair {
 			asset_in: currency_0,
@@ -107,19 +109,22 @@ fn non_native_fee_payment_works() {
 		));
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(DAVE));
-		let expected_diff = 197_453_601_724;
-		assert_eq!(dave_balance, bob_balance + expected_diff);
+		assert_eq!(dave_balance, 999_709_532_354_655);
 
 		expect_basilisk_events(vec![
-			pallet_transaction_multi_payment::Event::FeeWithdrawn(
-				DAVE.into(),
-				1,
-				462_676_500_000,
-				265_222_898_276,
-				FALLBACK.into(),
-			)
+			pallet_transaction_multi_payment::Event::FeeWithdrawn {
+				account_id: DAVE.into(),
+				asset_id: 1,
+				native_fee_amount: 506_715_500_000,
+				non_native_fee_amount: 290_467_645_345,
+				destination_account_id: basilisk_runtime::MultiTransactionPayment::get_fee_receiver(),
+			}
 			.into(),
-			pallet_transaction_multi_payment::Event::CurrencySet(DAVE.into(), 1).into(),
+			pallet_transaction_multi_payment::Event::CurrencySet {
+				account_id: DAVE.into(),
+				asset_id: 1,
+			}
+			.into(),
 		]);
 
 		basilisk_run_to_block(11);
@@ -137,6 +142,52 @@ fn non_native_fee_payment_works() {
 				avg_price: Price::from_inner(535331905781590000),
 				volume: 35_331_905_781_585
 			}
+		);
+	});
+}
+
+#[test]
+fn fee_currency_on_account_lifecycle() {
+	TestNet::reset();
+
+	const HITCHHIKER: [u8; 32] = [42u8; 32];
+
+	Basilisk::execute_with(|| {
+		use basilisk_runtime::{Currencies, MultiTransactionPayment, Origin, Tokens};
+
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
+		);
+
+		// ------------ set on create ------------
+		assert_ok!(Currencies::transfer(
+			Origin::signed(BOB.into()),
+			HITCHHIKER.into(),
+			1,
+			50_000_000_000_000,
+		));
+
+		assert_eq!(
+			Tokens::free_balance(1, &AccountId::from(HITCHHIKER)),
+			50_000_000_000_000
+		);
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			Some(1)
+		);
+
+		// ------------ remove on delete ------------
+		assert_ok!(Tokens::transfer_all(
+			Origin::signed(HITCHHIKER.into()),
+			BOB.into(),
+			1,
+			false,
+		));
+
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
 		);
 	});
 }

@@ -20,7 +20,7 @@ orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module
 serde = { version = "1.0.111", optional = true, features = ["derive"] }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
-pallet-nft = { path = "../nft", default-features = false, version = "2.1.0" }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false}
 pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 

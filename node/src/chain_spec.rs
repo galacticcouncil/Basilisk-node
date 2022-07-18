@@ -150,7 +150,6 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 				true,
 				PARA_ID.into(),
 				//technical committee
-				hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into(), // TREASURY - Fallback for multi tx payment
 			)
 		},
 		// Bootnodes
@@ -227,7 +226,6 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
-				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(), // SAME AS ROOT
 				vec![],
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
@@ -314,7 +312,6 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
-				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
@@ -340,7 +337,6 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 }
 
 pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
-	let para_id = 2038;
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 	let mut properties = Map::new();
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
@@ -378,11 +374,10 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 					hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].into(), // collator-02
 				],
 				true,
-				para_id.into(),
+				PARA_ID.into(),
 				//technical committee
 				vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()], // same as sudo
 				vec![],
-				hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(), // same as sudo
 				vec![],
 				vec![],
 				vec![],
@@ -415,7 +410,7 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo".into(),
-			para_id,
+			para_id: PARA_ID,
 		},
 	))
 }
@@ -460,7 +455,6 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 				//technical committee
 				vec![hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into()], // same as sudo
 				vec![],
-				hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into(), // same as sudo
 				vec![],
 				vec![],
 				vec![],
@@ -546,7 +540,6 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
-				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![],
 				vec![],
@@ -625,7 +618,6 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
-				get_account_id_from_seed::<sr25519::Public>("Alice"), // SAME AS ROOT
 				get_vesting_config_for_test(),
 				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
@@ -658,7 +650,6 @@ fn parachain_genesis(
 	_endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
-	tx_fee_payment_account: AccountId,
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
@@ -713,7 +704,6 @@ fn parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
-			fallback_account: Some(tx_fee_payment_account),
 			account_currencies: vec![],
 		},
 		tokens: TokensConfig { balances: vec![] },
@@ -745,6 +735,7 @@ fn parachain_genesis(
 		parachain_info: ParachainInfoConfig { parachain_id },
 		aura_ext: Default::default(),
 		duster: DusterConfig {
+			// treasury
 			account_blacklist: vec![hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()],
 			reward_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
 			dust_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
@@ -762,7 +753,6 @@ fn testnet_parachain_genesis(
 	parachain_id: ParaId,
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
-	tx_fee_payment_account: AccountId,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
 	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
 	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
@@ -814,7 +804,6 @@ fn testnet_parachain_genesis(
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: accepted_assets,
-			fallback_account: Some(tx_fee_payment_account),
 			account_currencies: vec![],
 		},
 		tokens: TokensConfig {

@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.2.10"
+version = "0.3.5"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -9,27 +9,16 @@ license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
-getrandom = { version = "0.2.3", features = ["js"] }
-hex-literal = "0.3.1"
-tracing-core = { optional = true, version = "0.1.17" }
-serde = { features = ["derive"], optional = true, version = "1.0.136" }
-codec = { package = "parity-scale-codec", version = "2.3.1", default-features = false, features = ["derive"] }
-hash-db = { version = "0.15.2", default-features = false }
-memory-db = { version = "0.27.0", default-features = false }
-trie-db = { version = "0.22.6", default-features = false }
-smallvec = "1.6.1"
-
 # local dependencies
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false}
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false}
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false}
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false}
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false}
 
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
-pallet-asset-registry = { path = "../pallets/asset-registry",default-features = false}
 pallet-xyk = { path = "../pallets/xyk",default-features = false}
 pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
-pallet-nft = { path = "../pallets/nft", default-features = false }
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
 
@@ -40,8 +29,6 @@ pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
-
-hydra-dx-math = { default-features = false, version = "4.1.1" }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
@@ -78,7 +65,8 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "relea
 polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17", default-features = false }
 
 # HydraDX dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "d0c99033c5d1f686a31cc311b8d96af2a3de9d76", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false, optional = true }
@@ -124,8 +112,6 @@ xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v
 [features]
 default = ["std"]
 std = [
-    "codec/std",
-    "serde",
     "frame-executive/std",
     "frame-support/std",
     "frame-system/std",

@@ -101,7 +101,7 @@ jobs:
           fail_ci_if_error: true
       - name: Build runtime
         run: cargo build --release --locked
-        working-directory: runtime
+        working-directory: runtime/basilisk
       - name: Build node
         run: cargo build --release --locked
       - name: Version info
@@ -228,7 +228,6 @@ jobs:
       - name: push image to ecr repository
         run: sudo docker tag basilisk:latest ${{ env.ECR_URL }}/basilisk
       - run: sudo docker push ${{ env.ECR_URL }}/basilisk:latest
-
 
   run-external-deployment:
     needs: build-and-publish-docker-image
@@ -360,5 +359,6 @@ jobs:
           message: |
             ${{ env.VERSION_UPDATE }}
       - name: Evaluate result
-        if: contains(env.VERSION_UPDATE, 'have not been updated') || contains(env.VERSION_UPDATE, 'versions don''t match')
+        if: contains(env.VERSION_UPDATE, 'have not been updated') || contains(env.VERSION_UPDATE, 'versions don''t match') || contains(env.VERSION_UPDATE, 'downgraded')
         run: exit 1
+
