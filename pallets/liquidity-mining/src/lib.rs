@@ -633,7 +633,7 @@ pub mod pallet {
 			)?;
 
 			Self::lock_lp_tokens(asset_pair, who.clone(), shares_amount)?;
-			Self::mint_nft_representing_deposit(who.clone(), &deposit_id)?;
+			T::NFTHandler::mint_into(&T::NftClassId::get(), &deposit_id, &who)?;
 
 			Self::deposit_event(Event::SharesDeposited {
 				global_farm_id,
@@ -865,12 +865,6 @@ impl<T: Config> Pallet<T> {
 
 		let service_account_for_lp_shares = Self::account_id_for_all_lp_shares();
 		MultiCurrencyOf::<T>::transfer(lp_token, &service_account_for_lp_shares, &who, amount)?;
-
-		Ok(())
-	}
-
-	fn mint_nft_representing_deposit(who: T::AccountId, deposit_id: &u128) -> Result<(), DispatchError> {
-		T::NFTHandler::mint_into(&T::NftClassId::get(), deposit_id, &who)?;
 
 		Ok(())
 	}
