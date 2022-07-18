@@ -629,7 +629,7 @@ pub mod pallet {
 				yield_farm_id,
 				amm_pool_id.clone(),
 				shares_amount,
-				Self::get_asset_balance_in_liquidity_mining_pool,
+				Self::get_asset_balance_in_amm_pool,
 			)?;
 
 			Self::lock_lp_tokens(asset_pair, who.clone(), shares_amount)?;
@@ -681,7 +681,7 @@ pub mod pallet {
 				global_farm_id,
 				yield_farm_id,
 				deposit_id,
-				Self::get_asset_balance_in_liquidity_mining_pool,
+				Self::get_asset_balance_in_amm_pool,
 			)?;
 
 			Self::deposit_event(Event::SharesRedeposited {
@@ -869,7 +869,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn get_asset_balance_in_liquidity_mining_pool(
+	fn get_asset_balance_in_amm_pool(
 		asset: AssetId,
 		amm_pool_id: AccountIdOf<T>,
 	) -> Result<Balance, DispatchError> {
