@@ -141,13 +141,6 @@ fn dust_account_native_works() {
 				amount: 500,
 			}
 			.into(),
-			orml_currencies::Event::Transferred {
-				currency_id,
-				from: *ALICE,
-				to: *TREASURY,
-				amount: 500,
-			}
-			.into(),
 			// duster
 			Event::Dusted {
 				who: *ALICE,
@@ -156,13 +149,6 @@ fn dust_account_native_works() {
 			.into(),
 			//reward transfer
 			pallet_balances::Event::Transfer {
-				from: *TREASURY,
-				to: *DUSTER,
-				amount: 10_000,
-			}
-			.into(),
-			orml_currencies::Event::Transferred {
-				currency_id,
 				from: *TREASURY,
 				to: *DUSTER,
 				amount: 10_000,
@@ -207,7 +193,7 @@ fn native_existential_deposit() {
 				amount: 20_000,
 			}
 			.into(),
-			orml_currencies::Event::Transferred {
+			orml_tokens::Event::Transfer {
 				currency_id,
 				from: *DUSTER,
 				to: *ALICE,
@@ -226,13 +212,6 @@ fn native_existential_deposit() {
 				amount: 600,
 			}
 			.into(),
-			orml_currencies::Event::Transferred {
-				currency_id: 0,
-				from: *DUSTER,
-				to: *ALICE,
-				amount: 600,
-			}
-			.into(),
 			// 3rd transfer
 			pallet_balances::Event::Transfer {
 				from: *ALICE,
@@ -240,22 +219,8 @@ fn native_existential_deposit() {
 				amount: 300,
 			}
 			.into(),
-			orml_currencies::Event::Transferred {
-				currency_id: 0,
-				from: *ALICE,
-				to: *DUSTER,
-				amount: 300,
-			}
-			.into(),
 			// dust transfer
 			pallet_balances::Event::Transfer {
-				from: *ALICE,
-				to: *TREASURY,
-				amount: 300,
-			}
-			.into(),
-			orml_currencies::Event::Transferred {
-				currency_id: 0,
 				from: *ALICE,
 				to: *TREASURY,
 				amount: 300,
@@ -274,13 +239,6 @@ fn native_existential_deposit() {
 				amount: 10_000,
 			}
 			.into(),
-			orml_currencies::Event::Transferred {
-				currency_id: 0,
-				from: *TREASURY,
-				to: *DUSTER,
-				amount: 10_000,
-			}
-			.into(),
 		]);
 
 		System::reset_events();
@@ -294,7 +252,7 @@ fn native_existential_deposit() {
 		expect_events(vec![
 			// first transfer
 			frame_system::Event::KilledAccount { account: *ALICE }.into(),
-			orml_currencies::Event::Transferred {
+			orml_tokens::Event::Transfer {
 				currency_id,
 				from: *ALICE,
 				to: *DUSTER,

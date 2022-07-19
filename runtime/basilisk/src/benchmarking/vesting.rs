@@ -28,7 +28,7 @@ const SEED: u32 = 0;
 const NATIVE: AssetId = NativeAssetId::get();
 
 fn get_vesting_account() -> AccountId {
-	TreasuryPalletId::get().into_account()
+	TreasuryPalletId::get().into_account_truncating()
 }
 
 fn lookup_of_account(who: AccountId) -> <<Runtime as frame_system::Config>::Lookup as StaticLookup>::Source {

@@ -59,7 +59,7 @@ runtime_benchmarks! {
 
 		update_balance(asset_id, &to_dust_account, min_deposit);
 
-		let _ = update_asset(asset_id, b"TST".to_vec(), 110u128).map_err(|_| BenchmarkError::Stop("Failed to update asset"))?;
+		update_asset(asset_id, b"TST".to_vec(), 110u128).map_err(|_| BenchmarkError::Stop("Failed to update asset"))?;
 		assert_eq!(Tokens::free_balance(asset_id, &to_dust_account), dust_amount);
 
 		let current_balance = Tokens::free_balance(asset_id, &dest_account.clone().unwrap());

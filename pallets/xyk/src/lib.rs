@@ -287,7 +287,6 @@ pub mod pallet {
 		///
 		/// Emits `PoolCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
-		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
@@ -346,7 +345,7 @@ pub mod pallet {
 				T::MinPoolLiquidity::get(),
 			)?;
 
-			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
+			T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
 
 			T::NonDustableWhitelistHandler::add_account(&pair_account)?;
 
@@ -378,7 +377,6 @@ pub mod pallet {
 		///
 		/// Emits `LiquidityAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
-		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
@@ -470,7 +468,6 @@ pub mod pallet {
 		/// Emits 'LiquidityRemoved' when successful.
 		/// Emits 'PoolDestroyed' when pool is destroyed.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
-		#[transactional]
 		pub fn remove_liquidity(
 			origin: OriginFor<T>,
 			asset_a: AssetId,

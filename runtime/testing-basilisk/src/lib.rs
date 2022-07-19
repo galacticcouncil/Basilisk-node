@@ -33,10 +33,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
 use orml_tokens::CurrencyAdapter;
 use sp_api::impl_runtime_apis;
-use sp_core::{
-	u32_trait::{_1, _2, _3},
-	OpaqueMetadata,
-};
+use sp_core::OpaqueMetadata;
 use sp_runtime::{
 	app_crypto::sp_core::crypto::UncheckedFrom,
 	create_runtime_str, generic, impl_opaque_keys,
@@ -55,13 +52,14 @@ use sp_version::RuntimeVersion;
 use codec::Decode;
 
 // A few exports that help ease life for downstream crates.
-use frame_support::traits::Contains;
+use frame_support::traits::{AsEnsureOriginWithArg, Contains, NeverEnsureOrigin};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
+	traits::{EitherOfDiverse, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
-		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+		ConstantMultiplier, DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	},
 };
 use hydradx_traits::AssetPairAccountIdFor;
@@ -115,7 +113,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 67,
+	spec_version: 68,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -290,10 +288,11 @@ pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for Runtime {
+	type Event = Event;
 	type OnChargeTransaction = TransferFees<Currencies, MultiTransactionPayment, DepositAll<Runtime>>;
-	type TransactionByteFee = TransactionByteFee;
 	type OperationalFeeMultiplier = ();
 	type WeightToFee = WeightToFee;
+	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
@@ -383,13 +382,14 @@ impl orml_tokens::Config for Runtime {
 	type ExistentialDeposits = AssetRegistry;
 	type OnDust = Duster;
 	type MaxLocks = MaxLocks;
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = ();
 	type DustRemovalWhitelist = DustRemovalWhitelist;
 	type OnNewTokenAccount = AddTxAssetOnAccount<Runtime>;
 	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
 }
 
 impl orml_currencies::Config for Runtime {
-	type Event = Event;
 	type MultiCurrency = OrmlTokensAdapter<Runtime>;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
@@ -478,12 +478,12 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnSystemEvent = pallet_relaychain_info::OnValidationDataHandler<Runtime>;
 	type SelfParaId = ParachainInfo;
-
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::AnyRelayNumber;
 }
 
 impl pallet_aura::Config for Runtime {
@@ -524,12 +524,14 @@ parameter_types! {
 
 impl pallet_uniques::Config for Runtime {
 	type Event = Event;
-	type ClassId = ClassId;
-	type InstanceId = InstanceId;
+	type CollectionId = ClassId;
+	type ItemId = InstanceId;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
-	type ClassDeposit = ClassDeposit;
-	type InstanceDeposit = InstanceDeposit;
+	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
+	type Locker = ();
+	type CollectionDeposit = ClassDeposit;
+	type ItemDeposit = InstanceDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
@@ -537,28 +539,31 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = ();
 }
 
-type EnsureMajorityCouncilOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
+type EnsureMajorityCouncilOrRoot = EitherOfDiverse<
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureUnanimousCouncilOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>,
+type EnsureUnanimousCouncilOrRoot = EitherOfDiverse<
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureSuperMajorityCouncilOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, CouncilCollective>,
+type EnsureSuperMajorityCouncilOrRoot = EitherOfDiverse<
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureSuperMajorityTechCommitteeOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechnicalCollective>,
+type EnsureSuperMajorityTechCommitteeOrRoot = EitherOfDiverse<
+	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>,
 	frame_system::EnsureRoot<AccountId>,
 >;
-type EnsureUnanimousTechCommitteeOrRoot = EnsureOneOf<
-	pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, TechnicalCollective>,
+type EnsureUnanimousTechCommitteeOrRoot = EitherOfDiverse<
+	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>,
 	frame_system::EnsureRoot<AccountId>,
 >;
+
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
@@ -643,8 +648,8 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type WeightInfo = ();
 }
 
-type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<_1, _1, AccountId, CouncilCollective>;
-type ManageOrigin = EnsureOneOf<EnsureRoot<AccountId>, AllCouncilMembers>;
+type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>;
+type ManageOrigin = EitherOfDiverse<EnsureRoot<AccountId>, AllCouncilMembers>;
 
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
@@ -659,9 +664,10 @@ impl pallet_treasury::Config for Runtime {
 	type SpendPeriod = SpendPeriod;
 	type Burn = Burn;
 	type BurnDestination = ();
-	type WeightInfo = common_runtime::weights::treasury::BasiliskWeight<Runtime>;
+	type WeightInfo = (); // TODO: common_runtime::weights::treasury::BasiliskWeight<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
+	type SpendOrigin = NeverEnsureOrigin<Balance>;
 }
 
 parameter_types! {
@@ -687,7 +693,7 @@ impl pallet_scheduler::Config for Runtime {
 impl pallet_utility::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
-	type WeightInfo = common_runtime::weights::utility::BasiliskWeight<Runtime>;
+	type WeightInfo = (); // TODO: common_runtime::weights::utility::BasiliskWeight<Runtime>;
 	type PalletsOrigin = OriginCaller;
 }
 
@@ -746,9 +752,9 @@ impl EnsureOrigin<Origin> for EnsureRootOrTreasury {
 
 	fn try_origin(o: Origin) -> Result<Self::Success, Origin> {
 		Into::<Result<RawOrigin<AccountId>, Origin>>::into(o).and_then(|o| match o {
-			RawOrigin::Root => Ok(TreasuryPalletId::get().into_account()),
+			RawOrigin::Root => Ok(TreasuryPalletId::get().into_account_truncating()),
 			RawOrigin::Signed(caller) => {
-				if caller == TreasuryPalletId::get().into_account() {
+				if caller == TreasuryPalletId::get().into_account_truncating() {
 					Ok(caller)
 				} else {
 					Err(Origin::from(Some(caller)))
@@ -858,7 +864,7 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>} = 0,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 1,
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 2,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 3,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 3,
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 4,
 		Utility: pallet_utility::{Pallet, Call, Event} = 5,
 		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>} = 6,
@@ -903,7 +909,7 @@ construct_runtime!(
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
 
 		// ORML related modules - starts at 150
-		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
+		Currencies: orml_currencies::{Pallet, Call} = 150,
 		Tokens: orml_tokens::{Pallet, Storage, Call, Event<T>, Config<T>} = 151,
 
 		// ORML XCM

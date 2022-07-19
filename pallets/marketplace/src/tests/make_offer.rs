@@ -94,14 +94,14 @@ fn make_offer_should_fail_when_offerer_has_not_enough_balance() {
 		.build()
 		.execute_with(|| {
 			// Act and assert
+			let call = Call::Marketplace(crate::Call::<Test>::make_offer {
+				class_id: CLASS_ID_0,
+				instance_id: INSTANCE_ID_0,
+				amount: (balance + 1) * UNITS,
+				expires: 2,
+			});
 			assert_noop!(
-				Market::make_offer(
-					Origin::signed(DAVE),
-					CLASS_ID_0,
-					INSTANCE_ID_0,
-					(balance + 1) * UNITS,
-					2
-				),
+				call.dispatch(Origin::signed(DAVE)),
 				pallet_balances::Error::<Test, _>::InsufficientBalance
 			);
 		});
