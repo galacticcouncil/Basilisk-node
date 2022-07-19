@@ -29,6 +29,7 @@ use sp_runtime::{
 };
 
 use frame_system::EnsureSigned;
+use hydradx_traits::pools::DustRemovalAccountWhitelist;
 use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
 	constants::chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
@@ -159,6 +160,20 @@ parameter_types! {
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
 }
 
+pub struct Whitelist;
+
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
+	type Error = DispatchError;
+
+	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
+
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
+}
+
 impl pallet_xyk::Config for Test {
 	type Event = Event;
 	type AssetRegistry = AssetRegistry;
@@ -174,6 +189,7 @@ impl pallet_xyk::Config for Test {
 	type CanCreatePool = pallet_xyk::AllowAllPools;
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
+	type NonDustableWhitelistHandler = Whitelist;
 }
 
 impl pallet_exchange::Config for Test {

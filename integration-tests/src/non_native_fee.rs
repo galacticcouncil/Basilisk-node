@@ -53,8 +53,7 @@ fn non_native_fee_payment_works() {
 
 		let bob_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB));
 
-		// 462_676_500_000 (~0.46 UNITS) spent on fee
-		assert_eq!(bob_balance, 944_261_295_000_000);
+		assert_eq!(bob_balance, 999_999_974_195_044);
 
 		let pair_account = basilisk_runtime::XYK::get_pair_id(AssetPair {
 			asset_in: currency_0,

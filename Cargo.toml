@@ -190,14 +190,14 @@ cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech//cumu
 parachain-info = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.25" }
 cumulus-relay-chain-interface = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.25" }
 
-#[patch."https://github.com/open-web3-stack/open-runtime-module-library"]
-#orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
-#orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
-#orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
-#orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
-#orml-benchmarking = { git = "https://github.com/open-web3-stack/open-runtime-module-library.git", branch = "polkadot-v0.9.25", optional = true }
-#orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
-#orml-xcm-support = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
-#orml-unknown-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
-#orml-xcm = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
-#orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.25" }
+[patch."https://github.com/open-web3-stack/open-runtime-module-library"]
+orml-currencies = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }
+orml-tokens = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }
+orml-traits = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }
+orml-vesting = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }
+orml-benchmarking = { git = "https://github.com/open-web3-stack//open-runtime-module-library.git", branch = "polkadot-v0.9.25", optional = true }
+orml-xtokens = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }
+orml-xcm-support = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }
+orml-unknown-tokens = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }
+orml-xcm = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }
+orml-utilities = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.25" }

@@ -27,9 +27,9 @@ common-runtime = { path = '../common', default-features = false }
 pallet-exchange = { path = "../../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
-pallet-duster= { path = "../../pallets/duster",default-features = false}
-pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",default-features = false}
-pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
+pallet-duster = { path = "../../pallets/duster", default-features = false}
+pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api", default-features = false}
+pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api", default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 
@@ -101,7 +101,6 @@ pallet-preimage = { git = "https://github.com/paritytech/substrate", branch = "p
 pallet-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-proxy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-multisig = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
-pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
@@ -197,7 +196,6 @@ std = [
     "pallet-nft/std",
     "pallet-marketplace/std",
     "pallet-session/std",
-    "pallet-sudo/std",
     "pallet-timestamp/std",
     "pallet-transaction-payment/std",
     "pallet-transaction-pause/std",

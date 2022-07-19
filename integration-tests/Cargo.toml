@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.5.1"
+version = "0.6.1"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -64,7 +64,7 @@ pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release
 xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.25", default-features = false }
 polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.25", default-features = false }
 
-# HydraDX dependencies
+# Warehouse dependencies
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.25", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.25", default-features = false }
 
@@ -79,7 +79,6 @@ pallet-aura = { git = "https://github.com/paritytech/substrate", branch = "polka
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
-pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25", default-features = false }
@@ -108,6 +107,10 @@ kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "rel
 
 [dev-dependencies]
 xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "polkadot-v0.9.25" }
+hex-literal = "0.3.1"
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.25" }
+pretty_assertions = "1.2.1"
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.25" }
 
 [features]
 default = ["std"]
@@ -145,7 +148,6 @@ std = [
     "pallet-nft/std",
     "pallet-marketplace/std",
     "pallet-session/std",
-    "pallet-sudo/std",
     "pallet-timestamp/std",
     "pallet-transaction-payment/std",
     "pallet-transaction-multi-payment/std",

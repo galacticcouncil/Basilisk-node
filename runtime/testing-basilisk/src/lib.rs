@@ -434,6 +434,7 @@ impl pallet_xyk::Config for Runtime {
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
+	type NonDustableWhitelistHandler = Duster;
 }
 
 impl pallet_exchange::Config for Runtime {
@@ -560,6 +561,7 @@ type EnsureUnanimousTechCommitteeOrRoot = EitherOfDiverse<
 	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>,
 	frame_system::EnsureRoot<AccountId>,
 >;
+
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;

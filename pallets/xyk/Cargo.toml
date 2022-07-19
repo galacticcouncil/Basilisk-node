@@ -1,6 +1,6 @@
 [package]
 name = 'pallet-xyk'
-version = '4.0.4'
+version = '5.0.1'
 description = 'XYK automated market maker'
 authors = ['GalacticCouncil']
 edition = '2021'
@@ -19,6 +19,7 @@ codec = { default-features = false, features = ["derive"], package = "parity-sca
 scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 primitive-types = { default-features = false, version = '0.11.1' }
 serde = { features = ['derive'], optional = true, version = '1.0.136' }
+log = { version = "0.4.17", default-features = false }
 
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1cd815cbce846a42d351db3778ff9c07149a6ad2", default-features = false }
 

@@ -63,6 +63,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
+	use hydradx_traits::pools::DustRemovalAccountWhitelist;
 	use hydradx_traits::ShareTokenRegistry;
 
 	#[pallet::pallet]
@@ -119,6 +120,9 @@ pub mod pallet {
 
 		/// Discounted fee
 		type DiscountedFee: Get<(u32, u32)>;
+
+		/// Account whitelist manager to exclude pool accounts from dusting mechanism.
+		type NonDustableWhitelistHandler: DustRemovalAccountWhitelist<Self::AccountId, Error = DispatchError>;
 	}
 
 	#[pallet::error]
@@ -347,6 +351,8 @@ pub mod pallet {
 
 			T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
 
+			T::NonDustableWhitelistHandler::add_account(&pair_account)?;
+
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
 
@@ -546,6 +552,17 @@ pub mod pallet {
 				<ShareToken<T>>::remove(&pair_account);
 				<PoolAssets<T>>::remove(&pair_account);
 				<TotalLiquidity<T>>::remove(&pair_account);
+
+				// Ignore the failure, this cant stop liquidity removal
+				let r = T::NonDustableWhitelistHandler::remove_account(&pair_account);
+
+				if r.is_err() {
+					log::trace!(
+					target: "xyk::remova_liquidity", "XYK: Failed to remove account {:?} from dust-removal whitelist. Reason {:?}",
+						pair_account,
+					r
+					);
+				}
 
 				Self::deposit_event(Event::PoolDestroyed {
 					who,

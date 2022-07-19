@@ -71,6 +71,7 @@ use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
 use orml_currencies::BasicCurrencyAdapter;
 use orml_tokens::CurrencyAdapter;
+use pallet_collective::EnsureProportionAtLeast;
 
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
@@ -135,7 +136,6 @@ impl Contains<Call> for BaseFilter {
 
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
-			Call::XYK(_) => false,
 			Call::Exchange(_) => false,
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
@@ -348,7 +348,7 @@ parameter_types! {
 
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
-	type AcceptedCurrencyOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type AcceptedCurrencyOrigin = EnsureMajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
 	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
 	type WeightInfo = common_runtime::weights::payment::BasiliskWeight<Runtime>;
@@ -356,11 +356,6 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;
 	type FeeReceiver = TreasuryAccount;
-}
-
-impl pallet_sudo::Config for Runtime {
-	type Event = Event;
-	type Call = Call;
 }
 
 impl InstanceFilter<Call> for ProxyType {
@@ -481,6 +476,7 @@ impl pallet_xyk::Config for Runtime {
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
+	type NonDustableWhitelistHandler = Duster;
 }
 
 impl pallet_exchange::Config for Runtime {
@@ -556,31 +552,29 @@ impl pallet_nft::Config for Runtime {
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
-type AllCouncilMembers = pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>;
-
 type EnsureMajorityCouncilOrRoot = EitherOfDiverse<
-	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>,
-	frame_system::EnsureRoot<AccountId>,
+	EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>,
+	EnsureRoot<AccountId>,
 >;
 type EnsureUnanimousCouncilOrRoot = EitherOfDiverse<
-	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
-	frame_system::EnsureRoot<AccountId>,
+	EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
+	EnsureRoot<AccountId>,
 >;
 type EnsureSuperMajorityCouncilOrRoot = EitherOfDiverse<
-	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>,
-	frame_system::EnsureRoot<AccountId>,
+	EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>,
+	EnsureRoot<AccountId>,
 >;
 type EnsureSuperMajorityTechCommitteeOrRoot = EitherOfDiverse<
-	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>,
-	frame_system::EnsureRoot<AccountId>,
+	EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>,
+	EnsureRoot<AccountId>,
 >;
 type EnsureUnanimousTechCommitteeOrRoot = EitherOfDiverse<
-	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>,
-	frame_system::EnsureRoot<AccountId>,
+	EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>,
+	EnsureRoot<AccountId>,
 >;
 type EnsureMajorityTechCommitteeOrRoot = EitherOfDiverse<
-	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>,
-	frame_system::EnsureRoot<AccountId>,
+	EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>,
+	EnsureRoot<AccountId>,
 >;
 
 impl pallet_democracy::Config for Runtime {
@@ -667,13 +661,11 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type WeightInfo = ();
 }
 
-type ManageOrigin = EitherOfDiverse<EnsureRoot<AccountId>, AllCouncilMembers>;
-
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
 	type Currency = Balances;
-	type ApproveOrigin = ManageOrigin;
-	type RejectOrigin = ManageOrigin;
+	type ApproveOrigin = EnsureSuperMajorityCouncilOrRoot;
+	type RejectOrigin = EnsureMajorityCouncilOrRoot;
 	type Event = Event;
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
@@ -736,8 +728,7 @@ impl pallet_tips::Config for Runtime {
 impl pallet_collator_selection::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	//allow 1/2 of council to execute privileged collator selection operations. (require code from: feat/initial_chain_setup)
-	type UpdateOrigin = EnsureMajorityCouncilOrRoot;
+	type UpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
 	type MinCandidates = MinCandidates;
@@ -855,7 +846,7 @@ impl pallet_uniques::Config for Runtime {
 	type CollectionId = ClassId;
 	type ItemId = InstanceId;
 	type Currency = KusamaCurrency;
-	type ForceOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = EnsureSuperMajorityCouncilOrRoot;
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	type Locker = ();
 	type CollectionDeposit = ClassDeposit;
@@ -987,9 +978,6 @@ construct_runtime!(
 		OrmlXcm: orml_xcm::{Pallet, Call, Event<T>} = 153,
 		XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>} = 154,
 		UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event} = 155,
-
-		// TEMPORARY - always last. Sudo will be removed at some point.
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 255,
 	}
 );
 
