@@ -18,17 +18,14 @@
 #![allow(clippy::bool_assert_comparison)]
 use super::*;
 use crate::mock::{
-	Call, generate_trades, run_to_sale_end, run_to_sale_start, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
+	generate_trades, run_to_sale_end, run_to_sale_start, Call, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
 	INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
 };
 pub use crate::mock::{
 	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
 	HDX, KUSD,
 };
-use frame_support::{
-	assert_err, assert_noop, assert_ok,
-	dispatch::Dispatchable,
-};
+use frame_support::{assert_err, assert_noop, assert_ok, dispatch::Dispatchable};
 use hydradx_traits::{AMMTransfer, LockedBalance};
 use sp_runtime::traits::BadOrigin;
 use sp_std::convert::TryInto;
@@ -1888,21 +1885,18 @@ fn zero_weight_should_not_work() {
 		);
 
 		let call = Call::LBPPallet(crate::Call::<Test>::update_pool_data {
-				pool_id: KUSD_BSX_POOL_ID,
-				pool_owner: None,
-				start: Some(15),
-				end: Some(18),
-				initial_weight: Some(0),
-				final_weight: Some(80),
-				fee: Some((5, 100)),
-				fee_collector: Some(BOB),
-				repay_target: Some(0),
-            });
+			pool_id: KUSD_BSX_POOL_ID,
+			pool_owner: None,
+			start: Some(15),
+			end: Some(18),
+			initial_weight: Some(0),
+			final_weight: Some(80),
+			fee: Some((5, 100)),
+			fee_collector: Some(BOB),
+			repay_target: Some(0),
+		});
 
-		assert_noop!(
-			call.dispatch(Origin::signed(ALICE)),
-			Error::<Test>::InvalidWeight
-		);
+		assert_noop!(call.dispatch(Origin::signed(ALICE)), Error::<Test>::InvalidWeight);
 	});
 }
 
@@ -3225,7 +3219,8 @@ fn get_sorted_weight_should_work() {
 		);
 
 		assert_err!(
-			LBPPallet::get_sorted_weight(KUSD, <Test as frame_system::Config>::BlockNumber::from(41u32), &pool).map_err(Into::<DispatchError>::into),
+			LBPPallet::get_sorted_weight(KUSD, <Test as frame_system::Config>::BlockNumber::from(41u32), &pool)
+				.map_err(Into::<DispatchError>::into),
 			Error::<Test>::InvalidWeight
 		);
 	});

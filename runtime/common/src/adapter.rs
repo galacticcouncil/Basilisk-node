@@ -2,7 +2,10 @@ use frame_support::dispatch::DispatchError;
 use frame_support::sp_runtime::DispatchResult;
 use frame_support::traits::BalanceStatus;
 use orml_traits::currency::TransferAll;
-use orml_traits::{LockIdentifier, MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency, MultiReservableCurrency, NamedMultiReservableCurrency};
+use orml_traits::{
+	LockIdentifier, MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency, MultiReservableCurrency,
+	NamedMultiReservableCurrency,
+};
 
 pub struct OrmlTokensAdapter<T>(sp_std::marker::PhantomData<T>);
 
@@ -151,39 +154,129 @@ impl<T: orml_tokens::Config> TransferAll<T::AccountId> for OrmlTokensAdapter<T> 
 impl<T: orml_tokens::Config> NamedMultiReservableCurrency<T::AccountId> for OrmlTokensAdapter<T> {
 	type ReserveIdentifier = T::ReserveIdentifier;
 
-	fn slash_reserved_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, who: &T::AccountId, value: Self::Balance) -> Self::Balance {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::slash_reserved_named(id, currency_id, who, value)
+	fn slash_reserved_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		who: &T::AccountId,
+		value: Self::Balance,
+	) -> Self::Balance {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::slash_reserved_named(
+			id,
+			currency_id,
+			who,
+			value,
+		)
 	}
 
-	fn reserved_balance_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, who: &T::AccountId) -> Self::Balance {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::reserved_balance_named(id, currency_id, who)
+	fn reserved_balance_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		who: &T::AccountId,
+	) -> Self::Balance {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::reserved_balance_named(
+			id,
+			currency_id,
+			who,
+		)
 	}
 
-	fn reserve_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, who: &T::AccountId, value: Self::Balance) -> DispatchResult {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::reserve_named(id, currency_id, who, value)
+	fn reserve_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		who: &T::AccountId,
+		value: Self::Balance,
+	) -> DispatchResult {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::reserve_named(
+			id,
+			currency_id,
+			who,
+			value,
+		)
 	}
 
-	fn unreserve_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, who: &T::AccountId, value: Self::Balance) -> Self::Balance {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::unreserve_named(id, currency_id, who, value)
+	fn unreserve_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		who: &T::AccountId,
+		value: Self::Balance,
+	) -> Self::Balance {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::unreserve_named(
+			id,
+			currency_id,
+			who,
+			value,
+		)
 	}
 
-	fn repatriate_reserved_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, slashed: &T::AccountId, beneficiary: &T::AccountId, value: Self::Balance, status: BalanceStatus) -> Result<Self::Balance, DispatchError> {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::repatriate_reserved_named(id, currency_id, slashed, beneficiary, value, status)
+	fn repatriate_reserved_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		slashed: &T::AccountId,
+		beneficiary: &T::AccountId,
+		value: Self::Balance,
+		status: BalanceStatus,
+	) -> Result<Self::Balance, DispatchError> {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::repatriate_reserved_named(
+			id,
+			currency_id,
+			slashed,
+			beneficiary,
+			value,
+			status,
+		)
 	}
 
-	fn ensure_reserved_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, who: &T::AccountId, value: Self::Balance) -> DispatchResult {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::ensure_reserved_named(id, currency_id, who, value)
+	fn ensure_reserved_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		who: &T::AccountId,
+		value: Self::Balance,
+	) -> DispatchResult {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::ensure_reserved_named(
+			id,
+			currency_id,
+			who,
+			value,
+		)
 	}
 
-	fn unreserve_all_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, who: &T::AccountId) -> Self::Balance {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::unreserve_all_named(id, currency_id, who)
+	fn unreserve_all_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		who: &T::AccountId,
+	) -> Self::Balance {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::unreserve_all_named(
+			id,
+			currency_id,
+			who,
+		)
 	}
 
-	fn slash_all_reserved_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, who: &T::AccountId) -> Self::Balance {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::slash_all_reserved_named(id, currency_id, who)
+	fn slash_all_reserved_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		who: &T::AccountId,
+	) -> Self::Balance {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::slash_all_reserved_named(
+			id,
+			currency_id,
+			who,
+		)
 	}
 
-	fn repatriate_all_reserved_named(id: &Self::ReserveIdentifier, currency_id: Self::CurrencyId, slashed: &T::AccountId, beneficiary: &T::AccountId, status: BalanceStatus) -> DispatchResult {
-		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::repatriate_all_reserved_named(id, currency_id, slashed, beneficiary, status)
+	fn repatriate_all_reserved_named(
+		id: &Self::ReserveIdentifier,
+		currency_id: Self::CurrencyId,
+		slashed: &T::AccountId,
+		beneficiary: &T::AccountId,
+		status: BalanceStatus,
+	) -> DispatchResult {
+		<orml_tokens::Pallet<T> as NamedMultiReservableCurrency<T::AccountId>>::repatriate_all_reserved_named(
+			id,
+			currency_id,
+			slashed,
+			beneficiary,
+			status,
+		)
 	}
 }

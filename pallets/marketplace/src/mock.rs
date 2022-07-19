@@ -1,6 +1,8 @@
 use crate as pallet_marketplace;
-use frame_support::{assert_ok, BoundedVec, parameter_types,
-					traits::{Everything, AsEnsureOriginWithArg, NeverEnsureOrigin}
+use frame_support::{
+	assert_ok, parameter_types,
+	traits::{AsEnsureOriginWithArg, Everything, NeverEnsureOrigin},
+	BoundedVec,
 };
 use frame_system as system;
 use primitives::nft::{ClassType, NftPermissions};
@@ -11,7 +13,7 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use sp_std::convert::{TryInto, TryFrom};
+use sp_std::convert::{TryFrom, TryInto};
 use std::borrow::Borrow;
 use system::EnsureRoot;
 

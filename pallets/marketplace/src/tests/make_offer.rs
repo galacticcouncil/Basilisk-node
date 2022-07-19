@@ -98,7 +98,7 @@ fn make_offer_should_fail_when_offerer_has_not_enough_balance() {
 				class_id: CLASS_ID_0,
 				instance_id: INSTANCE_ID_0,
 				amount: (balance + 1) * UNITS,
-				expires: 2
+				expires: 2,
 			});
 			assert_noop!(
 				call.dispatch(Origin::signed(DAVE)),

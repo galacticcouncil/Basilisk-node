@@ -147,7 +147,7 @@ impl orml_tokens::Config for Test {
 	type OnNewTokenAccount = ();
 	type OnKilledTokenAccount = ();
 	type ReserveIdentifier = ();
-    type MaxReserves = ();
+	type MaxReserves = ();
 }
 
 impl orml_currencies::Config for Test {

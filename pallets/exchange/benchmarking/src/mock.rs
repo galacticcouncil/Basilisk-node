@@ -109,7 +109,7 @@ parameter_type_with_key! {
 }
 
 parameter_types! {
-    pub const MaxReserves: u32 = 50;
+	pub const MaxReserves: u32 = 50;
 }
 
 impl orml_tokens::Config for Test {

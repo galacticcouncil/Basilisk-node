@@ -301,7 +301,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
-			cumulus_pallet_xcmp_queue::Event::Fail{
+			cumulus_pallet_xcmp_queue::Event::Fail {
 				message_hash: Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
 				error: XcmError::AssetNotFound,
 				weight: 0,

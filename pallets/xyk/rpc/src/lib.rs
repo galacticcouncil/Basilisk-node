@@ -52,11 +52,11 @@ pub trait XYKApi<BlockHash, AccountId, AssetId, Balance, ResponseType> {
 }
 
 fn internal_err<T: ToString>(message: T) -> JsonRpseeError {
-    JsonRpseeError::Call(CallError::Custom(ErrorObject::owned(
-        ErrorCode::InternalError.code(),
-        message.to_string(),
-        None::<()>,
-    )))
+	JsonRpseeError::Call(CallError::Custom(ErrorObject::owned(
+		ErrorCode::InternalError.code(),
+		message.to_string(),
+		None::<()>,
+	)))
 }
 
 /// A struct that implements the [`XYKApi`].

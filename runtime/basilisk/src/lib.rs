@@ -53,10 +53,14 @@ use codec::Decode;
 // A few exports that help ease life for downstream crates.
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{AsEnsureOriginWithArg, Contains, EitherOfDiverse, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter, NeverEnsureOrigin, U128CurrencyToVote},
+	traits::{
+		AsEnsureOriginWithArg, Contains, EitherOfDiverse, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter,
+		NeverEnsureOrigin, U128CurrencyToVote,
+	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
-		ConstantMultiplier, DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+		ConstantMultiplier, DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	},
 };
 use hydradx_traits::AssetPairAccountIdFor;
@@ -552,30 +556,18 @@ impl pallet_nft::Config for Runtime {
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
-type EnsureMajorityCouncilOrRoot = EitherOfDiverse<
-	EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>,
-	EnsureRoot<AccountId>,
->;
-type EnsureUnanimousCouncilOrRoot = EitherOfDiverse<
-	EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
-	EnsureRoot<AccountId>,
->;
-type EnsureSuperMajorityCouncilOrRoot = EitherOfDiverse<
-	EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>,
-	EnsureRoot<AccountId>,
->;
-type EnsureSuperMajorityTechCommitteeOrRoot = EitherOfDiverse<
-	EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>,
-	EnsureRoot<AccountId>,
->;
-type EnsureUnanimousTechCommitteeOrRoot = EitherOfDiverse<
-	EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>,
-	EnsureRoot<AccountId>,
->;
-type EnsureMajorityTechCommitteeOrRoot = EitherOfDiverse<
-	EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>,
-	EnsureRoot<AccountId>,
->;
+type EnsureMajorityCouncilOrRoot =
+	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>, EnsureRoot<AccountId>>;
+type EnsureUnanimousCouncilOrRoot =
+	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>, EnsureRoot<AccountId>>;
+type EnsureSuperMajorityCouncilOrRoot =
+	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>, EnsureRoot<AccountId>>;
+type EnsureSuperMajorityTechCommitteeOrRoot =
+	EitherOfDiverse<EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>, EnsureRoot<AccountId>>;
+type EnsureUnanimousTechCommitteeOrRoot =
+	EitherOfDiverse<EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>, EnsureRoot<AccountId>>;
+type EnsureMajorityTechCommitteeOrRoot =
+	EitherOfDiverse<EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>, EnsureRoot<AccountId>>;
 
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;

@@ -6,11 +6,8 @@ use frame_support::{
 	PalletId,
 };
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
-use orml_traits::{
-	parameter_type_with_key,
-	location::AbsoluteReserveProvider
-};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::latest::prelude::*;

@@ -16,22 +16,22 @@
 // limitations under the License.
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
-use crate::service::{IdentifyVariant, new_partial};
+use crate::service::{new_partial, IdentifyVariant};
 use crate::{chain_spec, service, testing_chain_spec};
 
 use basilisk_runtime::Block;
 use codec::Encode;
-use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use cumulus_client_cli::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
+use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use log::info;
-use sp_runtime::traits::AccountIdConversion;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams, NetworkParams, Result,
 	RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
+use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::traits::Block as BlockT;
 use std::{io::Write, net::SocketAddr};
 
@@ -245,33 +245,36 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(cmd)?;
 
 			match cmd {
-			   BenchmarkCmd::Pallet(cmd) => {
-					 if cfg!(feature = "runtime-benchmarks") {
-							runner.sync_run(|config| cmd.run::<Block, service::BasiliskExecutorDispatch>(config))
-					 } else {
-							Err("Benchmarking wasn't enabled when building the node. \
+				BenchmarkCmd::Pallet(cmd) => {
+					if cfg!(feature = "runtime-benchmarks") {
+						runner.sync_run(|config| cmd.run::<Block, service::BasiliskExecutorDispatch>(config))
+					} else {
+						Err("Benchmarking wasn't enabled when building the node. \
 			   You can enable it with `--features runtime-benchmarks`."
-								.into())
-					 }
-			   }
-			   BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
-					 let partials = crate::service::new_partial_impl::<basilisk_runtime::RuntimeApi, service::BasiliskExecutorDispatch>(&config, false)?;
-					 cmd.run(partials.client)
-			   }),
-			   BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
-					 let (client, backend, _, _) = new_partial(&config, false)?;
-					 let db = backend.expose_db();
-					 let storage = backend.expose_storage();
+							.into())
+					}
+				}
+				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
+					let partials = crate::service::new_partial_impl::<
+						basilisk_runtime::RuntimeApi,
+						service::BasiliskExecutorDispatch,
+					>(&config, false)?;
+					cmd.run(partials.client)
+				}),
+				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
+					let (client, backend, _, _) = new_partial(&config, false)?;
+					let db = backend.expose_db();
+					let storage = backend.expose_storage();
 
-					 cmd.run(config, client, db, storage)
-			   }),
-			   BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
-			   BenchmarkCmd::Machine(cmd) => {
-					 runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()))
-			   }
-	   }
-}
-Some(Subcommand::ExportGenesisState(params)) => {
+					cmd.run(config, client, db, storage)
+				}),
+				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+				BenchmarkCmd::Machine(cmd) => {
+					runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()))
+				}
+			}
+		}
+		Some(Subcommand::ExportGenesisState(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
@@ -285,10 +288,7 @@ Some(Subcommand::ExportGenesisState(params)) => {
 			let spec = load_spec(&params.chain.clone().unwrap_or_default(), is_testing_runtime)?;
 			let state_version = Cli::native_runtime_version(&spec).state_version();
 
-			let block: Block = generate_genesis_block(
-				&*spec,
-				state_version,
-			)?;
+			let block: Block = generate_genesis_block(&*spec, state_version)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {
 				raw_header
@@ -374,7 +374,8 @@ Some(Subcommand::ExportGenesisState(params)) => {
 
 				let id = ParaId::from(para_id);
 
-				let parachain_account = AccountIdConversion::<polkadot_primitives::v2::AccountId>::into_account_truncating(&id);
+				let parachain_account =
+					AccountIdConversion::<polkadot_primitives::v2::AccountId>::into_account_truncating(&id);
 
 				let state_version = Cli::native_runtime_version(&config.chain_spec).state_version();
 

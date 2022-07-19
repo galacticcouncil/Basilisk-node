@@ -35,11 +35,11 @@ use cumulus_relay_chain_rpc_interface::RelayChainRPCInterface;
 use jsonrpsee::RpcModule;
 use polkadot_service::CollatorPair;
 use sc_client_api::ExecutorProvider;
+use sc_consensus::LongestChain;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
 use sc_network::NetworkService;
 use sc_service::{ChainSpec, Configuration, PartialComponents, Role, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
-use sc_consensus::LongestChain;
 use sp_api::ConstructRuntimeApi;
 use sp_keystore::SyncCryptoStorePtr;
 use sp_runtime::traits::BlakeTwo256;
@@ -155,7 +155,10 @@ pub fn new_partial(
 			import_queue,
 			task_manager,
 			..
-		} = new_partial_impl::<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutorDispatch>(config, instant_seal)?;
+		} = new_partial_impl::<testing_basilisk_runtime::RuntimeApi, TestingBasiliskExecutorDispatch>(
+			config,
+			instant_seal,
+		)?;
 		Ok((
 			Arc::new(Client::TestingBasilisk(client)),
 			backend,
@@ -238,19 +241,19 @@ where
 	);
 
 	let select_chain = if instant_seal {
-        Some(LongestChain::new(backend.clone()))
-    } else {
-        None
-    };
+		Some(LongestChain::new(backend.clone()))
+	} else {
+		None
+	};
 
 	let import_queue = if instant_seal {
-        // instance sealing
-        sc_consensus_manual_seal::import_queue(
-            Box::new(client.clone()),
-            &task_manager.spawn_essential_handle(),
-            registry,
-        )
-    } else {
+		// instance sealing
+		sc_consensus_manual_seal::import_queue(
+			Box::new(client.clone()),
+			&task_manager.spawn_essential_handle(),
+			registry,
+		)
+	} else {
 		parachain_build_import_queue::<RuntimeApi, Executor>(
 			client.clone(),
 			config,
@@ -335,18 +338,18 @@ where
 	let backend = params.backend.clone();
 	let mut task_manager = params.task_manager;
 
-	let (relay_chain_interface, collator_key) =
-		build_relay_chain_interface(
-			polkadot_config,
-			&parachain_config,
-			telemetry_worker_handle,
-			&mut task_manager,
-			collator_options.clone(),
-		).await
-		.map_err(|e| match e {
-        RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
-        s => format!("{}", s).into(),
-    })?;
+	let (relay_chain_interface, collator_key) = build_relay_chain_interface(
+		polkadot_config,
+		&parachain_config,
+		telemetry_worker_handle,
+		&mut task_manager,
+		collator_options.clone(),
+	)
+	.await
+	.map_err(|e| match e {
+		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
+		s => format!("{}", s).into(),
+	})?;
 
 	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), para_id);
 
@@ -370,25 +373,25 @@ where
 		let transaction_pool = transaction_pool.clone();
 
 		move |deny_unsafe, _| {
-            let deps = crate::rpc::FullDeps {
-                client: client.clone(),
-                pool: transaction_pool.clone(),
-                deny_unsafe,
-                command_sink: None,
-            };
+			let deps = crate::rpc::FullDeps {
+				client: client.clone(),
+				pool: transaction_pool.clone(),
+				deny_unsafe,
+				command_sink: None,
+			};
 
-            crate::rpc::create_full(deps).map_err(Into::into)
-        }
-    };
+			crate::rpc::create_full(deps).map_err(Into::into)
+		}
+	};
 
 	if parachain_config.offchain_worker.enabled {
-        sc_service::build_offchain_workers(
-            &parachain_config,
-            task_manager.spawn_handle(),
-            client.clone(),
-            network.clone(),
-        );
-    };
+		sc_service::build_offchain_workers(
+			&parachain_config,
+			task_manager.spawn_handle(),
+			client.clone(),
+			network.clone(),
+		);
+	};
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		rpc_builder: Box::new(rpc_builder),
@@ -533,10 +536,11 @@ pub async fn start_node(
 
 							let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-							let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-								*time,
-								slot_duration,
-							);
+							let slot =
+								sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
+									*time,
+									slot_duration,
+								);
 
 							let parachain_inherent = parachain_inherent.ok_or_else(|| {
 								Box::<dyn std::error::Error + Send + Sync>::from("Failed to create parachain inherent")
@@ -611,10 +615,11 @@ pub async fn start_node(
 
 							let time = sp_timestamp::InherentDataProvider::from_system_time();
 
-							let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-								*time,
-								slot_duration,
-							);
+							let slot =
+								sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
+									*time,
+									slot_duration,
+								);
 
 							let parachain_inherent = parachain_inherent.ok_or_else(|| {
 								Box::<dyn std::error::Error + Send + Sync>::from("Failed to create parachain inherent")

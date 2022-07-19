@@ -29,8 +29,8 @@ use frame_support::sp_runtime::{
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{EnsureOrigin, Get, LockIdentifier},
 	storage::with_storage_layer,
+	traits::{EnsureOrigin, Get, LockIdentifier},
 };
 use frame_system::ensure_signed;
 use hydra_dx_math::types::LBPWeight;
@@ -892,7 +892,7 @@ impl<T: Config> Pallet<T> {
 			T::MultiCurrency::set_lock(COLLECTOR_LOCK_ID, fee_asset, &pool.fee_collector, collected_fee_total)?;
 
 			Ok(())
-			})
+		})
 	}
 
 	/// determines fee rate and applies it to the amount

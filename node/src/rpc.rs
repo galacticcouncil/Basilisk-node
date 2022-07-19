@@ -8,9 +8,9 @@
 use std::sync::Arc;
 
 use basilisk_runtime::{opaque::Block, AccountId, AssetId, Balance, Hash, Index};
+use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
 pub use sc_rpc::SubscriptionTaskExecutor;
 pub use sc_rpc_api::DenyUnsafe;
-use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
@@ -44,10 +44,10 @@ where
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
 {
-	use substrate_frame_rpc_system::{System, SystemApiServer};
+	use pallet_lbp_rpc::{LBPApiServer, LBP};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-	use pallet_xyk_rpc::{XYK, XYKApiServer};
-	use pallet_lbp_rpc::{LBP, LBPApiServer};
+	use pallet_xyk_rpc::{XYKApiServer, XYK};
+	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcExtension::new(());
 	let FullDeps {
@@ -58,12 +58,12 @@ where
 	} = deps;
 
 	if let Some(command_sink) = command_sink {
-        module.merge(
-            // We provide the rpc handler with the sending end of the channel to allow the rpc
-            // send EngineCommands to the background block authorship task.
-            ManualSeal::new(command_sink).into_rpc(),
-        )?;
-    }
+		module.merge(
+			// We provide the rpc handler with the sending end of the channel to allow the rpc
+			// send EngineCommands to the background block authorship task.
+			ManualSeal::new(command_sink).into_rpc(),
+		)?;
+	}
 
 	module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;

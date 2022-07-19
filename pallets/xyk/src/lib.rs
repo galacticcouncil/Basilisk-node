@@ -29,11 +29,7 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
-use frame_support::{ensure,
-	dispatch::DispatchResult,
-	storage::with_storage_layer,
-	traits::Get
-};
+use frame_support::{dispatch::DispatchResult, ensure, storage::with_storage_layer, traits::Get};
 use frame_system::ensure_signed;
 use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
 use primitives::{asset::AssetPair, AssetId, Balance, Price};
@@ -842,7 +838,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 			Ok(())
 		})
-
 	}
 
 	/// Validate a buy. Perform all necessary checks and calculations.
@@ -993,7 +988,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 			Ok(())
 		})
-
 	}
 
 	fn get_min_trading_limit() -> Balance {
