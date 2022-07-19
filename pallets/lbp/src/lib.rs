@@ -27,9 +27,10 @@ use frame_support::sp_runtime::{
 	DispatchError, RuntimeDebug,
 };
 use frame_support::{
-	ensure, transactional,
 	dispatch::DispatchResult,
+	ensure,
 	traits::{EnsureOrigin, Get, LockIdentifier},
+	transactional,
 };
 use frame_system::ensure_signed;
 use hydra_dx_math::types::LBPWeight;
@@ -864,24 +865,24 @@ impl<T: Config> Pallet<T> {
 
 		// Transfer assets between pool and user
 		T::MultiCurrency::transfer(
-			 transfer.assets.asset_in,
-			 &transfer.origin,
-			 &pool_account,
-			 transfer.amount,
+			transfer.assets.asset_in,
+			&transfer.origin,
+			&pool_account,
+			transfer.amount,
 		)?;
 		T::MultiCurrency::transfer(
-			 transfer.assets.asset_out,
-			 &pool_account,
-			 &transfer.origin,
-			 transfer.amount_out,
+			transfer.assets.asset_out,
+			&pool_account,
+			&transfer.origin,
+			transfer.amount_out,
 		)?;
 
 		// Fee is deducted from the sent out amount of accumulated asset and transferred to the fee collector
 		let (fee_asset, fee_amount) = transfer.fee;
 		let fee_payer = if transfer.assets.asset_in == fee_asset {
-			 &transfer.origin
+			&transfer.origin
 		} else {
-			 &pool_account
+			&pool_account
 		};
 
 		T::MultiCurrency::transfer(fee_asset, fee_payer, &pool.fee_collector, fee_amount)?;
