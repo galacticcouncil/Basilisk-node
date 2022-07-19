@@ -404,7 +404,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "basilisk"
-version = "6.6.0"
+version = "7.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -489,7 +489,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "67.0.0"
+version = "68.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1172,7 +1172,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "1.11.1"
+version = "1.12.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5706,7 +5706,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.3.8"
+version = "5.3.9"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5730,7 +5730,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.17"
+version = "3.3.18"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5846,7 +5846,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.4.7"
+version = "4.4.8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8072,7 +8072,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.2.4"
+version = "6.2.5"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -11527,7 +11527,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "67.0.0"
+version = "68.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
