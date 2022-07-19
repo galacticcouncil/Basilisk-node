@@ -29,7 +29,7 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
-use frame_support::{dispatch::DispatchResult, ensure, storage::with_storage_layer, traits::Get};
+use frame_support::{dispatch::DispatchResult, ensure, transactional, traits::Get};
 use frame_system::ensure_signed;
 use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
 use primitives::{asset::AssetPair, AssetId, Balance, Price};
@@ -794,50 +794,49 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Execute sell. validate_sell must be called first.
 	/// Perform necessary storage/state changes.
 	/// Note : the execution should not return error as everything was previously verified and validated.
+	#[transactional]
 	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		with_storage_layer(|| {
-			let pair_account = Self::get_pair_id(transfer.assets);
+		let pair_account = Self::get_pair_id(transfer.assets);
 
-			let total_liquidity = Self::total_liquidity(&pair_account);
-			T::AMMHandler::on_trade(
-				transfer.assets.asset_in,
-				transfer.assets.asset_out,
-				transfer.amount,
-				transfer.amount_out,
-				total_liquidity,
-			);
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(
+			 transfer.assets.asset_in,
+			 transfer.assets.asset_out,
+			 transfer.amount,
+			 transfer.amount_out,
+			 total_liquidity,
+		);
 
-			if transfer.discount && transfer.discount_amount > 0u128 {
-				let native_asset = T::NativeAssetId::get();
-				T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
-			}
+		if transfer.discount && transfer.discount_amount > 0u128 {
+			 let native_asset = T::NativeAssetId::get();
+			 T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
+		}
 
-			T::Currency::transfer(
-				transfer.assets.asset_in,
-				&transfer.origin,
-				&pair_account,
-				transfer.amount,
-			)?;
-			T::Currency::transfer(
-				transfer.assets.asset_out,
-				&pair_account,
-				&transfer.origin,
-				transfer.amount_out,
-			)?;
+		T::Currency::transfer(
+			 transfer.assets.asset_in,
+			 &transfer.origin,
+			 &pair_account,
+			 transfer.amount,
+		)?;
+		T::Currency::transfer(
+			 transfer.assets.asset_out,
+			 &pair_account,
+			 &transfer.origin,
+			 transfer.amount_out,
+		)?;
 
-			Self::deposit_event(Event::<T>::SellExecuted {
-				who: transfer.origin.clone(),
-				asset_in: transfer.assets.asset_in,
-				asset_out: transfer.assets.asset_out,
-				amount: transfer.amount,
-				sale_price: transfer.amount_out,
-				fee_asset: transfer.fee.0,
-				fee_amount: transfer.fee.1,
-				pool: pair_account,
-			});
+		Self::deposit_event(Event::<T>::SellExecuted {
+			 who: transfer.origin.clone(),
+			 asset_in: transfer.assets.asset_in,
+			 asset_out: transfer.assets.asset_out,
+			 amount: transfer.amount,
+			 sale_price: transfer.amount_out,
+			 fee_asset: transfer.fee.0,
+			 fee_amount: transfer.fee.1,
+			 pool: pair_account,
+		});
 
-			Ok(())
-		})
+		Ok(())
 	}
 
 	/// Validate a buy. Perform all necessary checks and calculations.
@@ -944,50 +943,49 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Execute buy. validate_buy must be called first.
 	/// Perform necessary storage/state changes.
 	/// Note : the execution should not return error as everything was previously verified and validated.
+	#[transactional]
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		with_storage_layer(|| {
-			let pair_account = Self::get_pair_id(transfer.assets);
+		let pair_account = Self::get_pair_id(transfer.assets);
 
-			let total_liquidity = Self::total_liquidity(&pair_account);
-			T::AMMHandler::on_trade(
-				transfer.assets.asset_in,
-				transfer.assets.asset_out,
-				transfer.amount,
-				transfer.amount_out,
-				total_liquidity,
-			);
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(
+			 transfer.assets.asset_in,
+			 transfer.assets.asset_out,
+			 transfer.amount,
+			 transfer.amount_out,
+			 total_liquidity,
+		);
 
-			if transfer.discount && transfer.discount_amount > 0 {
-				let native_asset = T::NativeAssetId::get();
-				T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
-			}
+		if transfer.discount && transfer.discount_amount > 0 {
+			 let native_asset = T::NativeAssetId::get();
+			 T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
+		}
 
-			T::Currency::transfer(
-				transfer.assets.asset_out,
-				&pair_account,
-				&transfer.origin,
-				transfer.amount,
-			)?;
-			T::Currency::transfer(
-				transfer.assets.asset_in,
-				&transfer.origin,
-				&pair_account,
-				transfer.amount_out + transfer.fee.1,
-			)?;
+		T::Currency::transfer(
+			 transfer.assets.asset_out,
+			 &pair_account,
+			 &transfer.origin,
+			 transfer.amount,
+		)?;
+		T::Currency::transfer(
+			 transfer.assets.asset_in,
+			 &transfer.origin,
+			 &pair_account,
+			 transfer.amount_out + transfer.fee.1,
+		)?;
 
-			Self::deposit_event(Event::<T>::BuyExecuted {
-				who: transfer.origin.clone(),
-				asset_out: transfer.assets.asset_out,
-				asset_in: transfer.assets.asset_in,
-				amount: transfer.amount,
-				buy_price: transfer.amount_out,
-				fee_asset: transfer.fee.0,
-				fee_amount: transfer.fee.1,
-				pool: pair_account,
-			});
+		Self::deposit_event(Event::<T>::BuyExecuted {
+			 who: transfer.origin.clone(),
+			 asset_out: transfer.assets.asset_out,
+			 asset_in: transfer.assets.asset_in,
+			 amount: transfer.amount,
+			 buy_price: transfer.amount_out,
+			 fee_asset: transfer.fee.0,
+			 fee_amount: transfer.fee.1,
+			 pool: pair_account,
+		});
 
-			Ok(())
-		})
+		Ok(())
 	}
 
 	fn get_min_trading_limit() -> Balance {

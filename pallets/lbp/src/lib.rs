@@ -27,9 +27,8 @@ use frame_support::sp_runtime::{
 	DispatchError, RuntimeDebug,
 };
 use frame_support::{
+	ensure, transactional,
 	dispatch::DispatchResult,
-	ensure,
-	storage::with_storage_layer,
 	traits::{EnsureOrigin, Get, LockIdentifier},
 };
 use frame_system::ensure_signed;
@@ -858,41 +857,40 @@ impl<T: Config> Pallet<T> {
 		Self::collected_fees(pool) < pool.repay_target
 	}
 
+	#[transactional]
 	fn execute_trade(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		with_storage_layer(|| {
-			let pool_account = Self::get_pair_id(transfer.assets);
-			let pool = <PoolData<T>>::try_get(&pool_account).map_err(|_| Error::<T>::PoolNotFound)?;
+		let pool_account = Self::get_pair_id(transfer.assets);
+		let pool = <PoolData<T>>::try_get(&pool_account).map_err(|_| Error::<T>::PoolNotFound)?;
 
-			// Transfer assets between pool and user
-			T::MultiCurrency::transfer(
-				transfer.assets.asset_in,
-				&transfer.origin,
-				&pool_account,
-				transfer.amount,
-			)?;
-			T::MultiCurrency::transfer(
-				transfer.assets.asset_out,
-				&pool_account,
-				&transfer.origin,
-				transfer.amount_out,
-			)?;
+		// Transfer assets between pool and user
+		T::MultiCurrency::transfer(
+			 transfer.assets.asset_in,
+			 &transfer.origin,
+			 &pool_account,
+			 transfer.amount,
+		)?;
+		T::MultiCurrency::transfer(
+			 transfer.assets.asset_out,
+			 &pool_account,
+			 &transfer.origin,
+			 transfer.amount_out,
+		)?;
 
-			// Fee is deducted from the sent out amount of accumulated asset and transferred to the fee collector
-			let (fee_asset, fee_amount) = transfer.fee;
-			let fee_payer = if transfer.assets.asset_in == fee_asset {
-				&transfer.origin
-			} else {
-				&pool_account
-			};
+		// Fee is deducted from the sent out amount of accumulated asset and transferred to the fee collector
+		let (fee_asset, fee_amount) = transfer.fee;
+		let fee_payer = if transfer.assets.asset_in == fee_asset {
+			 &transfer.origin
+		} else {
+			 &pool_account
+		};
 
-			T::MultiCurrency::transfer(fee_asset, fee_payer, &pool.fee_collector, fee_amount)?;
+		T::MultiCurrency::transfer(fee_asset, fee_payer, &pool.fee_collector, fee_amount)?;
 
-			// Resets lock for total of collected fees
-			let collected_fee_total = Self::collected_fees(&pool) + fee_amount;
-			T::MultiCurrency::set_lock(COLLECTOR_LOCK_ID, fee_asset, &pool.fee_collector, collected_fee_total)?;
+		// Resets lock for total of collected fees
+		let collected_fee_total = Self::collected_fees(&pool) + fee_amount;
+		T::MultiCurrency::set_lock(COLLECTOR_LOCK_ID, fee_asset, &pool.fee_collector, collected_fee_total)?;
 
-			Ok(())
-		})
+		Ok(())
 	}
 
 	/// determines fee rate and applies it to the amount
