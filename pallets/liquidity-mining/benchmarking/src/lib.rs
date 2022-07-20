@@ -57,9 +57,7 @@ const ASSET_PAIR: AssetPair = AssetPair {
 
 const INITIAL_BALANCE: Balance = 100_000_000_000_000_000;
 
-pub trait Config: frame_system::Config + pallet_liquidity_mining::Config + pallet_xyk::Config {
-	type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-}
+pub trait Config: pallet_liquidity_mining::Config + pallet_xyk::Config {}
 
 pub struct Pallet<T: Config>(LiquidityMining<T>);
 
@@ -182,10 +180,11 @@ fn set_block_number<T: Config>(block: u32) {
 	System::<T>::set_block_number(block.into());
 }
 
-fn assert_last_event<T: Config>(generic_event: <T as Config>::Event) {
+/*fn assert_last_event<T: Config>(generic_event: <T as Config>::Event) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
-}
+}*/
 
+//TODO: Dani - clean up the commented code
 benchmarks! {
 	create_global_farm {
 		let caller = funded_account::<T>("caller", 0);
@@ -196,7 +195,7 @@ benchmarks! {
 		LiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, planned_yielding_periods, blocks_per_period, BSX, BSX, caller.clone(), yield_per_period, 1, One::one())?
 	}
 	verify {
-	   assert_last_event::<T>(Event::<T>::GlobalFarmCreated {
+	   /*assert_last_event::<T>(Event::<T>::GlobalFarmCreated {
 				owner: caller,
 				id: GLOBAL_FARM_ID,
 				reward_currency: 0,
@@ -205,7 +204,7 @@ benchmarks! {
 				incentivized_asset: 0,
 				max_reward_per_period: 1000000000000,
 				blocks_per_period: blocks_per_period,
-			}.into());
+			}.into());*/
 	}
 
 
@@ -216,12 +215,12 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::destroy_global_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID)?
 	} verify {
-		assert_last_event::<T>(Event::<T>::GlobalFarmDestroyed {
+		/*assert_last_event::<T>(Event::<T>::GlobalFarmDestroyed {
 			who: caller.clone(),
 			global_farm_id: GLOBAL_FARM_ID,
 			reward_currency: 0,
 			undistributed_rewards: 1_000_000_000_000_000_000
-		}.into());
+		}.into());*/
 	}
 
 	create_yield_farm {
@@ -237,13 +236,13 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR, multiplier, loyality_curve.clone())?
 	} verify {
-		assert_last_event::<T>(Event::<T>::YieldFarmCreated {
+		/*assert_last_event::<T>(Event::<T>::YieldFarmCreated {
 				global_farm_id: GLOBAL_FARM_ID,
 				yield_farm_id: YIELD_FARM_ID,
 				multiplier: multiplier,
 				loyalty_curve: loyality_curve,
 				asset_pair: ASSET_PAIR,
-			}.into());
+			}.into());*/
 	}
 
 	update_yield_farm {
@@ -259,13 +258,13 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::update_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, ASSET_PAIR, new_multiplier)?
 	} verify {
-		assert_last_event::<T>(Event::<T>::YieldFarmUpdated {
+		/*assert_last_event::<T>(Event::<T>::YieldFarmUpdated {
 			global_farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: caller.clone(),
 			asset_pair: ASSET_PAIR,
 			multiplier: new_multiplier,
-		}.into());
+		}.into());*/
 	}
 
 
@@ -291,12 +290,12 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR)?
 	} verify {
-		assert_last_event::<T>(Event::<T>::YieldFarmStopped {
+		/*assert_last_event::<T>(Event::<T>::YieldFarmStopped {
 			global_farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: caller.clone(),
 			asset_pair: ASSET_PAIR,
-		}.into());
+		}.into());*/
 	}
 
 	destroy_yield_farm {
@@ -323,12 +322,12 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR)?
 	} verify {
-		assert_last_event::<T>(Event::<T>::YieldFarmDestroyed {
+		/*assert_last_event::<T>(Event::<T>::YieldFarmDestroyed {
 			global_farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: caller.clone(),
 			asset_pair: ASSET_PAIR,
-		}.into());
+		}.into());*/
 	}
 
 	deposit_shares {
@@ -352,13 +351,13 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, ASSET_PAIR, 10_000)?
 	} verify {
-		assert_last_event::<T>(Event::<T>::SharesDeposited {
+		/*assert_last_event::<T>(Event::<T>::SharesDeposited {
 			global_farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: liq_provider.clone(),
 			lp_token: 0,
 			amount: 10_000
-		}.into());
+		}.into());*/
 	}
 
 	redeposit_shares {
@@ -385,13 +384,13 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::redeposit_lp_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID_2, YIELD_FARM_ID_3, ASSET_PAIR, DEPOSIT_ID)?
 	} verify {
-		assert_last_event::<T>(Event::<T>::SharesRedeposited {
+		/*assert_last_event::<T>(Event::<T>::SharesRedeposited {
 			global_farm_id: GLOBAL_FARM_ID_2,
 			yield_farm_id: YIELD_FARM_ID_3,
 			who: liq_provider.clone(),
 			lp_token: 0,
 			amount: shares_amount
-		}.into());
+		}.into());*/
 	}
 
 	claim_rewards {
@@ -423,13 +422,13 @@ benchmarks! {
 	}
 	verify {
 		assert!(MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider).gt(&liq_provider_bsx_balance));
-		assert_last_event::<T>(Event::<T>::RewardClaimed {
+		/*assert_last_event::<T>(Event::<T>::RewardClaimed {
 				global_farm_id: GLOBAL_FARM_ID,
 				yield_farm_id: YIELD_FARM_ID,
 				who: liq_provider.clone(),
 				claimed: 39490129935032878644299350325,
 				reward_currency: BSX,
-			}.into());
+			}.into());*/
 	}
 
 	withdraw_shares {
@@ -466,10 +465,10 @@ benchmarks! {
 	}
 	verify {
 		assert!(MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider).gt(&liq_provider_bsx_balance));
-		assert_last_event::<T>(Event::<T>::DepositDestroyed {
+		/*assert_last_event::<T>(Event::<T>::DepositDestroyed {
 			who: liq_provider.clone(),
 			nft_instance_id: 1
-		}.into());
+		}.into());*/
 	}
 
 	//NOTE: This is same no matter if `update_global_pool()` is called because `GlobalFarm`will be
@@ -491,13 +490,13 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::resume_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR, FixedU128::from(12_452))?
 	} verify {
-		assert_last_event::<T>(Event::<T>::YieldFarmResumed {
+		/*assert_last_event::<T>(Event::<T>::YieldFarmResumed {
 			global_farm_id: GLOBAL_FARM_ID,
 			yield_farm_id: YIELD_FARM_ID,
 			who: caller.clone(),
 			asset_pair: ASSET_PAIR,
 			multiplier: FixedU128::from(12_452),
-		}.into());
+		}.into());*/
 	}
 }
 

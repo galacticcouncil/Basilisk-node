@@ -126,9 +126,7 @@ impl system::Config for Test {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
-impl crate::Config for Test {
-	type Event = Event;
-}
+impl crate::Config for Test {}
 
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
