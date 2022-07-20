@@ -65,7 +65,7 @@ fn deposit_shares_should_work() {
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount
+			amount: deposited_amount,
 		})]);
 
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().total_shares_z, 12_500);
@@ -132,7 +132,13 @@ fn deposit_shares_should_fail_when_amm_pool_does_not_exist() {
 
 	predefined_test_ext_with_deposits().execute_with(|| {
 		assert_noop!(
-			LiquidityMining::deposit_shares(Origin::signed(ALICE), GC_FARM, BSX_TKN1_YIELD_FARM_ID, unknown_asset_pair, 50),
+			LiquidityMining::deposit_shares(
+				Origin::signed(ALICE),
+				GC_FARM,
+				BSX_TKN1_YIELD_FARM_ID,
+				unknown_asset_pair,
+				50
+			),
 			Error::<Test>::AmmPoolDoesNotExist
 		);
 	});

@@ -41,7 +41,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -64,6 +63,7 @@ use warehouse_liquidity_mining::{GlobalFarmId, LoyaltyCurve};
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::ensure_signed;
 use hydradx_traits_amm::AMM;
+use hydradx_traits_nft::nft::{CreateTypedClass, ReserveClassId};
 use orml_traits::MultiCurrency;
 use primitives::{asset::AssetPair, AssetId, Balance};
 use scale_info::TypeInfo;
@@ -93,7 +93,7 @@ pub mod pallet {
 
 		fn integrity_test() {
 			assert!(
-				T::NftClassId::get() <= T::ReserveClassIdUpTo::get(),
+				T::NFTHandler::is_id_reserved(T::NftClassId::get()),
 				"`NftClassId` must be within the range of reserved NFT class IDs"
 			);
 		}
@@ -127,14 +127,12 @@ pub mod pallet {
 		/// NFT class id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
 		type NftClassId: Get<primitives::ClassId>;
 
-		/// Class IDs reserved for runtime up to the following constant
-		#[pallet::constant]
-		type ReserveClassIdUpTo: Get<primitives::ClassId>;
-
 		/// Non fungible handling
 		type NFTHandler: Mutate<Self::AccountId>
 			+ Create<Self::AccountId>
-			+ Inspect<Self::AccountId, ClassId = primitives::ClassId, InstanceId = primitives::InstanceId>;
+			+ Inspect<Self::AccountId, ClassId = primitives::ClassId, InstanceId = primitives::InstanceId>
+			+ CreateTypedClass<Self::AccountId, primitives::ClassId, primitives::nft::ClassType>
+			+ ReserveClassId<primitives::ClassId>;
 
 		/// Liquidity mining handler for managing liquidity mining functionalities
 		type LiquidityMiningHandler: LiquidityMiningMutate<
@@ -372,9 +370,15 @@ pub mod pallet {
 		pub fn destroy_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let (reward_currency, undistributed_rewards, who) = T::LiquidityMiningHandler::destroy_global_farm(who.clone(), global_farm_id)?;
+			let (reward_currency, undistributed_rewards, who) =
+				T::LiquidityMiningHandler::destroy_global_farm(who.clone(), global_farm_id)?;
 
-			Self::deposit_event(Event::GlobalFarmDestroyed { global_farm_id, who,reward_currency, undistributed_rewards });
+			Self::deposit_event(Event::GlobalFarmDestroyed {
+				global_farm_id,
+				who,
+				reward_currency,
+				undistributed_rewards,
+			});
 			Ok(())
 		}
 
@@ -454,8 +458,12 @@ pub mod pallet {
 			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			let yield_farm_id =
-				T::LiquidityMiningHandler::update_yield_farm_multiplier(who.clone(), global_farm_id, amm_pool_id, multiplier)?;
+			let yield_farm_id = T::LiquidityMiningHandler::update_yield_farm_multiplier(
+				who.clone(),
+				global_farm_id,
+				amm_pool_id,
+				multiplier,
+			)?;
 
 			Self::deposit_event(Event::YieldFarmUpdated {
 				global_farm_id,
@@ -485,7 +493,11 @@ pub mod pallet {
 		/// Emits `YieldFarmStopped` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
 		#[transactional]
-		pub fn stop_yield_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId, asset_pair: AssetPair) -> DispatchResult {
+		pub fn stop_yield_farm(
+			origin: OriginFor<T>,
+			global_farm_id: GlobalFarmId,
+			asset_pair: AssetPair,
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
@@ -533,7 +545,13 @@ pub mod pallet {
 			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			T::LiquidityMiningHandler::resume_yield_farm(who.clone(), global_farm_id, yield_farm_id, amm_pool_id, multiplier)?;
+			T::LiquidityMiningHandler::resume_yield_farm(
+				who.clone(),
+				global_farm_id,
+				yield_farm_id,
+				amm_pool_id,
+				multiplier,
+			)?;
 
 			Self::deposit_event(Event::<T>::YieldFarmResumed {
 				global_farm_id,
@@ -640,7 +658,7 @@ pub mod pallet {
 				yield_farm_id,
 				who,
 				amount: shares_amount,
-				lp_token: amm_share_token
+				lp_token: amm_share_token,
 			});
 
 			Ok(())
@@ -689,7 +707,7 @@ pub mod pallet {
 				yield_farm_id,
 				who,
 				amount: shares_amount,
-				lp_token: amm_share_token
+				lp_token: amm_share_token,
 			});
 
 			Ok(())
@@ -869,10 +887,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn get_asset_balance_in_amm_pool(
-		asset: AssetId,
-		amm_pool_id: AccountIdOf<T>,
-	) -> Result<Balance, DispatchError> {
+	fn get_asset_balance_in_amm_pool(asset: AssetId, amm_pool_id: AccountIdOf<T>) -> Result<Balance, DispatchError> {
 		Ok(T::MultiCurrency::total_balance(asset, &amm_pool_id))
 	}
 }

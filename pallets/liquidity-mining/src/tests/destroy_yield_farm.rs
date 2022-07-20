@@ -102,7 +102,6 @@ fn destroy_yield_farm_should_fail_when_caller_is_not_signed() {
 	});
 }
 
-
 #[test]
 fn destroy_yield_farm_should_fail_with_propagated_error_when_called_by_not_owner() {
 	predefined_test_ext_with_deposits().execute_with(|| {

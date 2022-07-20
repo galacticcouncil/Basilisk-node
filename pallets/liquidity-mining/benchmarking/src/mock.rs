@@ -170,8 +170,7 @@ impl pallet_liquidity_mining::Config for Test {
 	type NftClassId = NftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
-	type NFTHandler = NftHandlerStub;
+	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
 }
 

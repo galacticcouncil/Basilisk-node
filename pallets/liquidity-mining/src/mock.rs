@@ -31,6 +31,7 @@ use frame_support::{
 };
 use frame_system as system;
 use hydradx_traits_amm::AMM;
+use hydradx_traits_nft::nft::{CreateTypedClass, ReserveClassId};
 use orml_traits::parameter_type_with_key;
 use primitives::nft::{ClassType, NftPermissions};
 use primitives::{asset::AssetPair, Amount, AssetId, Balance};
@@ -344,7 +345,6 @@ impl Config for Test {
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type AMM = Amm;
 	type NftClassId = NftClassId;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 	type NFTHandler = NftHandlerStub;
 	type LiquidityMiningHandler = WarehouseLM;
 }
@@ -392,6 +392,22 @@ impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for NftHandler
 			m.remove(instance);
 		});
 		Ok(())
+	}
+}
+
+impl CreateTypedClass<AccountId, primitives::ClassId, ClassType> for NftHandlerStub {
+	fn create_typed_class(owner: AccountId, class_id: primitives::ClassId, _class_type: ClassType) -> DispatchResult {
+		NFT_CLASS.with(|v| {
+			//let mut class = v.borrow_mut();
+			v.replace((class_id, owner, owner));
+		});
+		Ok(())
+	}
+}
+
+impl ReserveClassId<primitives::ClassId> for NftHandlerStub {
+	fn is_id_reserved(_id: primitives::ClassId) -> bool {
+		true
 	}
 }
 

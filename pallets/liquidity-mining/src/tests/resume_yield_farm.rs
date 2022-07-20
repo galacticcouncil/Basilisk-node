@@ -102,11 +102,11 @@ fn resume_yield_farm_should_fail_when_amm_pool_does_not_exist() {
 		//Act and assert
 		assert_noop!(
 			LiquidityMining::resume_yield_farm(
-			Origin::signed(GC),
-			GC_FARM,
-			BSX_TKN1_YIELD_FARM_ID,
-			unknown_asset_pair,
-			FixedU128::from(7_490_000)
+				Origin::signed(GC),
+				GC_FARM,
+				BSX_TKN1_YIELD_FARM_ID,
+				unknown_asset_pair,
+				FixedU128::from(7_490_000)
 			),
 			Error::<Test>::AmmPoolDoesNotExist
 		);

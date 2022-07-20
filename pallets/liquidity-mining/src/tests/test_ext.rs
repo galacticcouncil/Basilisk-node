@@ -386,7 +386,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount
+			amount: deposited_amount,
 		})]);
 
 		// DEPOSIT 2 (deposit in same period):
@@ -408,7 +408,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount
+			amount: deposited_amount,
 		})]);
 
 		// DEPOSIT 3 (same period, second liq pool yield farm):
@@ -430,7 +430,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
-			amount: deposited_amount
+			amount: deposited_amount,
 		})]);
 
 		// DEPOSIT 4 (new period):
@@ -453,7 +453,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
-			amount: deposited_amount
+			amount: deposited_amount,
 		})]);
 
 		// DEPOSIT 5 (same period, second liq pool yield farm):
@@ -476,7 +476,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
-			amount: deposited_amount
+			amount: deposited_amount,
 		})]);
 
 		// DEPOSIT 6 (same period):
@@ -499,7 +499,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			yield_farm_id: BSX_TKN2_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
-			amount: deposited_amount
+			amount: deposited_amount,
 		})]);
 
 		// DEPOSIT 7 : (same period differen liq poll farm)
@@ -522,7 +522,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount
+			amount: deposited_amount,
 		})]);
 
 		assert_eq!(

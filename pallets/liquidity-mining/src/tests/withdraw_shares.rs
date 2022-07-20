@@ -19,8 +19,8 @@ use super::*;
 use pretty_assertions::assert_eq;
 use sp_runtime::traits::One;
 use test_ext::*;
-use warehouse_liquidity_mining::{GlobalFarmData, YieldFarmId};
 use warehouse_liquidity_mining::YieldFarmEntry;
+use warehouse_liquidity_mining::{GlobalFarmData, YieldFarmId};
 
 #[test]
 fn withdraw_shares_should_work() {

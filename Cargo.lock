@@ -3257,6 +3257,17 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.7.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=677a8880e2b99734741f4435d821bc1904cde69a#677a8880e2b99734741f4435d821bc1904cde69a"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-std",
+]
+
+[[package]]
+name = "hydradx-traits"
+version = "0.7.0"
 source = "git+https://github.com/galacticcouncil//warehouse?rev=d5a86e0006dd3c446ccf49cf7a37e37269c404fc#d5a86e0006dd3c446ccf49cf7a37e37269c404fc"
 dependencies = [
  "frame-support",
@@ -5954,7 +5965,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.2.0",
- "hydradx-traits 0.7.0",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil//warehouse?rev=d5a86e0006dd3c446ccf49cf7a37e37269c404fc)",
  "orml-traits",
  "parity-scale-codec",
  "scale-info",
@@ -5971,7 +5982,8 @@ dependencies = [
  "frame-system",
  "hydra-dx-math 4.2.0",
  "hydradx-traits 0.6.0",
- "hydradx-traits 0.7.0",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=677a8880e2b99734741f4435d821bc1904cde69a)",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil//warehouse?rev=d5a86e0006dd3c446ccf49cf7a37e37269c404fc)",
  "lazy_static",
  "orml-currencies",
  "orml-tokens",
@@ -6001,6 +6013,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydradx-traits 0.6.0",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=677a8880e2b99734741f4435d821bc1904cde69a)",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -6129,12 +6142,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "3.0.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=3f4033727e7af4fef209d54c898018fc2d0ccc2d#3f4033727e7af4fef209d54c898018fc2d0ccc2d"
+version = "3.2.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=677a8880e2b99734741f4435d821bc1904cde69a#677a8880e2b99734741f4435d821bc1904cde69a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=677a8880e2b99734741f4435d821bc1904cde69a)",
  "orml-utilities",
  "pallet-uniques",
  "parity-scale-codec",

@@ -816,7 +816,6 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type NftClassId = NftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
 }
