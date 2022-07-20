@@ -117,7 +117,7 @@ pub mod nft {
 		}
 
 		fn can_mint(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
+			matches!(*class_type, ClassType::Marketplace | ClassType::LiquidityMining)
 		}
 
 		fn can_transfer(class_type: &ClassType) -> bool {
@@ -125,7 +125,7 @@ pub mod nft {
 		}
 
 		fn can_burn(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
+			matches!(*class_type, ClassType::Marketplace | ClassType::LiquidityMining)
 		}
 
 		fn can_destroy(class_type: &ClassType) -> bool {
