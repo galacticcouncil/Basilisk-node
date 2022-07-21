@@ -69,3 +69,37 @@ fn pair_account_should_be_removed_from_whitelist_when_pool_was_destroyed() {
 		assert!(!DustRemovalWhitelist::contains(&pair_account(asset_a, asset_b)));
 	});
 }
+
+#[test]
+fn pool_should_be_created_when_it_was_destroyed_previously() {
+	TestNet::reset();
+
+	let asset_a = 1;
+	let asset_b = 2;
+
+	Basilisk::execute_with(|| {
+		//arrange
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE.into()),
+			asset_a,
+			asset_b,
+			100 * UNITS,
+			Price::from(2)
+		));
+		assert_ok!(XYK::remove_liquidity(
+			Origin::signed(ALICE.into()),
+			asset_a,
+			asset_b,
+			100 * UNITS
+		));
+
+		//act & assert
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE.into()),
+			asset_a,
+			asset_b,
+			100 * UNITS,
+			Price::from(2)
+		));
+	});
+}
