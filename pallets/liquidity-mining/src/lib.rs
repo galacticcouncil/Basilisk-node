@@ -315,7 +315,7 @@ pub mod pallet {
 		/// - `price_adjustment`:
 		/// Emits `GlobalFarmCreated` event when successful.
 		#[allow(clippy::too_many_arguments)]
-		#[pallet::weight(<T as Config>::WeightInfo::create_farm())]
+		#[pallet::weight(<T as Config>::WeightInfo::create_global_farm())]
 		#[transactional]
 		pub fn create_global_farm(
 			origin: OriginFor<T>,
@@ -371,7 +371,7 @@ pub mod pallet {
 		/// - `global_farm_id`: id of global farm to be destroyed.
 		///
 		/// Emits `FarmDestroyed` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_farm())]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_global_farm())]
 		#[transactional]
 		pub fn destroy_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -405,7 +405,7 @@ pub mod pallet {
 		/// with time incentive. `None` means no loyalty multiplier.
 		///
 		/// Emits `YieldFarmCreated` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity_pool())]
+		#[pallet::weight(<T as Config>::WeightInfo::create_yield_farm())]
 		#[transactional]
 		pub fn create_yield_farm(
 			origin: OriginFor<T>,
@@ -451,7 +451,7 @@ pub mod pallet {
 		/// - `multiplier`: new yield farm multiplier.
 		///
 		/// Emits `YieldFarmUpdated` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::update_liquidity_pool())]
+		#[pallet::weight(<T as Config>::WeightInfo::update_yield_farm())]
 		#[transactional]
 		pub fn update_yield_farm(
 			origin: OriginFor<T>,
@@ -497,7 +497,7 @@ pub mod pallet {
 		/// - `asset_pair`: asset pair identifying yield farm in the farm.
 		///
 		/// Emits `YieldFarmStopped` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
+		#[pallet::weight(<T as Config>::WeightInfo::stop_yield_farm())]
 		#[transactional]
 		pub fn stop_yield_farm(
 			origin: OriginFor<T>,
@@ -537,7 +537,7 @@ pub mod pallet {
 		/// - `multiplier`: yield farm multiplier in the farm.
 		///
 		/// Emits `YieldFarmResumed` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::resume_liquidity_pool())]
+		#[pallet::weight(<T as Config>::WeightInfo::resume_yield_farm())]
 		#[transactional]
 		pub fn resume_yield_farm(
 			origin: OriginFor<T>,
@@ -589,7 +589,7 @@ pub mod pallet {
 		/// - `asset_pair`: asset pair identifying yield farm in the global farm.
 		///
 		/// Emits `YieldFarmDestroyed` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity_pool())]
+		#[pallet::weight(<T as Config>::WeightInfo::destroy_yield_farm())]
 		#[transactional]
 		pub fn destroy_yield_farm(
 			origin: OriginFor<T>,
@@ -683,7 +683,7 @@ pub mod pallet {
 		/// - `deposit_id`: identifier of the AMM pool.
 		///
 		/// Emits `SharesRedeposited` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
+		#[pallet::weight(<T as Config>::WeightInfo::redeposit_lp_shares())]
 		pub fn redeposit_lp_shares(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
