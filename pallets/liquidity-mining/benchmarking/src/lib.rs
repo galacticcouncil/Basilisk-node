@@ -207,7 +207,7 @@ benchmarks! {
 	}
 
 
-	destroy_farm {
+	destroy_global_farm {
 		let caller = funded_account::<T>("caller", 0);
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
@@ -359,7 +359,7 @@ benchmarks! {
 		}.into());*/
 	}
 
-	redeposit_shares {
+	redeposit_lp_shares {
 		init_nft_class_for_liquidity_mining::<T>();
 
 		let caller = funded_account::<T>("caller", 0);
