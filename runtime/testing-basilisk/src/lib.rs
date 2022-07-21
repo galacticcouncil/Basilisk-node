@@ -806,6 +806,11 @@ impl pallet_relaychain_info::Config for Runtime {
 	type RelaychainBlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
+parameter_types! {
+    //This value is outside of reserved range so we can create nft class for LM without migration
+	pub const TestingNftClass: primitives::ClassId = 1_000_000;
+}
+
 impl pallet_liquidity_mining::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
@@ -814,7 +819,7 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
-	type NftClassId = NftClass;
+	type NftClassId = TestingNftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
 	type NFTHandler = NFT;
