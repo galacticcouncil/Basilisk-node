@@ -29,7 +29,7 @@ use std::collections::HashMap;
 
 use frame_system as system;
 use frame_system::EnsureSigned;
-use hydradx_traits::{AssetPairAccountIdFor, pools::DustRemovalAccountWhitelist};
+use hydradx_traits::{pools::DustRemovalAccountWhitelist, AssetPairAccountIdFor};
 use orml_traits::parameter_type_with_key;
 use primitives::{
 	constants::{

@@ -807,7 +807,7 @@ impl pallet_relaychain_info::Config for Runtime {
 }
 
 parameter_types! {
-    //This value is outside of reserved range so we can create nft class for LM without migration
+	//This value is outside of reserved range so we can create nft class for LM without migration
 	pub const TestingNftClass: primitives::ClassId = 1_000_000;
 }
 
