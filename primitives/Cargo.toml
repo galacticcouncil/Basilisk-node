@@ -1,6 +1,6 @@
 [package]
 name = "primitives"
-version = "6.2.3"
+version = "6.2.4"
 authors = ["GalacticCouncil"]
 edition = "2021"
 repository = "https://github.com/galacticcouncil/Basilisk-node"

@@ -17,6 +17,7 @@
 
 #![cfg(test)]
 
+use crate::dispatch::DispatchError;
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
@@ -28,7 +29,7 @@ use std::collections::HashMap;
 
 use frame_system as system;
 use frame_system::EnsureSigned;
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AssetPairAccountIdFor, pools::DustRemovalAccountWhitelist};
 use orml_traits::parameter_type_with_key;
 use primitives::{
 	constants::{
@@ -299,6 +300,7 @@ impl pallet_xyk::Config for Test {
 	type CanCreatePool = pallet_xyk::AllowAllPools;
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
+	type NonDustableWhitelistHandler = Whitelist;
 }
 
 impl Default for ExtBuilder {
@@ -380,4 +382,18 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
 	ext.execute_with(|| System::set_block_number(1));
 	ext
+}
+
+pub struct Whitelist;
+
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
+	type Error = DispatchError;
+
+	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
+
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
 }
