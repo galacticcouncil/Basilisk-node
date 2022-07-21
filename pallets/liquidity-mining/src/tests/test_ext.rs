@@ -123,7 +123,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[0].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[0].max_reward_per_period,
 				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
-				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 192282548550198434755674140525,
@@ -144,7 +144,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[1].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[1].max_reward_per_period,
 				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
-				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 271510711064462772349218090861,
@@ -165,7 +165,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[2].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[2].max_reward_per_period,
 				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
-				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 350738873578727109942762041197,
@@ -186,7 +186,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[3].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[3].max_reward_per_period,
 				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
-				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 429967036092991447536305991533,
@@ -207,7 +207,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[4].incentivized_asset,
 				max_reward_per_period: 100000000,
 				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
-				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment,
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 509195198607255785129849941869,
@@ -228,7 +228,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[5].incentivized_asset,
 				max_reward_per_period: 100000000,
 				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
-				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment,
 			}),
 		]);
 

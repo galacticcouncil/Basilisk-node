@@ -75,7 +75,7 @@ fn create_global_farm_should_work() {
 			incentivized_asset,
 			max_reward_per_period,
 			min_deposit,
-			price_adjustment
+			price_adjustment,
 		})]);
 
 		let updated_at = created_at_block / blocks_per_period;
