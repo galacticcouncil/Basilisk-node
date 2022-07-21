@@ -115,12 +115,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[0].id,
 				owner: PREDEFINED_GLOBAL_FARMS[0].owner,
+				total_rewards: 100_000_000_000,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[0].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[0].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[0].planned_yielding_periods,
 				blocks_per_period: PREDEFINED_GLOBAL_FARMS[0].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[0].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[0].max_reward_per_period,
+				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 192282548550198434755674140525,
@@ -133,12 +136,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[1].id,
 				owner: PREDEFINED_GLOBAL_FARMS[1].owner,
+				total_rewards: BOB_GLOBAL_FARM_TOTAL_REWARDS,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[1].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[1].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[1].planned_yielding_periods,
 				blocks_per_period: PREDEFINED_GLOBAL_FARMS[1].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[1].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[1].max_reward_per_period,
+				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 271510711064462772349218090861,
@@ -151,12 +157,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[2].id,
 				owner: PREDEFINED_GLOBAL_FARMS[2].owner,
+				total_rewards: 30_000_000_000,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[2].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[2].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[2].planned_yielding_periods,
 				blocks_per_period: PREDEFINED_GLOBAL_FARMS[2].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[2].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[2].max_reward_per_period,
+				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 350738873578727109942762041197,
@@ -169,12 +178,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[3].id,
 				owner: PREDEFINED_GLOBAL_FARMS[3].owner,
+				total_rewards: 30_000_000_000,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[3].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[3].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[3].planned_yielding_periods,
 				blocks_per_period: PREDEFINED_GLOBAL_FARMS[3].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[3].incentivized_asset,
 				max_reward_per_period: PREDEFINED_GLOBAL_FARMS[3].max_reward_per_period,
+				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 429967036092991447536305991533,
@@ -187,12 +199,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[4].id,
 				owner: PREDEFINED_GLOBAL_FARMS[4].owner,
+				total_rewards: 30_000_000_000,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[4].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[4].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[4].planned_yielding_periods,
 				blocks_per_period: PREDEFINED_GLOBAL_FARMS[4].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[4].incentivized_asset,
 				max_reward_per_period: 100000000,
+				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
 			}),
 			mock::Event::System(frame_system::Event::NewAccount {
 				account: 509195198607255785129849941869,
@@ -205,12 +220,15 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[5].id,
 				owner: PREDEFINED_GLOBAL_FARMS[5].owner,
+				total_rewards: 30_000_000_000,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[5].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[5].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[5].planned_yielding_periods,
 				blocks_per_period: PREDEFINED_GLOBAL_FARMS[5].blocks_per_period,
 				incentivized_asset: PREDEFINED_GLOBAL_FARMS[5].incentivized_asset,
 				max_reward_per_period: 100000000,
+				min_deposit: PREDEFINED_GLOBAL_FARMS[0].min_deposit,
+				price_adjustment: PREDEFINED_GLOBAL_FARMS[0].price_adjustment
 			}),
 		]);
 

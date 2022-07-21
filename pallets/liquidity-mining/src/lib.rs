@@ -182,12 +182,15 @@ pub mod pallet {
 		GlobalFarmCreated {
 			id: GlobalFarmId,
 			owner: AccountIdOf<T>,
+			total_rewards : Balance,
 			reward_currency: AssetId,
 			yield_per_period: Permill,
 			planned_yielding_periods: PeriodOf<T>,
 			blocks_per_period: BlockNumberFor<T>,
 			incentivized_asset: AssetId,
 			max_reward_per_period: Balance,
+			min_deposit: Balance,
+			price_adjustment: FixedU128
 		},
 
 		/// New yield farm was added into the farm.
@@ -343,12 +346,15 @@ pub mod pallet {
 			Self::deposit_event(Event::GlobalFarmCreated {
 				id,
 				owner,
+				total_rewards,
 				reward_currency,
 				yield_per_period,
 				planned_yielding_periods,
 				blocks_per_period,
 				incentivized_asset,
 				max_reward_per_period,
+				min_deposit,
+				price_adjustment
 			});
 
 			Ok(())

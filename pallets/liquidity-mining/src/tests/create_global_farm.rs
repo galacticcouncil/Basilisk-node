@@ -67,12 +67,15 @@ fn create_global_farm_should_work() {
 		expect_events(vec![mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 			id,
 			owner,
+			total_rewards,
 			reward_currency,
 			yield_per_period,
 			planned_yielding_periods,
 			blocks_per_period,
 			incentivized_asset,
 			max_reward_per_period,
+			min_deposit,
+			price_adjustment
 		})]);
 
 		let updated_at = created_at_block / blocks_per_period;
