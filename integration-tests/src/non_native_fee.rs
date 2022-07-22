@@ -7,7 +7,6 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 
-use pallet_price_oracle::{BucketQueueT, PriceInfo};
 use pallet_transaction_multi_payment::Price;
 
 use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, Origin, Tokens};
@@ -24,11 +23,9 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 		let b = basilisk_runtime::System::block_number();
 
 		basilisk_runtime::System::on_finalize(b);
-		basilisk_runtime::PriceOracle::on_finalize(b);
 		basilisk_runtime::MultiTransactionPayment::on_finalize(b);
 
 		basilisk_runtime::System::on_initialize(b + 1);
-		basilisk_runtime::PriceOracle::on_finalize(b);
 		basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
 
 		basilisk_runtime::System::set_block_number(b + 1);
@@ -130,21 +127,6 @@ fn non_native_fee_payment_works() {
 		]);
 
 		basilisk_run_to_block(11);
-
-		let pair_name = basilisk_runtime::PriceOracle::get_name(currency_0, currency_1);
-		let data_ten = basilisk_runtime::PriceOracle::price_data_ten()
-			.iter()
-			.find(|&x| x.0 == pair_name)
-			.unwrap()
-			.1;
-
-		assert_eq!(
-			data_ten.get_last(),
-			PriceInfo {
-				avg_price: Price::from_inner(535331905781590000),
-				volume: 35_331_905_781_585,
-			}
-		);
 	});
 }
 
