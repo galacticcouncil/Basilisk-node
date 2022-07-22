@@ -20,7 +20,7 @@
 
 mod mock;
 
-use pallet_liquidity_mining::{Event, Pallet as LiquidityMining};
+use pallet_liquidity_mining::{Pallet as LiquidityMining};
 use warehouse_liquidity_mining::{GlobalFarmId, YieldFarmId};
 
 use frame_benchmarking::{account, benchmarks};
@@ -179,47 +179,31 @@ fn set_block_number<T: Config>(block: u32) {
 	System::<T>::set_block_number(block.into());
 }
 
-/*fn assert_last_event<T: Config>(generic_event: <T as Config>::Event) {
-	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
-}*/
-
-//TODO: Dani - clean up the commented code
 benchmarks! {
 	create_global_farm {
+		let total_rewards = 1_000_000;
 		let caller = funded_account::<T>("caller", 0);
 		let planned_yielding_periods = T::BlockNumber::from(1_000_000_u32);
 		let yield_per_period = Permill::from_percent(20);
 		let blocks_per_period = T::BlockNumber::from(1_u32);
 	}: {
-		LiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), 1_000_000 * NATIVE_EXISTENTIAL_DEPOSIT, planned_yielding_periods, blocks_per_period, BSX, BSX, caller.clone(), yield_per_period, 1, One::one())?
+		LiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), total_rewards * NATIVE_EXISTENTIAL_DEPOSIT, planned_yielding_periods, blocks_per_period, BSX, BSX, caller.clone(), yield_per_period, 1, One::one())?
 	}
 	verify {
-	   /*assert_last_event::<T>(Event::<T>::GlobalFarmCreated {
-				owner: caller,
-				id: GLOBAL_FARM_ID,
-				reward_currency: 0,
-				yield_per_period: yield_per_period,
-				planned_yielding_periods: planned_yielding_periods,
-				incentivized_asset: 0,
-				max_reward_per_period: 1000000000000,
-				blocks_per_period: blocks_per_period,
-			}.into());*/
+		assert_eq!(MultiCurrencyOf::<T>::free_balance(BSX, &caller), (INITIAL_BALANCE  - total_rewards ) * NATIVE_EXISTENTIAL_DEPOSIT);
 	}
 
 
 	destroy_global_farm {
+		let total_rewards = 1_000_000;
 		let caller = funded_account::<T>("caller", 0);
 
 		init_farm::<T>(1_000_000, caller.clone(), Permill::from_percent(20))?;
+		assert_eq!(MultiCurrencyOf::<T>::free_balance(BSX, &caller), (INITIAL_BALANCE  - total_rewards ) * NATIVE_EXISTENTIAL_DEPOSIT);
 	}: {
 		LiquidityMining::<T>::destroy_global_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID)?
 	} verify {
-		/*assert_last_event::<T>(Event::<T>::GlobalFarmDestroyed {
-			who: caller.clone(),
-			global_farm_id: GLOBAL_FARM_ID,
-			reward_currency: 0,
-			undistributed_rewards: 1_000_000_000_000_000_000
-		}.into());*/
+		assert_eq!(MultiCurrencyOf::<T>::free_balance(BSX, &caller), INITIAL_BALANCE  * NATIVE_EXISTENTIAL_DEPOSIT);
 	}
 
 	create_yield_farm {
@@ -235,13 +219,7 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR, multiplier, loyality_curve.clone())?
 	} verify {
-		/*assert_last_event::<T>(Event::<T>::YieldFarmCreated {
-				global_farm_id: GLOBAL_FARM_ID,
-				yield_farm_id: YIELD_FARM_ID,
-				multiplier: multiplier,
-				loyalty_curve: loyality_curve,
-				asset_pair: ASSET_PAIR,
-			}.into());*/
+		//If the Act command does not result in error, then we are fine and verification is not really needed
 	}
 
 	update_yield_farm {
@@ -257,13 +235,7 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::update_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, ASSET_PAIR, new_multiplier)?
 	} verify {
-		/*assert_last_event::<T>(Event::<T>::YieldFarmUpdated {
-			global_farm_id: GLOBAL_FARM_ID,
-			yield_farm_id: YIELD_FARM_ID,
-			who: caller.clone(),
-			asset_pair: ASSET_PAIR,
-			multiplier: new_multiplier,
-		}.into());*/
+		//If the Act command does not result in error, then we are fine and verification is not really needed
 	}
 
 
@@ -289,12 +261,7 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR)?
 	} verify {
-		/*assert_last_event::<T>(Event::<T>::YieldFarmStopped {
-			global_farm_id: GLOBAL_FARM_ID,
-			yield_farm_id: YIELD_FARM_ID,
-			who: caller.clone(),
-			asset_pair: ASSET_PAIR,
-		}.into());*/
+		//If the Act command does not result in error, then we are fine and verification is not really needed
 	}
 
 	destroy_yield_farm {
@@ -321,12 +288,7 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR)?
 	} verify {
-		/*assert_last_event::<T>(Event::<T>::YieldFarmDestroyed {
-			global_farm_id: GLOBAL_FARM_ID,
-			yield_farm_id: YIELD_FARM_ID,
-			who: caller.clone(),
-			asset_pair: ASSET_PAIR,
-		}.into());*/
+		//If the Act command does not result in error, then we are fine and verification is not really needed
 	}
 
 	deposit_shares {
@@ -350,13 +312,7 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::deposit_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, ASSET_PAIR, 10_000)?
 	} verify {
-		/*assert_last_event::<T>(Event::<T>::SharesDeposited {
-			global_farm_id: GLOBAL_FARM_ID,
-			yield_farm_id: YIELD_FARM_ID,
-			who: liq_provider.clone(),
-			lp_token: 0,
-			amount: 10_000
-		}.into());*/
+		//If the Act command does not result in error, then we are fine and verification is not really needed
 	}
 
 	redeposit_lp_shares {
@@ -383,13 +339,7 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::redeposit_lp_shares(RawOrigin::Signed(liq_provider.clone()).into(), GLOBAL_FARM_ID_2, YIELD_FARM_ID_3, ASSET_PAIR, DEPOSIT_ID)?
 	} verify {
-		/*assert_last_event::<T>(Event::<T>::SharesRedeposited {
-			global_farm_id: GLOBAL_FARM_ID_2,
-			yield_farm_id: YIELD_FARM_ID_3,
-			who: liq_provider.clone(),
-			lp_token: 0,
-			amount: shares_amount
-		}.into());*/
+		//If the Act command does not result in error, then we are fine and verification is not really needed
 	}
 
 	claim_rewards {
@@ -421,13 +371,6 @@ benchmarks! {
 	}
 	verify {
 		assert!(MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider).gt(&liq_provider_bsx_balance));
-		/*assert_last_event::<T>(Event::<T>::RewardClaimed {
-				global_farm_id: GLOBAL_FARM_ID,
-				yield_farm_id: YIELD_FARM_ID,
-				who: liq_provider.clone(),
-				claimed: 39490129935032878644299350325,
-				reward_currency: BSX,
-			}.into());*/
 	}
 
 	withdraw_shares {
@@ -463,12 +406,7 @@ benchmarks! {
 		LiquidityMining::<T>::withdraw_shares(RawOrigin::Signed(liq_provider.clone()).into(), DEPOSIT_ID, YIELD_FARM_ID, ASSET_PAIR)?
 	}
 	verify {
-		//println!("{}, {}", MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider), &liq_provider_bsx_balance);
-		//assert!(MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider).gt(&liq_provider_bsx_balance));
-		/*assert_last_event::<T>(Event::<T>::DepositDestroyed {
-			who: liq_provider.clone(),
-			nft_instance_id: 1
-		}.into());*/
+		assert!(MultiCurrencyOf::<T>::free_balance(BSX, &liq_provider).gt(&liq_provider_bsx_balance));
 	}
 
 	//NOTE: This is same no matter if `update_global_pool()` is called because `GlobalFarm`will be
@@ -490,13 +428,7 @@ benchmarks! {
 	}: {
 		LiquidityMining::<T>::resume_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR, FixedU128::from(12_452))?
 	} verify {
-		/*assert_last_event::<T>(Event::<T>::YieldFarmResumed {
-			global_farm_id: GLOBAL_FARM_ID,
-			yield_farm_id: YIELD_FARM_ID,
-			who: caller.clone(),
-			asset_pair: ASSET_PAIR,
-			multiplier: FixedU128::from(12_452),
-		}.into());*/
+		//If the Act command does not result in error, then we are fine and verification is not really needed
 	}
 }
 
