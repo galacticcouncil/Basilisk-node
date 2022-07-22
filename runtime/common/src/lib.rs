@@ -268,6 +268,7 @@ parameter_types! {
 parameter_types! {
 	pub MinVestedTransfer: Balance = 100_000;
 	pub const MaxVestingSchedules: u32 = 15;
+	pub const VestingPalletId: PalletId = PalletId(*b"py/vstng");
 }
 
 // pallet liquidity mining
