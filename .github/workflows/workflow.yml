@@ -130,7 +130,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: testing_basilisk_runtime.compact.compressed.wasm
-          path: target/release/release/wbuild/testing-basilisk-runtime/testing_basilisk_runtime.compact.compressed.wasm
+          path: target/release/wbuild/testing-basilisk-runtime/testing_basilisk_runtime.compact.compressed.wasm
 
   upload-config-to-s3:
     name: upload configuration to S3
