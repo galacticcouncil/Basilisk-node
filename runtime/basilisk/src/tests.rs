@@ -1,6 +1,9 @@
-use super::*;
+//! Tests for the Basilisk Runtime Configuration
+
+use crate::*;
 use codec::Encode;
 use frame_support::weights::{DispatchClass, GetDispatchInfo, WeightToFeePolynomial};
+use sp_runtime::traits::Convert;
 use sp_runtime::FixedPointNumber;
 
 #[test]
@@ -32,7 +35,7 @@ fn extrinsic_base_fee_is_correct() {
 #[test]
 // Useful to calculate how much single transfer costs in native currency with fee components breakdown
 fn transfer_cost() {
-	let call = pallet_balances::Call::<Test>::transfer {
+	let call = pallet_balances::Call::<Runtime>::transfer {
 		dest: AccountId::new([0; 32]),
 		value: Default::default(),
 	};
@@ -56,4 +59,47 @@ fn transfer_cost() {
 			fee,
 		);
 	});
+}
+
+fn run_with_system_weight<F>(w: Weight, mut assertions: F)
+where
+	F: FnMut(),
+{
+	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+		.build_storage::<Runtime>()
+		.unwrap()
+		.into();
+	t.execute_with(|| {
+		System::set_block_consumed_resources(w, 0);
+		assertions()
+	});
+}
+
+#[test]
+fn multiplier_can_grow_from_zero() {
+	let minimum_multiplier = MinimumMultiplier::get();
+	let target = TargetBlockFullness::get() * BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
+	// if the min is too small, then this will not change, and we are doomed forever.
+	// the weight is 1/100th bigger than target.
+	run_with_system_weight(target * 101 / 100, || {
+		let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+		assert!(next > minimum_multiplier, "{:?} !>= {:?}", next, minimum_multiplier);
+	})
+}
+
+#[test]
+#[ignore]
+fn multiplier_growth_simulator() {
+	// calculate the value of the fee multiplier after one hour of operation with fully loaded blocks
+	let mut multiplier = Multiplier::saturating_from_integer(1);
+	let block_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
+	for _block_num in 1..=HOURS {
+		run_with_system_weight(block_weight, || {
+			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
+			// ensure that it is growing as well.
+			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
+			multiplier = next;
+		});
+	}
+	println!("multiplier = {:?}", multiplier);
 }

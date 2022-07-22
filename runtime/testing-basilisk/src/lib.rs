@@ -24,8 +24,6 @@
 #![allow(clippy::from_over_into)]
 
 #[cfg(test)]
-mod mock;
-#[cfg(test)]
 mod tests;
 
 // Make the WASM binary available.
@@ -742,20 +740,13 @@ impl pallet_session::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub struct VestingOrRoot;
-impl EnsureOrigin<Origin> for VestingOrRoot {
+pub struct RootOnly;
+impl EnsureOrigin<Origin> for RootOnly {
 	type Success = AccountId;
 
 	fn try_origin(o: Origin) -> Result<Self::Success, Origin> {
 		Into::<Result<RawOrigin<AccountId>, Origin>>::into(o).and_then(|o| match o {
 			RawOrigin::Root => Ok(VestingPalletId::get().into_account()),
-			RawOrigin::Signed(caller) => {
-				if caller == VestingPalletId::get().into_account() {
-					Ok(caller)
-				} else {
-					Err(Origin::from(Some(caller)))
-				}
-			}
 			r => Err(Origin::from(r)),
 		})
 	}
@@ -772,7 +763,7 @@ impl orml_vesting::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
-	type VestedTransferOrigin = VestingOrRoot;
+	type VestedTransferOrigin = RootOnly;
 	type WeightInfo = ();
 	type MaxVestingSchedules = MaxVestingSchedules;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
