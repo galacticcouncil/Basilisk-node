@@ -180,7 +180,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			(AccountId::from(BOB), 1000 * UNITS),
 			(AccountId::from(CHARLIE), 1000 * UNITS),
 			(AccountId::from(DAVE), 1000 * UNITS),
-			(vesting_account(), 1_000_000 * UNITS)
+			(vesting_account(), 1_000_000 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)

@@ -1,9 +1,9 @@
 #![cfg(test)]
 
 use crate::kusama_test_net::*;
+use basilisk_runtime::{BlockNumber, Vesting};
 use frame_support::{assert_noop, assert_ok};
 use frame_system::RawOrigin;
-use basilisk_runtime::{BlockNumber, Vesting};
 use orml_vesting::VestingSchedule;
 use sp_core::crypto::AccountId32;
 use sp_runtime::DispatchError::BadOrigin;
@@ -57,7 +57,7 @@ fn vested_transfer_should_fail_when_signed_by_any_account() {
 		let from: AccountId = AccountId::from(ALICE);
 		let to: AccountId = AccountId::from(BOB);
 
-    // Assert
+		// Assert
 		assert_noop!(
 			Vesting::vested_transfer(RawOrigin::Signed(from).into(), to, vesting_schedule()),
 			BadOrigin
