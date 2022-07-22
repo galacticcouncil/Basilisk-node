@@ -142,6 +142,7 @@ impl Contains<Call> for BaseFilter {
 			Call::Exchange(_) => false,
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
+			Call::LiquidityMining(_) => false,
 			Call::OrmlXcm(_) => false,
 			_ => true,
 		}
@@ -840,6 +841,35 @@ impl pallet_relaychain_info::Config for Runtime {
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+impl pallet_liquidity_mining::Config for Runtime {
+	type Event = Event;
+	type MultiCurrency = Currencies;
+	type CreateOrigin = EnsureRoot<AccountId>;
+	type PalletId = LMPalletId;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type NftClassId = NftClass;
+	type AMM = XYK;
+	type WeightInfo = ();
+	type NFTHandler = NFT;
+	type LiquidityMiningHandler = WarehouseLM;
+}
+
+type XYKLiquidityMining = warehouse_liquidity_mining::Instance1;
+impl warehouse_liquidity_mining::Config<XYKLiquidityMining> for Runtime {
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type PalletId = WarehouseLMPalletId;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type AmmPoolId = AccountId;
+	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
+	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type Event = Event;
+}
+
 parameter_types! {
 	pub const PreimageMaxSize: u32 = 4096 * 1024;
 	pub PreimageBaseDeposit: Balance = deposit(2, 64);
@@ -936,6 +966,8 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
+		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 156,
+		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 157,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
@@ -1161,6 +1193,7 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 
@@ -1170,6 +1203,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1202,9 +1236,11 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl pallet_exchange_benchmarking::Config for Runtime {}
+			impl pallet_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
@@ -1229,6 +1265,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
 
 			// Substrate pallets

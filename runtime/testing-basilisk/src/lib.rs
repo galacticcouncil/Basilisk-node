@@ -101,8 +101,8 @@ pub mod opaque {
 
 mod testing {
 	use super::{parameter_types, BlockNumber, Everything, MINUTES};
-	pub type BaseFilter = Everything;
 
+	pub type BaseFilter = Everything;
 	parameter_types! {
 		pub const LaunchPeriod: BlockNumber = MINUTES;
 		pub const VotingPeriod: BlockNumber = MINUTES;
@@ -800,6 +800,26 @@ impl pallet_relaychain_info::Config for Runtime {
 }
 
 parameter_types! {
+	//This value is outside of reserved range so we can create nft class for LM without migration
+	pub const TestingNftClass: primitives::ClassId = 1_000_000;
+}
+
+impl pallet_liquidity_mining::Config for Runtime {
+	type Event = Event;
+	type MultiCurrency = Currencies;
+	type CreateOrigin = EnsureRoot<AccountId>;
+	type PalletId = LMPalletId;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type NftClassId = TestingNftClass;
+	type AMM = XYK;
+	type WeightInfo = ();
+	type NFTHandler = NFT;
+	type LiquidityMiningHandler = WarehouseLM;
+}
+
+parameter_types! {
 	pub const PreimageMaxSize: u32 = 4096 * 1024;
 	pub PreimageBaseDeposit: Balance = deposit(2, 64);
 	pub PreimageByteDeposit: Balance = deposit(0, 1);
@@ -838,6 +858,20 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type WeightInfo = ();
+}
+
+type XYKLiquidityMining = warehouse_liquidity_mining::Instance1;
+impl warehouse_liquidity_mining::Config<XYKLiquidityMining> for Runtime {
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type PalletId = WarehouseLMPalletId;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type AmmPoolId = AccountId;
+	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
+	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type Event = Event;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -889,6 +923,8 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
+		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 156,
+		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 157,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
@@ -1118,6 +1154,7 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 
@@ -1128,6 +1165,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
@@ -1151,9 +1189,11 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl pallet_exchange_benchmarking::Config for Runtime {}
+			impl pallet_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
@@ -1178,6 +1218,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 
 			// Substrate pallets

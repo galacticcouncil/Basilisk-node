@@ -279,6 +279,14 @@ parameter_types! {
 	pub const NftClass: primitives::ClassId = 1;
 }
 
+// warehouse pallet liquidity mining
+parameter_types! {
+	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
+	pub const MinDeposit: Balance = 1;
+	pub const MaxEntriesPerDeposit: u8 = 10; //TODO: Dani - What shall we use here?
+	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5; //TODO: Dani - What shall we use here?
+}
+
 // pallet identity
 parameter_types! {
 	pub const BasicDeposit: Balance = 5 * DOLLARS;

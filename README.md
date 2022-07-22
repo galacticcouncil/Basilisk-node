@@ -32,7 +32,7 @@ make build
 
 ### Local Testnet
 
-Relay chain repository (polkadot) has to be built in `../polkadot`
+Relay chain repository [Polkadot](https://github.com/paritytech/polkadot) has to be built in `../polkadot` sibling directory
 Install `polkadot-launch` utility used to start network.
 
 ```
