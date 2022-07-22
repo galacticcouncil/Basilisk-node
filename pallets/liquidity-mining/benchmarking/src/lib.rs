@@ -20,7 +20,7 @@
 
 mod mock;
 
-use pallet_liquidity_mining::{Pallet as LiquidityMining};
+use pallet_liquidity_mining::Pallet as LiquidityMining;
 use warehouse_liquidity_mining::{GlobalFarmId, YieldFarmId};
 
 use frame_benchmarking::{account, benchmarks};
