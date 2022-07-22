@@ -16,12 +16,11 @@ impl fmt::Display for RuntimeInstanceError {
 
 impl Error for RuntimeInstanceError {}
 
-#[derive(Debug, Clone, Parser)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Parser)]
 pub enum RuntimeInstance {
-	Basilisk,
-	Testing,
+    Basilisk,
+    Testing,
 }
-
 impl RuntimeInstance {
 	fn variants() -> [&'static str; 2] {
 		["basilisk", "testing"]
@@ -34,7 +33,18 @@ impl RuntimeInstance {
 		}
 	}
 }
+impl clap::ValueEnum for RuntimeInstance {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[Self::Basilisk, Self::Testing]
+    }
 
+    fn to_possible_value<'a>(&self) -> Option<clap::PossibleValue<'a>> {
+        match self {
+            Self::Basilisk => Some(clap::PossibleValue::new("basilisk")),
+            Self::Testing => Some(clap::PossibleValue::new("testing")),
+        }
+    }
+}
 impl fmt::Display for RuntimeInstance {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match *self {
@@ -50,26 +60,13 @@ impl Default for RuntimeInstance {
 	}
 }
 
-impl FromStr for RuntimeInstance {
-	type Err = RuntimeInstanceError;
-
-	fn from_str(input: &str) -> Result<Self, Self::Err> {
-		let input_lower = input.to_lowercase();
-		match input_lower.as_str() {
-			"testing" => Ok(RuntimeInstance::Testing),
-			"basilisk" | "" => Ok(RuntimeInstance::Basilisk),
-			other => Err(RuntimeInstanceError(format!("Invalid variant: `{}`", other))),
-		}
-	}
-}
-
 #[derive(Debug, Parser)]
 pub struct RunCmd {
 	#[clap(flatten)]
 	pub base: cumulus_client_cli::RunCmd,
 
 	/// Specify the runtime used by the node.
-	#[clap(default_value_t, long, value_parser = RuntimeInstance::variants(), ignore_case = true)]
+	#[clap(default_value_t, long, value_parser = clap::builder::EnumValueParser::<RuntimeInstance>::new(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }
 
@@ -180,7 +177,7 @@ pub struct ExportGenesisStateCommand {
 	pub chain: Option<String>,
 
 	/// Specify the runtime used by the node.
-	#[clap(default_value_t, long, value_parser = RuntimeInstance::variants(), ignore_case = true)]
+	#[clap(default_value_t, long, value_parser = clap::builder::EnumValueParser::<RuntimeInstance>::new(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }
 
@@ -200,6 +197,6 @@ pub struct ExportGenesisWasmCommand {
 	pub chain: Option<String>,
 
 	/// Specify the runtime used by the node.
-	#[clap(default_value_t, long, value_parser = RuntimeInstance::variants(), ignore_case = true)]
+	#[clap(default_value_t, long, value_parser = clap::builder::EnumValueParser::<RuntimeInstance>::new(), ignore_case = true)]
 	pub runtime: RuntimeInstance,
 }
