@@ -61,7 +61,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
-			30_000_000_000,
+			TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 			PREDEFINED_GLOBAL_FARMS[2].planned_yielding_periods,
 			PREDEFINED_GLOBAL_FARMS[2].blocks_per_period,
 			PREDEFINED_GLOBAL_FARMS[2].incentivized_asset,
@@ -74,7 +74,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
-			30_000_000_000,
+			TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 			PREDEFINED_GLOBAL_FARMS[3].planned_yielding_periods,
 			PREDEFINED_GLOBAL_FARMS[3].blocks_per_period,
 			PREDEFINED_GLOBAL_FARMS[3].incentivized_asset,
@@ -87,7 +87,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
-			30_000_000_000,
+			TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 			PREDEFINED_GLOBAL_FARMS[4].planned_yielding_periods,
 			PREDEFINED_GLOBAL_FARMS[4].blocks_per_period,
 			PREDEFINED_GLOBAL_FARMS[4].incentivized_asset,
@@ -100,7 +100,7 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 
 		assert_ok!(LiquidityMining::create_global_farm(
 			Origin::root(),
-			30_000_000_000,
+			TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 			PREDEFINED_GLOBAL_FARMS[5].planned_yielding_periods,
 			PREDEFINED_GLOBAL_FARMS[5].blocks_per_period,
 			PREDEFINED_GLOBAL_FARMS[5].incentivized_asset,
@@ -152,12 +152,12 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::Tokens(orml_tokens::Event::Endowed {
 				currency_id: 1_000,
 				who: 271510711064462772349218090861,
-				amount: 30_000_000_000,
+				amount: TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[2].id,
 				owner: PREDEFINED_GLOBAL_FARMS[2].owner,
-				total_rewards: 30_000_000_000,
+				total_rewards: TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[2].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[2].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[2].planned_yielding_periods,
@@ -173,12 +173,12 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::Tokens(orml_tokens::Event::Endowed {
 				currency_id: 3_000,
 				who: 350738873578727109942762041197,
-				amount: 30_000_000_000,
+				amount: TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[3].id,
 				owner: PREDEFINED_GLOBAL_FARMS[3].owner,
-				total_rewards: 30_000_000_000,
+				total_rewards: TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[3].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[3].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[3].planned_yielding_periods,
@@ -194,12 +194,12 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::Tokens(orml_tokens::Event::Endowed {
 				currency_id: 3_000,
 				who: 429967036092991447536305991533,
-				amount: 30_000_000_000,
+				amount: TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[4].id,
 				owner: PREDEFINED_GLOBAL_FARMS[4].owner,
-				total_rewards: 30_000_000_000,
+				total_rewards: TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[4].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[4].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[4].planned_yielding_periods,
@@ -215,12 +215,12 @@ pub fn predefined_test_ext() -> sp_io::TestExternalities {
 			mock::Event::Tokens(orml_tokens::Event::Endowed {
 				currency_id: 4_000,
 				who: 509195198607255785129849941869,
-				amount: 30_000_000_000,
+				amount: TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 			}),
 			mock::Event::LiquidityMining(Event::GlobalFarmCreated {
 				id: PREDEFINED_GLOBAL_FARMS[5].id,
 				owner: PREDEFINED_GLOBAL_FARMS[5].owner,
-				total_rewards: 30_000_000_000,
+				total_rewards: TOTAL_REWARDS_FOR_GLOBAL_FARMS,
 				reward_currency: PREDEFINED_GLOBAL_FARMS[5].reward_currency,
 				yield_per_period: PREDEFINED_GLOBAL_FARMS[5].yield_per_period,
 				planned_yielding_periods: PREDEFINED_GLOBAL_FARMS[5].planned_yielding_periods,
@@ -599,7 +599,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 		//reward currency balance check. total_rewards - sum(claimes from global pool)
 		assert_eq!(
 			Tokens::free_balance(BSX, &global_farm_account),
-			(30_000_000_000 - 1_164_400)
+			(TOTAL_REWARDS_FOR_GLOBAL_FARMS - 1_164_400)
 		);
 
 		//check of claimed amount from global pool (sum of all claims)
