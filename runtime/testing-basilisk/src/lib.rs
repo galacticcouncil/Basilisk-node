@@ -740,8 +740,8 @@ impl pallet_session::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub struct RootOnly;
-impl EnsureOrigin<Origin> for RootOnly {
+pub struct RootAsVestingPallet;
+impl EnsureOrigin<Origin> for RootAsVestingPallet {
 	type Success = AccountId;
 
 	fn try_origin(o: Origin) -> Result<Self::Success, Origin> {
@@ -763,7 +763,7 @@ impl orml_vesting::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
-	type VestedTransferOrigin = RootOnly;
+	type VestedTransferOrigin = RootAsVestingPallet;
 	type WeightInfo = ();
 	type MaxVestingSchedules = MaxVestingSchedules;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
