@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["CREATE_CLASS_OFFSET",""],["MINT_OFFSET",""]],"struct":[["BasiliskWeight",""]]});

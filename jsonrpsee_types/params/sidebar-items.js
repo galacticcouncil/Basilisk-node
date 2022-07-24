@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Id","Request Id"],["ParamsSer","Serializable JSON-RPC parameters"],["SubscriptionId","Id of a subscription, communicated by the server."]],"struct":[["Params","Parameters sent with an incoming JSON-RPC request."],["ParamsSequence","An `Iterator`-like parser for a sequence of [`Params`]."],["TwoPointZero","JSON-RPC v2 marker type."]]});

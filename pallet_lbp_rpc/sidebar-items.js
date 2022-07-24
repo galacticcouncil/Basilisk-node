@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error",""]],"mod":[["gen_client","The generated client module."],["rpc_impl_LBPApi",""]],"struct":[["LBP","A struct that implements the [`XYKApi`]."],["LBPApiClient","The Client."]],"trait":[["LBPApi",""],["LBPRuntimeApi",""]]});

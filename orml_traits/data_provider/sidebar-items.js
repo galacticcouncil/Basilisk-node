@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["median",""]],"trait":[["DataFeeder","Data provider with ability to provide data with no-op, and provide all data."],["DataProvider","A simple trait to provide data"],["DataProviderExtended","Extended data provider to provide timestamped data by key with no-op, and all data."]]});

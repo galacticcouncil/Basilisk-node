@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["StorageChangeSet","Storage change set"],["StorageEventStream","Type that implements `futures::Stream` of storage change events."],["StorageNotifications","Manages storage listeners."]]});

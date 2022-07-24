@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["InspectExtended","Trait to complement the Inspect trait"]]});

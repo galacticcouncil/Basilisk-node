@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["UnwindInfo","Represents unwind information for a single function."],["UnwindInst","Unwind pseudoinstruction used in VCode backends: represents that at the present location, an action has just been taken."]],"mod":[["systemv","System V ABI unwind information."],["winx64","Windows x64 ABI unwind information."]]});

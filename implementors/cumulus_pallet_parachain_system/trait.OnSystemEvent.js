@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["cumulus_pallet_parachain_system"] = [];
+implementors["pallet_relaychain_info"] = [{"text":"impl&lt;T:&nbsp;<a class=\"trait\" href=\"pallet_relaychain_info/pallet/trait.Config.html\" title=\"trait pallet_relaychain_info::pallet::Config\">Config</a>&gt; <a class=\"trait\" href=\"cumulus_pallet_parachain_system/trait.OnSystemEvent.html\" title=\"trait cumulus_pallet_parachain_system::OnSystemEvent\">OnSystemEvent</a> for <a class=\"struct\" href=\"pallet_relaychain_info/struct.OnValidationDataHandler.html\" title=\"struct pallet_relaychain_info::OnValidationDataHandler\">OnValidationDataHandler</a>&lt;T&gt;","synthetic":false,"types":["pallet_relaychain_info::OnValidationDataHandler"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

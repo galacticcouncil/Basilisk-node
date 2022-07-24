@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["pallet_nft"] = [];
+implementors["primitives"] = [{"text":"impl <a class=\"trait\" href=\"pallet_nft/types/trait.NftPermission.html\" title=\"trait pallet_nft::types::NftPermission\">NftPermission</a>&lt;<a class=\"enum\" href=\"primitives/nft/enum.ClassType.html\" title=\"enum primitives::nft::ClassType\">ClassType</a>&gt; for <a class=\"struct\" href=\"primitives/nft/struct.NftPermissions.html\" title=\"struct primitives::nft::NftPermissions\">NftPermissions</a>","synthetic":false,"types":["primitives::nft::NftPermissions"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

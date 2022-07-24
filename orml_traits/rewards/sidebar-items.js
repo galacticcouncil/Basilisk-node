@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["RewardHandler","Hooks to manage reward pool"]]});

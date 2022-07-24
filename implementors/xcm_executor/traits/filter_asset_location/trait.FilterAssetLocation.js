@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["orml_xcm_support"] = [{"text":"impl <a class=\"trait\" href=\"xcm_executor/traits/filter_asset_location/trait.FilterAssetLocation.html\" title=\"trait xcm_executor::traits::filter_asset_location::FilterAssetLocation\">FilterAssetLocation</a> for <a class=\"struct\" href=\"orml_xcm_support/struct.MultiNativeAsset.html\" title=\"struct orml_xcm_support::MultiNativeAsset\">MultiNativeAsset</a>","synthetic":false,"types":["orml_xcm_support::MultiNativeAsset"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

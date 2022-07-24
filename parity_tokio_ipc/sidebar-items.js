@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["dummy_endpoint","For testing/examples"]],"struct":[["Connection","IPC connection."],["Endpoint","Endpoint implementation for unix systems"],["SecurityAttributes","Socket permissions and ownership on UNIX"]]});

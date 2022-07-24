@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Currencies Module"><meta name="keywords" content="rust, rustlang, rust-lang, orml_currencies"><title>orml_currencies - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../orml_currencies/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../orml_currencies/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate orml_currencies</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.4.1-dev</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></div></section><div id="sidebar-vars" data-name="orml_currencies" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../orml_currencies/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">orml_currencies</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/orml_currencies/lib.rs.html#1-734">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="currencies-module"><a href="#currencies-module">Currencies Module</a></h2><h3 id="overview"><a href="#overview">Overview</a></h3>
+<p>The currencies module provides a mixed currencies system, by configuring a
+native currency which implements <code>BasicCurrencyExtended</code>, and a
+multi-currency which implements <code>MultiCurrency</code>.</p>
+<p>It also provides an adapter, to adapt <code>frame_support::traits::Currency</code>
+implementations into <code>BasicCurrencyExtended</code>.</p>
+<p>The currencies module provides functionality of both <code>MultiCurrencyExtended</code>
+and <code>BasicCurrencyExtended</code>, via unified interfaces, and all calls would be
+delegated to the underlying multi-currency and base currency system.
+A native currency ID could be set by <code>Config::GetNativeCurrencyId</code>, to
+identify the native currency.</p>
+<h4 id="implementations-1"><a href="#implementations-1">Implementations</a></h4>
+<p>The currencies module provides implementations for following traits.</p>
+<ul>
+<li><code>MultiCurrency</code> - Abstraction over a fungible multi-currency system.</li>
+<li><code>MultiCurrencyExtended</code> - Extended <code>MultiCurrency</code> with additional helper
+types and methods, like updating balance
+by a given signed integer amount.</li>
+</ul>
+<h3 id="interface"><a href="#interface">Interface</a></h3><h4 id="dispatchable-functions"><a href="#dispatchable-functions">Dispatchable Functions</a></h4>
+<ul>
+<li><code>transfer</code> - Transfer some balance to another account, in a given
+currency.</li>
+<li><code>transfer_native_currency</code> - Transfer some balance to another account, in
+native currency set in
+<code>Config::NativeCurrency</code>.</li>
+<li><code>update_balance</code> - Update balance by signed integer amount, in a given
+currency, root origin required.</li>
+</ul>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use <a class="mod" href="module/index.html" title="mod orml_currencies::module">module</a>::*;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="module/index.html" title="orml_currencies::module mod">module</a></div><div class="item-right docblock-short"><p>The module that hosts all the
+<a href="https://docs.substrate.io/v3/runtime/frame">FRAME</a>
+types needed to add this pallet to a
+runtime.</p>
+</div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.BasicCurrencyAdapter.html" title="orml_currencies::BasicCurrencyAdapter struct">BasicCurrencyAdapter</a></div><div class="item-right docblock-short"><p>Adapt other currency traits implementation to <code>BasicCurrency</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Currency.html" title="orml_currencies::Currency struct">Currency</a></div><div class="item-right docblock-short"></div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.WeightInfo.html" title="orml_currencies::WeightInfo trait">WeightInfo</a></div><div class="item-right docblock-short"><p>Weight functions needed for module_currencies.</p>
+</div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.NativeCurrencyOf.html" title="orml_currencies::NativeCurrencyOf type">NativeCurrencyOf</a></div><div class="item-right docblock-short"></div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="orml_currencies" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (b17226fcc 2022-02-18)" ></div>
+</body></html>

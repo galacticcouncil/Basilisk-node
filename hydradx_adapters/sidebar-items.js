@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MultiCurrencyTrader","Weight trader that accepts multiple assets as weight fee payment."],["ToFeeReceiver","Implements `TakeRevenue` by sending the assets to the fee receiver, using an implementor of `DepositFee`."]]});

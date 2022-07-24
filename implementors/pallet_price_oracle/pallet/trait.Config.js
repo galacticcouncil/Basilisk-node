@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["testing_basilisk_runtime"] = [{"text":"impl <a class=\"trait\" href=\"pallet_price_oracle/pallet/trait.Config.html\" title=\"trait pallet_price_oracle::pallet::Config\">Config</a> for <a class=\"struct\" href=\"testing_basilisk_runtime/struct.Runtime.html\" title=\"struct testing_basilisk_runtime::Runtime\">Runtime</a>","synthetic":false,"types":["testing_basilisk_runtime::Runtime"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

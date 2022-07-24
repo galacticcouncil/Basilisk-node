@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["westend_runtime"] = [{"text":"impl <a class=\"trait\" href=\"pallet_xcm_benchmarks/trait.Config.html\" title=\"trait pallet_xcm_benchmarks::Config\">Config</a> for <a class=\"struct\" href=\"westend_runtime/struct.Runtime.html\" title=\"struct westend_runtime::Runtime\">Runtime</a>","synthetic":false,"types":["westend_runtime::Runtime"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

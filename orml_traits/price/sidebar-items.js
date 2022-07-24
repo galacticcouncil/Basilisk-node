@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["DefaultPriceProvider","A `PriceProvider` implementation based on price data from a `DataProvider`"]],"trait":[["PriceProvider","A trait to provide relative price for two currencies"]]});

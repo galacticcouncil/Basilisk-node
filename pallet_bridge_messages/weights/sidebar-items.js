@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["RialtoWeight","Weights for `pallet_bridge_messages` using the Rialto node and recommended hardware."]],"trait":[["WeightInfo","Weight functions needed for `pallet_bridge_messages`."]]});

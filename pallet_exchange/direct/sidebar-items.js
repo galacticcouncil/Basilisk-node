@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["DirectTradeData","Hold info about a direct trade between two intentions. After a direct trade is prepared - `transfers` contains all necessary transfers to complete the trade."],["Transfer","Hold info about each transfer which has to be made to resolve a direct trade."]]});

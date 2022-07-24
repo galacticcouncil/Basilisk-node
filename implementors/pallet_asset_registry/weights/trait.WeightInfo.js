@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["common_runtime"] = [{"text":"impl&lt;T:&nbsp;<a class=\"trait\" href=\"frame_system/pallet/trait.Config.html\" title=\"trait frame_system::pallet::Config\">Config</a>&gt; <a class=\"trait\" href=\"pallet_asset_registry/weights/trait.WeightInfo.html\" title=\"trait pallet_asset_registry::weights::WeightInfo\">WeightInfo</a> for <a class=\"struct\" href=\"common_runtime/weights/asset_registry/struct.BasiliskWeight.html\" title=\"struct common_runtime::weights::asset_registry::BasiliskWeight\">BasiliskWeight</a>&lt;T&gt;","synthetic":false,"types":["common_runtime::weights::asset_registry::BasiliskWeight"]}];
+implementors["pallet_asset_registry"] = [];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

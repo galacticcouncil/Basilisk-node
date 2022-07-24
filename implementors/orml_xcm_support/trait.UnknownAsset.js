@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["orml_unknown_tokens"] = [{"text":"impl&lt;T:&nbsp;<a class=\"trait\" href=\"orml_unknown_tokens/module/trait.Config.html\" title=\"trait orml_unknown_tokens::module::Config\">Config</a>&gt; <a class=\"trait\" href=\"orml_xcm_support/trait.UnknownAsset.html\" title=\"trait orml_xcm_support::UnknownAsset\">UnknownAsset</a> for <a class=\"struct\" href=\"orml_unknown_tokens/module/struct.Pallet.html\" title=\"struct orml_unknown_tokens::module::Pallet\">Pallet</a>&lt;T&gt;","synthetic":false,"types":["orml_unknown_tokens::module::Pallet"]}];
+implementors["orml_xcm_support"] = [];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

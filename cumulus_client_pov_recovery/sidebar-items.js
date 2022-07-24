@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["RecoveryDelay","The delay between observing an unknown block and recovering this block."]],"struct":[["PoVRecovery","Encapsulates the logic of the pov recovery."]]});

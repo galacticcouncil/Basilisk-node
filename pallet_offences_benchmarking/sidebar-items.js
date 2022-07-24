@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Pallet",""]],"trait":[["Config",""],["IdTupleConvert","A helper trait to make sure we can convert `IdentificationTuple` coming from historical and the one required by offences."]]});

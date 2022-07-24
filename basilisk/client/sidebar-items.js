@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Client","A client instance of Basilisk."]],"trait":[["AbstractClient","Trait that abstracts over all available client implementations."],["ClientHandle","A handle to a Basilisk client instance."],["ExecuteWithClient","Execute something with the client instance."],["RuntimeApiCollection","A set of APIs that Basilisk-like runtimes must implement."]]});

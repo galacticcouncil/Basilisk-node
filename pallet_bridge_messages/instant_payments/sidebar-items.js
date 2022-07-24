@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["InstantCurrencyPayments","Instant message payments made in given currency."]]});

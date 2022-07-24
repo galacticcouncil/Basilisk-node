@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["calculate_d","Calculate `d` so the Stableswap invariant does not change."]]});

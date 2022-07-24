@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["inbound_lane_data_key","Storage key of the inbound message lane state in the runtime storage."],["message_key","Storage key of the outbound message in the runtime storage."],["outbound_lane_data_key","Storage key of the outbound message lane state in the runtime storage."]]});

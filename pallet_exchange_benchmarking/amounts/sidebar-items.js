@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["INTENTION_AMOUNTS",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["AuctionInfo","Auction info."],["OnNewBidResult","The result of bid handling."]],"trait":[["Auction","Abstraction over a simple auction system."],["AuctionHandler","Hooks for auction to handle bids."]]});

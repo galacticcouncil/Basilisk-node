@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["DustRemovalAccountWhitelist","Manage list of non-dustable accounts"],["SpotPriceProvider",""]]});

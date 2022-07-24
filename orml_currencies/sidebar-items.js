@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["module","The module that hosts all the FRAME types needed to add this pallet to a runtime."]],"struct":[["BasicCurrencyAdapter","Adapt other currency traits implementation to `BasicCurrency`."],["Currency",""]],"trait":[["WeightInfo","Weight functions needed for module_currencies."]],"type":[["NativeCurrencyOf",""]]});

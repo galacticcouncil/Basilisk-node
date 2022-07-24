@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["AssetPair","Asset Pair representation for AMM trades ( asset_a, asset_b ) combination where asset_a is meant to be exchanged for asset_b"]]});

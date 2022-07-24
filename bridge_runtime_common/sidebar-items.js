@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["messages","Types that allow runtime to act as a source/target endpoint of message lanes."],["messages_api","Helpers for implementing various message-related runtime API mthods."]]});

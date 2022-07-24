@@ -1,0 +1,186 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/open-runtime-module-library-30593740310e4cd0/40965a8/traits/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../orml_traits/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../orml_traits/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../orml_traits/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+
+<span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+<span class="kw">use</span> <span class="ident">impl_trait_for_tuples::impl_for_tuples</span>;
+<span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">DispatchResult</span>, <span class="ident">RuntimeDebug</span>};
+<span class="kw">use</span> <span class="ident">sp_std</span>::{
+	<span class="ident">cmp</span>::{<span class="ident">Eq</span>, <span class="ident">PartialEq</span>},
+	<span class="ident">prelude::Vec</span>,
+};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">auction</span>::{<span class="ident">Auction</span>, <span class="ident">AuctionHandler</span>, <span class="ident">AuctionInfo</span>, <span class="ident">OnNewBidResult</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">currency</span>::{
+	<span class="ident">BalanceStatus</span>, <span class="ident">BasicCurrency</span>, <span class="ident">BasicCurrencyExtended</span>, <span class="ident">BasicLockableCurrency</span>, <span class="ident">BasicReservableCurrency</span>,
+	<span class="ident">LockIdentifier</span>, <span class="ident">MultiCurrency</span>, <span class="ident">MultiCurrencyExtended</span>, <span class="ident">MultiLockableCurrency</span>, <span class="ident">MultiReservableCurrency</span>,
+	<span class="ident">OnDust</span>,
+};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">data_provider</span>::{<span class="ident">DataFeeder</span>, <span class="ident">DataProvider</span>, <span class="ident">DataProviderExtended</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">get_by_key::GetByKey</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">multi_asset::ConcreteFungibleAsset</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">nft::InspectExtended</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">price</span>::{<span class="ident">DefaultPriceProvider</span>, <span class="ident">PriceProvider</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rewards::RewardHandler</span>;
+<span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">xcm_transfer::XcmTransfer</span>;
+
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">arithmetic</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">auction</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">currency</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">data_provider</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">get_by_key</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">location</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">multi_asset</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nft</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">price</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">rewards</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">xcm_transfer</span>;
+
+<span class="doccomment">/// New data handler</span>
+<span class="attribute">#[<span class="ident">impl_trait_for_tuples::impl_for_tuples</span>(<span class="number">30</span>)]</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">OnNewData</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Key</span>, <span class="ident">Value</span><span class="op">&gt;</span> {
+	<span class="doccomment">/// New data is available</span>
+	<span class="kw">fn</span> <span class="ident">on_new_data</span>(<span class="ident">who</span>: <span class="kw-2">&amp;</span><span class="ident">AccountId</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Key</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>);
+}
+
+<span class="doccomment">/// Combine data provided by operators</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">CombineData</span><span class="op">&lt;</span><span class="ident">Key</span>, <span class="ident">TimestampedValue</span><span class="op">&gt;</span> {
+	<span class="doccomment">/// Combine data provided by operators</span>
+	<span class="kw">fn</span> <span class="ident">combine_data</span>(
+		<span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Key</span>,
+		<span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TimestampedValue</span><span class="op">&gt;</span>,
+		<span class="ident">prev_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TimestampedValue</span><span class="op">&gt;</span>,
+	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TimestampedValue</span><span class="op">&gt;</span>;
+}
+
+<span class="doccomment">/// Indicate if should change a value</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Change</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+	<span class="doccomment">/// No change.</span>
+	<span class="ident">NoChange</span>,
+	<span class="doccomment">/// Changed to new value.</span>
+	<span class="ident">NewValue</span>(<span class="ident">Value</span>),
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimestampedValue</span><span class="op">&lt;</span><span class="ident">Value</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">PartialOrd</span>, <span class="ident">Moment</span><span class="op">&gt;</span> {
+	<span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Value</span>,
+	<span class="kw">pub</span> <span class="ident">timestamp</span>: <span class="ident">Moment</span>,
+}
+
+<span class="attribute">#[<span class="ident">impl_for_tuples</span>(<span class="number">30</span>)]</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Happened</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">happened</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>);
+}
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">handle</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">DispatchResult</span>;
+}
+
+<span class="attribute">#[<span class="ident">impl_for_tuples</span>(<span class="number">30</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Tuple</span> {
+	<span class="kw">fn</span> <span class="ident">handle</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">DispatchResult</span> {
+		<span class="macro">for_tuples!</span>( #( <span class="ident">Tuple::handle</span>(<span class="ident">t</span>); )<span class="op">*</span> );
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="orml_traits" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (b17226fcc 2022-02-18)" ></div>
+</body></html>

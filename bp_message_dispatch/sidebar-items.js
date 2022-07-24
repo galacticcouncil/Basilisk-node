@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["CallOrigin","Origin of a Call when it is dispatched on the target chain."]],"struct":[["MessagePayload","Message payload type used by dispatch module."]],"trait":[["MessageDispatch","A generic trait to dispatch arbitrary messages delivered over the bridge."]],"type":[["SpecVersion","Spec version type."],["Weight","Message dispatch weight."]]});

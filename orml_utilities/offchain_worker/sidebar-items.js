@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["OffchainErr","Error which may occur while executing the off-chain code."]]});

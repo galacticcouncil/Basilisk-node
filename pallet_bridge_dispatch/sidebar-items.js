@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["account_ownership_digest","Target account ownership digest from the source chain."],["verify_message_origin","Check if the message is allowed to be dispatched on the target chain given the sender’s origin on the source chain."]],"mod":[["pallet","The module that hosts all the FRAME types needed to add this pallet to a runtime."]]});

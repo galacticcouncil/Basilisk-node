@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["exp","exponential function e^(operand) neg - bool indicates that operand is negative value."],["ln","natural logarithm Returns tuple(D,bool) where bool indicates whether D is negative. This happens when operand is < 1."],["log2","base 2 logarithm"],["pow",""],["powi","power with integer exponent"]]});

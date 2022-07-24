@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ClassType",""]],"struct":[["ClassInfo",""],["InstanceInfo",""],["NftPermissions",""]],"trait":[["NftPermission",""]],"type":[["ClassId","NFT Class ID"],["InstanceId","NFT Instance ID"]]});

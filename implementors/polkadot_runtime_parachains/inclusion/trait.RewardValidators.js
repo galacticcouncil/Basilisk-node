@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["polkadot_runtime_parachains"] = [];
+implementors["rococo_runtime"] = [{"text":"impl <a class=\"trait\" href=\"polkadot_runtime_parachains/inclusion/trait.RewardValidators.html\" title=\"trait polkadot_runtime_parachains::inclusion::RewardValidators\">RewardValidators</a> for <a class=\"struct\" href=\"rococo_runtime/struct.RewardValidators.html\" title=\"struct rococo_runtime::RewardValidators\">RewardValidators</a>","synthetic":false,"types":["rococo_runtime::RewardValidators"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

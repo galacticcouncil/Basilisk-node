@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["SEED",""]],"enum":[["SelectedBenchmark",""]],"fn":[["update_balance",""]],"struct":[["Benchmark",""],["add_currency",""],["get_spot_price",""],["remove_currency",""],["set_currency",""]],"type":[["MultiPaymentPallet",""]]});
