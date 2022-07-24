@@ -132,6 +132,31 @@ jobs:
           name: testing_basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/testing-basilisk-runtime/testing_basilisk_runtime.compact.compressed.wasm
 
+  build-benchmarks:
+    needs: pop-runner-instance
+    runs-on: ${{ needs.pop-runner-instance.outputs.runner }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: git describe --tags --abbrev=0 --always
+      - name: Install Rust
+        uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
+        with:
+          profile: minimal
+      - name: Build benchmarking node
+        run: cargo build --release --locked --features runtime-benchmarks
+      - name: Version info
+        run: ./target/release/basilisk --version
+      - name: Run benchmarks
+        run: ./target/release/basilisk benchmark --chain dev --execution wasm --wasm-execution compiled --pallet \* --extrinsic \* --heap-pages=4096
+      - name: Upload benchmarking binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: basilisk_benchmarking
+          path: target/release/basilisk
+
   upload-config-to-s3:
     name: upload configuration to S3
     if: github.ref == 'refs/heads/testnet' && github.event_name != 'pull_request'
