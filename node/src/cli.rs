@@ -2,7 +2,7 @@ use crate::chain_spec;
 use clap::Parser;
 use std::error::Error;
 use std::path::PathBuf;
-use std::{fmt, str::FromStr};
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct RuntimeInstanceError(String);
@@ -22,10 +22,6 @@ pub enum RuntimeInstance {
 	Testing,
 }
 impl RuntimeInstance {
-	fn variants() -> [&'static str; 2] {
-		["basilisk", "testing"]
-	}
-
 	pub fn is_testing_runtime(&self) -> bool {
 		match self {
 			Self::Basilisk => false,
