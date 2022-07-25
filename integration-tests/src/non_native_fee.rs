@@ -33,7 +33,7 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 }
 
 #[test]
-fn non_native_fee_payment_works() {
+fn non_native_fee_payment_works_with_xyk_spot_price() {
 	use pallet_transaction_multi_payment::TransactionMultiPaymentDataProvider;
 
 	TestNet::reset();
@@ -108,14 +108,14 @@ fn non_native_fee_payment_works() {
 		));
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(DAVE));
-		assert_eq!(dave_balance, 968_048_559_011_998);
+		assert_eq!(dave_balance, 968_046_450_495_217);
 
 		expect_basilisk_events(vec![
 			pallet_transaction_multi_payment::Event::FeeWithdrawn {
 				account_id: DAVE.into(),
 				asset_id: 1,
 				native_fee_amount: 55_738_705_000_000,
-				non_native_fee_amount: 31_951_440_988_002,
+				non_native_fee_amount: 31_953_549_504_783,
 				destination_account_id: basilisk_runtime::MultiTransactionPayment::get_fee_receiver(),
 			}
 			.into(),
