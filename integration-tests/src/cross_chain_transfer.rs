@@ -98,7 +98,7 @@ fn transfer_to_relay_chain() {
 	KusamaRelay::execute_with(|| {
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			2999893333340 // 3 * BSX - fee
+			2999988476752 // 3 * BSX - fee
 		);
 	});
 }
