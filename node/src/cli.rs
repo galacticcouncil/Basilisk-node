@@ -18,8 +18,8 @@ impl Error for RuntimeInstanceError {}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Parser)]
 pub enum RuntimeInstance {
-    Basilisk,
-    Testing,
+	Basilisk,
+	Testing,
 }
 impl RuntimeInstance {
 	fn variants() -> [&'static str; 2] {
@@ -34,16 +34,16 @@ impl RuntimeInstance {
 	}
 }
 impl clap::ValueEnum for RuntimeInstance {
-    fn value_variants<'a>() -> &'a [Self] {
-        &[Self::Basilisk, Self::Testing]
-    }
+	fn value_variants<'a>() -> &'a [Self] {
+		&[Self::Basilisk, Self::Testing]
+	}
 
-    fn to_possible_value<'a>(&self) -> Option<clap::PossibleValue<'a>> {
-        match self {
-            Self::Basilisk => Some(clap::PossibleValue::new("basilisk")),
-            Self::Testing => Some(clap::PossibleValue::new("testing")),
-        }
-    }
+	fn to_possible_value<'a>(&self) -> Option<clap::PossibleValue<'a>> {
+		match self {
+			Self::Basilisk => Some(clap::PossibleValue::new("basilisk")),
+			Self::Testing => Some(clap::PossibleValue::new("testing")),
+		}
+	}
 }
 impl fmt::Display for RuntimeInstance {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

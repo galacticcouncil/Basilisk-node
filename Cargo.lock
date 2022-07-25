@@ -3733,7 +3733,7 @@ checksum = "f9b7d56ba4a8344d6be9729995e6b06f928af29998cdf79fe390cbf6b1fee838"
 [[package]]
 name = "kusama-runtime"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "beefy-primitives",
  "bitvec",
@@ -3825,7 +3825,7 @@ dependencies = [
 [[package]]
 name = "kusama-runtime-constants"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "frame-support",
  "polkadot-primitives",
@@ -5145,7 +5145,7 @@ checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
 [[package]]
 name = "orchestra"
 version = "0.0.1"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "async-trait",
  "dyn-clonable",
@@ -5161,7 +5161,7 @@ dependencies = [
 [[package]]
 name = "orchestra-proc-macro"
 version = "0.0.1"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "expander 0.0.6",
  "itertools",
@@ -6453,7 +6453,7 @@ dependencies = [
 [[package]]
 name = "pallet-xcm"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6471,7 +6471,7 @@ dependencies = [
 [[package]]
 name = "pallet-xcm-benchmarks"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6885,7 +6885,7 @@ checksum = "e8d0eef3571242013a0d5dc84861c3ae4a652e56e12adf8bdc26ff5f8cb34c94"
 [[package]]
 name = "polkadot-approval-distribution"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "polkadot-node-network-protocol",
@@ -6900,7 +6900,7 @@ dependencies = [
 [[package]]
 name = "polkadot-availability-bitfield-distribution"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "polkadot-node-network-protocol",
@@ -6914,7 +6914,7 @@ dependencies = [
 [[package]]
 name = "polkadot-availability-distribution"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "derive_more",
  "fatality",
@@ -6937,7 +6937,7 @@ dependencies = [
 [[package]]
 name = "polkadot-availability-recovery"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "fatality",
  "futures",
@@ -6958,7 +6958,7 @@ dependencies = [
 [[package]]
 name = "polkadot-cli"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "clap",
  "frame-benchmarking-cli",
@@ -6983,7 +6983,7 @@ dependencies = [
 [[package]]
 name = "polkadot-client"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "beefy-primitives",
  "frame-benchmarking",
@@ -7023,7 +7023,7 @@ dependencies = [
 [[package]]
 name = "polkadot-collator-protocol"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "always-assert",
  "fatality",
@@ -7044,7 +7044,7 @@ dependencies = [
 [[package]]
 name = "polkadot-core-primitives"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "parity-scale-codec 3.1.5",
  "parity-util-mem",
@@ -7057,7 +7057,7 @@ dependencies = [
 [[package]]
 name = "polkadot-dispute-distribution"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "derive_more",
  "fatality",
@@ -7080,7 +7080,7 @@ dependencies = [
 [[package]]
 name = "polkadot-erasure-coding"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "parity-scale-codec 3.1.5",
  "polkadot-node-primitives",
@@ -7094,7 +7094,7 @@ dependencies = [
 [[package]]
 name = "polkadot-gossip-support"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "futures-timer",
@@ -7114,7 +7114,7 @@ dependencies = [
 [[package]]
 name = "polkadot-network-bridge"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "always-assert",
  "async-trait",
@@ -7135,7 +7135,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-collation-generation"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "parity-scale-codec 3.1.5",
@@ -7153,7 +7153,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-approval-voting"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -7182,7 +7182,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-av-store"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bitvec",
  "futures",
@@ -7202,7 +7202,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-backing"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bitvec",
  "fatality",
@@ -7221,7 +7221,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-bitfield-signing"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "polkadot-node-subsystem",
@@ -7236,7 +7236,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-candidate-validation"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "async-trait",
  "futures",
@@ -7254,7 +7254,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-chain-api"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "polkadot-node-subsystem",
@@ -7269,7 +7269,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-chain-selection"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "futures-timer",
@@ -7286,7 +7286,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-dispute-coordinator"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "fatality",
  "futures",
@@ -7305,7 +7305,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-parachains-inherent"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "async-trait",
  "futures",
@@ -7322,7 +7322,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-provisioner"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bitvec",
  "fatality",
@@ -7340,7 +7340,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-pvf"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "always-assert",
  "assert_matches",
@@ -7372,7 +7372,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-pvf-checker"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "polkadot-node-primitives",
@@ -7388,7 +7388,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-core-runtime-api"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "memory-lru",
@@ -7405,7 +7405,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-jaeger"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "async-std",
  "lazy_static",
@@ -7423,7 +7423,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-metrics"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bs58",
  "futures",
@@ -7442,7 +7442,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-network-protocol"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -7463,7 +7463,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-primitives"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bounded-vec",
  "futures",
@@ -7485,7 +7485,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-subsystem"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "polkadot-node-jaeger",
  "polkadot-node-subsystem-types",
@@ -7495,7 +7495,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-subsystem-types"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "derive_more",
  "futures",
@@ -7514,7 +7514,7 @@ dependencies = [
 [[package]]
 name = "polkadot-node-subsystem-util"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "async-trait",
  "derive_more",
@@ -7547,7 +7547,7 @@ dependencies = [
 [[package]]
 name = "polkadot-overseer"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "futures",
  "futures-timer",
@@ -7569,7 +7569,7 @@ dependencies = [
 [[package]]
 name = "polkadot-parachain"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "derive_more",
  "frame-support",
@@ -7586,7 +7586,7 @@ dependencies = [
 [[package]]
 name = "polkadot-performance-test"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "env_logger",
  "kusama-runtime",
@@ -7601,7 +7601,7 @@ dependencies = [
 [[package]]
 name = "polkadot-primitives"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bitvec",
  "frame-system",
@@ -7631,7 +7631,7 @@ dependencies = [
 [[package]]
 name = "polkadot-rpc"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "beefy-gadget",
  "beefy-gadget-rpc",
@@ -7663,7 +7663,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "beefy-primitives",
  "bitvec",
@@ -7748,7 +7748,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-common"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "beefy-primitives",
  "bitvec",
@@ -7795,7 +7795,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-constants"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "frame-support",
  "polkadot-primitives",
@@ -7807,7 +7807,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-metrics"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bs58",
  "parity-scale-codec 3.1.5",
@@ -7819,7 +7819,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-parachains"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "bitflags",
  "bitvec",
@@ -7862,7 +7862,7 @@ dependencies = [
 [[package]]
 name = "polkadot-service"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "async-trait",
  "beefy-gadget",
@@ -7965,7 +7965,7 @@ dependencies = [
 [[package]]
 name = "polkadot-statement-distribution"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "arrayvec 0.5.2",
  "fatality",
@@ -7986,7 +7986,7 @@ dependencies = [
 [[package]]
 name = "polkadot-statement-table"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "parity-scale-codec 3.1.5",
  "polkadot-primitives",
@@ -8091,7 +8091,7 @@ dependencies = [
 [[package]]
 name = "prioritized-metered-channel"
 version = "0.2.0"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "coarsetime",
  "crossbeam-queue",
@@ -8641,7 +8641,7 @@ dependencies = [
 [[package]]
 name = "rococo-runtime"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "beefy-merkle-tree",
  "beefy-primitives",
@@ -8710,7 +8710,7 @@ dependencies = [
 [[package]]
 name = "rococo-runtime-constants"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "frame-support",
  "polkadot-primitives",
@@ -10424,7 +10424,7 @@ checksum = "03b634d87b960ab1a38c4fe143b508576f075e7c978bfad18217645ebfdfa2ec"
 [[package]]
 name = "slot-range-helper"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "enumn",
  "parity-scale-codec 3.1.5",
@@ -11870,7 +11870,7 @@ dependencies = [
 [[package]]
 name = "tracing-gum"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "polkadot-node-jaeger",
  "polkadot-primitives",
@@ -11881,7 +11881,7 @@ dependencies = [
 [[package]]
 name = "tracing-gum-proc-macro"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "expander 0.0.6",
  "proc-macro-crate",
@@ -12594,7 +12594,7 @@ dependencies = [
 [[package]]
 name = "westend-runtime"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "beefy-primitives",
  "bitvec",
@@ -12682,7 +12682,7 @@ dependencies = [
 [[package]]
 name = "westend-runtime-constants"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "frame-support",
  "polkadot-primitives",
@@ -12857,7 +12857,7 @@ dependencies = [
 [[package]]
 name = "xcm"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "derivative",
  "impl-trait-for-tuples",
@@ -12871,7 +12871,7 @@ dependencies = [
 [[package]]
 name = "xcm-builder"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -12916,7 +12916,7 @@ dependencies = [
 [[package]]
 name = "xcm-executor"
 version = "0.9.26"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -12934,7 +12934,7 @@ dependencies = [
 [[package]]
 name = "xcm-procedural"
 version = "0.1.0"
-source = "git+https://github.com/paritytech//polkadot?branch=release-v0.9.26#d8785970175dce344f2a6ad1cd88297529a6dd59"
+source = "git+https://github.com/galacticcouncil/polkadot?branch=apopiak/fix-xcm-executor-atomicity-9-26#44bd98e578ad6a0751d9124fab5d43190452288b"
 dependencies = [
  "Inflector",
  "proc-macro2",

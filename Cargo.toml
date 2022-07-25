@@ -146,28 +146,28 @@ substrate-wasm-builder = { git = "https://github.com/paritytech//substrate", bra
 try-runtime-cli = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.26" }
 
 [patch."https://github.com/paritytech/polkadot"]
-kusama-runtime = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-pallet-xcm = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-cli = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-client = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-core-primitives = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-node-core-pvf = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-node-network-protocol = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-node-primitives = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-node-subsystem = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-overseer = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-parachain = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-primitives = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-runtime = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-runtime-common = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-runtime-parachains = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-service = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-polkadot-statement-table = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-rococo-runtime = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-westend-runtime = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-xcm = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-xcm-builder = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
-xcm-executor = { git = "https://github.com/paritytech//polkadot", branch = "release-v0.9.26" }
+kusama-runtime = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+pallet-xcm = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-cli = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-client = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-core-primitives = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-node-core-pvf = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-node-network-protocol = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-node-primitives = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-node-subsystem = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-overseer = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-parachain = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-primitives = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-runtime = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-runtime-common = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-runtime-parachains = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-service = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+polkadot-statement-table = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+rococo-runtime = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+westend-runtime = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+xcm = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+xcm-builder = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
+xcm-executor = { git = "https://github.com/galacticcouncil/polkadot", branch = "apopiak/fix-xcm-executor-atomicity-9-26" }
 
 [patch."https://github.com/paritytech/cumulus"]
 pallet-collator-selection = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.26" }
