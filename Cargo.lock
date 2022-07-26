@@ -507,7 +507,7 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "hydradx-adapters",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "orml-benchmarking",
  "orml-currencies",
  "orml-tokens",
@@ -1294,7 +1294,7 @@ version = "1.11.1"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
@@ -3214,7 +3214,7 @@ version = "0.1.0"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=f4bdae9b58853bc755f1cbf2b7c794c6375d38f0#f4bdae9b58853bc755f1cbf2b7c794c6375d38f0"
 dependencies = [
  "frame-support",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "log",
  "pallet-transaction-multi-payment",
  "parity-scale-codec",
@@ -3234,6 +3234,17 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-std",
+]
+
+[[package]]
+name = "hydradx-traits"
+version = "0.7.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=677a8880e2b99734741f4435d821bc1904cde69a#677a8880e2b99734741f4435d821bc1904cde69a"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
  "sp-std",
 ]
 
@@ -5366,7 +5377,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
@@ -5666,7 +5677,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "lazy_static",
  "orml-currencies",
  "orml-tokens",
@@ -5731,7 +5742,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5756,7 +5767,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5873,7 +5884,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
@@ -6024,12 +6035,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=f4bdae9b58853bc755f1cbf2b7c794c6375d38f0#f4bdae9b58853bc755f1cbf2b7c794c6375d38f0"
+version = "3.2.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=677a8880e2b99734741f4435d821bc1904cde69a#677a8880e2b99734741f4435d821bc1904cde69a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hydradx-traits 0.7.0",
  "orml-utilities",
  "pallet-uniques",
  "parity-scale-codec",
@@ -6117,7 +6129,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -6337,7 +6349,7 @@ source = "git+https://github.com/galacticcouncil/warehouse?rev=f4bdae9b58853bc75
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "orml-traits",
  "pallet-transaction-payment",
  "parity-scale-codec",
@@ -6514,7 +6526,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "log",
  "orml-tokens",
  "orml-traits",
@@ -8766,7 +8778,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex-literal",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "kusama-runtime",
  "orml-currencies",
  "orml-tokens",
@@ -11305,7 +11317,7 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "hydradx-adapters",
- "hydradx-traits",
+ "hydradx-traits 0.6.2",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
