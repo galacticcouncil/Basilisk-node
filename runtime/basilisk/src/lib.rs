@@ -107,7 +107,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 69,
+	spec_version: 70,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -815,7 +815,7 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = ksm::deposit(1,129);
 	pub const AttributeDepositBase: Balance = ksm::deposit(1,0);
 	pub const DepositPerByte: Balance = ksm::deposit(0,1);
-	pub const UniquesStringLimit: u32 = 60;
+	pub const UniquesStringLimit: u32 = 70;
 }
 
 impl pallet_uniques::Config for Runtime {
