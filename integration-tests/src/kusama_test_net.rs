@@ -252,5 +252,5 @@ pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
 }
 
 pub fn vesting_account() -> AccountId {
-	VestingPalletId::get().into_account()
+	VestingPalletId::get().into_account_truncating()
 }
