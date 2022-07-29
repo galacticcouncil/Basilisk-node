@@ -815,7 +815,7 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = ksm::deposit(1,129);
 	pub const AttributeDepositBase: Balance = ksm::deposit(1,0);
 	pub const DepositPerByte: Balance = ksm::deposit(0,1);
-	pub const UniquesStringLimit: u32 = 70;
+	pub const UniquesStringLimit: u32 = 72;
 }
 
 impl pallet_uniques::Config for Runtime {
