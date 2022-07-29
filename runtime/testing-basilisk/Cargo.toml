@@ -48,6 +48,7 @@ pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/w
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "f4bdae9b58853bc755f1cbf2b7c794c6375d38f0", default-features = false }
 hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "f4bdae9b58853bc755f1cbf2b7c794c6375d38f0", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "f4bdae9b58853bc755f1cbf2b7c794c6375d38f0", default-features = false }
+pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "f4bdae9b58853bc755f1cbf2b7c794c6375d38f0", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
@@ -151,6 +152,7 @@ runtime-benchmarks = [
     "pallet-proxy/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
+    "pallet-transaction-pause/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -227,6 +229,7 @@ std = [
     "pallet-preimage/std",
     "pallet-identity/std",
     "pallet-proxy/std",
+    "pallet-transaction-pause/std"
 ]
 try-runtime= [
     "frame-try-runtime",
