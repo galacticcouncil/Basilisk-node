@@ -1,8 +1,8 @@
 use crate::chain_spec;
 use clap::Parser;
 use std::error::Error;
-use std::path::PathBuf;
 use std::fmt;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct RuntimeInstanceError(String);
