@@ -26,8 +26,8 @@ use serde::{Deserialize, Serialize};
 
 use scale_info::TypeInfo;
 
-use frame_support::sp_runtime::FixedU128;
 use frame_support::pallet_prelude::MaxEncodedLen;
+use frame_support::sp_runtime::FixedU128;
 use sp_runtime::RuntimeDebug;
 
 pub mod asset;
