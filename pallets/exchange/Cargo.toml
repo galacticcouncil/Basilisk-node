@@ -1,6 +1,6 @@
 [package]
 name = "pallet-exchange"
-version = "5.3.7"
+version = "5.3.8"
 description = "Exchange Module"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -29,8 +29,8 @@ orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
 
 # HydraDX dependencies
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "9345438a05e2c27bbaa9bfea9c74c06912b455d8", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "f4bdae9b58853bc755f1cbf2b7c794c6375d38f0", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "f4bdae9b58853bc755f1cbf2b7c794c6375d38f0", default-features = false }
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1cd815cbce846a42d351db3778ff9c07149a6ad2", default-features = false }
 
 # Substrate dependencies

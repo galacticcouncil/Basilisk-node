@@ -21,7 +21,7 @@ fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 
 	let amount = unit(ENDOWMENT);
-	<T as pallet_nft::Config>::Currency::deposit_creating(&caller, amount.unique_saturated_into());
+	<T as Config>::Currency::deposit_creating(&caller, amount.unique_saturated_into());
 
 	caller
 }
