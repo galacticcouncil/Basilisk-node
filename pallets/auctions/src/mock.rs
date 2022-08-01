@@ -19,16 +19,13 @@ use crate::{self as pallet};
 
 use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
-use primitives::{
-	nft::{ClassType, NftPermissions}
-};
+use primitives::nft::{ClassType, NftPermissions};
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use system::EnsureRoot;
-use pallet_nft::ReserveIdentifier;
 
 mod auction {
 	// Re-export needed for `impl_outer_event!`.
@@ -146,7 +143,7 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = ReserveIdentifier;
+	type ReserveIdentifier = ();
 }
 
 impl system::Config for Test {

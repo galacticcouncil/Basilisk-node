@@ -544,7 +544,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-marketplace",
  "pallet-multisig",
- "pallet-nft 3.1.0",
+ "pallet-nft",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-randomness-collective-flip",
@@ -1309,7 +1309,7 @@ dependencies = [
  "pallet-exchange",
  "pallet-lbp",
  "pallet-marketplace",
- "pallet-nft 3.1.0",
+ "pallet-nft",
  "pallet-price-oracle",
  "pallet-scheduler",
  "pallet-timestamp",
@@ -5397,7 +5397,7 @@ dependencies = [
  "frame-system",
  "orml-utilities",
  "pallet-balances",
- "pallet-nft 2.5.1",
+ "pallet-nft",
  "pallet-uniques",
  "parity-scale-codec",
  "primitives",
@@ -5955,7 +5955,7 @@ dependencies = [
  "frame-system",
  "orml-utilities",
  "pallet-balances",
- "pallet-nft 3.1.0",
+ "pallet-nft",
  "pallet-uniques",
  "parity-scale-codec",
  "pretty_assertions",
@@ -6047,22 +6047,6 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-nft"
-version = "2.5.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=9345438a05e2c27bbaa9bfea9c74c06912b455d8#9345438a05e2c27bbaa9bfea9c74c06912b455d8"
-dependencies = [
- "frame-support",
- "frame-system",
- "orml-utilities",
- "pallet-uniques",
- "parity-scale-codec",
- "scale-info",
- "serde",
  "sp-runtime",
  "sp-std",
 ]
@@ -8204,7 +8188,7 @@ version = "6.2.4"
 dependencies = [
  "frame-support",
  "frame-system",
- "pallet-nft 3.1.0",
+ "pallet-nft",
  "parity-scale-codec",
  "primitive-types 0.10.1",
  "scale-info",
@@ -8848,7 +8832,7 @@ dependencies = [
  "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-marketplace",
- "pallet-nft 3.1.0",
+ "pallet-nft",
  "pallet-price-oracle",
  "pallet-relaychain-info",
  "pallet-scheduler",
@@ -11408,7 +11392,7 @@ dependencies = [
  "pallet-lbp-rpc-runtime-api",
  "pallet-marketplace",
  "pallet-multisig",
- "pallet-nft 3.1.0",
+ "pallet-nft",
  "pallet-preimage",
  "pallet-price-oracle",
  "pallet-proxy",
