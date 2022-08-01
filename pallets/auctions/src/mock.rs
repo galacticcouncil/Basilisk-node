@@ -3,8 +3,7 @@ use crate::{self as pallet};
 use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
 use primitives::{
-	nft::{ClassType, NftPermissions},
-	ReserveIdentifier,
+	nft::{ClassType, NftPermissions}
 };
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
@@ -12,6 +11,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use system::EnsureRoot;
+use pallet_nft::ReserveIdentifier;
 
 mod auction {
 	// Re-export needed for `impl_outer_event!`.
