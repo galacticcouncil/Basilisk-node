@@ -76,7 +76,7 @@
 //! the highest bid wins and the NFT is transferred to the winner.
 //!
 //! The amount is reserved by transferring it to the subaccount of the auction.
-//! 
+//!
 //! placing a lock on the highest bid which is updated once the bidder is overbid. The lock
 //! is removed once the auction closes.
 //!
@@ -120,6 +120,8 @@
 //!
 //! To avoid auction sniping, the pallet extends the end time of the auction for any late bids which are placed
 //! shortly before auction close.
+//!
+//! When implementing this pallet, make sure that MinBidAmount > ExistentialDeposit
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -553,7 +555,7 @@ pub mod pallet {
 		///
 		/// Claims amounts reserved in an auction
 		///
-		/// For TopUp and Candle auctions, all bids are transferred to a subaccount help by the auction.
+		/// For TopUp and Candle auctions, all bids are transferred to a subaccount held by the auction.
 		/// After auction close, the reserved amounts of losing bidders can be claimed back.
 		///
 		/// - fetches claimable amount
@@ -573,15 +575,9 @@ pub mod pallet {
 
 			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 			let destroy_auction_data: bool = match auction {
-				Auction::English(auction_object) => {
-					auction_object.claim(auction_id, bidder, claimable_amount)?
-				}
-				Auction::TopUp(auction_object) => {
-					auction_object.claim(auction_id, bidder, claimable_amount)?
-				}
-				Auction::Candle(auction_object) => {
-					auction_object.claim(auction_id, bidder, claimable_amount)?
-				}
+				Auction::English(auction_object) => auction_object.claim(auction_id, bidder, claimable_amount)?,
+				Auction::TopUp(auction_object) => auction_object.claim(auction_id, bidder, claimable_amount)?,
+				Auction::Candle(auction_object) => auction_object.claim(auction_id, bidder, claimable_amount)?,
 			};
 
 			if destroy_auction_data {
