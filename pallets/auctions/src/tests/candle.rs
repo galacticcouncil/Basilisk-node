@@ -701,7 +701,7 @@ fn close_candle_auction_with_winner_should_work() {
 				assert_eq!(data.specific_data.winner.unwrap(), CHARLIE);
 
 				// In the tests the winning closing range is deterministic because the same blocks will always return same randomness
-				assert_eq!(data.specific_data.winning_closing_range.unwrap(), 61);
+				assert_eq!(data.specific_data.winning_closing_range.unwrap(), 7);
 
 				Ok(())
 			}
