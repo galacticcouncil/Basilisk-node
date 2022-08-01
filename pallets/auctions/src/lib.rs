@@ -1,22 +1,20 @@
-// This file is part of Basilisk-node.
-
-// Built with <3 for decentralisation and the kind support of Web3 Foundation Grants Program:
-// https://github.com/w3f/Grants-Program/blob/master/applications/subauction.md
-
-// Copyright (C) 2021-2022  Intergalactic, Limited (GIB).
-// SPDX-License-Identifier: Apache-2.0
-
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+//      ---_ ......._-_--.        ,adPPYba, 8b,dPPYba,    ,adPPYba,  88   ,d8
+//     (|\ /      / /| \  \       I8[    "" 88P'   `"8a  a8P_____88  88 ,a8"
+// 		 /  /     .'  -=-'   `.      `"Y8ba,  88       88  8PP"""""""  8888[
+// 		/  /    .'             )    aa    ]8I 88       88  "8b,   ,aa  88`"Yba,
+// 	_/  /   .'        _.)   /     `"YbbdP"' 88       88   `"Ybbd8"'  88   `Y8a
+//  / o   o        _.-' /  .'
+//  \          _.-'    / .'*|
+// 	\______.-'//    .'.' \*|      This file is part of Basilisk-node.
+// 	 \|  \ | //   .'.' _ |*|      Built with <3 for decentralisation.
+// 		`   \|//  .'.'_ _ _|*|
+// 		 .  .// .'.' | _ _ \*|      Copyright (C) 2021-2022  Intergalactic, Limited (GIB).
+// 		 \`-|\_/ /    \ _ _ \*\     SPDX-License-Identifier: Apache-2.0
+// 			`/'\__/      \ _ _ \*\    Licensed under the Apache License, Version 2.0 (the "License");
+// 		 /^|            \ _ _ \*    you may not use this file except in compliance with the License.
+// 		'  `             \ _ _ \    http://www.apache.org/licenses/LICENSE-2.0
+//     '  `             \ _ _ \
 //
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 //!
 //! # Auctions Pallet
 //!
@@ -49,7 +47,7 @@
 //! - `NextAuctionId` - index for next auction id
 //!
 //! - `ReservedAmounts` - store for bid amounts which are reserved until an auction has closed. This enables claim functionality.
-//! 	Used by Auction::TopUp and Auction::Candle
+//!   Used by Auction::TopUp and Auction::Candle
 //!
 //! - `HighestBiddersByAuctionClosingRange` - stores the highest bid per closing range (1-100) of an Auction::Candle
 //!
