@@ -823,7 +823,7 @@ parameter_types! {
 	pub const BidMinAmount: u32 = 1; // Minimum bid amount
 	pub const CandleDefaultDuration: u32 = 99_356;
 	pub const CandleDefaultClosingPeriodDuration: u32 = 72_000;
-	pub const CandleDefaultClosingRangesCount: u32 = 100;
+	pub const CandleDefaultClosingRangesCount: u32 = 10;
 
 }
 
@@ -1210,7 +1210,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_price_oracle, PriceOracle);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
-			//add_benchmark!(params, batches, pallet_nft, NFT);
+			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_auctions, Auctions);
