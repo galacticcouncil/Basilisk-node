@@ -723,9 +723,6 @@ fn close_english_auction_should_work() {
 		let bid = BalanceOf::<Test>::from(1_000_u32);
 		assert_ok!(AuctionsModule::bid(Origin::signed(BOB), 0, bid));
 
-		let alice_balance_before = Balances::free_balance(&ALICE);
-		let bob_balance_before = Balances::free_balance(&BOB);
-
 		set_block_number::<Test>(21);
 
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));

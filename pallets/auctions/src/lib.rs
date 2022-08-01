@@ -565,8 +565,6 @@ pub mod pallet {
 		)]
 		#[transactional]
 		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
-			let destroy_auction_data: bool;
-
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 			ensure!(
 				claimable_amount > Zero::zero(),
@@ -574,17 +572,17 @@ pub mod pallet {
 			);
 
 			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionDoesNotExist)?;
-			match auction {
+			let destroy_auction_data: bool = match auction {
 				Auction::English(auction_object) => {
-					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
+					auction_object.claim(auction_id, bidder, claimable_amount)?
 				}
 				Auction::TopUp(auction_object) => {
-					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
+					auction_object.claim(auction_id, bidder, claimable_amount)?
 				}
 				Auction::Candle(auction_object) => {
-					destroy_auction_data = auction_object.claim(auction_id, bidder, claimable_amount)?;
+					auction_object.claim(auction_id, bidder, claimable_amount)?
 				}
-			}
+			};
 
 			if destroy_auction_data {
 				Self::handle_destroy(auction_id)?;
