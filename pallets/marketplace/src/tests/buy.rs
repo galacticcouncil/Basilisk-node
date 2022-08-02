@@ -362,7 +362,7 @@ fn buy_should_set_price_to_none_when_successfully_executed() {
 			assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
 
 			// Assert
-			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
+			assert!(Market::prices(CLASS_ID_0, INSTANCE_ID_0).is_none());
 		});
 }
 

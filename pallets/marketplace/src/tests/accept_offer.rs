@@ -42,8 +42,6 @@ fn accept_offer_should_work_when_there_is_no_royalty() {
 				})
 			);
 
-			//TODO: Dani - this fails. Is it intentional behaviour? The logical would be that the price is set
-			//assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), Some(PRICE));
 			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
 			assert_eq!(
 				pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
@@ -294,6 +292,6 @@ fn buy_should_set_price_to_none_when_offer_accepted() {
 			));
 
 			// Assert
-			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
+			assert!(Market::prices(CLASS_ID_0, INSTANCE_ID_0).is_none());
 		});
 }
