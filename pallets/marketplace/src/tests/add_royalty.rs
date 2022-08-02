@@ -17,7 +17,7 @@ fn add_royalty_should_work_when_nft_exists() {
 				CLASS_ID_0,
 				INSTANCE_ID_0,
 				CHARLIE,
-				20,
+				Percent::from_percent(20),
 			));
 
 			//Assert
@@ -25,7 +25,7 @@ fn add_royalty_should_work_when_nft_exists() {
 				Market::marketplace_instances(CLASS_ID_0, INSTANCE_ID_0),
 				Some(Royalty {
 					author: CHARLIE,
-					royalty: 20
+					royalty: Percent::from_percent(20)
 				})
 			);
 
@@ -40,7 +40,7 @@ fn add_royalty_should_work_when_nft_exists() {
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					author: CHARLIE,
-					royalty: 20,
+					royalty: Percent::from_percent(20),
 				})
 			);
 		});
@@ -56,7 +56,7 @@ fn add_royalty_should_fail_when_royalty_is_set_to_100() {
 		.execute_with(|| {
 			//Act and assert
 			assert_noop!(
-				Market::add_royalty(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, CHARLIE, 100),
+				Market::add_royalty(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, CHARLIE, Percent::from_percent(100)),
 				Error::<Test>::NotInRange
 			);
 		});
@@ -71,7 +71,7 @@ fn add_royalty_should_fail_when_nft_does_not_exist() {
 		.execute_with(|| {
 			//Act and assert
 			assert_noop!(
-				Market::add_royalty(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_1, CHARLIE, 20),
+				Market::add_royalty(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_1, CHARLIE, Percent::from_percent(20)),
 				pallet_nft::Error::<Test>::ClassUnknown
 			);
 		});
@@ -87,7 +87,7 @@ fn add_royalty_should_fail_when_called_by_non_owner() {
 		.execute_with(|| {
 			//Act and assert
 			assert_noop!(
-				Market::add_royalty(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0, CHARLIE, 20),
+				Market::add_royalty(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0, CHARLIE, Percent::from_percent(20)),
 				pallet_nft::Error::<Test>::NotPermitted
 			);
 		});
@@ -106,12 +106,12 @@ fn add_royalty_should_should_fail_when_royalty_is_already_set() {
 				CLASS_ID_0,
 				INSTANCE_ID_0,
 				CHARLIE,
-				20,
+				Percent::from_percent(20),
 			));
 
 			//Assert and assert
 			assert_noop!(
-				Market::add_royalty(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, CHARLIE, 20),
+				Market::add_royalty(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, CHARLIE, Percent::from_percent(20)),
 				Error::<Test>::RoyaltyAlreadySet
 			);
 		});

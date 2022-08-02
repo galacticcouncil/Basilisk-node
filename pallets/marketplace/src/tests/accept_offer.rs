@@ -42,6 +42,8 @@ fn accept_offer_should_work_when_there_is_no_royalty() {
 				})
 			);
 
+			//TODO: Dani - this fails. Is it intentional behaviour? The logical would be that the price is set
+			//assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), Some(PRICE));
 			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
 			assert_eq!(
 				pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
@@ -72,7 +74,7 @@ fn accept_offer_should_work_when_there_is_royalty_present() {
 				CLASS_ID_0,
 				INSTANCE_ID_0,
 				CHARLIE,
-				20,
+				Percent::from_percent(20),
 			));
 			assert_ok!(Market::make_offer(
 				Origin::signed(BOB),
@@ -215,7 +217,7 @@ fn accept_offer_should_work_when_nft_has_royalty_and_price_is_set() {
 				CLASS_ID_0,
 				INSTANCE_ID_0,
 				CHARLIE,
-				20,
+				Percent::from_percent(20),
 			));
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),

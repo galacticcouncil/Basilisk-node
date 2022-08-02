@@ -290,7 +290,7 @@ pub mod pallet {
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
 			author: T::AccountId,
-			royalty: u8,
+			royalty: Percent,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -298,7 +298,7 @@ pub mod pallet {
 				!MarketplaceInstances::<T>::contains_key(class_id, instance_id),
 				Error::<T>::RoyaltyAlreadySet
 			);
-			ensure!(royalty < 100, Error::<T>::NotInRange);
+			ensure!(royalty < Percent::one(), Error::<T>::NotInRange);
 			let owner =
 				pallet_nft::Pallet::<T>::owner(class_id, instance_id).ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);
@@ -371,7 +371,7 @@ pub mod pallet {
 			class: T::NftClassId,
 			instance: T::NftInstanceId,
 			author: T::AccountId,
-			royalty: u8,
+			royalty: Percent,
 			royalty_amount: BalanceOf<T>,
 		},
 		/// Marketplace data has been added
@@ -379,7 +379,7 @@ pub mod pallet {
 			class: T::NftClassId,
 			instance: T::NftInstanceId,
 			author: T::AccountId,
-			royalty: u8,
+			royalty: Percent,
 		},
 	}
 
@@ -442,10 +442,9 @@ impl<T: Config> Pallet<T> {
 				let author = instance_info.author;
 
 				// Calculate royalty and subtract from price if author different from buyer
-				let royalty_perc = Percent::from_percent(royalty);
-				let royalty_amount = royalty_perc * price;
+				let royalty_amount = royalty * price;
 
-				if owner != author && royalty != 0u8 {
+				if owner != author && !royalty.is_zero() {
 					price = price.saturating_sub(royalty_amount);
 
 					// Send royalty to author

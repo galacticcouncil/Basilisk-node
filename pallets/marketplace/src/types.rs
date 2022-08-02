@@ -4,6 +4,7 @@ use frame_support::pallet_prelude::*;
 use serde::{Deserialize, Serialize};
 
 use scale_info::TypeInfo;
+use sp_runtime::Percent;
 
 #[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
@@ -21,6 +22,6 @@ pub struct Offer<AccountId, Balance, BlockNumber> {
 pub struct Royalty<AccountId> {
 	/// The user account which receives the royalty
 	pub author: AccountId,
-	/// Royalty in percent in range 0-99
-	pub royalty: u8,
+	/// Royalty precentage
+	pub royalty: Percent,
 }
