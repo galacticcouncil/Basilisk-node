@@ -427,7 +427,7 @@ impl<T: Config> Pallet<T> {
 
 		let token_id = (class_id, instance_id);
 
-		Prices::<T>::try_mutate(class_id, instance_id, |price| -> DispatchResult {
+		Prices::<T>::try_mutate_exists(class_id, instance_id, |price| -> DispatchResult {
 			let mut price = if is_offer {
 				Offers::<T>::get(token_id, buyer.clone())
 					.map(|o| o.amount)

@@ -1,3 +1,4 @@
+use frame_support::traits::Len;
 use super::*;
 use pretty_assertions::assert_eq;
 use sp_core::crypto::AccountId32;
