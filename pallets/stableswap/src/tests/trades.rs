@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolId, PoolInfo};
+use crate::types::{PoolId, PoolInfo};
 use crate::{assert_balance, Error};
 
 use frame_support::{assert_noop, assert_ok};
@@ -17,7 +17,7 @@ fn simple_sell_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b],
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -42,7 +42,7 @@ fn simple_sell_works() {
 
 			let expected = 29_950_934_311_773u128;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 170 * ONE);
 			assert_balance!(BOB, asset_b, expected);
@@ -62,7 +62,7 @@ fn simple_buy_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b],
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -87,7 +87,7 @@ fn simple_buy_works() {
 
 			let expected_to_sell = 30049242502720u128;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 200 * ONE - expected_to_sell);
 			assert_balance!(BOB, asset_b, 30 * ONE);
@@ -108,7 +108,7 @@ fn simple_sell_with_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b],
 				amplification: 100u16,
 				fee: Permill::from_percent(10),
 			},
@@ -137,7 +137,7 @@ fn simple_sell_with_fee_works() {
 
 			let expected = expected - fee;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 170 * ONE);
 			assert_balance!(BOB, asset_b, expected);
@@ -157,7 +157,7 @@ fn simple_sell_with_small_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b],
 				amplification: 100u16,
 				fee: Permill::from_rational(3u32, 1000u32),
 			},
@@ -186,7 +186,7 @@ fn simple_sell_with_small_fee_works() {
 
 			let expected = expected - fee;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 170 * ONE);
 			assert_balance!(BOB, asset_b, expected);
@@ -206,7 +206,7 @@ fn simple_buy_with_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b],
 				amplification: 100u16,
 				fee: Permill::from_percent(10),
 			},
@@ -235,7 +235,7 @@ fn simple_buy_with_fee_works() {
 
 			let expected_to_sell = expected_to_sell + fee;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 200 * ONE - expected_to_sell);
 			assert_balance!(BOB, asset_b, 30 * ONE);
@@ -260,7 +260,7 @@ fn sell_with_invalid_amounts_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b],
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -327,7 +327,7 @@ fn buy_with_invalid_amounts_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b],
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},

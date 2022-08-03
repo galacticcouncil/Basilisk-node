@@ -17,6 +17,7 @@
 
 //! Test environment for Assets pallet.
 
+use sp_std::prelude::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -234,7 +235,7 @@ impl ExtBuilder {
 				let pool_id = PoolId(retrieve_current_asset_id());
 				assert_ok!(Stableswap::create_pool(
 					Origin::signed(who),
-					(pool.assets.0, pool.assets.1),
+					(pool.assets[0], pool.assets[1]),
 					pool.amplification,
 					pool.fee,
 				));
@@ -258,7 +259,7 @@ impl ExtBuilder {
 }
 
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolId, PoolInfo};
+use crate::types::{PoolId, PoolInfo};
 use hydradx_traits::{Registry, ShareTokenRegistry};
 use sp_runtime::traits::Zero;
 
@@ -314,26 +315,26 @@ where
 
 pub struct AccountIdConstructor;
 
-impl ShareAccountIdFor<PoolAssets<u32>> for AccountIdConstructor {
+impl ShareAccountIdFor<Vec<u32>> for AccountIdConstructor {
 	type AccountId = AccountId;
 
-	fn from_assets(assets: &PoolAssets<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
-		let mut a = assets.0;
-		let mut b = assets.1;
+	fn from_assets(assets: &Vec<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
+		let mut a = assets[0];
+		let mut b = assets[1];
 		if a > b {
 			std::mem::swap(&mut a, &mut b)
 		}
 		(a * 1000 + b) as u64
 	}
 
-	fn name(assets: &PoolAssets<u32>, identifier: Option<&[u8]>) -> Vec<u8> {
+	fn name(assets: &Vec<u32>, identifier: Option<&[u8]>) -> Vec<u8> {
 		let mut buf: Vec<u8> = if let Some(ident) = identifier {
 			ident.to_vec()
 		} else {
 			vec![]
 		};
-		buf.extend_from_slice(&(assets.0).to_le_bytes());
-		buf.extend_from_slice(&(assets.1).to_le_bytes());
+		buf.extend_from_slice(&(assets[0]).to_le_bytes());
+		buf.extend_from_slice(&(assets[1]).to_le_bytes());
 
 		buf
 	}

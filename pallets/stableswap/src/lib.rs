@@ -48,7 +48,7 @@
 use frame_support::pallet_prelude::{DispatchResult, Get};
 use frame_support::transactional;
 use sp_runtime::Permill;
-use sp_std::vec::Vec;
+use sp_std::prelude::*;
 
 pub use pallet::*;
 
@@ -78,7 +78,7 @@ pub mod pallet {
 		calculate_remove_liquidity_amounts,
 	};
 	use crate::traits::ShareAccountIdFor;
-	use crate::types::{AssetAmounts, Balance, PoolAssets, PoolId, PoolInfo};
+	use crate::types::{AssetAmounts, Balance, PoolId, PoolInfo};
 	use codec::HasCompact;
 	use core::ops::RangeInclusive;
 	use frame_support::pallet_prelude::*;
@@ -91,6 +91,7 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(crate) trait Store)]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
@@ -99,21 +100,13 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Identifier for the class of asset.
-		type AssetId: Member
-			+ Parameter
-			+ PartialOrd
-			+ Default
-			+ Copy
-			+ HasCompact
-			+ MaybeSerializeDeserialize
-			+ MaxEncodedLen
-			+ TypeInfo;
+		type AssetId: Member + Parameter + Ord + Default + Copy + HasCompact + MaybeSerializeDeserialize + TypeInfo;
 
 		/// Multi currency mechanism
 		type Currency: MultiCurrency<Self::AccountId, CurrencyId = Self::AssetId, Balance = Balance>;
 
 		/// Account ID constructor
-		type ShareAccountId: ShareAccountIdFor<PoolAssets<Self::AssetId>, AccountId = Self::AccountId>;
+		type ShareAccountId: ShareAccountIdFor<Vec<Self::AssetId>, AccountId = Self::AccountId>;
 
 		/// Asset registry mechanism
 		type AssetRegistry: ShareTokenRegistry<Self::AssetId, Vec<u8>, Balance, DispatchError>;
@@ -272,23 +265,27 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
-			let pool_assets: PoolAssets<T::AssetId> = assets.into();
+			let pool = PoolInfo {
+				assets: vec![assets.0, assets.1],
+				amplification,
+				fee,
+			};
 
-			ensure!(pool_assets.is_valid(), Error::<T>::SameAssets);
+			ensure!(pool.is_valid(), Error::<T>::SameAssets);
 
 			ensure!(
 				T::AmplificationRange::get().contains(&amplification),
 				Error::<T>::InvalidAmplification
 			);
 
-			ensure!(T::AssetRegistry::exists(pool_assets.0), Error::<T>::AssetNotRegistered);
-			ensure!(T::AssetRegistry::exists(pool_assets.1), Error::<T>::AssetNotRegistered);
+			ensure!(T::AssetRegistry::exists(assets.0), Error::<T>::AssetNotRegistered);
+			ensure!(T::AssetRegistry::exists(assets.1), Error::<T>::AssetNotRegistered);
 
-			let share_asset_ident = T::ShareAccountId::name(&pool_assets, Some(POOL_IDENTIFIER));
+			let share_asset_ident = T::ShareAccountId::name(&pool.assets, Some(POOL_IDENTIFIER));
 
 			let share_asset = T::AssetRegistry::get_or_create_shared_asset(
 				share_asset_ident,
-				(&pool_assets).into(),
+				pool.assets.clone(),
 				T::MinPoolLiquidity::get(),
 			)?;
 
@@ -296,12 +293,6 @@ pub mod pallet {
 
 			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
 				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
-
-				let pool = PoolInfo {
-					assets: pool_assets,
-					amplification,
-					fee,
-				};
 
 				*maybe_pool = Some(pool);
 
@@ -373,13 +364,13 @@ pub mod pallet {
 			// Update initial reserves in correct order (asset a is given as a parameter, asset b is second asset)
 			let (assets, initial_reserves) = {
 				let initial = (
-					T::Currency::free_balance(pool.assets.0, &pool_account),
-					T::Currency::free_balance(pool.assets.1, &pool_account),
+					T::Currency::free_balance(pool.assets[0], &pool_account),
+					T::Currency::free_balance(pool.assets[1], &pool_account),
 				);
-				if asset == pool.assets.0 {
-					((asset, pool.assets.1), AssetAmounts(initial.0, initial.1))
+				if asset == pool.assets[0] {
+					((asset, pool.assets[1]), AssetAmounts(initial.0, initial.1))
 				} else {
-					((asset, pool.assets.0), AssetAmounts(initial.1, initial.0))
+					((asset, pool.assets[0]), AssetAmounts(initial.1, initial.0))
 				}
 			};
 
@@ -480,8 +471,8 @@ pub mod pallet {
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
 			let initial_reserves = AssetAmounts(
-				T::Currency::free_balance(pool.assets.0, &pool_account),
-				T::Currency::free_balance(pool.assets.1, &pool_account),
+				T::Currency::free_balance(pool.assets[0], &pool_account),
+				T::Currency::free_balance(pool.assets[1], &pool_account),
 			);
 
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
@@ -498,14 +489,14 @@ pub mod pallet {
 			T::Currency::withdraw(pool_id.0, &who, amount)?;
 
 			// Assets are ordered by id in pool.assets. So amounts provided corresponds.
-			T::Currency::transfer(pool.assets.0, &pool_account, &who, amounts.0)?;
-			T::Currency::transfer(pool.assets.1, &pool_account, &who, amounts.1)?;
+			T::Currency::transfer(pool.assets[0], &pool_account, &who, amounts.0)?;
+			T::Currency::transfer(pool.assets[1], &pool_account, &who, amounts.1)?;
 
 			Self::deposit_event(Event::LiquidityRemoved {
 				id: pool_id,
 				who,
 				shares: amount,
-				assets: (pool.assets.0, pool.assets.1),
+				assets: (pool.assets[0], pool.assets[1]),
 				amounts: (amounts.0, amounts.1),
 			});
 
@@ -548,8 +539,8 @@ pub mod pallet {
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
 
-			ensure!(pool.assets.contains(asset_in), Error::<T>::AssetNotInPool);
-			ensure!(pool.assets.contains(asset_out), Error::<T>::AssetNotInPool);
+			ensure!(pool.assets.contains(&asset_in), Error::<T>::AssetNotInPool);
+			ensure!(pool.assets.contains(&asset_out), Error::<T>::AssetNotInPool);
 
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
@@ -617,8 +608,8 @@ pub mod pallet {
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
 
-			ensure!(pool.assets.contains(asset_in), Error::<T>::AssetNotInPool);
-			ensure!(pool.assets.contains(asset_out), Error::<T>::AssetNotInPool);
+			ensure!(pool.assets.contains(&asset_in), Error::<T>::AssetNotInPool);
+			ensure!(pool.assets.contains(&asset_out), Error::<T>::AssetNotInPool);
 
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 

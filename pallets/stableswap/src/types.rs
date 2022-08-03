@@ -1,11 +1,11 @@
 use sp_runtime::Permill;
-use sp_std::vec;
-use sp_std::vec::Vec;
+use sp_std::prelude::*;
+use std::collections::BTreeSet;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_core::RuntimeDebug;
-use sp_runtime::traits::Zero;
+use sp_runtime::traits::{Hash, Zero};
 
 pub(crate) type Balance = u128;
 
@@ -19,58 +19,33 @@ pub struct PoolId<AssetId>(pub AssetId);
 /// `assets`: pool assets
 /// `amplification`: amp parameter
 /// `fee`: trade fee to be withdrawn on sell/buy
-#[derive(Clone, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+#[derive(Clone, Encode, Decode, TypeInfo)]
 pub struct PoolInfo<AssetId> {
-	pub assets: PoolAssets<AssetId>,
+	pub assets: sp_std::prelude::Vec<AssetId>,
 	pub amplification: u16,
 	pub fee: Permill,
 }
 
+fn has_unique_elements<T>(iter: &mut T) -> bool
+where
+	T: Iterator,
+	T::Item: Ord,
+{
+	let mut uniq = BTreeSet::new();
+	iter.all(move |x| uniq.insert(x))
+}
+
 impl<AssetId> PoolInfo<AssetId>
 where
-	AssetId: PartialOrd,
+	AssetId: Ord,
 {
 	/// Check if an asset is in the pool
 	pub(crate) fn contains_asset(&self, asset: AssetId) -> bool {
-		self.assets.contains(asset)
-	}
-}
-
-/// Assets in a pool.
-/// Supports 2-asset pools.
-/// Asset's tuple is ordered by id where first asset id < second asset id.
-#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct PoolAssets<AssetId>(pub AssetId, pub AssetId);
-
-impl<AssetId: PartialOrd> PoolAssets<AssetId> {
-	pub fn new(asset_a: AssetId, asset_b: AssetId) -> Self {
-		(asset_a, asset_b).into()
+		self.assets.contains(&asset)
 	}
 
-	pub fn contains(&self, value: AssetId) -> bool {
-		self.0 == value || self.1 == value
-	}
-
-	/// PoolAssets is valid only if assets are not equal
-	pub fn is_valid(&self) -> bool {
-		self.0 != self.1
-	}
-}
-
-impl<AssetId: PartialOrd> From<(AssetId, AssetId)> for PoolAssets<AssetId> {
-	fn from(assets: (AssetId, AssetId)) -> Self {
-		// Order assets by id
-		if assets.0 < assets.1 {
-			Self(assets.0, assets.1)
-		} else {
-			Self(assets.1, assets.0)
-		}
-	}
-}
-
-impl<AssetId: Copy> From<&PoolAssets<AssetId>> for Vec<AssetId> {
-	fn from(assets: &PoolAssets<AssetId>) -> Self {
-		vec![assets.0, assets.1]
+	pub(crate) fn is_valid(&self) -> bool {
+		has_unique_elements(&mut self.assets.iter())
 	}
 }
 
