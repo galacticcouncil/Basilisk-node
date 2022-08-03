@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolInfo};
+use crate::types::PoolInfo;
 use frame_support::assert_ok;
 use sp_runtime::{FixedU128, Permill};
 
@@ -67,7 +67,7 @@ proptest! {
 			.with_pool(
 				ALICE,
 				PoolInfo::<AssetId> {
-					assets: PoolAssets::new(asset_a,asset_b),
+					assets: vec![asset_a,asset_b],
 					amplification,
 					fee,
 				},
@@ -77,7 +77,7 @@ proptest! {
 			.execute_with(|| {
 				let pool_id = get_pool_id_at(0);
 
-				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+				let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 				let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
 				let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
@@ -127,7 +127,7 @@ proptest! {
 			.with_pool(
 				ALICE,
 				PoolInfo::<AssetId> {
-					assets: PoolAssets::new(asset_a,asset_b),
+					assets: vec![asset_a,asset_b],
 					amplification,
 					fee,
 				},
@@ -137,7 +137,7 @@ proptest! {
 			.execute_with(|| {
 				let pool_id = get_pool_id_at(0);
 
-				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+				let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 				assert_ok!(Stableswap::add_liquidity(
 					Origin::signed(BOB),
@@ -187,7 +187,7 @@ proptest! {
 			.with_pool(
 				ALICE,
 				PoolInfo::<AssetId> {
-					assets: PoolAssets::new(asset_a,asset_b),
+					assets: vec![asset_a,asset_b],
 					amplification,
 					fee: Permill::from_percent(0),
 				},
@@ -197,7 +197,7 @@ proptest! {
 			.execute_with(|| {
 				let pool_id = get_pool_id_at(0);
 
-				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+				let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 				let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
 				let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
@@ -246,7 +246,7 @@ proptest! {
 			.with_pool(
 				ALICE,
 				PoolInfo::<AssetId> {
-					assets: PoolAssets::new(asset_a,asset_b),
+					assets: vec![asset_a,asset_b],
 					amplification,
 					fee: Permill::from_percent(0),
 				},
@@ -257,7 +257,7 @@ proptest! {
 
 				let pool_id = get_pool_id_at(0);
 
-				let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+				let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 				let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
 				let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);

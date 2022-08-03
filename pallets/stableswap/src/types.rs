@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_core::RuntimeDebug;
-use sp_runtime::traits::{Hash, Zero};
+use sp_runtime::traits::Zero;
 
 pub(crate) type Balance = u128;
 
