@@ -41,7 +41,6 @@ impl<AssetId> PoolInfo<AssetId>
 where
 	AssetId: Ord,
 {
-	/// Check if an asset is in the pool
 	pub(crate) fn contains_asset(&self, asset: AssetId) -> bool {
 		self.assets.contains(&asset)
 	}

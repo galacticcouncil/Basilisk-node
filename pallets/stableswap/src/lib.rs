@@ -198,6 +198,9 @@ pub mod pallet {
 		/// Creating a pool with same assets is not allowed.
 		SameAssets,
 
+		/// Maximum number of assets has been exceeded.
+		MaxAssetsExceeded,
+
 		/// A pool with given assets does not exist.
 		PoolNotFound,
 
@@ -272,31 +275,29 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
+			let mut pool_assets = vec![assets.0, assets.1];
+			pool_assets.sort();
+
 			let pool = PoolInfo {
-				assets: vec![assets.0, assets.1].try_into().unwrap(),
+				assets: pool_assets.try_into().map_err(|_| Error::<T>::MaxAssetsExceeded)?,
 				amplification,
 				fee,
 			};
-
 			ensure!(pool.is_valid(), Error::<T>::SameAssets);
-
 			ensure!(
 				T::AmplificationRange::get().contains(&amplification),
 				Error::<T>::InvalidAmplification
 			);
-
-			ensure!(T::AssetRegistry::exists(assets.0), Error::<T>::AssetNotRegistered);
-			ensure!(T::AssetRegistry::exists(assets.1), Error::<T>::AssetNotRegistered);
-
+			for asset in pool.assets.iter() {
+				ensure!(T::AssetRegistry::exists(*asset), Error::<T>::AssetNotRegistered);
+			}
 			let share_asset_ident = T::ShareAccountId::name(&pool.assets, Some(POOL_IDENTIFIER));
-
 			let share_asset = T::AssetRegistry::get_or_create_shared_asset(
 				share_asset_ident,
-				pool.assets.clone().into(),
+				pool.assets.clone().into(), //TODO: fix the trait to accept refeerence instead
 				T::MinPoolLiquidity::get(),
 			)?;
-
-			let pool_id = PoolId(share_asset);
+			let pool_id = PoolId(share_asset); //TODO: remove PoolId - use asset id directly
 
 			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
 				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
@@ -354,17 +355,13 @@ pub mod pallet {
 				amount >= T::MinTradingLimit::get(),
 				Error::<T>::InsufficientTradingAmount
 			);
-
-			// Ensure that who has enough balance of given asset
 			ensure!(
 				T::Currency::free_balance(asset, &who) >= amount,
 				Error::<T>::InsufficientBalance
 			);
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
-
 			ensure!(pool.contains_asset(asset), Error::<T>::AssetNotInPool);
-
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
 			// Work out which asset is asset b (second asset which has to be provided by LP)

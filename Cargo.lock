@@ -3205,13 +3205,14 @@ dependencies = [
 [[package]]
 name = "hydra-dx-math"
 version = "4.5.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=5daf68d9599bfcf2cd4be4b84ab4417601746647#5daf68d9599bfcf2cd4be4b84ab4417601746647"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=38affb1f642589befbeee076b8681be75017f7c9#38affb1f642589befbeee076b8681be75017f7c9"
 dependencies = [
  "fixed",
  "num-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "sp-arithmetic",
+ "sp-std",
 ]
 
 [[package]]
