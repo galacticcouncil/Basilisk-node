@@ -3,9 +3,11 @@
   "id": "basilisk",
   "chainType": "Live",
   "bootNodes": [
-    "/dns/p2p-01.basilisk.hydradx.io/tcp/30333/p2p/12D3KooWJRdTtgFnwrrcigrMRxdJ9zfmhtpH5qgAV9budWat4UtR",
-    "/dns/p2p-02.basilisk.hydradx.io/tcp/30333/p2p/12D3KooWQNvuYebz6Zt34LnesFfdVh5i7FWP8GUe9QxuBmKE4b9R",
-    "/dns/p2p-03.basilisk.hydradx.io/tcp/30333/p2p/12D3KooWD2Y9VkfC9cmQEpKZLN26xWq7XPJXHDUH8LNVmhoNBrdJ"
+    "/dns/p2p-01.basilisk.cloud/tcp/30333/p2p/12D3KooWJRdTtgFnwrrcigrMRxdJ9zfmhtpH5qgAV9budWat4UtR",
+    "/dns/p2p-02.basilisk.cloud/tcp/30333/p2p/12D3KooWQNvuYebz6Zt34LnesFfdVh5i7FWP8GUe9QxuBmKE4b9R",
+    "/dns/p2p-03.basilisk.cloud/tcp/30333/p2p/12D3KooWD2Y9VkfC9cmQEpKZLN26xWq7XPJXHDUH8LNVmhoNBrdJ",
+    "/dns/p2p-04.basilisk.cloud/tcp/30333/p2p/12D3KooWEyQZPn7QQgKWwkcJ5VDmQLkTav7hRxYbzL9LHNWmT3nE",
+    "/dns/p2p-05.basilisk.cloud/tcp/30333/p2p/12D3KooWLci4VdetuFvBWMy4tHyrV4fWaKdpEa6rM7PVSfZYqvsS"
   ],
   "telemetryEndpoints": [
     [
