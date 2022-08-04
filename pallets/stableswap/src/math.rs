@@ -17,7 +17,7 @@ pub(crate) fn calculate_add_liquidity_shares(
 	amplification: Balance,
 	share_issuance: Balance,
 ) -> Option<Balance> {
-	hydra_dx_math::stableswap::calculate_add_liquidity_shares::<D_ITERATIONS>(
+	hydra_dx_math::stableswap::calculate_shares::<D_ITERATIONS>(
 		&[initial_reserves.0, initial_reserves.1],
 		&[updated_reserves.0, updated_reserves.1],
 		amplification,
@@ -38,7 +38,7 @@ pub(crate) fn calculate_remove_liquidity_amounts(
 		share_asset_issuance,
 	)?;
 
-	Some(result.into())
+	Some((result[0],result[1]).into())
 }
 
 pub(crate) fn calculate_out_given_in(
@@ -49,8 +49,9 @@ pub(crate) fn calculate_out_given_in(
 	amplification: Balance,
 ) -> Option<Balance> {
 	hydra_dx_math::stableswap::calculate_out_given_in::<D_ITERATIONS, Y_ITERATIONS>(
-		reserve_in,
-		reserve_out,
+		&[reserve_in, reserve_out],
+		0,
+		1,
 		amount_in,
 		amplification,
 		precision,
@@ -65,8 +66,9 @@ pub(crate) fn calculate_in_given_out(
 	amplification: Balance,
 ) -> Option<Balance> {
 	hydra_dx_math::stableswap::calculate_in_given_out::<D_ITERATIONS, Y_ITERATIONS>(
-		reserve_in,
-		reserve_out,
+		&[reserve_in,reserve_out],
+		0,
+		1,
 		amount_out,
 		amplification,
 		precision,

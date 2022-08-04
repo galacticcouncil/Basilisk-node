@@ -4,7 +4,7 @@ use crate::types::PoolInfo;
 use frame_support::assert_ok;
 use sp_runtime::{FixedU128, Permill};
 
-use hydra_dx_math::stableswap::two_asset_pool_math::calculate_d;
+use hydra_dx_math::stableswap::calculate_d;
 use proptest::prelude::*;
 use proptest::proptest;
 
