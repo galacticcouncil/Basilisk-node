@@ -17,7 +17,7 @@ fn simple_sell_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -62,7 +62,7 @@ fn simple_buy_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -108,7 +108,7 @@ fn simple_sell_with_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(10),
 			},
@@ -157,7 +157,7 @@ fn simple_sell_with_small_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_rational(3u32, 1000u32),
 			},
@@ -206,7 +206,7 @@ fn simple_buy_with_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(10),
 			},
@@ -260,7 +260,7 @@ fn sell_with_invalid_amounts_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -327,7 +327,7 @@ fn buy_with_invalid_amounts_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},

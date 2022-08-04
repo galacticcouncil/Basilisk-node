@@ -3,6 +3,8 @@ use sp_std::prelude::*;
 use std::collections::BTreeSet;
 
 use codec::{Decode, Encode, MaxEncodedLen};
+use frame_support::traits::ConstU32;
+use frame_support::BoundedVec;
 use scale_info::TypeInfo;
 use sp_core::RuntimeDebug;
 use sp_runtime::traits::Zero;
@@ -19,9 +21,9 @@ pub struct PoolId<AssetId>(pub AssetId);
 /// `assets`: pool assets
 /// `amplification`: amp parameter
 /// `fee`: trade fee to be withdrawn on sell/buy
-#[derive(Clone, Encode, Decode, TypeInfo)]
+#[derive(Clone, Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub struct PoolInfo<AssetId> {
-	pub assets: sp_std::prelude::Vec<AssetId>,
+	pub assets: BoundedVec<AssetId, ConstU32<5>>,
 	pub amplification: u16,
 	pub fee: Permill,
 }

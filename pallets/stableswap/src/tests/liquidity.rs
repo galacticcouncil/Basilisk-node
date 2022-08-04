@@ -109,7 +109,7 @@ fn add_liquidity_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -159,7 +159,7 @@ fn add_liquidity_other_asset_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -209,7 +209,7 @@ fn add_insufficient_liquidity_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -247,7 +247,7 @@ fn remove_all_liquidity_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -304,7 +304,7 @@ fn remove_partial_liquidity_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -382,7 +382,7 @@ fn add_liquidity_with_insufficient_amount_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -424,7 +424,7 @@ fn add_liquidity_with_invalid_data_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -476,7 +476,7 @@ fn remove_liquidity_with_invalid_amounts_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -528,7 +528,7 @@ fn remove_liquidity_with_invalid_data_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},
@@ -575,7 +575,7 @@ fn remove_partial_with_insufficient_remaining_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: vec![asset_a, asset_b],
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				fee: Permill::from_percent(0),
 			},

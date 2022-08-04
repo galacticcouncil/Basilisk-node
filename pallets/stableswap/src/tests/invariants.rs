@@ -67,7 +67,7 @@ proptest! {
 			.with_pool(
 				ALICE,
 				PoolInfo::<AssetId> {
-					assets: vec![asset_a,asset_b],
+					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
 					fee,
 				},
@@ -127,7 +127,7 @@ proptest! {
 			.with_pool(
 				ALICE,
 				PoolInfo::<AssetId> {
-					assets: vec![asset_a,asset_b],
+					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
 					fee,
 				},
@@ -187,7 +187,7 @@ proptest! {
 			.with_pool(
 				ALICE,
 				PoolInfo::<AssetId> {
-					assets: vec![asset_a,asset_b],
+					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
 					fee: Permill::from_percent(0),
 				},
@@ -246,7 +246,7 @@ proptest! {
 			.with_pool(
 				ALICE,
 				PoolInfo::<AssetId> {
-					assets: vec![asset_a,asset_b],
+					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
 					fee: Permill::from_percent(0),
 				},

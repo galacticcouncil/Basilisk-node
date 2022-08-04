@@ -91,7 +91,6 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(crate) trait Store)]
-	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
@@ -100,7 +99,15 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Identifier for the class of asset.
-		type AssetId: Member + Parameter + Ord + Default + Copy + HasCompact + MaybeSerializeDeserialize + TypeInfo;
+		type AssetId: Member
+			+ Parameter
+			+ Ord
+			+ Default
+			+ Copy
+			+ HasCompact
+			+ MaybeSerializeDeserialize
+			+ MaxEncodedLen
+			+ TypeInfo;
 
 		/// Multi currency mechanism
 		type Currency: MultiCurrency<Self::AccountId, CurrencyId = Self::AssetId, Balance = Balance>;
@@ -266,7 +273,7 @@ pub mod pallet {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
 			let pool = PoolInfo {
-				assets: vec![assets.0, assets.1],
+				assets: vec![assets.0, assets.1].try_into().unwrap(),
 				amplification,
 				fee,
 			};
@@ -285,7 +292,7 @@ pub mod pallet {
 
 			let share_asset = T::AssetRegistry::get_or_create_shared_asset(
 				share_asset_ident,
-				pool.assets.clone(),
+				pool.assets.clone().into(),
 				T::MinPoolLiquidity::get(),
 			)?;
 
