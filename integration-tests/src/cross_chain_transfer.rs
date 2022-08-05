@@ -25,7 +25,7 @@ where
 }
 
 #[test]
-fn transfer_from_relay_chain() {
+fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
@@ -68,7 +68,7 @@ fn transfer_from_relay_chain() {
 }
 
 #[test]
-fn transfer_to_relay_chain() {
+fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
@@ -107,7 +107,7 @@ fn transfer_to_relay_chain() {
 }
 
 #[test]
-fn transfer_from_hydra() {
+fn basilisk_should_receive_asset_when_sent_from_karura() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -157,7 +157,7 @@ fn transfer_from_hydra() {
 }
 
 #[test]
-fn transfer_insufficient_amount_should_fail() {
+fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
