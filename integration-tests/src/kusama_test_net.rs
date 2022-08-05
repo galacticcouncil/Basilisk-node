@@ -38,7 +38,7 @@ decl_test_parachain! {
 }
 
 decl_test_parachain! {
-	pub struct Hydra{
+	pub struct Karura{
 		Runtime = basilisk_runtime::Runtime,
 		Origin = basilisk_runtime::Origin,
 		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
@@ -51,8 +51,8 @@ decl_test_network! {
 	pub struct TestNet {
 		relay_chain = KusamaRelay,
 		parachains = vec![
-			(2000, Basilisk),
-			(3000, Hydra),
+			(2090, Basilisk),
+			(2000, Karura),
 		],
 	}
 }
@@ -105,7 +105,7 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
 			(AccountId::from(ALICE), 2002 * UNITS),
-			(ParaId::from(2000).into_account(), 10 * UNITS),
+			(ParaId::from(2090).into_account(), 10 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -145,7 +145,7 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 3000.into(),
+			parachain_id: 2000.into(),
 		},
 		&mut t,
 	)
@@ -196,7 +196,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 2000u32.into(),
+			parachain_id: 2090u32.into(),
 		},
 		&mut t,
 	)

@@ -12,6 +12,9 @@ use sp_core::H256;
 use sp_runtime::traits::{AccountIdConversion, BlakeTwo256, Hash};
 use xcm_emulator::TestExt;
 
+const KARURA_PARA_ID: u32 = 2000;
+const BASILISK_PARA_ID: u32 = 2090;
+
 // Determine the hash for assets expected to be have been trapped.
 fn determine_hash<M>(origin: &MultiLocation, assets: M) -> H256
 where
@@ -33,7 +36,7 @@ fn transfer_from_relay_chain() {
 	KusamaRelay::execute_with(|| {
 		assert_ok!(kusama_runtime::XcmPallet::reserve_transfer_assets(
 			kusama_runtime::Origin::signed(ALICE.into()),
-			Box::new(Parachain(2000).into().into()),
+			Box::new(Parachain(BASILISK_PARA_ID).into().into()),
 			Box::new(
 				Junction::AccountId32 {
 					id: BOB,
@@ -47,7 +50,7 @@ fn transfer_from_relay_chain() {
 		));
 
 		assert_eq!(
-			kusama_runtime::Balances::free_balance(&ParaId::from(2000).into_account()),
+			kusama_runtime::Balances::free_balance(&ParaId::from(BASILISK_PARA_ID).into_account()),
 			310 * UNITS
 		);
 	});
@@ -111,11 +114,11 @@ fn transfer_from_hydra() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	Hydra::execute_with(|| {
+	Karura::execute_with(|| {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
@@ -124,7 +127,7 @@ fn transfer_from_hydra() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(BASILISK_PARA_ID),
 						Junction::AccountId32 {
 							id: BOB,
 							network: NetworkId::Any,
@@ -161,11 +164,11 @@ fn transfer_insufficient_amount_should_fail() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	Hydra::execute_with(|| {
+	Karura::execute_with(|| {
 		assert_noop!(
 			basilisk_runtime::XTokens::transfer(
 				basilisk_runtime::Origin::signed(ALICE.into()),
@@ -175,7 +178,7 @@ fn transfer_insufficient_amount_should_fail() {
 					MultiLocation::new(
 						1,
 						X2(
-							Junction::Parachain(2000),
+							Junction::Parachain(BASILISK_PARA_ID),
 							Junction::AccountId32 {
 								id: BOB,
 								network: NetworkId::Any,
@@ -215,7 +218,7 @@ fn fee_currency_set_on_xcm_transfer() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
 		));
 
 		// fee currency is not set before XCM transfer
@@ -225,7 +228,7 @@ fn fee_currency_set_on_xcm_transfer() {
 		);
 	});
 
-	Hydra::execute_with(|| {
+	Karura::execute_with(|| {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
@@ -234,7 +237,7 @@ fn fee_currency_set_on_xcm_transfer() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(BASILISK_PARA_ID),
 						Junction::AccountId32 {
 							id: HITCHHIKER,
 							network: NetworkId::Any,
@@ -273,7 +276,7 @@ fn fee_currency_set_on_xcm_transfer() {
 fn assets_should_be_trapped_when_assets_are_unknown() {
 	TestNet::reset();
 
-	Hydra::execute_with(|| {
+	Karura::execute_with(|| {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
@@ -282,7 +285,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(BASILISK_PARA_ID),
 						Junction::AccountId32 {
 							id: BOB,
 							network: NetworkId::Any,
@@ -302,7 +305,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::Fail(
-				Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
+				Some(hex!["4efbf4d7ba73f43d5bb4ebbec3189e132ccf2686aed37e97985af019e1cf62dc"].into()),
 				XcmError::AssetNotFound,
 			)
 			.into(),
@@ -312,8 +315,8 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			}
 			.into(),
 		]);
-		let origin = MultiLocation::new(1, X1(Parachain(3000)));
-		let loc = MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0)));
+		let origin = MultiLocation::new(1, X1(Parachain(KARURA_PARA_ID)));
+		let loc = MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0)));
 		let asset: MultiAsset = (loc, 30 * UNITS).into();
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
@@ -328,11 +331,11 @@ fn transfer_from_hydra_and_back() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	Hydra::execute_with(|| {
+	Karura::execute_with(|| {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
@@ -341,7 +344,7 @@ fn transfer_from_hydra_and_back() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(BASILISK_PARA_ID),
 						Junction::AccountId32 {
 							id: BOB,
 							network: NetworkId::Any,
@@ -382,7 +385,7 @@ fn transfer_from_hydra_and_back() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(3000),
+						Junction::Parachain(KARURA_PARA_ID),
 						Junction::AccountId32 {
 							id: ALICE,
 							network: NetworkId::Any,
