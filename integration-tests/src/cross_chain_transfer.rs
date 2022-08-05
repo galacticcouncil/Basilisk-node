@@ -12,9 +12,6 @@ use sp_core::H256;
 use sp_runtime::traits::{AccountIdConversion, BlakeTwo256, Hash};
 use xcm_emulator::TestExt;
 
-const KARURA_PARA_ID: u32 = 2000;
-const BASILISK_PARA_ID: u32 = 2090;
-
 // Determine the hash for assets expected to be have been trapped.
 fn determine_hash<M>(origin: &MultiLocation, assets: M) -> H256
 where

@@ -10,6 +10,9 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
+pub const KARURA_PARA_ID: u32 = 2000;
+pub const BASILISK_PARA_ID: u32 = 2090;
+
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
 use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
@@ -105,7 +108,7 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
 			(AccountId::from(ALICE), 2002 * UNITS),
-			(ParaId::from(2090).into_account(), 10 * UNITS),
+			(ParaId::from(BASILISK_PARA_ID).into_account(), 10 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -145,7 +148,7 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 2000.into(),
+			parachain_id: KARURA_PARA_ID.into(),
 		},
 		&mut t,
 	)
@@ -196,7 +199,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 2090u32.into(),
+			parachain_id: BASILISK_PARA_ID.into(),
 		},
 		&mut t,
 	)
