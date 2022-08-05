@@ -43,7 +43,7 @@ decl_test_parachain! {
 		Origin = basilisk_runtime::Origin,
 		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
 		DmpMessageHandler = basilisk_runtime::DmpQueue,
-		new_ext = hydra_ext(),
+		new_ext = karura_ext(),
 	}
 }
 
@@ -51,8 +51,8 @@ decl_test_network! {
 	pub struct TestNet {
 		relay_chain = KusamaRelay,
 		parachains = vec![
-			(2090, Basilisk),
 			(2000, Karura),
+			(2090, Basilisk),
 		],
 	}
 }
@@ -130,7 +130,7 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn hydra_ext() -> sp_io::TestExternalities {
+pub fn karura_ext() -> sp_io::TestExternalities {
 	use basilisk_runtime::{Runtime, System};
 
 	let mut t = frame_system::GenesisConfig::default()
