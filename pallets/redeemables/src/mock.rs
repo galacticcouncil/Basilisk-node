@@ -52,6 +52,10 @@ impl pallet_redeemables::Config for Test {
 	type PalletId = RedeemablesPalletId;
 }
 
+parameter_types! {
+	pub ReserveClassIdUpTo: u32 = 999;
+}
+
 impl pallet_nft::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
@@ -61,6 +65,7 @@ impl pallet_nft::Config for Test {
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
+	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
 parameter_types! {
@@ -104,6 +109,7 @@ impl system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
