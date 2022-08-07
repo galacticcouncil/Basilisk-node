@@ -5625,7 +5625,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "3.1.1"
+version = "3.1.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5704,7 +5704,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.3.9"
+version = "5.3.10"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5728,7 +5728,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.18"
+version = "3.3.19"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5844,7 +5844,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.4.8"
+version = "4.4.9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5895,7 +5895,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "2.2.1"
+version = "2.2.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6486,7 +6486,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "5.0.1"
+version = "5.0.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8072,7 +8072,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.2.5"
+version = "6.2.6"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8747,7 +8747,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.7.2"
+version = "0.7.3"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
