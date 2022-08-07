@@ -143,6 +143,7 @@ impl Contains<Call> for BaseFilter {
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
 			Call::OrmlXcm(_) => false,
+			Call::Redeemables(_) => false,
 			_ => true,
 		}
 	}
