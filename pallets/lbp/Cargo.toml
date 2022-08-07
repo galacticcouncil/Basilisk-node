@@ -21,8 +21,8 @@ primitive-types = { default-features = false, version = "0.11.1" }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
 # Warehouse dependencies
-hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev = "1cd815cbce846a42d351db3778ff9c07149a6ad2", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "8895cdf9f320bf544606e94b8fb0dcfd10b00345", default-features = false }
+hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1cd815cbce846a42d351db3778ff9c07149a6ad2", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false }
 
 ## Local dependencies
 primitives = { default-features = false, path = "../../primitives" }

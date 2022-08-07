@@ -490,7 +490,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "71.0.0"
+version = "72.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1046,14 +1046,15 @@ dependencies = [
 
 [[package]]
 name = "chrono"
-version = "0.4.19"
+version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "670ad68c9088c2a963aaa298cb369688cf3f9465ce5e2d4ca10e6e0098a1ce73"
+checksum = "6127248204b9aba09a362f6c930ef6a78f2c1b2215f8a7b398c06e1083f17af0"
 dependencies = [
- "libc",
+ "js-sys",
  "num-integer",
  "num-traits",
  "time",
+ "wasm-bindgen",
  "winapi",
 ]
 
@@ -2173,9 +2174,9 @@ checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 
 [[package]]
 name = "dtoa"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5caaa75cbd2b960ff1e5392d2cfb1f44717fffe12fc1f32b7b5d1267f99732a6"
+checksum = "c6053ff46b5639ceb91756a85a4c8914668393a03170efd79c8884a529d80656"
 
 [[package]]
 name = "dyn-clonable"
@@ -2200,9 +2201,9 @@ dependencies = [
 
 [[package]]
 name = "dyn-clone"
-version = "1.0.8"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d07a982d1fb29db01e5a59b1918e03da4df7297eaeee7686ac45542fd4e59c8"
+checksum = "4f94fa09c2aeea5b8839e414b7b841bf429fd25b9c522116ac97ee87856d88b2"
 
 [[package]]
 name = "ecdsa"
@@ -2297,9 +2298,9 @@ dependencies = [
 
 [[package]]
 name = "enumn"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "052bc8773a98bd051ff37db74a8a25f00e6bfa2cbd03373390c72e9f7afbf344"
+checksum = "038b1afa59052df211f9efd58f8b1d84c242935ede1c3dbaed26b018a9e06ae2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2491,9 +2492,9 @@ dependencies = [
 
 [[package]]
 name = "fixed"
-version = "1.16.1"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e50e12d082af9f49314ae850d33c7e89bbe1b3f30857f747f7bed0750b068c5"
+checksum = "6ff8fc11090cf4e92c9f9052e778d3dc869d0fb943cdc5568df3d3b559a58787"
 dependencies = [
  "az",
  "bytemuck",
@@ -2921,9 +2922,9 @@ dependencies = [
 
 [[package]]
 name = "futures-rustls"
-version = "0.22.1"
+version = "0.22.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e01fe9932a224b72b45336d96040aa86386d674a31d0af27d800ea7bc8ca97fe"
+checksum = "d2411eed028cdf8c8034eaf21f9915f956b6c3abec4d4c7949ee67f0721127bd"
 dependencies = [
  "futures-io",
  "rustls",
@@ -3132,9 +3133,12 @@ dependencies = [
 
 [[package]]
 name = "half"
-version = "1.8.2"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eabb4a44450da02c90444cf74558da904edde8fb4e9035a9a6a4e15445af0bd7"
+checksum = "ad6a9459c9c30b177b925162351f97e7d967c7ea8bab3b8352805327daf45554"
+dependencies = [
+ "crunchy",
+]
 
 [[package]]
 name = "handlebars"
@@ -3275,7 +3279,7 @@ checksum = "75f43d41e26995c17e71ee126451dd3941010b0514a81a9d11f3b341debc2399"
 dependencies = [
  "bytes",
  "fnv",
- "itoa 1.0.2",
+ "itoa 1.0.3",
 ]
 
 [[package]]
@@ -3331,7 +3335,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "0.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=8895cdf9f320bf544606e94b8fb0dcfd10b00345#8895cdf9f320bf544606e94b8fb0dcfd10b00345"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=4ad0293540faa72a17147f7775d26c4dc5d85556#4ad0293540faa72a17147f7775d26c4dc5d85556"
 dependencies = [
  "frame-support",
  "hydradx-traits",
@@ -3348,7 +3352,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.7.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=8895cdf9f320bf544606e94b8fb0dcfd10b00345#8895cdf9f320bf544606e94b8fb0dcfd10b00345"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=4ad0293540faa72a17147f7775d26c4dc5d85556#4ad0293540faa72a17147f7775d26c4dc5d85556"
 dependencies = [
  "frame-support",
  "parity-scale-codec 3.1.5",
@@ -3372,7 +3376,7 @@ dependencies = [
  "http-body",
  "httparse",
  "httpdate",
- "itoa 1.0.2",
+ "itoa 1.0.3",
  "pin-project-lite 0.2.9",
  "socket2",
  "tokio",
@@ -3552,9 +3556,9 @@ checksum = "b71991ff56294aa922b450139ee08b3bfc70982c6b2c7562771375cf73542dd4"
 
 [[package]]
 name = "itoa"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "112c678d4050afce233f4f2852bb2eb519230b3cf12f33585275537d7e41578d"
+checksum = "6c8af84674fe1f223a982c933a0ee1086ac4d4052aa0fb8060c12c6ad838e754"
 
 [[package]]
 name = "jobserver"
@@ -3899,9 +3903,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.126"
+version = "0.2.127"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
+checksum = "505e71a4706fa491e9b1b55f51b95d4037d0821ee40131190475f692b35b009b"
 
 [[package]]
 name = "libloading"
@@ -5365,7 +5369,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "1.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=8895cdf9f320bf544606e94b8fb0dcfd10b00345#8895cdf9f320bf544606e94b8fb0dcfd10b00345"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=4ad0293540faa72a17147f7775d26c4dc5d85556#4ad0293540faa72a17147f7775d26c4dc5d85556"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5978,8 +5982,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-nft"
-version = "3.2.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=8895cdf9f320bf544606e94b8fb0dcfd10b00345#8895cdf9f320bf544606e94b8fb0dcfd10b00345"
+version = "3.3.1"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=4ad0293540faa72a17147f7775d26c4dc5d85556#4ad0293540faa72a17147f7775d26c4dc5d85556"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6089,7 +6093,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=8895cdf9f320bf544606e94b8fb0dcfd10b00345#8895cdf9f320bf544606e94b8fb0dcfd10b00345"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=4ad0293540faa72a17147f7775d26c4dc5d85556#4ad0293540faa72a17147f7775d26c4dc5d85556"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6135,7 +6139,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=8895cdf9f320bf544606e94b8fb0dcfd10b00345#8895cdf9f320bf544606e94b8fb0dcfd10b00345"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=4ad0293540faa72a17147f7775d26c4dc5d85556#4ad0293540faa72a17147f7775d26c4dc5d85556"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6311,7 +6315,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "8.0.2"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=8895cdf9f320bf544606e94b8fb0dcfd10b00345#8895cdf9f320bf544606e94b8fb0dcfd10b00345"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=4ad0293540faa72a17147f7775d26c4dc5d85556#4ad0293540faa72a17147f7775d26c4dc5d85556"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6329,7 +6333,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-pause"
 version = "0.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=8895cdf9f320bf544606e94b8fb0dcfd10b00345#8895cdf9f320bf544606e94b8fb0dcfd10b00345"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=4ad0293540faa72a17147f7775d26c4dc5d85556#4ad0293540faa72a17147f7775d26c4dc5d85556"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8164,7 +8168,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac1abe0255c04d15f571427a2d1e00099016506cf3297b53853acd2b7eb87825"
 dependencies = [
  "dtoa",
- "itoa 1.0.2",
+ "itoa 1.0.3",
  "owning_ref",
  "prometheus-client-derive-text-encode",
 ]
@@ -8489,18 +8493,18 @@ dependencies = [
 
 [[package]]
 name = "ref-cast"
-version = "1.0.8"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "776c8940430cf563f66a93f9111d1cd39306dc6c68149ecc6b934742a44a828a"
+checksum = "ed13bcd201494ab44900a96490291651d200730904221832b9547d24a87d332b"
 dependencies = [
  "ref-cast-impl",
 ]
 
 [[package]]
 name = "ref-cast-impl"
-version = "1.0.8"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f26c4704460286103bff62ea1fb78d137febc86aaf76952e6c5a2249af01f54"
+checksum = "5234cd6063258a5e32903b53b1b6ac043a0541c8adc1f610f67b0326c7a578fa"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -10226,18 +10230,18 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.141"
+version = "1.0.142"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7af873f2c95b99fcb0bd0fe622a43e29514658873c8ceba88c4cb88833a22500"
+checksum = "e590c437916fb6b221e1d00df6e3294f3fccd70ca7e92541c475d6ed6ef5fee2"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.141"
+version = "1.0.142"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75743a150d003dd863b51dc809bcad0d73f2102c53632f1e954e738192a3413f"
+checksum = "34b5b8d809babe02f538c2cfec6f2c1ed10804c0e5a6a041a049a4f5588ccc2e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -10246,11 +10250,11 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.82"
+version = "1.0.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82c2c1fdcd807d1098552c5b9a36e425e42e9fbd7c6a37a8425f390f781f7fa7"
+checksum = "38dd04e3c8279e75b31ef29dbdceebfe5ad89f4d0937213c53f7d49d01b3d5a7"
 dependencies = [
- "itoa 1.0.2",
+ "itoa 1.0.3",
  "ryu",
  "serde",
 ]
@@ -11523,7 +11527,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "71.0.0"
+version = "72.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -12087,9 +12091,9 @@ checksum = "099b7128301d285f79ddd55b9a83d5e6b9e97c92e0ea0daebee7263e932de992"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15c61ba63f9235225a22310255a29b806b907c9b8c964bcbd0a2c70f3f2deea7"
+checksum = "c4f5b37a154999a8f3f98cc23a628d850e154479cd94decf3414696e12e31aaf"
 
 [[package]]
 name = "unicode-normalization"
@@ -12940,9 +12944,9 @@ dependencies = [
 
 [[package]]
 name = "yamux"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c0608f53c1dc0bad505d03a34bbd49fbf2ad7b51eb036123e896365532745a1"
+checksum = "e5d9ba232399af1783a58d8eb26f6b5006fbefe2dc9ef36bd283324792d03ea5"
 dependencies = [
  "futures",
  "log",
