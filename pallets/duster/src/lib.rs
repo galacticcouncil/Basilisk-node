@@ -26,14 +26,14 @@ mod tests;
 
 pub mod weights;
 
-use frame_support::{dispatch::DispatchResult, traits::Contains, traits::Get};
+use frame_support::{dispatch::DispatchResult, ensure, traits::Contains, traits::Get};
 
 use orml_traits::{
 	arithmetic::{Signed, SimpleArithmetic},
 	GetByKey, MultiCurrency, MultiCurrencyExtended,
 };
 
-use frame_system::{ensure_root, ensure_signed};
+use frame_system::ensure_signed;
 
 use sp_std::convert::{TryFrom, TryInto};
 
@@ -116,6 +116,9 @@ pub mod pallet {
 		#[pallet::constant]
 		type NativeCurrencyId: Get<Self::CurrencyId>;
 
+		/// The origin which can manage whiltelist.
+		type BlacklistUpdateOrigin: EnsureOrigin<Self::Origin>;
+
 		/// Weight information for extrinsics in this module.
 		type WeightInfo: WeightInfo;
 	}
@@ -193,13 +196,13 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Account dusted.
-		Dusted(T::AccountId, T::Balance),
+		Dusted { who: T::AccountId, amount: T::Balance },
 
 		/// Account added to non-dustable list.
-		Added(T::AccountId),
+		Added { who: T::AccountId },
 
 		/// Account removed from non-dustable list.
-		Removed(T::AccountId),
+		Removed { who: T::AccountId },
 	}
 
 	#[pallet::call]
@@ -226,7 +229,10 @@ pub mod pallet {
 
 			Self::transfer_dust(&account, &dust_dest_account, currency_id, dust)?;
 
-			Self::deposit_event(Event::Dusted(account, dust));
+			Self::deposit_event(Event::Dusted {
+				who: account,
+				amount: dust,
+			});
 
 			// Ignore the result, it fails - no problem.
 			let _ = Self::reward_duster(&who, currency_id, dust);
@@ -239,11 +245,11 @@ pub mod pallet {
 		/// Only root can perform this action.
 		#[pallet::weight((<T as Config>::WeightInfo::add_nondustable_account(), DispatchClass::Normal, Pays::No))]
 		pub fn add_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
-			ensure_root(origin)?;
+			T::BlacklistUpdateOrigin::ensure_origin(origin)?;
 
 			AccountBlacklist::<T>::insert(&account, ());
 
-			Self::deposit_event(Event::Added(account));
+			Self::deposit_event(Event::Added { who: account });
 
 			Ok(())
 		}
@@ -251,7 +257,7 @@ pub mod pallet {
 		/// Remove account from list of non-dustable accounts. That means account can be dusted again.
 		#[pallet::weight((<T as Config>::WeightInfo::remove_nondustable_account(), DispatchClass::Normal, Pays::No))]
 		pub fn remove_nondustable_account(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
-			ensure_root(origin)?;
+			T::BlacklistUpdateOrigin::ensure_origin(origin)?;
 
 			AccountBlacklist::<T>::mutate(&account, |maybe_account| -> DispatchResult {
 				ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
@@ -261,7 +267,7 @@ pub mod pallet {
 				Ok(())
 			})?;
 
-			Self::deposit_event(Event::Removed(account));
+			Self::deposit_event(Event::Removed { who: account });
 
 			Ok(())
 		}
@@ -315,5 +321,27 @@ impl<T: Config> OnDust<T::AccountId, T::CurrencyId, T::Balance> for Pallet<T> {
 impl<T: Config> Contains<T::AccountId> for DusterWhitelist<T> {
 	fn contains(t: &T::AccountId) -> bool {
 		AccountBlacklist::<T>::contains_key(t)
+	}
+}
+
+use frame_support::sp_runtime::DispatchError;
+use hydradx_traits::pools::DustRemovalAccountWhitelist;
+
+impl<T: Config> DustRemovalAccountWhitelist<T::AccountId> for Pallet<T> {
+	type Error = DispatchError;
+
+	fn add_account(account: &T::AccountId) -> Result<(), Self::Error> {
+		AccountBlacklist::<T>::insert(account, ());
+		Ok(())
+	}
+
+	fn remove_account(account: &T::AccountId) -> Result<(), Self::Error> {
+		AccountBlacklist::<T>::mutate(&account, |maybe_account| -> Result<(), DispatchError> {
+			ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
+
+			*maybe_account = None;
+
+			Ok(())
+		})
 	}
 }

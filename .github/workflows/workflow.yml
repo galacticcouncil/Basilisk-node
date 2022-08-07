@@ -31,7 +31,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - id: set-backend-key-name
         name: Set Backend Key Name
-        run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV    
+        run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV
       - id: determine-runner
         name: Determine runner
         run: if $IS_LOCAL; then echo "::set-output name=runner::${{ env.S3_BACKEND_KEY_NAME }}"; else echo "::set-output name=runner::ubuntu-latest"; fi;
@@ -101,7 +101,7 @@ jobs:
           fail_ci_if_error: true
       - name: Build runtime
         run: cargo build --release --locked
-        working-directory: runtime
+        working-directory: runtime/basilisk
       - name: Build node
         run: cargo build --release --locked
       - name: Version info
@@ -126,6 +126,11 @@ jobs:
         with:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
+      - name: Upload testing-runtime wasm
+        uses: actions/upload-artifact@v2
+        with:
+          name: testing_basilisk_runtime.compact.compressed.wasm
+          path: target/release/wbuild/testing-basilisk-runtime/testing_basilisk_runtime.compact.compressed.wasm
 
   upload-config-to-s3:
     name: upload configuration to S3
@@ -229,7 +234,6 @@ jobs:
         run: sudo docker tag basilisk:latest ${{ env.ECR_URL }}/basilisk
       - run: sudo docker push ${{ env.ECR_URL }}/basilisk:latest
 
-
   run-external-deployment:
     needs: build-and-publish-docker-image
     runs-on: ubuntu-latest
@@ -294,17 +298,10 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/download-artifact@v2
-        name: Download runtime wasm from pipeline
+        name: Download testing-runtime wasm from pipeline
         with:
-          name: basilisk_runtime.compact.compressed.wasm
+          name: testing_basilisk_runtime.compact.compressed.wasm
           path: scripts/upgrade-runtime
-      - uses: dawidd6/action-download-artifact@v2
-        name: Download basilisk binary from master (legacy)
-        with:
-          workflow: tests.yml
-          branch: master
-          name: basilisk
-          path: target/release
       - uses: dawidd6/action-download-artifact@v2
         name: Download basilisk binary from master
         with:
@@ -319,7 +316,7 @@ jobs:
           tag: ${{ env.RELAY_CHAIN_VERSION }}
           fileName: polkadot
           out-file-path: ../polkadot/target/release
-      - run: chmod +x ./basilisk && ./basilisk --version
+      - run: chmod +x ./basilisk && mv ./basilisk ./testing-basilisk && ./testing-basilisk --version
         name: Basilisk version
         working-directory: target/release
       - run: chmod +x ./polkadot && ./polkadot --version
@@ -367,5 +364,6 @@ jobs:
           message: |
             ${{ env.VERSION_UPDATE }}
       - name: Evaluate result
-        if: contains(env.VERSION_UPDATE, 'have not been updated')
+        if: contains(env.VERSION_UPDATE, 'have not been updated') || contains(env.VERSION_UPDATE, 'versions don''t match') || contains(env.VERSION_UPDATE, 'downgraded')
         run: exit 1
+

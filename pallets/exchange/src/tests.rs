@@ -42,8 +42,6 @@ fn expect_event<E: Into<TestEvent>>(e: E) {
 }
 
 fn expect_events(e: Vec<TestEvent>) {
-	println!("left: {:?}\n", frame_system::Pallet::<Test>::events());
-	println!("right: {:?}", e);
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
@@ -74,14 +72,14 @@ fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: P
 	});
 	let share_token = XYKPallet::share_token(pair_account);
 
-	expect_event(xyk::Event::PoolCreated(
-		user,
+	expect_event(xyk::Event::PoolCreated {
+		who: user,
 		asset_a,
 		asset_b,
-		shares,
+		initial_shares_amount: shares,
 		share_token,
-		pair_account,
-	));
+		pool: pair_account,
+	});
 
 	let amount_b = price.saturating_mul_int(amount);
 
@@ -186,23 +184,23 @@ fn sell_test_pool_finalization_states() {
 		<Exchange as OnFinalize<u64>>::on_finalize(9);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -216,42 +214,42 @@ fn sell_test_pool_finalization_states() {
 				amount: 2004000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				1000000000000,
-				2000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1000000000000,
+				amount_b: 2000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				8000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 8000000000,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				1000000000000,
-				1976316673268,
-				asset_b,
-				3960554454,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 1000000000000,
+				sale_price: 1976316673268,
+				fee_asset: asset_b,
+				fee_amount: 3960554454,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				1000000000000,
-				1980277227722,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				amount: 1000000000000,
+				amount_sold_or_bought: 1980277227722,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 
@@ -344,23 +342,23 @@ fn sell_test_standard() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -374,42 +372,42 @@ fn sell_test_standard() {
 				amount: 2004000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				1000000000000,
-				2000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1000000000000,
+				amount_b: 2000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				8000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 8000000000,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				3000,
-				2000,
-				1000000000000,
-				1976316673268,
-				2000,
-				3960554454,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: 3000,
+				asset_out: 2000,
+				amount: 1000000000000,
+				sale_price: 1976316673268,
+				fee_asset: 2000,
+				fee_amount: 3960554454,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				1000000000000,
-				1980277227722,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				amount: 1000000000000,
+				amount_sold_or_bought: 1980277227722,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -490,23 +488,23 @@ fn sell_test_inverse_standard() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				4_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 4_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -520,50 +518,50 @@ fn sell_test_inverse_standard() {
 				amount: 2000000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				3,
-				2000,
-				3000,
-				2000000000000,
-				988118811882,
-				3000,
-				1980198018,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: 3,
+				asset_in: 2000,
+				asset_out: 3000,
+				amount: 2000000000000,
+				sale_price: 988118811882,
+				fee_asset: 3000,
+				fee_amount: 1980198018,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_3,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-				2000000000000,
-				990099009900,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_3,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+				amount: 2000000000000,
+				amount_sold_or_bought: 990099009900,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				1000000000000,
-				2000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1000000000000,
+				amount_b: 2000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_a,
-				2000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 2000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				4000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 4000000000,
+			}
 			.into(),
 		]);
 	});
@@ -628,23 +626,23 @@ fn sell_test_exact_match() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				2_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -658,30 +656,30 @@ fn sell_test_exact_match() {
 				amount: 2000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				1000000000000,
-				2000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1000000000000,
+				amount_b: 2000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_a,
-				2000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 2000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				4000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 4000000000,
+			}
 			.into(),
 		]);
 	});
@@ -744,63 +742,63 @@ fn sell_test_single_eth_sells() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				2_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_3,
-				asset_a,
-				asset_b,
-				2000000000000,
-				3913725490196,
-				asset_b,
-				7843137254,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_3,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 2000000000000,
+				sale_price: 3913725490196,
+				fee_asset: asset_b,
+				fee_amount: 7843137254,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_3,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-				2000000000000,
-				3921568627450,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_3,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+				amount: 2000000000000,
+				amount_sold_or_bought: 3921568627450,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				1000000000000,
-				1899942737485,
-				asset_b,
-				3807500474,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 1000000000000,
+				sale_price: 1899942737485,
+				fee_asset: asset_b,
+				fee_amount: 3807500474,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				1000000000000,
-				1903750237959,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				amount: 1000000000000,
+				amount_sold_or_bought: 1903750237959,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -863,63 +861,63 @@ fn sell_test_single_dot_sells() {
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
-				asset_b,
-				asset_a,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_2,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				2_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_3,
-				asset_b,
-				asset_a,
-				2000000000000,
-				988118811882,
-				asset_a,
-				1980198018,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_3,
+				asset_in: asset_b,
+				asset_out: asset_a,
+				amount: 2000000000000,
+				sale_price: 988118811882,
+				fee_asset: asset_a,
+				fee_amount: 1980198018,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_3,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-				2000000000000,
-				990099009900,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_3,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+				amount: 2000000000000,
+				amount_sold_or_bought: 990099009900,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				1000000000000,
-				486767770570,
-				asset_a,
-				975486514,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_b,
+				asset_out: asset_a,
+				amount: 1000000000000,
+				sale_price: 486767770570,
+				fee_asset: asset_a,
+				fee_amount: 975486514,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				1000000000000,
-				487743257084,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				amount: 1000000000000,
+				amount_sold_or_bought: 487743257084,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -969,60 +967,58 @@ fn sell_trade_limits_respected_for_matched_intention() {
 		});
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionResolveErrorEvent(
-				user_3,
-				AssetPair {
+			Event::IntentionResolveErrorEvent {
+				who: user_3,
+				asset_ids: AssetPair {
 					asset_in: asset_b,
 					asset_out: asset_a,
 				},
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 1,
-						error: 3,
-						message: None,
-					}
-				),
-			)
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+				error_detail: DispatchError::Module(ModuleError {
+					index: 1,
+					error: 3,
+					message: None,
+				}),
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				1000000000000,
-				1976237623763,
-				asset_b,
-				3960396038,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_2,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 1000000000000,
+				sale_price: 1976237623763,
+				fee_asset: asset_b,
+				fee_amount: 3960396038,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				1000000000000,
-				1980198019801,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				amount: 1000000000000,
+				amount_sold_or_bought: 1980198019801,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -1072,60 +1068,58 @@ fn buy_trade_limits_respected_for_matched_intention() {
 		});
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
-				asset_b,
-				asset_a,
-				1_000_000_000_000,
-				IntentionType::BUY,
-				user_2_buy_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_2,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_buy_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				100_000_000_000,
-				IntentionType::BUY,
-				user_3_buy_intention_id,
-			)
+				amount: 100_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_buy_intention_id,
+			}
 			.into(),
-			Event::IntentionResolveErrorEvent(
-				user_3,
-				AssetPair {
+			Event::IntentionResolveErrorEvent {
+				who: user_3,
+				asset_ids: AssetPair {
 					asset_in: asset_b,
 					asset_out: asset_a,
 				},
-				IntentionType::BUY,
-				user_3_buy_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 1,
-						error: 2,
-						message: None,
-					}
-				),
-			)
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_buy_intention_id,
+				error_detail: DispatchError::Module(ModuleError {
+					index: 1,
+					error: 2,
+					message: None,
+				}),
+			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				1000000000000,
-				502512562815,
-				asset_a,
-				1005025124,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 1000000000000,
+				buy_price: 502512562815,
+				fee_asset: asset_a,
+				fee_amount: 1005025124,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_buy_intention_id,
-				1000000000000,
-				503517587939,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_buy_intention_id,
+				amount: 1000000000000,
+				amount_sold_or_bought: 503517587939,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -1224,50 +1218,50 @@ fn sell_test_single_multiple_sells() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_4,
+			Event::IntentionRegistered {
+				who: user_4,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_5,
-				asset_b,
-				asset_a,
-				1_000_000_000_000,
-				IntentionType::SELL,
-				user_5_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_5,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_5_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_6,
-				asset_b,
-				asset_a,
-				2_000_000_000_000,
-				IntentionType::SELL,
-				user_6_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_6,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_6_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -1281,30 +1275,30 @@ fn sell_test_single_multiple_sells() {
 				amount: 2000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_6,
-				user_2_sell_intention_id,
-				user_6_sell_intention_id,
-				1000000000000,
-				2000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_6,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_6_sell_intention_id,
+				amount_a: 1000000000000,
+				amount_b: 2000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_a,
-				2000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 2000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_6,
-				user_6_sell_intention_id,
-				pair_account,
-				asset_b,
-				4000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_6,
+				intention_id: user_6_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 4000000000,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -1318,30 +1312,30 @@ fn sell_test_single_multiple_sells() {
 				amount: 1000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_4,
-				user_3,
-				user_4_sell_intention_id,
-				user_3_sell_intention_id,
-				500000000000,
-				1000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_4,
+				account_id_b: user_3,
+				intention_id_a: user_4_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 500000000000,
+				amount_b: 1000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_4,
-				user_4_sell_intention_id,
-				pair_account,
-				asset_a,
-				1000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_4,
+				intention_id: user_4_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 1000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				2000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 2000000000,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -1355,30 +1349,30 @@ fn sell_test_single_multiple_sells() {
 				amount: 1000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_4,
-				user_5,
-				user_4_sell_intention_id,
-				user_5_sell_intention_id,
-				500000000000,
-				1000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_4,
+				account_id_b: user_5,
+				intention_id_a: user_4_sell_intention_id,
+				intention_id_b: user_5_sell_intention_id,
+				amount_a: 500000000000,
+				amount_b: 1000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_4,
-				user_4_sell_intention_id,
-				pair_account,
-				asset_a,
-				1000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_4,
+				intention_id: user_4_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 1000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_5,
-				user_5_sell_intention_id,
-				pair_account,
-				asset_b,
-				2000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_5,
+				intention_id: user_5_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 2000000000,
+			}
 			.into(),
 		]);
 	});
@@ -1454,32 +1448,32 @@ fn sell_test_group_sells() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
-				asset_b,
-				asset_a,
-				5_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_2,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 5_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				3_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 3_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_4,
+			Event::IntentionRegistered {
+				who: user_4,
 				asset_a,
 				asset_b,
-				10_000_000_000_000,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-			)
+				amount: 10_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -1493,30 +1487,30 @@ fn sell_test_group_sells() {
 				amount: 5000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_4,
-				user_2,
-				user_4_sell_intention_id,
-				user_2_sell_intention_id,
-				2500000000000,
-				5000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_4,
+				account_id_b: user_2,
+				intention_id_a: user_4_sell_intention_id,
+				intention_id_b: user_2_sell_intention_id,
+				amount_a: 2500000000000,
+				amount_b: 5000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_4,
-				user_4_sell_intention_id,
-				pair_account,
-				asset_a,
-				5000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_4,
+				intention_id: user_4_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 5000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_b,
-				10000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 10000000000,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -1530,50 +1524,50 @@ fn sell_test_group_sells() {
 				amount: 3000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_4,
-				user_3,
-				user_4_sell_intention_id,
-				user_3_sell_intention_id,
-				1500000000000,
-				3000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_4,
+				account_id_b: user_3,
+				intention_id_a: user_4_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1500000000000,
+				amount_b: 3000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_4,
-				user_4_sell_intention_id,
-				pair_account,
-				asset_a,
-				3000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_4,
+				intention_id: user_4_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 3000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				6000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 6000000000,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				6000000000000,
-				11298164364955,
-				asset_b,
-				22641611952,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_4,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 6000000000000,
+				sale_price: 11298164364955,
+				fee_asset: asset_b,
+				fee_amount: 22641611952,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_4,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-				6000000000000,
-				11320805976907,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_4,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+				amount: 6000000000000,
+				amount_sold_or_bought: 11320805976907,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -1703,32 +1697,32 @@ fn sell_test_mixed_buy_sells() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
-				asset_b,
-				asset_a,
-				5_000_000_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_2,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 5_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				3_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 3_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_4,
+			Event::IntentionRegistered {
+				who: user_4,
 				asset_a,
 				asset_b,
-				10_000_000_000_000,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-			)
+				amount: 10_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -1742,70 +1736,70 @@ fn sell_test_mixed_buy_sells() {
 				amount: 3000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_4,
-				user_3,
-				user_4_sell_intention_id,
-				user_3_sell_intention_id,
-				1500000000000,
-				3000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_4,
+				account_id_b: user_3,
+				intention_id_a: user_4_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1500000000000,
+				amount_b: 3000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_4,
-				user_4_sell_intention_id,
-				pair_account,
-				asset_a,
-				3000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_4,
+				intention_id: user_4_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 3000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				6000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 6000000000,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				8500000000000,
-				15636903108671,
-				asset_b,
-				31336479174,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_4,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 8500000000000,
+				sale_price: 15636903108671,
+				fee_asset: asset_b,
+				fee_amount: 31336479174,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_4,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-				8500000000000,
-				15668239587845,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_4,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+				amount: 8500000000000,
+				amount_sold_or_bought: 15668239587845,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				5000000000000,
-				3024573404240,
-				asset_a,
-				6049146808,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 5000000000000,
+				buy_price: 3024573404240,
+				fee_asset: asset_a,
+				fee_amount: 6049146808,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				5000000000000,
-				3030622551048,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				amount: 5000000000000,
+				amount_sold_or_bought: 3030622551048,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -1881,32 +1875,32 @@ fn discount_tests_no_discount() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
-				asset_b,
-				asset_a,
-				5_000_000_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_2,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 5_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				3_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 3_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_4,
+			Event::IntentionRegistered {
+				who: user_4,
 				asset_a,
 				asset_b,
-				10_000_000_000_000,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-			)
+				amount: 10_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -1920,70 +1914,70 @@ fn discount_tests_no_discount() {
 				amount: 3000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_4,
-				user_3,
-				user_4_sell_intention_id,
-				user_3_sell_intention_id,
-				1500000000000,
-				3000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_4,
+				account_id_b: user_3,
+				intention_id_a: user_4_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1500000000000,
+				amount_b: 3000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_4,
-				user_4_sell_intention_id,
-				pair_account,
-				asset_a,
-				3000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_4,
+				intention_id: user_4_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 3000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				6000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 6000000000,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				8500000000000,
-				15636903108671,
-				asset_b,
-				31336479174,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_4,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 8500000000000,
+				sale_price: 15636903108671,
+				fee_asset: asset_b,
+				fee_amount: 31336479174,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_4,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-				8500000000000,
-				15668239587845,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_4,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+				amount: 8500000000000,
+				amount_sold_or_bought: 15668239587845,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				5000000000000,
-				3024573404240,
-				asset_a,
-				6049146808,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 5000000000000,
+				buy_price: 3024573404240,
+				fee_asset: asset_a,
+				fee_amount: 6049146808,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				5000000000000,
-				3030622551048,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				amount: 5000000000000,
+				amount_sold_or_bought: 3030622551048,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -2065,32 +2059,32 @@ fn discount_tests_with_discount() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
-				asset_b,
-				asset_a,
-				5_000_000_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_2,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 5_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				3_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 3_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_4,
+			Event::IntentionRegistered {
+				who: user_4,
 				asset_a,
 				asset_b,
-				10_000_000_000_000,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-			)
+				amount: 10_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -2104,70 +2098,70 @@ fn discount_tests_with_discount() {
 				amount: 3000000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_4,
-				user_3,
-				user_4_sell_intention_id,
-				user_3_sell_intention_id,
-				1500000000000,
-				3000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_4,
+				account_id_b: user_3,
+				intention_id_a: user_4_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1500000000000,
+				amount_b: 3000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_4,
-				user_4_sell_intention_id,
-				pair_account,
-				asset_a,
-				3000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_4,
+				intention_id: user_4_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 3000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_b,
-				6000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 6000000000,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				8500000000000,
-				15657271820139,
-				asset_b,
-				10967767706,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: user_4,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 8500000000000,
+				sale_price: 15657271820139,
+				fee_asset: asset_b,
+				fee_amount: 10967767706,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_4,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-				8500000000000,
-				15668239587845,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_4,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+				amount: 8500000000000,
+				amount_sold_or_bought: 15668239587845,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_b,
-				asset_a,
-				5000000000000,
-				3024916906330,
-				asset_a,
-				2117441830,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 5000000000000,
+				buy_price: 3024916906330,
+				fee_asset: asset_a,
+				fee_amount: 2117441830,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				5000000000000,
-				3027034348160,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				amount: 5000000000000,
+				amount_sold_or_bought: 3027034348160,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -2229,23 +2223,23 @@ fn buy_test_exact_match() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				2_000_000_000_000,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -2259,30 +2253,30 @@ fn buy_test_exact_match() {
 				amount: 2004000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_3,
-				user_2,
-				user_3_sell_intention_id,
-				user_2_sell_intention_id,
-				1000000000000,
-				2000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_3,
+				account_id_b: user_2,
+				intention_id_a: user_3_sell_intention_id,
+				intention_id_b: user_2_sell_intention_id,
+				amount_a: 1000000000000,
+				amount_b: 2000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_a,
-				2000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 2000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_b,
-				4000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 4000000000,
+			}
 			.into(),
 		]);
 	});
@@ -2358,32 +2352,32 @@ fn buy_test_group_buys() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
-				asset_b,
-				asset_a,
-				5_000_000_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_2,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 5_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				3_000_000_000_000,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 3_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_4,
+			Event::IntentionRegistered {
+				who: user_4,
 				asset_a,
 				asset_b,
-				10_000_000_000_000,
-				IntentionType::BUY,
-				user_4_sell_intention_id,
-			)
+				amount: 10_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_4_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -2397,70 +2391,70 @@ fn buy_test_group_buys() {
 				amount: 5010000000000,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_4,
-				asset_a,
-				asset_b,
-				7500000000000,
-				16216216216217,
-				asset_b,
-				32432432432,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_4,
+				asset_out: asset_a,
+				asset_in: asset_b,
+				amount: 7500000000000,
+				buy_price: 16216216216217,
+				fee_asset: asset_b,
+				fee_amount: 32432432432,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_4,
-				IntentionType::BUY,
-				user_4_sell_intention_id,
-				7500000000000,
-				16248648648649,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_4,
+				intention_type: IntentionType::BUY,
+				intention_id: user_4_sell_intention_id,
+				amount: 7500000000000,
+				amount_sold_or_bought: 16248648648649,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_4,
-				user_2_sell_intention_id,
-				user_4_sell_intention_id,
-				2500000000000,
-				5000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_4,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_4_sell_intention_id,
+				amount_a: 2500000000000,
+				amount_b: 5000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_a,
-				5000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 5000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_4,
-				user_4_sell_intention_id,
-				pair_account,
-				asset_b,
-				10000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_4,
+				intention_id: user_4_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 10000000000,
+			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_3,
-				asset_b,
-				asset_a,
-				3000000000000,
-				1301307129904,
-				asset_a,
-				2602614258,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_3,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 3000000000000,
+				buy_price: 1301307129904,
+				fee_asset: asset_a,
+				fee_amount: 2602614258,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_3,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-				3000000000000,
-				1303909744162,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_3,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+				amount: 3000000000000,
+				amount_sold_or_bought: 1303909744162,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -2540,83 +2534,77 @@ fn discount_tests_with_error() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
-				asset_b,
-				asset_a,
-				5_000_000_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_2,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 5_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				3_000_000_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 3_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_4,
+			Event::IntentionRegistered {
+				who: user_4,
 				asset_a,
 				asset_b,
-				10_000_000_000_000,
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-			)
+				amount: 10_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionResolveErrorEvent(
-				user_4,
-				AssetPair {
+			Event::IntentionResolveErrorEvent {
+				who: user_4,
+				asset_ids: AssetPair {
 					asset_in: asset_a,
 					asset_out: asset_b,
 				},
-				IntentionType::SELL,
-				user_4_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 2,
-						error: 20,
-						message: None,
-					}
-				),
-			)
+				intention_type: IntentionType::SELL,
+				intention_id: user_4_sell_intention_id,
+				error_detail: DispatchError::Module(ModuleError {
+					index: 2,
+					error: 20,
+					message: None,
+				}),
+			}
 			.into(),
-			Event::IntentionResolveErrorEvent(
-				user_2,
-				AssetPair {
+			Event::IntentionResolveErrorEvent {
+				who: user_2,
+				asset_ids: AssetPair {
 					asset_in: asset_a,
 					asset_out: asset_b,
 				},
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						  index: 2,
-						  error: 20,
-						  message: None,
-					}
-				),
-			)
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				error_detail: DispatchError::Module(ModuleError {
+					index: 2,
+					error: 20,
+					message: None,
+				}),
+			}
 			.into(),
-			Event::IntentionResolveErrorEvent(
-				user_3,
-				AssetPair {
+			Event::IntentionResolveErrorEvent {
+				who: user_3,
+				asset_ids: AssetPair {
 					asset_in: asset_b,
 					asset_out: asset_a,
 				},
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 2,
-						error: 20,
-						message: None,
-					}
-				),
-			)
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+				error_detail: DispatchError::Module(ModuleError {
+					index: 2,
+					error: 20,
+					message: None,
+				}),
+			}
 			.into(),
 		]);
 	});
@@ -2674,23 +2662,23 @@ fn simple_sell_sell() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 199997007);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				1_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 1_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -2704,26 +2692,50 @@ fn simple_sell_sell() {
 				amount: 1000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				500,
-				1000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 500,
+				amount_b: 1000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_a, 0).into(),
-			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_b, 2).into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1500, 2995, 2000, 4, pair_account).into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				1500,
-				2999,
-				pair_account,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 0,
+			}
+			.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 2,
+			}
+			.into(),
+			xyk::Event::SellExecuted {
+				who: 2,
+				asset_in: 3000,
+				asset_out: 2000,
+				amount: 1500,
+				sale_price: 2995,
+				fee_asset: 2000,
+				fee_amount: 4,
+				pool: pair_account,
+			}
+			.into(),
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				amount: 1500,
+				amount_sold_or_bought: 2999,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -2781,23 +2793,23 @@ fn simple_buy_buy() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200003009);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				1_000,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 1_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -2811,27 +2823,51 @@ fn simple_buy_buy() {
 				amount: 1002,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(2, 3000, 2000, 1500, 3001, 2000, 6, pair_account).into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				1500,
-				3007,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: 2,
+				asset_out: 3000,
+				asset_in: 2000,
+				amount: 1500,
+				buy_price: 3001,
+				fee_asset: 2000,
+				fee_amount: 6,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_3,
-				user_2,
-				user_3_sell_intention_id,
-				user_2_sell_intention_id,
-				500,
-				1000,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				amount: 1500,
+				amount_sold_or_bought: 3007,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_a, 0).into(),
-			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 2).into(),
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_3,
+				account_id_b: user_2,
+				intention_id_a: user_3_sell_intention_id,
+				intention_id_b: user_2_sell_intention_id,
+				amount_a: 500,
+				amount_b: 1000,
+			}
+			.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 0,
+			}
+			.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 2,
+			}
+			.into(),
 		]);
 	});
 }
@@ -2889,23 +2925,23 @@ fn simple_sell_buy() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 199998011);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				1_000,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+				amount: 1_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -2919,25 +2955,42 @@ fn simple_sell_buy() {
 				amount: 2004,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				1000,
-				2000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1000,
+				amount_b: 2000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_b, 8).into(),
-			xyk::Event::SellExecuted(2, 3000, 2000, 1000, 1997, 2000, 2, pair_account).into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				1000,
-				1999,
-				pair_account,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 8,
+			}
+			.into(),
+			xyk::Event::SellExecuted {
+				who: 2,
+				asset_in: 3000,
+				asset_out: 2000,
+				amount: 1000,
+				sale_price: 1997,
+				fee_asset: 2000,
+				fee_amount: 2,
+				pool: pair_account,
+			}
+			.into(),
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				amount: 1000,
+				amount_sold_or_bought: 1999,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -2996,23 +3049,23 @@ fn simple_buy_sell() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200002013);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				1_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+				amount: 1_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -3026,26 +3079,43 @@ fn simple_buy_sell() {
 				amount: 2004,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(user_2, 3000, 2000, 1000, 2001, 2000, 4, pair_account).into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				1000,
-				2005,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: 3000,
+				asset_in: 2000,
+				amount: 1000,
+				buy_price: 2001,
+				fee_asset: 2000,
+				fee_amount: 4,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_3,
-				user_2,
-				user_3_sell_intention_id,
-				user_2_sell_intention_id,
-				1000,
-				2000,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				amount: 1000,
+				amount_sold_or_bought: 2005,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 8).into(),
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_3,
+				account_id_b: user_2,
+				intention_id_a: user_3_sell_intention_id,
+				intention_id_b: user_2_sell_intention_id,
+				amount_a: 1000,
+				amount_b: 2000,
+			}
+			.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 8,
+			}
+			.into(),
 		]);
 	});
 }
@@ -3093,34 +3163,34 @@ fn single_sell_intention_test() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000_000_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				2,
-				3000,
-				2000,
-				2000000000000,
-				3913725490196,
-				2000,
-				7843137254,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: 2,
+				asset_in: 3000,
+				asset_out: 2000,
+				amount: 2000000000000,
+				sale_price: 3913725490196,
+				fee_asset: 2000,
+				fee_amount: 7843137254,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				2000000000000,
-				3921568627450,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				amount: 2000000000000,
+				amount_sold_or_bought: 3921568627450,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -3170,34 +3240,34 @@ fn single_buy_intention_test() {
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000_000_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000_000_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				2,
-				3000,
-				2000,
-				2000000000000,
-				4081632653062,
-				2000,
-				8163265306,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: 2,
+				asset_out: 3000,
+				asset_in: 2000,
+				amount: 2000000000000,
+				buy_price: 4081632653062,
+				fee_asset: 2000,
+				fee_amount: 8163265306,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				2000000000000,
-				4089795918368,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				amount: 2000000000000,
+				amount_sold_or_bought: 4089795918368,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -3258,57 +3328,53 @@ fn simple_sell_sell_with_error_should_not_pass() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 200000000);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				2_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 2_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				1_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 1_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionResolveErrorEvent(
-				user_2,
-				AssetPair {
+			Event::IntentionResolveErrorEvent {
+				who: user_2,
+				asset_ids: AssetPair {
 					asset_in: asset_a,
 					asset_out: asset_b,
 				},
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 2,
-						error: 9,
-						message: None,
-					}
-				),
-			)
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+				error_detail: DispatchError::Module(ModuleError {
+					index: 2,
+					error: 9,
+					message: None,
+				}),
+			}
 			.into(),
-			Event::IntentionResolveErrorEvent(
-				user_3,
-				AssetPair {
+			Event::IntentionResolveErrorEvent {
+				who: user_3,
+				asset_ids: AssetPair {
 					asset_in: asset_b,
 					asset_out: asset_a,
 				},
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-				DispatchError::Module (
-					ModuleError {
-						index: 2,
-						error: 9,
-						message: None,
-					}
-				),
-			)
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+				error_detail: DispatchError::Module(ModuleError {
+					index: 2,
+					error: 9,
+					message: None,
+				}),
+			}
 			.into(),
 		]);
 	});
@@ -3371,23 +3437,23 @@ fn matching_limits_buy_buy_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1980400000000000);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				100 * one,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 100 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				220 * one,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 220 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_b,
@@ -3401,50 +3467,50 @@ fn matching_limits_buy_buy_should_work() {
 				amount: 100200000000000,
 			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				3,
-				asset_b,
-				asset_a,
-				20_000_000_000_000,
-				10101010101011,
-				asset_a,
-				20202020202,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: 3,
+				asset_out: asset_b,
+				asset_in: asset_a,
+				amount: 20_000_000_000_000,
+				buy_price: 10101010101011,
+				fee_asset: asset_a,
+				fee_amount: 20202020202,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_3,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-				20_000_000_000_000,
-				10121212121213,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_3,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+				amount: 20_000_000_000_000,
+				amount_sold_or_bought: 10121212121213,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				200000000000000,
-				100000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 200000000000000,
+				amount_b: 100000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_b,
-				400000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 400000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_a,
-				200000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 200000000000,
+			}
 			.into(),
 		]);
 	});
@@ -3507,23 +3573,23 @@ fn matching_limits_sell_buy_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 1_961_102_745_098_039);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				30 * one,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 30 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				50 * one,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+				amount: 50 * one,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_b,
@@ -3537,42 +3603,42 @@ fn matching_limits_sell_buy_should_work() {
 				amount: 30000000000000,
 			}
 			.into(),
-			xyk::Event::SellExecuted(
-				3,
-				asset_a,
-				asset_b,
-				20_000_000_000_000,
-				39137254901961,
-				asset_b,
-				78431372548,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: 3,
+				asset_in: asset_a,
+				asset_out: asset_b,
+				amount: 20_000_000_000_000,
+				sale_price: 39137254901961,
+				fee_asset: asset_b,
+				fee_amount: 78431372548,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_3,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-				20_000_000_000_000,
-				39215686274509,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_3,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+				amount: 20_000_000_000_000,
+				amount_sold_or_bought: 39215686274509,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				60000000000000,
-				30000000000000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 60000000000000,
+				amount_b: 30000000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_b,
-				240000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 240000000000,
+			}
 			.into(),
 		]);
 	});
@@ -3638,23 +3704,23 @@ fn exact_match_limit_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000_200_000_000_000);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				50 * one,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 50 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				100 * one,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 100 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_b,
@@ -3668,30 +3734,30 @@ fn exact_match_limit_should_work() {
 				amount: 50100000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				100 * one,
-				50 * one,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 100 * one,
+				amount_b: 50 * one,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_b,
-				200000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 200000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_a,
-				100000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 100000000000,
+			}
 			.into(),
 		]);
 	});
@@ -3757,23 +3823,23 @@ fn matching_limit_scenario_2() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_020_602_387_444_706);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				100 * one,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 100 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				180 * one,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 180 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_b,
@@ -3787,50 +3853,50 @@ fn matching_limit_scenario_2() {
 				amount: 90180000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				180 * one,
-				90 * one,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 180 * one,
+				amount_b: 90 * one,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_b,
-				360000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 360000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_a,
-				180000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 180000000000,
+			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				100_00000000000,
-				20201983477752,
-				asset_b,
-				40403966954,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_a,
+				asset_in: asset_b,
+				amount: 100_00000000000,
+				buy_price: 20201983477752,
+				fee_asset: asset_b,
+				fee_amount: 40403966954,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				10_000_000_000_000,
-				20242387444706,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				amount: 10_000_000_000_000,
+				amount_sold_or_bought: 20242387444706,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -3896,23 +3962,23 @@ fn matching_limit_scenario_3() {
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_105_872_574_194_905);
 
 		expect_events(vec![
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				150 * one,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 150 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				200 * one,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 200 * one,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_b,
@@ -3926,50 +3992,50 @@ fn matching_limit_scenario_3() {
 				amount: 100200000000000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				200 * one,
-				100 * one,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 200 * one,
+				amount_b: 100 * one,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_2,
-				user_2_sell_intention_id,
-				pair_account,
-				asset_b,
-				400000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 400000000000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(
-				user_3,
-				user_3_sell_intention_id,
-				pair_account,
-				asset_a,
-				200000000000,
-			)
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 200000000000,
+			}
 			.into(),
-			xyk::Event::BuyExecuted(
-				user_2,
-				asset_a,
-				asset_b,
-				50_000_000_000_000,
-				105262050094717,
-				asset_b,
-				210524100188,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: user_2,
+				asset_out: asset_a,
+				asset_in: asset_b,
+				amount: 50_000_000_000_000,
+				buy_price: 105262050094717,
+				fee_asset: asset_b,
+				fee_amount: 210524100188,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				user_2,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-				50_000_000_000_000,
-				105472574194905,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: user_2,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+				amount: 50_000_000_000_000,
+				amount_sold_or_bought: 105472574194905,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -4683,45 +4749,45 @@ fn execute_amm_transfer_should_work() {
 		));
 
 		expect_events(vec![
-			xyk::Event::BuyExecuted(
-				ALICE,
-				DOT,
-				HDX,
-				1_000_000_000_000,
-				1_000_000_000,
-				HDX,
-				1000000,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: ALICE,
+				asset_out: DOT,
+				asset_in: HDX,
+				amount: 1_000_000_000_000,
+				buy_price: 1_000_000_000,
+				fee_asset: HDX,
+				fee_amount: 1000000,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				ALICE,
-				IntentionType::BUY,
-				alice_buy_intention_id,
-				1_000_000_000_000,
-				1_001_000_000,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: ALICE,
+				intention_type: IntentionType::BUY,
+				intention_id: alice_buy_intention_id,
+				amount: 1_000_000_000_000,
+				amount_sold_or_bought: 1_001_000_000,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			xyk::Event::SellExecuted(
-				ALICE,
-				HDX,
-				DOT,
-				1_000_000_000_000,
-				1_000_000_000,
-				HDX,
-				1000000,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: ALICE,
+				asset_in: HDX,
+				asset_out: DOT,
+				amount: 1_000_000_000_000,
+				sale_price: 1_000_000_000,
+				fee_asset: HDX,
+				fee_amount: 1000000,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				ALICE,
-				IntentionType::SELL,
-				alice_sell_intention_id,
-				1_000_000_000_000,
-				1_001_000_000,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: ALICE,
+				intention_type: IntentionType::SELL,
+				intention_id: alice_sell_intention_id,
+				amount: 1_000_000_000_000,
+				amount_sold_or_bought: 1_001_000_000,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -4772,35 +4838,45 @@ fn resolve_single_intention_should_work() {
 		});
 
 		expect_events(vec![
-			xyk::Event::BuyExecuted(
-				ALICE,
-				HDX,
-				DOT,
-				2_000_000_000,
-				27_778_549_405,
-				DOT,
-				55_557_098,
-				pair_account,
-			)
+			xyk::Event::BuyExecuted {
+				who: ALICE,
+				asset_out: HDX,
+				asset_in: DOT,
+				amount: 2_000_000_000,
+				buy_price: 27_778_549_405,
+				fee_asset: DOT,
+				fee_amount: 55_557_098,
+				pool: pair_account,
+			}
 			.into(),
-			Event::IntentionResolvedAMMTrade(
-				ALICE,
-				IntentionType::BUY,
-				alice_buy_intention_id,
-				2_000_000_000,
-				27_834_106_503,
-				pair_account,
-			)
+			Event::IntentionResolvedAMMTrade {
+				who: ALICE,
+				intention_type: IntentionType::BUY,
+				intention_id: alice_buy_intention_id,
+				amount: 2_000_000_000,
+				amount_sold_or_bought: 27_834_106_503,
+				pool_account_id: pair_account,
+			}
 			.into(),
-			xyk::Event::SellExecuted(ALICE, DOT, HDX, 150000000, 10777799, HDX, 21598, pair_account).into(),
-			Event::IntentionResolvedAMMTrade(
-				ALICE,
-				IntentionType::SELL,
-				alice_sell_intention_id,
-				150000000,
-				10799397,
-				pair_account,
-			)
+			xyk::Event::SellExecuted {
+				who: ALICE,
+				asset_in: DOT,
+				asset_out: HDX,
+				amount: 150000000,
+				sale_price: 10777799,
+				fee_asset: HDX,
+				fee_amount: 21598,
+				pool: pair_account,
+			}
+			.into(),
+			Event::IntentionResolvedAMMTrade {
+				who: ALICE,
+				intention_type: IntentionType::SELL,
+				intention_id: alice_sell_intention_id,
+				amount: 150000000,
+				amount_sold_or_bought: 10799397,
+				pool_account_id: pair_account,
+			}
 			.into(),
 		]);
 	});
@@ -4955,23 +5031,23 @@ fn direct_sell_sell_transfers_without_other_asset_should_work() {
 				amount: 100000000000000000,
 			}
 			.into(),
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				2_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 2_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -4985,19 +5061,31 @@ fn direct_sell_sell_transfers_without_other_asset_should_work() {
 				amount: 2_000_000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				1_000_000,
-				2_000_000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1_000_000,
+				amount_b: 2_000_000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_a, 2_000)
-				.into(),
-			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_b, 4_000)
-				.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 2_000,
+			}
+			.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 4_000,
+			}
+			.into(),
 		]);
 	});
 }
@@ -5083,23 +5171,23 @@ fn direct_buy_buy_transfers_without_other_asset_should_work() {
 				amount: 100000000000000000,
 			}
 			.into(),
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
-				asset_b,
-				asset_a,
-				2_000_000,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+			Event::IntentionRegistered {
+				who: user_3,
+				asset_a: asset_b,
+				asset_b: asset_a,
+				amount: 2_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -5113,19 +5201,31 @@ fn direct_buy_buy_transfers_without_other_asset_should_work() {
 				amount: 2_004_000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_3,
-				user_2,
-				user_3_sell_intention_id,
-				user_2_sell_intention_id,
-				1_000_000,
-				2_000_000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_3,
+				account_id_b: user_2,
+				intention_id_a: user_3_sell_intention_id,
+				intention_id_b: user_2_sell_intention_id,
+				amount_a: 1_000_000,
+				amount_b: 2_000_000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_a, 2_000)
-				.into(),
-			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 4_000)
-				.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_a,
+				fee_amount: 2_000,
+			}
+			.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 4_000,
+			}
+			.into(),
 		]);
 	});
 }
@@ -5211,23 +5311,23 @@ fn direct_sell_buy_transfers_without_other_asset_should_work() {
 				amount: 100000000000000000,
 			}
 			.into(),
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000,
-				IntentionType::SELL,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				1_000_000,
-				IntentionType::BUY,
-				user_3_sell_intention_id,
-			)
+				amount: 1_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -5241,17 +5341,23 @@ fn direct_sell_buy_transfers_without_other_asset_should_work() {
 				amount: 2_004_000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_2,
-				user_3,
-				user_2_sell_intention_id,
-				user_3_sell_intention_id,
-				1_000_000,
-				2_000_000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_2,
+				account_id_b: user_3,
+				intention_id_a: user_2_sell_intention_id,
+				intention_id_b: user_3_sell_intention_id,
+				amount_a: 1_000_000,
+				amount_b: 2_000_000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_3, user_3_sell_intention_id, pair_account, asset_b, 8_000)
-				.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_3,
+				intention_id: user_3_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 8_000,
+			}
+			.into(),
 		]);
 	});
 }
@@ -5337,23 +5443,23 @@ fn direct_buy_sell_transfers_without_other_asset_should_work() {
 				amount: 100000000000000000,
 			}
 			.into(),
-			Event::IntentionRegistered(
-				user_2,
+			Event::IntentionRegistered {
+				who: user_2,
 				asset_a,
 				asset_b,
-				1_000_000,
-				IntentionType::BUY,
-				user_2_sell_intention_id,
-			)
+				amount: 1_000_000,
+				intention_type: IntentionType::BUY,
+				intention_id: user_2_sell_intention_id,
+			}
 			.into(),
-			Event::IntentionRegistered(
-				user_3,
+			Event::IntentionRegistered {
+				who: user_3,
 				asset_a,
 				asset_b,
-				1_000_000,
-				IntentionType::SELL,
-				user_3_sell_intention_id,
-			)
+				amount: 1_000_000,
+				intention_type: IntentionType::SELL,
+				intention_id: user_3_sell_intention_id,
+			}
 			.into(),
 			orml_tokens::Event::Reserved {
 				currency_id: asset_a,
@@ -5367,17 +5473,23 @@ fn direct_buy_sell_transfers_without_other_asset_should_work() {
 				amount: 2_004_000,
 			}
 			.into(),
-			Event::IntentionResolvedDirectTrade(
-				user_3,
-				user_2,
-				user_3_sell_intention_id,
-				user_2_sell_intention_id,
-				1_000_000,
-				2_000_000,
-			)
+			Event::IntentionResolvedDirectTrade {
+				account_id_a: user_3,
+				account_id_b: user_2,
+				intention_id_a: user_3_sell_intention_id,
+				intention_id_b: user_2_sell_intention_id,
+				amount_a: 1_000_000,
+				amount_b: 2_000_000,
+			}
 			.into(),
-			Event::IntentionResolvedDirectTradeFees(user_2, user_2_sell_intention_id, pair_account, asset_b, 8_000)
-				.into(),
+			Event::IntentionResolvedDirectTradeFees {
+				who: user_2,
+				intention_id: user_2_sell_intention_id,
+				fee_receiver: pair_account,
+				asset_id: asset_b,
+				fee_amount: 8_000,
+			}
+			.into(),
 		]);
 	});
 }

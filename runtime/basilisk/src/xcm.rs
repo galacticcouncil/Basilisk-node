@@ -1,22 +1,26 @@
 use super::{AssetId, *};
 
-use codec::{Decode, Encode};
 use cumulus_primitives_core::ParaId;
-use frame_support::traits::{Everything, Nothing};
-pub use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
+use frame_support::{
+	traits::{Everything, Nothing},
+	PalletId,
+};
+use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::latest::prelude::*;
 use polkadot_xcm::latest::Error;
+use primitives::Price;
 use sp_runtime::traits::Convert;
+
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
-	EnsureXcmOrigin, FixedWeightBounds, LocationInverter, ParentIsPreset, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit,
+	EnsureXcmOrigin, FixedWeightBounds, LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
+	TakeWeightCredit,
 };
-use xcm_executor::traits::WeightTrader;
-use xcm_executor::{Assets, Config, XcmExecutor};
+use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
@@ -95,7 +99,26 @@ impl Config for XcmConfig {
 
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type Trader = TradePassthrough;
+	// We calculate weight fees the same way as for regular extrinsics and use the prices and choice
+	// of accepted currencies of the transaction payment pallet. Fees go to the same fee receiver as
+	// configured in `MultiTransactionPayment`.
+	type Trader = MultiCurrencyTrader<
+		AssetId,
+		Balance,
+		Price,
+		WeightToFee,
+		MultiTransactionPayment,
+		CurrencyIdConvert,
+		ToFeeReceiver<
+			AccountId,
+			AssetId,
+			Balance,
+			Price,
+			CurrencyIdConvert,
+			DepositAll<Runtime>,
+			MultiTransactionPayment,
+		>,
+	>;
 
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -113,15 +136,15 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
-	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
-	type ControllerOrigin = crate::EnsureMajorityCouncilOrRoot;
+	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
+	type ControllerOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
 }
 
 impl orml_xtokens::Config for Runtime {
@@ -144,7 +167,7 @@ impl orml_unknown_tokens::Config for Runtime {
 
 impl orml_xcm::Config for Runtime {
 	type Event = Event;
-	type SovereignOrigin = crate::EnsureMajorityCouncilOrRoot;
+	type SovereignOrigin = SuperMajorityCouncilOrRoot;
 }
 
 impl pallet_xcm::Config for Runtime {
@@ -172,7 +195,7 @@ impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 		match id {
 			CORE_ASSET_ID => Some(MultiLocation::new(
 				1,
-				X2(Parachain(ParachainInfo::get().into()), GeneralKey(id.encode())),
+				X2(Parachain(ParachainInfo::get().into()), GeneralIndex(id.into())),
 			)),
 			_ => {
 				if let Some(loc) = AssetRegistry::asset_to_location(id) {
@@ -190,34 +213,16 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 		match location {
 			MultiLocation {
 				parents,
-				interior: X2(Parachain(id), GeneralKey(key)),
-			} if parents == 1 && ParaId::from(id) == ParachainInfo::get() => {
+				interior: X2(Parachain(id), GeneralIndex(index)),
+			} if parents == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
 				// Handling native asset for this parachain
-				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
-					// we currently have only one native asset
-					match currency_id {
-						CORE_ASSET_ID => Some(currency_id),
-						_ => None,
-					}
-				} else {
-					None
-				}
+				Some(CORE_ASSET_ID)
 			}
 			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
 			MultiLocation {
 				parents: 0,
-				interior: X1(GeneralKey(key)),
-			} => {
-				if let Ok(currency_id) = AssetId::decode(&mut &key[..]) {
-					// we currently have only one native asset
-					match currency_id {
-						CORE_ASSET_ID => Some(currency_id),
-						_ => None,
-					}
-				} else {
-					None
-				}
-			}
+				interior: X1(GeneralIndex(index)),
+			} if (index as u32) == CORE_ASSET_ID => Some(CORE_ASSET_ID),
 			// delegate to asset-registry
 			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
 		}
@@ -269,6 +274,11 @@ pub type LocationToAccountId = (
 	AccountId32Aliases<RelayNetwork, AccountId>,
 );
 
+parameter_types! {
+	// The account which receives multi-currency tokens from failed attempts to deposit them
+	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account();
+}
+
 pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	Currencies,
 	UnknownTokens,
@@ -277,5 +287,5 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	LocationToAccountId,
 	AssetId,
 	CurrencyIdConvert,
-	(),
+	DepositToAlternative<Alternative, Currencies, AssetId, AccountId, Balance>,
 >;

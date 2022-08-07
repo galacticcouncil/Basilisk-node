@@ -1,5 +1,5 @@
 #![cfg(test)]
-pub use basilisk_runtime::AccountId;
+pub use basilisk_runtime::{AccountId, VestingPalletId};
 use pallet_transaction_multi_payment::Price;
 use primitives::Balance;
 
@@ -7,14 +7,14 @@ pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
 pub const CHARLIE: [u8; 32] = [6u8; 32];
 pub const DAVE: [u8; 32] = [7u8; 32];
-pub const FALLBACK: [u8; 32] = [99u8; 32];
 
-pub const BSX: Balance = 1_000_000_000_000;
+pub const UNITS: Balance = 1_000_000_000_000;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
 use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
+use pretty_assertions::assert_eq;
 use sp_runtime::traits::AccountIdConversion;
 
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
@@ -104,8 +104,8 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 2002 * BSX),
-			(ParaId::from(2000).into_account(), 10 * BSX),
+			(AccountId::from(ALICE), 2002 * UNITS),
+			(ParaId::from(2000).into_account(), 10 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -138,7 +138,7 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> {
-		balances: vec![(AccountId::from(ALICE), 200 * BSX)],
+		balances: vec![(AccountId::from(ALICE), 200 * UNITS)],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -165,7 +165,8 @@ pub fn hydra_ext() -> sp_io::TestExternalities {
 }
 
 pub fn basilisk_ext() -> sp_io::TestExternalities {
-	use basilisk_runtime::{NativeExistentialDeposit, Runtime, System};
+	use basilisk_runtime::{MultiTransactionPayment, NativeExistentialDeposit, Runtime, System};
+	use frame_support::traits::OnInitialize;
 
 	let existential_deposit = NativeExistentialDeposit::get();
 
@@ -175,17 +176,18 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 200 * BSX),
-			(AccountId::from(BOB), 1000 * BSX),
-			(AccountId::from(CHARLIE), 1000 * BSX),
-			(AccountId::from(DAVE), 1000 * BSX),
+			(AccountId::from(ALICE), 200 * UNITS),
+			(AccountId::from(BOB), 1000 * UNITS),
+			(AccountId::from(CHARLIE), 1000 * UNITS),
+			(AccountId::from(DAVE), 1000 * UNITS),
+			(vesting_account(), 1_000_000 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
-		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128)],
+		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128), (b"aUSD".to_vec(), 1_000u128)],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
 	}
@@ -194,17 +196,18 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 2000.into(),
+			parachain_id: 2000u32.into(),
 		},
 		&mut t,
 	)
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 1, 200 * BSX),
-			(AccountId::from(BOB), 1, 1_000 * BSX),
-			(AccountId::from(CHARLIE), 1, 1000 * BSX),
-			(AccountId::from(DAVE), 1, 1_000 * BSX),
+			(AccountId::from(ALICE), 1, 200 * UNITS),
+			(AccountId::from(ALICE), 2, 200 * UNITS),
+			(AccountId::from(BOB), 1, 1_000 * UNITS),
+			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
+			(AccountId::from(DAVE), 1, 1_000 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -219,15 +222,18 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
-		currencies: vec![(1, Price::from(1))],
-		fallback_account: Some(FALLBACK.into()),
+		currencies: vec![(1, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
 		account_currencies: vec![],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
 
 	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| {
+		System::set_block_number(1);
+		// Make sure the prices are up-to-date.
+		MultiTransactionPayment::on_initialize(1);
+	});
 	ext
 }
 
@@ -243,4 +249,8 @@ fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
 
 pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
 	assert_eq!(last_basilisk_events(e.len()), e);
+}
+
+pub fn vesting_account() -> AccountId {
+	VestingPalletId::get().into_account()
 }

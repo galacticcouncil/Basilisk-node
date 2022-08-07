@@ -17,6 +17,7 @@
 
 use crate as xyk;
 use crate::Config;
+use crate::*;
 use frame_support::parameter_types;
 use frame_system as system;
 use orml_traits::parameter_type_with_key;
@@ -26,7 +27,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, One},
 };
 
-use frame_support::traits::{Everything, GenesisBuild, Get};
+use frame_support::traits::{Everything, GenesisBuild, Get, Nothing};
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool};
 use primitives::{
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
@@ -34,6 +35,7 @@ use primitives::{
 };
 
 use frame_system::EnsureSigned;
+use hydradx_traits::pools::DustRemovalAccountWhitelist;
 use std::cell::RefCell;
 
 pub type Amount = i128;
@@ -41,12 +43,15 @@ pub type AccountId = u64;
 
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
+pub const CHARLIE: AccountId = 3;
 
 pub const HDX: AssetId = 1000;
 pub const DOT: AssetId = 2000;
 pub const ACA: AssetId = 3000;
 
 pub const HDX_DOT_POOL_ID: AccountId = 1_002_000;
+
+pub const ONE: Balance = 1_000_000_000_000;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -67,6 +72,7 @@ frame_support::construct_runtime!(
 
 thread_local! {
 		static EXCHANGE_FEE: RefCell<(u32, u32)> = RefCell::new((2, 1_000));
+		static DISCOUNTED_FEE: RefCell<(u32, u32)> = RefCell::new(primitives::constants::chain::DISCOUNTED_FEE);
 }
 
 struct ExchangeFee;
@@ -76,11 +82,17 @@ impl Get<(u32, u32)> for ExchangeFee {
 	}
 }
 
+struct DiscountedFee;
+impl Get<(u32, u32)> for DiscountedFee {
+	fn get() -> (u32, u32) {
+		DISCOUNTED_FEE.with(|v| *v.borrow())
+	}
+}
+
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 63;
 	pub const NativeAssetId: AssetId = HDX;
-	pub ExchangeFeeRate: (u32, u32) = ExchangeFee::get();
 	pub RegistryStringLimit: u32 = 100;
 }
 
@@ -137,7 +149,9 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = Everything;
+	type DustRemovalWhitelist = Nothing;
+	type OnNewTokenAccount = ();
+	type OnKilledTokenAccount = ();
 }
 
 pub struct AssetPairAccountIdTest();
@@ -158,6 +172,8 @@ parameter_types! {
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	pub ExchangeFeeRate: (u32, u32) = ExchangeFee::get();
+	pub DiscountedFeeRate: (u32, u32) = DiscountedFee::get();
 }
 
 pub struct Disallow10_10Pool();
@@ -182,6 +198,8 @@ impl Config for Test {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = Disallow10_10Pool;
 	type AMMHandler = ();
+	type DiscountedFee = DiscountedFeeRate;
+	type NonDustableWhitelistHandler = Whitelist;
 }
 
 pub struct ExtBuilder {
@@ -199,6 +217,7 @@ impl Default for ExtBuilder {
 				(BOB, ACA, 1_000_000_000_000_000u128),
 				(ALICE, DOT, 1_000_000_000_000_000u128),
 				(BOB, DOT, 1_000_000_000_000_000u128),
+				(CHARLIE, HDX, 1_000_000_000_000_000u128),
 			],
 		}
 	}
@@ -217,6 +236,11 @@ impl ExtBuilder {
 		self
 	}
 
+	pub fn with_discounted_fee(self, f: (u32, u32)) -> Self {
+		DISCOUNTED_FEE.with(|v| *v.borrow_mut() = f);
+		self
+	}
+
 	pub fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
@@ -227,5 +251,29 @@ impl ExtBuilder {
 		.unwrap();
 
 		t.into()
+	}
+}
+
+pub fn new_test_ext() -> sp_io::TestExternalities {
+	let mut ext = ExtBuilder::default().build();
+	ext.execute_with(|| System::set_block_number(1));
+	ext
+}
+
+pub fn expect_events(e: Vec<Event>) {
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
+}
+
+pub struct Whitelist;
+
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
+	type Error = DispatchError;
+
+	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
+
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
 	}
 }

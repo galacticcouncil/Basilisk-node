@@ -29,9 +29,10 @@ use sp_runtime::{
 };
 
 use frame_system::EnsureSigned;
+use hydradx_traits::pools::DustRemovalAccountWhitelist;
 use hydradx_traits::AssetPairAccountIdFor;
 use primitives::{
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	constants::chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	AssetId, Balance,
 };
 
@@ -117,6 +118,8 @@ impl orml_tokens::Config for Test {
 	type OnDust = ();
 	type MaxLocks = ();
 	type DustRemovalWhitelist = Everything;
+	type OnNewTokenAccount = ();
+	type OnKilledTokenAccount = ();
 }
 
 pub struct AssetPairAccountIdTest();
@@ -148,6 +151,21 @@ parameter_types! {
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+}
+
+pub struct Whitelist;
+
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
+	type Error = DispatchError;
+
+	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
+
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Ok(())
+	}
 }
 
 impl pallet_xyk::Config for Test {
@@ -164,6 +182,8 @@ impl pallet_xyk::Config for Test {
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_xyk::AllowAllPools;
 	type AMMHandler = ();
+	type DiscountedFee = DiscountedFee;
+	type NonDustableWhitelistHandler = Whitelist;
 }
 
 impl pallet_exchange::Config for Test {
