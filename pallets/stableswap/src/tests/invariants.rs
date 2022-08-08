@@ -71,7 +71,16 @@ proptest! {
 					amplification,
 					fee,
 				},
-				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
+				InitialLiquidity{ account: ALICE,
+				assets:			vec![
+					AssetLiquidity{
+						asset_id: asset_a,
+						amount: initial_liquidity
+					},
+					AssetLiquidity{
+						asset_id: asset_b,
+						amount: initial_liquidity
+					}]},
 			)
 			.build()
 			.execute_with(|| {
@@ -138,7 +147,17 @@ proptest! {
 					amplification,
 					fee,
 				},
-				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
+				InitialLiquidity{ account: ALICE, assets: vec![
+				AssetLiquidity{
+					asset_id: asset_a,
+					amount: initial_liquidity
+				},
+
+				AssetLiquidity{
+					asset_id: asset_b,
+					amount: initial_liquidity
+				},
+				]}
 			)
 			.build()
 			.execute_with(|| {
@@ -204,7 +223,17 @@ proptest! {
 					amplification,
 					fee: Permill::from_percent(0),
 				},
-				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
+				InitialLiquidity{ account: ALICE, assets:
+				vec![
+					AssetLiquidity{
+						asset_id: asset_a,
+						amount: initial_liquidity
+					},
+					AssetLiquidity{
+						asset_id: asset_b,
+						amount: initial_liquidity
+					}
+				]},
 			)
 			.build()
 			.execute_with(|| {
@@ -263,7 +292,17 @@ proptest! {
 					amplification,
 					fee: Permill::from_percent(0),
 				},
-				InitialLiquidity{ account: ALICE, asset:asset_a, amount:initial_liquidity},
+				InitialLiquidity{ account: ALICE,
+					assets:			vec![
+					AssetLiquidity{
+						asset_id: asset_a,
+						amount: initial_liquidity
+					},
+					AssetLiquidity{
+						asset_id: asset_b,
+						amount: initial_liquidity
+					}
+				]},
 			)
 			.build()
 			.execute_with(|| {

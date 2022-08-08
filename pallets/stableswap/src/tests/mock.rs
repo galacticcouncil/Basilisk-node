@@ -155,8 +155,7 @@ impl Config for Test {
 
 pub struct InitialLiquidity {
 	pub(crate) account: AccountId,
-	pub(crate) asset: AssetId,
-	pub(crate) amount: Balance,
+	pub(crate) assets: Vec<AssetLiquidity<AssetId>>,
 }
 
 pub struct ExtBuilder {
@@ -231,7 +230,7 @@ impl ExtBuilder {
 		let mut r: sp_io::TestExternalities = t.into();
 
 		r.execute_with(|| {
-			for (who, pool, initial) in self.created_pools {
+			for (who, pool, initial_liquid) in self.created_pools {
 				let pool_id = PoolId(retrieve_current_asset_id());
 				assert_ok!(Stableswap::create_pool(
 					Origin::signed(who),
@@ -243,20 +242,11 @@ impl ExtBuilder {
 					v.borrow_mut().push(pool_id);
 				});
 
-				if initial.amount > Balance::zero() {
+				if initial_liquid.assets.len() as u128 > Balance::zero() {
 					assert_ok!(Stableswap::add_liquidity(
-						Origin::signed(initial.account),
+						Origin::signed(initial_liquid.account),
 						pool_id,
-						vec![
-							AssetLiquidity {
-								asset_id: initial.asset,
-								amount: initial.amount,
-							},
-							AssetLiquidity {
-								asset_id: pool.assets[1],
-								amount: initial.amount,
-							},
-						]
+						initial_liquid.assets
 					));
 				}
 			}

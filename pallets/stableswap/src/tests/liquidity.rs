@@ -136,8 +136,16 @@ fn add_liquidity_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -194,8 +202,16 @@ fn add_liquidity_other_asset_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -252,8 +268,16 @@ fn add_insufficient_liquidity_fails() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -303,8 +327,16 @@ fn remove_all_liquidity_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -368,8 +400,16 @@ fn remove_partial_liquidity_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -454,8 +494,16 @@ fn add_liquidity_with_insufficient_amount_fails() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -516,8 +564,16 @@ fn add_liquidity_with_invalid_data_fails() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -584,8 +640,16 @@ fn remove_liquidity_with_invalid_amounts_fails() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -638,8 +702,16 @@ fn remove_liquidity_with_invalid_data_fails() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -687,8 +759,16 @@ fn remove_partial_with_insufficient_remaining_fails() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()

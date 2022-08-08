@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolId, PoolInfo};
+use crate::types::{AssetLiquidity, PoolId, PoolInfo};
 use crate::{assert_balance, Error};
 
 use frame_support::{assert_noop, assert_ok};
@@ -23,8 +23,16 @@ fn simple_sell_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -68,8 +76,16 @@ fn simple_buy_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -114,8 +130,16 @@ fn simple_sell_with_fee_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -163,8 +187,16 @@ fn simple_sell_with_small_fee_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -212,8 +244,16 @@ fn simple_buy_with_fee_works() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -266,8 +306,16 @@ fn sell_with_invalid_amounts_fails() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -333,8 +381,16 @@ fn buy_with_invalid_amounts_fails() {
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
