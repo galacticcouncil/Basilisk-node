@@ -63,7 +63,7 @@ use warehouse_liquidity_mining::{GlobalFarmId, LoyaltyCurve};
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::ensure_signed;
 use hydradx_traits_amm::AMM;
-use hydradx_traits_nft::nft::{CreateTypedClass, ReserveClassId};
+use hydradx_traits_nft::nft::CreateTypedClass;
 use orml_traits::MultiCurrency;
 use primitives::{asset::AssetPair, AssetId, Balance};
 use scale_info::TypeInfo;
@@ -75,6 +75,7 @@ type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 type MultiCurrencyOf<T> = <T as pallet::Config>::MultiCurrency;
 
 #[frame_support::pallet]
+#[allow(clippy::too_many_arguments)]
 pub mod pallet {
 	use super::*;
 	use crate::weights::WeightInfo;
@@ -89,13 +90,6 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_runtime_upgrade() -> frame_support::weights::Weight {
 			migration::init_nft_class::<T>()
-		}
-
-		fn integrity_test() {
-			assert!(
-				T::NFTHandler::is_id_reserved(T::NftClassId::get()),
-				"`NftClassId` must be within the range of reserved NFT class IDs"
-			);
 		}
 	}
 
@@ -131,8 +125,7 @@ pub mod pallet {
 		type NFTHandler: Mutate<Self::AccountId>
 			+ Create<Self::AccountId>
 			+ Inspect<Self::AccountId, ClassId = primitives::ClassId, InstanceId = primitives::InstanceId>
-			+ CreateTypedClass<Self::AccountId, primitives::ClassId, primitives::nft::ClassType>
-			+ ReserveClassId<primitives::ClassId>;
+			+ CreateTypedClass<Self::AccountId, primitives::ClassId, primitives::nft::ClassType>;
 
 		/// Liquidity mining handler for managing liquidity mining functionalities
 		type LiquidityMiningHandler: LiquidityMiningMutate<
@@ -314,7 +307,6 @@ pub mod pallet {
 		/// - `min_deposit`: minimum amount which can be deposited to the farm
 		/// - `price_adjustment`:
 		/// Emits `GlobalFarmCreated` event when successful.
-		#[allow(clippy::too_many_arguments)]
 		#[pallet::weight(<T as Config>::WeightInfo::create_global_farm())]
 		#[transactional]
 		pub fn create_global_farm(
@@ -377,7 +369,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			let (reward_currency, undistributed_rewards, who) =
-				T::LiquidityMiningHandler::destroy_global_farm(who.clone(), global_farm_id)?;
+				T::LiquidityMiningHandler::destroy_global_farm(who, global_farm_id)?;
 
 			Self::deposit_event(Event::GlobalFarmDestroyed {
 				global_farm_id,
@@ -651,7 +643,7 @@ pub mod pallet {
 			let deposit_id = T::LiquidityMiningHandler::deposit_lp_shares(
 				global_farm_id,
 				yield_farm_id,
-				amm_pool_id.clone(),
+				amm_pool_id,
 				shares_amount,
 				Self::get_asset_balance_in_amm_pool,
 			)?;
