@@ -26,7 +26,7 @@ fn add_initial_liquidity_works() {
 
 			assert_ok!(Stableswap::create_pool(
 				Origin::signed(ALICE),
-				(asset_a, asset_b),
+				vec![asset_a, asset_b],
 				amplification,
 				Permill::from_percent(0)
 			));
@@ -71,7 +71,7 @@ fn add_initial_liquidity_with_insufficient_balance_fails() {
 
 			assert_ok!(Stableswap::create_pool(
 				Origin::signed(ALICE),
-				(asset_a, asset_b),
+				vec![asset_a, asset_b],
 				amplification,
 				Permill::from_percent(0)
 			));

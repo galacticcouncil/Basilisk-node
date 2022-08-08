@@ -235,7 +235,7 @@ impl ExtBuilder {
 				let pool_id = PoolId(retrieve_current_asset_id());
 				assert_ok!(Stableswap::create_pool(
 					Origin::signed(who),
-					(pool.assets[0], pool.assets[1]),
+					pool.assets.into(),
 					pool.amplification,
 					pool.fee,
 				));

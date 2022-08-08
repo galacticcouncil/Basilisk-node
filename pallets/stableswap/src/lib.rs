@@ -152,7 +152,7 @@ pub mod pallet {
 		/// A pool was created.
 		PoolCreated {
 			id: PoolId<T::AssetId>,
-			assets: (T::AssetId, T::AssetId),
+			assets: Vec<T::AssetId>,
 			amplification: u16,
 			fee: Permill,
 		},
@@ -269,17 +269,20 @@ pub mod pallet {
 		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
-			assets: (T::AssetId, T::AssetId),
+			assets: Vec<T::AssetId>,
 			amplification: u16,
 			fee: Permill,
 		) -> DispatchResult {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
-			let mut pool_assets = vec![assets.0, assets.1];
+			let mut pool_assets = assets;
 			pool_assets.sort();
 
 			let pool = PoolInfo {
-				assets: pool_assets.try_into().map_err(|_| Error::<T>::MaxAssetsExceeded)?,
+				assets: pool_assets
+					.clone()
+					.try_into()
+					.map_err(|_| Error::<T>::MaxAssetsExceeded)?,
 				amplification,
 				fee,
 			};
@@ -309,7 +312,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::PoolCreated {
 				id: pool_id,
-				assets,
+				assets: pool_assets,
 				amplification,
 				fee,
 			});
