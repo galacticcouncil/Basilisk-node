@@ -11,15 +11,15 @@ const Y_ITERATIONS: u8 = 64;
 ///
 /// Returns `Some(shares)` when successful.
 pub(crate) fn calculate_add_liquidity_shares(
-	initial_reserves: &AssetAmounts<Balance>,
-	updated_reserves: &AssetAmounts<Balance>,
+	initial_reserves: &[Balance],
+	updated_reserves: &[Balance],
 	precision: Balance,
 	amplification: Balance,
 	share_issuance: Balance,
 ) -> Option<Balance> {
 	hydra_dx_math::stableswap::calculate_shares::<D_ITERATIONS>(
-		&[initial_reserves.0, initial_reserves.1],
-		&[updated_reserves.0, updated_reserves.1],
+		initial_reserves,
+		updated_reserves,
 		amplification,
 		precision,
 		share_issuance,

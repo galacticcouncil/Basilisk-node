@@ -235,7 +235,7 @@ impl ExtBuilder {
 				let pool_id = PoolId(retrieve_current_asset_id());
 				assert_ok!(Stableswap::create_pool(
 					Origin::signed(who),
-					pool.assets.into(),
+					pool.assets.clone().into(),
 					pool.amplification,
 					pool.fee,
 				));
@@ -247,8 +247,16 @@ impl ExtBuilder {
 					assert_ok!(Stableswap::add_liquidity(
 						Origin::signed(initial.account),
 						pool_id,
-						initial.asset,
-						initial.amount,
+						vec![
+							AssetLiquidity {
+								asset_id: initial.asset,
+								amount: initial.amount,
+							},
+							AssetLiquidity {
+								asset_id: pool.assets[1],
+								amount: initial.amount,
+							},
+						]
 					));
 				}
 			}
@@ -259,7 +267,7 @@ impl ExtBuilder {
 }
 
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolId, PoolInfo};
+use crate::types::{AssetLiquidity, PoolId, PoolInfo};
 use hydradx_traits::{Registry, ShareTokenRegistry};
 use sp_runtime::traits::Zero;
 

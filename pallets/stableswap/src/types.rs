@@ -72,3 +72,9 @@ impl<Balance: Copy> From<&AssetAmounts<Balance>> for Vec<Balance> {
 		vec![amounts.0, amounts.1]
 	}
 }
+
+#[derive(Debug, Clone, Encode, Decode, PartialEq, TypeInfo)]
+pub struct AssetLiquidity<AssetId> {
+	pub asset_id: AssetId,
+	pub amount: Balance,
+}

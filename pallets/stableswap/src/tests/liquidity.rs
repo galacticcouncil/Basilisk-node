@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolId, PoolInfo};
+use crate::types::{AssetLiquidity, PoolId, PoolInfo};
 use crate::{assert_balance, Error};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::Permill;
@@ -38,8 +38,16 @@ fn add_initial_liquidity_works() {
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
 				pool_id,
-				asset_a,
-				initial_liquidity_amount
+				vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: initial_liquidity_amount
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: initial_liquidity_amount,
+					}
+				]
 			));
 
 			assert_balance!(BOB, asset_a, 100 * ONE);
@@ -81,7 +89,20 @@ fn add_initial_liquidity_with_insufficient_balance_fails() {
 			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_noop!(
-				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, asset_a, initial_liquidity_amount),
+				Stableswap::add_liquidity(
+					Origin::signed(BOB),
+					pool_id,
+					vec![
+						AssetLiquidity {
+							asset_id: asset_a,
+							amount: initial_liquidity_amount
+						},
+						AssetLiquidity {
+							asset_id: asset_b,
+							amount: initial_liquidity_amount
+						}
+					]
+				),
 				Error::<Test>::InsufficientBalance
 			);
 
@@ -130,8 +151,16 @@ fn add_liquidity_works() {
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
 				pool_id,
-				asset_a,
-				amount_added
+				vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: amount_added
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: amount_added
+					}
+				]
 			));
 
 			assert_balance!(BOB, asset_a, 100 * ONE);
@@ -180,8 +209,16 @@ fn add_liquidity_other_asset_works() {
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
 				pool_id,
-				asset_b,
-				amount_added
+				vec![
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: amount_added
+					},
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: amount_added
+					}
+				]
 			));
 
 			assert_balance!(BOB, asset_a, 100 * ONE);
@@ -225,7 +262,20 @@ fn add_insufficient_liquidity_fails() {
 			let amount_added = 100;
 
 			assert_noop!(
-				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, asset_a, amount_added),
+				Stableswap::add_liquidity(
+					Origin::signed(BOB),
+					pool_id,
+					vec![
+						AssetLiquidity {
+							asset_id: asset_a,
+							amount: amount_added
+						},
+						AssetLiquidity {
+							asset_id: asset_b,
+							amount: amount_added
+						}
+					]
+				),
 				Error::<Test>::InsufficientTradingAmount
 			);
 		});
@@ -267,8 +317,16 @@ fn remove_all_liquidity_works() {
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
 				pool_id,
-				asset_a,
-				amount_added
+				vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: amount_added
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: amount_added
+					}
+				]
 			));
 
 			let shares = Tokens::free_balance(pool_id.0, &BOB);
@@ -324,8 +382,16 @@ fn remove_partial_liquidity_works() {
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
 				pool_id,
-				asset_a,
-				amount_added
+				vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: amount_added
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: amount_added
+					}
+				]
 			));
 
 			let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
@@ -397,12 +463,32 @@ fn add_liquidity_with_insufficient_amount_fails() {
 			let pool_id = get_pool_id_at(0);
 
 			assert_noop!(
-				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, asset_a, 100u128),
+				Stableswap::add_liquidity(
+					Origin::signed(BOB),
+					pool_id,
+					vec![
+						AssetLiquidity {
+							asset_id: asset_a,
+							amount: 100u128
+						},
+						AssetLiquidity {
+							asset_id: asset_b,
+							amount: 100u128,
+						}
+					]
+				),
 				Error::<Test>::InsufficientTradingAmount
 			);
 
 			assert_noop!(
-				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, asset_a, 1000 * ONE,),
+				Stableswap::add_liquidity(
+					Origin::signed(BOB),
+					pool_id,
+					vec![AssetLiquidity {
+						asset_id: asset_a,
+						amount: 1000 * ONE
+					}]
+				),
 				Error::<Test>::InsufficientBalance
 			);
 		});
@@ -442,19 +528,35 @@ fn add_liquidity_with_invalid_data_fails() {
 				Stableswap::add_liquidity(
 					Origin::signed(BOB),
 					PoolId(pool_id.0 + 1), // let's just take next id
-					asset_a,
-					100 * ONE,
+					vec![AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE
+					}]
 				),
 				Error::<Test>::PoolNotFound
 			);
 
 			assert_noop!(
-				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, 3000, 100 * ONE,),
+				Stableswap::add_liquidity(
+					Origin::signed(BOB),
+					pool_id,
+					vec![AssetLiquidity {
+						asset_id: 3000,
+						amount: 100 * ONE
+					}]
+				),
 				Error::<Test>::AssetNotInPool
 			);
 
 			assert_noop!(
-				Stableswap::add_liquidity(Origin::signed(BOB), pool_id, asset_a, 100 * ONE,),
+				Stableswap::add_liquidity(
+					Origin::signed(BOB),
+					pool_id,
+					vec![AssetLiquidity {
+						asset_id: asset_a,
+						amount: 1000 * ONE
+					}]
+				),
 				Error::<Test>::InsufficientBalance
 			);
 		});
@@ -495,8 +597,10 @@ fn remove_liquidity_with_invalid_amounts_fails() {
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
 				pool_id,
-				asset_a,
-				amount_added
+				vec![AssetLiquidity {
+					asset_id: asset_a,
+					amount: amount_added
+				}]
 			));
 
 			assert_noop!(
@@ -546,8 +650,10 @@ fn remove_liquidity_with_invalid_data_fails() {
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
 				pool_id,
-				asset_a,
-				amount_added
+				vec![AssetLiquidity {
+					asset_id: asset_a,
+					amount: amount_added
+				}]
 			));
 
 			assert_ok!(Tokens::set_balance(Origin::root(), BOB, 5, 100 * ONE, 0u128));
@@ -594,8 +700,10 @@ fn remove_partial_with_insufficient_remaining_fails() {
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
 				pool_id,
-				asset_a,
-				amount_added
+				vec![AssetLiquidity {
+					asset_id: asset_a,
+					amount: amount_added
+				}]
 			));
 
 			let shares = Tokens::free_balance(pool_id.0, &BOB);

@@ -78,7 +78,7 @@ pub mod pallet {
 		calculate_remove_liquidity_amounts,
 	};
 	use crate::traits::ShareAccountIdFor;
-	use crate::types::{AssetAmounts, Balance, PoolId, PoolInfo};
+	use crate::types::{AssetAmounts, AssetLiquidity, Balance, PoolId, PoolInfo};
 	use codec::HasCompact;
 	use core::ops::RangeInclusive;
 	use frame_support::pallet_prelude::*;
@@ -88,6 +88,7 @@ pub mod pallet {
 	use sp_runtime::traits::Zero;
 	use sp_runtime::ArithmeticError;
 	use sp_runtime::Permill;
+	use std::collections::BTreeMap;
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(crate) trait Store)]
@@ -161,8 +162,7 @@ pub mod pallet {
 			id: PoolId<T::AssetId>,
 			who: T::AccountId,
 			shares: Balance,
-			assets: (T::AssetId, T::AssetId),
-			amounts: (Balance, Balance),
+			assets: Vec<AssetLiquidity<T::AssetId>>,
 		},
 		/// Liquidity removed.
 		LiquidityRemoved {
@@ -349,97 +349,66 @@ pub mod pallet {
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T::AssetId>,
-			asset: T::AssetId,
-			amount: Balance,
+			assets: Vec<AssetLiquidity<T::AssetId>>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			ensure!(
-				amount >= T::MinTradingLimit::get(),
-				Error::<T>::InsufficientTradingAmount
-			);
-			ensure!(
-				T::Currency::free_balance(asset, &who) >= amount,
-				Error::<T>::InsufficientBalance
-			);
-
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
-			ensure!(pool.contains_asset(asset), Error::<T>::AssetNotInPool);
-			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
-
-			// Work out which asset is asset b (second asset which has to be provided by LP)
-			// Update initial reserves in correct order (asset a is given as a parameter, asset b is second asset)
-			let (assets, initial_reserves) = {
-				let initial = (
-					T::Currency::free_balance(pool.assets[0], &pool_account),
-					T::Currency::free_balance(pool.assets[1], &pool_account),
+			ensure!(assets.len() <= pool.assets.len(), Error::<T>::MaxAssetsExceeded);
+			let mut added_assets = BTreeMap::<T::AssetId, Balance>::new();
+			for asset in assets.iter() {
+				ensure!(
+					asset.amount >= T::MinTradingLimit::get(),
+					Error::<T>::InsufficientTradingAmount
 				);
-				if asset == pool.assets[0] {
-					((asset, pool.assets[1]), AssetAmounts(initial.0, initial.1))
+				ensure!(
+					T::Currency::free_balance(asset.asset_id, &who) >= asset.amount,
+					Error::<T>::InsufficientBalance
+				);
+				ensure!(pool.contains_asset(asset.asset_id), Error::<T>::AssetNotInPool);
+				added_assets.insert(asset.asset_id, asset.amount);
+			}
+
+			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+			let mut initial_reserves = Vec::new();
+			let mut updated_reserves = Vec::new();
+			for pool_asset in pool.assets.iter() {
+				let reserve = T::Currency::free_balance(*pool_asset, &pool_account);
+				initial_reserves.push(reserve);
+				if let Some(liq_added) = added_assets.get(&pool_asset) {
+					updated_reserves.push(reserve.checked_add(*liq_added).ok_or(ArithmeticError::Overflow)?);
 				} else {
-					((asset, pool.assets[0]), AssetAmounts(initial.1, initial.0))
+					ensure!(!reserve.is_zero(), Error::<T>::InvalidInitialLiquidity);
+					updated_reserves.push(reserve);
 				}
-			};
-
-			let updated_a_reserve = initial_reserves
-				.0
-				.checked_add(amount)
-				.ok_or(ArithmeticError::Overflow)?;
-
-			let asset_b_amount = if initial_reserves == AssetAmounts::default() {
-				// If first liquidity added to the pool, it requires same amounts of both assets
-				amount
-			} else {
-				hydra_dx_math::stableswap::calculate_asset_b_required(
-					initial_reserves.0,
-					initial_reserves.1,
-					updated_a_reserve,
-				)
-				.ok_or(ArithmeticError::Overflow)?
-			};
-
-			let updated_b_reserve = asset_b_amount
-				.checked_add(initial_reserves.1)
-				.ok_or(ArithmeticError::Overflow)?;
-
-			ensure!(
-				T::Currency::free_balance(assets.1, &who) >= asset_b_amount,
-				Error::<T>::InsufficientBalance
-			);
-
-			let new_reserves = AssetAmounts(updated_a_reserve, updated_b_reserve);
+			}
 
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
-
 			let share_amount = calculate_add_liquidity_shares(
 				&initial_reserves,
-				&new_reserves,
+				&updated_reserves,
 				T::Precision::get(),
 				pool.amplification.into(),
 				share_issuance,
 			)
 			.ok_or(ArithmeticError::Overflow)?;
-
 			ensure!(!share_amount.is_zero(), Error::<T>::InvalidAssetAmount);
-
 			let current_share_balance = T::Currency::free_balance(pool_id.0, &who);
-
 			ensure!(
 				current_share_balance.saturating_add(share_amount) >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientShareBalance
 			);
 
 			T::Currency::deposit(pool_id.0, &who, share_amount)?;
-
-			T::Currency::transfer(assets.0, &who, &pool_account, amount)?;
-			T::Currency::transfer(assets.1, &who, &pool_account, asset_b_amount)?;
+			for asset in assets.iter() {
+				T::Currency::transfer(asset.asset_id, &who, &pool_account, asset.amount)?;
+			}
 
 			Self::deposit_event(Event::LiquidityAdded {
 				id: pool_id,
 				who,
 				shares: share_amount,
 				assets,
-				amounts: (amount, asset_b_amount),
 			});
 
 			Ok(())

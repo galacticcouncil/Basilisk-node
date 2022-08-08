@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::PoolInfo;
+use crate::types::{AssetLiquidity, PoolInfo};
 use frame_support::assert_ok;
 use sp_runtime::{FixedU128, Permill};
 
@@ -85,8 +85,15 @@ proptest! {
 				assert_ok!(Stableswap::add_liquidity(
 					Origin::signed(BOB),
 					pool_id,
-					asset_a,
-					added_liquidity
+					vec![AssetLiquidity{
+						asset_id: asset_a,
+						amount: added_liquidity
+					},
+					AssetLiquidity{
+						asset_id: asset_b,
+						amount: added_liquidity
+					}
+				]
 				));
 
 				let new_asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
@@ -142,8 +149,14 @@ proptest! {
 				assert_ok!(Stableswap::add_liquidity(
 					Origin::signed(BOB),
 					pool_id,
-					asset_a,
-					added_liquidity
+					vec![AssetLiquidity{asset_id: asset_a,
+						amount: added_liquidity
+					},
+					AssetLiquidity{
+						asset_id: asset_b,
+						amount: added_liquidity
+					}
+				]
 				));
 
 				let shares = Tokens::free_balance(pool_id.0, &BOB);
