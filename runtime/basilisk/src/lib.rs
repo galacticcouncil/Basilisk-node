@@ -841,6 +841,7 @@ parameter_types! {
 }
 
 impl pallet_redeemables::Config for Runtime {
+	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_redeemables::weights::BasiliskWeight<Runtime>;
 	type PalletId = RedeemablesPalletId;

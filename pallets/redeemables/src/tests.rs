@@ -4,8 +4,15 @@ use crate::types::BondingCurve;
 
 use super::*;
 use mock::*;
+use crate::mocked_objects::*;
 
 type Redeemables = Pallet<Test>;
+
+macro_rules! bvec {
+	($( $x:tt )*) => {
+		vec![$( $x )*].try_into().unwrap()
+	}
+}
 
 #[test]
 fn trading_works() {
@@ -14,9 +21,17 @@ fn trading_works() {
 			exponent: 2,
 			slope: 1_000_000_000,
 		};
-		let (class_id, _) =
-			pallet_nft::Pallet::<Test>::do_create_class(Default::default(), ClassType::Redeemable, Default::default())
-				.unwrap();
+
+		let class_id = mocked_nft_class_id_1::<Test>();
+		let instance_id = mocked_nft_instance_id_1::<Test>();
+
+		assert_ok!(Nft::create_class(
+			Origin::signed(ALICE),
+			class_id,
+			ClassType::Redeemable,
+			bvec![0]
+		));
+
 		Pallet::<Test>::add_redeemables_class_info(Origin::signed(ALICE), class_id, 150, bc).unwrap();
 		for _ in 1..149 {
 			assert_ok!(Redeemables::buy(Origin::signed(ALICE), class_id));

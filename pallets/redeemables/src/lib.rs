@@ -10,8 +10,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 use primitives::nft::ClassType;
-use sp_runtime::{traits::Zero, SaturatedConversion};
-
+use sp_runtime::{traits::{StaticLookup, Zero}, SaturatedConversion};
 use types::BondingCurve;
 use weights::WeightInfo;
 
@@ -19,13 +18,15 @@ mod benchmarking;
 mod types;
 pub mod weights;
 
+mod mocked_objects;
+
 #[cfg(test)]
 mod mock;
 
 #[cfg(test)]
 mod tests;
 
-type BalanceOf<T> = <<T as pallet_nft::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -45,6 +46,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nft::Config<ClassType = primitives::nft::ClassType> {
+		type Currency: Currency<Self::AccountId>;
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type WeightInfo: WeightInfo;
 		#[pallet::constant]
@@ -83,7 +85,11 @@ pub mod pallet {
 			let metadata: pallet_nft::BoundedVecOfUnq<T> = b"metadata".to_vec().try_into().unwrap();
 
 			// TODO - instance ID similar to LiqMin pallet
-			let instance_id = pallet_nft::Pallet::<T>::do_mint(pallet_account.clone(), class_id, 1u32.into(), metadata)?;
+			// let instance_id = pallet_nft::Pallet::<T>::do_mint(pallet_account.clone(), class_id, 1u32.into(), metadata)?;
+			let instance_id = 1u32;
+
+			let pallet_account_origin = T::Origin::from(frame_system::RawOrigin::Signed(pallet_account.clone()));
+			pallet_nft::Pallet::<T>::mint(pallet_account_origin.clone(), class_id, instance_id.into(), metadata)?;
 
 			let class_info = Self::classes_redeemables(class_id).ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 
@@ -95,14 +101,14 @@ pub mod pallet {
 				class_info.issued, class_info.max_supply, price
 			);
 
-			<T as pallet_nft::Config>::Currency::transfer(
+			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 				&sender,
 				&Self::pallet_account(),
 				price,
 				ExistenceRequirement::KeepAlive,
 			)?;
 
-			pallet_nft::Pallet::<T>::do_transfer(class_id, instance_id, pallet_account, sender.clone())?;
+			pallet_nft::Pallet::<T>::transfer(pallet_account_origin, class_id, instance_id.into(), T::Lookup::unlookup(sender.clone()))?;
 
 			Self::deposit_event(Event::Bought(sender, class_id, price));
 
@@ -128,7 +134,7 @@ pub mod pallet {
 
 			let price = class_info.price().saturated_into();
 
-			pallet_nft::Pallet::<T>::do_burn(sender.clone(), class_id, instance_id)?;
+			pallet_nft::Pallet::<T>::burn(origin, class_id, instance_id)?;
 
 			#[cfg(test)]
 			println!(
@@ -136,7 +142,7 @@ pub mod pallet {
 				class_info.issued, class_info.max_supply, price
 			);
 
-			<T as pallet_nft::Config>::Currency::transfer(
+			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 				&Self::pallet_account(),
 				&sender,
 				price,
@@ -160,7 +166,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let sender = ensure_signed(origin.clone())?;
 
-			pallet_nft::Pallet::<T>::do_burn(sender.clone(), class_id, instance_id)?;
+			pallet_nft::Pallet::<T>::burn(origin, class_id, instance_id)?;
 
 			ClassesRedeemables::<T>::try_mutate(class_id, |maybe_info| -> DispatchResult {
 				let info = maybe_info.as_mut().ok_or(pallet_nft::Error::<T>::ClassUnknown)?;

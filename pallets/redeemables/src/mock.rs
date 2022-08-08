@@ -2,7 +2,6 @@ use crate as pallet_redeemables;
 use frame_support::{parameter_types, traits::Everything, PalletId};
 use frame_system as system;
 use primitives::nft::{ClassType, NftPermissions};
-use primitives::ReserveIdentifier;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
@@ -28,7 +27,7 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Redeemables: pallet_redeemables::{Pallet, Call, Storage, Event<T>},
-		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
+		Nft: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 	}
@@ -47,6 +46,7 @@ parameter_types! {
 }
 
 impl pallet_redeemables::Config for Test {
+	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_redeemables::weights::BasiliskWeight<Test>;
 	type PalletId = RedeemablesPalletId;
@@ -57,7 +57,6 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Test {
-	type Currency = Balances;
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftClassId = u32;
@@ -82,7 +81,7 @@ impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = ReserveIdentifier;
+	type ReserveIdentifier = ();
 }
 
 impl system::Config for Test {
