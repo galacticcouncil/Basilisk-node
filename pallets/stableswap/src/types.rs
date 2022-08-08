@@ -41,8 +41,8 @@ impl<AssetId> PoolInfo<AssetId>
 where
 	AssetId: Ord,
 {
-	pub(crate) fn contains_asset(&self, asset: AssetId) -> bool {
-		self.assets.contains(&asset)
+	pub(crate) fn find_asset(&self, asset: AssetId) -> Option<usize> {
+		self.assets.iter().position(|v| *v == asset)
 	}
 
 	pub(crate) fn is_valid(&self) -> bool {

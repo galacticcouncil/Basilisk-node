@@ -70,13 +70,13 @@ mod benchmarks;
 /// Used as identifier to create share token unique names and account ids.
 pub const POOL_IDENTIFIER: &[u8] = b"sts";
 
+const D_ITERATIONS: u8 = 128;
+const Y_ITERATIONS: u8 = 64;
+
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::math::{
-		calculate_add_liquidity_shares, calculate_in_given_out, calculate_out_given_in,
-		calculate_remove_liquidity_amounts,
-	};
+	use crate::math::calculate_remove_liquidity_amounts;
 	use crate::traits::ShareAccountIdFor;
 	use crate::types::{AssetAmounts, AssetLiquidity, Balance, PoolId, PoolInfo};
 	use codec::HasCompact;
@@ -365,7 +365,7 @@ pub mod pallet {
 					T::Currency::free_balance(asset.asset_id, &who) >= asset.amount,
 					Error::<T>::InsufficientBalance
 				);
-				ensure!(pool.contains_asset(asset.asset_id), Error::<T>::AssetNotInPool);
+				ensure!(pool.find_asset(asset.asset_id).is_some(), Error::<T>::AssetNotInPool);
 				added_assets.insert(asset.asset_id, asset.amount);
 			}
 
@@ -384,11 +384,11 @@ pub mod pallet {
 			}
 
 			let share_issuance = T::Currency::total_issuance(pool_id.0);
-			let share_amount = calculate_add_liquidity_shares(
+			let share_amount = hydra_dx_math::stableswap::calculate_shares::<D_ITERATIONS>(
 				&initial_reserves,
 				&updated_reserves,
-				T::Precision::get(),
 				pool.amplification.into(),
+				T::Precision::get(),
 				share_issuance,
 			)
 			.ok_or(ArithmeticError::Overflow)?;
@@ -515,20 +515,21 @@ pub mod pallet {
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
 
-			ensure!(pool.assets.contains(&asset_in), Error::<T>::AssetNotInPool);
-			ensure!(pool.assets.contains(&asset_out), Error::<T>::AssetNotInPool);
+			let index_in = pool.find_asset(asset_in).ok_or(Error::<T>::AssetNotInPool)?;
+			let index_out = pool.find_asset(asset_out).ok_or(Error::<T>::AssetNotInPool)?;
 
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
 			let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
 			let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
 
-			let amount_out = calculate_out_given_in(
-				reserve_in,
-				reserve_out,
+			let amount_out = hydra_dx_math::stableswap::calculate_out_given_in::<D_ITERATIONS, Y_ITERATIONS>(
+				&[reserve_in, reserve_out],
+				index_in,
+				index_out,
 				amount_in,
-				T::Precision::get(),
 				pool.amplification.into(),
+				T::Precision::get(),
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
@@ -584,8 +585,8 @@ pub mod pallet {
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
 
-			ensure!(pool.assets.contains(&asset_in), Error::<T>::AssetNotInPool);
-			ensure!(pool.assets.contains(&asset_out), Error::<T>::AssetNotInPool);
+			let index_in = pool.find_asset(asset_in).ok_or(Error::<T>::AssetNotInPool)?;
+			let index_out = pool.find_asset(asset_out).ok_or(Error::<T>::AssetNotInPool)?;
 
 			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
 
@@ -594,12 +595,13 @@ pub mod pallet {
 
 			ensure!(reserve_out > amount_out, Error::<T>::InsufficientLiquidity);
 
-			let amount_in = calculate_in_given_out(
-				reserve_in,
-				reserve_out,
+			let amount_in = hydra_dx_math::stableswap::calculate_in_given_out::<D_ITERATIONS, Y_ITERATIONS>(
+				&[reserve_in, reserve_out],
+				index_in,
+				index_out,
 				amount_out,
-				T::Precision::get(),
 				pool.amplification.into(),
+				T::Precision::get(),
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
