@@ -49,7 +49,7 @@ proptest! {
 		initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
 		amplification in amplification(),
-		fee in trade_fee()
+		trade_fee in trade_fee()
 
 	) {
 		let asset_a: AssetId = 1000;
@@ -69,10 +69,10 @@ proptest! {
 				PoolInfo::<AssetId> {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
-					fee,
+					trade_fee,
 				},
 				InitialLiquidity{ account: ALICE,
-				assets:			vec![
+				assets:	vec![
 					AssetLiquidity{
 						asset_id: asset_a,
 						amount: initial_liquidity
@@ -125,7 +125,7 @@ proptest! {
 		initial_liquidity in asset_reserve(),
 		added_liquidity in asset_reserve(),
 		amplification in amplification(),
-		fee in trade_fee(),
+		trade_fee in trade_fee(),
 		withdraw_percentage in percent(),
 	) {
 
@@ -145,7 +145,7 @@ proptest! {
 				PoolInfo::<AssetId> {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
-					fee,
+					trade_fee,
 				},
 				InitialLiquidity{ account: ALICE, assets: vec![
 				AssetLiquidity{
@@ -221,7 +221,7 @@ proptest! {
 				PoolInfo::<AssetId> {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
-					fee: Permill::from_percent(0),
+					trade_fee: Permill::from_percent(0),
 				},
 				InitialLiquidity{ account: ALICE, assets:
 				vec![
@@ -290,7 +290,7 @@ proptest! {
 				PoolInfo::<AssetId> {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
-					fee: Permill::from_percent(0),
+					trade_fee: Permill::from_percent(0),
 				},
 				InitialLiquidity{ account: ALICE,
 					assets:			vec![

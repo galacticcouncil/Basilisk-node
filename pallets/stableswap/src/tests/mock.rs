@@ -236,7 +236,7 @@ impl ExtBuilder {
 					Origin::signed(who),
 					pool.assets.clone().into(),
 					pool.amplification,
-					pool.fee,
+					pool.trade_fee,
 				));
 				POOL_IDS.with(|v| {
 					v.borrow_mut().push(pool_id);

@@ -25,7 +25,7 @@ pub struct PoolId<AssetId>(pub AssetId);
 pub struct PoolInfo<AssetId> {
 	pub assets: BoundedVec<AssetId, ConstU32<5>>,
 	pub amplification: u16,
-	pub fee: Permill,
+	pub trade_fee: Permill,
 }
 
 fn has_unique_elements<T>(iter: &mut T) -> bool

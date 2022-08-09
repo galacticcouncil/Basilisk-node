@@ -284,7 +284,7 @@ pub mod pallet {
 					.try_into()
 					.map_err(|_| Error::<T>::MaxAssetsExceeded)?,
 				amplification,
-				fee,
+				trade_fee: fee,
 			};
 			ensure!(pool.is_valid(), Error::<T>::SameAssets);
 			ensure!(
@@ -533,7 +533,7 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
-			let fee_amount = Self::calculate_fee_amount(amount_out, pool.fee, Rounding::Down);
+			let fee_amount = Self::calculate_fee_amount(amount_out, pool.trade_fee, Rounding::Down);
 
 			let amount_out = amount_out.checked_sub(fee_amount).ok_or(ArithmeticError::Underflow)?;
 
@@ -605,7 +605,7 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
-			let fee_amount = Self::calculate_fee_amount(amount_in, pool.fee, Rounding::Up);
+			let fee_amount = Self::calculate_fee_amount(amount_in, pool.trade_fee, Rounding::Up);
 
 			let amount_in = amount_in.checked_add(fee_amount).ok_or(ArithmeticError::Overflow)?;
 
