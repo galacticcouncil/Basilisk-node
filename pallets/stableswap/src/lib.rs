@@ -157,7 +157,8 @@ pub mod pallet {
 			id: PoolId<T::AssetId>,
 			assets: Vec<T::AssetId>,
 			amplification: u16,
-			fee: Permill,
+			trade_fee: Permill,
+			withdraw_fee: Permill,
 		},
 		/// Liquidity of an asset was added to a pool.
 		LiquidityAdded {
@@ -273,7 +274,8 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			assets: Vec<T::AssetId>,
 			amplification: u16,
-			fee: Permill,
+			trade_fee: Permill,
+			withdraw_fee: Permill,
 		) -> DispatchResult {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
@@ -286,7 +288,8 @@ pub mod pallet {
 					.try_into()
 					.map_err(|_| Error::<T>::MaxAssetsExceeded)?,
 				amplification,
-				trade_fee: fee,
+				trade_fee,
+				withdraw_fee,
 			};
 			ensure!(pool.is_valid(), Error::<T>::SameAssets);
 			ensure!(
@@ -316,7 +319,8 @@ pub mod pallet {
 				id: pool_id,
 				assets: pool_assets,
 				amplification,
-				fee,
+				trade_fee,
+				withdraw_fee,
 			});
 
 			Ok(())

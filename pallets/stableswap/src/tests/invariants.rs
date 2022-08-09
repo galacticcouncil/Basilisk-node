@@ -70,6 +70,7 @@ proptest! {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
 					trade_fee,
+					withdraw_fee: Permill::from_percent(0),
 				},
 				InitialLiquidity{ account: ALICE,
 				assets:	vec![
@@ -146,6 +147,7 @@ proptest! {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
 					trade_fee,
+					withdraw_fee: Permill::from_percent(0),
 				},
 				InitialLiquidity{ account: ALICE, assets: vec![
 				AssetLiquidity{
@@ -222,6 +224,7 @@ proptest! {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
 					trade_fee: Permill::from_percent(0),
+					withdraw_fee: Permill::from_percent(0),
 				},
 				InitialLiquidity{ account: ALICE, assets:
 				vec![
@@ -291,6 +294,7 @@ proptest! {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
 					trade_fee: Permill::from_percent(0),
+					withdraw_fee: Permill::from_percent(0),
 				},
 				InitialLiquidity{ account: ALICE,
 					assets:			vec![

@@ -22,7 +22,8 @@ fn create_two_asset_pool_should_work_when_assets_are_registered() {
 				Origin::signed(ALICE),
 				vec![asset_a, asset_b],
 				100u16,
-				Permill::from_percent(0)
+				Permill::from_percent(0),
+				Permill::from_percent(0),
 			));
 
 			assert!(<Pools<Test>>::get(pool_id).is_some());
@@ -50,7 +51,8 @@ fn create_multi_asset_pool_should_work_when_assets_are_registered() {
 				Origin::signed(ALICE),
 				vec![asset_a, asset_b, asset_c, asset_d],
 				100u16,
-				Permill::from_percent(0)
+				Permill::from_percent(0),
+				Permill::from_percent(0),
 			));
 
 			assert!(<Pools<Test>>::get(pool_id).is_some());
@@ -75,7 +77,8 @@ fn create_pool_with_asset_order_swapped_works() {
 				Origin::signed(ALICE),
 				vec![asset_b, asset_a],
 				amplification,
-				Permill::from_percent(0)
+				Permill::from_percent(0),
+				Permill::from_percent(0),
 			));
 
 			assert!(<Pools<Test>>::get(pool_id).is_some());
@@ -93,7 +96,8 @@ fn create_pool_with_same_assets_fails() {
 				Origin::signed(ALICE),
 				vec![asset_a, asset_a],
 				amplification,
-				Permill::from_percent(0)
+				Permill::from_percent(0),
+				Permill::from_percent(0),
 			),
 			Error::<Test>::SameAssets
 		);
@@ -115,7 +119,8 @@ fn create_pool_with_no_registered_assets_fails() {
 					Origin::signed(ALICE),
 					vec![not_registered, registered],
 					amplification,
-					Permill::from_percent(0)
+					Permill::from_percent(0),
+					Permill::from_percent(0),
 				),
 				Error::<Test>::AssetNotRegistered
 			);
@@ -125,7 +130,8 @@ fn create_pool_with_no_registered_assets_fails() {
 					Origin::signed(ALICE),
 					vec![registered, not_registered],
 					amplification,
-					Permill::from_percent(0)
+					Permill::from_percent(0),
+					Permill::from_percent(0),
 				),
 				Error::<Test>::AssetNotRegistered
 			);
@@ -148,7 +154,8 @@ fn create_existing_pool_fails() {
 				Origin::signed(ALICE),
 				vec![asset_a, asset_b],
 				amplification,
-				Permill::from_percent(0)
+				Permill::from_percent(0),
+				Permill::from_percent(0),
 			));
 
 			assert_noop!(
@@ -156,7 +163,8 @@ fn create_existing_pool_fails() {
 					Origin::signed(ALICE),
 					vec![asset_a, asset_b],
 					amplification,
-					Permill::from_percent(0)
+					Permill::from_percent(0),
+					Permill::from_percent(0),
 				),
 				Error::<Test>::PoolExists
 			);
@@ -181,7 +189,8 @@ fn create_pool_with_invalid_amp_fails() {
 					Origin::signed(ALICE),
 					vec![asset_a, asset_b],
 					amplification_min,
-					Permill::from_percent(0)
+					Permill::from_percent(0),
+					Permill::from_percent(0),
 				),
 				Error::<Test>::InvalidAmplification
 			);
@@ -191,6 +200,7 @@ fn create_pool_with_invalid_amp_fails() {
 					Origin::signed(ALICE),
 					vec![asset_a, asset_b],
 					amplification_max,
+					Permill::from_percent(0),
 					Permill::from_percent(0)
 				),
 				Error::<Test>::InvalidAmplification

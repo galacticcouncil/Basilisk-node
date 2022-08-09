@@ -28,7 +28,8 @@ fn add_initial_liquidity_works() {
 				Origin::signed(ALICE),
 				vec![asset_a, asset_b],
 				amplification,
-				Permill::from_percent(0)
+				Permill::from_percent(0),
+				Permill::from_percent(0),
 			));
 
 			let initial_liquidity_amount = 100 * ONE;
@@ -81,7 +82,8 @@ fn add_initial_liquidity_with_insufficient_balance_fails() {
 				Origin::signed(ALICE),
 				vec![asset_a, asset_b],
 				amplification,
-				Permill::from_percent(0)
+				Permill::from_percent(0),
+				Permill::from_percent(0),
 			));
 
 			let initial_liquidity_amount = 100 * ONE;
@@ -133,6 +135,7 @@ fn add_liquidity_works() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -199,6 +202,7 @@ fn add_liquidity_other_asset_works() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -265,6 +269,7 @@ fn add_insufficient_liquidity_fails() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -324,6 +329,7 @@ fn remove_all_liquidity_works() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -397,6 +403,7 @@ fn remove_partial_liquidity_works() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -491,6 +498,7 @@ fn add_liquidity_with_insufficient_amount_fails() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -561,6 +569,7 @@ fn add_liquidity_with_invalid_data_fails() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -637,6 +646,7 @@ fn remove_liquidity_with_invalid_amounts_fails() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -699,6 +709,7 @@ fn remove_liquidity_with_invalid_data_fails() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
@@ -756,6 +767,7 @@ fn remove_partial_with_insufficient_remaining_fails() {
 				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
 				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,

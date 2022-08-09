@@ -27,6 +27,7 @@ pub struct PoolInfo<AssetId> {
 	pub assets: BoundedVec<AssetId, ConstU32<MAX_ASSETS_IN_POOL>>,
 	pub amplification: u16,
 	pub trade_fee: Permill,
+	pub withdraw_fee: Permill,
 }
 
 fn has_unique_elements<T>(iter: &mut T) -> bool
