@@ -10,7 +10,6 @@ use frame_support::BoundedVec;
 use orml_traits::MultiCurrency;
 use scale_info::TypeInfo;
 use sp_core::RuntimeDebug;
-use sp_runtime::traits::Zero;
 
 pub(crate) type Balance = u128;
 
@@ -64,29 +63,6 @@ where
 			.iter()
 			.map(|asset| T::Currency::free_balance((*asset).into(), &acc))
 			.collect()
-	}
-}
-
-/// Pool asset's reserve amounts.
-/// Used together with `PoolAssets` where first reserve is for `PoolAssets.0`
-#[derive(Clone, PartialEq, Default)]
-pub struct AssetAmounts<Balance>(pub Balance, pub Balance);
-
-impl<Balance> From<(Balance, Balance)> for AssetAmounts<Balance> {
-	fn from(amounts: (Balance, Balance)) -> Self {
-		Self(amounts.0, amounts.1)
-	}
-}
-
-impl<Balance: PartialOrd + Zero> AssetAmounts<Balance> {
-	pub fn is_valid(&self) -> bool {
-		self.0 > Balance::zero() && self.1 > Balance::zero()
-	}
-}
-
-impl<Balance: Copy> From<&AssetAmounts<Balance>> for Vec<Balance> {
-	fn from(amounts: &AssetAmounts<Balance>) -> Self {
-		vec![amounts.0, amounts.1]
 	}
 }
 

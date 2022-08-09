@@ -52,7 +52,6 @@ use sp_std::prelude::*;
 
 pub use pallet::*;
 
-mod math;
 pub mod traits;
 pub mod types;
 pub mod weights;
@@ -78,9 +77,8 @@ const Y_ITERATIONS: u8 = 64;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use crate::math::calculate_remove_liquidity_amounts;
 	use crate::traits::ShareAccountIdFor;
-	use crate::types::{AssetAmounts, AssetLiquidity, Balance, PoolInfo};
+	use crate::types::{AssetLiquidity, Balance, PoolInfo};
 	use codec::HasCompact;
 	use core::ops::RangeInclusive;
 	use frame_support::pallet_prelude::*;
@@ -421,60 +419,55 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Remove liquidity from selected 2-asset pool in the form of burning shares.
-		///
-		/// LP receives certain amount of both assets.
-		///
-		/// Partial withdrawal is allowed.
-		///
-		/// Parameters:
-		/// - `origin`: origin of the caller
-		/// - `pool_id`: Pool Id
-		/// - `amount`: Amount of shares to burn
-		///
-		/// Emits `LiquidityRemoved` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity_one_asset())]
 		#[transactional]
-		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: T::AssetId, amount: Balance) -> DispatchResult {
+		pub fn remove_liquidity_one_asset(
+			origin: OriginFor<T>,
+			pool_id: T::AssetId,
+			asset_id: T::AssetId,
+			share_amount: Balance,
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			ensure!(amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
+			ensure!(share_amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
 
 			let current_share_balance = T::Currency::free_balance(pool_id, &who);
 
-			ensure!(current_share_balance >= amount, Error::<T>::InsufficientShares);
+			ensure!(current_share_balance >= share_amount, Error::<T>::InsufficientShares);
 
 			ensure!(
-				current_share_balance == amount
-					|| current_share_balance.saturating_sub(amount) >= T::MinPoolLiquidity::get(),
+				current_share_balance == share_amount
+					|| current_share_balance.saturating_sub(share_amount) >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientShareBalance
 			);
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
+			let asset_idx = pool.find_asset(asset_id).ok_or(Error::<T>::AssetNotInPool)?;
 			let pool_account = pool.pool_account::<T>();
-
-			let initial_reserves = AssetAmounts(
-				T::Currency::free_balance(pool.assets[0], &pool_account),
-				T::Currency::free_balance(pool.assets[1], &pool_account),
-			);
-
+			let balances = pool.balances::<T>();
 			let share_issuance = T::Currency::total_issuance(pool_id);
 
 			ensure!(
-				share_issuance.saturating_sub(amount) >= T::MinPoolLiquidity::get(),
+				share_issuance.saturating_sub(share_amount) >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientLiquidityRemaining
 			);
 
-			let amounts = calculate_remove_liquidity_amounts(&initial_reserves, amount, share_issuance)
-				.ok_or(ArithmeticError::Overflow)?;
+			let (amount, _fee) = hydra_dx_math::stableswap::calculate_withdraw_one_asset::<D_ITERATIONS, Y_ITERATIONS>(
+				&balances,
+				share_amount,
+				asset_idx,
+				share_issuance,
+				pool.amplification.into(),
+				T::Precision::get(),
+			)
+			.ok_or(ArithmeticError::Overflow)?;
 
-			// burn `amount` of shares
-			T::Currency::withdraw(pool_id, &who, amount)?;
+			// TODO: what do with fee?
 
-			// Assets are ordered by id in pool.assets. So amounts provided corresponds.
-			T::Currency::transfer(pool.assets[0], &pool_account, &who, amounts.0)?;
-			T::Currency::transfer(pool.assets[1], &pool_account, &who, amounts.1)?;
+			T::Currency::withdraw(pool_id, &who, share_amount)?;
+			T::Currency::transfer(asset_id, &pool_account, &who, amount)?;
 
+			/*
 			Self::deposit_event(Event::LiquidityRemoved {
 				pool_id,
 				who,
@@ -482,6 +475,7 @@ pub mod pallet {
 				assets: (pool.assets[0], pool.assets[1]),
 				amounts: (amounts.0, amounts.1),
 			});
+			 */
 
 			Ok(())
 		}

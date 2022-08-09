@@ -119,6 +119,7 @@ proptest! {
 	}
 }
 
+/*
 proptest! {
 	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
@@ -338,3 +339,4 @@ proptest! {
 			});
 	}
 }
+ */
