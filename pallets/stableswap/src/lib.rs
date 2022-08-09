@@ -70,6 +70,8 @@ mod benchmarks;
 /// Used as identifier to create share token unique names and account ids.
 pub const POOL_IDENTIFIER: &[u8] = b"sts";
 
+pub const MAX_ASSETS_IN_POOL: u32 = 5;
+
 const D_ITERATIONS: u8 = 128;
 const Y_ITERATIONS: u8 = 64;
 

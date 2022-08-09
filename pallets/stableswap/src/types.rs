@@ -1,3 +1,4 @@
+use crate::MAX_ASSETS_IN_POOL;
 use sp_runtime::Permill;
 use sp_std::prelude::*;
 use std::collections::BTreeSet;
@@ -23,7 +24,7 @@ pub struct PoolId<AssetId>(pub AssetId);
 /// `fee`: trade fee to be withdrawn on sell/buy
 #[derive(Clone, Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub struct PoolInfo<AssetId> {
-	pub assets: BoundedVec<AssetId, ConstU32<5>>,
+	pub assets: BoundedVec<AssetId, ConstU32<MAX_ASSETS_IN_POOL>>,
 	pub amplification: u16,
 	pub trade_fee: Permill,
 }
