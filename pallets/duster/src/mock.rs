@@ -48,7 +48,7 @@ frame_support::construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Duster: duster::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
-		Currencies: orml_currencies::{Pallet},
+		Currencies: orml_currencies::{Pallet, Event<T>},
 		Balances: pallet_balances::{Pallet,Call, Storage,Config<T>, Event<T>},
 	}
 );
@@ -151,6 +151,7 @@ impl orml_tokens::Config for Test {
 }
 
 impl orml_currencies::Config for Test {
+	type Event = Event;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Test, Balances, Amount, u32>;
 	type GetNativeCurrencyId = NativeCurrencyId;
