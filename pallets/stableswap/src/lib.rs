@@ -525,13 +525,13 @@ pub mod pallet {
 			let index_in = pool.find_asset(asset_in).ok_or(Error::<T>::AssetNotInPool)?;
 			let index_out = pool.find_asset(asset_out).ok_or(Error::<T>::AssetNotInPool)?;
 
-			let pool_account = pool.pool_account::<T>();
+			let balances = pool.balances::<T>();
 
-			let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
-			let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
+			ensure!(balances[index_in] > Balance::zero(), Error::<T>::InsufficientLiquidity);
+			ensure!(balances[index_out] > Balance::zero(), Error::<T>::InsufficientLiquidity);
 
 			let amount_out = hydra_dx_math::stableswap::calculate_out_given_in::<D_ITERATIONS, Y_ITERATIONS>(
-				&[reserve_in, reserve_out],
+				&balances,
 				index_in,
 				index_out,
 				amount_in,
@@ -539,6 +539,8 @@ pub mod pallet {
 				T::Precision::get(),
 			)
 			.ok_or(ArithmeticError::Overflow)?;
+
+			let pool_account = pool.pool_account::<T>();
 
 			let fee_amount = Self::calculate_fee_amount(amount_out, pool.trade_fee, Rounding::Down);
 
@@ -598,13 +600,13 @@ pub mod pallet {
 
 			let pool_account = pool.pool_account::<T>();
 
-			let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
-			let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
+			let balances = pool.balances::<T>();
 
-			ensure!(reserve_out > amount_out, Error::<T>::InsufficientLiquidity);
+			ensure!(balances[index_out] > amount_out, Error::<T>::InsufficientLiquidity);
+			ensure!(balances[index_in] > Balance::zero(), Error::<T>::InsufficientLiquidity);
 
 			let amount_in = hydra_dx_math::stableswap::calculate_in_given_out::<D_ITERATIONS, Y_ITERATIONS>(
-				&[reserve_in, reserve_out],
+				&balances,
 				index_in,
 				index_out,
 				amount_out,

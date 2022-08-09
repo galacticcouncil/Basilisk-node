@@ -7,6 +7,7 @@ use crate::traits::ShareAccountIdFor;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::ConstU32;
 use frame_support::BoundedVec;
+use orml_traits::MultiCurrency;
 use scale_info::TypeInfo;
 use sp_core::RuntimeDebug;
 use sp_runtime::traits::Zero;
@@ -36,7 +37,7 @@ where
 
 impl<AssetId> PoolInfo<AssetId>
 where
-	AssetId: Ord,
+	AssetId: Ord + Copy,
 {
 	pub(crate) fn find_asset(&self, asset: AssetId) -> Option<usize> {
 		self.assets.iter().position(|v| *v == asset)
@@ -53,8 +54,16 @@ where
 		T::ShareAccountId::from_assets(&self.assets, Some(POOL_IDENTIFIER))
 	}
 
-	pub(crate) fn balances<T: Config>(&self) -> Vec<Balance> {
-		vec![]
+	pub(crate) fn balances<T: Config>(&self) -> Vec<Balance>
+	where
+		T::ShareAccountId: ShareAccountIdFor<Vec<AssetId>, AccountId = T::AccountId>,
+		T::AssetId: From<AssetId>,
+	{
+		let acc = self.pool_account::<T>();
+		self.assets
+			.iter()
+			.map(|asset| T::Currency::free_balance((*asset).into(), &acc))
+			.collect()
 	}
 }
 
