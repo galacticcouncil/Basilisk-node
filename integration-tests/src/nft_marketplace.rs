@@ -2,7 +2,7 @@
 
 use crate::kusama_test_net::*;
 use basilisk_runtime::{
-	AssetRegistry, ClassDeposit, InstanceDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount, Tokens,
+	AssetRegistry, CollectionDeposit, ItemDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount, Tokens,
 	NFT, RELAY_CHAIN_ASSET_LOCATION,
 };
 use frame_support::{assert_noop, assert_ok};
@@ -73,7 +73,7 @@ fn nft_pallet_should_reserve_ksm_when_nft_is_arranged() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			Tokens::reserved_balance(KSM, &AccountId::from(ALICE)),
-			ClassDeposit::get() + InstanceDeposit::get()
+			CollectionDeposit::get() + ItemDeposit::get()
 		);
 	});
 }
@@ -92,7 +92,7 @@ fn marketplace_should_reserve_ksm_when_royalties_are_added() {
 		));
 		assert_eq!(
 			Tokens::reserved_balance(KSM, &AccountId::from(ALICE)),
-			ClassDeposit::get() + InstanceDeposit::get() + RoyaltyBondAmount::get()
+			CollectionDeposit::get() + ItemDeposit::get() + RoyaltyBondAmount::get()
 		);
 	});
 }

@@ -812,8 +812,8 @@ pub mod ksm {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 0;
-	pub const InstanceDeposit: Balance = 0;
+	pub const CollectionDeposit: Balance = 0;
+	pub const ItemDeposit: Balance = 0;
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
 	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = ksm::deposit(1,129);
@@ -830,8 +830,8 @@ impl pallet_uniques::Config for Runtime {
 	type ForceOrigin = SuperMajorityCouncilOrRoot;
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	type Locker = ();
-	type CollectionDeposit = ClassDeposit;
-	type ItemDeposit = InstanceDeposit;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;

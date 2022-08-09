@@ -512,8 +512,8 @@ impl pallet_nft::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 10_000 * UNITS; // 10 000 UNITS deposit to create asset class
-	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
+	pub const CollectionDeposit: Balance = 10_000 * UNITS; // 10 000 UNITS deposit to create asset class
+	pub const ItemDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
 	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
@@ -530,8 +530,8 @@ impl pallet_uniques::Config for Runtime {
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	type Locker = ();
-	type CollectionDeposit = ClassDeposit;
-	type ItemDeposit = InstanceDeposit;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
