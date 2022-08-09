@@ -122,8 +122,8 @@ impl system::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 10_000 * UNITS; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 100 * UNITS; // 1/100 UNIT deposit to create asset instance
+	pub const CollectionDeposit: Balance = 10_000 * UNITS; // 1 UNIT deposit to create asset class
+	pub const ItemDeposit: Balance = 100 * UNITS; // 1/100 UNIT deposit to create asset instance
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
@@ -138,8 +138,8 @@ impl pallet_uniques::Config for Test {
 	type ItemId = u32;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
-	type CollectionDeposit = ClassDeposit;
-	type ItemDeposit = InstanceDeposit;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;

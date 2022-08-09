@@ -353,7 +353,7 @@ parameter_types! {
 
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type Event = Event;
-	type AcceptedCurrencyOrigin = EnsureMajorityTechCommitteeOrRoot;
+	type AcceptedCurrencyOrigin = MajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
 	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
 	type WeightInfo = common_runtime::weights::payment::BasiliskWeight<Runtime>;
@@ -451,13 +451,13 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
-	type BlacklistUpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
+	type BlacklistUpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = common_runtime::weights::duster::BasiliskWeight<Runtime>;
 }
 
 impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
-	type RegistryOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type RegistryOrigin = SuperMajorityTechCommitteeOrRoot;
 	type AssetId = AssetId;
 	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
@@ -496,7 +496,7 @@ impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
-	type CreatePoolOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type CreatePoolOrigin = SuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type MinTradingLimit = MinTradingLimit;
@@ -552,17 +552,17 @@ impl pallet_nft::Config for Runtime {
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
-type EnsureMajorityCouncilOrRoot =
+type MajorityCouncilOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>, EnsureRoot<AccountId>>;
-type EnsureUnanimousCouncilOrRoot =
+type UnanimousCouncilOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>, EnsureRoot<AccountId>>;
-type EnsureSuperMajorityCouncilOrRoot =
+type SuperMajorityCouncilOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>, EnsureRoot<AccountId>>;
-type EnsureSuperMajorityTechCommitteeOrRoot =
+type SuperMajorityTechCommitteeOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>, EnsureRoot<AccountId>>;
-type EnsureUnanimousTechCommitteeOrRoot =
+type UnanimousTechCommitteeOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>, EnsureRoot<AccountId>>;
-type EnsureMajorityTechCommitteeOrRoot =
+type MajorityTechCommitteeOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>, EnsureRoot<AccountId>>;
 
 impl pallet_democracy::Config for Runtime {
@@ -574,23 +574,23 @@ impl pallet_democracy::Config for Runtime {
 	type VotingPeriod = VotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
 	/// A straight majority of the council can decide what their next motion is.
-	type ExternalOrigin = EnsureMajorityCouncilOrRoot;
+	type ExternalOrigin = MajorityCouncilOrRoot;
 	/// A majority can have the next scheduled referendum be a straight majority-carries vote
-	type ExternalMajorityOrigin = EnsureMajorityCouncilOrRoot;
+	type ExternalMajorityOrigin = MajorityCouncilOrRoot;
 	/// A unanimous council can have the next scheduled referendum be a straight default-carries
 	/// (NTB) vote.
-	type ExternalDefaultOrigin = EnsureUnanimousCouncilOrRoot;
+	type ExternalDefaultOrigin = UnanimousCouncilOrRoot;
 	/// Two thirds of the technical committee can have an ExternalMajority/ExternalDefault vote
 	/// be tabled immediately and with a shorter voting/enactment period.
-	type FastTrackOrigin = EnsureMajorityTechCommitteeOrRoot;
-	type InstantOrigin = EnsureUnanimousTechCommitteeOrRoot;
+	type FastTrackOrigin = MajorityTechCommitteeOrRoot;
+	type InstantOrigin = UnanimousTechCommitteeOrRoot;
 	type InstantAllowed = InstantAllowed;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	// To cancel a proposal which has been passed, 2/3 of the council must agree to it.
-	type CancellationOrigin = EnsureSuperMajorityCouncilOrRoot;
+	type CancellationOrigin = SuperMajorityCouncilOrRoot;
 	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
 	// Root must agree.
-	type CancelProposalOrigin = EnsureUnanimousTechCommitteeOrRoot;
+	type CancelProposalOrigin = UnanimousTechCommitteeOrRoot;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// Any single technical committee member may veto a coming council proposal, however they can
 	// only do it once and it lasts only for the cooloff period.
@@ -652,8 +652,8 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
 	type Currency = Balances;
-	type ApproveOrigin = EnsureSuperMajorityCouncilOrRoot;
-	type RejectOrigin = EnsureMajorityCouncilOrRoot;
+	type ApproveOrigin = SuperMajorityCouncilOrRoot;
+	type RejectOrigin = MajorityCouncilOrRoot;
 	type Event = Event;
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
@@ -716,7 +716,7 @@ impl pallet_tips::Config for Runtime {
 impl pallet_collator_selection::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
-	type UpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
+	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
 	type MinCandidates = MinCandidates;
@@ -827,7 +827,7 @@ impl pallet_uniques::Config for Runtime {
 	type CollectionId = ClassId;
 	type ItemId = InstanceId;
 	type Currency = KusamaCurrency;
-	type ForceOrigin = EnsureSuperMajorityCouncilOrRoot;
+	type ForceOrigin = SuperMajorityCouncilOrRoot;
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	type Locker = ();
 	type CollectionDeposit = ClassDeposit;
@@ -874,8 +874,8 @@ impl pallet_identity::Config for Runtime {
 	type MaxAdditionalFields = MaxAdditionalFields;
 	type MaxRegistrars = MaxRegistrars;
 	type Slashed = Treasury;
-	type ForceOrigin = EnsureMajorityCouncilOrRoot;
-	type RegistrarOrigin = EnsureMajorityCouncilOrRoot;
+	type ForceOrigin = MajorityCouncilOrRoot;
+	type RegistrarOrigin = MajorityCouncilOrRoot;
 	type WeightInfo = ();
 }
 
@@ -891,7 +891,7 @@ impl pallet_multisig::Config for Runtime {
 
 impl pallet_transaction_pause::Config for Runtime {
 	type Event = Event;
-	type UpdateOrigin = EnsureMajorityTechCommitteeOrRoot;
+	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
 }
 
