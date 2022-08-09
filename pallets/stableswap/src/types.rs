@@ -1,8 +1,9 @@
-use crate::MAX_ASSETS_IN_POOL;
+use crate::{Config, MAX_ASSETS_IN_POOL, POOL_IDENTIFIER};
 use sp_runtime::Permill;
+use sp_std::collections::btree_set::BTreeSet;
 use sp_std::prelude::*;
-use std::collections::BTreeSet;
 
+use crate::traits::ShareAccountIdFor;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::ConstU32;
 use frame_support::BoundedVec;
@@ -43,6 +44,17 @@ where
 
 	pub(crate) fn is_valid(&self) -> bool {
 		has_unique_elements(&mut self.assets.iter())
+	}
+
+	pub(crate) fn pool_account<T: Config>(&self) -> T::AccountId
+	where
+		T::ShareAccountId: ShareAccountIdFor<Vec<AssetId>, AccountId = T::AccountId>,
+	{
+		T::ShareAccountId::from_assets(&self.assets, Some(POOL_IDENTIFIER))
+	}
+
+	pub(crate) fn balances<T: Config>(&self) -> Vec<Balance> {
+		vec![]
 	}
 }
 

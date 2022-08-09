@@ -90,7 +90,7 @@ pub mod pallet {
 	use sp_runtime::traits::Zero;
 	use sp_runtime::ArithmeticError;
 	use sp_runtime::Permill;
-	use std::collections::BTreeMap;
+	use sp_std::collections::btree_map::BTreeMap;
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(crate) trait Store)]
@@ -376,7 +376,7 @@ pub mod pallet {
 				added_assets.insert(asset.asset_id, asset.amount);
 			}
 
-			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+			let pool_account = pool.pool_account::<T>();
 			let mut initial_reserves = Vec::new();
 			let mut updated_reserves = Vec::new();
 			for pool_asset in pool.assets.iter() {
@@ -451,7 +451,7 @@ pub mod pallet {
 			);
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
-			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+			let pool_account = pool.pool_account::<T>();
 
 			let initial_reserves = AssetAmounts(
 				T::Currency::free_balance(pool.assets[0], &pool_account),
@@ -525,7 +525,7 @@ pub mod pallet {
 			let index_in = pool.find_asset(asset_in).ok_or(Error::<T>::AssetNotInPool)?;
 			let index_out = pool.find_asset(asset_out).ok_or(Error::<T>::AssetNotInPool)?;
 
-			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+			let pool_account = pool.pool_account::<T>();
 
 			let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
 			let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
@@ -596,7 +596,7 @@ pub mod pallet {
 			let index_in = pool.find_asset(asset_in).ok_or(Error::<T>::AssetNotInPool)?;
 			let index_out = pool.find_asset(asset_out).ok_or(Error::<T>::AssetNotInPool)?;
 
-			let pool_account = T::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));
+			let pool_account = pool.pool_account::<T>();
 
 			let reserve_in = T::Currency::free_balance(asset_in, &pool_account);
 			let reserve_out = T::Currency::free_balance(asset_out, &pool_account);
