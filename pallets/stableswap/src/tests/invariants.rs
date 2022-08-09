@@ -180,7 +180,7 @@ proptest! {
 				]
 				));
 
-				let shares = Tokens::free_balance(pool_id.0, &BOB);
+				let shares = Tokens::free_balance(pool_id, &BOB);
 
 				let amount_withdrawn = withdraw_percentage.mul_floor(shares);
 

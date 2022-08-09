@@ -68,7 +68,7 @@ macro_rules! assert_balance {
 thread_local! {
 	pub static REGISTERED_ASSETS: RefCell<HashMap<AssetId, u32>> = RefCell::new(HashMap::default());
 	pub static ASSET_IDENTS: RefCell<HashMap<Vec<u8>, u32>> = RefCell::new(HashMap::default());
-	pub static POOL_IDS: RefCell<Vec<PoolId<AssetId>>> = RefCell::new(Vec::new());
+	pub static POOL_IDS: RefCell<Vec<AssetId>> = RefCell::new(Vec::new());
 }
 
 construct_runtime!(
@@ -231,7 +231,7 @@ impl ExtBuilder {
 
 		r.execute_with(|| {
 			for (who, pool, initial_liquid) in self.created_pools {
-				let pool_id = PoolId(retrieve_current_asset_id());
+				let pool_id = retrieve_current_asset_id();
 				assert_ok!(Stableswap::create_pool(
 					Origin::signed(who),
 					pool.assets.clone().into(),
@@ -258,7 +258,7 @@ impl ExtBuilder {
 }
 
 use crate::traits::ShareAccountIdFor;
-use crate::types::{AssetLiquidity, PoolId, PoolInfo};
+use crate::types::{AssetLiquidity, PoolInfo};
 use hydradx_traits::{Registry, ShareTokenRegistry};
 use sp_runtime::traits::Zero;
 
@@ -343,6 +343,6 @@ pub(crate) fn retrieve_current_asset_id() -> AssetId {
 	REGISTERED_ASSETS.with(|v| v.borrow().len() as AssetId)
 }
 
-pub(crate) fn get_pool_id_at(idx: usize) -> PoolId<AssetId> {
+pub(crate) fn get_pool_id_at(idx: usize) -> AssetId {
 	POOL_IDS.with(|v| v.borrow()[idx])
 }

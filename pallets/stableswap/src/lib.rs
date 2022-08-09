@@ -80,7 +80,7 @@ pub mod pallet {
 	use super::*;
 	use crate::math::calculate_remove_liquidity_amounts;
 	use crate::traits::ShareAccountIdFor;
-	use crate::types::{AssetAmounts, AssetLiquidity, Balance, PoolId, PoolInfo};
+	use crate::types::{AssetAmounts, AssetLiquidity, Balance, PoolInfo};
 	use codec::HasCompact;
 	use core::ops::RangeInclusive;
 	use frame_support::pallet_prelude::*;
@@ -147,14 +147,14 @@ pub mod pallet {
 	/// Existing pools
 	#[pallet::storage]
 	#[pallet::getter(fn pools)]
-	pub type Pools<T: Config> = StorageMap<_, Blake2_128Concat, PoolId<T::AssetId>, PoolInfo<T::AssetId>>;
+	pub type Pools<T: Config> = StorageMap<_, Blake2_128Concat, T::AssetId, PoolInfo<T::AssetId>>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// A pool was created.
 		PoolCreated {
-			id: PoolId<T::AssetId>,
+			pool_id: T::AssetId,
 			assets: Vec<T::AssetId>,
 			amplification: u16,
 			trade_fee: Permill,
@@ -162,14 +162,14 @@ pub mod pallet {
 		},
 		/// Liquidity of an asset was added to a pool.
 		LiquidityAdded {
-			id: PoolId<T::AssetId>,
+			pool_id: T::AssetId,
 			who: T::AccountId,
 			shares: Balance,
 			assets: Vec<AssetLiquidity<T::AssetId>>,
 		},
 		/// Liquidity removed.
 		LiquidityRemoved {
-			id: PoolId<T::AssetId>,
+			pool_id: T::AssetId,
 			who: T::AccountId,
 			shares: Balance,
 			assets: (T::AssetId, T::AssetId),
@@ -178,6 +178,7 @@ pub mod pallet {
 		/// Sell trade executed. Trade fee paid in asset leaving the pool (already subtracted from amount_out).
 		SellExecuted {
 			who: T::AccountId,
+			pool_id: T::AssetId,
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
 			amount_in: Balance,
@@ -187,6 +188,7 @@ pub mod pallet {
 		/// Buy trade executed. Trade fee paid in asset entering the pool (already included in amount_in).
 		BuyExecuted {
 			who: T::AccountId,
+			pool_id: T::AssetId,
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
 			amount_in: Balance,
@@ -305,9 +307,8 @@ pub mod pallet {
 				pool.assets.clone().into(), //TODO: fix the trait to accept refeerence instead
 				T::MinPoolLiquidity::get(),
 			)?;
-			let pool_id = PoolId(share_asset); //TODO: remove PoolId - use asset id directly
 
-			Pools::<T>::try_mutate(&pool_id, |maybe_pool| -> DispatchResult {
+			Pools::<T>::try_mutate(&share_asset, |maybe_pool| -> DispatchResult {
 				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
 
 				*maybe_pool = Some(pool);
@@ -316,7 +317,7 @@ pub mod pallet {
 			})?;
 
 			Self::deposit_event(Event::PoolCreated {
-				id: pool_id,
+				pool_id: share_asset,
 				assets: pool_assets,
 				amplification,
 				trade_fee,
@@ -354,7 +355,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
-			pool_id: PoolId<T::AssetId>,
+			pool_id: T::AssetId,
 			assets: Vec<AssetLiquidity<T::AssetId>>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -389,7 +390,7 @@ pub mod pallet {
 				}
 			}
 
-			let share_issuance = T::Currency::total_issuance(pool_id.0);
+			let share_issuance = T::Currency::total_issuance(pool_id);
 			let share_amount = hydra_dx_math::stableswap::calculate_shares::<D_ITERATIONS>(
 				&initial_reserves,
 				&updated_reserves,
@@ -399,19 +400,19 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 			ensure!(!share_amount.is_zero(), Error::<T>::InvalidAssetAmount);
-			let current_share_balance = T::Currency::free_balance(pool_id.0, &who);
+			let current_share_balance = T::Currency::free_balance(pool_id, &who);
 			ensure!(
 				current_share_balance.saturating_add(share_amount) >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientShareBalance
 			);
 
-			T::Currency::deposit(pool_id.0, &who, share_amount)?;
+			T::Currency::deposit(pool_id, &who, share_amount)?;
 			for asset in assets.iter() {
 				T::Currency::transfer(asset.asset_id, &who, &pool_account, asset.amount)?;
 			}
 
 			Self::deposit_event(Event::LiquidityAdded {
-				id: pool_id,
+				pool_id,
 				who,
 				shares: share_amount,
 				assets,
@@ -434,12 +435,12 @@ pub mod pallet {
 		/// Emits `LiquidityRemoved` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
 		#[transactional]
-		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T::AssetId>, amount: Balance) -> DispatchResult {
+		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: T::AssetId, amount: Balance) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			ensure!(amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
 
-			let current_share_balance = T::Currency::free_balance(pool_id.0, &who);
+			let current_share_balance = T::Currency::free_balance(pool_id, &who);
 
 			ensure!(current_share_balance >= amount, Error::<T>::InsufficientShares);
 
@@ -457,7 +458,7 @@ pub mod pallet {
 				T::Currency::free_balance(pool.assets[1], &pool_account),
 			);
 
-			let share_issuance = T::Currency::total_issuance(pool_id.0);
+			let share_issuance = T::Currency::total_issuance(pool_id);
 
 			ensure!(
 				share_issuance.saturating_sub(amount) >= T::MinPoolLiquidity::get(),
@@ -468,14 +469,14 @@ pub mod pallet {
 				.ok_or(ArithmeticError::Overflow)?;
 
 			// burn `amount` of shares
-			T::Currency::withdraw(pool_id.0, &who, amount)?;
+			T::Currency::withdraw(pool_id, &who, amount)?;
 
 			// Assets are ordered by id in pool.assets. So amounts provided corresponds.
 			T::Currency::transfer(pool.assets[0], &pool_account, &who, amounts.0)?;
 			T::Currency::transfer(pool.assets[1], &pool_account, &who, amounts.1)?;
 
 			Self::deposit_event(Event::LiquidityRemoved {
-				id: pool_id,
+				pool_id,
 				who,
 				shares: amount,
 				assets: (pool.assets[0], pool.assets[1]),
@@ -501,7 +502,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn sell(
 			origin: OriginFor<T>,
-			pool_id: PoolId<T::AssetId>,
+			pool_id: T::AssetId,
 			asset_in: T::AssetId,
 			asset_out: T::AssetId,
 			amount_in: Balance,
@@ -550,6 +551,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::SellExecuted {
 				who,
+				pool_id,
 				asset_in,
 				asset_out,
 				amount_in,
@@ -576,7 +578,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn buy(
 			origin: OriginFor<T>,
-			pool_id: PoolId<T::AssetId>,
+			pool_id: T::AssetId,
 			asset_out: T::AssetId,
 			asset_in: T::AssetId,
 			amount_out: Balance,
@@ -627,6 +629,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::BuyExecuted {
 				who,
+				pool_id,
 				asset_in,
 				asset_out,
 				amount_in,

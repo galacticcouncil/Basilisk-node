@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{AssetLiquidity, PoolId, PoolInfo};
+use crate::types::{AssetLiquidity, PoolInfo};
 use crate::{assert_balance, Error};
 
 use frame_support::{assert_noop, assert_ok};
@@ -339,14 +339,7 @@ fn sell_with_invalid_amounts_fails() {
 			);
 
 			assert_noop!(
-				Stableswap::sell(
-					Origin::signed(BOB),
-					PoolId(pool_id.0 + 1),
-					asset_a,
-					asset_b,
-					30 * ONE,
-					25 * ONE,
-				),
+				Stableswap::sell(Origin::signed(BOB), pool_id + 1, asset_a, asset_b, 30 * ONE, 25 * ONE,),
 				Error::<Test>::PoolNotFound
 			);
 			assert_noop!(
@@ -420,14 +413,7 @@ fn buy_with_invalid_amounts_fails() {
 			);
 
 			assert_noop!(
-				Stableswap::buy(
-					Origin::signed(BOB),
-					PoolId(pool_id.0 + 1),
-					asset_a,
-					asset_b,
-					30 * ONE,
-					25 * ONE,
-				),
+				Stableswap::buy(Origin::signed(BOB), pool_id + 1, asset_a, asset_b, 30 * ONE, 25 * ONE,),
 				Error::<Test>::PoolNotFound
 			);
 

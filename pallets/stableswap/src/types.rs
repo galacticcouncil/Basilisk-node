@@ -12,17 +12,11 @@ use sp_runtime::traits::Zero;
 
 pub(crate) type Balance = u128;
 
-/// Pool identifier. Share Asset id is used as pool identifier.
-/// Share asset is unique token for each pool. That means using share asset as pool identifier
-/// does not require additional "tracking" id for newly created pools.
-#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo, Eq)]
-pub struct PoolId<AssetId>(pub AssetId);
-
 /// Pool properties for 2-asset pool (v1)
 /// `assets`: pool assets
 /// `amplification`: amp parameter
 /// `fee`: trade fee to be withdrawn on sell/buy
-#[derive(Clone, Encode, Decode, MaxEncodedLen, TypeInfo)]
+#[derive(Clone, Encode, Decode, MaxEncodedLen, TypeInfo, RuntimeDebug)]
 pub struct PoolInfo<AssetId> {
 	pub assets: BoundedVec<AssetId, ConstU32<MAX_ASSETS_IN_POOL>>,
 	pub amplification: u16,

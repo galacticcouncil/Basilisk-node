@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{AssetLiquidity, PoolId, PoolInfo};
+use crate::types::{AssetLiquidity, PoolInfo};
 use crate::{assert_balance, Error};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::Permill;
@@ -22,7 +22,7 @@ fn add_initial_liquidity_works() {
 			let asset_b: AssetId = 2;
 			let amplification: u16 = 100;
 
-			let pool_id = PoolId(retrieve_current_asset_id());
+			let pool_id = retrieve_current_asset_id();
 
 			assert_ok!(Stableswap::create_pool(
 				Origin::signed(ALICE),
@@ -53,7 +53,7 @@ fn add_initial_liquidity_works() {
 
 			assert_balance!(BOB, asset_a, 100 * ONE);
 			assert_balance!(BOB, asset_b, 100 * ONE);
-			assert_balance!(BOB, pool_id.0, 200 * ONE);
+			assert_balance!(BOB, pool_id, 200 * ONE);
 			assert_balance!(pool_account, asset_a, 100 * ONE);
 			assert_balance!(pool_account, asset_b, 100 * ONE);
 		});
@@ -76,7 +76,7 @@ fn add_initial_liquidity_with_insufficient_balance_fails() {
 			let asset_b: AssetId = 2;
 			let amplification: u16 = 100;
 
-			let pool_id = PoolId(retrieve_current_asset_id());
+			let pool_id = retrieve_current_asset_id();
 
 			assert_ok!(Stableswap::create_pool(
 				Origin::signed(ALICE),
@@ -110,7 +110,7 @@ fn add_initial_liquidity_with_insufficient_balance_fails() {
 
 			assert_balance!(BOB, asset_a, 200 * ONE);
 			assert_balance!(BOB, asset_b, 20 * ONE);
-			assert_balance!(BOB, pool_id.0, 0u128);
+			assert_balance!(BOB, pool_id, 0u128);
 			assert_balance!(pool_account, asset_a, 0u128);
 			assert_balance!(pool_account, asset_b, 0u128);
 		});
@@ -176,7 +176,7 @@ fn add_liquidity_works() {
 
 			assert_balance!(BOB, asset_a, 100 * ONE);
 			assert_balance!(BOB, asset_b, 100 * ONE);
-			assert_balance!(BOB, pool_id.0, 199999999999996u128);
+			assert_balance!(BOB, pool_id, 199999999999996u128);
 			assert_balance!(pool_account, asset_a, 200 * ONE);
 			assert_balance!(pool_account, asset_b, 200 * ONE);
 		});
@@ -243,7 +243,7 @@ fn add_liquidity_other_asset_works() {
 
 			assert_balance!(BOB, asset_a, 100 * ONE);
 			assert_balance!(BOB, asset_b, 100 * ONE);
-			assert_balance!(BOB, pool_id.0, 199999999999996u128);
+			assert_balance!(BOB, pool_id, 199999999999996u128);
 			assert_balance!(pool_account, asset_a, 200 * ONE);
 			assert_balance!(pool_account, asset_b, 200 * ONE);
 		});
@@ -367,7 +367,7 @@ fn remove_all_liquidity_works() {
 				]
 			));
 
-			let shares = Tokens::free_balance(pool_id.0, &BOB);
+			let shares = Tokens::free_balance(pool_id, &BOB);
 
 			assert_eq!(shares, 199999999999996u128);
 
@@ -376,7 +376,7 @@ fn remove_all_liquidity_works() {
 			assert_balance!(BOB, asset_a, 100 * ONE - 2);
 			assert_balance!(BOB, asset_b, 100 * ONE - 2);
 
-			assert_balance!(BOB, pool_id.0, 0u128);
+			assert_balance!(BOB, pool_id, 0u128);
 
 			assert_balance!(pool_account, asset_a, 100 * ONE + 2);
 			assert_balance!(pool_account, asset_b, 100 * ONE + 2);
@@ -444,7 +444,7 @@ fn remove_partial_liquidity_works() {
 			let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
 			let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
 
-			let shares = Tokens::free_balance(pool_id.0, &BOB);
+			let shares = Tokens::free_balance(pool_id, &BOB);
 
 			assert_eq!(shares, 199999999999996u128);
 
@@ -465,7 +465,7 @@ fn remove_partial_liquidity_works() {
 			assert_balance!(BOB, asset_a, 40 * ONE);
 			assert_balance!(BOB, asset_b, 40 * ONE);
 
-			assert_balance!(BOB, pool_id.0, shares - shares_withdrawn);
+			assert_balance!(BOB, pool_id, shares - shares_withdrawn);
 
 			let a_diff = asset_a_reserve - Tokens::free_balance(asset_a, &pool_account);
 			let b_diff = asset_b_reserve - Tokens::free_balance(asset_b, &pool_account);
@@ -592,7 +592,7 @@ fn add_liquidity_with_invalid_data_fails() {
 			assert_noop!(
 				Stableswap::add_liquidity(
 					Origin::signed(BOB),
-					PoolId(pool_id.0 + 1), // let's just take next id
+					pool_id + 1, // let's just take next id
 					vec![AssetLiquidity {
 						asset_id: asset_a,
 						amount: 100 * ONE
@@ -742,7 +742,7 @@ fn remove_liquidity_with_invalid_data_fails() {
 			assert_ok!(Tokens::set_balance(Origin::root(), BOB, 5, 100 * ONE, 0u128));
 
 			assert_noop!(
-				Stableswap::remove_liquidity(Origin::signed(BOB), PoolId(pool_id.0 + 1), 100 * ONE),
+				Stableswap::remove_liquidity(Origin::signed(BOB), pool_id + 1, 100 * ONE),
 				Error::<Test>::PoolNotFound
 			);
 		});
@@ -798,7 +798,7 @@ fn remove_partial_with_insufficient_remaining_fails() {
 				}]
 			));
 
-			let shares = Tokens::free_balance(pool_id.0, &BOB);
+			let shares = Tokens::free_balance(pool_id, &BOB);
 
 			// Withdraw so much that remaining will be below ED
 			let shares_withdrawn = shares - MinimumLiquidity::get() + 1u128;

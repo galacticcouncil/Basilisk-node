@@ -1,5 +1,4 @@
 use crate::tests::mock::*;
-use crate::types::PoolId;
 use crate::Error;
 use crate::Pools;
 use frame_support::{assert_noop, assert_ok};
@@ -16,7 +15,7 @@ fn create_two_asset_pool_should_work_when_assets_are_registered() {
 		.with_registered_asset("two".as_bytes().to_vec(), asset_b)
 		.build()
 		.execute_with(|| {
-			let pool_id = PoolId(retrieve_current_asset_id());
+			let pool_id = retrieve_current_asset_id();
 
 			assert_ok!(Stableswap::create_pool(
 				Origin::signed(ALICE),
@@ -45,7 +44,7 @@ fn create_multi_asset_pool_should_work_when_assets_are_registered() {
 		.with_registered_asset("four".as_bytes().to_vec(), asset_d)
 		.build()
 		.execute_with(|| {
-			let pool_id = PoolId(retrieve_current_asset_id());
+			let pool_id = retrieve_current_asset_id();
 
 			assert_ok!(Stableswap::create_pool(
 				Origin::signed(ALICE),
@@ -71,7 +70,7 @@ fn create_pool_with_asset_order_swapped_works() {
 			let asset_b: AssetId = 2;
 			let amplification: u16 = 100;
 
-			let pool_id = PoolId(retrieve_current_asset_id());
+			let pool_id = retrieve_current_asset_id();
 
 			assert_ok!(Stableswap::create_pool(
 				Origin::signed(ALICE),
