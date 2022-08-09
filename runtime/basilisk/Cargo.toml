@@ -48,7 +48,7 @@ pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", 
 hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false }
-orml-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "570f479a2cb57ed18e7aa18414ba400e15d88bcf", default-features = false }
+currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "6394ff5dc34e1cdc868f40c1a6e0dee258e44737", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.26", default-features = false }
@@ -163,7 +163,7 @@ std = [
     "frame-system-rpc-runtime-api/std",
     "frame-try-runtime/std",
     "frame-benchmarking/std",
-    "orml-currencies/std",
+    "currencies/std",
     "orml-tokens/std",
     "orml-traits/std",
     "orml-vesting/std",

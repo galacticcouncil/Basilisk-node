@@ -26,7 +26,7 @@ fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 		let expected_rust_encoded_fees = 4_556 * UNITS / 100; //45.56
 		let expected_ui_fees = 4_655 * UNITS / 100; //46.55
 
-		let call = orml_currencies::Call::<basilisk_runtime::Runtime>::transfer {
+		let call = currencies::Call::<basilisk_runtime::Runtime>::transfer {
 			dest: AccountId::from(ALICE),
 			currency_id: 0,
 			amount: 50 * UNITS,
@@ -55,7 +55,7 @@ fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 		let min_multiplier_ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
 
 		println!(
-			"Orml currencies transfer:\n\t UI fees: {}/{} [actual/expected]\n\t Rust encoded fees: {}/{} [actual/expected]\n\t Fees with min. FeeMultiplier: {} [UI], {} [Rust]",
+			"Currencies transfer:\n\t UI fees: {}/{} [actual/expected]\n\t Rust encoded fees: {}/{} [actual/expected]\n\t Fees with min. FeeMultiplier: {} [UI], {} [Rust]",
 			format_num(ui_fees * 10_000 / UNITS, 4),
 			format_num(expected_ui_fees * 10_000 / UNITS, 4),
 			format_num(rust_encoded_fees * 10_000 / UNITS, 4),

@@ -502,6 +502,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
+ "currencies",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -513,7 +514,6 @@ dependencies = [
  "hydradx-adapters",
  "hydradx-traits",
  "orml-benchmarking",
- "orml-currencies",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -1175,10 +1175,10 @@ dependencies = [
 name = "common-runtime"
 version = "2.1.0"
 dependencies = [
+ "currencies",
  "frame-support",
  "frame-system",
  "hydradx-traits",
- "orml-currencies",
  "orml-tokens",
  "orml-traits",
  "orml-vesting",
@@ -1979,6 +1979,23 @@ dependencies = [
  "polkadot-primitives",
  "sp-runtime",
  "sp-state-machine",
+ "sp-std",
+]
+
+[[package]]
+name = "currencies"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=6394ff5dc34e1cdc868f40c1a6e0dee258e44737#6394ff5dc34e1cdc868f40c1a6e0dee258e44737"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "orml-utilities",
+ "parity-scale-codec 3.1.5",
+ "scale-info 2.1.2",
+ "serde",
+ "sp-io",
+ "sp-runtime",
  "sp-std",
 ]
 
@@ -5200,23 +5217,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "orml-currencies"
-version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=570f479a2cb57ed18e7aa18414ba400e15d88bcf#570f479a2cb57ed18e7aa18414ba400e15d88bcf"
-dependencies = [
- "frame-support",
- "frame-system",
- "orml-traits",
- "orml-utilities",
- "parity-scale-codec 3.1.5",
- "scale-info 2.1.2",
- "serde",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack//open-runtime-module-library.git?rev=8c625a5ab43c1c56cdeed5f8d814a891566d4cf8#8c625a5ab43c1c56cdeed5f8d814a891566d4cf8"
@@ -5627,13 +5627,13 @@ dependencies = [
 name = "pallet-duster"
 version = "3.1.2"
 dependencies = [
+ "currencies",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
  "hydradx-traits",
  "lazy_static",
- "orml-currencies",
  "orml-tokens",
  "orml-traits",
  "pallet-balances",
@@ -8759,6 +8759,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
+ "currencies",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -8768,7 +8769,6 @@ dependencies = [
  "hex-literal",
  "hydradx-traits",
  "kusama-runtime",
- "orml-currencies",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -11539,6 +11539,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
+ "currencies",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -11549,7 +11550,6 @@ dependencies = [
  "hex-literal",
  "hydradx-adapters",
  "hydradx-traits",
- "orml-currencies",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",

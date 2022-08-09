@@ -13,7 +13,7 @@ repository = "https://github.com/galacticcouncil/Basilisk-node"
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false}
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false}
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false }
-orml-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "570f479a2cb57ed18e7aa18414ba400e15d88bcf", default-features = false }
+currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "6394ff5dc34e1cdc868f40c1a6e0dee258e44737", default-features = false }
 
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
@@ -119,7 +119,7 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "frame-system-rpc-runtime-api/std",
-    "orml-currencies/std",
+    "currencies/std",
     "orml-tokens/std",
     "orml-traits/std",
     "orml-vesting/std",
