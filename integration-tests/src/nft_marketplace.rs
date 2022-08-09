@@ -11,6 +11,7 @@ use orml_traits::MultiReservableCurrency;
 use primitives::nft::ClassType;
 use primitives::{AssetId, ClassId};
 use xcm_emulator::TestExt;
+use sp_arithmetic::Percent;
 
 const KSM: AssetId = 1;
 
@@ -88,7 +89,7 @@ fn marketplace_should_reserve_ksm_when_royalties_are_added() {
 			ALICE_COLLECTION,
 			0,
 			AccountId::from(ALICE),
-			15
+			Percent::from_percent(15)
 		));
 		assert_eq!(
 			Tokens::reserved_balance(KSM, &AccountId::from(ALICE)),
