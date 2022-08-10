@@ -133,7 +133,7 @@ use common_runtime::adapter::OrmlTokensAdapter;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 use primitives::{
 	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId,
+	CollectionId, ItemId,
 };
 use smallvec::smallvec;
 
@@ -497,18 +497,18 @@ impl parachain_info::Config for Runtime {}
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
 parameter_types! {
-	pub ReserveClassIdUpTo: u128 = 999;
+	pub ReserveCollectionIdUpTo: u128 = 999;
 }
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
-	type NftClassId = ClassId;
-	type NftInstanceId = InstanceId;
+	type NftClassId = CollectionId;
+	type NftInstanceId = ItemId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type ReserveClassIdUpTo = ReserveCollectionIdUpTo;
 }
 
 parameter_types! {
@@ -524,8 +524,8 @@ parameter_types! {
 
 impl pallet_uniques::Config for Runtime {
 	type Event = Event;
-	type CollectionId = ClassId;
-	type ItemId = InstanceId;
+	type CollectionId = CollectionId;
+	type ItemId = ItemId;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;

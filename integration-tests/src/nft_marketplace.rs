@@ -9,12 +9,12 @@ use frame_support::{assert_noop, assert_ok};
 use orml_traits::MultiCurrency;
 use orml_traits::MultiReservableCurrency;
 use primitives::nft::ClassType;
-use primitives::{AssetId, ClassId};
+use primitives::{AssetId, CollectionId};
 use xcm_emulator::TestExt;
 
 const KSM: AssetId = 1;
 
-const ALICE_COLLECTION: ClassId = 13370000;
+const ALICE_COLLECTION: CollectionId = 13370000;
 
 fn init() {
 	TestNet::reset();
