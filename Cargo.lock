@@ -502,7 +502,6 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "currencies",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -527,6 +526,7 @@ dependencies = [
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-collective",
+ "pallet-currencies",
  "pallet-democracy",
  "pallet-duster",
  "pallet-elections-phragmen",
@@ -1175,7 +1175,6 @@ dependencies = [
 name = "common-runtime"
 version = "2.1.0"
 dependencies = [
- "currencies",
  "frame-support",
  "frame-system",
  "hydradx-traits",
@@ -1185,6 +1184,7 @@ dependencies = [
  "pallet-asset-registry",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-currencies",
  "pallet-democracy",
  "pallet-duster",
  "pallet-exchange",
@@ -1979,23 +1979,6 @@ dependencies = [
  "polkadot-primitives",
  "sp-runtime",
  "sp-state-machine",
- "sp-std",
-]
-
-[[package]]
-name = "currencies"
-version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=6394ff5dc34e1cdc868f40c1a6e0dee258e44737#6394ff5dc34e1cdc868f40c1a6e0dee258e44737"
-dependencies = [
- "frame-support",
- "frame-system",
- "orml-traits",
- "orml-utilities",
- "parity-scale-codec 3.1.5",
- "scale-info 2.1.2",
- "serde",
- "sp-io",
- "sp-runtime",
  "sp-std",
 ]
 
@@ -5608,6 +5591,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-currencies"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=6c95cb1c69328d74830797b57e8496331b4a8826#6c95cb1c69328d74830797b57e8496331b4a8826"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "orml-utilities",
+ "parity-scale-codec 3.1.5",
+ "scale-info 2.1.2",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-democracy"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.26#e8a7d161f39db70cb27fdad6c6e215cf493ebc3b"
@@ -5627,7 +5627,6 @@ dependencies = [
 name = "pallet-duster"
 version = "3.1.2"
 dependencies = [
- "currencies",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -5637,6 +5636,7 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "pallet-balances",
+ "pallet-currencies",
  "parity-scale-codec 3.1.5",
  "primitives",
  "scale-info 2.1.2",
@@ -8759,7 +8759,6 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "currencies",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -8781,6 +8780,7 @@ dependencies = [
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-collective",
+ "pallet-currencies",
  "pallet-democracy",
  "pallet-duster",
  "pallet-elections-phragmen",
@@ -11539,7 +11539,6 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "currencies",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -11563,6 +11562,7 @@ dependencies = [
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-collective",
+ "pallet-currencies",
  "pallet-democracy",
  "pallet-duster",
  "pallet-elections-phragmen",

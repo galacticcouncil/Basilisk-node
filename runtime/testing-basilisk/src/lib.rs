@@ -70,7 +70,7 @@ mod xcm;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
-use currencies::BasicCurrencyAdapter;
+use pallet_currencies::BasicCurrencyAdapter;
 
 pub use common_runtime::*;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, DepositAll, RemoveTxAssetOnKilled, TransferFees};
@@ -389,7 +389,7 @@ impl orml_tokens::Config for Runtime {
 	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
 }
 
-impl currencies::Config for Runtime {
+impl pallet_currencies::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = OrmlTokensAdapter<Runtime>;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
@@ -903,7 +903,7 @@ construct_runtime!(
 		Marketplace: pallet_marketplace = 109,
 
 		// ORML related modules - starts at 150
-		Currencies: currencies = 150,
+		Currencies: pallet_currencies = 150,
 		Tokens: orml_tokens = 151,
 
 		// ORML XCM

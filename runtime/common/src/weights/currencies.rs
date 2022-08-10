@@ -44,7 +44,7 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-use currencies::WeightInfo;
+use pallet_currencies::WeightInfo;
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 

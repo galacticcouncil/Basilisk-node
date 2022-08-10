@@ -40,7 +40,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "6394ff5dc34e1cdc868f40c1a6e0dee258e44737", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "6c95cb1c69328d74830797b57e8496331b4a8826", default-features = false }
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8c625a5ab43c1c56cdeed5f8d814a891566d4cf8", default-features = false }
 
 [features]
