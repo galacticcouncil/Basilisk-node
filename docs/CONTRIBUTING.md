@@ -117,6 +117,7 @@ To ensure consistency throughout the source code, keep these rules in mind as yo
 * All features or bug fixes **must be tested** by one or more specs unit tests.
 * All module API methods **must be documented**.
 * Please follow our [style guide](STYLE_GUIDE.md)
+* Please follow our [testing standards](TESTING_STANDARDS.md)
 
 ## <a name="conventional"></a> Pull Request Naming Guidelines
 

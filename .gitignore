@@ -57,3 +57,5 @@ cobertura.xml
 lcov.info
 
 /basilisk
+
+tmp/
