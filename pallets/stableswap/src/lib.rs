@@ -17,7 +17,7 @@
 //!
 //! Curve/stableswap AMM implementation.
 //!
-//! Version v1 - supports only 2 assets pool.
+//! Supports pools with maximum 5 assets.
 //!
 //! ### Terminology
 //!
@@ -27,20 +27,7 @@
 //!
 //! ## Assumptions
 //!
-//! Only 2 assets pool are possible to create in V1.
-//!
 //! A pool can be created only by allowed `CreatePoolOrigin`.
-//!
-//! LP must add liquidity of both pool assets. in V1 it is not allowed single token LPing.
-//!
-//! Initial liquidity is first liquidity added to the pool (that is first call of `add_liquidity`).
-//!
-//! LP specifies an amount of liquidity to be added of one selected asset, the required amount of second pool asset is calculated
-//! in a way that the ratio does not change. In case of initial liquidity - this amount is equal to amount of first asset.
-//!
-//! LP is given certain amount of shares by minting a pool's share token.
-//!
-//! When LP decides to withdraw liquidity, it receives both assets. Single token withdrawal is not supported.
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -69,7 +56,7 @@ mod benchmarks;
 /// Used as identifier to create share token unique names and account ids.
 pub const POOL_IDENTIFIER: &[u8] = b"sts";
 
-pub const MAX_ASSETS_IN_POOL: u32 = 5;
+pub const MAX_ASSETS_IN_POOL: u32 = 5; //Note: must be u32 because it is used in BoundedVec as const max size which supports only u32
 
 const D_ITERATIONS: u8 = 128;
 const Y_ITERATIONS: u8 = 64;
@@ -89,6 +76,7 @@ pub mod pallet {
 	use sp_runtime::ArithmeticError;
 	use sp_runtime::Permill;
 	use sp_std::collections::btree_map::BTreeMap;
+	use sp_std::collections::btree_set::BTreeSet;
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(crate) trait Store)]
@@ -205,6 +193,9 @@ pub mod pallet {
 		/// Maximum number of assets has been exceeded.
 		MaxAssetsExceeded,
 
+		/// Minimum number of assets in a pool is 2.
+		MinAssets,
+
 		/// A pool with given assets does not exist.
 		PoolNotFound,
 
@@ -256,17 +247,21 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Create a 2-asset pool.
+		/// Create a stableswap pool.
 		///
-		/// Both assets must be correctly registered in `T::AssetRegistry`.
-		/// Note that this does not seed the pool with liquidity. Use `add_liquidity` to provide
+		/// Number of assets in a pool must be between 2 and 5 (inclusive).
+		///
+		/// Assets must be unique and they must be correctly registered in `T::AssetRegistry`.
+		///
+		/// Note that creation does not seed the pool with liquidity. Use `add_liquidity` to provide
 		/// initial liquidity.
 		///
 		/// Parameters:
 		/// - `origin`: Must be T::CreatePoolOrigin
 		/// - `assets`: Asset ids tuple
 		/// - `amplification`: Pool amplification
-		/// - `fee`: trade fee to be applied in sell/buy trades
+		/// - `trade_fee`: trade fee applied in sell/buy trades
+		/// - `withdraw_fee`: fee applied when removing liquidity
 		///
 		/// Emits `PoolCreated` event if successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
@@ -280,50 +275,52 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::CreatePoolOrigin::ensure_origin(origin)?;
 
-			let mut pool_assets = assets;
-			pool_assets.sort();
+			ensure!(assets.len() as u32 <= MAX_ASSETS_IN_POOL, Error::<T>::MaxAssetsExceeded);
+			ensure!(assets.len() >= 2usize, Error::<T>::MinAssets);
 
-			let pool = PoolInfo {
-				assets: pool_assets
-					.clone()
-					.try_into()
-					.map_err(|_| Error::<T>::MaxAssetsExceeded)?,
-				amplification,
-				trade_fee,
-				withdraw_fee,
-			};
-			ensure!(pool.is_valid(), Error::<T>::SameAssets);
 			ensure!(
 				T::AmplificationRange::get().contains(&amplification),
 				Error::<T>::InvalidAmplification
 			);
-			for asset in pool.assets.iter() {
+
+			let mut uniq = BTreeSet::new();
+			for asset in assets.iter() {
+				uniq.insert(asset).then(|| Some(true)).ok_or(Error::<T>::SameAssets)?;
 				ensure!(T::AssetRegistry::exists(*asset), Error::<T>::AssetNotRegistered);
 			}
+
+			let mut pool_assets = assets;
+			pool_assets.sort();
+
+			let pool = PoolInfo {
+				assets: pool_assets.try_into().map_err(|_| Error::<T>::MaxAssetsExceeded)?, // we could just call unwrap as the size is checked prior to this, but let's be safe
+				amplification,
+				trade_fee,
+				withdraw_fee,
+			};
+
 			let share_asset_ident = T::ShareAccountId::name(&pool.assets, Some(POOL_IDENTIFIER));
 			let share_asset = T::AssetRegistry::get_or_create_shared_asset(
 				share_asset_ident,
-				pool.assets.clone().into(), //TODO: fix the trait to accept refeerence instead
+				pool.assets.clone().into(), //TODO: fix the trait to accept reference instead
 				T::MinPoolLiquidity::get(),
 			)?;
 
 			Pools::<T>::try_mutate(&share_asset, |maybe_pool| -> DispatchResult {
 				ensure!(maybe_pool.is_none(), Error::<T>::PoolExists);
 
+				Self::deposit_event(Event::PoolCreated {
+					pool_id: share_asset,
+					assets: pool.assets.clone().into(),
+					amplification,
+					trade_fee,
+					withdraw_fee,
+				});
+
 				*maybe_pool = Some(pool);
 
 				Ok(())
-			})?;
-
-			Self::deposit_event(Event::PoolCreated {
-				pool_id: share_asset,
-				assets: pool_assets,
-				amplification,
-				trade_fee,
-				withdraw_fee,
-			});
-
-			Ok(())
+			})
 		}
 
 		/// Add liquidity to selected 2-asset pool.

@@ -346,3 +346,10 @@ pub(crate) fn retrieve_current_asset_id() -> AssetId {
 pub(crate) fn get_pool_id_at(idx: usize) -> AssetId {
 	POOL_IDS.with(|v| v.borrow()[idx])
 }
+
+pub(crate) fn last_event() -> Event {
+	frame_system::Pallet::<Test>::events()
+		.pop()
+		.expect("An event expected")
+		.event
+}
