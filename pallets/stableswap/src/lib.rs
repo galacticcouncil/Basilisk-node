@@ -323,20 +323,11 @@ pub mod pallet {
 			})
 		}
 
-		/// Add liquidity to selected 2-asset pool.
+		/// Add liquidity to selected pool.
 		///
-		/// LP must provide liquidity of both assets by specifying amount of asset a.
-		///
-		/// If there is no liquidity in the pool, yet, the first call of `add_liquidity` adds "initial liquidity".
-		///
-		/// Initial liquidity - same amounts of each pool asset.
+		/// LP can provide liquidity of one or more asset.
 		///
 		/// If there is liquidity already in the pool, then the amount of asset b is calculated so the ratio does not change:
-		///
-		/// new_reserve_b = (reserve_a + amount) * reserve_b / reserve_a
-		/// amount_b = new_reserve_b - reserve_b
-		///
-		/// LP must have sufficient amount of asset a/b - amount_a and amount_b.
 		///
 		/// Origin is given corresponding amount of shares.
 		///
@@ -373,7 +364,7 @@ pub mod pallet {
 			}
 
 			let pool_account = pool.pool_account::<T>();
-			let mut initial_reserves = Vec::new();
+			let mut initial_reserves = Vec::new(); //TODO: use smallvec?!
 			let mut updated_reserves = Vec::new();
 			for pool_asset in pool.assets.iter() {
 				let reserve = T::Currency::free_balance(*pool_asset, &pool_account);
