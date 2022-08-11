@@ -170,8 +170,9 @@ pub mod pallet {
 			pool_id: T::AssetId,
 			who: T::AccountId,
 			shares: Balance,
-			assets: (T::AssetId, T::AssetId),
-			amounts: (Balance, Balance),
+			asset: T::AssetId,
+			amount: Balance,
+			fee: Balance,
 		},
 		/// Sell trade executed. Trade fee paid in asset leaving the pool (already subtracted from amount_out).
 		SellExecuted {
@@ -452,30 +453,30 @@ pub mod pallet {
 				Error::<T>::InsufficientLiquidityRemaining
 			);
 
-			let (amount, _fee) = hydra_dx_math::stableswap::calculate_withdraw_one_asset::<D_ITERATIONS, Y_ITERATIONS>(
+			let (amount, fee) = hydra_dx_math::stableswap::calculate_withdraw_one_asset::<D_ITERATIONS, Y_ITERATIONS>(
 				&balances,
 				share_amount,
 				asset_idx,
 				share_issuance,
 				pool.amplification.into(),
 				T::Precision::get(),
+				pool.withdraw_fee,
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
-			// TODO: what do with fee?
+			// TODO: Colin: what do with fee?
 
 			T::Currency::withdraw(pool_id, &who, share_amount)?;
 			T::Currency::transfer(asset_id, &pool_account, &who, amount)?;
 
-			/*
 			Self::deposit_event(Event::LiquidityRemoved {
 				pool_id,
 				who,
 				shares: amount,
-				assets: (pool.assets[0], pool.assets[1]),
-				amounts: (amounts.0, amounts.1),
+				asset: asset_id,
+				amount,
+				fee,
 			});
-			 */
 
 			Ok(())
 		}
