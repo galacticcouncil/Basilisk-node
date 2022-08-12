@@ -428,24 +428,26 @@ pub mod pallet {
 
 			ensure!(share_amount > Balance::zero(), Error::<T>::InvalidAssetAmount);
 
-			let current_share_balance = T::Currency::free_balance(pool_id, &who);
+			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
 
-			ensure!(current_share_balance >= share_amount, Error::<T>::InsufficientShares);
+			let share_balance = T::Currency::free_balance(pool_id, &who);
+
+			ensure!(share_balance >= share_amount, Error::<T>::InsufficientShares);
 
 			ensure!(
-				current_share_balance == share_amount
-					|| current_share_balance.saturating_sub(share_amount) >= T::MinPoolLiquidity::get(),
+				share_balance == share_amount
+					|| share_balance.saturating_sub(share_amount) >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientShareBalance
 			);
 
-			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
 			let asset_idx = pool.find_asset(asset_id).ok_or(Error::<T>::AssetNotInPool)?;
 			let pool_account = pool.pool_account::<T>();
 			let balances = pool.balances::<T>();
 			let share_issuance = T::Currency::total_issuance(pool_id);
 
 			ensure!(
-				share_issuance.saturating_sub(share_amount) >= T::MinPoolLiquidity::get(),
+				share_issuance == share_amount
+					|| share_issuance.saturating_sub(share_amount) >= T::MinPoolLiquidity::get(),
 				Error::<T>::InsufficientLiquidityRemaining
 			);
 
@@ -460,7 +462,7 @@ pub mod pallet {
 			)
 			.ok_or(ArithmeticError::Overflow)?;
 
-			// TODO: Colin: what do with fee?
+			// TODO: Colin: what do with fee? stays in pool ?
 
 			T::Currency::withdraw(pool_id, &who, share_amount)?;
 			T::Currency::transfer(asset_id, &pool_account, &who, amount)?;
