@@ -318,12 +318,9 @@ impl ShareAccountIdFor<Vec<u32>> for AccountIdConstructor {
 	type AccountId = AccountId;
 
 	fn from_assets(assets: &Vec<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
-		let mut a = assets[0];
-		let mut b = assets[1];
-		if a > b {
-			std::mem::swap(&mut a, &mut b)
-		}
-		(a * 1000 + b) as u64
+		let sum: u32 = assets.iter().sum(); //.fold(0u32, |acc, v| acc + *v );
+
+		(sum * 1000) as u64
 	}
 
 	fn name(assets: &Vec<u32>, identifier: Option<&[u8]>) -> Vec<u8> {
@@ -332,9 +329,9 @@ impl ShareAccountIdFor<Vec<u32>> for AccountIdConstructor {
 		} else {
 			vec![]
 		};
-		buf.extend_from_slice(&(assets[0]).to_le_bytes());
-		buf.extend_from_slice(&(assets[1]).to_le_bytes());
-
+		for asset in assets.iter() {
+			buf.extend_from_slice(&(asset).to_le_bytes());
+		}
 		buf
 	}
 }

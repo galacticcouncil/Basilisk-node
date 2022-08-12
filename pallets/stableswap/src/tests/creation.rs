@@ -2,7 +2,7 @@ use crate::tests::mock::*;
 use crate::types::PoolInfo;
 use crate::Pools;
 use crate::{Error, Event};
-use frame_support::{assert_noop, assert_ok, BoundedVec};
+use frame_support::{assert_noop, assert_ok};
 use sp_runtime::Permill;
 
 #[test]

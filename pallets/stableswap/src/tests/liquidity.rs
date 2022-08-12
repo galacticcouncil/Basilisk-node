@@ -95,7 +95,7 @@ fn add_liquidity_should_work_when_providing_initial_liquidity_of_all_assets() {
 		.execute_with(|| {
 			let pool_id = get_pool_id_at(0);
 
-			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b, asset_c], None);
 
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
@@ -162,7 +162,7 @@ fn add_liquidity_should_work_when_providing_multiple_liquidity_of_same_assets() 
 		.execute_with(|| {
 			let pool_id = get_pool_id_at(0);
 
-			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b, asset_c], None);
 
 			assert_ok!(Stableswap::add_liquidity(
 				Origin::signed(BOB),
