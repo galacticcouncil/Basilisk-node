@@ -348,31 +348,39 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			let pool = Pools::<T>::get(pool_id).ok_or(Error::<T>::PoolNotFound)?;
-			ensure!(assets.len() <= pool.assets.len(), Error::<T>::MaxAssetsExceeded);
+
 			let mut added_assets = BTreeMap::<T::AssetId, Balance>::new();
+
 			for asset in assets.iter() {
+				let amount = if let Some(b) = added_assets.get(&asset.asset_id) {
+					b.checked_add(asset.amount).ok_or(ArithmeticError::Overflow)?
+				} else {
+					ensure!(pool.find_asset(asset.asset_id).is_some(), Error::<T>::AssetNotInPool);
+					ensure!(
+						asset.amount >= T::MinTradingLimit::get(),
+						Error::<T>::InsufficientLiquidity
+					);
+					asset.amount
+				};
+
 				ensure!(
-					asset.amount >= T::MinTradingLimit::get(),
-					Error::<T>::InsufficientTradingAmount
-				);
-				ensure!(
-					T::Currency::free_balance(asset.asset_id, &who) >= asset.amount,
+					T::Currency::free_balance(asset.asset_id, &who) >= amount,
 					Error::<T>::InsufficientBalance
 				);
-				ensure!(pool.find_asset(asset.asset_id).is_some(), Error::<T>::AssetNotInPool);
-				added_assets.insert(asset.asset_id, asset.amount);
+
+				added_assets.insert(asset.asset_id, amount);
 			}
 
 			let pool_account = pool.pool_account::<T>();
 			let mut initial_reserves = Vec::new(); //TODO: use smallvec?!
 			let mut updated_reserves = Vec::new();
+
 			for pool_asset in pool.assets.iter() {
 				let reserve = T::Currency::free_balance(*pool_asset, &pool_account);
 				initial_reserves.push(reserve);
 				if let Some(liq_added) = added_assets.get(&pool_asset) {
 					updated_reserves.push(reserve.checked_add(*liq_added).ok_or(ArithmeticError::Overflow)?);
 				} else {
-					ensure!(!reserve.is_zero(), Error::<T>::InvalidInitialLiquidity);
 					updated_reserves.push(reserve);
 				}
 			}

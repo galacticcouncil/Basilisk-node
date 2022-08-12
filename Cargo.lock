@@ -3210,7 +3210,7 @@ dependencies = [
 [[package]]
 name = "hydra-dx-math"
 version = "4.5.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=a916ed00e1b9752d92e16ae1f429414bb67cf389#a916ed00e1b9752d92e16ae1f429414bb67cf389"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=abafd9ff792e185d9c3890fecb368de53ee824f6#abafd9ff792e185d9c3890fecb368de53ee824f6"
 dependencies = [
  "fixed",
  "num-traits",
