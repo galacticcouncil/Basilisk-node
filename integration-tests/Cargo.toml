@@ -9,6 +9,9 @@ license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
+codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "2.3.1" }
+scale-info = { version = "1.0", default-features = false, features = ["derive"] }
+
 # local dependencies
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false}
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false}
@@ -69,12 +72,10 @@ pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", 
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 
 # Substrate dependencies
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false, optional = true }
 frame-executive = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
-frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false, optional = true }
-frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
+
 pallet-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-collective = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
@@ -118,7 +119,6 @@ std = [
     "frame-executive/std",
     "frame-support/std",
     "frame-system/std",
-    "frame-system-rpc-runtime-api/std",
     "orml-currencies/std",
     "orml-tokens/std",
     "orml-traits/std",
@@ -178,4 +178,5 @@ std = [
     "basilisk-runtime/std",
     "hydradx-traits/std",
     "pallet-price-oracle/std",
+    "polkadot-runtime-parachains/std",
 ]
