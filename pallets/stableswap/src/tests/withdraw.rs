@@ -3,7 +3,7 @@ use crate::traits::ShareAccountIdFor;
 use crate::types::{AssetLiquidity, PoolInfo};
 use crate::{assert_balance, Error};
 use frame_support::{assert_noop, assert_ok};
-use sp_runtime::{ArithmeticError, Permill};
+use sp_runtime::Permill;
 
 #[test]
 fn remove_liquidity_should_work_when_removing_same_asset() {
