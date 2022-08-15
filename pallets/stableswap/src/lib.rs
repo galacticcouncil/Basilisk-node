@@ -378,7 +378,7 @@ pub mod pallet {
 			for pool_asset in pool.assets.iter() {
 				let reserve = T::Currency::free_balance(*pool_asset, &pool_account);
 				initial_reserves.push(reserve);
-				if let Some(liq_added) = added_assets.get(&pool_asset) {
+				if let Some(liq_added) = added_assets.get(pool_asset) {
 					updated_reserves.push(reserve.checked_add(*liq_added).ok_or(ArithmeticError::Overflow)?);
 				} else {
 					updated_reserves.push(reserve);
