@@ -116,8 +116,8 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 	});
 
 	Karura::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+		assert_ok!(XTokens::transfer(
+			Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -136,7 +136,7 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 			399_600_000_000
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
