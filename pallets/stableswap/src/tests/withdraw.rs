@@ -1,7 +1,7 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
 use crate::types::{AssetLiquidity, PoolInfo};
-use crate::{assert_balance, Error};
+use crate::{assert_balance, Error, Event};
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::Permill;
 
@@ -648,5 +648,82 @@ fn remove_liquidity_should_fail_when_removing_asset_not_in_pool() {
 				Stableswap::remove_liquidity_one_asset(Origin::signed(ALICE), pool_id, asset_c, shares),
 				Error::<Test>::AssetNotInPool
 			);
+		});
+}
+
+#[test]
+fn remove_liquidity_should_emit_event_when_succesfull() {
+	let asset_a: AssetId = 1;
+	let asset_b: AssetId = 2;
+	let asset_c: AssetId = 3;
+
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, 1, 200 * ONE),
+			(BOB, 2, 200 * ONE),
+			(BOB, 3, 200 * ONE),
+			(ALICE, 1, 200 * ONE),
+			(ALICE, 2, 200 * ONE),
+			(ALICE, 3, 200 * ONE),
+		])
+		.with_registered_asset("one".as_bytes().to_vec(), asset_a)
+		.with_registered_asset("two".as_bytes().to_vec(), asset_b)
+		.with_registered_asset("three".as_bytes().to_vec(), asset_c)
+		.with_pool(
+			ALICE,
+			PoolInfo::<AssetId> {
+				assets: vec![asset_a, asset_b, asset_c].try_into().unwrap(),
+				amplification: 100u16,
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(10),
+			},
+			InitialLiquidity {
+				account: ALICE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_c,
+						amount: 100 * ONE,
+					},
+				],
+			},
+		)
+		.build()
+		.execute_with(|| {
+			System::set_block_number(1);
+			let pool_id = get_pool_id_at(0);
+			assert_ok!(Stableswap::add_liquidity(
+				Origin::signed(BOB),
+				pool_id,
+				vec![AssetLiquidity {
+					asset_id: asset_a,
+					amount: 100 * ONE,
+				},]
+			));
+
+			let shares = Tokens::free_balance(pool_id, &BOB);
+
+			assert_ok!(Stableswap::remove_liquidity_one_asset(
+				Origin::signed(BOB),
+				pool_id,
+				asset_a,
+				shares,
+			));
+			let event = Event::LiquidityRemoved {
+				pool_id,
+				who: BOB,
+				shares,
+				asset: asset_a,
+				amount: 89_999_795_061_525u128,
+				fee: 10_000_204_938_469u128,
+			};
+			assert_eq!(last_event(), event.into());
 		});
 }

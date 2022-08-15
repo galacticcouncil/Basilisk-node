@@ -470,7 +470,7 @@ pub mod pallet {
 			Self::deposit_event(Event::LiquidityRemoved {
 				pool_id,
 				who,
-				shares: amount,
+				shares: share_amount,
 				asset: asset_id,
 				amount,
 				fee,
