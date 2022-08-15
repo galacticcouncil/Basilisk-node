@@ -62,10 +62,10 @@ frame_support::construct_runtime!(
 	 NodeBlock = Block,
 	 UncheckedExtrinsic = UncheckedExtrinsic,
 	 {
-		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		 XYK: xyk::{Pallet, Call, Storage, Event<T>},
-		 Currency: orml_tokens::{Pallet, Event<T>},
-		 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
+		 System: frame_system,
+		 XYK: xyk,
+		 Currency: orml_tokens,
+		 AssetRegistry: pallet_asset_registry,
 	 }
 
 );

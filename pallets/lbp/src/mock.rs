@@ -75,9 +75,9 @@ frame_support::construct_runtime!(
 	 NodeBlock = Block,
 	 UncheckedExtrinsic = UncheckedExtrinsic,
 	 {
-		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		 LBPPallet: lbp::{Pallet, Call, Storage, Event<T>},
-		 Currency: orml_tokens::{Pallet, Event<T>},
+		 System: frame_system,
+		 LBPPallet: lbp,
+		 Currency: orml_tokens,
 	 }
 
 );
