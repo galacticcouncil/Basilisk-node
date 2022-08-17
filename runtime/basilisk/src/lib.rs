@@ -81,6 +81,9 @@ use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, DepositAll, RemoveTxAssetOnKilled, TransferFees};
 
+mod migrations;
+use migrations::OnRuntimeUpgradeMigration;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -993,6 +996,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsReversedWithSystemFirst,
+	OnRuntimeUpgradeMigration,
 >;
 
 impl_runtime_apis! {
