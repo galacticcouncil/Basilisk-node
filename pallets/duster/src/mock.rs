@@ -45,11 +45,11 @@ frame_support::construct_runtime!(
 	NodeBlock = Block,
 	UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Duster: duster::{Pallet, Call, Storage, Event<T>},
-		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
-		Currencies: pallet_currencies::{Pallet, Event<T>},
-		Balances: pallet_balances::{Pallet,Call, Storage,Config<T>, Event<T>},
+		System: frame_system,
+		Duster: duster,
+		Tokens: orml_tokens,
+		Currencies: pallet_currencies,
+		Balances: pallet_balances,
 	}
 );
 

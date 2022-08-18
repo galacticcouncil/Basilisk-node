@@ -36,12 +36,13 @@ fn add_royalty_should_work_when_nft_exists() {
 
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::RoyaltyAdded {
+				Event::RoyaltyAdded {
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					author: CHARLIE,
 					royalty: 20,
-				})
+				}
+				.into()
 			);
 		});
 }

@@ -33,13 +33,14 @@ fn accept_offer_should_work_when_there_is_no_royalty() {
 			//Assert
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::OfferAccepted {
+				Event::OfferAccepted {
 					who: ALICE,
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					amount: PRICE,
 					maker: BOB,
-				})
+				}
+				.into()
 			);
 
 			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
@@ -97,13 +98,14 @@ fn accept_offer_should_work_when_there_is_royalty_present() {
 			//Assert
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::OfferAccepted {
+				Event::OfferAccepted {
 					who: ALICE,
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					amount: PRICE,
 					maker: BOB,
-				})
+				}
+				.into()
 			);
 			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
 			assert_eq!(
@@ -247,13 +249,14 @@ fn accept_offer_should_work_when_nft_has_royalty_and_price_is_set() {
 			//Assert
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::OfferAccepted {
+				Event::OfferAccepted {
 					who: ALICE,
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					amount: PRICE,
 					maker: BOB,
-				})
+				}
+				.into()
 			);
 			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
 			assert_eq!(
