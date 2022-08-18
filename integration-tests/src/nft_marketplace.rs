@@ -8,7 +8,7 @@ use basilisk_runtime::{
 use frame_support::{assert_noop, assert_ok};
 use orml_traits::MultiCurrency;
 use orml_traits::MultiReservableCurrency;
-use primitives::nft::ClassType;
+use pallet_nft::ClassType;
 use primitives::{AssetId, ClassId};
 use xcm_emulator::TestExt;
 
