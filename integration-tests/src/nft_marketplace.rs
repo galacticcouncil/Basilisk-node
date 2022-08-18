@@ -2,12 +2,14 @@
 
 use crate::kusama_test_net::*;
 use basilisk_runtime::{
-	AssetRegistry, ClassDeposit, InstanceDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount, Tokens,
-	NFT, RELAY_CHAIN_ASSET_LOCATION,
+	AssetRegistry, Balances, ClassDeposit, InstanceDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount,
+	Tokens, NFT, RELAY_CHAIN_ASSET_LOCATION,
 };
 use frame_support::{assert_noop, assert_ok};
+use hydradx_traits::nft::CreateTypedClass;
 use orml_traits::MultiCurrency;
 use orml_traits::MultiReservableCurrency;
+use pallet_nft::NftPermission;
 use primitives::nft::ClassType;
 use primitives::{AssetId, ClassId};
 use xcm_emulator::TestExt;
@@ -133,5 +135,107 @@ fn create_class_should_fail_when_relay_chain_location_not_registered() {
 			),
 			orml_tokens::Error::<basilisk_runtime::Runtime>::BalanceTooLow
 		);
+	});
+}
+
+#[test]
+fn nft_permissions_should_allow_marketplace_class_creation() {
+	assert!(<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_create(&ClassType::Marketplace));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_create(&ClassType::LiquidityMining));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_create(&ClassType::Redeemable));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_create(&ClassType::Auction));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_create(&ClassType::HydraHeads));
+}
+
+#[test]
+fn nft_permissions_should_allow_marketplace_class_minting() {
+	assert!(<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_mint(&ClassType::Marketplace));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_mint(&ClassType::LiquidityMining));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_mint(&ClassType::Redeemable));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_mint(&ClassType::Auction));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_mint(&ClassType::HydraHeads));
+}
+
+#[test]
+fn nft_permissions_should_allow_marketplace_and_liquidity_mining_class_transfer() {
+	assert!(<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_transfer(&ClassType::Marketplace));
+	assert!(<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_transfer(&ClassType::LiquidityMining));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_transfer(&ClassType::Redeemable));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_transfer(&ClassType::Auction));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_transfer(&ClassType::HydraHeads));
+}
+
+#[test]
+fn nft_permissions_should_allow_marketplace_class_burning() {
+	assert!(<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_burn(&ClassType::Marketplace));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_burn(&ClassType::LiquidityMining));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_burn(&ClassType::Redeemable));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_burn(&ClassType::Auction));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_burn(&ClassType::HydraHeads));
+}
+
+#[test]
+fn nft_permissions_should_allow_marketplace_class_destroying() {
+	assert!(<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_destroy(&ClassType::Marketplace));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_destroy(&ClassType::LiquidityMining));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_destroy(&ClassType::Redeemable));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_destroy(&ClassType::Auction));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_destroy(&ClassType::HydraHeads));
+}
+
+#[test]
+fn nft_permissions_should_require_deposit_for_marketplace_class_when_created() {
+	assert!(<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::has_deposit(&ClassType::Marketplace));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::has_deposit(&ClassType::LiquidityMining));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::has_deposit(&ClassType::Redeemable));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::has_deposit(&ClassType::Auction));
+	assert!(!<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::has_deposit(&ClassType::HydraHeads));
+}
+
+#[test]
+fn create_class_should_be_without_deposit_when_created_using_trait() {
+	// Arrange
+	TestNet::reset();
+	Basilisk::execute_with(|| {
+		let initial_balance = Balances::free_balance(&AccountId::from(ALICE));
+
+		// Act & Assert
+		assert_ok!(
+			<NFT as CreateTypedClass<AccountId, ClassId, ClassType>>::create_typed_class(
+				AccountId::from(ALICE),
+				0,
+				ClassType::Marketplace
+			)
+		);
+		assert_ok!(
+			<NFT as CreateTypedClass<AccountId, ClassId, ClassType>>::create_typed_class(
+				AccountId::from(ALICE),
+				1,
+				ClassType::LiquidityMining
+			)
+		);
+		assert_ok!(
+			<NFT as CreateTypedClass<AccountId, ClassId, ClassType>>::create_typed_class(
+				AccountId::from(ALICE),
+				2,
+				ClassType::Redeemable
+			)
+		);
+		assert_ok!(
+			<NFT as CreateTypedClass<AccountId, ClassId, ClassType>>::create_typed_class(
+				AccountId::from(ALICE),
+				3,
+				ClassType::Auction
+			)
+		);
+		assert_ok!(
+			<NFT as CreateTypedClass<AccountId, ClassId, ClassType>>::create_typed_class(
+				AccountId::from(ALICE),
+				4,
+				ClassType::HydraHeads
+			)
+		);
+
+		assert_eq!(initial_balance, Balances::free_balance(&AccountId::from(ALICE)));
 	});
 }
