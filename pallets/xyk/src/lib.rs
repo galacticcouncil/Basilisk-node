@@ -1101,7 +1101,8 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		T::Currency::transfer(asset_out, &pair_account, who, amount_out).map_err(|_| ExecutorError::Error(()))?;
 		T::Currency::transfer(asset_in, who, &pair_account, amount_in).map_err(|_| ExecutorError::Error(()))?;
 
-		todo!()
+		Ok(())
+
 	}
 
 	fn execute_buy(

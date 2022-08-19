@@ -892,7 +892,7 @@ impl pallet_router::Config for Runtime {
 	type AssetId = AssetId;
 	type Balance = Balance;
 	type Currency = Tokens;
-	type AMM = (XYK);
+	type AMM = XYK;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
