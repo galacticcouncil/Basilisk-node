@@ -136,7 +136,7 @@ fn nft_owner_should_not_have_rights_for_withdrawing_when_nft_is_burned() {
 }
 
 #[test]
-fn withdraw_offer_should_work_when_nft_is_burned() {
+fn nft_offer_maker_should_have_rights_for_withdrawing_when_nft_is_burned() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (BOB, 15_000 * UNITS)])
