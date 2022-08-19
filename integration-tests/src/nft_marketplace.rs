@@ -170,10 +170,7 @@ fn test_nft_permission_for_minting(class_type: ClassType, is_allowed: bool) {
 #[test_case(ClassType::Redeemable, NOT_ALLOW ; "redeemable class")]
 #[test_case(ClassType::Auction, NOT_ALLOW ; "auction class")]
 #[test_case(ClassType::HydraHeads, NOT_ALLOW ; "hydra heads class")]
-fn test_nft_permission_for_transfer(
-	class_type: ClassType,
-	is_allowed: bool,
-) {
+fn test_nft_permission_for_transfer(class_type: ClassType, is_allowed: bool) {
 	assert_eq!(
 		is_allowed,
 		<basilisk_runtime::Runtime as pallet_nft::Config>::Permissions::can_transfer(&class_type)
