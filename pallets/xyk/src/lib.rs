@@ -1019,3 +1019,98 @@ impl CanCreatePool<AssetId> for AllowAllPools {
 		true
 	}
 }
+
+use hydradx_traits::router::{Executor, ExecutorError, PoolType};
+
+impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
+	type Output = Balance;
+	type Error = ();
+
+	fn calculate_sell(
+		pool_type: PoolType<AssetId>,
+		asset_in: AssetId,
+		asset_out: AssetId,
+		amount_in: Balance,
+	) -> Result<Self::Output, ExecutorError<Self::Error>> {
+		if pool_type != PoolType::XYK {
+			return Err(ExecutorError::NotSupported);
+		}
+
+		let pair = AssetPair { asset_in, asset_out };
+		ensure!(Self::exists(pair), ExecutorError::Error(()));
+
+		let pair_account = Self::get_pair_id(pair);
+
+		let asset_in_reserve = T::Currency::free_balance(asset_in, &pair_account);
+		let asset_out_reserve = T::Currency::free_balance(asset_out, &pair_account);
+
+		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in)
+			.map_err(|_| ExecutorError::Error(()))?;
+
+		let transfer_fee = Self::calculate_fee(amount_out).map_err(|_| ExecutorError::Error(()))?;
+
+		let amount_out_without_fee = amount_out.checked_sub(transfer_fee).ok_or(ExecutorError::Error(()))?;
+
+		Ok(amount_out_without_fee)
+	}
+
+	fn calculate_buy(
+		pool_type: PoolType<AssetId>,
+		asset_in: AssetId,
+		asset_out: AssetId,
+		amount_out: Balance,
+	) -> Result<Self::Output, ExecutorError<Self::Error>> {
+		if pool_type != PoolType::XYK {
+			return Err(ExecutorError::NotSupported);
+		}
+
+		let pair = AssetPair { asset_in, asset_out };
+		ensure!(Self::exists(pair), ExecutorError::Error(()));
+
+		let pair_account = Self::get_pair_id(pair);
+
+		let asset_in_reserve = T::Currency::free_balance(asset_in, &pair_account);
+		let asset_out_reserve = T::Currency::free_balance(asset_out, &pair_account);
+
+		let amount_in = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out)
+			.map_err(|_| ExecutorError::Error(()))?;
+
+		let transfer_fee = Self::calculate_fee(amount_in).map_err(|_| ExecutorError::Error(()))?;
+
+		let amount_in_with_fee = amount_in.checked_add(transfer_fee).ok_or(ExecutorError::Error(()))?;
+
+		Ok(amount_in_with_fee)
+	}
+
+	fn execute_sell(
+		pool_type: PoolType<AssetId>,
+		who: &T::AccountId,
+		asset_in: AssetId,
+		asset_out: AssetId,
+		amount_in: Balance,
+	) -> Result<(), ExecutorError<Self::Error>> {
+		if pool_type != PoolType::XYK {
+			return Err(ExecutorError::NotSupported);
+		}
+		let amount_out = Self::calculate_sell(pool_type, asset_in, asset_out, amount_in)?;
+		let pair = AssetPair { asset_in, asset_out };
+		ensure!(Self::exists(pair), ExecutorError::Error(()));
+
+		let pair_account = Self::get_pair_id(pair);
+
+		T::Currency::transfer(asset_out, &pair_account, who, amount_out).map_err(|_| ExecutorError::Error(()))?;
+		T::Currency::transfer(asset_in, who, &pair_account, amount_in).map_err(|_| ExecutorError::Error(()))?;
+
+		todo!()
+	}
+
+	fn execute_buy(
+		_pool_type: PoolType<AssetId>,
+		_who: &T::AccountId,
+		_asset_in: AssetId,
+		_asset_out: AssetId,
+		_amount_out: Balance,
+	) -> Result<(), ExecutorError<Self::Error>> {
+		Err(ExecutorError::NotSupported)
+	}
+}
