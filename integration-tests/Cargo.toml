@@ -111,6 +111,7 @@ pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse",
 pretty_assertions = "1.2.1"
 xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
 sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17" }
+test-case = "2.2.1"
 
 [features]
 default = ["std"]
