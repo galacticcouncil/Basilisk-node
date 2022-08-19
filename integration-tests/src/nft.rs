@@ -7,7 +7,7 @@ use frame_support::traits::tokens::nonfungibles::*;
 use frame_support::traits::ReservableCurrency;
 use hydradx_traits::nft::CreateTypedClass;
 use pallet_nft::NftPermission;
-use primitives::nft::ClassType;
+use pallet_nft::ClassType;
 use primitives::{ClassId, InstanceId};
 use test_case::test_case;
 use xcm_emulator::TestExt;
