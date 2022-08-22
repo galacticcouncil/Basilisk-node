@@ -13,7 +13,6 @@ use primitives::{AssetId, ClassId};
 use xcm_emulator::TestExt;
 
 const KSM: AssetId = 1;
-
 const ALICE_COLLECTION: ClassId = 13370000;
 
 fn init() {
