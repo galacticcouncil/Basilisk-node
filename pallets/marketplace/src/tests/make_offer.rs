@@ -27,6 +27,7 @@ fn make_offer_should_work_when_no_nft_exists() {
 					expires: 2,
 				})
 			);
+			assert_eq!(<Test as Config>::Currency::reserved_balance(&CHARLIE), 50 * UNITS);
 
 			assert_eq!(
 				last_event(),
