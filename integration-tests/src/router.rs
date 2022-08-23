@@ -51,8 +51,17 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 		));
 
 		//Assert
+		let amount_out = 453_181_818_1819u128;
+
 		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell , BSX);
-		assert_trader_balance(453_181_818_1819u128, AUSD);
+		assert_trader_balance(amount_out, AUSD);
+
+		expect_basilisk_events(vec![pallet_router::Event::TradeIsExecuted {
+			asset_in: BSX,
+			asset_out: AUSD,
+			amount_in: amount_to_sell,
+			amount_out,
+		}.into()]);
 	});
 }
 
@@ -90,6 +99,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 			}
 		];
 
+		//Act
 		assert_ok!(Router::execute_sell(
 			Origin::signed(TRADER.into()),
 			BSX,
@@ -99,10 +109,20 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 			trades
 		));
 
+		//Assert
+		let amount_out = 105_455_305_9484u128;
+
 		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell , BSX);
-		assert_trader_balance(105_455_305_9484u128, KSM);
+		assert_trader_balance(amount_out, KSM);
 		assert_trader_balance(0, AUSD);
 		assert_trader_balance(0, MOVR);
+
+		expect_basilisk_events(vec![pallet_router::Event::TradeIsExecuted {
+			asset_in: BSX,
+			asset_out: KSM,
+			amount_in: amount_to_sell,
+			amount_out,
+		}.into()]);
 	});
 }
 
