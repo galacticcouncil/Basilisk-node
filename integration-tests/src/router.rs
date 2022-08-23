@@ -8,7 +8,7 @@ use xcm_emulator::TestExt;
 
 use sp_arithmetic::fixed_point::FixedPointNumber;
 
-use frame_support::assert_ok;
+use frame_support::{assert_noop, assert_ok};
 use hydradx_traits::router::PoolType;
 use orml_traits::MultiCurrency;
 use pallet_router::types::Trade;
@@ -26,10 +26,11 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 
 	Basilisk::execute_with(|| {
 		//Arrange
-		assert_trader_balance(0, AUSD);
 		create_pool(BSX, AUSD);
 
-		let amount_to_sell = 10;
+		assert_trader_balance(0, AUSD);
+
+		let amount_to_sell = 10 * UNITS;
 		let limit = 0;
 		let trades = vec![
 			Trade {
@@ -44,12 +45,13 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 			Origin::signed(TRADER.into()),
 			BSX,
 			AUSD,
-			amount_to_sell * UNITS,
+			amount_to_sell,
 			limit,
 			trades
 		));
 
 		//Assert
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell , BSX);
 		assert_trader_balance(453_181_818_1819u128, AUSD);
 	});
 }
@@ -60,13 +62,15 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 
 	Basilisk::execute_with(|| {
 		//Arrange
-		assert_trader_balance(0, AUSD);
-
 		create_pool(BSX, AUSD);
 		create_pool(AUSD, MOVR);
 		create_pool(MOVR, KSM);
 
-		let amount_to_sell = 10;
+		assert_trader_balance(0, AUSD);
+		assert_trader_balance(0, MOVR);
+		assert_trader_balance(0, KSM);
+
+		let amount_to_sell = 10 * UNITS;
 		let limit = 0;
 		let trades = vec![
 			Trade {
@@ -90,17 +94,95 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 			Origin::signed(TRADER.into()),
 			BSX,
 			KSM,
-			amount_to_sell * UNITS,
+			amount_to_sell,
 			limit,
 			trades
 		));
 
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell , BSX);
 		assert_trader_balance(105_455_305_9484u128, KSM);
+		assert_trader_balance(0, AUSD);
+		assert_trader_balance(0, MOVR);
 	});
 }
 
-//TODO: add test for when there is no existing pool
-//TODO: add test for limit
+#[test]
+fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		//Arrange
+		assert_trader_balance(0, AUSD);
+
+		let amount_to_sell = 10;
+		let limit = 0;
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			}
+		];
+
+		//Act and Assert
+		assert_noop!(Router::execute_sell(
+			Origin::signed(TRADER.into()),
+			BSX,
+			AUSD,
+			amount_to_sell * UNITS,
+			limit,
+			trades
+		),
+		pallet_router::Error::<basilisk_runtime::Runtime>::PriceCalculationFailed);
+
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE, BSX);
+		assert_trader_balance(0, AUSD);
+
+	});
+}
+
+#[test]
+fn execute_sell_should_fail_when_firs_trade_is_successful_but_second_trade_has_no_supported_pool() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		assert_trader_balance(0, AUSD);
+		assert_trader_balance(0, KSM);
+
+		let amount_to_sell = 10;
+		let limit = 0;
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			},
+			Trade {
+				pool: PoolType::Omnipool,
+				asset_in: AUSD,
+				asset_out: KSM,
+			}
+		];
+
+		//Act and Assert
+		assert_noop!(Router::execute_sell(
+			Origin::signed(TRADER.into()),
+			BSX,
+			KSM,
+			amount_to_sell * UNITS,
+			limit,
+			trades
+		),
+		pallet_router::Error::<basilisk_runtime::Runtime>::PoolNotSupported);
+
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE, BSX);
+		assert_trader_balance(0, AUSD);
+		assert_trader_balance(0, KSM);
+	});
+}
 
 fn create_pool(asset_a: u32, asset_b: u32) {
 	assert_ok!(XYK::create_pool(

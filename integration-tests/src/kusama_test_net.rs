@@ -10,6 +10,8 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
+pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
+
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
 use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
@@ -177,7 +179,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
 			(AccountId::from(ALICE), 200 * UNITS),
-			(AccountId::from(BOB), 1000 * UNITS),
+			(AccountId::from(BOB), BOB_INITIAL_BSX_BALANCE),
 			(AccountId::from(CHARLIE), 1000 * UNITS),
 			(AccountId::from(DAVE), 1000 * UNITS),
 			(vesting_account(), 1_000_000 * UNITS),
