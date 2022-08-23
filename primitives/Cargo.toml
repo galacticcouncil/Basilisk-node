@@ -14,7 +14,7 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 primitive-types = { default-features = false, version = "0.10.1" }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "13287f24c954cbfc6a3bb59009da727b170a2724", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "54b11ce9e2ffed916adcf50e8c74dea7d9c55185", default-features = false }
 
 # Substrate dependencies
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
