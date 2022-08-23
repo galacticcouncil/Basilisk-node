@@ -205,6 +205,129 @@ fn execute_sell_should_fail_when_firs_trade_is_successful_but_second_trade_has_n
 	});
 }
 
+#[test]
+fn execute_buy_should_work_when_route_contains_single_trade() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		assert_trader_balance(0, AUSD);
+
+		let amount_to_buy = 10 * UNITS;
+		let limit = 30 * UNITS;
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
+
+		//Act
+		assert_ok!(Router::execute_buy(
+			Origin::signed(TRADER.into()),
+			BSX,
+			AUSD,
+			amount_to_buy,
+			limit,
+			trades
+		));
+
+		//Assert
+		let amount_in = 25075000000001;
+
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_in, BSX);
+		assert_trader_balance(999_391_365_1811u128, AUSD);
+
+		expect_basilisk_events(vec![pallet_router::Event::TradeIsExecuted {
+			asset_in: BSX,
+			asset_out: AUSD,
+			amount_in,
+			amount_out: amount_to_buy,
+		}.into()]);
+	});
+}
+
+
+#[test]
+fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		//Arrange
+		assert_trader_balance(0, AUSD);
+
+		let amount_to_sell = 10;
+		let limit = 0;
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
+
+		//Act and Assert
+		assert_noop!(
+			Router::execute_buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				AUSD,
+				amount_to_sell * UNITS,
+				limit,
+				trades
+			),
+			pallet_router::Error::<basilisk_runtime::Runtime>::PriceCalculationFailed
+		);
+
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE, BSX);
+		assert_trader_balance(0, AUSD);
+	});
+}
+
+#[test]
+fn execute_buy_should_fail_when_firs_trade_is_successful_but_second_trade_has_no_supported_pool() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		assert_trader_balance(0, AUSD);
+		assert_trader_balance(0, KSM);
+
+		let amount_to_sell = 10;
+		let limit = 0;
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			},
+			Trade {
+				pool: PoolType::Omnipool,
+				asset_in: AUSD,
+				asset_out: KSM,
+			},
+		];
+
+		//Act and Assert
+		assert_noop!(
+			Router::execute_buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				KSM,
+				amount_to_sell * UNITS,
+				limit,
+				trades
+			),
+			pallet_router::Error::<basilisk_runtime::Runtime>::PoolNotSupported
+		);
+
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE, BSX);
+		assert_trader_balance(0, AUSD);
+		assert_trader_balance(0, KSM);
+	});
+}
+
 fn create_pool(asset_a: u32, asset_b: u32) {
 	assert_ok!(XYK::create_pool(
 		Origin::signed(ALICE.into()),
