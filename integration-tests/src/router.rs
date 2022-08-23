@@ -3,7 +3,7 @@
 use crate::kusama_test_net::*;
 
 use basilisk_runtime::{Origin, Router, XYK};
-use primitives::{Price};
+use primitives::Price;
 use xcm_emulator::TestExt;
 
 use sp_arithmetic::fixed_point::FixedPointNumber;
@@ -32,13 +32,11 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 
 		let amount_to_sell = 10 * UNITS;
 		let limit = 0;
-		let trades = vec![
-			Trade {
-				pool: PoolType::XYK,
-				asset_in: BSX,
-				asset_out: AUSD,
-			}
-		];
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
 
 		//Act
 		assert_ok!(Router::execute_sell(
@@ -53,7 +51,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 		//Assert
 		let amount_out = 453_181_818_1819u128;
 
-		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell , BSX);
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell, BSX);
 		assert_trader_balance(amount_out, AUSD);
 
 		expect_basilisk_events(vec![pallet_router::Event::TradeIsExecuted {
@@ -61,7 +59,8 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 			asset_out: AUSD,
 			amount_in: amount_to_sell,
 			amount_out,
-		}.into()]);
+		}
+		.into()]);
 	});
 }
 
@@ -96,7 +95,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 				pool: PoolType::XYK,
 				asset_in: MOVR,
 				asset_out: KSM,
-			}
+			},
 		];
 
 		//Act
@@ -112,7 +111,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 		//Assert
 		let amount_out = 105_455_305_9484u128;
 
-		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell , BSX);
+		assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell, BSX);
 		assert_trader_balance(amount_out, KSM);
 		assert_trader_balance(0, AUSD);
 		assert_trader_balance(0, MOVR);
@@ -122,7 +121,8 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 			asset_out: KSM,
 			amount_in: amount_to_sell,
 			amount_out,
-		}.into()]);
+		}
+		.into()]);
 	});
 }
 
@@ -136,28 +136,27 @@ fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 
 		let amount_to_sell = 10;
 		let limit = 0;
-		let trades = vec![
-			Trade {
-				pool: PoolType::XYK,
-				asset_in: BSX,
-				asset_out: AUSD,
-			}
-		];
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
 
 		//Act and Assert
-		assert_noop!(Router::execute_sell(
-			Origin::signed(TRADER.into()),
-			BSX,
-			AUSD,
-			amount_to_sell * UNITS,
-			limit,
-			trades
-		),
-		pallet_router::Error::<basilisk_runtime::Runtime>::PriceCalculationFailed);
+		assert_noop!(
+			Router::execute_sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				AUSD,
+				amount_to_sell * UNITS,
+				limit,
+				trades
+			),
+			pallet_router::Error::<basilisk_runtime::Runtime>::PriceCalculationFailed
+		);
 
 		assert_trader_balance(BOB_INITIAL_BSX_BALANCE, BSX);
 		assert_trader_balance(0, AUSD);
-
 	});
 }
 
@@ -184,19 +183,21 @@ fn execute_sell_should_fail_when_firs_trade_is_successful_but_second_trade_has_n
 				pool: PoolType::Omnipool,
 				asset_in: AUSD,
 				asset_out: KSM,
-			}
+			},
 		];
 
 		//Act and Assert
-		assert_noop!(Router::execute_sell(
-			Origin::signed(TRADER.into()),
-			BSX,
-			KSM,
-			amount_to_sell * UNITS,
-			limit,
-			trades
-		),
-		pallet_router::Error::<basilisk_runtime::Runtime>::PoolNotSupported);
+		assert_noop!(
+			Router::execute_sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				KSM,
+				amount_to_sell * UNITS,
+				limit,
+				trades
+			),
+			pallet_router::Error::<basilisk_runtime::Runtime>::PoolNotSupported
+		);
 
 		assert_trader_balance(BOB_INITIAL_BSX_BALANCE, BSX);
 		assert_trader_balance(0, AUSD);
@@ -214,8 +215,7 @@ fn create_pool(asset_a: u32, asset_b: u32) {
 	));
 }
 
-fn assert_trader_balance(balance: u128, asset_id: u32, ) {
+fn assert_trader_balance(balance: u128, asset_id: u32) {
 	let bob_balance = basilisk_runtime::Tokens::free_balance(asset_id, &AccountId::from(TRADER));
 	assert_eq!(bob_balance, balance);
 }
-
