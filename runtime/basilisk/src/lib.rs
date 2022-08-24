@@ -69,6 +69,7 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 mod xcm;
 
 mod benchmarking;
+mod inspect;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -891,7 +892,7 @@ impl pallet_router::Config for Runtime {
 	type Event = Event;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type Currency = Tokens;
+	type Currency = inspect::MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
 	type AMM = XYK;
 }
 
