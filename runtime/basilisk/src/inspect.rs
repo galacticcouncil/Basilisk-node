@@ -4,7 +4,14 @@ use frame_support::traits::fungibles::Inspect as FungiblesInspect;
 use frame_support::traits::tokens::{DepositConsequence, WithdrawConsequence};
 
 pub struct MultiInspectAdapter<AccountId, AssetId, Balance, NativeCurrency, MultiCurrency, GetNativeCurrencyId>(
-	sp_std::marker::PhantomData<(AccountId, AssetId, Balance, NativeCurrency, MultiCurrency, GetNativeCurrencyId)>,
+	sp_std::marker::PhantomData<(
+		AccountId,
+		AssetId,
+		Balance,
+		NativeCurrency,
+		MultiCurrency,
+		GetNativeCurrencyId,
+	)>,
 );
 
 impl<AccountId, AssetId, Balance, NativeCurrency, MultiCurrency, GetNativeCurrencyId> FungiblesInspect<AccountId>
@@ -52,11 +59,11 @@ where
 	}
 
 	fn can_deposit(asset: Self::AssetId, who: &AccountId, amount: Self::Balance) -> DepositConsequence {
-        if GetNativeCurrencyId::get() == asset {
-            NativeCurrency::can_deposit(who, amount)
-        } else {
-            MultiCurrency::can_deposit(asset, who, amount)
-        }
+		if GetNativeCurrencyId::get() == asset {
+			NativeCurrency::can_deposit(who, amount)
+		} else {
+			MultiCurrency::can_deposit(asset, who, amount)
+		}
 	}
 
 	fn can_withdraw(
@@ -64,10 +71,10 @@ where
 		who: &AccountId,
 		amount: Self::Balance,
 	) -> WithdrawConsequence<Self::Balance> {
-        if GetNativeCurrencyId::get() == asset {
-            NativeCurrency::can_withdraw(who, amount)
-        } else {
-            MultiCurrency::can_withdraw(asset, who, amount)
-        }
+		if GetNativeCurrencyId::get() == asset {
+			NativeCurrency::can_withdraw(who, amount)
+		} else {
+			MultiCurrency::can_withdraw(asset, who, amount)
+		}
 	}
 }
