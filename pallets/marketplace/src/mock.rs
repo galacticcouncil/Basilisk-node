@@ -33,11 +33,11 @@ frame_support::construct_runtime!(
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Marketplace: pallet_marketplace::{Pallet, Call, Storage, Event<T>},
-		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
+		System: frame_system,
+		Marketplace: pallet_marketplace,
+		NFT: pallet_nft,
+		Balances: pallet_balances,
+		Uniques: pallet_uniques,
 	}
 );
 

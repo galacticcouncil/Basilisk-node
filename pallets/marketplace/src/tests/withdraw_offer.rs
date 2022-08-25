@@ -31,11 +31,12 @@ fn withdraw_offer_should_work_when_offer_has_been_already_made() {
 
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::OfferWithdrawn {
+				Event::OfferWithdrawn {
 					who: BOB,
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
-				})
+				}
+				.into()
 			);
 		});
 }

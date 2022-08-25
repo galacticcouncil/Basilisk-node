@@ -21,12 +21,13 @@ fn set_price_should_work_when_nft_exists() {
 			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), Some(10));
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::TokenPriceUpdated {
+				Event::TokenPriceUpdated {
 					who: ALICE,
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					price: Some(10),
-				})
+				}
+				.into()
 			);
 		});
 }
@@ -86,12 +87,13 @@ fn set_price_should_update_price_when_called_second_time() {
 			));
 
 			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), Some(20));
-			let event = Event::Marketplace(crate::Event::TokenPriceUpdated {
+			let event = Event::TokenPriceUpdated {
 				who: ALICE,
 				class: CLASS_ID_0,
 				instance: INSTANCE_ID_0,
 				price: Some(20),
-			});
+			}
+			.into();
 			assert_eq!(last_event(), event);
 		});
 }

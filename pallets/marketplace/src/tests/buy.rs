@@ -48,13 +48,14 @@ fn buy_should_work_when_there_is_no_royalty() {
 
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::TokenSold {
+				Event::TokenSold {
 					owner: ALICE,
 					buyer: CHARLIE,
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					price,
-				})
+				}
+				.into()
 			);
 
 			assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + price);
@@ -226,7 +227,7 @@ fn buy_should_work_when_there_is_royalty_bigger_than_minimum() {
 
 			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
 			expect_events(vec![
-				crate::Event::RoyaltyPaid {
+				Event::RoyaltyPaid {
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					author: BOB,
@@ -234,7 +235,7 @@ fn buy_should_work_when_there_is_royalty_bigger_than_minimum() {
 					royalty_amount: 20 * UNITS,
 				}
 				.into(),
-				crate::Event::TokenSold {
+				Event::TokenSold {
 					owner: ALICE,
 					buyer: CHARLIE,
 					class: CLASS_ID_0,

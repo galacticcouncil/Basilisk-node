@@ -81,6 +81,9 @@ use common_runtime::locked_balance::MultiCurrencyLockedBalance;
 pub use common_runtime::*;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, DepositAll, RemoveTxAssetOnKilled, TransferFees};
 
+mod migrations;
+use migrations::OnRuntimeUpgradeMigration;
+
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -152,7 +155,7 @@ impl Contains<Call> for BaseFilter {
 use common_runtime::adapter::OrmlTokensAdapter;
 use primitives::{
 	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId,
+	CollectionId, ItemId,
 };
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
@@ -538,19 +541,19 @@ impl parachain_info::Config for Runtime {}
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
 parameter_types! {
-	pub ReserveClassIdUpTo: u128 = 999_999;
+	pub ReserveCollectionIdUpTo: u128 = 999_999;
 }
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
 	//Generated weight file is not used because we want diffent prices for now.
 	type WeightInfo = weights::offsetted_nft::BasiliskWeight<Runtime>;
-	type NftClassId = ClassId;
-	type NftInstanceId = InstanceId;
+	type NftClassId = CollectionId;
+	type NftInstanceId = ItemId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type ClassType = ClassType;
 	type Permissions = NftPermissions;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type ReserveClassIdUpTo = ReserveCollectionIdUpTo;
 }
 
 type MajorityCouncilOrRoot =
@@ -825,8 +828,8 @@ parameter_types! {
 
 impl pallet_uniques::Config for Runtime {
 	type Event = Event;
-	type CollectionId = ClassId;
-	type ItemId = InstanceId;
+	type CollectionId = CollectionId;
+	type ItemId = ItemId;
 	type Currency = KusamaCurrency;
 	type ForceOrigin = SuperMajorityCouncilOrRoot;
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
@@ -994,6 +997,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsReversedWithSystemFirst,
+	OnRuntimeUpgradeMigration,
 >;
 
 impl_runtime_apis! {
