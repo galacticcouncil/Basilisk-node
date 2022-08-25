@@ -238,7 +238,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		let amount_in = 25075000000001;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
-		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + 999_391_365_1811u128, AUSD);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
 
 		expect_basilisk_events(vec![pallet_router::Event::RouteIsExecuted {
 			asset_in: BSX,
@@ -250,7 +250,62 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 }
 
 
-/*
+#[test]
+fn execute_buy_should_work_when_route_contains_two_trades() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, KSM);
+		create_pool(KSM, AUSD);
+
+		assert_trader_bsx_balance(BOB_INITIAL_AUSD_BALANCE);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
+		assert_trader_non_native_balance(0, KSM);
+
+		let amount_to_buy = 1 * UNITS;
+		let limit = 10 * UNITS;
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: KSM,
+			},
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: KSM,
+				asset_out: AUSD,
+			}
+		];
+
+		//Act
+		assert_ok!(Router::execute_buy(
+			Origin::signed(TRADER.into()),
+			BSX,
+			AUSD,
+			amount_to_buy,
+			limit,
+			trades
+		));
+
+		//Assert
+		let amount_in = 428_143_592_7986;
+
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
+		assert_trader_non_native_balance(0, KSM);
+
+		expect_basilisk_events(vec![pallet_router::Event::RouteIsExecuted {
+			asset_in: BSX,
+			asset_out: AUSD,
+			amount_in: amount_in,
+			amount_out: amount_to_buy,
+		}.into()]);
+	});
+}
+
+
+
 #[test]
 fn execute_buy_should_work_when_route_contains_multiple_trades() {
 	TestNet::reset();
@@ -261,9 +316,10 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		create_pool(KSM, MOVR);
 		create_pool(MOVR, AUSD);
 
-		/*assert_trader_balance(0, AUSD);
-		assert_trader_balance(0, MOVR);
-		assert_trader_balance(0, KSM);*/
+		assert_trader_bsx_balance(BOB_INITIAL_AUSD_BALANCE);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
+		assert_trader_non_native_balance(0, MOVR);
+		assert_trader_non_native_balance(0, KSM);
 
 		let amount_to_buy = 1 * UNITS;
 		let limit = 10 * UNITS;
@@ -296,22 +352,22 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		));
 
 		//Assert
-		let amount_in = 939_285_894_6762u128;
+		let amount_in = 939_285_894_6762;
 
-		//assert_trader_balance(BOB_INITIAL_BSX_BALANCE - amount_in, BSX);
-		assert_trader_non_native_balance(999_931_004_141, KSM);
-		/*assert_trader_balance(0, AUSD);
-		assert_trader_balance(0, MOVR);*/
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
+		assert_trader_non_native_balance(0, MOVR);
+		assert_trader_non_native_balance(0, KSM);
 
 		expect_basilisk_events(vec![pallet_router::Event::RouteIsExecuted {
 			asset_in: BSX,
-			asset_out: KSM,
+			asset_out: AUSD,
 			amount_in: amount_in,
 			amount_out: amount_to_buy,
 		}
 			.into()]);
 	});
-}*/
+}
 
 
 #[test]
@@ -405,12 +461,12 @@ fn create_pool(asset_a: u32, asset_b: u32) {
 
 fn assert_trader_non_native_balance(balance: u128, asset_id: u32) {
 	let trader_balance = basilisk_runtime::Tokens::free_balance(asset_id, &AccountId::from(TRADER));
-	assert_eq!(trader_balance, balance);
+	assert_eq!(trader_balance, balance, "\r\nNon native asset({}) balance '{}' is not as expected '{}'",asset_id, trader_balance, balance);
 }
 
 fn assert_trader_bsx_balance(balance: u128) {
 	let trader_balance = basilisk_runtime::Balances::free_balance(&AccountId::from(TRADER));
-	assert_eq!(trader_balance, balance);
+	assert_eq!(trader_balance, balance, "\r\nBSX asset balance '{}' is not as expected '{}'", trader_balance, balance);
 }
 
 

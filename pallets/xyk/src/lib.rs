@@ -1106,12 +1106,23 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 	}
 
 	fn execute_buy(
-		_pool_type: PoolType<AssetId>,
-		_who: &T::AccountId,
-		_asset_in: AssetId,
-		_asset_out: AssetId,
-		_amount_out: Balance,
+		pool_type: PoolType<AssetId>,
+		who: &T::AccountId,
+		asset_in: AssetId,
+		asset_out: AssetId,
+		amount_out: Balance,
 	) -> Result<(), ExecutorError<Self::Error>> {
-		Err(ExecutorError::NotSupported)
-	}
+		if pool_type != PoolType::XYK {
+			return Err(ExecutorError::NotSupported);
+		}
+		let amount_in = Self::calculate_buy(pool_type, asset_in, asset_out, amount_out)?;
+		let pair = AssetPair { asset_in, asset_out };
+		ensure!(Self::exists(pair), ExecutorError::Error(()));
+
+		let pair_account = Self::get_pair_id(pair);
+
+		T::Currency::transfer(asset_out, &pair_account, who, amount_out).map_err(|_| ExecutorError::Error(()))?;
+		T::Currency::transfer(asset_in, who, &pair_account, amount_in).map_err(|_| ExecutorError::Error(()))?;
+
+		Ok(())	}
 }
