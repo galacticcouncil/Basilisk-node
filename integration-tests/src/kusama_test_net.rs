@@ -11,6 +11,7 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 pub const UNITS: Balance = 1_000_000_000_000;
 
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
+pub const BOB_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
@@ -212,7 +213,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			(AccountId::from(ALICE), 1, 200 * UNITS),
 			(AccountId::from(ALICE), 2, 200 * UNITS),
 			(AccountId::from(ALICE), 3, 200 * UNITS),
-			(AccountId::from(BOB), 1, 1_000 * UNITS),
+			(AccountId::from(BOB), 1, BOB_INITIAL_ASSET_1_BALANCE),
 			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
 			(AccountId::from(DAVE), 1, 1_000 * UNITS),
 		],
