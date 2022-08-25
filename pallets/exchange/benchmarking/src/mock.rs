@@ -186,11 +186,16 @@ impl pallet_xyk::Config for Test {
 	type NonDustableWhitelistHandler = Whitelist;
 }
 
+parameter_types! {
+	pub const MaxIntentions: u32 = 1_000;
+}
+
 impl pallet_exchange::Config for Test {
 	type Event = Event;
 	type AMMPool = XYKPallet;
 	type Currency = Currency;
 	type Resolver = pallet_exchange::Pallet<Test>;
+	type MaxIntentions = MaxIntentions;
 	type WeightInfo = ();
 }
 

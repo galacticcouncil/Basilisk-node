@@ -22,7 +22,7 @@
 #![allow(clippy::unnecessary_wraps)]
 #![feature(drain_filter)]
 
-use frame_support::{dispatch, ensure};
+use frame_support::{dispatch, ensure, BoundedVec};
 use frame_system::{self as system, ensure_signed};
 
 use codec::Encode;
@@ -64,7 +64,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::OriginFor;
 
 	#[pallet::pallet]
-	#[pallet::without_storage_info]
+	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::hooks]
@@ -89,7 +89,7 @@ pub mod pallet {
 
 				//TODO: we can short circuit here if nothing in asset_b_sells and just resolve asset_a sells.
 
-				Self::process_exchange_intentions(&pair_account, &mut asset_a_ins, &mut asset_b_ins);
+				Self::process_exchange_intentions(&pair_account, asset_a_ins.as_mut(), asset_b_ins.as_mut());
 			}
 
 			ExchangeAssetsIntentionCount::<T>::remove_all(None);
@@ -114,6 +114,9 @@ pub mod pallet {
 		/// Currency for transfers
 		type Currency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Balance = Balance, Amount = Amount>
 			+ MultiReservableCurrency<Self::AccountId>;
+
+		/// Maximum number of registered intentions
+		type MaxIntentions: Get<u32>;
 
 		/// Weight information for the extrinsics.
 		type WeightInfo: WeightInfo;
@@ -202,6 +205,9 @@ pub mod pallet {
 
 		/// Overflow
 		IntentionCountOverflow,
+
+		/// Too many intentions
+		TooManyIntentions,
 	}
 
 	/// Intention count for current block
@@ -215,7 +221,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn get_intentions)]
 	pub type ExchangeAssetsIntentions<T: Config> =
-		StorageMap<_, Blake2_128Concat, (AssetId, AssetId), Vec<Intention<T>>, ValueQuery>;
+		StorageMap<_, Blake2_128Concat, (AssetId, AssetId), BoundedVec<Intention<T>, T::MaxIntentions>, ValueQuery>;
 
 	#[allow(dead_code)]
 	#[pallet::extra_constants]
@@ -380,7 +386,15 @@ impl<T: Config> Pallet<T> {
 		})?;
 
 		// Note: cannot use ordered tuple pair, as this must be stored as (in,out) pair
-		<ExchangeAssetsIntentions<T>>::append((assets.asset_in, assets.asset_out), intention);
+		<ExchangeAssetsIntentions<T>>::try_mutate(
+			(assets.asset_in, assets.asset_out),
+			|intentions| -> DispatchResult {
+				intentions
+					.try_push(intention)
+					.map_err(|_| Error::<T>::TooManyIntentions)?;
+				Ok(())
+			},
+		)?;
 
 		match intention_type {
 			IntentionType::SELL => {

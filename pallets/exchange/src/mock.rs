@@ -193,11 +193,16 @@ impl xyk::Config for Test {
 	type NonDustableWhitelistHandler = Whitelist;
 }
 
+parameter_types! {
+	pub const MaxIntentions: u32 = 1_000;
+}
+
 impl Config for Test {
 	type Event = Event;
 	type AMMPool = XYK;
 	type Currency = Currency;
 	type Resolver = exchange::Pallet<Test>;
+	type MaxIntentions = MaxIntentions;
 	type WeightInfo = ();
 }
 

@@ -63,6 +63,7 @@ pub mod pallet {
 	use hydradx_traits::ShareTokenRegistry;
 
 	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::hooks]

@@ -16,12 +16,10 @@
 // limitations under the License.
 
 use crate::AssetId;
-
 use codec::{Decode, Encode};
-
-use sp_std::vec::Vec;
-
+use frame_support::pallet_prelude::MaxEncodedLen;
 use scale_info::TypeInfo;
+use sp_std::vec::Vec;
 
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
@@ -32,7 +30,7 @@ use serde::{Deserialize, Serialize};
 /// asset_in represents asset coming into the pool
 /// asset_out represents asset coming out of the pool
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default, TypeInfo)]
+#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default, TypeInfo, MaxEncodedLen)]
 pub struct AssetPair {
 	pub asset_in: AssetId,
 	pub asset_out: AssetId,

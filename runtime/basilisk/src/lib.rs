@@ -63,6 +63,7 @@ use frame_support::{
 	},
 };
 use hydradx_traits::AssetPairAccountIdFor;
+use pallet_exchange::weights::WeightInfo;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
@@ -107,7 +108,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 72,
+	spec_version: 73,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -253,6 +254,15 @@ parameter_types! {
 		.build_or_panic();
 
 	pub ExtrinsicBaseWeight: Weight = common_runtime::BasiliskExtrinsicBaseWeight::get();
+	// The max number of intentions is the same as the number of TXs that can fit into a block.
+	// The reason for this limit is to bound the storage size and the size of a PoV.
+	pub MaxIntentions: u32 = (
+		match BlockWeights::get().get(DispatchClass::Normal).max_total {
+			Some(weight) => weight,
+			None => BlockWeights::get().max_block,
+		} / common_runtime::weights::exchange::BasiliskWeight::<Runtime>::buy_extrinsic()
+		.max(common_runtime::weights::exchange::BasiliskWeight::<Runtime>::sell_extrinsic())
+	).try_into().unwrap();
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -483,6 +493,7 @@ impl pallet_exchange::Config for Runtime {
 	type AMMPool = XYK;
 	type Resolver = Exchange;
 	type Currency = Currencies;
+	type MaxIntentions = MaxIntentions;
 	type WeightInfo = common_runtime::weights::exchange::BasiliskWeight<Runtime>;
 }
 
