@@ -700,17 +700,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		min_bought: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, sp_runtime::DispatchError> {
-		ensure!(
-			amount >= T::MinTradingLimit::get(),
-			Error::<T>::InsufficientTradingAmount
-		);
-
-		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
-
-		ensure!(
-			T::Currency::free_balance(assets.asset_in, who) >= amount,
-			Error::<T>::InsufficientAssetBalance
-		);
+		Self::do_validate_sell_common(amount, assets, who)?;
 
 		// If discount, pool for Sell asset and native asset must exist
 		if discount {
@@ -727,14 +717,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
-
-		ensure!(
-			amount
-				<= asset_in_reserve
-					.checked_div(T::MaxInRatio::get())
-					.ok_or(Error::<T>::Overflow)?,
-			Error::<T>::MaxInRatioExceeded
-		);
 
 		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount)
 			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
@@ -799,47 +781,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
 	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		let pair_account = Self::get_pair_id(transfer.assets);
-
-		let total_liquidity = Self::total_liquidity(&pair_account);
-		T::AMMHandler::on_trade(
-			transfer.assets.asset_in,
-			transfer.assets.asset_out,
-			transfer.amount,
-			transfer.amount_out,
-			total_liquidity,
-		);
-
-		if transfer.discount && transfer.discount_amount > 0u128 {
-			let native_asset = T::NativeAssetId::get();
-			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
-		}
-
-		T::Currency::transfer(
-			transfer.assets.asset_in,
-			&transfer.origin,
-			&pair_account,
-			transfer.amount,
-		)?;
-		T::Currency::transfer(
-			transfer.assets.asset_out,
-			&pair_account,
-			&transfer.origin,
-			transfer.amount_out,
-		)?;
-
-		Self::deposit_event(Event::<T>::SellExecuted {
-			who: transfer.origin.clone(),
-			asset_in: transfer.assets.asset_in,
-			asset_out: transfer.assets.asset_out,
-			amount: transfer.amount,
-			sale_price: transfer.amount_out,
-			fee_asset: transfer.fee.0,
-			fee_amount: transfer.fee.1,
-			pool: pair_account,
-		});
-
-		Ok(())
+		Self::do_execute_sell(transfer)
 	}
 
 	/// Validate a buy. Perform all necessary checks and calculations.
@@ -853,27 +795,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		max_limit: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-		ensure!(
-			amount >= T::MinTradingLimit::get(),
-			Error::<T>::InsufficientTradingAmount
-		);
-
-		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+		Self::do_validate_buy_common(assets, amount)?;
 
 		let pair_account = Self::get_pair_id(assets);
 
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
-
-		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
-
-		ensure!(
-			amount
-				<= asset_out_reserve
-					.checked_div(T::MaxOutRatio::get())
-					.ok_or(Error::<T>::Overflow)?,
-			Error::<T>::MaxOutRatioExceeded
-		);
 
 		// If discount, pool for Sell asset and native asset must exist
 		if discount {
@@ -948,47 +875,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		let pair_account = Self::get_pair_id(transfer.assets);
-
-		let total_liquidity = Self::total_liquidity(&pair_account);
-		T::AMMHandler::on_trade(
-			transfer.assets.asset_in,
-			transfer.assets.asset_out,
-			transfer.amount,
-			transfer.amount_out,
-			total_liquidity,
-		);
-
-		if transfer.discount && transfer.discount_amount > 0 {
-			let native_asset = T::NativeAssetId::get();
-			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
-		}
-
-		T::Currency::transfer(
-			transfer.assets.asset_out,
-			&pair_account,
-			&transfer.origin,
-			transfer.amount,
-		)?;
-		T::Currency::transfer(
-			transfer.assets.asset_in,
-			&transfer.origin,
-			&pair_account,
-			transfer.amount_out + transfer.fee.1,
-		)?;
-
-		Self::deposit_event(Event::<T>::BuyExecuted {
-			who: transfer.origin.clone(),
-			asset_out: transfer.assets.asset_out,
-			asset_in: transfer.assets.asset_in,
-			amount: transfer.amount,
-			buy_price: transfer.amount_out,
-			fee_asset: transfer.fee.0,
-			fee_amount: transfer.fee.1,
-			pool: pair_account,
-		});
-
-		Ok(())
+		Self::do_execute_buy(&transfer)
 	}
 
 	fn get_min_trading_limit() -> Balance {
@@ -1092,14 +979,26 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
+
+		let assets = AssetPair {
+			asset_in,
+			asset_out
+		};
 		let amount_out = Self::calculate_sell(pool_type, asset_in, asset_out, amount_in)?;
-		let pair = AssetPair { asset_in, asset_out };
-		ensure!(Self::exists(pair), ExecutorError::Error(()));
+		let no_fee = (0u32,0); //TODO: Dani return the fee from the calculate and pass it here
 
-		let pair_account = Self::get_pair_id(pair);
-
-		T::Currency::transfer(asset_out, &pair_account, who, amount_out).map_err(|_| ExecutorError::Error(()))?;
-		T::Currency::transfer(asset_in, who, &pair_account, amount_in).map_err(|_| ExecutorError::Error(()))?;
+		let amm_transfer = AMMTransfer {
+			origin: who.clone(),
+			assets,
+			amount: amount_in,
+			amount_out,
+			fee: no_fee,
+			discount: false,
+			discount_amount: 0,
+		};
+		//TODO: Dani - proper error propagation
+		Self::do_validate_sell_common(amount_in, assets, &who).map_err(|_|ExecutorError::Error(()))?;
+		Self::do_execute_sell(&amm_transfer).map_err(|_|ExecutorError::Error(()))?;
 
 		Ok(())
 
@@ -1115,14 +1014,168 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
+
+		let assets = AssetPair {
+			asset_in,
+			asset_out
+		};
 		let amount_in = Self::calculate_buy(pool_type, asset_in, asset_out, amount_out)?;
-		let pair = AssetPair { asset_in, asset_out };
-		ensure!(Self::exists(pair), ExecutorError::Error(()));
+		let no_fee = (0u32,0); //TODO: Dani return the fee from the calculate and pass it here
 
-		let pair_account = Self::get_pair_id(pair);
-
-		T::Currency::transfer(asset_out, &pair_account, who, amount_out).map_err(|_| ExecutorError::Error(()))?;
-		T::Currency::transfer(asset_in, who, &pair_account, amount_in).map_err(|_| ExecutorError::Error(()))?;
+		let amm_transfer = AMMTransfer {
+			origin: who.clone(),
+			assets,
+			amount: amount_out,
+			amount_out: amount_in,
+			fee: no_fee,
+			discount: false,
+			discount_amount: 0,
+		};
+		Self::do_validate_buy_common(assets,amount_out).map_err(|_|ExecutorError::Error(()))?;
+		Self::do_execute_buy(&amm_transfer).map_err(|_|ExecutorError::Error(()))?;
 
 		Ok(())	}
+}
+
+impl<T: Config> Pallet<T> {
+	fn do_validate_sell_common(amount: Balance, assets: AssetPair, who: &T::AccountId) -> Result<(), DispatchError> {
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
+
+		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+
+		ensure!(
+			T::Currency::free_balance(assets.asset_in, who) >= amount,
+			Error::<T>::InsufficientAssetBalance
+		);
+
+		let pair_account = Self::get_pair_id(assets);
+
+		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
+
+		ensure!(
+			amount
+				<= asset_in_reserve
+					.checked_div(T::MaxInRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxInRatioExceeded
+		);
+
+		Ok(())
+	}
+
+	fn do_execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> Result<(), DispatchError> {
+		let pair_account = Self::get_pair_id(transfer.assets);
+
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(
+			transfer.assets.asset_in,
+			transfer.assets.asset_out,
+			transfer.amount,
+			transfer.amount_out,
+			total_liquidity,
+		);
+
+		if transfer.discount && transfer.discount_amount > 0u128 {
+			let native_asset = T::NativeAssetId::get();
+			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
+		}
+
+		T::Currency::transfer(
+			transfer.assets.asset_in,
+			&transfer.origin,
+			&pair_account,
+			transfer.amount,
+		)?;
+		T::Currency::transfer(
+			transfer.assets.asset_out,
+			&pair_account,
+			&transfer.origin,
+			transfer.amount_out,
+		)?;
+
+		Self::deposit_event(Event::<T>::SellExecuted {
+			who: transfer.origin.clone(),
+			asset_in: transfer.assets.asset_in,
+			asset_out: transfer.assets.asset_out,
+			amount: transfer.amount,
+			sale_price: transfer.amount_out,
+			fee_asset: transfer.fee.0,
+			fee_amount: transfer.fee.1,
+			pool: pair_account,
+		});
+
+		Ok(())
+	}
+
+	fn do_validate_buy_common(assets: AssetPair, amount: Balance) -> Result<(), DispatchError> {
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
+
+		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+
+		let pair_account = Self::get_pair_id(assets);
+
+		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
+
+		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
+
+		ensure!(
+			amount
+				<= asset_out_reserve
+					.checked_div(T::MaxOutRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxOutRatioExceeded
+		);
+
+		Ok(())
+	}
+
+	fn do_execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> Result<(), DispatchError> {
+		let pair_account = Self::get_pair_id(transfer.assets);
+
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(
+			transfer.assets.asset_in,
+			transfer.assets.asset_out,
+			transfer.amount,
+			transfer.amount_out,
+			total_liquidity,
+		);
+
+		if transfer.discount && transfer.discount_amount > 0 {
+			let native_asset = T::NativeAssetId::get();
+			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
+		}
+
+		T::Currency::transfer(
+			transfer.assets.asset_out,
+			&pair_account,
+			&transfer.origin,
+			transfer.amount,
+		)?;
+		T::Currency::transfer(
+			transfer.assets.asset_in,
+			&transfer.origin,
+			&pair_account,
+			transfer.amount_out + transfer.fee.1,
+		)?;
+
+		Self::deposit_event(Event::<T>::BuyExecuted {
+			who: transfer.origin.clone(),
+			asset_out: transfer.assets.asset_out,
+			asset_in: transfer.assets.asset_in,
+			amount: transfer.amount,
+			buy_price: transfer.amount_out,
+			fee_asset: transfer.fee.0,
+			fee_amount: transfer.fee.1,
+			pool: pair_account,
+		});
+
+		Ok(())
+	}
 }
