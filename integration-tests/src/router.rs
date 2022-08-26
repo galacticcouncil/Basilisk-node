@@ -133,7 +133,7 @@ fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 
 	Basilisk::execute_with(|| {
 		//Arrange
-		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE , AUSD);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
 
 		let amount_to_sell = 10;
 		let limit = 0;
@@ -245,10 +245,10 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 			asset_out: AUSD,
 			amount_in,
 			amount_out: amount_to_buy,
-		}.into()]);
+		}
+		.into()]);
 	});
 }
-
 
 #[test]
 fn execute_buy_should_work_when_route_contains_two_trades() {
@@ -275,7 +275,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 				pool: PoolType::XYK,
 				asset_in: KSM,
 				asset_out: AUSD,
-			}
+			},
 		];
 
 		//Act
@@ -300,11 +300,10 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 			asset_out: AUSD,
 			amount_in: amount_in,
 			amount_out: amount_to_buy,
-		}.into()]);
+		}
+		.into()]);
 	});
 }
-
-
 
 #[test]
 fn execute_buy_should_work_when_route_contains_multiple_trades() {
@@ -365,10 +364,9 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 			amount_in: amount_in,
 			amount_out: amount_to_buy,
 		}
-			.into()]);
+		.into()]);
 	});
 }
-
 
 #[test]
 fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
@@ -461,13 +459,18 @@ fn create_pool(asset_a: u32, asset_b: u32) {
 
 fn assert_trader_non_native_balance(balance: u128, asset_id: u32) {
 	let trader_balance = basilisk_runtime::Tokens::free_balance(asset_id, &AccountId::from(TRADER));
-	assert_eq!(trader_balance, balance, "\r\nNon native asset({}) balance '{}' is not as expected '{}'",asset_id, trader_balance, balance);
+	assert_eq!(
+		trader_balance, balance,
+		"\r\nNon native asset({}) balance '{}' is not as expected '{}'",
+		asset_id, trader_balance, balance
+	);
 }
 
 fn assert_trader_bsx_balance(balance: u128) {
 	let trader_balance = basilisk_runtime::Balances::free_balance(&AccountId::from(TRADER));
-	assert_eq!(trader_balance, balance, "\r\nBSX asset balance '{}' is not as expected '{}'", trader_balance, balance);
+	assert_eq!(
+		trader_balance, balance,
+		"\r\nBSX asset balance '{}' is not as expected '{}'",
+		trader_balance, balance
+	);
 }
-
-
-

@@ -980,12 +980,9 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		let assets = AssetPair {
-			asset_in,
-			asset_out
-		};
+		let assets = AssetPair { asset_in, asset_out };
 		let amount_out = Self::calculate_sell(pool_type, asset_in, asset_out, amount_in)?;
-		let no_fee = (0u32,0); //TODO: Dani return the fee from the calculate and pass it here
+		let no_fee = (0u32, 0); //TODO: Dani return the fee from the calculate and pass it here
 
 		let amm_transfer = AMMTransfer {
 			origin: who.clone(),
@@ -997,11 +994,10 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 			discount_amount: 0,
 		};
 		//TODO: Dani - proper error propagation
-		Self::do_validate_sell_common(amount_in, assets, &who).map_err(|_|ExecutorError::Error(()))?;
-		Self::do_execute_sell(&amm_transfer).map_err(|_|ExecutorError::Error(()))?;
+		Self::do_validate_sell_common(amount_in, assets, &who).map_err(|_| ExecutorError::Error(()))?;
+		Self::do_execute_sell(&amm_transfer).map_err(|_| ExecutorError::Error(()))?;
 
 		Ok(())
-
 	}
 
 	fn execute_buy(
@@ -1015,12 +1011,9 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		let assets = AssetPair {
-			asset_in,
-			asset_out
-		};
+		let assets = AssetPair { asset_in, asset_out };
 		let amount_in = Self::calculate_buy(pool_type, asset_in, asset_out, amount_out)?;
-		let no_fee = (0u32,0); //TODO: Dani return the fee from the calculate and pass it here
+		let no_fee = (0u32, 0); //TODO: Dani return the fee from the calculate and pass it here
 
 		let amm_transfer = AMMTransfer {
 			origin: who.clone(),
@@ -1031,10 +1024,11 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 			discount: false,
 			discount_amount: 0,
 		};
-		Self::do_validate_buy_common(assets,amount_out).map_err(|_|ExecutorError::Error(()))?;
-		Self::do_execute_buy(&amm_transfer).map_err(|_|ExecutorError::Error(()))?;
+		Self::do_validate_buy_common(assets, amount_out).map_err(|_| ExecutorError::Error(()))?;
+		Self::do_execute_buy(&amm_transfer).map_err(|_| ExecutorError::Error(()))?;
 
-		Ok(())	}
+		Ok(())
+	}
 }
 
 impl<T: Config> Pallet<T> {
