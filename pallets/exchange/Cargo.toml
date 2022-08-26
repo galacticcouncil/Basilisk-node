@@ -29,8 +29,8 @@ orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
 
 # HydraDX dependencies
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "0ddf2497db5586e6a253b67f44531d0fd146f1fa", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "0ddf2497db5586e6a253b67f44531d0fd146f1fa", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "66d29bd8b508c2daf69a509aa33e4e534a66471e", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "66d29bd8b508c2daf69a509aa33e4e534a66471e", default-features = false }
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1cd815cbce846a42d351db3778ff9c07149a6ad2", default-features = false }
 
 # Substrate dependencies

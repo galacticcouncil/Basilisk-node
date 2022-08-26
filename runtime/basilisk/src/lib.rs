@@ -888,7 +888,7 @@ impl pallet_transaction_pause::Config for Runtime {
 	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
 }
 
-impl pallet_router::Config for Runtime {
+impl pallet_route_executor::Config for Runtime {
 	type Event = Event;
 	type AssetId = AssetId;
 	type Balance = Balance;
@@ -950,7 +950,7 @@ construct_runtime!(
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
 		TransactionPause: pallet_transaction_pause::{Pallet, Call, Event<T>, Storage} = 110,
-		Router: pallet_router::{Pallet, Call, Event<T>} = 111,
+		Router: pallet_route_executor::{Pallet, Call, Event<T>} = 111,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,

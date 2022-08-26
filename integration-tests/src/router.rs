@@ -11,7 +11,7 @@ use sp_arithmetic::fixed_point::FixedPointNumber;
 use frame_support::{assert_noop, assert_ok};
 use hydradx_traits::router::PoolType;
 use orml_traits::MultiCurrency;
-use pallet_router::types::Trade;
+use pallet_route_executor::types::Trade;
 
 const BSX: u32 = 0;
 const AUSD: u32 = 1;
@@ -55,7 +55,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_out, AUSD);
 
-		expect_basilisk_events(vec![pallet_router::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_to_sell,
@@ -117,7 +117,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
 		assert_trader_non_native_balance(0, MOVR);
 
-		expect_basilisk_events(vec![pallet_router::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
 			asset_in: BSX,
 			asset_out: KSM,
 			amount_in: amount_to_sell,
@@ -153,7 +153,7 @@ fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 				limit,
 				trades
 			),
-			pallet_router::Error::<basilisk_runtime::Runtime>::PriceCalculationIsFailed
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PriceCalculationIsFailed
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
@@ -197,7 +197,7 @@ fn execute_sell_should_fail_when_firs_trade_is_successful_but_second_trade_has_n
 				limit,
 				trades
 			),
-			pallet_router::Error::<basilisk_runtime::Runtime>::PoolIsNotSupported
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PoolIsNotSupported
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
@@ -240,7 +240,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
 
-		expect_basilisk_events(vec![pallet_router::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in,
@@ -295,7 +295,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
 		assert_trader_non_native_balance(0, KSM);
 
-		expect_basilisk_events(vec![pallet_router::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_in,
@@ -358,7 +358,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		assert_trader_non_native_balance(0, MOVR);
 		assert_trader_non_native_balance(0, KSM);
 
-		expect_basilisk_events(vec![pallet_router::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_in,
@@ -394,7 +394,7 @@ fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 				limit,
 				trades
 			),
-			pallet_router::Error::<basilisk_runtime::Runtime>::PriceCalculationIsFailed
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PriceCalculationIsFailed
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
@@ -438,7 +438,7 @@ fn execute_buy_should_fail_when_firs_trade_is_successful_but_second_trade_has_no
 				limit,
 				trades
 			),
-			pallet_router::Error::<basilisk_runtime::Runtime>::PoolIsNotSupported
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PoolIsNotSupported
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
