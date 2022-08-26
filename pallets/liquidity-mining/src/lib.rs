@@ -57,14 +57,14 @@ use frame_support::{
 	sp_runtime::traits::{BlockNumberProvider, Zero},
 	transactional, PalletId,
 };
-use hydradx_traits::liquidity_mining::Mutate as LiquidityMiningMutate;
+use hydradx_traits_lm::liquidity_mining::Mutate as LiquidityMiningMutate;
 use warehouse_liquidity_mining::{GlobalFarmId, LoyaltyCurve};
 
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::ensure_signed;
-use hydradx_traits_amm::AMM;
-use hydradx_traits_nft::nft::CreateTypedClass;
+use hydradx_traits::{nft::CreateTypedClass, AMM};
 use orml_traits::MultiCurrency;
+use pallet_nft::ClassType;
 use primitives::{asset::AssetPair, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_arithmetic::{FixedU128, Permill};
@@ -125,7 +125,7 @@ pub mod pallet {
 		type NFTHandler: Mutate<Self::AccountId>
 			+ Create<Self::AccountId>
 			+ Inspect<Self::AccountId, ClassId = primitives::ClassId, InstanceId = primitives::InstanceId>
-			+ CreateTypedClass<Self::AccountId, primitives::ClassId, primitives::nft::ClassType>;
+			+ CreateTypedClass<Self::AccountId, primitives::ClassId, ClassType>;
 
 		/// Liquidity mining handler for managing liquidity mining functionalities
 		type LiquidityMiningHandler: LiquidityMiningMutate<

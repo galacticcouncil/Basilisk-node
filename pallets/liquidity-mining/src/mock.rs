@@ -29,11 +29,11 @@ use frame_support::{
 	traits::{Everything, GenesisBuild, Nothing},
 	PalletId,
 };
+
 use frame_system as system;
-use hydradx_traits_amm::AMM;
-use hydradx_traits_nft::nft::{CreateTypedClass, ReserveClassId};
+use hydradx_traits::{nft::CreateTypedClass, AMM};
 use orml_traits::parameter_type_with_key;
-use primitives::nft::{ClassType, NftPermissions};
+use pallet_nft::ClassType;
 use primitives::{asset::AssetPair, Amount, AssetId, Balance};
 use sp_core::H256;
 use sp_runtime::{
@@ -141,9 +141,7 @@ frame_support::construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		LiquidityMining: liq_mining::{Pallet, Call, Storage, Event<T>},
 		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
-		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>},
 	}
 );
@@ -245,20 +243,20 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		_min_bought: Balance,
 		_discount: bool,
 	) -> Result<
-		hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		frame_support::sp_runtime::DispatchError,
 	> {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
 
 	fn execute_buy(
-		_transfer: &hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
 
 	fn execute_sell(
-		_transfer: &hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
@@ -270,7 +268,7 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for Amm {
 		_max_limit: Balance,
 		_discount: bool,
 	) -> Result<
-		hydradx_traits_amm::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		frame_support::sp_runtime::DispatchError,
 	> {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
@@ -406,23 +404,6 @@ impl CreateTypedClass<AccountId, primitives::ClassId, ClassType> for NftHandlerS
 	}
 }
 
-impl ReserveClassId<primitives::ClassId> for NftHandlerStub {
-	fn is_id_reserved(_id: primitives::ClassId) -> bool {
-		true
-	}
-}
-
-impl pallet_nft::Config for Test {
-	type Event = Event;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type NftClassId = primitives::ClassId;
-	type NftInstanceId = primitives::InstanceId;
-	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
-	type ClassType = ClassType;
-	type Permissions = NftPermissions;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
-}
-
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 500;
 	pub const MaxReserves: u32 = 50;
@@ -438,34 +419,6 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
-}
-
-parameter_types! {
-	pub const ClassDeposit: Balance = 1_000_000_000_000_000; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 10_000_000_000_000; // 1/100 UNIT deposit to create asset instance
-	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
-	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
-	pub const UniquesMetadataDepositBase: Balance = 100_000_000_000_000;
-	pub const AttributeDepositBase: Balance = 10_000_000_000_000;
-	pub const DepositPerByte: Balance = 1_000_000_000_000;
-	pub const UniquesStringLimit: u32 = 32;
-}
-
-impl pallet_uniques::Config for Test {
-	type Event = Event;
-	type ClassId = primitives::ClassId;
-	type InstanceId = primitives::InstanceId;
-	type Currency = Balances;
-	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
-	type ClassDeposit = ClassDeposit;
-	type InstanceDeposit = InstanceDeposit;
-	type MetadataDepositBase = UniquesMetadataDepositBase;
-	type AttributeDepositBase = AttributeDepositBase;
-	type DepositPerByte = DepositPerByte;
-	type StringLimit = UniquesStringLimit;
-	type KeyLimit = KeyLimit;
-	type ValueLimit = ValueLimit;
-	type WeightInfo = ();
 }
 
 parameter_type_with_key! {

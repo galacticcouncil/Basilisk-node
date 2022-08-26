@@ -19,7 +19,7 @@
 
 use super::*;
 use frame_support::traits::StorageVersion;
-use hydradx_traits_nft::nft::CreateTypedClass;
+use hydradx_traits::nft::CreateTypedClass;
 
 const STORAGE_VERSION: u16 = 1;
 const READ_WEIGHT: u64 = 3;
@@ -35,7 +35,7 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 		T::NFTHandler::create_typed_class(
 			pallet_account,
 			T::NftClassId::get(),
-			primitives::nft::ClassType::LiquidityMining,
+			pallet_nft::ClassType::LiquidityMining,
 		)
 		.unwrap();
 

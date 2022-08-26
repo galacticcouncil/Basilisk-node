@@ -27,7 +27,6 @@ use serde::{Deserialize, Serialize};
 use scale_info::TypeInfo;
 
 use frame_support::sp_runtime::FixedU128;
-use sp_runtime::RuntimeDebug;
 
 pub mod asset;
 pub mod constants;
@@ -84,56 +83,4 @@ pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 	pub discount: bool,
 	pub sell_or_buy: IntentionType,
 	pub intention_id: IntentionID,
-}
-
-pub mod nft {
-	use super::*;
-
-	use pallet_nft::NftPermission;
-
-	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo)]
-	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-	pub enum ClassType {
-		Marketplace = 0_isize,
-		LiquidityMining = 1_isize,
-		Redeemable = 2_isize,
-		Auction = 3_isize,
-		HydraHeads = 4_isize,
-	}
-
-	impl Default for ClassType {
-		fn default() -> Self {
-			ClassType::Marketplace
-		}
-	}
-
-	#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
-	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-	pub struct NftPermissions;
-
-	impl NftPermission<ClassType> for NftPermissions {
-		fn can_create(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace | ClassType::LiquidityMining)
-		}
-
-		fn can_mint(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace | ClassType::LiquidityMining)
-		}
-
-		fn can_transfer(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace | ClassType::LiquidityMining)
-		}
-
-		fn can_burn(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace | ClassType::LiquidityMining)
-		}
-
-		fn can_destroy(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
-		}
-
-		fn has_deposit(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
-		}
-	}
 }

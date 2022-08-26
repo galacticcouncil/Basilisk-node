@@ -28,7 +28,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - id: set-backend-key-name
         name: Set Backend Key Name
-        run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV    
+        run: echo "S3_BACKEND_KEY_NAME=$(echo $(uuidgen))" >> $GITHUB_ENV
       - id: determine-runner
         name: Determine runner
         run: if $IS_LOCAL; then echo "::set-output name=runner::${{ env.S3_BACKEND_KEY_NAME }}"; else echo "::set-output name=runner::ubuntu-latest"; fi;
@@ -126,8 +126,8 @@ jobs:
       - name: Upload testing-runtime wasm
         uses: actions/upload-artifact@v2
         with:
-          name: basilisk_runtime.compact.compressed.wasm
-          path: target/release/release/wbuild/testing-basilisk-runtime/testing_basilisk_runtime.compact.compressed.wasm
+          name: testing_basilisk_runtime.compact.compressed.wasm
+          path: target/release/wbuild/testing-basilisk-runtime/testing_basilisk_runtime.compact.compressed.wasm
 
   upload-config-to-s3:
     name: upload configuration to S3

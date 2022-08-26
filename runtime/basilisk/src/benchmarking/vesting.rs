@@ -3,7 +3,7 @@ use crate::{BlockNumber, Currencies, MaxVestingSchedules, System, Vesting};
 
 use super::BSX;
 
-use common_runtime::TreasuryPalletId;
+use common_runtime::VestingPalletId;
 
 use sp_std::prelude::*;
 
@@ -28,7 +28,7 @@ const SEED: u32 = 0;
 const NATIVE: AssetId = NativeAssetId::get();
 
 fn get_vesting_account() -> AccountId {
-	TreasuryPalletId::get().into_account()
+	VestingPalletId::get().into_account()
 }
 
 fn lookup_of_account(who: AccountId) -> <<Runtime as frame_system::Config>::Lookup as StaticLookup>::Source {
@@ -59,7 +59,7 @@ runtime_benchmarks! {
 
 		let to: AccountId = account("to", 0, SEED);
 		let to_lookup = lookup_of_account(to.clone());
-	}: _(RawOrigin::Signed(from), to_lookup, schedule.clone())
+	}: _(RawOrigin::Root, to_lookup, schedule.clone())
 	verify {
 		assert_eq!(
 			<Currencies as MultiCurrency<_>>::total_balance(NATIVE, &to),
@@ -85,7 +85,7 @@ runtime_benchmarks! {
 
 		for _ in 0..i {
 			schedule.start = i;
-			Vesting::vested_transfer(RawOrigin::Signed(from.clone()).into(), to_lookup.clone(), schedule.clone())?;
+			Vesting::vested_transfer(RawOrigin::Root.into(), to_lookup.clone(), schedule.clone())?;
 		}
 		System::set_block_number(schedule.end().unwrap() + 1u32);
 	}: _(RawOrigin::Signed(to.clone()))

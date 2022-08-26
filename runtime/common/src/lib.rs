@@ -162,7 +162,7 @@ parameter_types! {
 
 // pallet xyk
 parameter_types! {
-	pub ExchangeFee: (u32, u32) = (2, 1_000);
+	pub ExchangeFee: (u32, u32) = (3, 1_000);
 	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
@@ -268,6 +268,7 @@ parameter_types! {
 parameter_types! {
 	pub MinVestedTransfer: Balance = 100_000;
 	pub const MaxVestingSchedules: u32 = 15;
+	pub const VestingPalletId: PalletId = PalletId(*b"py/vstng");
 }
 
 // pallet liquidity mining

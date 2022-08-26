@@ -39,7 +39,7 @@ use primitives::{
 	Amount, AssetId, Balance,
 };
 
-use primitives::nft::{ClassType, NftPermissions};
+use pallet_nft::{ClassType, NftPermissions};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,

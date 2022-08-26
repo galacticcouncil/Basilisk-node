@@ -134,3 +134,35 @@ fn nft_owner_should_not_have_rights_for_withdrawing_when_nft_is_burned() {
 			);
 		});
 }
+
+#[test]
+fn nft_offer_maker_should_have_rights_for_withdrawing_when_nft_is_burned() {
+	//Arrange
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (BOB, 15_000 * UNITS)])
+		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.build()
+		.execute_with(|| {
+			assert_ok!(Market::make_offer(
+				Origin::signed(BOB),
+				CLASS_ID_0,
+				INSTANCE_ID_0,
+				50 * UNITS,
+				1
+			));
+
+			assert_ok!(NFT::burn(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0));
+
+			//Act
+			assert_ok!(Market::withdraw_offer(
+				Origin::signed(BOB),
+				CLASS_ID_0,
+				INSTANCE_ID_0,
+				BOB
+			));
+
+			//Assert
+			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), ALICE), None);
+			assert_eq!(<Test as Config>::Currency::reserved_balance(&BOB), 0);
+		});
+}

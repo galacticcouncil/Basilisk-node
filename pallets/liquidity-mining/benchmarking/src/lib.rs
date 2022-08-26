@@ -21,7 +21,7 @@
 mod mock;
 
 use pallet_liquidity_mining::Pallet as LiquidityMining;
-use warehouse_liquidity_mining::{GlobalFarmId, YieldFarmId};
+use warehouse_liquidity_mining::{GlobalFarmId, LoyaltyCurve, YieldFarmId};
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::{Pallet as System, RawOrigin};
@@ -36,7 +36,6 @@ use sp_std::convert::From;
 
 use pallet_xyk as xykpool;
 use primitives::constants::currency::NATIVE_EXISTENTIAL_DEPOSIT;
-use warehouse_liquidity_mining::LoyaltyCurve;
 
 pub const GLOBAL_FARM_ID: GlobalFarmId = 1;
 pub const GLOBAL_FARM_ID_2: GlobalFarmId = 2;
