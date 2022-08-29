@@ -910,15 +910,15 @@ impl CanCreatePool<AssetId> for AllowAllPools {
 use hydradx_traits::router::{Executor, ExecutorError, PoolType, TradeCalculation};
 
 impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
-	type Output = TradeCalculation<Balance>;
+	type TradeCalculationResult = TradeCalculation<Balance>;
 	type Error = ();
 
 	fn calculate_sell(
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_in: TradeCalculation<Balance>,
-	) -> Result<Self::Output, ExecutorError<Self::Error>> {
+		amount_in: Self::TradeCalculationResult,
+	) -> Result<Self::TradeCalculationResult, ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
@@ -948,8 +948,8 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_out: TradeCalculation<Balance>,
-	) -> Result<Self::Output, ExecutorError<Self::Error>> {
+		amount_out: Self::TradeCalculationResult,
+	) -> Result<Self::TradeCalculationResult, ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
@@ -980,7 +980,7 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		who: &T::AccountId,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_in: TradeCalculation<Balance>,
+		amount_in: Self::TradeCalculationResult,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
@@ -1014,7 +1014,7 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		who: &T::AccountId,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_out: TradeCalculation<Balance>,
+		amount_out: Self::TradeCalculationResult,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
