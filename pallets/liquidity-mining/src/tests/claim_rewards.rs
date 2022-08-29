@@ -28,7 +28,7 @@ fn claim_rewards_should_work_when_deposit_exist() {
 		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
 		let bsx_tkn1_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
 
-		let expected_claimed_rewards = 79_906;
+		let expected_claimed_rewards = 23_306;
 
 		//Act
 		assert_ok!(LiquidityMining::claim_rewards(
@@ -38,13 +38,14 @@ fn claim_rewards_should_work_when_deposit_exist() {
 		));
 
 		//Assert
-		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
+		assert_last_event!(crate::Event::RewardClaimed {
 			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			claimed: expected_claimed_rewards,
 			reward_currency: BSX,
-		})]);
+		}
+		.into());
 
 		assert_claim_rewards_of_deposit_yield_farm_entry(PREDEFINED_DEPOSIT_IDS[0], expected_claimed_rewards);
 
@@ -126,13 +127,14 @@ fn claim_rewards_should_fail_when_double_claim_happens() {
 			BSX_TKN1_YIELD_FARM_ID,
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
+		assert_last_event!(crate::Event::RewardClaimed {
 			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
-			claimed: 79_906,
+			claimed: 23_306,
 			reward_currency: BSX,
-		})]);
+		}
+		.into());
 
 		assert_noop!(
 			LiquidityMining::claim_rewards(Origin::signed(ALICE), PREDEFINED_DEPOSIT_IDS[0], BSX_TKN1_YIELD_FARM_ID),

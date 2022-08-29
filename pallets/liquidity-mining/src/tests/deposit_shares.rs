@@ -60,13 +60,14 @@ fn deposit_shares_should_work() {
 		));
 
 		//Assert
-		expect_events(vec![mock::Event::LiquidityMining(Event::SharesDeposited {
+		assert_last_event!(crate::Event::SharesDeposited {
 			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
-		})]);
+		}
+		.into());
 
 		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().total_shares_z, 12_500);
 
@@ -74,6 +75,7 @@ fn deposit_shares_should_work() {
 		assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
+				updated_at: 18,
 				total_shares: 50,
 				total_valued_shares: 2500,
 				entries_count: 1,

@@ -30,7 +30,7 @@ fn create_global_farm_should_work() {
 		let blocks_per_period = 20_000;
 		let incentivized_asset = BSX;
 		let owner = ALICE;
-		let yield_per_period = Permill::from_percent(20);
+		let yield_per_period = Perquintill::from_percent(20);
 		let max_reward_per_period: Balance = total_rewards.checked_div(planned_yielding_periods.into()).unwrap();
 		let min_deposit = 3;
 		let price_adjustment = One::one();
@@ -64,7 +64,7 @@ fn create_global_farm_should_work() {
 			(INITIAL_BALANCE - total_rewards)
 		);
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::GlobalFarmCreated {
+		assert_last_event!(crate::Event::GlobalFarmCreated {
 			id,
 			owner,
 			total_rewards,
@@ -76,7 +76,8 @@ fn create_global_farm_should_work() {
 			max_reward_per_period,
 			min_deposit,
 			price_adjustment,
-		})]);
+		}
+		.into());
 
 		let updated_at = created_at_block / blocks_per_period;
 		assert_eq!(
@@ -114,7 +115,7 @@ fn create_global_farm_should_fail_when_called_by_signed_user() {
 				BSX,
 				BSX,
 				ALICE,
-				Permill::from_percent(20),
+				Perquintill::from_percent(20),
 				3,
 				One::one()
 			),
@@ -138,7 +139,7 @@ fn create_global_farm_should_fail_with_propagated_error_when_balance_is_insuffic
 				BSX,
 				BSX,
 				ACCOUNT_WITH_1M,
-				Permill::from_percent(20),
+				Perquintill::from_percent(20),
 				3,
 				One::one()
 			),

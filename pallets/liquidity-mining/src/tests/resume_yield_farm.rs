@@ -55,7 +55,7 @@ fn resume_yield_farm_should_work() {
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				state: FarmState::Active,
-				accumulated_rpz: 62_996,
+				accumulated_rpz: FixedU128::from_inner(62_987_640_859_560_351_886_455_u128),
 				multiplier: new_multiplier,
 				updated_at: 134_200,
 				..yield_farm
@@ -67,19 +67,20 @@ fn resume_yield_farm_should_work() {
 			GlobalFarmData {
 				total_shares_z: global_farm.total_shares_z + yield_farm_stake_in_global_farm,
 				updated_at: 134_200,
-				accumulated_rpz: 62_996,
-				accumulated_rewards: 29_999_067_250,
+				accumulated_rpz: FixedU128::from_inner(62_987_640_859_560_351_886_455_u128),
+				accumulated_rewards: 29_998_716_450,
 				..global_farm
 			}
 		);
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmResumed {
+		assert_last_event!(crate::Event::YieldFarmResumed {
 			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: GC,
 			asset_pair: BSX_TKN1_ASSET_PAIR,
 			multiplier: new_multiplier,
-		})]);
+		}
+		.into());
 	});
 }
 

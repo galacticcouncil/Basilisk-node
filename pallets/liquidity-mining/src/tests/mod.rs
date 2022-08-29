@@ -16,15 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::mock::{
-	asset_pair_to_map_key, set_block_number, BlockNumber, Event as TestEvent, ExtBuilder, LiquidityMining, Origin,
-	Test, Tokens, WarehouseLM, ACA, ACA_FARM, ACA_KSM_AMM, ACA_KSM_ASSET_PAIR, ACA_KSM_SHARE_ID, ACCOUNT_WITH_1M,
-	ALICE, AMM_POOLS, BOB, BOB_GLOBAL_FARM_TOTAL_REWARDS, BSX, BSX_ACA_AMM, BSX_ACA_SHARE_ID, BSX_DOT_AMM,
-	BSX_DOT_ASSET_PAIR, BSX_DOT_SHARE_ID, BSX_ETH_AMM, BSX_ETH_ASSET_PAIR, BSX_ETH_SHARE_ID, BSX_FARM, BSX_HDX_AMM,
-	BSX_HDX_SHARE_ID, BSX_KSM_AMM, BSX_KSM_ASSET_PAIR, BSX_KSM_SHARE_ID, BSX_TKN1_AMM, BSX_TKN1_ASSET_PAIR,
-	BSX_TKN1_SHARE_ID, BSX_TKN2_AMM, BSX_TKN2_ASSET_PAIR, BSX_TKN2_SHARE_ID, CHARLIE, DAVE, DOT, EVE, GC, GC_FARM, HDX,
-	INITIAL_BALANCE, KSM, KSM_DOT_AMM, KSM_DOT_SHARE_ID, KSM_FARM, TKN1, TOTAL_REWARDS_FOR_GLOBAL_FARMS,
-};
+use crate::mock::*;
 
 use frame_support::{assert_noop, assert_ok, instances::Instance1};
 use lazy_static::lazy_static;
@@ -48,13 +40,13 @@ lazy_static! {
 			id: ALICE_FARM,
 			updated_at: 0,
 			reward_currency: BSX,
-			yield_per_period: Permill::from_percent(20),
+			yield_per_period: Perquintill::from_percent(20),
 			planned_yielding_periods: 300_u64,
 			blocks_per_period: 1_000_u64,
 			owner: ALICE,
 			incentivized_asset: BSX,
 			max_reward_per_period: 333_333_333,
-			accumulated_rpz: 0,
+			accumulated_rpz: Zero::zero(),
 			yield_farms_count: (0, 0),
 			paid_accumulated_rewards: 0,
 			total_shares_z: 0,
@@ -67,13 +59,13 @@ lazy_static! {
 			id: BOB_FARM,
 			updated_at: 0,
 			reward_currency: KSM,
-			yield_per_period: Permill::from_percent(38),
+			yield_per_period: Perquintill::from_percent(38),
 			planned_yielding_periods: 5_000_u64,
 			blocks_per_period: 10_000_u64,
 			owner: BOB,
 			incentivized_asset: BSX,
 			max_reward_per_period: 200_000,
-			accumulated_rpz: 0,
+			accumulated_rpz: Zero::zero(),
 			yield_farms_count: (0, 0),
 			paid_accumulated_rewards: 0,
 			total_shares_z: 0,
@@ -86,13 +78,13 @@ lazy_static! {
 			id: GC_FARM,
 			updated_at: 0,
 			reward_currency: BSX,
-			yield_per_period: Permill::from_percent(50),
+			yield_per_period: Perquintill::from_percent(50),
 			planned_yielding_periods: 500_u64,
 			blocks_per_period: 100_u64,
 			owner: GC,
 			incentivized_asset: BSX,
 			max_reward_per_period: 60_000_000,
-			accumulated_rpz: 0,
+			accumulated_rpz: Zero::zero(),
 			yield_farms_count: (2, 2),
 			paid_accumulated_rewards: 0,
 			total_shares_z: 0,
@@ -105,13 +97,13 @@ lazy_static! {
 			id: CHARLIE_FARM,
 			updated_at: 0,
 			reward_currency: ACA,
-			yield_per_period: Permill::from_percent(50),
+			yield_per_period: Perquintill::from_percent(50),
 			planned_yielding_periods: 500_u64,
 			blocks_per_period: 100_u64,
 			owner: CHARLIE,
 			incentivized_asset: KSM,
 			max_reward_per_period: 60_000_000,
-			accumulated_rpz: 0,
+			accumulated_rpz: Zero::zero(),
 			yield_farms_count: (2, 2),
 			paid_accumulated_rewards: 0,
 			total_shares_z: 0,
@@ -124,13 +116,13 @@ lazy_static! {
 			id: DAVE_FARM,
 			updated_at: 0,
 			reward_currency: ACA,
-			yield_per_period: Permill::from_percent(20),
+			yield_per_period: Perquintill::from_percent(20),
 			planned_yielding_periods: 300_u64,
 			blocks_per_period: 1_000_u64,
 			owner: DAVE,
 			incentivized_asset: TKN1,
 			max_reward_per_period: 333_333_333,
-			accumulated_rpz: 0,
+			accumulated_rpz: Zero::zero(),
 			yield_farms_count: (0, 0),
 			paid_accumulated_rewards: 0,
 			total_shares_z: 0,
@@ -143,13 +135,13 @@ lazy_static! {
 			id: EVE_FARM,
 			updated_at: 0,
 			reward_currency: KSM,
-			yield_per_period: Permill::from_percent(20),
+			yield_per_period: Perquintill::from_percent(20),
 			planned_yielding_periods: 300_u64,
 			blocks_per_period: 1_000_u64,
 			owner: EVE,
 			incentivized_asset: BSX,
 			max_reward_per_period: 333_333_333,
-			accumulated_rpz: 0,
+			accumulated_rpz: Zero::zero(),
 			yield_farms_count: (0, 0),
 			paid_accumulated_rewards: 0,
 			total_shares_z: 0,
@@ -175,8 +167,8 @@ thread_local! {
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
-			accumulated_rpvs: 0,
-			accumulated_rpz: 0,
+			accumulated_rpvs: Zero::zero(),
+			accumulated_rpz: Zero::zero(),
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(5),
 			state: FarmState::Active,
@@ -188,8 +180,8 @@ thread_local! {
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
-			accumulated_rpvs: 0,
-			accumulated_rpz: 0,
+			accumulated_rpvs: Zero::zero(),
+			accumulated_rpz: Zero::zero(),
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
 			state: FarmState::Active,
@@ -201,8 +193,8 @@ thread_local! {
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
-			accumulated_rpvs: 0,
-			accumulated_rpz: 0,
+			accumulated_rpvs: Zero::zero(),
+			accumulated_rpz: Zero::zero(),
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
 			state: FarmState::Active,
@@ -214,8 +206,8 @@ thread_local! {
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
-			accumulated_rpvs: 0,
-			accumulated_rpz: 0,
+			accumulated_rpvs: Zero::zero(),
+			accumulated_rpz: Zero::zero(),
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
 			state: FarmState::Active,
@@ -227,8 +219,8 @@ thread_local! {
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
-			accumulated_rpvs: 0,
-			accumulated_rpz: 0,
+			accumulated_rpvs: Zero::zero(),
+			accumulated_rpz: Zero::zero(),
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
 			state: FarmState::Active,
@@ -241,8 +233,8 @@ thread_local! {
 			updated_at: 0,
 			total_shares: 0,
 			total_valued_shares: 0,
-			accumulated_rpvs: 0,
-			accumulated_rpz: 0,
+			accumulated_rpvs: Zero::zero(),
+			accumulated_rpz: Zero::zero(),
 			loyalty_curve: Some(LoyaltyCurve::default()),
 			multiplier: FixedU128::from(10),
 			state: FarmState::Active,
@@ -254,19 +246,14 @@ thread_local! {
 
 const PREDEFINED_DEPOSIT_IDS: [u128; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
 
-fn last_events(n: usize) -> Vec<TestEvent> {
-	frame_system::Pallet::<Test>::events()
-		.into_iter()
-		.rev()
-		.take(n)
-		.rev()
-		.map(|e| e.event)
-		.collect()
+macro_rules! assert_last_event {
+	( $x:expr ) => {{
+		pretty_assertions::assert_eq!(System::events().last().expect("events expected").event, $x);
+	}};
 }
 
-fn expect_events(e: Vec<TestEvent>) {
-	let last_events = last_events(e.len());
-	pretty_assertions::assert_eq!(last_events, e);
+pub fn has_event(event: mock::Event) -> bool {
+	System::events().iter().any(|record| record.event == event)
 }
 
 pub mod claim_rewards;

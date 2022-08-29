@@ -42,13 +42,14 @@ fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
 			1
 		);
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::SharesRedeposited {
+		assert_last_event!(crate::Event::SharesRedeposited {
 			global_farm_id: EVE_FARM,
 			yield_farm_id: EVE_BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: 50,
-		})]);
+		}
+		.into());
 
 		set_block_number(800_000);
 		//Dave's farm incentivize TKN1 - some balance must be set so `valued_shares` will not be `0`.
@@ -70,13 +71,14 @@ fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
 			1
 		);
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::SharesRedeposited {
+		assert_last_event!(crate::Event::SharesRedeposited {
 			global_farm_id: DAVE_FARM,
 			yield_farm_id: DAVE_BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: 50,
-		})]);
+		}
+		.into());
 
 		let deposit = WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap();
 

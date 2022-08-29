@@ -67,7 +67,7 @@ use orml_traits::MultiCurrency;
 use pallet_nft::ClassType;
 use primitives::{asset::AssetPair, AssetId, Balance};
 use scale_info::TypeInfo;
-use sp_arithmetic::{FixedU128, Permill};
+use sp_arithmetic::{FixedU128, Perquintill};
 use sp_std::convert::{From, Into};
 
 type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
@@ -177,7 +177,7 @@ pub mod pallet {
 			owner: AccountIdOf<T>,
 			total_rewards: Balance,
 			reward_currency: AssetId,
-			yield_per_period: Permill,
+			yield_per_period: Perquintill,
 			planned_yielding_periods: PeriodOf<T>,
 			blocks_per_period: BlockNumberFor<T>,
 			incentivized_asset: AssetId,
@@ -317,7 +317,7 @@ pub mod pallet {
 			incentivized_asset: AssetId,
 			reward_currency: AssetId,
 			owner: AccountIdOf<T>,
-			yield_per_period: Permill,
+			yield_per_period: Perquintill,
 			min_deposit: Balance,
 			price_adjustment: FixedU128,
 		) -> DispatchResult {
@@ -499,7 +499,6 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
-
 			let yield_farm_id = T::LiquidityMiningHandler::stop_yield_farm(who.clone(), global_farm_id, amm_pool_id)?;
 
 			Self::deposit_event(Event::YieldFarmStopped {

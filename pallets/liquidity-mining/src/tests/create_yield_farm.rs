@@ -32,8 +32,8 @@ fn create_yield_farm_should_work_when_global_farm_exist() {
 		updated_at: 17,
 		total_shares: 0,
 		total_valued_shares: 0,
-		accumulated_rpvs: 0,
-		accumulated_rpz: 0,
+		accumulated_rpvs: Zero::zero(),
+		accumulated_rpz: Zero::zero(),
 		multiplier: FixedU128::from(20_000_u128),
 		loyalty_curve: Some(LoyaltyCurve::default()),
 		state: FarmState::Active,
@@ -59,13 +59,14 @@ fn create_yield_farm_should_work_when_global_farm_exist() {
 		));
 
 		//Assert
-		expect_events(vec![mock::Event::LiquidityMining(Event::YieldFarmCreated {
+		assert_last_event!(crate::Event::YieldFarmCreated {
 			global_farm_id: ALICE_FARM,
 			yield_farm_id: yield_farm.id,
 			multiplier: yield_farm.multiplier,
 			loyalty_curve: yield_farm.loyalty_curve.clone(),
 			asset_pair: BSX_ACA_ASSET_PAIR,
-		})]);
+		}
+		.into());
 
 		assert_eq!(WarehouseLM::global_farm(ALICE_FARM).unwrap(), global_farm);
 		assert_eq!(

@@ -24,12 +24,13 @@ fn destroy_global_farm_should_work() {
 		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(BOB), BOB_FARM));
 
 		assert!(WarehouseLM::global_farm(BOB_FARM).is_none());
-		expect_events(vec![mock::Event::LiquidityMining(Event::GlobalFarmDestroyed {
+		assert_last_event!(crate::Event::GlobalFarmDestroyed {
 			global_farm_id: BOB_FARM,
 			who: BOB,
 			reward_currency: KSM,
 			undistributed_rewards: BOB_GLOBAL_FARM_TOTAL_REWARDS,
-		})]);
+		}
+		.into());
 	});
 }
 

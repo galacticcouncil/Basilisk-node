@@ -41,7 +41,7 @@ fn withdraw_shares_should_work() {
 		let bsx_tkn1_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
 		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
 
-		let expected_claimed_rewards = 79_906;
+		let expected_claimed_rewards = 23_306;
 		let withdrawn_amount = 50;
 
 		let deposit_valued_shares = WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0])
@@ -61,26 +61,33 @@ fn withdraw_shares_should_work() {
 		));
 
 		//Assert
-		expect_events(vec![
-			mock::Event::LiquidityMining(Event::RewardClaimed {
+		has_event(
+			crate::Event::RewardClaimed {
 				global_farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
-			}),
-			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+			}
+			.into(),
+		);
+		has_event(
+			crate::Event::SharesWithdrawn {
 				global_farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: withdrawn_amount,
-			}),
-			mock::Event::LiquidityMining(Event::DepositDestroyed {
+			}
+			.into(),
+		);
+		has_event(
+			crate::Event::DepositDestroyed {
 				who: ALICE,
 				nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-		]);
+			}
+			.into(),
+		);
 
 		assert_eq!(
 			WarehouseLM::global_farm(GC_FARM).unwrap(),
@@ -88,17 +95,17 @@ fn withdraw_shares_should_work() {
 				id: GC_FARM,
 				updated_at: 25,
 				reward_currency: BSX,
-				yield_per_period: Permill::from_percent(50),
+				yield_per_period: Perquintill::from_percent(50),
 				planned_yielding_periods: 500_u64,
 				blocks_per_period: 100_u64,
 				owner: GC,
 				incentivized_asset: BSX,
 				max_reward_per_period: 60_000_000,
-				accumulated_rpz: 12,
+				accumulated_rpz: FixedU128::from_inner(3_500_000_000_000_000_000_u128),
 				yield_farms_count: (2, 2),
 				total_shares_z: 691_490,
-				accumulated_rewards: 231_650,
-				paid_accumulated_rewards: 1_164_400,
+				accumulated_rewards: 0,
+				paid_accumulated_rewards: 1_283_550,
 				state: FarmState::Active,
 				min_deposit: 1,
 				price_adjustment: One::one()
@@ -137,7 +144,7 @@ fn withdraw_shares_should_work() {
 		//yield farm balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
-			bsx_tkn1_yield_farm_bsx_balance - (expected_claimed_rewards + 70_094) //70_094 unclaimable rewards after withdrawn
+			bsx_tkn1_yield_farm_bsx_balance - (expected_claimed_rewards + 20_444)
 		);
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
@@ -147,7 +154,7 @@ fn withdraw_shares_should_work() {
 		//global farm balance checks
 		assert_eq!(
 			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
-			global_farm_bsx_balance + 70_094 //70_094 unclaimable rewards after withdrawn
+			global_farm_bsx_balance + 20_444 //20_444 unclaimable rewards after withdrawn
 		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
@@ -165,20 +172,21 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
 		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
 
-		let claimed_rewards = 79_906;
+		let claimed_rewards = 23_306;
 		assert_ok!(LiquidityMining::claim_rewards(
 			Origin::signed(ALICE),
 			PREDEFINED_DEPOSIT_IDS[0],
 			BSX_TKN1_YIELD_FARM_ID
 		));
 
-		expect_events(vec![mock::Event::LiquidityMining(Event::RewardClaimed {
+		assert_last_event!(crate::Event::RewardClaimed {
 			global_farm_id: GC_FARM,
 			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 			who: ALICE,
 			claimed: claimed_rewards,
 			reward_currency: BSX,
-		})]);
+		}
+		.into());
 
 		assert_eq!(
 			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0])
@@ -188,7 +196,7 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 				global_farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				valued_shares: 2_500,
-				accumulated_rpvs: 0,
+				accumulated_rpvs: Zero::zero(),
 				accumulated_claimed_rewards: claimed_rewards, //1-th claim for this deposit so accumulated claimed == claimed rewards
 				entered_at: 18,
 				updated_at: 25,
@@ -220,24 +228,29 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 			bsx_tkn1_alice_amm_shares_balance + 50
 		);
 
-		expect_events(vec![
-			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+		has_event(
+			crate::Event::SharesWithdrawn {
 				global_farm_id: GC_FARM,
 				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: 50,
-			}),
-			mock::Event::LiquidityMining(Event::DepositDestroyed {
+			}
+			.into(),
+		);
+
+		has_event(
+			crate::Event::DepositDestroyed {
 				who: ALICE,
 				nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-		]);
+			}
+			.into(),
+		);
 
 		//check if balances didn't change after withdraw which should not claim
 		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance);
 		//unclaimable rewards are transferred from liq. pool account to global pool account
-		let unclaimable_rewards = 70_094;
+		let unclaimable_rewards = 20_444;
 		assert_eq!(
 			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
 			bsx_tkn1_yield_farm_reward_balance - unclaimable_rewards
@@ -291,19 +304,24 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		//Assert
 		let shares_amount = 50;
 
-		expect_events(vec![
-			mock::Event::LiquidityMining(Event::SharesWithdrawn {
+		has_event(
+			crate::Event::SharesWithdrawn {
 				global_farm_id: GC_FARM,
 				yield_farm_id: yield_farm_id_removed,
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: shares_amount,
-			}),
-			mock::Event::LiquidityMining(Event::DepositDestroyed {
+			}
+			.into(),
+		);
+
+		has_event(
+			crate::Event::DepositDestroyed {
 				who: ALICE,
 				nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
-			}),
-		]);
+			}
+			.into(),
+		);
 
 		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
 
