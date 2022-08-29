@@ -149,10 +149,7 @@ impl Contains<Call> for BaseFilter {
 }
 
 use common_runtime::adapter::OrmlTokensAdapter;
-use primitives::{
-	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId,
-};
+use primitives::{ClassId, InstanceId};
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
 
@@ -544,8 +541,8 @@ impl pallet_nft::Config for Runtime {
 	type NftClassId = ClassId;
 	type NftInstanceId = InstanceId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
-	type ClassType = ClassType;
-	type Permissions = NftPermissions;
+	type ClassType = pallet_nft::ClassType;
+	type Permissions = pallet_nft::NftPermissions;
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
