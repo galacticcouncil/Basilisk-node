@@ -907,17 +907,17 @@ impl CanCreatePool<AssetId> for AllowAllPools {
 	}
 }
 
-use hydradx_traits::router::{Executor, ExecutorError, PoolType};
+use hydradx_traits::router::{Executor, ExecutorError, PoolType, TradeCalculation};
 
 impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
-	type Output = Balance;
+	type Output = TradeCalculation<Balance>;
 	type Error = ();
 
 	fn calculate_sell(
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_in: Balance,
+		amount_in: TradeCalculation<Balance>,
 	) -> Result<Self::Output, ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
@@ -931,21 +931,24 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		let asset_in_reserve = T::Currency::free_balance(asset_in, &pair_account);
 		let asset_out_reserve = T::Currency::free_balance(asset_out, &pair_account);
 
-		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in)
+		let amount_in_without_fee = amount_in.amount.checked_sub(amount_in.fee).ok_or(ExecutorError::Error(()))?;
+
+		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in_without_fee)
 			.map_err(|_| ExecutorError::Error(()))?;
 
 		let transfer_fee = Self::calculate_fee(amount_out).map_err(|_| ExecutorError::Error(()))?;
 
-		let amount_out_without_fee = amount_out.checked_sub(transfer_fee).ok_or(ExecutorError::Error(()))?;
-
-		Ok(amount_out_without_fee)
+		Ok(TradeCalculation {
+			amount: amount_out,
+			fee: transfer_fee
+		})
 	}
 
 	fn calculate_buy(
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_out: Balance,
+		amount_out: TradeCalculation<Balance>,
 	) -> Result<Self::Output, ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
@@ -959,14 +962,17 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		let asset_in_reserve = T::Currency::free_balance(asset_in, &pair_account);
 		let asset_out_reserve = T::Currency::free_balance(asset_out, &pair_account);
 
-		let amount_in = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out)
+		let amount_out_with_fee = amount_out.amount.checked_add(amount_out.fee).ok_or(ExecutorError::Error(()))?;
+
+		let amount_in = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out_with_fee)
 			.map_err(|_| ExecutorError::Error(()))?;
 
 		let transfer_fee = Self::calculate_fee(amount_in).map_err(|_| ExecutorError::Error(()))?;
 
-		let amount_in_with_fee = amount_in.checked_add(transfer_fee).ok_or(ExecutorError::Error(()))?;
-
-		Ok(amount_in_with_fee)
+		Ok(TradeCalculation {
+			amount: amount_in,
+			fee: transfer_fee
+		})
 	}
 
 	fn execute_sell(
@@ -974,27 +980,30 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		who: &T::AccountId,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_in: Balance,
+		amount_in: TradeCalculation<Balance>,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		let assets = AssetPair { asset_in, asset_out };
 		let amount_out = Self::calculate_sell(pool_type, asset_in, asset_out, amount_in)?;
-		let no_fee = (0u32, 0); //TODO: Dani return the fee from the calculate and pass it here
 
-		let amm_transfer = AMMTransfer {
+		let assets = AssetPair { asset_in, asset_out };
+		let fee = (asset_out, amount_out.fee);
+		let amount_in_without_fee = amount_in.amount.checked_sub(amount_in.fee).ok_or(ExecutorError::Error(()))?;
+		let amount_out_without_fee = amount_out.amount.checked_sub(amount_out.fee).ok_or(ExecutorError::Error(()))?;
+
+		let amm_transfer: AMMTransfer<T::AccountId, AssetId, AssetPair, Balance> = AMMTransfer {
 			origin: who.clone(),
 			assets,
-			amount: amount_in,
-			amount_out,
-			fee: no_fee,
+			amount: amount_in_without_fee,
+			amount_out: amount_out_without_fee,
+			fee,
 			discount: false,
 			discount_amount: 0,
 		};
 		//TODO: Dani - proper error propagation
-		Self::do_validate_sell_common(amount_in, assets, &who).map_err(|_| ExecutorError::Error(()))?;
+		Self::do_validate_sell_common(amount_in_without_fee, assets, &who).map_err(|_| ExecutorError::Error(()))?;
 		Self::do_execute_sell(&amm_transfer).map_err(|_| ExecutorError::Error(()))?;
 
 		Ok(())
@@ -1005,26 +1014,28 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		who: &T::AccountId,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_out: Balance,
+		amount_out: TradeCalculation<Balance>,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		let assets = AssetPair { asset_in, asset_out };
 		let amount_in = Self::calculate_buy(pool_type, asset_in, asset_out, amount_out)?;
-		let no_fee = (0u32, 0); //TODO: Dani return the fee from the calculate and pass it here
 
-		let amm_transfer = AMMTransfer {
+		let assets = AssetPair { asset_in, asset_out };
+		let fee = (asset_in, amount_in.fee);
+		let amount_out_with_fee = amount_out.amount.checked_add(amount_out.fee).ok_or(ExecutorError::Error(()))?;
+
+		let amm_transfer: AMMTransfer<T::AccountId, AssetId, AssetPair, Balance> = AMMTransfer {
 			origin: who.clone(),
 			assets,
-			amount: amount_out,
-			amount_out: amount_in,
-			fee: no_fee,
+			amount: amount_out_with_fee,
+			amount_out: amount_in.amount,
+			fee,
 			discount: false,
 			discount_amount: 0,
 		};
-		Self::do_validate_buy_common(assets, amount_out).map_err(|_| ExecutorError::Error(()))?;
+		Self::do_validate_buy_common(assets, amount_out_with_fee).map_err(|_| ExecutorError::Error(()))?;
 		Self::do_execute_buy(&amm_transfer).map_err(|_| ExecutorError::Error(()))?;
 
 		Ok(())

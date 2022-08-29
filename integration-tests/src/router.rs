@@ -51,6 +51,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 
 		//Assert
 		let amount_out = 453_181_818_1819u128;
+		let last_trade_fee = 13636363635u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_out, AUSD);
@@ -59,7 +60,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_to_sell,
-			amount_out,
+			amount_out: amount_out + last_trade_fee, //TODO: ask Martin if this is fine, or we should separate handle the fee
 		}
 		.into()]);
 	});
@@ -111,6 +112,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 
 		//Assert
 		let amount_out = 105_455_305_9484u128;
+		let last_trade_fee = 3173178714u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 		assert_trader_non_native_balance(amount_out, KSM);
@@ -121,7 +123,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 			asset_in: BSX,
 			asset_out: KSM,
 			amount_in: amount_to_sell,
-			amount_out,
+			amount_out: amount_out + last_trade_fee,
 		}
 		.into()]);
 	});
@@ -162,7 +164,7 @@ fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 }
 
 #[test]
-fn execute_sell_should_fail_when_firs_trade_is_successful_but_second_trade_has_no_supported_pool() {
+fn execute_sell_should_fail_when_first_trade_is_successful_but_second_trade_has_no_supported_pool() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -236,6 +238,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 
 		//Assert
 		let amount_in = 25075000000001;
+		let last_trade_fee = 75000000000u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
@@ -243,7 +246,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in,
+			amount_in: amount_in - last_trade_fee,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -290,6 +293,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 
 		//Assert
 		let amount_in = 428_143_592_7986;
+		let last_trade_fee = 12805890111;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
@@ -298,7 +302,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in,
+			amount_in: amount_in - last_trade_fee,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -352,6 +356,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 
 		//Assert
 		let amount_in = 939_285_894_6762;
+		let last_trade_fee = 28094293956u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
@@ -361,7 +366,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in,
+			amount_in: amount_in - last_trade_fee,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -403,7 +408,7 @@ fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 }
 
 #[test]
-fn execute_buy_should_fail_when_firs_trade_is_successful_but_second_trade_has_no_supported_pool() {
+fn execute_buy_should_fail_when_first_trade_is_successful_but_second_trade_has_no_supported_pool() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
