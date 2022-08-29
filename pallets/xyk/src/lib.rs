@@ -931,16 +931,20 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		let asset_in_reserve = T::Currency::free_balance(asset_in, &pair_account);
 		let asset_out_reserve = T::Currency::free_balance(asset_out, &pair_account);
 
-		let amount_in_without_fee = amount_in.amount.checked_sub(amount_in.fee).ok_or(ExecutorError::Error(()))?;
+		let amount_in_without_fee = amount_in
+			.amount
+			.checked_sub(amount_in.fee)
+			.ok_or(ExecutorError::Error(()))?;
 
-		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in_without_fee)
-			.map_err(|_| ExecutorError::Error(()))?;
+		let amount_out =
+			hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in_without_fee)
+				.map_err(|_| ExecutorError::Error(()))?;
 
 		let transfer_fee = Self::calculate_fee(amount_out).map_err(|_| ExecutorError::Error(()))?;
 
 		Ok(TradeCalculation {
 			amount: amount_out,
-			fee: transfer_fee
+			fee: transfer_fee,
 		})
 	}
 
@@ -962,16 +966,20 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 		let asset_in_reserve = T::Currency::free_balance(asset_in, &pair_account);
 		let asset_out_reserve = T::Currency::free_balance(asset_out, &pair_account);
 
-		let amount_out_with_fee = amount_out.amount.checked_add(amount_out.fee).ok_or(ExecutorError::Error(()))?;
+		let amount_out_with_fee = amount_out
+			.amount
+			.checked_add(amount_out.fee)
+			.ok_or(ExecutorError::Error(()))?;
 
-		let amount_in = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out_with_fee)
-			.map_err(|_| ExecutorError::Error(()))?;
+		let amount_in =
+			hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out_with_fee)
+				.map_err(|_| ExecutorError::Error(()))?;
 
 		let transfer_fee = Self::calculate_fee(amount_in).map_err(|_| ExecutorError::Error(()))?;
 
 		Ok(TradeCalculation {
 			amount: amount_in,
-			fee: transfer_fee
+			fee: transfer_fee,
 		})
 	}
 
@@ -990,8 +998,14 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 
 		let assets = AssetPair { asset_in, asset_out };
 		let fee = (asset_out, amount_out.fee);
-		let amount_in_without_fee = amount_in.amount.checked_sub(amount_in.fee).ok_or(ExecutorError::Error(()))?;
-		let amount_out_without_fee = amount_out.amount.checked_sub(amount_out.fee).ok_or(ExecutorError::Error(()))?;
+		let amount_in_without_fee = amount_in
+			.amount
+			.checked_sub(amount_in.fee)
+			.ok_or(ExecutorError::Error(()))?;
+		let amount_out_without_fee = amount_out
+			.amount
+			.checked_sub(amount_out.fee)
+			.ok_or(ExecutorError::Error(()))?;
 
 		let amm_transfer: AMMTransfer<T::AccountId, AssetId, AssetPair, Balance> = AMMTransfer {
 			origin: who.clone(),
@@ -1024,7 +1038,10 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 
 		let assets = AssetPair { asset_in, asset_out };
 		let fee = (asset_in, amount_in.fee);
-		let amount_out_with_fee = amount_out.amount.checked_add(amount_out.fee).ok_or(ExecutorError::Error(()))?;
+		let amount_out_with_fee = amount_out
+			.amount
+			.checked_add(amount_out.fee)
+			.ok_or(ExecutorError::Error(()))?;
 
 		let amm_transfer: AMMTransfer<T::AccountId, AssetId, AssetPair, Balance> = AMMTransfer {
 			origin: who.clone(),
