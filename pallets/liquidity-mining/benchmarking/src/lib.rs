@@ -182,6 +182,14 @@ benchmarks! {
 		assert_eq!(MultiCurrencyOf::<T>::free_balance(BSX, &caller), (INITIAL_BALANCE * ONE - total_rewards ));
 	}
 
+	update_global_farm {
+		let caller = funded_account::<T>("caller", 0);
+
+		init_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		set_block_number::<T>(200_000);
+	}: {
+		LiquidityMining::<T>::update_global_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, FixedU128::from_inner(234_456_677_000_000_000_u128))?
+	}
 
 	destroy_global_farm {
 		let total_rewards = 1_000_000 * ONE;
@@ -384,8 +392,6 @@ benchmarks! {
 		assert!(MultiCurrencyOf::<T>::free_balance(lp_share_token, &liq_provider).gt(&liq_provider_lp_share_balance));
 	}
 
-	//NOTE: This is same no matter if `update_global_pool()` is called because `GlobalFarm` will be
-	//read/written either way.
 	resume_yield_farm {
 		let caller = funded_account::<T>("caller", 0);
 		let xyk_caller = funded_account::<T>("xyk_caller", 1);
@@ -400,6 +406,7 @@ benchmarks! {
 
 		LiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), 1, ASSET_PAIR)?;
 
+		set_block_number::<T>(400_000);
 	}: {
 		LiquidityMining::<T>::resume_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR, FixedU128::from(12_452))?
 	}

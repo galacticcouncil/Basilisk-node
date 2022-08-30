@@ -3242,7 +3242,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.7.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2e96b26632cfa18ad6164250424323bab57e5518#2e96b26632cfa18ad6164250424323bab57e5518"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268#3230d9d1e6eaed6305b1b67587437415cd34e268"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5947,12 +5947,12 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2e96b26632cfa18ad6164250424323bab57e5518#2e96b26632cfa18ad6164250424323bab57e5518"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268#3230d9d1e6eaed6305b1b67587437415cd34e268"
 dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.7.0",
- "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=2e96b26632cfa18ad6164250424323bab57e5518)",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268)",
  "orml-traits",
  "parity-scale-codec",
  "scale-info",
@@ -5967,7 +5967,7 @@ version = "1.3.0"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=2e96b26632cfa18ad6164250424323bab57e5518)",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268)",
  "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=85257f53b0da5827c103bf4f739474cc1e83d3f7)",
  "lazy_static",
  "orml-currencies",

@@ -23,9 +23,9 @@ pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "po
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
 
 # HydraDX dependencies
-warehouse_liquidity_mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="2e96b26632cfa18ad6164250424323bab57e5518", default-features = false }
+warehouse_liquidity_mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="3230d9d1e6eaed6305b1b67587437415cd34e268", default-features = false }
 
-hydradx-traits-lm = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev="2e96b26632cfa18ad6164250424323bab57e5518", default-features = false }
+hydradx-traits-lm = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev="3230d9d1e6eaed6305b1b67587437415cd34e268", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 

@@ -29,7 +29,7 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 # HydraDX dependencies
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false}
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
-warehouse_liquidity_mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="2e96b26632cfa18ad6164250424323bab57e5518", default-features = false }
+warehouse_liquidity_mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="3230d9d1e6eaed6305b1b67587437415cd34e268", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 
 # Substrate dependencies

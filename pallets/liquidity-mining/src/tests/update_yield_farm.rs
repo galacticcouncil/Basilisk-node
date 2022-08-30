@@ -20,7 +20,7 @@ use test_ext::*;
 use warehouse_liquidity_mining::{FarmMultiplier, YieldFarmData};
 
 #[test]
-fn update_yield_farm_should_() {
+fn update_yield_farm_should_work() {
 	predefined_test_ext().execute_with(|| {
 		//Arrange
 		let new_multiplier: FarmMultiplier = FixedU128::from(5_000_u128);
@@ -45,7 +45,7 @@ fn update_yield_farm_should_() {
 		}
 		.into());
 
-		assert_eq!(
+		pretty_assertions::assert_eq!(
 			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
 			YieldFarmData {
 				multiplier: new_multiplier,
@@ -53,7 +53,7 @@ fn update_yield_farm_should_() {
 			}
 		);
 
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
+		pretty_assertions::assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
 	});
 }
 

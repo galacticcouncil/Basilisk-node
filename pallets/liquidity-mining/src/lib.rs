@@ -186,6 +186,12 @@ pub mod pallet {
 			price_adjustment: FixedU128,
 		},
 
+		/// Global farm's `price_adjustment` was updated.
+		GlobalFarmUpdated {
+			id: GlobalFarmId,
+			price_adjustment: FixedU128,
+		},
+
 		/// New yield farm was added into the farm.
 		YieldFarmCreated {
 			global_farm_id: GlobalFarmId,
@@ -346,6 +352,35 @@ pub mod pallet {
 				incentivized_asset,
 				max_reward_per_period,
 				min_deposit,
+				price_adjustment,
+			});
+
+			Ok(())
+		}
+
+		/// Update global farm's prices adjustment.
+		///
+		/// Only farm's owner can perform this action.
+		///
+		/// Parameters:
+		/// - `origin`: global farm's owner.
+		/// - `global_farm_id`: id of the global farm to update
+		/// - `price_adjustment`: new value for price adjustment
+		///
+		/// Emits `GlobalFarmUpdated` event when successful.
+		#[pallet::weight(<T as Config>::WeightInfo::update_global_farm())]
+		#[transactional]
+		pub fn update_global_farm(
+			origin: OriginFor<T>,
+			global_farm_id: GlobalFarmId,
+			price_adjustment: FixedU128,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			T::LiquidityMiningHandler::update_global_farm_price_adjustment(who, global_farm_id, price_adjustment)?;
+
+			Self::deposit_event(Event::GlobalFarmUpdated {
+				id: global_farm_id,
 				price_adjustment,
 			});
 
