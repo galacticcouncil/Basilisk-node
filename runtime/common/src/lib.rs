@@ -276,7 +276,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = NATIVE_EXISTENTIAL_DEPOSIT * 1_000;
-	pub const NftClass: primitives::ClassId = 1;
+	pub const NftClass: primitives::CollectionId = 1;
 }
 
 // pallet identity
