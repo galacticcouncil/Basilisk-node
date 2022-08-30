@@ -2,18 +2,17 @@
 
 use crate::kusama_test_net::*;
 use basilisk_runtime::{
-	AssetRegistry, ClassDeposit, InstanceDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount, Tokens,
+	AssetRegistry, CollectionDeposit, ItemDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount, Tokens,
 	NFT, RELAY_CHAIN_ASSET_LOCATION,
 };
 use frame_support::{assert_noop, assert_ok};
 use orml_traits::MultiCurrency;
 use orml_traits::MultiReservableCurrency;
-use primitives::nft::ClassType;
+use pallet_nft::ClassType;
 use primitives::{AssetId, CollectionId};
 use xcm_emulator::TestExt;
 
 const KSM: AssetId = 1;
-
 const ALICE_COLLECTION: CollectionId = 13370000;
 
 fn init() {
@@ -73,7 +72,7 @@ fn nft_pallet_should_reserve_ksm_when_nft_is_arranged() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			Tokens::reserved_balance(KSM, &AccountId::from(ALICE)),
-			ClassDeposit::get() + InstanceDeposit::get()
+			CollectionDeposit::get() + ItemDeposit::get()
 		);
 	});
 }
@@ -92,7 +91,7 @@ fn marketplace_should_reserve_ksm_when_royalties_are_added() {
 		));
 		assert_eq!(
 			Tokens::reserved_balance(KSM, &AccountId::from(ALICE)),
-			ClassDeposit::get() + InstanceDeposit::get() + RoyaltyBondAmount::get()
+			CollectionDeposit::get() + ItemDeposit::get() + RoyaltyBondAmount::get()
 		);
 	});
 }

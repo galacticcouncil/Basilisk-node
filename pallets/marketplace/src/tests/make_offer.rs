@@ -1,4 +1,5 @@
 use super::*;
+use mock::Call;
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -26,16 +27,18 @@ fn make_offer_should_work_when_no_nft_exists() {
 					expires: 2,
 				})
 			);
+			assert_eq!(<Test as Config>::Currency::reserved_balance(&CHARLIE), 50 * UNITS);
 
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::OfferPlaced {
+				Event::OfferPlaced {
 					who: CHARLIE,
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					amount: 50 * UNITS,
 					expires: 2,
-				})
+				}
+				.into()
 			);
 		});
 }

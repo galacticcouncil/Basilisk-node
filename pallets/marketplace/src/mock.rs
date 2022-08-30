@@ -5,7 +5,7 @@ use frame_support::{
 	BoundedVec,
 };
 use frame_system as system;
-use primitives::nft::{ClassType, NftPermissions};
+use pallet_nft::{ClassType, NftPermissions};
 pub use primitives::{Amount, AssetId};
 use sp_core::storage::Storage;
 use sp_core::{crypto::AccountId32, H256};
@@ -33,11 +33,11 @@ frame_support::construct_runtime!(
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Marketplace: pallet_marketplace::{Pallet, Call, Storage, Event<T>},
-		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
+		System: frame_system,
+		Marketplace: pallet_marketplace,
+		NFT: pallet_nft,
+		Balances: pallet_balances,
+		Uniques: pallet_uniques,
 	}
 );
 
@@ -122,8 +122,8 @@ impl system::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 10_000 * UNITS; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 100 * UNITS; // 1/100 UNIT deposit to create asset instance
+	pub const CollectionDeposit: Balance = 10_000 * UNITS; // 1 UNIT deposit to create asset class
+	pub const ItemDeposit: Balance = 100 * UNITS; // 1/100 UNIT deposit to create asset instance
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
@@ -138,8 +138,8 @@ impl pallet_uniques::Config for Test {
 	type ItemId = u32;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
-	type CollectionDeposit = ClassDeposit;
-	type ItemDeposit = InstanceDeposit;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
