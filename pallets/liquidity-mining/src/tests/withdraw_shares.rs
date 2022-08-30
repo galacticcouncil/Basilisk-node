@@ -68,6 +68,7 @@ fn withdraw_shares_should_work() {
 				who: ALICE,
 				claimed: expected_claimed_rewards,
 				reward_currency: BSX,
+				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 			}
 			.into(),
 		);
@@ -78,13 +79,14 @@ fn withdraw_shares_should_work() {
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: withdrawn_amount,
+				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 			}
 			.into(),
 		);
 		has_event(
 			crate::Event::DepositDestroyed {
 				who: ALICE,
-				nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
+				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 			}
 			.into(),
 		);
@@ -185,6 +187,7 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 			who: ALICE,
 			claimed: claimed_rewards,
 			reward_currency: BSX,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 		}
 		.into());
 
@@ -235,6 +238,7 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: 50,
+				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 			}
 			.into(),
 		);
@@ -242,7 +246,7 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 		has_event(
 			crate::Event::DepositDestroyed {
 				who: ALICE,
-				nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
+				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 			}
 			.into(),
 		);
@@ -311,6 +315,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 				who: ALICE,
 				lp_token: BSX_TKN1_SHARE_ID,
 				amount: shares_amount,
+				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 			}
 			.into(),
 		);
@@ -318,7 +323,7 @@ fn withdraw_shares_from_removed_pool_should_work() {
 		has_event(
 			crate::Event::DepositDestroyed {
 				who: ALICE,
-				nft_instance_id: PREDEFINED_DEPOSIT_IDS[0],
+				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 			}
 			.into(),
 		);

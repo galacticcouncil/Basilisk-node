@@ -48,6 +48,7 @@ fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: 50,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 		}
 		.into());
 
@@ -77,6 +78,7 @@ fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: 50,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 		}
 		.into());
 

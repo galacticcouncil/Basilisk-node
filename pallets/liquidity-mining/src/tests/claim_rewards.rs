@@ -44,6 +44,7 @@ fn claim_rewards_should_work_when_deposit_exist() {
 			who: ALICE,
 			claimed: expected_claimed_rewards,
 			reward_currency: BSX,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 		}
 		.into());
 
@@ -133,6 +134,7 @@ fn claim_rewards_should_fail_when_double_claim_happens() {
 			who: ALICE,
 			claimed: 23_306,
 			reward_currency: BSX,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 		}
 		.into());
 

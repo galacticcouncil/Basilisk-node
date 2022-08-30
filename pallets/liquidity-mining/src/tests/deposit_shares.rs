@@ -66,6 +66,7 @@ fn deposit_shares_should_work() {
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[0]
 		}
 		.into());
 

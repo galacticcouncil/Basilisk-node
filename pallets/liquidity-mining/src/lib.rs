@@ -216,6 +216,7 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			amount: Balance,
 			lp_token: AssetId,
+			deposit_id: primitives::InstanceId,
 		},
 
 		/// LP token was redeposited for a new yield farm entry
@@ -225,6 +226,7 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			amount: Balance,
 			lp_token: AssetId,
+			deposit_id: primitives::InstanceId,
 		},
 
 		/// Rewards was claimed.
@@ -234,6 +236,7 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			claimed: Balance,
 			reward_currency: AssetId,
+			deposit_id: primitives::InstanceId,
 		},
 
 		/// LP tokens was withdrawn.
@@ -243,6 +246,7 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			lp_token: AssetId,
 			amount: Balance,
+			deposit_id: primitives::InstanceId,
 		},
 
 		/// Yield farm for asset pair was stopped.
@@ -282,7 +286,7 @@ pub mod pallet {
 		/// NFT representing deposit has been destroyed
 		DepositDestroyed {
 			who: AccountIdOf<T>,
-			nft_instance_id: primitives::InstanceId,
+			deposit_id: primitives::InstanceId,
 		},
 	}
 
@@ -691,6 +695,7 @@ pub mod pallet {
 				who,
 				amount: shares_amount,
 				lp_token: amm_share_token,
+				deposit_id,
 			});
 
 			Ok(())
@@ -740,6 +745,7 @@ pub mod pallet {
 				who,
 				amount: shares_amount,
 				lp_token: amm_share_token,
+				deposit_id,
 			});
 
 			Ok(())
@@ -781,6 +787,7 @@ pub mod pallet {
 					who,
 					claimed,
 					reward_currency,
+					deposit_id,
 				});
 			}
 
@@ -849,6 +856,7 @@ pub mod pallet {
 						who: who.clone(),
 						claimed,
 						reward_currency,
+						deposit_id,
 					});
 				}
 
@@ -866,6 +874,7 @@ pub mod pallet {
 					who: who.clone(),
 					lp_token,
 					amount: withdrawn_amount,
+					deposit_id,
 				});
 			}
 
@@ -873,10 +882,7 @@ pub mod pallet {
 				Self::unlock_lp_tokens(asset_pair, who.clone(), withdrawn_amount)?;
 				T::NFTHandler::burn_from(&T::NftClassId::get(), &deposit_id)?;
 
-				Self::deposit_event(Event::DepositDestroyed {
-					who,
-					nft_instance_id: deposit_id,
-				});
+				Self::deposit_event(Event::DepositDestroyed { who, deposit_id });
 			}
 
 			Ok(())

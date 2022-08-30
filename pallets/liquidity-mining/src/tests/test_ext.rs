@@ -379,6 +379,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
 		}
 		.into());
 
@@ -402,6 +403,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: BOB,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[1],
 		}
 		.into());
 
@@ -425,6 +427,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[2],
 		}
 		.into());
 
@@ -449,6 +452,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: BOB,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[3],
 		}
 		.into());
 
@@ -473,6 +477,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[4],
 		}
 		.into());
 
@@ -497,6 +502,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: ALICE,
 			lp_token: BSX_TKN2_SHARE_ID,
 			amount: deposited_amount,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[5],
 		}
 		.into());
 
@@ -521,6 +527,7 @@ pub fn predefined_test_ext_with_deposits() -> sp_io::TestExternalities {
 			who: ALICE,
 			lp_token: BSX_TKN1_SHARE_ID,
 			amount: deposited_amount,
+			deposit_id: PREDEFINED_DEPOSIT_IDS[6],
 		}
 		.into());
 
