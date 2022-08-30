@@ -5,7 +5,7 @@ use frame_support::{
 	BoundedVec,
 };
 use frame_system as system;
-use primitives::nft::{ClassType, NftPermissions};
+use pallet_nft::{ClassType, NftPermissions};
 pub use primitives::{Amount, AssetId};
 use sp_core::storage::Storage;
 use sp_core::{crypto::AccountId32, H256};

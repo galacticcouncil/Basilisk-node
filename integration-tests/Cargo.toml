@@ -98,6 +98,7 @@ sp-version = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-staking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
+pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.26" }
 polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.26" }
@@ -110,7 +111,7 @@ xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "p
 hex-literal = "0.3.1"
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556" }
 pretty_assertions = "1.2.1"
-sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26" }
+test-case = "2.2.1"
 
 [features]
 default = ["std"]
