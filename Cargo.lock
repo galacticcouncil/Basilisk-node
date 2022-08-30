@@ -8747,7 +8747,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.7.4"
+version = "0.7.5"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8811,6 +8811,7 @@ dependencies = [
  "pretty_assertions",
  "primitives",
  "sp-api",
+ "sp-arithmetic 5.0.0",
  "sp-block-builder",
  "sp-consensus-aura",
  "sp-core",
