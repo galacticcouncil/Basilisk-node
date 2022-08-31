@@ -49,6 +49,11 @@ pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
 	));
 }
 
+pub fn register_asset_with_name(name_as_bye_string: &[u8] ) -> Result<AssetId, BenchmarkError> {
+	register_asset(name_as_bye_string.to_vec(), 0u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))
+}
+
+
 runtime_benchmarks! {
 	{ Runtime, pallet_route_executor}
 
@@ -56,11 +61,15 @@ runtime_benchmarks! {
 		let caller: AccountId = account("caller", 0, SEED);
 		let pool_maker: AccountId = account("pool_maker", 0, SEED);
 
-		let asset_in = register_asset(b"TST".to_vec(), 0u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
-		let asset_out = register_asset(b"TST2".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_in = register_asset_with_name(b"TST")?;
+		let asset_out = register_asset_with_name(b"TST2")?;
 
-		update_balance(asset_in, &pool_maker, 2_000 * UNITS);
-		update_balance(asset_out, &pool_maker, 2_000 * UNITS);
+		let caller_asset_in_balance = 2000 * UNITS;
+		let caller_asset_out_balance = 2000 * UNITS;
+		let amount_to_sell = 10 * UNITS;
+
+		update_balance(asset_in, &pool_maker, caller_asset_in_balance);
+		update_balance(asset_out, &pool_maker, caller_asset_out_balance);
 
 		update_balance(asset_in, &caller, 2_000 * UNITS);
 		update_balance(asset_out, &caller, 2_000 * UNITS);
@@ -76,10 +85,11 @@ runtime_benchmarks! {
         ];
 
 	}: {
-		RouteExecutor::<Runtime>::execute_sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, 10 * UNITS, 0u128, routes)?
+		RouteExecutor::<Runtime>::execute_sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_sell, 0u128, routes)?
 	}
 	verify{
-		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller), 1990 * UNITS);
+		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller), caller_asset_in_balance -  amount_to_sell);
+		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller) > (caller_asset_out_balance));
 	}
 }
 
