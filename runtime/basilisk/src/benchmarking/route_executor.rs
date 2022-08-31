@@ -53,13 +53,17 @@ pub fn register_asset_with_name(name_as_bye_string: &[u8] ) -> Result<AssetId, B
 	register_asset(name_as_bye_string.to_vec(), 0u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))
 }
 
+pub fn create_account(name: &'static str ) -> AccountId {
+	account(name, 0, SEED)
+}
+
 
 runtime_benchmarks! {
 	{ Runtime, pallet_route_executor}
 
 	execute_sell {
-		let caller: AccountId = account("caller", 0, SEED);
-		let pool_maker: AccountId = account("pool_maker", 0, SEED);
+		let caller: AccountId = create_account("caller");
+		let pool_maker: AccountId = create_account("pool_maker");
 
 		let asset_in = register_asset_with_name(b"TST")?;
 		let asset_out = register_asset_with_name(b"TST2")?;
