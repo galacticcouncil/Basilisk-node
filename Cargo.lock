@@ -3199,19 +3199,6 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=3e0e6774d52184b00e758dc822564e5a893773f5#3e0e6774d52184b00e758dc822564e5a893773f5"
-dependencies = [
- "fixed",
- "lazy_static",
- "num-traits",
- "parity-scale-codec",
- "primitive-types 0.8.0",
- "sp-arithmetic",
-]
-
-[[package]]
-name = "hydra-dx-math"
 version = "4.4.5"
 source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=6500f90f079325e12f6b4ee47fad6e5a56f6d9b9#6500f90f079325e12f6b4ee47fad6e5a56f6d9b9"
 dependencies = [
@@ -3226,6 +3213,18 @@ dependencies = [
 name = "hydra-dx-math"
 version = "4.5.0"
 source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1cd815cbce846a42d351db3778ff9c07149a6ad2#1cd815cbce846a42d351db3778ff9c07149a6ad2"
+dependencies = [
+ "fixed",
+ "num-traits",
+ "parity-scale-codec",
+ "primitive-types 0.8.0",
+ "sp-arithmetic",
+]
+
+[[package]]
+name = "hydra-dx-math"
+version = "4.7.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=9b4c1d3b8369d779ba935762c0dace506fd597fc#9b4c1d3b8369d779ba935762c0dace506fd597fc"
 dependencies = [
  "fixed",
  "num-traits",
@@ -3259,6 +3258,20 @@ dependencies = [
  "frame-support",
  "parity-scale-codec",
  "scale-info",
+ "serde",
+ "sp-std",
+]
+
+[[package]]
+name = "hydradx-traits"
+version = "0.7.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268#3230d9d1e6eaed6305b1b67587437415cd34e268"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
  "sp-std",
 ]
 
@@ -3271,19 +3284,6 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-std",
-]
-
-[[package]]
-name = "hydradx-traits"
-version = "0.7.0"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=d5a86e0006dd3c446ccf49cf7a37e37269c404fc#d5a86e0006dd3c446ccf49cf7a37e37269c404fc"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-arithmetic",
  "sp-std",
 ]
 
@@ -6009,12 +6009,12 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil//warehouse?rev=d5a86e0006dd3c446ccf49cf7a37e37269c404fc#d5a86e0006dd3c446ccf49cf7a37e37269c404fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268#3230d9d1e6eaed6305b1b67587437415cd34e268"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.2.0",
- "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil//warehouse?rev=d5a86e0006dd3c446ccf49cf7a37e37269c404fc)",
+ "hydra-dx-math 4.7.0",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268)",
  "orml-traits",
  "parity-scale-codec",
  "scale-info",
@@ -6374,9 +6374,8 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.2.0",
  "hydradx-traits 0.6.0",
- "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil//warehouse?rev=d5a86e0006dd3c446ccf49cf7a37e37269c404fc)",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268)",
  "mutagen",
  "orml-currencies",
  "orml-tokens",

@@ -45,7 +45,7 @@ fn deposit_lp_should_work() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)
@@ -122,7 +122,7 @@ fn deposit_lp_should_fail_when_account_with_insufficient_balance() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)
@@ -166,7 +166,7 @@ fn deposit_lp_should_fail_when_stableswap_pool_doesnt_exist() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)

@@ -46,7 +46,7 @@ fn redeposit_lp_shares_should_work() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)
@@ -57,7 +57,7 @@ fn redeposit_lp_shares_should_work() {
 			BSX,
 			BSX,
 			BOB,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)
@@ -119,7 +119,7 @@ fn redeposit_lp_shares_should_fail_when_origin_is_not_nft_owner() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)
@@ -130,7 +130,7 @@ fn redeposit_lp_shares_should_fail_when_origin_is_not_nft_owner() {
 			BSX,
 			BSX,
 			BOB,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)

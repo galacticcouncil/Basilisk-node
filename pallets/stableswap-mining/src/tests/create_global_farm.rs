@@ -50,7 +50,7 @@ fn create_global_farm_should_work() {
 			let blocks_per_period = 100;
 			let incentivized_asset = BSX;
 			let reward_currency = BSX;
-			let yield_per_period = Permill::from_float(0.2);
+			let yield_per_period = Perquintill::from_float(0.2);
 			let min_deposit = 100;
 			let price_adujustment: FixedU128 = One::one();
 			let max_reward_per_period = total_rewards.checked_div(planned_yielding_periods.into()).unwrap();
@@ -122,7 +122,7 @@ fn create_global_farm_should_fail_when_not_allowed_origin() {
 					BSX,
 					BSX,
 					ALICE,
-					Permill::from_float(0.2),
+					Perquintill::from_float(0.2),
 					10,
 					One::one(),
 				),

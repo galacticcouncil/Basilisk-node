@@ -54,14 +54,14 @@ fn initialize_global_farm<T: Config>(owner: T::AccountId) -> DispatchResult {
 }
 
 fn initialize_stableswap_pool<T: Config>(owner: T::AccountId) -> DispatchResult {
-    let asset_a = AssetRegistryOf::<T>::create_asset(&b"one".to_vec(), 1u128)?;
-    
-    Ok(()) 
+	let asset_a = AssetRegistryOf::<T>::create_asset(&b"one".to_vec(), 1u128)?;
+
+	Ok(())
 }
 
 benchmarks! {
-	 where_clause {  where 
-        T::AssetId: From<u32> + Into<u32>,
+	 where_clause {  where
+		T::AssetId: From<u32> + Into<u32>,
 		T: crate::pallet::Config
 	}
 
@@ -98,19 +98,19 @@ benchmarks! {
 		}.into());
 	}
 
-    destroy_global_farm {
+	destroy_global_farm {
 	   let owner: T::AccountId = account("caller", 0, 1);
 
-        initialize_global_farm::<T>(owner.clone())?;
-    }: _(RawOrigin::Signed(owner.clone()),  1)  
-    verify {
+		initialize_global_farm::<T>(owner.clone())?;
+	}: _(RawOrigin::Signed(owner.clone()),  1)
+	verify {
 		assert_last_event::<T>(Event::<T>::GlobalFarmDestroyed {
-            id: 1,
+			id: 1,
 			who: owner,
 			reward_currency: BSX,
-            undistributed_rewards: 1_000_000 * ONE
+			undistributed_rewards: 1_000_000 * ONE
 		}.into());
-    }
+	}
 }
 
 #[cfg(test)]

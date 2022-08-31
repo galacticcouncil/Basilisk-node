@@ -45,7 +45,7 @@ fn resume_yield_farm_should_work() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)
@@ -114,7 +114,7 @@ fn resume_yield_farm_should_fail_when_stableswap_pool_doesnt_exists() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			One::one(),
 		)

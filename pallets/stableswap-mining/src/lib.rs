@@ -40,7 +40,7 @@ use hydradx_traits::liquidity_mining::Mutate as LiquidityMiningMutate;
 use orml_traits::MultiCurrency;
 use pallet_stableswap::{traits::ShareAccountIdFor, types::PoolId, POOL_IDENTIFIER};
 use primitives::{AssetId, Balance, ClassId as NftClassId, InstanceId as NftInstanceId};
-use sp_arithmetic::{FixedU128, Permill};
+use sp_arithmetic::{FixedU128, Perquintill};
 use sp_std::convert::{From, Into};
 use warehouse_liquidity_mining::{DepositId, FarmMultiplier, GlobalFarmId, LoyaltyCurve, YieldFarmId};
 
@@ -134,7 +134,7 @@ pub mod pallet {
 			owner: AccountIdOf<T>,
 			id: GlobalFarmId,
 			reward_currency: AssetId,
-			yield_per_period: Permill,
+			yield_per_period: Perquintill,
 			planned_yielding_periods: PeriodOf<T>,
 			blocks_per_period: BlockNumberFor<T>,
 			incentivized_asset: AssetId,
@@ -239,7 +239,7 @@ pub mod pallet {
 			incentivized_asset: AssetId,
 			reward_currency: AssetId,
 			owner: AccountIdOf<T>,
-			yield_per_period: Permill,
+			yield_per_period: Perquintill,
 			min_deposit: Balance,
 			price_adujustment: FixedU128,
 		) -> DispatchResult {

@@ -46,7 +46,7 @@ fn withdraw_lp_shares_should_work() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			FixedU128::one(),
 		)
@@ -57,7 +57,7 @@ fn withdraw_lp_shares_should_work() {
 			BSX,
 			HDX,
 			BOB,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			FixedU128::one(),
 		)
@@ -208,7 +208,7 @@ fn withdraw_lp_shares_should_work_when_reward_claim_is_zero() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			FixedU128::one(),
 		)
@@ -309,7 +309,7 @@ fn withdraw_lp_shares_should_fail_when_account_is_not_deposit_owner() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			FixedU128::one(),
 		)
@@ -365,7 +365,7 @@ fn withdraw_lp_shares_should_fail_when_stableswap_pool_doesnt_exits() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			FixedU128::one(),
 		)

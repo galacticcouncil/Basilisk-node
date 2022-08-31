@@ -45,7 +45,7 @@ fn claim_rewards_should_work() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			FixedU128::one(),
 		)
@@ -109,7 +109,7 @@ fn claim_rewards_should_fail_when_second_claim_in_same_period_from_same_farm() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			FixedU128::one(),
 		)
@@ -180,7 +180,7 @@ fn claim_rewards_should_fail_when_account_is_not_deposit_owner() {
 			BSX,
 			BSX,
 			GC,
-			Permill::from_float(0.2),
+			Perquintill::from_float(0.2),
 			1_000,
 			FixedU128::one(),
 		)

@@ -29,7 +29,7 @@ pub(crate) use frame_support::{
 use frame_system as system;
 use frame_system::{EnsureRoot, EnsureSigned};
 use orml_traits::parameter_type_with_key;
-pub use sp_arithmetic::{FixedU128, Permill};
+pub use sp_arithmetic::{FixedU128, Perquintill};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
@@ -218,9 +218,9 @@ pub struct DymmyGlobalFarm {
 	incentivized_asset: AssetId,
 	reward_currency: AssetId,
 	_owner: AccountId,
-	_yield_per_period: Permill,
+	_yield_per_period: Perquintill,
 	_min_deposit: Balance,
-	_price_adjustment: FixedU128,
+	price_adjustment: FixedU128,
 	_max_reward_per_period: Balance,
 }
 
@@ -387,7 +387,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		incentivized_asset: AssetId,
 		reward_currency: AssetId,
 		owner: AccountId,
-		yield_per_period: Permill,
+		yield_per_period: Perquintill,
 		min_deposit: Self::Balance,
 		price_adjustment: FixedU128,
 	) -> Result<(u32, Self::Balance), Self::Error> {
@@ -406,13 +406,29 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 					_owner: owner,
 					_yield_per_period: yield_per_period,
 					_min_deposit: min_deposit,
-					_price_adjustment: price_adjustment,
+					price_adjustment,
 					_max_reward_per_period: max_reward_per_period,
 				},
 			);
 		});
 
 		Ok((farm_id, max_reward_per_period))
+	}
+
+	fn update_global_farm_price_adjustment(
+		_who: AccountId,
+		global_farm_id: u32,
+		price_adjustment: FixedU128,
+	) -> Result<(), Self::Error> {
+		GLOBAL_FARMS.with(|v| {
+			let mut p = v.borrow_mut();
+
+			let global_farm = p.get_mut(&global_farm_id).unwrap();
+
+			global_farm.price_adjustment = price_adjustment;
+
+			Ok(())
+		})
 	}
 
 	fn destroy_global_farm(
@@ -694,7 +710,7 @@ pub struct ExtBuilder {
 		AssetId,
 		AssetId,
 		AccountId,
-		Permill,
+		Perquintill,
 		Balance,
 		FixedU128,
 	)>,
@@ -791,7 +807,7 @@ impl ExtBuilder {
 		incentivized_asset: AssetId,
 		reward_currency: AssetId,
 		owner: AccountId,
-		yield_per_period: Permill,
+		yield_per_period: Perquintill,
 		min_deposit: Balance,
 		price_adjustment: FixedU128,
 	) -> Self {

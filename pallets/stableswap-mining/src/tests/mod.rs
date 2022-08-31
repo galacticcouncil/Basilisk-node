@@ -16,6 +16,7 @@
 use super::*;
 use frame_support::{assert_noop, assert_ok};
 use mock::*;
+use sp_arithmetic::Permill;
 
 macro_rules! assert_last_event {
 	( $x:expr ) => {{

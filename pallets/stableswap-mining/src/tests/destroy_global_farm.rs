@@ -23,7 +23,7 @@ fn destroy_global_farm_should_work() {
 	let blocks_per_period = 100;
 	let incentivized_asset = BSX;
 	let reward_currency = BSX;
-	let yield_per_period = Permill::from_float(0.2);
+	let yield_per_period = Perquintill::from_float(0.2);
 	let min_deposit = 100;
 	let price_adujustment: FixedU128 = One::one();
 	let global_farm_id = GC_FARM;
