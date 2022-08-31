@@ -41,13 +41,13 @@ pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polka
 pallet-identity = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 
 # Warehouse dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false}
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
-hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "23b5b67c68e5c7370a92e73e8c5f325d4c339e51", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "23b5b67c68e5c7370a92e73e8c5f325d4c339e51", default-features = false }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "23b5b67c68e5c7370a92e73e8c5f325d4c339e51", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "23b5b67c68e5c7370a92e73e8c5f325d4c339e51", default-features = false}
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "23b5b67c68e5c7370a92e73e8c5f325d4c339e51", default-features = false }
+hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "23b5b67c68e5c7370a92e73e8c5f325d4c339e51", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "23b5b67c68e5c7370a92e73e8c5f325d4c339e51", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
