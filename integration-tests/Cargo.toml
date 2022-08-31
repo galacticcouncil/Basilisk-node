@@ -10,9 +10,9 @@ repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
 # local dependencies
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false}
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false}
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false}
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false}
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
 
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
@@ -65,8 +65,8 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "relea
 polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17", default-features = false }
 
 # HydraDX dependencies
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false, optional = true }
@@ -108,7 +108,7 @@ kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "rel
 
 [dev-dependencies]
 hex-literal = "0.3.1"
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7" }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "9bbe95b4ffda80d0cdf7007b1f2c6f3b079f4fe8" }
 pretty_assertions = "1.2.1"
 xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
 sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17" }
