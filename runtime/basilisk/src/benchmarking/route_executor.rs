@@ -29,6 +29,7 @@ use sp_runtime::traits::SaturatedConversion;
 
 use hydradx_traits::pools::SpotPriceProvider;
 use orml_traits::MultiCurrencyExtended;
+use orml_traits::MultiCurrency;
 
 type RouteExecutor<T> = pallet_route_executor::Pallet<T>;
 
@@ -37,6 +38,8 @@ use pallet_route_executor::types::Trade;
 
 
 const SEED: u32 = 1;
+pub const UNITS: Balance = 100_000_000_000;
+
 
 pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
 	assert_ok!(<Currencies as MultiCurrencyExtended<_>>::update_balance(
@@ -51,17 +54,18 @@ runtime_benchmarks! {
 
 	execute_sell {
 		let caller: AccountId = account("caller", 0, SEED);
-
-		//let asset_in = 0u32;
+		let pool_maker: AccountId = account("pool_maker", 0, SEED);
 
 		let asset_in = register_asset(b"TST".to_vec(), 0u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		let asset_out = register_asset(b"TST2".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 
-		//let asset_out = 0u32;
-		update_balance(asset_in, &caller, 2_000_000_000_000_000);
-		//update_balance(asset_out, &caller, 2_000_000_000_000_000);
+		update_balance(asset_in, &pool_maker, 2_000 * UNITS);
+		update_balance(asset_out, &pool_maker, 2_000 * UNITS);
 
-		create_pool(caller.clone(), asset_in, asset_out, 1_000_000_000_000_000, Price::from_inner(500_000_000_000_000_000));
+		update_balance(asset_in, &caller, 2_000 * UNITS);
+		update_balance(asset_out, &caller, 2_000 * UNITS);
+
+		create_pool(pool_maker.clone(), asset_in, asset_out, 1_000 * UNITS, Price::from_inner(500_000 * UNITS));
 
 		let routes = sp_std::vec![
             Trade {
@@ -72,11 +76,10 @@ runtime_benchmarks! {
         ];
 
 	}: {
-
-		RouteExecutor::<Runtime>::execute_sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, 1u128, 0u128, routes)?
+		RouteExecutor::<Runtime>::execute_sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, 10 * UNITS, 0u128, routes)?
 	}
 	verify{
-
+		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller), 1990 * UNITS);
 	}
 }
 
