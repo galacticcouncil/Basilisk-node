@@ -141,6 +141,12 @@ pub mod pallet {
 			max_reward_per_period: Balance,
 		},
 
+		GlobalFarmUpdated {
+			who: AccountIdOf<T>,
+			id: GlobalFarmId,
+			price_adujustment: FixedU128,
+		},
+
 		GlobalFarmDestroyed {
 			who: AccountIdOf<T>,
 			id: GlobalFarmId,
@@ -229,7 +235,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::create_farm())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn create_global_farm(
 			origin: OriginFor<T>,
@@ -272,7 +278,28 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_farm())]
+		#[pallet::weight(1_000)]
+		#[transactional]
+		pub fn update_global_farm_price_adjustment(
+			origin: OriginFor<T>,
+			id: GlobalFarmId,
+			price_adujustment: FixedU128,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			T::LiquidityMiningHandler::update_global_farm_price_adjustment(who.clone(), id, price_adujustment)?;
+
+			Self::deposit_event(Event::GlobalFarmUpdated {
+				who,
+				id,
+				price_adujustment,
+			});
+
+			Ok(())
+		}
+
+		#[cfg_attr(test, mutate)]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn destroy_global_farm(origin: OriginFor<T>, id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -291,7 +318,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity_pool())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn create_yield_farm(
 			origin: OriginFor<T>,
@@ -326,7 +353,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::update_liquidity_pool())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn update_yield_farm(
 			origin: OriginFor<T>,
@@ -355,7 +382,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_liquidity_pool())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn stop_yield_farm(
 			origin: OriginFor<T>,
@@ -377,7 +404,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::resume_liquidity_pool())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn resume_liquidity_pool(
 			origin: OriginFor<T>,
@@ -413,7 +440,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity_pool())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn destroy_yield_farm(
 			origin: OriginFor<T>,
@@ -436,7 +463,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn deposit_lp_shares(
 			origin: OriginFor<T>,
@@ -483,7 +510,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn redeposit_lp_shares(
 			origin: OriginFor<T>,
@@ -517,7 +544,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::claim_rewards())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn claim_rewards(
 			origin: OriginFor<T>,
@@ -548,7 +575,7 @@ pub mod pallet {
 		}
 
 		#[cfg_attr(test, mutate)]
-		#[pallet::weight(<T as Config>::WeightInfo::withdraw_shares())]
+		#[pallet::weight(1_000)]
 		#[transactional]
 		pub fn withdraw_lp_shares(
 			origin: OriginFor<T>,

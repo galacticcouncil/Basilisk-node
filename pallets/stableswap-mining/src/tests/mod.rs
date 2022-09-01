@@ -40,5 +40,6 @@ pub mod resume_yield_farm;
 pub mod stop_yield_farm;
 #[allow(clippy::module_inception)]
 pub mod tests;
+pub mod update_global_farm;
 pub mod update_yield_farm;
 pub mod withdraw_lp_shares;
