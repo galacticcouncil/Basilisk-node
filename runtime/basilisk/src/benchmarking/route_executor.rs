@@ -22,33 +22,22 @@ use super::*;
 
 use frame_benchmarking::account;
 use frame_benchmarking::BenchmarkError;
-use frame_support::assert_ok;
 use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
-use sp_runtime::traits::{BlakeTwo256, Hash, SaturatedConversion};
 
-use hydradx_traits::pools::SpotPriceProvider;
 use orml_traits::MultiCurrency;
-use orml_traits::MultiCurrencyExtended;
 
 type RouteExecutor<T> = pallet_route_executor::Pallet<T>;
 
 use codec::alloc::string::ToString;
-use hydradx_traits::router::{ExecutorError, PoolType};
+use hydradx_traits::router::{PoolType};
 use pallet_route_executor::types::Trade;
+use sp_runtime::FixedPointNumber;
 use sp_std::vec;
 
 const SEED: u32 = 1;
 pub const UNITS: Balance = 100_000_000_000;
 const MAX_NUMBER_OF_TRADES: u32 = 5;
-
-pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
-	assert_ok!(<Currencies as MultiCurrencyExtended<_>>::update_balance(
-		currency_id,
-		who,
-		balance.saturated_into()
-	));
-}
 
 pub fn register_asset_with_name(name_as_bye_string: &[u8]) -> Result<AssetId, BenchmarkError> {
 	register_asset(name_as_bye_string.to_vec(), 0u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))
@@ -69,6 +58,7 @@ pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<T
 
 	let number_of_intermediate_assets = number_of_trades - 1;
 
+	//Create intermediate assets
 	let mut intermediate_assets: Vec<AssetId> = vec![];
 	for n in 0..number_of_intermediate_assets {
 		let intermediate_asset = register_asset_with_name(n.to_string().as_bytes())?;
@@ -76,6 +66,7 @@ pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<T
 		intermediate_assets.push(intermediate_asset);
 	}
 
+	//Create pools and generate trades for intermediate assets
 	let mut trades: Vec<Trade<AssetId>> = vec![];
 	let mut asset_in = main_asset_in;
 	for _ in 0..number_of_intermediate_assets {
@@ -85,7 +76,7 @@ pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<T
 			asset_in,
 			asset_out,
 			1_000 * UNITS,
-			Price::from_inner(500_000 * UNITS),
+			Price::checked_from_rational(1, 2).unwrap(),
 		);
 		let trade = Trade {
 			pool: PoolType::XYK,
@@ -96,12 +87,13 @@ pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<T
 		asset_in = asset_out;
 	}
 
+	//Create pool and trade for the last trade
 	create_pool(
 		pool_maker.clone(),
 		asset_in,
 		main_asset_out,
 		1_000 * UNITS,
-		Price::from_inner(500_000 * UNITS),
+		Price::checked_from_rational(1, 2).unwrap(),
 	);
 	let last_trade = Trade {
 		pool: PoolType::XYK,
@@ -121,17 +113,16 @@ runtime_benchmarks! {
 		let assets_and_trades = generate_trades(c).unwrap();
 
 		let caller: AccountId = create_account("caller");
-		let pool_maker: AccountId = create_account("pool_maker");
 
 		let asset_in = assets_and_trades.0;
 		let asset_out = assets_and_trades.1;
 
+		let amount_to_sell = 10 * UNITS;
 		let caller_asset_in_balance = 2000 * UNITS;
 		let caller_asset_out_balance = 2000 * UNITS;
-		let amount_to_sell = 10 * UNITS;
 
-		update_balance(asset_in, &caller, 2_000 * UNITS);
-		update_balance(asset_out, &caller, 2_000 * UNITS);
+		update_balance(asset_in, &caller, caller_asset_in_balance);
+		update_balance(asset_out, &caller, caller_asset_out_balance);
 
 		let routes = assets_and_trades.2;
 	}: {
@@ -140,6 +131,32 @@ runtime_benchmarks! {
 	verify{
 		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller), caller_asset_in_balance -  amount_to_sell);
 		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller) > (caller_asset_out_balance));
+	}
+
+	execute_buy {
+		let c in 1..MAX_NUMBER_OF_TRADES + 1;
+		let assets_and_trades = generate_trades(c).unwrap();
+
+		let caller: AccountId = create_account("caller");
+
+		let asset_in = assets_and_trades.0;
+		let asset_out = assets_and_trades.1;
+
+
+		let amount_to_buy = 1 * UNITS;
+		let caller_asset_in_balance = 2000 * UNITS;
+		let caller_asset_out_balance = 2000 * UNITS;
+
+		update_balance(asset_in, &caller, caller_asset_in_balance);
+		update_balance(asset_out, &caller, caller_asset_out_balance);
+
+		let routes = assets_and_trades.2;
+	}: {
+		RouteExecutor::<Runtime>::execute_buy(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_buy, 10000u128 * UNITS, routes)?
+	}
+	verify{
+		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller) < caller_asset_in_balance);
+		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller), caller_asset_out_balance + amount_to_buy);
 	}
 
 }
@@ -157,10 +174,4 @@ mod tests {
 	}
 
 	impl_benchmark_test_suite!(new_test_ext(),);
-}
-
-#[cfg(test)]
-mod tests2 {
-	use super::*;
-	use orml_benchmarking::impl_benchmark_test_suite;
 }
