@@ -155,7 +155,7 @@ fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 				limit,
 				trades
 			),
-			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PriceCalculationIsFailed
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::CalculationFailed
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
@@ -199,7 +199,7 @@ fn execute_sell_should_fail_when_first_trade_is_successful_but_second_trade_has_
 				limit,
 				trades
 			),
-			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PoolIsNotSupported
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PoolNotSupported
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
@@ -399,7 +399,7 @@ fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 				limit,
 				trades
 			),
-			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PriceCalculationIsFailed
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::CalculationFailed
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
@@ -443,7 +443,7 @@ fn execute_buy_should_fail_when_first_trade_is_successful_but_second_trade_has_n
 				limit,
 				trades
 			),
-			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PoolIsNotSupported
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::PoolNotSupported
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
