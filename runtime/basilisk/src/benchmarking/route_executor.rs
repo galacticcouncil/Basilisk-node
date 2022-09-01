@@ -30,7 +30,7 @@ use orml_traits::MultiCurrency;
 type RouteExecutor<T> = pallet_route_executor::Pallet<T>;
 
 use codec::alloc::string::ToString;
-use hydradx_traits::router::{PoolType};
+use hydradx_traits::router::PoolType;
 use pallet_route_executor::types::Trade;
 use sp_runtime::FixedPointNumber;
 use sp_std::vec;
@@ -109,8 +109,8 @@ runtime_benchmarks! {
 	{ Runtime, pallet_route_executor}
 
 	execute_sell {
-		let c in 1..MAX_NUMBER_OF_TRADES + 1;
-		let assets_and_trades = generate_trades(c).unwrap();
+		let n in 1..MAX_NUMBER_OF_TRADES + 1;
+		let assets_and_trades = generate_trades(n).unwrap();
 
 		let caller: AccountId = create_account("caller");
 
@@ -134,8 +134,8 @@ runtime_benchmarks! {
 	}
 
 	execute_buy {
-		let c in 1..MAX_NUMBER_OF_TRADES + 1;
-		let assets_and_trades = generate_trades(c).unwrap();
+		let n in 1..MAX_NUMBER_OF_TRADES + 1;
+		let assets_and_trades = generate_trades(n).unwrap();
 
 		let caller: AccountId = create_account("caller");
 

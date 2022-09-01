@@ -894,6 +894,7 @@ impl pallet_route_executor::Config for Runtime {
 	type Balance = Balance;
 	type Currency = inspect::MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
 	type AMM = XYK;
+	type WeightInfo = common_runtime::weights::route_executor::BasiliskWeight<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
