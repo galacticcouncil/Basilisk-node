@@ -38,7 +38,7 @@ use frame_support::{
 use frame_system::ensure_signed;
 use hydradx_traits::liquidity_mining::Mutate as LiquidityMiningMutate;
 use orml_traits::MultiCurrency;
-use pallet_stableswap::{traits::ShareAccountIdFor, types::PoolId, POOL_IDENTIFIER};
+use pallet_stableswap::{traits::ShareAccountIdFor, POOL_IDENTIFIER};
 use primitives::{AssetId, Balance, ClassId as NftClassId, InstanceId as NftInstanceId};
 use sp_arithmetic::{FixedU128, Perquintill};
 use sp_std::convert::{From, Into};
@@ -95,7 +95,7 @@ pub mod pallet {
 			AssetId,
 			BlockNumberFor<Self>,
 			Error = DispatchError,
-			AmmPoolId = PoolId<AssetId>,
+			AmmPoolId = AssetId,
 			Balance = Balance,
 			LoyaltyCurve = LoyaltyCurve,
 			Period = PeriodOf<Self>,
@@ -157,7 +157,7 @@ pub mod pallet {
 		YieldFarmCreated {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 			multiplier: FarmMultiplier,
 			loyalty_curve: Option<LoyaltyCurve>,
 		},
@@ -166,7 +166,7 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 			multiplier: FarmMultiplier,
 		},
 
@@ -174,14 +174,14 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 		},
 
 		YieldFarmResumed {
 			who: AccountIdOf<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 			multiplier: FarmMultiplier,
 		},
 
@@ -189,14 +189,14 @@ pub mod pallet {
 			who: AccountIdOf<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 		},
 
 		LPSharesDeposited {
 			who: AccountIdOf<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 			nft_instance_id: NftInstanceId,
 			lp_token: AssetId,
 			amount: Balance,
@@ -323,7 +323,7 @@ pub mod pallet {
 		pub fn create_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 			multiplier: FarmMultiplier,
 			loyalty_curve: Option<LoyaltyCurve>,
 		) -> DispatchResult {
@@ -337,8 +337,7 @@ pub mod pallet {
 				multiplier,
 				loyalty_curve.clone(),
 				pool_id,
-				pool.assets.0,
-				pool.assets.1,
+				pool.assets.to_vec(),
 			)?;
 
 			Self::deposit_event(Event::YieldFarmCreated {
@@ -358,7 +357,7 @@ pub mod pallet {
 		pub fn update_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 			multiplier: FarmMultiplier,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -384,11 +383,7 @@ pub mod pallet {
 		#[cfg_attr(test, mutate)]
 		#[pallet::weight(1_000)]
 		#[transactional]
-		pub fn stop_yield_farm(
-			origin: OriginFor<T>,
-			global_farm_id: GlobalFarmId,
-			pool_id: PoolId<AssetId>,
-		) -> DispatchResult {
+		pub fn stop_yield_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId, pool_id: AssetId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let yield_farm_id = T::LiquidityMiningHandler::stop_yield_farm(who.clone(), global_farm_id, pool_id)?;
@@ -410,7 +405,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 			multiplier: FarmMultiplier,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -446,7 +441,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -469,7 +464,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 			amount: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -581,7 +576,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			nft_id: NftInstanceId,
 			yield_farm_id: YieldFarmId,
-			pool_id: PoolId<AssetId>,
+			pool_id: AssetId,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -650,20 +645,20 @@ impl<T: Config> Pallet<T> {
 	}
 
 	#[cfg_attr(test, mutate)]
-	fn get_lp_token(id: PoolId<AssetId>) -> Result<AssetId, Error<T>> {
-		let pool = pallet_stableswap::Pallet::<T>::pools(id).ok_or(Error::<T>::StableswapPoolNotFound)?;
+	fn get_lp_token(pool_id: AssetId) -> Result<AssetId, Error<T>> {
+		ensure!(
+			pallet_stableswap::Pools::<T>::contains_key(pool_id),
+			Error::<T>::StableswapPoolNotFound
+		);
 
-		Ok(pool.assets.0)
+		Ok(pool_id)
 	}
 
 	#[cfg_attr(test, mutate)]
-	fn get_asset_balance_in_stableswap_pool(
-		asset: AssetId,
-		pool_id: PoolId<AssetId>,
-	) -> Result<Balance, DispatchError> {
+	fn get_asset_balance_in_stableswap_pool(asset: AssetId, pool_id: AssetId) -> Result<Balance, DispatchError> {
 		let pool = pallet_stableswap::Pallet::<T>::pools(pool_id).ok_or(Error::<T>::StableswapPoolNotFound)?;
 
-		ensure!(pool.assets.contains(asset), Error::<T>::AssetNotInStableswapPool);
+		ensure!(pool.assets.contains(&asset), Error::<T>::AssetNotInStableswapPool);
 
 		let pool_account =
 			<T as pallet_stableswap::Config>::ShareAccountId::from_assets(&pool.assets, Some(POOL_IDENTIFIER));

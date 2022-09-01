@@ -29,14 +29,23 @@ fn withdraw_lp_shares_should_work() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_global_farm(
@@ -61,16 +70,16 @@ fn withdraw_lp_shares_should_work() {
 			1_000,
 			FixedU128::one(),
 		)
-		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
-		.with_yield_farm(BOB, BOB_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
-		.with_deposit(ALICE, GC_FARM, 3, PoolId(3), 100_000)
+		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, 3, vec![BSX, DAI])
+		.with_yield_farm(BOB, BOB_FARM, FixedU128::one(), None, 3, vec![BSX, DAI])
+		.with_deposit(ALICE, GC_FARM, 3, 3, 100_000)
 		.build()
 		.execute_with(|| {
 			let owner = ALICE;
 			let nft_instance_id = get_deposit_id_at(0);
-			let pool_id = PoolId(3);
+			let pool_id = 3;
 			let withdrawn_amount = 100_000;
-			let lp_token = BSX;
+			let lp_token = StableswapMining::get_lp_token(pool_id).unwrap();
 
 			//redeposit lp shares before test
 			assert_ok!(StableswapMining::redeposit_lp_shares(
@@ -191,14 +200,23 @@ fn withdraw_lp_shares_should_work_when_reward_claim_is_zero() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_global_farm(
@@ -212,15 +230,15 @@ fn withdraw_lp_shares_should_work_when_reward_claim_is_zero() {
 			1_000,
 			FixedU128::one(),
 		)
-		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
-		.with_deposit(ALICE, GC_FARM, 2, PoolId(3), 100_000)
+		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, 3, vec![BSX, DAI])
+		.with_deposit(ALICE, GC_FARM, 2, 3, 100_000)
 		.build()
 		.execute_with(|| {
 			let owner = ALICE;
 			let nft_instance_id = get_deposit_id_at(0);
-			let pool_id = PoolId(3);
+			let pool_id = 3;
 			let withdrawn_amount = 100_000;
-			let lp_token = BSX;
+			let lp_token = StableswapMining::get_lp_token(pool_id).unwrap();
 			let yield_farm_id = 2;
 			let global_farm_id = GC_FARM;
 
@@ -239,7 +257,7 @@ fn withdraw_lp_shares_should_work_when_reward_claim_is_zero() {
 						global_farm_id,
 						yield_farm_id,
 						nft_instance_id,
-						reward_currency: lp_token,
+						reward_currency: BSX,
 						claimed: 20_000_000 * ONE,
 					}
 					.into()
@@ -292,14 +310,23 @@ fn withdraw_lp_shares_should_fail_when_account_is_not_deposit_owner() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_global_farm(
@@ -313,13 +340,13 @@ fn withdraw_lp_shares_should_fail_when_account_is_not_deposit_owner() {
 			1_000,
 			FixedU128::one(),
 		)
-		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
-		.with_deposit(ALICE, GC_FARM, 2, PoolId(3), 100_000)
+		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, 3, vec![BSX, DAI])
+		.with_deposit(ALICE, GC_FARM, 2, 3, 100_000)
 		.build()
 		.execute_with(|| {
 			let not_owner = BOB;
 			let nft_instance_id = get_deposit_id_at(0);
-			let pool_id = PoolId(3);
+			let pool_id = 3;
 			let yield_farm_id = 2;
 
 			assert_noop!(
@@ -348,14 +375,23 @@ fn withdraw_lp_shares_should_fail_when_stableswap_pool_doesnt_exits() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_global_farm(
@@ -369,13 +405,13 @@ fn withdraw_lp_shares_should_fail_when_stableswap_pool_doesnt_exits() {
 			1_000,
 			FixedU128::one(),
 		)
-		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
-		.with_deposit(ALICE, GC_FARM, 2, PoolId(3), 100_000)
+		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, 3, vec![BSX, DAI])
+		.with_deposit(ALICE, GC_FARM, 2, 3, 100_000)
 		.build()
 		.execute_with(|| {
 			let not_owner = ALICE;
 			let nft_instance_id = get_deposit_id_at(0);
-			let pool_id = PoolId(3);
+			let pool_id = 3;
 			let yield_farm_id = 2;
 
 			//Destroy stableswap pool - stableswap pallet doesn't allow poll destruction

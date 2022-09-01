@@ -32,14 +32,23 @@ fn create_global_farm_should_work() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -99,14 +108,23 @@ fn create_global_farm_should_fail_when_not_allowed_origin() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()

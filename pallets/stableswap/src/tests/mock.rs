@@ -17,6 +17,7 @@
 
 //! Test environment for Assets pallet.
 
+use sp_std::prelude::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -67,7 +68,7 @@ macro_rules! assert_balance {
 thread_local! {
 	pub static REGISTERED_ASSETS: RefCell<HashMap<AssetId, u32>> = RefCell::new(HashMap::default());
 	pub static ASSET_IDENTS: RefCell<HashMap<Vec<u8>, u32>> = RefCell::new(HashMap::default());
-	pub static POOL_IDS: RefCell<Vec<PoolId<AssetId>>> = RefCell::new(Vec::new());
+	pub static POOL_IDS: RefCell<Vec<AssetId>> = RefCell::new(Vec::new());
 }
 
 construct_runtime!(
@@ -154,8 +155,7 @@ impl Config for Test {
 
 pub struct InitialLiquidity {
 	pub(crate) account: AccountId,
-	pub(crate) asset: AssetId,
-	pub(crate) amount: Balance,
+	pub(crate) assets: Vec<AssetLiquidity<AssetId>>,
 }
 
 pub struct ExtBuilder {
@@ -230,24 +230,24 @@ impl ExtBuilder {
 		let mut r: sp_io::TestExternalities = t.into();
 
 		r.execute_with(|| {
-			for (who, pool, initial) in self.created_pools {
-				let pool_id = PoolId(retrieve_current_asset_id());
+			for (who, pool, initial_liquid) in self.created_pools {
+				let pool_id = retrieve_current_asset_id();
 				assert_ok!(Stableswap::create_pool(
 					Origin::signed(who),
-					(pool.assets.0, pool.assets.1),
+					pool.assets.clone().into(),
 					pool.amplification,
-					pool.fee,
+					pool.trade_fee,
+					pool.withdraw_fee,
 				));
 				POOL_IDS.with(|v| {
 					v.borrow_mut().push(pool_id);
 				});
 
-				if initial.amount > Balance::zero() {
+				if initial_liquid.assets.len() as u128 > Balance::zero() {
 					assert_ok!(Stableswap::add_liquidity(
-						Origin::signed(initial.account),
+						Origin::signed(initial_liquid.account),
 						pool_id,
-						initial.asset,
-						initial.amount,
+						initial_liquid.assets
 					));
 				}
 			}
@@ -258,7 +258,7 @@ impl ExtBuilder {
 }
 
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolId, PoolInfo};
+use crate::types::{AssetLiquidity, PoolInfo};
 use hydradx_traits::{Registry, ShareTokenRegistry};
 use sp_runtime::traits::Zero;
 
@@ -314,27 +314,24 @@ where
 
 pub struct AccountIdConstructor;
 
-impl ShareAccountIdFor<PoolAssets<u32>> for AccountIdConstructor {
+impl ShareAccountIdFor<Vec<u32>> for AccountIdConstructor {
 	type AccountId = AccountId;
 
-	fn from_assets(assets: &PoolAssets<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
-		let mut a = assets.0;
-		let mut b = assets.1;
-		if a > b {
-			std::mem::swap(&mut a, &mut b)
-		}
-		(a * 1000 + b) as u64
+	fn from_assets(assets: &Vec<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
+		let sum: u32 = assets.iter().sum(); //.fold(0u32, |acc, v| acc + *v );
+
+		(sum * 1000) as u64
 	}
 
-	fn name(assets: &PoolAssets<u32>, identifier: Option<&[u8]>) -> Vec<u8> {
+	fn name(assets: &Vec<u32>, identifier: Option<&[u8]>) -> Vec<u8> {
 		let mut buf: Vec<u8> = if let Some(ident) = identifier {
 			ident.to_vec()
 		} else {
 			vec![]
 		};
-		buf.extend_from_slice(&(assets.0).to_le_bytes());
-		buf.extend_from_slice(&(assets.1).to_le_bytes());
-
+		for asset in assets.iter() {
+			buf.extend_from_slice(&(asset).to_le_bytes());
+		}
 		buf
 	}
 }
@@ -343,6 +340,13 @@ pub(crate) fn retrieve_current_asset_id() -> AssetId {
 	REGISTERED_ASSETS.with(|v| v.borrow().len() as AssetId)
 }
 
-pub(crate) fn get_pool_id_at(idx: usize) -> PoolId<AssetId> {
+pub(crate) fn get_pool_id_at(idx: usize) -> AssetId {
 	POOL_IDS.with(|v| v.borrow()[idx])
+}
+
+pub(crate) fn last_event() -> Event {
+	frame_system::Pallet::<Test>::events()
+		.pop()
+		.expect("An event expected")
+		.event
 }

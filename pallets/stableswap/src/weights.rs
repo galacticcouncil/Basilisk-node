@@ -47,7 +47,7 @@ use sp_std::marker::PhantomData;
 pub trait WeightInfo {
 	fn create_pool() -> Weight;
 	fn add_liquidity() -> Weight;
-	fn remove_liquidity() -> Weight;
+	fn remove_liquidity_one_asset() -> Weight;
 	fn sell() -> Weight;
 	fn buy() -> Weight;
 }
@@ -65,7 +65,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(10 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
-	fn remove_liquidity() -> Weight {
+	fn remove_liquidity_one_asset() -> Weight {
 		(38_601_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(9 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
@@ -94,7 +94,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(10 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
 	}
-	fn remove_liquidity() -> Weight {
+	fn remove_liquidity_one_asset() -> Weight {
 		(38_601_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))

@@ -1,6 +1,6 @@
 use crate::tests::mock::*;
 use crate::traits::ShareAccountIdFor;
-use crate::types::{PoolAssets, PoolId, PoolInfo};
+use crate::types::{AssetLiquidity, PoolInfo};
 use crate::{assert_balance, Error};
 
 use frame_support::{assert_noop, assert_ok};
@@ -17,14 +17,23 @@ fn simple_sell_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
-				fee: Permill::from_percent(0),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -42,7 +51,7 @@ fn simple_sell_works() {
 
 			let expected = 29_950_934_311_773u128;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 170 * ONE);
 			assert_balance!(BOB, asset_b, expected);
@@ -62,14 +71,23 @@ fn simple_buy_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
-				fee: Permill::from_percent(0),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -87,7 +105,7 @@ fn simple_buy_works() {
 
 			let expected_to_sell = 30049242502720u128;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 200 * ONE - expected_to_sell);
 			assert_balance!(BOB, asset_b, 30 * ONE);
@@ -108,14 +126,23 @@ fn simple_sell_with_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
-				fee: Permill::from_percent(10),
+				trade_fee: Permill::from_percent(10),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -137,7 +164,7 @@ fn simple_sell_with_fee_works() {
 
 			let expected = expected - fee;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 170 * ONE);
 			assert_balance!(BOB, asset_b, expected);
@@ -157,14 +184,23 @@ fn simple_sell_with_small_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
-				fee: Permill::from_rational(3u32, 1000u32),
+				trade_fee: Permill::from_rational(3u32, 1000u32),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -186,7 +222,7 @@ fn simple_sell_with_small_fee_works() {
 
 			let expected = expected - fee;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 170 * ONE);
 			assert_balance!(BOB, asset_b, expected);
@@ -206,14 +242,23 @@ fn simple_buy_with_fee_works() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
-				fee: Permill::from_percent(10),
+				trade_fee: Permill::from_percent(10),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -235,7 +280,7 @@ fn simple_buy_with_fee_works() {
 
 			let expected_to_sell = expected_to_sell + fee;
 
-			let pool_account = AccountIdConstructor::from_assets(&PoolAssets(asset_a, asset_b), None);
+			let pool_account = AccountIdConstructor::from_assets(&vec![asset_a, asset_b], None);
 
 			assert_balance!(BOB, asset_a, 200 * ONE - expected_to_sell);
 			assert_balance!(BOB, asset_b, 30 * ONE);
@@ -260,14 +305,23 @@ fn sell_with_invalid_amounts_fails() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
-				fee: Permill::from_percent(0),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -285,14 +339,7 @@ fn sell_with_invalid_amounts_fails() {
 			);
 
 			assert_noop!(
-				Stableswap::sell(
-					Origin::signed(BOB),
-					PoolId(pool_id.0 + 1),
-					asset_a,
-					asset_b,
-					30 * ONE,
-					25 * ONE,
-				),
+				Stableswap::sell(Origin::signed(BOB), pool_id + 1, asset_a, asset_b, 30 * ONE, 25 * ONE,),
 				Error::<Test>::PoolNotFound
 			);
 			assert_noop!(
@@ -317,24 +364,33 @@ fn buy_with_invalid_amounts_fails() {
 	let asset_b: AssetId = 2000;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
-			(BOB, 1000, 200 * ONE),
+			(BOB, asset_a, 200 * ONE),
 			(BOB, 3000, 200 * ONE),
-			(ALICE, 1000, 200 * ONE),
-			(ALICE, 2000, 200 * ONE),
+			(ALICE, asset_a, 200 * ONE),
+			(ALICE, asset_b, 200 * ONE),
 		])
-		.with_registered_asset("one".as_bytes().to_vec(), 1000)
-		.with_registered_asset("two".as_bytes().to_vec(), 2000)
+		.with_registered_asset("one".as_bytes().to_vec(), asset_a)
+		.with_registered_asset("two".as_bytes().to_vec(), asset_b)
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(asset_a, asset_b),
+				assets: vec![asset_a, asset_b].try_into().unwrap(),
 				amplification: 100u16,
-				fee: Permill::from_percent(0),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: asset_a,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: asset_a,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: asset_b,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -352,14 +408,12 @@ fn buy_with_invalid_amounts_fails() {
 			);
 
 			assert_noop!(
-				Stableswap::buy(
-					Origin::signed(BOB),
-					PoolId(pool_id.0 + 1),
-					asset_a,
-					asset_b,
-					30 * ONE,
-					25 * ONE,
-				),
+				Stableswap::buy(Origin::signed(BOB), pool_id, asset_a, asset_b, 90 * ONE, 30000 * ONE,),
+				Error::<Test>::InsufficientBalance
+			);
+
+			assert_noop!(
+				Stableswap::buy(Origin::signed(BOB), pool_id + 1, asset_a, asset_b, 30 * ONE, 25 * ONE,),
 				Error::<Test>::PoolNotFound
 			);
 

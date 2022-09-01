@@ -34,27 +34,45 @@ fn create_yield_farm_should_work() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, HDX),
+				assets: vec![BSX, HDX].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: HDX,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_global_farm(
@@ -141,13 +159,7 @@ fn create_yield_farm_should_fail_when_stableswap_pool_doesnt_exists() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				StableswapMining::create_yield_farm(
-					Origin::signed(GC),
-					GC_FARM,
-					PoolId(4),
-					FixedU128::from_float(5.2),
-					None
-				),
+				StableswapMining::create_yield_farm(Origin::signed(GC), GC_FARM, 4, FixedU128::from_float(5.2), None),
 				Error::<Test>::StableswapPoolNotFound
 			);
 		});

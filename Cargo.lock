@@ -539,7 +539,6 @@ dependencies = [
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
- "pallet-stableswap",
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-multi-payment",
@@ -1310,7 +1309,6 @@ dependencies = [
  "pallet-nft",
  "pallet-price-oracle",
  "pallet-scheduler",
- "pallet-stableswap",
  "pallet-timestamp",
  "pallet-transaction-multi-payment",
  "pallet-transaction-pause",
@@ -3199,8 +3197,8 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.4.5"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=6500f90f079325e12f6b4ee47fad6e5a56f6d9b9#6500f90f079325e12f6b4ee47fad6e5a56f6d9b9"
+version = "4.5.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1cd815cbce846a42d351db3778ff9c07149a6ad2#1cd815cbce846a42d351db3778ff9c07149a6ad2"
 dependencies = [
  "fixed",
  "num-traits",
@@ -3211,14 +3209,15 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "4.5.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=1cd815cbce846a42d351db3778ff9c07149a6ad2#1cd815cbce846a42d351db3778ff9c07149a6ad2"
+version = "4.5.2"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=abafd9ff792e185d9c3890fecb368de53ee824f6#abafd9ff792e185d9c3890fecb368de53ee824f6"
 dependencies = [
  "fixed",
  "num-traits",
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "sp-arithmetic",
+ "sp-std",
 ]
 
 [[package]]
@@ -3265,25 +3264,25 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.7.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268#3230d9d1e6eaed6305b1b67587437415cd34e268"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-arithmetic",
- "sp-std",
-]
-
-[[package]]
-name = "hydradx-traits"
-version = "0.7.0"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=85257f53b0da5827c103bf4f739474cc1e83d3f7#85257f53b0da5827c103bf4f739474cc1e83d3f7"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-std",
+]
+
+[[package]]
+name = "hydradx-traits"
+version = "0.7.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=95d55a5f5c4a8a2ce363bb348ba9b6cdfc5b63b0#95d55a5f5c4a8a2ce363bb348ba9b6cdfc5b63b0"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
  "sp-std",
 ]
 
@@ -6009,12 +6008,12 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268#3230d9d1e6eaed6305b1b67587437415cd34e268"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=95d55a5f5c4a8a2ce363bb348ba9b6cdfc5b63b0#95d55a5f5c4a8a2ce363bb348ba9b6cdfc5b63b0"
 dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math 4.7.0",
- "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268)",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=95d55a5f5c4a8a2ce363bb348ba9b6cdfc5b63b0)",
  "orml-traits",
  "parity-scale-codec",
  "scale-info",
@@ -6345,20 +6344,20 @@ dependencies = [
 
 [[package]]
 name = "pallet-stableswap"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydra-dx-math 4.4.5",
+ "hydra-dx-math 4.5.2",
  "hydradx-traits 0.6.0",
  "log",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
- "primitive-types 0.11.1",
  "proptest",
  "scale-info",
+ "smallvec",
  "sp-api",
  "sp-core",
  "sp-io",
@@ -6375,7 +6374,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydradx-traits 0.6.0",
- "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=3230d9d1e6eaed6305b1b67587437415cd34e268)",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=95d55a5f5c4a8a2ce363bb348ba9b6cdfc5b63b0)",
  "mutagen",
  "orml-currencies",
  "orml-tokens",
@@ -8296,16 +8295,6 @@ dependencies = [
  "impl-codec",
  "impl-serde",
  "scale-info",
- "uint",
-]
-
-[[package]]
-name = "primitive-types"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e28720988bff275df1f51b171e1b2a18c30d194c4d2b61defdacecd625a5d94a"
-dependencies = [
- "fixed-hash",
  "uint",
 ]
 
@@ -10458,9 +10447,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.8.0"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
+checksum = "2fd0db749597d91ff862fd1d55ea87f7855a744a8425a64695b6fca237d1dad1"
 
 [[package]]
 name = "snap"
@@ -11531,7 +11520,6 @@ dependencies = [
  "pallet-relaychain-info",
  "pallet-scheduler",
  "pallet-session",
- "pallet-stableswap",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-tips",

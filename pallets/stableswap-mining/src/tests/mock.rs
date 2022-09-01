@@ -39,7 +39,7 @@ use sp_runtime::{
 
 pub use pallet_stableswap::{
 	traits::ShareAccountIdFor,
-	types::{PoolAssets, PoolId, PoolInfo},
+	types::{AssetLiquidity, PoolInfo},
 };
 
 use core::ops::RangeInclusive;
@@ -198,7 +198,7 @@ thread_local! {
 	pub static NFTS: RefCell<HashMap<warehouse_liquidity_mining::DepositId, AccountId>> = RefCell::new(HashMap::default());
 	pub static REGISTERED_ASSETS: RefCell<HashMap<AssetId, u32>> = RefCell::new(HashMap::default());
 	pub static ASSET_IDENTS: RefCell<HashMap<Vec<u8>, u32>> = RefCell::new(HashMap::default());
-	pub static POOL_IDS: RefCell<Vec<PoolId<AssetId>>> = RefCell::new(Vec::new());
+	pub static POOL_IDS: RefCell<Vec<AssetId>> = RefCell::new(Vec::new());
 	pub static DEPOSIT_IDS: RefCell<Vec<DepositId>> = RefCell::new(Vec::new());
 
 	pub static GLOBAL_FARMS: RefCell<HashMap<u32, DymmyGlobalFarm>> = RefCell::new(HashMap::default());
@@ -224,19 +224,18 @@ pub struct DymmyGlobalFarm {
 	_max_reward_per_period: Balance,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct DummyYieldFarm {
 	_global_farm_id: u32,
 	multiplier: FixedU128,
-	amm_pool_id: PoolId<AssetId>,
-	_asset_a: AssetId,
-	_asset_b: AssetId,
+	amm_pool_id: AssetId,
+	_assets: Vec<AssetId>,
 	stopped: bool,
 }
 
 #[derive(Copy, Clone)]
 pub struct DummyDeposit {
-	amm_pool_id: PoolId<AssetId>,
+	amm_pool_id: AssetId,
 	shares_amount: Balance,
 	entries: u32,
 }
@@ -300,27 +299,24 @@ where
 }
 pub struct AccountIdConstructor;
 
-impl ShareAccountIdFor<PoolAssets<u32>> for AccountIdConstructor {
+impl ShareAccountIdFor<Vec<u32>> for AccountIdConstructor {
 	type AccountId = AccountId;
 
-	fn from_assets(assets: &PoolAssets<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
-		let mut a = assets.0;
-		let mut b = assets.1;
-		if a > b {
-			std::mem::swap(&mut a, &mut b)
-		}
-		(a * 1000 + b) as u128
+	fn from_assets(assets: &Vec<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
+		let sum: u32 = assets.iter().sum();
+
+		(sum * 1000) as u128
 	}
 
-	fn name(assets: &PoolAssets<u32>, identifier: Option<&[u8]>) -> Vec<u8> {
+	fn name(assets: &Vec<u32>, identifier: Option<&[u8]>) -> Vec<u8> {
 		let mut buf: Vec<u8> = if let Some(ident) = identifier {
 			ident.to_vec()
 		} else {
 			vec![]
 		};
-		buf.extend_from_slice(&(assets.0).to_le_bytes());
-		buf.extend_from_slice(&(assets.1).to_le_bytes());
-
+		for asset in assets.iter() {
+			buf.extend_from_slice(&(asset).to_le_bytes());
+		}
 		buf
 	}
 }
@@ -375,7 +371,7 @@ impl DummyLiquidityMining {}
 impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> for DummyLiquidityMining {
 	type Error = DispatchError;
 
-	type AmmPoolId = PoolId<AssetId>;
+	type AmmPoolId = AssetId;
 	type Balance = Balance;
 	type Period = PeriodOf<Test>;
 	type LoyaltyCurve = LoyaltyCurve;
@@ -448,8 +444,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		multiplier: FixedU128,
 		_loyalty_curve: Option<Self::LoyaltyCurve>,
 		amm_pool_id: Self::AmmPoolId,
-		asset_a: AssetId,
-		asset_b: AssetId,
+		assets: Vec<AssetId>,
 	) -> Result<u32, Self::Error> {
 		let farm_id = get_next_farm_id();
 
@@ -460,8 +455,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 					_global_farm_id: global_farm_id,
 					multiplier,
 					amm_pool_id,
-					_asset_a: asset_a,
-					_asset_b: asset_b,
+					_assets: assets,
 					stopped: false,
 				},
 			);
@@ -694,8 +688,7 @@ pub fn set_block_number(n: u64) {
 
 pub struct InitialLiquidity {
 	pub(crate) account: AccountId,
-	pub(crate) asset: AssetId,
-	pub(crate) amount: Balance,
+	pub(crate) assets: Vec<AssetLiquidity<AssetId>>,
 }
 
 pub struct ExtBuilder {
@@ -720,11 +713,10 @@ pub struct ExtBuilder {
 		GlobalFarmId,
 		FarmMultiplier,
 		Option<LoyaltyCurve>,
-		PoolId<AssetId>,
 		AssetId,
-		AssetId,
+		Vec<AssetId>,
 	)>,
-	deposits: Vec<(AccountId, GlobalFarmId, YieldFarmId, PoolId<AssetId>, Balance)>,
+	deposits: Vec<(AccountId, GlobalFarmId, YieldFarmId, AssetId, Balance)>,
 	starting_block: u64,
 }
 
@@ -832,18 +824,11 @@ impl ExtBuilder {
 		global_farm_id: GlobalFarmId,
 		multiplier: FarmMultiplier,
 		loyalty_curve: Option<LoyaltyCurve>,
-		pool_id: PoolId<AssetId>,
-		assets: (AssetId, AssetId),
+		pool_id: AssetId,
+		assets: Vec<AssetId>,
 	) -> Self {
-		self.yield_farms.push((
-			who,
-			global_farm_id,
-			multiplier,
-			loyalty_curve,
-			pool_id,
-			assets.0,
-			assets.1,
-		));
+		self.yield_farms
+			.push((who, global_farm_id, multiplier, loyalty_curve, pool_id, assets));
 
 		self
 	}
@@ -853,7 +838,7 @@ impl ExtBuilder {
 		owner: AccountId,
 		global_farm_id: GlobalFarmId,
 		yield_farm_id: YieldFarmId,
-		pool_id: PoolId<AssetId>,
+		pool_id: AssetId,
 		amount: Balance,
 	) -> Self {
 		self.deposits
@@ -892,24 +877,24 @@ impl ExtBuilder {
 		r.execute_with(|| {
 			set_block_number(self.starting_block);
 
-			for (who, pool, initial) in self.created_pools {
-				let pool_id = PoolId(retrieve_current_asset_id());
+			for (who, pool, initial_liquid) in self.created_pools {
+				let pool_id = retrieve_current_asset_id();
 				assert_ok!(Stableswap::create_pool(
 					Origin::signed(who),
-					(pool.assets.0, pool.assets.1),
+					pool.assets.clone().into(),
 					pool.amplification,
-					pool.fee,
+					pool.trade_fee,
+					pool.withdraw_fee,
 				));
 				POOL_IDS.with(|v| {
 					v.borrow_mut().push(pool_id);
 				});
 
-				if initial.amount > Balance::zero() {
+				if initial_liquid.assets.len() as u128 > Balance::zero() {
 					assert_ok!(Stableswap::add_liquidity(
-						Origin::signed(initial.account),
+						Origin::signed(initial_liquid.account),
 						pool_id,
-						initial.asset,
-						initial.amount,
+						initial_liquid.assets,
 					));
 				}
 			}
@@ -941,15 +926,14 @@ impl ExtBuilder {
 			}
 
 			//Create yield farms
-			for (who, global_farm_id, multiplier, loyalty_curve, amm_pool_id, asset_a, asset_b) in self.yield_farms {
+			for (who, global_farm_id, multiplier, loyalty_curve, amm_pool_id, assets) in self.yield_farms {
 				let _ = DummyLiquidityMining::create_yield_farm(
 					who,
 					global_farm_id,
 					multiplier,
 					loyalty_curve,
 					amm_pool_id,
-					asset_a,
-					asset_b,
+					assets,
 				);
 			}
 
@@ -979,7 +963,7 @@ pub(crate) fn retrieve_current_asset_id() -> AssetId {
 	REGISTERED_ASSETS.with(|v| v.borrow().len() as AssetId)
 }
 
-pub(crate) fn get_pool_id_at(idx: usize) -> PoolId<AssetId> {
+pub(crate) fn get_pool_id_at(idx: usize) -> AssetId {
 	POOL_IDS.with(|v| v.borrow()[idx])
 }
 

@@ -28,14 +28,23 @@ fn deposit_lp_should_work() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_global_farm(
@@ -49,7 +58,7 @@ fn deposit_lp_should_work() {
 			1_000,
 			One::one(),
 		)
-		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
+		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, 3, vec![BSX, DAI])
 		.build()
 		.execute_with(|| {
 			let who = ALICE;
@@ -57,7 +66,7 @@ fn deposit_lp_should_work() {
 			let yield_farm_id = 2;
 			let nft_instance_id = 1;
 			let pool_id = get_pool_id_at(0);
-			let lp_token = BSX;
+			let lp_token = StableswapMining::get_lp_token(pool_id).unwrap();
 			let deposited_amount = 1_000;
 			let alice_lp_shares_balance = Tokens::free_balance(lp_token, &ALICE);
 
@@ -105,14 +114,23 @@ fn deposit_lp_should_fail_when_account_with_insufficient_balance() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_global_farm(
@@ -126,7 +144,7 @@ fn deposit_lp_should_fail_when_account_with_insufficient_balance() {
 			1_000,
 			One::one(),
 		)
-		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
+		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, 3, vec![BSX, DAI])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
@@ -149,14 +167,23 @@ fn deposit_lp_should_fail_when_stableswap_pool_doesnt_exist() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.with_global_farm(
@@ -170,7 +197,7 @@ fn deposit_lp_should_fail_when_stableswap_pool_doesnt_exist() {
 			1_000,
 			One::one(),
 		)
-		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, PoolId(3), (BSX, DAI))
+		.with_yield_farm(GC, GC_FARM, FixedU128::one(), None, 3, vec![BSX, DAI])
 		.build()
 		.execute_with(|| {
 			let pool_id = get_pool_id_at(0);

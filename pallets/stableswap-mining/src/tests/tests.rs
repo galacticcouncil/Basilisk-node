@@ -24,29 +24,35 @@ pub fn get_lp_token_should_work() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
 		.execute_with(|| {
-			pretty_assertions::assert_eq!(StableswapMining::get_lp_token(get_pool_id_at(0)).unwrap(), BSX);
+			pretty_assertions::assert_eq!(StableswapMining::get_lp_token(get_pool_id_at(0)).unwrap(), 3);
 		});
 }
 
 #[test]
 pub fn get_lp_token_should_fail_when_stableswap_pool_doesnt_exists() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			StableswapMining::get_lp_token(PoolId(1)),
-			Error::<Test>::StableswapPoolNotFound
-		);
+		assert_noop!(StableswapMining::get_lp_token(1), Error::<Test>::StableswapPoolNotFound);
 	});
 }
 
@@ -59,14 +65,23 @@ pub fn get_asset_balance_in_stableswap_pool_should_work() {
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -87,14 +102,23 @@ pub fn get_asset_balance_in_stableswap_pool_should_fail_when_asset_is_not_in_sta
 		.with_pool(
 			ALICE,
 			PoolInfo::<AssetId> {
-				assets: PoolAssets::new(BSX, DAI),
+				assets: vec![BSX, DAI].try_into().unwrap(),
 				amplification: 100,
-				fee: Permill::from_float(0.1),
+				trade_fee: Permill::from_percent(0),
+				withdraw_fee: Permill::from_percent(0),
 			},
 			InitialLiquidity {
 				account: ALICE,
-				asset: BSX,
-				amount: 100 * ONE,
+				assets: vec![
+					AssetLiquidity {
+						asset_id: BSX,
+						amount: 100 * ONE,
+					},
+					AssetLiquidity {
+						asset_id: DAI,
+						amount: 100 * ONE,
+					},
+				],
 			},
 		)
 		.build()
@@ -115,7 +139,7 @@ pub fn get_asset_balance_in_stableswap_pool_should_fail_when_stableswap_pool_doe
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				StableswapMining::get_asset_balance_in_stableswap_pool(HDX, PoolId(1)),
+				StableswapMining::get_asset_balance_in_stableswap_pool(HDX, 1),
 				Error::<Test>::StableswapPoolNotFound
 			);
 		});
