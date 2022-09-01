@@ -907,10 +907,10 @@ impl CanCreatePool<AssetId> for AllowAllPools {
 	}
 }
 
-use hydradx_traits::router::{Executor, ExecutorError, PoolType, TradeCalculation};
+use hydradx_traits::router::{Executor, ExecutorError, PoolType, AmountWithFee};
 
 impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
-	type TradeCalculationResult = TradeCalculation<Balance>;
+	type TradeCalculationResult = AmountWithFee<Balance>;
 	type Error = ();
 
 	fn calculate_sell(
@@ -942,10 +942,7 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 
 		let transfer_fee = Self::calculate_fee(amount_out).map_err(|_| ExecutorError::Error(()))?;
 
-		Ok(TradeCalculation {
-			amount: amount_out,
-			fee: transfer_fee,
-		})
+		Ok(AmountWithFee::new(amount_out, transfer_fee))
 	}
 
 	fn calculate_buy(
@@ -977,10 +974,7 @@ impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 
 		let transfer_fee = Self::calculate_fee(amount_in).map_err(|_| ExecutorError::Error(()))?;
 
-		Ok(TradeCalculation {
-			amount: amount_in,
-			fee: transfer_fee,
-		})
+		Ok(AmountWithFee::new(amount_in, transfer_fee))
 	}
 
 	fn execute_sell(
