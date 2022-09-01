@@ -907,7 +907,7 @@ impl CanCreatePool<AssetId> for AllowAllPools {
 	}
 }
 
-use hydradx_traits::router::{Executor, ExecutorError, PoolType, AmountWithFee};
+use hydradx_traits::router::{AmountWithFee, Executor, ExecutorError, PoolType};
 
 impl<T: Config> Executor<T::AccountId, AssetId, Balance> for Pallet<T> {
 	type TradeCalculationResult = AmountWithFee<Balance>;
