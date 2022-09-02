@@ -191,6 +191,7 @@ fn add_liquidity_should_work_when_limit_exceeds_account_balance() {
 		let user = ALICE;
 		let asset_a = DOT;
 		let asset_b = HDX;
+		let amount_b_max_limit = 2_000_000_000_000_000;
 
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
@@ -200,12 +201,14 @@ fn add_liquidity_should_work_when_limit_exceeds_account_balance() {
 			Price::from_float(1.0)
 		));
 
+		assert!(Currency::free_balance(asset_b, &user) < amount_b_max_limit);
+
 		assert_ok!(XYK::add_liquidity(
 			Origin::signed(user),
 			asset_a,
 			asset_b,
 			400_000,
-			2_000_000_000_000_000
+			amount_b_max_limit,
 		));
 	});
 }
