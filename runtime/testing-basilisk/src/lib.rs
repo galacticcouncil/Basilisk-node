@@ -796,11 +796,6 @@ impl pallet_relaychain_info::Config for Runtime {
 	type RelaychainBlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
-parameter_types! {
-	//This value is outside of reserved range so we can create nft class for LM without migration
-	pub const TestingNftClass: primitives::ClassId = 1_000_000;
-}
-
 impl pallet_liquidity_mining::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
@@ -809,7 +804,7 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
-	type NftClassId = TestingNftClass;
+	type NftClassId = LiquidityMiningNftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
 	type NFTHandler = NFT;
@@ -920,13 +915,14 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
-		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 156,
-		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 157,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
+
+		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Config<T>, Storage, Event<T>} = 110,
+		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 111,
 
 		// ORML related modules - starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,

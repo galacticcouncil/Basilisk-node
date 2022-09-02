@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//TODO: Dani - fix it once we can create nft class for liquidty mining
+//TODO: make sure this don't panic and only log error
 
 use super::*;
 use frame_support::traits::StorageVersion;

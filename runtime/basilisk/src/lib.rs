@@ -846,7 +846,7 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-	type NftClassId = NftClass;
+	type NftClassId = LiquidityMiningNftClass;
 	type AMM = XYK;
 	type WeightInfo = ();
 	type NFTHandler = NFT;
@@ -963,13 +963,14 @@ construct_runtime!(
 		Exchange: pallet_exchange::{Pallet, Call, Storage, Event<T>} = 103,
 		LBP: pallet_lbp::{Pallet, Call, Storage, Event<T>} = 104,
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
-		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>} = 156,
-		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 157,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
 		TransactionPause: pallet_transaction_pause::{Pallet, Call, Event<T>, Storage} = 110,
+
+		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Config<T>, Storage, Event<T>} = 111,
+		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 112,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,

@@ -86,12 +86,31 @@ pub mod pallet {
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_runtime_upgrade() -> frame_support::weights::Weight {
-			migration::init_nft_class::<T>()
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		pub _phantom: PhantomData<T>,
+	}
+
+	#[cfg(feature = "std")]
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			GenesisConfig {
+				_phantom: PhantomData::default(),
+			}
 		}
 	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+		fn build(&self) {
+			let pallet_account = <Pallet<T>>::account_id_for_all_lp_shares();
+
+			T::NFTHandler::create_typed_class(pallet_account, 1, ClassType::LiquidityMining).unwrap();
+		}
+	}
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + TypeInfo {
