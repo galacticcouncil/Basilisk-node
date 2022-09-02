@@ -345,7 +345,7 @@ pub mod pallet {
 				T::MinPoolLiquidity::get(),
 			)?;
 
-			T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
+			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out);
 
 			T::NonDustableWhitelistHandler::add_account(&pair_account)?;
 
