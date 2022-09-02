@@ -719,8 +719,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 
-		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount)
-			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
+		let amount_out = Self::calculate_out_given_in(amount, asset_in_reserve, asset_out_reserve)?;
 
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(amount_out)?
@@ -814,8 +813,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			);
 		}
 
-		let buy_price = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount)
-			.map_err(|_| Error::<T>::BuyAssetAmountInvalid)?;
+		let buy_price = Self::calculate_in_given_out(amount, asset_out_reserve, asset_in_reserve)?;
 
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(buy_price)?
@@ -1054,5 +1052,27 @@ impl<T: Config> Pallet<T> {
 		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
 		Ok(())
+	}
+
+	fn calculate_in_given_out(
+		amount_out: Balance,
+		asset_out_reserve: Balance,
+		asset_in_reserve: Balance,
+	) -> Result<Balance, DispatchError> {
+		let amount_in = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out)
+			.map_err(|_| Error::<T>::BuyAssetAmountInvalid)?;
+
+		Ok(amount_in)
+	}
+
+	fn calculate_out_given_in(
+		amount_in: Balance,
+		asset_in_reserve: Balance,
+		asset_out_reserve: Balance,
+	) -> Result<Balance, DispatchError> {
+		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in)
+			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
+
+		Ok(amount_out)
 	}
 }

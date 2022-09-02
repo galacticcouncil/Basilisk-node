@@ -36,9 +36,8 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 					"Error while calculating sell trade",
 				)))?;
 
-		let amount_out =
-			hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in_without_fee)
-				.map_err(|_| ExecutorError::Error(DispatchError::Other("Error while calculating sell trade")))?;
+		let amount_out = Self::calculate_out_given_in(amount_in_without_fee, asset_in_reserve, asset_out_reserve)
+			.map_err(|de| ExecutorError::Error(de))?;
 
 		let transfer_fee = Self::calculate_fee(amount_out).map_err(|de| ExecutorError::Error(de))?;
 
@@ -70,9 +69,8 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 				"Error while calculating buy trade",
 			)))?;
 
-		let amount_in =
-			hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out_with_fee)
-				.map_err(|_| ExecutorError::Error(DispatchError::Other("Error while calculating buy trade")))?;
+		let amount_in = Self::calculate_in_given_out(amount_out_with_fee, asset_out_reserve, asset_in_reserve)
+			.map_err(|err| ExecutorError::Error(err))?;
 
 		let transfer_fee = Self::calculate_fee(amount_in).map_err(|de| ExecutorError::Error(de))?;
 
