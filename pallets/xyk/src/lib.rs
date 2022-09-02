@@ -701,7 +701,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		min_bought: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, sp_runtime::DispatchError> {
-		Self::do_validate_sell_common(amount, assets, who)?;
+		Self::do_validate_sell(amount, assets, who)?;
 
 		// If discount, pool for Sell asset and native asset must exist
 		if discount {
@@ -796,7 +796,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		max_limit: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-		Self::do_validate_buy_common(assets, amount)?;
+		Self::do_validate_buy(assets, amount)?;
 
 		let pair_account = Self::get_pair_id(assets);
 
@@ -909,7 +909,7 @@ impl CanCreatePool<AssetId> for AllowAllPools {
 }
 
 impl<T: Config> Pallet<T> {
-	fn do_validate_sell_common(amount: Balance, assets: AssetPair, who: &T::AccountId) -> Result<(), DispatchError> {
+	fn do_validate_sell(amount: Balance, assets: AssetPair, who: &T::AccountId) -> Result<(), DispatchError> {
 		ensure!(
 			amount >= T::MinTradingLimit::get(),
 			Error::<T>::InsufficientTradingAmount
@@ -981,7 +981,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn do_validate_buy_common(assets: AssetPair, amount: Balance) -> Result<(), DispatchError> {
+	fn do_validate_buy(assets: AssetPair, amount: Balance) -> Result<(), DispatchError> {
 		ensure!(
 			amount >= T::MinTradingLimit::get(),
 			Error::<T>::InsufficientTradingAmount

@@ -2,7 +2,7 @@ use frame_support::ensure;
 use hydradx_traits::AMMTransfer;
 use hydradx_traits::router::{AmountWithFee, Executor, ExecutorError, PoolType};
 use primitives::{asset::AssetPair, AssetId, Balance};
-use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use orml_traits::{MultiCurrency};
 use hydradx_traits::AMM;
 use sp_runtime::DispatchError;
 
@@ -107,7 +107,7 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
             discount: false,
             discount_amount: 0,
         };
-        Self::do_validate_sell_common(amount_in_without_fee, assets, &who).map_err(|de| ExecutorError::Error(de))?;
+        Self::do_validate_sell(amount_in_without_fee, assets, &who).map_err(|de| ExecutorError::Error(de))?;
         Self::do_execute_sell(&amm_transfer).map_err(|de| ExecutorError::Error(de))?;
 
         Ok(())
@@ -142,7 +142,7 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
             discount: false,
             discount_amount: 0,
         };
-        Self::do_validate_buy_common(assets, amount_out_with_fee).map_err(|de| ExecutorError::Error(de))?;
+        Self::do_validate_buy(assets, amount_out_with_fee).map_err(|de| ExecutorError::Error(de))?;
         Self::do_execute_buy(&amm_transfer).map_err(|de| ExecutorError::Error(de))?;
 
         Ok(())
