@@ -12,7 +12,6 @@ use frame_support::{assert_noop, assert_ok};
 use hydradx_traits::router::PoolType;
 use orml_traits::MultiCurrency;
 use pallet_route_executor::types::Trade;
-use sp_runtime::DispatchError;
 
 const BSX: u32 = 0;
 const AUSD: u32 = 1;

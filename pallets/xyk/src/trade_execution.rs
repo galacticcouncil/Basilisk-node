@@ -21,7 +21,7 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 
 		let pair = AssetPair { asset_in, asset_out };
 
-		Self::check_if_pool_exists(pair).map_err(|err| ExecutorError::Error(err))?;
+		Self::check_if_pool_exists(pair).map_err(ExecutorError::Error)?;
 
 		let pair_account = <crate::Pallet<T>>::get_pair_id(pair);
 
@@ -37,9 +37,9 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 				)))?;
 
 		let amount_out = Self::calculate_out_given_in(amount_in_without_fee, asset_in_reserve, asset_out_reserve)
-			.map_err(|de| ExecutorError::Error(de))?;
+			.map_err(ExecutorError::Error)?;
 
-		let transfer_fee = Self::calculate_fee(amount_out).map_err(|de| ExecutorError::Error(de))?;
+		let transfer_fee = Self::calculate_fee(amount_out).map_err(ExecutorError::Error)?;
 
 		Ok(AmountWithFee::new(amount_out, transfer_fee))
 	}
@@ -55,7 +55,7 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 		}
 
 		let pair = AssetPair { asset_in, asset_out };
-		Self::check_if_pool_exists(pair).map_err(|err| ExecutorError::Error(err))?;
+		Self::check_if_pool_exists(pair).map_err(ExecutorError::Error)?;
 
 		let pair_account = <crate::Pallet<T>>::get_pair_id(pair);
 
@@ -70,9 +70,9 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 			)))?;
 
 		let amount_in = Self::calculate_in_given_out(amount_out_with_fee, asset_out_reserve, asset_in_reserve)
-			.map_err(|err| ExecutorError::Error(err))?;
+			.map_err(ExecutorError::Error)?;
 
-		let transfer_fee = Self::calculate_fee(amount_in).map_err(|de| ExecutorError::Error(de))?;
+		let transfer_fee = Self::calculate_fee(amount_in).map_err(ExecutorError::Error)?;
 
 		Ok(AmountWithFee::new(amount_in, transfer_fee))
 	}
@@ -115,8 +115,8 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 			discount: false,
 			discount_amount: 0,
 		};
-		Self::do_validate_sell(amount_in_without_fee, assets, &who).map_err(|de| ExecutorError::Error(de))?;
-		Self::do_execute_sell(&amm_transfer).map_err(|de| ExecutorError::Error(de))?;
+		Self::do_validate_sell(amount_in_without_fee, assets, who).map_err(ExecutorError::Error)?;
+		Self::do_execute_sell(&amm_transfer).map_err(ExecutorError::Error)?;
 
 		Ok(())
 	}
@@ -152,8 +152,8 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 			discount: false,
 			discount_amount: 0,
 		};
-		Self::do_validate_buy(assets, amount_out_with_fee).map_err(|de| ExecutorError::Error(de))?;
-		Self::do_execute_buy(&amm_transfer).map_err(|de| ExecutorError::Error(de))?;
+		Self::do_validate_buy(assets, amount_out_with_fee).map_err(ExecutorError::Error)?;
+		Self::do_execute_buy(&amm_transfer).map_err(ExecutorError::Error)?;
 
 		Ok(())
 	}

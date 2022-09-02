@@ -874,7 +874,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		Self::do_execute_buy(&transfer)
+		Self::do_execute_buy(transfer)
 	}
 
 	fn get_min_trading_limit() -> Balance {
