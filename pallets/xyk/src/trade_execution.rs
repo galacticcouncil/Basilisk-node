@@ -1,4 +1,3 @@
-use frame_support::ensure;
 use hydradx_traits::router::{AmountWithFee, ExecutorError, PoolType, TradeExecution};
 use hydradx_traits::AMMTransfer;
 use hydradx_traits::AMM;
@@ -21,10 +20,8 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 		}
 
 		let pair = AssetPair { asset_in, asset_out };
-		ensure!(
-			Self::exists(pair),
-			ExecutorError::Error(DispatchError::Other("Token pool is not found"))
-		);
+
+		Self::check_if_pool_exists(pair).map_err(|err| ExecutorError::Error(err))?;
 
 		let pair_account = <crate::Pallet<T>>::get_pair_id(pair);
 
@@ -59,10 +56,7 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 		}
 
 		let pair = AssetPair { asset_in, asset_out };
-		ensure!(
-			Self::exists(pair),
-			ExecutorError::Error(DispatchError::Other("Token pool is not found"))
-		);
+		Self::check_if_pool_exists(pair).map_err(|err| ExecutorError::Error(err))?;
 
 		let pair_account = <crate::Pallet<T>>::get_pair_id(pair);
 

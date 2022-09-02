@@ -156,7 +156,7 @@ fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 				limit,
 				trades
 			),
-			DispatchError::Other("Token pool is not found")
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::TokenPoolNotFound
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
@@ -400,7 +400,7 @@ fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 				limit,
 				trades
 			),
-			DispatchError::Other("Token pool is not found")
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::TokenPoolNotFound
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);

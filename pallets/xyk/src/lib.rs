@@ -394,7 +394,7 @@ pub mod pallet {
 				asset_out: asset_b,
 			};
 
-			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
+			Self::check_if_pool_exists(asset_pair)?;
 
 			ensure!(
 				amount_a >= T::MinTradingLimit::get(),
@@ -487,7 +487,7 @@ pub mod pallet {
 
 			ensure!(!liquidity_amount.is_zero(), Error::<T>::ZeroLiquidity);
 
-			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
+			Self::check_if_pool_exists(asset_pair)?;
 
 			let pair_account = Self::get_pair_id(asset_pair);
 
@@ -915,7 +915,7 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::InsufficientTradingAmount
 		);
 
-		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+		Self::check_if_pool_exists(assets)?;
 
 		ensure!(
 			T::Currency::free_balance(assets.asset_in, who) >= amount,
@@ -987,7 +987,7 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::InsufficientTradingAmount
 		);
 
-		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+		Self::check_if_pool_exists(assets)?;
 
 		let pair_account = Self::get_pair_id(assets);
 
@@ -1046,6 +1046,12 @@ impl<T: Config> Pallet<T> {
 			fee_amount: transfer.fee.1,
 			pool: pair_account,
 		});
+
+		Ok(())
+	}
+
+	fn check_if_pool_exists(assets: AssetPair) -> Result<(), DispatchError> {
+		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
 		Ok(())
 	}
