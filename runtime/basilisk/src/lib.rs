@@ -891,7 +891,6 @@ parameter_types! {
 	pub const MaxNumberOfTradesLimitReached: u32 = 5;
 }
 
-
 impl pallet_route_executor::Config for Runtime {
 	type Event = Event;
 	type AssetId = AssetId;
