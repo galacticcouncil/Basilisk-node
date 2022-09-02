@@ -186,7 +186,7 @@ fn add_liquidity_as_another_user_should_work() {
 }
 
 #[test]
-fn add_liquidity_should_work_when_limit_exceeds_account_balance() {
+fn add_liquidity_should_work_when_limit_is_set_above_account_balance() {
 	new_test_ext().execute_with(|| {
 		let user = ALICE;
 		let asset_a = DOT;
