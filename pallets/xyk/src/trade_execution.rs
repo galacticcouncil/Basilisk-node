@@ -23,7 +23,7 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 		let pair = AssetPair { asset_in, asset_out };
 		ensure!(
 			Self::exists(pair),
-			ExecutorError::Error(DispatchError::Other("Asset pair does not exist"))
+			ExecutorError::Error(DispatchError::Other("Token pool is not found"))
 		);
 
 		let pair_account = <crate::Pallet<T>>::get_pair_id(pair);
@@ -61,7 +61,7 @@ impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate:
 		let pair = AssetPair { asset_in, asset_out };
 		ensure!(
 			Self::exists(pair),
-			ExecutorError::Error(DispatchError::Other("Asset pair does not exist"))
+			ExecutorError::Error(DispatchError::Other("Token pool is not found"))
 		);
 
 		let pair_account = <crate::Pallet<T>>::get_pair_id(pair);
