@@ -186,6 +186,31 @@ fn add_liquidity_as_another_user_should_work() {
 }
 
 #[test]
+fn add_liquidity_should_work_when_limit_exceeds_account_balance() {
+	new_test_ext().execute_with(|| {
+		let user = ALICE;
+		let asset_a = DOT;
+		let asset_b = HDX;
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(user),
+			asset_a,
+			asset_b,
+			100_000_000,
+			Price::from_float(1.0)
+		));
+
+		assert_ok!(XYK::add_liquidity(
+			Origin::signed(user),
+			asset_a,
+			asset_b,
+			400_000,
+			2_000_000_000_000_000
+		));
+	});
+}
+
+#[test]
 fn remove_liquidity_should_work() {
 	new_test_ext().execute_with(|| {
 		let user = ALICE;
@@ -399,10 +424,10 @@ fn add_liquidity_more_than_owner_should_not_work() {
 			HDX,
 			ACA,
 			200_000_000,
-			Price::from(3000000)
+			Price::from(3_000_000)
 		));
 
-		assert_eq!(Currency::free_balance(ACA, &ALICE), 400000000000000);
+		assert_eq!(Currency::free_balance(ACA, &ALICE), 400_000_000_000_000);
 
 		assert_noop!(
 			XYK::add_liquidity(Origin::signed(ALICE), HDX, ACA, 200_000_000_000_000_000, 600_000_000),
