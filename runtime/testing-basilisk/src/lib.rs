@@ -58,7 +58,7 @@ use codec::Decode;
 use frame_support::traits::Contains;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
+	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -100,8 +100,25 @@ pub mod opaque {
 }
 
 mod testing {
-	use super::{parameter_types, BlockNumber, Everything, MINUTES};
-	pub type BaseFilter = Everything;
+	use super::{parameter_types, BlockNumber, Call, Contains, Runtime, MINUTES};
+
+	pub struct BaseFilter;
+	impl Contains<Call> for BaseFilter {
+		fn contains(call: &Call) -> bool {
+			if matches!(call, Call::System(_) | Call::Timestamp(_) | Call::ParachainSystem(_)) {
+				// always allow
+				// Note: this is done to avoid unnecessary check of paused storage.
+				return true;
+			}
+
+			if pallet_transaction_pause::PausedTransactionFilter::<Runtime>::contains(call) {
+				// if paused, dont allow!
+				return false;
+			}
+
+			true
+		}
+	}
 
 	parameter_types! {
 		pub const LaunchPeriod: BlockNumber = MINUTES;
@@ -832,6 +849,12 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = ();
 }
 
+impl pallet_transaction_pause::Config for Runtime {
+	type Event = Event;
+	type UpdateOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -885,6 +908,7 @@ construct_runtime!(
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
+		TransactionPause: pallet_transaction_pause::{Pallet, Call, Event<T>, Storage} = 110,
 
 		// ORML related modules - starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
@@ -1118,6 +1142,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
@@ -1168,8 +1193,9 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
-			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
+			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
