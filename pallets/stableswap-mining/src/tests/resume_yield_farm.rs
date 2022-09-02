@@ -74,7 +74,7 @@ fn resume_yield_farm_should_work() {
 				pool_id
 			));
 
-			assert_ok!(StableswapMining::resume_liquidity_pool(
+			assert_ok!(StableswapMining::resume_yield_farm(
 				Origin::signed(owner),
 				global_farm_id,
 				yield_farm_id,
@@ -157,7 +157,7 @@ fn resume_yield_farm_should_fail_when_stableswap_pool_doesnt_exists() {
 			pretty_assertions::assert_eq!(pallet_stableswap::Pools::<Test>::get(pool_id).is_none(), true);
 
 			assert_noop!(
-				StableswapMining::resume_liquidity_pool(
+				StableswapMining::resume_yield_farm(
 					Origin::signed(owner),
 					global_farm_id,
 					yield_farm_id,

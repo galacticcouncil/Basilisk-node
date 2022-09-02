@@ -74,7 +74,7 @@ fn update_global_farm_should_work() {
 			assert_last_event!(crate::Event::GlobalFarmUpdated {
 				who: owner,
 				id: global_farm_id,
-				price_adujustment: new_price_adjustment,
+				price_adjustment: new_price_adjustment,
 			}
 			.into());
 		});

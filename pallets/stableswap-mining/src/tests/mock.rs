@@ -17,6 +17,7 @@
 
 #![cfg(test)]
 use super::*;
+pub use hydradx_traits_stableswap::{Registry, ShareTokenRegistry};
 
 pub(crate) use crate as stableswap_mining;
 use crate::Config;
@@ -191,8 +192,6 @@ impl pallet_stableswap::Config for Test {
 	type MinTradingLimit = MinimumTradingLimit;
 	type WeightInfo = ();
 }
-
-pub use hydradx_traits_stableswap::{Registry, ShareTokenRegistry};
 
 thread_local! {
 	pub static NFTS: RefCell<HashMap<warehouse_liquidity_mining::DepositId, AccountId>> = RefCell::new(HashMap::default());
@@ -744,6 +743,9 @@ impl Default for ExtBuilder {
 			v.borrow_mut().clear();
 		});
 		DEPOSIT_ENTRIES.with(|v| {
+			v.borrow_mut().clear();
+		});
+		NFTS.with(|v| {
 			v.borrow_mut().clear();
 		});
 

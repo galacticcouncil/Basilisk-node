@@ -38,33 +38,34 @@ pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "p
 
 # Optional imports for benchmarking
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.16", default-features = false , optional = true}
-
+hydradx-traits-stableswap = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev="756f47a663911d8e7866c0768471b22b20f6460d", default-features = false, optional = true }
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17"}
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17" }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17" }
 orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38" }
-hydradx-traits-stableswap = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev="756f47a663911d8e7866c0768471b22b20f6460d" }
 pretty_assertions = "1.2.1"
 mutagen = { git = "https://github.com/llogiq/mutagen", rev="a9104109c459169eb1a64c0b40d93d4171a6c211" }
 
 [features]
 default = ["std"]
 std = [
-    "serde",
-    "codec/std",
-    "frame-support/std",
-    "frame-system/std",
-    "sp-std/std",
-    "orml-traits/std",
-    "orml-tokens/std",
-    "primitives/std",
-    "hydradx-traits/std",
-    "pallet-balances/std",
-    "warehouse_liquidity_mining/std",
+  "serde",
+  "codec/std",
+  "frame-support/std",
+  "frame-system/std",
+  "sp-std/std",
+  "orml-traits/std",
+  "orml-tokens/std",
+  "primitives/std",
+  "hydradx-traits/std",
+  "pallet-balances/std",
+  "warehouse_liquidity_mining/std",
+  "hydradx-traits-stableswap/std",
 ]
 
 runtime-benchmarks = [
-	"frame-benchmarking/runtime-benchmarks",
+  "frame-benchmarking/runtime-benchmarks",
+  "hydradx-traits-stableswap/std",
 ]

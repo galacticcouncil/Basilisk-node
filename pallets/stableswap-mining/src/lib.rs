@@ -144,7 +144,7 @@ pub mod pallet {
 		GlobalFarmUpdated {
 			who: AccountIdOf<T>,
 			id: GlobalFarmId,
-			price_adujustment: FixedU128,
+			price_adjustment: FixedU128,
 		},
 
 		GlobalFarmDestroyed {
@@ -247,7 +247,7 @@ pub mod pallet {
 			owner: AccountIdOf<T>,
 			yield_per_period: Perquintill,
 			min_deposit: Balance,
-			price_adujustment: FixedU128,
+			price_adjustment: FixedU128,
 		) -> DispatchResult {
 			T::CreateOrigin::ensure_origin(origin)?;
 
@@ -260,7 +260,7 @@ pub mod pallet {
 				owner.clone(),
 				yield_per_period,
 				min_deposit,
-				price_adujustment,
+				price_adjustment,
 			)?;
 
 			Self::deposit_event(Event::GlobalFarmCreated {
@@ -283,16 +283,16 @@ pub mod pallet {
 		pub fn update_global_farm_price_adjustment(
 			origin: OriginFor<T>,
 			id: GlobalFarmId,
-			price_adujustment: FixedU128,
+			price_adjustment: FixedU128,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			T::LiquidityMiningHandler::update_global_farm_price_adjustment(who.clone(), id, price_adujustment)?;
+			T::LiquidityMiningHandler::update_global_farm_price_adjustment(who.clone(), id, price_adjustment)?;
 
 			Self::deposit_event(Event::GlobalFarmUpdated {
 				who,
 				id,
-				price_adujustment,
+				price_adjustment,
 			});
 
 			Ok(())
@@ -401,7 +401,7 @@ pub mod pallet {
 		#[cfg_attr(test, mutate)]
 		#[pallet::weight(1_000)]
 		#[transactional]
-		pub fn resume_liquidity_pool(
+		pub fn resume_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
