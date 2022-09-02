@@ -3,8 +3,8 @@ use crate as duster;
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild, Nothing, OnKilledAccount};
 
-use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
+use pallet_currencies::BasicCurrencyAdapter;
 use primitives::{AssetId, Balance};
 
 use crate::Config;
@@ -48,7 +48,7 @@ frame_support::construct_runtime!(
 		System: frame_system,
 		Duster: duster,
 		Tokens: orml_tokens,
-		Currencies: orml_currencies,
+		Currencies: pallet_currencies,
 		Balances: pallet_balances,
 	}
 );
@@ -150,7 +150,8 @@ impl orml_tokens::Config for Test {
 	type MaxReserves = ();
 }
 
-impl orml_currencies::Config for Test {
+impl pallet_currencies::Config for Test {
+	type Event = Event;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Test, Balances, Amount, u32>;
 	type GetNativeCurrencyId = NativeCurrencyId;

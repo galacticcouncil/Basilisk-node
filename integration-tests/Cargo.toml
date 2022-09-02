@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.7.5"
+version = "0.7.6"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -9,10 +9,11 @@ license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
-# local dependencies
+# Warehouse dependencies
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false}
 pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false}
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ad0293540faa72a17147f7775d26c4dc5d85556", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "6c95cb1c69328d74830797b57e8496331b4a8826", default-features = false }
 
 pallet-exchange = { path = "../pallets/exchange", default-features=false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
@@ -35,7 +36,6 @@ pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", bra
 pallet-authorship = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 
 # ORML dependencies
-orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8c625a5ab43c1c56cdeed5f8d814a891566d4cf8", default-features = false }
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8c625a5ab43c1c56cdeed5f8d814a891566d4cf8", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8c625a5ab43c1c56cdeed5f8d814a891566d4cf8", default-features = false }
 orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8c625a5ab43c1c56cdeed5f8d814a891566d4cf8", default-features = false }
@@ -121,7 +121,7 @@ std = [
     "frame-support/std",
     "frame-system/std",
     "frame-system-rpc-runtime-api/std",
-    "orml-currencies/std",
+    "pallet-currencies/std",
     "orml-tokens/std",
     "orml-traits/std",
     "orml-vesting/std",

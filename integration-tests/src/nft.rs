@@ -8,26 +8,26 @@ use frame_support::traits::ReservableCurrency;
 use hydradx_traits::nft::CreateTypedClass;
 use pallet_nft::ClassType;
 use pallet_nft::NftPermission;
-use pallet_nft::{ClassId, InstanceId};
+use primitives::{CollectionId, ItemId};
 use test_case::test_case;
 use xcm_emulator::TestExt;
 
 const ALLOW: bool = true;
 const NOT_ALLOW: bool = false;
-const RESERVED_CLASS_ID: ClassId = 0;
+const RESERVED_CLASS_ID: CollectionId = 0;
 const RESTRICTED_CLASS_TYPE: ClassType = ClassType::HydraHeads;
 
-fn create_nft_class(account_id: AccountId, class_id: ClassId, class_type: ClassType) {
+fn create_nft_class(account_id: AccountId, class_id: CollectionId, class_type: ClassType) {
 	Basilisk::execute_with(|| {
 		assert_ok!(
-			<NFT as CreateTypedClass<AccountId, ClassId, ClassType>>::create_typed_class(
+			<NFT as CreateTypedClass<AccountId, CollectionId, ClassType>>::create_typed_class(
 				account_id, class_id, class_type,
 			)
 		);
 	});
 }
 
-fn mint_nft(account_id: AccountId, class_id: ClassId, instance_id: InstanceId) {
+fn mint_nft(account_id: AccountId, class_id: CollectionId, instance_id: ItemId) {
 	Basilisk::execute_with(|| {
 		assert_ok!(<NFT as Mutate<AccountId>>::mint_into(
 			&class_id,
@@ -122,7 +122,7 @@ fn deposit_for_create_typed_class_should_be_zero(class_type: ClassType) {
 	Basilisk::execute_with(|| {
 		// Act & Assert
 		assert_ok!(
-			<NFT as CreateTypedClass<AccountId, ClassId, ClassType>>::create_typed_class(
+			<NFT as CreateTypedClass<AccountId, CollectionId, ClassType>>::create_typed_class(
 				AccountId::from(ALICE),
 				RESERVED_CLASS_ID,
 				class_type,
@@ -241,7 +241,7 @@ fn create_typed_class_should_ignore_permissions_and_reserved_ids(class_type: Cla
 	Basilisk::execute_with(|| {
 		// Act & Assert
 		assert_ok!(
-			<NFT as CreateTypedClass<AccountId, ClassId, ClassType>>::create_typed_class(
+			<NFT as CreateTypedClass<AccountId, CollectionId, ClassType>>::create_typed_class(
 				AccountId::from(ALICE),
 				RESERVED_CLASS_ID,
 				class_type,

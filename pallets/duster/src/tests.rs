@@ -93,18 +93,8 @@ fn dust_treasury_account_fails() {
 	});
 }
 
-fn last_events(n: usize) -> Vec<TestEvent> {
-	frame_system::Pallet::<Test>::events()
-		.into_iter()
-		.rev()
-		.take(n)
-		.rev()
-		.map(|e| e.event)
-		.collect()
-}
-
 fn expect_events(e: Vec<TestEvent>) {
-	assert_eq!(last_events(e.len()), e);
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
 #[test]
