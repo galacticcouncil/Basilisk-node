@@ -42,7 +42,6 @@ pallet-identity = { git = "https://github.com/paritytech/substrate", branch = "p
 
 # Warehouse dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false}
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
@@ -136,7 +135,6 @@ runtime-benchmarks = [
     "pallet-marketplace/runtime-benchmarks",
     "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
-    "pallet-price-oracle/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
@@ -197,7 +195,6 @@ std = [
     "pallet-transaction-multi-payment/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-lbp/std",
-    "pallet-price-oracle/std",
     "pallet-utility/std",
     "hydradx-traits/std",
     "sp-api/std",
