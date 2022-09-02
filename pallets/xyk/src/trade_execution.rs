@@ -4,10 +4,11 @@ use hydradx_traits::router::{AmountWithFee, Executor, ExecutorError, PoolType};
 use primitives::{asset::AssetPair, AssetId, Balance};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use hydradx_traits::AMM;
+use sp_runtime::DispatchError;
 
 impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Pallet<T> {
     type TradeCalculationResult = AmountWithFee<Balance>;
-    type Error = ();
+    type Error = DispatchError;
 
     fn calculate_sell(
         pool_type: PoolType<AssetId>,
@@ -20,7 +21,7 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
         }
 
         let pair = AssetPair { asset_in, asset_out };
-        ensure!(Self::exists(pair), ExecutorError::Error(()));
+        ensure!(Self::exists(pair), ExecutorError::Error(DispatchError::Other("Asset pair does not exist")));
 
         let pair_account = <crate::Pallet<T>>::get_pair_id(pair);
 
@@ -30,13 +31,13 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
         let amount_in_without_fee = amount_in
             .amount
             .checked_sub(amount_in.fee)
-            .ok_or(ExecutorError::Error(()))?;
+            .ok_or(ExecutorError::Error(DispatchError::Other("Error while calculating sell trade")))?;
 
         let amount_out =
             hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in_without_fee)
-                .map_err(|_| ExecutorError::Error(()))?;
+                .map_err(|_| ExecutorError::Error(DispatchError::Other("Error while calculating sell trade")))?;
 
-        let transfer_fee = Self::calculate_fee(amount_out).map_err(|_| ExecutorError::Error(()))?;
+        let transfer_fee = Self::calculate_fee(amount_out).map_err(|de| ExecutorError::Error(de))?;
 
         Ok(AmountWithFee::new(amount_out, transfer_fee))
     }
@@ -52,7 +53,7 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
         }
 
         let pair = AssetPair { asset_in, asset_out };
-        ensure!(Self::exists(pair), ExecutorError::Error(()));
+        ensure!(Self::exists(pair), ExecutorError::Error(DispatchError::Other("Asset pair does not exist")));
 
         let pair_account = <crate::Pallet<T>>::get_pair_id(pair);
 
@@ -62,13 +63,13 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
         let amount_out_with_fee = amount_out
             .amount
             .checked_add(amount_out.fee)
-            .ok_or(ExecutorError::Error(()))?;
+            .ok_or(ExecutorError::Error(DispatchError::Other("Error while calculating buy trade")))?;
 
         let amount_in =
             hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out_with_fee)
-                .map_err(|_| ExecutorError::Error(()))?;
+                .map_err(|_| ExecutorError::Error(DispatchError::Other("Error while calculating buy trade")))?;
 
-        let transfer_fee = Self::calculate_fee(amount_in).map_err(|_| ExecutorError::Error(()))?;
+        let transfer_fee = Self::calculate_fee(amount_in).map_err(|de| ExecutorError::Error(de))?;
 
         Ok(AmountWithFee::new(amount_in, transfer_fee))
     }
@@ -91,11 +92,11 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
         let amount_in_without_fee = amount_in
             .amount
             .checked_sub(amount_in.fee)
-            .ok_or(ExecutorError::Error(()))?;
+            .ok_or(ExecutorError::Error(DispatchError::Other("Error while executing sell trade")))?;
         let amount_out_without_fee = amount_out
             .amount
             .checked_sub(amount_out.fee)
-            .ok_or(ExecutorError::Error(()))?;
+            .ok_or(ExecutorError::Error(DispatchError::Other("Error while executing sell trade")))?;
 
         let amm_transfer: AMMTransfer<T::AccountId, AssetId, AssetPair, Balance> = AMMTransfer {
             origin: who.clone(),
@@ -106,9 +107,8 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
             discount: false,
             discount_amount: 0,
         };
-        //TODO: Dani - proper error propagation
-        Self::do_validate_sell_common(amount_in_without_fee, assets, &who).map_err(|_| ExecutorError::Error(()))?;
-        Self::do_execute_sell(&amm_transfer).map_err(|_| ExecutorError::Error(()))?;
+        Self::do_validate_sell_common(amount_in_without_fee, assets, &who).map_err(|de| ExecutorError::Error(de))?;
+        Self::do_execute_sell(&amm_transfer).map_err(|de| ExecutorError::Error(de))?;
 
         Ok(())
     }
@@ -131,7 +131,7 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
         let amount_out_with_fee = amount_out
             .amount
             .checked_add(amount_out.fee)
-            .ok_or(ExecutorError::Error(()))?;
+            .ok_or(ExecutorError::Error(DispatchError::Other("Error while executing buy trade")))?;
 
         let amm_transfer: AMMTransfer<T::AccountId, AssetId, AssetPair, Balance> = AMMTransfer {
             origin: who.clone(),
@@ -142,8 +142,8 @@ impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Palle
             discount: false,
             discount_amount: 0,
         };
-        Self::do_validate_buy_common(assets, amount_out_with_fee).map_err(|_| ExecutorError::Error(()))?;
-        Self::do_execute_buy(&amm_transfer).map_err(|_| ExecutorError::Error(()))?;
+        Self::do_validate_buy_common(assets, amount_out_with_fee).map_err(|de| ExecutorError::Error(de))?;
+        Self::do_execute_buy(&amm_transfer).map_err(|de| ExecutorError::Error(de))?;
 
         Ok(())
     }
