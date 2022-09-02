@@ -1,12 +1,12 @@
 use frame_support::ensure;
 use hydradx_traits::AMMTransfer;
-use hydradx_traits::router::{AmountWithFee, Executor, ExecutorError, PoolType};
+use hydradx_traits::router::{AmountWithFee, TradeExecution, ExecutorError, PoolType};
 use primitives::{asset::AssetPair, AssetId, Balance};
 use orml_traits::{MultiCurrency};
 use hydradx_traits::AMM;
 use sp_runtime::DispatchError;
 
-impl<T: crate::Config> Executor<T::AccountId, AssetId, Balance> for crate::Pallet<T> {
+impl<T: crate::Config> TradeExecution<T::AccountId, AssetId, Balance> for crate::Pallet<T> {
     type TradeCalculationResult = AmountWithFee<Balance>;
     type Error = DispatchError;
 
