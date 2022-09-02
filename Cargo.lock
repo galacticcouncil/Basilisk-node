@@ -6507,7 +6507,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "5.0.1"
+version = "5.0.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -11356,7 +11356,6 @@ dependencies = [
  "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
- "pallet-price-oracle",
  "pallet-proxy",
  "pallet-relaychain-info",
  "pallet-scheduler",
@@ -11695,7 +11694,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.11.2",
+ "parking_lot 0.10.2",
  "regex",
  "serde",
  "serde_json",
