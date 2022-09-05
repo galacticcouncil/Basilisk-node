@@ -209,6 +209,112 @@ fn execute_sell_should_fail_when_first_trade_is_successful_but_second_trade_has_
 }
 
 #[test]
+fn execute_sell_should_fail_when_balance_is_not_sufficient() {
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		let amount_to_sell = 9999 * UNITS;
+
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			}
+		];
+
+		//Act and Assert
+		assert_noop!(
+			Router::execute_sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				AUSD,
+				amount_to_sell * UNITS,
+				0,
+				trades
+			),
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::InsufficientBalance
+		);
+
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
+	});
+}
+
+#[test]
+fn execute_sell_should_fail_when_trading_limit_is_below_minimum() {
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		let amount_to_sell = primitives::constants::chain::MIN_TRADING_LIMIT - 1;
+		let limit = 0 * UNITS;
+
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			}
+		];
+
+		//Act and Assert
+		assert_noop!(
+			Router::execute_sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				AUSD,
+				amount_to_sell,
+				limit,
+				trades
+			),
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientTradingAmount
+		);
+
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
+	});
+}
+
+#[test]
+fn execute_sell_should_fail_when_buying_more_than_max_in_ratio_out() {
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		let amount_to_sell = 1000 * UNITS;
+		let limit = 0 * UNITS;
+
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			}
+		];
+
+		//Act and Assert
+		assert_noop!(
+			Router::execute_sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				AUSD,
+				amount_to_sell,
+				limit,
+				trades
+			),
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::MaxInRatioExceeded
+		);
+
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
+	});
+}
+///to this
+
+
+#[test]
 fn execute_buy_should_work_when_route_contains_single_trade() {
 	TestNet::reset();
 
@@ -449,6 +555,110 @@ fn execute_buy_should_fail_when_first_trade_is_successful_but_second_trade_has_n
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
 		assert_trader_non_native_balance(0, KSM);
+	});
+}
+
+#[test]
+fn execute_buy_should_fail_when_balance_is_not_sufficient() {
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		let amount_to_buy = BOB_INITIAL_BSX_BALANCE + 1;
+
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			}
+		];
+
+		//Act and Assert
+		assert_noop!(
+			Router::execute_buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				AUSD,
+				amount_to_buy * UNITS,
+				0,
+				trades
+			),
+			pallet_route_executor::Error::<basilisk_runtime::Runtime>::InsufficientBalance
+		);
+
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
+	});
+}
+
+#[test]
+fn execute_buy_should_fail_when_trading_limit_is_below_minimum() {
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		let amount_to_buy = primitives::constants::chain::MIN_TRADING_LIMIT;
+		let limit = 100 * UNITS;
+
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			}
+		];
+
+		//Act and Assert
+		assert_noop!(
+			Router::execute_buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				AUSD,
+				amount_to_buy * UNITS,
+				limit,
+				trades
+			),
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::BuyAssetAmountInvalid
+		);
+
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
+	});
+}
+
+#[test]
+fn execute_buy_should_fail_when_buying_more_than_max_ratio_out() {
+	Basilisk::execute_with(|| {
+		//Arrange
+		create_pool(BSX, AUSD);
+
+		let amount_to_buy = 20 * UNITS;
+		let limit = 100 * UNITS;
+
+		let trades = vec![
+			Trade {
+				pool: PoolType::XYK,
+				asset_in: BSX,
+				asset_out: AUSD,
+			}
+		];
+
+		//Act and Assert
+		assert_noop!(
+			Router::execute_buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				AUSD,
+				amount_to_buy,
+				limit,
+				trades
+			),
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::MaxOutRatioExceeded
+		);
+
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
 	});
 }
 
