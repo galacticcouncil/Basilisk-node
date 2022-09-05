@@ -3211,7 +3211,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "frame-support",
  "hydradx-traits",
@@ -3228,7 +3228,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.7.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5361,7 +5361,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "1.3.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5727,7 +5727,7 @@ dependencies = [
 [[package]]
 name = "pallet-ema-oracle"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6043,7 +6043,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "3.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6131,7 +6131,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.3.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6176,7 +6176,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6352,7 +6352,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "8.0.2"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6370,7 +6370,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-pause"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=ecb8c60fcc2da323d334513a6f83613338ab21fc#ecb8c60fcc2da323d334513a6f83613338ab21fc"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=50afe155f5c5fe4f6d661f7ed531279255fcc487#50afe155f5c5fe4f6d661f7ed531279255fcc487"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
