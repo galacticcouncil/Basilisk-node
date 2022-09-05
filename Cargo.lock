@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "72.0.0"
+version = "73.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11308,7 +11308,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "72.0.0"
+version = "73.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11356,7 +11356,6 @@ dependencies = [
  "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
- "pallet-price-oracle",
  "pallet-proxy",
  "pallet-relaychain-info",
  "pallet-scheduler",
@@ -11365,6 +11364,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-multi-payment",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
@@ -11694,7 +11694,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.11.2",
+ "parking_lot 0.10.2",
  "regex",
  "serde",
  "serde_json",
