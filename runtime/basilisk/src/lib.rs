@@ -888,7 +888,7 @@ impl pallet_transaction_pause::Config for Runtime {
 	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
 }
 parameter_types! {
-	pub const MaxNumberOfTradesLimitReached: u32 = 5;
+	pub const MaxNumberOfTradesLimitReached: u8 = 5;
 }
 
 impl pallet_route_executor::Config for Runtime {

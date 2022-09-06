@@ -56,7 +56,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_out, AUSD);
 
-		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_to_sell,
@@ -119,7 +119,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
 		assert_trader_non_native_balance(0, MOVR);
 
-		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: KSM,
 			amount_in: amount_to_sell,
@@ -349,7 +349,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
 
-		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_in - last_trade_fee,
@@ -405,7 +405,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
 		assert_trader_non_native_balance(0, KSM);
 
-		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_in - last_trade_fee,
@@ -469,7 +469,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		assert_trader_non_native_balance(0, MOVR);
 		assert_trader_non_native_balance(0, KSM);
 
-		expect_basilisk_events(vec![pallet_route_executor::Event::RouteIsExecuted {
+		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_in - last_trade_fee,
