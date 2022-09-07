@@ -22,5 +22,5 @@ pub struct Royalty<AccountId> {
 	/// The user account which receives the royalty
 	pub author: AccountId,
 	/// Royalty in percent in range 0-99
-	pub royalty: u8,
+	pub royalty: u16,
 }

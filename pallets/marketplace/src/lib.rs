@@ -10,8 +10,8 @@ use frame_support::{
 };
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
-	traits::{Saturating, StaticLookup},
-	Percent,
+	traits::{CheckedDiv, CheckedMul, Saturating, StaticLookup},
+	ArithmeticError, DispatchError,
 };
 
 use types::*;
@@ -30,6 +30,8 @@ mod tests;
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
 type RoyaltyOf<T> = Royalty<<T as frame_system::Config>::AccountId>;
+
+pub const MAX_ROYALTY: u16 = 10_000;	// 100% in basis points
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -282,7 +284,7 @@ pub mod pallet {
 		/// - `class_id`: The class of the asset to be minted.
 		/// - `instance_id`: The instance value of the asset to be minted.
 		/// - `author`: Receiver of the royalty
-		/// - `royalty`: Percentage reward from each trade for the author
+		/// - `royalty`: Percentage reward from each trade for the author, represented in basis points
 		#[pallet::weight(<T as Config>::WeightInfo::add_royalty())]
 		#[transactional]
 		pub fn add_royalty(
@@ -290,7 +292,7 @@ pub mod pallet {
 			class_id: T::NftClassId,
 			instance_id: T::NftInstanceId,
 			author: T::AccountId,
-			royalty: u8,
+			royalty: u16,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -298,7 +300,7 @@ pub mod pallet {
 				!MarketplaceInstances::<T>::contains_key(class_id, instance_id),
 				Error::<T>::RoyaltyAlreadySet
 			);
-			ensure!(royalty < 100, Error::<T>::NotInRange);
+			ensure!(royalty < MAX_ROYALTY, Error::<T>::NotInRange);
 			let owner =
 				pallet_nft::Pallet::<T>::owner(class_id, instance_id).ok_or(pallet_nft::Error::<T>::ClassUnknown)?;
 			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);
@@ -371,7 +373,7 @@ pub mod pallet {
 			class: T::NftClassId,
 			instance: T::NftInstanceId,
 			author: T::AccountId,
-			royalty: u8,
+			royalty: u16,
 			royalty_amount: BalanceOf<T>,
 		},
 		/// Marketplace data has been added
@@ -379,7 +381,7 @@ pub mod pallet {
 			class: T::NftClassId,
 			instance: T::NftInstanceId,
 			author: T::AccountId,
-			royalty: u8,
+			royalty: u16,
 		},
 	}
 
@@ -407,7 +409,7 @@ pub mod pallet {
 		AcceptNotAuthorized,
 		/// Royalty can be set only once
 		RoyaltyAlreadySet,
-		/// Royalty not in 0-99 range
+		/// Royalty not in 0-9_999 range
 		NotInRange,
 	}
 }
@@ -442,10 +444,13 @@ impl<T: Config> Pallet<T> {
 				let author = instance_info.author;
 
 				// Calculate royalty and subtract from price if author different from buyer
-				let royalty_perc = Percent::from_percent(royalty);
-				let royalty_amount = royalty_perc * price;
+				let royalty_amount = price
+					.checked_mul(&BalanceOf::<T>::from(royalty))
+					.ok_or(DispatchError::Arithmetic(ArithmeticError::Overflow))?
+					.checked_div(&BalanceOf::<T>::from(MAX_ROYALTY))
+					.ok_or(DispatchError::Arithmetic(ArithmeticError::Overflow))?;
 
-				if owner != author && royalty != 0u8 {
+				if owner != author && royalty != 0u16 {
 					price = price.saturating_sub(royalty_amount);
 
 					// Send royalty to author
