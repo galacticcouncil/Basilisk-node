@@ -7,6 +7,7 @@ use primitives::asset::AssetPair;
 use primitives::{AssetId, Balance};
 use sp_runtime::traits::Zero;
 use sp_runtime::DispatchError;
+use frame_support::traits::Get;
 
 impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 	type TradeCalculationResult = AmountWithFee<Balance>;
@@ -73,6 +74,11 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 		ensure!(
 			asset_out_reserve > amount_out.amount,
 			ExecutorError::Error(Error::<T>::InsufficientPoolAssetBalance.into())
+		);
+
+		ensure!(
+			amount_out.amount >= T::MinTradingLimit::get(),
+			ExecutorError::Error(Error::<T>::InsufficientTradingAmount.into())
 		);
 
 		let amount_in =

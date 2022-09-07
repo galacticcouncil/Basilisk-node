@@ -596,7 +596,7 @@ fn execute_buy_should_fail_when_trading_limit_is_below_minimum() {
 		//Arrange
 		create_pool(BSX, AUSD);
 
-		let amount_to_buy = primitives::constants::chain::MIN_TRADING_LIMIT;
+		let amount_to_buy = primitives::constants::chain::MIN_TRADING_LIMIT - 1;
 		let limit = 100 * UNITS;
 
 		let trades = vec![
@@ -613,11 +613,11 @@ fn execute_buy_should_fail_when_trading_limit_is_below_minimum() {
 				Origin::signed(TRADER.into()),
 				BSX,
 				AUSD,
-				amount_to_buy * UNITS,
+				amount_to_buy,
 				limit,
 				trades
 			),
-			pallet_xyk::Error::<basilisk_runtime::Runtime>::BuyAssetAmountInvalid
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientTradingAmount
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
