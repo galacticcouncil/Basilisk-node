@@ -3247,7 +3247,6 @@ dependencies = [
  "frame-support",
  "parity-scale-codec",
  "scale-info",
- "serde",
  "sp-std",
 ]
 
@@ -6564,7 +6563,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math",
- "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=85257f53b0da5827c103bf4f739474cc1e83d3f7)",
+ "hydradx-traits 0.7.0 (git+https://github.com/galacticcouncil/warehouse?rev=0962886b4ea124f3017c85c2547fb00d24e8f1d9)",
  "log",
  "orml-tokens",
  "orml-traits",

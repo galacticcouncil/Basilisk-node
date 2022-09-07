@@ -60,7 +60,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_to_sell,
-			amount_out: amount_out + last_trade_fee, //TODO: ask Martin if this is fine, or we should separate handle the fee
+			amount_out: amount_out ,
 		}
 		.into()]);
 	});
@@ -123,7 +123,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 			asset_in: BSX,
 			asset_out: KSM,
 			amount_in: amount_to_sell,
-			amount_out: amount_out + last_trade_fee,
+			amount_out: amount_out ,
 		}
 		.into()]);
 	});
@@ -344,7 +344,6 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 
 		//Assert
 		let amount_in = 25075000000001;
-		let last_trade_fee = 75000000000u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
@@ -352,7 +351,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in - last_trade_fee,
+			amount_in: amount_in ,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -399,7 +398,6 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 
 		//Assert
 		let amount_in = 428_143_592_7986;
-		let last_trade_fee = 12805890111;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
@@ -408,7 +406,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in - last_trade_fee,
+			amount_in: amount_in ,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -472,7 +470,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in - last_trade_fee,
+			amount_in: amount_in ,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
