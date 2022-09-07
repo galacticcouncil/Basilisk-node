@@ -45,7 +45,6 @@ mod tests;
 mod benchmarking;
 
 mod impls;
-mod trade_execution;
 pub mod weights;
 
 pub use impls::XYKSpotPrice;
@@ -347,7 +346,7 @@ pub mod pallet {
 				T::MinPoolLiquidity::get(),
 			)?;
 
-			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
+			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out);
 
 			T::NonDustableWhitelistHandler::add_account(&pair_account)?;
 
@@ -394,7 +393,7 @@ pub mod pallet {
 				asset_out: asset_b,
 			};
 
-			Self::check_if_pool_exists(asset_pair)?;
+			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
 
 			ensure!(
 				amount_a >= T::MinTradingLimit::get(),
@@ -487,7 +486,7 @@ pub mod pallet {
 
 			ensure!(!liquidity_amount.is_zero(), Error::<T>::ZeroLiquidity);
 
-			Self::check_if_pool_exists(asset_pair)?;
+			ensure!(Self::exists(asset_pair), Error::<T>::TokenPoolNotFound);
 
 			let pair_account = Self::get_pair_id(asset_pair);
 
@@ -701,7 +700,17 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		min_bought: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, sp_runtime::DispatchError> {
-		Self::do_validate_sell(amount, assets, who)?;
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
+
+		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
+
+		ensure!(
+			T::Currency::free_balance(assets.asset_in, who) >= amount,
+			Error::<T>::InsufficientAssetBalance
+		);
 
 		// If discount, pool for Sell asset and native asset must exist
 		if discount {
@@ -719,7 +728,16 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 
-		let amount_out = Self::calculate_out_given_in(amount, asset_in_reserve, asset_out_reserve)?;
+		ensure!(
+			amount
+				<= asset_in_reserve
+					.checked_div(T::MaxInRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxInRatioExceeded
+		);
+
+		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount)
+			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
 
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(amount_out)?
@@ -781,7 +799,47 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
 	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		Self::do_execute_sell(transfer)
+		let pair_account = Self::get_pair_id(transfer.assets);
+
+		let total_liquidity = Self::total_liquidity(&pair_account);
+		T::AMMHandler::on_trade(
+			transfer.assets.asset_in,
+			transfer.assets.asset_out,
+			transfer.amount,
+			transfer.amount_out,
+			total_liquidity,
+		);
+
+		if transfer.discount && transfer.discount_amount > 0u128 {
+			let native_asset = T::NativeAssetId::get();
+			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
+		}
+
+		T::Currency::transfer(
+			transfer.assets.asset_in,
+			&transfer.origin,
+			&pair_account,
+			transfer.amount,
+		)?;
+		T::Currency::transfer(
+			transfer.assets.asset_out,
+			&pair_account,
+			&transfer.origin,
+			transfer.amount_out,
+		)?;
+
+		Self::deposit_event(Event::<T>::SellExecuted {
+			who: transfer.origin.clone(),
+			asset_in: transfer.assets.asset_in,
+			asset_out: transfer.assets.asset_out,
+			amount: transfer.amount,
+			sale_price: transfer.amount_out,
+			fee_asset: transfer.fee.0,
+			fee_amount: transfer.fee.1,
+			pool: pair_account,
+		});
+
+		Ok(())
 	}
 
 	/// Validate a buy. Perform all necessary checks and calculations.
@@ -795,12 +853,27 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		max_limit: Balance,
 		discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
-		Self::do_validate_buy(assets, amount)?;
+		ensure!(
+			amount >= T::MinTradingLimit::get(),
+			Error::<T>::InsufficientTradingAmount
+		);
+
+		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
 
 		let pair_account = Self::get_pair_id(assets);
 
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
+
+		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
+
+		ensure!(
+			amount
+				<= asset_out_reserve
+					.checked_div(T::MaxOutRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxOutRatioExceeded
+		);
 
 		// If discount, pool for Sell asset and native asset must exist
 		if discount {
@@ -813,7 +886,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			);
 		}
 
-		let buy_price = Self::calculate_in_given_out(amount, asset_out_reserve, asset_in_reserve)?;
+		let buy_price = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount)
+			.map_err(|_| Error::<T>::BuyAssetAmountInvalid)?;
 
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(buy_price)?
@@ -874,137 +948,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	/// Note : the execution should not return error as everything was previously verified and validated.
 	#[transactional]
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
-		Self::do_execute_buy(transfer)
-	}
-
-	fn get_min_trading_limit() -> Balance {
-		T::MinTradingLimit::get()
-	}
-
-	fn get_min_pool_liquidity() -> Balance {
-		T::MinPoolLiquidity::get()
-	}
-
-	fn get_max_in_ratio() -> u128 {
-		T::MaxInRatio::get()
-	}
-
-	fn get_max_out_ratio() -> u128 {
-		T::MaxOutRatio::get()
-	}
-
-	fn get_fee(_pool_account_id: &T::AccountId) -> (u32, u32) {
-		T::GetExchangeFee::get()
-	}
-}
-
-pub struct AllowAllPools();
-
-impl CanCreatePool<AssetId> for AllowAllPools {
-	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
-		true
-	}
-}
-
-impl<T: Config> Pallet<T> {
-	fn do_validate_sell(amount: Balance, assets: AssetPair, who: &T::AccountId) -> Result<(), DispatchError> {
-		ensure!(
-			amount >= T::MinTradingLimit::get(),
-			Error::<T>::InsufficientTradingAmount
-		);
-
-		Self::check_if_pool_exists(assets)?;
-
-		ensure!(
-			T::Currency::free_balance(assets.asset_in, who) >= amount,
-			Error::<T>::InsufficientAssetBalance
-		);
-
-		let pair_account = Self::get_pair_id(assets);
-
-		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
-
-		ensure!(
-			amount
-				<= asset_in_reserve
-					.checked_div(T::MaxInRatio::get())
-					.ok_or(Error::<T>::Overflow)?,
-			Error::<T>::MaxInRatioExceeded
-		);
-
-		Ok(())
-	}
-
-	fn do_execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> Result<(), DispatchError> {
-		let pair_account = Self::get_pair_id(transfer.assets);
-
-		let total_liquidity = Self::total_liquidity(&pair_account);
-		T::AMMHandler::on_trade(
-			transfer.assets.asset_in,
-			transfer.assets.asset_out,
-			transfer.amount,
-			transfer.amount_out,
-			total_liquidity,
-		);
-
-		if transfer.discount && transfer.discount_amount > 0u128 {
-			let native_asset = T::NativeAssetId::get();
-			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
-		}
-
-		T::Currency::transfer(
-			transfer.assets.asset_in,
-			&transfer.origin,
-			&pair_account,
-			transfer.amount,
-		)?;
-		T::Currency::transfer(
-			transfer.assets.asset_out,
-			&pair_account,
-			&transfer.origin,
-			transfer.amount_out,
-		)?;
-
-		Self::deposit_event(Event::<T>::SellExecuted {
-			who: transfer.origin.clone(),
-			asset_in: transfer.assets.asset_in,
-			asset_out: transfer.assets.asset_out,
-			amount: transfer.amount,
-			sale_price: transfer.amount_out,
-			fee_asset: transfer.fee.0,
-			fee_amount: transfer.fee.1,
-			pool: pair_account,
-		});
-
-		Ok(())
-	}
-
-	fn do_validate_buy(assets: AssetPair, amount: Balance) -> Result<(), DispatchError> {
-		ensure!(
-			amount >= T::MinTradingLimit::get(),
-			Error::<T>::InsufficientTradingAmount
-		);
-
-		Self::check_if_pool_exists(assets)?;
-
-		let pair_account = Self::get_pair_id(assets);
-
-		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
-
-		ensure!(asset_out_reserve > amount, Error::<T>::InsufficientPoolAssetBalance);
-
-		ensure!(
-			amount
-				<= asset_out_reserve
-					.checked_div(T::MaxOutRatio::get())
-					.ok_or(Error::<T>::Overflow)?,
-			Error::<T>::MaxOutRatioExceeded
-		);
-
-		Ok(())
-	}
-
-	fn do_execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> Result<(), DispatchError> {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
 		let total_liquidity = Self::total_liquidity(&pair_account);
@@ -1048,31 +991,31 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	fn check_if_pool_exists(assets: AssetPair) -> Result<(), DispatchError> {
-		ensure!(Self::exists(assets), Error::<T>::TokenPoolNotFound);
-
-		Ok(())
+	fn get_min_trading_limit() -> Balance {
+		T::MinTradingLimit::get()
 	}
 
-	fn calculate_in_given_out(
-		amount_out: Balance,
-		asset_out_reserve: Balance,
-		asset_in_reserve: Balance,
-	) -> Result<Balance, DispatchError> {
-		let amount_in = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out)
-			.map_err(|_| Error::<T>::BuyAssetAmountInvalid)?;
-
-		Ok(amount_in)
+	fn get_min_pool_liquidity() -> Balance {
+		T::MinPoolLiquidity::get()
 	}
 
-	fn calculate_out_given_in(
-		amount_in: Balance,
-		asset_in_reserve: Balance,
-		asset_out_reserve: Balance,
-	) -> Result<Balance, DispatchError> {
-		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in)
-			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
+	fn get_max_in_ratio() -> u128 {
+		T::MaxInRatio::get()
+	}
 
-		Ok(amount_out)
+	fn get_max_out_ratio() -> u128 {
+		T::MaxOutRatio::get()
+	}
+
+	fn get_fee(_pool_account_id: &T::AccountId) -> (u32, u32) {
+		T::GetExchangeFee::get()
+	}
+}
+
+pub struct AllowAllPools();
+
+impl CanCreatePool<AssetId> for AllowAllPools {
+	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
+		true
 	}
 }

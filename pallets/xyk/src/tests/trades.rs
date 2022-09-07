@@ -587,12 +587,12 @@ fn discount_sell_with_no_native_pool_should_not_work() {
 			Origin::signed(ALICE),
 			ACA,
 			DOT,
-			200_000_000_000,
-			Price::from(3000)
+			1000,
+			Price::from(3200)
 		));
 
 		assert_noop!(
-			XYK::sell(Origin::signed(ALICE), ACA, DOT, 456_444_678, 1000000000000, true,),
+			XYK::sell(Origin::signed(ALICE), ACA, DOT, 456_444_678, 1_000_000, true),
 			Error::<Test>::CannotApplyDiscount
 		);
 	});
