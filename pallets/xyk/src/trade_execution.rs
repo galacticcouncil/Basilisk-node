@@ -1,6 +1,6 @@
 use crate::{Config, Error, Pallet};
 use frame_support::ensure;
-use hydradx_traits::router::{AmountWithFee, ExecutorError, PoolType, TradeExecution};
+use hydradx_traits::router::{ExecutorError, PoolType, TradeExecution};
 use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
 use primitives::asset::AssetPair;
@@ -10,15 +10,14 @@ use sp_runtime::DispatchError;
 use frame_support::traits::Get;
 
 impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
-	type TradeCalculationResult = AmountWithFee<Balance>;
 	type Error = DispatchError;
 
 	fn calculate_sell(
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_in: Self::TradeCalculationResult,
-	) -> Result<Self::TradeCalculationResult, ExecutorError<Self::Error>> {
+		amount_in: Balance,
+	) -> Result<Balance, ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
@@ -35,7 +34,7 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 
 		let amount_out =
-			hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in.amount)
+			hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in)
 				.map_err(|_| ExecutorError::Error(Error::<T>::SellAssetAmountInvalid.into()))?;
 
 		let transfer_fee = Self::calculate_fee(amount_out).map_err(ExecutorError::Error)?;
@@ -46,15 +45,15 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 
 		//ensure!(asset_out_reserve > amount_out, Error::<T>::InsufficientAssetBalance);
 
-		Ok(AmountWithFee::new(amount_out_without_fee, transfer_fee))
+		Ok(amount_out_without_fee)
 	}
 
 	fn calculate_buy(
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_out: Self::TradeCalculationResult,
-	) -> Result<Self::TradeCalculationResult, ExecutorError<Self::Error>> {
+		amount_out: Balance,
+	) -> Result<Balance, ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
@@ -72,17 +71,17 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
 
 		ensure!(
-			asset_out_reserve > amount_out.amount,
+			asset_out_reserve > amount_out,
 			ExecutorError::Error(Error::<T>::InsufficientPoolAssetBalance.into())
 		);
 
 		ensure!(
-			amount_out.amount >= T::MinTradingLimit::get(),
+			amount_out >= T::MinTradingLimit::get(),
 			ExecutorError::Error(Error::<T>::InsufficientTradingAmount.into())
 		);
 
 		let amount_in =
-			hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out.amount)
+			hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out)
 				.map_err(|_| ExecutorError::Error(Error::<T>::BuyAssetAmountInvalid.into()))?;
 
 		let transfer_fee = Self::calculate_fee(amount_in).map_err(ExecutorError::Error)?;
@@ -91,7 +90,7 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 			.checked_add(transfer_fee)
 			.ok_or(ExecutorError::Error(Error::<T>::BuyAssetAmountInvalid.into()))?;
 
-		Ok(AmountWithFee::new(amount_in_with_fee, transfer_fee))
+		Ok(amount_in_with_fee)
 	}
 
 	fn execute_sell(
@@ -99,7 +98,7 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 		who: &T::AccountId,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_in: Self::TradeCalculationResult,
+		amount_in: Balance,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
@@ -108,7 +107,7 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 		<Self as AMM<T::AccountId, AssetId, AssetPair, Balance>>::sell(
 			who,
 			AssetPair { asset_in, asset_out },
-			amount_in.amount,
+			amount_in,
 			Balance::zero(),
 			false,
 		)
@@ -120,7 +119,7 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 		who: &T::AccountId,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_out: Self::TradeCalculationResult,
+		amount_out: Balance,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
@@ -129,7 +128,7 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 		<Self as AMM<T::AccountId, AssetId, AssetPair, Balance>>::buy(
 			who,
 			AssetPair { asset_in, asset_out },
-			amount_out.amount,
+			amount_out,
 			Balance::MAX,
 			false,
 		)

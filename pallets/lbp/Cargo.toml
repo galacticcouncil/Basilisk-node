@@ -22,7 +22,7 @@ serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
 # HydraDX dependencies
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="1cd815cbce846a42d351db3778ff9c07149a6ad2", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "0962886b4ea124f3017c85c2547fb00d24e8f1d9", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "fdedca7d6ab0f579c02c80f7c0d289d12953452f", default-features = false }
 
 ## Local dependencies
 primitives = { default-features = false, path = "../../primitives" }
