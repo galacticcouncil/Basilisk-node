@@ -14,7 +14,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 use crate::{AccountId, AssetId, Balance, Currencies, Runtime};
 use primitives::Price;
 
@@ -89,7 +88,7 @@ pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<T
 
 	//Create pool and trade for the last trade
 	create_pool(
-		pool_maker.clone(),
+		pool_maker,
 		asset_in,
 		main_asset_out,
 		1_000 * UNITS,
@@ -109,7 +108,7 @@ runtime_benchmarks! {
 	{ Runtime, pallet_route_executor}
 
 	execute_sell {
-		let n in 1..MAX_NUMBER_OF_TRADES + 1;
+		let n in 1..MAX_NUMBER_OF_TRADES;
 		let assets_and_trades = generate_trades(n).unwrap();
 
 		let caller: AccountId = create_account("caller");
@@ -134,7 +133,7 @@ runtime_benchmarks! {
 	}
 
 	execute_buy {
-		let n in 1..MAX_NUMBER_OF_TRADES + 1;
+		let n in 1..MAX_NUMBER_OF_TRADES;
 		let assets_and_trades = generate_trades(n).unwrap();
 
 		let caller: AccountId = create_account("caller");
@@ -142,8 +141,7 @@ runtime_benchmarks! {
 		let asset_in = assets_and_trades.0;
 		let asset_out = assets_and_trades.1;
 
-
-		let amount_to_buy = 1 * UNITS;
+		let amount_to_buy = UNITS;
 		let caller_asset_in_balance = 2000 * UNITS;
 		let caller_asset_out_balance = 2000 * UNITS;
 
