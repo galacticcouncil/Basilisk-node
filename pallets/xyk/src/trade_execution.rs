@@ -9,7 +9,7 @@ use sp_runtime::traits::Zero;
 use sp_runtime::DispatchError;
 use frame_support::traits::Get;
 
-impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
+impl<T: Config> TradeExecution<T::Origin,T::AccountId, AssetId, Balance> for Pallet<T> {
 	type Error = DispatchError;
 
 	fn calculate_sell(
@@ -95,7 +95,7 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 
 	fn execute_sell(
 		pool_type: PoolType<AssetId>,
-		who: &T::AccountId,
+		who: &T::Origin,
 		asset_in: AssetId,
 		asset_out: AssetId,
 		amount_in: Balance,
@@ -104,9 +104,10 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		<Self as AMM<T::AccountId, AssetId, AssetPair, Balance>>::sell(
-			who,
-			AssetPair { asset_in, asset_out },
+		Self::sell(
+			who.clone(),
+			asset_in,
+			asset_out,
 			amount_in,
 			Balance::zero(),
 			false,
@@ -116,7 +117,7 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 
 	fn execute_buy(
 		pool_type: PoolType<AssetId>,
-		who: &T::AccountId,
+		who: &T::Origin,
 		asset_in: AssetId,
 		asset_out: AssetId,
 		amount_out: Balance,
@@ -125,13 +126,22 @@ impl<T: Config> TradeExecution<T::AccountId, AssetId, Balance> for Pallet<T> {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		<Self as AMM<T::AccountId, AssetId, AssetPair, Balance>>::buy(
+		Self::buy(
+			who.clone(),
+			asset_out,
+			asset_in,
+			amount_out,
+			Balance::MAX,
+			false,
+		).map_err(|v| ExecutorError::Error(v))
+
+		/*<Self as AMM<T::AccountId, AssetId, AssetPair, Balance>>::buy(
 			who,
 			AssetPair { asset_in, asset_out },
 			amount_out,
 			Balance::MAX,
 			false,
 		)
-		.map_err(|v| ExecutorError::Error(v))
+		.map_err(|v| ExecutorError::Error(v))*/
 	}
 }
