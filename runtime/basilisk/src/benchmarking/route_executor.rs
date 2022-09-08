@@ -109,52 +109,39 @@ runtime_benchmarks! {
 
 	execute_sell {
 		let n in 1..MAX_NUMBER_OF_TRADES;
-		let assets_and_trades = generate_trades(n).unwrap();
+		let (asset_in, asset_out, trades) = generate_trades(n).unwrap();
 
 		let caller: AccountId = create_account("caller");
-
-		let asset_in = assets_and_trades.0;
-		let asset_out = assets_and_trades.1;
 
 		let amount_to_sell = 10 * UNITS;
 		let caller_asset_in_balance = 2000 * UNITS;
 		let caller_asset_out_balance = 2000 * UNITS;
 
 		update_balance(asset_in, &caller, caller_asset_in_balance);
-		update_balance(asset_out, &caller, caller_asset_out_balance);
-
-		let routes = assets_and_trades.2;
 	}: {
-		RouteExecutor::<Runtime>::execute_sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_sell, 0u128, routes)?
+		RouteExecutor::<Runtime>::execute_sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_sell, 0u128, trades)?
 	}
 	verify{
 		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller), caller_asset_in_balance -  amount_to_sell);
-		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller) > (caller_asset_out_balance));
+		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller) > 0);
 	}
 
 	execute_buy {
 		let n in 1..MAX_NUMBER_OF_TRADES;
-		let assets_and_trades = generate_trades(n).unwrap();
+		let (asset_in, asset_out, trades) = generate_trades(n).unwrap();
 
 		let caller: AccountId = create_account("caller");
 
-		let asset_in = assets_and_trades.0;
-		let asset_out = assets_and_trades.1;
-
 		let amount_to_buy = UNITS;
 		let caller_asset_in_balance = 2000 * UNITS;
-		let caller_asset_out_balance = 2000 * UNITS;
 
 		update_balance(asset_in, &caller, caller_asset_in_balance);
-		update_balance(asset_out, &caller, caller_asset_out_balance);
-
-		let routes = assets_and_trades.2;
 	}: {
-		RouteExecutor::<Runtime>::execute_buy(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_buy, 10000u128 * UNITS, routes)?
+		RouteExecutor::<Runtime>::execute_buy(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_buy, 10000u128 * UNITS, trades)?
 	}
 	verify{
 		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller) < caller_asset_in_balance);
-		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller), caller_asset_out_balance + amount_to_buy);
+		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller), amount_to_buy);
 	}
 
 }
