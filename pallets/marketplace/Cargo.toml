@@ -23,7 +23,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "5afcd23ab7a4999fcb66cd30d6707acb0a3c54eb", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "0f2c28d9c3965067d94069760fdac6e028694cdb", default-features = false }
 
 # local dependency
 primitives = { default-features = false, path = "../../primitives" }

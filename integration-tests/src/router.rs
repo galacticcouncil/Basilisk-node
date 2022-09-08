@@ -536,13 +536,14 @@ fn execute_buy_should_fail_when_first_trade_is_successful_but_second_trade_has_n
 fn execute_buy_should_fail_when_balance_is_not_sufficient() {
 	Basilisk::execute_with(|| {
 		//Arrange
-		create_pool(BSX, AUSD);
+		create_pool(KSM, AUSD);
 
-		let amount_to_buy = BOB_INITIAL_BSX_BALANCE + 1;
+		assert_trader_non_native_balance(0, KSM);
+		let amount_to_buy = 10 * UNITS;
 
 		let trades = vec![Trade {
 			pool: PoolType::XYK,
-			asset_in: BSX,
+			asset_in: KSM,
 			asset_out: AUSD,
 		}];
 
@@ -550,13 +551,13 @@ fn execute_buy_should_fail_when_balance_is_not_sufficient() {
 		assert_noop!(
 			Router::execute_buy(
 				Origin::signed(TRADER.into()),
-				BSX,
+				KSM,
 				AUSD,
-				amount_to_buy * UNITS,
-				0,
+				amount_to_buy,
+				150 * UNITS,
 				trades
 			),
-			pallet_route_executor::Error::<basilisk_runtime::Runtime>::InsufficientBalance
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientAssetBalance
 		);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);

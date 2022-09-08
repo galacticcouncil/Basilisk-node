@@ -19,7 +19,7 @@ codec = { default-features = false, features = ["derive"], package = "parity-sca
 scale-info = { version = "1.0", default-features = false, features = ["derive"] }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "5afcd23ab7a4999fcb66cd30d6707acb0a3c54eb", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "0f2c28d9c3965067d94069760fdac6e028694cdb", default-features = false }
 
 # ORML dependencies
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }
