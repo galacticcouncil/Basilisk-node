@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.7.2"
+version = "0.7.4"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -84,6 +84,7 @@ pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 pallet-utility = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
+pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
 sp-consensus-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17", default-features = false }
@@ -112,6 +113,7 @@ pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse",
 pretty_assertions = "1.2.1"
 xcm-emulator = { git = "https://github.com/zqhxuyuan/xcm-simulator", branch = "v0.9.16" }
 sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.17" }
+test-case = "2.2.1"
 
 [features]
 default = ["std"]

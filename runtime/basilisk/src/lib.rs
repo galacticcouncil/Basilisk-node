@@ -108,7 +108,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 71,
+	spec_version: 73,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -150,10 +150,7 @@ impl Contains<Call> for BaseFilter {
 }
 
 use common_runtime::adapter::OrmlTokensAdapter;
-use primitives::{
-	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId,
-};
+use primitives::{ClassId, InstanceId};
 use smallvec::smallvec;
 use sp_runtime::traits::BlockNumberProvider;
 
@@ -545,8 +542,8 @@ impl pallet_nft::Config for Runtime {
 	type NftClassId = ClassId;
 	type NftInstanceId = InstanceId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
-	type ClassType = ClassType;
-	type Permissions = NftPermissions;
+	type ClassType = pallet_nft::ClassType;
+	type Permissions = pallet_nft::NftPermissions;
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
@@ -1233,6 +1230,8 @@ impl_runtime_apis! {
 				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef70a98fdbe9ce6c55837576c60c7af3850").to_vec().into(),
 				// System Events
 				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7").to_vec().into(),
+				// Treasury Account
+				frame_system::Account::<Runtime>::hashed_key_for(Treasury::account_id()).into()
 			];
 
 			let mut batches = Vec::<BenchmarkBatch>::new();

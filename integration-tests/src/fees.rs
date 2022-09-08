@@ -3,7 +3,7 @@
 use crate::kusama_test_net::*;
 use basilisk_runtime::TransactionPayment;
 use frame_support::weights::GetDispatchInfo;
-use primitives::nft::ClassType;
+use pallet_nft::ClassType;
 use sp_runtime::codec::Encode;
 use xcm_emulator::TestExt;
 
