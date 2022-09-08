@@ -51,7 +51,6 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 
 		//Assert
 		let amount_out = 453_181_818_1819u128;
-		let last_trade_fee = 13636363635u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_out, AUSD);
@@ -112,7 +111,6 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 
 		//Assert
 		let amount_out = 105_455_305_9484u128;
-		let last_trade_fee = 3173178714u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 		assert_trader_non_native_balance(amount_out, KSM);
@@ -330,7 +328,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in,
+			amount_in,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -385,7 +383,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in,
+			amount_in,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -439,7 +437,6 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 
 		//Assert
 		let amount_in = 939_285_894_6762;
-		let last_trade_fee = 28094293956u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
@@ -449,7 +446,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in,
+			amount_in,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
