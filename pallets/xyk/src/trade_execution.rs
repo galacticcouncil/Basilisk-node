@@ -134,14 +134,5 @@ impl<T: Config> TradeExecution<T::Origin,T::AccountId, AssetId, Balance> for Pal
 			Balance::MAX,
 			false,
 		).map_err(|v| ExecutorError::Error(v))
-
-		/*<Self as AMM<T::AccountId, AssetId, AssetPair, Balance>>::buy(
-			who,
-			AssetPair { asset_in, asset_out },
-			amount_out,
-			Balance::MAX,
-			false,
-		)
-		.map_err(|v| ExecutorError::Error(v))*/
 	}
 }
