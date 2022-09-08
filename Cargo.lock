@@ -6526,7 +6526,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "5.0.2"
+version = "5.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8766,7 +8766,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.7.4"
+version = "0.7.5"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
