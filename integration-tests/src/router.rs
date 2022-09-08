@@ -27,23 +27,24 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 
 	Basilisk::execute_with(|| {
 		//Arrange
-		create_pool(BSX, AUSD);
+		create_pool(BSX, KSM);
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+		assert_trader_non_native_balance(0, KSM);
 
 		let amount_to_sell = 10 * UNITS;
 		let limit = 0;
 		let trades = vec![Trade {
 			pool: PoolType::XYK,
 			asset_in: BSX,
-			asset_out: AUSD,
+			asset_out: KSM,
 		}];
 
 		//Act
 		assert_ok!(Router::execute_sell(
 			Origin::signed(TRADER.into()),
 			BSX,
-			AUSD,
+			KSM,
 			amount_to_sell,
 			limit,
 			trades
@@ -53,13 +54,13 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 		let amount_out = 453_181_818_1819u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_out, AUSD);
+		assert_trader_non_native_balance(amount_out, KSM);
 
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
-			asset_out: AUSD,
+			asset_out: KSM,
 			amount_in: amount_to_sell,
-			amount_out: amount_out,
+			amount_out,
 		}
 		.into()]);
 	});
@@ -289,31 +290,30 @@ fn execute_sell_should_fail_when_buying_more_than_max_in_ratio_out() {
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
 	});
 }
-///to this
-
 #[test]
 fn execute_buy_should_work_when_route_contains_single_trade() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
 		//Arrange
-		create_pool(BSX, AUSD);
+		create_pool(BSX, KSM);
 
-		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
+		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+		assert_trader_non_native_balance(0, KSM);
 
 		let amount_to_buy = 10 * UNITS;
 		let limit = 30 * UNITS;
 		let trades = vec![Trade {
 			pool: PoolType::XYK,
 			asset_in: BSX,
-			asset_out: AUSD,
+			asset_out: KSM,
 		}];
 
 		//Act
 		assert_ok!(Router::execute_buy(
 			Origin::signed(TRADER.into()),
 			BSX,
-			AUSD,
+			KSM,
 			amount_to_buy,
 			limit,
 			trades
@@ -323,11 +323,11 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		let amount_in = 25075000000001;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
-		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
+		assert_trader_non_native_balance(amount_to_buy, KSM);
 
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
-			asset_out: AUSD,
+			asset_out: KSM,
 			amount_in,
 			amount_out: amount_to_buy,
 		}
