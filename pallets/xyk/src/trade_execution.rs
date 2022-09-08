@@ -1,5 +1,6 @@
 use crate::{Config, Error, Pallet};
 use frame_support::ensure;
+use frame_support::traits::Get;
 use hydradx_traits::router::{ExecutorError, PoolType, TradeExecution};
 use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
@@ -7,9 +8,8 @@ use primitives::asset::AssetPair;
 use primitives::{AssetId, Balance};
 use sp_runtime::traits::Zero;
 use sp_runtime::DispatchError;
-use frame_support::traits::Get;
 
-impl<T: Config> TradeExecution<T::Origin,T::AccountId, AssetId, Balance> for Pallet<T> {
+impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {
 	type Error = DispatchError;
 
 	fn calculate_sell(
@@ -33,9 +33,8 @@ impl<T: Config> TradeExecution<T::Origin,T::AccountId, AssetId, Balance> for Pal
 		let asset_in_reserve = T::Currency::free_balance(assets.asset_in, &pair_account);
 		let asset_out_reserve = T::Currency::free_balance(assets.asset_out, &pair_account);
 
-		let amount_out =
-			hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in)
-				.map_err(|_| ExecutorError::Error(Error::<T>::SellAssetAmountInvalid.into()))?;
+		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in)
+			.map_err(|_| ExecutorError::Error(Error::<T>::SellAssetAmountInvalid.into()))?;
 
 		let transfer_fee = Self::calculate_fee(amount_out).map_err(ExecutorError::Error)?;
 
@@ -80,9 +79,8 @@ impl<T: Config> TradeExecution<T::Origin,T::AccountId, AssetId, Balance> for Pal
 			ExecutorError::Error(Error::<T>::InsufficientTradingAmount.into())
 		);
 
-		let amount_in =
-			hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out)
-				.map_err(|_| ExecutorError::Error(Error::<T>::BuyAssetAmountInvalid.into()))?;
+		let amount_in = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount_out)
+			.map_err(|_| ExecutorError::Error(Error::<T>::BuyAssetAmountInvalid.into()))?;
 
 		let transfer_fee = Self::calculate_fee(amount_in).map_err(ExecutorError::Error)?;
 
@@ -104,15 +102,8 @@ impl<T: Config> TradeExecution<T::Origin,T::AccountId, AssetId, Balance> for Pal
 			return Err(ExecutorError::NotSupported);
 		}
 
-		Self::sell(
-			who.clone(),
-			asset_in,
-			asset_out,
-			amount_in,
-			Balance::zero(),
-			false,
-		)
-		.map_err(|v| ExecutorError::Error(v))
+		Self::sell(who.clone(), asset_in, asset_out, amount_in, Balance::zero(), false)
+			.map_err(|v| ExecutorError::Error(v))
 	}
 
 	fn execute_buy(
@@ -126,13 +117,7 @@ impl<T: Config> TradeExecution<T::Origin,T::AccountId, AssetId, Balance> for Pal
 			return Err(ExecutorError::NotSupported);
 		}
 
-		Self::buy(
-			who.clone(),
-			asset_out,
-			asset_in,
-			amount_out,
-			Balance::MAX,
-			false,
-		).map_err(|v| ExecutorError::Error(v))
+		Self::buy(who.clone(), asset_out, asset_in, amount_out, Balance::MAX, false)
+			.map_err(|v| ExecutorError::Error(v))
 	}
 }

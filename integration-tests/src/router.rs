@@ -60,7 +60,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 			asset_in: BSX,
 			asset_out: AUSD,
 			amount_in: amount_to_sell,
-			amount_out: amount_out ,
+			amount_out: amount_out,
 		}
 		.into()]);
 	});
@@ -123,7 +123,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 			asset_in: BSX,
 			asset_out: KSM,
 			amount_in: amount_to_sell,
-			amount_out: amount_out ,
+			amount_out: amount_out,
 		}
 		.into()]);
 	});
@@ -216,13 +216,11 @@ fn execute_sell_should_fail_when_balance_is_not_sufficient() {
 
 		let amount_to_sell = 9999 * UNITS;
 
-		let trades = vec![
-			Trade {
-				pool: PoolType::XYK,
-				asset_in: BSX,
-				asset_out: AUSD,
-			}
-		];
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
 
 		//Act and Assert
 		assert_noop!(
@@ -251,24 +249,15 @@ fn execute_sell_should_fail_when_trading_limit_is_below_minimum() {
 		let amount_to_sell = primitives::constants::chain::MIN_TRADING_LIMIT - 1;
 		let limit = 0 * UNITS;
 
-		let trades = vec![
-			Trade {
-				pool: PoolType::XYK,
-				asset_in: BSX,
-				asset_out: AUSD,
-			}
-		];
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_sell(
-				Origin::signed(TRADER.into()),
-				BSX,
-				AUSD,
-				amount_to_sell,
-				limit,
-				trades
-			),
+			Router::execute_sell(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_sell, limit, trades),
 			pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientTradingAmount
 		);
 
@@ -286,24 +275,15 @@ fn execute_sell_should_fail_when_buying_more_than_max_in_ratio_out() {
 		let amount_to_sell = 1000 * UNITS;
 		let limit = 0 * UNITS;
 
-		let trades = vec![
-			Trade {
-				pool: PoolType::XYK,
-				asset_in: BSX,
-				asset_out: AUSD,
-			}
-		];
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_sell(
-				Origin::signed(TRADER.into()),
-				BSX,
-				AUSD,
-				amount_to_sell,
-				limit,
-				trades
-			),
+			Router::execute_sell(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_sell, limit, trades),
 			pallet_xyk::Error::<basilisk_runtime::Runtime>::MaxInRatioExceeded
 		);
 
@@ -312,7 +292,6 @@ fn execute_sell_should_fail_when_buying_more_than_max_in_ratio_out() {
 	});
 }
 ///to this
-
 
 #[test]
 fn execute_buy_should_work_when_route_contains_single_trade() {
@@ -351,7 +330,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in ,
+			amount_in: amount_in,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -406,7 +385,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in ,
+			amount_in: amount_in,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -470,7 +449,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 			asset_in: BSX,
 			asset_out: AUSD,
-			amount_in: amount_in ,
+			amount_in: amount_in,
 			amount_out: amount_to_buy,
 		}
 		.into()]);
@@ -564,13 +543,11 @@ fn execute_buy_should_fail_when_balance_is_not_sufficient() {
 
 		let amount_to_buy = BOB_INITIAL_BSX_BALANCE + 1;
 
-		let trades = vec![
-			Trade {
-				pool: PoolType::XYK,
-				asset_in: BSX,
-				asset_out: AUSD,
-			}
-		];
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
 
 		//Act and Assert
 		assert_noop!(
@@ -599,24 +576,15 @@ fn execute_buy_should_fail_when_trading_limit_is_below_minimum() {
 		let amount_to_buy = primitives::constants::chain::MIN_TRADING_LIMIT - 1;
 		let limit = 100 * UNITS;
 
-		let trades = vec![
-			Trade {
-				pool: PoolType::XYK,
-				asset_in: BSX,
-				asset_out: AUSD,
-			}
-		];
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_buy(
-				Origin::signed(TRADER.into()),
-				BSX,
-				AUSD,
-				amount_to_buy,
-				limit,
-				trades
-			),
+			Router::execute_buy(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_buy, limit, trades),
 			pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientTradingAmount
 		);
 
@@ -634,24 +602,15 @@ fn execute_buy_should_fail_when_buying_more_than_max_ratio_out() {
 		let amount_to_buy = 20 * UNITS;
 		let limit = 100 * UNITS;
 
-		let trades = vec![
-			Trade {
-				pool: PoolType::XYK,
-				asset_in: BSX,
-				asset_out: AUSD,
-			}
-		];
+		let trades = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: AUSD,
+		}];
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_buy(
-				Origin::signed(TRADER.into()),
-				BSX,
-				AUSD,
-				amount_to_buy,
-				limit,
-				trades
-			),
+			Router::execute_buy(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_buy, limit, trades),
 			pallet_xyk::Error::<basilisk_runtime::Runtime>::MaxOutRatioExceeded
 		);
 
