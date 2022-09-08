@@ -885,14 +885,14 @@ impl pallet_transaction_pause::Config for Runtime {
 	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
 }
 parameter_types! {
-	pub const MaxNumberOfTradesLimit: u8 = 5;
+	pub const MaxNumberOfTrades: u8 = 5;
 }
 
 impl pallet_route_executor::Config for Runtime {
 	type Event = Event;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type MaxNumberOfTradesLimitReached = MaxNumberOfTradesLimit;
+	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = inspect::MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
 	type AMM = XYK;
 	type WeightInfo = common_runtime::weights::route_executor::BasiliskWeight<Runtime>;
