@@ -36,8 +36,10 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount_in)
 			.map_err(|_| ExecutorError::Error(Error::<T>::SellAssetAmountInvalid.into()))?;
 
-		ensure!(asset_out_reserve > amount_out,
-			ExecutorError::Error(Error::<T>::InsufficientPoolAssetBalance.into()));
+		ensure!(
+			asset_out_reserve > amount_out,
+			ExecutorError::Error(Error::<T>::InsufficientPoolAssetBalance.into())
+		);
 
 		let transfer_fee = Self::calculate_fee(amount_out).map_err(ExecutorError::Error)?;
 
