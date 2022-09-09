@@ -16,74 +16,64 @@
 // limitations under the License.
 
 use super::*;
-use test_ext::*;
-use warehouse_liquidity_mining::GlobalFarmData;
 
 #[test]
 fn update_global_farm_should_work() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		//Arange
-		let new_price_adjustment = FixedU128::from_float(234.1234_f64);
-		let global_farm_0 = WarehouseLM::global_farm(GC_FARM).unwrap();
-
-		set_block_number(100_000);
-
-		//Act
-		assert_ok!(LiquidityMining::update_global_farm(
-			Origin::signed(GC),
-			GC_FARM,
-			new_price_adjustment
-		));
-
-		//Assert
-		assert_last_event!(crate::Event::GlobalFarmUpdated {
-			id: GC_FARM,
-			price_adjustment: new_price_adjustment,
-		}
-		.into());
-
-		pretty_assertions::assert_eq!(
-			WarehouseLM::global_farm(GC_FARM).unwrap(),
-			GlobalFarmData {
-				updated_at: 1_000,
-				accumulated_rpz: FixedU128::from_inner(491_000_000_000_000_000_000_u128),
-				accumulated_rewards: 343_195_125_u128,
-				price_adjustment: new_price_adjustment,
-				..global_farm_0
-			}
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
 		)
-	});
+		.build()
+		.execute_with(|| {
+			let new_price_adjustment = FixedU128::from_float(234.1234_f64);
+
+			set_block_number(100_000);
+
+			//Act
+			assert_ok!(LiquidityMining::update_global_farm(
+				Origin::signed(BOB),
+				1,
+				new_price_adjustment
+			));
+
+			//Assert
+			assert_last_event!(crate::Event::GlobalFarmUpdated {
+				id: 1,
+				price_adjustment: new_price_adjustment,
+			}
+			.into());
+		});
 }
 
 #[test]
-fn udpate_global_farm_should_fail_with_propagated_error_when_price_adjustment_is_zero() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		//Arange
-		set_block_number(100_000);
-
-		let new_price_adjustment = FixedU128::zero();
-
-		//Act & assert
-		assert_noop!(
-			LiquidityMining::update_global_farm(Origin::signed(GC), GC_FARM, new_price_adjustment),
-			warehouse_liquidity_mining::Error::<Test, Instance1>::InvalidPriceAdjustment
-		);
-	});
-}
-
-#[test]
-fn udpate_global_farm_should_fail_with_propagated_error_when_origin_is_not_farm_owner() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		//Arange
-		set_block_number(100_000);
-
-		let new_price_adjustment = FixedU128::from_float(0.5_f64);
-		let not_owner = ALICE;
-
-		//Act & assert
-		assert_noop!(
-			LiquidityMining::update_global_farm(Origin::signed(not_owner), GC_FARM, new_price_adjustment),
-			warehouse_liquidity_mining::Error::<Test, Instance1>::Forbidden
-		);
-	});
+fn update_global_farm_should_fail_when_origin_is_not_signed() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::update_global_farm(mock::Origin::none(), BOB_FARM, FixedU128::from_float(0.268_756_6)),
+				BadOrigin
+			);
+		});
 }

@@ -30,7 +30,7 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 	let version = StorageVersion::get::<Pallet<T>>();
 
 	if version == 0 {
-		let pallet_account = <Pallet<T>>::account_id_for_all_lp_shares();
+		let pallet_account = <Pallet<T>>::account_id();
 
 		T::NFTHandler::create_typed_class(
 			pallet_account,
@@ -50,14 +50,14 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::mock::Test;
+	use crate::tests::{mock, mock::Test};
 	use std::borrow::Borrow;
 	use std::cell::RefCell;
 
 	#[test]
 	fn init_nft_class_migration_should_work() {
 		sp_io::TestExternalities::default().execute_with(|| {
-			let pallet_account = <Pallet<Test>>::account_id_for_all_lp_shares();
+			let pallet_account = <Pallet<Test>>::account_id();
 
 			let weight = init_nft_class::<Test>();
 
@@ -71,11 +71,8 @@ mod tests {
 	}
 
 	fn assert_that_nft_class_is_created(pallet_account: u128) {
-		mock::NFT_CLASS.borrow().with(|v| {
-			assert_eq!(
-				*v,
-				RefCell::new((mock::LIQ_MINING_NFT_CLASS, pallet_account, pallet_account))
-			)
-		});
+		mock::NFT_CLASS
+			.borrow()
+			.with(|v| assert_eq!(*v, RefCell::new((mock::LM_NFT_CLASS, pallet_account, pallet_account))));
 	}
 }

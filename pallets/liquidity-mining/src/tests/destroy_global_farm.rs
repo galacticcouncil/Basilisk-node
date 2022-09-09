@@ -16,44 +16,56 @@
 // limitations under the License.
 
 use super::*;
-use test_ext::*;
 
 #[test]
 fn destroy_global_farm_should_work() {
-	predefined_test_ext().execute_with(|| {
-		assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(BOB), BOB_FARM));
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.build()
+		.execute_with(|| {
+			assert_ok!(LiquidityMining::destroy_global_farm(Origin::signed(BOB), 1));
 
-		assert!(WarehouseLM::global_farm(BOB_FARM).is_none());
-		assert_last_event!(crate::Event::GlobalFarmDestroyed {
-			global_farm_id: BOB_FARM,
-			who: BOB,
-			reward_currency: KSM,
-			undistributed_rewards: BOB_GLOBAL_FARM_TOTAL_REWARDS,
-		}
-		.into());
-	});
+			assert_last_event!(crate::Event::GlobalFarmDestroyed {
+				global_farm_id: 1,
+				who: BOB,
+				reward_currency: BSX,
+				undistributed_rewards: 500_000 * ONE,
+			}
+			.into());
+		});
 }
 
 #[test]
 fn destroy_global_farm_should_fail_when_origin_is_not_signed() {
-	predefined_test_ext().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::destroy_global_farm(mock::Origin::none(), BOB_FARM),
-			BadOrigin
-		);
-
-		assert_eq!(WarehouseLM::global_farm(BOB_FARM).unwrap(), PREDEFINED_GLOBAL_FARMS[1]);
-	});
-}
-
-#[test]
-fn destroy_global_farm_should_fail_with_propagated_error_when_farm_does_not_exist() {
-	const NON_EXISTING_FARM: u32 = 999_999_999;
-
-	predefined_test_ext().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::destroy_global_farm(Origin::signed(BOB), NON_EXISTING_FARM),
-			warehouse_liquidity_mining::Error::<Test, Instance1>::GlobalFarmNotFound
-		);
-	});
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::destroy_global_farm(mock::Origin::none(), BOB_FARM),
+				BadOrigin
+			);
+		});
 }

@@ -16,363 +16,340 @@
 // limitations under the License.
 
 use super::*;
-use pretty_assertions::assert_eq;
-use sp_runtime::traits::One;
-use test_ext::*;
-use warehouse_liquidity_mining::YieldFarmEntry;
-use warehouse_liquidity_mining::{GlobalFarmData, YieldFarmId};
 
 #[test]
 fn withdraw_shares_should_work() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		//Arrange
-		const REWARD_CURRENCY: u32 = BSX;
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_yield_farm(BOB, 2, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 3, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			//Arrange
+			set_block_number(1_000);
 
-		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
-		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn2_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN2_YIELD_FARM_ID).unwrap();
-		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
+			//redeposit lp shares
+			assert_ok!(LiquidityMining::redeposit_lp_shares(
+				Origin::signed(CHARLIE),
+				2,
+				4,
+				BSX_KSM_ASSET_PAIR,
+				1
+			));
 
-		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
-		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
-		let bsx_tkn2_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account);
-		let global_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &global_farm_account);
-		let bsx_tkn2_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account);
-		let bsx_tkn1_yield_farm_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account);
-		let alice_bsx_balance = Tokens::free_balance(REWARD_CURRENCY, &ALICE);
+			let charlie_lp_token_balance = Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE);
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				100 * ONE
+			);
 
-		let expected_claimed_rewards = 23_306;
-		let withdrawn_amount = 50;
+			//Act
+			assert_ok!(LiquidityMining::withdraw_shares(
+				Origin::signed(CHARLIE),
+				1,
+				3,
+				BSX_KSM_ASSET_PAIR
+			));
 
-		let deposit_valued_shares = WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0])
-			.unwrap()
-			.yield_farm_entries[0]
-			.valued_shares;
+			//Assert
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::RewardClaimed {
+						global_farm_id: 1,
+						yield_farm_id: 3,
+						who: CHARLIE,
+						claimed: 20_000_000 * ONE,
+						reward_currency: BSX,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
 
-		let yield_farm_before_withdraw =
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::SharesWithdrawn {
+						global_farm_id: 1,
+						yield_farm_id: 3,
+						who: CHARLIE,
+						lp_token: BSX_KSM_SHARE_ID,
+						amount: 100 * ONE,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
 
-		//Act
-		assert_ok!(LiquidityMining::withdraw_shares(
-			Origin::signed(ALICE),
-			PREDEFINED_DEPOSIT_IDS[0],
-			BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSET_PAIR
-		));
+			//NOTE: balance should not change because deposit is not destroyed
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE),
+				charlie_lp_token_balance
+			);
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				100 * ONE
+			);
 
-		//Assert
-		has_event(
-			crate::Event::RewardClaimed {
-				global_farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-				who: ALICE,
-				claimed: expected_claimed_rewards,
-				reward_currency: BSX,
-				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-			}
-			.into(),
-		);
-		has_event(
-			crate::Event::SharesWithdrawn {
-				global_farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-				who: ALICE,
-				lp_token: BSX_TKN1_SHARE_ID,
-				amount: withdrawn_amount,
-				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-			}
-			.into(),
-		);
-		has_event(
-			crate::Event::DepositDestroyed {
-				who: ALICE,
-				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-			}
-			.into(),
-		);
+			//Second claim with desposit destruction
+			set_block_number(2_000);
+			//Act
+			assert_ok!(LiquidityMining::withdraw_shares(
+				Origin::signed(CHARLIE),
+				1,
+				4,
+				BSX_KSM_ASSET_PAIR
+			));
 
-		assert_eq!(
-			WarehouseLM::global_farm(GC_FARM).unwrap(),
-			GlobalFarmData {
-				id: GC_FARM,
-				updated_at: 25,
-				reward_currency: BSX,
-				yield_per_period: Perquintill::from_percent(50),
-				planned_yielding_periods: 500_u64,
-				blocks_per_period: 100_u64,
-				owner: GC,
-				incentivized_asset: BSX,
-				max_reward_per_period: 60_000_000,
-				accumulated_rpz: FixedU128::from_inner(3_500_000_000_000_000_000_u128),
-				yield_farms_count: (2, 2),
-				total_shares_z: 691_490,
-				accumulated_rewards: 0,
-				paid_accumulated_rewards: 1_283_550,
-				state: FarmState::Active,
-				min_deposit: 1,
-				price_adjustment: One::one()
-			}
-		);
+			//Assert
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::RewardClaimed {
+						global_farm_id: 2,
+						yield_farm_id: 4,
+						who: CHARLIE,
+						claimed: 20_000_000 * ONE,
+						reward_currency: BSX,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
 
-		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
-		assert_eq!(
-			yield_farm.total_shares,
-			yield_farm_before_withdraw.total_shares - withdrawn_amount
-		);
-		assert_eq!(yield_farm.total_valued_shares, 45540 - deposit_valued_shares);
-		assert_eq!(yield_farm.entries_count, yield_farm_before_withdraw.entries_count - 1);
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::SharesWithdrawn {
+						global_farm_id: 2,
+						yield_farm_id: 4,
+						who: CHARLIE,
+						lp_token: BSX_KSM_SHARE_ID,
+						amount: 100 * ONE,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
 
-		//user balances checks
-		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &ALICE),
-			alice_bsx_balance + expected_claimed_rewards
-		);
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::DepositDestroyed {
+						who: CHARLIE,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
 
-		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
-			bsx_tkn1_alice_amm_shares_balance + withdrawn_amount
-		);
-
-		//Stash shares account balances checks.
-		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
-			bsx_tkn1_pallet_amm_shares_balance - withdrawn_amount
-		);
-		assert_eq!(
-			Tokens::free_balance(BSX_TKN2_SHARE_ID, &pallet_account),
-			bsx_tkn2_pallet_amm_shares_balance
-		);
-
-		//yield farm balance checks
-		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn1_yield_farm_account),
-			bsx_tkn1_yield_farm_bsx_balance - (expected_claimed_rewards + 20_444)
-		);
-		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &bsx_tkn2_yield_farm_account),
-			bsx_tkn2_yield_farm_bsx_balance
-		);
-
-		//global farm balance checks
-		assert_eq!(
-			Tokens::free_balance(REWARD_CURRENCY, &global_farm_account),
-			global_farm_bsx_balance + 20_444 //20_444 unclaimable rewards after withdrawn
-		);
-
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
-	});
+			//NOTE: deposit was destroyed and LP shares unlocked
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE),
+				charlie_lp_token_balance + 100 * ONE
+			);
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				0
+			);
+		});
 }
 
 #[test]
 fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		//Arrange
-		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_yield_farm_account = WarehouseLM::farm_account_id(BSX_TKN1_YIELD_FARM_ID).unwrap();
-		let bsx_tkn1_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
-		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
-		let global_farm_account = WarehouseLM::farm_account_id(GC_FARM).unwrap();
-		let global_farm_bsx_balance = Tokens::free_balance(BSX, &global_farm_account);
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 2, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			//Arrange
+			set_block_number(1_000);
+			assert_ok!(LiquidityMining::claim_rewards(Origin::signed(CHARLIE), 1, 2));
 
-		let claimed_rewards = 23_306;
-		assert_ok!(LiquidityMining::claim_rewards(
-			Origin::signed(ALICE),
-			PREDEFINED_DEPOSIT_IDS[0],
-			BSX_TKN1_YIELD_FARM_ID
-		));
+			pretty_assertions::assert_eq!(Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE), 100 * ONE);
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				100 * ONE
+			);
 
-		assert_last_event!(crate::Event::RewardClaimed {
-			global_farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-			who: ALICE,
-			claimed: claimed_rewards,
-			reward_currency: BSX,
-			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-		}
-		.into());
+			//Act
+			assert_ok!(LiquidityMining::withdraw_shares(
+				Origin::signed(CHARLIE),
+				1,
+				2,
+				BSX_KSM_ASSET_PAIR
+			));
 
-		assert_eq!(
-			WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0])
-				.unwrap()
-				.yield_farm_entries[0],
-			YieldFarmEntry {
-				global_farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-				valued_shares: 2_500,
-				accumulated_rpvs: Zero::zero(),
-				accumulated_claimed_rewards: claimed_rewards, //1-th claim for this deposit so accumulated claimed == claimed rewards
-				entered_at: 18,
-				updated_at: 25,
-				_phantom: PhantomData
-			}
-		);
+			//Assert
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::SharesWithdrawn {
+						global_farm_id: 1,
+						yield_farm_id: 2,
+						who: CHARLIE,
+						lp_token: BSX_KSM_SHARE_ID,
+						amount: 100 * ONE,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
 
-		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance + claimed_rewards);
-		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
-			bsx_tkn1_yield_farm_reward_balance - claimed_rewards
-		);
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::DepositDestroyed {
+						who: CHARLIE,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
 
-		//withdraw should pass without claiming additional rewards
-		let alice_bsx_balance = Tokens::free_balance(BSX, &ALICE);
-		let bsx_tkn1_yield_farm_reward_balance = Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account);
-
-		//Act
-		assert_ok!(LiquidityMining::withdraw_shares(
-			Origin::signed(ALICE),
-			PREDEFINED_DEPOSIT_IDS[0],
-			BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSET_PAIR
-		));
-
-		//Assert
-		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
-			bsx_tkn1_alice_amm_shares_balance + 50
-		);
-
-		has_event(
-			crate::Event::SharesWithdrawn {
-				global_farm_id: GC_FARM,
-				yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-				who: ALICE,
-				lp_token: BSX_TKN1_SHARE_ID,
-				amount: 50,
-				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-			}
-			.into(),
-		);
-
-		has_event(
-			crate::Event::DepositDestroyed {
-				who: ALICE,
-				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-			}
-			.into(),
-		);
-
-		//check if balances didn't change after withdraw which should not claim
-		assert_eq!(Tokens::free_balance(BSX, &ALICE), alice_bsx_balance);
-		//unclaimable rewards are transferred from liq. pool account to global pool account
-		let unclaimable_rewards = 20_444;
-		assert_eq!(
-			Tokens::free_balance(BSX, &bsx_tkn1_yield_farm_account),
-			bsx_tkn1_yield_farm_reward_balance - unclaimable_rewards
-		);
-
-		assert_eq!(
-			Tokens::free_balance(BSX, &global_farm_account),
-			global_farm_bsx_balance + unclaimable_rewards
-		);
-	});
+			//lp shares unlocked
+			pretty_assertions::assert_eq!(Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE), 200 * ONE);
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				0
+			);
+		});
 }
 
 #[test]
-fn withdraw_shares_from_removed_pool_should_work() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		//Arrange
-		set_block_number(10_000);
+fn withdraw_shares_should_not_work_when_not_owner() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 2, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			const NOT_FNT_OWNER: u128 = BOB;
 
-		assert_ok!(LiquidityMining::stop_yield_farm(
-			Origin::signed(GC),
-			GC_FARM,
-			BSX_TKN1_ASSET_PAIR
-		));
-
-		assert_ok!(LiquidityMining::destroy_yield_farm(
-			Origin::signed(GC),
-			GC_FARM,
-			BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSET_PAIR
-		));
-
-		assert!(WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID))
-			.unwrap()
-			.is_deleted());
-
-		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
-
-		let yield_farm_id_removed: YieldFarmId = BSX_TKN1_YIELD_FARM_ID;
-		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
-		let bsx_tkn1_pallet_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account);
-		let bsx_tkn1_alice_amm_shares_balance = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
-
-		//Act
-		assert_ok!(LiquidityMining::withdraw_shares(
-			Origin::signed(ALICE),
-			PREDEFINED_DEPOSIT_IDS[0],
-			yield_farm_id_removed,
-			BSX_TKN1_ASSET_PAIR
-		));
-
-		//Assert
-		let shares_amount = 50;
-
-		has_event(
-			crate::Event::SharesWithdrawn {
-				global_farm_id: GC_FARM,
-				yield_farm_id: yield_farm_id_removed,
-				who: ALICE,
-				lp_token: BSX_TKN1_SHARE_ID,
-				amount: shares_amount,
-				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-			}
-			.into(),
-		);
-
-		has_event(
-			crate::Event::DepositDestroyed {
-				who: ALICE,
-				deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-			}
-			.into(),
-		);
-
-		assert_eq!(WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]), None);
-
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
-
-		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
-			bsx_tkn1_pallet_amm_shares_balance - shares_amount
-		);
-		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
-			bsx_tkn1_alice_amm_shares_balance + shares_amount
-		);
-	});
+			assert_noop!(
+				LiquidityMining::withdraw_shares(Origin::signed(NOT_FNT_OWNER), 1, 2, BSX_KSM_ASSET_PAIR),
+				Error::<Test>::NotDepositOwner
+			);
+		});
 }
 
 #[test]
-fn withdraw_shares_not_owner_should_not_work() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		const NOT_FNT_OWNER: u128 = BOB;
+fn withdraw_shares_should_fail_when_global_farm_is_not_found() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 2, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			let non_known_farm: u32 = 99999;
 
-		assert_noop!(
-			LiquidityMining::withdraw_shares(
-				Origin::signed(NOT_FNT_OWNER),
-				PREDEFINED_DEPOSIT_IDS[0],
-				BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSET_PAIR
-			),
-			Error::<Test>::NotDepositOwner
-		);
-	});
+			assert_noop!(
+				LiquidityMining::withdraw_shares(Origin::signed(CHARLIE), 1, non_known_farm, BSX_KSM_ASSET_PAIR),
+				Error::<Test>::DepositDataNotFound
+			);
+		});
 }
 
 #[test]
-fn withdraw_shares_should_not_work_when_global_farm_is_not_found() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		let non_known_farm: u32 = 99999;
-
-		assert_noop!(
-			LiquidityMining::withdraw_shares(
-				Origin::signed(ALICE),
-				PREDEFINED_DEPOSIT_IDS[0],
-				non_known_farm,
-				BSX_TKN1_ASSET_PAIR
-			),
-			Error::<Test>::DepositDataNotFound
-		);
-	});
+fn deposit_shares_should_fail_when_origin_is_not_signed() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 2, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::withdraw_shares(Origin::none(), 1, 2, BSX_KSM_ASSET_PAIR),
+				BadOrigin
+			);
+		});
 }

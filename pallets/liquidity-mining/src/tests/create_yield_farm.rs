@@ -17,7 +17,6 @@
 
 use super::*;
 use pretty_assertions::assert_eq;
-use test_ext::*;
 
 const BSX_ACA_ASSET_PAIR: AssetPair = AssetPair {
 	asset_in: BSX,
@@ -26,90 +25,83 @@ const BSX_ACA_ASSET_PAIR: AssetPair = AssetPair {
 
 #[test]
 fn create_yield_farm_should_work_when_global_farm_exist() {
-	//Arrange
-	let yield_farm = YieldFarmData {
-		id: 12,
-		updated_at: 17,
-		total_shares: 0,
-		total_valued_shares: 0,
-		accumulated_rpvs: Zero::zero(),
-		accumulated_rpz: Zero::zero(),
-		multiplier: FixedU128::from(20_000_u128),
-		loyalty_curve: Some(LoyaltyCurve::default()),
-		state: FarmState::Active,
-		entries_count: 0,
-		_phantom: PhantomData,
-	};
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(ALICE, BSX, 1_000_000 * ONE)])
+		.with_amm_pool(BSX_ACA_AMM, BSX_ACA_SHARE_ID, BSX_ACA_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			10_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(20),
+			ONE,
+			One::one(),
+		)
+		.build()
+		.execute_with(|| {
+			let multiplier = One::one();
+			let loyalty_curve = Some(LoyaltyCurve {
+				initial_reward_percentage: FixedU128::from_float(0.558),
+				scale_coef: 20,
+			});
 
-	let global_farm = GlobalFarmData {
-		yield_farms_count: (1, 1),
-		..PREDEFINED_GLOBAL_FARMS[0].clone()
-	};
+			set_block_number(17_850);
 
-	predefined_test_ext().execute_with(|| {
-		set_block_number(17_850);
-
-		//Act
-		assert_ok!(LiquidityMining::create_yield_farm(
-			Origin::signed(ALICE),
-			ALICE_FARM,
-			BSX_ACA_ASSET_PAIR,
-			yield_farm.multiplier,
-			yield_farm.loyalty_curve.clone()
-		));
-
-		//Assert
-		assert_last_event!(crate::Event::YieldFarmCreated {
-			global_farm_id: ALICE_FARM,
-			yield_farm_id: yield_farm.id,
-			multiplier: yield_farm.multiplier,
-			loyalty_curve: yield_farm.loyalty_curve.clone(),
-			asset_pair: BSX_ACA_ASSET_PAIR,
-		}
-		.into());
-
-		assert_eq!(WarehouseLM::global_farm(ALICE_FARM).unwrap(), global_farm);
-		assert_eq!(
-			WarehouseLM::yield_farm((BSX_ACA_AMM, ALICE_FARM, yield_farm.id)).unwrap(),
-			yield_farm
-		);
-	})
-}
-
-#[test]
-fn create_yield_farm_should_fail_when_called_by_not_signed_owner() {
-	predefined_test_ext().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::create_yield_farm(
-				Origin::none(),
-				ALICE_FARM,
-				BSX_ACA_ASSET_PAIR,
-				FixedU128::from(20_000_u128),
-				Some(LoyaltyCurve::default())
-			),
-			BadOrigin
-		);
-	});
-}
-
-#[test]
-fn create_yield_farm_should_fail_when_asset_pair_has_not_known_asset() {
-	let not_known_asset = 9999;
-	let bsx_with_invalid_assets = AssetPair {
-		asset_in: BSX,
-		asset_out: not_known_asset,
-	};
-
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::create_yield_farm(
+			//Act
+			assert_ok!(LiquidityMining::create_yield_farm(
 				Origin::signed(ALICE),
 				ALICE_FARM,
-				bsx_with_invalid_assets,
-				FixedU128::from(20_000_u128),
-				Some(LoyaltyCurve::default())
-			),
-			Error::<Test>::AmmPoolDoesNotExist
-		);
-	});
+				BSX_ACA_ASSET_PAIR,
+				multiplier,
+				loyalty_curve.clone()
+			));
+
+			//Assert
+			assert_last_event!(crate::Event::YieldFarmCreated {
+				global_farm_id: ALICE_FARM,
+				yield_farm_id: 2,
+				multiplier,
+				loyalty_curve,
+				asset_pair: BSX_ACA_ASSET_PAIR,
+			}
+			.into());
+		})
+}
+
+#[test]
+fn create_yield_farm_should_fail_when_amm_pool_doesnt_exists() {
+	let assets_without_pool = AssetPair {
+		asset_in: BSX,
+		asset_out: KSM,
+	};
+
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(ALICE, BSX, 1_000_000 * ONE)])
+		.with_amm_pool(BSX_ACA_AMM, BSX_ACA_SHARE_ID, BSX_ACA_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			10_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(20),
+			ONE,
+			One::one(),
+		)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::create_yield_farm(
+					Origin::signed(ALICE),
+					ALICE_FARM,
+					assets_without_pool,
+					One::one(),
+					Some(LoyaltyCurve::default())
+				),
+				Error::<Test>::AmmPoolDoesNotExist
+			);
+		});
 }

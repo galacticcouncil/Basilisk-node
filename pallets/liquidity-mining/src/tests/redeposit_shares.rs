@@ -16,146 +16,192 @@
 // limitations under the License.
 
 use super::*;
-use pretty_assertions::assert_eq;
-use test_ext::*;
 
 #[test]
 fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
-	//Arrange
-	predefined_test_ext_with_deposits().execute_with(|| {
-		set_block_number(50_000);
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_yield_farm(BOB, 2, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 3, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			set_block_number(50_000);
 
-		//Act
-		assert_ok!(LiquidityMining::redeposit_lp_shares(
-			Origin::signed(ALICE),
-			EVE_FARM,
-			EVE_BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSET_PAIR,
-			PREDEFINED_DEPOSIT_IDS[0],
-		));
+			//Act
+			assert_ok!(LiquidityMining::redeposit_lp_shares(
+				Origin::signed(CHARLIE),
+				2,
+				4,
+				BSX_KSM_ASSET_PAIR,
+				1,
+			));
 
-		//Assert
-		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, EVE_FARM, EVE_BSX_TKN1_YIELD_FARM_ID))
-				.unwrap()
-				.entries_count,
-			1
-		);
+			assert_last_event!(crate::Event::SharesRedeposited {
+				global_farm_id: 2,
+				yield_farm_id: 4,
+				who: CHARLIE,
+				lp_token: BSX_KSM_SHARE_ID,
+				amount: 100 * ONE,
+				deposit_id: 1,
+			}
+			.into());
+		})
+}
 
-		assert_last_event!(crate::Event::SharesRedeposited {
-			global_farm_id: EVE_FARM,
-			yield_farm_id: EVE_BSX_TKN1_YIELD_FARM_ID,
-			who: ALICE,
-			lp_token: BSX_TKN1_SHARE_ID,
-			amount: 50,
-			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-		}
-		.into());
-
-		set_block_number(800_000);
-		//Dave's farm incentivize TKN1 - some balance must be set so `valued_shares` will not be `0`.
-		let bsx_tkn1_amm_account =
-			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN1_ASSET_PAIR)).unwrap().0);
-		Tokens::set_balance(Origin::root(), bsx_tkn1_amm_account, TKN1, 100, 0).unwrap();
-		assert_ok!(LiquidityMining::redeposit_lp_shares(
-			Origin::signed(ALICE),
-			DAVE_FARM,
-			DAVE_BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSET_PAIR,
-			PREDEFINED_DEPOSIT_IDS[0]
-		));
-
-		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, DAVE_FARM, DAVE_BSX_TKN1_YIELD_FARM_ID))
-				.unwrap()
-				.entries_count,
-			1
-		);
-
-		assert_last_event!(crate::Event::SharesRedeposited {
-			global_farm_id: DAVE_FARM,
-			yield_farm_id: DAVE_BSX_TKN1_YIELD_FARM_ID,
-			who: ALICE,
-			lp_token: BSX_TKN1_SHARE_ID,
-			amount: 50,
-			deposit_id: PREDEFINED_DEPOSIT_IDS[0],
-		}
-		.into());
-
-		let deposit = WarehouseLM::deposit(PREDEFINED_DEPOSIT_IDS[0]).unwrap();
-
-		assert_eq!(deposit.yield_farm_entries.len(), 3);
-	})
+#[test]
+fn redeposit_lp_shares_should_fail_when_called_by_not_the_deposit_owner() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_yield_farm(BOB, 2, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 3, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::redeposit_lp_shares(Origin::signed(BOB), 2, 4, BSX_KSM_ASSET_PAIR, 1,),
+				Error::<Test>::NotDepositOwner
+			);
+		});
 }
 
 #[test]
 fn redeposit_lp_shares_deposit_should_fail_when_asset_pair_has_invalid_asset() {
-	let invalid_asset = 9999;
-	let bsx_with_invalid_assets = AssetPair {
+	let pair_without_amm = AssetPair {
 		asset_in: BSX,
-		asset_out: invalid_asset,
+		asset_out: DOT,
 	};
 
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::redeposit_lp_shares(
-				Origin::signed(ALICE),
-				EVE_FARM,
-				EVE_BSX_TKN1_YIELD_FARM_ID,
-				bsx_with_invalid_assets,
-				PREDEFINED_DEPOSIT_IDS[0],
-			),
-			Error::<Test>::AmmPoolDoesNotExist
-		);
-	});
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_yield_farm(BOB, 2, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 3, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::redeposit_lp_shares(Origin::signed(CHARLIE), 2, 4, pair_without_amm, 1,),
+				Error::<Test>::AmmPoolDoesNotExist
+			);
+		});
 }
 
 #[test]
-fn redeposit_lp_shares_deposit_should_fail_when_called_by_not_the_deposit_owner() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::redeposit_lp_shares(
-				Origin::signed(BOB),
-				EVE_FARM,
-				EVE_BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSET_PAIR,
-				PREDEFINED_DEPOSIT_IDS[0],
-			),
-			Error::<Test>::NotDepositOwner
-		);
-	});
-}
-
-#[test]
-fn redeposit_lp_shares_deposit_should_fail_when_called_with_non_known_deposit() {
-	let not_known_deposit = 9999;
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::redeposit_lp_shares(
-				Origin::signed(BOB),
-				EVE_FARM,
-				EVE_BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSET_PAIR,
-				not_known_deposit,
-			),
-			Error::<Test>::CantFindDepositOwner
-		);
-	});
-}
-
-#[test]
-fn redeposit_lp_shares_deposit_should_fail_when_called_by_not_signed_user() {
-	let not_known_deposit = 9999;
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::redeposit_lp_shares(
-				Origin::none(),
-				EVE_FARM,
-				EVE_BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSET_PAIR,
-				not_known_deposit,
-			),
-			BadOrigin
-		);
-	});
+fn redeposit_lp_shares_should_fail_when_origin_is_not_signed() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_yield_farm(BOB, 2, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 3, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::redeposit_lp_shares(Origin::none(), 2, 4, BSX_KSM_ASSET_PAIR, 1,),
+				BadOrigin
+			);
+		});
 }

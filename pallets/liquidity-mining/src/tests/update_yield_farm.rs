@@ -16,88 +16,99 @@
 // limitations under the License.
 
 use super::*;
-use test_ext::*;
-use warehouse_liquidity_mining::{FarmMultiplier, YieldFarmData};
 
 #[test]
 fn update_yield_farm_should_work() {
-	predefined_test_ext().execute_with(|| {
-		//Arrange
-		let new_multiplier: FarmMultiplier = FixedU128::from(5_000_u128);
-		let yield_farm = WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap();
-		let global_farm = WarehouseLM::global_farm(GC_FARM).unwrap();
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.build()
+		.execute_with(|| {
+			//Arrange
+			let new_multiplier = FixedU128::from(5_000_u128);
 
-		//Act
-		assert_ok!(LiquidityMining::update_yield_farm(
-			Origin::signed(GC),
-			GC_FARM,
-			BSX_TKN1_ASSET_PAIR,
-			new_multiplier
-		));
+			//Act
+			assert_ok!(LiquidityMining::update_yield_farm(
+				Origin::signed(BOB),
+				1,
+				BSX_KSM_ASSET_PAIR,
+				new_multiplier
+			));
 
-		//Assert
-		assert_last_event!(crate::Event::YieldFarmUpdated {
-			global_farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-			who: GC,
-			asset_pair: BSX_TKN1_ASSET_PAIR,
-			multiplier: new_multiplier,
-		}
-		.into());
-
-		pretty_assertions::assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
-			YieldFarmData {
+			//Assert
+			assert_last_event!(crate::Event::YieldFarmUpdated {
+				global_farm_id: 1,
+				yield_farm_id: 2,
+				who: BOB,
+				asset_pair: BSX_KSM_ASSET_PAIR,
 				multiplier: new_multiplier,
-				..yield_farm
 			}
-		);
-
-		pretty_assertions::assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap(), global_farm);
-	});
-}
-
-#[test]
-fn update_yield_farm_should_fail_with_propagated_error_when_multiplier_is_zero() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::update_yield_farm(
-				Origin::signed(GC),
-				GC_FARM,
-				BSX_TKN1_ASSET_PAIR,
-				FixedU128::from(0_u128)
-			),
-			warehouse_liquidity_mining::Error::<Test, Instance1>::InvalidMultiplier
-		);
-	});
+			.into());
+		});
 }
 
 #[test]
 fn update_yield_farm_should_fail_when_caller_is_not_signed() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::update_yield_farm(Origin::none(), GC_FARM, BSX_TKN1_ASSET_PAIR, FixedU128::from(10_001)),
-			BadOrigin
-		);
-	});
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::update_yield_farm(Origin::none(), 1, BSX_KSM_ASSET_PAIR, FixedU128::from(10_001)),
+				BadOrigin
+			);
+		});
 }
 
 #[test]
 fn update_yield_farm_should_fail_when_amm_pool_does_not_exist() {
-	let unknown_asset_pair: AssetPair = AssetPair {
-		asset_in: 9999,
-		asset_out: 19999,
-	};
+	let pair_without_amm = BSX_DOT_ASSET_PAIR;
 
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::update_yield_farm(
-				Origin::signed(GC),
-				GC_FARM,
-				unknown_asset_pair,
-				FixedU128::from(10_001)
-			),
-			Error::<Test>::AmmPoolDoesNotExist
-		);
-	});
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::update_yield_farm(Origin::signed(BOB), 1, pair_without_amm, FixedU128::from(10_001)),
+				Error::<Test>::AmmPoolDoesNotExist
+			);
+		});
 }

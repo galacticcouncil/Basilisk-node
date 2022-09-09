@@ -16,140 +16,143 @@
 // limitations under the License.
 
 use super::*;
-use pretty_assertions::assert_eq;
-use std::borrow::Borrow;
-use test_ext::*;
 
 #[test]
 fn deposit_shares_should_work() {
-	//Arrange
-	predefined_test_ext().execute_with(|| {
-		let farm_id = GC_FARM;
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE), (ALICE, BSX_KSM_SHARE_ID, 100 * ONE)])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.build()
+		.execute_with(|| {
+			pretty_assertions::assert_eq!(
+				Tokens::total_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				0
+			);
 
-		let pallet_account = LiquidityMining::account_id_for_all_lp_shares();
-		let bsx_tkn1_amm_account =
-			AMM_POOLS.with(|v| v.borrow().get(&asset_pair_to_map_key(BSX_TKN1_ASSET_PAIR)).unwrap().0);
+			set_block_number(1_800);
+			let deposited_amount = 50 * ONE;
 
-		set_block_number(1_800); //18-th period
-
-		let bsx_tkn1_alice_shares = Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE);
-
-		//this is done because amount of incetivized token in AMM is used in calculations.
-		Tokens::set_balance(Origin::root(), bsx_tkn1_amm_account, BSX, 50, 0).unwrap();
-		assert_eq!(Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account), 0);
-
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().total_shares_z, 0);
-		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID))
-				.unwrap()
-				.entries_count,
-			0
-		);
-
-		assert_that_the_number_of_minted_nfts_is_equal_to(0);
-
-		let deposited_amount = 50;
-
-		//Act
-		assert_ok!(LiquidityMining::deposit_shares(
-			Origin::signed(ALICE),
-			farm_id,
-			BSX_TKN1_YIELD_FARM_ID,
-			BSX_TKN1_ASSET_PAIR,
-			deposited_amount,
-		));
-
-		//Assert
-		assert_last_event!(crate::Event::SharesDeposited {
-			global_farm_id: GC_FARM,
-			yield_farm_id: BSX_TKN1_YIELD_FARM_ID,
-			who: ALICE,
-			lp_token: BSX_TKN1_SHARE_ID,
-			amount: deposited_amount,
-			deposit_id: PREDEFINED_DEPOSIT_IDS[0]
-		}
-		.into());
-
-		assert_eq!(WarehouseLM::global_farm(GC_FARM).unwrap().total_shares_z, 12_500);
-
-		let yield_farm = PREDEFINED_YIELD_FARMS.with(|v| v[0].clone());
-		assert_eq!(
-			WarehouseLM::yield_farm((BSX_TKN1_AMM, GC_FARM, BSX_TKN1_YIELD_FARM_ID)).unwrap(),
-			YieldFarmData {
-				updated_at: 18,
-				total_shares: 50,
-				total_valued_shares: 2500,
-				entries_count: 1,
-				..yield_farm
-			}
-		);
-
-		assert_that_the_number_of_minted_nfts_is_equal_to(1);
-
-		//check if shares was transferred from extrinsic caller
-		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &ALICE),
-			bsx_tkn1_alice_shares - deposited_amount
-		);
-
-		//check if shares was transferred to liq. mining pallet account
-		assert_eq!(
-			Tokens::free_balance(BSX_TKN1_SHARE_ID, &pallet_account),
-			deposited_amount
-		);
-	});
-}
-
-#[test]
-fn deposit_shares_should_fail_when_amm_shares_balance_is_insufficient() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::deposit_shares(
+			//Act
+			assert_ok!(LiquidityMining::deposit_shares(
 				Origin::signed(ALICE),
-				GC_FARM,
-				BSX_TKN1_YIELD_FARM_ID,
-				BSX_TKN1_ASSET_PAIR,
-				4_000_000
-			),
-			Error::<Test>::InsufficientAmmSharesBalance
-		);
-	});
+				1,
+				2,
+				BSX_KSM_ASSET_PAIR,
+				deposited_amount,
+			));
+
+			//Assert
+			assert_last_event!(crate::Event::SharesDeposited {
+				global_farm_id: 1,
+				yield_farm_id: 2,
+				who: ALICE,
+				lp_token: BSX_KSM_SHARE_ID,
+				amount: deposited_amount,
+				deposit_id: 1
+			}
+			.into());
+
+			pretty_assertions::assert_eq!(
+				Tokens::total_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				deposited_amount
+			);
+
+			let nft_owner: AccountId = DummyNFT::owner(&LM_NFT_CLASS, &1).unwrap();
+			pretty_assertions::assert_eq!(nft_owner, ALICE);
+		});
 }
 
 #[test]
-fn deposit_shares_should_fail_when_called_by_noy_signed_user() {
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::deposit_shares(Origin::none(), GC_FARM, BSX_TKN1_YIELD_FARM_ID, BSX_TKN1_ASSET_PAIR, 50),
-			BadOrigin
-		);
-	});
+fn deposit_shares_should_fail_when_account_balance_is_insufficient() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE), (ALICE, BSX_KSM_SHARE_ID, 40 * ONE)])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::deposit_shares(Origin::signed(ALICE), 1, 2, BSX_KSM_ASSET_PAIR, 50 * ONE),
+				Error::<Test>::InsufficientAmmSharesBalance
+			);
+		});
+}
+
+#[test]
+fn deposit_shares_should_fail_when_origin_is_not_signed() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE), (ALICE, BSX_KSM_SHARE_ID, 50 * ONE)])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::deposit_shares(Origin::none(), 1, 2, BSX_KSM_ASSET_PAIR, 50 * ONE),
+				BadOrigin
+			);
+		});
 }
 
 #[test]
 fn deposit_shares_should_fail_when_amm_pool_does_not_exist() {
-	let unknown_asset_pair: AssetPair = AssetPair {
-		asset_in: 9999,
-		asset_out: 19999,
+	let assets_without_amm: AssetPair = AssetPair {
+		asset_in: BSX,
+		asset_out: DOT,
 	};
 
-	predefined_test_ext_with_deposits().execute_with(|| {
-		assert_noop!(
-			LiquidityMining::deposit_shares(
-				Origin::signed(ALICE),
-				GC_FARM,
-				BSX_TKN1_YIELD_FARM_ID,
-				unknown_asset_pair,
-				50
-			),
-			Error::<Test>::AmmPoolDoesNotExist
-		);
-	});
-}
-
-fn assert_that_the_number_of_minted_nfts_is_equal_to(number_of_nfts: usize) {
-	mock::DEPOSITS.borrow().with(|v| {
-		let keys = v.borrow().keys().len();
-		assert_eq!(keys, number_of_nfts);
-	});
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE), (ALICE, BSX_KSM_SHARE_ID, 50 * ONE)])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				LiquidityMining::deposit_shares(Origin::signed(ALICE), 1, 2, assets_without_amm, 50 * ONE),
+				Error::<Test>::AmmPoolDoesNotExist
+			);
+		});
 }
