@@ -107,7 +107,7 @@ pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<T
 runtime_benchmarks! {
 	{ Runtime, pallet_route_executor}
 
-	execute_sell {
+	sell {
 		let n in 1..MAX_NUMBER_OF_TRADES;
 		let (asset_in, asset_out, trades) = generate_trades(n).unwrap();
 
@@ -119,14 +119,14 @@ runtime_benchmarks! {
 
 		update_balance(asset_in, &caller, caller_asset_in_balance);
 	}: {
-		RouteExecutor::<Runtime>::execute_sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_sell, 0u128, trades)?
+		RouteExecutor::<Runtime>::sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_sell, 0u128, trades)?
 	}
 	verify{
 		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller), caller_asset_in_balance -  amount_to_sell);
 		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller) > 0);
 	}
 
-	execute_buy {
+	buy {
 		let n in 1..MAX_NUMBER_OF_TRADES;
 		let (asset_in, asset_out, trades) = generate_trades(n).unwrap();
 
@@ -137,7 +137,7 @@ runtime_benchmarks! {
 
 		update_balance(asset_in, &caller, caller_asset_in_balance);
 	}: {
-		RouteExecutor::<Runtime>::execute_buy(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_buy, 10000u128 * UNITS, trades)?
+		RouteExecutor::<Runtime>::buy(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_buy, 10000u128 * UNITS, trades)?
 	}
 	verify{
 		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller) < caller_asset_in_balance);
