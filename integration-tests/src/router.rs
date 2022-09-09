@@ -51,7 +51,7 @@ fn sell_should_work_when_route_contains_single_trade() {
 		));
 
 		//Assert
-		let amount_out = 453_181_818_1819u128;
+		let amount_out = 4_531_818_181_819_u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 		assert_trader_non_native_balance(amount_out, KSM);
@@ -111,7 +111,7 @@ fn sell_should_work_when_route_contains_multiple_trades() {
 		));
 
 		//Assert
-		let amount_out = 105_455_305_9484u128;
+		let amount_out = 1_054_553_059_484_u128;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 		assert_trader_non_native_balance(amount_out, KSM);
@@ -122,7 +122,7 @@ fn sell_should_work_when_route_contains_multiple_trades() {
 			asset_in: BSX,
 			asset_out: KSM,
 			amount_in: amount_to_sell,
-			amount_out: amount_out,
+			amount_out,
 		}
 		.into()]);
 	});
@@ -246,7 +246,7 @@ fn sell_should_fail_when_trading_limit_is_below_minimum() {
 		create_pool(BSX, AUSD);
 
 		let amount_to_sell = primitives::constants::chain::MIN_TRADING_LIMIT - 1;
-		let limit = 0 * UNITS;
+		let limit = 0;
 
 		let trades = vec![Trade {
 			pool: PoolType::XYK,
@@ -272,7 +272,7 @@ fn sell_should_fail_when_buying_more_than_max_in_ratio_out() {
 		create_pool(BSX, AUSD);
 
 		let amount_to_sell = 1000 * UNITS;
-		let limit = 0 * UNITS;
+		let limit = 0;
 
 		let trades = vec![Trade {
 			pool: PoolType::XYK,
@@ -348,7 +348,7 @@ fn buy_should_work_when_route_contains_two_trades() {
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE, AUSD);
 		assert_trader_non_native_balance(0, KSM);
 
-		let amount_to_buy = 1 * UNITS;
+		let amount_to_buy = UNITS;
 		let limit = 10 * UNITS;
 		let trades = vec![
 			Trade {
@@ -374,7 +374,7 @@ fn buy_should_work_when_route_contains_two_trades() {
 		));
 
 		//Assert
-		let amount_in = 428_143_592_7986;
+		let amount_in = 4_281_435_927_986;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
@@ -405,7 +405,7 @@ fn buy_should_work_when_route_contains_multiple_trades() {
 		assert_trader_non_native_balance(0, MOVR);
 		assert_trader_non_native_balance(0, KSM);
 
-		let amount_to_buy = 1 * UNITS;
+		let amount_to_buy = UNITS;
 		let limit = 10 * UNITS;
 		let trades = vec![
 			Trade {
@@ -436,7 +436,7 @@ fn buy_should_work_when_route_contains_multiple_trades() {
 		));
 
 		//Assert
-		let amount_in = 939_285_894_6762;
+		let amount_in = 9_392_858_946_762;
 
 		assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 		assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
