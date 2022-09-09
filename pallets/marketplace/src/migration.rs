@@ -18,41 +18,37 @@
 use crate::{Config, MarketplaceInstances, Pallet, RoyaltyOf, MAX_ROYALTY};
 use codec::Decode;
 use frame_support::{
-	codec,
+	codec, log,
 	traits::{Get, StorageVersion},
 	weights::Weight,
 };
 
-/// Wrapper for all migrations of this pallet, based on `StorageVersion`.
-pub fn migrate<T: Config>() -> Weight {
-	let version = StorageVersion::get::<Pallet<T>>();
-	let mut weight: Weight = 0;
-
-	if version < 1 {
-		weight = weight.saturating_add(v1::migrate::<T>());
-		StorageVersion::new(1).put::<Pallet<T>>();
-	}
-
-	weight
-}
-
 /// Royalty amount type is changed from u8 to u16.
-mod v1 {
+pub mod v1 {
 	use super::*;
+	use sp_arithmetic::traits::Saturating;
 
 	#[derive(Decode)]
 	pub struct OldRoyalty<AccountId> {
-		/// The user account which receives the royalty
 		pub author: AccountId,
 		/// Royalty in percent in range 0-99
 		pub royalty: u8,
 	}
 
+	pub fn pre_migrate<T: Config>() {
+		assert_eq!(StorageVersion::get::<Pallet<T>>(), 0, "Storage version too high.");
+	}
+
 	pub fn migrate<T: Config>() -> Weight {
-		let mut weight: Weight = 0;
+		log::info!(
+			target: "runtime::marketplace",
+			"Running migration to v1 for Marketplace"
+		);
+
+		let mut translated = 0u64;
 
 		<MarketplaceInstances<T>>::translate(|_key_1, _key_2, old: OldRoyalty<T::AccountId>| {
-			weight = weight.saturating_add(T::DbWeight::get().reads_writes(1, 1));
+			translated.saturating_inc();
 			Some(RoyaltyOf::<T> {
 				author: old.author,
 				// multiply the value by 100 to transform percentage to basis points
@@ -62,6 +58,16 @@ mod v1 {
 			})
 		});
 
-		weight
+		StorageVersion::new(1).put::<Pallet<T>>();
+
+		T::DbWeight::get().reads_writes(translated, translated + 1)
+	}
+
+	pub fn post_migrate<T: Config>() {
+		assert_eq!(StorageVersion::get::<Pallet<T>>(), 1, "Storage version too high.");
+
+		for (_key_1, _key_2, royalty) in MarketplaceInstances::<T>::iter() {
+			assert!(royalty.royalty < MAX_ROYALTY, "Invalid value.");
+		}
 	}
 }
