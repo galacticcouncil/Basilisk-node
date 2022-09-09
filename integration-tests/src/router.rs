@@ -22,7 +22,7 @@ const TRADER: [u8; 32] = BOB;
 pub const BOB_INITIAL_AUSD_BALANCE: u128 = BOB_INITIAL_ASSET_1_BALANCE;
 
 #[test]
-fn execute_sell_should_work_when_route_contains_single_trade() {
+fn sell_should_work_when_route_contains_single_trade() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -41,7 +41,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 		}];
 
 		//Act
-		assert_ok!(Router::execute_sell(
+		assert_ok!(Router::sell(
 			Origin::signed(TRADER.into()),
 			BSX,
 			KSM,
@@ -67,7 +67,7 @@ fn execute_sell_should_work_when_route_contains_single_trade() {
 }
 
 #[test]
-fn execute_sell_should_work_when_route_contains_multiple_trades() {
+fn sell_should_work_when_route_contains_multiple_trades() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -101,7 +101,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 		];
 
 		//Act
-		assert_ok!(Router::execute_sell(
+		assert_ok!(Router::sell(
 			Origin::signed(TRADER.into()),
 			BSX,
 			KSM,
@@ -129,7 +129,7 @@ fn execute_sell_should_work_when_route_contains_multiple_trades() {
 }
 
 #[test]
-fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
+fn sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -146,7 +146,7 @@ fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_sell(
+			Router::sell(
 				Origin::signed(TRADER.into()),
 				BSX,
 				AUSD,
@@ -163,7 +163,7 @@ fn execute_sell_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 }
 
 #[test]
-fn execute_sell_should_fail_when_first_trade_is_successful_but_second_trade_has_no_supported_pool() {
+fn sell_should_fail_when_first_trade_is_successful_but_second_trade_has_no_supported_pool() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -190,7 +190,7 @@ fn execute_sell_should_fail_when_first_trade_is_successful_but_second_trade_has_
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_sell(
+			Router::sell(
 				Origin::signed(TRADER.into()),
 				BSX,
 				KSM,
@@ -208,7 +208,7 @@ fn execute_sell_should_fail_when_first_trade_is_successful_but_second_trade_has_
 }
 
 #[test]
-fn execute_sell_should_fail_when_balance_is_not_sufficient() {
+fn sell_should_fail_when_balance_is_not_sufficient() {
 	Basilisk::execute_with(|| {
 		//Arrange
 		create_pool(BSX, AUSD);
@@ -223,7 +223,7 @@ fn execute_sell_should_fail_when_balance_is_not_sufficient() {
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_sell(
+			Router::sell(
 				Origin::signed(TRADER.into()),
 				BSX,
 				AUSD,
@@ -240,7 +240,7 @@ fn execute_sell_should_fail_when_balance_is_not_sufficient() {
 }
 
 #[test]
-fn execute_sell_should_fail_when_trading_limit_is_below_minimum() {
+fn sell_should_fail_when_trading_limit_is_below_minimum() {
 	Basilisk::execute_with(|| {
 		//Arrange
 		create_pool(BSX, AUSD);
@@ -256,7 +256,7 @@ fn execute_sell_should_fail_when_trading_limit_is_below_minimum() {
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_sell(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_sell, limit, trades),
+			Router::sell(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_sell, limit, trades),
 			pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientTradingAmount
 		);
 
@@ -266,7 +266,7 @@ fn execute_sell_should_fail_when_trading_limit_is_below_minimum() {
 }
 
 #[test]
-fn execute_sell_should_fail_when_buying_more_than_max_in_ratio_out() {
+fn sell_should_fail_when_buying_more_than_max_in_ratio_out() {
 	Basilisk::execute_with(|| {
 		//Arrange
 		create_pool(BSX, AUSD);
@@ -282,7 +282,7 @@ fn execute_sell_should_fail_when_buying_more_than_max_in_ratio_out() {
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_sell(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_sell, limit, trades),
+			Router::sell(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_sell, limit, trades),
 			pallet_xyk::Error::<basilisk_runtime::Runtime>::MaxInRatioExceeded
 		);
 
@@ -291,7 +291,7 @@ fn execute_sell_should_fail_when_buying_more_than_max_in_ratio_out() {
 	});
 }
 #[test]
-fn execute_buy_should_work_when_route_contains_single_trade() {
+fn buy_should_work_when_route_contains_single_trade() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -310,7 +310,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 		}];
 
 		//Act
-		assert_ok!(Router::execute_buy(
+		assert_ok!(Router::buy(
 			Origin::signed(TRADER.into()),
 			BSX,
 			KSM,
@@ -336,7 +336,7 @@ fn execute_buy_should_work_when_route_contains_single_trade() {
 }
 
 #[test]
-fn execute_buy_should_work_when_route_contains_two_trades() {
+fn buy_should_work_when_route_contains_two_trades() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -364,7 +364,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 		];
 
 		//Act
-		assert_ok!(Router::execute_buy(
+		assert_ok!(Router::buy(
 			Origin::signed(TRADER.into()),
 			BSX,
 			AUSD,
@@ -391,7 +391,7 @@ fn execute_buy_should_work_when_route_contains_two_trades() {
 }
 
 #[test]
-fn execute_buy_should_work_when_route_contains_multiple_trades() {
+fn buy_should_work_when_route_contains_multiple_trades() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -426,7 +426,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 		];
 
 		//Act
-		assert_ok!(Router::execute_buy(
+		assert_ok!(Router::buy(
 			Origin::signed(TRADER.into()),
 			BSX,
 			AUSD,
@@ -454,7 +454,7 @@ fn execute_buy_should_work_when_route_contains_multiple_trades() {
 }
 
 #[test]
-fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
+fn buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -471,7 +471,7 @@ fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_buy(
+			Router::buy(
 				Origin::signed(TRADER.into()),
 				BSX,
 				AUSD,
@@ -488,7 +488,7 @@ fn execute_buy_should_fail_when_there_is_no_pool_for_specific_asset_pair() {
 }
 
 #[test]
-fn execute_buy_should_fail_when_first_trade_is_successful_but_second_trade_has_no_supported_pool() {
+fn buy_should_fail_when_first_trade_is_successful_but_second_trade_has_no_supported_pool() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -515,7 +515,7 @@ fn execute_buy_should_fail_when_first_trade_is_successful_but_second_trade_has_n
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_buy(
+			Router::buy(
 				Origin::signed(TRADER.into()),
 				BSX,
 				AUSD,
@@ -533,7 +533,7 @@ fn execute_buy_should_fail_when_first_trade_is_successful_but_second_trade_has_n
 }
 
 #[test]
-fn execute_buy_should_fail_when_balance_is_not_sufficient() {
+fn buy_should_fail_when_balance_is_not_sufficient() {
 	Basilisk::execute_with(|| {
 		//Arrange
 		create_pool(KSM, AUSD);
@@ -549,7 +549,7 @@ fn execute_buy_should_fail_when_balance_is_not_sufficient() {
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_buy(
+			Router::buy(
 				Origin::signed(TRADER.into()),
 				KSM,
 				AUSD,
@@ -566,7 +566,7 @@ fn execute_buy_should_fail_when_balance_is_not_sufficient() {
 }
 
 #[test]
-fn execute_buy_should_fail_when_trading_limit_is_below_minimum() {
+fn buy_should_fail_when_trading_limit_is_below_minimum() {
 	Basilisk::execute_with(|| {
 		//Arrange
 		create_pool(BSX, AUSD);
@@ -582,7 +582,7 @@ fn execute_buy_should_fail_when_trading_limit_is_below_minimum() {
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_buy(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_buy, limit, trades),
+			Router::buy(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_buy, limit, trades),
 			pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientTradingAmount
 		);
 
@@ -592,7 +592,7 @@ fn execute_buy_should_fail_when_trading_limit_is_below_minimum() {
 }
 
 #[test]
-fn execute_buy_should_fail_when_buying_more_than_max_ratio_out() {
+fn buy_should_fail_when_buying_more_than_max_ratio_out() {
 	Basilisk::execute_with(|| {
 		//Arrange
 		create_pool(BSX, AUSD);
@@ -608,7 +608,7 @@ fn execute_buy_should_fail_when_buying_more_than_max_ratio_out() {
 
 		//Act and Assert
 		assert_noop!(
-			Router::execute_buy(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_buy, limit, trades),
+			Router::buy(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_buy, limit, trades),
 			pallet_xyk::Error::<basilisk_runtime::Runtime>::MaxOutRatioExceeded
 		);
 
