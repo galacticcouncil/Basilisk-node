@@ -49,10 +49,7 @@ pub mod weights;
 
 pub use pallet::*;
 
-use frame_support::traits::tokens::{
-	fungibles::Inspect as InspectCurrency,
-	nonfungibles::{Create, Inspect, Mutate},
-};
+use frame_support::traits::tokens::nonfungibles::{Create, Inspect, Mutate};
 use frame_support::{
 	ensure,
 	sp_runtime::traits::{BlockNumberProvider, Zero},
@@ -69,7 +66,10 @@ use pallet_nft::ClassType;
 use primitives::{asset::AssetPair, AssetId, Balance, InstanceId as DepositId};
 use scale_info::TypeInfo;
 use sp_arithmetic::{FixedU128, Perquintill};
-use sp_std::convert::{From, Into};
+use sp_std::{
+	convert::{From, Into},
+	vec,
+};
 
 type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 
@@ -116,8 +116,7 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// Currency for transfers.
-		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = AssetId, Balance = Balance>
-			+ InspectCurrency<Self::AccountId, AssetId = AssetId, Balance = Balance>;
+		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = AssetId, Balance = Balance>;
 
 		/// AMM helper functions.
 		type AMM: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
@@ -943,6 +942,6 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn get_asset_balance_in_amm_pool(asset: AssetId, amm_pool_id: T::AccountId) -> Result<Balance, DispatchError> {
-		Ok(T::MultiCurrency::reducible_balance(asset, &amm_pool_id, true))
+		Ok(T::MultiCurrency::total_balance(asset, &amm_pool_id))
 	}
 }

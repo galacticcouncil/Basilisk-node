@@ -15,8 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//TODO: make sure this don't panic and only log error
-
 use super::*;
 use frame_support::traits::StorageVersion;
 use hydradx_traits::nft::CreateTypedClass;
@@ -32,18 +30,29 @@ pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
 	if version == 0 {
 		let pallet_account = <Pallet<T>>::account_id();
 
-		T::NFTHandler::create_typed_class(
+		if let Err(e) = T::NFTHandler::create_typed_class(
 			pallet_account,
 			T::NftClassId::get(),
 			pallet_nft::ClassType::LiquidityMining,
-		)
-		.unwrap();
+		) {
+			log::error!(
+				target: "basilisk:liquidity-mining",
+				"Error to create NFT class: {:?}",
+				e
+			);
+		}
 
 		StorageVersion::new(STORAGE_VERSION).put::<Pallet<T>>();
 
 		T::DbWeight::get().reads_writes(READ_WEIGHT, WRITE_WEIGHT)
 	} else {
-		0
+		log::warn!(
+			target: "basilisk:liquidity-mining",
+			"Attempted to apply migration to v{:?} but failed because storage version is {:?}",
+			STORAGE_VERSION, version
+		);
+
+		Weight::zero()
 	}
 }
 

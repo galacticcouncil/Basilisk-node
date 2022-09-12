@@ -855,7 +855,7 @@ impl pallet_liquidity_mining::Config for Runtime {
 
 type XYKLiquidityMining = warehouse_liquidity_mining::Instance1;
 impl warehouse_liquidity_mining::Config<XYKLiquidityMining> for Runtime {
-	type CurrencyId = AssetId;
+	type AssetId = AssetId;
 	type MultiCurrency = Currencies;
 	type PalletId = WarehouseLMPalletId;
 	type MinTotalFarmRewards = MinTotalFarmRewards;

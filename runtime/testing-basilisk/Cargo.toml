@@ -50,7 +50,7 @@ pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/w
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
-warehouse_liquidity_mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="3230d9d1e6eaed6305b1b67587437415cd34e268", default-features = false }
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="8ccd04e323bf40b6990539bf07f1d8b7ae332c72", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }

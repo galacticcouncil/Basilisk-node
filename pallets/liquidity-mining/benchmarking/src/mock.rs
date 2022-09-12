@@ -136,7 +136,7 @@ parameter_types! {
 }
 
 impl warehouse_liquidity_mining::Config<Instance1> for Test {
-	type CurrencyId = AssetId;
+	type AssetId = AssetId;
 	type MultiCurrency = Currency;
 	type PalletId = WarehouseLMPalletId;
 	type MinTotalFarmRewards = MinTotalFarmRewards;
