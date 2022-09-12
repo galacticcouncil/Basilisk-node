@@ -95,7 +95,7 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 	}
 
 	fn execute_sell(
-		who: &T::Origin,
+		who: T::Origin,
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
@@ -105,11 +105,11 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 			return Err(ExecutorError::NotSupported);
 		}
 
-		Self::sell(who.clone(), asset_in, asset_out, amount_in, Balance::zero(), false).map_err(ExecutorError::Error)
+		Self::sell(who, asset_in, asset_out, amount_in, Balance::zero(), false).map_err(ExecutorError::Error)
 	}
 
 	fn execute_buy(
-		who: &T::Origin,
+		who: T::Origin,
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
@@ -119,6 +119,6 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 			return Err(ExecutorError::NotSupported);
 		}
 
-		Self::buy(who.clone(), asset_out, asset_in, amount_out, Balance::MAX, false).map_err(ExecutorError::Error)
+		Self::buy(who, asset_out, asset_in, amount_out, Balance::MAX, false).map_err(ExecutorError::Error)
 	}
 }
