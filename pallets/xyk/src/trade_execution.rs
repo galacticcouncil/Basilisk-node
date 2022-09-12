@@ -95,8 +95,8 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 	}
 
 	fn execute_sell(
-		pool_type: PoolType<AssetId>,
 		who: &T::Origin,
+		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
 		amount_in: Balance,
@@ -109,8 +109,8 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 	}
 
 	fn execute_buy(
-		pool_type: PoolType<AssetId>,
 		who: &T::Origin,
+		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
 		amount_out: Balance,
