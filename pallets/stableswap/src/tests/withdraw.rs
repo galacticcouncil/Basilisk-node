@@ -317,7 +317,7 @@ fn remove_liquidity_should_work_when_removing_partial_shares() {
 			));
 
 			assert_balance!(BOB, asset_a, 100 * ONE);
-			assert_balance!(BOB, asset_b, 299999999999990u128); // wthen removing all shares at once it got : 299_999_999_999_994u128
+			assert_balance!(BOB, asset_b, 299999999999990u128); // when removing all shares at once it got : 299_999_999_999_994u128
 			assert_balance!(BOB, pool_id, 0u128);
 
 			assert_balance!(pool_account, asset_a, 200 * ONE);
@@ -326,7 +326,7 @@ fn remove_liquidity_should_work_when_removing_partial_shares() {
 }
 
 #[test]
-fn remove_liquidity_should_work_when_removing_last_assset_liquidity() {
+fn remove_liquidity_should_work_when_removing_last_asset_liquidity() {
 	let asset_a: AssetId = 1;
 	let asset_b: AssetId = 2;
 	let asset_c: AssetId = 3;
