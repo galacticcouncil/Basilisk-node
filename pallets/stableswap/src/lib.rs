@@ -13,11 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! # Stableswap pallet (v1)
+//! # Stableswap pallet
 //!
 //! Curve/stableswap AMM implementation.
-//!
-//! Version v1 - supports only 2 assets pool.
 //!
 //! ### Terminology
 //!
@@ -27,20 +25,17 @@
 //!
 //! ## Assumptions
 //!
-//! Only 2 assets pool are possible to create in V1.
+//! Maximum number of assets in pool is 5.
 //!
 //! A pool can be created only by allowed `CreatePoolOrigin`.
 //!
-//! LP must add liquidity of both pool assets. in V1 it is not allowed single token LPing.
+//! First LP to provided liquidity must add initial liquidity of all pool assets. Subsequent calls to add_liquidity, LP can provide only 1 asset.
 //!
 //! Initial liquidity is first liquidity added to the pool (that is first call of `add_liquidity`).
 //!
-//! LP specifies an amount of liquidity to be added of one selected asset, the required amount of second pool asset is calculated
-//! in a way that the ratio does not change. In case of initial liquidity - this amount is equal to amount of first asset.
-//!
 //! LP is given certain amount of shares by minting a pool's share token.
 //!
-//! When LP decides to withdraw liquidity, it receives both assets. Single token withdrawal is not supported.
+//! When LP decides to withdraw liquidity, it receives selected asset.
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -255,17 +250,18 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Create a 2-asset pool.
+		/// Create a stableswap pool with given list of asset
 		///
-		/// Both assets must be correctly registered in `T::AssetRegistry`.
+		/// All assets must be correctly registered in `T::AssetRegistry`.
 		/// Note that this does not seed the pool with liquidity. Use `add_liquidity` to provide
 		/// initial liquidity.
 		///
 		/// Parameters:
 		/// - `origin`: Must be T::CreatePoolOrigin
-		/// - `assets`: Asset ids tuple
+		/// - `assets`: List of Asset ids
 		/// - `amplification`: Pool amplification
-		/// - `fee`: trade fee to be applied in sell/buy trades
+		/// - `trade_fee`: trade fee to be applied in sell/buy trades
+		/// - `withdraw_fee`: fee to be applied when removing liquidity
 		///
 		/// Emits `PoolCreated` event if successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
@@ -325,28 +321,20 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Add liquidity to selected 2-asset pool.
+		/// Add liquidity to selected pool.
 		///
-		/// LP must provide liquidity of both assets by specifying amount of asset a.
+		/// First call of `add_liquidity` adds "initial liquidity" of all assets.
 		///
-		/// If there is no liquidity in the pool, yet, the first call of `add_liquidity` adds "initial liquidity".
+		/// If there is liquidity already in the pool, LP can provide liquidity of any number of pool assets.
 		///
-		/// Initial liquidity - same amounts of each pool asset.
-		///
-		/// If there is liquidity already in the pool, then the amount of asset b is calculated so the ratio does not change:
-		///
-		/// new_reserve_b = (reserve_a + amount) * reserve_b / reserve_a
-		/// amount_b = new_reserve_b - reserve_b
-		///
-		/// LP must have sufficient amount of asset a/b - amount_a and amount_b.
+		/// LP must have sufficient amount of each assets.
 		///
 		/// Origin is given corresponding amount of shares.
 		///
 		/// Parameters:
 		/// - `origin`: liquidity provider
 		/// - `pool_id`: Pool Id
-		/// - `asset`: Asset id
-		/// - `amount`: liquidity amount of `asset` to be added to the pool.
+		/// - `assets`: asset id and liquidity amount provided
 		///
 		/// Emits `LiquidityAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
@@ -419,6 +407,21 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Remove liquidity from selected pool.
+		///
+		/// Withdraws liquidity of selected asset from a pool.
+		///
+		/// Sahre amount is burn and LP receives corresponding amount of chosen asset.
+		///
+		/// Withdraw fee is applied to the asset amount.
+		///
+		/// Parameters:
+		/// - `origin`: liquidity provider
+		/// - `pool_id`: Pool Id
+		/// - `asset_id`: id of asset to receive
+		/// - 'share_amount': amount of shares to withdraw
+		///
+		/// Emits `LiquidityRemoved` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity_one_asset())]
 		#[transactional]
 		pub fn remove_liquidity_one_asset(
@@ -487,7 +490,7 @@ pub mod pallet {
 		/// - `pool_id`: Id of a pool
 		/// - `asset_in`: ID of asset sold to the pool
 		/// - `asset_out`: ID of asset bought from the pool
-		/// - `amount`: Amount of asset sold
+		/// - `amount_in`: Amount of asset to be sold to the pool
 		/// - `min_buy_amount`: Minimum amount required to receive
 		///
 		/// Emits `SellExecuted` event when successful.
@@ -565,7 +568,7 @@ pub mod pallet {
 		/// - `pool_id`: Id of a pool
 		/// - `asset_out`: ID of asset bought from the pool
 		/// - `asset_in`: ID of asset sold to the pool
-		/// - `amount`: Amount of asset sold
+		/// - `amount_out`: Amount of asset to receive from the pool
 		/// - `max_sell_amount`: Maximum amount allowed to be sold
 		///
 		/// Emits `BuyExecuted` event when successful.
