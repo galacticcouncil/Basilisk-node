@@ -6262,7 +6262,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-stableswap"
+name = "pallet-stableswap-v1"
 version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
