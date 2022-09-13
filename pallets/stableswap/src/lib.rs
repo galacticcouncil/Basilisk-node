@@ -165,8 +165,8 @@ pub mod pallet {
 			pool_id: T::AssetId,
 			who: T::AccountId,
 			shares: Balance,
-			assets: (T::AssetId, T::AssetId),
-			amounts: (Balance, Balance),
+			asset: T::AssetId,
+			amount: Balance,
 		},
 		/// Sell trade executed. Trade fee paid in asset leaving the pool (already subtracted from amount_out).
 		SellExecuted {
@@ -470,15 +470,13 @@ pub mod pallet {
 			T::Currency::withdraw(pool_id, &who, share_amount)?;
 			T::Currency::transfer(asset_id, &pool_account, &who, amount)?;
 
-			/*
 			Self::deposit_event(Event::LiquidityRemoved {
 				pool_id,
 				who,
-				shares: amount,
-				assets: (pool.assets[0], pool.assets[1]),
-				amounts: (amounts.0, amounts.1),
+				shares: share_amount,
+				asset: asset_id,
+				amount,
 			});
-			 */
 
 			Ok(())
 		}
