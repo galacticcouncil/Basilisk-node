@@ -119,7 +119,6 @@ proptest! {
 	}
 }
 
-/*
 proptest! {
 	#![proptest_config(ProptestConfig::with_cases(1000))]
 	#[test]
@@ -147,7 +146,7 @@ proptest! {
 				PoolInfo::<AssetId> {
 					assets: vec![asset_a,asset_b].try_into().unwrap(),
 					amplification,
-					trade_fee,
+					trade_fee: Permill::from_percent(0),
 					withdraw_fee: Permill::from_percent(0),
 				},
 				InitialLiquidity{ account: ALICE, assets: vec![
@@ -187,16 +186,21 @@ proptest! {
 
 				let asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
 				let asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
-				assert_ok!(Stableswap::remove_liquidity(Origin::signed(BOB), pool_id, amount_withdrawn));
+				assert_ok!(Stableswap::remove_liquidity_one_asset(Origin::signed(BOB), pool_id, asset_b, amount_withdrawn));
 
 				let new_asset_a_reserve = Tokens::free_balance(asset_a, &pool_account);
 				let new_asset_b_reserve = Tokens::free_balance(asset_b, &pool_account);
 
+				// TODO: what to asset after remove liquidity
+			/*
 				assert_eq_approx!(FixedU128::from((asset_a_reserve,asset_b_reserve)),
 					FixedU128::from((new_asset_a_reserve,new_asset_b_reserve)),
 					FixedU128::from_float(0.0000000001),
 					"Price has changed after remove liquidity");
+
+			 */
 			});
+
 	}
 }
 
@@ -339,4 +343,3 @@ proptest! {
 			});
 	}
 }
- */
