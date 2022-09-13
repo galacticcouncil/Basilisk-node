@@ -166,11 +166,14 @@ fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used
 	});
 
 	Karura::execute_with(|| {
+		let insufficient_amount = 55;
+		assert_eq!(Balances::free_balance(&AccountId::from(ALICE)), 200000000000000);
+
 		assert_noop!(
-			basilisk_runtime::XTokens::transfer(
-				basilisk_runtime::Origin::signed(ALICE.into()),
+			XTokens::transfer(
+				Origin::signed(ALICE.into()),
 				0,
-				1_000_000 - 1,
+				insufficient_amount,
 				Box::new(
 					MultiLocation::new(
 						1,
@@ -188,10 +191,8 @@ fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used
 			),
 			orml_xtokens::Error::<basilisk_runtime::Runtime>::XcmExecutionFailed
 		);
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200000000000000
-		);
+
+		assert_eq!(Balances::free_balance(&AccountId::from(ALICE)), 200000000000000);
 	});
 
 	Basilisk::execute_with(|| {
@@ -226,8 +227,8 @@ fn fee_currency_set_on_xcm_transfer() {
 	});
 
 	Karura::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+		assert_ok!(XTokens::transfer(
+			Origin::signed(ALICE.into()),
 			0,
 			transfer_amount,
 			Box::new(
@@ -246,7 +247,7 @@ fn fee_currency_set_on_xcm_transfer() {
 			399_600_000_000
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - transfer_amount
 		);
 	});
@@ -274,8 +275,8 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	TestNet::reset();
 
 	Karura::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+		assert_ok!(XTokens::transfer(
+			Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -294,7 +295,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			399_600_000_000
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
@@ -321,7 +322,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 }
 
 #[test]
-fn transfer_from_hydra_and_back() {
+fn transfer_from_karura_and_back() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
@@ -333,8 +334,8 @@ fn transfer_from_hydra_and_back() {
 	});
 
 	Karura::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+		assert_ok!(XTokens::transfer(
+			Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -353,7 +354,7 @@ fn transfer_from_hydra_and_back() {
 			399_600_000_000
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
@@ -400,6 +401,56 @@ fn transfer_from_hydra_and_back() {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
 			35_990_141 // fees should go to treasury
+		);
+	});
+
+	Karura::execute_with(|| {
+		assert_eq!(Balances::free_balance(&AccountId::from(ALICE)), 200 * UNITS);
+	});
+}
+
+#[test]
+fn karura_should_receive_asset_when_sent_from_basilisk() {
+	TestNet::reset();
+
+	Karura::execute_with(|| {
+		assert_ok!(AssetRegistry::set_location(
+			Origin::root(),
+			1,
+			AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
+		));
+	});
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			0,
+			30 * UNITS,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(KARURA_PARA_ID),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			200 * UNITS - 30 * UNITS
+		);
+	});
+
+	Karura::execute_with(|| {
+		assert_eq!(
+			Tokens::free_balance(1, &AccountId::from(BOB)),
+			1000 * UNITS + 30 * UNITS
 		);
 	});
 }

@@ -3,35 +3,37 @@ pub use basilisk_runtime::{AccountId, VestingPalletId};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Nothing},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	weights::{constants::WEIGHT_PER_SECOND, Pays, Weight},
+	PalletId,
 };
+use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use sp_runtime::traits::Convert;
 
 use codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
-use orml_traits::parameter_type_with_key;
 use frame_system::EnsureSigned;
+use orml_traits::parameter_type_with_key;
 
-use pallet_transaction_multi_payment::Price;
-use polkadot_xcm::{latest::prelude::*};
+use pallet_transaction_multi_payment::{DepositAll, Price, TransferFees};
+use polkadot_xcm::latest::prelude::*;
 use primitives::Balance;
 
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
-use primitives::{AssetId};
+use primitives::{constants::currency::*, AssetId};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use xcm_executor::{Config, XcmExecutor};
 use xcm_builder::{
 	AccountId32Aliases, AllowUnpaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds, LocationInverter, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
 	SignedToAccountId32, SovereignSignedViaLocation,
 };
+use xcm_executor::{Config, XcmExecutor};
 pub type Amount = i128;
 
 pub const ALICE: [u8; 32] = [4u8; 32];
@@ -47,12 +49,17 @@ pub type BlockNumberKarura = u64;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
+use hydradx_traits::pools::SpotPriceProvider;
+use orml_currencies::BasicCurrencyAdapter;
+use pallet_transaction_payment::TargetedFeeAdjustment;
 use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use polkadot_xcm::prelude::MultiLocation;
 use pretty_assertions::assert_eq;
+use sp_arithmetic::FixedU128;
 use sp_runtime::traits::AccountIdConversion;
 
+use basilisk_runtime::{AdjustmentVariable, MinimumMultiplier, TargetBlockFullness, WeightToFee};
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 decl_test_relay_chain! {
@@ -166,38 +173,6 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn karura_ext() -> sp_io::TestExternalities {
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<KaruraRuntime>()
-		.unwrap();
-
-	pallet_balances::GenesisConfig::<KaruraRuntime> {
-		balances: vec![(AccountId::from(ALICE), 200 * UNITS)],
-	}
-	.assimilate_storage(&mut t)
-	.unwrap();
-
-	<parachain_info::GenesisConfig as GenesisBuild<KaruraRuntime>>::assimilate_storage(
-		&parachain_info::GenesisConfig {
-			parachain_id: KARURA_PARA_ID.into(),
-		},
-		&mut t,
-	)
-	.unwrap();
-
-	<pallet_xcm::GenesisConfig as GenesisBuild<KaruraRuntime>>::assimilate_storage(
-		&pallet_xcm::GenesisConfig {
-			safe_xcm_version: Some(2),
-		},
-		&mut t,
-	)
-	.unwrap();
-
-	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
-	ext
-}
-
 pub fn basilisk_ext() -> sp_io::TestExternalities {
 	use basilisk_runtime::{MultiTransactionPayment, NativeExistentialDeposit, Runtime, System};
 	use frame_support::traits::OnInitialize;
@@ -271,6 +246,70 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	ext
 }
 
+pub fn karura_ext() -> sp_io::TestExternalities {
+	let existential_deposit = NativeExistentialDeposit::get();
+
+	let mut t = frame_system::GenesisConfig::default()
+		.build_storage::<KaruraRuntime>()
+		.unwrap();
+
+	pallet_balances::GenesisConfig::<KaruraRuntime> {
+		balances: vec![
+			(AccountId::from(ALICE), 200 * UNITS),
+			(AccountId::from(BOB), 1000 * UNITS),
+		],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	orml_tokens::GenesisConfig::<KaruraRuntime> {
+		balances: vec![
+			(AccountId::from(ALICE), 1, 200 * UNITS),
+			(AccountId::from(BOB), 1, 1_000 * UNITS),
+		],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	<parachain_info::GenesisConfig as GenesisBuild<KaruraRuntime>>::assimilate_storage(
+		&parachain_info::GenesisConfig {
+			parachain_id: KARURA_PARA_ID.into(),
+		},
+		&mut t,
+	)
+	.unwrap();
+
+	<pallet_xcm::GenesisConfig as GenesisBuild<KaruraRuntime>>::assimilate_storage(
+		&pallet_xcm::GenesisConfig {
+			safe_xcm_version: Some(2),
+		},
+		&mut t,
+	)
+	.unwrap();
+
+	pallet_asset_registry::GenesisConfig::<KaruraRuntime> {
+		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128), (b"aUSD".to_vec(), 1_000u128)],
+		native_asset_name: b"KAR".to_vec(),
+		native_existential_deposit: existential_deposit,
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	pallet_transaction_multi_payment::GenesisConfig::<KaruraRuntime> {
+		currencies: vec![(1, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
+		account_currencies: vec![],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| {
+		System::set_block_number(1);
+	});
+
+	ext
+}
+
 fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
 	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
 		.into_iter()
@@ -289,6 +328,11 @@ pub fn vesting_account() -> AccountId {
 	VestingPalletId::get().into_account()
 }
 
+parameter_types! {
+	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
+		pub const TransactionByteFee: Balance = 10 * MILLICENTS;
+
+}
 
 //Setting up mock for Karura runtime
 //TODO: once it works properly, extract it to dedicated file/project
@@ -348,8 +392,22 @@ pub type XcmRouter = (
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
 );
-pub type LocalAssetTransactor = ();
 
+parameter_types! {
+	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
+	pub KaruraTreasuryAccount: AccountId = TreasuryPalletId::get().into_account();
+}
+
+pub type LocalAssetTransactor = MultiCurrencyAdapter<
+	Currencies,
+	UnknownTokens,
+	IsNativeConcrete<AssetId, CurrencyIdConvert>,
+	AccountId,
+	LocationToAccountId,
+	AssetId,
+	CurrencyIdConvert,
+	DepositToAlternative<KaruraTreasuryAccount, Currencies, AssetId, AccountId, Balance>,
+>;
 pub type XcmOriginToCallOrigin = (
 	SovereignSignedViaLocation<LocationToAccountId, Origin>,
 	RelayChainAsNative<RelayChainOrigin, Origin>,
@@ -413,8 +471,6 @@ impl cumulus_pallet_xcmp_queue::Config for KaruraRuntime {
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 }
 
-
-
 impl pallet_xcm::Config for KaruraRuntime {
 	type Event = Event;
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
@@ -423,7 +479,7 @@ impl pallet_xcm::Config for KaruraRuntime {
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
-	type XcmReserveTransferFilter = Everything	;
+	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Origin = Origin;
@@ -438,9 +494,7 @@ impl cumulus_pallet_dmp_queue::Config for KaruraRuntime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-
 impl parachain_info::Config for KaruraRuntime {}
-
 
 impl orml_tokens::Config for KaruraRuntime {
 	type Event = Event;
@@ -474,12 +528,12 @@ impl cumulus_pallet_xcm::Config for KaruraRuntime {
 
 impl pallet_asset_registry::Config for KaruraRuntime {
 	type Event = Event;
-	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
+	type RegistryOrigin = EnsureRoot<AccountId>;
 	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStringLimit;
-	type NativeAssetId = NativeAssetId;
+	type NativeAssetId = KaruraNativeCurrencyId;
 	type WeightInfo = ();
 }
 
@@ -496,7 +550,6 @@ impl Default for AssetLocation {
 }
 
 pub struct CurrencyIdConvert;
-
 
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
@@ -522,7 +575,10 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 			MultiLocation {
 				parents,
 				interior: X2(Parachain(id), GeneralIndex(index)),
-			} if parents == 1 && ParaId::from(id) == ParachainInfo::parachain_id() && (index as u32) == CORE_ASSET_ID => {
+			} if parents == 1
+				&& ParaId::from(id) == ParachainInfo::parachain_id()
+				&& (index as u32) == CORE_ASSET_ID =>
+			{
 				// Handling native asset for this parachain
 				Some(CORE_ASSET_ID)
 			}
@@ -557,7 +613,7 @@ impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
 			network: NetworkId::Any,
 			id: account.into(),
 		})
-			.into()
+		.into()
 	}
 }
 
@@ -566,8 +622,6 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = 100_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
 }
-
-
 
 impl orml_xtokens::Config for KaruraRuntime {
 	type Event = Event;
@@ -583,6 +637,58 @@ impl orml_xtokens::Config for KaruraRuntime {
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 }
 
+parameter_types! {
+	pub KaruraNativeCurrencyId: AssetId = 0;
+	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
+}
+
+impl orml_currencies::Config for KaruraRuntime {
+	type Event = Event;
+	type MultiCurrency = Tokens;
+	type NativeCurrency = BasicCurrencyAdapter<KaruraRuntime, Balances, Amount, u32>;
+	type GetNativeCurrencyId = KaruraNativeCurrencyId;
+	type WeightInfo = ();
+}
+
+impl orml_unknown_tokens::Config for KaruraRuntime {
+	type Event = Event;
+}
+pub type SlowAdjustingFeeUpdate<R> =
+	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+
+impl pallet_transaction_payment::Config for KaruraRuntime {
+	type OnChargeTransaction = TransferFees<Currencies, MultiTransactionPayment, DepositAll<KaruraRuntime>>;
+	type TransactionByteFee = TransactionByteFee;
+	type OperationalFeeMultiplier = ();
+	type WeightToFee = WeightToFee;
+	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
+}
+
+pub struct KaruraSpotPriceProvider;
+
+impl SpotPriceProvider<AssetId> for KaruraSpotPriceProvider {
+	type Price = FixedU128;
+
+	fn pair_exists(asset_a: AssetId, asset_b: AssetId) -> bool {
+		todo!()
+	}
+
+	fn spot_price(asset_a: AssetId, asset_b: AssetId) -> Option<Self::Price> {
+		todo!()
+	}
+}
+
+impl pallet_transaction_multi_payment::Config for KaruraRuntime {
+	type Event = Event;
+	type AcceptedCurrencyOrigin = EnsureRoot<AccountId>;
+	type Currencies = Currencies;
+	type SpotPriceProvider = KaruraSpotPriceProvider; //pallet_xyk::XYKSpotPrice<KaruraRuntime>;
+	type WeightInfo = ();
+	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
+	type WeightToFee = WeightToFee;
+	type NativeAssetId = NativeAssetId;
+	type FeeReceiver = KaruraTreasuryAccount;
+}
 
 construct_runtime!(
 	pub enum KaruraRuntime where
@@ -593,13 +699,16 @@ construct_runtime!(
 			System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 			Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+			Currencies: orml_currencies::{Pallet, Event<T>},
 			ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Config, Event<T>},
 			ParachainInfo: parachain_info::{Pallet, Storage, Config},
 			XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
 			DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
-		    CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
+			CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 			PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 			AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
 			XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>} = 154,
+			UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event} = 155,
+			MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		}
 );
