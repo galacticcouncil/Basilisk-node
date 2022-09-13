@@ -73,7 +73,7 @@ fn accept_offer_should_work_when_there_is_royalty_present() {
 				CLASS_ID_0,
 				INSTANCE_ID_0,
 				CHARLIE,
-				20,
+				2_000,
 			));
 			assert_ok!(Market::make_offer(
 				Origin::signed(BOB),
@@ -217,7 +217,7 @@ fn accept_offer_should_work_when_nft_has_royalty_and_price_is_set() {
 				CLASS_ID_0,
 				INSTANCE_ID_0,
 				CHARLIE,
-				20,
+				2_000,
 			));
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),

@@ -5895,7 +5895,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "2.2.4"
+version = "3.0.1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5909,6 +5909,7 @@ dependencies = [
  "primitives",
  "scale-info 2.1.2",
  "serde",
+ "sp-arithmetic 5.0.0",
  "sp-core",
  "sp-io",
  "sp-runtime",
