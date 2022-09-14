@@ -126,7 +126,9 @@ fn deposit_for_create_typed_collection_should_be_zero(collection_type: Collectio
 			CollectionId,
 			CollectionType,
 		>>::create_typed_collection(
-			AccountId::from(ALICE), RESERVED_COLLECTION_ID, collection_type,
+			AccountId::from(ALICE),
+			RESERVED_COLLECTION_ID,
+			collection_type,
 		));
 
 		assert_eq!(
@@ -173,7 +175,11 @@ fn create_collection_should_ignore_reserved_ids() {
 fn destroy_collection_should_ignore_permissions() {
 	// Arrange
 	TestNet::reset();
-	create_nft_collection(AccountId::from(ALICE), RESERVED_COLLECTION_ID, RESTRICTED_COLLECTION_TYPE);
+	create_nft_collection(
+		AccountId::from(ALICE),
+		RESERVED_COLLECTION_ID,
+		RESTRICTED_COLLECTION_TYPE,
+	);
 	Basilisk::execute_with(|| {
 		// Act & Assert
 		assert_ok!(<NFT as Destroy<AccountId>>::destroy(
@@ -189,7 +195,11 @@ fn mint_into_should_ignore_permissions() {
 	// Arrange
 	let item_id = 0;
 	TestNet::reset();
-	create_nft_collection(AccountId::from(ALICE), RESERVED_COLLECTION_ID, RESTRICTED_COLLECTION_TYPE);
+	create_nft_collection(
+		AccountId::from(ALICE),
+		RESERVED_COLLECTION_ID,
+		RESTRICTED_COLLECTION_TYPE,
+	);
 	Basilisk::execute_with(|| {
 		// Act & Assert
 		assert_ok!(<NFT as Mutate<AccountId>>::mint_into(
@@ -205,11 +215,19 @@ fn burn_from_should_ignore_permissions() {
 	// Arrange
 	let item_id = 0;
 	TestNet::reset();
-	create_nft_collection(AccountId::from(ALICE), RESERVED_COLLECTION_ID, RESTRICTED_COLLECTION_TYPE);
+	create_nft_collection(
+		AccountId::from(ALICE),
+		RESERVED_COLLECTION_ID,
+		RESTRICTED_COLLECTION_TYPE,
+	);
 	mint_nft(AccountId::from(ALICE), RESERVED_COLLECTION_ID, item_id);
 	Basilisk::execute_with(|| {
 		// Act & Assert
-		assert_ok!(<NFT as Mutate<AccountId>>::burn(&RESERVED_COLLECTION_ID, &item_id, None));
+		assert_ok!(<NFT as Mutate<AccountId>>::burn(
+			&RESERVED_COLLECTION_ID,
+			&item_id,
+			None
+		));
 	});
 }
 
@@ -218,7 +236,11 @@ fn transfer_should_ignore_permissions() {
 	// Arrange
 	let item_id = 0;
 	TestNet::reset();
-	create_nft_collection(AccountId::from(ALICE), RESERVED_COLLECTION_ID, RESTRICTED_COLLECTION_TYPE);
+	create_nft_collection(
+		AccountId::from(ALICE),
+		RESERVED_COLLECTION_ID,
+		RESTRICTED_COLLECTION_TYPE,
+	);
 	mint_nft(AccountId::from(ALICE), RESERVED_COLLECTION_ID, item_id);
 	Basilisk::execute_with(|| {
 		// Act & Assert
@@ -245,7 +267,9 @@ fn create_typed_collection_should_ignore_permissions_and_reserved_ids(collection
 			CollectionId,
 			CollectionType,
 		>>::create_typed_collection(
-			AccountId::from(ALICE), RESERVED_COLLECTION_ID, collection_type,
+			AccountId::from(ALICE),
+			RESERVED_COLLECTION_ID,
+			collection_type,
 		));
 	});
 }
