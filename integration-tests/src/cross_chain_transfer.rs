@@ -116,8 +116,8 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 	});
 
 	Karura::execute_with(|| {
-		assert_ok!(XTokens::transfer(
-			Origin::signed(ALICE.into()),
+		assert_ok!(karura_runtime_mock::XTokens::transfer(
+			karura_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -136,7 +136,7 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 			399_600_000_000
 		));
 		assert_eq!(
-			Balances::free_balance(&AccountId::from(ALICE)),
+			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
@@ -159,10 +159,10 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 	TestNet::reset();
 
 	Karura::execute_with(|| {
-		assert_ok!(AssetRegistry::set_location(
-			Origin::root(),
+		assert_ok!(karura_runtime_mock::AssetRegistry::set_location(
+			karura_runtime_mock::Origin::root(),
 			1,
-			AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
+			karura_runtime_mock::AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
@@ -200,12 +200,12 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 	Karura::execute_with(|| {
 		let fee = 10175000000;
 		assert_eq!(
-			Tokens::free_balance(1, &AccountId::from(BOB)),
+			karura_runtime_mock::Tokens::free_balance(1, &AccountId::from(BOB)),
 			1000 * UNITS + 30 * UNITS - fee
 		);
 
 		assert_eq!(
-			Tokens::free_balance(1, &KaruraTreasuryAccount::get()),
+			karura_runtime_mock::Tokens::free_balance(1, &karura_runtime_mock::KaruraTreasuryAccount::get()),
 			10175000000
 		);
 
@@ -226,8 +226,8 @@ fn transfer_from_karura_and_back() {
 	});
 
 	Karura::execute_with(|| {
-		assert_ok!(XTokens::transfer(
-			Origin::signed(ALICE.into()),
+		assert_ok!(karura_runtime_mock::XTokens::transfer(
+			karura_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -246,7 +246,7 @@ fn transfer_from_karura_and_back() {
 			399_600_000_000
 		));
 		assert_eq!(
-			Balances::free_balance(&AccountId::from(ALICE)),
+			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
@@ -297,7 +297,7 @@ fn transfer_from_karura_and_back() {
 	});
 
 	Karura::execute_with(|| {
-		assert_eq!(Tokens::free_balance(1, &AccountId::from(ALICE)), 200 * UNITS);
+		assert_eq!(karura_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)), 200 * UNITS);
 	});
 }
 
@@ -316,11 +316,11 @@ fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used
 
 	Karura::execute_with(|| {
 		let insufficient_amount = 55;
-		assert_eq!(Balances::free_balance(&AccountId::from(ALICE)), 200000000000000);
+		assert_eq!(karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)), 200000000000000);
 
 		assert_noop!(
-			XTokens::transfer(
-				Origin::signed(ALICE.into()),
+			karura_runtime_mock::XTokens::transfer(
+				karura_runtime_mock::Origin::signed(ALICE.into()),
 				0,
 				insufficient_amount,
 				Box::new(
@@ -341,7 +341,7 @@ fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used
 			orml_xtokens::Error::<basilisk_runtime::Runtime>::XcmExecutionFailed
 		);
 
-		assert_eq!(Balances::free_balance(&AccountId::from(ALICE)), 200000000000000);
+		assert_eq!(karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)), 200000000000000);
 	});
 
 	Basilisk::execute_with(|| {
@@ -376,8 +376,8 @@ fn fee_currency_set_on_xcm_transfer() {
 	});
 
 	Karura::execute_with(|| {
-		assert_ok!(XTokens::transfer(
-			Origin::signed(ALICE.into()),
+		assert_ok!(karura_runtime_mock::XTokens::transfer(
+			karura_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			transfer_amount,
 			Box::new(
@@ -396,7 +396,7 @@ fn fee_currency_set_on_xcm_transfer() {
 			399_600_000_000
 		));
 		assert_eq!(
-			Balances::free_balance(&AccountId::from(ALICE)),
+			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - transfer_amount
 		);
 	});
@@ -424,8 +424,8 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	TestNet::reset();
 
 	Karura::execute_with(|| {
-		assert_ok!(XTokens::transfer(
-			Origin::signed(ALICE.into()),
+		assert_ok!(karura_runtime_mock::XTokens::transfer(
+			karura_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -444,7 +444,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			399_600_000_000
 		));
 		assert_eq!(
-			Balances::free_balance(&AccountId::from(ALICE)),
+			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
