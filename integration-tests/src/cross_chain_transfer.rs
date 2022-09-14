@@ -153,7 +153,6 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 	});
 }
 
-
 #[test]
 fn karura_should_receive_asset_when_sent_from_basilisk() {
 	TestNet::reset();
@@ -208,10 +207,8 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 			karura_runtime_mock::Tokens::free_balance(1, &karura_runtime_mock::KaruraTreasuryAccount::get()),
 			10175000000
 		);
-
 	});
 }
-
 
 #[test]
 fn transfer_from_karura_and_back() {
@@ -297,10 +294,12 @@ fn transfer_from_karura_and_back() {
 	});
 
 	Karura::execute_with(|| {
-		assert_eq!(karura_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)), 200 * UNITS);
+		assert_eq!(
+			karura_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)),
+			200 * UNITS
+		);
 	});
 }
-
 
 #[test]
 fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used() {
@@ -316,7 +315,10 @@ fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used
 
 	Karura::execute_with(|| {
 		let insufficient_amount = 55;
-		assert_eq!(karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)), 200000000000000);
+		assert_eq!(
+			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			200000000000000
+		);
 
 		assert_noop!(
 			karura_runtime_mock::XTokens::transfer(
@@ -341,7 +343,10 @@ fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used
 			orml_xtokens::Error::<basilisk_runtime::Runtime>::XcmExecutionFailed
 		);
 
-		assert_eq!(karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)), 200000000000000);
+		assert_eq!(
+			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			200000000000000
+		);
 	});
 
 	Basilisk::execute_with(|| {
@@ -469,4 +474,3 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
 	});
 }
-

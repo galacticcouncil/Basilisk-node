@@ -49,18 +49,14 @@ pub const BASILISK_PARA_ID: u32 = 2090;
 pub type BlockNumberKarura = u64;
 
 use cumulus_primitives_core::ParaId;
-use frame_support::traits::{GenesisBuild};
 use hydradx_traits::pools::SpotPriceProvider;
 use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_payment::TargetedFeeAdjustment;
-use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
-use polkadot_runtime_parachains::configuration::HostConfiguration;
 use polkadot_xcm::prelude::MultiLocation;
 use sp_arithmetic::FixedU128;
 use sp_runtime::traits::AccountIdConversion;
 
 use basilisk_runtime::{AdjustmentVariable, MinimumMultiplier, TargetBlockFullness, WeightToFee};
-use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 parameter_types! {
 	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;

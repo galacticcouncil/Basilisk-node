@@ -1,43 +1,9 @@
 #![cfg(test)]
 
 pub use basilisk_runtime::{AccountId, VestingPalletId};
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Everything, Nothing},
-	weights::{constants::WEIGHT_PER_SECOND, Pays, Weight},
-	PalletId,
-};
-use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 
-use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
-use sp_runtime::traits::Convert;
-use sp_runtime::Perbill;
-
-use codec::{Decode, Encode};
-use scale_info::TypeInfo;
-
-use orml_traits::parameter_type_with_key;
-
-use pallet_transaction_multi_payment::{DepositAll, Price, TransferFees};
-use polkadot_xcm::latest::prelude::*;
+use pallet_transaction_multi_payment::Price;
 use primitives::Balance;
-
-use frame_system::EnsureRoot;
-use pallet_xcm::XcmPassthrough;
-use polkadot_parachain::primitives::Sibling;
-use primitives::{constants::currency::*, AssetId};
-use sp_core::H256;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
-use xcm_builder::{
-	AccountId32Aliases, AllowUnpaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds, LocationInverter, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
-	SignedToAccountId32, SovereignSignedViaLocation,
-};
-use xcm_executor::{Config, XcmExecutor};
-pub type Amount = i128;
 
 pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
@@ -48,21 +14,14 @@ pub const UNITS: Balance = 1_000_000_000_000;
 
 pub const KARURA_PARA_ID: u32 = 2000;
 pub const BASILISK_PARA_ID: u32 = 2090;
-pub type BlockNumberKarura = u64;
 
 use cumulus_primitives_core::ParaId;
-use frame_support::traits::{GenesisBuild};
-use hydradx_traits::pools::SpotPriceProvider;
-use orml_currencies::BasicCurrencyAdapter;
-use pallet_transaction_payment::TargetedFeeAdjustment;
+use frame_support::traits::GenesisBuild;
 use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
-use polkadot_xcm::prelude::MultiLocation;
 use pretty_assertions::assert_eq;
-use sp_arithmetic::FixedU128;
 use sp_runtime::traits::AccountIdConversion;
 
-use basilisk_runtime::{AdjustmentVariable, MinimumMultiplier, TargetBlockFullness, WeightToFee};
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 decl_test_relay_chain! {
@@ -250,8 +209,8 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 }
 
 pub fn karura_ext() -> sp_io::TestExternalities {
-	use karura_runtime_mock::{MultiTransactionPayment, NativeExistentialDeposit, KaruraRuntime, System};
 	use frame_support::traits::OnInitialize;
+	use karura_runtime_mock::{KaruraRuntime, MultiTransactionPayment, NativeExistentialDeposit, System};
 
 	let existential_deposit = NativeExistentialDeposit::get();
 
