@@ -107,6 +107,8 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 fn basilisk_should_receive_asset_when_sent_from_karura() {
 	TestNet::reset();
 
+	let amount_to_send = 30 * UNITS;
+
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
@@ -119,7 +121,7 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 		assert_ok!(karura_runtime_mock::XTokens::transfer(
 			karura_runtime_mock::Origin::signed(ALICE.into()),
 			0,
-			30 * UNITS,
+			amount_to_send,
 			Box::new(
 				MultiLocation::new(
 					1,
@@ -137,18 +139,19 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 		));
 		assert_eq!(
 			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
+			200 * UNITS - amount_to_send
 		);
 	});
 
+	let fee = 10_185_185;
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1_029_999_989_814_815
+			1000 * UNITS + amount_to_send - fee
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			10_185_185 // fees should go to treasury
+			fee // fees should go to treasury
 		);
 	});
 }
@@ -156,6 +159,8 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 #[test]
 fn karura_should_receive_asset_when_sent_from_basilisk() {
 	TestNet::reset();
+
+	let amount_to_send = 30 * UNITS;
 
 	Karura::execute_with(|| {
 		assert_ok!(karura_runtime_mock::AssetRegistry::set_location(
@@ -174,7 +179,7 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
-			30 * UNITS,
+			amount_to_send,
 			Box::new(
 				MultiLocation::new(
 					1,
@@ -192,7 +197,7 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
+			200 * UNITS - amount_to_send
 		);
 	});
 
@@ -200,7 +205,7 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 		let fee = 10175000000;
 		assert_eq!(
 			karura_runtime_mock::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1000 * UNITS + 30 * UNITS - fee
+			1000 * UNITS + amount_to_send - fee
 		);
 
 		assert_eq!(
@@ -214,6 +219,8 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 fn transfer_from_karura_and_back() {
 	TestNet::reset();
 
+	let amount_to_send = 30 * UNITS;
+
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
@@ -226,7 +233,7 @@ fn transfer_from_karura_and_back() {
 		assert_ok!(karura_runtime_mock::XTokens::transfer(
 			karura_runtime_mock::Origin::signed(ALICE.into()),
 			0,
-			30 * UNITS,
+			amount_to_send,
 			Box::new(
 				MultiLocation::new(
 					1,
@@ -244,18 +251,19 @@ fn transfer_from_karura_and_back() {
 		));
 		assert_eq!(
 			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
+			200 * UNITS - amount_to_send
 		);
 	});
 
+	let fee = 10_185_185;
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1_029_999_989_814_815
+			1000 * UNITS + amount_to_send - fee
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			10_185_185 // fees should go to treasury
+			fee // fees should go to treasury
 		);
 
 		//transfer back
@@ -267,7 +275,7 @@ fn transfer_from_karura_and_back() {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(BOB.into()),
 			0,
-			30 * UNITS,
+			amount_to_send,
 			Box::new(
 				MultiLocation::new(
 					1,
@@ -285,7 +293,7 @@ fn transfer_from_karura_and_back() {
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			1000 * UNITS - 30 * UNITS
+			1000 * UNITS - amount_to_send
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
