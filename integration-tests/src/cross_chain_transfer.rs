@@ -153,6 +153,157 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 	});
 }
 
+
+#[test]
+fn karura_should_receive_asset_when_sent_from_basilisk() {
+	TestNet::reset();
+
+	Karura::execute_with(|| {
+		assert_ok!(AssetRegistry::set_location(
+			Origin::root(),
+			1,
+			AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
+		));
+	});
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			1,
+		));
+
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			0,
+			30 * UNITS,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(KARURA_PARA_ID),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			200 * UNITS - 30 * UNITS
+		);
+	});
+
+	Karura::execute_with(|| {
+		let fee = 10175000000;
+		assert_eq!(
+			Tokens::free_balance(1, &AccountId::from(BOB)),
+			1000 * UNITS + 30 * UNITS - fee
+		);
+
+		assert_eq!(
+			Tokens::free_balance(1, &KaruraTreasuryAccount::get()),
+			10175000000
+		);
+
+	});
+}
+
+
+#[test]
+fn transfer_from_karura_and_back() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			1,
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
+		));
+	});
+
+	Karura::execute_with(|| {
+		env_logger::init();
+
+		assert_ok!(XTokens::transfer(
+			Origin::signed(ALICE.into()),
+			0,
+			30 * UNITS,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(BASILISK_PARA_ID),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			Balances::free_balance(&AccountId::from(ALICE)),
+			200 * UNITS - 30 * UNITS
+		);
+	});
+
+	Basilisk::execute_with(|| {
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			1_029_999_989_814_815
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			10_185_185 // fees should go to treasury
+		);
+
+		//transfer back
+		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
+			basilisk_runtime::Origin::signed(BOB.into()),
+			1,
+		));
+
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(BOB.into()),
+			0,
+			30 * UNITS,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(KARURA_PARA_ID),
+						Junction::AccountId32 {
+							id: ALICE,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			1000 * UNITS - 30 * UNITS
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			35_990_141 // fees should go to treasury
+		);
+	});
+
+	Karura::execute_with(|| {
+		assert_eq!(Tokens::free_balance(1, &AccountId::from(ALICE)), 200 * UNITS);
+	});
+}
+
+
 #[test]
 fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used() {
 	TestNet::reset();
@@ -321,136 +472,3 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	});
 }
 
-#[test]
-fn transfer_from_karura_and_back() {
-	TestNet::reset();
-
-	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::Origin::root(),
-			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
-		));
-	});
-
-	Karura::execute_with(|| {
-		assert_ok!(XTokens::transfer(
-			Origin::signed(ALICE.into()),
-			0,
-			30 * UNITS,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(BASILISK_PARA_ID),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
-					)
-				)
-				.into()
-			),
-			399_600_000_000
-		));
-		assert_eq!(
-			Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
-		);
-	});
-
-	Basilisk::execute_with(|| {
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1_029_999_989_814_815
-		);
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			10_185_185 // fees should go to treasury
-		);
-
-		//transfer back
-		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
-			basilisk_runtime::Origin::signed(BOB.into()),
-			1,
-		));
-
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(BOB.into()),
-			0,
-			30 * UNITS,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(KARURA_PARA_ID),
-						Junction::AccountId32 {
-							id: ALICE,
-							network: NetworkId::Any,
-						}
-					)
-				)
-				.into()
-			),
-			399_600_000_000
-		));
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			1000 * UNITS - 30 * UNITS
-		);
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			35_990_141 // fees should go to treasury
-		);
-	});
-
-	Karura::execute_with(|| {
-		assert_eq!(Balances::free_balance(&AccountId::from(ALICE)), 200 * UNITS);
-	});
-}
-
-#[test]
-fn karura_should_receive_asset_when_sent_from_basilisk() {
-	TestNet::reset();
-
-	Karura::execute_with(|| {
-		assert_ok!(AssetRegistry::set_location(
-			Origin::root(),
-			1,
-			AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
-		));
-	});
-
-	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
-			0,
-			30 * UNITS,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(KARURA_PARA_ID),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
-					)
-				)
-				.into()
-			),
-			399_600_000_000
-		));
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
-		);
-	});
-
-	Karura::execute_with(|| {
-		assert_eq!(
-			Tokens::free_balance(1, &AccountId::from(BOB)),
-			1000 * UNITS + 30 * UNITS
-		);
-	});
-}

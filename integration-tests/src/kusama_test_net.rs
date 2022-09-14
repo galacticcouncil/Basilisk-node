@@ -1,4 +1,5 @@
 #![cfg(test)]
+
 pub use basilisk_runtime::{AccountId, VestingPalletId};
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -6,13 +7,15 @@ use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, Pays, Weight},
 	PalletId,
 };
+use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+
 use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use sp_runtime::traits::Convert;
+use sp_runtime::Perbill;
 
 use codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
-use frame_system::EnsureSigned;
 use orml_traits::parameter_type_with_key;
 
 use pallet_transaction_multi_payment::{DepositAll, Price, TransferFees};
@@ -48,7 +51,7 @@ pub const BASILISK_PARA_ID: u32 = 2090;
 pub type BlockNumberKarura = u64;
 
 use cumulus_primitives_core::ParaId;
-use frame_support::traits::GenesisBuild;
+use frame_support::traits::{GenesisBuild};
 use hydradx_traits::pools::SpotPriceProvider;
 use orml_currencies::BasicCurrencyAdapter;
 use pallet_transaction_payment::TargetedFeeAdjustment;
@@ -247,6 +250,8 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 }
 
 pub fn karura_ext() -> sp_io::TestExternalities {
+	use crate::kusama_test_net::sp_api_hidden_includes_construct_runtime::hidden_include::traits::OnInitialize;
+
 	let existential_deposit = NativeExistentialDeposit::get();
 
 	let mut t = frame_system::GenesisConfig::default()
@@ -305,6 +310,7 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| {
 		System::set_block_number(1);
+		MultiTransactionPayment::on_initialize(1);
 	});
 
 	ext
@@ -334,6 +340,9 @@ parameter_types! {
 
 }
 
+pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+
+
 //Setting up mock for Karura runtime
 //TODO: once it works properly, extract it to dedicated file/project
 parameter_types! {
@@ -348,6 +357,8 @@ parameter_types! {
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub const MaxInstructions: u32 = 100;
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub BlockLength: frame_system::limits::BlockLength =
+		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 }
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
@@ -358,7 +369,7 @@ parameter_type_with_key! {
 impl frame_system::Config for KaruraRuntime {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
-	type BlockLength = ();
+	type BlockLength = BlockLength;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Call = Call;
@@ -396,6 +407,9 @@ pub type XcmRouter = (
 parameter_types! {
 	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
 	pub KaruraTreasuryAccount: AccountId = TreasuryPalletId::get().into_account();
+	pub KsmPerSecond: (AssetId, u128) = (0, 10);
+
+	pub BaseRate: u128 = 100;
 }
 
 pub type LocalAssetTransactor = MultiCurrencyAdapter<
@@ -428,12 +442,28 @@ impl Config for XcmConfig {
 	type XcmSender = XcmRouter;
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = XcmOriginToCallOrigin;
-	type IsReserve = ();
+	type IsReserve = MultiNativeAsset;
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader = ();
+	type Trader = MultiCurrencyTrader<
+		AssetId,
+		Balance,
+		Price,
+		WeightToFee,
+		MultiTransactionPayment,
+		CurrencyIdConvert,
+		ToFeeReceiver<
+			AccountId,
+			AssetId,
+			Balance,
+			Price,
+			CurrencyIdConvert,
+			DepositAll<KaruraRuntime>,
+			MultiTransactionPayment,
+		>,
+	>;
 	type ResponseHandler = ();
 	type AssetTrap = ();
 	type AssetClaims = ();
@@ -664,17 +694,17 @@ impl pallet_transaction_payment::Config for KaruraRuntime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
-pub struct KaruraSpotPriceProvider;
+pub struct KaruraSpotPriceProviderStub;
 
-impl SpotPriceProvider<AssetId> for KaruraSpotPriceProvider {
+impl SpotPriceProvider<AssetId> for KaruraSpotPriceProviderStub {
 	type Price = FixedU128;
 
-	fn pair_exists(asset_a: AssetId, asset_b: AssetId) -> bool {
-		todo!()
+	fn pair_exists(_asset_a: AssetId, _asset_b: AssetId) -> bool {
+		true
 	}
 
-	fn spot_price(asset_a: AssetId, asset_b: AssetId) -> Option<Self::Price> {
-		todo!()
+	fn spot_price(_asset_a: AssetId, _asset_b: AssetId) -> Option<Self::Price> {
+		Some(FixedU128::from_inner(462_962_963_000_u128))
 	}
 }
 
@@ -682,11 +712,11 @@ impl pallet_transaction_multi_payment::Config for KaruraRuntime {
 	type Event = Event;
 	type AcceptedCurrencyOrigin = EnsureRoot<AccountId>;
 	type Currencies = Currencies;
-	type SpotPriceProvider = KaruraSpotPriceProvider; //pallet_xyk::XYKSpotPrice<KaruraRuntime>;
+	type SpotPriceProvider = KaruraSpotPriceProviderStub;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
-	type NativeAssetId = NativeAssetId;
+	type NativeAssetId = KaruraNativeCurrencyId;
 	type FeeReceiver = KaruraTreasuryAccount;
 }
 
