@@ -5,7 +5,7 @@ use frame_support::{
 	BoundedVec,
 };
 use frame_system as system;
-use pallet_nft::{ClassType, NftPermissions};
+use pallet_nft::{CollectionType, NftPermissions};
 pub use primitives::{Amount, AssetId};
 use sp_core::storage::Storage;
 use sp_core::{crypto::AccountId32, H256};
@@ -63,18 +63,18 @@ impl pallet_marketplace::Config for Test {
 }
 
 parameter_types! {
-	pub ReserveClassIdUpTo: u32 = 999;
+	pub ReserveCollectionIdUpTo: u32 = 999;
 }
 
 impl pallet_nft::Config for Test {
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type NftClassId = u32;
-	type NftInstanceId = u32;
+	type NftCollectionId = u32;
+	type NftItemId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
-	type ClassType = ClassType;
+	type CollectionType = CollectionType;
 	type Permissions = NftPermissions;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
 }
 
 parameter_types! {
@@ -122,8 +122,8 @@ impl system::Config for Test {
 }
 
 parameter_types! {
-	pub const CollectionDeposit: Balance = 10_000 * UNITS; // 1 UNIT deposit to create asset class
-	pub const ItemDeposit: Balance = 100 * UNITS; // 1/100 UNIT deposit to create asset instance
+	pub const CollectionDeposit: Balance = 10_000 * UNITS; // 1 UNIT deposit to create asset collection
+	pub const ItemDeposit: Balance = 100 * UNITS; // 1/100 UNIT deposit to create asset item
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
@@ -160,12 +160,12 @@ pub const DAVE: AccountId = AccountId::new([4u8; 32]);
 
 pub const UNITS: Balance = 100_000_000_000;
 
-pub const CLASS_ID_0: <Test as pallet_uniques::Config>::CollectionId = 1000;
-pub const CLASS_ID_1: <Test as pallet_uniques::Config>::CollectionId = 1001;
-pub const CLASS_ID_2: <Test as pallet_uniques::Config>::CollectionId = 1002;
+pub const COLLECTION_ID_0: <Test as pallet_uniques::Config>::CollectionId = 1000;
+pub const COLLECTION_ID_1: <Test as pallet_uniques::Config>::CollectionId = 1001;
+pub const COLLECTION_ID_2: <Test as pallet_uniques::Config>::CollectionId = 1002;
 
-pub const INSTANCE_ID_0: <Test as pallet_uniques::Config>::ItemId = 0;
-pub const INSTANCE_ID_1: <Test as pallet_uniques::Config>::ItemId = 1;
+pub const ITEM_ID_0: <Test as pallet_uniques::Config>::ItemId = 0;
+pub const ITEM_ID_1: <Test as pallet_uniques::Config>::ItemId = 1;
 
 #[derive(Default)]
 pub struct ExtBuilder {
@@ -223,7 +223,7 @@ impl ExtBuilder {
 		for nft in &self.minted_nfts {
 			let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 				b"metadata".to_vec().try_into().unwrap();
-			assert_ok!(NFT::create_class(
+			assert_ok!(NFT::create_collection(
 				Origin::signed(nft.0.clone()),
 				nft.1,
 				Default::default(),

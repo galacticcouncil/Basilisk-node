@@ -513,16 +513,16 @@ parameter_types! {
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
-	type NftClassId = CollectionId;
-	type NftInstanceId = ItemId;
+	type NftCollectionId = CollectionId;
+	type NftItemId = ItemId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
-	type ClassType = pallet_nft::ClassType;
+	type CollectionType = pallet_nft::CollectionType;
 	type Permissions = pallet_nft::NftPermissions;
-	type ReserveClassIdUpTo = ReserveCollectionIdUpTo;
+	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
 }
 
 parameter_types! {
-	pub const CollectionDeposit: Balance = 10_000 * UNITS; // 10 000 UNITS deposit to create asset class
+	pub const CollectionDeposit: Balance = 10_000 * UNITS; // 10 000 UNITS deposit to create asset collection
 	pub const ItemDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
 	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value

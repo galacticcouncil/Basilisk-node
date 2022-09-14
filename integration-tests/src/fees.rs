@@ -3,7 +3,7 @@
 use crate::kusama_test_net::*;
 use basilisk_runtime::TransactionPayment;
 use frame_support::weights::GetDispatchInfo;
-use pallet_nft::ClassType;
+use pallet_nft::CollectionType;
 use sp_runtime::codec::Encode;
 use xcm_emulator::TestExt;
 
@@ -79,8 +79,8 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 		let expected_ui_fees = 41_233 * UNITS / 100; //412.33
 
 		let call = pallet_nft::Call::<basilisk_runtime::Runtime>::mint {
-			class_id: 1_000_000,
-			instance_id: 0,
+			collection_id: 1_000_000,
+			item_id: 0,
 			metadata: b"ipfs://QmQu2jUmtFNPd86tEHFs6hmAArKYyjEC3xuwVWpFGjcMgm"
 				.to_vec()
 				.try_into()
@@ -126,7 +126,7 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 }
 
 #[test]
-fn transaction_fees_should_be_as_expected_when_nft_class_is_created() {
+fn transaction_fees_should_be_as_expected_when_nft_collection_is_created() {
 	Basilisk::execute_with(|| {
 		//NOTE: Price showed by polkadotAPPS is changing at second decimal place between runs.
 		let diff = UNITS / 10; //0.1
@@ -134,9 +134,9 @@ fn transaction_fees_should_be_as_expected_when_nft_class_is_created() {
 		let expected_rust_encoded_fees = 39_879 * UNITS / 100; //398.79
 		let expected_ui_fees = 39_982 * UNITS / 100; //399.82
 
-		let call = pallet_nft::Call::<basilisk_runtime::Runtime>::create_class {
-			class_id: 0,
-			class_type: ClassType::Marketplace,
+		let call = pallet_nft::Call::<basilisk_runtime::Runtime>::create_collection {
+			collection_id: 0,
+			collection_type: CollectionType::Marketplace,
 			metadata: b"ipfs://QmQu2jUmtFNPd86tEHFs6hmAArKYyjEC3xuwVWpFGjcMgm"
 				.to_vec()
 				.try_into()
@@ -167,7 +167,7 @@ fn transaction_fees_should_be_as_expected_when_nft_class_is_created() {
 		let min_multiplier_ui_fees = TransactionPayment::compute_fee(ui_encoded_len, &info, 0);
 
 		println!(
-			"NFT create_class\n\t UI fees: {}/{} [actual/expected]\n\t Rust encoded fees: {}/{} [actual/expected]\n\t Fees with min. FeeMultiplier: {} [UI], {} [Rust]",
+			"NFT create_collection\n\t UI fees: {}/{} [actual/expected]\n\t Rust encoded fees: {}/{} [actual/expected]\n\t Fees with min. FeeMultiplier: {} [UI], {} [Rust]",
 			format_num(ui_fees * 10_000 / UNITS, 4),
 			format_num(expected_ui_fees * 10_000 / UNITS, 4),
 			format_num(rust_encoded_fees * 10_000 / UNITS, 4),

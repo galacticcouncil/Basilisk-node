@@ -12,15 +12,15 @@ fn make_offer_should_work_when_no_nft_exists() {
 			// Act
 			assert_ok!(Market::make_offer(
 				Origin::signed(CHARLIE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				50 * UNITS,
 				2
 			));
 
 			// Assert
 			assert_eq!(
-				Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE),
+				Market::offers((COLLECTION_ID_0, ITEM_ID_0), CHARLIE),
 				Some(Offer {
 					maker: CHARLIE,
 					amount: 50 * UNITS,
@@ -33,8 +33,8 @@ fn make_offer_should_work_when_no_nft_exists() {
 				last_event(),
 				Event::OfferPlaced {
 					who: CHARLIE,
-					class: CLASS_ID_0,
-					instance: INSTANCE_ID_0,
+					collection: COLLECTION_ID_0,
+					item: ITEM_ID_0,
 					amount: 50 * UNITS,
 					expires: 2,
 				}
@@ -54,14 +54,14 @@ fn make_offer_should_fail_when_offer_is_lower_than_minimal_amount() {
 			assert_noop!(
 				Market::make_offer(
 					Origin::signed(BOB),
-					CLASS_ID_0,
-					INSTANCE_ID_0,
+					COLLECTION_ID_0,
+					ITEM_ID_0,
 					<Test as Config>::MinimumOfferAmount::get() - 1,
 					1
 				),
 				Error::<Test>::OfferTooLow
 			);
-			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE), None);
+			assert_eq!(Market::offers((COLLECTION_ID_0, ITEM_ID_0), CHARLIE), None);
 		});
 }
 
@@ -74,15 +74,15 @@ fn make_offer_should_fail_when_offer_has_been_already_made() {
 		.execute_with(|| {
 			assert_ok!(Market::make_offer(
 				Origin::signed(BOB),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				50 * UNITS,
 				1
 			));
 
 			// Act and assert
 			assert_noop!(
-				Market::make_offer(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0, 70 * UNITS, 1),
+				Market::make_offer(Origin::signed(BOB), COLLECTION_ID_0, ITEM_ID_0, 70 * UNITS, 1),
 				Error::<Test>::AlreadyOffered
 			);
 		});
@@ -98,8 +98,8 @@ fn make_offer_should_fail_when_offerer_has_not_enough_balance() {
 		.execute_with(|| {
 			// Act and assert
 			let call = Call::Marketplace(crate::Call::<Test>::make_offer {
-				class_id: CLASS_ID_0,
-				instance_id: INSTANCE_ID_0,
+				collection_id: COLLECTION_ID_0,
+				item_id: ITEM_ID_0,
 				amount: (balance + 1) * UNITS,
 				expires: 2,
 			});

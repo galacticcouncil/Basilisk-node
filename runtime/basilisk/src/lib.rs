@@ -543,14 +543,14 @@ parameter_types! {
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
-	//Generated weight file is not used because we want diffent prices for now.
+	//Generated weight file is not used because we want different prices for now.
 	type WeightInfo = weights::offsetted_nft::BasiliskWeight<Runtime>;
-	type NftClassId = CollectionId;
-	type NftInstanceId = ItemId;
+	type NftCollectionId = CollectionId;
+	type NftItemId = ItemId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
-	type ClassType = pallet_nft::ClassType;
+	type CollectionType = pallet_nft::CollectionType;
 	type Permissions = pallet_nft::NftPermissions;
-	type ReserveClassIdUpTo = ReserveCollectionIdUpTo;
+	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
 }
 
 type MajorityCouncilOrRoot =

@@ -8,7 +8,7 @@ use basilisk_runtime::{
 use frame_support::{assert_noop, assert_ok};
 use orml_traits::MultiCurrency;
 use orml_traits::MultiReservableCurrency;
-use pallet_nft::ClassType;
+use pallet_nft::CollectionType;
 use primitives::{AssetId, CollectionId};
 use xcm_emulator::TestExt;
 
@@ -28,10 +28,10 @@ fn init() {
 
 fn arrange_nft() {
 	Basilisk::execute_with(|| {
-		assert_ok!(NFT::create_class(
+		assert_ok!(NFT::create_collection(
 			Origin::signed(ALICE.into()),
 			ALICE_COLLECTION,
-			ClassType::Marketplace,
+			CollectionType::Marketplace,
 			b"ipfs://QmZn9GFNrNyaTXNdCLWEPtjYHGG9yajgw9JzxpMoDZ2Ziq"
 				.to_vec()
 				.try_into()
@@ -117,14 +117,14 @@ fn make_offer_should_reserve_ksm_when_created() {
 
 #[test]
 #[ignore] // is not case when the minting is free
-fn create_class_should_fail_when_relay_chain_location_not_registered() {
+fn create_collection_should_fail_when_relay_chain_location_not_registered() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
 		assert_noop!(
-			NFT::create_class(
+			NFT::create_collection(
 				Origin::signed(ALICE.into()),
 				ALICE_COLLECTION,
-				ClassType::Marketplace,
+				CollectionType::Marketplace,
 				b"ipfs://QmZn9GFNrNyaTXNdCLWEPtjYHGG9yajgw9JzxpMoDZ2Ziq"
 					.to_vec()
 					.try_into()

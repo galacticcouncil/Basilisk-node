@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License..
 
-use crate::{Config, MarketplaceInstances, Pallet, RoyaltyOf, MAX_ROYALTY};
+use crate::{Config, MarketplaceItems, Pallet, RoyaltyOf, MAX_ROYALTY};
 use codec::Decode;
 use frame_support::{
 	codec, log,
@@ -47,7 +47,7 @@ pub mod v1 {
 
 		let mut translated = 0u64;
 
-		<MarketplaceInstances<T>>::translate(|_key_1, _key_2, old: OldRoyalty<T::AccountId>| {
+		<MarketplaceItems<T>>::translate(|_key_1, _key_2, old: OldRoyalty<T::AccountId>| {
 			translated.saturating_inc();
 			Some(RoyaltyOf::<T> {
 				author: old.author,
@@ -66,7 +66,7 @@ pub mod v1 {
 	pub fn post_migrate<T: Config>() {
 		assert_eq!(StorageVersion::get::<Pallet<T>>(), 1, "Storage version too high.");
 
-		for (_key_1, _key_2, royalty) in MarketplaceInstances::<T>::iter() {
+		for (_key_1, _key_2, royalty) in MarketplaceItems::<T>::iter() {
 			assert!(royalty.royalty < MAX_ROYALTY, "Invalid value.");
 		}
 	}

@@ -29,8 +29,8 @@ orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "8c625a5ab43c1c56cdeed5f8d814a891566d4cf8", default-features = false }
 
 # Warehouse dependencies
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "398ccabf91f674c5e6015811efb0b3359d314eba", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "398ccabf91f674c5e6015811efb0b3359d314eba", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "445c2dbe10741e16731d6e0295921d2c9b1c216c", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "445c2dbe10741e16731d6e0295921d2c9b1c216c", default-features = false }
 
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
