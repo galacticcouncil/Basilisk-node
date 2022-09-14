@@ -36,16 +36,6 @@ use xcm_builder::{
 };
 use xcm_executor::{Config, XcmExecutor};
 pub type Amount = i128;
-
-pub const ALICE: [u8; 32] = [4u8; 32];
-pub const BOB: [u8; 32] = [5u8; 32];
-pub const CHARLIE: [u8; 32] = [6u8; 32];
-pub const DAVE: [u8; 32] = [7u8; 32];
-
-pub const UNITS: Balance = 1_000_000_000_000;
-
-pub const KARURA_PARA_ID: u32 = 2000;
-pub const BASILISK_PARA_ID: u32 = 2090;
 pub type BlockNumberKarura = u64;
 
 use cumulus_primitives_core::ParaId;
@@ -58,18 +48,16 @@ use sp_runtime::traits::AccountIdConversion;
 
 use basilisk_runtime::{AdjustmentVariable, MinimumMultiplier, TargetBlockFullness, WeightToFee};
 
-parameter_types! {
-	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
-		pub const TransactionByteFee: Balance = 10 * MILLICENTS;
-
-}
-
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
+pub const CORE_ASSET_ID: AssetId = 0;
 
-//Setting up mock for Karura runtime
-//TODO: once it works properly, extract it to dedicated file/project
+
 parameter_types! {
+    pub KaruraNativeCurrencyId: AssetId = 0;
+	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
+    pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
+    pub const TransactionByteFee: Balance = 10 * MILLICENTS;
 	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 63;
 	pub static MockBlockNumberProvider: u64 = 0;
@@ -83,6 +71,17 @@ parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub BlockLength: frame_system::limits::BlockLength =
 		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+    pub const ReservedXcmpWeight: Weight = WEIGHT_PER_SECOND / 4;
+	pub const ReservedDmpWeight: Weight = WEIGHT_PER_SECOND / 4;
+	pub RegistryStringLimit: u32 = 100;
+	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
+    pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
+	pub KaruraTreasuryAccount: AccountId = TreasuryPalletId::get().into_account();
+	pub KsmPerSecond: (AssetId, u128) = (0, 10);
+	pub BaseRate: u128 = 100;
+    pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::parachain_id().into())));
+	pub const BaseXcmWeight: Weight = 100_000_000;
+	pub const MaxAssetsForTransfer: usize = 2;
 }
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
@@ -127,14 +126,6 @@ pub type XcmRouter = (
     // ..and XCMP to communicate with the sibling chains.
     XcmpQueue,
 );
-
-parameter_types! {
-	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
-	pub KaruraTreasuryAccount: AccountId = TreasuryPalletId::get().into_account();
-	pub KsmPerSecond: (AssetId, u128) = (0, 10);
-
-	pub BaseRate: u128 = 100;
-}
 
 pub type LocalAssetTransactor = MultiCurrencyAdapter<
     Currencies,
@@ -194,15 +185,6 @@ impl Config for XcmConfig {
     type SubscriptionService = ();
 }
 
-pub const CORE_ASSET_ID: AssetId = 0;
-
-parameter_types! {
-	pub const ReservedXcmpWeight: Weight = WEIGHT_PER_SECOND / 4;
-	pub const ReservedDmpWeight: Weight = WEIGHT_PER_SECOND / 4;
-	pub RegistryStringLimit: u32 = 100;
-	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
-
-}
 
 impl cumulus_pallet_parachain_system::Config for KaruraRuntime {
     type Event = Event;
@@ -371,12 +353,6 @@ impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
     }
 }
 
-parameter_types! {
-	pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::parachain_id().into())));
-	pub const BaseXcmWeight: Weight = 100_000_000;
-	pub const MaxAssetsForTransfer: usize = 2;
-}
-
 impl orml_xtokens::Config for KaruraRuntime {
     type Event = Event;
     type Balance = Balance;
@@ -389,11 +365,6 @@ impl orml_xtokens::Config for KaruraRuntime {
     type BaseXcmWeight = BaseXcmWeight;
     type LocationInverter = LocationInverter<Ancestry>;
     type MaxAssetsForTransfer = MaxAssetsForTransfer;
-}
-
-parameter_types! {
-	pub KaruraNativeCurrencyId: AssetId = 0;
-	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
 }
 
 impl orml_currencies::Config for KaruraRuntime {
