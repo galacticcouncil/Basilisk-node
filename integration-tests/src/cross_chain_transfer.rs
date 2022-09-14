@@ -226,8 +226,6 @@ fn transfer_from_karura_and_back() {
 	});
 
 	Karura::execute_with(|| {
-		env_logger::init();
-
 		assert_ok!(XTokens::transfer(
 			Origin::signed(ALICE.into()),
 			0,

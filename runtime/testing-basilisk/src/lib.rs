@@ -58,7 +58,7 @@ use codec::Decode;
 use frame_support::traits::Contains;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Everything, Get, InstanceFilter, U128CurrencyToVote},
+	traits::{EnsureOneOf, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter, U128CurrencyToVote},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -100,8 +100,25 @@ pub mod opaque {
 }
 
 mod testing {
-	use super::{parameter_types, BlockNumber, Everything, MINUTES};
-	pub type BaseFilter = Everything;
+	use super::{parameter_types, BlockNumber, Call, Contains, Runtime, MINUTES};
+
+	pub struct BaseFilter;
+	impl Contains<Call> for BaseFilter {
+		fn contains(call: &Call) -> bool {
+			if matches!(call, Call::System(_) | Call::Timestamp(_) | Call::ParachainSystem(_)) {
+				// always allow
+				// Note: this is done to avoid unnecessary check of paused storage.
+				return true;
+			}
+
+			if pallet_transaction_pause::PausedTransactionFilter::<Runtime>::contains(call) {
+				// if paused, dont allow!
+				return false;
+			}
+
+			true
+		}
+	}
 
 	parameter_types! {
 		pub const LaunchPeriod: BlockNumber = MINUTES;
@@ -115,7 +132,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 71,
+	spec_version: 73,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -133,10 +150,7 @@ pub fn native_version() -> NativeVersion {
 
 use common_runtime::adapter::OrmlTokensAdapter;
 use common_runtime::locked_balance::MultiCurrencyLockedBalance;
-use primitives::{
-	nft::{ClassType, NftPermissions},
-	ClassId, InstanceId,
-};
+use primitives::{ClassId, InstanceId};
 use smallvec::smallvec;
 
 pub struct WeightToFee;
@@ -434,7 +448,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
-	type AMMHandler = pallet_price_oracle::PriceOracleHandler<Runtime>;
+	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
 }
@@ -460,11 +474,6 @@ impl pallet_lbp::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type WeightInfo = common_runtime::weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
-}
-
-impl pallet_price_oracle::Config for Runtime {
-	type Event = Event;
-	type WeightInfo = common_runtime::weights::price_oracle::BasiliskWeight<Runtime>;
 }
 
 // Parachain Config
@@ -506,8 +515,8 @@ impl pallet_nft::Config for Runtime {
 	type NftClassId = ClassId;
 	type NftInstanceId = InstanceId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
-	type ClassType = ClassType;
-	type Permissions = NftPermissions;
+	type ClassType = pallet_nft::ClassType;
+	type Permissions = pallet_nft::NftPermissions;
 	type ReserveClassIdUpTo = ReserveClassIdUpTo;
 }
 
@@ -840,6 +849,12 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = ();
 }
 
+impl pallet_transaction_pause::Config for Runtime {
+	type Event = Event;
+	type UpdateOrigin = EnsureSuperMajorityTechCommitteeOrRoot;
+	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -891,9 +906,9 @@ construct_runtime!(
 		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage} = 105,
 
 		MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
-		PriceOracle: pallet_price_oracle::{Pallet, Call, Storage, Event<T>} = 107,
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
+		TransactionPause: pallet_transaction_pause::{Pallet, Call, Event<T>, Storage} = 110,
 
 		// ORML related modules - starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
@@ -1123,11 +1138,11 @@ impl_runtime_apis! {
 
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
-			list_benchmark!(list, extra, pallet_price_oracle, PriceOracle);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
@@ -1166,6 +1181,8 @@ impl_runtime_apis! {
 				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef70a98fdbe9ce6c55837576c60c7af3850").to_vec().into(),
 				// System Events
 				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7").to_vec().into(),
+				// Treasury Account
+				frame_system::Account::<Runtime>::hashed_key_for(Treasury::account_id()).into()
 			];
 
 			let mut batches = Vec::<BenchmarkBatch>::new();
@@ -1174,11 +1191,11 @@ impl_runtime_apis! {
 			// Basilisk pallets
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
-			add_benchmark!(params, batches, pallet_price_oracle, PriceOracle);
 			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
-			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
+			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
