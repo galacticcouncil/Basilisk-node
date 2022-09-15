@@ -151,18 +151,18 @@ proptest! {
 				let weight_a = convert_to_fixed(weight_a_pre.into()).checked_div(max_weight).unwrap();
 				let weight_b = convert_to_fixed(weight_b_pre.into()).checked_div(max_weight).unwrap();
 
-				let new_pool_balance_a_fb = convert_to_fixed(new_pool_balance_a);
-				let new_pool_balance_b_fb = convert_to_fixed(new_pool_balance_b);
-				let new_weighted_reserve_for_asset_a : Result<FixedBalance,()> = hydra_dx_math::transcendental::pow(new_pool_balance_a_fb, weight_a);
-				let new_weighted_reserve_for_asset_b : Result<FixedBalance,()> = hydra_dx_math::transcendental::pow(new_pool_balance_b_fb, weight_b);
+				let new_pool_balance_a = convert_to_fixed(new_pool_balance_a);
+				let new_pool_balance_b = convert_to_fixed(new_pool_balance_b);
+				let new_weighted_reserve_for_asset_a: FixedBalance  = hydra_dx_math::transcendental::pow(new_pool_balance_a, weight_a).unwrap();
+				let new_weighted_reserve_for_asset_b: FixedBalance  = hydra_dx_math::transcendental::pow(new_pool_balance_b, weight_b).unwrap();
 
-				let old_pool_balance_a_fb = convert_to_fixed(pool_balance_a);
-				let old_pool_balance_b_fb = convert_to_fixed(pool_balance_b);
-				let old_weighted_reserve_for_asset_a : Result<FixedBalance,()> = hydra_dx_math::transcendental::pow(old_pool_balance_a_fb, weight_a);
-				let old_weighted_reserve_for_asset_b : Result<FixedBalance,()> = hydra_dx_math::transcendental::pow(old_pool_balance_b_fb, weight_b);
+				let old_pool_balance_a = convert_to_fixed(pool_balance_a);
+				let old_pool_balance_b = convert_to_fixed(pool_balance_b);
+				let old_weighted_reserve_for_asset_a : FixedBalance  = hydra_dx_math::transcendental::pow(old_pool_balance_a, weight_a).unwrap();
+				let old_weighted_reserve_for_asset_b : FixedBalance  = hydra_dx_math::transcendental::pow(old_pool_balance_b, weight_b).unwrap();
 
-				let s1_u128 = new_weighted_reserve_for_asset_a.unwrap() * new_weighted_reserve_for_asset_b.unwrap();
-				let s2_u128 = old_weighted_reserve_for_asset_a.unwrap() * old_weighted_reserve_for_asset_b.unwrap();
+				let s1_u128 = new_weighted_reserve_for_asset_a * new_weighted_reserve_for_asset_b;
+				let s2_u128 = old_weighted_reserve_for_asset_a * old_weighted_reserve_for_asset_b;
 
 				dbg!(s1_u128);
 				dbg!(s2_u128);
