@@ -49,15 +49,11 @@ use serde::{Deserialize, Serialize};
 use sp_std::{vec, vec::Vec};
 
 #[cfg(test)]
-mod mock;
-
-#[cfg(test)]
 mod tests;
-
-mod benchmarking;
 
 #[allow(clippy::all)]
 pub mod weights;
+
 use weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;

@@ -17,11 +17,11 @@
 
 #![allow(clippy::bool_assert_comparison)]
 use super::*;
-use crate::mock::{
+use crate::tests::mock::{
 	generate_trades, run_to_sale_end, run_to_sale_start, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
 	INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
 };
-pub use crate::mock::{
+pub use crate::tests::mock::{
 	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
 	HDX, KUSD,
 };
@@ -34,6 +34,28 @@ use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 };
+use crate::{BalanceOf, COLLECTOR_LOCK_ID, Config, DisallowWhenLBPPoolRunning, Event, FeeCollectorWithAsset, pallet, Pool, PoolData, WeightCurveType};
+use codec::{Decode, Encode};
+use frame_support::sp_runtime::{
+	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
+	DispatchError, RuntimeDebug,
+};
+use frame_support::{
+	dispatch::DispatchResult,
+	ensure,
+	traits::{EnsureOrigin, Get, LockIdentifier},
+	transactional,
+};
+use frame_system::ensure_signed;
+use hydra_dx_math::types::LBPWeight;
+use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool, AMM};
+use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
+use primitives::{
+	Amount, AssetId, Balance,
+};
+use crate::Error;
+use scale_info::TypeInfo;
+use crate::MAX_SALE_DURATION;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();

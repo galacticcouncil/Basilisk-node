@@ -2,10 +2,10 @@
 use super::*;
 
 use crate as lbp;
-use crate::{AssetPairAccountIdFor, Config};
+use crate::{AssetPairAccountIdFor, Config, Pool, WeightCurveType, Zero};
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild, LockIdentifier, Nothing};
-use hydradx_traits::LockedBalance;
+use hydradx_traits::{AMMTransfer, LockedBalance};
 use orml_traits::parameter_type_with_key;
 use primitives::constants::chain::{
 	AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
@@ -16,12 +16,31 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use std::collections::BTreeMap;
+use primitives::asset::AssetPair;
 
 pub type Amount = i128;
 pub type AccountId = u64;
 pub type BlockNumber = u64;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
+
+use codec::{Decode, Encode};
+use frame_support::sp_runtime::{
+	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating},
+	DispatchError, RuntimeDebug,
+};
+use frame_support::{
+	dispatch::DispatchResult,
+	ensure,
+	traits::{EnsureOrigin, Get},
+	transactional,
+};
+use frame_system::ensure_signed;
+use hydra_dx_math::types::LBPWeight;
+use hydradx_traits::{CanCreatePool, AMM};
+use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
+
+use scale_info::TypeInfo;
 
 pub const INITIAL_BALANCE: Balance = 1_000_000_000_000_000u128;
 
