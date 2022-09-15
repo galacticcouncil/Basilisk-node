@@ -5878,6 +5878,7 @@ dependencies = [
  "parity-scale-codec",
  "primitive-types 0.8.0",
  "primitives",
+ "proptest",
  "scale-info",
  "serde",
  "sp-core",

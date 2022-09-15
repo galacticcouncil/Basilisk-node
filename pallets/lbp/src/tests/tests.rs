@@ -37,13 +37,13 @@ use primitives::{
 use crate::{BalanceOf, COLLECTOR_LOCK_ID, Config, DisallowWhenLBPPoolRunning, Event, FeeCollectorWithAsset, pallet, Pool, PoolData, WeightCurveType};
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
-	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
+	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Zero},
 	DispatchError, RuntimeDebug,
 };
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{EnsureOrigin, Get, LockIdentifier},
+	traits::{EnsureOrigin, LockIdentifier},
 	transactional,
 };
 use frame_system::ensure_signed;
