@@ -30,11 +30,12 @@ use hydradx_traits::{AMMTransfer, LockedBalance};
 use sp_runtime::traits::BadOrigin;
 use sp_std::convert::TryInto;
 
-use primitives::{
-	asset::AssetPair,
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
+use crate::Error;
+use crate::MAX_SALE_DURATION;
+use crate::{
+	pallet, BalanceOf, Config, DisallowWhenLBPPoolRunning, Event, FeeCollectorWithAsset, Pool, PoolData,
+	WeightCurveType, COLLECTOR_LOCK_ID,
 };
-use crate::{BalanceOf, COLLECTOR_LOCK_ID, Config, DisallowWhenLBPPoolRunning, Event, FeeCollectorWithAsset, pallet, Pool, PoolData, WeightCurveType};
 use codec::{Decode, Encode};
 use frame_support::sp_runtime::{
 	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Zero},
@@ -51,11 +52,11 @@ use hydra_dx_math::types::LBPWeight;
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool, AMM};
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};
 use primitives::{
-	Amount, AssetId, Balance,
+	asset::AssetPair,
+	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 };
-use crate::Error;
+use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
-use crate::MAX_SALE_DURATION;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();

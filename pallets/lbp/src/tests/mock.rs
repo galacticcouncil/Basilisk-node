@@ -7,6 +7,7 @@ use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild, LockIdentifier, Nothing};
 use hydradx_traits::{AMMTransfer, LockedBalance};
 use orml_traits::parameter_type_with_key;
+use primitives::asset::AssetPair;
 use primitives::constants::chain::{
 	AssetId, Balance, CORE_ASSET_ID, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT,
 };
@@ -16,7 +17,6 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use std::collections::BTreeMap;
-use primitives::asset::AssetPair;
 
 pub type Amount = i128;
 pub type AccountId = u64;
@@ -29,12 +29,7 @@ use frame_support::sp_runtime::{
 	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating},
 	DispatchError, RuntimeDebug,
 };
-use frame_support::{
-	dispatch::DispatchResult,
-	ensure,
-	traits::{EnsureOrigin},
-	transactional,
-};
+use frame_support::{dispatch::DispatchResult, ensure, traits::EnsureOrigin, transactional};
 use frame_system::ensure_signed;
 use hydra_dx_math::types::LBPWeight;
 use hydradx_traits::{CanCreatePool, AMM};
@@ -55,7 +50,6 @@ pub const KUSD: AssetId = 2_000;
 pub const BSX: AssetId = 3_000;
 pub const ETH: AssetId = 4_000;
 pub const DOT: AssetId = 5_000;
-
 
 pub const EXISTENTIAL_DEPOSIT: Balance = 100;
 pub const SALE_START: Option<BlockNumber> = Some(10);

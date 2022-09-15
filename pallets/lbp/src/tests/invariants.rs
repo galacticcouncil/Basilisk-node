@@ -3,12 +3,12 @@ use crate::*;
 
 use proptest::prelude::*;
 
+use crate::tests::mock::*;
 use frame_support::assert_ok;
 use hydra_dx_math::types::FixedBalance;
 use primitive_types::U256;
-use sp_runtime::FixedU128;
-use crate::tests::mock::*;
 use primitives::Price;
+use sp_runtime::FixedU128;
 const TOLERANCE: Balance = 1_000;
 
 #[macro_export]
@@ -93,7 +93,7 @@ proptest! {
 					Origin::root(),
 					ALICE,
 					asset_a,
-				    1_000_000_000,
+					1_000_000_000,
 					asset_b,
 					2_000_000_000,
 					20_000_000,
@@ -146,27 +146,27 @@ proptest! {
 
 				let pool_data = LBPPallet::pool_data(pool_account).unwrap();
 				let (weight_a_pre,weight_b_pre) = LBPPallet::calculate_weights(&pool_data, 11).unwrap();
-			    let max_weight = convert_to_fixed(MAX_WEIGHT.into());
+
+				let max_weight = convert_to_fixed(MAX_WEIGHT.into());
 				let weight_a = convert_to_fixed(weight_a_pre.into()).checked_div(max_weight).unwrap();
 				let weight_b = convert_to_fixed(weight_b_pre.into()).checked_div(max_weight).unwrap();
 
-			    let new_pool_balance_a_fb = convert_to_fixed(new_pool_balance_a);
-			    let new_pool_balance_b_fb = convert_to_fixed(new_pool_balance_b);
+				let new_pool_balance_a_fb = convert_to_fixed(new_pool_balance_a);
+				let new_pool_balance_b_fb = convert_to_fixed(new_pool_balance_b);
 				let new_weighted_reserve_for_asset_a : Result<FixedBalance,()> = hydra_dx_math::transcendental::pow(new_pool_balance_a_fb, weight_a);
 				let new_weighted_reserve_for_asset_b : Result<FixedBalance,()> = hydra_dx_math::transcendental::pow(new_pool_balance_b_fb, weight_b);
 
-			    let old_pool_balance_a_fb = convert_to_fixed(pool_balance_a);
-			    let old_pool_balance_b_fb = convert_to_fixed(pool_balance_b);
+				let old_pool_balance_a_fb = convert_to_fixed(pool_balance_a);
+				let old_pool_balance_b_fb = convert_to_fixed(pool_balance_b);
 				let old_weighted_reserve_for_asset_a : Result<FixedBalance,()> = hydra_dx_math::transcendental::pow(old_pool_balance_a_fb, weight_a);
 				let old_weighted_reserve_for_asset_b : Result<FixedBalance,()> = hydra_dx_math::transcendental::pow(old_pool_balance_b_fb, weight_b);
 
-			    let s1_u128 = new_weighted_reserve_for_asset_a.unwrap() * new_weighted_reserve_for_asset_b.unwrap();
+				let s1_u128 = new_weighted_reserve_for_asset_a.unwrap() * new_weighted_reserve_for_asset_b.unwrap();
 				let s2_u128 = old_weighted_reserve_for_asset_a.unwrap() * old_weighted_reserve_for_asset_b.unwrap();
 
 				dbg!(s1_u128);
 				dbg!(s2_u128);
-				assert_eq_approx!(s1_u128, s2_u128, 0.1, "desc");
-
+				assert_eq_approx!(s1_u128, s2_u128, 0.1, "The invariant does not hold");
 			});
 	}
 }
