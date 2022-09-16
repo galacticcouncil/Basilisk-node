@@ -30,7 +30,7 @@ type RouteExecutor<T> = pallet_route_executor::Pallet<T>;
 
 use codec::alloc::string::ToString;
 use hydradx_traits::router::PoolType;
-use pallet_route_executor::types::Trade;
+use pallet_route_executor::Trade;
 use sp_runtime::FixedPointNumber;
 use sp_std::vec;
 
