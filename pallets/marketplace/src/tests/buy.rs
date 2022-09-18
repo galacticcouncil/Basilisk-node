@@ -159,7 +159,7 @@ fn buy_should_work_when_the_royalty_is_the_minimum() {
 		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
 		.build()
 		.execute_with(|| {
-			let min_royalty = 1;
+			let min_royalty = 1; // 0.01%
 			assert_ok!(Market::add_royalty(
 				Origin::signed(ALICE),
 				CLASS_ID_0,
@@ -181,7 +181,10 @@ fn buy_should_work_when_the_royalty_is_the_minimum() {
 			assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,));
 
 			//Assert
-			assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 99 * UNITS); // price - royalty
+			assert_eq!(
+				Balances::free_balance(&ALICE),
+				alice_initial_balance + 9_999_000_000_000
+			); // price - royalty
 		});
 }
 
@@ -204,7 +207,7 @@ fn buy_should_work_when_there_is_royalty_bigger_than_minimum() {
 				CLASS_ID_0,
 				INSTANCE_ID_0,
 				BOB,
-				20,
+				2_000,
 			));
 
 			assert_ok!(Market::set_price(
@@ -230,7 +233,7 @@ fn buy_should_work_when_there_is_royalty_bigger_than_minimum() {
 					class: CLASS_ID_0,
 					instance: INSTANCE_ID_0,
 					author: BOB,
-					royalty: 20,
+					royalty: 2_000,
 					royalty_amount: 20 * UNITS,
 				}
 				.into(),
@@ -266,7 +269,7 @@ fn buy_should_work_when_there_is_no_offer_present() {
 				CLASS_ID_0,
 				INSTANCE_ID_0,
 				CHARLIE,
-				20,
+				2_000,
 			));
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
