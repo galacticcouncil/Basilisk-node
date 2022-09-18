@@ -22,10 +22,11 @@ serde = { version = "1.0.136", optional = true, features = ["derive"] }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 
 # Warehouse dependency
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "445c2dbe10741e16731d6e0295921d2c9b1c216c", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "d9f0d1def08b54f22542539ea3c36b5bb23c15ff", default-features = false }
 
 # local dependency
 primitives = { default-features = false, path = "../../primitives" }
@@ -33,7 +34,6 @@ primitives = { default-features = false, path = "../../primitives" }
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26" }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
 pretty_assertions = "1.2.1"
 

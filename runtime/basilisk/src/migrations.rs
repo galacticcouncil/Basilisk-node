@@ -11,6 +11,15 @@ impl OnRuntimeUpgrade for MigrateUniquesPallet {
 use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 pub struct OnRuntimeUpgradeMigration;
 impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		pallet_marketplace::migration::v1::pre_migrate::<Runtime>();
+
+		pallet_nft::migration::v1::pre_migrate::<Runtime>();
+
+		Ok(())
+	}
+
 	fn on_runtime_upgrade() -> Weight {
 		let mut weight = 0;
 
@@ -18,6 +27,21 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 		weight += <MigrateUniquesPallet as OnRuntimeUpgrade>::on_runtime_upgrade();
 		frame_support::log::info!("MigrateUniquesPallet end");
 
+		weight += pallet_marketplace::migration::v1::migrate::<Runtime>();
+		frame_support::log::info!("Marketplace migration end");
+
+		weight += pallet_nft::migration::v1::migrate::<Runtime>();
+		frame_support::log::info!("NFT migration end");
+
 		weight
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		pallet_marketplace::migration::v1::post_migrate::<Runtime>();
+
+		pallet_nft::migration::v1::post_migrate::<Runtime>();
+
+		Ok(())
 	}
 }
