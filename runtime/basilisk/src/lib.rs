@@ -31,6 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use frame_system::{EnsureRoot, RawOrigin};
+use hydradx_adapters::inspect::MultiInspectAdapter;
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -107,7 +108,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 73,
+	spec_version: 74,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -883,6 +884,19 @@ impl pallet_transaction_pause::Config for Runtime {
 	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = common_runtime::weights::transaction_pause::BasiliskWeight<Runtime>;
 }
+parameter_types! {
+	pub const MaxNumberOfTrades: u8 = 5;
+}
+
+impl pallet_route_executor::Config for Runtime {
+	type Event = Event;
+	type AssetId = AssetId;
+	type Balance = Balance;
+	type MaxNumberOfTrades = MaxNumberOfTrades;
+	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
+	type AMM = XYK;
+	type WeightInfo = common_runtime::weights::route_executor::BasiliskWeight<Runtime>;
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -938,6 +952,7 @@ construct_runtime!(
 		RelayChainInfo: pallet_relaychain_info::{Pallet, Event<T>} = 108,
 		Marketplace: pallet_marketplace::{Pallet, Call, Event<T>, Storage} = 109,
 		TransactionPause: pallet_transaction_pause::{Pallet, Call, Event<T>, Storage} = 110,
+		Router: pallet_route_executor::{Pallet, Call, Event<T>} = 111,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: orml_currencies::{Pallet, Call, Event<T>} = 150,
@@ -1184,6 +1199,7 @@ impl_runtime_apis! {
 			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
 			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
+			orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1246,6 +1262,7 @@ impl_runtime_apis! {
 			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
 			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
 			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
+			orml_add_benchmark!(params, batches, pallet_route_executor, benchmarking::route_executor);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
