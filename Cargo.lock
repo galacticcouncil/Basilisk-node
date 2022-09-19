@@ -8161,11 +8161,9 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.3.1"
+version = "6.3.2"
 dependencies = [
  "frame-support",
- "frame-system",
- "pallet-nft",
  "parity-scale-codec",
  "primitive-types 0.10.1",
  "scale-info",
