@@ -31,6 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use frame_system::{EnsureRoot, RawOrigin};
+use hydradx_adapters::inspect::MultiInspectAdapter;
 use sp_api::impl_runtime_apis;
 use sp_core::{
 	u32_trait::{_1, _2, _3},
@@ -69,7 +70,6 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 mod xcm;
 
 mod benchmarking;
-mod inspect;
 
 use pallet_xyk_rpc_runtime_api as xyk_rpc;
 
@@ -893,7 +893,7 @@ impl pallet_route_executor::Config for Runtime {
 	type AssetId = AssetId;
 	type Balance = Balance;
 	type MaxNumberOfTrades = MaxNumberOfTrades;
-	type Currency = inspect::MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
+	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
 	type AMM = XYK;
 	type WeightInfo = common_runtime::weights::route_executor::BasiliskWeight<Runtime>;
 }
