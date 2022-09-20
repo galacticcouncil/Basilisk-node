@@ -118,7 +118,7 @@ benchmarks! {
 	add_royalty {
 		let caller2 = create_account::<T>("caller2", 0);
 		let (caller, caller2, caller_lookup, metadata) = create_class_and_mint::<T>(CLASS_ID_0.into(), INSTANCE_ID_0.into());
-	}: _(RawOrigin::Signed(caller), CLASS_ID_0.into(), INSTANCE_ID_0.into(), caller2, 25u8)
+	}: _(RawOrigin::Signed(caller), CLASS_ID_0.into(), INSTANCE_ID_0.into(), caller2, 2_500u16)
 	verify {
 		assert!(
 			MarketplaceInstances::<T>::contains_key(T::NftClassId::from(CLASS_ID_0), T::NftInstanceId::from(INSTANCE_ID_0))

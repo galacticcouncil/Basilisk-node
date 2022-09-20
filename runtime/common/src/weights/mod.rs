@@ -10,6 +10,7 @@ pub mod marketplace;
 pub mod offsetted_nft;
 pub mod payment;
 pub mod price_oracle;
+pub mod route_executor;
 pub mod scheduler;
 pub mod system;
 pub mod timestamp;
