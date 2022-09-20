@@ -31,7 +31,10 @@
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
+use hydradx_traits::{
+	AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler,
+	Source, AMM,
+};
 use primitives::{asset::AssetPair, AssetId, Balance, Price};
 use sp_std::{vec, vec::Vec};
 
@@ -53,7 +56,7 @@ pub use impls::XYKSpotPrice;
 use weights::WeightInfo;
 
 /// Oracle source identifier for this pallet.
-pub const SOURCE: [u8; 8] = *b"snek/xyk";
+pub const SOURCE: Source = *b"snek/xyk";
 
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -116,7 +119,9 @@ pub mod pallet {
 		type CanCreatePool: CanCreatePool<AssetId>;
 
 		/// AMM handlers
-		type AMMHandler: OnCreatePoolHandler<AssetId> + OnTradeHandler<AssetId, Balance>;
+		type AMMHandler: OnCreatePoolHandler<AssetId>
+			+ OnTradeHandler<AssetId, Balance>
+			+ OnLiquidityChangedHandler<AssetId, Balance>;
 
 		/// Discounted fee
 		type DiscountedFee: Get<(u32, u32)>;
@@ -381,7 +386,10 @@ pub mod pallet {
 		/// Shares are issued with current price.
 		///
 		/// Emits `LiquidityAdded` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::add_liquidity()
+				.saturating_add(T::AMMHandler::on_liquidity_changed_weight())
+		)]
 		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
@@ -456,6 +464,8 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, liquidity_amount);
 
+			T::AMMHandler::on_liquidity_changed(SOURCE, asset_a, asset_b, amount_a, amount_b, liquidity_amount);
+
 			Self::deposit_event(Event::LiquidityAdded {
 				who,
 				asset_a,
@@ -473,7 +483,10 @@ pub mod pallet {
 		///
 		/// Emits 'LiquidityRemoved' when successful.
 		/// Emits 'PoolDestroyed' when pool is destroyed.
-		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::remove_liquidity()
+				.saturating_add(T::AMMHandler::on_liquidity_changed_weight())
+		)]
 		#[transactional]
 		pub fn remove_liquidity(
 			origin: OriginFor<T>,
@@ -543,6 +556,15 @@ pub mod pallet {
 			T::Currency::withdraw(share_token, &who, liquidity_amount)?;
 
 			<TotalLiquidity<T>>::insert(&pair_account, liquidity_left);
+
+			T::AMMHandler::on_liquidity_changed(
+				SOURCE,
+				asset_a,
+				asset_b,
+				remove_amount_a,
+				remove_amount_b,
+				liquidity_left,
+			);
 
 			Self::deposit_event(Event::LiquidityRemoved {
 				who: who.clone(),
