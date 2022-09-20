@@ -355,7 +355,6 @@ where
 				client: client.clone(),
 				pool: transaction_pool.clone(),
 				deny_unsafe,
-				command_sink: None,
 			};
 
 			crate::rpc::create_full(deps).map_err(Into::into)
