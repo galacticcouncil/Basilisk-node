@@ -5730,7 +5730,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.3.10"
+version = "5.3.11"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -5754,7 +5754,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange-benchmarking"
-version = "3.3.19"
+version = "3.3.20"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5870,7 +5870,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.4.9"
+version = "4.4.10"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5921,7 +5921,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "3.0.1"
+version = "4.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
