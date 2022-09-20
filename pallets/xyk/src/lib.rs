@@ -45,6 +45,7 @@ mod tests;
 mod benchmarking;
 
 mod impls;
+mod trade_execution;
 pub mod weights;
 
 pub use impls::XYKSpotPrice;
