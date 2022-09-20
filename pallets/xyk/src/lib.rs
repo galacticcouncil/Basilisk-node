@@ -52,6 +52,9 @@ pub use impls::XYKSpotPrice;
 
 use weights::WeightInfo;
 
+/// Oracle source identifier for this pallet.
+pub const SOURCE: [u8; 8] = *b"snek/xyk";
+
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
 
@@ -804,6 +807,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		let total_liquidity = Self::total_liquidity(&pair_account);
 		T::AMMHandler::on_trade(
+			SOURCE,
 			transfer.assets.asset_in,
 			transfer.assets.asset_out,
 			transfer.amount,
@@ -953,6 +957,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		let total_liquidity = Self::total_liquidity(&pair_account);
 		T::AMMHandler::on_trade(
+			SOURCE,
 			transfer.assets.asset_in,
 			transfer.assets.asset_out,
 			transfer.amount,
