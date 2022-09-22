@@ -186,6 +186,7 @@ impl WeightToFeePolynomial for WeightToFee {
 // That's why we revert to using the system pallet in the benchmark.
 pub struct RelayChainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
 
+
 #[cfg(not(feature = "runtime-benchmarks"))]
 impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumberProvider
 	for RelayChainBlockNumberProvider<T>
@@ -894,7 +895,7 @@ impl pallet_route_executor::Config for Runtime {
 	type Balance = Balance;
 	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
-	type AMM = XYK;
+	type AMM = (XYK, LBP);
 	type WeightInfo = common_runtime::weights::route_executor::BasiliskWeight<Runtime>;
 }
 

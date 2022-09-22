@@ -19,6 +19,8 @@ use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use sp_runtime::traits::AccountIdConversion;
+use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use frame_support::assert_ok;
 
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
@@ -212,7 +214,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		balances: vec![
 			(AccountId::from(ALICE), 1, 200 * UNITS),
 			(AccountId::from(ALICE), 2, 200 * UNITS),
-			(AccountId::from(ALICE), 3, 200 * UNITS),
+			(AccountId::from(ALICE), 3, 400 * UNITS),
 			(AccountId::from(BOB), 1, BOB_INITIAL_ASSET_1_BALANCE),
 			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
 			(AccountId::from(DAVE), 1, 1_000 * UNITS),
@@ -261,4 +263,29 @@ pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
 
 pub fn vesting_account() -> AccountId {
 	VestingPalletId::get().into_account()
+}
+
+pub fn set_relaychain_block_number(number: BlockNumber) {
+	use basilisk_runtime::{Origin};
+	use basilisk_runtime::ParachainSystem;
+	use frame_support::traits::OnInitialize;
+
+	ParachainSystem::on_initialize(number);
+
+	let (relay_storage_root, proof) = RelayStateSproofBuilder::default().into_state_root_and_proof();
+
+	assert_ok!(ParachainSystem::set_validation_data(
+		Origin::none(),
+		cumulus_primitives_parachain_inherent::ParachainInherentData {
+			validation_data: cumulus_primitives_core::PersistedValidationData {
+				parent_head: Default::default(),
+				relay_parent_number: number,
+				relay_parent_storage_root: relay_storage_root,
+				max_pov_size: Default::default(),
+			},
+			relay_chain_state: proof,
+			downward_messages: Default::default(),
+			horizontal_messages: Default::default(),
+		}
+	));
 }
