@@ -251,7 +251,7 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 		&mut t,
 	)
 	.unwrap();
-  
+
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
 			(AccountId::from(ALICE), 1, 200 * UNITS),
