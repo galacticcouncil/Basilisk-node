@@ -820,6 +820,50 @@ mod lbp_router_tests {
 		});
 	}
 
+	#[test]
+	fn buy_should_work_when_route_contains_single_trade() {
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(KSM, BSX);
+
+			let amount_to_buy = 10 * UNITS;
+			let limit = 100 * UNITS;
+			let trades = vec![Trade {
+				pool: PoolType::LBP,
+				asset_in: KSM,
+				asset_out: BSX,
+			}];
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(Router::buy(
+				Origin::signed(TRADER.into()),
+				KSM,
+				BSX,
+				amount_to_buy,
+				limit,
+				trades
+			));
+
+			//Assert
+			/*let amount_out = 5304848609011;
+
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			super::assert_trader_non_native_balance(amount_out, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: BSX,
+				asset_out: KSM,
+				amount_in: amount_to_sell,
+				amount_out,
+			}
+				.into()]);*/
+		});
+	}
+
 	fn create_pool(asset_a: u32, asset_b: u32) {
 		assert_ok!(LBP::create_pool(
 			Origin::root(),

@@ -14,6 +14,7 @@ use sp_runtime::DispatchError;
 //- refactor integration tests so use BSX and distributed asset
 //- refactor unit tests to capture this accumulated/distributed domain logic
 //- refactor trade executor, pass the amount in and amount out to execute functins so we can use them as max/min limit
+//- abstract away the type check at the beginning
 
 impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {
     type Error = DispatchError;
@@ -139,7 +140,81 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
         if pool_type != PoolType::LBP {
             return Err(ExecutorError::NotSupported);
         }
-        todo!()
+
+        let assets = AssetPair {asset_in, asset_out};
+        let pool_id = Self::get_pair_id(assets);
+        let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| ExecutorError::Error(Error::<T>::PoolNotFound.into()))?;
+
+        let now = T::BlockNumberProvider::current_block_number();
+        let (weight_in, weight_out) = Self::get_sorted_weight(assets.asset_in, now, &pool_data).map_err(|err| ExecutorError::Error(err.into()))?;
+        let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
+        let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
+
+        // LBP fee asset is always accumulated asset
+        let fee_asset = pool_data.assets.0;
+
+        // Accumulated asset is bought (out) of the pool for distributed asset (in)
+        // Take accumulated asset (out) sans fee from the pool and send to seller
+        // Take distributed asset (in) from the seller and add to pool
+        // Take fee from the pool and send to fee collector
+        // Buyer bears repay fee
+        if fee_asset == assets.asset_out {
+            let fee = Self::calculate_fees(&pool_data, amount_out).map_err(|err| ExecutorError::Error(err.into()))?;
+            let amount_out_plus_fee = amount_out.checked_add(fee).ok_or(ExecutorError::Error(Error::<T>::Overflow.into()))?;
+
+            let calculated_in = hydra_dx_math::lbp::calculate_in_given_out(
+                asset_in_reserve,
+                asset_out_reserve,
+                weight_in,
+                weight_out,
+                amount_out_plus_fee,
+            )
+                .map_err(|_| ExecutorError::Error(Error::<T>::Overflow.into()))?;
+
+            let calculated_in_without_fee = calculated_in.checked_sub(fee).ok_or(ExecutorError::Error(Error::<T>::Overflow.into()))?;
+
+
+            Ok(calculated_in_without_fee)
+
+            /*Ok(AMMTransfer {
+                origin: who.clone(),
+                assets,
+                amount: calculated_in,
+                amount_out: amount,
+                discount: false,
+                discount_amount: 0_u128,
+                fee: (fee_asset, fee),
+            })*/
+
+            // Distributed asset is bought (out) of the pool for accumulated asset (in)
+            // Take accumulated asset (in) sans fee from the buyer and send to pool
+            // Take distributed asset (out) from the pool and send to buyer
+            // Take fee from the buyer and send to fee collector
+            // Pool bears repay fee
+        } else {
+            let calculated_in = hydra_dx_math::lbp::calculate_in_given_out(
+                asset_in_reserve,
+                asset_out_reserve,
+                weight_in,
+                weight_out,
+                amount_out,
+            )
+                .map_err(|_| ExecutorError::Error(Error::<T>::Overflow.into()))?;
+
+            let fee = Self::calculate_fees(&pool_data, calculated_in).map_err(|err| ExecutorError::Error(err.into()))?;
+            let calculated_in_without_fee = calculated_in.checked_sub(fee).ok_or(ExecutorError::Error(Error::<T>::Overflow.into()))?;
+
+            Ok(calculated_in)
+            /*Ok(AMMTransfer {
+                origin: who.clone(),
+                assets,
+                amount: calculated_in_without_fee,
+                amount_out: amount,
+                discount: false,
+                discount_amount: 0_u128,
+                fee: (fee_asset, fee),
+            })*/
+        }
     }
 
     fn execute_sell(who: T::Origin, pool_type: PoolType<AssetId>, asset_in: AssetId, asset_out: AssetId, amount_in: Balance) -> Result<(), ExecutorError<Self::Error>> {
@@ -154,6 +229,6 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
         if pool_type != PoolType::LBP {
             return Err(ExecutorError::NotSupported);
         }
-        todo!()
+        Self::buy(who, asset_out,asset_in, amount_out, Balance::MAX).map_err(ExecutorError::Error)
     }
 }
