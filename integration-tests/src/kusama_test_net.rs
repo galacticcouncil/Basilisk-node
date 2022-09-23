@@ -14,6 +14,8 @@ pub const UNITS: Balance = 1_000_000_000_000;
 
 pub const KARURA_PARA_ID: u32 = 2000;
 pub const BASILISK_PARA_ID: u32 = 2090;
+pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
+pub const BOB_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
@@ -221,17 +223,23 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 	pallet_balances::GenesisConfig::<KaruraRuntime> {
 		balances: vec![
 			(AccountId::from(ALICE), 200 * UNITS),
-			(AccountId::from(BOB), 1000 * UNITS),
+			(AccountId::from(BOB), BOB_INITIAL_BSX_BALANCE),
+			(AccountId::from(CHARLIE), 1000 * UNITS),
+			(AccountId::from(DAVE), 1000 * UNITS),
+			(vesting_account(), 1_000_000 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
 
-	orml_tokens::GenesisConfig::<KaruraRuntime> {
-		balances: vec![
-			(AccountId::from(ALICE), 1, 200 * UNITS),
-			(AccountId::from(BOB), 1, 1_000 * UNITS),
+	pallet_asset_registry::GenesisConfig::<Runtime> {
+		asset_names: vec![
+			(b"KSM".to_vec(), 1_000_000u128),
+			(b"aUSD".to_vec(), 1_000u128),
+			(b"DOT".to_vec(), 1_000u128),
 		],
+		native_asset_name: b"BSX".to_vec(),
+		native_existential_deposit: existential_deposit,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -243,6 +251,19 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 		&mut t,
 	)
 	.unwrap();
+  
+	orml_tokens::GenesisConfig::<Runtime> {
+		balances: vec![
+			(AccountId::from(ALICE), 1, 200 * UNITS),
+			(AccountId::from(ALICE), 2, 200 * UNITS),
+			(AccountId::from(ALICE), 3, 200 * UNITS),
+			(AccountId::from(BOB), 1, BOB_INITIAL_ASSET_1_BALANCE),
+			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
+			(AccountId::from(DAVE), 1, 1_000 * UNITS),
+		],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<KaruraRuntime>>::assimilate_storage(
 		&pallet_xcm::GenesisConfig {
@@ -250,14 +271,6 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 		},
 		&mut t,
 	)
-	.unwrap();
-
-	pallet_asset_registry::GenesisConfig::<KaruraRuntime> {
-		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128), (b"aUSD".to_vec(), 1_000u128)],
-		native_asset_name: b"KAR".to_vec(),
-		native_existential_deposit: existential_deposit,
-	}
-	.assimilate_storage(&mut t)
 	.unwrap();
 
 	pallet_transaction_multi_payment::GenesisConfig::<KaruraRuntime> {

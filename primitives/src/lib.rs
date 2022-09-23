@@ -73,7 +73,7 @@ impl Default for IntentionType {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Encode, Decode, Default, Clone, PartialEq, TypeInfo)]
+#[derive(Encode, Decode, Default, Clone, PartialEq, Eq, TypeInfo)]
 pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 	pub who: AccountId,
 	pub assets: asset::AssetPair,
