@@ -2163,13 +2163,20 @@ fn sell_with_insufficient_balance_should_not_work() {
 		let asset_out = BSX;
 		let amount = 1_000_000_u128;
 
-		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_999_900_000));
-		assert_eq!(Currency::free_balance(asset_in, &who), 100_000);
+		Currency::set_balance(Origin::root(), who, asset_in, 100_000, 0).unwrap();
+		Currency::set_balance(Origin::root(), who, asset_out, 100_000, 0).unwrap();
 
 		//start sale
 		set_block_number::<Test>(11);
+
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, 800_000_u128),
+			Error::<Test>::InsufficientAssetBalance
+		);
+
+		// swap assets
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(who), asset_out, asset_in, amount, 800_000_u128),
 			Error::<Test>::InsufficientAssetBalance
 		);
 	});
@@ -2183,13 +2190,20 @@ fn buy_with_insufficient_balance_should_not_work() {
 		let asset_out = BSX;
 		let amount = 1_000_000_u128;
 
-		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_999_900_000));
-		assert_eq!(Currency::free_balance(asset_in, &who), 100_000);
+		Currency::set_balance(Origin::root(), who, asset_in, 100_000, 0).unwrap();
+		Currency::set_balance(Origin::root(), who, asset_out, 100_000, 0).unwrap();
 
 		//start sale
 		set_block_number::<Test>(11);
+
 		assert_noop!(
 			LBPPallet::buy(Origin::signed(who), asset_out, asset_in, amount, 2_000_000_u128),
+			Error::<Test>::InsufficientAssetBalance
+		);
+
+		// swap assets
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(who), asset_in, asset_out, amount, 2_000_000_u128),
 			Error::<Test>::InsufficientAssetBalance
 		);
 	});
@@ -2366,6 +2380,59 @@ fn buy_should_work() {
 				buy_price: 10_000_000,
 				fee_asset: 0,
 				fee_amount: 3710,
+			}
+			.into(),
+		]);
+	});
+}
+
+#[test]
+fn buy_should_work_when_limit_is_set_above_account_balance() {
+	predefined_test_ext().execute_with(|| {
+		let buyer = BOB;
+		let asset_in = KUSD;
+		let asset_out = BSX;
+
+		//start sale
+		set_block_number::<Test>(11);
+
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(buyer),
+			asset_out,
+			asset_in,
+			10_000_000_u128,
+			u128::MAX,
+		));
+
+		// swap assets
+		set_block_number::<Test>(11);
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(buyer),
+			asset_in,
+			asset_out,
+			10_000_000_u128,
+			u128::MAX,
+		));
+
+		expect_events(vec![
+			Event::BuyExecuted {
+				who: buyer,
+				asset_out: BSX,
+				asset_in: KUSD,
+				amount: 17_894_737,
+				buy_price: 10_000_000,
+				fee_asset: KUSD,
+				fee_amount: 35_860,
+			}
+			.into(),
+			Event::BuyExecuted {
+				who: buyer,
+				asset_out: KUSD,
+				asset_in: BSX,
+				amount: 5_560_301,
+				buy_price: 10_000_000,
+				fee_asset: KUSD,
+				fee_amount: 20_000,
 			}
 			.into(),
 		]);
@@ -3090,10 +3157,7 @@ fn validate_trade_should_not_work() {
 			Error::<Test>::ZeroAmount
 		);
 
-		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, BSX, 999997500000000));
-		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, KUSD, 999998500000000));
-		assert_eq!(Currency::free_balance(BSX, &ALICE), 500000000);
-		assert_eq!(Currency::free_balance(KUSD, &ALICE), 500000000);
+		Currency::set_balance(Origin::root(), ALICE, KUSD, 10_000_000, 0).unwrap();
 		assert_err!(
 			LBPPallet::validate_buy(
 				&ALICE,
@@ -3101,12 +3165,14 @@ fn validate_trade_should_not_work() {
 					asset_in: KUSD,
 					asset_out: BSX
 				},
-				500_000_001u128,
-				3000000000_u128,
+				100_000_000u128,
+				3_000_000_000_u128,
 				false,
 			),
 			Error::<Test>::InsufficientAssetBalance
 		);
+		// set the balance back
+		Currency::set_balance(Origin::root(), ALICE, KUSD, INITIAL_BALANCE, 0).unwrap();
 
 		assert_noop!(
 			LBPPallet::validate_buy(
