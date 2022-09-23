@@ -174,7 +174,7 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
             let calculated_in_without_fee = calculated_in.checked_sub(fee).ok_or(ExecutorError::Error(Error::<T>::Overflow.into()))?;
 
 
-            Ok(calculated_in_without_fee)
+            Ok(calculated_in)
 
             /*Ok(AMMTransfer {
                 origin: who.clone(),

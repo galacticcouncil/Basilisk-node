@@ -821,18 +821,61 @@ mod lbp_router_tests {
 	}
 
 	#[test]
-	fn buy_should_work_when_route_contains_single_trade() {
+	fn buy_should_work_when_when_buying_distributed_asset() {
 		TestNet::reset();
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_pool(KSM, BSX);
+			create_pool(BSX, KSM);
 
 			let amount_to_buy = 10 * UNITS;
 			let limit = 100 * UNITS;
 			let trades = vec![Trade {
 				pool: PoolType::LBP,
-				asset_in: KSM,
+				asset_in: BSX,
+				asset_out: KSM,
+			}];
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(Router::buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				KSM,
+				amount_to_buy,
+				limit,
+				trades
+			));
+
+			//Assert
+			let amount_in = 19944393324840;
+
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
+			super::assert_trader_non_native_balance(amount_to_buy, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: BSX,
+				asset_out: KSM,
+				amount_in,
+				amount_out: amount_to_buy,
+			}.into()]);
+		});
+	}
+
+	#[test]
+	fn buy_should_work_when_buying_accumulated_asset_in_a_single_trade() {
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(BSX, AUSD);
+
+			let amount_to_buy = 10 * UNITS;
+			let limit = 100 * UNITS;
+			let trades = vec![Trade {
+				pool: PoolType::LBP,
+				asset_in: AUSD,
 				asset_out: BSX,
 			}];
 
@@ -841,7 +884,7 @@ mod lbp_router_tests {
 			//Act
 			assert_ok!(Router::buy(
 				Origin::signed(TRADER.into()),
-				KSM,
+				AUSD,
 				BSX,
 				amount_to_buy,
 				limit,
@@ -849,20 +892,20 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			/*let amount_out = 5304848609011;
+			let amount_in = 6045520780025;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(amount_out, KSM);
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_to_buy);
+			super::assert_trader_non_native_balance(BOB_INITIAL_ASSET_1_BALANCE - amount_in, AUSD);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
-				asset_in: BSX,
-				asset_out: KSM,
-				amount_in: amount_to_sell,
-				amount_out,
-			}
-				.into()]);*/
+				asset_in: AUSD,
+				asset_out: BSX,
+				amount_in,
+				amount_out: amount_to_buy,
+			}.into()]);
 		});
 	}
+
 
 	fn create_pool(asset_a: u32, asset_b: u32) {
 		assert_ok!(LBP::create_pool(
