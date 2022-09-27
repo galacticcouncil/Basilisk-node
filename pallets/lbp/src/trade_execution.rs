@@ -10,11 +10,11 @@ use sp_runtime::traits::{BlockNumberProvider, Zero};
 use sp_runtime::DispatchError;
 
 //TODO: Dani
-//- add integration test for comparing the router trade with the direct LBP pallet trade
-//- refactor integration tests so use BSX and distributed asset
 //- refactor unit tests to capture this accumulated/distributed domain logic
 //- refactor trade executor, pass the amount in and amount out to execute functins so we can use them as max/min limit
 //- abstract away the type check at the beginning
+//- parameterize everything asset balance in integrationn tests
+//- add builder if possible to integration tests if possible
 //- TODO Dani comments
 
 impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {

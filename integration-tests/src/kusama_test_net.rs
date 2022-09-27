@@ -12,6 +12,7 @@ pub const UNITS: Balance = 1_000_000_000_000;
 
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
 pub const BOB_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
+pub const ALICE_INITIAL_ASSET_1_BALANCE: u128 = 400 * UNITS;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
@@ -212,7 +213,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 1, 200 * UNITS),
+			(AccountId::from(ALICE), 1, ALICE_INITIAL_ASSET_1_BALANCE * UNITS),
 			(AccountId::from(ALICE), 2, 200 * UNITS),
 			(AccountId::from(ALICE), 3, 400 * UNITS),
 			(AccountId::from(BOB), 1, BOB_INITIAL_ASSET_1_BALANCE),
