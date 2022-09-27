@@ -166,7 +166,7 @@ proptest! {
 
 				dbg!(s1_u128);
 				dbg!(s2_u128);
-				assert_eq_approx!(s1_u128, s2_u128, 0.1, "The invariant does not hold");
+				assert_eq_approx!(s1_u128, s2_u128, 0.01, "The invariant does not hold");
 			});
 	}
 }
