@@ -906,6 +906,65 @@ mod lbp_router_tests {
 		});
 	}
 
+	#[test]
+	fn lbp_direct_buy_should_yield_the_same_result_as_router_buy() {
+		TestNet::reset();
+
+		let amount_to_buy = 10 * UNITS;
+		let limit = 100 * UNITS;
+		let spent_amount_in = 19944393324840;
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(BSX, KSM);
+
+			let trades = vec![Trade {
+				pool: PoolType::LBP,
+				asset_in: BSX,
+				asset_out: KSM,
+			}];
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(Router::buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				KSM,
+				amount_to_buy,
+				limit,
+				trades
+			));
+
+			//Assert
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
+			super::assert_trader_non_native_balance(amount_to_buy, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: BSX,
+				asset_out: KSM,
+				amount_in: spent_amount_in,
+				amount_out: amount_to_buy,
+			}.into()]);
+		});
+
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(BSX, KSM);
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(LBP::buy(Origin::signed(TRADER.into()), KSM, BSX, amount_to_buy, limit));
+
+			//Assert
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
+			super::assert_trader_non_native_balance(amount_to_buy, KSM);
+		});
+	}
+
 
 	fn create_pool(asset_a: u32, asset_b: u32) {
 		assert_ok!(LBP::create_pool(

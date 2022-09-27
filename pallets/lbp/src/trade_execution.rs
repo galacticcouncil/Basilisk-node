@@ -15,6 +15,7 @@ use sp_runtime::DispatchError;
 //- refactor unit tests to capture this accumulated/distributed domain logic
 //- refactor trade executor, pass the amount in and amount out to execute functins so we can use them as max/min limit
 //- abstract away the type check at the beginning
+//- TODO Dani comments
 
 impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {
     type Error = DispatchError;
