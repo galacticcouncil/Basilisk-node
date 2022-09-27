@@ -1111,10 +1111,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 		_discount: bool,
 	) -> Result<AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>, DispatchError> {
 		ensure!(!amount.is_zero(), Error::<T>::ZeroAmount);
-		ensure!(
-			T::MultiCurrency::free_balance(assets.asset_in, who) >= max_sold,
-			Error::<T>::InsufficientAssetBalance
-		);
 
 		let pool_id = Self::get_pair_id(assets);
 		let pool_data = <PoolData<T>>::try_get(&pool_id).map_err(|_| Error::<T>::PoolNotFound)?;
@@ -1160,6 +1156,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				Error::<T>::MaxInRatioExceeded
 			);
 
+			ensure!(
+				T::MultiCurrency::free_balance(assets.asset_in, who) >= calculated_in,
+				Error::<T>::InsufficientAssetBalance
+			);
+
 			ensure!(max_sold >= calculated_in, Error::<T>::TradingLimitReached);
 
 			Ok(AMMTransfer {
@@ -1193,6 +1194,11 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			ensure!(
 				calculated_in <= asset_in_reserve.checked_div(MAX_IN_RATIO).ok_or(Error::<T>::Overflow)?,
 				Error::<T>::MaxInRatioExceeded
+			);
+
+			ensure!(
+				T::MultiCurrency::free_balance(assets.asset_in, who) >= calculated_in,
+				Error::<T>::InsufficientAssetBalance
 			);
 
 			ensure!(max_sold >= calculated_in, Error::<T>::TradingLimitReached);
