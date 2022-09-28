@@ -132,7 +132,7 @@ impl crate::Config for Test {}
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
 	pub const MinDeposit: Balance = 1;
-	pub const MaxEntriesPerDeposit: u8 = 10;
+	pub const MaxEntriesPerDeposit: u8 = 5;
 }
 
 impl warehouse_liquidity_mining::Config<Instance1> for Test {
@@ -307,11 +307,11 @@ impl Default for ExtBuilder {
 	fn default() -> Self {
 		Self {
 			endowed_accounts: vec![
-				(ALICE, BSX, INITIAL_BALANCE),
-				(BOB, BSX, INITIAL_BALANCE),
-				(BOB, KSM, INITIAL_BALANCE),
-				(CHARLIE, BSX, INITIAL_BALANCE),
-				(DAVE, BSX, INITIAL_BALANCE),
+				(ALICE, BSX, INITIAL_BALANCE * UNITS),
+				(BOB, BSX, INITIAL_BALANCE * UNITS),
+				(BOB, KSM, INITIAL_BALANCE * UNITS),
+				(CHARLIE, BSX, INITIAL_BALANCE * UNITS),
+				(DAVE, BSX, INITIAL_BALANCE * UNITS),
 			],
 		}
 	}
@@ -374,13 +374,20 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
+		pallet_liquidity_mining::GenesisConfig::<Test>::default()
+			.assimilate_storage(&mut t)
+			.unwrap();
+
 		t.into()
 	}
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
-	ext.execute_with(|| System::set_block_number(1));
+	ext.execute_with(|| {
+		System::set_block_number(1);
+	});
+
 	ext
 }
 

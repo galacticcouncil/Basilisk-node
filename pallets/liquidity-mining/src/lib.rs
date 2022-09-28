@@ -55,8 +55,8 @@ use frame_support::{
 	sp_runtime::traits::{BlockNumberProvider, Zero},
 	transactional, PalletId,
 };
-use hydradx_traits_lm::liquidity_mining::Mutate as LiquidityMiningMutate;
-use warehouse_liquidity_mining::{GlobalFarmId, LoyaltyCurve};
+use hydradx_traits_lm::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
+use warehouse_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::ensure_signed;
@@ -79,7 +79,6 @@ pub mod pallet {
 	use super::*;
 	use crate::weights::WeightInfo;
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
-	use warehouse_liquidity_mining::{FarmMultiplier, YieldFarmId};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -104,7 +103,8 @@ pub mod pallet {
 		fn build(&self) {
 			let pallet_account = <Pallet<T>>::account_id();
 
-			T::NFTHandler::create_typed_class(pallet_account, 1, ClassType::LiquidityMining).unwrap();
+			T::NFTHandler::create_typed_class(pallet_account, T::NftClassId::get(), ClassType::LiquidityMining)
+				.unwrap();
 		}
 	}
 
@@ -137,6 +137,7 @@ pub mod pallet {
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
 		/// NFT class id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
+		#[pallet::constant]
 		type NftClassId: Get<primitives::ClassId>;
 
 		/// Non fungible handling
@@ -729,6 +730,7 @@ pub mod pallet {
 		///
 		/// Emits `SharesRedeposited` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::redeposit_lp_shares())]
+		#[transactional]
 		pub fn redeposit_lp_shares(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,

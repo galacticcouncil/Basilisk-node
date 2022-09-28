@@ -50,7 +50,7 @@ pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", 
 hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
-warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="8ccd04e323bf40b6990539bf07f1d8b7ae332c72", default-features = false }
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="c534e7aac043546f94203c483810ae8dd0bf425c", default-features = false }
 
 
 # collator support
