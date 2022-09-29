@@ -11,8 +11,6 @@ use sp_runtime::DispatchError;
 
 //TODO: Dani
 //- refactor unit tests to capture this accumulated/distributed domain logic
-//- refactor trade executor, pass the amount in and amount out to execute functins so we can use them as max/min limit
-//- abstract away the type check at the beginning
 //- parameterize everything asset balance in integrationn tests
 //- add builder if possible to integration tests if possible
 //- TODO Dani comments
@@ -137,4 +135,5 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
         let max_limit = amount_in;
         Self::buy(who, asset_out,asset_in, amount_out, max_limit).map_err(ExecutorError::Error)
     }
+
 }

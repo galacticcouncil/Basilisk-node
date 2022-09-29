@@ -1,7 +1,7 @@
 #![cfg(test)]
 pub use basilisk_runtime::{AccountId, VestingPalletId};
 use pallet_transaction_multi_payment::Price;
-use primitives::Balance;
+use primitives::{AssetId, Balance};
 
 pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
@@ -10,9 +10,22 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
+pub const ASSET_1: AssetId = 1;
+pub const ASSET_2: AssetId = 2;
+pub const ASSET_3: AssetId = 3;
+
+pub const ALICE_INITIAL_BSX_BALANCE: u128 = 200 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
+pub const CHARLIE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
+pub const DAVE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
+pub const VESTING_ACCOUNT_INITIAL_BSX_BALANCE: u128 = 1_000_000 * UNITS;
+
 pub const BOB_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
+pub const CHARLIE_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
+pub const DAVE_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
 pub const ALICE_INITIAL_ASSET_1_BALANCE: u128 = 400 * UNITS;
+pub const ALICE_INITIAL_ASSET_2_BALANCE: u128 = 200 * UNITS;
+pub const ALICE_INITIAL_ASSET_3_BALANCE: u128 = 400 * UNITS;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::GenesisBuild;
@@ -182,11 +195,11 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 200 * UNITS),
+			(AccountId::from(ALICE), ALICE_INITIAL_BSX_BALANCE),
 			(AccountId::from(BOB), BOB_INITIAL_BSX_BALANCE),
-			(AccountId::from(CHARLIE), 1000 * UNITS),
-			(AccountId::from(DAVE), 1000 * UNITS),
-			(vesting_account(), 1_000_000 * UNITS),
+			(AccountId::from(CHARLIE), CHARLIE_INITIAL_BSX_BALANCE),
+			(AccountId::from(DAVE), DAVE_INITIAL_BSX_BALANCE),
+			(vesting_account(), VESTING_ACCOUNT_INITIAL_BSX_BALANCE),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -213,12 +226,12 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 1, ALICE_INITIAL_ASSET_1_BALANCE * UNITS),
-			(AccountId::from(ALICE), 2, 200 * UNITS),
-			(AccountId::from(ALICE), 3, 400 * UNITS),
-			(AccountId::from(BOB), 1, BOB_INITIAL_ASSET_1_BALANCE),
-			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
-			(AccountId::from(DAVE), 1, 1_000 * UNITS),
+			(AccountId::from(ALICE), ASSET_1, ALICE_INITIAL_ASSET_1_BALANCE * UNITS),
+			(AccountId::from(ALICE), ASSET_2, ALICE_INITIAL_ASSET_2_BALANCE * UNITS),
+			(AccountId::from(ALICE), ASSET_3, ALICE_INITIAL_ASSET_3_BALANCE * UNITS),
+			(AccountId::from(BOB), ASSET_1, BOB_INITIAL_ASSET_1_BALANCE),
+			(AccountId::from(CHARLIE), ASSET_1, CHARLIE_INITIAL_ASSET_1_BALANCE),
+			(AccountId::from(DAVE), ASSET_1, DAVE_INITIAL_ASSET_1_BALANCE),
 		],
 	}
 	.assimilate_storage(&mut t)

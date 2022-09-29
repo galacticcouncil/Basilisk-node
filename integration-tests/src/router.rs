@@ -18,11 +18,12 @@ use hydradx_traits::router::PoolType;
 use orml_traits::MultiCurrency;
 use pallet_route_executor::Trade;
 use primitives::asset::AssetPair;
+use primitives::constants::chain::CORE_ASSET_ID;
 
-const BSX: u32 = 0;
-const AUSD: u32 = 1;
-const MOVR: u32 = 2;
-const KSM: u32 = 3;
+const BSX: u32 = CORE_ASSET_ID;
+const AUSD: u32 = ASSET_1;
+const MOVR: u32 = ASSET_2;
+const KSM: u32 = ASSET_3;
 
 const TRADER: [u8; 32] = BOB;
 pub const BOB_INITIAL_AUSD_BALANCE: u128 = BOB_INITIAL_ASSET_1_BALANCE;
