@@ -6,26 +6,26 @@ edition = "2021"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [build-dependencies]
-substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
+substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 
 [dependencies]
-codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "3.0.0" }
+codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "3.1.5" }
 scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 primitive-types = { default-features = false, version = "0.11.1" }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
 # Warehouse dependencies
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "552f867fc61fcdb4eb2df2f4e9256ed3f329a58a", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false }
 
 # Substrate dependencies
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 
 [dev-dependencies]
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.26", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 
 [features]
 default = ["std"]
