@@ -120,18 +120,21 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
         }
     }
 
-    fn execute_sell(who: T::Origin, pool_type: PoolType<AssetId>, asset_in: AssetId, asset_out: AssetId, amount_in: Balance) -> Result<(), ExecutorError<Self::Error>> {
+    fn execute_sell(who: T::Origin, pool_type: PoolType<AssetId>, asset_in: AssetId, asset_out: AssetId, amount_in: Balance, amount_out: Balance) -> Result<(), ExecutorError<Self::Error>> {
         if pool_type != PoolType::LBP {
             return Err(ExecutorError::NotSupported);
         }
-        //TODO: Dani we could pass amount_out here and pass it to sell
-        Self::sell(who, asset_in, asset_out, amount_in, Balance::zero()).map_err(ExecutorError::Error)
+
+        let min_limit = amount_out;
+        Self::sell(who, asset_in, asset_out, amount_in, min_limit).map_err(ExecutorError::Error)
     }
 
-    fn execute_buy(who: T::Origin, pool_type: PoolType<AssetId>, asset_in: AssetId, asset_out: AssetId, amount_out: Balance) -> Result<(), ExecutorError<Self::Error>> {
+    fn execute_buy(who: T::Origin, pool_type: PoolType<AssetId>, asset_in: AssetId, asset_out: AssetId, amount_in: Balance, amount_out: Balance) -> Result<(), ExecutorError<Self::Error>> {
         if pool_type != PoolType::LBP {
             return Err(ExecutorError::NotSupported);
         }
-        Self::buy(who, asset_out,asset_in, amount_out, Balance::MAX).map_err(ExecutorError::Error)
+
+        let max_limit = amount_in;
+        Self::buy(who, asset_out,asset_in, amount_out, max_limit).map_err(ExecutorError::Error)
     }
 }
