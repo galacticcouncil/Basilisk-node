@@ -771,7 +771,58 @@ mod lbp_router_tests {
 	}
 
 	#[test]
-	fn sell_should_work_when_route_contains_double_trades() {
+	fn sell_should_work_when_route_contains_double_trades_with_lbp_pools() {
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+
+			let amount_to_sell = 10 * UNITS;
+			let limit = 0;
+			let trades = vec![Trade {
+				pool: PoolType::LBP,
+				asset_in: BSX,
+				asset_out: NEW_BOOTSRAPPED_TOKEN,
+			},
+			  Trade {
+				  pool: PoolType::LBP,
+				  asset_in: NEW_BOOTSRAPPED_TOKEN,
+				  asset_out: KSM,
+			  }];
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(Router::sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				KSM,
+				amount_to_sell,
+				limit,
+				trades
+			));
+
+			//Assert
+			let amount_out = 2894653423209;
+
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(amount_out, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: BSX,
+				asset_out: KSM,
+				amount_in: amount_to_sell,
+				amount_out,
+			}
+				.into()]);
+		});
+	}
+
+	#[test]
+	fn sell_should_work_when_route_contains_double_trades_with_different_pools() {
 		TestNet::reset();
 
 		Basilisk::execute_with(|| {
@@ -786,11 +837,11 @@ mod lbp_router_tests {
 				asset_in: BSX,
 				asset_out: NEW_BOOTSRAPPED_TOKEN,
 			},
-			  Trade {
-				  pool: PoolType::XYK,
-				  asset_in: NEW_BOOTSRAPPED_TOKEN,
-				  asset_out: KSM,
-			  }];
+							  Trade {
+								  pool: PoolType::XYK,
+								  asset_in: NEW_BOOTSRAPPED_TOKEN,
+								  asset_out: KSM,
+							  }];
 
 			set_relaychain_block_number(SALE_START.unwrap() + 1);
 
@@ -960,6 +1011,57 @@ mod lbp_router_tests {
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: NEW_BOOTSRAPPED_TOKEN,
 				asset_out: BSX,
+				amount_in,
+				amount_out: amount_to_buy,
+			}.into()]);
+		});
+	}
+
+	#[test]
+	fn buy_should_work_when_when_having_multiple_trades() {
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+
+			let amount_to_buy = 1 * UNITS;
+			let limit = 100 * UNITS;
+			let trades = vec![Trade {
+				pool: PoolType::LBP,
+				asset_in: BSX,
+				asset_out: NEW_BOOTSRAPPED_TOKEN
+			},
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: KSM,
+				}
+			];
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(Router::buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				KSM,
+				amount_to_buy,
+				limit,
+				trades
+			));
+
+			//Assert
+			let amount_in = 3244461824215;
+
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
+			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(amount_to_buy, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: BSX,
+				asset_out: KSM,
 				amount_in,
 				amount_out: amount_to_buy,
 			}.into()]);
