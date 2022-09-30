@@ -28,13 +28,13 @@ pub const ALICE_INITIAL_ASSET_2_BALANCE: u128 = 200 * UNITS;
 pub const ALICE_INITIAL_ASSET_3_BALANCE: u128 = 400 * UNITS;
 
 use cumulus_primitives_core::ParaId;
+use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use frame_support::assert_ok;
 use frame_support::traits::GenesisBuild;
 use polkadot_primitives::v1::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use sp_runtime::traits::AccountIdConversion;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-use frame_support::assert_ok;
 
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
@@ -280,7 +280,7 @@ pub fn vesting_account() -> AccountId {
 }
 
 pub fn set_relaychain_block_number(number: BlockNumber) {
-	use basilisk_runtime::{Origin};
+	use basilisk_runtime::Origin;
 	use basilisk_runtime::ParachainSystem;
 	use frame_support::traits::OnInitialize;
 

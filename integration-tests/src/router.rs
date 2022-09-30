@@ -8,7 +8,7 @@ use xcm_emulator::TestExt;
 
 use sp_arithmetic::fixed_point::FixedPointNumber;
 
-use frame_support::{assert_noop};
+use frame_support::assert_noop;
 use frame_support::{
 	assert_ok,
 	traits::{OnFinalize, OnInitialize},
@@ -652,28 +652,27 @@ fn assert_trader_bsx_balance(balance: u128) {
 	);
 }
 
-
 mod lbp_router_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{Origin, Router, LBP, BlockNumber};
+	use basilisk_runtime::{BlockNumber, Origin, Router, LBP};
 	use primitives::{AssetId, Price};
 	use xcm_emulator::TestExt;
 
-	use sp_arithmetic::fixed_point::FixedPointNumber;
 	use hydradx_traits::AMM;
+	use sp_arithmetic::fixed_point::FixedPointNumber;
 
-	use crate::router::{BSX};
-	use crate::router::KSM;
 	use crate::router::AUSD;
+	use crate::router::BSX;
+	use crate::router::KSM;
 	use crate::router::MOVR;
 	use crate::router::TRADER;
 	use frame_support::{assert_noop, assert_ok};
 	use hydradx_traits::router::PoolType;
 	use orml_traits::MultiCurrency;
+	use pallet_lbp::WeightCurveType;
 	use pallet_route_executor::Trade;
 	use polkadot_xcm::prelude::AccountId32;
-	use pallet_lbp::WeightCurveType;
 	use primitives::asset::AssetPair;
 
 	pub const SALE_START: Option<BlockNumber> = Some(10);
@@ -714,7 +713,10 @@ mod lbp_router_tests {
 			let amount_out = 5304848609011;
 
 			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_out, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(
+				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_out,
+				NEW_BOOTSRAPPED_TOKEN,
+			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
@@ -757,7 +759,10 @@ mod lbp_router_tests {
 			//Assert
 			let amount_out = 15853066253648;
 
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE - amount_to_sell, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(
+				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE - amount_to_sell,
+				NEW_BOOTSRAPPED_TOKEN,
+			);
 			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_out);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
@@ -766,7 +771,7 @@ mod lbp_router_tests {
 				amount_in: amount_to_sell,
 				amount_out,
 			}
-				.into()]);
+			.into()]);
 		});
 	}
 
@@ -781,16 +786,18 @@ mod lbp_router_tests {
 
 			let amount_to_sell = 10 * UNITS;
 			let limit = 0;
-			let trades = vec![Trade {
-				pool: PoolType::LBP,
-				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
-			},
-			  Trade {
-				  pool: PoolType::LBP,
-				  asset_in: NEW_BOOTSRAPPED_TOKEN,
-				  asset_out: KSM,
-			  }];
+			let trades = vec![
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: BSX,
+					asset_out: NEW_BOOTSRAPPED_TOKEN,
+				},
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: KSM,
+				},
+			];
 
 			set_relaychain_block_number(SALE_START.unwrap() + 1);
 
@@ -817,7 +824,7 @@ mod lbp_router_tests {
 				amount_in: amount_to_sell,
 				amount_out,
 			}
-				.into()]);
+			.into()]);
 		});
 	}
 
@@ -832,16 +839,18 @@ mod lbp_router_tests {
 
 			let amount_to_sell = 10 * UNITS;
 			let limit = 0;
-			let trades = vec![Trade {
-				pool: PoolType::LBP,
-				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
-			},
-							  Trade {
-								  pool: PoolType::XYK,
-								  asset_in: NEW_BOOTSRAPPED_TOKEN,
-								  asset_out: KSM,
-							  }];
+			let trades = vec![
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: BSX,
+					asset_out: NEW_BOOTSRAPPED_TOKEN,
+				},
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: KSM,
+				},
+			];
 
 			set_relaychain_block_number(SALE_START.unwrap() + 1);
 
@@ -868,7 +877,7 @@ mod lbp_router_tests {
 				amount_in: amount_to_sell,
 				amount_out,
 			}
-				.into()]);
+			.into()]);
 		});
 	}
 
@@ -904,14 +913,18 @@ mod lbp_router_tests {
 
 			//Assert
 			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(
+				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out,
+				NEW_BOOTSRAPPED_TOKEN,
+			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
 				asset_out: NEW_BOOTSRAPPED_TOKEN,
 				amount_in: amount_to_sell,
 				amount_out: received_amount_out,
-			}.into()]);
+			}
+			.into()]);
 		});
 
 		TestNet::reset();
@@ -923,11 +936,20 @@ mod lbp_router_tests {
 			set_relaychain_block_number(SALE_START.unwrap() + 1);
 
 			//Act
-			assert_ok!(LBP::sell(Origin::signed(TRADER.into()), BSX, NEW_BOOTSRAPPED_TOKEN, amount_to_sell, limit));
+			assert_ok!(LBP::sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				NEW_BOOTSRAPPED_TOKEN,
+				amount_to_sell,
+				limit
+			));
 
 			//Assert
 			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(
+				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out,
+				NEW_BOOTSRAPPED_TOKEN,
+			);
 		});
 	}
 
@@ -963,14 +985,18 @@ mod lbp_router_tests {
 			let amount_in = 19944393324840;
 
 			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(
+				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
+				NEW_BOOTSRAPPED_TOKEN,
+			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
 				asset_out: NEW_BOOTSRAPPED_TOKEN,
 				amount_in,
 				amount_out: amount_to_buy,
-			}.into()]);
+			}
+			.into()]);
 		});
 	}
 
@@ -1006,14 +1032,18 @@ mod lbp_router_tests {
 			let amount_in = 6045520780025;
 
 			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_to_buy);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE - amount_in, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(
+				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE - amount_in,
+				NEW_BOOTSRAPPED_TOKEN,
+			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: NEW_BOOTSRAPPED_TOKEN,
 				asset_out: BSX,
 				amount_in,
 				amount_out: amount_to_buy,
-			}.into()]);
+			}
+			.into()]);
 		});
 	}
 
@@ -1028,16 +1058,17 @@ mod lbp_router_tests {
 
 			let amount_to_buy = 1 * UNITS;
 			let limit = 100 * UNITS;
-			let trades = vec![Trade {
-				pool: PoolType::LBP,
-				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN
-			},
+			let trades = vec![
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: BSX,
+					asset_out: NEW_BOOTSRAPPED_TOKEN,
+				},
 				Trade {
 					pool: PoolType::LBP,
 					asset_in: NEW_BOOTSRAPPED_TOKEN,
 					asset_out: KSM,
-				}
+				},
 			];
 
 			set_relaychain_block_number(SALE_START.unwrap() + 1);
@@ -1064,7 +1095,8 @@ mod lbp_router_tests {
 				asset_out: KSM,
 				amount_in,
 				amount_out: amount_to_buy,
-			}.into()]);
+			}
+			.into()]);
 		});
 	}
 
@@ -1100,14 +1132,18 @@ mod lbp_router_tests {
 
 			//Assert
 			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(
+				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
+				NEW_BOOTSRAPPED_TOKEN,
+			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
 				asset_out: NEW_BOOTSRAPPED_TOKEN,
 				amount_in: spent_amount_in,
 				amount_out: amount_to_buy,
-			}.into()]);
+			}
+			.into()]);
 		});
 
 		TestNet::reset();
@@ -1119,14 +1155,22 @@ mod lbp_router_tests {
 			set_relaychain_block_number(SALE_START.unwrap() + 1);
 
 			//Act
-			assert_ok!(LBP::buy(Origin::signed(TRADER.into()), NEW_BOOTSRAPPED_TOKEN, BSX, amount_to_buy, limit));
+			assert_ok!(LBP::buy(
+				Origin::signed(TRADER.into()),
+				NEW_BOOTSRAPPED_TOKEN,
+				BSX,
+				amount_to_buy,
+				limit
+			));
 
 			//Assert
 			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(
+				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
+				NEW_BOOTSRAPPED_TOKEN,
+			);
 		});
 	}
-
 
 	fn create_pool(asset_a: u32, asset_b: u32) {
 		assert_ok!(LBP::create_pool(
@@ -1175,7 +1219,4 @@ mod lbp_router_tests {
 		basilisk_runtime::System::on_finalize(n);
 		basilisk_runtime::MultiTransactionPayment::on_finalize(n);
 	}
-
 }
-
-
