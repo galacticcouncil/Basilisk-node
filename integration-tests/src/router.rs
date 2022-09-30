@@ -776,7 +776,7 @@ mod lbp_router_tests {
 	}
 
 	#[test]
-	fn sell_should_work_when_route_contains_double_trades_with_lbp_pools() {
+	fn sell_should_work_when_route_contains_double_trades_with_selling_accumulated_assets() {
 		TestNet::reset();
 
 		Basilisk::execute_with(|| {
@@ -825,6 +825,59 @@ mod lbp_router_tests {
 				amount_out,
 			}
 			.into()]);
+		});
+	}
+
+	#[test]
+	fn sell_should_work_when_route_contains_double_trades_with_selling_distributed_assets() {
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(NEW_BOOTSRAPPED_TOKEN, BSX);
+			create_pool(KSM, NEW_BOOTSRAPPED_TOKEN);
+
+			let amount_to_sell = 10 * UNITS;
+			let limit = 0;
+			let trades = vec![
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: BSX,
+					asset_out: NEW_BOOTSRAPPED_TOKEN,
+				},
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: KSM,
+				},
+			];
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(Router::sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				KSM,
+				amount_to_sell,
+				limit,
+				trades
+			));
+
+			//Assert
+			let amount_out = 23648947753385;
+
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(amount_out, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: BSX,
+				asset_out: KSM,
+				amount_in: amount_to_sell,
+				amount_out,
+			}
+				.into()]);
 		});
 	}
 
@@ -1048,7 +1101,7 @@ mod lbp_router_tests {
 	}
 
 	#[test]
-	fn buy_should_work_when_when_having_multiple_trades() {
+	fn buy_should_work_when_having_double_trades_with_buying_distributed_asset() {
 		TestNet::reset();
 
 		Basilisk::execute_with(|| {
@@ -1097,6 +1150,58 @@ mod lbp_router_tests {
 				amount_out: amount_to_buy,
 			}
 			.into()]);
+		});
+	}
+
+	#[test]
+	fn buy_should_work_when_having_double_trades_with_buying_accumulated_asset() {
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(NEW_BOOTSRAPPED_TOKEN, BSX);
+			create_pool(KSM, NEW_BOOTSRAPPED_TOKEN);
+
+			let amount_to_buy = 1 * UNITS;
+			let limit = 100 * UNITS;
+			let trades = vec![
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: BSX,
+					asset_out: NEW_BOOTSRAPPED_TOKEN,
+				},
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: KSM,
+				},
+			];
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(Router::buy(
+				Origin::signed(TRADER.into()),
+				BSX,
+				KSM,
+				amount_to_buy,
+				limit,
+				trades
+			));
+
+			//Assert
+			let amount_in = 322733733264;
+
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
+			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			super::assert_trader_non_native_balance(amount_to_buy, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: BSX,
+				asset_out: KSM,
+				amount_in,
+				amount_out: amount_to_buy,
+			}.into()]);
 		});
 	}
 
@@ -1172,13 +1277,13 @@ mod lbp_router_tests {
 		});
 	}
 
-	fn create_pool(asset_a: u32, asset_b: u32) {
+	fn create_pool(accumulated_asset: u32, distributed_asset: u32) {
 		assert_ok!(LBP::create_pool(
 			Origin::root(),
 			ALICE.into(),
-			asset_a,
+			accumulated_asset,
 			100 * UNITS,
-			asset_b,
+			distributed_asset,
 			200 * UNITS,
 			20_000_000,
 			80_000_000,
@@ -1188,7 +1293,7 @@ mod lbp_router_tests {
 			0,
 		));
 
-		let accountId = pool_account(asset_a, asset_b);
+		let accountId = pool_account(accumulated_asset, distributed_asset);
 
 		assert_ok!(LBP::update_pool_data(
 			Origin::signed(AccountId::from(ALICE)),
@@ -1210,13 +1315,5 @@ mod lbp_router_tests {
 			asset_out: asset_b,
 		};
 		LBP::get_pair_id(asset_pair)
-	}
-
-	pub fn set_block_number<T: frame_system::Config<BlockNumber = u32>>(n: u32) {
-		use frame_support::traits::OnFinalize;
-
-		frame_system::Pallet::<T>::set_block_number(n);
-		basilisk_runtime::System::on_finalize(n);
-		basilisk_runtime::MultiTransactionPayment::on_finalize(n);
 	}
 }
