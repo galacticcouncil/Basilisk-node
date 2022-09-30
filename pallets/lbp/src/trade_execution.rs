@@ -11,9 +11,6 @@ use sp_runtime::DispatchError;
 
 //TODO: Dani
 //- refactor unit tests to capture this accumulated/distributed domain logic
-//- parameterize everything asset balance in integrationn tests
-//- add builder if possible to integration tests if possible
-//- TODO Dani comments
 
 impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {
     type Error = DispatchError;
@@ -35,8 +32,6 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
         let fee_asset = pool_data.assets.0;
 
         if fee_asset == assets.asset_in {
-            let fee = Self::calculate_fees(&pool_data, amount_in).map_err(|err| ExecutorError::Error(err.into()))?;
-
             let amount_out = hydra_dx_math::lbp::calculate_out_given_in(
                 asset_in_reserve,
                 asset_out_reserve,
@@ -78,14 +73,8 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
         let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
         let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
 
-        // LBP fee asset is always accumulated asset
         let fee_asset = pool_data.assets.0;
 
-        // Accumulated asset is bought (out) of the pool for distributed asset (in)
-        // Take accumulated asset (out) sans fee from the pool and send to seller
-        // Take distributed asset (in) from the seller and add to pool
-        // Take fee from the pool and send to fee collector
-        // Buyer bears repay fee
         if fee_asset == assets.asset_out {
             let fee = Self::calculate_fees(&pool_data, amount_out).map_err(|err| ExecutorError::Error(err.into()))?;
             let amount_out_plus_fee = amount_out.checked_add(fee).ok_or(ExecutorError::Error(Error::<T>::Overflow.into()))?;
@@ -99,8 +88,7 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
             )
                 .map_err(|_| ExecutorError::Error(Error::<T>::Overflow.into()))?;
 
-            //TODO: Dani it is strange that we do not need to add the fee, or doing something with it here or in the next as the feecollector receives it from other place
-            Ok(calculated_in)
+            Ok(calculated_in) //TODO: Double check with someone if this is correct
 
         } else {
             let calculated_in = hydra_dx_math::lbp::calculate_in_given_out(
@@ -112,9 +100,7 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
             )
                 .map_err(|_| ExecutorError::Error(Error::<T>::Overflow.into()))?;
 
-            let fee = Self::calculate_fees(&pool_data, calculated_in).map_err(|err| ExecutorError::Error(err.into()))?;
-
-            Ok(calculated_in)
+            Ok(calculated_in) //amount with fee applied as the user is responsible to send fee to the fee collector
         }
     }
 
