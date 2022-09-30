@@ -822,6 +822,65 @@ mod lbp_router_tests {
 	}
 
 	#[test]
+	fn lbp_direct_sell_should_yield_the_same_result_as_router_sell() {
+		TestNet::reset();
+
+		let amount_to_sell = 10 * UNITS;
+		let limit = 0;
+		let received_amount_out = 5304848609011;
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+
+			let trades = vec![Trade {
+				pool: PoolType::LBP,
+				asset_in: BSX,
+				asset_out: NEW_BOOTSRAPPED_TOKEN,
+			}];
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(Router::sell(
+				Origin::signed(TRADER.into()),
+				BSX,
+				NEW_BOOTSRAPPED_TOKEN,
+				amount_to_sell,
+				limit,
+				trades
+			));
+
+			//Assert
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out, NEW_BOOTSRAPPED_TOKEN);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: BSX,
+				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				amount_in: amount_to_sell,
+				amount_out: received_amount_out,
+			}.into()]);
+		});
+
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+
+			set_relaychain_block_number(SALE_START.unwrap() + 1);
+
+			//Act
+			assert_ok!(LBP::sell(Origin::signed(TRADER.into()), BSX, NEW_BOOTSRAPPED_TOKEN, amount_to_sell, limit));
+
+			//Assert
+			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out, NEW_BOOTSRAPPED_TOKEN);
+		});
+	}
+
+	#[test]
 	fn buy_should_work_when_when_buying_distributed_asset() {
 		TestNet::reset();
 
