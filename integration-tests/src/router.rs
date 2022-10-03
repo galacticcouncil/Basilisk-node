@@ -9,9 +9,7 @@ use primitives::{AssetId, Price};
 use pallet_lbp::WeightCurveType;
 use sp_arithmetic::fixed_point::FixedPointNumber;
 
-use frame_support::{
-	assert_ok,
-};
+use frame_support::assert_ok;
 
 use orml_traits::MultiCurrency;
 use primitives::asset::AssetPair;
@@ -27,7 +25,7 @@ mod router_different_pools_tests {
 	use basilisk_runtime::{Origin, Router};
 	use xcm_emulator::TestExt;
 
-	use frame_support::{assert_ok};
+	use frame_support::assert_ok;
 	use hydradx_traits::router::PoolType;
 	use pallet_route_executor::Trade;
 
@@ -89,7 +87,7 @@ mod router_different_pools_tests {
 				amount_in: amount_to_sell,
 				amount_out,
 			}
-				.into()]);
+			.into()]);
 		});
 	}
 
@@ -149,10 +147,9 @@ mod router_different_pools_tests {
 				amount_in,
 				amount_out: amount_to_buy,
 			}
-				.into()]);
+			.into()]);
 		});
 	}
-
 }
 
 mod xyk_router_tests {
@@ -771,7 +768,7 @@ mod lbp_router_tests {
 	use basilisk_runtime::{Origin, Router, LBP};
 	use xcm_emulator::TestExt;
 
-	use frame_support::{assert_ok};
+	use frame_support::assert_ok;
 	use hydradx_traits::router::PoolType;
 	use pallet_route_executor::Trade;
 

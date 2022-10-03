@@ -40,8 +40,8 @@ use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use sp_runtime::traits::AccountIdConversion;
 
-use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 use primitives::constants::chain::CORE_ASSET_ID;
+use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 decl_test_relay_chain! {
 	pub struct KusamaRelay {
@@ -235,9 +235,17 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			(AccountId::from(ALICE), AUSD, ALICE_INITIAL_AUSD_BALANCE * UNITS),
 			(AccountId::from(ALICE), MOVR, ALICE_INITIAL_MOVR_BALANCE * UNITS),
 			(AccountId::from(ALICE), KSM, ALICE_INITIAL_KSM_BALANCE * UNITS),
-			(AccountId::from(ALICE), NEW_BOOTSTRAPPED_TOKEN, ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE * UNITS),
+			(
+				AccountId::from(ALICE),
+				NEW_BOOTSTRAPPED_TOKEN,
+				ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE * UNITS,
+			),
 			(AccountId::from(BOB), AUSD, BOB_INITIAL_AUSD_BALANCE),
-			(AccountId::from(BOB), NEW_BOOTSTRAPPED_TOKEN, BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE),
+			(
+				AccountId::from(BOB),
+				NEW_BOOTSTRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE,
+			),
 			(AccountId::from(CHARLIE), AUSD, CHARLIE_INITIAL_AUSD_BALANCE),
 			(AccountId::from(DAVE), AUSD, DAVE_INITIAL_AUSD_BALANCE),
 		],

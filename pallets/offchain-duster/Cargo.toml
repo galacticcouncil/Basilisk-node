@@ -26,7 +26,7 @@ primitives = { path = "../../primitives", default-features = false }
 pallet-duster = { path = "../duster", default-features = false }
 
 # Warehouse dependencies
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "57a00e2579d95066dfe89842a2fd5eb23b67935d", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "d8a82016bc8e1ce4f1a3219be635ca0cb6c9dd77", default-features = false }
 
 # ORML dependencies
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "aac79b3b31953381669a2ffa9b3e9bfe48e87f38", default-features = false }

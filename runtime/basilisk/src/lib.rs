@@ -186,7 +186,6 @@ impl WeightToFeePolynomial for WeightToFee {
 // That's why we revert to using the system pallet in the benchmark.
 pub struct RelayChainBlockNumberProvider<T>(sp_std::marker::PhantomData<T>);
 
-
 #[cfg(not(feature = "runtime-benchmarks"))]
 impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumberProvider
 	for RelayChainBlockNumberProvider<T>
