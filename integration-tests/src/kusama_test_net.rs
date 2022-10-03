@@ -10,10 +10,11 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
-pub const ASSET_1: AssetId = 1;
-pub const ASSET_2: AssetId = 2;
-pub const ASSET_3: AssetId = 3;
-pub const ASSET_4: AssetId = 4;
+pub const BSX: AssetId = CORE_ASSET_ID;
+pub const AUSD: AssetId = 1;
+pub const MOVR: AssetId = 2;
+pub const KSM: AssetId = 3;
+pub const NEW_BOOTSTRAPPED_TOKEN: AssetId = 4;
 
 pub const ALICE_INITIAL_BSX_BALANCE: u128 = 200 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
@@ -21,14 +22,14 @@ pub const CHARLIE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
 pub const DAVE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
 pub const VESTING_ACCOUNT_INITIAL_BSX_BALANCE: u128 = 1_000_000 * UNITS;
 
-pub const BOB_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
-pub const BOB_INITIAL_ASSET_4_BALANCE: u128 = 1000 * UNITS;
-pub const CHARLIE_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
-pub const DAVE_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
-pub const ALICE_INITIAL_ASSET_1_BALANCE: u128 = 400 * UNITS;
-pub const ALICE_INITIAL_ASSET_2_BALANCE: u128 = 200 * UNITS;
-pub const ALICE_INITIAL_ASSET_3_BALANCE: u128 = 400 * UNITS;
-pub const ALICE_INITIAL_ASSET_4_BALANCE: u128 = 400 * UNITS;
+pub const BOB_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
+pub const BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 1000 * UNITS;
+pub const CHARLIE_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
+pub const DAVE_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
+pub const ALICE_INITIAL_AUSD_BALANCE: u128 = 400 * UNITS;
+pub const ALICE_INITIAL_MOVR_BALANCE: u128 = 200 * UNITS;
+pub const ALICE_INITIAL_KSM_BALANCE: u128 = 400 * UNITS;
+pub const ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 400 * UNITS;
 
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
@@ -40,6 +41,7 @@ use pretty_assertions::assert_eq;
 use sp_runtime::traits::AccountIdConversion;
 
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
+use primitives::constants::chain::CORE_ASSET_ID;
 
 decl_test_relay_chain! {
 	pub struct KusamaRelay {
@@ -210,10 +212,10 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
 		asset_names: vec![
-			(b"ASSET1".to_vec(), 1_000_000u128),
-			(b"ASSET2".to_vec(), 1_000u128),
-			(b"ASSET3".to_vec(), 1_000u128),
-			(b"ASSET4".to_vec(), 1_000u128),
+			(b"AUSD".to_vec(), 1_000_000u128),
+			(b"MOVR".to_vec(), 1_000u128),
+			(b"KSM".to_vec(), 1_000u128),
+			(b"NEW_BOOTSRAPPED_TOKEN".to_vec(), 1_000u128),
 		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
@@ -230,14 +232,14 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), ASSET_1, ALICE_INITIAL_ASSET_1_BALANCE * UNITS),
-			(AccountId::from(ALICE), ASSET_2, ALICE_INITIAL_ASSET_2_BALANCE * UNITS),
-			(AccountId::from(ALICE), ASSET_3, ALICE_INITIAL_ASSET_3_BALANCE * UNITS),
-			(AccountId::from(ALICE), ASSET_4, ALICE_INITIAL_ASSET_4_BALANCE * UNITS),
-			(AccountId::from(BOB), ASSET_1, BOB_INITIAL_ASSET_1_BALANCE),
-			(AccountId::from(BOB), ASSET_4, BOB_INITIAL_ASSET_4_BALANCE),
-			(AccountId::from(CHARLIE), ASSET_1, CHARLIE_INITIAL_ASSET_1_BALANCE),
-			(AccountId::from(DAVE), ASSET_1, DAVE_INITIAL_ASSET_1_BALANCE),
+			(AccountId::from(ALICE), AUSD, ALICE_INITIAL_AUSD_BALANCE * UNITS),
+			(AccountId::from(ALICE), MOVR, ALICE_INITIAL_MOVR_BALANCE * UNITS),
+			(AccountId::from(ALICE), KSM, ALICE_INITIAL_KSM_BALANCE * UNITS),
+			(AccountId::from(ALICE), NEW_BOOTSTRAPPED_TOKEN, ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE * UNITS),
+			(AccountId::from(BOB), AUSD, BOB_INITIAL_AUSD_BALANCE),
+			(AccountId::from(BOB), NEW_BOOTSTRAPPED_TOKEN, BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE),
+			(AccountId::from(CHARLIE), AUSD, CHARLIE_INITIAL_AUSD_BALANCE),
+			(AccountId::from(DAVE), AUSD, DAVE_INITIAL_AUSD_BALANCE),
 		],
 	}
 	.assimilate_storage(&mut t)

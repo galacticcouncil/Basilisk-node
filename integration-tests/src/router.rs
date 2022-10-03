@@ -15,17 +15,8 @@ use frame_support::{
 
 use orml_traits::MultiCurrency;
 use primitives::asset::AssetPair;
-use primitives::constants::chain::CORE_ASSET_ID;
-
-const BSX: u32 = CORE_ASSET_ID;
-const AUSD: u32 = ASSET_1;
-const MOVR: u32 = ASSET_2;
-const KSM: u32 = ASSET_3;
 
 const TRADER: [u8; 32] = BOB;
-pub const BOB_INITIAL_AUSD_BALANCE: u128 = BOB_INITIAL_ASSET_1_BALANCE;
-const NEW_BOOTSRAPPED_TOKEN: u32 = ASSET_4;
-const BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE: u128 = BOB_INITIAL_ASSET_4_BALANCE;
 
 pub const SALE_START: Option<BlockNumber> = Some(10);
 pub const SALE_END: Option<BlockNumber> = Some(40);
@@ -49,8 +40,8 @@ mod router_different_pools_tests {
 		Basilisk::execute_with(|| {
 			//Arrange
 			create_xyk_pool(AUSD, BSX);
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
-			create_xyk_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
+			create_xyk_pool(NEW_BOOTSTRAPPED_TOKEN, KSM);
 
 			let amount_to_sell = 10 * UNITS;
 			let limit = 0;
@@ -63,11 +54,11 @@ mod router_different_pools_tests {
 				Trade {
 					pool: PoolType::LBP,
 					asset_in: BSX,
-					asset_out: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				},
 				Trade {
 					pool: PoolType::XYK,
-					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_in: NEW_BOOTSTRAPPED_TOKEN,
 					asset_out: KSM,
 				},
 			];
@@ -87,9 +78,9 @@ mod router_different_pools_tests {
 			//Assert
 			let amount_out = 1208552505894;
 
-			assert_trader_non_native_balance(BOB_INITIAL_ASSET_1_BALANCE - amount_to_sell, AUSD);
+			assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE - amount_to_sell, AUSD);
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
-			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance(amount_out, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
@@ -109,8 +100,8 @@ mod router_different_pools_tests {
 		Basilisk::execute_with(|| {
 			//Arrange
 			create_xyk_pool(AUSD, BSX);
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
-			create_xyk_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
+			create_xyk_pool(NEW_BOOTSTRAPPED_TOKEN, KSM);
 
 			let amount_to_buy = 1 * UNITS;
 			let limit = 100 * UNITS;
@@ -123,11 +114,11 @@ mod router_different_pools_tests {
 				Trade {
 					pool: PoolType::LBP,
 					asset_in: BSX,
-					asset_out: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				},
 				Trade {
 					pool: PoolType::XYK,
-					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_in: NEW_BOOTSTRAPPED_TOKEN,
 					asset_out: KSM,
 				},
 			];
@@ -147,9 +138,9 @@ mod router_different_pools_tests {
 			//Assert
 			let amount_in = 8049720452471;
 
-			assert_trader_non_native_balance(BOB_INITIAL_ASSET_1_BALANCE - amount_in, AUSD);
+			assert_trader_non_native_balance(BOB_INITIAL_AUSD_BALANCE - amount_in, AUSD);
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
-			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance(amount_to_buy, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
@@ -792,14 +783,14 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
 
 			let amount_to_sell = 10 * UNITS;
 			let limit = 0;
 			let trades = vec![Trade {
 				pool: PoolType::LBP,
 				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 			}];
 
 			start_lbp_campaign();
@@ -808,7 +799,7 @@ mod lbp_router_tests {
 			assert_ok!(Router::sell(
 				Origin::signed(TRADER.into()),
 				BSX,
-				NEW_BOOTSRAPPED_TOKEN,
+				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_sell,
 				limit,
 				trades
@@ -819,13 +810,13 @@ mod lbp_router_tests {
 
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 			assert_trader_non_native_balance(
-				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_out,
-				NEW_BOOTSRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE + amount_out,
+				NEW_BOOTSTRAPPED_TOKEN,
 			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: amount_to_sell,
 				amount_out,
 			}
@@ -839,13 +830,13 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
 
 			let amount_to_sell = 10 * UNITS;
 			let limit = 0;
 			let trades = vec![Trade {
 				pool: PoolType::LBP,
-				asset_in: NEW_BOOTSRAPPED_TOKEN,
+				asset_in: NEW_BOOTSTRAPPED_TOKEN,
 				asset_out: BSX,
 			}];
 
@@ -854,7 +845,7 @@ mod lbp_router_tests {
 			//Act
 			assert_ok!(Router::sell(
 				Origin::signed(TRADER.into()),
-				NEW_BOOTSRAPPED_TOKEN,
+				NEW_BOOTSTRAPPED_TOKEN,
 				BSX,
 				amount_to_sell,
 				limit,
@@ -865,13 +856,13 @@ mod lbp_router_tests {
 			let amount_out = 15853066253648;
 
 			assert_trader_non_native_balance(
-				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE - amount_to_sell,
-				NEW_BOOTSRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE - amount_to_sell,
+				NEW_BOOTSTRAPPED_TOKEN,
 			);
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_out);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
-				asset_in: NEW_BOOTSRAPPED_TOKEN,
+				asset_in: NEW_BOOTSTRAPPED_TOKEN,
 				asset_out: BSX,
 				amount_in: amount_to_sell,
 				amount_out,
@@ -886,8 +877,8 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
-			create_lbp_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
+			create_lbp_pool(NEW_BOOTSTRAPPED_TOKEN, KSM);
 
 			let amount_to_sell = 10 * UNITS;
 			let limit = 0;
@@ -895,11 +886,11 @@ mod lbp_router_tests {
 				Trade {
 					pool: PoolType::LBP,
 					asset_in: BSX,
-					asset_out: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				},
 				Trade {
 					pool: PoolType::LBP,
-					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_in: NEW_BOOTSTRAPPED_TOKEN,
 					asset_out: KSM,
 				},
 			];
@@ -920,7 +911,7 @@ mod lbp_router_tests {
 			let amount_out = 2894653423209;
 
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance(amount_out, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
@@ -939,8 +930,8 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(NEW_BOOTSRAPPED_TOKEN, BSX);
-			create_lbp_pool(KSM, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(NEW_BOOTSTRAPPED_TOKEN, BSX);
+			create_lbp_pool(KSM, NEW_BOOTSTRAPPED_TOKEN);
 
 			let amount_to_sell = 10 * UNITS;
 			let limit = 0;
@@ -948,11 +939,11 @@ mod lbp_router_tests {
 				Trade {
 					pool: PoolType::LBP,
 					asset_in: BSX,
-					asset_out: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				},
 				Trade {
 					pool: PoolType::LBP,
-					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_in: NEW_BOOTSTRAPPED_TOKEN,
 					asset_out: KSM,
 				},
 			];
@@ -973,7 +964,7 @@ mod lbp_router_tests {
 			let amount_out = 23648947753385;
 
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance(amount_out, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
@@ -996,12 +987,12 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
 
 			let trades = vec![Trade {
 				pool: PoolType::LBP,
 				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 			}];
 
 			start_lbp_campaign();
@@ -1010,7 +1001,7 @@ mod lbp_router_tests {
 			assert_ok!(Router::sell(
 				Origin::signed(TRADER.into()),
 				BSX,
-				NEW_BOOTSRAPPED_TOKEN,
+				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_sell,
 				limit,
 				trades
@@ -1019,13 +1010,13 @@ mod lbp_router_tests {
 			//Assert
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 			assert_trader_non_native_balance(
-				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out,
-				NEW_BOOTSRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE + received_amount_out,
+				NEW_BOOTSTRAPPED_TOKEN,
 			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: amount_to_sell,
 				amount_out: received_amount_out,
 			}
@@ -1036,7 +1027,7 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
 
 			start_lbp_campaign();
 
@@ -1044,7 +1035,7 @@ mod lbp_router_tests {
 			assert_ok!(LBP::sell(
 				Origin::signed(TRADER.into()),
 				BSX,
-				NEW_BOOTSRAPPED_TOKEN,
+				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_sell,
 				limit
 			));
@@ -1052,8 +1043,8 @@ mod lbp_router_tests {
 			//Assert
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 			assert_trader_non_native_balance(
-				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out,
-				NEW_BOOTSRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE + received_amount_out,
+				NEW_BOOTSTRAPPED_TOKEN,
 			);
 		});
 	}
@@ -1064,14 +1055,14 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
 
 			let amount_to_buy = 10 * UNITS;
 			let limit = 100 * UNITS;
 			let trades = vec![Trade {
 				pool: PoolType::LBP,
 				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 			}];
 
 			start_lbp_campaign();
@@ -1080,7 +1071,7 @@ mod lbp_router_tests {
 			assert_ok!(Router::buy(
 				Origin::signed(TRADER.into()),
 				BSX,
-				NEW_BOOTSRAPPED_TOKEN,
+				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_buy,
 				limit,
 				trades
@@ -1091,13 +1082,13 @@ mod lbp_router_tests {
 
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
 			assert_trader_non_native_balance(
-				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
-				NEW_BOOTSRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE + amount_to_buy,
+				NEW_BOOTSTRAPPED_TOKEN,
 			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in,
 				amount_out: amount_to_buy,
 			}
@@ -1111,13 +1102,13 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
 
 			let amount_to_buy = 10 * UNITS;
 			let limit = 100 * UNITS;
 			let trades = vec![Trade {
 				pool: PoolType::LBP,
-				asset_in: NEW_BOOTSRAPPED_TOKEN,
+				asset_in: NEW_BOOTSTRAPPED_TOKEN,
 				asset_out: BSX,
 			}];
 
@@ -1126,7 +1117,7 @@ mod lbp_router_tests {
 			//Act
 			assert_ok!(Router::buy(
 				Origin::signed(TRADER.into()),
-				NEW_BOOTSRAPPED_TOKEN,
+				NEW_BOOTSTRAPPED_TOKEN,
 				BSX,
 				amount_to_buy,
 				limit,
@@ -1138,12 +1129,12 @@ mod lbp_router_tests {
 
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_to_buy);
 			assert_trader_non_native_balance(
-				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE - amount_in,
-				NEW_BOOTSRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE - amount_in,
+				NEW_BOOTSTRAPPED_TOKEN,
 			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
-				asset_in: NEW_BOOTSRAPPED_TOKEN,
+				asset_in: NEW_BOOTSTRAPPED_TOKEN,
 				asset_out: BSX,
 				amount_in,
 				amount_out: amount_to_buy,
@@ -1158,8 +1149,8 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
-			create_lbp_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
+			create_lbp_pool(NEW_BOOTSTRAPPED_TOKEN, KSM);
 
 			let amount_to_buy = 1 * UNITS;
 			let limit = 100 * UNITS;
@@ -1167,11 +1158,11 @@ mod lbp_router_tests {
 				Trade {
 					pool: PoolType::LBP,
 					asset_in: BSX,
-					asset_out: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				},
 				Trade {
 					pool: PoolType::LBP,
-					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_in: NEW_BOOTSTRAPPED_TOKEN,
 					asset_out: KSM,
 				},
 			];
@@ -1192,7 +1183,7 @@ mod lbp_router_tests {
 			let amount_in = 3244461824215;
 
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
-			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance(amount_to_buy, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
@@ -1211,8 +1202,8 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(NEW_BOOTSRAPPED_TOKEN, BSX);
-			create_lbp_pool(KSM, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(NEW_BOOTSTRAPPED_TOKEN, BSX);
+			create_lbp_pool(KSM, NEW_BOOTSTRAPPED_TOKEN);
 
 			let amount_to_buy = 1 * UNITS;
 			let limit = 100 * UNITS;
@@ -1220,11 +1211,11 @@ mod lbp_router_tests {
 				Trade {
 					pool: PoolType::LBP,
 					asset_in: BSX,
-					asset_out: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				},
 				Trade {
 					pool: PoolType::LBP,
-					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_in: NEW_BOOTSTRAPPED_TOKEN,
 					asset_out: KSM,
 				},
 			];
@@ -1245,7 +1236,7 @@ mod lbp_router_tests {
 			let amount_in = 322733733264;
 
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
-			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance(amount_to_buy, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
@@ -1268,12 +1259,12 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
 
 			let trades = vec![Trade {
 				pool: PoolType::LBP,
 				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 			}];
 
 			start_lbp_campaign();
@@ -1282,7 +1273,7 @@ mod lbp_router_tests {
 			assert_ok!(Router::buy(
 				Origin::signed(TRADER.into()),
 				BSX,
-				NEW_BOOTSRAPPED_TOKEN,
+				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_buy,
 				limit,
 				trades
@@ -1291,13 +1282,13 @@ mod lbp_router_tests {
 			//Assert
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
 			assert_trader_non_native_balance(
-				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
-				NEW_BOOTSRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE + amount_to_buy,
+				NEW_BOOTSTRAPPED_TOKEN,
 			);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
-				asset_out: NEW_BOOTSRAPPED_TOKEN,
+				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: spent_amount_in,
 				amount_out: amount_to_buy,
 			}
@@ -1308,14 +1299,14 @@ mod lbp_router_tests {
 
 		Basilisk::execute_with(|| {
 			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_lbp_pool(BSX, NEW_BOOTSTRAPPED_TOKEN);
 
 			start_lbp_campaign();
 
 			//Act
 			assert_ok!(LBP::buy(
 				Origin::signed(TRADER.into()),
-				NEW_BOOTSRAPPED_TOKEN,
+				NEW_BOOTSTRAPPED_TOKEN,
 				BSX,
 				amount_to_buy,
 				limit
@@ -1324,8 +1315,8 @@ mod lbp_router_tests {
 			//Assert
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
 			assert_trader_non_native_balance(
-				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
-				NEW_BOOTSRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE + amount_to_buy,
+				NEW_BOOTSTRAPPED_TOKEN,
 			);
 		});
 	}

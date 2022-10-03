@@ -91,7 +91,7 @@ fn transfer_to_relay_chain() {
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
-			ALICE_INITIAL_ASSET_1_BALANCE * UNITS - 3 * UNITS
+			ALICE_INITIAL_AUSD_BALANCE * UNITS - 3 * UNITS
 		);
 	});
 
