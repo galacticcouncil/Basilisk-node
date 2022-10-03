@@ -13,6 +13,7 @@ pub const UNITS: Balance = 1_000_000_000_000;
 pub const ASSET_1: AssetId = 1;
 pub const ASSET_2: AssetId = 2;
 pub const ASSET_3: AssetId = 3;
+pub const ASSET_4: AssetId = 4;
 
 pub const ALICE_INITIAL_BSX_BALANCE: u128 = 200 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
@@ -21,11 +22,13 @@ pub const DAVE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
 pub const VESTING_ACCOUNT_INITIAL_BSX_BALANCE: u128 = 1_000_000 * UNITS;
 
 pub const BOB_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
+pub const BOB_INITIAL_ASSET_4_BALANCE: u128 = 1000 * UNITS;
 pub const CHARLIE_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
 pub const DAVE_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
 pub const ALICE_INITIAL_ASSET_1_BALANCE: u128 = 400 * UNITS;
 pub const ALICE_INITIAL_ASSET_2_BALANCE: u128 = 200 * UNITS;
 pub const ALICE_INITIAL_ASSET_3_BALANCE: u128 = 400 * UNITS;
+pub const ALICE_INITIAL_ASSET_4_BALANCE: u128 = 400 * UNITS;
 
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
@@ -207,9 +210,10 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
 		asset_names: vec![
-			(b"KSM".to_vec(), 1_000_000u128),
-			(b"aUSD".to_vec(), 1_000u128),
-			(b"DOT".to_vec(), 1_000u128),
+			(b"ASSET1".to_vec(), 1_000_000u128),
+			(b"ASSET2".to_vec(), 1_000u128),
+			(b"ASSET3".to_vec(), 1_000u128),
+			(b"ASSET4".to_vec(), 1_000u128),
 		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
@@ -229,7 +233,9 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			(AccountId::from(ALICE), ASSET_1, ALICE_INITIAL_ASSET_1_BALANCE * UNITS),
 			(AccountId::from(ALICE), ASSET_2, ALICE_INITIAL_ASSET_2_BALANCE * UNITS),
 			(AccountId::from(ALICE), ASSET_3, ALICE_INITIAL_ASSET_3_BALANCE * UNITS),
+			(AccountId::from(ALICE), ASSET_4, ALICE_INITIAL_ASSET_4_BALANCE * UNITS),
 			(AccountId::from(BOB), ASSET_1, BOB_INITIAL_ASSET_1_BALANCE),
+			(AccountId::from(BOB), ASSET_4, BOB_INITIAL_ASSET_4_BALANCE),
 			(AccountId::from(CHARLIE), ASSET_1, CHARLIE_INITIAL_ASSET_1_BALANCE),
 			(AccountId::from(DAVE), ASSET_1, DAVE_INITIAL_ASSET_1_BALANCE),
 		],

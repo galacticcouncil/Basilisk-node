@@ -24,9 +24,145 @@ const KSM: u32 = ASSET_3;
 
 const TRADER: [u8; 32] = BOB;
 pub const BOB_INITIAL_AUSD_BALANCE: u128 = BOB_INITIAL_ASSET_1_BALANCE;
+const NEW_BOOTSRAPPED_TOKEN: u32 = ASSET_4;
+const BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE: u128 = BOB_INITIAL_ASSET_4_BALANCE;
 
 pub const SALE_START: Option<BlockNumber> = Some(10);
 pub const SALE_END: Option<BlockNumber> = Some(40);
+
+mod router_different_pools_tests {
+	use crate::kusama_test_net::*;
+
+	use basilisk_runtime::{Origin, Router};
+	use xcm_emulator::TestExt;
+
+	use frame_support::{assert_ok};
+	use hydradx_traits::router::PoolType;
+	use pallet_route_executor::Trade;
+
+	use super::*;
+
+	#[test]
+	fn sell_should_work_when_route_contains_trades_with_different_pools() {
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_xyk_pool(AUSD, BSX);
+			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_xyk_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+
+			let amount_to_sell = 10 * UNITS;
+			let limit = 0;
+			let trades = vec![
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: AUSD,
+					asset_out: BSX,
+				},
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: BSX,
+					asset_out: NEW_BOOTSRAPPED_TOKEN,
+				},
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: KSM,
+				},
+			];
+
+			start_lbp_campaign();
+
+			//Act
+			assert_ok!(Router::sell(
+				Origin::signed(TRADER.into()),
+				AUSD,
+				KSM,
+				amount_to_sell,
+				limit,
+				trades
+			));
+
+			//Assert
+			let amount_out = 1208552505894;
+
+			assert_trader_non_native_balance(BOB_INITIAL_ASSET_1_BALANCE - amount_to_sell, AUSD);
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(amount_out, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: AUSD,
+				asset_out: KSM,
+				amount_in: amount_to_sell,
+				amount_out,
+			}
+				.into()]);
+		});
+	}
+
+	#[test]
+	fn buy_should_work_when_route_contains_trades_with_different_pools() {
+		TestNet::reset();
+
+		Basilisk::execute_with(|| {
+			//Arrange
+			create_xyk_pool(AUSD, BSX);
+			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
+			create_xyk_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+
+			let amount_to_buy = 1 * UNITS;
+			let limit = 100 * UNITS;
+			let trades = vec![
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: AUSD,
+					asset_out: BSX,
+				},
+				Trade {
+					pool: PoolType::LBP,
+					asset_in: BSX,
+					asset_out: NEW_BOOTSRAPPED_TOKEN,
+				},
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: NEW_BOOTSRAPPED_TOKEN,
+					asset_out: KSM,
+				},
+			];
+
+			start_lbp_campaign();
+
+			//Act
+			assert_ok!(Router::buy(
+				Origin::signed(TRADER.into()),
+				AUSD,
+				KSM,
+				amount_to_buy,
+				limit,
+				trades
+			));
+
+			//Assert
+			let amount_in = 8049720452471;
+
+			assert_trader_non_native_balance(BOB_INITIAL_ASSET_1_BALANCE - amount_in, AUSD);
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(amount_to_buy, KSM);
+
+			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+				asset_in: AUSD,
+				asset_out: KSM,
+				amount_in,
+				amount_out: amount_to_buy,
+			}
+				.into()]);
+		});
+	}
+
+}
 
 mod xyk_router_tests {
 	use crate::kusama_test_net::*;
@@ -650,9 +786,6 @@ mod lbp_router_tests {
 
 	use crate::router::*;
 
-	const NEW_BOOTSRAPPED_TOKEN: u32 = 1;
-	const BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE: u128 = BOB_INITIAL_ASSET_1_BALANCE;
-
 	#[test]
 	fn sell_should_work_when_route_contains_single_trade() {
 		TestNet::reset();
@@ -669,7 +802,7 @@ mod lbp_router_tests {
 				asset_out: NEW_BOOTSRAPPED_TOKEN,
 			}];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::sell(
@@ -716,7 +849,7 @@ mod lbp_router_tests {
 				asset_out: BSX,
 			}];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::sell(
@@ -771,7 +904,7 @@ mod lbp_router_tests {
 				},
 			];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::sell(
@@ -824,7 +957,7 @@ mod lbp_router_tests {
 				},
 			];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::sell(
@@ -838,59 +971,6 @@ mod lbp_router_tests {
 
 			//Assert
 			let amount_out = 23648947753385;
-
-			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
-			assert_trader_non_native_balance(amount_out, KSM);
-
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
-				asset_in: BSX,
-				asset_out: KSM,
-				amount_in: amount_to_sell,
-				amount_out,
-			}
-			.into()]);
-		});
-	}
-
-	#[test]
-	fn sell_should_work_when_route_contains_double_trades_with_different_pools() {
-		TestNet::reset();
-
-		Basilisk::execute_with(|| {
-			//Arrange
-			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
-			create_xyk_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
-
-			let amount_to_sell = 10 * UNITS;
-			let limit = 0;
-			let trades = vec![
-				Trade {
-					pool: PoolType::LBP,
-					asset_in: BSX,
-					asset_out: NEW_BOOTSRAPPED_TOKEN,
-				},
-				Trade {
-					pool: PoolType::XYK,
-					asset_in: NEW_BOOTSRAPPED_TOKEN,
-					asset_out: KSM,
-				},
-			];
-
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
-
-			//Act
-			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
-				BSX,
-				KSM,
-				amount_to_sell,
-				limit,
-				trades
-			));
-
-			//Assert
-			let amount_out = 2511249070223;
 
 			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
@@ -924,7 +1004,7 @@ mod lbp_router_tests {
 				asset_out: NEW_BOOTSRAPPED_TOKEN,
 			}];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::sell(
@@ -958,7 +1038,7 @@ mod lbp_router_tests {
 			//Arrange
 			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(LBP::sell(
@@ -994,7 +1074,7 @@ mod lbp_router_tests {
 				asset_out: NEW_BOOTSRAPPED_TOKEN,
 			}];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::buy(
@@ -1041,7 +1121,7 @@ mod lbp_router_tests {
 				asset_out: BSX,
 			}];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::buy(
@@ -1096,7 +1176,7 @@ mod lbp_router_tests {
 				},
 			];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::buy(
@@ -1149,7 +1229,7 @@ mod lbp_router_tests {
 				},
 			];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::buy(
@@ -1196,7 +1276,7 @@ mod lbp_router_tests {
 				asset_out: NEW_BOOTSRAPPED_TOKEN,
 			}];
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(Router::buy(
@@ -1230,7 +1310,7 @@ mod lbp_router_tests {
 			//Arrange
 			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
 
-			set_relaychain_block_number(SALE_START.unwrap() + 1);
+			start_lbp_campaign();
 
 			//Act
 			assert_ok!(LBP::buy(
@@ -1299,6 +1379,10 @@ fn get_lbp_pair_account_id(asset_a: AssetId, asset_b: AssetId) -> AccountId {
 		asset_out: asset_b,
 	};
 	LBP::get_pair_id(asset_pair)
+}
+
+fn start_lbp_campaign() {
+	set_relaychain_block_number(SALE_START.unwrap() + 1);
 }
 
 fn assert_trader_non_native_balance(balance: u128, asset_id: u32) {
