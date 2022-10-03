@@ -160,7 +160,11 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
-		asset_names: vec![(b"KSM".to_vec(), 1_000_000u128), (b"aUSD".to_vec(), 1_000u128)],
+		asset_names: vec![
+			(b"KSM".to_vec(), 1_000_000u128),
+			(b"aUSD".to_vec(), 1_000u128),
+			(b"MOVR".to_vec(), 1_000u128),
+		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
 	}
@@ -178,6 +182,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		balances: vec![
 			(AccountId::from(ALICE), 1, 200 * UNITS),
 			(AccountId::from(ALICE), 2, 200 * UNITS),
+			(AccountId::from(ALICE), 3, 200 * UNITS),
 			(AccountId::from(BOB), 1, 1_000 * UNITS),
 			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
 			(AccountId::from(DAVE), 1, 1_000 * UNITS),
@@ -232,7 +237,7 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
-	pallet_asset_registry::GenesisConfig::<Runtime> {
+	pallet_asset_registry::GenesisConfig::<KaruraRuntime> {
 		asset_names: vec![
 			(b"KSM".to_vec(), 1_000_000u128),
 			(b"aUSD".to_vec(), 1_000u128),
@@ -252,7 +257,7 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
-	orml_tokens::GenesisConfig::<Runtime> {
+	orml_tokens::GenesisConfig::<KaruraRuntime> {
 		balances: vec![
 			(AccountId::from(ALICE), 1, 200 * UNITS),
 			(AccountId::from(ALICE), 2, 200 * UNITS),
