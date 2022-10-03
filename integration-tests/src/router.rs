@@ -1,5 +1,5 @@
 #![cfg(test)]
-
+#![allow(clippy::identity_op)]
 use crate::kusama_test_net::*;
 
 use basilisk_runtime::{BlockNumber, Origin, LBP, XYK};
@@ -1352,7 +1352,7 @@ fn create_lbp_pool(accumulated_asset: u32, distributed_asset: u32) {
 
 	assert_ok!(LBP::update_pool_data(
 		Origin::signed(AccountId::from(ALICE)),
-		account_id.into(),
+		account_id,
 		None,
 		SALE_START,
 		SALE_END,
