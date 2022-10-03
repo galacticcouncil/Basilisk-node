@@ -7,9 +7,6 @@ use primitives::{AssetId, Balance};
 use sp_runtime::traits::{BlockNumberProvider};
 use sp_runtime::DispatchError;
 
-//TODO: Dani
-//- refactor unit tests to capture this accumulated/distributed domain logic
-
 impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {
     type Error = DispatchError;
 
