@@ -704,8 +704,8 @@ mod lbp_router_tests {
 			//Assert
 			let amount_out = 5304848609011;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			assert_trader_non_native_balance(
 				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_out,
 				NEW_BOOTSRAPPED_TOKEN,
 			);
@@ -751,11 +751,11 @@ mod lbp_router_tests {
 			//Assert
 			let amount_out = 15853066253648;
 
-			super::assert_trader_non_native_balance(
+			assert_trader_non_native_balance(
 				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE - amount_to_sell,
 				NEW_BOOTSRAPPED_TOKEN,
 			);
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_out);
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_out);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: NEW_BOOTSRAPPED_TOKEN,
@@ -806,9 +806,9 @@ mod lbp_router_tests {
 			//Assert
 			let amount_out = 2894653423209;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
-			super::assert_trader_non_native_balance(amount_out, KSM);
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(amount_out, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
@@ -859,9 +859,9 @@ mod lbp_router_tests {
 			//Assert
 			let amount_out = 23648947753385;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
-			super::assert_trader_non_native_balance(amount_out, KSM);
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(amount_out, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
@@ -880,7 +880,7 @@ mod lbp_router_tests {
 		Basilisk::execute_with(|| {
 			//Arrange
 			create_lbp_pool(BSX, NEW_BOOTSRAPPED_TOKEN);
-			super::create_xyk_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
+			create_xyk_pool(NEW_BOOTSRAPPED_TOKEN, KSM);
 
 			let amount_to_sell = 10 * UNITS;
 			let limit = 0;
@@ -912,9 +912,9 @@ mod lbp_router_tests {
 			//Assert
 			let amount_out = 2511249070223;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
-			super::assert_trader_non_native_balance(amount_out, KSM);
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(amount_out, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
@@ -957,8 +957,8 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			assert_trader_non_native_balance(
 				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out,
 				NEW_BOOTSRAPPED_TOKEN,
 			);
@@ -990,8 +990,8 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
-			super::assert_trader_non_native_balance(
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
+			assert_trader_non_native_balance(
 				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + received_amount_out,
 				NEW_BOOTSRAPPED_TOKEN,
 			);
@@ -1029,8 +1029,8 @@ mod lbp_router_tests {
 			//Assert
 			let amount_in = 19944393324840;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
-			super::assert_trader_non_native_balance(
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
+			assert_trader_non_native_balance(
 				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
 				NEW_BOOTSRAPPED_TOKEN,
 			);
@@ -1076,8 +1076,8 @@ mod lbp_router_tests {
 			//Assert
 			let amount_in = 6045520780025;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_to_buy);
-			super::assert_trader_non_native_balance(
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE + amount_to_buy);
+			assert_trader_non_native_balance(
 				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE - amount_in,
 				NEW_BOOTSRAPPED_TOKEN,
 			);
@@ -1131,9 +1131,9 @@ mod lbp_router_tests {
 			//Assert
 			let amount_in = 3244461824215;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
-			super::assert_trader_non_native_balance(amount_to_buy, KSM);
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(amount_to_buy, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
@@ -1184,9 +1184,9 @@ mod lbp_router_tests {
 			//Assert
 			let amount_in = 322733733264;
 
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
-			super::assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
-			super::assert_trader_non_native_balance(amount_to_buy, KSM);
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - amount_in);
+			assert_trader_non_native_balance(BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE, NEW_BOOTSRAPPED_TOKEN);
+			assert_trader_non_native_balance(amount_to_buy, KSM);
 
 			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
 				asset_in: BSX,
@@ -1229,8 +1229,8 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
-			super::assert_trader_non_native_balance(
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
+			assert_trader_non_native_balance(
 				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
 				NEW_BOOTSRAPPED_TOKEN,
 			);
@@ -1262,8 +1262,8 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			super::assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
-			super::assert_trader_non_native_balance(
+			assert_trader_bsx_balance(BOB_INITIAL_BSX_BALANCE - spent_amount_in);
+			assert_trader_non_native_balance(
 				BOB_INITIAL_NEW_BOOTSRAPPED_TOKEN_BALANCE + amount_to_buy,
 				NEW_BOOTSRAPPED_TOKEN,
 			);
