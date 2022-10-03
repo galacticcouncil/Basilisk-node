@@ -2,23 +2,18 @@
 
 use crate::kusama_test_net::*;
 
-use basilisk_runtime::{BlockNumber, Origin, Router, LBP, XYK};
+use basilisk_runtime::{BlockNumber, Origin, LBP, XYK};
 use hydradx_traits::AMM;
 use primitives::{AssetId, Price};
-use xcm_emulator::TestExt;
 
 use pallet_lbp::WeightCurveType;
 use sp_arithmetic::fixed_point::FixedPointNumber;
 
-use frame_support::assert_noop;
 use frame_support::{
 	assert_ok,
-	traits::{OnFinalize, OnInitialize},
 };
 
-use hydradx_traits::router::PoolType;
 use orml_traits::MultiCurrency;
-use pallet_route_executor::Trade;
 use primitives::asset::AssetPair;
 use primitives::constants::chain::CORE_ASSET_ID;
 
@@ -36,20 +31,12 @@ pub const SALE_END: Option<BlockNumber> = Some(40);
 mod xyk_router_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{BlockNumber, Origin, Router, LBP};
-	use primitives::{AssetId, Price};
+	use basilisk_runtime::{Origin, Router};
 	use xcm_emulator::TestExt;
-
-	use hydradx_traits::AMM;
-	use sp_arithmetic::fixed_point::FixedPointNumber;
 
 	use frame_support::{assert_noop, assert_ok};
 	use hydradx_traits::router::PoolType;
-	use orml_traits::MultiCurrency;
-	use pallet_lbp::WeightCurveType;
 	use pallet_route_executor::Trade;
-	use polkadot_xcm::prelude::AccountId32;
-	use primitives::asset::AssetPair;
 
 	use super::*;
 
@@ -654,19 +641,12 @@ mod xyk_router_tests {
 mod lbp_router_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{BlockNumber, Origin, Router, LBP};
-	use primitives::{AssetId, Price};
+	use basilisk_runtime::{Origin, Router, LBP};
 	use xcm_emulator::TestExt;
 
-	use hydradx_traits::AMM;
-	use sp_arithmetic::fixed_point::FixedPointNumber;
-
-	use frame_support::{assert_noop, assert_ok};
+	use frame_support::{assert_ok};
 	use hydradx_traits::router::PoolType;
-	use orml_traits::MultiCurrency;
 	use pallet_route_executor::Trade;
-	use polkadot_xcm::prelude::AccountId32;
-	use primitives::asset::AssetPair;
 
 	use crate::router::*;
 
@@ -1297,11 +1277,11 @@ fn create_lbp_pool(accumulated_asset: u32, distributed_asset: u32) {
 		0,
 	));
 
-	let accountId = get_lbp_pair_account_id(accumulated_asset, distributed_asset);
+	let account_id = get_lbp_pair_account_id(accumulated_asset, distributed_asset);
 
 	assert_ok!(LBP::update_pool_data(
 		Origin::signed(AccountId::from(ALICE)),
-		accountId.into(),
+		account_id.into(),
 		None,
 		SALE_START,
 		SALE_END,

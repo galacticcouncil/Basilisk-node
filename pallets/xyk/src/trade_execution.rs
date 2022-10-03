@@ -6,7 +6,6 @@ use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
 use primitives::asset::AssetPair;
 use primitives::{AssetId, Balance};
-use sp_runtime::traits::Zero;
 use sp_runtime::DispatchError;
 
 impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {

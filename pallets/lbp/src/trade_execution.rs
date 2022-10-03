@@ -1,12 +1,10 @@
 use crate::{Config, Error, Pallet, PoolData};
-use frame_support::ensure;
-use frame_support::traits::Get;
 use hydradx_traits::router::{ExecutorError, PoolType, TradeExecution};
 use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
 use primitives::asset::AssetPair;
 use primitives::{AssetId, Balance};
-use sp_runtime::traits::{BlockNumberProvider, Zero};
+use sp_runtime::traits::{BlockNumberProvider};
 use sp_runtime::DispatchError;
 
 //TODO: Dani
