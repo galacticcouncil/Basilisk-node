@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -296,7 +296,6 @@ pub mod pallet {
 		///
 		/// Emits `PoolCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
-		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
@@ -419,11 +418,6 @@ pub mod pallet {
 				Error::<T>::InsufficientAssetBalance
 			);
 
-			ensure!(
-				T::Currency::free_balance(asset_b, &who) >= amount_b_max_limit,
-				Error::<T>::InsufficientAssetBalance
-			);
-
 			let pair_account = Self::get_pair_id(asset_pair);
 
 			let share_token = Self::share_token(&pair_account);
@@ -436,6 +430,11 @@ pub mod pallet {
 
 			let amount_b = hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
 				.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
+
+			ensure!(
+				T::Currency::free_balance(asset_b, &who) >= amount_b,
+				Error::<T>::InsufficientAssetBalance
+			);
 
 			ensure!(amount_b <= amount_b_max_limit, Error::<T>::AssetAmountExceededLimit);
 
