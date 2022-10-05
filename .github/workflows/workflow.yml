@@ -3,8 +3,8 @@ name: build-and-deploy
 on:
   push:
     branches:
-      master
-      testnet
+      - master
+      - testnet
   workflow_dispatch:
   pull_request:
 
