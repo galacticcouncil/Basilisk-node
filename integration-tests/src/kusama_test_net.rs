@@ -296,11 +296,11 @@ pub fn vesting_account() -> AccountId {
 }
 
 pub fn set_relaychain_block_number(number: BlockNumber) {
-
-	kusama_run_to_block(number);
-
-	/*
+	use basilisk_runtime::Origin;
+	use basilisk_runtime::ParachainSystem;
 	use frame_support::traits::OnInitialize;
+
+	kusama_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
 
 	ParachainSystem::on_initialize(number);
 
@@ -320,8 +320,6 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 			horizontal_messages: Default::default(),
 		}
 	));
-
-	 */
 }
 
 pub fn kusama_run_to_block(to: BlockNumber) {
