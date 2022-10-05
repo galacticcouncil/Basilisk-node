@@ -301,7 +301,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
-	#[derive(PartialEq)]
+	#[derive(PartialEq, Eq)]
 	pub const MaxEntriesPerDeposit: u8 = 10;
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
 	pub const NftClassId: primitives::ClassId = LM_NFT_CLASS;

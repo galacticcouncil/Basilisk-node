@@ -27,8 +27,8 @@ warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https:/
 
 hydradx-traits-lm = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev="dacf063ea713eb49d494fa04decfdaae9341f117", default-features = false }
 
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="7156f1c15118b520860347fa9e07fb24a48187d2", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="7156f1c15118b520860347fa9e07fb24a48187d2", default-features = false }
 
 primitives = { path = "../../primitives", default-features = false }
 

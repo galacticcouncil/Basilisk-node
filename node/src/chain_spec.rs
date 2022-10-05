@@ -17,6 +17,7 @@
 
 #![allow(clippy::or_fun_call)]
 #![allow(clippy::too_many_arguments)]
+#![allow(clippy::derive_partial_eq_without_eq)] //Needed due to bug 'https://github.com/rust-lang/rust-clippy/issues/8867'
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
@@ -47,7 +48,7 @@ const TELEMETRY_URLS: [&str; 2] = [
 const PARA_ID: u32 = 2090;
 
 /// The extensions for the [`ChainSpec`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
 #[serde(deny_unknown_fields)]
 pub struct Extensions {
 	/// The relay chain of the Parachain.

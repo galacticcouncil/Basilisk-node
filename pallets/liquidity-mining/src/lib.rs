@@ -163,7 +163,7 @@ pub mod pallet {
 	}
 
 	#[pallet::error]
-	#[cfg_attr(test, derive(PartialEq))]
+	#[cfg_attr(test, derive(PartialEq, Eq))]
 	pub enum Error<T> {
 		/// Nft pallet didn't return an owner.
 		CantFindDepositOwner,

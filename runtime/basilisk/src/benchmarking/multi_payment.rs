@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{AccountId, AssetId, Balance, Currencies, Runtime};
+use crate::{AccountId, Runtime};
 use primitives::Price;
 
 use super::*;
@@ -25,22 +25,12 @@ use frame_benchmarking::BenchmarkError;
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
-use sp_runtime::traits::SaturatedConversion;
 
 use hydradx_traits::pools::SpotPriceProvider;
-use orml_traits::MultiCurrencyExtended;
 
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
 
 const SEED: u32 = 1;
-
-pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
-	assert_ok!(<Currencies as MultiCurrencyExtended<_>>::update_balance(
-		currency_id,
-		who,
-		balance.saturated_into()
-	));
-}
 
 runtime_benchmarks! {
 	{ Runtime, pallet_transaction_multi_payment}
