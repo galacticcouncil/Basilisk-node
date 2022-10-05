@@ -3166,9 +3166,9 @@ dependencies = [
 
 [[package]]
 name = "handlebars"
-version = "4.3.4"
+version = "4.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56b224eaa4987c03c30b251de7ef0c15a6a59f34222905850dbc3026dfb24d5f"
+checksum = "433e4ab33f1213cdc25b5fa45c76881240cfe79284cf2b395e8b9e312a30a2fd"
 dependencies = [
  "log",
  "pest",
@@ -3350,7 +3350,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "0.2.1"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-support",
  "hydradx-traits",
@@ -3367,7 +3367,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "0.8.2"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -5389,7 +5389,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "1.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5630,7 +5630,7 @@ dependencies = [
 [[package]]
 name = "pallet-currencies"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6021,7 +6021,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "4.0.0"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6143,7 +6143,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6189,7 +6189,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.1"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6204,7 +6204,7 @@ dependencies = [
 [[package]]
 name = "pallet-route-executor"
 version = "1.0.1"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6381,7 +6381,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "8.0.2"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6399,7 +6399,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-pause"
 version = "0.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#0a140d2caec23b543846ad11b55451b36b2d5187"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#93738c3e08c9260f28da84c1b015d34929064749"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
