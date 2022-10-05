@@ -11378,6 +11378,7 @@ dependencies = [
  "pallet-preimage",
  "pallet-proxy",
  "pallet-relaychain-info",
+ "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",

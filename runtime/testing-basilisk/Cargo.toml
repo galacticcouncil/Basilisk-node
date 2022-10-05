@@ -48,6 +48,7 @@ pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", 
 hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "d8a82016bc8e1ce4f1a3219be635ca0cb6c9dd77", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "d8a82016bc8e1ce4f1a3219be635ca0cb6c9dd77", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "d8a82016bc8e1ce4f1a3219be635ca0cb6c9dd77", default-features = false }
+pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "d8a82016bc8e1ce4f1a3219be635ca0cb6c9dd77", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
