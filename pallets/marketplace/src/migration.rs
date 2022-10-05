@@ -87,11 +87,11 @@ pub mod v1 {
 			<MarketplaceItems<T>>::translate(|_key_1, _key_2, old: OldRoyalty<T::AccountId>| {
 				translated.saturating_inc();
 				Some(RoyaltyOf::<T> {
-					 author: old.author,
-					 // multiply the value by 100 to transform percentage to basis points
-					 royalty: Into::<u16>::into(old.royalty)
-						  .checked_mul(100)
-						  .unwrap_or(MAX_ROYALTY - 1),
+					author: old.author,
+					// multiply the value by 100 to transform percentage to basis points
+					royalty: Into::<u16>::into(old.royalty)
+						.checked_mul(100)
+						.unwrap_or(MAX_ROYALTY - 1),
 				})
 			});
 
