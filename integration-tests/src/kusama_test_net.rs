@@ -296,8 +296,10 @@ pub fn vesting_account() -> AccountId {
 }
 
 pub fn set_relaychain_block_number(number: BlockNumber) {
-	use basilisk_runtime::Origin;
-	use basilisk_runtime::ParachainSystem;
+
+	kusama_run_to_block(number);
+
+	/*
 	use frame_support::traits::OnInitialize;
 
 	ParachainSystem::on_initialize(number);
@@ -318,4 +320,16 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 			horizontal_messages: Default::default(),
 		}
 	));
+
+	 */
+}
+
+pub fn kusama_run_to_block(to: BlockNumber) {
+	use frame_support::traits::{OnFinalize, OnInitialize};
+	while kusama_runtime::System::block_number() < to {
+		let b = kusama_runtime::System::block_number();
+		kusama_runtime::System::on_finalize(b);
+		kusama_runtime::System::on_initialize(b + 1);
+		kusama_runtime::System::set_block_number(b + 1);
+	}
 }
