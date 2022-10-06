@@ -22,7 +22,6 @@ pub const SALE_END: Option<BlockNumber> = Some(40);
 mod router_different_pools_tests {
 	use crate::kusama_test_net::*;
 
-
 	use basilisk_runtime::{Origin, Router};
 	use xcm_emulator::TestExt;
 
