@@ -31,7 +31,7 @@
 // --wasm-execution=compiled
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
-// --pallet=orml_currencies
+// --pallet=pallet_currencies
 // --output=currencies.rs
 // --extrinsic=*
 #![allow(unused_parens)]
