@@ -436,6 +436,9 @@ impl orml_tokens::Config for Runtime {
 	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
 }
 
+// The latest versions of the orml-currencies pallet don't emit events.
+// The infrastructure relies on the events from this pallet, so we use the latest version of
+// the pallet that contains and emit events and was updated to the polkadot version we use.
 impl pallet_currencies::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = OrmlTokensAdapter<Runtime>;
