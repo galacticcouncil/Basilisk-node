@@ -111,6 +111,22 @@ jobs:
           cp target/release/basilisk target/release/testing-basilisk
           chmod +x ./target/release/testing-basilisk
           ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.json
+      - name: Generate wasm binary for testnet
+        run: testing-basilisk export-genesis-wasm --chain /data/data/genesis_bsx.json > para-2090-wasm
+      - name: Generate genesis binary for testnet
+        run: testing-basilisk export-genesis-state --chain /data/data/genesis_bsx.json > para-2090-genesis
+      
+      - name: Upload wasm binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: para-2090-wasm
+          path: ./para-2090-wasm
+      - name: Upload genesis binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: para-2090-genesis
+          path: ./para-2090-genesis
+
       - name: Upload config file
         uses: actions/upload-artifact@v2
         with:
