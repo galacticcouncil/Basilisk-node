@@ -107,7 +107,7 @@ polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", 
 basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.17" }
 
-cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.26" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17" }
 
 [dev-dependencies]
 hex-literal = "0.3.1"
