@@ -33,29 +33,20 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 
 		let fee_asset = pool_data.assets.0;
 
-		if fee_asset == assets.asset_in {
-			let amount_out = hydra_dx_math::lbp::calculate_out_given_in(
-				asset_in_reserve,
-				asset_out_reserve,
-				weight_in,
-				weight_out,
-				amount_in,
-			)
-			.map_err(|_| ExecutorError::Error(Error::<T>::Overflow.into()))?;
+		let amount_out = hydra_dx_math::lbp::calculate_out_given_in(
+			asset_in_reserve,
+			asset_out_reserve,
+			weight_in,
+			weight_out,
+			amount_in,
+		)
+		.map_err(|_| ExecutorError::Error(Error::<T>::Overflow.into()))?;
 
+		if fee_asset == assets.asset_in {
 			Ok(amount_out) //amount with fee applied as the user is responsible to send fee to the fee collector
 		} else {
-			let calculated_out = hydra_dx_math::lbp::calculate_out_given_in(
-				asset_in_reserve,
-				asset_out_reserve,
-				weight_in,
-				weight_out,
-				amount_in,
-			)
-			.map_err(|_| ExecutorError::Error(Error::<T>::Overflow.into()))?;
-
-			let fee = Self::calculate_fees(&pool_data, calculated_out).map_err(ExecutorError::Error)?;
-			let amount_out_without_fee = calculated_out
+			let fee = Self::calculate_fees(&pool_data, amount_out).map_err(ExecutorError::Error)?;
+			let amount_out_without_fee = amount_out
 				.checked_sub(fee)
 				.ok_or_else(|| ExecutorError::Error(Error::<T>::Overflow.into()))?;
 
