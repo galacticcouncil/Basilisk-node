@@ -99,13 +99,12 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 		asset_in: AssetId,
 		asset_out: AssetId,
 		amount_in: Balance,
-		amount_out: Balance,
+		min_limit: Balance,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		let min_limit = amount_out;
 		Self::sell(who, asset_in, asset_out, amount_in, min_limit, false).map_err(ExecutorError::Error)
 	}
 
@@ -114,14 +113,13 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
-		amount_in: Balance,
 		amount_out: Balance,
+		max_limit: Balance,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		let max_limit = amount_in;
 		Self::buy(who, asset_out, asset_in, amount_out, max_limit, false).map_err(ExecutorError::Error)
 	}
 }
