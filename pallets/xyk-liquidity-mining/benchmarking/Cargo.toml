@@ -32,8 +32,6 @@ pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", 
 warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="89bde6d2b8bad2263c554eb3d83b76d877971136", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch="polkadot-v0.9.28", default-features = false }
 
-serde = { version = "1.0.136", optional = true, features = ["derive"] }
-
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
@@ -53,8 +51,10 @@ orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-modul
 
 [features]
 default = ["std"]
+
+runtime-benchmarks=["pallet-uniques/runtime-benchmarks"]
+
 std = [
-    "serde/std",
     "codec/std",
     "frame-support/std",
     "frame-system/std",
