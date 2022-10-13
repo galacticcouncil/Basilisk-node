@@ -17,32 +17,37 @@
 
 use super::*;
 use frame_support::traits::StorageVersion;
-use hydradx_traits::nft::CreateTypedClass;
+use hydradx_traits::nft::CreateTypedCollection;
 
 const STORAGE_VERSION: u16 = 1;
 const READ_WEIGHT: u64 = 3;
 const WRITE_WEIGHT: u64 = 5;
 
 #[allow(dead_code)]
-pub fn init_nft_class<T: Config>() -> frame_support::weights::Weight {
+pub fn init_nft_collection<T: Config>() -> frame_support::weights::Weight {
 	let version = StorageVersion::get::<Pallet<T>>();
 
 	if version == 0 {
-		let pallet_account = <Pallet<T>>::account_id();
-
-		if let Err(e) = T::NFTHandler::create_typed_class(
-			pallet_account,
-			T::NftClassId::get(),
-			pallet_nft::ClassType::LiquidityMining,
-		) {
+		if let Some(pallet_account) = <Pallet<T>>::account_id() {
+			if let Err(e) = T::NFTHandler::create_typed_collection(
+				pallet_account,
+				T::NftCollectionId::get(),
+				pallet_nft::CollectionType::LiquidityMining,
+			) {
+				log::error!(
+					target: "basilisk:liquidity-mining",
+					"Error to create NFT class: {:?}",
+					e
+				);
+			} else {
+				StorageVersion::new(STORAGE_VERSION).put::<Pallet<T>>();
+			}
+		} else {
 			log::error!(
 				target: "basilisk:liquidity-mining",
-				"Error to create NFT class: {:?}",
-				e
+				"Error to get pallet account",
 			);
 		}
-
-		StorageVersion::new(STORAGE_VERSION).put::<Pallet<T>>();
 
 		T::DbWeight::get().reads_writes(READ_WEIGHT, WRITE_WEIGHT)
 	} else {
@@ -66,11 +71,11 @@ mod tests {
 	#[test]
 	fn init_nft_class_migration_should_work() {
 		sp_io::TestExternalities::default().execute_with(|| {
-			let pallet_account = <Pallet<Test>>::account_id();
+			let pallet_account = <Pallet<Test>>::account_id().unwrap();
 
-			let weight = init_nft_class::<Test>();
+			let weight = init_nft_collection::<Test>();
 
-			assert_that_nft_class_is_created(pallet_account);
+			assert_that_nft_collecion_is_created(pallet_account);
 			assert_eq!(StorageVersion::get::<Pallet<Test>>(), STORAGE_VERSION);
 			assert_eq!(
 				weight,
@@ -79,7 +84,7 @@ mod tests {
 		});
 	}
 
-	fn assert_that_nft_class_is_created(pallet_account: u128) {
+	fn assert_that_nft_collecion_is_created(pallet_account: u128) {
 		mock::NFT_CLASS
 			.borrow()
 			.with(|v| assert_eq!(*v, RefCell::new((mock::LM_NFT_CLASS, pallet_account, pallet_account))));

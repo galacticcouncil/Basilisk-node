@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,5 +62,9 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	}
 	fn dispatch_as() -> Weight {
 		(12_697_000 as Weight)
+	}
+	fn force_batch(c: u32) -> Weight {
+		(19_136_000 as Weight) // Standard Error: 2_000
+			.saturating_add((2_697_000 as Weight).saturating_mul(c as Weight))
 	}
 }

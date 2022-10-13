@@ -21,11 +21,9 @@ use crate::dispatch::DispatchError;
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
-	traits::{Everything, GenesisBuild, Nothing},
+	traits::{AsEnsureOriginWithArg, Everything, GenesisBuild, Nothing},
 	PalletId,
 };
-use std::cell::RefCell;
-use std::collections::HashMap;
 
 use frame_system as system;
 use frame_system::EnsureSigned;
@@ -39,12 +37,11 @@ use primitives::{
 	Amount, AssetId, Balance,
 };
 
-use pallet_nft::{ClassType, NftPermissions};
+use pallet_nft::{CollectionType, NftPermissions};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
-	DispatchResult,
 };
 
 pub const UNITS: Balance = 1_000_000_000_000;
@@ -61,7 +58,7 @@ pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 pub const BSX: AssetId = 1000;
 pub const KSM: AssetId = 4000;
 
-pub const LIQ_MINING_NFT_CLASS: primitives::ClassId = 1;
+pub const LIQ_MINING_NFT_COLLECTION: primitives::CollectionId = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -133,6 +130,9 @@ parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
 	pub const MinDeposit: Balance = 1;
 	pub const MaxEntriesPerDeposit: u8 = 5;
+	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
+	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
+	pub const MinTotalFarmRewards: Balance = 1_000_000;
 }
 
 impl warehouse_liquidity_mining::Config<Instance1> for Test {
@@ -149,13 +149,8 @@ impl warehouse_liquidity_mining::Config<Instance1> for Test {
 }
 
 parameter_types! {
-	pub const MaxLocks: u32 = 1;
 	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
-	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
-	pub const MinTotalFarmRewards: Balance = 1_000_000;
-	pub const NftClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
-	pub const ReserveClassIdUpTo: u128 = 9999;
-	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
+	pub const NftCollection: primitives::CollectionId = LIQ_MINING_NFT_COLLECTION;
 }
 
 impl pallet_liquidity_mining::Config for Test {
@@ -163,30 +158,33 @@ impl pallet_liquidity_mining::Config for Test {
 	type MultiCurrency = Currency;
 	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type PalletId = LMPalletId;
-	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
-	type NftClassId = NftClass;
+	type NftCollectionId = NftCollection;
 	type AMM = XYK;
 	type WeightInfo = ();
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
 }
 
+parameter_types! {
+	pub const ReserveCollectionIdUpTo: u128 = 9999;
+}
+
 impl pallet_nft::Config for Test {
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type NftClassId = primitives::ClassId;
-	type NftInstanceId = primitives::InstanceId;
+	type NftCollectionId = primitives::CollectionId;
+	type NftItemId = primitives::ItemId;
 	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
-	type ClassType = ClassType;
+	type CollectionType = CollectionType;
 	type Permissions = NftPermissions;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
 }
 
 parameter_types! {
 	pub const ExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
 	pub const MaxReserves: u32 = 50;
+	pub const MaxLocks: u32 = 1;
 }
 
 impl pallet_balances::Config for Test {
@@ -202,8 +200,8 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
-	pub const InstanceDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
+	pub const CollectionDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset class
+	pub const ItemDeposit: Balance = 100 * UNITS; // 100 UNITS deposit to create asset instance
 	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
 	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
@@ -214,19 +212,23 @@ parameter_types! {
 
 impl pallet_uniques::Config for Test {
 	type Event = Event;
-	type ClassId = primitives::ClassId;
-	type InstanceId = primitives::InstanceId;
+	type CollectionId = primitives::CollectionId;
+	type ItemId = primitives::ItemId;
 	type Currency = Balances;
 	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
-	type ClassDeposit = ClassDeposit;
-	type InstanceDeposit = InstanceDeposit;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
 	type StringLimit = UniquesStringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
+	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
+	type Locker = ();
 	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = ();
 }
 
 parameter_type_with_key! {
@@ -247,6 +249,8 @@ impl orml_tokens::Config for Test {
 	type OnKilledTokenAccount = ();
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = ();
 }
 
 pub struct ExtBuilder {
@@ -314,53 +318,6 @@ impl Default for ExtBuilder {
 				(DAVE, BSX, INITIAL_BALANCE * UNITS),
 			],
 		}
-	}
-}
-
-thread_local! {
-	pub static NFTS: RefCell<HashMap<primitives::InstanceId, AccountId>> = RefCell::new(HashMap::default());
-}
-
-use frame_support::traits::tokens::nonfungibles::{Create, Inspect, Mutate};
-pub struct NftHandlerStub;
-
-impl<AccountId: From<u128>> Inspect<AccountId> for NftHandlerStub {
-	type InstanceId = primitives::InstanceId;
-	type ClassId = primitives::ClassId;
-
-	fn owner(_class: &Self::ClassId, instance: &Self::InstanceId) -> Option<AccountId> {
-		let mut owner: Option<AccountId> = None;
-
-		NFTS.with(|v| {
-			if let Some(o) = v.borrow().get(instance) {
-				owner = Some((*o).into());
-			}
-		});
-		owner
-	}
-}
-
-impl<AccountId: From<u128>> Create<AccountId> for NftHandlerStub {
-	fn create_class(_class: &Self::ClassId, _who: &AccountId, _admin: &AccountId) -> DispatchResult {
-		Ok(())
-	}
-}
-
-impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for NftHandlerStub {
-	fn mint_into(_class: &Self::ClassId, _instance: &Self::InstanceId, _who: &AccountId) -> DispatchResult {
-		NFTS.with(|v| {
-			let mut m = v.borrow_mut();
-			m.insert(*_instance, (*_who).into());
-		});
-		Ok(())
-	}
-
-	fn burn_from(_class: &Self::ClassId, instance: &Self::InstanceId) -> DispatchResult {
-		NFTS.with(|v| {
-			let mut m = v.borrow_mut();
-			m.remove(instance);
-		});
-		Ok(())
 	}
 }
 

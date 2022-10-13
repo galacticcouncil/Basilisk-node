@@ -28,15 +28,16 @@ use frame_support::{
 };
 
 use frame_system as system;
-use hydradx_traits::{nft::CreateTypedClass, AMM};
+use hydradx_traits::{nft::CreateTypedCollection, AMM};
 use orml_traits::parameter_type_with_key;
-use pallet_nft::ClassType;
+use pallet_nft::CollectionType;
 use primitives::{asset::AssetPair, Amount, AssetId, Balance};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 };
+use sp_std::convert::TryFrom;
 use std::{cell::RefCell, collections::HashMap};
 use warehouse_liquidity_mining::FarmMultiplier;
 use warehouse_liquidity_mining::YieldFarmId;
@@ -66,7 +67,7 @@ pub const KSM_FARM: YieldFarmId = 2;
 pub const INITIAL_READ_WEIGHT: u64 = 1;
 pub const INITIAL_WRITE_WEIGHT: u64 = 1;
 
-pub const LM_NFT_CLASS: primitives::ClassId = 1;
+pub const LM_NFT_CLASS: primitives::CollectionId = 1;
 
 pub const BSX_KSM_ASSET_PAIR: AssetPair = AssetPair {
 	asset_in: BSX,
@@ -299,12 +300,10 @@ parameter_types! {
 	pub const MinDeposit: Balance = 1;
 	pub const MaxLocks: u32 = 1;
 	pub const LMPalletId: PalletId = PalletId(*b"TEST_lm_");
-	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
-	pub const MinTotalFarmRewards: Balance = 1_000_000;
 	#[derive(PartialEq, Eq)]
 	pub const MaxEntriesPerDeposit: u8 = 10;
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
-	pub const NftClassId: primitives::ClassId = LM_NFT_CLASS;
+	pub const NftCollectionId: primitives::CollectionId = LM_NFT_CLASS;
 	pub const ReserveClassIdUpTo: u128 = 2;
 }
 
@@ -314,11 +313,9 @@ impl Config for Test {
 	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();
 	type PalletId = LMPalletId;
-	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
-	type MinTotalFarmRewards = MinTotalFarmRewards;
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type AMM = DummyAMM;
-	type NftClassId = NftClassId;
+	type NftCollectionId = NftCollectionId;
 	type NFTHandler = DummyNFT;
 	type LiquidityMiningHandler = DummyLiquidityMining;
 }
@@ -326,14 +323,14 @@ impl Config for Test {
 pub struct DummyNFT;
 
 impl<AccountId: From<u128>> Inspect<AccountId> for DummyNFT {
-	type InstanceId = u128;
-	type ClassId = u128;
+	type ItemId = u128;
+	type CollectionId = u128;
 
-	fn owner(_class: &Self::ClassId, instance: &Self::InstanceId) -> Option<AccountId> {
+	fn owner(_collection: &Self::CollectionId, item: &Self::ItemId) -> Option<AccountId> {
 		let mut owner: Option<AccountId> = None;
 
 		NFTS.with(|v| {
-			if let Some(o) = v.borrow().get(instance) {
+			if let Some(o) = v.borrow().get(item) {
 				owner = Some((*o).into());
 			}
 		});
@@ -342,36 +339,44 @@ impl<AccountId: From<u128>> Inspect<AccountId> for DummyNFT {
 }
 
 impl<AccountId: From<u128> + Into<u128> + Copy> Create<AccountId> for DummyNFT {
-	fn create_class(_class: &Self::ClassId, _who: &AccountId, _admin: &AccountId) -> DispatchResult {
+	fn create_collection(collection: &Self::CollectionId, who: &AccountId, admin: &AccountId) -> DispatchResult {
 		NFT_CLASS.with(|v| {
-			v.replace((*_class, (*_who).into(), (*_admin).into()));
+			v.replace((*collection, (*who).into(), (*admin).into()));
 		});
 		Ok(())
 	}
 }
 
 impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for DummyNFT {
-	fn mint_into(_class: &Self::ClassId, _instance: &Self::InstanceId, _who: &AccountId) -> DispatchResult {
+	fn mint_into(_collection: &Self::CollectionId, item: &Self::ItemId, who: &AccountId) -> DispatchResult {
 		NFTS.with(|v| {
 			let mut m = v.borrow_mut();
-			m.insert(*_instance, (*_who).into());
+			m.insert(*item, (*who).into());
 		});
 		Ok(())
 	}
 
-	fn burn_from(_class: &Self::ClassId, instance: &Self::InstanceId) -> DispatchResult {
+	fn burn(
+		_collection: &Self::CollectionId,
+		item: &Self::ItemId,
+		_maybe_check_ower: Option<&AccountId>,
+	) -> DispatchResult {
 		NFTS.with(|v| {
 			let mut m = v.borrow_mut();
-			m.remove(instance);
+			m.remove(item);
 		});
 		Ok(())
 	}
 }
 
-impl CreateTypedClass<AccountId, primitives::ClassId, ClassType> for DummyNFT {
-	fn create_typed_class(owner: AccountId, class_id: primitives::ClassId, _class_type: ClassType) -> DispatchResult {
+impl CreateTypedCollection<AccountId, primitives::CollectionId, CollectionType> for DummyNFT {
+	fn create_typed_collection(
+		owner: AccountId,
+		collection_id: primitives::CollectionId,
+		_collection_type: CollectionType,
+	) -> DispatchResult {
 		NFT_CLASS.with(|v| {
-			v.replace((class_id, owner, owner));
+			v.replace((collection_id, owner, owner));
 		});
 		Ok(())
 	}
@@ -727,6 +732,8 @@ impl orml_tokens::Config for Test {
 	type DustRemovalWhitelist = Nothing;
 	type OnNewTokenAccount = ();
 	type OnKilledTokenAccount = ();
+	type MaxReserves = ConstU32<100_000>;
+	type ReserveIdentifier = ();
 }
 
 pub struct ExtBuilder {

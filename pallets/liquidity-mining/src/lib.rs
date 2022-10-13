@@ -53,21 +53,21 @@ use frame_support::traits::tokens::nonfungibles::{Create, Inspect, Mutate};
 use frame_support::{
 	ensure,
 	sp_runtime::traits::{BlockNumberProvider, Zero},
-	transactional, PalletId,
+	PalletId,
 };
 use hydradx_traits_lm::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
 use warehouse_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::ensure_signed;
-use hydradx_traits::{nft::CreateTypedClass, AMM};
+use hydradx_traits::{nft::CreateTypedCollection, AMM};
 use orml_traits::MultiCurrency;
-use pallet_nft::ClassType;
-use primitives::{asset::AssetPair, AssetId, Balance, InstanceId as DepositId};
+use pallet_nft::CollectionType;
+use primitives::{asset::AssetPair, AssetId, Balance, CollectionId as DepositId};
 use scale_info::TypeInfo;
 use sp_arithmetic::{FixedU128, Perquintill};
 use sp_std::{
-	convert::{From, Into},
+	convert::{From, Into, TryInto},
 	vec,
 };
 
@@ -101,10 +101,14 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			let pallet_account = <Pallet<T>>::account_id();
+			let pallet_account = <Pallet<T>>::account_id().unwrap();
 
-			T::NFTHandler::create_typed_class(pallet_account, T::NftClassId::get(), ClassType::LiquidityMining)
-				.unwrap();
+			T::NFTHandler::create_typed_collection(
+				pallet_account,
+				T::NftCollectionId::get(),
+				CollectionType::LiquidityMining,
+			)
+			.unwrap();
 		}
 	}
 
@@ -127,24 +131,18 @@ pub mod pallet {
 		/// Pallet id.
 		type PalletId: Get<PalletId>;
 
-		/// Minimum total rewards to distribute from global farm during liquidity mining.
-		type MinTotalFarmRewards: Get<Balance>;
-
-		/// Minimum number of periods to run liquidity mining program.
-		type MinPlannedYieldingPeriods: Get<Self::BlockNumber>;
-
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
-		/// NFT class id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
+		/// NFT collection id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
 		#[pallet::constant]
-		type NftClassId: Get<primitives::ClassId>;
+		type NftCollectionId: Get<primitives::CollectionId>;
 
 		/// Non fungible handling
 		type NFTHandler: Mutate<Self::AccountId>
 			+ Create<Self::AccountId>
-			+ Inspect<Self::AccountId, ClassId = primitives::ClassId, InstanceId = DepositId>
-			+ CreateTypedClass<Self::AccountId, primitives::ClassId, ClassType>;
+			+ Inspect<Self::AccountId, CollectionId = primitives::CollectionId, ItemId = DepositId>
+			+ CreateTypedCollection<Self::AccountId, primitives::CollectionId, CollectionType>;
 
 		/// Liquidity mining handler for managing liquidity mining functionalities
 		type LiquidityMiningHandler: LiquidityMiningMutate<
@@ -185,6 +183,9 @@ pub mod pallet {
 
 		///Deposit data not found
 		DepositDataNotFound,
+
+		/// Account creation failed.
+		ErrorGetAccountId,
 	}
 
 	#[pallet::event]
@@ -334,7 +335,6 @@ pub mod pallet {
 		/// - `price_adjustment`:
 		/// Emits `GlobalFarmCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_global_farm())]
-		#[transactional]
 		pub fn create_global_farm(
 			origin: OriginFor<T>,
 			total_rewards: Balance,
@@ -389,7 +389,6 @@ pub mod pallet {
 		///
 		/// Emits `GlobalFarmUpdated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::update_global_farm())]
-		#[transactional]
 		pub fn update_global_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
@@ -419,7 +418,6 @@ pub mod pallet {
 		///
 		/// Emits `FarmDestroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_global_farm())]
-		#[transactional]
 		pub fn destroy_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -453,7 +451,6 @@ pub mod pallet {
 		///
 		/// Emits `YieldFarmCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_yield_farm())]
-		#[transactional]
 		pub fn create_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
@@ -498,7 +495,6 @@ pub mod pallet {
 		///
 		/// Emits `YieldFarmUpdated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::update_yield_farm())]
-		#[transactional]
 		pub fn update_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
@@ -544,7 +540,6 @@ pub mod pallet {
 		///
 		/// Emits `YieldFarmStopped` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::stop_yield_farm())]
-		#[transactional]
 		pub fn stop_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
@@ -583,7 +578,6 @@ pub mod pallet {
 		///
 		/// Emits `YieldFarmResumed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::resume_yield_farm())]
-		#[transactional]
 		pub fn resume_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
@@ -635,7 +629,6 @@ pub mod pallet {
 		///
 		/// Emits `YieldFarmDestroyed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::destroy_yield_farm())]
-		#[transactional]
 		pub fn destroy_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
@@ -673,7 +666,6 @@ pub mod pallet {
 		///
 		/// Emits `SharesDeposited` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
-		#[transactional]
 		pub fn deposit_shares(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
@@ -702,7 +694,7 @@ pub mod pallet {
 			)?;
 
 			Self::lock_lp_tokens(asset_pair, who.clone(), shares_amount)?;
-			T::NFTHandler::mint_into(&T::NftClassId::get(), &deposit_id, &who)?;
+			T::NFTHandler::mint_into(&T::NftCollectionId::get(), &deposit_id, &who)?;
 
 			Self::deposit_event(Event::SharesDeposited {
 				global_farm_id,
@@ -730,7 +722,6 @@ pub mod pallet {
 		///
 		/// Emits `SharesRedeposited` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::redeposit_lp_shares())]
-		#[transactional]
 		pub fn redeposit_lp_shares(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
@@ -740,7 +731,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let nft_class_id = T::NftClassId::get();
+			let nft_class_id = T::NftCollectionId::get();
 			let nft_owner = T::NFTHandler::owner(&nft_class_id, &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
@@ -779,7 +770,6 @@ pub mod pallet {
 		///
 		/// Emits `RewardClaimed` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::claim_rewards())]
-		#[transactional]
 		pub fn claim_rewards(
 			origin: OriginFor<T>,
 			deposit_id: DepositId,
@@ -787,8 +777,8 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let deposit_owner =
-				T::NFTHandler::owner(&T::NftClassId::get(), &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
+			let deposit_owner = T::NFTHandler::owner(&T::NftCollectionId::get(), &deposit_id)
+				.ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(deposit_owner == who, Error::<T>::NotDepositOwner);
 
@@ -835,7 +825,6 @@ pub mod pallet {
 		/// * `RewardClaimed` if claim happen
 		/// * `SharesWithdrawn` event when successful
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_shares())]
-		#[transactional]
 		pub fn withdraw_shares(
 			origin: OriginFor<T>,
 			deposit_id: DepositId,
@@ -844,8 +833,8 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let nft_owner =
-				T::NFTHandler::owner(&T::NftClassId::get(), &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
+			let nft_owner = T::NFTHandler::owner(&T::NftCollectionId::get(), &deposit_id)
+				.ok_or(Error::<T>::CantFindDepositOwner)?;
 
 			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
 
@@ -896,7 +885,7 @@ pub mod pallet {
 
 			if is_destroyed {
 				Self::unlock_lp_tokens(asset_pair, who.clone(), withdrawn_amount)?;
-				T::NFTHandler::burn_from(&T::NftClassId::get(), &deposit_id)?;
+				T::NFTHandler::burn(&T::NftCollectionId::get(), &deposit_id, None)?;
 
 				Self::deposit_event(Event::DepositDestroyed { who, deposit_id });
 			}
@@ -909,8 +898,8 @@ pub mod pallet {
 impl<T: Config> Pallet<T> {
 	/// Account ID of the pot holding locked LP shares. This account is also owner of NFT class
 	/// for all the NFTs minted by this pallet.
-	fn account_id() -> T::AccountId {
-		<T as pallet::Config>::PalletId::get().into_account()
+	fn account_id() -> Option<T::AccountId> {
+		<T as pallet::Config>::PalletId::get().try_into_account()
 	}
 
 	fn get_lp_token(amm_pool_id: &T::AccountId) -> Result<AssetId, Error<T>> {
@@ -928,7 +917,7 @@ impl<T: Config> Pallet<T> {
 	fn lock_lp_tokens(asset_pair: AssetPair, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
 		let lp_token = T::AMM::get_share_token(asset_pair);
 
-		let service_account_for_lp_shares = Self::account_id();
+		let service_account_for_lp_shares = Self::account_id().ok_or(Error::<T>::ErrorGetAccountId)?;
 		T::MultiCurrency::transfer(lp_token, &who, &service_account_for_lp_shares, amount)?;
 
 		Ok(())
@@ -937,7 +926,7 @@ impl<T: Config> Pallet<T> {
 	fn unlock_lp_tokens(asset_pair: AssetPair, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
 		let lp_token = T::AMM::get_share_token(asset_pair);
 
-		let service_account_for_lp_shares = Self::account_id();
+		let service_account_for_lp_shares = Self::account_id().ok_or(Error::<T>::ErrorGetAccountId)?;
 		T::MultiCurrency::transfer(lp_token, &service_account_for_lp_shares, &who, amount)?;
 
 		Ok(())

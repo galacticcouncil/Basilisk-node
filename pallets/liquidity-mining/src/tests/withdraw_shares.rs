@@ -66,7 +66,7 @@ fn withdraw_shares_should_work() {
 
 			let charlie_lp_token_balance = Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE);
 			pretty_assertions::assert_eq!(
-				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id().unwrap()),
 				100 * ONE
 			);
 
@@ -115,7 +115,7 @@ fn withdraw_shares_should_work() {
 				charlie_lp_token_balance
 			);
 			pretty_assertions::assert_eq!(
-				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id().unwrap()),
 				100 * ONE
 			);
 
@@ -177,7 +177,7 @@ fn withdraw_shares_should_work() {
 				charlie_lp_token_balance + 100 * ONE
 			);
 			pretty_assertions::assert_eq!(
-				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id().unwrap()),
 				0
 			);
 		});
@@ -212,7 +212,7 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 
 			pretty_assertions::assert_eq!(Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE), 100 * ONE);
 			pretty_assertions::assert_eq!(
-				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id().unwrap()),
 				100 * ONE
 			);
 
@@ -254,7 +254,7 @@ fn withdraw_should_work_when_it_is_in_same_period_as_claim() {
 			//lp shares unlocked
 			pretty_assertions::assert_eq!(Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE), 200 * ONE);
 			pretty_assertions::assert_eq!(
-				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id().unwrap()),
 				0
 			);
 		});

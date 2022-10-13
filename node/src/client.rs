@@ -198,6 +198,13 @@ impl sc_client_api::BlockBackend<Block> for Client {
 			Self::TestingBasilisk(client) => client.block_indexed_body(id),
 		}
 	}
+
+	fn requires_full_sync(&self) -> bool {
+		match self {
+			Self::Basilisk(client) => client.requires_full_sync(),
+			Self::TestingBasilisk(client) => client.requires_full_sync(),
+		}
+	}
 }
 
 impl sc_client_api::StorageProvider<Block, FullBackend> for Client {
