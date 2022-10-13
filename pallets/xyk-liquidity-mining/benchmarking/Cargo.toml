@@ -1,5 +1,5 @@
 [package]
-name = "pallet-liquidity-mining-benchmarking"
+name = "pallet-xyk-liquidity-mining-benchmarking"
 version = "1.1.0"
 description = "Liquidity Mining Benchmarking Module"
 authors = ["GalacticCouncil"]
@@ -19,7 +19,7 @@ sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "pol
 pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 
 # Local dependencies
-pallet-liquidity-mining = { path = "../../liquidity-mining", default-features = false }
+pallet-xyk-liquidity-mining = { path = "../../xyk-liquidity-mining", default-features = false }
 primitives = { path = "../../../primitives", default-features = false }
 pallet-xyk = { path = "../../xyk", default-features = false }
 
@@ -31,6 +31,8 @@ pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", branch = "p
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false }
 warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="89bde6d2b8bad2263c554eb3d83b76d877971136", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch="polkadot-v0.9.28", default-features = false }
+
+serde = { version = "1.0.136", optional = true, features = ["derive"] }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
@@ -52,6 +54,7 @@ orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-modul
 [features]
 default = ["std"]
 std = [
+    "serde/std",
     "codec/std",
     "frame-support/std",
     "frame-system/std",
@@ -62,6 +65,8 @@ std = [
     "hydradx-traits/std",
     "pallet-balances/std",
     "frame-benchmarking/std",
-    "pallet-liquidity-mining/std",
+    "pallet-xyk-liquidity-mining/std",
     "pallet-asset-registry/std",
+    "pallet-nft/std",
+    "pallet-uniques/std",
 ]

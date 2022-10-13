@@ -1,5 +1,5 @@
 [package]
-name = "pallet-liquidity-mining"
+name = "pallet-xyk-liquidity-mining"
 version = "1.3.0"
 description = "Liquidity mining"
 authors = ["GalacticCouncil"]

@@ -69,15 +69,15 @@ frame_support::construct_runtime!(
 	NodeBlock = Block,
 	UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		XYK: pallet_xyk::{Pallet, Call, Storage, Event<T>},
-		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Storage, Event<T>},
-		NFT: pallet_nft::{Pallet, Call, Event<T>, Storage},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
-		Currency: orml_tokens::{Pallet, Event<T>},
-		AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
-		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>},
+		System: frame_system,
+		XYK: pallet_xyk,
+		LiquidityMining: pallet_xyk_liquidity_mining,
+		NFT: pallet_nft,
+		Balances: pallet_balances,
+		Uniques: pallet_uniques,
+		Currency: orml_tokens,
+		AssetRegistry: pallet_asset_registry,
+		WarehouseLM: warehouse_liquidity_mining::<Instance1>,
 	}
 );
 
@@ -153,7 +153,7 @@ parameter_types! {
 	pub const NftCollection: primitives::CollectionId = LIQ_MINING_NFT_COLLECTION;
 }
 
-impl pallet_liquidity_mining::Config for Test {
+impl pallet_xyk_liquidity_mining::Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
 	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
@@ -331,7 +331,7 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		pallet_liquidity_mining::GenesisConfig::<Test>::default()
+		pallet_xyk_liquidity_mining::GenesisConfig::<Test>::default()
 			.assimilate_storage(&mut t)
 			.unwrap();
 

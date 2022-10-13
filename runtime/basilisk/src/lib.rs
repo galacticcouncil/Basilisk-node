@@ -147,7 +147,7 @@ impl Contains<Call> for BaseFilter {
 			Call::Exchange(_) => false,
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
-			Call::LiquidityMining(_) => false,
+			Call::XYKLiquidityMining(_) => false,
 			Call::OrmlXcm(_) => false,
 			_ => true,
 		}
@@ -856,7 +856,7 @@ impl pallet_relaychain_info::Config for Runtime {
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
-impl pallet_liquidity_mining::Config for Runtime {
+impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
 	type CreateOrigin = EnsureRoot<AccountId>;
@@ -869,8 +869,8 @@ impl pallet_liquidity_mining::Config for Runtime {
 	type LiquidityMiningHandler = WarehouseLM;
 }
 
-type XYKLiquidityMining = warehouse_liquidity_mining::Instance1;
-impl warehouse_liquidity_mining::Config<XYKLiquidityMining> for Runtime {
+type XYKLiquidityMiningInstance = warehouse_liquidity_mining::Instance1;
+impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime {
 	type AssetId = AssetId;
 	type MultiCurrency = Currencies;
 	type PalletId = WarehouseLMPalletId;
@@ -999,7 +999,7 @@ construct_runtime!(
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
 
-		LiquidityMining: pallet_liquidity_mining::{Pallet, Call, Config<T>, Storage, Event<T>} = 112,
+		XYKLiquidityMining: pallet_xyk_liquidity_mining::{Pallet, Call, Config<T>, Storage, Event<T>} = 112,
 		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 113,
 
 		// ORML related modules - runtime module index for orml starts at 150
@@ -1222,7 +1222,7 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
-			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
+			use pallet_xyk_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 
@@ -1266,11 +1266,11 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
-			use pallet_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
+			use pallet_xyk_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl pallet_exchange_benchmarking::Config for Runtime {}
-			impl pallet_liquidity_mining_benchmarking::Config for Runtime {}
+			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number

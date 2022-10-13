@@ -20,7 +20,7 @@
 
 mod mock;
 
-use pallet_liquidity_mining::Pallet as LiquidityMining;
+use pallet_xyk_liquidity_mining::Pallet as LiquidityMining;
 use warehouse_liquidity_mining::{GlobalFarmId, LoyaltyCurve, YieldFarmId};
 
 use frame_benchmarking::{account, benchmarks};
@@ -56,20 +56,20 @@ const ASSET_PAIR: AssetPair = AssetPair {
 const INITIAL_BALANCE: Balance = 100_000_000;
 const ONE: Balance = 1_000_000_000_000;
 
-pub trait Config: pallet_liquidity_mining::Config + pallet_xyk::Config {}
+pub trait Config: pallet_xyk_liquidity_mining::Config + pallet_xyk::Config {}
 
 pub struct Pallet<T: Config>(LiquidityMining<T>);
 
-type MultiCurrencyOf<T> = <T as pallet_liquidity_mining::Config>::MultiCurrency;
+type MultiCurrencyOf<T> = <T as pallet_xyk_liquidity_mining::Config>::MultiCurrency;
 
 fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 
-	<T as pallet_liquidity_mining::Config>::MultiCurrency::deposit(BSX, &caller, INITIAL_BALANCE * ONE).unwrap();
+	<T as pallet_xyk_liquidity_mining::Config>::MultiCurrency::deposit(BSX, &caller, INITIAL_BALANCE * ONE).unwrap();
 
-	<T as pallet_liquidity_mining::Config>::MultiCurrency::deposit(KSM, &caller, INITIAL_BALANCE * ONE).unwrap();
+	<T as pallet_xyk_liquidity_mining::Config>::MultiCurrency::deposit(KSM, &caller, INITIAL_BALANCE * ONE).unwrap();
 
-	<T as pallet_liquidity_mining::Config>::MultiCurrency::deposit(DOT, &caller, INITIAL_BALANCE * ONE).unwrap();
+	<T as pallet_xyk_liquidity_mining::Config>::MultiCurrency::deposit(DOT, &caller, INITIAL_BALANCE * ONE).unwrap();
 
 	caller
 }
