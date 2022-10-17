@@ -147,7 +147,6 @@ impl Contains<Call> for BaseFilter {
 			Call::Exchange(_) => false,
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
-			Call::XYKLiquidityMining(_) => false,
 			Call::OrmlXcm(_) => false,
 			_ => true,
 		}
@@ -999,7 +998,7 @@ construct_runtime!(
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
 
-		XYKLiquidityMining: pallet_xyk_liquidity_mining::{Pallet, Call, Config<T>, Storage, Event<T>} = 112,
+		LiquidityMining: pallet_xyk_liquidity_mining::{Pallet, Call, Config<T>, Storage, Event<T>} = 112,
 		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 113,
 
 		// ORML related modules - runtime module index for orml starts at 150
