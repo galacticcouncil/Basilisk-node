@@ -835,6 +835,7 @@ impl pallet_uniques::Config for Runtime {
 	type ItemId = ItemId;
 	type Currency = KusamaCurrency;
 	type ForceOrigin = SuperMajorityCouncilOrRoot;
+	// Standard collection creation is disallowed
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	type Locker = ();
 	type CollectionDeposit = CollectionDeposit;
