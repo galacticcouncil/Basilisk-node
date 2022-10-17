@@ -1,3 +1,4 @@
+use std::ops::Mul;
 use super::mock::*;
 use crate::*;
 
@@ -10,16 +11,20 @@ use primitive_types::U256;
 use primitives::Price;
 use sp_runtime::FixedU128;
 const TOLERANCE: Balance = 1_000;
+use rug::{Assign, Integer, Float, Rational};
+use rug::ops::*;
 
 #[macro_export]
 macro_rules! assert_eq_approx {
 	( $x:expr, $y:expr, $z:expr, $r:expr) => {{
 		let diff = if $x >= $y { $x - $y } else { $y - $x };
-		dbg!(diff);
 		if diff > $z {
 			println!("diff {:?}", diff);
 			println!("tolerance {:?}", $z);
 			panic!("\n{} not equal\n left: {:?}\nright: {:?}\n", $r, $x, $y);
+		} else{
+			println!("diff {:?}", diff);
+			println!("tolerance {:?}", $z);
 		}
 	}};
 }
@@ -58,6 +63,7 @@ fn assert_asset_invariant(
 }
 
 fn convert_to_fixed(value: Balance) -> FixedBalance {
+	//TODO: convert to fixed has rounding error, ask Martin what he thinks
 	if value == Balance::from(1u32) {
 		return FixedBalance::from_num(1);
 	}
@@ -69,7 +75,7 @@ fn convert_to_fixed(value: Balance) -> FixedBalance {
 }
 
 proptest! {
-	#![proptest_config(ProptestConfig::with_cases(1000))]
+	#![proptest_config(ProptestConfig::with_cases(1))]
 	#[test]
 	fn sell_invariant(
 		initial_liquidity in asset_reserve(),
@@ -143,30 +149,86 @@ proptest! {
 
 				let new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
 				let new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+			    dbg!(new_pool_balance_a.clone());
+				println!("BEFORE ALL");
 
 				let pool_data = LBPPallet::pool_data(pool_account).unwrap();
 				let (weight_a_pre,weight_b_pre) = LBPPallet::calculate_weights(&pool_data, 11).unwrap();
 
-				let max_weight = convert_to_fixed(MAX_WEIGHT.into());
-				let weight_a = convert_to_fixed(weight_a_pre.into()).checked_div(max_weight).unwrap();
-				let weight_b = convert_to_fixed(weight_b_pre.into()).checked_div(max_weight).unwrap();
+				let max_weight = MAX_WEIGHT;
 
-				let new_pool_balance_a = convert_to_fixed(new_pool_balance_a);
-				let new_pool_balance_b = convert_to_fixed(new_pool_balance_b);
-				let new_weighted_reserve_for_asset_a: FixedBalance  = hydra_dx_math::transcendental::pow(new_pool_balance_a, weight_a).unwrap();
-				let new_weighted_reserve_for_asset_b: FixedBalance  = hydra_dx_math::transcendental::pow(new_pool_balance_b, weight_b).unwrap();
+				let precision = 150;
+			    let weight_a = Float::with_val(precision,Rational::from((weight_a_pre,max_weight.clone())));
+			    let weight_b = Float::with_val(precision,Rational::from((weight_b_pre,max_weight)));
 
-				let old_pool_balance_a = convert_to_fixed(pool_balance_a);
-				let old_pool_balance_b = convert_to_fixed(pool_balance_b);
-				let old_weighted_reserve_for_asset_a : FixedBalance  = hydra_dx_math::transcendental::pow(old_pool_balance_a, weight_a).unwrap();
-				let old_weighted_reserve_for_asset_b : FixedBalance  = hydra_dx_math::transcendental::pow(old_pool_balance_b, weight_b).unwrap();
+				let new_pool_balance_a = Float::with_val(precision,new_pool_balance_a);
+				let new_pool_balance_b = Float::with_val(precision,new_pool_balance_b);
+			    let new_weighted_reserve_for_asset_a = new_pool_balance_a.clone().pow(weight_a.clone());
+				let new_weighted_reserve_for_asset_b = new_pool_balance_a.clone().pow(weight_b.clone());
 
-				let s1_u128 = new_weighted_reserve_for_asset_a * new_weighted_reserve_for_asset_b;
-				let s2_u128 = old_weighted_reserve_for_asset_a * old_weighted_reserve_for_asset_b;
+				let old_pool_balance_a = Float::with_val(precision,pool_balance_a);
+				let old_pool_balance_b = Float::with_val(precision,pool_balance_b);
+				let old_weighted_reserve_for_asset_a  = old_pool_balance_a.clone().pow(weight_a.clone());
+				let old_weighted_reserve_for_asset_b  = old_pool_balance_b.clone().pow(weight_b.clone());
 
-				dbg!(s1_u128);
-				dbg!(s2_u128);
-				assert_eq_approx!(s1_u128, s2_u128, 0.01, "The invariant does not hold");
+				let s1_u128 = new_weighted_reserve_for_asset_a.clone().mul(new_weighted_reserve_for_asset_b.clone());
+				let s2_u128 = old_weighted_reserve_for_asset_a.clone().mul(old_weighted_reserve_for_asset_b.clone());
+				println!("RUG CRATE");
+				dbg!(weight_a.clone());
+				dbg!(weight_b.clone());
+				dbg!(new_pool_balance_a.clone());
+				dbg!(new_pool_balance_b.clone());
+				dbg!(new_weighted_reserve_for_asset_a.clone());
+				dbg!(new_weighted_reserve_for_asset_b.clone());
+				dbg!(s1_u128.clone());
+				dbg!(s2_u128.clone());
+
+			    if true {
+					println!("NORMAL CRATE");
+
+					let new_pool_balance_a = Currency::free_balance(asset_a, &pool_account);
+					let new_pool_balance_b = Currency::free_balance(asset_b, &pool_account);
+
+					let pool_data = LBPPallet::pool_data(pool_account).unwrap();
+					let (weight_a_pre,wight_b_pre) = LBPPallet::calculate_weights(&pool_data, 11).unwrap();
+
+					let max_weight = convert_to_fixed(MAX_WEIGHT.into());
+					let weight_a = convert_to_fixed(weight_a_pre.into()).checked_div(max_weight).unwrap();
+					let weight_b = convert_to_fixed(weight_b_pre.into()).checked_div(max_weight).unwrap();
+
+									println!("before converted fixed {:?}", new_pool_balance_a);
+
+					let new_pool_balance_a = convert_to_fixed(new_pool_balance_a);
+									println!("after converted fixed {:?}", new_pool_balance_a);
+
+					let new_pool_balance_b = convert_to_fixed(new_pool_balance_b);
+					let new_weighted_reserve_for_asset_a: FixedBalance  = hydra_dx_math::transcendental::pow(new_pool_balance_a, weight_a).unwrap();
+					let new_weighted_reserve_for_asset_b: FixedBalance  = hydra_dx_math::transcendental::pow(new_pool_balance_b, weight_b).unwrap();
+
+					let old_pool_balance_a = convert_to_fixed(pool_balance_a);
+					let old_pool_balance_b = convert_to_fixed(pool_balance_b);
+					let old_weighted_reserve_for_asset_a : FixedBalance  = hydra_dx_math::transcendental::pow(old_pool_balance_a, weight_a).unwrap();
+					let old_weighted_reserve_for_asset_b : FixedBalance  = hydra_dx_math::transcendental::pow(old_pool_balance_b, weight_b).unwrap();
+
+					let s1_u128 = new_weighted_reserve_for_asset_a * new_weighted_reserve_for_asset_b;
+					let s2_u128 = old_weighted_reserve_for_asset_a * old_weighted_reserve_for_asset_b;
+					dbg!(weight_a.clone());
+					dbg!(weight_b.clone());
+					dbg!(new_pool_balance_a.clone());
+					dbg!(new_pool_balance_b.clone());
+					dbg!(new_weighted_reserve_for_asset_a.clone());
+					dbg!(new_weighted_reserve_for_asset_b.clone());
+					dbg!(s1_u128.clone());
+					dbg!(s2_u128.clone());
+				}
+
+
+				//give rug crate a try
+
+
+				let tolerance = Float::with_val(150,0.1);
+				assert_eq_approx!(s1_u128.clone(), s2_u128.clone(), tolerance, "The invariant does not hold");
+			assert_eq!(3,4);
 			});
 	}
 }

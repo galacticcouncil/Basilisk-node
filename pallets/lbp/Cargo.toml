@@ -20,6 +20,8 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 primitive-types = { default-features = false, version = "0.8.0" }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
+rug = {version = "1.17.0", default-features = false, features = ["integer", "rational", "float"]}
+
 # HydraDX dependencies
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev="945d07d5e72b3104e565b57d5bb47e121c4988b2", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "85257f53b0da5827c103bf4f739474cc1e83d3f7", default-features = false }
