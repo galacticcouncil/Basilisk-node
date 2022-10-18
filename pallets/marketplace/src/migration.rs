@@ -97,7 +97,10 @@ pub mod v1 {
 
 			StorageVersion::new(1).put::<Pallet<T>>();
 
-			T::DbWeight::get().reads_writes(translated, translated + 1)
+			let reads = translated.checked_mul(2).unwrap_or(Weight::MAX).checked_add(3).unwrap_or(Weight::MAX);
+			let writes = reads; // the number of writes is the same as the number of reads
+
+			T::DbWeight::get().reads_writes(reads, writes)
 		}
 
 		pub fn post_migrate<T: Config>() {
@@ -124,6 +127,7 @@ pub mod v1 {
 
 	// rename the storage without transforming the revenue type
 	pub mod move_old_storage {
+		use core::convert::TryInto;
 		use super::*;
 
 		pub fn pre_migrate<T: Config>() {
@@ -146,6 +150,10 @@ pub mod v1 {
 			let new_storage_prefix = storage_prefix(pallet_name, MarketplaceItems::<T>::storage_prefix());
 			let old_storage_prefix = storage_prefix(pallet_name, MarketplaceInstances::<T>::storage_prefix());
 
+			// If the number of items overflows the max weight, return the max weight.
+			// Make sure this won't happen by running try-runtime command before executing the migration.
+			let num_of_instances = MarketplaceItems::<T>::iter().count().try_into().unwrap_or(Weight::MAX);
+
 			move_prefix(&old_storage_prefix, &new_storage_prefix);
 			if let Some(value) = unhashed::get_raw(&old_storage_prefix) {
 				unhashed::put_raw(&new_storage_prefix, &value);
@@ -154,7 +162,10 @@ pub mod v1 {
 
 			StorageVersion::new(1).put::<Pallet<T>>();
 
-			<T as frame_system::Config>::BlockWeights::get().max_block
+			let reads = num_of_instances.checked_mul(2).unwrap_or(Weight::MAX).checked_add(3).unwrap_or(Weight::MAX);
+			let writes = num_of_instances.checked_add(3).unwrap_or(Weight::MAX);
+			
+			T::DbWeight::get().reads_writes(reads, writes)
 		}
 
 		pub fn post_migrate<T: Config>() {
