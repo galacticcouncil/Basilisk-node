@@ -97,7 +97,11 @@ pub mod v1 {
 
 			StorageVersion::new(1).put::<Pallet<T>>();
 
-			let reads = translated.checked_mul(2).unwrap_or(Weight::MAX).checked_add(3).unwrap_or(Weight::MAX);
+			let reads = translated
+				.checked_mul(2)
+				.unwrap_or(Weight::MAX)
+				.checked_add(3)
+				.unwrap_or(Weight::MAX);
 			let writes = reads; // the number of writes is the same as the number of reads
 
 			T::DbWeight::get().reads_writes(reads, writes)
@@ -127,8 +131,8 @@ pub mod v1 {
 
 	// rename the storage without transforming the revenue type
 	pub mod move_old_storage {
-		use core::convert::TryInto;
 		use super::*;
+		use core::convert::TryInto;
 
 		pub fn pre_migrate<T: Config>() {
 			assert_eq!(StorageVersion::get::<Pallet<T>>(), 0, "Storage version too high.");
@@ -162,9 +166,13 @@ pub mod v1 {
 
 			StorageVersion::new(1).put::<Pallet<T>>();
 
-			let reads = num_of_instances.checked_mul(2).unwrap_or(Weight::MAX).checked_add(3).unwrap_or(Weight::MAX);
+			let reads = num_of_instances
+				.checked_mul(2)
+				.unwrap_or(Weight::MAX)
+				.checked_add(3)
+				.unwrap_or(Weight::MAX);
 			let writes = num_of_instances.checked_add(3).unwrap_or(Weight::MAX);
-			
+
 			T::DbWeight::get().reads_writes(reads, writes)
 		}
 
