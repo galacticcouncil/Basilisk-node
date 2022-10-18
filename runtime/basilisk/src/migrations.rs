@@ -25,21 +25,20 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 	}
 
 	fn on_runtime_upgrade() -> Weight {
-		let mut weight: Weight = 0;
-
 		frame_support::log::info!("Migrate Uniques Pallet start");
-		weight = weight.saturating_add(<MigrateUniquesPallet as OnRuntimeUpgrade>::on_runtime_upgrade());
+		<MigrateUniquesPallet as OnRuntimeUpgrade>::on_runtime_upgrade();
 		frame_support::log::info!("Migrate Uniques Pallet end");
 
 		frame_support::log::info!("Migrate Marketplace Pallet start");
-		weight = weight.saturating_add(pallet_marketplace::migration::v1::move_old_storage::migrate::<Runtime>());
+		pallet_marketplace::migration::v1::move_old_storage::migrate::<Runtime>();
 		frame_support::log::info!("Migrate Marketplace Pallet end");
 
 		frame_support::log::info!("Migrate NFT Pallet start");
-		weight = weight.saturating_add(pallet_nft::migration::v1::migrate::<Runtime>());
+		pallet_nft::migration::v1::migrate::<Runtime>();
 		frame_support::log::info!("Migrate NFT Pallet end");
 
-		weight
+		// Both marketplace and nft pallets return max_block weight. Test that it fits into a block before executing the migration.
+		<Runtime as frame_system::Config>::BlockWeights::get().max_block
 	}
 
 	#[cfg(feature = "try-runtime")]
