@@ -47,6 +47,8 @@ pub type BlockNumber = u64;
 pub const ALICE: AccountId = 1;
 pub const BOB: AccountId = 2;
 pub const CHARLIE: AccountId = 3;
+pub const ZERO_REWARDS_USER: AccountId = 4;
+
 pub const ONE: Balance = 1_000_000_000_000;
 
 pub const BSX_ACA_SHARE_ID: AssetId = 100;
@@ -622,7 +624,7 @@ impl hydradx_traits_lm::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber
 	}
 
 	fn claim_rewards(
-		_who: AccountId,
+		who: AccountId,
 		deposit_id: u128,
 		yield_farm_id: u32,
 		fail_on_doubleclaim: bool,
@@ -654,6 +656,11 @@ impl hydradx_traits_lm::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber
 			}
 
 			yield_farm_entry.last_claimed = MockBlockNumberProvider::get();
+
+			if who == ZERO_REWARDS_USER {
+				claimed = 0;
+				unclaimable = 0;
+			}
 
 			Ok((yield_farm_entry.global_farm_id, reward_currency, claimed, unclaimable))
 		})

@@ -1,6 +1,6 @@
 [package]
 name = "pallet-xyk-liquidity-mining"
-version = "1.3.0"
+version = "1.0.0"
 description = "Liquidity mining"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -36,9 +36,6 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 
-orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch="polkadot-v0.9.28", default-features = false }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
-
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28" }
@@ -46,6 +43,9 @@ sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-
 orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch="polkadot-v0.9.28" }
 pretty_assertions = "1.2.1"
 lazy_static = "1.4.0"
+orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch="polkadot-v0.9.28", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+
 
 [features]
 default = ["std"]

@@ -81,25 +81,14 @@ pub mod pallet {
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 
 	#[pallet::pallet]
-	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig<T: Config> {
-		pub _phantom: PhantomData<T>,
-	}
-
-	#[cfg(feature = "std")]
-	impl<T: Config> Default for GenesisConfig<T> {
-		fn default() -> Self {
-			GenesisConfig {
-				_phantom: PhantomData::default(),
-			}
-		}
-	}
+	#[cfg_attr(feature = "std", derive(Default))]
+	pub struct GenesisConfig {}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
 			let pallet_account = <Pallet<T>>::account_id().unwrap();
 
@@ -186,6 +175,9 @@ pub mod pallet {
 
 		/// Account creation failed.
 		ErrorGetAccountId,
+
+		/// Calculated reward to claim is 0.
+		ZeroClaimedRewards,
 	}
 
 	#[pallet::event]
@@ -560,7 +552,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Resume yield farm for sopped yield farm.
+		/// Resume yield farm for stopped yield farm.
 		///
 		/// This function resume incentivization from `GlobalFarm` and restore full functionality
 		/// for yield farm. Users will be able to deposit, claim and withdraw again.
@@ -611,7 +603,7 @@ pub mod pallet {
 
 		/// Remove yield farm
 		///
-		/// This function marks a yield farm ready for removed from storage when it's empty. Users will
+		/// This function marks a yield farm as ready to be removed from storage when it's empty. Users will
 		/// be able to only withdraw shares(without claiming rewards from yield farm). Unpaid rewards
 		/// will be transferred back to global farm and will be used to distribute to other yield farms.
 		///
@@ -653,16 +645,16 @@ pub mod pallet {
 
 		/// Deposit LP shares to a liq. mining.
 		///
-		/// This function transfer LP shares from `origin` to pallet's account and mint nft for
-		/// `origin` account. Minted nft represent deposit in the liq. mining.
+		/// This function transfers LP shares from `origin` to pallet's account and mint nft for
+		/// `origin` account. Minted nft represents deposit in the liq. mining.
 		///
 		/// Parameters:
-		/// - `origin`: account depositing LP shares. This account have to have at least
+		/// - `origin`: account depositing LP shares. This account has to have at least
 		/// `shares_amount` of LP shares.
-		/// - `global_farm_id`: id of global farm to which user want to deposit LP shares.
+		/// - `global_farm_id`: id of global farm to which user wants to deposit LP shares.
 		/// - `yield_farm_id`: id of yield farm to deposit to.
-		/// - `asset_pair`: asset pair identifying LP shares user want to deposit.
-		/// - `shares_amount`: amount of LP shares user want to deposit.
+		/// - `asset_pair`: asset pair identifying LP shares user wants to deposit.
+		/// - `shares_amount`: amount of LP shares user wants to deposit.
 		///
 		/// Emits `SharesDeposited` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::deposit_shares())]
@@ -693,7 +685,7 @@ pub mod pallet {
 				Self::get_asset_balance_in_amm_pool,
 			)?;
 
-			Self::lock_lp_tokens(asset_pair, who.clone(), shares_amount)?;
+			Self::lock_lp_tokens(amm_share_token, &who, shares_amount)?;
 			T::NFTHandler::mint_into(&T::NftCollectionId::get(), &deposit_id, &who)?;
 
 			Self::deposit_event(Event::SharesDeposited {
@@ -786,16 +778,16 @@ pub mod pallet {
 			let (global_farm_id, reward_currency, claimed, _) =
 				T::LiquidityMiningHandler::claim_rewards(who.clone(), deposit_id, yield_farm_id, fail_on_double_claim)?;
 
-			if !claimed.is_zero() {
-				Self::deposit_event(Event::RewardClaimed {
-					global_farm_id,
-					yield_farm_id,
-					who,
-					claimed,
-					reward_currency,
-					deposit_id,
-				});
-			}
+			ensure!(!claimed.is_zero(), Error::<T>::ZeroClaimedRewards);
+
+			Self::deposit_event(Event::RewardClaimed {
+				global_farm_id,
+				yield_farm_id,
+				who,
+				claimed,
+				reward_currency,
+				deposit_id,
+			});
 
 			Ok(())
 		}
@@ -843,15 +835,18 @@ pub mod pallet {
 
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			let mut unclaimable_rewards: Balance = 0;
-			if T::LiquidityMiningHandler::is_yield_farm_claimable(global_farm_id, yield_farm_id, amm_pool_id.clone()) {
+			let unclaimable_rewards: Balance = if T::LiquidityMiningHandler::is_yield_farm_claimable(
+				global_farm_id,
+				yield_farm_id,
+				amm_pool_id.clone(),
+			) {
 				//This should not fail on double claim, we need unclaimable_rewards
-				let fail_on_double_claim = true;
+				let fail_on_double_claim = false;
 				let (global_farm_id, reward_currency, claimed, unclaimable) = T::LiquidityMiningHandler::claim_rewards(
 					who.clone(),
 					deposit_id,
 					yield_farm_id,
-					!fail_on_double_claim,
+					fail_on_double_claim,
 				)?;
 
 				if !claimed.is_zero() {
@@ -865,8 +860,10 @@ pub mod pallet {
 					});
 				}
 
-				unclaimable_rewards = unclaimable;
-			}
+				unclaimable
+			} else {
+				0
+			};
 
 			let (global_farm_id, withdrawn_amount, is_destroyed) =
 				T::LiquidityMiningHandler::withdraw_lp_shares(deposit_id, yield_farm_id, unclaimable_rewards)?;
@@ -884,8 +881,8 @@ pub mod pallet {
 			}
 
 			if is_destroyed {
-				Self::unlock_lp_tokens(asset_pair, who.clone(), withdrawn_amount)?;
-				T::NFTHandler::burn(&T::NftCollectionId::get(), &deposit_id, None)?;
+				Self::unlock_lp_tokens(lp_token, &who, withdrawn_amount)?;
+				T::NFTHandler::burn(&T::NftCollectionId::get(), &deposit_id, Some(&nft_owner))?;
 
 				Self::deposit_event(Event::DepositDestroyed { who, deposit_id });
 			}
@@ -914,20 +911,16 @@ impl<T: Config> Pallet<T> {
 		Ok(T::AMM::get_share_token(asset_pair))
 	}
 
-	fn lock_lp_tokens(asset_pair: AssetPair, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
-		let lp_token = T::AMM::get_share_token(asset_pair);
-
+	fn lock_lp_tokens(lp_token: AssetId, who: &T::AccountId, amount: Balance) -> Result<(), DispatchError> {
 		let service_account_for_lp_shares = Self::account_id().ok_or(Error::<T>::ErrorGetAccountId)?;
-		T::MultiCurrency::transfer(lp_token, &who, &service_account_for_lp_shares, amount)?;
+		T::MultiCurrency::transfer(lp_token, who, &service_account_for_lp_shares, amount)?;
 
 		Ok(())
 	}
 
-	fn unlock_lp_tokens(asset_pair: AssetPair, who: T::AccountId, amount: Balance) -> Result<(), DispatchError> {
-		let lp_token = T::AMM::get_share_token(asset_pair);
-
+	fn unlock_lp_tokens(lp_token: AssetId, who: &T::AccountId, amount: Balance) -> Result<(), DispatchError> {
 		let service_account_for_lp_shares = Self::account_id().ok_or(Error::<T>::ErrorGetAccountId)?;
-		T::MultiCurrency::transfer(lp_token, &service_account_for_lp_shares, &who, amount)?;
+		T::MultiCurrency::transfer(lp_token, &service_account_for_lp_shares, who, amount)?;
 
 		Ok(())
 	}

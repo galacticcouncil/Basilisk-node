@@ -152,3 +152,35 @@ fn claim_rewards_should_fail_when_claimed_by_non_deposit_owner() {
 			);
 		});
 }
+
+#[test]
+fn claim_rewards_should_fail_when_claimed_reward_is_zero() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(ZERO_REWARDS_USER, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(ZERO_REWARDS_USER, 1, 2, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			set_block_number(1_000);
+
+			assert_noop!(
+				LiquidityMining::claim_rewards(Origin::signed(ZERO_REWARDS_USER), 1, 2),
+				Error::<Test>::ZeroClaimedRewards
+			);
+		});
+}

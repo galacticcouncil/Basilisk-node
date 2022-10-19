@@ -331,9 +331,11 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		pallet_xyk_liquidity_mining::GenesisConfig::<Test>::default()
-			.assimilate_storage(&mut t)
-			.unwrap();
+		<pallet_xyk_liquidity_mining::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(
+			&pallet_xyk_liquidity_mining::GenesisConfig::default(),
+			&mut t,
+		)
+		.unwrap();
 
 		t.into()
 	}

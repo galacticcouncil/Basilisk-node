@@ -998,8 +998,8 @@ construct_runtime!(
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
 
-		LiquidityMining: pallet_xyk_liquidity_mining::{Pallet, Call, Config<T>, Storage, Event<T>} = 112,
-		WarehouseLM: warehouse_liquidity_mining::<Instance1>::{Pallet, Storage, Event<T>} = 113,
+		LiquidityMining: pallet_xyk_liquidity_mining = 112,
+		WarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: pallet_currencies = 150,
@@ -1221,7 +1221,7 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
-			use pallet_xyk_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
+			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 
@@ -1231,7 +1231,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
-			list_benchmark!(list, extra, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			list_benchmark!(list, extra, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1265,7 +1265,7 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
-			use pallet_xyk_liquidity_mining_benchmarking::Pallet as LiquidityMiningBench;
+			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl pallet_exchange_benchmarking::Config for Runtime {}
@@ -1296,7 +1296,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			add_benchmark!(params, batches, pallet_liquidity_mining, LiquidityMiningBench::<Runtime>);
+			add_benchmark!(params, batches, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
 
 			// Substrate pallets
