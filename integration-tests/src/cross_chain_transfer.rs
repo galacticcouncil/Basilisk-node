@@ -403,3 +403,118 @@ fn transfer_from_hydra_and_back() {
 		);
 	});
 }
+
+fn trap_asset() -> MultiAsset {
+	Hydra::execute_with(|| {
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			0,
+			30 * UNITS,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(2000),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			200 * UNITS - 30 * UNITS
+		);
+	});
+
+	let loc = MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0)));
+	let asset: MultiAsset = (loc, 30 * UNITS).into();
+
+	Basilisk::execute_with(|| {
+		expect_basilisk_events(vec![
+			cumulus_pallet_xcmp_queue::Event::Fail(
+				Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
+				XcmError::AssetNotFound,
+			)
+			.into(),
+			pallet_relaychain_info::Event::CurrentBlockNumbers {
+				parachain_block_number: 1,
+				relaychain_block_number: 1,
+			}
+			.into(),
+		]);
+		let origin = MultiLocation::new(1, X1(Parachain(3000)));
+		let hash = determine_hash(&origin, vec![asset.clone()]);
+		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
+	});
+
+	asset
+}
+
+use polkadot_xcm::VersionedXcm;
+
+fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
+	Hydra::execute_with(|| {
+		let recipient = MultiLocation::new(
+			0,
+			X1(Junction::AccountId32 {
+				network: NetworkId::Any,
+				id: recipient,
+			}),
+		);
+		let xcm_msg = Xcm(vec![
+			ClaimAsset {
+				assets: vec![asset.clone()].into(),
+				ticket: Here.into(),
+			},
+			BuyExecution {
+				fees: asset,
+				weight_limit: Unlimited,
+			},
+			DepositAsset {
+				assets: All.into(),
+				max_assets: 1,
+				beneficiary: recipient,
+			},
+		]);
+		assert_ok!(basilisk_runtime::PolkadotXcm::send(
+			basilisk_runtime::Origin::root(),
+			Box::new(MultiLocation::new(1, X1(Parachain(2000))).into()),
+			Box::new(VersionedXcm::from(xcm_msg))
+		));
+	});
+}
+
+#[test]
+fn claim_trapped_asset_should_work() {
+	TestNet::reset();
+
+	// traps asset when asset is not registered yet
+	let asset = trap_asset();
+
+	// register the asset
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			1,
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+		));
+	});
+
+	claim_asset(asset.clone(), BOB.into());
+
+	Basilisk::execute_with(|| {
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			1000 * UNITS + 29_999_992_361_112u128
+		);
+
+		let origin = MultiLocation::new(1, X1(Parachain(3000)));
+		let hash = determine_hash(&origin, vec![asset]);
+		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 0);
+	});
+}
