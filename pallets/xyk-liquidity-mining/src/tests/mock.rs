@@ -28,7 +28,7 @@ use frame_support::{
 };
 
 use frame_system as system;
-use hydradx_traits::{nft::CreateTypedCollection, AMM};
+use hydradx_traits::{nft::CreateTypedCollection, pools::DustRemovalAccountWhitelist, AMM};
 use orml_traits::parameter_type_with_key;
 use pallet_nft::CollectionType;
 use primitives::{asset::AssetPair, Amount, AssetId, Balance};
@@ -154,6 +154,8 @@ thread_local! {
 
 	pub static FARM_ID: RefCell<u32> = RefCell::new(0);
 	pub static DEPOSIT_ID: RefCell<DepositId> = RefCell::new(0);
+
+	pub static DUSTER_WHITELIST: RefCell<Vec<AccountId>>= RefCell::new(Vec::new());
 }
 #[derive(Copy, Clone)]
 pub struct DymmyGlobalFarm {
@@ -320,6 +322,7 @@ impl Config for Test {
 	type NftCollectionId = NftCollectionId;
 	type NFTHandler = DummyNFT;
 	type LiquidityMiningHandler = DummyLiquidityMining;
+	type NonDustableWhitelistHandler = Whitelist;
 }
 
 pub struct DummyNFT;
@@ -967,6 +970,24 @@ impl ExtBuilder {
 		});
 
 		r
+	}
+}
+
+pub struct Whitelist;
+
+impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
+	type Error = DispatchError;
+
+	fn add_account(account: &AccountId) -> Result<(), Self::Error> {
+		DEPOSIT_IDS.with(|v| {
+			v.borrow_mut().push(*account);
+		});
+
+		Ok(())
+	}
+
+	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
+		Err(sp_runtime::DispatchError::Other("Not implemented"))
 	}
 }
 

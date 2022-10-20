@@ -37,7 +37,7 @@ fn deposit_shares_should_work() {
 		.build()
 		.execute_with(|| {
 			pretty_assertions::assert_eq!(
-				Tokens::total_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id().unwrap()),
+				Tokens::total_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
 				0
 			);
 
@@ -65,7 +65,7 @@ fn deposit_shares_should_work() {
 			.into());
 
 			pretty_assertions::assert_eq!(
-				Tokens::total_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id().unwrap()),
+				Tokens::total_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
 				deposited_amount
 			);
 

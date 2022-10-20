@@ -866,6 +866,7 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type WeightInfo = ();
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
+	type NonDustableWhitelistHandler = Duster;
 }
 
 type XYKLiquidityMiningInstance = warehouse_liquidity_mining::Instance1;

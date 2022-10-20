@@ -20,44 +20,76 @@ use frame_support::traits::StorageVersion;
 use hydradx_traits::nft::CreateTypedCollection;
 
 const STORAGE_VERSION: u16 = 1;
-const READ_WEIGHT: u64 = 3;
-const WRITE_WEIGHT: u64 = 5;
 
-#[allow(dead_code)]
-pub fn init_nft_collection<T: Config>() -> frame_support::weights::Weight {
-	let version = StorageVersion::get::<Pallet<T>>();
+pub mod v1 {
+	use super::*;
+	use hydradx_traits::pools::DustRemovalAccountWhitelist;
 
-	if version == 0 {
-		if let Some(pallet_account) = <Pallet<T>>::account_id() {
-			if let Err(e) = T::NFTHandler::create_typed_collection(
-				pallet_account,
-				T::NftCollectionId::get(),
-				pallet_nft::CollectionType::LiquidityMining,
-			) {
+	pub fn pre_migrate<T: Config>() {
+		assert_eq!(StorageVersion::get::<Pallet<T>>(), 0, "Storage version too high.");
+
+		log::info!(
+			target: "runtime::xyk-liquidity-mining",
+			"xyk-liquidity-mining migration: PRE checks successful!"
+		);
+	}
+
+	#[allow(dead_code)]
+	pub fn migrate<T: Config>() -> Weight {
+		//offset for storage version update
+		let mut weight: Weight = T::DbWeight::get().reads(1).saturating_add(T::DbWeight::get().writes(1));
+
+		let pallet_account = <Pallet<T>>::account_id();
+
+		//add to non-dustable whitelist
+		match T::NonDustableWhitelistHandler::add_account(&pallet_account) {
+			Ok(()) => {
+				weight = weight
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(1))
+			}
+			Err(e) => {
 				log::error!(
-					target: "basilisk:liquidity-mining",
+					target: "runtime: xyk-liquidity-mining",
+					"Error to add pallet account to non dustable whitelist: {:?}",
+					e
+				);
+			}
+		}
+
+		//create nft class
+		match T::NFTHandler::create_typed_collection(
+			pallet_account,
+			T::NftCollectionId::get(),
+			pallet_nft::CollectionType::LiquidityMining,
+		) {
+			Ok(()) => {
+				//NOTE: create_typed_collection is not benchamrked but it's calling same
+				//funtion as create_collection so weight should be the same.
+				weight = weight.saturating_add(
+					<pallet_nft::weights::BasiliskWeight<T> as pallet_nft::weights::WeightInfo>::create_collection(),
+				);
+			}
+			Err(e) => {
+				log::error!(
+					target: "runtime: xyk-liquidity-mining",
 					"Error to create NFT class: {:?}",
 					e
 				);
-			} else {
-				StorageVersion::new(STORAGE_VERSION).put::<Pallet<T>>();
 			}
-		} else {
-			log::error!(
-				target: "basilisk:liquidity-mining",
-				"Error to get pallet account",
-			);
 		}
 
-		T::DbWeight::get().reads_writes(READ_WEIGHT, WRITE_WEIGHT)
-	} else {
-		log::warn!(
-			target: "basilisk:liquidity-mining",
-			"Attempted to apply migration to v{:?} but failed because storage version is {:?}",
-			STORAGE_VERSION, version
-		);
+		StorageVersion::new(STORAGE_VERSION).put::<Pallet<T>>();
+		weight
+	}
 
-		Weight::zero()
+	pub fn post_migrate<T: Config>() {
+		assert_eq!(StorageVersion::get::<Pallet<T>>(), 1, "Unexpected storage version.");
+
+		log::info!(
+			target: "runtime::xyk-liquidity-mining",
+			"xyk-liquidity-mining migration: POST checks successful!"
+		);
 	}
 }
 
@@ -69,18 +101,24 @@ mod tests {
 	use std::cell::RefCell;
 
 	#[test]
-	fn init_nft_class_migration_should_work() {
+	fn v1_migration() {
 		sp_io::TestExternalities::default().execute_with(|| {
-			let pallet_account = <Pallet<Test>>::account_id().unwrap();
+			let pallet_account = <Pallet<Test>>::account_id();
 
-			let weight = init_nft_collection::<Test>();
+			let weight = v1::migrate::<Test>();
 
 			assert_that_nft_collecion_is_created(pallet_account);
+
 			assert_eq!(StorageVersion::get::<Pallet<Test>>(), STORAGE_VERSION);
-			assert_eq!(
-				weight,
-				(READ_WEIGHT * mock::INITIAL_READ_WEIGHT) + (WRITE_WEIGHT * mock::INITIAL_WRITE_WEIGHT)
-			);
+
+			let storage_version_weight: Weight = 2;
+			let duster_weight: Weight = 2;
+			let expected_weight =
+				<pallet_nft::weights::BasiliskWeight<Test> as pallet_nft::weights::WeightInfo>::create_collection()
+					.saturating_add(duster_weight)
+					.saturating_add(storage_version_weight);
+
+			assert_eq!(weight, expected_weight);
 		});
 	}
 

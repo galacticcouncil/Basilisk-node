@@ -79,8 +79,12 @@ pub mod pallet {
 	use super::*;
 	use crate::weights::WeightInfo;
 	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
+	use hydradx_traits::pools::DustRemovalAccountWhitelist;
+
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
 
 	#[pallet::pallet]
+	#[pallet::storage_version(STORAGE_VERSION)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::genesis_config]
@@ -90,7 +94,9 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			let pallet_account = <Pallet<T>>::account_id().unwrap();
+			let pallet_account = <Pallet<T>>::account_id();
+
+			T::NonDustableWhitelistHandler::add_account(&pallet_account).unwrap();
 
 			T::NFTHandler::create_typed_collection(
 				pallet_account,
@@ -100,9 +106,6 @@ pub mod pallet {
 			.unwrap();
 		}
 	}
-
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + TypeInfo {
@@ -145,6 +148,9 @@ pub mod pallet {
 			Period = PeriodOf<Self>,
 		>;
 
+		/// Account whitelist manager to exclude pool accounts from dusting mechanism.
+		type NonDustableWhitelistHandler: DustRemovalAccountWhitelist<Self::AccountId, Error = DispatchError>;
+
 		/// Weight information for extrinsic in this module.
 		type WeightInfo: WeightInfo;
 	}
@@ -172,9 +178,6 @@ pub mod pallet {
 
 		///Deposit data not found
 		DepositDataNotFound,
-
-		/// Account creation failed.
-		ErrorGetAccountId,
 
 		/// Calculated reward to claim is 0.
 		ZeroClaimedRewards,
@@ -895,8 +898,8 @@ pub mod pallet {
 impl<T: Config> Pallet<T> {
 	/// Account ID of the pot holding locked LP shares. This account is also owner of NFT class
 	/// for all the NFTs minted by this pallet.
-	fn account_id() -> Option<T::AccountId> {
-		<T as pallet::Config>::PalletId::get().try_into_account()
+	fn account_id() -> T::AccountId {
+		<T as pallet::Config>::PalletId::get().into_account_truncating()
 	}
 
 	fn get_lp_token(amm_pool_id: &T::AccountId) -> Result<AssetId, Error<T>> {
@@ -912,17 +915,15 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn lock_lp_tokens(lp_token: AssetId, who: &T::AccountId, amount: Balance) -> Result<(), DispatchError> {
-		let service_account_for_lp_shares = Self::account_id().ok_or(Error::<T>::ErrorGetAccountId)?;
-		T::MultiCurrency::transfer(lp_token, who, &service_account_for_lp_shares, amount)?;
+		let service_account_for_lp_shares = Self::account_id();
 
-		Ok(())
+		T::MultiCurrency::transfer(lp_token, who, &service_account_for_lp_shares, amount)
 	}
 
 	fn unlock_lp_tokens(lp_token: AssetId, who: &T::AccountId, amount: Balance) -> Result<(), DispatchError> {
-		let service_account_for_lp_shares = Self::account_id().ok_or(Error::<T>::ErrorGetAccountId)?;
-		T::MultiCurrency::transfer(lp_token, &service_account_for_lp_shares, who, amount)?;
+		let service_account_for_lp_shares = Self::account_id();
 
-		Ok(())
+		T::MultiCurrency::transfer(lp_token, &service_account_for_lp_shares, who, amount)
 	}
 
 	fn get_asset_balance_in_amm_pool(asset: AssetId, amm_pool_id: T::AccountId) -> Result<Balance, DispatchError> {
