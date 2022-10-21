@@ -858,7 +858,7 @@ impl pallet_relaychain_info::Config for Runtime {
 impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
-	type CreateOrigin = SuperMajorityTechCommitteeOrRoot; //TODO: check this
+	type CreateOrigin = UnanimousTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;

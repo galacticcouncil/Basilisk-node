@@ -306,8 +306,8 @@ pub mod pallet {
 		/// transferred from `owner` to farm account.
 		///
 		/// The dispatch origin for this call must be `T::CreateOrigin`.
-        /// !!!WARN: `T::CreateOrigin` has power over funds of `owner`'s account and it should be
-        /// configure to trusted origin e.g Sudo or Governance.
+		/// !!!WARN: `T::CreateOrigin` has power over funds of `owner`'s account and it should be
+		/// configure to trusted origin e.g Sudo or Governance.
 		///
 		/// Parameters:
 		/// - `origin`: global farm's owner.
