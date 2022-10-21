@@ -820,7 +820,7 @@ impl pallet_relaychain_info::Config for Runtime {
 impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
-	type CreateOrigin = EnsureRoot<AccountId>;
+	type CreateOrigin = SuperMajorityTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
