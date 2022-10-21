@@ -1212,6 +1212,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
+
 			list_benchmark!(list, extra, cumulus_pallet_xcmp_queue, XcmpQueue);
 
 			orml_list_benchmark!(list, extra, pallet_currencies, benchmarking::currencies);
@@ -1276,6 +1277,8 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
+
+			add_benchmark!(params, batches, cumulus_pallet_xcmp_queue, XcmpQueue);
 
 			orml_add_benchmark!(params, batches, pallet_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
