@@ -99,8 +99,7 @@ pub mod v1 {
 
 			let reads = translated
 				.checked_mul(2)
-				.unwrap_or(Weight::MAX)
-				.checked_add(3)
+				.and_then(|v| v.checked_add(3))
 				.unwrap_or(Weight::MAX);
 			let writes = reads; // the number of writes is the same as the number of reads
 
@@ -168,8 +167,7 @@ pub mod v1 {
 
 			let reads = num_of_instances
 				.checked_mul(2)
-				.unwrap_or(Weight::MAX)
-				.checked_add(3)
+				.and_then(|v| v.checked_add(3))
 				.unwrap_or(Weight::MAX);
 			let writes = num_of_instances.checked_add(3).unwrap_or(Weight::MAX);
 
