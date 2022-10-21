@@ -825,9 +825,9 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
 	type AMM = XYK;
-	type WeightInfo = ();
+	type WeightInfo = pallet_xyk_liquidity_mining::weights::BasiliskWeight<Runtime>;
 	type NFTHandler = NFT;
-	type LiquidityMiningHandler = WarehouseLM;
+	type LiquidityMiningHandler = XYKWarehouseLM;
 	type NonDustableWhitelistHandler = Duster;
 }
 
@@ -947,8 +947,8 @@ construct_runtime!(
 		Marketplace: pallet_marketplace = 109,
 		TransactionPause: pallet_transaction_pause = 110,
 
-		LiquidityMining: pallet_xyk_liquidity_mining = 111,
-		WarehouseLM: warehouse_liquidity_mining::<Instance1> = 112,
+		XYKLiquidityMining: pallet_xyk_liquidity_mining = 111,
+		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 112,
 
 		// ORML related modules - starts at 150
 		Currencies: pallet_currencies = 150,

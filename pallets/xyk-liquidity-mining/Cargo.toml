@@ -15,8 +15,6 @@ targets = ["x86_64-unknown-linux-gnu"]
 codec = { package = "parity-scale-codec", version = "3.1.5", features = ["derive", "max-encoded-len"], default-features = false }
 scale-info = { version = "2.1.2", default-features = false, features = ["derive"] }
 
-
-sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 log = { version = "0.4.17", default-features = false }
 
 # ORML dependencies
@@ -24,10 +22,11 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 
 # HydraDX dependencies
 warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="89bde6d2b8bad2263c554eb3d83b76d877971136", default-features = false }
+# This pallet is using 2 different version of triats on purpose because warehouse branch is not merget yet.
 hydradx-traits-lm = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev="89bde6d2b8bad2263c554eb3d83b76d877971136", default-features = false }
 
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", branch="polkadot-v0.9.28", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch="polkadot-v0.9.28", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", branch="polkadot-v0.9.28", default-features = false }
 
 primitives = { path = "../../primitives", default-features = false }
 
@@ -35,17 +34,17 @@ primitives = { path = "../../primitives", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28" }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28" }
 orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch="polkadot-v0.9.28" }
+orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch="polkadot-v0.9.28"}
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28"}
 pretty_assertions = "1.2.1"
 lazy_static = "1.4.0"
-orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch="polkadot-v0.9.28", default-features = false }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
-
 
 [features]
 default = ["std"]

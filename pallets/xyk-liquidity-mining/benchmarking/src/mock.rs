@@ -17,7 +17,6 @@
 
 #![cfg(test)]
 
-use crate::dispatch::DispatchError;
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
@@ -26,8 +25,8 @@ use frame_support::{
 };
 
 use frame_system as system;
-use frame_system::EnsureSigned;
-use hydradx_traits::{pools::DustRemovalAccountWhitelist, AssetPairAccountIdFor};
+use frame_system::{EnsureRoot, EnsureSigned};
+use hydradx_traits::AssetPairAccountIdFor;
 use orml_traits::parameter_type_with_key;
 use primitives::{
 	constants::{
@@ -70,6 +69,7 @@ frame_support::construct_runtime!(
 	UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system,
+		Duster: pallet_duster,
 		XYK: pallet_xyk,
 		LiquidityMining: pallet_xyk_liquidity_mining,
 		NFT: pallet_nft,
@@ -156,7 +156,7 @@ parameter_types! {
 impl pallet_xyk_liquidity_mining::Config for Test {
 	type Event = Event;
 	type MultiCurrency = Currency;
-	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
+	type CreateOrigin = EnsureRoot<AccountId>;
 	type PalletId = LMPalletId;
 	type BlockNumberProvider = MockBlockNumberProvider;
 	type NftCollectionId = NftCollection;
@@ -164,6 +164,20 @@ impl pallet_xyk_liquidity_mining::Config for Test {
 	type WeightInfo = ();
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = WarehouseLM;
+	type NonDustableWhitelistHandler = Duster;
+}
+
+impl pallet_duster::Config for Test {
+	type Event = Event;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currency;
+	type MinCurrencyDeposits = AssetRegistry;
+	type Reward = ();
+	type NativeCurrencyId = BSXAssetId;
+	type BlacklistUpdateOrigin = EnsureRoot<AccountId>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -304,7 +318,7 @@ impl pallet_xyk::Config for Test {
 	type CanCreatePool = pallet_xyk::AllowAllPools;
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
-	type NonDustableWhitelistHandler = Whitelist;
+	type NonDustableWhitelistHandler = Duster;
 }
 
 impl Default for ExtBuilder {
@@ -348,18 +362,4 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	});
 
 	ext
-}
-
-pub struct Whitelist;
-
-impl DustRemovalAccountWhitelist<AccountId> for Whitelist {
-	type Error = DispatchError;
-
-	fn add_account(_account: &AccountId) -> Result<(), Self::Error> {
-		Ok(())
-	}
-
-	fn remove_account(_account: &AccountId) -> Result<(), Self::Error> {
-		Ok(())
-	}
 }

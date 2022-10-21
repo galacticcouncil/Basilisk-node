@@ -62,7 +62,7 @@ pub struct Pallet<T: Config>(LiquidityMining<T>);
 
 type MultiCurrencyOf<T> = <T as pallet_xyk_liquidity_mining::Config>::MultiCurrency;
 
-fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
+fn create_funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	let caller: T::AccountId = account(name, index, SEED);
 
 	<T as pallet_xyk_liquidity_mining::Config>::MultiCurrency::deposit(BSX, &caller, INITIAL_BALANCE * ONE).unwrap();
@@ -81,9 +81,7 @@ fn initialize_pool<T: Config>(
 	amount: Balance,
 	price: Price,
 ) -> dispatch::DispatchResult {
-	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, asset_b, amount, price)?;
-
-	Ok(())
+	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, asset_b, amount, price)
 }
 
 fn xyk_add_liquidity<T: Config>(
@@ -103,7 +101,7 @@ fn xyk_add_liquidity<T: Config>(
 	Ok(())
 }
 
-fn lm_crete_global_farm<T: Config>(
+fn lm_create_global_farm<T: Config>(
 	total_rewards: Balance,
 	owner: T::AccountId,
 	yield_per_period: Perquintill,
@@ -160,7 +158,7 @@ fn set_block_number<T: Config>(block: u32) {
 benchmarks! {
 	create_global_farm {
 		let total_rewards = 1_000_000 * ONE;
-		let caller = funded_account::<T>("caller", 0);
+		let caller = create_funded_account::<T>("caller", 0);
 		let planned_yielding_periods = T::BlockNumber::from(1_000_000_u32);
 		let yield_per_period = Perquintill::from_percent(20);
 		let blocks_per_period = T::BlockNumber::from(1_u32);
@@ -172,15 +170,15 @@ benchmarks! {
 	}
 
 	update_global_farm {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
-		lm_crete_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		lm_deposit_shares::<T>(liq_provider, ASSET_PAIR, 10_000)?;
@@ -191,15 +189,15 @@ benchmarks! {
 
 	destroy_global_farm {
 		let total_rewards = 1_000_000 * ONE;
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
-		lm_crete_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		lm_deposit_shares::<T>(liq_provider, ASSET_PAIR, 10_000)?;
@@ -213,9 +211,9 @@ benchmarks! {
 	}
 
 	create_yield_farm {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 		let bsx_dot = AssetPair {
 			asset_in:  BSX,
 			asset_out: DOT
@@ -225,7 +223,7 @@ benchmarks! {
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
-		lm_crete_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		lm_deposit_shares::<T>(liq_provider, ASSET_PAIR, 10_000)?;
@@ -238,15 +236,15 @@ benchmarks! {
 
 	update_yield_farm {
 		let new_multiplier = FixedU128::one();
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
-		lm_crete_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::from_inner(500_000_000_000_000_000_u128))?;
 
 		lm_deposit_shares::<T>(liq_provider, ASSET_PAIR, 10_000)?;
@@ -256,15 +254,15 @@ benchmarks! {
 	}
 
 	stop_yield_farm {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
-		lm_crete_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		lm_deposit_shares::<T>(liq_provider, ASSET_PAIR, 10_000)?;
@@ -274,15 +272,15 @@ benchmarks! {
 	}
 
 	destroy_yield_farm {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
-		lm_crete_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		lm_deposit_shares::<T>(liq_provider, ASSET_PAIR, 10_000)?;
@@ -294,15 +292,15 @@ benchmarks! {
 	}
 
 	deposit_shares {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 100_000, 1_000_000_000)?;
 
-		lm_crete_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(1_000_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller, GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		lm_deposit_shares::<T>(liq_provider.clone(), ASSET_PAIR, 10_000)?;
@@ -312,32 +310,32 @@ benchmarks! {
 	}
 
 	redeposit_lp_shares {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 		let shares_amount = 10_000;
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, shares_amount, 1_000_000_000)?;
 
 		//global id: 1, yield id: 2
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		//global id: 3, yield id: 4
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID_2, ASSET_PAIR, FixedU128::one())?;
 
 		//global id: 5, yield id:6
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), 5, ASSET_PAIR, FixedU128::one())?;
 
 		//global id: 7, yield id:8
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), 7, ASSET_PAIR, FixedU128::one())?;
 
 		//global id: 9, yield id:10
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller, 9, ASSET_PAIR, FixedU128::one())?;
 
 		set_block_number::<T>(200_000);
@@ -351,32 +349,32 @@ benchmarks! {
 	}
 
 	claim_rewards {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 		let shares_amount = 10_000;
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, shares_amount, 1_000_000_000)?;
 
 		//global id: 1, yield id: 2
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(),GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		//global id: 3, yield id: 4
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID_2, ASSET_PAIR, FixedU128::one())?;
 
 		//global id: 5, yield id:6
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), 5, ASSET_PAIR, FixedU128::one())?;
 
 		//global id: 7, yield id:8
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller.clone(), 7, ASSET_PAIR, FixedU128::one())?;
 
 		//global id: 9, yield id:10
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller, 9, ASSET_PAIR, FixedU128::one())?;
 
 		set_block_number::<T>(200_000);
@@ -396,16 +394,16 @@ benchmarks! {
 	}
 
 	withdraw_shares {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 		let shares_amount = 10_000;
 
 		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, shares_amount, 1_000_000_000)?;
 
 		//global id: 1, yield id: 2
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		lm_create_yield_farm::<T>(caller,GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 
 		set_block_number::<T>(200_000);
@@ -421,9 +419,9 @@ benchmarks! {
 	}
 
 	resume_yield_farm {
-		let caller = funded_account::<T>("caller", 0);
-		let xyk_caller = funded_account::<T>("xyk_caller", 1);
-		let liq_provider = funded_account::<T>("liq_provider", 2);
+		let caller = create_funded_account::<T>("caller", 0);
+		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
+		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 		let shares_amount = 10_000;
 		let bsx_dot = AssetPair {
 			asset_in:  BSX,
@@ -435,7 +433,7 @@ benchmarks! {
 		xyk_add_liquidity::<T>(liq_provider.clone(), bsx_dot, shares_amount, 1_000_000_000)?;
 
 		//global id: 1
-		lm_crete_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
+		lm_create_global_farm::<T>(100_000 * ONE, caller.clone(), Perquintill::from_percent(20))?;
 		//yield id: 2
 		lm_create_yield_farm::<T>(caller.clone(), GLOBAL_FARM_ID, ASSET_PAIR, FixedU128::one())?;
 		//yield id: 3

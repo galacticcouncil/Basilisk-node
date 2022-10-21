@@ -17,8 +17,8 @@
 
 //! ## Overview
 //!
-//! This pallet provide functionality for liquidity mining program with time incentive(loyalty
-//! factor) and multiple incentives scheme for basilisk.
+//! This pallet provides functionality for liquidity mining programs with time incentive(loyalty
+//! factor) and multiple incentives scheme for XYK pools.
 //! Users are rewarded for each period they stay in liq. mining program.
 //!
 //! Reward per one period is derived from the user's loyalty factor which grows with time(periods)
@@ -32,10 +32,6 @@
 //!
 //! This feature allow users to redeposit already deposited LP shares to multiple yield farms and
 //! receive incentives from this farms.
-//! Deposit in yield farm is called "farm entry".
-//! Maximal number of redepositing same LP shares is configured by variable: `MaxFarmEntriesPerDeposit`.
-//! Set `MaxFarmEntriesPerDeposit` to `1` to disable multiple incentives scheme. !!!NEVER set this
-//! variable to `0`.
 //! LP shares can be redeposited only to different yield farms running liquidity mining for same
 //! pair of assets.
 
@@ -59,7 +55,7 @@ use hydradx_traits_lm::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMinin
 use warehouse_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
-use frame_system::ensure_signed;
+use frame_system::{ensure_signed, pallet_prelude::OriginFor};
 use hydradx_traits::{nft::CreateTypedCollection, AMM};
 use orml_traits::MultiCurrency;
 use pallet_nft::CollectionType;
@@ -78,7 +74,7 @@ type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
 pub mod pallet {
 	use super::*;
 	use crate::weights::WeightInfo;
-	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
+	use frame_system::pallet_prelude::BlockNumberFor;
 	use hydradx_traits::pools::DustRemovalAccountWhitelist;
 
 	const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
@@ -454,9 +450,7 @@ pub mod pallet {
 			loyalty_curve: Option<LoyaltyCurve>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-
-			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
-			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
+			let amm_pool_id = Self::ensure_amm(asset_pair)?;
 
 			let yield_farm_id = T::LiquidityMiningHandler::create_yield_farm(
 				who,
@@ -497,9 +491,7 @@ pub mod pallet {
 			multiplier: FarmMultiplier,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-
-			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
-			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
+			let amm_pool_id = Self::ensure_amm(asset_pair)?;
 
 			let yield_farm_id = T::LiquidityMiningHandler::update_yield_farm_multiplier(
 				who.clone(),
@@ -542,6 +534,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
+			//NOTE: don't check amm pool existance, owner must be able to stop yield farm.
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 			let yield_farm_id = T::LiquidityMiningHandler::stop_yield_farm(who.clone(), global_farm_id, amm_pool_id)?;
 
@@ -581,9 +574,7 @@ pub mod pallet {
 			multiplier: FarmMultiplier,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-
-			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
-			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
+			let amm_pool_id = Self::ensure_amm(asset_pair)?;
 
 			T::LiquidityMiningHandler::resume_yield_farm(
 				who.clone(),
@@ -632,6 +623,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let who = ensure_signed(origin)?;
 
+			//NOTE: don't check amm pool existance, owner must be able to stop yield farm.
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
 			T::LiquidityMiningHandler::destroy_yield_farm(who.clone(), global_farm_id, yield_farm_id, amm_pool_id)?;
@@ -669,16 +661,14 @@ pub mod pallet {
 			shares_amount: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+			let amm_pool_id = Self::ensure_amm(asset_pair)?;
 
-			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
 			ensure!(
 				T::MultiCurrency::ensure_can_withdraw(amm_share_token, &who, shares_amount).is_ok(),
 				Error::<T>::InsufficientAmmSharesBalance
 			);
-
-			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
 			let deposit_id = T::LiquidityMiningHandler::deposit_lp_shares(
 				global_farm_id,
@@ -724,14 +714,9 @@ pub mod pallet {
 			asset_pair: AssetPair,
 			deposit_id: DepositId,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
+			Self::ensure_amm(asset_pair)?;
 
-			let nft_class_id = T::NftCollectionId::get();
-			let nft_owner = T::NFTHandler::owner(&nft_class_id, &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
-
-			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
-
-			ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
 			let shares_amount = T::LiquidityMiningHandler::redeposit_lp_shares(
@@ -744,7 +729,7 @@ pub mod pallet {
 			Self::deposit_event(Event::SharesRedeposited {
 				global_farm_id,
 				yield_farm_id,
-				who,
+				who: owner,
 				amount: shares_amount,
 				lp_token: amm_share_token,
 				deposit_id,
@@ -770,23 +755,22 @@ pub mod pallet {
 			deposit_id: DepositId,
 			yield_farm_id: YieldFarmId,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			let deposit_owner = T::NFTHandler::owner(&T::NftCollectionId::get(), &deposit_id)
-				.ok_or(Error::<T>::CantFindDepositOwner)?;
-
-			ensure!(deposit_owner == who, Error::<T>::NotDepositOwner);
+			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
 
 			let fail_on_double_claim = true;
-			let (global_farm_id, reward_currency, claimed, _) =
-				T::LiquidityMiningHandler::claim_rewards(who.clone(), deposit_id, yield_farm_id, fail_on_double_claim)?;
+			let (global_farm_id, reward_currency, claimed, _) = T::LiquidityMiningHandler::claim_rewards(
+				owner.clone(),
+				deposit_id,
+				yield_farm_id,
+				fail_on_double_claim,
+			)?;
 
 			ensure!(!claimed.is_zero(), Error::<T>::ZeroClaimedRewards);
 
 			Self::deposit_event(Event::RewardClaimed {
 				global_farm_id,
 				yield_farm_id,
-				who,
+				who: owner,
 				claimed,
 				reward_currency,
 				deposit_id,
@@ -826,19 +810,13 @@ pub mod pallet {
 			yield_farm_id: YieldFarmId,
 			asset_pair: AssetPair,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			let nft_owner = T::NFTHandler::owner(&T::NftCollectionId::get(), &deposit_id)
-				.ok_or(Error::<T>::CantFindDepositOwner)?;
-
-			ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
+			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
+			let amm_pool_id = Self::ensure_amm(asset_pair)?;
 
 			let global_farm_id = T::LiquidityMiningHandler::get_global_farm_id(deposit_id, yield_farm_id)
 				.ok_or(Error::<T>::DepositDataNotFound)?;
 
-			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
-
-			let unclaimable_rewards: Balance = if T::LiquidityMiningHandler::is_yield_farm_claimable(
+			let unclaimable_rewards = if T::LiquidityMiningHandler::is_yield_farm_claimable(
 				global_farm_id,
 				yield_farm_id,
 				amm_pool_id.clone(),
@@ -846,7 +824,7 @@ pub mod pallet {
 				//This should not fail on double claim, we need unclaimable_rewards
 				let fail_on_double_claim = false;
 				let (global_farm_id, reward_currency, claimed, unclaimable) = T::LiquidityMiningHandler::claim_rewards(
-					who.clone(),
+					owner.clone(),
 					deposit_id,
 					yield_farm_id,
 					fail_on_double_claim,
@@ -856,7 +834,7 @@ pub mod pallet {
 					Self::deposit_event(Event::RewardClaimed {
 						global_farm_id,
 						yield_farm_id,
-						who: who.clone(),
+						who: owner.clone(),
 						claimed,
 						reward_currency,
 						deposit_id,
@@ -876,7 +854,7 @@ pub mod pallet {
 				Self::deposit_event(Event::SharesWithdrawn {
 					global_farm_id,
 					yield_farm_id,
-					who: who.clone(),
+					who: owner.clone(),
 					lp_token,
 					amount: withdrawn_amount,
 					deposit_id,
@@ -884,10 +862,10 @@ pub mod pallet {
 			}
 
 			if is_destroyed {
-				Self::unlock_lp_tokens(lp_token, &who, withdrawn_amount)?;
-				T::NFTHandler::burn(&T::NftCollectionId::get(), &deposit_id, Some(&nft_owner))?;
+				Self::unlock_lp_tokens(lp_token, &owner, withdrawn_amount)?;
+				T::NFTHandler::burn(&T::NftCollectionId::get(), &deposit_id, Some(&owner))?;
 
-				Self::deposit_event(Event::DepositDestroyed { who, deposit_id });
+				Self::deposit_event(Event::DepositDestroyed { who: owner, deposit_id });
 			}
 
 			Ok(())
@@ -907,9 +885,7 @@ impl<T: Config> Pallet<T> {
 		let asset_pair = AssetPair::new(assets[0], assets[1]);
 
 		//NOTE: this check is important AMM:get_share_token() return `0` if amm doesn't exist
-		if !T::AMM::exists(asset_pair) {
-			return Err(Error::<T>::AmmPoolDoesNotExist);
-		}
+		ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
 
 		Ok(T::AMM::get_share_token(asset_pair))
 	}
@@ -928,5 +904,22 @@ impl<T: Config> Pallet<T> {
 
 	fn get_asset_balance_in_amm_pool(asset: AssetId, amm_pool_id: T::AccountId) -> Result<Balance, DispatchError> {
 		Ok(T::MultiCurrency::total_balance(asset, &amm_pool_id))
+	}
+
+	fn ensure_amm(asset_pair: AssetPair) -> Result<T::AccountId, Error<T>> {
+		ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
+
+		Ok(T::AMM::get_pair_id(asset_pair))
+	}
+
+	fn ensure_nft_owner(origin: OriginFor<T>, deposit_id: DepositId) -> Result<T::AccountId, DispatchError> {
+		let who = ensure_signed(origin)?;
+
+		let nft_owner =
+			T::NFTHandler::owner(&T::NftCollectionId::get(), &deposit_id).ok_or(Error::<T>::CantFindDepositOwner)?;
+
+		ensure!(nft_owner == who, Error::<T>::NotDepositOwner);
+
+		Ok(who)
 	}
 }

@@ -6683,6 +6683,7 @@ dependencies = [
  "orml-traits",
  "pallet-asset-registry",
  "pallet-balances",
+ "pallet-duster",
  "pallet-liquidity-mining",
  "pallet-nft",
  "pallet-uniques",
