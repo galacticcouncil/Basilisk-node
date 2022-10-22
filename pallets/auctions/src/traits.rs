@@ -31,7 +31,7 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 
 	fn claim(&self, auction_id: AuctionId, bidder: AccountId, amount: BalanceOf) -> Result<bool, DispatchError>;
 
-	fn validate_data(&self) -> DispatchResult;
+	fn validate_data(&self, sender: AccountId) -> DispatchResult;
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]

@@ -91,6 +91,13 @@ fn predefined_test_ext() -> sp_io::TestExternalities {
 			mocked_nft_instance_id_1::<Test>(),
 			bvec![0]
 		));
+		assert_ok!(Nft::mint(
+			Origin::signed(ALICE),
+			mocked_nft_class_id_1::<Test>(),
+			mocked_nft_instance_id_2::<Test>(),
+			bvec![0]
+		));
+
 	});
 
 	ext

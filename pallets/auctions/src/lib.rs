@@ -75,10 +75,8 @@
 //! In an English auction, participants place bids in a running auction. Once the auction has reached its end time,
 //! the highest bid wins and the NFT is transferred to the winner.
 //!
-//! The amount is reserved by transferring it to the subaccount of the auction.
-//!
-//! placing a lock on the highest bid which is updated once the bidder is overbid. The lock
-//! is removed once the auction closes.
+//! The amount is reserved by transferring it to the subaccount of the auction. After the auction closes, the bid amount
+//! is either transferred to the NFT owner (winning bid), or becomes claimable (losing bid).
 //!
 //! The implementation of English auction allows sellers to set a reserve price for the NFT
 //! (auction.common_data.reserve_price). The reserve_price acts as a minimum starting bid, preventing bidders
@@ -92,11 +90,9 @@
 //! Implemented in ./types/topup.rs
 //!
 //! Top up auctions are traditionally used for charitive purposes. Users place bid which are accumulated. At the end,
-//! if the sum of all bids has reached the reserve_price, the seller gets all bid amounts, and the NFT is transferred
-//! to the last (highest) bidder.
-//!
-//! When a user places a bid, the amount is reserved by transferring it to a subaccount held by the auction. If the
-//! auction is not won, bidders are able to claim back the amounts corresponding to their bids.
+//! if the sum of all bids has reached the reserve_price set by the seller, the auction is won. In this case, the
+//! aggregated amount of bids is transferred to the beneficiary of the auction (eg NGO), and the NFT is transferred
+//! to the last bidder. If the auction is not won, bidders are able to claim back the amounts corresponding to their bids.
 //!
 //! ### Auction::Candle
 //!
@@ -434,17 +430,17 @@ pub mod pallet {
 
 			match &auction {
 				Auction::English(auction_object) => {
-					Self::validate_update(sender, &auction_object.common_data)?;
+					Self::validate_update_destroy_permissions(sender, &auction_object.common_data)?;
 					Self::unfreeze_nft(&auction_object.common_data)?;
 					Self::handle_destroy(id)?;
 				}
 				Auction::TopUp(auction_object) => {
-					Self::validate_update(sender, &auction_object.common_data)?;
+					Self::validate_update_destroy_permissions(sender, &auction_object.common_data)?;
 					Self::unfreeze_nft(&auction_object.common_data)?;
 					Self::handle_destroy(id)?;
 				}
 				Auction::Candle(auction_object) => {
-					Self::validate_update(sender, &auction_object.common_data)?;
+					Self::validate_update_destroy_permissions(sender, &auction_object.common_data)?;
 					Self::unfreeze_nft(&auction_object.common_data)?;
 					Self::handle_destroy(id)?;
 				}
@@ -591,11 +587,63 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	///
+	/// Validates whether a user has sufficient permissions to create an auction
+	///
+	fn validate_create_permissions(
+		sender: T::AccountId,
+		common_data: &CommonAuctionData<T>
+	) -> DispatchResult {
+		// Sender must be NFT Owner
+		let token_owner = pallet_nft::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
+		ensure!(
+			token_owner == Some(sender.clone()),
+			Error::<T>::NotATokenOwner
+		);
+
+		// TODO switch to pallet_nft
+		let can_transfer =
+			pallet_uniques::Pallet::<T>::can_transfer(&common_data.token.0.into(), &common_data.token.1.into());
+		ensure!(can_transfer, Error::<T>::TokenFrozen);
+
+		Ok(())
+	}
+
+	///
+	/// Validates whether a user has sufficient permissions to preform update or destroy on
+	/// an existing auction
+	///
+	fn validate_update_destroy_permissions(
+		sender: T::AccountId,
+		existing_common_data: &CommonAuctionData<T>
+	) -> DispatchResult {
+		// Sender must be the owner of the auction
+		ensure!(
+			sender == existing_common_data.owner.clone(),
+			Error::<T>::NotAuctionOwner
+		);
+
+		// Auction must not be started
+		let current_block_number = frame_system::Pallet::<T>::block_number();
+		ensure!(
+			existing_common_data.start > current_block_number,
+			Error::<T>::AuctionAlreadyStarted
+		);
+
+		Ok(())
+	}
+	
+	///
 	/// Validates auction.common_data
 	///
-	/// Called during create and update.
+	/// Called on incoming data during create and update.
 	///
-	fn validate_common_data(common_data: &CommonAuctionData<T>) -> DispatchResult {
+	fn validate_common_data(sender: T::AccountId, common_data: &CommonAuctionData<T>) -> DispatchResult {
+		// Sender must be the owner of the auction
+		ensure!(
+			sender == common_data.owner.clone(),
+			Error::<T>::NotAuctionOwner
+		);
+
 		let current_block_number = frame_system::Pallet::<T>::block_number();
 		ensure!(
 			common_data.start >= current_block_number,
@@ -612,11 +660,6 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::InvalidTimeConfiguration
 		);
 		ensure!(!common_data.name.is_empty(), Error::<T>::EmptyAuctionName);
-		let token_owner = pallet_nft::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
-		ensure!(
-			token_owner == Some(common_data.owner.clone()),
-			Error::<T>::NotATokenOwner
-		);
 
 		// Start bid should always be above the minimum
 		ensure!(
@@ -625,17 +668,6 @@ impl<T: Config> Pallet<T> {
 		);
 
 		ensure!(!&common_data.closed, Error::<T>::CannotSetAuctionClosed);
-
-		Ok(())
-	}
-
-	///
-	/// Validates certain aspects relevant to the create action
-	///
-	fn validate_create(common_data: &CommonAuctionData<T>) -> DispatchResult {
-		let is_transferrable =
-			pallet_uniques::Pallet::<T>::can_transfer(&common_data.token.0.into(), &common_data.token.1.into());
-		ensure!(is_transferrable, Error::<T>::TokenFrozen);
 
 		Ok(())
 	}
@@ -679,12 +711,12 @@ impl<T: Config> Pallet<T> {
 	///
 	/// Validates certain aspects relevant to the update action
 	///
-	fn validate_update(sender: <T>::AccountId, common_data: &CommonAuctionData<T>) -> DispatchResult {
-		ensure!(common_data.owner == sender, Error::<T>::NotAuctionOwner);
+	fn validate_update(sender: <T>::AccountId, current_common_data: &CommonAuctionData<T>) -> DispatchResult {
+		ensure!(current_common_data.owner == sender, Error::<T>::NotAuctionOwner);
 
 		let current_block_number = frame_system::Pallet::<T>::block_number();
 		ensure!(
-			current_block_number < common_data.start,
+			current_block_number < current_common_data.start,
 			Error::<T>::AuctionAlreadyStarted
 		);
 

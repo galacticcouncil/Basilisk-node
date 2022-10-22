@@ -125,6 +125,22 @@ fn create_topup_auction_with_empty_name_should_not_work() {
 
 /// Error NotATokenOwner
 #[test]
+fn create_topup_auction_when_sender_not_token_owner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let common_auction_data = mocked_english_common_data::<Test>(ALICE);
+
+		let auction =
+			mocked_english_auction_object::<Test>(common_auction_data, mocked_english_specific_data::<Test>());
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(BOB), auction),
+			Error::<Test>::NotATokenOwner
+		);
+	});
+}
+
+/// Error NotATokenOwner
+#[test]
 fn create_topup_auction_when_not_token_owner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
 		let mut common_auction_data = mocked_topup_common_data::<Test>(ALICE);
@@ -134,7 +150,7 @@ fn create_topup_auction_when_not_token_owner_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::create(Origin::signed(ALICE), auction),
-			Error::<Test>::NotATokenOwner
+			Error::<Test>::NotAuctionOwner
 		);
 	});
 }
@@ -258,7 +274,7 @@ fn update_topup_auction_with_invalid_next_bid_min_should_not_work() {
 
 		// next_bid_min is below BidMinAmount
 		assert_noop!(
-			AuctionsModule::create(Origin::signed(ALICE), auction),
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
 			Error::<Test>::InvalidNextBidMin
 		);
 	});

@@ -23,8 +23,8 @@ use super::*;
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for EnglishAuction<T> {
 	#[require_transactional]
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
-		self.validate_data()?;
-		Pallet::<T>::validate_create(&self.common_data)?;
+		Pallet::<T>::validate_create_permissions(sender.clone(), &self.common_data)?;
+		self.validate_data(sender.clone())?;
 		Pallet::<T>::handle_create(sender, auction, &self.common_data)?;
 
 		Ok(())
@@ -32,13 +32,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 	#[require_transactional]
 	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
-		self.validate_data()?;
+		self.validate_data(sender.clone())?;
 
 		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
 			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 			if let Auction::English(english_auction) = auction_result {
-				Pallet::<T>::validate_update(sender, &english_auction.common_data)?;
+				Pallet::<T>::validate_update_destroy_permissions(sender, &english_auction.common_data)?;
 				*english_auction = self;
 
 				Ok(())
@@ -133,10 +133,11 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	/// Validates common and specific auction data
 	///
-	fn validate_data(&self) -> DispatchResult {
-		Pallet::<T>::validate_common_data(&self.common_data)?;
+	fn validate_data(&self, sender: T::AccountId) -> DispatchResult {
+		Pallet::<T>::validate_common_data(sender, &self.common_data)?;
 
 		if let Some(reserve_price) = self.common_data.reserve_price {
+			// If a reserve_price is set, it must be equal to next_bid_min
 			ensure!(
 				reserve_price == self.common_data.next_bid_min,
 				Error::<T>::InvalidNextBidMin
