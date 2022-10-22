@@ -25,6 +25,8 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 
 	fn update(self, sender: AccountId, auction_id: AuctionId) -> DispatchResult;
 
+	fn destroy(self, sender: AccountId, auction_id: AuctionId) -> DispatchResult;
+
 	fn bid(&mut self, auction_id: AuctionId, bidder: AccountId, bid: &Bid) -> DispatchResult;
 
 	fn close(&mut self, auction_id: AuctionId) -> Result<bool, DispatchError>;

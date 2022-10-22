@@ -21,6 +21,9 @@ use super::*;
 /// Implementation of EnglishAuction
 ///
 impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>, Bid<T>> for EnglishAuction<T> {
+	///
+	/// Creates an English Auction
+	///
 	#[require_transactional]
 	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
 		Pallet::<T>::validate_create_permissions(sender.clone(), &self.common_data)?;
@@ -30,6 +33,9 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		Ok(())
 	}
 
+	///
+	/// Updates an English Auction
+	///
 	#[require_transactional]
 	fn update(self, sender: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 		self.validate_data(sender.clone())?;
@@ -46,6 +52,18 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 				Err(Error::<T>::NoChangeOfAuctionType.into())
 			}
 		})
+	}
+
+	///
+	/// Destroys an English Auction
+	///
+	#[require_transactional]
+	fn destroy(self, sender: T::AccountId, id: T::AuctionId) -> DispatchResult {
+		Pallet::<T>::validate_update_destroy_permissions(sender, &self.common_data.clone())?;
+		Pallet::<T>::handle_destroy(id)?;
+		Pallet::<T>::unfreeze_nft(&self.common_data)?;
+
+		Ok(())
 	}
 
 	///

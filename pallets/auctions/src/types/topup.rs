@@ -55,6 +55,18 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	}
 
 	///
+	/// Destroys a TopUp Auction
+	///
+	#[require_transactional]
+	fn destroy(self, sender: T::AccountId, id: T::AuctionId) -> DispatchResult {
+		Pallet::<T>::validate_update_destroy_permissions(sender, &self.common_data)?;
+		Pallet::<T>::handle_destroy(id)?;
+		Pallet::<T>::unfreeze_nft(&self.common_data)?;
+
+		Ok(())
+	}
+
+	///
 	/// Places a bid on an TopUpAuction
 	///
 	#[require_transactional]

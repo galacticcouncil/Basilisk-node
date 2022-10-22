@@ -428,21 +428,15 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 
-			match &auction {
+			match auction {
 				Auction::English(auction_object) => {
-					Self::validate_update_destroy_permissions(sender, &auction_object.common_data)?;
-					Self::unfreeze_nft(&auction_object.common_data)?;
-					Self::handle_destroy(id)?;
+					auction_object.destroy(sender, id)?;
 				}
 				Auction::TopUp(auction_object) => {
-					Self::validate_update_destroy_permissions(sender, &auction_object.common_data)?;
-					Self::unfreeze_nft(&auction_object.common_data)?;
-					Self::handle_destroy(id)?;
+					auction_object.destroy(sender, id)?;
 				}
 				Auction::Candle(auction_object) => {
-					Self::validate_update_destroy_permissions(sender, &auction_object.common_data)?;
-					Self::unfreeze_nft(&auction_object.common_data)?;
-					Self::handle_destroy(id)?;
+					auction_object.destroy(sender, id)?;
 				}
 			}
 
