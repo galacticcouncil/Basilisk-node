@@ -446,6 +446,30 @@ fn destroy_topup_auction_by_non_auction_owner_should_not_work() {
 	});
 }
 
+/// Error CannotChangeForbiddenAttribute
+#[test]
+fn update_topup_auction_change_token_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = mocked_topup_auction_object::<Test>(
+			mocked_topup_common_data::<Test>(ALICE),
+			mocked_topup_specific_data::<Test>(),
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		let mut updated_common_data = mocked_topup_common_data::<Test>(ALICE);
+		updated_common_data.token = mocked_nft_token_2::<Test>();
+
+		let auction =
+			mocked_topup_auction_object::<Test>(updated_common_data, mocked_topup_specific_data::<Test>());
+
+		assert_noop!(
+			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
+			Error::<Test>::CannotChangeForbiddenAttribute,
+		);
+	});
+}
+
 /// Error AuctionAlreadyStarted
 #[test]
 fn destroy_topup_auction_after_auction_started_should_not_work() {

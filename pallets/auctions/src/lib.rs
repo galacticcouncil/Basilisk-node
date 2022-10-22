@@ -350,6 +350,8 @@ pub mod pallet {
 		Overflow,
 		/// Error when determining the auction winner
 		ErrorDeterminingAuctionWinner,
+		/// Certain attributes of an auction cannot be updated
+		CannotChangeForbiddenAttribute,
 	}
 
 	#[pallet::call]
@@ -581,55 +583,9 @@ pub mod pallet {
 
 impl<T: Config> Pallet<T> {
 	///
-	/// Validates whether a user has sufficient permissions to create an auction
-	///
-	fn validate_create_permissions(
-		sender: T::AccountId,
-		common_data: &CommonAuctionData<T>
-	) -> DispatchResult {
-		// Sender must be NFT Owner
-		let token_owner = pallet_nft::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
-		ensure!(
-			token_owner == Some(sender.clone()),
-			Error::<T>::NotATokenOwner
-		);
-
-		// TODO switch to pallet_nft
-		let can_transfer =
-			pallet_uniques::Pallet::<T>::can_transfer(&common_data.token.0.into(), &common_data.token.1.into());
-		ensure!(can_transfer, Error::<T>::TokenFrozen);
-
-		Ok(())
-	}
-
-	///
-	/// Validates whether a user has sufficient permissions to preform update or destroy on
-	/// an existing auction
-	///
-	fn validate_update_destroy_permissions(
-		sender: T::AccountId,
-		existing_common_data: &CommonAuctionData<T>
-	) -> DispatchResult {
-		// Sender must be the owner of the auction
-		ensure!(
-			sender == existing_common_data.owner.clone(),
-			Error::<T>::NotAuctionOwner
-		);
-
-		// Auction must not be started
-		let current_block_number = frame_system::Pallet::<T>::block_number();
-		ensure!(
-			existing_common_data.start > current_block_number,
-			Error::<T>::AuctionAlreadyStarted
-		);
-
-		Ok(())
-	}
-	
-	///
 	/// Validates auction.common_data
 	///
-	/// Called on incoming data during create and update.
+	/// Called on input data during create and update.
 	///
 	fn validate_common_data(sender: T::AccountId, common_data: &CommonAuctionData<T>) -> DispatchResult {
 		// Sender must be the owner of the auction
@@ -662,6 +618,28 @@ impl<T: Config> Pallet<T> {
 		);
 
 		ensure!(!&common_data.closed, Error::<T>::CannotSetAuctionClosed);
+
+		Ok(())
+	}
+
+	///
+	/// Validates whether a user has sufficient permissions to create an auction
+	///
+	fn validate_create_permissions(
+		sender: T::AccountId,
+		common_data: &CommonAuctionData<T>
+	) -> DispatchResult {
+		// Sender must be NFT Owner
+		let token_owner = pallet_nft::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
+		ensure!(
+			token_owner == Some(sender.clone()),
+			Error::<T>::NotATokenOwner
+		);
+
+		// TODO switch to pallet_nft
+		let can_transfer =
+			pallet_uniques::Pallet::<T>::can_transfer(&common_data.token.0.into(), &common_data.token.1.into());
+		ensure!(can_transfer, Error::<T>::TokenFrozen);
 
 		Ok(())
 	}
@@ -703,15 +681,41 @@ impl<T: Config> Pallet<T> {
 	}
 
 	///
-	/// Validates certain aspects relevant to the update action
+	/// Validates whether a user has sufficient permissions to preform update or destroy on
+	/// an existing auction
 	///
-	fn validate_update(sender: <T>::AccountId, current_common_data: &CommonAuctionData<T>) -> DispatchResult {
-		ensure!(current_common_data.owner == sender, Error::<T>::NotAuctionOwner);
+	fn validate_update_destroy_permissions(
+		sender: T::AccountId,
+		existing_common_data: &CommonAuctionData<T>
+	) -> DispatchResult {
+		// Sender must be the owner of the auction
+		ensure!(
+			sender == existing_common_data.owner.clone(),
+			Error::<T>::NotAuctionOwner
+		);
 
+		// Auction must not be started
 		let current_block_number = frame_system::Pallet::<T>::block_number();
 		ensure!(
-			current_block_number < current_common_data.start,
+			existing_common_data.start > current_block_number,
 			Error::<T>::AuctionAlreadyStarted
+		);
+
+		Ok(())
+	}
+
+	///
+	/// Validates certain aspects relevant to the update action
+	///
+	fn validate_update(existing_common_data: &CommonAuctionData<T>, updated_common_data: &CommonAuctionData<T>) -> DispatchResult {
+		ensure!(
+			existing_common_data.token == updated_common_data.token,
+			Error::<T>::CannotChangeForbiddenAttribute
+		);
+
+		ensure!(
+			existing_common_data.owner == updated_common_data.owner,
+			Error::<T>::CannotChangeForbiddenAttribute
 		);
 
 		Ok(())
