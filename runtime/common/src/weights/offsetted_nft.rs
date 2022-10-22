@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,13 +48,13 @@ use pallet_nft::weights::WeightInfo;
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
-//This consts are here to make `create_class()` and `mint()` more expensive.
-const CREATE_CLASS_OFFSET: u64 = 160;
+//This consts are here to make `create_collection()` and `mint()` more expensive.
+const CREATE_COLLECTION_OFFSET: u64 = 160;
 const MINT_OFFSET: u64 = 120;
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
-	fn create_class() -> Weight {
-		(CREATE_CLASS_OFFSET * 41_173_000 as Weight)
+	fn create_collection() -> Weight {
+		(CREATE_COLLECTION_OFFSET * 41_173_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
@@ -68,7 +68,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
-	fn destroy_class() -> Weight {
+	fn destroy_collection() -> Weight {
 		(63_644_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
