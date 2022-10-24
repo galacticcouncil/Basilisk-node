@@ -498,7 +498,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "78.0.0"
+version = "79.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -5823,7 +5823,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-exchange"
-version = "5.3.11"
+version = "5.3.12"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8878,7 +8878,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.7.6"
+version = "0.7.7"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -11572,7 +11572,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "78.0.0"
+version = "79.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
