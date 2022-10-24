@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -208,6 +208,8 @@ parameter_types! {
 	pub const DesiredMembers: u32 = 7;
 	pub const DesiredRunnersUp: u32 = 9;
 	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
+	pub const MaxElectionCandidates: u32 = 1_000;
+	pub const MaxElectionVoters: u32 = 10_000;
 }
 
 // pallet collective - council collective
@@ -276,7 +278,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = NATIVE_EXISTENTIAL_DEPOSIT * 1_000;
-	pub const NftClass: primitives::ClassId = 1;
+	pub const NftClass: primitives::CollectionId = 1;
 }
 
 // pallet identity

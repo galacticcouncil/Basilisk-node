@@ -1,6 +1,6 @@
 // This file is part of HydraDX.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,12 +21,10 @@ pub use crate::mock::{
 	DOT, ETH, FERDIE, GEORGE, HDX, XYK as XYKPallet,
 };
 use frame_support::sp_runtime::traits::Hash;
-use frame_support::traits::Get;
-use frame_support::traits::OnFinalize;
+use frame_support::traits::{Get, OnFinalize};
 use frame_support::{assert_noop, assert_ok};
-use hydradx_traits::Resolver;
-use sp_runtime::{DispatchError, ModuleError};
 
+use hydradx_traits::Resolver;
 use pallet_xyk as xyk;
 
 fn new_test_ext() -> sp_io::TestExternalities {
@@ -985,11 +983,7 @@ fn sell_trade_limits_respected_for_matched_intention() {
 				},
 				intention_type: IntentionType::SELL,
 				intention_id: user_3_sell_intention_id,
-				error_detail: DispatchError::Module(ModuleError {
-					index: 1,
-					error: 3,
-					message: None,
-				}),
+				error_detail: Error::<Test>::TradeAmountNotReachedLimit.into(),
 			}
 			.into(),
 			xyk::Event::SellExecuted {
@@ -1085,11 +1079,7 @@ fn buy_trade_limits_respected_for_matched_intention() {
 				},
 				intention_type: IntentionType::BUY,
 				intention_id: user_3_buy_intention_id,
-				error_detail: DispatchError::Module(ModuleError {
-					index: 1,
-					error: 2,
-					message: None,
-				}),
+				error_detail: Error::<Test>::TradeAmountExceededLimit.into(),
 			}
 			.into(),
 			xyk::Event::BuyExecuted {
@@ -2560,11 +2550,7 @@ fn discount_tests_with_error() {
 				},
 				intention_type: IntentionType::SELL,
 				intention_id: user_4_sell_intention_id,
-				error_detail: DispatchError::Module(ModuleError {
-					index: 2,
-					error: 20,
-					message: None,
-				}),
+				error_detail: pallet_xyk::Error::<Test>::CannotApplyDiscount.into(),
 			}
 			.into(),
 			Event::IntentionResolveErrorEvent {
@@ -2575,11 +2561,7 @@ fn discount_tests_with_error() {
 				},
 				intention_type: IntentionType::BUY,
 				intention_id: user_2_sell_intention_id,
-				error_detail: DispatchError::Module(ModuleError {
-					index: 2,
-					error: 20,
-					message: None,
-				}),
+				error_detail: pallet_xyk::Error::<Test>::CannotApplyDiscount.into(),
 			}
 			.into(),
 			Event::IntentionResolveErrorEvent {
@@ -2590,11 +2572,7 @@ fn discount_tests_with_error() {
 				},
 				intention_type: IntentionType::SELL,
 				intention_id: user_3_sell_intention_id,
-				error_detail: DispatchError::Module(ModuleError {
-					index: 2,
-					error: 20,
-					message: None,
-				}),
+				error_detail: pallet_xyk::Error::<Test>::CannotApplyDiscount.into(),
 			}
 			.into(),
 		]);
@@ -3345,11 +3323,7 @@ fn simple_sell_sell_with_error_should_not_pass() {
 				},
 				intention_type: IntentionType::SELL,
 				intention_id: user_2_sell_intention_id,
-				error_detail: DispatchError::Module(ModuleError {
-					index: 2,
-					error: 9,
-					message: None,
-				}),
+				error_detail: pallet_xyk::Error::<Test>::AssetAmountNotReachedLimit.into(),
 			}
 			.into(),
 			Event::IntentionResolveErrorEvent {
@@ -3360,11 +3334,7 @@ fn simple_sell_sell_with_error_should_not_pass() {
 				},
 				intention_type: IntentionType::SELL,
 				intention_id: user_3_sell_intention_id,
-				error_detail: DispatchError::Module(ModuleError {
-					index: 2,
-					error: 9,
-					message: None,
-				}),
+				error_detail: pallet_xyk::Error::<Test>::AssetAmountNotReachedLimit.into(),
 			}
 			.into(),
 		]);

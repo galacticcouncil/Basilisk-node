@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +18,11 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use codec::Codec;
-use jsonrpc_core::{Error as RpcError, ErrorCode, Result};
-use jsonrpc_derive::rpc;
+use jsonrpsee::{
+	core::{async_trait, Error as JsonRpseeError, RpcResult},
+	proc_macros::rpc,
+	types::error::{CallError, ErrorCode, ErrorObject},
+};
 use pallet_xyk_rpc_runtime_api::BalanceInfo;
 use serde::{Deserialize, Serialize};
 use sp_api::ProvideRuntimeApi;
@@ -30,7 +33,6 @@ use sp_runtime::{
 };
 use std::sync::Arc;
 
-pub use self::gen_client::Client as XYKClient;
 pub use pallet_xyk_rpc_runtime_api::XYKApi as XYKRuntimeApi;
 
 #[derive(Serialize, Deserialize)]
@@ -40,13 +42,21 @@ pub struct BalanceRequest<Balance> {
 	amount: Balance,
 }
 
-#[rpc]
+#[rpc(client, server)]
 pub trait XYKApi<BlockHash, AccountId, AssetId, Balance, ResponseType> {
-	#[rpc(name = "xyk_getPoolBalances")]
-	fn get_pool_balances(&self, pool_address: AccountId, at: Option<BlockHash>) -> Result<Vec<ResponseType>>;
+	#[method(name = "xyk_getPoolBalances")]
+	fn get_pool_balances(&self, pool_address: AccountId, at: Option<BlockHash>) -> RpcResult<Vec<ResponseType>>;
 
-	#[rpc(name = "xyk_getPoolAccount")]
-	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> Result<AccountId>;
+	#[method(name = "xyk_getPoolAccount")]
+	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> RpcResult<AccountId>;
+}
+
+fn internal_err<T: ToString>(message: T) -> JsonRpseeError {
+	JsonRpseeError::Call(CallError::Custom(ErrorObject::owned(
+		ErrorCode::InternalError.code(),
+		message.to_string(),
+		None::<()>,
+	)))
 }
 
 /// A struct that implements the [`XYKApi`].
@@ -70,16 +80,9 @@ pub enum Error {
 	RuntimeError,
 }
 
-impl From<Error> for i64 {
-	fn from(e: Error) -> i64 {
-		match e {
-			Error::RuntimeError => 1,
-		}
-	}
-}
-
+#[async_trait]
 impl<C, Block, AccountId, AssetId, Balance>
-	XYKApi<<Block as BlockT>::Hash, AccountId, AssetId, Balance, BalanceInfo<AssetId, Balance>> for XYK<C, Block>
+	XYKApiServer<<Block as BlockT>::Hash, AccountId, AssetId, Balance, BalanceInfo<AssetId, Balance>> for XYK<C, Block>
 where
 	Block: BlockT,
 	C: Send + Sync + 'static + ProvideRuntimeApi<Block> + HeaderBackend<Block>,
@@ -92,27 +95,21 @@ where
 		&self,
 		pool_address: AccountId,
 		at: Option<<Block as BlockT>::Hash>,
-	) -> Result<Vec<BalanceInfo<AssetId, Balance>>> {
+	) -> RpcResult<Vec<BalanceInfo<AssetId, Balance>>> {
 		let api = self.client.runtime_api();
 		let at = BlockId::hash(at.unwrap_or_else(||
 			// If the block hash is not supplied assume the best block.
 			self.client.info().best_hash));
 
-		api.get_pool_balances(&at, pool_address).map_err(|e| RpcError {
-			code: ErrorCode::ServerError(Error::RuntimeError.into()),
-			message: "Unable to retrieve pool balances.".into(),
-			data: Some(format!("{:?}", e).into()),
-		})
+		api.get_pool_balances(&at, pool_address)
+			.map_err(|e| internal_err(format!("Unable to retrieve pool balances: {:?}", e)))
 	}
 
-	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> Result<AccountId> {
+	fn get_pool_id(&self, asset_a: AssetId, asset_b: AssetId) -> RpcResult<AccountId> {
 		let api = self.client.runtime_api();
 		let at = BlockId::hash(self.client.info().best_hash);
 
-		api.get_pool_id(&at, asset_a, asset_b).map_err(|e| RpcError {
-			code: ErrorCode::ServerError(Error::RuntimeError.into()),
-			message: "Unable to retrieve pool account address.".into(),
-			data: Some(format!("{:?}", e).into()),
-		})
+		api.get_pool_id(&at, asset_a, asset_b)
+			.map_err(|e| internal_err(format!("Unable to retrieve pool account address: {:?}", e)))
 	}
 }
