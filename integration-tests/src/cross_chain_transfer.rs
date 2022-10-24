@@ -47,7 +47,7 @@ fn transfer_from_relay_chain() {
 		));
 
 		assert_eq!(
-			kusama_runtime::Balances::free_balance(&ParaId::from(2000).into_account()),
+			kusama_runtime::Balances::free_balance(&ParaId::from(2000).into_account_truncating()),
 			310 * UNITS
 		);
 	});
@@ -98,7 +98,7 @@ fn transfer_to_relay_chain() {
 	KusamaRelay::execute_with(|| {
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			2999893333340 // 3 * BSX - fee
+			2999988476752 // 3 * BSX - fee
 		);
 	});
 }
@@ -301,14 +301,15 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
-			cumulus_pallet_xcmp_queue::Event::Fail(
-				Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
-				XcmError::AssetNotFound,
-			)
+			cumulus_pallet_xcmp_queue::Event::Fail {
+				message_hash: Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
+				error: XcmError::AssetNotFound,
+				weight: 300_000_000,
+			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
 				parachain_block_number: 1,
-				relaychain_block_number: 1,
+				relaychain_block_number: 4,
 			}
 			.into(),
 		]);

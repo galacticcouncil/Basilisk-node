@@ -8,13 +8,13 @@ fn accept_offer_should_work_when_there_is_no_royalty() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (BOB, 15_000 * UNITS)])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::make_offer(
 				Origin::signed(BOB),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				PRICE,
 				2
 			));
@@ -25,26 +25,27 @@ fn accept_offer_should_work_when_there_is_no_royalty() {
 			//Act
 			assert_ok!(Market::accept_offer(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				BOB
 			));
 
 			//Assert
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::OfferAccepted {
+				Event::OfferAccepted {
 					who: ALICE,
-					class: CLASS_ID_0,
-					instance: INSTANCE_ID_0,
+					collection: COLLECTION_ID_0,
+					item: ITEM_ID_0,
 					amount: PRICE,
 					maker: BOB,
-				})
+				}
+				.into()
 			);
 
-			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
+			assert_eq!(Market::offers((COLLECTION_ID_0, ITEM_ID_0), BOB), None);
 			assert_eq!(
-				pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
+				pallet_uniques::Pallet::<Test>::owner(COLLECTION_ID_0, ITEM_ID_0),
 				Some(BOB)
 			);
 
@@ -64,20 +65,20 @@ fn accept_offer_should_work_when_there_is_royalty_present() {
 			(CHARLIE, 150_000 * UNITS),
 			(DAVE, 200_000 * UNITS),
 		])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::add_royalty(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				CHARLIE,
 				2_000,
 			));
 			assert_ok!(Market::make_offer(
 				Origin::signed(BOB),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				PRICE,
 				2
 			));
@@ -89,25 +90,26 @@ fn accept_offer_should_work_when_there_is_royalty_present() {
 			//Act
 			assert_ok!(Market::accept_offer(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				BOB
 			));
 
 			//Assert
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::OfferAccepted {
+				Event::OfferAccepted {
 					who: ALICE,
-					class: CLASS_ID_0,
-					instance: INSTANCE_ID_0,
+					collection: COLLECTION_ID_0,
+					item: ITEM_ID_0,
 					amount: PRICE,
 					maker: BOB,
-				})
+				}
+				.into()
 			);
-			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
+			assert_eq!(Market::offers((COLLECTION_ID_0, ITEM_ID_0), BOB), None);
 			assert_eq!(
-				pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
+				pallet_uniques::Pallet::<Test>::owner(COLLECTION_ID_0, ITEM_ID_0),
 				Some(BOB)
 			);
 			assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 40 * UNITS); // price - royalty
@@ -122,12 +124,12 @@ fn accept_offer_should_fail_when_there_is_no_offer_present() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (BOB, 15_000 * UNITS)])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			//Act and Assert
 			assert_noop!(
-				Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, BOB),
+				Market::accept_offer(Origin::signed(ALICE), COLLECTION_ID_0, ITEM_ID_0, BOB),
 				Error::<Test>::UnknownOffer
 			);
 		})
@@ -138,22 +140,22 @@ fn accept_offer_should_fail_when_offer_is_expired() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (BOB, 15_000 * UNITS)])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			let first_block = 1;
 
 			assert_ok!(Market::make_offer(
 				Origin::signed(BOB),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				PRICE,
 				first_block
 			));
 
 			//Act and Assert
 			assert_noop!(
-				Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, BOB),
+				Market::accept_offer(Origin::signed(ALICE), COLLECTION_ID_0, ITEM_ID_0, BOB),
 				Error::<Test>::OfferExpired
 			);
 		})
@@ -168,8 +170,8 @@ fn accept_offer_should_fail_when_nft_does_not_exist() {
 		.execute_with(|| {
 			//Act and Assert
 			assert_noop!(
-				Market::accept_offer(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0, BOB),
-				Error::<Test>::ClassOrInstanceUnknown
+				Market::accept_offer(Origin::signed(ALICE), COLLECTION_ID_0, ITEM_ID_0, BOB),
+				Error::<Test>::CollectionOrItemUnknown
 			);
 		})
 }
@@ -179,20 +181,20 @@ fn accept_offer_should_fail_when_called_by_not_nft_owner() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (BOB, 15_000 * UNITS)])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::make_offer(
 				Origin::signed(BOB),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				PRICE,
 				2
 			));
 
 			//Act and Assert
 			assert_noop!(
-				Market::accept_offer(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0, BOB),
+				Market::accept_offer(Origin::signed(BOB), COLLECTION_ID_0, ITEM_ID_0, BOB),
 				Error::<Test>::AcceptNotAuthorized
 			);
 		})
@@ -207,26 +209,26 @@ fn accept_offer_should_work_when_nft_has_royalty_and_price_is_set() {
 			(BOB, 15_000 * UNITS),
 			(CHARLIE, 150_000 * UNITS),
 		])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::add_royalty(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				CHARLIE,
 				2_000,
 			));
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some(100 * UNITS)
 			));
 			assert_ok!(Market::make_offer(
 				Origin::signed(BOB),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				PRICE,
 				2
 			));
@@ -239,25 +241,26 @@ fn accept_offer_should_work_when_nft_has_royalty_and_price_is_set() {
 			// price set by the owner is ignored
 			assert_ok!(Market::accept_offer(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				BOB
 			));
 
 			//Assert
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::OfferAccepted {
+				Event::OfferAccepted {
 					who: ALICE,
-					class: CLASS_ID_0,
-					instance: INSTANCE_ID_0,
+					collection: COLLECTION_ID_0,
+					item: ITEM_ID_0,
 					amount: PRICE,
 					maker: BOB,
-				})
+				}
+				.into()
 			);
-			assert_eq!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), BOB), None);
+			assert_eq!(Market::offers((COLLECTION_ID_0, ITEM_ID_0), BOB), None);
 			assert_eq!(
-				pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
+				pallet_uniques::Pallet::<Test>::owner(COLLECTION_ID_0, ITEM_ID_0),
 				Some(BOB)
 			);
 			assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + 40 * UNITS); // price - royalty
@@ -272,13 +275,13 @@ fn buy_should_set_price_to_none_when_offer_accepted() {
 	// arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 2_000_000 * UNITS), (DAVE, 2_000_000 * UNITS)])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::make_offer(
 				Origin::signed(DAVE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				50 * UNITS,
 				1000000
 			));
@@ -286,12 +289,12 @@ fn buy_should_set_price_to_none_when_offer_accepted() {
 			// Act
 			assert_ok!(Market::accept_offer(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				DAVE
 			));
 
 			// Assert
-			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
+			assert_eq!(Market::prices(COLLECTION_ID_0, ITEM_ID_0), None);
 		});
 }
