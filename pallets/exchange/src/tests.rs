@@ -21,12 +21,10 @@ pub use crate::mock::{
 	DOT, ETH, FERDIE, GEORGE, HDX, XYK as XYKPallet,
 };
 use frame_support::sp_runtime::traits::Hash;
-use frame_support::sp_runtime::FixedPointNumber;
 use frame_support::traits::Get;
 use frame_support::traits::OnFinalize;
 use frame_support::{assert_noop, assert_ok};
 use hydradx_traits::Resolver;
-use primitives::Price;
 use sp_runtime::{DispatchError, ModuleError};
 
 use pallet_xyk as xyk;
@@ -51,20 +49,16 @@ fn generate_intention_id(account: &<Test as system::Config>::AccountId, c: u32) 
 }
 
 /// HELPER FOR INITIALIZING POOLS
-fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: Price) {
+fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount_a: u128, amount_b: u128) {
 	assert_ok!(XYKPallet::create_pool(
 		Origin::signed(user),
 		asset_a,
+		amount_a,
 		asset_b,
-		amount,
-		price
+		amount_b,
 	));
 
-	let shares = if asset_a <= asset_b {
-		amount
-	} else {
-		price.checked_mul_int(amount).unwrap()
-	};
+	let shares = if asset_a <= asset_b { amount_a } else { amount_b };
 
 	let pair_account = XYKPallet::get_pair_id(AssetPair {
 		asset_in: asset_a,
@@ -81,14 +75,12 @@ fn initialize_pool(asset_a: u32, asset_b: u32, user: u64, amount: u128, price: P
 		pool: pair_account,
 	});
 
-	let amount_b = price.saturating_mul_int(amount);
-
 	// Check users state
-	assert_eq!(Currency::free_balance(asset_a, &user), EndowedAmount::get() - amount);
+	assert_eq!(Currency::free_balance(asset_a, &user), EndowedAmount::get() - amount_a);
 	assert_eq!(Currency::free_balance(asset_b, &user), EndowedAmount::get() - amount_b);
 
 	// Check initial state of the pool
-	assert_eq!(Currency::free_balance(asset_a, &pair_account), amount);
+	assert_eq!(Currency::free_balance(asset_a, &pair_account), amount_a);
 	assert_eq!(Currency::free_balance(asset_b, &pair_account), amount_b);
 
 	// Check pool shares
@@ -104,15 +96,15 @@ fn no_intentions_should_work() {
 		let user = ALICE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user, amount_a, amount_b);
 
 		assert_eq!(Exchange::get_intentions_count((asset_b, asset_a)), 0);
 
@@ -137,15 +129,15 @@ fn sell_test_pool_finalization_states() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -276,15 +268,15 @@ fn sell_test_standard() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -421,15 +413,15 @@ fn sell_test_inverse_standard() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -575,15 +567,15 @@ fn sell_test_exact_match() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -693,15 +685,15 @@ fn sell_test_single_eth_sells() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -812,15 +804,15 @@ fn sell_test_single_dot_sells() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -932,10 +924,10 @@ fn sell_trade_limits_respected_for_matched_intention() {
 		let asset_a = ETH;
 		let asset_b = DOT;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -1032,11 +1024,10 @@ fn buy_trade_limits_respected_for_matched_intention() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
-
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -1137,15 +1128,15 @@ fn sell_test_single_multiple_sells() {
 		let asset_a = ETH;
 		let asset_b = DOT;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -1388,15 +1379,15 @@ fn sell_test_group_sells() {
 		let asset_a = ETH;
 		let asset_b = DOT;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -1609,9 +1600,9 @@ fn sell_more_than_owner_should_not_work() {
 		assert_ok!(XYKPallet::create_pool(
 			Origin::signed(ALICE),
 			HDX,
-			ETH,
 			200_000,
-			Price::from(2)
+			ETH,
+			400_000
 		));
 
 		// With SELL
@@ -1638,15 +1629,15 @@ fn sell_test_mixed_buy_sells() {
 		let asset_a = ETH;
 		let asset_b = DOT;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -1815,15 +1806,15 @@ fn discount_tests_no_discount() {
 		let asset_a = ETH;
 		let asset_b = DOT;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -1993,17 +1984,17 @@ fn discount_tests_with_discount() {
 		let asset_a = ETH;
 		let asset_b = DOT;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
-		initialize_pool(asset_a, HDX, user_2, pool_amount, initial_price);
-		initialize_pool(asset_b, HDX, user_3, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
+		initialize_pool(asset_a, HDX, user_2, amount_a, amount_b);
+		initialize_pool(asset_b, HDX, user_3, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -2175,15 +2166,15 @@ fn buy_test_exact_match() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -2292,15 +2283,15 @@ fn buy_test_group_buys() {
 		let asset_a = ETH;
 		let asset_b = DOT;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -2470,15 +2461,15 @@ fn discount_tests_with_error() {
 		let asset_a = ETH;
 		let asset_b = DOT;
 
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -2618,15 +2609,15 @@ fn simple_sell_sell() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -2749,15 +2740,15 @@ fn simple_buy_buy() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -2880,15 +2871,15 @@ fn simple_sell_buy() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -3004,15 +2995,15 @@ fn simple_buy_sell() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -3127,15 +3118,15 @@ fn single_sell_intention_test() {
 		let user_2 = BOB;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -3203,15 +3194,15 @@ fn single_buy_intention_test() {
 		let user_2 = BOB;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000_000_000;
+		let amount_b = 200_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::buy(
 			Origin::signed(user_2),
@@ -3281,15 +3272,15 @@ fn simple_sell_sell_with_error_should_not_pass() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(
 			Origin::signed(user_2),
@@ -3389,15 +3380,15 @@ fn matching_limits_buy_buy_should_work() {
 		let user_3 = CHARLIE;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1000 * one;
-		let initial_price = Price::from(2);
+		let amount_a = 1000 * one;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000 * one);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000 * one);
@@ -3525,15 +3516,15 @@ fn matching_limits_sell_buy_should_work() {
 		let user_3 = CHARLIE;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1000 * one;
-		let initial_price = Price::from(2);
+		let amount_a = 1000 * one;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000 * one);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000 * one);
@@ -3653,15 +3644,15 @@ fn exact_match_limit_should_work() {
 		let user_3 = CHARLIE;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1000 * one;
-		let initial_price = Price::from(2);
+		let amount_a = 1000 * one;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000 * one);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000 * one);
@@ -3772,15 +3763,15 @@ fn matching_limit_scenario_2() {
 		let user_3 = CHARLIE;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1000 * one;
-		let initial_price = Price::from(2);
+		let amount_a = 1000 * one;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000 * one);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000 * one);
@@ -3911,15 +3902,15 @@ fn matching_limit_scenario_3() {
 		let user_3 = CHARLIE;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1000 * one;
-		let initial_price = Price::from(2);
+		let amount_a = 1000 * one;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_eq!(Currency::free_balance(asset_a, &pair_account), 1_000 * one);
 		assert_eq!(Currency::free_balance(asset_b, &pair_account), 2_000 * one);
@@ -4049,15 +4040,15 @@ fn process_invalid_intention_should_work() {
 		let user = ALICE;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1000 * one;
-		let initial_price = Price::from(2);
+		let amount_a = 1000 * one;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user, amount_a, amount_b);
 
 		let main_intention = ExchangeIntention {
 			who: user,
@@ -4066,7 +4057,7 @@ fn process_invalid_intention_should_work() {
 				asset_out: asset_a,
 			},
 			amount_in: 2_000_000,
-			amount_out: 10 * pool_amount,
+			amount_out: 10 * amount_a,
 			trade_limit: 10_000_000,
 			discount: false,
 			sell_or_buy: IntentionType::BUY,
@@ -4093,15 +4084,15 @@ fn main_intention_greater_than_matched_should_work() {
 		let user_2 = BOB;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1_000_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 1_000_000_000_000_000;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		let main_intention = ExchangeIntention {
 			who: user_1,
@@ -4154,15 +4145,15 @@ fn in_out_calculations_error_should_work() {
 		let user_2 = BOB;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1_000_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 1_000_000_000_000_000;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		// amount_a_in > amount_b_out scenario
 		let main_intention = ExchangeIntention {
@@ -4247,15 +4238,15 @@ fn revert_invalid_direct_trades_should_work() {
 		let user_2 = BOB;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1_000_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 1_000_000_000_000_000;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, asset_b, 98_000_000_000_000_000));
 
@@ -4376,15 +4367,15 @@ fn invalid_transfers_in_resolver_should_not_work() {
 		let user_2 = BOB;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1_000_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 1_000_000_000_000_000;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, asset_b, 98_000_000_000_000_000));
 
@@ -4438,15 +4429,15 @@ fn trade_limits_in_exact_match_scenario_should_work() {
 		let user_2 = BOB;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1_000_000_000_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 1_000_000_000_000_000;
+		let amount_b = 2_000_000_000_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, asset_b, 98_000_000_000_000_000));
 
@@ -4567,10 +4558,10 @@ fn correct_matching() {
 		let user_1 = ALICE;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 139_637_976_727_557;
-		let initial_price = Price::from_float(0.072_057_594_037_927_94);
+		let amount_a = 139_637_976_727_557;
+		let amount_b = 10_061_976_639_311;
 
-		initialize_pool(asset_b, asset_a, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		assert_ok!(Exchange::sell(Origin::signed(3), asset_b, asset_a, 1048577, 0, false,));
 
@@ -4610,10 +4601,10 @@ fn trade_limit_test() {
 			let user_1 = ALICE;
 			let asset_a = HDX;
 			let asset_b = DOT;
-			let pool_amount = 139637976727557;
-			let initial_price = Price::from_float(4_722.438_541_558_899_5);
+			let amount_a = 139637976727557;
+			let amount_b = 659370526107524154;
 
-			initialize_pool(asset_b, asset_a, user_1, pool_amount, initial_price);
+			initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 			assert_ok!(Exchange::buy(
 				Origin::signed(4),
@@ -4703,9 +4694,9 @@ fn execute_amm_transfer_should_work() {
 	new_test_ext().execute_with(|| {
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1_000_000_000_000_000;
-		let initial_price = Price::from_float(0.072);
-		initialize_pool(asset_b, asset_a, ALICE, pool_amount, initial_price);
+		let amount_a = 1_000_000_000_000_000;
+		let amount_b = 72_000_000_000_000;
+		initialize_pool(asset_a, asset_b, ALICE, amount_a, amount_b);
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
@@ -4798,9 +4789,9 @@ fn resolve_single_intention_should_work() {
 	new_test_ext().execute_with(|| {
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1_000_000_000_000_000;
-		let initial_price = Price::from_float(0.072);
-		initialize_pool(asset_b, asset_a, ALICE, pool_amount, initial_price);
+		let amount_a = 1_000_000_000_000_000;
+		let amount_b = 72_000_000_000_000;
+		initialize_pool(asset_b, asset_a, ALICE, amount_a, amount_b);
 
 		let alice_buy_intention_id = generate_intention_id(&ALICE, 0);
 		Exchange::resolve_single_intention(&ExchangeIntention {
@@ -4888,9 +4879,9 @@ fn verify_intention_should_work() {
 		let user = ALICE;
 		let asset_a = HDX;
 		let asset_b = DOT;
-		let pool_amount = 1_000_000_000_000_000;
-		let initial_price = Price::from_float(2.0);
-		initialize_pool(asset_a, asset_b, user, pool_amount, initial_price);
+		let amount_a = 1_000_000_000_000_000;
+		let amount_b = 2_000_000_000_000_000;
+		initialize_pool(asset_a, asset_b, user, amount_a, amount_b);
 
 		assert!(Exchange::verify_intention(&Intention::<Test> {
 			who: user,
@@ -4958,15 +4949,15 @@ fn direct_sell_sell_transfers_without_other_asset_should_work() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		// BOB doesn't need to own asset_b when selling asset_a
 		assert_ok!(Currency::transfer(
@@ -5098,15 +5089,15 @@ fn direct_buy_buy_transfers_without_other_asset_should_work() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		// BOB doesn't need to own asset_a when buying asset_a
 		assert_ok!(Currency::transfer(
@@ -5238,15 +5229,15 @@ fn direct_sell_buy_transfers_without_other_asset_should_work() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		// BOB doesn't need to own asset_b when selling asset_a
 		assert_ok!(Currency::transfer(
@@ -5370,15 +5361,15 @@ fn direct_buy_sell_transfers_without_other_asset_should_work() {
 		let user_3 = CHARLIE;
 		let asset_a = ETH;
 		let asset_b = DOT;
-		let pool_amount = 100_000_000;
-		let initial_price = Price::from(2);
+		let amount_a = 100_000_000;
+		let amount_b = 200_000_000;
 
 		let pair_account = XYKPallet::get_pair_id(AssetPair {
 			asset_in: asset_a,
 			asset_out: asset_b,
 		});
 
-		initialize_pool(asset_a, asset_b, user_1, pool_amount, initial_price);
+		initialize_pool(asset_a, asset_b, user_1, amount_a, amount_b);
 
 		// BOB doesn't need to own asset_a when buying asset_a
 		assert_ok!(Currency::transfer(

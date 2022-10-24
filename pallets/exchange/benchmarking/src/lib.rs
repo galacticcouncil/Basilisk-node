@@ -29,7 +29,7 @@ use frame_benchmarking::{account, benchmarks};
 use frame_support::traits::OnFinalize;
 use frame_system::RawOrigin;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
-use primitives::{AssetId, Balance, Price};
+use primitives::{AssetId, Balance};
 use sp_runtime::DispatchError;
 
 use sp_runtime::traits::{BlakeTwo256, Hash};
@@ -65,11 +65,11 @@ fn funded_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 fn initialize_pool<T: Config>(
 	caller: T::AccountId,
 	asset_a: AssetId,
+	amount_a: Balance,
 	asset_b: AssetId,
-	amount: Balance,
-	price: Price,
+	amount_b: Balance,
 ) -> dispatch::DispatchResult {
-	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, asset_b, amount, price)?;
+	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, amount_a, asset_b, amount_b)?;
 
 	Ok(())
 }
@@ -147,16 +147,17 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance =  DOLLARS;
+		let amount_a : Balance =  DOLLARS;
+		let amount_b : Balance =  10 * DOLLARS;
 		let limit : Balance =  DOLLARS;
 
-		initialize_pool::<T>(caller.clone(), asset_a, asset_b, amount, Price::from(10))?;
+		initialize_pool::<T>(caller.clone(), asset_a, amount_a, asset_b, amount_b)?;
 
 		feed_intentions::<T>(asset_a, asset_b, nbr_intentions_appended, &INTENTION_AMOUNTS)?;
 
 		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), nbr_intentions_appended);
 
-	}: {  Exchange::<T>::sell(RawOrigin::Signed(caller.clone()).into(), asset_a, asset_b, amount ,limit, false)? }
+	}: {  Exchange::<T>::sell(RawOrigin::Signed(caller.clone()).into(), asset_a, asset_b, amount_a ,limit, false)? }
 	verify{
 		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), nbr_intentions_appended + 1);
 	}
@@ -166,18 +167,19 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = DOLLARS;
+		let amount_a : Balance = DOLLARS;
+		let amount_b : Balance = DOLLARS;
 		let limit : Balance = DOLLARS;
 
 		let nbr_intentions_appended: u32  = MAX_INTENTIONS_IN_BLOCK;
 
-		initialize_pool::<T>(caller.clone(), asset_a, asset_b, amount, Price::from(1))?;
+		initialize_pool::<T>(caller.clone(), asset_a, amount_a, asset_b, amount_b)?;
 
 		feed_intentions::<T>(asset_a, asset_b, nbr_intentions_appended, &INTENTION_AMOUNTS)?;
 
 		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), nbr_intentions_appended);
 
-	}: {  Exchange::<T>::buy(RawOrigin::Signed(caller.clone()).into(), asset_a, asset_b, amount / 10 ,limit, false)? }
+	}: {  Exchange::<T>::buy(RawOrigin::Signed(caller.clone()).into(), asset_a, asset_b, amount_a / 10 ,limit, false)? }
 	verify{
 		assert_eq!(pallet_exchange::Pallet::<T>::get_intentions_count((asset_a, asset_b)), nbr_intentions_appended + 1);
 	}
@@ -188,14 +190,15 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = 100_000_000_000_000;
+		let amount_a : Balance = 100_000_000_000_000;
+		let amount_b : Balance = 100_000_000_000_000;
 
 		// First generate random amounts
 		// This is basically used to generate intentions with different amounts
 		// it is because algorithm does sort the intention by amount, so we need something not sorted./
 		let random_seed = BlakeTwo256::hash(b"Sixty-nine");
 
-		initialize_pool::<T>(caller, asset_a, asset_b, amount, Price::from(1))?;
+		initialize_pool::<T>(caller, asset_a, amount_a, asset_b, amount_b)?;
 
 		feed_intentions::<T>(asset_a, asset_b, t, &INTENTION_AMOUNTS)?;
 
@@ -213,9 +216,10 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = 100_000_000_000_000;
+		let amount_a : Balance = 100_000_000_000_000;
+		let amount_b : Balance = 100_000_000_000_000;
 
-		initialize_pool::<T>(caller, asset_a, asset_b, amount, Price::from(1))?;
+		initialize_pool::<T>(caller, asset_a, amount_a, asset_b, amount_b)?;
 
 		for idx in 0 .. t {
 			let user = funded_account::<T>("user", idx + 100);
@@ -246,9 +250,10 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = 100_000_000_000_000;
+		let amount_a : Balance = 100_000_000_000_000;
+		let amount_b : Balance = 10 * 100_000_000_000_000;
 
-		initialize_pool::<T>(caller, asset_a, asset_b, amount, Price::from(10))?;
+		initialize_pool::<T>(caller, asset_a, amount_a, asset_b, amount_b)?;
 
 		for idx in 0 .. t {
 			let user = funded_account::<T>("user", idx + 100);
@@ -279,11 +284,12 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = 10_000_000_000;
+		let amount_a : Balance = 10_000_000_000;
+		let amount_b : Balance = 10_000_000_000;
 		let min_bought : Balance = 1_000;
 		let discount = false;
 
-		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
+		initialize_pool::<T>(creator, asset_a, amount_a, asset_b, amount_b)?;
 
 	}: { xykpool::Pallet::<T>::sell(RawOrigin::Signed(seller.clone()).into(), asset_a, asset_b, 1_000_000_000, min_bought, false)?; }
 	verify {
@@ -297,10 +303,11 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = 10_000_000_000;
+		let amount_a : Balance = 10_000_000_000;
+		let amount_b : Balance = 10_000_000_000;
 		let discount = false;
 
-		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
+		initialize_pool::<T>(creator, asset_a, amount_a, asset_b, amount_b)?;
 
 		pallet_exchange::Pallet::<T>::sell(
 			RawOrigin::Signed(seller.clone()).into(),
@@ -326,11 +333,12 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = 10_000_000_000;
+		let amount_a : Balance = 10_000_000_000;
+		let amount_b : Balance = 10_000_000_000;
 		let max_sold: Balance = 2_000_000_000;
 		let discount = false;
 
-		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
+		initialize_pool::<T>(creator, asset_a, amount_a, asset_b, amount_b)?;
 
 	}: { xykpool::Pallet::<T>::buy(RawOrigin::Signed(buyer.clone()).into(), asset_a, asset_b, 1_000_000_000, max_sold, false)?; }
 	verify {
@@ -346,11 +354,12 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = 10_000_000_000;
+		let amount_a : Balance = 10_000_000_000;
+		let amount_b : Balance = 10_000_000_000;
 		let max_sold: Balance = 2_000_000_000;
 		let discount = false;
 
-		initialize_pool::<T>(creator, asset_a, asset_b, amount, Price::from(1))?;
+		initialize_pool::<T>(creator, asset_a, amount_a, asset_b, amount_b)?;
 
 		pallet_exchange::Pallet::<T>::buy(
 			RawOrigin::Signed(buyer.clone()).into(),

@@ -32,10 +32,9 @@ use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
-use primitives::{asset::AssetPair, AssetId, Balance, Price};
+use primitives::{asset::AssetPair, AssetId, Balance};
 use sp_std::{vec, vec::Vec};
 
-use frame_support::sp_runtime::FixedPointNumber;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::Amount;
 
@@ -137,9 +136,11 @@ pub mod pallet {
 		ZeroLiquidity,
 
 		/// It is not allowed to create a pool with zero initial price.
+		/// Not used, kept for backward compatibility
 		ZeroInitialPrice,
 
 		/// Overflow
+		/// Not used, kept for backward compatibility
 		CreatePoolAssetAmountInvalid,
 
 		/// Overflow
@@ -292,9 +293,9 @@ pub mod pallet {
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
+			amount_a: Balance,
 			asset_b: AssetId,
-			amount: Balance,
-			initial_price: Price,
+			amount_b: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -303,9 +304,10 @@ pub mod pallet {
 				Error::<T>::CannotCreatePool
 			);
 
-			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
-
-			ensure!(initial_price != Price::zero(), Error::<T>::ZeroInitialPrice);
+			ensure!(
+				amount_a >= T::MinPoolLiquidity::get() && amount_b >= T::MinPoolLiquidity::get(),
+				Error::<T>::InsufficientLiquidity
+			);
 
 			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
 
@@ -316,24 +318,15 @@ pub mod pallet {
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::TokenPoolAlreadyExists);
 
-			let asset_b_amount = initial_price
-				.checked_mul_int(amount)
-				.ok_or(Error::<T>::CreatePoolAssetAmountInvalid)?;
+			let shares_added = if asset_a < asset_b { amount_a } else { amount_b };
 
 			ensure!(
-				asset_b_amount >= T::MinPoolLiquidity::get(),
-				Error::<T>::InsufficientLiquidity
-			);
-
-			let shares_added = if asset_a < asset_b { amount } else { asset_b_amount };
-
-			ensure!(
-				T::Currency::free_balance(asset_a, &who) >= amount,
+				T::Currency::free_balance(asset_a, &who) >= amount_a,
 				Error::<T>::InsufficientAssetBalance
 			);
 
 			ensure!(
-				T::Currency::free_balance(asset_b, &who) >= asset_b_amount,
+				T::Currency::free_balance(asset_b, &who) >= amount_b,
 				Error::<T>::InsufficientAssetBalance
 			);
 
@@ -363,8 +356,8 @@ pub mod pallet {
 				pool: pair_account.clone(),
 			});
 
-			T::Currency::transfer(asset_a, &who, &pair_account, amount)?;
-			T::Currency::transfer(asset_b, &who, &pair_account, asset_b_amount)?;
+			T::Currency::transfer(asset_a, &who, &pair_account, amount_a)?;
+			T::Currency::transfer(asset_b, &who, &pair_account, amount_b)?;
 
 			T::Currency::deposit(share_token, &who, shares_added)?;
 

@@ -25,7 +25,7 @@ use sp_std::prelude::*;
 
 use crate::Pallet as XYK;
 
-use primitives::{AssetId, Balance, Price};
+use primitives::{AssetId, Balance};
 
 const SEED: u32 = 1;
 
@@ -42,10 +42,10 @@ benchmarks! {
 
 		let asset_a: AssetId = 1;
 		let asset_b: AssetId = 2;
-		let amount : Balance = 10 * 1_000_000_000;
-		let initial_price : Price = Price::from(2);
+		let amount_a : Balance = 10 * 1_000_000_000;
+		let amount_b : Balance = 20 * 1_000_000_000;
 
-	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, initial_price)
+	}: _(RawOrigin::Signed(caller.clone()), asset_a, amount_a, asset_b, amount_b)
 	verify {
 		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999990000000000);
 	}
@@ -59,7 +59,7 @@ benchmarks! {
 		let amount : Balance = 10 * 1_000_000_000;
 		let max_limit : Balance = 10 * 1_000_000_000_000;
 
-		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a,asset_b, 1_000_000_000, Price::from(1))?;
+		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a, 1_000_000_000,asset_b, 1_000_000_000)?;
 
 	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, max_limit)
 	verify {
@@ -75,7 +75,7 @@ benchmarks! {
 		let asset_b: AssetId = 2;
 		let amount : Balance = 1_000_000_000;
 
-		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), 1, 2, 10_000_000_000, Price::from(2))?;
+		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), 1, 10_000_000_000, 2, 20_000_000_000)?;
 		XYK::<T>::add_liquidity(RawOrigin::Signed(caller.clone()).into(), 1, 2, 5_000_000_000, 10_100_000_000)?;
 
 		assert_eq!(T::Currency::free_balance(asset_a, &caller), 999995000000000);
@@ -98,7 +98,7 @@ benchmarks! {
 
 		let min_bought: Balance = 10 * 1_000;
 
-		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a, asset_b, 1_000_000_000_000, Price::from(3))?;
+		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a, 1_000_000_000_000, asset_b, 3_000_000_000_000)?;
 
 	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, min_bought, discount)
 	verify{
@@ -117,7 +117,7 @@ benchmarks! {
 
 		let max_sold: Balance = 6_000_000_000;
 
-		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a, asset_b, 1_000_000_000_000, Price::from(3))?;
+		XYK::<T>::create_pool(RawOrigin::Signed(maker).into(), asset_a, 1_000_000_000_000, asset_b, 3_000_000_000_000)?;
 
 	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, max_sold, discount)
 	verify{

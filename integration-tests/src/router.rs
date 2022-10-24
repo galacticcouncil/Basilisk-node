@@ -3,10 +3,7 @@
 use crate::kusama_test_net::*;
 
 use basilisk_runtime::{Origin, Router, XYK};
-use primitives::Price;
 use xcm_emulator::TestExt;
-
-use sp_arithmetic::fixed_point::FixedPointNumber;
 
 use frame_support::{assert_noop, assert_ok};
 use hydradx_traits::router::PoolType;
@@ -621,9 +618,9 @@ fn create_pool(asset_a: u32, asset_b: u32) {
 	assert_ok!(XYK::create_pool(
 		Origin::signed(ALICE.into()),
 		asset_a,
-		asset_b,
 		100 * UNITS,
-		Price::checked_from_rational(1, 2).unwrap()
+		asset_b,
+		50 * UNITS,
 	));
 }
 
