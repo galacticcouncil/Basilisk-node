@@ -31,8 +31,6 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 		let asset_in_reserve = T::MultiCurrency::free_balance(assets.asset_in, &pool_id);
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
 
-		let fee_asset = pool_data.assets.0;
-
 		let amount_out = hydra_dx_math::lbp::calculate_out_given_in(
 			asset_in_reserve,
 			asset_out_reserve,
@@ -42,6 +40,7 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 		)
 		.map_err(|_| ExecutorError::Error(Error::<T>::Overflow.into()))?;
 
+		let fee_asset = pool_data.assets.0;
 		if fee_asset == assets.asset_in {
 			Ok(amount_out) //amount with fee applied as the user is responsible to send fee to the fee collector
 		} else {
@@ -76,7 +75,6 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 		let asset_out_reserve = T::MultiCurrency::free_balance(assets.asset_out, &pool_id);
 
 		let fee_asset = pool_data.assets.0;
-
 		if fee_asset == assets.asset_out {
 			let fee = Self::calculate_fees(&pool_data, amount_out).map_err(ExecutorError::Error)?;
 			let amount_out_plus_fee = amount_out
