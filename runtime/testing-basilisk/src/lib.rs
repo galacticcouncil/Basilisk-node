@@ -31,6 +31,7 @@ mod tests;
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
+use hydradx_adapters::inspect::MultiInspectAdapter;
 use orml_tokens::CurrencyAdapter;
 use sp_api::impl_runtime_apis;
 use sp_core::OpaqueMetadata;
@@ -41,7 +42,6 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill,
 };
-use hydradx_adapters::inspect::MultiInspectAdapter;
 use sp_std::convert::From;
 use sp_std::marker::PhantomData;
 use sp_std::prelude::*;
