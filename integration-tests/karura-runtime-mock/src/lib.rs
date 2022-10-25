@@ -1,5 +1,4 @@
 pub use basilisk_runtime::{AccountId, VestingPalletId};
-use cumulus_pallet_xcm::Pallet;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Nothing},
