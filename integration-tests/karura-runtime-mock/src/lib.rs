@@ -5,6 +5,7 @@ use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, Pays, Weight},
 	PalletId,
 };
+use cumulus_pallet_xcm::Pallet;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 
 use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
@@ -39,8 +40,10 @@ pub type Amount = i128;
 pub type BlockNumberKarura = u64;
 
 use cumulus_primitives_core::ParaId;
+use frame_support::weights::ConstantMultiplier;
 use hydradx_traits::pools::SpotPriceProvider;
-use orml_currencies::BasicCurrencyAdapter;
+use orml_traits::location::AbsoluteReserveProvider;
+use pallet_currencies::BasicCurrencyAdapter;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 use polkadot_xcm::prelude::MultiLocation;
 use sp_arithmetic::FixedU128;
@@ -75,12 +78,13 @@ parameter_types! {
 	pub RegistryStringLimit: u32 = 100;
 	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
-	pub KaruraTreasuryAccount: AccountId = TreasuryPalletId::get().into_account();
+	pub KaruraTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
 	pub KsmPerSecond: (AssetId, u128) = (0, 10);
 	pub BaseRate: u128 = 100;
 	pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::parachain_id().into())));
 	pub const BaseXcmWeight: Weight = 100_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
+
 }
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
@@ -156,7 +160,7 @@ impl Config for XcmConfig {
 	type XcmSender = XcmRouter;
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = XcmOriginToCallOrigin;
-	type IsReserve = MultiNativeAsset;
+	type IsReserve = MultiNativeAsset<AbsoluteReserveProvider>;
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
@@ -193,6 +197,7 @@ impl cumulus_pallet_parachain_system::Config for KaruraRuntime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
 impl cumulus_pallet_xcmp_queue::Config for KaruraRuntime {
@@ -203,6 +208,7 @@ impl cumulus_pallet_xcmp_queue::Config for KaruraRuntime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
+	type WeightInfo = ();
 }
 
 impl pallet_xcm::Config for KaruraRuntime {
@@ -242,6 +248,8 @@ impl orml_tokens::Config for KaruraRuntime {
 	type DustRemovalWhitelist = Nothing;
 	type OnNewTokenAccount = ();
 	type OnKilledTokenAccount = ();
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = ();
 }
 
 impl pallet_balances::Config for KaruraRuntime {
@@ -312,10 +320,10 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 			} if parents == 1
 				&& ParaId::from(id) == ParachainInfo::parachain_id()
 				&& (index as u32) == CORE_ASSET_ID =>
-			{
-				// Handling native asset for this parachain
-				Some(CORE_ASSET_ID)
-			}
+				{
+					// Handling native asset for this parachain
+					Some(CORE_ASSET_ID)
+				}
 			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
 			MultiLocation {
 				parents: 0,
@@ -347,8 +355,14 @@ impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
 			network: NetworkId::Any,
 			id: account.into(),
 		})
-		.into()
+			.into()
 	}
+}
+
+parameter_type_with_key! {
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		None
+	};
 }
 
 impl orml_xtokens::Config for KaruraRuntime {
@@ -358,14 +372,17 @@ impl orml_xtokens::Config for KaruraRuntime {
 	type CurrencyIdConvert = CurrencyIdConvert;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type SelfLocation = SelfLocation;
+	type MinXcmFee = ParachainMinFee;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
+	type MultiLocationsFilter = Everything;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type ReserveProvider = AbsoluteReserveProvider;
 }
 
-impl orml_currencies::Config for KaruraRuntime {
+impl pallet_currencies::Config for KaruraRuntime {
 	type Event = Event;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<KaruraRuntime, Balances, Amount, u32>;
@@ -377,14 +394,15 @@ impl orml_unknown_tokens::Config for KaruraRuntime {
 	type Event = Event;
 }
 pub type SlowAdjustingFeeUpdate<R> =
-	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for KaruraRuntime {
+	type Event = Event;
 	type OnChargeTransaction = TransferFees<Currencies, MultiTransactionPayment, DepositAll<KaruraRuntime>>;
-	type TransactionByteFee = TransactionByteFee;
 	type OperationalFeeMultiplier = ();
 	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
+	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 }
 
 pub struct KaruraSpotPriceProviderStub;
@@ -422,7 +440,7 @@ construct_runtime!(
 			System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 			Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-			Currencies: orml_currencies::{Pallet, Event<T>},
+			Currencies: pallet_currencies::{Pallet, Event<T>},
 			ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Config, Event<T>},
 			ParachainInfo: parachain_info::{Pallet, Storage, Config},
 			XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
@@ -430,8 +448,9 @@ construct_runtime!(
 			CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 			PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 			AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
+			TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>},
+			MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>},
 			XTokens: orml_xtokens::{Pallet, Storage, Call, Event<T>} = 154,
 			UnknownTokens: orml_unknown_tokens::{Pallet, Storage, Event} = 155,
-			MultiTransactionPayment: pallet_transaction_multi_payment::{Pallet, Call, Config<T>, Storage, Event<T>} = 106,
 		}
 );
