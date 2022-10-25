@@ -107,7 +107,6 @@ sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "pol
 
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28-1" }
 polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28-1" }
-
 basilisk-runtime = { path = "../../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28" }
 
