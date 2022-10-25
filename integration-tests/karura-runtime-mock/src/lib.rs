@@ -1,11 +1,11 @@
 pub use basilisk_runtime::{AccountId, VestingPalletId};
+use cumulus_pallet_xcm::Pallet;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Nothing},
 	weights::{constants::WEIGHT_PER_SECOND, Pays, Weight},
 	PalletId,
 };
-use cumulus_pallet_xcm::Pallet;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 
 use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
@@ -320,10 +320,10 @@ impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
 			} if parents == 1
 				&& ParaId::from(id) == ParachainInfo::parachain_id()
 				&& (index as u32) == CORE_ASSET_ID =>
-				{
-					// Handling native asset for this parachain
-					Some(CORE_ASSET_ID)
-				}
+			{
+				// Handling native asset for this parachain
+				Some(CORE_ASSET_ID)
+			}
 			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
 			MultiLocation {
 				parents: 0,
@@ -355,7 +355,7 @@ impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
 			network: NetworkId::Any,
 			id: account.into(),
 		})
-			.into()
+		.into()
 	}
 }
 
@@ -394,7 +394,7 @@ impl orml_unknown_tokens::Config for KaruraRuntime {
 	type Event = Event;
 }
 pub type SlowAdjustingFeeUpdate<R> =
-TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
 impl pallet_transaction_payment::Config for KaruraRuntime {
 	type Event = Event;
