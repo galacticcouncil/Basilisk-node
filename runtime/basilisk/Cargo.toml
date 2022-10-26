@@ -157,6 +157,7 @@ runtime-benchmarks = [
     "pallet-uniques/runtime-benchmarks",
     "orml-benchmarking",
     "pallet-transaction-pause/runtime-benchmarks",
+    "cumulus-pallet-xcmp-queue/runtime-benchmarks",
 ]
 std = [
     "codec/std",

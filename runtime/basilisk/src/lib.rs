@@ -835,6 +835,7 @@ impl pallet_uniques::Config for Runtime {
 	type ItemId = ItemId;
 	type Currency = KusamaCurrency;
 	type ForceOrigin = SuperMajorityCouncilOrRoot;
+	// Standard collection creation is disallowed
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	type Locker = ();
 	type CollectionDeposit = CollectionDeposit;
@@ -1245,6 +1246,8 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
 
+			list_benchmark!(list, extra, cumulus_pallet_xcmp_queue, XcmpQueue);
+
 			orml_list_benchmark!(list, extra, pallet_currencies, benchmarking::currencies);
 			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
 			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
@@ -1310,6 +1313,8 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
+
+			add_benchmark!(params, batches, cumulus_pallet_xcmp_queue, XcmpQueue);
 
 			orml_add_benchmark!(params, batches, pallet_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
