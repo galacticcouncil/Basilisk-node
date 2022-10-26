@@ -69,7 +69,7 @@ fn deposit_shares_should_work() {
 				deposited_amount
 			);
 
-			let nft_owner: AccountId = DummyNFT::owner(&LM_NFT_CLASS, &1).unwrap();
+			let nft_owner: AccountId = DummyNFT::owner(&LM_NFT_COLLECTION, &1).unwrap();
 			pretty_assertions::assert_eq!(nft_owner, ALICE);
 		});
 }
@@ -95,7 +95,7 @@ fn deposit_shares_should_fail_when_account_balance_is_insufficient() {
 		.execute_with(|| {
 			assert_noop!(
 				LiquidityMining::deposit_shares(Origin::signed(ALICE), 1, 2, BSX_KSM_ASSET_PAIR, 50 * ONE),
-				Error::<Test>::InsufficientAmmSharesBalance
+				Error::<Test>::InsufficientXykSharesBalance
 			);
 		});
 }
@@ -152,7 +152,7 @@ fn deposit_shares_should_fail_when_amm_pool_does_not_exist() {
 		.execute_with(|| {
 			assert_noop!(
 				LiquidityMining::deposit_shares(Origin::signed(ALICE), 1, 2, assets_without_amm, 50 * ONE),
-				Error::<Test>::AmmPoolDoesNotExist
+				Error::<Test>::XykPoolDoesntExist
 			);
 		});
 }

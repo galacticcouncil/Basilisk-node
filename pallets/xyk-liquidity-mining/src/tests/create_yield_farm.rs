@@ -101,7 +101,7 @@ fn create_yield_farm_should_fail_when_amm_pool_doesnt_exists() {
 					One::one(),
 					Some(LoyaltyCurve::default())
 				),
-				Error::<Test>::AmmPoolDoesNotExist
+				Error::<Test>::XykPoolDoesntExist
 			);
 		});
 }

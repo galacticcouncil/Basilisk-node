@@ -18,7 +18,7 @@
 use super::*;
 
 #[test]
-fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
+fn redeposit_shares_should_work_when_deposit_already_exists() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(BOB, BSX, 1_000_000 * ONE),
@@ -55,7 +55,7 @@ fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
 			set_block_number(50_000);
 
 			//Act
-			assert_ok!(LiquidityMining::redeposit_lp_shares(
+			assert_ok!(LiquidityMining::redeposit_shares(
 				Origin::signed(CHARLIE),
 				2,
 				4,
@@ -76,7 +76,7 @@ fn redeposit_lp_shares_should_work_when_deposit_already_exists() {
 }
 
 #[test]
-fn redeposit_lp_shares_should_fail_when_called_by_not_the_deposit_owner() {
+fn redeposit_shares_should_fail_when_called_by_not_the_deposit_owner() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(BOB, BSX, 1_000_000 * ONE),
@@ -111,14 +111,14 @@ fn redeposit_lp_shares_should_fail_when_called_by_not_the_deposit_owner() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				LiquidityMining::redeposit_lp_shares(Origin::signed(BOB), 2, 4, BSX_KSM_ASSET_PAIR, 1,),
+				LiquidityMining::redeposit_shares(Origin::signed(BOB), 2, 4, BSX_KSM_ASSET_PAIR, 1,),
 				Error::<Test>::NotDepositOwner
 			);
 		});
 }
 
 #[test]
-fn redeposit_lp_shares_deposit_should_fail_when_asset_pair_has_invalid_asset() {
+fn redeposit_shares_deposit_should_fail_when_asset_pair_has_invalid_asset() {
 	let pair_without_amm = AssetPair {
 		asset_in: BSX,
 		asset_out: DOT,
@@ -158,14 +158,14 @@ fn redeposit_lp_shares_deposit_should_fail_when_asset_pair_has_invalid_asset() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				LiquidityMining::redeposit_lp_shares(Origin::signed(CHARLIE), 2, 4, pair_without_amm, 1,),
-				Error::<Test>::AmmPoolDoesNotExist
+				LiquidityMining::redeposit_shares(Origin::signed(CHARLIE), 2, 4, pair_without_amm, 1,),
+				Error::<Test>::XykPoolDoesntExist
 			);
 		});
 }
 
 #[test]
-fn redeposit_lp_shares_should_fail_when_origin_is_not_signed() {
+fn redeposit_shares_should_fail_when_origin_is_not_signed() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(BOB, BSX, 1_000_000 * ONE),
@@ -200,8 +200,58 @@ fn redeposit_lp_shares_should_fail_when_origin_is_not_signed() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				LiquidityMining::redeposit_lp_shares(Origin::none(), 2, 4, BSX_KSM_ASSET_PAIR, 1,),
+				LiquidityMining::redeposit_shares(Origin::none(), 2, 4, BSX_KSM_ASSET_PAIR, 1,),
 				BadOrigin
 			);
 		});
+}
+
+#[test]
+fn redeposit_shares_should_fail_when_nft_owner_is_not_found() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_yield_farm(BOB, 2, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 3, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			set_block_number(50_000);
+			let deposit_id = 1;
+
+			//Arrange
+			//Destory NFT without destruction of depoist.
+			mock::DummyNFT::burn(&LM_NFT_COLLECTION, &deposit_id, None::<&AccountId>).unwrap();
+
+			//Act
+			assert_noop!(
+				LiquidityMining::redeposit_shares(Origin::signed(CHARLIE), 2, 4, BSX_KSM_ASSET_PAIR, 1,),
+				Error::<Test>::CantFindDepositOwner
+			);
+		})
 }

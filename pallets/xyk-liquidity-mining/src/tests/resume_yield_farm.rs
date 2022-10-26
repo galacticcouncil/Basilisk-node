@@ -108,7 +108,7 @@ fn resume_yield_farm_should_fail_when_amm_pool_does_not_exist() {
 					pair_without_amm,
 					FixedU128::from(7_490_000)
 				),
-				Error::<Test>::AmmPoolDoesNotExist
+				Error::<Test>::XykPoolDoesntExist
 			);
 		});
 }

@@ -56,7 +56,7 @@ fn withdraw_shares_should_work() {
 			set_block_number(1_000);
 
 			//redeposit lp shares
-			assert_ok!(LiquidityMining::redeposit_lp_shares(
+			assert_ok!(LiquidityMining::redeposit_shares(
 				Origin::signed(CHARLIE),
 				2,
 				4,
@@ -325,7 +325,7 @@ fn withdraw_shares_should_fail_when_global_farm_is_not_found() {
 }
 
 #[test]
-fn deposit_shares_should_fail_when_origin_is_not_signed() {
+fn withdraw_shares_should_fail_when_origin_is_not_signed() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(BOB, BSX, 1_000_000 * ONE),
@@ -350,6 +350,40 @@ fn deposit_shares_should_fail_when_origin_is_not_signed() {
 			assert_noop!(
 				LiquidityMining::withdraw_shares(Origin::none(), 1, 2, BSX_KSM_ASSET_PAIR),
 				BadOrigin
+			);
+		});
+}
+
+#[test]
+fn withdraw_shares_should_fail_when_nft_owner_is_not_found() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 2, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			set_block_number(1_000);
+
+			const NOT_EXISTS_DEPOSIT: u128 = 2;
+
+			assert_noop!(
+				LiquidityMining::withdraw_shares(Origin::signed(CHARLIE), NOT_EXISTS_DEPOSIT, 2, BSX_KSM_ASSET_PAIR),
+				Error::<Test>::CantFindDepositOwner
 			);
 		});
 }

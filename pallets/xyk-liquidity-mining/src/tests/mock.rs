@@ -30,6 +30,7 @@ use frame_support::{
 use frame_system as system;
 use hydradx_traits::{nft::CreateTypedCollection, pools::DustRemovalAccountWhitelist, AMM};
 use orml_traits::parameter_type_with_key;
+use pallet_liquidity_mining::{FarmMultiplier, YieldFarmId};
 use pallet_nft::CollectionType;
 use primitives::{asset::AssetPair, Amount, AssetId, Balance};
 use sp_core::H256;
@@ -39,8 +40,6 @@ use sp_runtime::{
 };
 use sp_std::convert::TryFrom;
 use std::{cell::RefCell, collections::HashMap};
-use warehouse_liquidity_mining::FarmMultiplier;
-use warehouse_liquidity_mining::YieldFarmId;
 
 pub type AccountId = u128;
 pub type BlockNumber = u64;
@@ -69,7 +68,7 @@ pub const KSM_FARM: YieldFarmId = 2;
 pub const INITIAL_READ_WEIGHT: u64 = 1;
 pub const INITIAL_WRITE_WEIGHT: u64 = 1;
 
-pub const LM_NFT_CLASS: primitives::CollectionId = 1;
+pub const LM_NFT_COLLECTION: primitives::CollectionId = 1;
 
 pub const BSX_KSM_ASSET_PAIR: AssetPair = AssetPair {
 	asset_in: BSX,
@@ -141,10 +140,10 @@ impl system::Config for Test {
 }
 
 thread_local! {
-	pub static NFT_CLASS: RefCell<(u128, u128, u128)>= RefCell::new((0,0,0));
+	pub static NFT_COLLECTION: RefCell<(u128, u128, u128)>= RefCell::new((0,0,0));
 
 	pub static AMM_POOLS: RefCell<HashMap<AccountId, (AssetId, AssetPair)>> = RefCell::new(HashMap::new());
-	pub static NFTS: RefCell<HashMap<warehouse_liquidity_mining::DepositId, AccountId>> = RefCell::new(HashMap::default());
+	pub static NFTS: RefCell<HashMap<pallet_liquidity_mining::DepositId, AccountId>> = RefCell::new(HashMap::default());
 	pub static DEPOSIT_IDS: RefCell<Vec<DepositId>> = RefCell::new(Vec::new());
 
 	pub static GLOBAL_FARMS: RefCell<HashMap<u32, DymmyGlobalFarm>> = RefCell::new(HashMap::default());
@@ -307,7 +306,7 @@ parameter_types! {
 	#[derive(PartialEq, Eq)]
 	pub const MaxEntriesPerDeposit: u8 = 10;
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
-	pub const NftCollectionId: primitives::CollectionId = LM_NFT_CLASS;
+	pub const NftCollectionId: primitives::CollectionId = LM_NFT_COLLECTION;
 	pub const ReserveClassIdUpTo: u128 = 2;
 }
 
@@ -345,7 +344,7 @@ impl<AccountId: From<u128>> Inspect<AccountId> for DummyNFT {
 
 impl<AccountId: From<u128> + Into<u128> + Copy> Create<AccountId> for DummyNFT {
 	fn create_collection(collection: &Self::CollectionId, who: &AccountId, admin: &AccountId) -> DispatchResult {
-		NFT_CLASS.with(|v| {
+		NFT_COLLECTION.with(|v| {
 			v.replace((*collection, (*who).into(), (*admin).into()));
 		});
 		Ok(())
@@ -380,7 +379,7 @@ impl CreateTypedCollection<AccountId, primitives::CollectionId, CollectionType> 
 		collection_id: primitives::CollectionId,
 		_collection_type: CollectionType,
 	) -> DispatchResult {
-		NFT_CLASS.with(|v| {
+		NFT_COLLECTION.with(|v| {
 			v.replace((collection_id, owner, owner));
 		});
 		Ok(())

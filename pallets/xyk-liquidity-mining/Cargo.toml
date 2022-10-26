@@ -21,7 +21,7 @@ log = { version = "0.4.17", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.28", default-features = false }
 
 # HydraDX dependencies
-warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev="89bde6d2b8bad2263c554eb3d83b76d877971136", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="89bde6d2b8bad2263c554eb3d83b76d877971136", default-features = false }
 # This pallet is using 2 different version of triats on purpose because warehouse branch is not merget yet.
 hydradx-traits-lm = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev="89bde6d2b8bad2263c554eb3d83b76d877971136", default-features = false }
 
@@ -59,6 +59,6 @@ std = [
     "hydradx-traits/std",
     "hydradx-traits-lm/std",
     "pallet-balances/std",
-    "warehouse-liquidity-mining/std",
+    "pallet-liquidity-mining/std",
     "log/std",
 ]

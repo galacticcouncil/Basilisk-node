@@ -108,7 +108,7 @@ fn update_yield_farm_should_fail_when_amm_pool_does_not_exist() {
 		.execute_with(|| {
 			assert_noop!(
 				LiquidityMining::update_yield_farm(Origin::signed(BOB), 1, pair_without_amm, FixedU128::from(10_001)),
-				Error::<Test>::AmmPoolDoesNotExist
+				Error::<Test>::XykPoolDoesntExist
 			);
 		});
 }

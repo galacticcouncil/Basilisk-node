@@ -52,7 +52,7 @@ use frame_support::{
 	PalletId,
 };
 use hydradx_traits_lm::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
-use warehouse_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
+use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
@@ -157,20 +157,18 @@ pub mod pallet {
 		/// Nft pallet didn't return an owner.
 		CantFindDepositOwner,
 
-		/// Account balance of amm pool shares is not sufficient.
-		InsufficientAmmSharesBalance,
+		/// Account balance of XYK pool shares is not sufficient.
+		InsufficientXykSharesBalance,
 
-		/// AMM pool does not exist
-		AmmPoolDoesNotExist,
+		/// XYK pool does not exist
+		XykPoolDoesntExist,
 
 		/// Account is not deposit owner.
 		NotDepositOwner,
 
-		/// AMM did not return assets for given `amm_pool_id`
-		CantGetAmmAssets,
-
-		/// Yield farm can not be found
-		YieldFarmNotFound,
+		/// XYK did not return assets for given pool id
+		// Not tested because previous checks in the code prevents this error
+		CantGetXykAssets,
 
 		///Deposit data not found
 		DepositDataNotFound,
@@ -302,12 +300,12 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Create new liquidity mining program with provided parameters.
 		///
-		/// `owner` account have to have at least `total_rewards` balance. This fund will be
+		/// `owner` account has to have at least `total_rewards` balance. This fund will be
 		/// transferred from `owner` to farm account.
 		///
 		/// The dispatch origin for this call must be `T::CreateOrigin`.
 		/// !!!WARN: `T::CreateOrigin` has power over funds of `owner`'s account and it should be
-		/// configure to trusted origin e.g Sudo or Governance.
+		/// configured to trusted origin e.g Sudo or Governance.
 		///
 		/// Parameters:
 		/// - `origin`: global farm's owner.
@@ -319,7 +317,7 @@ pub mod pallet {
 		/// farms and can be distributed in a longer time frame but never in the shorter time frame.
 		/// - `blocks_per_period`:  number of blocks in a single period. Min. number of blocks per
 		/// period is 1.
-		/// - `incentivized_asset`: asset to be incentivized in AMM pools. All yield farms added into
+		/// - `incentivized_asset`: asset to be incentivized in XYK pools. All yield farms added into
 		/// liq. mining program have to have `incentivized_asset` in their pair.
 		/// - `reward_currency`: payoff currency of rewards.
 		/// - `owner`: liq. mining program owner.
@@ -426,12 +424,13 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Add yield farm for given `asset_pair` amm.
+		/// Add yield farm for given `asset_pair` XYK pool.
 		///  
 		/// Only farm owner can perform this action.
 		///
-		/// Only AMMs with `asset_pair` with `incentivized_asset` can be added into the farm. AMM
-		/// for `asset_pair` has to exist to successfully create yield farm. Yield farm for same `asset_pair` can exist only once in the global farm.
+		/// Only XYKs with `asset_pair` with `incentivized_asset` can be added into the farm. XYK
+		/// pool for `asset_pair` has to exist to successfully create yield farm.
+		/// Yield farm for same `asset_pair` can exist only once in the global farm.
 		///
 		/// Parameters:
 		/// - `origin`: global farm's owner.
@@ -452,7 +451,7 @@ pub mod pallet {
 			loyalty_curve: Option<LoyaltyCurve>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let amm_pool_id = Self::ensure_amm(asset_pair)?;
+			let amm_pool_id = Self::ensure_xyk(asset_pair)?;
 
 			let yield_farm_id = T::LiquidityMiningHandler::create_yield_farm(
 				who,
@@ -493,7 +492,7 @@ pub mod pallet {
 			multiplier: FarmMultiplier,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let amm_pool_id = Self::ensure_amm(asset_pair)?;
+			let amm_pool_id = Self::ensure_xyk(asset_pair)?;
 
 			let yield_farm_id = T::LiquidityMiningHandler::update_yield_farm_multiplier(
 				who.clone(),
@@ -536,7 +535,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			//NOTE: don't check amm pool existance, owner must be able to stop yield farm.
+			//NOTE: don't check XYK pool existance, owner must be able to stop yield farm.
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 			let yield_farm_id = T::LiquidityMiningHandler::stop_yield_farm(who.clone(), global_farm_id, amm_pool_id)?;
 
@@ -576,7 +575,7 @@ pub mod pallet {
 			multiplier: FarmMultiplier,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let amm_pool_id = Self::ensure_amm(asset_pair)?;
+			let amm_pool_id = Self::ensure_xyk(asset_pair)?;
 
 			T::LiquidityMiningHandler::resume_yield_farm(
 				who.clone(),
@@ -622,10 +621,10 @@ pub mod pallet {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
 			asset_pair: AssetPair,
-		) -> DispatchResultWithPostInfo {
+		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			//NOTE: don't check amm pool existance, owner must be able to stop yield farm.
+			//NOTE: don't check XYK pool existance, owner must be able to stop yield farm.
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
 			T::LiquidityMiningHandler::destroy_yield_farm(who.clone(), global_farm_id, yield_farm_id, amm_pool_id)?;
@@ -637,7 +636,7 @@ pub mod pallet {
 				asset_pair,
 			});
 
-			Ok(().into())
+			Ok(())
 		}
 
 		/// Deposit LP shares to a liq. mining.
@@ -663,13 +662,13 @@ pub mod pallet {
 			shares_amount: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
-			let amm_pool_id = Self::ensure_amm(asset_pair)?;
+			let amm_pool_id = Self::ensure_xyk(asset_pair)?;
 
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
 			ensure!(
 				T::MultiCurrency::ensure_can_withdraw(amm_share_token, &who, shares_amount).is_ok(),
-				Error::<T>::InsufficientAmmSharesBalance
+				Error::<T>::InsufficientXykSharesBalance
 			);
 
 			let deposit_id = T::LiquidityMiningHandler::deposit_lp_shares(
@@ -695,6 +694,8 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Redeposit already locked LP shares to another yield farm.
+		///
 		/// This function create yield farm entry for existing deposit. LP shares are not transferred
 		/// and amount of LP shares is based on existing deposit.
 		///
@@ -705,11 +706,11 @@ pub mod pallet {
 		/// - `global_farm_id`: global farm identifier.
 		/// - `yield_farm_id`: yield farm identifier redepositing to.
 		/// - `asset_pair`: asset pair identifying LP shares user want to deposit.
-		/// - `deposit_id`: identifier of the AMM pool.
+		/// - `deposit_id`: identifier of the deposit.
 		///
 		/// Emits `SharesRedeposited` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::redeposit_lp_shares())]
-		pub fn redeposit_lp_shares(
+		#[pallet::weight(<T as Config>::WeightInfo::redeposit_shares())]
+		pub fn redeposit_shares(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
@@ -717,7 +718,7 @@ pub mod pallet {
 			deposit_id: DepositId,
 		) -> DispatchResult {
 			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
-			Self::ensure_amm(asset_pair)?;
+			Self::ensure_xyk(asset_pair)?;
 
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
@@ -781,9 +782,9 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Withdraw LP shares from liq. mining. with reward claiming if possible.
+		/// Withdraw LP shares from liq. mining with reward claiming if possible.
 		///
-		/// Cases for transfer LP shares and claimed rewards:
+		/// List of possible cases of transfers of LP shares and claimed rewards:
 		///
 		/// * yield farm is active(yield farm is not stopped) - claim and transfer rewards(if it
 		/// wasn't claimed in this period) and transfer LP shares.
@@ -791,8 +792,6 @@ pub mod pallet {
 		/// wasn't claimed in this period) and transfer LP shares.
 		/// * yield farm was destroyed - only LP shares will be transferred.
 		/// * farm was destroyed - only LP shares will be transferred.
-		/// * SPECIAL CASE: AMM pool does not exist - claim may happen if yield farm is still active, LP
-		/// shares will not be transferred.
 		///
 		/// User's unclaimable rewards will be transferred back to global farm's account.
 		///
@@ -813,7 +812,7 @@ pub mod pallet {
 			asset_pair: AssetPair,
 		) -> DispatchResult {
 			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
-			let amm_pool_id = Self::ensure_amm(asset_pair)?;
+			let amm_pool_id = Self::ensure_xyk(asset_pair)?;
 
 			let global_farm_id = T::LiquidityMiningHandler::get_global_farm_id(deposit_id, yield_farm_id)
 				.ok_or(Error::<T>::DepositDataNotFound)?;
@@ -883,11 +882,11 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn get_lp_token(amm_pool_id: &T::AccountId) -> Result<AssetId, Error<T>> {
-		let assets = T::AMM::get_pool_assets(amm_pool_id).ok_or(Error::<T>::CantGetAmmAssets)?;
+		let assets = T::AMM::get_pool_assets(amm_pool_id).ok_or(Error::<T>::CantGetXykAssets)?;
 		let asset_pair = AssetPair::new(assets[0], assets[1]);
 
 		//NOTE: this check is important AMM:get_share_token() return `0` if amm doesn't exist
-		ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
+		ensure!(T::AMM::exists(asset_pair), Error::<T>::XykPoolDoesntExist);
 
 		Ok(T::AMM::get_share_token(asset_pair))
 	}
@@ -908,8 +907,8 @@ impl<T: Config> Pallet<T> {
 		Ok(T::MultiCurrency::total_balance(asset, &amm_pool_id))
 	}
 
-	fn ensure_amm(asset_pair: AssetPair) -> Result<T::AccountId, Error<T>> {
-		ensure!(T::AMM::exists(asset_pair), Error::<T>::AmmPoolDoesNotExist);
+	fn ensure_xyk(asset_pair: AssetPair) -> Result<T::AccountId, Error<T>> {
+		ensure!(T::AMM::exists(asset_pair), Error::<T>::XykPoolDoesntExist);
 
 		Ok(T::AMM::get_pair_id(asset_pair))
 	}

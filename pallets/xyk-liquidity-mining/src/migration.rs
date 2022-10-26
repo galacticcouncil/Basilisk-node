@@ -57,7 +57,7 @@ pub mod v1 {
 			}
 		}
 
-		//create nft class
+		//create nft collection
 		match T::NFTHandler::create_typed_collection(
 			pallet_account,
 			T::NftCollectionId::get(),
@@ -73,7 +73,7 @@ pub mod v1 {
 			Err(e) => {
 				log::error!(
 					target: "runtime: xyk-liquidity-mining",
-					"Error to create NFT class: {:?}",
+					"Error to create NFT collection: {:?}",
 					e
 				);
 			}
@@ -123,8 +123,11 @@ mod tests {
 	}
 
 	fn assert_that_nft_collecion_is_created(pallet_account: u128) {
-		mock::NFT_CLASS
-			.borrow()
-			.with(|v| assert_eq!(*v, RefCell::new((mock::LM_NFT_CLASS, pallet_account, pallet_account))));
+		mock::NFT_COLLECTION.borrow().with(|v| {
+			assert_eq!(
+				*v,
+				RefCell::new((mock::LM_NFT_COLLECTION, pallet_account, pallet_account))
+			)
+		});
 	}
 }

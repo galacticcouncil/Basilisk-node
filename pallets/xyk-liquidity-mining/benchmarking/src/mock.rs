@@ -77,7 +77,7 @@ frame_support::construct_runtime!(
 		Uniques: pallet_uniques,
 		Currency: orml_tokens,
 		AssetRegistry: pallet_asset_registry,
-		WarehouseLM: warehouse_liquidity_mining::<Instance1>,
+		WarehouseLM: pallet_liquidity_mining::<Instance1>,
 	}
 );
 
@@ -135,7 +135,7 @@ parameter_types! {
 	pub const MinTotalFarmRewards: Balance = 1_000_000;
 }
 
-impl warehouse_liquidity_mining::Config<Instance1> for Test {
+impl pallet_liquidity_mining::Config<Instance1> for Test {
 	type AssetId = AssetId;
 	type MultiCurrency = Currency;
 	type PalletId = WarehouseLMPalletId;

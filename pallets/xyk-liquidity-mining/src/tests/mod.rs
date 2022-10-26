@@ -26,7 +26,7 @@ use sp_runtime::traits::BadOrigin;
 const ALICE_FARM: u32 = BSX_FARM;
 const BOB_FARM: u32 = KSM_FARM;
 
-use warehouse_liquidity_mining::LoyaltyCurve;
+use pallet_liquidity_mining::LoyaltyCurve;
 
 macro_rules! assert_last_event {
 	( $x:expr ) => {{
