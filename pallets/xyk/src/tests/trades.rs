@@ -969,6 +969,35 @@ fn single_sell_more_than_ratio_in_should_not_work() {
 }
 
 #[test]
+fn single_sell_more_than_ratio_out_should_not_work() {
+	ExtBuilder::default().with_max_out_ratio(5).build().execute_with(|| {
+		let user_1 = ALICE;
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(user_1),
+			asset_a,
+			asset_b,
+			100_000_000_000,
+			Price::from(1)
+		));
+
+		assert_noop!(
+			XYK::sell(
+				Origin::signed(user_1),
+				asset_a,
+				asset_b,
+				33_333_333_333,
+				10_000_000,
+				false,
+			),
+			Error::<Test>::MaxOutRatioExceeded
+		);
+	});
+}
+
+#[test]
 fn sell_with_low_amount_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(

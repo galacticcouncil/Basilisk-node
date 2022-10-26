@@ -737,6 +737,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount)
 			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
 
+		ensure!(
+			amount_out
+				<= asset_out_reserve
+					.checked_div(T::MaxOutRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxOutRatioExceeded
+		);
+
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(amount_out)?
 		} else {
