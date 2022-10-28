@@ -3,8 +3,8 @@ use crate as duster;
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild, Nothing, OnKilledAccount};
 
-use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
+use pallet_currencies::BasicCurrencyAdapter;
 use primitives::{AssetId, Balance};
 
 use crate::Config;
@@ -18,6 +18,7 @@ use sp_runtime::{
 };
 
 use frame_support::weights::Weight;
+use frame_system::EnsureRoot;
 use primitives::Amount;
 use sp_std::cell::RefCell;
 use sp_std::vec::Vec;
@@ -44,11 +45,11 @@ frame_support::construct_runtime!(
 	NodeBlock = Block,
 	UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Duster: duster::{Pallet, Call, Storage, Event<T>},
-		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
-		Currencies: orml_currencies::{Pallet, Event<T>},
-		Balances: pallet_balances::{Pallet,Call, Storage,Config<T>, Event<T>},
+		System: frame_system,
+		Duster: duster,
+		Tokens: orml_tokens,
+		Currencies: pallet_currencies,
+		Balances: pallet_balances,
 	}
 );
 
@@ -129,6 +130,7 @@ impl Config for Test {
 	type MinCurrencyDeposits = MinDeposits;
 	type Reward = Reward;
 	type NativeCurrencyId = NativeCurrencyId;
+	type BlacklistUpdateOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = ();
 }
 
@@ -144,9 +146,11 @@ impl orml_tokens::Config for Test {
 	type DustRemovalWhitelist = Nothing;
 	type OnNewTokenAccount = ();
 	type OnKilledTokenAccount = ();
+	type ReserveIdentifier = ();
+	type MaxReserves = ();
 }
 
-impl orml_currencies::Config for Test {
+impl pallet_currencies::Config for Test {
 	type Event = Event;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Test, Balances, Amount, u32>;

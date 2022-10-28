@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,8 @@ use frame_support::{
 	RuntimeDebug,
 };
 pub use pallet_transaction_payment::Multiplier;
+use polkadot_xcm::prelude::Here;
+use polkadot_xcm::v1::MultiLocation;
 pub use primitives::constants::{chain::*, currency::*, time::*};
 pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
@@ -71,6 +73,20 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+pub struct AssetLocation(pub MultiLocation);
+
+impl Default for AssetLocation {
+	fn default() -> Self {
+		AssetLocation(MultiLocation::here())
+	}
+}
+
+pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(MultiLocation {
+	parents: 1,
+	interior: Here,
+});
 
 // frame system
 parameter_types! {
@@ -146,12 +162,13 @@ parameter_types! {
 
 // pallet xyk
 parameter_types! {
-	pub ExchangeFee: (u32, u32) = (2, 1_000);
+	pub ExchangeFee: (u32, u32) = (3, 1_000);
 	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 	pub const RegistryStrLimit: u32 = 32;
+	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
 }
 
 // pallet duster
@@ -191,6 +208,8 @@ parameter_types! {
 	pub const DesiredMembers: u32 = 7;
 	pub const DesiredRunnersUp: u32 = 9;
 	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
+	pub const MaxElectionCandidates: u32 = 1_000;
+	pub const MaxElectionVoters: u32 = 10_000;
 }
 
 // pallet collective - council collective
@@ -251,6 +270,7 @@ parameter_types! {
 parameter_types! {
 	pub MinVestedTransfer: Balance = 100_000;
 	pub const MaxVestingSchedules: u32 = 15;
+	pub const VestingPalletId: PalletId = PalletId(*b"py/vstng");
 }
 
 // pallet liquidity mining
@@ -258,7 +278,7 @@ parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
 	pub const MinTotalFarmRewards: Balance = NATIVE_EXISTENTIAL_DEPOSIT * 1_000;
-	pub const NftClass: primitives::ClassId = 1;
+	pub const NftClass: primitives::CollectionId = 1;
 }
 
 // pallet identity

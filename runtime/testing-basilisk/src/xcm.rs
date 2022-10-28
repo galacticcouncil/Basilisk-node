@@ -5,6 +5,8 @@ use frame_support::{
 	traits::{Everything, Nothing},
 	PalletId,
 };
+use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
@@ -89,14 +91,33 @@ impl Config for XcmConfig {
 
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = XcmOriginToCallOrigin;
-	type IsReserve = MultiNativeAsset;
+	type IsReserve = MultiNativeAsset<AbsoluteReserveProvider>;
 
 	type IsTeleporter = (); // disabled
 	type LocationInverter = LocationInverter<Ancestry>;
 
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type Trader = TradePassthrough;
+	// We calculate weight fees the same way as for regular extrinsics and use the prices and choice
+	// of accepted currencies of the transaction payment pallet. Fees go to the same fee receiver as
+	// configured in `MultiTransactionPayment`.
+	type Trader = MultiCurrencyTrader<
+		AssetId,
+		Balance,
+		Price,
+		WeightToFee,
+		MultiTransactionPayment,
+		CurrencyIdConvert,
+		ToFeeReceiver<
+			AccountId,
+			AssetId,
+			Balance,
+			Price,
+			CurrencyIdConvert,
+			DepositAll<Runtime>,
+			MultiTransactionPayment,
+		>,
+	>;
 
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -115,14 +136,21 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
-	type ControllerOrigin = crate::EnsureMajorityCouncilOrRoot;
+	type ControllerOrigin = crate::MajorityCouncilOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
+	type WeightInfo = ();
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+}
+
+parameter_type_with_key! {
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		None
+	};
 }
 
 impl orml_xtokens::Config for Runtime {
@@ -137,6 +165,9 @@ impl orml_xtokens::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type MultiLocationsFilter = Everything;
+	type ReserveProvider = AbsoluteReserveProvider;
+	type MinXcmFee = ParachainMinFee;
 }
 
 impl orml_unknown_tokens::Config for Runtime {
@@ -145,7 +176,7 @@ impl orml_unknown_tokens::Config for Runtime {
 
 impl orml_xcm::Config for Runtime {
 	type Event = Event;
-	type SovereignOrigin = crate::EnsureMajorityCouncilOrRoot;
+	type SovereignOrigin = crate::MajorityCouncilOrRoot;
 }
 
 impl pallet_xcm::Config for Runtime {
@@ -167,6 +198,7 @@ impl pallet_xcm::Config for Runtime {
 
 pub struct CurrencyIdConvert;
 use primitives::constants::chain::CORE_ASSET_ID;
+use primitives::Price;
 
 impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
 	fn convert(id: AssetId) -> Option<MultiLocation> {
@@ -254,7 +286,7 @@ pub type LocationToAccountId = (
 
 parameter_types! {
 	// The account which receives multi-currency tokens from failed attempts to deposit them
-	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account();
+	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account_truncating();
 }
 
 pub type LocalAssetTransactor = MultiCurrencyAdapter<

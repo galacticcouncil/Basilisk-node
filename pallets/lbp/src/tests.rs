@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,14 +18,14 @@
 #![allow(clippy::bool_assert_comparison)]
 use super::*;
 use crate::mock::{
-	generate_trades, run_to_sale_end, run_to_sale_start, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
+	generate_trades, run_to_sale_end, run_to_sale_start, Call, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
 	INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
 };
 pub use crate::mock::{
 	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
 	HDX, KUSD,
 };
-use frame_support::{assert_err, assert_noop, assert_ok};
+use frame_support::{assert_err, assert_noop, assert_ok, dispatch::Dispatchable};
 use hydradx_traits::{AMMTransfer, LockedBalance};
 use sp_runtime::traits::BadOrigin;
 use sp_std::convert::TryInto;
@@ -148,18 +148,7 @@ pub fn predefined_test_ext_with_repay_target() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_events(n: usize) -> Vec<TestEvent> {
-	frame_system::Pallet::<Test>::events()
-		.into_iter()
-		.rev()
-		.take(n)
-		.rev()
-		.map(|e| e.event)
-		.collect()
-}
-
-fn expect_events(e: Vec<TestEvent>) {
-	assert_eq!(last_events(e.len()), e);
+pub fn expect_events(e: Vec<TestEvent>) {
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 
@@ -1895,21 +1884,19 @@ fn zero_weight_should_not_work() {
 			Error::<Test>::InvalidWeight
 		);
 
-		assert_noop!(
-			LBPPallet::update_pool_data(
-				Origin::signed(ALICE),
-				KUSD_BSX_POOL_ID,
-				None,
-				Some(15),
-				Some(18),
-				Some(0),
-				Some(80),
-				Some((5, 100)),
-				Some(BOB),
-				Some(0),
-			),
-			Error::<Test>::InvalidWeight
-		);
+		let call = Call::LBPPallet(crate::Call::<Test>::update_pool_data {
+			pool_id: KUSD_BSX_POOL_ID,
+			pool_owner: None,
+			start: Some(15),
+			end: Some(18),
+			initial_weight: Some(0),
+			final_weight: Some(80),
+			fee: Some((5, 100)),
+			fee_collector: Some(BOB),
+			repay_target: Some(0),
+		});
+
+		assert_noop!(call.dispatch(Origin::signed(ALICE)), Error::<Test>::InvalidWeight);
 	});
 }
 
@@ -2163,13 +2150,20 @@ fn sell_with_insufficient_balance_should_not_work() {
 		let asset_out = BSX;
 		let amount = 1_000_000_u128;
 
-		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_999_900_000));
-		assert_eq!(Currency::free_balance(asset_in, &who), 100_000);
+		Currency::set_balance(Origin::root(), who, asset_in, 100_000, 0).unwrap();
+		Currency::set_balance(Origin::root(), who, asset_out, 100_000, 0).unwrap();
 
 		//start sale
 		set_block_number::<Test>(11);
+
 		assert_noop!(
 			LBPPallet::sell(Origin::signed(who), asset_in, asset_out, amount, 800_000_u128),
+			Error::<Test>::InsufficientAssetBalance
+		);
+
+		// swap assets
+		assert_noop!(
+			LBPPallet::sell(Origin::signed(who), asset_out, asset_in, amount, 800_000_u128),
 			Error::<Test>::InsufficientAssetBalance
 		);
 	});
@@ -2183,13 +2177,20 @@ fn buy_with_insufficient_balance_should_not_work() {
 		let asset_out = BSX;
 		let amount = 1_000_000_u128;
 
-		assert_ok!(Currency::withdraw(asset_in, &who, 999_999_999_900_000));
-		assert_eq!(Currency::free_balance(asset_in, &who), 100_000);
+		Currency::set_balance(Origin::root(), who, asset_in, 100_000, 0).unwrap();
+		Currency::set_balance(Origin::root(), who, asset_out, 100_000, 0).unwrap();
 
 		//start sale
 		set_block_number::<Test>(11);
+
 		assert_noop!(
 			LBPPallet::buy(Origin::signed(who), asset_out, asset_in, amount, 2_000_000_u128),
+			Error::<Test>::InsufficientAssetBalance
+		);
+
+		// swap assets
+		assert_noop!(
+			LBPPallet::buy(Origin::signed(who), asset_in, asset_out, amount, 2_000_000_u128),
 			Error::<Test>::InsufficientAssetBalance
 		);
 	});
@@ -2366,6 +2367,59 @@ fn buy_should_work() {
 				buy_price: 10_000_000,
 				fee_asset: 0,
 				fee_amount: 3710,
+			}
+			.into(),
+		]);
+	});
+}
+
+#[test]
+fn buy_should_work_when_limit_is_set_above_account_balance() {
+	predefined_test_ext().execute_with(|| {
+		let buyer = BOB;
+		let asset_in = KUSD;
+		let asset_out = BSX;
+
+		//start sale
+		set_block_number::<Test>(11);
+
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(buyer),
+			asset_out,
+			asset_in,
+			10_000_000_u128,
+			u128::MAX,
+		));
+
+		// swap assets
+		set_block_number::<Test>(11);
+		assert_ok!(LBPPallet::buy(
+			Origin::signed(buyer),
+			asset_in,
+			asset_out,
+			10_000_000_u128,
+			u128::MAX,
+		));
+
+		expect_events(vec![
+			Event::BuyExecuted {
+				who: buyer,
+				asset_out: BSX,
+				asset_in: KUSD,
+				amount: 17_894_737,
+				buy_price: 10_000_000,
+				fee_asset: KUSD,
+				fee_amount: 35_860,
+			}
+			.into(),
+			Event::BuyExecuted {
+				who: buyer,
+				asset_out: KUSD,
+				asset_in: BSX,
+				amount: 5_560_301,
+				buy_price: 10_000_000,
+				fee_asset: KUSD,
+				fee_amount: 20_000,
 			}
 			.into(),
 		]);
@@ -3090,10 +3144,7 @@ fn validate_trade_should_not_work() {
 			Error::<Test>::ZeroAmount
 		);
 
-		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, BSX, 999997500000000));
-		assert_ok!(Currency::transfer(Origin::signed(ALICE), BOB, KUSD, 999998500000000));
-		assert_eq!(Currency::free_balance(BSX, &ALICE), 500000000);
-		assert_eq!(Currency::free_balance(KUSD, &ALICE), 500000000);
+		Currency::set_balance(Origin::root(), ALICE, KUSD, 10_000_000, 0).unwrap();
 		assert_err!(
 			LBPPallet::validate_buy(
 				&ALICE,
@@ -3101,12 +3152,14 @@ fn validate_trade_should_not_work() {
 					asset_in: KUSD,
 					asset_out: BSX
 				},
-				500_000_001u128,
-				3000000000_u128,
+				100_000_000u128,
+				3_000_000_000_u128,
 				false,
 			),
 			Error::<Test>::InsufficientAssetBalance
 		);
+		// set the balance back
+		Currency::set_balance(Origin::root(), ALICE, KUSD, INITIAL_BALANCE, 0).unwrap();
 
 		assert_noop!(
 			LBPPallet::validate_buy(
@@ -3231,12 +3284,10 @@ fn get_sorted_weight_should_work() {
 			(80_000_000, 20_000_000),
 		);
 
-		assert_eq!(
+		assert_err!(
 			LBPPallet::get_sorted_weight(KUSD, <Test as frame_system::Config>::BlockNumber::from(41u32), &pool)
-				.err()
-				.unwrap()
-				.as_u8(),
-			12_u8, // InvalidWeight
+				.map_err(Into::<DispatchError>::into),
+			Error::<Test>::InvalidWeight
 		);
 	});
 }

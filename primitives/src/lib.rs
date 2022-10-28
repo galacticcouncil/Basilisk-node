@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::upper_case_acronyms)]
 
-use codec::{Decode, Encode, MaxEncodedLen};
+use codec::{Decode, Encode};
 
 use primitive_types::U256;
 #[cfg(feature = "std")]
@@ -27,7 +27,6 @@ use serde::{Deserialize, Serialize};
 use scale_info::TypeInfo;
 
 use frame_support::sp_runtime::FixedU128;
-use sp_runtime::RuntimeDebug;
 
 pub mod asset;
 pub mod constants;
@@ -50,11 +49,11 @@ pub type Amount = i128;
 /// Price
 pub type Price = FixedU128;
 
-/// NFT Class ID
-pub type ClassId = u128;
+/// NFT Collection ID
+pub type CollectionId = u128;
 
-/// NFT Instance ID
-pub type InstanceId = u128;
+/// NFT Item ID
+pub type ItemId = u128;
 
 /// Scaled Unsigned of Balance
 pub type HighPrecisionBalance = U256;
@@ -74,7 +73,7 @@ impl Default for IntentionType {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Encode, Decode, Default, Clone, PartialEq, TypeInfo)]
+#[derive(Encode, Decode, Default, Clone, PartialEq, Eq, TypeInfo)]
 pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 	pub who: AccountId,
 	pub assets: asset::AssetPair,
@@ -84,73 +83,4 @@ pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
 	pub discount: bool,
 	pub sell_or_buy: IntentionType,
 	pub intention_id: IntentionID,
-}
-
-#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, PartialOrd, Ord, MaxEncodedLen, RuntimeDebug, TypeInfo)]
-#[repr(u8)]
-pub enum ReserveIdentifier {
-	Nft,
-	Marketplace,
-
-	// always the last, indicate number of variants
-	Count,
-}
-
-pub mod nft {
-	use super::*;
-
-	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo)]
-	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-	pub enum ClassType {
-		Marketplace = 0_isize,
-		LiquidityMining = 1_isize,
-		Redeemable = 2_isize,
-		Auction = 3_isize,
-		HydraHeads = 4_isize,
-	}
-
-	impl Default for ClassType {
-		fn default() -> Self {
-			ClassType::Marketplace
-		}
-	}
-
-	pub trait NftPermission<InnerClassType> {
-		fn can_create(class_type: &InnerClassType) -> bool;
-		fn can_mint(class_type: &InnerClassType) -> bool;
-		fn can_transfer(class_type: &InnerClassType) -> bool;
-		fn can_burn(class_type: &InnerClassType) -> bool;
-		fn can_destroy(class_type: &InnerClassType) -> bool;
-		fn has_deposit(class_type: &InnerClassType) -> bool;
-	}
-
-	#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
-	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-	pub struct NftPermissions;
-
-	impl NftPermission<ClassType> for NftPermissions {
-		fn can_create(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
-		}
-
-		fn can_mint(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
-		}
-
-		fn can_transfer(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace | ClassType::LiquidityMining)
-		}
-
-		fn can_burn(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
-		}
-
-		fn can_destroy(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
-		}
-
-		fn has_deposit(class_type: &ClassType) -> bool {
-			matches!(*class_type, ClassType::Marketplace)
-		}
-	}
 }

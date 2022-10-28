@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +17,13 @@
 
 #![allow(clippy::or_fun_call)]
 #![allow(clippy::too_many_arguments)]
+#![allow(clippy::derive_partial_eq_without_eq)] //Needed due to bug 'https://github.com/rust-lang/rust-clippy/issues/8867'
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig, SessionConfig,
-	Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig,
-	NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
+	Signature, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, NATIVE_EXISTENTIAL_DEPOSIT, UNITS,
+	WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -47,7 +48,7 @@ const TELEMETRY_URLS: [&str; 2] = [
 const PARA_ID: u32 = 2090;
 
 /// The extensions for the [`ChainSpec`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
 #[serde(deny_unknown_fields)]
 pub struct Extensions {
 	/// The relay chain of the Parachain.
@@ -120,8 +121,6 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 		move || {
 			parachain_genesis(
 				wasm_binary,
-				// Sudo account
-				hex!["bca8eeb9c7cf74fc28ebe4091d29ae1c12ed622f7e3656aae080b54d5ff9a23c"].into(), //TODO intergalactic
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -201,8 +200,6 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 		move || {
 			testnet_parachain_genesis(
 				wasm_binary,
-				// Sudo account
-				hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into(),
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -281,8 +278,6 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 		move || {
 			testnet_parachain_genesis(
 				wasm_binary,
-				// Sudo account
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -351,9 +346,6 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 		move || {
 			testnet_parachain_genesis(
 				wasm_binary,
-				// Sudo account
-				// 5DF1gbttx4k7NWsJUid7VjDEEcCeaTsYZFd6oATtbfNxEscd
-				hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(),
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -430,9 +422,6 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 		move || {
 			testnet_parachain_genesis(
 				wasm_binary,
-				// Sudo account
-				// 5CFyEPgUPtmUB24dZm31fzgMwWSZtbKL3CQLD4YNpmDDujhM
-				hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into(),
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -447,18 +436,16 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 					),
 				],
 				// Pre-funded accounts
-				vec![
-					hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into(), // sudo
-				],
+				vec![hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into()],
 				true,
 				PARA_ID.into(),
 				//technical committee
-				vec![hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into()], // same as sudo
+				vec![hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into()],
 				vec![],
 				vec![],
 				vec![],
 				vec![],
-				vec![hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into()], // same as sudo
+				vec![hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into()],
 			)
 		},
 		// Bootnodes
@@ -509,8 +496,6 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 		move || {
 			testnet_parachain_genesis(
 				wasm_binary,
-				// Sudo account
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -580,8 +565,6 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 		move || {
 			testnet_parachain_genesis(
 				wasm_binary,
-				// Sudo account
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -645,7 +628,6 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 /// Configure initial storage state for FRAME modules.
 fn parachain_genesis(
 	wasm_binary: &[u8],
-	root_key: AccountId,
 	initial_authorities: Vec<(AccountId, AuraId)>,
 	_endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
@@ -670,10 +652,6 @@ fn parachain_genesis(
 					9_000_000_000 * UNITS,
 				),
 			],
-		},
-		sudo: SudoConfig {
-			// Assign network admin rights.
-			key: Some(root_key),
 		},
 		collator_selection: CollatorSelectionConfig {
 			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),
@@ -746,7 +724,6 @@ fn parachain_genesis(
 
 fn testnet_parachain_genesis(
 	wasm_binary: &[u8],
-	root_key: AccountId,
 	initial_authorities: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
@@ -770,10 +747,6 @@ fn testnet_parachain_genesis(
 				.cloned()
 				.map(|k| (k, 1_000_000_000u128 * UNITS))
 				.collect(),
-		},
-		sudo: SudoConfig {
-			// Assign network admin rights.
-			key: Some(root_key),
 		},
 		collator_selection: CollatorSelectionConfig {
 			invulnerables: initial_authorities.iter().cloned().map(|(acc, _)| acc).collect(),

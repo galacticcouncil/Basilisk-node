@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,6 +84,9 @@ pub mod chain {
 
 	/// We allow for
 	pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+
+	/// Discounted XYK fee
+	pub const DISCOUNTED_FEE: (u32, u32) = (7, 10_000); // 0.07%
 }
 
 #[cfg(test)]

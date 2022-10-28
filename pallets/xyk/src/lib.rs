@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,14 +40,12 @@ use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::Amount;
 
 #[cfg(test)]
-mod mock;
-
-#[cfg(test)]
 mod tests;
 
 mod benchmarking;
 
 mod impls;
+mod trade_execution;
 pub mod weights;
 
 pub use impls::XYKSpotPrice;
@@ -62,6 +60,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
+	use hydradx_traits::pools::DustRemovalAccountWhitelist;
 	use hydradx_traits::ShareTokenRegistry;
 
 	#[pallet::pallet]
@@ -115,6 +114,12 @@ pub mod pallet {
 
 		/// AMM handlers
 		type AMMHandler: OnCreatePoolHandler<AssetId> + OnTradeHandler<AssetId, Balance>;
+
+		/// Discounted fee
+		type DiscountedFee: Get<(u32, u32)>;
+
+		/// Account whitelist manager to exclude pool accounts from dusting mechanism.
+		type NonDustableWhitelistHandler: DustRemovalAccountWhitelist<Self::AccountId, Error = DispatchError>;
 	}
 
 	#[pallet::error]
@@ -283,7 +288,6 @@ pub mod pallet {
 		///
 		/// Emits `PoolCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
-		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
@@ -342,7 +346,9 @@ pub mod pallet {
 				T::MinPoolLiquidity::get(),
 			)?;
 
-			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
+			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out);
+
+			T::NonDustableWhitelistHandler::add_account(&pair_account)?;
 
 			<ShareToken<T>>::insert(&pair_account, &share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
@@ -372,7 +378,6 @@ pub mod pallet {
 		///
 		/// Emits `LiquidityAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
-		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
@@ -401,11 +406,6 @@ pub mod pallet {
 				Error::<T>::InsufficientAssetBalance
 			);
 
-			ensure!(
-				T::Currency::free_balance(asset_b, &who) >= amount_b_max_limit,
-				Error::<T>::InsufficientAssetBalance
-			);
-
 			let pair_account = Self::get_pair_id(asset_pair);
 
 			let share_token = Self::share_token(&pair_account);
@@ -414,18 +414,20 @@ pub mod pallet {
 
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
-			let total_liquidity = Self::total_liquidity(&pair_account);
+			let share_issuance = Self::total_liquidity(&pair_account);
 
-			let amount_b_required =
-				hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
-					.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
-
-			let shares_added = if asset_a < asset_b { amount_a } else { amount_b_required };
+			let amount_b = hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
+				.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
 
 			ensure!(
-				amount_b_required <= amount_b_max_limit,
-				Error::<T>::AssetAmountExceededLimit
+				T::Currency::free_balance(asset_b, &who) >= amount_b,
+				Error::<T>::InsufficientAssetBalance
 			);
+
+			ensure!(amount_b <= amount_b_max_limit, Error::<T>::AssetAmountExceededLimit);
+
+			let shares_added = hydra_dx_math::xyk::calculate_shares(asset_a_reserve, amount_a, share_issuance)
+				.ok_or(Error::<T>::Overflow)?;
 
 			ensure!(!shares_added.is_zero(), Error::<T>::InvalidMintedLiquidity);
 
@@ -438,12 +440,12 @@ pub mod pallet {
 				Error::<T>::InsufficientLiquidity
 			);
 
-			let liquidity_amount = total_liquidity
+			let liquidity_amount = share_issuance
 				.checked_add(shares_added)
 				.ok_or(Error::<T>::InvalidLiquidityAmount)?;
 
 			T::Currency::transfer(asset_a, &who, &pair_account, amount_a)?;
-			T::Currency::transfer(asset_b, &who, &pair_account, amount_b_required)?;
+			T::Currency::transfer(asset_b, &who, &pair_account, amount_b)?;
 
 			T::Currency::deposit(share_token, &who, shares_added)?;
 
@@ -454,7 +456,7 @@ pub mod pallet {
 				asset_a,
 				asset_b,
 				amount_a,
-				amount_b: amount_b_required,
+				amount_b,
 			});
 
 			Ok(())
@@ -467,7 +469,6 @@ pub mod pallet {
 		/// Emits 'LiquidityRemoved' when successful.
 		/// Emits 'PoolDestroyed' when pool is destroyed.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
-		#[transactional]
 		pub fn remove_liquidity(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
@@ -549,6 +550,17 @@ pub mod pallet {
 				<PoolAssets<T>>::remove(&pair_account);
 				<TotalLiquidity<T>>::remove(&pair_account);
 
+				// Ignore the failure, this cant stop liquidity removal
+				let r = T::NonDustableWhitelistHandler::remove_account(&pair_account);
+
+				if r.is_err() {
+					log::trace!(
+					target: "xyk::remova_liquidity", "XYK: Failed to remove account {:?} from dust-removal whitelist. Reason {:?}",
+						pair_account,
+					r
+					);
+				}
+
 				Self::deposit_event(Event::PoolDestroyed {
 					who,
 					asset_a,
@@ -625,7 +637,7 @@ impl<T: Config> Pallet<T> {
 	/// Calculate discounted trade fee
 	fn calculate_discounted_fee(amount: Balance) -> Result<Balance, DispatchError> {
 		Ok(
-			hydra_dx_math::fee::calculate_pool_trade_fee(amount, (7, 10_000)) // 0.07%
+			hydra_dx_math::fee::calculate_pool_trade_fee(amount, T::DiscountedFee::get())
 				.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?,
 		)
 	}

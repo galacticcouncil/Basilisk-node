@@ -1,4 +1,5 @@
 #![cfg(test)]
+
 use crate::kusama_test_net::*;
 
 use frame_support::{
@@ -6,13 +7,14 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 
-use pallet_price_oracle::{BucketQueueT, PriceInfo};
 use pallet_transaction_multi_payment::Price;
+
+use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, Origin, Tokens};
 
 use hydradx_traits::{pools::SpotPriceProvider, AMM};
 use orml_traits::currency::MultiCurrency;
 use pallet_xyk::XYKSpotPrice;
-use polkadot_primitives::v1::BlockNumber;
+use polkadot_primitives::v2::BlockNumber;
 use primitives::asset::AssetPair;
 use xcm_emulator::TestExt;
 
@@ -21,11 +23,9 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 		let b = basilisk_runtime::System::block_number();
 
 		basilisk_runtime::System::on_finalize(b);
-		basilisk_runtime::PriceOracle::on_finalize(b);
 		basilisk_runtime::MultiTransactionPayment::on_finalize(b);
 
 		basilisk_runtime::System::on_initialize(b + 1);
-		basilisk_runtime::PriceOracle::on_finalize(b);
 		basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
 
 		basilisk_runtime::System::set_block_number(b + 1);
@@ -33,7 +33,7 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 }
 
 #[test]
-fn non_native_fee_payment_works() {
+fn non_native_fee_payment_works_with_xyk_spot_price() {
 	use pallet_transaction_multi_payment::TransactionMultiPaymentDataProvider;
 
 	TestNet::reset();
@@ -50,8 +50,7 @@ fn non_native_fee_payment_works() {
 
 		let bob_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB));
 
-		// 462_676_500_000 (~0.46 UNITS) spent on fee
-		assert_eq!(bob_balance, 999_537_323_500_000);
+		assert_eq!(bob_balance, 999_999_974_195_044);
 
 		let pair_account = basilisk_runtime::XYK::get_pair_id(AssetPair {
 			asset_in: currency_0,
@@ -61,7 +60,7 @@ fn non_native_fee_payment_works() {
 		assert_ok!(basilisk_runtime::Balances::set_balance(
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
-			2_000_000_000_000 * BSX,
+			2_000_000_000_000 * UNITS,
 			0,
 		));
 
@@ -69,7 +68,7 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::root(),
 			ALICE.into(),
 			1,
-			2_000_000_000_000 * BSX,
+			2_000_000_000_000 * UNITS,
 			0,
 		));
 
@@ -77,7 +76,7 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			currency_0, // 1000 BSX
 			currency_1, // 500 KSM (500_000_033_400_002)
-			1_000 * BSX,
+			1_000 * UNITS,
 			Price::from_float(0.5),
 		));
 
@@ -90,8 +89,8 @@ fn non_native_fee_payment_works() {
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
 			1,
-			66 * BSX,
-			1_000 * BSX,
+			66 * UNITS,
+			1_000 * UNITS,
 			false,
 		));
 
@@ -109,15 +108,14 @@ fn non_native_fee_payment_works() {
 		));
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(DAVE));
-		let expected_diff = 197_453_601_724;
-		assert_eq!(dave_balance, bob_balance + expected_diff);
+		assert_eq!(dave_balance, 968_046_450_495_217);
 
 		expect_basilisk_events(vec![
 			pallet_transaction_multi_payment::Event::FeeWithdrawn {
 				account_id: DAVE.into(),
 				asset_id: 1,
-				native_fee_amount: 462_676_500_000,
-				non_native_fee_amount: 265_222_898_276,
+				native_fee_amount: 55_738_705_000_000,
+				non_native_fee_amount: 31_953_549_504_783,
 				destination_account_id: basilisk_runtime::MultiTransactionPayment::get_fee_receiver(),
 			}
 			.into(),
@@ -129,33 +127,16 @@ fn non_native_fee_payment_works() {
 		]);
 
 		basilisk_run_to_block(11);
-
-		let pair_name = basilisk_runtime::PriceOracle::get_name(currency_0, currency_1);
-		let data_ten = basilisk_runtime::PriceOracle::price_data_ten()
-			.iter()
-			.find(|&x| x.0 == pair_name)
-			.unwrap()
-			.1;
-
-		assert_eq!(
-			data_ten.get_last(),
-			PriceInfo {
-				avg_price: Price::from_inner(535331905781590000),
-				volume: 35_331_905_781_585
-			}
-		);
 	});
 }
+
+const HITCHHIKER: [u8; 32] = [42u8; 32];
 
 #[test]
 fn fee_currency_on_account_lifecycle() {
 	TestNet::reset();
 
-	const HITCHHIKER: [u8; 32] = [42u8; 32];
-
 	Basilisk::execute_with(|| {
-		use basilisk_runtime::{Currencies, MultiTransactionPayment, Origin, Tokens};
-
 		assert_eq!(
 			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
 			None
@@ -182,6 +163,83 @@ fn fee_currency_on_account_lifecycle() {
 		assert_ok!(Tokens::transfer_all(
 			Origin::signed(HITCHHIKER.into()),
 			BOB.into(),
+			1,
+			false,
+		));
+
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
+		);
+	});
+}
+
+#[test]
+fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
+	TestNet::reset();
+	Basilisk::execute_with(|| {
+		assert_ok!(Balances::set_balance(Origin::root(), HITCHHIKER.into(), UNITS, 0,));
+
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			1,
+			50_000_000_000_000,
+		));
+
+		assert_eq!(Balances::free_balance(&AccountId::from(HITCHHIKER)), UNITS);
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			None
+		);
+	});
+}
+
+#[test]
+fn fee_currency_should_not_change_when_account_holds_other_token_already() {
+	TestNet::reset();
+	Basilisk::execute_with(|| {
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			1,
+			50_000_000_000_000,
+		));
+
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			2,
+			50_000_000_000,
+		));
+
+		assert_eq!(
+			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			Some(1)
+		);
+	});
+}
+
+#[test]
+fn fee_currency_should_reset_to_default_when_account_spends_tokens() {
+	TestNet::reset();
+	Basilisk::execute_with(|| {
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			1,
+			50_000_000_000_000,
+		));
+
+		assert_ok!(Currencies::transfer(
+			Origin::signed(ALICE.into()),
+			HITCHHIKER.into(),
+			2,
+			50_000_000_000,
+		));
+		assert_ok!(Tokens::transfer_all(
+			Origin::signed(HITCHHIKER.into()),
+			ALICE.into(),
 			1,
 			false,
 		));
