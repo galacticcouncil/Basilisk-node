@@ -5,7 +5,7 @@ use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
 
 use primitives::asset::AssetPair;
-use primitives::{Balance, Price};
+use primitives::Balance;
 
 #[test]
 fn add_liquidity_should_work() {
@@ -17,9 +17,9 @@ fn add_liquidity_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
-			asset_b,
 			100_000_000,
-			Price::from_float(0.654)
+			asset_b,
+			65_400_000
 		));
 		let pair_account = XYK::get_pair_id(AssetPair {
 			asset_in: asset_a,
@@ -77,9 +77,9 @@ fn add_liquidity_mints_correct_shares() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
-			asset_b,
 			100_000_000,
-			Price::from_float(0.654)
+			asset_b,
+			65_400_000
 		));
 
 		assert_ok!(XYK::add_liquidity(
@@ -109,9 +109,9 @@ fn add_liquidity_as_another_user_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_b,
-			asset_a,
 			100_000_000,
-			Price::from(10_000)
+			asset_a,
+			1_000_000_000_000
 		));
 		assert_ok!(XYK::add_liquidity(
 			Origin::signed(user),
@@ -196,9 +196,9 @@ fn add_liquidity_should_work_when_limit_is_set_above_account_balance() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
+			100_000_000,
 			asset_b,
 			100_000_000,
-			Price::from_float(1.0)
 		));
 
 		assert!(Currency::free_balance(asset_b, &user) < amount_b_max_limit);
@@ -223,9 +223,9 @@ fn remove_liquidity_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
-			asset_b,
 			100_000_000,
-			Price::from(10_000)
+			asset_b,
+			1_000_000_000_000
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -278,9 +278,9 @@ fn remove_liquidity_without_shares_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
+			100_000_000,
 			asset_b,
 			100_000_000,
-			Price::from(1)
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -335,9 +335,9 @@ fn remove_liquidity_from_reduced_pool_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
+			100_000_000,
 			asset_b,
 			100_000_000,
-			Price::from(1)
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -425,9 +425,9 @@ fn add_liquidity_more_than_owner_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			HDX,
-			ACA,
 			200_000_000,
-			Price::from(3_000_000)
+			ACA,
+			600_000_000_000_000,
 		));
 
 		assert_eq!(Currency::free_balance(ACA, &ALICE), 400_000_000_000_000);
@@ -447,13 +447,7 @@ fn add_liquidity_more_than_owner_should_not_work() {
 #[test]
 fn add_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
-			HDX,
-			ACA,
-			1000,
-			Price::from_float(1.5)
-		));
+		assert_ok!(XYK::create_pool(Origin::signed(ALICE), HDX, 1000, ACA, 1500,));
 
 		assert_noop!(
 			XYK::add_liquidity(Origin::signed(ALICE), HDX, ACA, 0, 0),
@@ -478,9 +472,9 @@ fn add_liquidity_exceeding_max_limit_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			HDX,
+			100_000_000_000_000,
 			ACA,
 			100_000_000_000_000,
-			Price::from(1)
 		));
 
 		assert_noop!(
@@ -492,13 +486,7 @@ fn add_liquidity_exceeding_max_limit_should_not_work() {
 #[test]
 fn remove_liquidity_should_respect_min_pool_limit() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
-			HDX,
-			ACA,
-			1000,
-			Price::from_float(1.5)
-		));
+		assert_ok!(XYK::create_pool(Origin::signed(ALICE), HDX, 1000, ACA, 1500,));
 
 		assert_ok!(XYK::add_liquidity(Origin::signed(BOB), ACA, HDX, 2000, 2000));
 
@@ -551,9 +539,9 @@ fn add_liquidity_overflow_work() {
 			assert_ok!(XYK::create_pool(
 				Origin::signed(user),
 				asset_a,
-				asset_b,
 				100_000,
-				Price::from_inner(10_u128.pow(33))
+				asset_b,
+				10_u128.pow(38)
 			));
 
 			assert_noop!(
@@ -581,9 +569,9 @@ fn share_ratio_calculations_are_correct() {
 			assert_ok!(XYK::create_pool(
 				Origin::signed(ALICE),
 				asset_a,
-				asset_b,
 				100 * ONE,
-				Price::from_float(0.6544)
+				asset_b,
+				65_440_000_000_000,
 			));
 
 			assert_eq!(Currency::free_balance(asset_a, &BOB), 1_000 * ONE);
