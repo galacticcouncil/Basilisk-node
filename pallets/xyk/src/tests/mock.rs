@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,10 +62,10 @@ frame_support::construct_runtime!(
 	 NodeBlock = Block,
 	 UncheckedExtrinsic = UncheckedExtrinsic,
 	 {
-		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		 XYK: xyk::{Pallet, Call, Storage, Event<T>},
-		 Currency: orml_tokens::{Pallet, Event<T>},
-		 AssetRegistry: pallet_asset_registry::{Pallet, Storage, Event<T>},
+		 System: frame_system,
+		 XYK: xyk,
+		 Currency: orml_tokens,
+		 AssetRegistry: pallet_asset_registry,
 	 }
 
 );
@@ -152,6 +152,8 @@ impl orml_tokens::Config for Test {
 	type DustRemovalWhitelist = Nothing;
 	type OnNewTokenAccount = ();
 	type OnKilledTokenAccount = ();
+	type ReserveIdentifier = ();
+	type MaxReserves = ();
 }
 
 pub struct AssetPairAccountIdTest();

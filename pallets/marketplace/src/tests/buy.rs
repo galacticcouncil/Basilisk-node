@@ -11,7 +11,7 @@ fn buy_should_work_when_there_is_no_royalty() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (CHARLIE, 150_000 * UNITS)])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			let price = 100 * UNITS;
@@ -19,16 +19,16 @@ fn buy_should_work_when_there_is_no_royalty() {
 			// make an offer to verify that it is ignored
 			assert_ok!(Market::make_offer(
 				Origin::signed(CHARLIE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				50 * UNITS,
 				2
 			));
 
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some(100 * UNITS)
 			));
 
@@ -36,25 +36,26 @@ fn buy_should_work_when_there_is_no_royalty() {
 			let charlie_initial_balance = Balances::free_balance(&CHARLIE);
 
 			//Act
-			assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,));
+			assert_ok!(Market::buy(Origin::signed(CHARLIE), COLLECTION_ID_0, ITEM_ID_0,));
 
 			//Assert
 			assert_that_nft_ownership_is_transferred_to(CHARLIE);
 
 			// existing orders are not removed from the storage
-			assert!(Market::offers((CLASS_ID_0, INSTANCE_ID_0), CHARLIE).is_some());
+			assert!(Market::offers((COLLECTION_ID_0, ITEM_ID_0), CHARLIE).is_some());
 
-			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
+			assert_eq!(Market::prices(COLLECTION_ID_0, ITEM_ID_0), None);
 
 			assert_eq!(
 				last_event(),
-				Event::Marketplace(crate::Event::TokenSold {
+				Event::TokenSold {
 					owner: ALICE,
 					buyer: CHARLIE,
-					class: CLASS_ID_0,
-					instance: INSTANCE_ID_0,
+					collection: COLLECTION_ID_0,
+					item: ITEM_ID_0,
 					price,
-				})
+				}
+				.into()
 			);
 
 			assert_eq!(Balances::free_balance(&ALICE), alice_initial_balance + price);
@@ -72,8 +73,8 @@ fn buy_should_fail_when_nft_does_not_exist() {
 		.execute_with(|| {
 			//Act and assert
 			assert_noop!(
-				Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0),
-				Error::<Test>::ClassOrInstanceUnknown
+				Market::buy(Origin::signed(BOB), COLLECTION_ID_0, ITEM_ID_0),
+				Error::<Test>::CollectionOrItemUnknown
 			);
 		});
 }
@@ -88,12 +89,12 @@ fn buy_should_fail_when_price_is_not_set_for_nft() {
 			(CHARLIE, 150_000 * UNITS),
 			(DAVE, 200_000 * UNITS),
 		])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			//Act and assert
 			assert_noop!(
-				Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0),
+				Market::buy(Origin::signed(CHARLIE), COLLECTION_ID_0, ITEM_ID_0),
 				Error::<Test>::NotForSale
 			);
 		});
@@ -105,19 +106,19 @@ fn buy_should_fail_when_buyer_has_insufficient_balance() {
 	let buyer_balance = 99;
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS), (CHARLIE, buyer_balance * UNITS)])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some((buyer_balance + 1) * UNITS)
 			));
 
 			//Act and assert
 			assert_noop!(
-				Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0),
+				Market::buy(Origin::signed(CHARLIE), COLLECTION_ID_0, ITEM_ID_0),
 				pallet_balances::Error::<Test, _>::InsufficientBalance
 			);
 		});
@@ -128,19 +129,19 @@ fn buy_should_fail_when_buyer_is_the_owner() {
 	//Arrange
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(ALICE, 200_000 * UNITS)])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some(100 * UNITS)
 			));
 
 			//Act and assert
 			assert_noop!(
-				Market::buy(Origin::signed(ALICE), CLASS_ID_0, INSTANCE_ID_0),
+				Market::buy(Origin::signed(ALICE), COLLECTION_ID_0, ITEM_ID_0),
 				Error::<Test>::BuyFromSelf
 			);
 		});
@@ -156,29 +157,29 @@ fn buy_should_work_when_the_royalty_is_the_minimum() {
 			(CHARLIE, 150_000 * UNITS),
 			(DAVE, 200_000 * UNITS),
 		])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			let min_royalty = 1; // 0.01%
 			assert_ok!(Market::add_royalty(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				BOB,
 				min_royalty,
 			));
 
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some(100 * UNITS)
 			));
 
 			let alice_initial_balance = Balances::free_balance(&ALICE);
 
 			//Act
-			assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,));
+			assert_ok!(Market::buy(Origin::signed(CHARLIE), COLLECTION_ID_0, ITEM_ID_0,));
 
 			//Assert
 			assert_eq!(
@@ -198,22 +199,22 @@ fn buy_should_work_when_there_is_royalty_bigger_than_minimum() {
 			(CHARLIE, 150_000 * UNITS),
 			(DAVE, 200_000 * UNITS),
 		])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			let price = 100 * UNITS;
 			assert_ok!(Market::add_royalty(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				BOB,
 				2_000,
 			));
 
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some(100 * UNITS)
 			));
 
@@ -222,26 +223,26 @@ fn buy_should_work_when_there_is_royalty_bigger_than_minimum() {
 			let charlie_initial_balance = Balances::free_balance(&CHARLIE);
 
 			//Act
-			assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_0, INSTANCE_ID_0,));
+			assert_ok!(Market::buy(Origin::signed(CHARLIE), COLLECTION_ID_0, ITEM_ID_0,));
 
 			//Assert
 			assert_that_nft_ownership_is_transferred_to(CHARLIE);
 
-			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
+			assert_eq!(Market::prices(COLLECTION_ID_0, ITEM_ID_0), None);
 			expect_events(vec![
-				crate::Event::RoyaltyPaid {
-					class: CLASS_ID_0,
-					instance: INSTANCE_ID_0,
+				Event::RoyaltyPaid {
+					collection: COLLECTION_ID_0,
+					item: ITEM_ID_0,
 					author: BOB,
 					royalty: 2_000,
 					royalty_amount: 20 * UNITS,
 				}
 				.into(),
-				crate::Event::TokenSold {
+				Event::TokenSold {
 					owner: ALICE,
 					buyer: CHARLIE,
-					class: CLASS_ID_0,
-					instance: INSTANCE_ID_0,
+					collection: COLLECTION_ID_0,
+					item: ITEM_ID_0,
 					price: 80 * UNITS,
 				}
 				.into(),
@@ -261,25 +262,25 @@ fn buy_should_work_when_there_is_no_offer_present() {
 			(BOB, 15_000 * UNITS),
 			(CHARLIE, 150_000 * UNITS),
 		])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::add_royalty(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				CHARLIE,
 				2_000,
 			));
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some(100 * UNITS)
 			));
 
 			//Act
-			assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+			assert_ok!(Market::buy(Origin::signed(BOB), COLLECTION_ID_0, ITEM_ID_0));
 
 			//Assert
 			assert_that_nft_ownership_is_transferred_to(BOB);
@@ -288,10 +289,10 @@ fn buy_should_work_when_there_is_no_offer_present() {
 			assert_eq!(Balances::total_balance(&BOB), 14_900 * UNITS);
 			assert_eq!(Balances::total_balance(&CHARLIE), 150_020 * UNITS);
 
-			// Reserved: 10_000 class, 100 instance, 200 royalty
+			// Reserved: 10_000 collection, 100 item, 200 royalty
 			assert_eq!(Balances::reserved_balance(&ALICE), 10_300 * UNITS);
 			assert_eq!(Balances::reserved_balance(&BOB), 0);
-			assert_ok!(NFT::burn(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+			assert_ok!(NFT::burn(Origin::signed(BOB), COLLECTION_ID_0, ITEM_ID_0));
 			assert_eq!(Balances::reserved_balance(&ALICE), 10_200 * UNITS);
 			assert_eq!(Balances::reserved_balance(&BOB), 0);
 		});
@@ -307,37 +308,37 @@ fn buy_should_work_when_nfts_are_traded_between_multiple_accounts() {
 			(CHARLIE, 150_000 * UNITS),
 			(DAVE, 200_000 * UNITS),
 		])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
-		.with_minted_nft((BOB, CLASS_ID_1, INSTANCE_ID_1))
-		.with_minted_nft((CHARLIE, CLASS_ID_2, INSTANCE_ID_1))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
+		.with_minted_nft((BOB, COLLECTION_ID_1, ITEM_ID_1))
+		.with_minted_nft((CHARLIE, COLLECTION_ID_2, ITEM_ID_1))
 		.build()
 		.execute_with(|| {
 			//Act and assert
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some(100)
 			));
-			assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+			assert_ok!(Market::buy(Origin::signed(BOB), COLLECTION_ID_0, ITEM_ID_0));
 
 			//Act and assert
 			assert_ok!(Market::set_price(
 				Origin::signed(BOB),
-				CLASS_ID_1,
-				INSTANCE_ID_1,
+				COLLECTION_ID_1,
+				ITEM_ID_1,
 				Some(200)
 			));
-			assert_ok!(Market::buy(Origin::signed(CHARLIE), CLASS_ID_1, INSTANCE_ID_1));
+			assert_ok!(Market::buy(Origin::signed(CHARLIE), COLLECTION_ID_1, ITEM_ID_1));
 
 			//Act and assert
 			assert_ok!(Market::set_price(
 				Origin::signed(CHARLIE),
-				CLASS_ID_1,
-				INSTANCE_ID_1,
+				COLLECTION_ID_1,
+				ITEM_ID_1,
 				Some(300)
 			));
-			assert_ok!(Market::buy(Origin::signed(DAVE), CLASS_ID_1, INSTANCE_ID_1));
+			assert_ok!(Market::buy(Origin::signed(DAVE), COLLECTION_ID_1, ITEM_ID_1));
 		});
 }
 
@@ -350,27 +351,27 @@ fn buy_should_set_price_to_none_when_successfully_executed() {
 			(BOB, 15_000 * UNITS),
 			(CHARLIE, 150_000 * UNITS),
 		])
-		.with_minted_nft((ALICE, CLASS_ID_0, INSTANCE_ID_0))
+		.with_minted_nft((ALICE, COLLECTION_ID_0, ITEM_ID_0))
 		.build()
 		.execute_with(|| {
 			assert_ok!(Market::set_price(
 				Origin::signed(ALICE),
-				CLASS_ID_0,
-				INSTANCE_ID_0,
+				COLLECTION_ID_0,
+				ITEM_ID_0,
 				Some(100 * UNITS)
 			));
 
 			// Act
-			assert_ok!(Market::buy(Origin::signed(BOB), CLASS_ID_0, INSTANCE_ID_0));
+			assert_ok!(Market::buy(Origin::signed(BOB), COLLECTION_ID_0, ITEM_ID_0));
 
 			// Assert
-			assert_eq!(Market::prices(CLASS_ID_0, INSTANCE_ID_0), None);
+			assert_eq!(Market::prices(COLLECTION_ID_0, ITEM_ID_0), None);
 		});
 }
 
 fn assert_that_nft_ownership_is_transferred_to(new_owner: AccountId) {
 	assert_eq!(
-		pallet_uniques::Pallet::<Test>::owner(CLASS_ID_0, INSTANCE_ID_0),
+		pallet_uniques::Pallet::<Test>::owner(COLLECTION_ID_0, ITEM_ID_0),
 		Some(new_owner)
 	);
 }
