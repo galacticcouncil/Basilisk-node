@@ -120,13 +120,13 @@ jobs:
       - name: Upload wasm binary
         uses: actions/upload-artifact@v2
         with:
-          name: para-2090-wasm
+          name: devnet-para-2090-wasm
           path: ./para-2090-wasm
       
       - name: Upload genesis binary
         uses: actions/upload-artifact@v2
         with:
-          name: para-2090-genesis
+          name: devnet-para-2090-genesis
           path: ./para-2090-genesis
 
       - name: Upload config file
