@@ -889,9 +889,9 @@ fn single_buy_more_than_ratio_in_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			100_000_000_000,
-			Price::from(1)
+			asset_b,
+			100_000_000_000
 		));
 
 		assert_noop!(
@@ -960,9 +960,9 @@ fn single_sell_more_than_ratio_out_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			100_000_000_000,
-			Price::from(1)
+			asset_b,
+			100_000_000_000
 		));
 
 		assert_noop!(
