@@ -493,16 +493,16 @@ fn single_buy_should_work() {
 			Origin::signed(user_1),
 			asset_a,
 			asset_b,
-			66_666_666,
+			6_666_666,
 			1_000_000_000_000,
 			false,
 		));
 
-		assert_eq!(Currency::free_balance(asset_a, &user_1), 999_999_866_666_666);
-		assert_eq!(Currency::free_balance(asset_b, &user_1), 999_039_360_004_809);
+		assert_eq!(Currency::free_balance(asset_a, &user_1), 999_999_806_666_666);
+		assert_eq!(Currency::free_balance(asset_b, &user_1), 999_337_886_898_839);
 		assert_eq!(Currency::free_balance(share_token, &user_1), 640_000_000_000);
-		assert_eq!(Currency::free_balance(asset_a, &pair_account), 133_333_334);
-		assert_eq!(Currency::free_balance(asset_b, &pair_account), 960_639_995_191);
+		assert_eq!(Currency::free_balance(asset_a, &pair_account), 193_333_334);
+		assert_eq!(Currency::free_balance(asset_b, &pair_account), 662_113_101_161);
 
 		expect_events(vec![
 			Event::PoolCreated {
@@ -518,10 +518,10 @@ fn single_buy_should_work() {
 				who: user_1,
 				asset_out: asset_a,
 				asset_in: asset_b,
-				amount: 66_666_666,
-				buy_price: 319_999_995_201,
+				amount: 6_666_666,
+				buy_price: 22_068_963_235,
 				fee_asset: asset_b,
-				fee_amount: 639_999_990,
+				fee_amount: 44_137_926,
 				pool: pair_account,
 			}
 			.into(),
@@ -880,6 +880,35 @@ fn single_buy_more_than_ratio_out_should_not_work() {
 }
 
 #[test]
+fn single_buy_more_than_ratio_in_should_not_work() {
+	new_test_ext().execute_with(|| {
+		let user_1 = ALICE;
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(user_1),
+			asset_a,
+			asset_b,
+			100_000_000_000,
+			Price::from(1)
+		));
+
+		assert_noop!(
+			XYK::buy(
+				Origin::signed(user_1),
+				asset_a,
+				asset_b,
+				33_333_333_333,
+				1_000_000_000_000,
+				false,
+			),
+			Error::<Test>::MaxInRatioExceeded
+		);
+	});
+}
+
+#[test]
 fn single_sell_more_than_ratio_in_should_not_work() {
 	new_test_ext().execute_with(|| {
 		let user_1 = ALICE;
@@ -917,6 +946,35 @@ fn single_sell_more_than_ratio_in_should_not_work() {
 				false,
 			),
 			Error::<Test>::MaxInRatioExceeded
+		);
+	});
+}
+
+#[test]
+fn single_sell_more_than_ratio_out_should_not_work() {
+	ExtBuilder::default().with_max_out_ratio(5).build().execute_with(|| {
+		let user_1 = ALICE;
+		let asset_a = ACA;
+		let asset_b = DOT;
+
+		assert_ok!(XYK::create_pool(
+			Origin::signed(user_1),
+			asset_a,
+			asset_b,
+			100_000_000_000,
+			Price::from(1)
+		));
+
+		assert_noop!(
+			XYK::sell(
+				Origin::signed(user_1),
+				asset_a,
+				asset_b,
+				33_333_333_333,
+				10_000_000,
+				false,
+			),
+			Error::<Test>::MaxOutRatioExceeded
 		);
 	});
 }

@@ -30,7 +30,7 @@ use sp_runtime::{
 use frame_support::traits::{Everything, GenesisBuild, Get, Nothing};
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool};
 use primitives::{
-	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	constants::chain::{MAX_IN_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	AssetId, Balance,
 };
 
@@ -73,6 +73,7 @@ frame_support::construct_runtime!(
 thread_local! {
 		static EXCHANGE_FEE: RefCell<(u32, u32)> = RefCell::new((2, 1_000));
 		static DISCOUNTED_FEE: RefCell<(u32, u32)> = RefCell::new(primitives::constants::chain::DISCOUNTED_FEE);
+		static MAX_OUT_RATIO: RefCell<u128> = RefCell::new(primitives::constants::chain::MAX_OUT_RATIO);
 }
 
 struct ExchangeFee;
@@ -86,6 +87,13 @@ struct DiscountedFee;
 impl Get<(u32, u32)> for DiscountedFee {
 	fn get() -> (u32, u32) {
 		DISCOUNTED_FEE.with(|v| *v.borrow())
+	}
+}
+
+struct MaximumOutRatio;
+impl Get<u128> for MaximumOutRatio {
+	fn get() -> u128 {
+		MAX_OUT_RATIO.with(|v| *v.borrow())
 	}
 }
 
@@ -173,7 +181,7 @@ parameter_types! {
 	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
-	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	pub MaxOutRatio: u128 = MaximumOutRatio::get();
 	pub ExchangeFeeRate: (u32, u32) = ExchangeFee::get();
 	pub DiscountedFeeRate: (u32, u32) = DiscountedFee::get();
 }
@@ -240,6 +248,11 @@ impl ExtBuilder {
 
 	pub fn with_discounted_fee(self, f: (u32, u32)) -> Self {
 		DISCOUNTED_FEE.with(|v| *v.borrow_mut() = f);
+		self
+	}
+
+	pub fn with_max_out_ratio(self, f: u128) -> Self {
+		MAX_OUT_RATIO.with(|v| *v.borrow_mut() = f);
 		self
 	}
 
