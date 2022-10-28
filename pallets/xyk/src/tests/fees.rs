@@ -5,7 +5,6 @@ use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
 
 use primitives::asset::AssetPair;
-use primitives::Price;
 
 #[test]
 fn fee_calculation() {
@@ -51,10 +50,10 @@ fn get_fee_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			HDX,
-			DOT,
 			1_000_000_000,
-			Price::from(2)
-		),);
+			DOT,
+			2_000_000_000,
+		));
 
 		// existing pool
 		let fee = XYK::get_fee(&HDX_DOT_POOL_ID);
@@ -82,16 +81,16 @@ fn discount_sell_fees_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			HDX,
 			1_000_000_000_000,
-			Price::from(2)
+			HDX,
+			2_000_000_000_000,
 		));
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			asset_b,
 			200_000_000_000_000,
-			Price::from(2)
+			asset_b,
+			400_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -153,16 +152,16 @@ fn discount_sell_fees_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			HDX,
 			1_000_000_000_000,
-			Price::from(2)
+			HDX,
+			2_000_000_000_000,
 		));
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			asset_b,
 			200_000_000_000_000,
-			Price::from(2)
+			asset_b,
+			400_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -227,16 +226,16 @@ fn discount_sell_fees_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			HDX,
 			1_000_000_000_000,
-			Price::from(2)
+			HDX,
+			2_000_000_000_000,
 		));
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			asset_b,
 			200_000_000_000_000,
-			Price::from(2)
+			asset_b,
+			400_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -296,17 +295,17 @@ fn discount_buy_fees_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			HDX,
 			1_000_000_000_000,
-			Price::from(2)
+			HDX,
+			2_000_000_000_000,
 		));
 
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			asset_b,
 			200_000_000_000_000,
-			Price::from(2)
+			asset_b,
+			400_000_000_000_000,
 		));
 
 		let native_pair_account = XYK::get_pair_id(AssetPair {
@@ -369,17 +368,17 @@ fn discount_buy_fees_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			HDX,
 			1_000_000_000_000,
-			Price::from(2)
+			HDX,
+			2_000_000_000_000,
 		));
 
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			asset_b,
 			200_000_000_000_000,
-			Price::from(2)
+			asset_b,
+			400_000_000_000_000,
 		));
 
 		let native_pair_account = XYK::get_pair_id(AssetPair {
@@ -445,17 +444,17 @@ fn discount_buy_fees_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			HDX,
 			1_000_000_000_000,
-			Price::from(2)
+			HDX,
+			2_000_000_000_000,
 		));
 
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE),
 			asset_a,
-			asset_b,
 			200_000_000_000_000,
-			Price::from(2)
+			asset_b,
+			400_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {

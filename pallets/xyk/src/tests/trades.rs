@@ -5,7 +5,6 @@ use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
 
 use primitives::asset::AssetPair;
-use primitives::Price;
 
 #[test]
 fn sell_test() {
@@ -17,9 +16,9 @@ fn sell_test() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			200_000_000_000,
-			Price::from(3000)
+			asset_b,
+			600_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -97,9 +96,9 @@ fn work_flow_happy_path_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			350_000_000_000,
-			Price::from(40)
+			asset_b,
+			14_000_000_000_000,
 		));
 
 		// User 1 really tries!
@@ -292,9 +291,9 @@ fn sell_with_correct_fees_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			10_000_000,
-			Price::from(200)
+			asset_b,
+			2_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -360,9 +359,9 @@ fn sell_without_sufficient_balance_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
+			1_000_000_000,
 			asset_b,
 			1_000_000_000,
-			Price::from(1)
 		));
 
 		assert_ok!(Currency::transfer(Origin::signed(user), BOB, ACA, 999_998_999_999_999));
@@ -384,17 +383,17 @@ fn sell_without_sufficient_discount_balance_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
+			1_000_000_000_000,
 			asset_b,
 			1_000_000_000_000,
-			Price::from(1)
 		));
 
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
+			1_000_000_000_000,
 			HDX,
 			1_000_000_000_000,
-			Price::from(1)
 		));
 
 		assert_ok!(Currency::transfer(Origin::signed(user), BOB, HDX, 998_999_999_999_999));
@@ -416,9 +415,9 @@ fn buy_without_sufficient_balance_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
+			1_000_000_000,
 			asset_b,
 			1_000_000_000,
-			Price::from(1)
 		));
 
 		assert_ok!(Currency::transfer(Origin::signed(user), BOB, ACA, 999_998_999_999_999));
@@ -440,17 +439,17 @@ fn buy_without_sufficient_discount_balance_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_a,
+			1_000_000_000_000,
 			asset_b,
 			1_000_000_000_000,
-			Price::from(1)
 		));
 
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user),
 			asset_b,
+			1_000_000_000_000,
 			HDX,
 			1_000_000_000_000,
-			Price::from(1)
 		));
 
 		assert_ok!(Currency::transfer(Origin::signed(user), BOB, HDX, 998_999_999_999_999));
@@ -472,9 +471,9 @@ fn single_buy_should_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			200_000_000,
-			Price::from(3200)
+			asset_b,
+			640_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -534,18 +533,13 @@ fn single_buy_should_work() {
 fn create_pool_with_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 500, Price::from(3200)),
+			XYK::create_pool(Origin::signed(ALICE), ACA, 500, HDX, 1_600_000),
 			Error::<Test>::InsufficientLiquidity
 		);
 
 		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 5000, Price::from_float(0.1f64)),
+			XYK::create_pool(Origin::signed(ALICE), ACA, 5000, HDX, 500),
 			Error::<Test>::InsufficientLiquidity
-		);
-
-		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, HDX, 1000, Price::from(0)),
-			Error::<Test>::ZeroInitialPrice
 		);
 	});
 }
@@ -583,13 +577,7 @@ fn sell_with_non_existing_pool_should_not_work() {
 #[test]
 fn discount_sell_with_no_native_pool_should_not_work() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
-			ACA,
-			DOT,
-			1000,
-			Price::from(3200)
-		));
+		assert_ok!(XYK::create_pool(Origin::signed(ALICE), ACA, 1000, DOT, 3_200_000));
 
 		assert_noop!(
 			XYK::sell(Origin::signed(ALICE), ACA, DOT, 456_444_678, 1_000_000, true),
@@ -611,13 +599,7 @@ fn buy_with_non_existing_pool_should_not_work() {
 #[test]
 fn discount_buy_with_no_native_pool_should_not_work() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
-			ACA,
-			DOT,
-			10000,
-			Price::from(3200)
-		));
+		assert_ok!(XYK::create_pool(Origin::signed(ALICE), ACA, 10_000, DOT, 32_000_000));
 
 		assert_noop!(
 			XYK::buy(Origin::signed(ALICE), ACA, DOT, 1000, 1_000_000_000, true),
@@ -639,9 +621,9 @@ fn money_in_sell_money_out_should_leave_the_same_balance() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			200_000_000_000,
-			Price::from(3000)
+			asset_b,
+			600_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -703,9 +685,9 @@ fn money_in_money_out_should_leave_the_same_balance_for_both_accounts() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			100_000_000,
-			Price::from(10_000)
+			asset_b,
+			1_000_000_000_000,
 		));
 
 		let asset_pair = AssetPair {
@@ -769,9 +751,9 @@ fn sell_test_not_reaching_limit() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			200_000_000_000,
-			Price::from(3000)
+			asset_b,
+			600_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -817,9 +799,9 @@ fn buy_test_exceeding_max_limit() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			200_000_000_000,
-			Price::from(3000)
+			asset_b,
+			600_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -865,9 +847,9 @@ fn single_buy_more_than_ratio_out_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			200_000_000,
-			Price::from(3200)
+			asset_b,
+			640_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -936,9 +918,9 @@ fn single_sell_more_than_ratio_in_should_not_work() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(user_1),
 			asset_a,
-			asset_b,
 			200_000_000_000,
-			Price::from(3000)
+			asset_b,
+			600_000_000_000_000,
 		));
 
 		let pair_account = XYK::get_pair_id(AssetPair {
@@ -1020,13 +1002,7 @@ fn buy_with_low_amount_should_not_work() {
 #[test]
 fn buy_with_excesive_amount_should_not_work() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
-			HDX,
-			DOT,
-			10_000,
-			Price::from(1)
-		));
+		assert_ok!(XYK::create_pool(Origin::signed(ALICE), HDX, 10_000, DOT, 10_000,));
 
 		assert_noop!(
 			XYK::buy(Origin::signed(ALICE), HDX, DOT, 20_000, 1_000_000, false),

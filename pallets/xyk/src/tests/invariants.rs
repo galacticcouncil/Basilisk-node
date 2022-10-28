@@ -5,7 +5,7 @@ use proptest::prelude::*;
 
 use frame_support::assert_ok;
 use primitive_types::U256;
-use sp_runtime::FixedU128;
+use sp_runtime::{FixedPointNumber, FixedU128};
 
 const TOLERANCE: Balance = 1_000;
 
@@ -75,9 +75,9 @@ proptest! {
 				assert_ok!(XYK::create_pool(
 					Origin::signed(ALICE),
 					asset_a,
-					asset_b,
 					initial_liquidity,
-					Price::from_float(price)
+					asset_b,
+					FixedU128::from_float(price).saturating_mul_int(initial_liquidity),
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -183,9 +183,9 @@ proptest! {
 				assert_ok!(XYK::create_pool(
 					Origin::signed(ALICE),
 					asset_a,
-					asset_b,
 					initial_liquidity,
-					Price::from_float(price)
+					asset_b,
+					FixedU128::from_float(price).saturating_mul_int(initial_liquidity),
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -294,9 +294,9 @@ proptest! {
 				assert_ok!(XYK::create_pool(
 					Origin::signed(ALICE),
 					asset_a,
-					asset_b,
 					initial_liquidity,
-					Price::from_float(price)
+					asset_b,
+					FixedU128::from_float(price).saturating_mul_int(initial_liquidity),
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -363,9 +363,9 @@ proptest! {
 				assert_ok!(XYK::create_pool(
 					Origin::signed(ALICE),
 					asset_a,
-					asset_b,
 					initial_liquidity,
-					Price::from_float(price)
+					asset_b,
+					FixedU128::from_float(price).saturating_mul_int(initial_liquidity),
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -433,17 +433,17 @@ proptest! {
 				assert_ok!(XYK::create_pool(
 					Origin::signed(ALICE),
 					asset_a,
-					asset_b,
 					initial_liquidity,
-					Price::from_float(price)
+					asset_b,
+					FixedU128::from_float(price).saturating_mul_int(initial_liquidity),
 				));
 
 				assert_ok!(XYK::create_pool(
 					Origin::signed(ALICE),
 					asset_b,
+					10 * ONE,
 					HDX,
 					10 * ONE,
-					Price::from_float(1.0)
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {
@@ -510,17 +510,17 @@ proptest! {
 				assert_ok!(XYK::create_pool(
 					Origin::signed(ALICE),
 					asset_a,
-					asset_b,
 					initial_liquidity,
-					Price::from_float(price)
+					asset_b,
+					FixedU128::from_float(price).saturating_mul_int(initial_liquidity),
 				));
 
 				assert_ok!(XYK::create_pool(
 					Origin::signed(ALICE),
 					asset_a,
+					10 * ONE,
 					HDX,
 					10 * ONE,
-					Price::from_float(1.0)
 				));
 
 				let pool_account = XYK::get_pair_id(AssetPair {

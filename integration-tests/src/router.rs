@@ -4,10 +4,9 @@ use crate::kusama_test_net::*;
 
 use basilisk_runtime::{BlockNumber, Origin, LBP, XYK};
 use hydradx_traits::AMM;
-use primitives::{AssetId, Price};
+use primitives::AssetId;
 
 use pallet_lbp::WeightCurveType;
-use sp_arithmetic::fixed_point::FixedPointNumber;
 
 use frame_support::assert_ok;
 
@@ -1323,9 +1322,9 @@ fn create_xyk_pool(asset_a: u32, asset_b: u32) {
 	assert_ok!(XYK::create_pool(
 		Origin::signed(ALICE.into()),
 		asset_a,
-		asset_b,
 		100 * UNITS,
-		Price::checked_from_rational(1, 2).unwrap()
+		asset_b,
+		50 * UNITS,
 	));
 }
 
