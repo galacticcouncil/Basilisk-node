@@ -4,10 +4,9 @@ use crate::kusama_test_net::*;
 
 use basilisk_runtime::{BlockNumber, Origin, LBP, XYK};
 use hydradx_traits::AMM;
-use primitives::{AssetId, Price};
+use primitives::AssetId;
 
 use pallet_lbp::WeightCurveType;
-use sp_arithmetic::fixed_point::FixedPointNumber;
 
 use frame_support::assert_ok;
 
