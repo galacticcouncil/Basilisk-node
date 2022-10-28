@@ -56,7 +56,10 @@ use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
-use hydradx_traits::{nft::CreateTypedCollection, AMM};
+use hydradx_traits::{
+	nft::{CreateTypedCollection, ReserveCollectionId},
+	AMM,
+};
 use orml_traits::MultiCurrency;
 use pallet_nft::CollectionType;
 use primitives::{asset::AssetPair, AssetId, Balance, CollectionId as DepositId};
@@ -82,6 +85,16 @@ pub mod pallet {
 	#[pallet::pallet]
 	#[pallet::storage_version(STORAGE_VERSION)]
 	pub struct Pallet<T>(_);
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		fn integrity_test() {
+			assert!(
+				T::NFTHandler::is_id_reserved(T::NftCollectionId::get()),
+				"`T::NFTCollectionId` must be within nft::ReserveCollectionIdUpTo range."
+			);
+		}
+	}
 
 	#[pallet::genesis_config]
 	#[cfg_attr(feature = "std", derive(Default))]
@@ -130,7 +143,8 @@ pub mod pallet {
 		type NFTHandler: Mutate<Self::AccountId>
 			+ Create<Self::AccountId>
 			+ Inspect<Self::AccountId, CollectionId = primitives::CollectionId, ItemId = DepositId>
-			+ CreateTypedCollection<Self::AccountId, primitives::CollectionId, CollectionType>;
+			+ CreateTypedCollection<Self::AccountId, primitives::CollectionId, CollectionType>
+			+ ReserveCollectionId<primitives::CollectionId>;
 
 		/// Liquidity mining handler for managing liquidity mining functionalities
 		type LiquidityMiningHandler: LiquidityMiningMutate<

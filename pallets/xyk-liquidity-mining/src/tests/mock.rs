@@ -386,6 +386,12 @@ impl CreateTypedCollection<AccountId, primitives::CollectionId, CollectionType> 
 	}
 }
 
+impl ReserveCollectionId<primitives::CollectionId> for DummyNFT {
+	fn is_id_reserved(_id: primitives::CollectionId) -> bool {
+		true
+	}
+}
+
 pub struct DummyLiquidityMining {}
 
 impl DummyLiquidityMining {}
