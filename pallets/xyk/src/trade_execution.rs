@@ -6,7 +6,6 @@ use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
 use primitives::asset::AssetPair;
 use primitives::{AssetId, Balance};
-use sp_runtime::traits::Zero;
 use sp_runtime::DispatchError;
 
 impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {
@@ -100,12 +99,13 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 		asset_in: AssetId,
 		asset_out: AssetId,
 		amount_in: Balance,
+		min_limit: Balance,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		Self::sell(who, asset_in, asset_out, amount_in, Balance::zero(), false).map_err(ExecutorError::Error)
+		Self::sell(who, asset_in, asset_out, amount_in, min_limit, false).map_err(ExecutorError::Error)
 	}
 
 	fn execute_buy(
@@ -114,11 +114,12 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 		asset_in: AssetId,
 		asset_out: AssetId,
 		amount_out: Balance,
+		max_limit: Balance,
 	) -> Result<(), ExecutorError<Self::Error>> {
 		if pool_type != PoolType::XYK {
 			return Err(ExecutorError::NotSupported);
 		}
 
-		Self::buy(who, asset_out, asset_in, amount_out, Balance::MAX, false).map_err(ExecutorError::Error)
+		Self::buy(who, asset_out, asset_in, amount_out, max_limit, false).map_err(ExecutorError::Error)
 	}
 }

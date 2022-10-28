@@ -912,7 +912,7 @@ impl pallet_route_executor::Config for Runtime {
 	type Balance = Balance;
 	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
-	type AMM = XYK;
+	type AMM = (XYK, LBP);
 	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
 }
 
