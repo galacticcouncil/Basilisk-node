@@ -6,6 +6,7 @@ use frame_support::{assert_noop, assert_ok};
 use polkadot_xcm::{latest::prelude::*, VersionedMultiAssets};
 
 use cumulus_primitives_core::ParaId;
+use frame_support::weights::Weight;
 use hex_literal::hex;
 use orml_traits::currency::MultiCurrency;
 use sp_core::H256;
@@ -304,7 +305,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			cumulus_pallet_xcmp_queue::Event::Fail {
 				message_hash: Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
 				error: XcmError::AssetNotFound,
-				weight: 300_000_000,
+				weight: Weight::from_ref_time(300_000_000),
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {

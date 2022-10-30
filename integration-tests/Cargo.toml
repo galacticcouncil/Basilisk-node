@@ -107,7 +107,7 @@ kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "rel
 cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.29" }
 
 [dev-dependencies]
-xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", rev = "7d4eec3c50d77b82f88f9c831c5b553633ca245f" }
+xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", rev = "0460d04c798028e7bef82c907082e11753ed173b" }
 hex-literal = "0.3.1"
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "68693fcbca8f3c813ecf9d80c33c4034da082006" }
 pretty_assertions = "1.2.1"
