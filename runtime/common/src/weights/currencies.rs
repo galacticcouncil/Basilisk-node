@@ -50,28 +50,28 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn transfer_non_native_currency() -> Weight {
-		(70_417_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(70_417_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn transfer_native_currency() -> Weight {
-		(45_641_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(45_641_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn update_balance_non_native_currency() -> Weight {
-		(47_084_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(47_084_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn update_balance_native_currency_creating() -> Weight {
-		(36_340_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(36_340_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn update_balance_native_currency_killing() -> Weight {
-		(32_971_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(32_971_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 }

@@ -50,21 +50,21 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn add_currency() -> Weight {
-		(14_180_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(14_180_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn remove_currency() -> Weight {
-		(15_018_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(15_018_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn set_currency() -> Weight {
-		(88_431_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(88_431_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(9 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	fn get_spot_price() -> Weight {
-		(15_528_000 as Weight).saturating_add(T::DbWeight::get().reads(3 as Weight))
+		Weight::from_ref_time(15_528_000 as u64).saturating_add(T::DbWeight::get().reads(3 as u64))
 	}
 }

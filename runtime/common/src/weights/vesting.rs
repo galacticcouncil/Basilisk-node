@@ -50,20 +50,20 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn vested_transfer() -> Weight {
-		(66_629_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(66_629_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn claim(i: u32) -> Weight {
-		(38_569_000 as Weight) // Standard Error: 12_000
-			.saturating_add((95_000 as Weight).saturating_mul(i as Weight))
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(38_569_000 as u64) // Standard Error: 12_000
+			.saturating_add(Weight::from_ref_time(95_000 as u64).saturating_mul(i as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn update_vesting_schedules(i: u32) -> Weight {
-		(32_285_000 as Weight) // Standard Error: 10_000
-			.saturating_add((192_000 as Weight).saturating_mul(i as Weight))
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(32_285_000 as u64) // Standard Error: 10_000
+			.saturating_add(Weight::from_ref_time(192_000 as u64).saturating_mul(i as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 }

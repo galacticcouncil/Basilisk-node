@@ -50,21 +50,21 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn batch(c: u32) -> Weight {
-		(10_331_000 as Weight) // Standard Error: 4_000
-			.saturating_add((4_323_000 as Weight).saturating_mul(c as Weight))
+		Weight::from_ref_time(10_331_000 as u64) // Standard Error: 4_000
+			.saturating_add(Weight::from_ref_time(4_323_000 as u64).saturating_mul(c as u64))
 	}
 	fn as_derivative() -> Weight {
-		(3_366_000 as Weight)
+		Weight::from_ref_time(3_366_000 as u64)
 	}
 	fn batch_all(c: u32) -> Weight {
-		(37_594_000 as Weight) // Standard Error: 11_000
-			.saturating_add((4_612_000 as Weight).saturating_mul(c as Weight))
+		Weight::from_ref_time(37_594_000 as u64) // Standard Error: 11_000
+			.saturating_add(Weight::from_ref_time(4_612_000 as u64).saturating_mul(c as u64))
 	}
 	fn dispatch_as() -> Weight {
-		(12_697_000 as Weight)
+		Weight::from_ref_time(12_697_000 as u64)
 	}
 	fn force_batch(c: u32) -> Weight {
-		(19_136_000 as Weight) // Standard Error: 2_000
-			.saturating_add((2_697_000 as Weight).saturating_mul(c as Weight))
+		Weight::from_ref_time(19_136_000 as u64) // Standard Error: 2_000
+			.saturating_add(Weight::from_ref_time(2_697_000 as u64).saturating_mul(c as u64))
 	}
 }

@@ -50,33 +50,33 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_pool() -> Weight {
-		(130_182_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(12 as Weight))
-			.saturating_add(T::DbWeight::get().writes(8 as Weight))
+		Weight::from_ref_time(130_182_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(12 as u64))
+			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
 	fn update_pool_data() -> Weight {
-		(32_088_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(32_088_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn add_liquidity() -> Weight {
-		(90_483_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(90_483_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(8 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn remove_liquidity() -> Weight {
-		(117_189_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(10 as Weight))
-			.saturating_add(T::DbWeight::get().writes(8 as Weight))
+		Weight::from_ref_time(117_189_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(10 as u64))
+			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
 	fn sell() -> Weight {
-		(157_473_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(12 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(157_473_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(12 as u64))
+			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
 	fn buy() -> Weight {
-		(156_979_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(12 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(156_979_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(12 as u64))
+			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
 }

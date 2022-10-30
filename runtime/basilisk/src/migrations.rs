@@ -25,7 +25,7 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 	}
 
 	fn on_runtime_upgrade() -> Weight {
-		let mut weight: Weight = 0;
+		let mut weight: Weight = Weight::zero();
 
 		frame_support::log::info!("Migrate Uniques Pallet start");
 		weight = weight.saturating_add(<MigrateUniquesPallet as OnRuntimeUpgrade>::on_runtime_upgrade());

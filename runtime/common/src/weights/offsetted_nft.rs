@@ -54,28 +54,28 @@ const MINT_OFFSET: u64 = 120;
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_collection() -> Weight {
-		(CREATE_COLLECTION_OFFSET * 41_173_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(CREATE_COLLECTION_OFFSET * 41_173_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn mint() -> Weight {
-		(MINT_OFFSET * 55_520_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(MINT_OFFSET * 55_520_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	fn transfer() -> Weight {
-		(46_700_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(46_700_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn destroy_collection() -> Weight {
-		(63_644_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(63_644_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	fn burn() -> Weight {
-		(58_040_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(58_040_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 }

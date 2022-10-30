@@ -50,19 +50,19 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn sell(n: u32) -> Weight {
-		(26_660_000 as Weight) // Standard Error: 126_000
-			.saturating_add((84_454_000 as Weight).saturating_mul(n as Weight))
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().reads((8 as Weight).saturating_mul(n as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes((3 as Weight).saturating_mul(n as Weight)))
+		Weight::from_ref_time(26_660_000 as u64) // Standard Error: 126_000
+			.saturating_add(Weight::from_ref_time(84_454_000 as u64).saturating_mul(n as u64))
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().reads((8 as u64).saturating_mul(n as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
 	}
 	fn buy(n: u32) -> Weight {
-		(24_181_000 as Weight) // Standard Error: 150_000
-			.saturating_add((83_615_000 as Weight).saturating_mul(n as Weight))
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().reads((8 as Weight).saturating_mul(n as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes((3 as Weight).saturating_mul(n as Weight)))
+		Weight::from_ref_time(24_181_000 as u64) // Standard Error: 150_000
+			.saturating_add(Weight::from_ref_time(83_615_000 as u64).saturating_mul(n as u64))
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().reads((8 as u64).saturating_mul(n as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
 	}
 }

@@ -50,28 +50,28 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_pool() -> Weight {
-		(181_472_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(20 as Weight))
-			.saturating_add(T::DbWeight::get().writes(16 as Weight))
+		Weight::from_ref_time(181_472_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(20 as u64))
+			.saturating_add(T::DbWeight::get().writes(16 as u64))
 	}
 	fn add_liquidity() -> Weight {
-		(133_231_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(13 as Weight))
-			.saturating_add(T::DbWeight::get().writes(8 as Weight))
+		Weight::from_ref_time(133_231_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(13 as u64))
+			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
 	fn remove_liquidity() -> Weight {
-		(124_791_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(12 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(124_791_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(12 as u64))
+			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
 	fn sell() -> Weight {
-		(111_968_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(11 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(111_968_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(11 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	fn buy() -> Weight {
-		(111_306_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(11 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(111_306_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(11 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 }

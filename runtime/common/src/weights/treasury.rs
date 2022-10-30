@@ -50,37 +50,37 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn spend() -> Weight {
-		(22_063_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(22_063_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn propose_spend() -> Weight {
-		(29_444_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(29_444_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn reject_proposal() -> Weight {
-		(45_918_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(45_918_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn approve_proposal(p: u32) -> Weight {
-		(11_009_000 as Weight) // Standard Error: 7_000
-			.saturating_add((79_000 as Weight).saturating_mul(p as Weight))
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(11_009_000 as u64) // Standard Error: 7_000
+			.saturating_add(Weight::from_ref_time(79_000 as u64).saturating_mul(p as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn remove_approval() -> Weight {
-		(6_647_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(6_647_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn on_initialize_proposals(p: u32) -> Weight {
-		(23_873_000 as Weight) // Standard Error: 53_000
-			.saturating_add((40_085_000 as Weight).saturating_mul(p as Weight))
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().reads((3 as Weight).saturating_mul(p as Weight)))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes((3 as Weight).saturating_mul(p as Weight)))
+		Weight::from_ref_time(23_873_000 as u64) // Standard Error: 53_000
+			.saturating_add(Weight::from_ref_time(40_085_000 as u64).saturating_mul(p as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().reads((3 as u64).saturating_mul(p as u64)))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(p as u64)))
 	}
 }

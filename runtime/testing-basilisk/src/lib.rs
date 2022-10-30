@@ -169,7 +169,7 @@ impl WeightToFeePolynomial for WeightToFee {
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 		// extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT
 		let p = CENTS; // 1_000_000_000_000
-		let q = 10 * Balance::from(ExtrinsicBaseWeight::get()); // 7_919_840_000
+		let q = 10 * Balance::from(ExtrinsicBaseWeight::get().ref_time()); // 7_919_840_000
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,

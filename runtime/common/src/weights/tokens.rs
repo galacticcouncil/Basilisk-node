@@ -50,28 +50,28 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn transfer() -> Weight {
-		(65_081_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(65_081_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn transfer_all() -> Weight {
-		(68_069_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(68_069_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn transfer_keep_alive() -> Weight {
-		(52_442_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(52_442_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn force_transfer() -> Weight {
-		(57_525_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(57_525_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(7 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn set_balance() -> Weight {
-		(46_154_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(46_154_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 }

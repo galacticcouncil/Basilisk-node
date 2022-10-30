@@ -174,7 +174,7 @@ impl WeightToFeePolynomial for WeightToFee {
 	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 		let p = 11 * CENTS;
-		let q = Balance::from(ExtrinsicBaseWeight::get());
+		let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,

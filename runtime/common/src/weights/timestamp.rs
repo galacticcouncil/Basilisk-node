@@ -50,11 +50,11 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn set() -> Weight {
-		(6_166_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(6_166_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn on_finalize() -> Weight {
-		(3_944_000 as Weight)
+		Weight::from_ref_time(3_944_000 as u64)
 	}
 }

@@ -100,7 +100,7 @@ pub mod v1 {
 			let reads = translated
 				.checked_mul(2)
 				.and_then(|v| v.checked_add(3))
-				.unwrap_or(Weight::MAX);
+				.unwrap_or(u64::MAX);
 			let writes = reads; // the number of writes is the same as the number of reads
 
 			T::DbWeight::get().reads_writes(reads, writes)
@@ -155,7 +155,7 @@ pub mod v1 {
 
 			// If the number of items overflows the max weight, return the max weight.
 			// Make sure this won't happen by running try-runtime command before executing the migration.
-			let num_of_instances = MarketplaceItems::<T>::iter().count().try_into().unwrap_or(Weight::MAX);
+			let num_of_instances = MarketplaceItems::<T>::iter().count().try_into().unwrap_or(u64::MAX);
 
 			move_prefix(&old_storage_prefix, &new_storage_prefix);
 			if let Some(value) = unhashed::get_raw(&old_storage_prefix) {
@@ -168,8 +168,8 @@ pub mod v1 {
 			let reads = num_of_instances
 				.checked_mul(2)
 				.and_then(|v| v.checked_add(3))
-				.unwrap_or(Weight::MAX);
-			let writes = num_of_instances.checked_add(3).unwrap_or(Weight::MAX);
+				.unwrap_or(u64::MAX);
+			let writes = num_of_instances.checked_add(3).unwrap_or(u64::MAX);
 
 			T::DbWeight::get().reads_writes(reads, writes)
 		}

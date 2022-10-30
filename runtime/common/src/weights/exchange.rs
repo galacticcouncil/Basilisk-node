@@ -50,60 +50,60 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn known_overhead_for_on_finalize() -> Weight {
-		(8_853_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
+		Weight::from_ref_time(8_853_000 as u64).saturating_add(T::DbWeight::get().reads(1 as u64))
 	}
 	fn sell_intention() -> Weight {
-		(103_523_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(103_523_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn buy_intention() -> Weight {
-		(105_227_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(105_227_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn on_finalize(t: u32) -> Weight {
-		(0 as Weight) // Standard Error: 95_000
-			.saturating_add((51_422_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+		Weight::from_ref_time(0 as u64) // Standard Error: 95_000
+			.saturating_add(Weight::from_ref_time(51_422_000 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().reads((2 as u64).saturating_mul(t as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn on_finalize_buys_no_matches(t: u32) -> Weight {
-		(0 as Weight) // Standard Error: 95_000
-			.saturating_add((92_057_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().reads((3 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+		Weight::from_ref_time(0 as u64) // Standard Error: 95_000
+			.saturating_add(Weight::from_ref_time(92_057_000 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().reads((3 as u64).saturating_mul(t as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn on_finalize_sells_no_matches(t: u32) -> Weight {
-		(1_118_000 as Weight) // Standard Error: 56_000
-			.saturating_add((84_692_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().reads((3 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+		Weight::from_ref_time(1_118_000 as u64) // Standard Error: 56_000
+			.saturating_add(Weight::from_ref_time(84_692_000 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().reads((3 as u64).saturating_mul(t as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn sell_extrinsic() -> Weight {
-		(110_192_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(11 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(110_192_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(11 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	fn on_finalize_for_one_sell_extrinsic() -> Weight {
-		(142_574_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(15 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(142_574_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(15 as u64))
+			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
 	fn buy_extrinsic() -> Weight {
-		(109_648_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(11 as Weight))
-			.saturating_add(T::DbWeight::get().writes(5 as Weight))
+		Weight::from_ref_time(109_648_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(11 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	fn on_finalize_for_one_buy_extrinsic() -> Weight {
-		(150_762_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(15 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(150_762_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(15 as u64))
+			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
 }

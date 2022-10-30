@@ -50,29 +50,29 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn on_finalize_no_entry() -> Weight {
-		(14_223_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(14_223_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn on_finalize_one_token() -> Weight {
-		(22_741_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(22_741_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn on_finalize_multiple_tokens_all_bucket_levels(a: u32) -> Weight {
-		(17_345_000 as Weight) // Standard Error: 11_000
-			.saturating_add((5_212_000 as Weight).saturating_mul(a as Weight))
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(a as Weight)))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(a as Weight)))
+		Weight::from_ref_time(17_345_000 as u64) // Standard Error: 11_000
+			.saturating_add(Weight::from_ref_time(5_212_000 as u64).saturating_mul(a as u64))
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(a as u64)))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
+			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(a as u64)))
 	}
 	fn on_finalize_multiple_tokens(b: u32) -> Weight {
-		(18_015_000 as Weight) // Standard Error: 11_000
-			.saturating_add((4_997_000 as Weight).saturating_mul(b as Weight))
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(b as Weight)))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(b as Weight)))
+		Weight::from_ref_time(18_015_000 as u64) // Standard Error: 11_000
+			.saturating_add(Weight::from_ref_time(4_997_000 as u64).saturating_mul(b as u64))
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(b as u64)))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
+			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(b as u64)))
 	}
 }

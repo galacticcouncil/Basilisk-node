@@ -64,127 +64,127 @@ pub struct HydraWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn known_overhead_for_on_finalize() -> Weight {
-		(11_782_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
+		Weight::from_ref_time(11_782_000 as u64).saturating_add(T::DbWeight::get().reads(1 as u64))
 	}
 	fn sell_intention() -> Weight {
-		(109_767_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(109_767_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn buy_intention() -> Weight {
-		(112_747_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(112_747_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn on_finalize(t: u32) -> Weight {
-		(0 as Weight)
+		Weight::from_ref_time(0 as u64)
 			// Standard Error: 100_000
-			.saturating_add((110_967_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(Weight::from_ref_time(110_967_000 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().reads((2 as u64).saturating_mul(t as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn on_finalize_buys_no_matches(t: u32) -> Weight {
-		(0 as Weight)
+		Weight::from_ref_time(0 as u64)
 			// Standard Error: 79_000
-			.saturating_add((125_236_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(Weight::from_ref_time(125_236_000 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().reads((2 as u64).saturating_mul(t as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn on_finalize_sells_no_matches(t: u32) -> Weight {
-		(8_528_000 as Weight)
+		Weight::from_ref_time(8_528_000 as u64)
 			// Standard Error: 84_000
-			.saturating_add((109_453_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(Weight::from_ref_time(109_453_000 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().reads((2 as u64).saturating_mul(t as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn sell_extrinsic() -> Weight {
-		(121_370_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(121_370_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn on_finalize_for_one_sell_extrinsic() -> Weight {
-		(163_828_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+		Weight::from_ref_time(163_828_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(9 as u64))
+			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
 	fn buy_extrinsic() -> Weight {
-		(120_942_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(120_942_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn on_finalize_for_one_buy_extrinsic() -> Weight {
-		(179_585_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+		Weight::from_ref_time(179_585_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(9 as u64))
+			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn known_overhead_for_on_finalize() -> Weight {
-		(11_782_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))
+		Weight::from_ref_time(11_782_000 as u64).saturating_add(RocksDbWeight::get().reads(1 as u64))
 	}
 	fn sell_intention() -> Weight {
-		(109_767_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(109_767_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(6 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	fn buy_intention() -> Weight {
-		(112_747_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(112_747_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(6 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	fn on_finalize(t: u32) -> Weight {
-		(0 as Weight)
+		Weight::from_ref_time(0 as u64)
 			// Standard Error: 100_000
-			.saturating_add((110_967_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
-			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(Weight::from_ref_time(110_967_000 as u64).saturating_mul(t as u64))
+			.saturating_add(RocksDbWeight::get().reads(4 as u64))
+			.saturating_add(RocksDbWeight::get().reads((2 as u64).saturating_mul(t as u64)))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+			.saturating_add(RocksDbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn on_finalize_buys_no_matches(t: u32) -> Weight {
-		(0 as Weight)
+		Weight::from_ref_time(0 as u64)
 			// Standard Error: 79_000
-			.saturating_add((125_236_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
-			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(Weight::from_ref_time(125_236_000 as u64).saturating_mul(t as u64))
+			.saturating_add(RocksDbWeight::get().reads(4 as u64))
+			.saturating_add(RocksDbWeight::get().reads((2 as u64).saturating_mul(t as u64)))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+			.saturating_add(RocksDbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn on_finalize_sells_no_matches(t: u32) -> Weight {
-		(8_528_000 as Weight)
+		Weight::from_ref_time(8_528_000 as u64)
 			// Standard Error: 84_000
-			.saturating_add((109_453_000 as Weight).saturating_mul(t as Weight))
-			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
-			.saturating_add(RocksDbWeight::get().reads((2 as Weight).saturating_mul(t as Weight)))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(t as Weight)))
+			.saturating_add(Weight::from_ref_time(109_453_000 as u64).saturating_mul(t as u64))
+			.saturating_add(RocksDbWeight::get().reads(4 as u64))
+			.saturating_add(RocksDbWeight::get().reads((2 as u64).saturating_mul(t as u64)))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
+			.saturating_add(RocksDbWeight::get().writes((2 as u64).saturating_mul(t as u64)))
 	}
 	fn sell_extrinsic() -> Weight {
-		(121_370_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(121_370_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	fn on_finalize_for_one_sell_extrinsic() -> Weight {
-		(163_828_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+		Weight::from_ref_time(163_828_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(9 as u64))
+			.saturating_add(RocksDbWeight::get().writes(6 as u64))
 	}
 	fn buy_extrinsic() -> Weight {
-		(120_942_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(120_942_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	fn on_finalize_for_one_buy_extrinsic() -> Weight {
-		(179_585_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+		Weight::from_ref_time(179_585_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(9 as u64))
+			.saturating_add(RocksDbWeight::get().writes(6 as u64))
 	}
 }

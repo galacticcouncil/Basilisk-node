@@ -50,16 +50,16 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn dust_account() -> Weight {
-		(67_405_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(7 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(67_405_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(7 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn add_nondustable_account() -> Weight {
-		(13_489_000 as Weight).saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(13_489_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn remove_nondustable_account() -> Weight {
-		(16_635_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(16_635_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 }
