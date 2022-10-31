@@ -21,6 +21,10 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 		pallet_nft::migration::v1::pre_migrate::<Runtime>();
 		frame_support::log::info!("PreMigrate NFT Pallet end");
 
+		frame_support::log::info!("PreMigrate XYK liquidity mining start");
+		pallet_xyk_liquidity_mining::migration::v1::pre_migrate::<Runtime>();
+		frame_support::log::info!("PreMigrate XYK liquidity mining end");
+
 		Ok(())
 	}
 
@@ -39,6 +43,10 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 		weight = weight.saturating_add(pallet_nft::migration::v1::migrate::<Runtime>());
 		frame_support::log::info!("Migrate NFT Pallet end");
 
+		frame_support::log::info!("Migrate XYK Liquidity Mining Pallet start");
+		weight = weight.saturating_add(pallet_xyk_liquidity_mining::migration::v1::migrate::<Runtime>());
+		frame_support::log::info!("Migrate XYK Liquidity Mining Pallet end");
+
 		weight
 	}
 
@@ -51,6 +59,10 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 		frame_support::log::info!("PostMigrate NFT Pallet start");
 		pallet_nft::migration::v1::post_migrate::<Runtime>();
 		frame_support::log::info!("PostMigrate NFT Pallet end");
+
+		frame_support::log::info!("PostMigrate XYK Liquidity Mining Pallet start");
+		pallet_nft::migration::v1::post_migrate::<Runtime>();
+		frame_support::log::info!("PostMigrate XYK Liquidity Mining Pallet end");
 
 		Ok(())
 	}

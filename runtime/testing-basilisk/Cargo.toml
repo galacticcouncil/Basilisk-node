@@ -1,6 +1,6 @@
 [package]
 name = "testing-basilisk-runtime"
-version = "79.0.0"
+version = "80.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -32,6 +32,8 @@ pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",defaul
 pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
+pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
+pallet-xyk-liquidity-mining-benchmarking = { path = "../../pallets/xyk-liquidity-mining/benchmarking", optional = true, default-features = false}
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
@@ -152,6 +154,7 @@ runtime-benchmarks = [
     "pallet-multisig/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "pallet-transaction-pause/runtime-benchmarks",
+    "pallet-xyk-liquidity-mining-benchmarking",
 ]
 std = [
     "codec/std",
@@ -227,7 +230,8 @@ std = [
     "pallet-preimage/std",
     "pallet-identity/std",
     "pallet-proxy/std",
-    "pallet-transaction-pause/std"
+    "pallet-transaction-pause/std",
+    "pallet-xyk-liquidity-mining/std",
 ]
 try-runtime= [
     "frame-try-runtime",

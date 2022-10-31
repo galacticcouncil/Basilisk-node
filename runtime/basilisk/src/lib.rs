@@ -112,7 +112,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 79,
+	spec_version: 80,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -856,6 +856,34 @@ impl pallet_relaychain_info::Config for Runtime {
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+impl pallet_xyk_liquidity_mining::Config for Runtime {
+	type Event = Event;
+	type MultiCurrency = Currencies;
+	type CreateOrigin = UnanimousTechCommitteeOrRoot;
+	type PalletId = LMPalletId;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type NftCollectionId = LiquidityMiningNftCollectionId;
+	type AMM = XYK;
+	type WeightInfo = pallet_xyk_liquidity_mining::weights::BasiliskWeight<Runtime>;
+	type NFTHandler = NFT;
+	type LiquidityMiningHandler = XYKWarehouseLM;
+	type NonDustableWhitelistHandler = Duster;
+}
+
+type XYKLiquidityMiningInstance = warehouse_liquidity_mining::Instance1;
+impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime {
+	type AssetId = AssetId;
+	type MultiCurrency = Currencies;
+	type PalletId = WarehouseLMPalletId;
+	type MinTotalFarmRewards = MinTotalFarmRewards;
+	type MinPlannedYieldingPeriods = MinPlannedYieldingPeriods;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type AmmPoolId = AccountId;
+	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
+	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type Event = Event;
+}
+
 parameter_types! {
 	pub const PreimageMaxSize: u32 = 4096 * 1024;
 	pub PreimageBaseDeposit: Balance = deposit(2, 64);
@@ -971,6 +999,9 @@ construct_runtime!(
 		Marketplace: pallet_marketplace = 109,
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
+
+		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
+		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: pallet_currencies = 150,
@@ -1192,6 +1223,7 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 
@@ -1201,6 +1233,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
+			list_benchmark!(list, extra, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
@@ -1236,9 +1269,11 @@ impl_runtime_apis! {
 
 			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
+			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl pallet_exchange_benchmarking::Config for Runtime {}
+			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
@@ -1265,6 +1300,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
+			add_benchmark!(params, batches, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
 
 			// Substrate pallets
