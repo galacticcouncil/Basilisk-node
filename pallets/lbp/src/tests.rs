@@ -2230,7 +2230,7 @@ fn inverted_operations_should_be_equal() {
 			Origin::signed(BOB),
 			KUSD,
 			BSX,
-			20_252_522_u128,
+			20_252_529_u128,
 			9_000_000_u128
 		));
 		(
