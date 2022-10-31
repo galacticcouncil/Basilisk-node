@@ -44,6 +44,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
+test-utils = {git = "https://github.com/galacticcouncil/warehouse", rev = "efed1ddf7f9c6ef057e5aeaad9228d4527c83221", default-features = false}
 
 [features]
 default = ["std"]

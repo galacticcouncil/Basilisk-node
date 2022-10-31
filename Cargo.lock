@@ -6044,6 +6044,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
+ "test-utils",
 ]
 
 [[package]]
@@ -11717,6 +11718,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "test-utils"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=efed1ddf7f9c6ef057e5aeaad9228d4527c83221#efed1ddf7f9c6ef057e5aeaad9228d4527c83221"
+dependencies = [
+ "frame-system",
+ "pretty_assertions",
 ]
 
 [[package]]
