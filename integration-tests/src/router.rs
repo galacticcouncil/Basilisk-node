@@ -1,7 +1,7 @@
 #![cfg(test)]
 #![allow(clippy::identity_op)]
-use crate::assert_trader_non_native_balance;
 use crate::assert_trader_bsx_balance;
+use crate::assert_trader_non_native_balance;
 use crate::kusama_test_net::*;
 
 use basilisk_runtime::{BlockNumber, Origin, LBP, XYK};
@@ -1376,27 +1376,24 @@ fn start_lbp_campaign() {
 
 #[macro_export]
 macro_rules! assert_trader_non_native_balance {
-	($balance:expr,$asset_id:expr) => { {
+	($balance:expr,$asset_id:expr) => {{
 		let trader_balance = basilisk_runtime::Tokens::free_balance($asset_id, &AccountId::from(TRADER));
 		assert_eq!(
 			trader_balance, $balance,
 			"\r\nNon native asset({}) balance '{}' is not as expected '{}'",
 			$asset_id, trader_balance, $balance
 		);
-	}
-	};
+	}};
 }
 
 #[macro_export]
 macro_rules! assert_trader_bsx_balance {
-	($balance:expr) => { {
+	($balance:expr) => {{
 		let trader_balance = basilisk_runtime::Balances::free_balance(&AccountId::from(TRADER));
 		assert_eq!(
 			trader_balance, $balance,
 			"\r\nBSX asset balance '{}' is not as expected '{}'",
 			trader_balance, $balance
 		);
-	}
-	};
+	}};
 }
-
