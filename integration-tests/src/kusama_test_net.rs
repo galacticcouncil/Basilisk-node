@@ -1,7 +1,7 @@
 #![cfg(test)]
 pub use basilisk_runtime::{AccountId, VestingPalletId};
 use pallet_transaction_multi_payment::Price;
-use primitives::Balance;
+use primitives::{AssetId, Balance};
 
 pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
@@ -10,16 +10,37 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
+pub const BSX: AssetId = CORE_ASSET_ID;
+pub const AUSD: AssetId = 1;
+pub const MOVR: AssetId = 2;
+pub const KSM: AssetId = 3;
+pub const NEW_BOOTSTRAPPED_TOKEN: AssetId = 4;
+
+pub const ALICE_INITIAL_BSX_BALANCE: u128 = 200 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
-pub const BOB_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
+pub const CHARLIE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
+pub const DAVE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
+pub const VESTING_ACCOUNT_INITIAL_BSX_BALANCE: u128 = 1_000_000 * UNITS;
+
+pub const BOB_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
+pub const BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 1000 * UNITS;
+pub const CHARLIE_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
+pub const DAVE_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
+pub const ALICE_INITIAL_AUSD_BALANCE: u128 = 400 * UNITS;
+pub const ALICE_INITIAL_MOVR_BALANCE: u128 = 200 * UNITS;
+pub const ALICE_INITIAL_KSM_BALANCE: u128 = 400 * UNITS;
+pub const ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 400 * UNITS;
 
 use cumulus_primitives_core::ParaId;
+use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use frame_support::assert_ok;
 use frame_support::traits::GenesisBuild;
 use polkadot_primitives::v2::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use sp_runtime::traits::AccountIdConversion;
 
+use primitives::constants::chain::CORE_ASSET_ID;
 use xcm_emulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 decl_test_relay_chain! {
@@ -179,11 +200,11 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 200 * UNITS),
+			(AccountId::from(ALICE), ALICE_INITIAL_BSX_BALANCE),
 			(AccountId::from(BOB), BOB_INITIAL_BSX_BALANCE),
-			(AccountId::from(CHARLIE), 1000 * UNITS),
-			(AccountId::from(DAVE), 1000 * UNITS),
-			(vesting_account(), 1_000_000 * UNITS),
+			(AccountId::from(CHARLIE), CHARLIE_INITIAL_BSX_BALANCE),
+			(AccountId::from(DAVE), DAVE_INITIAL_BSX_BALANCE),
+			(vesting_account(), VESTING_ACCOUNT_INITIAL_BSX_BALANCE),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -191,9 +212,10 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
 		asset_names: vec![
-			(b"KSM".to_vec(), 1_000_000u128),
-			(b"aUSD".to_vec(), 1_000u128),
-			(b"DOT".to_vec(), 1_000u128),
+			(b"AUSD".to_vec(), 1_000_000u128),
+			(b"MOVR".to_vec(), 1_000u128),
+			(b"KSM".to_vec(), 1_000u128),
+			(b"NEW_BOOTSRAPPED_TOKEN".to_vec(), 1_000u128),
 		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
@@ -210,12 +232,22 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), 1, 200 * UNITS),
-			(AccountId::from(ALICE), 2, 200 * UNITS),
-			(AccountId::from(ALICE), 3, 200 * UNITS),
-			(AccountId::from(BOB), 1, BOB_INITIAL_ASSET_1_BALANCE),
-			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
-			(AccountId::from(DAVE), 1, 1_000 * UNITS),
+			(AccountId::from(ALICE), AUSD, ALICE_INITIAL_AUSD_BALANCE * UNITS),
+			(AccountId::from(ALICE), MOVR, ALICE_INITIAL_MOVR_BALANCE * UNITS),
+			(AccountId::from(ALICE), KSM, ALICE_INITIAL_KSM_BALANCE * UNITS),
+			(
+				AccountId::from(ALICE),
+				NEW_BOOTSTRAPPED_TOKEN,
+				ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE * UNITS,
+			),
+			(AccountId::from(BOB), AUSD, BOB_INITIAL_AUSD_BALANCE),
+			(
+				AccountId::from(BOB),
+				NEW_BOOTSTRAPPED_TOKEN,
+				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE,
+			),
+			(AccountId::from(CHARLIE), AUSD, CHARLIE_INITIAL_AUSD_BALANCE),
+			(AccountId::from(DAVE), AUSD, DAVE_INITIAL_AUSD_BALANCE),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -261,4 +293,41 @@ pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
 
 pub fn vesting_account() -> AccountId {
 	VestingPalletId::get().into_account_truncating()
+}
+
+pub fn set_relaychain_block_number(number: BlockNumber) {
+	use basilisk_runtime::Origin;
+	use basilisk_runtime::ParachainSystem;
+	use frame_support::traits::OnInitialize;
+
+	kusama_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
+
+	ParachainSystem::on_initialize(number);
+
+	let (relay_storage_root, proof) = RelayStateSproofBuilder::default().into_state_root_and_proof();
+
+	assert_ok!(ParachainSystem::set_validation_data(
+		Origin::none(),
+		cumulus_primitives_parachain_inherent::ParachainInherentData {
+			validation_data: cumulus_primitives_core::PersistedValidationData {
+				parent_head: Default::default(),
+				relay_parent_number: number,
+				relay_parent_storage_root: relay_storage_root,
+				max_pov_size: Default::default(),
+			},
+			relay_chain_state: proof,
+			downward_messages: Default::default(),
+			horizontal_messages: Default::default(),
+		}
+	));
+}
+
+pub fn kusama_run_to_block(to: BlockNumber) {
+	use frame_support::traits::{OnFinalize, OnInitialize};
+	while kusama_runtime::System::block_number() < to {
+		let b = kusama_runtime::System::block_number();
+		kusama_runtime::System::on_finalize(b);
+		kusama_runtime::System::on_initialize(b + 1);
+		kusama_runtime::System::set_block_number(b + 1);
+	}
 }

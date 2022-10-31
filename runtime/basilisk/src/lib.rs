@@ -112,7 +112,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 79,
+	spec_version: 80,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -940,7 +940,7 @@ impl pallet_route_executor::Config for Runtime {
 	type Balance = Balance;
 	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
-	type AMM = XYK;
+	type AMM = (XYK, LBP);
 	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
 }
 

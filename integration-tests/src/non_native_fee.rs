@@ -75,9 +75,9 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 		assert_ok!(basilisk_runtime::XYK::create_pool(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			currency_0, // 1000 BSX
-			currency_1, // 500 KSM (500_000_033_400_002)
 			1_000 * UNITS,
-			Price::from_float(0.5),
+			currency_1, // 500 KSM (500_000_033_400_002)
+			500 * UNITS,
 		));
 
 		let spot_price = XYKSpotPrice::<basilisk_runtime::Runtime>::spot_price(currency_0, currency_1);

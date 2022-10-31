@@ -29,7 +29,7 @@ use frame_system::{Pallet as System, RawOrigin};
 use frame_support::dispatch;
 use orml_traits::arithmetic::One;
 use orml_traits::MultiCurrency;
-use primitives::{asset::AssetPair, AssetId, Balance, Price};
+use primitives::{asset::AssetPair, AssetId, Balance};
 use sp_arithmetic::FixedU128;
 use sp_arithmetic::Perquintill;
 use sp_std::convert::From;
@@ -78,10 +78,10 @@ fn initialize_pool<T: Config>(
 	caller: T::AccountId,
 	asset_a: AssetId,
 	asset_b: AssetId,
-	amount: Balance,
-	price: Price,
+	amount_a: Balance,
+	amount_b: Balance,
 ) -> dispatch::DispatchResult {
-	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, asset_b, amount, price)
+	xykpool::Pallet::<T>::create_pool(RawOrigin::Signed(caller).into(), asset_a, amount_a, asset_b, amount_b)
 }
 
 fn xyk_add_liquidity<T: Config>(
@@ -164,7 +164,7 @@ benchmarks! {
 		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
@@ -183,7 +183,7 @@ benchmarks! {
 		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
@@ -209,7 +209,7 @@ benchmarks! {
 			asset_out: DOT
 		};
 
-		initialize_pool::<T>(xyk_caller.clone(), ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
@@ -219,7 +219,7 @@ benchmarks! {
 		lm_deposit_shares::<T>(liq_provider, ASSET_PAIR, 10_000)?;
 		set_period::<T>(100_000);
 
-		initialize_pool::<T>(xyk_caller, bsx_dot.asset_in, bsx_dot.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, bsx_dot.asset_in, bsx_dot.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 	}: {
 		XYKLiquidityMining::<T>::create_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, bsx_dot, FixedU128::from(50_000_000_u128), Some(LoyaltyCurve::default()))?
 	}
@@ -230,7 +230,7 @@ benchmarks! {
 		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
@@ -248,7 +248,7 @@ benchmarks! {
 		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
@@ -266,7 +266,7 @@ benchmarks! {
 		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 10_000, 1_000_000_000)?;
 
@@ -286,7 +286,7 @@ benchmarks! {
 		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		let xyk_id = xykpool::Pallet::<T>::pair_account_from_assets(ASSET_PAIR.asset_in, ASSET_PAIR.asset_out);
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, 100_000, 1_000_000_000)?;
 
@@ -305,7 +305,7 @@ benchmarks! {
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 		let shares_amount = 10_000;
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, shares_amount, 1_000_000_000)?;
 
 		//global id: 1, yield id: 2
@@ -346,7 +346,7 @@ benchmarks! {
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 		let shares_amount = 10_000;
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, shares_amount, 1_000_000_000)?;
 
 		//global id: 1, yield id: 2
@@ -394,7 +394,7 @@ benchmarks! {
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
 		let shares_amount = 10_000;
 
-		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller, ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		xyk_add_liquidity::<T>(liq_provider.clone(), ASSET_PAIR, shares_amount, 1_000_000_000)?;
 
 		//global id: 1, yield id: 2
@@ -424,8 +424,8 @@ benchmarks! {
 			asset_out: DOT
 		};
 
-		initialize_pool::<T>(xyk_caller.clone(), ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, Price::from(10))?;
-		initialize_pool::<T>(xyk_caller, bsx_dot.asset_in, bsx_dot.asset_out, 1_000_000 * ONE, Price::from(10))?;
+		initialize_pool::<T>(xyk_caller.clone(), ASSET_PAIR.asset_in, ASSET_PAIR.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
+		initialize_pool::<T>(xyk_caller, bsx_dot.asset_in, bsx_dot.asset_out, 1_000_000 * ONE, 10_000_000 * ONE)?;
 		xyk_add_liquidity::<T>(liq_provider.clone(), bsx_dot, shares_amount, 1_000_000_000)?;
 
 		//global id: 1
