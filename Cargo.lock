@@ -414,7 +414,7 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "basilisk"
-version = "7.0.0"
+version = "7.1.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -498,7 +498,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "79.0.0"
+version = "80.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -519,7 +519,7 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "hydradx-adapters",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "orml-benchmarking",
  "orml-tokens",
  "orml-traits",
@@ -543,6 +543,7 @@ dependencies = [
  "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-liquidity-mining",
  "pallet-marketplace",
  "pallet-multisig",
  "pallet-nft",
@@ -563,6 +564,8 @@ dependencies = [
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
+ "pallet-xyk-liquidity-mining",
+ "pallet-xyk-liquidity-mining-benchmarking",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
  "parity-scale-codec",
@@ -1198,12 +1201,12 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.2.2"
+version = "2.2.3"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "orml-tokens",
  "orml-traits",
  "orml-vesting",
@@ -3407,12 +3410,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "hydra-dx-math"
+version = "4.7.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=9a18513bb48ece2a3b61b43c6eb83a70086f4f8a#9a18513bb48ece2a3b61b43c6eb83a70086f4f8a"
+dependencies = [
+ "fixed",
+ "num-traits",
+ "parity-scale-codec",
+ "primitive-types 0.12.0",
+ "sp-arithmetic",
+]
+
+[[package]]
 name = "hydradx-adapters"
 version = "0.2.1"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=a97b39f4bb34d267b66694dd833aa7751db5d6a7#a97b39f4bb34d267b66694dd833aa7751db5d6a7"
 dependencies = [
  "frame-support",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "log",
  "pallet-transaction-multi-payment",
  "parity-scale-codec",
@@ -3433,6 +3448,20 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-std",
+]
+
+[[package]]
+name = "hydradx-traits"
+version = "0.8.3"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=89bde6d2b8bad2263c554eb3d83b76d877971136#89bde6d2b8bad2263c554eb3d83b76d877971136"
+dependencies = [
+ "frame-support",
+ "impl-trait-for-tuples",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
  "sp-std",
 ]
 
@@ -5319,6 +5348,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-currencies"
+version = "0.4.1-dev"
+source = "git+https://github.com/open-web3-stack/open-runtime-module-library?branch=polkadot-v0.9.28#20969f385bf77e41386e8d8aa9626b003a306204"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "orml-utilities",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "orml-tokens"
 version = "0.4.1-dev"
 source = "git+https://github.com/open-web3-stack/open-runtime-module-library?branch=polkadot-v0.9.28#20969f385bf77e41386e8d8aa9626b003a306204"
@@ -5476,7 +5522,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "orml-traits",
  "parity-scale-codec",
  "primitive-types 0.12.0",
@@ -5750,7 +5796,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "lazy_static",
  "orml-tokens",
  "orml-traits",
@@ -5827,8 +5873,8 @@ version = "5.3.12"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
+ "hydra-dx-math 4.7.0 (git+https://github.com/galacticcouncil/HydraDX-math?branch=polkadot-v0.9.28)",
+ "hydradx-traits 0.8.2",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5853,7 +5899,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "orml-tokens",
  "orml-traits",
  "pallet-asset-registry",
@@ -5969,8 +6015,8 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math",
- "hydradx-traits",
+ "hydra-dx-math 4.7.0 (git+https://github.com/galacticcouncil/HydraDX-math?branch=polkadot-v0.9.28)",
+ "hydradx-traits 0.8.2",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
@@ -6010,6 +6056,23 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-liquidity-mining"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=89bde6d2b8bad2263c554eb3d83b76d877971136#89bde6d2b8bad2263c554eb3d83b76d877971136"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math 4.7.0 (git+https://github.com/galacticcouncil/HydraDX-math?rev=9a18513bb48ece2a3b61b43c6eb83a70086f4f8a)",
+ "hydradx-traits 0.8.3",
+ "orml-traits",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -6108,7 +6171,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "orml-utilities",
  "pallet-uniques",
  "parity-scale-codec",
@@ -6230,7 +6293,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -6290,7 +6353,7 @@ source = "git+https://github.com/galacticcouncil/warehouse?rev=a97b39f4bb34d267b
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "orml-traits",
  "parity-scale-codec",
  "scale-info",
@@ -6467,7 +6530,7 @@ source = "git+https://github.com/galacticcouncil/warehouse?rev=a97b39f4bb34d267b
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "orml-traits",
  "pallet-transaction-payment",
  "parity-scale-codec",
@@ -6640,8 +6703,8 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math",
- "hydradx-traits",
+ "hydra-dx-math 4.7.0 (git+https://github.com/galacticcouncil/HydraDX-math?branch=polkadot-v0.9.28)",
+ "hydradx-traits 0.8.2",
  "log",
  "orml-tokens",
  "orml-traits",
@@ -6659,6 +6722,63 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-xyk-liquidity-mining"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydradx-traits 0.8.2",
+ "hydradx-traits 0.8.3",
+ "lazy_static",
+ "log",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-liquidity-mining",
+ "pallet-nft",
+ "parity-scale-codec",
+ "pretty_assertions",
+ "primitives",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-xyk-liquidity-mining-benchmarking"
+version = "1.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "hydradx-traits 0.8.2",
+ "orml-currencies",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-asset-registry",
+ "pallet-balances",
+ "pallet-duster",
+ "pallet-liquidity-mining",
+ "pallet-nft",
+ "pallet-uniques",
+ "pallet-xyk",
+ "pallet-xyk-liquidity-mining",
+ "parity-scale-codec",
+ "primitives",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -8898,7 +9018,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex-literal",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "kusama-runtime",
  "orml-tokens",
  "orml-traits",
@@ -11573,7 +11693,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "79.0.0"
+version = "80.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11594,7 +11714,7 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "hydradx-adapters",
- "hydradx-traits",
+ "hydradx-traits 0.8.2",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -11617,6 +11737,7 @@ dependencies = [
  "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
+ "pallet-liquidity-mining",
  "pallet-marketplace",
  "pallet-multisig",
  "pallet-nft",
@@ -11638,6 +11759,8 @@ dependencies = [
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
+ "pallet-xyk-liquidity-mining",
+ "pallet-xyk-liquidity-mining-benchmarking",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
  "parity-scale-codec",
