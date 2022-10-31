@@ -1,6 +1,6 @@
 [package]
 name = "common-runtime"
-version = "2.2.2"
+version = "2.2.3"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
