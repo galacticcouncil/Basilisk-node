@@ -19,7 +19,7 @@ codec = { default-features = false, features = ["derive"], package = "parity-sca
 scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "68693fcbca8f3c813ecf9d80c33c4034da082006", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "2136b84d2eb0efd4e2267055873c79b2b54593ef", default-features = false }
 
 # ORML dependencies
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
@@ -40,7 +40,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "68693fcbca8f3c813ecf9d80c33c4034da082006", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "2136b84d2eb0efd4e2267055873c79b2b54593ef", default-features = false }
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 
 [features]

@@ -51,7 +51,7 @@ use frame_support::{
 	sp_runtime::traits::{BlockNumberProvider, Zero},
 	PalletId,
 };
-use hydradx_traits_lm::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
+use hydradx_traits::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
 use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};

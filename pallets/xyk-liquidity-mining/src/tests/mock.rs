@@ -396,7 +396,7 @@ pub struct DummyLiquidityMining {}
 
 impl DummyLiquidityMining {}
 
-impl hydradx_traits_lm::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> for DummyLiquidityMining {
+impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> for DummyLiquidityMining {
 	type Error = DispatchError;
 
 	type AmmPoolId = AccountId;
