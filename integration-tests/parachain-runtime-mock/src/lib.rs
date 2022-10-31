@@ -36,7 +36,7 @@ use xcm_builder::{
 };
 use xcm_executor::{Config, XcmExecutor};
 pub type Amount = i128;
-pub type BlockNumberKarura = u64;
+pub type BlockNumber = u64;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::weights::ConstantMultiplier;
@@ -55,7 +55,7 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 pub const CORE_ASSET_ID: AssetId = 0;
 
 parameter_types! {
-	pub KaruraNativeCurrencyId: AssetId = 0;
+	pub ParachainNativeCurrencyId: AssetId = 0;
 	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
 	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
@@ -77,7 +77,7 @@ parameter_types! {
 	pub RegistryStringLimit: u32 = 100;
 	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
-	pub KaruraTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
+	pub ParachainTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
 	pub KsmPerSecond: (AssetId, u128) = (0, 10);
 	pub BaseRate: u128 = 100;
 	pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::parachain_id().into())));
@@ -91,7 +91,7 @@ parameter_type_with_key! {
 	};
 }
 
-impl frame_system::Config for KaruraRuntime {
+impl frame_system::Config for ParachainRuntime {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = BlockLength;
@@ -99,7 +99,7 @@ impl frame_system::Config for KaruraRuntime {
 	type Origin = Origin;
 	type Call = Call;
 	type Index = u64;
-	type BlockNumber = BlockNumberKarura;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
@@ -137,7 +137,7 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	LocationToAccountId,
 	AssetId,
 	CurrencyIdConvert,
-	DepositToAlternative<KaruraTreasuryAccount, Currencies, AssetId, AccountId, Balance>,
+	DepositToAlternative<ParachainTreasuryAccount, Currencies, AssetId, AccountId, Balance>,
 >;
 pub type XcmOriginToCallOrigin = (
 	SovereignSignedViaLocation<LocationToAccountId, Origin>,
@@ -177,7 +177,7 @@ impl Config for XcmConfig {
 			Balance,
 			Price,
 			CurrencyIdConvert,
-			DepositAll<KaruraRuntime>,
+			DepositAll<ParachainRuntime>,
 			MultiTransactionPayment,
 		>,
 	>;
@@ -187,7 +187,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = ();
 }
 
-impl cumulus_pallet_parachain_system::Config for KaruraRuntime {
+impl cumulus_pallet_parachain_system::Config for ParachainRuntime {
 	type Event = Event;
 	type OnSystemEvent = ();
 	type SelfParaId = ParachainInfo;
@@ -199,7 +199,7 @@ impl cumulus_pallet_parachain_system::Config for KaruraRuntime {
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
-impl cumulus_pallet_xcmp_queue::Config for KaruraRuntime {
+impl cumulus_pallet_xcmp_queue::Config for ParachainRuntime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
@@ -210,7 +210,7 @@ impl cumulus_pallet_xcmp_queue::Config for KaruraRuntime {
 	type WeightInfo = ();
 }
 
-impl pallet_xcm::Config for KaruraRuntime {
+impl pallet_xcm::Config for ParachainRuntime {
 	type Event = Event;
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
@@ -227,15 +227,15 @@ impl pallet_xcm::Config for KaruraRuntime {
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
 }
 
-impl cumulus_pallet_dmp_queue::Config for KaruraRuntime {
+impl cumulus_pallet_dmp_queue::Config for ParachainRuntime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-impl parachain_info::Config for KaruraRuntime {}
+impl parachain_info::Config for ParachainRuntime {}
 
-impl orml_tokens::Config for KaruraRuntime {
+impl orml_tokens::Config for ParachainRuntime {
 	type Event = Event;
 	type Balance = Balance;
 	type Amount = Amount;
@@ -251,35 +251,35 @@ impl orml_tokens::Config for KaruraRuntime {
 	type ReserveIdentifier = ();
 }
 
-impl pallet_balances::Config for KaruraRuntime {
+impl pallet_balances::Config for ParachainRuntime {
 	type Balance = Balance;
 	type Event = Event;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
-	type AccountStore = frame_system::Pallet<KaruraRuntime>;
+	type AccountStore = frame_system::Pallet<ParachainRuntime>;
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
 }
-impl cumulus_pallet_xcm::Config for KaruraRuntime {
+impl cumulus_pallet_xcm::Config for ParachainRuntime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
-impl pallet_asset_registry::Config for KaruraRuntime {
+impl pallet_asset_registry::Config for ParachainRuntime {
 	type Event = Event;
 	type AssetId = AssetId;
 	type RegistryOrigin = EnsureRoot<AccountId>;
 	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStringLimit;
-	type NativeAssetId = KaruraNativeCurrencyId;
+	type NativeAssetId = ParachainNativeCurrencyId;
 	type WeightInfo = ();
 }
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<KaruraRuntime>;
-type Block = frame_system::mocking::MockBlock<KaruraRuntime>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<ParachainRuntime>;
+type Block = frame_system::mocking::MockBlock<ParachainRuntime>;
 
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct AssetLocation(pub MultiLocation);
@@ -364,7 +364,7 @@ parameter_type_with_key! {
 	};
 }
 
-impl orml_xtokens::Config for KaruraRuntime {
+impl orml_xtokens::Config for ParachainRuntime {
 	type Event = Event;
 	type Balance = Balance;
 	type CurrencyId = AssetId;
@@ -381,32 +381,32 @@ impl orml_xtokens::Config for KaruraRuntime {
 	type ReserveProvider = AbsoluteReserveProvider;
 }
 
-impl pallet_currencies::Config for KaruraRuntime {
+impl pallet_currencies::Config for ParachainRuntime {
 	type Event = Event;
 	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<KaruraRuntime, Balances, Amount, u32>;
-	type GetNativeCurrencyId = KaruraNativeCurrencyId;
+	type NativeCurrency = BasicCurrencyAdapter<ParachainRuntime, Balances, Amount, u32>;
+	type GetNativeCurrencyId = ParachainNativeCurrencyId;
 	type WeightInfo = ();
 }
 
-impl orml_unknown_tokens::Config for KaruraRuntime {
+impl orml_unknown_tokens::Config for ParachainRuntime {
 	type Event = Event;
 }
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
 
-impl pallet_transaction_payment::Config for KaruraRuntime {
+impl pallet_transaction_payment::Config for ParachainRuntime {
 	type Event = Event;
-	type OnChargeTransaction = TransferFees<Currencies, MultiTransactionPayment, DepositAll<KaruraRuntime>>;
+	type OnChargeTransaction = TransferFees<Currencies, MultiTransactionPayment, DepositAll<ParachainRuntime>>;
 	type OperationalFeeMultiplier = ();
 	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 }
 
-pub struct KaruraSpotPriceProviderStub;
+pub struct ParachainSpotPriceProviderStub;
 
-impl SpotPriceProvider<AssetId> for KaruraSpotPriceProviderStub {
+impl SpotPriceProvider<AssetId> for ParachainSpotPriceProviderStub {
 	type Price = FixedU128;
 
 	fn pair_exists(_asset_a: AssetId, _asset_b: AssetId) -> bool {
@@ -418,20 +418,20 @@ impl SpotPriceProvider<AssetId> for KaruraSpotPriceProviderStub {
 	}
 }
 
-impl pallet_transaction_multi_payment::Config for KaruraRuntime {
+impl pallet_transaction_multi_payment::Config for ParachainRuntime {
 	type Event = Event;
 	type AcceptedCurrencyOrigin = EnsureRoot<AccountId>;
 	type Currencies = Currencies;
-	type SpotPriceProvider = KaruraSpotPriceProviderStub;
+	type SpotPriceProvider = ParachainSpotPriceProviderStub;
 	type WeightInfo = ();
 	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
-	type NativeAssetId = KaruraNativeCurrencyId;
-	type FeeReceiver = KaruraTreasuryAccount;
+	type NativeAssetId = ParachainNativeCurrencyId;
+	type FeeReceiver = ParachainTreasuryAccount;
 }
 
 construct_runtime!(
-	pub enum KaruraRuntime where
+	pub enum ParachainRuntime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,

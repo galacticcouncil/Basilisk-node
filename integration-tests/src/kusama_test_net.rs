@@ -10,7 +10,7 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
-pub const KARURA_PARA_ID: u32 = 2000;
+pub const OTHER_PARA_ID: u32 = 2000;
 pub const BASILISK_PARA_ID: u32 = 2090;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
 pub const BOB_INITIAL_ASSET_1_BALANCE: u128 = 1000 * UNITS;
@@ -43,12 +43,12 @@ decl_test_parachain! {
 }
 
 decl_test_parachain! {
-	pub struct Karura{
-		Runtime = karura_runtime_mock::KaruraRuntime,
-		Origin = karura_runtime_mock::Origin,
-		XcmpMessageHandler = karura_runtime_mock::XcmpQueue,
-		DmpMessageHandler = karura_runtime_mock::DmpQueue,
-		new_ext = karura_ext(),
+	pub struct OtherParachain{
+		Runtime = parachain_runtime_mock::ParachainRuntime,
+		Origin = parachain_runtime_mock::Origin,
+		XcmpMessageHandler = parachain_runtime_mock::XcmpQueue,
+		DmpMessageHandler = parachain_runtime_mock::DmpQueue,
+		new_ext = other_parachain_ext(),
 	}
 }
 
@@ -56,7 +56,7 @@ decl_test_network! {
 	pub struct TestNet {
 		relay_chain = KusamaRelay,
 		parachains = vec![
-			(2000, Karura),
+			(2000, OtherParachain),
 			(2090, Basilisk),
 		],
 	}
@@ -213,17 +213,17 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn karura_ext() -> sp_io::TestExternalities {
+pub fn other_parachain_ext() -> sp_io::TestExternalities {
 	use frame_support::traits::OnInitialize;
-	use karura_runtime_mock::{KaruraRuntime, MultiTransactionPayment, NativeExistentialDeposit, System};
+	use parachain_runtime_mock::{ParachainRuntime, MultiTransactionPayment, NativeExistentialDeposit, System};
 
 	let existential_deposit = NativeExistentialDeposit::get();
 
 	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<KaruraRuntime>()
+		.build_storage::<ParachainRuntime>()
 		.unwrap();
 
-	pallet_balances::GenesisConfig::<KaruraRuntime> {
+	pallet_balances::GenesisConfig::<ParachainRuntime> {
 		balances: vec![
 			(AccountId::from(ALICE), 200 * UNITS),
 			(AccountId::from(BOB), BOB_INITIAL_BSX_BALANCE),
@@ -235,7 +235,7 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
-	pallet_asset_registry::GenesisConfig::<KaruraRuntime> {
+	pallet_asset_registry::GenesisConfig::<ParachainRuntime> {
 		asset_names: vec![
 			(b"KSM".to_vec(), 1_000_000u128),
 			(b"aUSD".to_vec(), 1_000u128),
@@ -247,15 +247,15 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
-	<parachain_info::GenesisConfig as GenesisBuild<KaruraRuntime>>::assimilate_storage(
+	<parachain_info::GenesisConfig as GenesisBuild<ParachainRuntime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: KARURA_PARA_ID.into(),
+			parachain_id: OTHER_PARA_ID.into(),
 		},
 		&mut t,
 	)
 	.unwrap();
 
-	orml_tokens::GenesisConfig::<KaruraRuntime> {
+	orml_tokens::GenesisConfig::<ParachainRuntime> {
 		balances: vec![
 			(AccountId::from(ALICE), 1, 200 * UNITS),
 			(AccountId::from(ALICE), 2, 200 * UNITS),
@@ -268,7 +268,7 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
-	<pallet_xcm::GenesisConfig as GenesisBuild<KaruraRuntime>>::assimilate_storage(
+	<pallet_xcm::GenesisConfig as GenesisBuild<ParachainRuntime>>::assimilate_storage(
 		&pallet_xcm::GenesisConfig {
 			safe_xcm_version: Some(2),
 		},
@@ -276,7 +276,7 @@ pub fn karura_ext() -> sp_io::TestExternalities {
 	)
 	.unwrap();
 
-	pallet_transaction_multi_payment::GenesisConfig::<KaruraRuntime> {
+	pallet_transaction_multi_payment::GenesisConfig::<ParachainRuntime> {
 		currencies: vec![(1, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
 		account_currencies: vec![],
 	}

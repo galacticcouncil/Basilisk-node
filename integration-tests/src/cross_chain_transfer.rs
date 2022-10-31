@@ -104,7 +104,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 }
 
 #[test]
-fn basilisk_should_receive_asset_when_sent_from_karura() {
+fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 	TestNet::reset();
 
 	let amount_to_send = 30 * UNITS;
@@ -113,13 +113,13 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	Karura::execute_with(|| {
-		assert_ok!(karura_runtime_mock::XTokens::transfer(
-			karura_runtime_mock::Origin::signed(ALICE.into()),
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			amount_to_send,
 			Box::new(
@@ -138,7 +138,7 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 			399_600_000_000
 		));
 		assert_eq!(
-			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - amount_to_send
 		);
 	});
@@ -157,16 +157,16 @@ fn basilisk_should_receive_asset_when_sent_from_karura() {
 }
 
 #[test]
-fn karura_should_receive_asset_when_sent_from_basilisk() {
+fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 	TestNet::reset();
 
 	let amount_to_send = 30 * UNITS;
 
-	Karura::execute_with(|| {
-		assert_ok!(karura_runtime_mock::AssetRegistry::set_location(
-			karura_runtime_mock::Origin::root(),
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::AssetRegistry::set_location(
+			parachain_runtime_mock::Origin::root(),
 			1,
-			karura_runtime_mock::AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
+			parachain_runtime_mock::AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
@@ -184,7 +184,7 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(KARURA_PARA_ID),
+						Junction::Parachain(OTHER_PARA_ID),
 						Junction::AccountId32 {
 							id: BOB,
 							network: NetworkId::Any,
@@ -201,22 +201,22 @@ fn karura_should_receive_asset_when_sent_from_basilisk() {
 		);
 	});
 
-	Karura::execute_with(|| {
+	OtherParachain::execute_with(|| {
 		let fee = 10175000000;
 		assert_eq!(
-			karura_runtime_mock::Tokens::free_balance(1, &AccountId::from(BOB)),
+			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(BOB)),
 			1000 * UNITS + amount_to_send - fee
 		);
 
 		assert_eq!(
-			karura_runtime_mock::Tokens::free_balance(1, &karura_runtime_mock::KaruraTreasuryAccount::get()),
+			parachain_runtime_mock::Tokens::free_balance(1, &parachain_runtime_mock::ParachainTreasuryAccount::get()),
 			10175000000
 		);
 	});
 }
 
 #[test]
-fn transfer_from_karura_and_back() {
+fn transfer_from_other_parachain_and_back() {
 	TestNet::reset();
 
 	let amount_to_send = 30 * UNITS;
@@ -225,13 +225,13 @@ fn transfer_from_karura_and_back() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	Karura::execute_with(|| {
-		assert_ok!(karura_runtime_mock::XTokens::transfer(
-			karura_runtime_mock::Origin::signed(ALICE.into()),
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			amount_to_send,
 			Box::new(
@@ -250,7 +250,7 @@ fn transfer_from_karura_and_back() {
 			399_600_000_000
 		));
 		assert_eq!(
-			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - amount_to_send
 		);
 	});
@@ -280,7 +280,7 @@ fn transfer_from_karura_and_back() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(KARURA_PARA_ID),
+						Junction::Parachain(OTHER_PARA_ID),
 						Junction::AccountId32 {
 							id: ALICE,
 							network: NetworkId::Any,
@@ -301,36 +301,36 @@ fn transfer_from_karura_and_back() {
 		);
 	});
 
-	Karura::execute_with(|| {
+	OtherParachain::execute_with(|| {
 		assert_eq!(
-			karura_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)),
+			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)),
 			200 * UNITS
 		);
 	});
 }
 
 #[test]
-fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used() {
+fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	Karura::execute_with(|| {
+	OtherParachain::execute_with(|| {
 		let insufficient_amount = 55;
 		assert_eq!(
-			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200000000000000
 		);
 
 		assert_noop!(
-			karura_runtime_mock::XTokens::transfer(
-				karura_runtime_mock::Origin::signed(ALICE.into()),
+			parachain_runtime_mock::XTokens::transfer(
+				parachain_runtime_mock::Origin::signed(ALICE.into()),
 				0,
 				insufficient_amount,
 				Box::new(
@@ -352,7 +352,7 @@ fn karura_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used
 		);
 
 		assert_eq!(
-			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200000000000000
 		);
 	});
@@ -378,7 +378,7 @@ fn fee_currency_set_on_xcm_transfer() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
 
 		// fee currency is not set before XCM transfer
@@ -388,9 +388,9 @@ fn fee_currency_set_on_xcm_transfer() {
 		);
 	});
 
-	Karura::execute_with(|| {
-		assert_ok!(karura_runtime_mock::XTokens::transfer(
-			karura_runtime_mock::Origin::signed(ALICE.into()),
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			transfer_amount,
 			Box::new(
@@ -409,7 +409,7 @@ fn fee_currency_set_on_xcm_transfer() {
 			399_600_000_000
 		));
 		assert_eq!(
-			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - transfer_amount
 		);
 	});
@@ -436,9 +436,9 @@ fn fee_currency_set_on_xcm_transfer() {
 fn assets_should_be_trapped_when_assets_are_unknown() {
 	TestNet::reset();
 
-	Karura::execute_with(|| {
-		assert_ok!(karura_runtime_mock::XTokens::transfer(
-			karura_runtime_mock::Origin::signed(ALICE.into()),
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -457,7 +457,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			399_600_000_000
 		));
 		assert_eq!(
-			karura_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
@@ -476,8 +476,8 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			}
 			.into(),
 		]);
-		let origin = MultiLocation::new(1, X1(Parachain(KARURA_PARA_ID)));
-		let loc = MultiLocation::new(1, X2(Parachain(KARURA_PARA_ID), GeneralIndex(0)));
+		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
+		let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
 		let asset: MultiAsset = (loc, 30 * UNITS).into();
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);

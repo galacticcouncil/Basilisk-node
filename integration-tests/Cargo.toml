@@ -104,7 +104,7 @@ polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", 
 
 basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28" }
-karura-runtime-mock = { path = "karura-runtime-mock", default-features = false}
+parachain-runtime-mock = { path = "parachain-runtime-mock", default-features = false}
 
 [dev-dependencies]
 xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", rev = "7d4eec3c50d77b82f88f9c831c5b553633ca245f" }
