@@ -166,7 +166,10 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 		assert_ok!(parachain_runtime_mock::AssetRegistry::set_location(
 			parachain_runtime_mock::Origin::root(),
 			1,
-			parachain_runtime_mock::AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
+			parachain_runtime_mock::AssetLocation(MultiLocation::new(
+				1,
+				X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))
+			))
 		));
 	});
 

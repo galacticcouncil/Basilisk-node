@@ -248,7 +248,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 pub fn other_parachain_ext() -> sp_io::TestExternalities {
 	use frame_support::traits::OnInitialize;
-	use parachain_runtime_mock::{ParachainRuntime, MultiTransactionPayment, NativeExistentialDeposit, System};
+	use parachain_runtime_mock::{MultiTransactionPayment, NativeExistentialDeposit, ParachainRuntime, System};
 
 	let existential_deposit = NativeExistentialDeposit::get();
 
