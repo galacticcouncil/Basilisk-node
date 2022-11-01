@@ -621,7 +621,15 @@ fn bid_english_auction_should_work() {
 			0,
 			BalanceOf::<Test>::from(1_100_u32)
 		));
-		expect_event(crate::Event::<Test>::BidPlaced(0, CHARLIE, bid_object(1100, 12)));
+
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::BidPlaced {
+				id: 0,
+				bidder: CHARLIE,
+				bid: bid_object(1100, 12)
+			}
+			.into(),
+		)]);
 
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let bob_balance_after = Balances::free_balance(&BOB);

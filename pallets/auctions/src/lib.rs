@@ -278,7 +278,7 @@ pub mod pallet {
 		/// An auction is destroyed manually by owner
 		AuctionDestroyed { id: T::AuctionId },
 		/// A bid is placed
-		BidPlaced(T::AuctionId, T::AccountId, Bid<T>),
+		BidPlaced { id: T::AuctionId, bidder: T::AccountId, bid: Bid<T> },
 		/// An auction has closed
 		AuctionClosed(T::AuctionId),
 	}
@@ -484,7 +484,7 @@ pub mod pallet {
 					}
 				}
 
-				Self::deposit_event(Event::BidPlaced(auction_id, bidder, bid));
+				Self::deposit_event(Event::BidPlaced { id: auction_id, bidder: bidder, bid: bid });
 
 				Ok(())
 			})
