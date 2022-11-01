@@ -227,7 +227,15 @@ fn update_topup_auction_should_work() {
 		};
 		let auction = Auction::TopUp(auction_data);
 
-		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction));
+		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()));
+
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionUpdated {
+				id: 0,
+				auction: auction,
+			}
+			.into(),
+		)]);
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction_result {

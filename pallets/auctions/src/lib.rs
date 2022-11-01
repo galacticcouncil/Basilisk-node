@@ -273,6 +273,8 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// An auction is created
 		AuctionCreated { id: T::AuctionId, auction: Auction<T> },
+		/// An auction is updated
+		AuctionUpdated { id: T::AuctionId, auction: Auction<T> },
 		/// A bid is placed
 		BidPlaced(T::AuctionId, T::AccountId, Bid<T>),
 		/// An auction has closed

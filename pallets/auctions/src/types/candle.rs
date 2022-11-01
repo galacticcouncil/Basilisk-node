@@ -47,7 +47,12 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 				Pallet::<T>::validate_update_destroy_permissions(sender, &existing_auction.common_data)?;
 				Pallet::<T>::validate_update(&existing_auction.common_data, &self.common_data)?;
 
-				*existing_auction = self;
+				*existing_auction = self.clone();
+
+				Pallet::<T>::deposit_event(Event::AuctionUpdated {
+					id: auction_id,
+					auction: traits::Auction::Candle(self),
+				});
 
 				Ok(())
 			} else {
