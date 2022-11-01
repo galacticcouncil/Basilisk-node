@@ -17,7 +17,6 @@
 
 use super::*;
 use frame_support::traits::StorageVersion;
-use hydradx_traits::nft::CreateTypedCollection;
 
 const STORAGE_VERSION: u16 = 1;
 
@@ -57,28 +56,6 @@ pub mod v1 {
 			}
 		}
 
-		//create nft collection
-		match T::NFTHandler::create_typed_collection(
-			pallet_account,
-			T::NftCollectionId::get(),
-			pallet_nft::CollectionType::LiquidityMining,
-		) {
-			Ok(()) => {
-				//NOTE: create_typed_collection is not benchamrked but it's calling same
-				//funtion as create_collection so weight should be the same.
-				weight = weight.saturating_add(
-					<pallet_nft::weights::BasiliskWeight<T> as pallet_nft::weights::WeightInfo>::create_collection(),
-				);
-			}
-			Err(e) => {
-				log::error!(
-					target: "runtime: xyk-liquidity-mining",
-					"Error to create NFT collection: {:?}",
-					e
-				);
-			}
-		}
-
 		StorageVersion::new(STORAGE_VERSION).put::<Pallet<T>>();
 		weight
 	}
@@ -96,38 +73,20 @@ pub mod v1 {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::tests::{mock, mock::Test};
-	use std::borrow::Borrow;
-	use std::cell::RefCell;
+	use crate::tests::mock::Test;
 
 	#[test]
 	fn v1_migration() {
 		sp_io::TestExternalities::default().execute_with(|| {
-			let pallet_account = <Pallet<Test>>::account_id();
-
 			let weight = v1::migrate::<Test>();
-
-			assert_that_nft_collecion_is_created(pallet_account);
 
 			assert_eq!(StorageVersion::get::<Pallet<Test>>(), STORAGE_VERSION);
 
 			let storage_version_weight: Weight = Weight::from_ref_time(2);
 			let duster_weight: Weight = Weight::from_ref_time(2);
-			let expected_weight =
-				<pallet_nft::weights::BasiliskWeight<Test> as pallet_nft::weights::WeightInfo>::create_collection()
-					.saturating_add(duster_weight)
-					.saturating_add(storage_version_weight);
+			let expected_weight = duster_weight.saturating_add(storage_version_weight);
 
 			assert_eq!(weight, expected_weight);
-		});
-	}
-
-	fn assert_that_nft_collecion_is_created(pallet_account: u128) {
-		mock::NFT_COLLECTION.borrow().with(|v| {
-			assert_eq!(
-				*v,
-				RefCell::new((mock::LM_NFT_COLLECTION, pallet_account, pallet_account))
-			)
 		});
 	}
 }
