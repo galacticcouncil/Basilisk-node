@@ -230,8 +230,3 @@ std = [
     "pallet-transaction-pause/std",
     "pallet-xyk-liquidity-mining/std",
 ]
-try-runtime= [
-    "frame-try-runtime",
-    "frame-executive/try-runtime",
-    "frame-system/try-runtime",
-]
