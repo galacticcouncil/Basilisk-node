@@ -111,8 +111,8 @@ mod tests {
 
 			assert_eq!(StorageVersion::get::<Pallet<Test>>(), STORAGE_VERSION);
 
-			let storage_version_weight: Weight = 2;
-			let duster_weight: Weight = 2;
+			let storage_version_weight: Weight = Weight::from_ref_time(2);
+			let duster_weight: Weight = Weight::from_ref_time(2);
 			let expected_weight =
 				<pallet_nft::weights::BasiliskWeight<Test> as pallet_nft::weights::WeightInfo>::create_collection()
 					.saturating_add(duster_weight)
