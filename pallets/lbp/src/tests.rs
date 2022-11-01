@@ -17,7 +17,10 @@
 
 #![allow(clippy::bool_assert_comparison)]
 use super::*;
-use crate::mock::{generate_trades, run_to_sale_end, run_to_sale_start, Call, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID, INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA, expect_events};
+use crate::mock::{
+	expect_events, generate_trades, run_to_sale_end, run_to_sale_start, Call, DEFAULT_FEE, EXISTENTIAL_DEPOSIT,
+	HDX_BSX_POOL_ID, INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
+};
 pub use crate::mock::{
 	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
 	HDX, KUSD,
@@ -27,11 +30,11 @@ use hydradx_traits::{AMMTransfer, LockedBalance};
 use sp_runtime::traits::BadOrigin;
 use sp_std::convert::TryInto;
 
+use primitives::constants::chain::CORE_ASSET_ID;
 use primitives::{
 	asset::AssetPair,
 	constants::chain::{MAX_IN_RATIO, MAX_OUT_RATIO},
 };
-use primitives::constants::chain::CORE_ASSET_ID;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut ext = ExtBuilder::default().build();
@@ -145,8 +148,6 @@ pub fn predefined_test_ext_with_repay_target() -> sp_io::TestExternalities {
 	});
 	ext
 }
-
-
 
 #[test]
 fn default_locked_balance_should_be_zero() {
@@ -1149,16 +1150,14 @@ fn add_liquidity_should_work() {
 			(BSX, added_b),
 		));
 
-		expect_events(vec![
-			Event::LiquidityAdded {
-				who: KUSD_BSX_POOL_ID,
-				asset_a: KUSD,
-				asset_b: BSX,
-				amount_a: added_a,
-				amount_b: added_b,
-			}
-				.into(),
-		]);
+		expect_events(vec![Event::LiquidityAdded {
+			who: KUSD_BSX_POOL_ID,
+			asset_a: KUSD,
+			asset_b: BSX,
+			amount_a: added_a,
+			amount_b: added_b,
+		}
+		.into()]);
 
 		let pool_balance_a_after = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
@@ -1181,16 +1180,14 @@ fn add_liquidity_should_work() {
 			(BSX, 0),
 		));
 
-		expect_events(vec![
-			Event::LiquidityAdded {
-				who: KUSD_BSX_POOL_ID,
-				asset_a: KUSD,
-				asset_b: BSX,
-				amount_a: added_a,
-				amount_b: 0,
-			}
-				.into()
-		]);
+		expect_events(vec![Event::LiquidityAdded {
+			who: KUSD_BSX_POOL_ID,
+			asset_a: KUSD,
+			asset_b: BSX,
+			amount_a: added_a,
+			amount_b: 0,
+		}
+		.into()]);
 
 		let pool_balance_a_after = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
@@ -1224,16 +1221,14 @@ fn add_liquidity_should_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_sub(added_a));
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(added_b));
 
-		expect_events(vec![
-			Event::LiquidityAdded {
-				who: KUSD_BSX_POOL_ID,
-				asset_a: BSX,
-				asset_b: KUSD,
-				amount_a: added_b,
-				amount_b: added_a,
-			}
-			.into(),
-		]);
+		expect_events(vec![Event::LiquidityAdded {
+			who: KUSD_BSX_POOL_ID,
+			asset_a: BSX,
+			asset_b: KUSD,
+			amount_a: added_b,
+			amount_b: added_a,
+		}
+		.into()]);
 	});
 }
 
@@ -1324,16 +1319,14 @@ fn add_liquidity_after_sale_started_should_work() {
 			(BSX, 1_000),
 		));
 
-		expect_events(vec![
-			Event::LiquidityAdded {
-				who: KUSD_BSX_POOL_ID,
-				asset_a: KUSD,
-				asset_b: BSX,
-				amount_a: 1_000,
-				amount_b: 1_000,
-			}
-				.into()
-		]);
+		expect_events(vec![Event::LiquidityAdded {
+			who: KUSD_BSX_POOL_ID,
+			asset_a: KUSD,
+			asset_b: BSX,
+			amount_a: 1_000,
+			amount_b: 1_000,
+		}
+		.into()]);
 
 		let pool_balance_a_after = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
@@ -1374,16 +1367,14 @@ fn add_liquidity_after_sale_started_should_work() {
 		assert_eq!(user_balance_a_after, user_balance_a_before.saturating_sub(1_000));
 		assert_eq!(user_balance_b_after, user_balance_b_before.saturating_sub(1_000));
 
-		expect_events(vec![
-			Event::LiquidityAdded {
-				who: KUSD_BSX_POOL_ID,
-				asset_a: KUSD,
-				asset_b: BSX,
-				amount_a: 1_000,
-				amount_b: 1_000,
-			}
-			.into(),
-		]);
+		expect_events(vec![Event::LiquidityAdded {
+			who: KUSD_BSX_POOL_ID,
+			asset_a: KUSD,
+			asset_b: BSX,
+			amount_a: 1_000,
+			amount_b: 1_000,
+		}
+		.into()]);
 	});
 }
 
@@ -1435,14 +1426,13 @@ fn remove_liquidity_should_work() {
 			frame_system::Event::KilledAccount {
 				account: KUSD_BSX_POOL_ID,
 			}
-				.into(),
-			mock::Event::Currency(
-				orml_tokens::Event::Transfer {
-					currency_id: BSX,
-					from: KUSD_BSX_POOL_ID,
-					to: ALICE,
-					amount: 2000000000,
-				}),
+			.into(),
+			mock::Event::Currency(orml_tokens::Event::Transfer {
+				currency_id: BSX,
+				from: KUSD_BSX_POOL_ID,
+				to: ALICE,
+				amount: 2000000000,
+			}),
 			Event::LiquidityRemoved {
 				who: KUSD_BSX_POOL_ID,
 				asset_a: KUSD,
@@ -1465,16 +1455,14 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 		let pool_balance_b_before = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
 
 		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), KUSD_BSX_POOL_ID,));
-		expect_events(vec![
-			Event::LiquidityRemoved {
-				who: KUSD_BSX_POOL_ID,
-				asset_a: KUSD,
-				asset_b: BSX,
-				amount_a: pool_balance_a_before,
-				amount_b: pool_balance_b_before,
-			}
-				.into(),
-		]);
+		expect_events(vec![Event::LiquidityRemoved {
+			who: KUSD_BSX_POOL_ID,
+			asset_a: KUSD,
+			asset_b: BSX,
+			amount_a: pool_balance_a_before,
+			amount_b: pool_balance_b_before,
+		}
+		.into()]);
 
 		let pool_balance_a_after = Currency::free_balance(KUSD, &KUSD_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &KUSD_BSX_POOL_ID);
@@ -1520,17 +1508,14 @@ fn remove_liquidity_from_not_started_pool_should_work() {
 
 		assert_ok!(LBPPallet::remove_liquidity(Origin::signed(ALICE), HDX_BSX_POOL_ID,));
 
-		expect_events(vec![
-
-			Event::LiquidityRemoved {
-				who: HDX_BSX_POOL_ID,
-				asset_a: HDX,
-				asset_b: BSX,
-				amount_a: pool_balance_a_before,
-				amount_b: pool_balance_b_before,
-			}
-				.into(),
-		]);
+		expect_events(vec![Event::LiquidityRemoved {
+			who: HDX_BSX_POOL_ID,
+			asset_a: HDX,
+			asset_b: BSX,
+			amount_a: pool_balance_a_before,
+			amount_b: pool_balance_b_before,
+		}
+		.into()]);
 
 		let pool_balance_a_after = Currency::free_balance(HDX, &HDX_BSX_POOL_ID);
 		let pool_balance_b_after = Currency::free_balance(BSX, &HDX_BSX_POOL_ID);
@@ -2208,7 +2193,6 @@ fn buy_with_insufficient_balance_should_not_work() {
 
 #[test]
 fn inverted_operations_should_be_equal() {
-
 	let buy = predefined_test_ext().execute_with(|| {
 		run_to_sale_start();
 		assert_ok!(LBPPallet::buy(
@@ -2240,8 +2224,6 @@ fn inverted_operations_should_be_equal() {
 		)
 	});
 	assert_eq!(buy, sell);
-	
-
 }
 
 #[test]
@@ -2262,18 +2244,16 @@ fn buy_should_work() {
 			2_000_000_000_u128
 		));
 
-		expect_events(vec![
-			Event::BuyExecuted {
-				who: buyer,
-				asset_out: BSX,
-				asset_in: KUSD,
-				amount: 17_894_744,
-				buy_price: 10_000_000,
-				fee_asset: KUSD,
-				fee_amount: 35_860,
-			}
-				.into(),
-		]);
+		expect_events(vec![Event::BuyExecuted {
+			who: buyer,
+			asset_out: BSX,
+			asset_in: KUSD,
+			amount: 17_894_744,
+			buy_price: 10_000_000,
+			fee_asset: KUSD,
+			fee_amount: 35_860,
+		}
+		.into()]);
 
 		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_982_069_396);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_010_000_000);
@@ -2305,42 +2285,37 @@ fn buy_should_work() {
 				pool: pool_id2,
 				data: pool_data1,
 			}
-				.into(),
+			.into(),
 			frame_system::Event::NewAccount { account: pool_id2 }.into(),
-			mock::Event::Currency(
-				orml_tokens::Event::Endowed {
-					currency_id: CORE_ASSET_ID,
-					who: HDX_BSX_POOL_ID,
-					amount: 1000000000,
-				}
-			),
+			mock::Event::Currency(orml_tokens::Event::Endowed {
+				currency_id: CORE_ASSET_ID,
+				who: HDX_BSX_POOL_ID,
+				amount: 1000000000,
+			}),
 			mock::Event::Currency(orml_tokens::Event::Transfer {
 				currency_id: CORE_ASSET_ID,
 				from: ALICE,
 				to: HDX_BSX_POOL_ID,
 				amount: 1000000000,
 			}),
-			mock::Event::Currency(
-				orml_tokens::Event::Endowed {
-					currency_id: BSX,
-					who: HDX_BSX_POOL_ID,
-					amount: 2000000000,
-				}
-			),
+			mock::Event::Currency(orml_tokens::Event::Endowed {
+				currency_id: BSX,
+				who: HDX_BSX_POOL_ID,
+				amount: 2000000000,
+			}),
 			mock::Event::Currency(orml_tokens::Event::Transfer {
 				currency_id: BSX,
 				from: ALICE,
 				to: HDX_BSX_POOL_ID,
 				amount: 2000000000,
 			}),
-				mock::Event::LBPPallet(Event::LiquidityAdded {
-					who: pool_id2,
-					asset_a: HDX,
-					asset_b: BSX,
-					amount_a: 1_000_000_000,
-					amount_b: 2_000_000_000,
-				}),
-
+			mock::Event::LBPPallet(Event::LiquidityAdded {
+				who: pool_id2,
+				asset_a: HDX,
+				asset_b: BSX,
+				amount_a: 1_000_000_000,
+				amount_b: 2_000_000_000,
+			}),
 		]);
 
 		assert_ok!(LBPPallet::update_pool_data(
@@ -2358,14 +2333,11 @@ fn buy_should_work() {
 
 		let pool_data2 = LBPPallet::pool_data(pool_id2).unwrap();
 
-		expect_events(vec![
-			Event::PoolUpdated {
-				pool: pool_id2,
-				data: pool_data2,
-			}
-				.into(),
-		]);
-
+		expect_events(vec![Event::PoolUpdated {
+			pool: pool_id2,
+			data: pool_data2,
+		}
+		.into()]);
 
 		//start sale
 		set_block_number::<Test>(21);
@@ -2377,18 +2349,16 @@ fn buy_should_work() {
 			2_000_000_000_u128
 		));
 
-		expect_events(vec![
-			Event::BuyExecuted {
-				who: buyer,
-				asset_out,
-				asset_in,
-				amount: 1_851_972,
-				buy_price: 10_000_000,
-				fee_asset: 0,
-				fee_amount: 3710,
-			}
-				.into(),
-		]);
+		expect_events(vec![Event::BuyExecuted {
+			who: buyer,
+			asset_out,
+			asset_in,
+			amount: 1_851_972,
+			buy_price: 10_000_000,
+			fee_asset: 0,
+			fee_amount: 3710,
+		}
+		.into()]);
 
 		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_998_144_318);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_020_000_000);
@@ -2415,22 +2385,16 @@ fn buy_should_work_when_limit_is_set_above_account_balance() {
 			u128::MAX,
 		));
 
-
-		expect_events(vec![
-			Event::BuyExecuted {
-				who: buyer,
-				asset_out: BSX,
-				asset_in: KUSD,
-				amount: 17_894_744,
-				buy_price: 10_000_000,
-				fee_asset: KUSD,
-				fee_amount: 35_860,
-			}
-				.into(),
-
-
-		]);
-
+		expect_events(vec![Event::BuyExecuted {
+			who: buyer,
+			asset_out: BSX,
+			asset_in: KUSD,
+			amount: 17_894_744,
+			buy_price: 10_000_000,
+			fee_asset: KUSD,
+			fee_amount: 35_860,
+		}
+		.into()]);
 
 		// swap assets
 		set_block_number::<Test>(11);
@@ -2442,23 +2406,16 @@ fn buy_should_work_when_limit_is_set_above_account_balance() {
 			u128::MAX,
 		));
 
-
-		expect_events(vec![
-
-
-			Event::BuyExecuted {
-				who: buyer,
-				asset_out: KUSD,
-				asset_in: BSX,
-				amount: 5_560_310,
-				buy_price: 10_000_000,
-				fee_asset: KUSD,
-				fee_amount: 20_000,
-			}
-				.into(),
-
-
-		]);
+		expect_events(vec![Event::BuyExecuted {
+			who: buyer,
+			asset_out: KUSD,
+			asset_in: BSX,
+			amount: 5_560_310,
+			buy_price: 10_000_000,
+			fee_asset: KUSD,
+			fee_amount: 20_000,
+		}
+		.into()]);
 	});
 }
 
@@ -2488,7 +2445,6 @@ fn update_pool_data_after_sale_should_not_work() {
 
 		set_block_number::<Test>(41);
 
-
 		expect_events(vec![Event::BuyExecuted {
 			who: buyer,
 			asset_out: BSX,
@@ -2515,8 +2471,6 @@ fn update_pool_data_after_sale_should_not_work() {
 			),
 			Error::<Test>::SaleStarted
 		);
-
-
 	});
 }
 
@@ -2548,7 +2502,7 @@ fn sell_should_work() {
 			fee_asset: KUSD,
 			fee_amount: 20_000,
 		}
-						  .into()]);
+		.into()]);
 
 		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_990_000_000);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_005_605_128);
@@ -2580,28 +2534,24 @@ fn sell_should_work() {
 				pool: pool_id2,
 				data: pool_data1,
 			}
-				.into(),
+			.into(),
 			frame_system::Event::NewAccount { account: pool_id2 }.into(),
-			mock::Event::Currency(
-				orml_tokens::Event::Endowed {
-					currency_id: CORE_ASSET_ID,
-					who: HDX_BSX_POOL_ID,
-					amount: 1000000000,
-				}
-			),
+			mock::Event::Currency(orml_tokens::Event::Endowed {
+				currency_id: CORE_ASSET_ID,
+				who: HDX_BSX_POOL_ID,
+				amount: 1000000000,
+			}),
 			mock::Event::Currency(orml_tokens::Event::Transfer {
 				currency_id: CORE_ASSET_ID,
 				from: ALICE,
 				to: HDX_BSX_POOL_ID,
 				amount: 1000000000,
 			}),
-			mock::Event::Currency(
-				orml_tokens::Event::Endowed {
-					currency_id: BSX,
-					who: HDX_BSX_POOL_ID,
-					amount: 2000000000,
-				}
-			),
+			mock::Event::Currency(orml_tokens::Event::Endowed {
+				currency_id: BSX,
+				who: HDX_BSX_POOL_ID,
+				amount: 2000000000,
+			}),
 			mock::Event::Currency(orml_tokens::Event::Transfer {
 				currency_id: BSX,
 				from: ALICE,
@@ -2615,9 +2565,7 @@ fn sell_should_work() {
 				amount_a: 1_000_000_000,
 				amount_b: 2_000_000_000,
 			}),
-
 		]);
-
 
 		assert_ok!(LBPPallet::update_pool_data(
 			Origin::signed(ALICE),
@@ -2634,13 +2582,11 @@ fn sell_should_work() {
 
 		let pool_data2 = LBPPallet::pool_data(pool_id2).unwrap();
 
-		expect_events(vec![
-			Event::PoolUpdated {
-				pool: pool_id2,
-				data: pool_data2,
-			}
-				.into(),
-		]);
+		expect_events(vec![Event::PoolUpdated {
+			pool: pool_id2,
+			data: pool_data2,
+		}
+		.into()]);
 
 		//start sale
 		set_block_number::<Test>(21);
@@ -2652,18 +2598,15 @@ fn sell_should_work() {
 			2_000_u128
 		));
 
-		expect_events(vec![
-			mock::Event::LBPPallet(			Event::SellExecuted {
-				who: buyer,
-				asset_in: asset_out,
-				asset_out: asset_in,
-				amount: 10_000_000,
-				sale_price: 1_839_314,
-				fee_asset: 0,
-				fee_amount: 3_684,
-			}
-												   .into(),)
-		]);
+		expect_events(vec![mock::Event::LBPPallet(Event::SellExecuted {
+			who: buyer,
+			asset_in: asset_out,
+			asset_out: asset_in,
+			amount: 10_000_000,
+			sale_price: 1_839_314,
+			fee_asset: 0,
+			fee_amount: 3_684,
+		})]);
 
 		assert_eq!(Currency::free_balance(asset_in, &buyer), 1_000_000_001_839_314);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 999_999_995_605_128);
