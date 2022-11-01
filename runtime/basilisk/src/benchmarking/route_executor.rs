@@ -15,7 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use crate::{AccountId, AssetId, Balance, Currencies, Runtime};
-use primitives::Price;
 
 use super::*;
 
@@ -31,7 +30,6 @@ type RouteExecutor<T> = pallet_route_executor::Pallet<T>;
 use codec::alloc::string::ToString;
 use hydradx_traits::router::PoolType;
 use pallet_route_executor::Trade;
-use sp_runtime::FixedPointNumber;
 use sp_std::vec;
 
 const SEED: u32 = 1;
@@ -70,13 +68,7 @@ pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<T
 	let mut asset_in = main_asset_in;
 	for _ in 0..number_of_intermediate_assets {
 		let asset_out = intermediate_assets.pop().unwrap();
-		create_pool(
-			pool_maker.clone(),
-			asset_in,
-			asset_out,
-			1_000 * UNITS,
-			Price::checked_from_rational(1, 2).unwrap(),
-		);
+		create_pool(pool_maker.clone(), asset_in, 1_000 * UNITS, asset_out, 500 * UNITS);
 		let trade = Trade {
 			pool: PoolType::XYK,
 			asset_in,
@@ -87,13 +79,7 @@ pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<T
 	}
 
 	//Create pool and trade for the last trade
-	create_pool(
-		pool_maker,
-		asset_in,
-		main_asset_out,
-		1_000 * UNITS,
-		Price::checked_from_rational(1, 2).unwrap(),
-	);
+	create_pool(pool_maker, asset_in, 1_000 * UNITS, main_asset_out, 500 * UNITS);
 	let last_trade = Trade {
 		pool: PoolType::XYK,
 		asset_in,

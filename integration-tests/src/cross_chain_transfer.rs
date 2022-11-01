@@ -91,7 +91,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
-			200 * UNITS - 3 * UNITS
+			ALICE_INITIAL_AUSD_BALANCE - 3 * UNITS
 		);
 	});
 

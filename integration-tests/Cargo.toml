@@ -10,13 +10,13 @@ repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
 # Warehouse dependencies
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false}
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false}
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false }
-pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false }
-pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false }
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false}
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false}
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false }
+pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false }
 
 pallet-exchange = { path = "../pallets/exchange", default-features = false}
 pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
@@ -104,12 +104,13 @@ polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", 
 
 basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
 kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
 parachain-runtime-mock = { path = "parachain-runtime-mock", default-features = false}
 
 [dev-dependencies]
 xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", rev = "7d4eec3c50d77b82f88f9c831c5b553633ca245f" }
 hex-literal = "0.3.1"
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", branch = "polkadot-v0.9.28" }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "a97b39f4bb34d267b66694dd833aa7751db5d6a7" }
 pretty_assertions = "1.2.1"
 sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28" }
 test-case = "2.2.1"

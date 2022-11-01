@@ -1,0 +1,72 @@
+[package]
+name = "pallet-xyk-liquidity-mining-benchmarking"
+version = "1.0.0"
+description = "Liquidity Mining Benchmarking Module"
+authors = ["GalacticCouncil"]
+edition = "2021"
+homepage = "https://github.com/galacticcouncil/basilisk-node"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/basilisk-node"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "3.1.5", features = ["derive", "max-encoded-len"], default-features = false }
+scale-info = { version = "2.1.2", features = ["derive"], default-features = false }
+
+# Local dependencies
+pallet-xyk-liquidity-mining = { path = "../../xyk-liquidity-mining", default-features = false }
+primitives = { path = "../../../primitives", default-features = false }
+pallet-xyk = { path = "../../xyk", default-features = false }
+pallet-duster = { path = "../../duster", default-features = false }
+
+# ORML dependencies
+orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.28", default-features = false }
+orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.28", default-features = false }
+
+# HydraDX dependencies
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false}
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev="a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="89bde6d2b8bad2263c554eb3d83b76d877971136", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="a97b39f4bb34d267b66694dd833aa7751db5d6a7", default-features = false }
+
+# Substrate dependencies
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+
+frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28", default-features = false }
+
+[dev-dependencies]
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28"}
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28"}
+orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.28"}
+
+[features]
+default = ["std"]
+
+runtime-benchmarks=["pallet-uniques/runtime-benchmarks"]
+
+std = [
+    "codec/std",
+    "frame-support/std",
+    "frame-system/std",
+    "sp-std/std",
+    "orml-traits/std",
+    "orml-tokens/std",
+    "primitives/std",
+    "hydradx-traits/std",
+    "pallet-balances/std",
+    "frame-benchmarking/std",
+    "pallet-xyk-liquidity-mining/std",
+    "pallet-asset-registry/std",
+    "pallet-nft/std",
+    "pallet-uniques/std",
+    "pallet-duster/std",
+]

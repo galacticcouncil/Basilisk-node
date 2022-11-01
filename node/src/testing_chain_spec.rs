@@ -473,5 +473,6 @@ fn testnet_parachain_genesis(
 			dust_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 		},
 		polkadot_xcm: Default::default(),
+		xyk_liquidity_mining: Default::default(),
 	}
 }
