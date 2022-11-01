@@ -49,11 +49,6 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 				*existing_auction = self.clone();
 
-				Pallet::<T>::deposit_event(Event::AuctionUpdated {
-					id: auction_id,
-					auction: traits::Auction::English(self),
-				});
-
 				Ok(())
 			} else {
 				Err(Error::<T>::NoChangeOfAuctionType.into())

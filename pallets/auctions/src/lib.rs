@@ -361,6 +361,7 @@ pub mod pallet {
 		/// Creates a new auction for a given Auction type
 		///
 		/// - calls the create() implementation on the given Auction type
+		/// - deposits AuctionCreated event
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::create_english()
@@ -390,6 +391,7 @@ pub mod pallet {
 		/// Updates an existing auction which has not yet started
 		///
 		/// - calls the update() implementation on the given Auction type
+		/// - deposits AuctionUpdated event
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::update_english()
@@ -400,7 +402,7 @@ pub mod pallet {
 		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
-			match updated_auction {
+			match updated_auction.clone() {
 				Auction::English(auction_object) => {
 					auction_object.update(sender, id)?;
 				}
@@ -411,6 +413,12 @@ pub mod pallet {
 					auction_object.update(sender, id)?;
 				}
 			}
+
+			Pallet::<T>::deposit_event(Event::AuctionUpdated {
+				id: id,
+				auction: updated_auction,
+			});
+
 			Ok(())
 		}
 
@@ -420,6 +428,7 @@ pub mod pallet {
 		/// - validates write action
 		/// - unfreezes NFT
 		/// - calls destroy helper function
+		/// - deposits AuctionDestroyed event
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::destroy_english()
@@ -442,6 +451,8 @@ pub mod pallet {
 					auction_object.destroy(sender, id)?;
 				}
 			}
+
+			Self::deposit_event(Event::AuctionDestroyed { id: auction_id });
 
 			Ok(())
 		}
@@ -667,11 +678,6 @@ impl<T: Config> Pallet<T> {
 			common_data.token.1.into(),
 		)?;
 
-		Self::deposit_event(Event::AuctionCreated {
-			id: auction_id,
-			auction: auction,
-		});
-
 		Ok(())
 	}
 
@@ -731,8 +737,6 @@ impl<T: Config> Pallet<T> {
 		<AuctionOwnerById<T>>::remove(auction_id);
 		<Auctions<T>>::remove(auction_id);
 		<HighestBiddersByAuctionClosingRange<T>>::remove_prefix(auction_id, None);
-
-		Self::deposit_event(Event::AuctionDestroyed { id: auction_id });
 
 		Ok(())
 	}
