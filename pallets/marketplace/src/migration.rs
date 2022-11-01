@@ -206,6 +206,10 @@ pub mod v1 {
 				frame_support::storage::KeyPrefixIterator::new(old_key.to_vec(), old_key.to_vec(), |_| Ok(()));
 			assert_eq!(old_key_iter.count(), 0, "MarketplaceInstances storage is not empty");
 
+			for (collection_id, item_id, royalty) in MarketplaceItems::<T>::iter() {
+				assert!(royalty.royalty < MAX_ROYALTY, "Invalid value for collection {:?} and item {:?}.", collection_id, item_id);
+			}
+			
 			log::info!(
 				target: "runtime::marketplace",
 				"Marketplace migration: POST checks successful!"
