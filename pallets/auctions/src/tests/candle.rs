@@ -488,7 +488,12 @@ fn destroy_candle_auction_should_work() {
 		assert_eq!(AuctionsModule::auctions(0), None);
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
-		// expect_event(crate::Event::<Test>::AuctionDestroyed(0));
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionDestroyed {
+				id: 0,
+			}
+			.into(),
+		)]);
 
 		// NFT can be transferred
 		assert_ok!(Nft::transfer(

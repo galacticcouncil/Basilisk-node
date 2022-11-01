@@ -275,12 +275,12 @@ pub mod pallet {
 		AuctionCreated { id: T::AuctionId, auction: Auction<T> },
 		/// An auction is updated
 		AuctionUpdated { id: T::AuctionId, auction: Auction<T> },
+		/// An auction is destroyed manually by owner
+		AuctionDestroyed { id: T::AuctionId },
 		/// A bid is placed
 		BidPlaced(T::AuctionId, T::AccountId, Bid<T>),
 		/// An auction has closed
 		AuctionClosed(T::AuctionId),
-		/// An auction was destroyed
-		AuctionDestroyed(T::AuctionId),
 	}
 
 	#[pallet::error]
@@ -732,7 +732,7 @@ impl<T: Config> Pallet<T> {
 		<Auctions<T>>::remove(auction_id);
 		<HighestBiddersByAuctionClosingRange<T>>::remove_prefix(auction_id, None);
 
-		Self::deposit_event(Event::AuctionDestroyed(auction_id));
+		Self::deposit_event(Event::AuctionDestroyed { id: auction_id });
 
 		Ok(())
 	}
