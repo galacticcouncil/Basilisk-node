@@ -10,7 +10,6 @@ members = [
   'pallets/marketplace',
   'pallets/duster',
   'pallets/xyk',
-  'pallets/exchange',
   'integration-tests',
 ]
 

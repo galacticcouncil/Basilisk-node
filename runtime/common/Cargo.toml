@@ -19,7 +19,6 @@ scale-info = { version = "2.1.1", default-features = false, features = ["derive"
 primitives = {path = '../../primitives', default-features = false}
 
 # Local dependencies
-pallet-exchange = { path = "../../pallets/exchange", default-features=false}
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }

@@ -144,7 +144,6 @@ impl Contains<Call> for BaseFilter {
 
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
-			Call::Exchange(_) => false,
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
 			Call::OrmlXcm(_) => false,
@@ -377,7 +376,7 @@ impl InstanceFilter<Call> for ProxyType {
 					| Call::Treasury(..) | Call::Tips(..)
 					| Call::Utility(..)
 			),
-			ProxyType::Exchange => matches!(c, Call::XYK(..) | Call::Exchange(..) | Call::LBP(..) | Call::NFT(..)),
+			ProxyType::Exchange => matches!(c, Call::XYK(..) | Call::LBP(..) | Call::NFT(..)),
 			// Transfer group doesn't include cross-chain transfers
 			ProxyType::Transfer => matches!(c, Call::Balances(..) | Call::Currencies(..) | Call::Tokens(..)),
 		}
@@ -487,14 +486,6 @@ impl pallet_xyk::Config for Runtime {
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
-}
-
-impl pallet_exchange::Config for Runtime {
-	type Event = Event;
-	type AMMPool = XYK;
-	type Resolver = Exchange;
-	type Currency = Currencies;
-	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
 }
 
 impl pallet_lbp::Config for Runtime {
@@ -990,7 +981,6 @@ construct_runtime!(
 		AssetRegistry: pallet_asset_registry = 100,
 		XYK: pallet_xyk = 101,
 		Duster: pallet_duster = 102,
-		Exchange: pallet_exchange = 103,
 		LBP: pallet_lbp = 104,
 		NFT: pallet_nft = 105,
 
@@ -1221,7 +1211,6 @@ impl_runtime_apis! {
 			use frame_support::traits::StorageInfoTrait;
 			use orml_benchmarking::list_benchmark as orml_list_benchmark;
 
-			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
@@ -1229,7 +1218,6 @@ impl_runtime_apis! {
 
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
-			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
@@ -1267,12 +1255,10 @@ impl_runtime_apis! {
 
 			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
-			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
-			impl pallet_exchange_benchmarking::Config for Runtime {}
 			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
@@ -1296,7 +1282,6 @@ impl_runtime_apis! {
 			// Basilisk pallets
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
-			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);

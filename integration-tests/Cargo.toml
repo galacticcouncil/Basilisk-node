@@ -18,8 +18,6 @@ pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", 
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "2136b84d2eb0efd4e2267055873c79b2b54593ef", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "2136b84d2eb0efd4e2267055873c79b2b54593ef", default-features = false }
 
-pallet-exchange = { path = "../pallets/exchange", default-features = false}
-pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-xyk = { path = "../pallets/xyk",default-features = false}
 pallet-duster= { path = "../pallets/duster",default-features = false}
 pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
@@ -143,7 +141,6 @@ std = [
     "pallet-duster/std",
     "pallet-xyk-rpc-runtime-api/std",
     "pallet-asset-registry/std",
-    "pallet-exchange/std",
     "pallet-aura/std",
     "pallet-balances/std",
     "pallet-elections-phragmen/std",

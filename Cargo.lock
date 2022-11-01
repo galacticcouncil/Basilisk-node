@@ -539,8 +539,6 @@ dependencies = [
  "pallet-democracy",
  "pallet-duster",
  "pallet-elections-phragmen",
- "pallet-exchange",
- "pallet-exchange-benchmarking",
  "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
@@ -1226,7 +1224,6 @@ dependencies = [
  "pallet-currencies",
  "pallet-democracy",
  "pallet-duster",
- "pallet-exchange",
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
@@ -5883,55 +5880,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-exchange"
-version = "5.3.12"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydra-dx-math 4.8.1 (git+https://github.com/galacticcouncil/HydraDX-math?branch=polkadot-v0.9.29)",
- "hydradx-traits",
- "orml-tokens",
- "orml-traits",
- "pallet-asset-registry",
- "pallet-xyk",
- "parity-scale-codec",
- "primitive-types 0.12.1",
- "primitives",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
-name = "pallet-exchange-benchmarking"
-version = "3.4.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "hydradx-traits",
- "orml-tokens",
- "orml-traits",
- "pallet-asset-registry",
- "pallet-exchange",
- "pallet-xyk",
- "parity-scale-codec",
- "primitives",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
 name = "pallet-gilt"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.29#cc370aa61e15c18d23a2f686b812fd576a630afe"
@@ -9053,8 +9001,6 @@ dependencies = [
  "pallet-democracy",
  "pallet-duster",
  "pallet-elections-phragmen",
- "pallet-exchange",
- "pallet-exchange-benchmarking",
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
@@ -11770,8 +11716,6 @@ dependencies = [
  "pallet-democracy",
  "pallet-duster",
  "pallet-elections-phragmen",
- "pallet-exchange",
- "pallet-exchange-benchmarking",
  "pallet-identity",
  "pallet-lbp",
  "pallet-lbp-rpc-runtime-api",
