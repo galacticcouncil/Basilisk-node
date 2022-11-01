@@ -12,6 +12,7 @@ members = [
   'pallets/xyk',
   'pallets/exchange',
   'integration-tests',
+  'integration-tests/parachain-runtime-mock'
 ]
 
 [patch."https://github.com/paritytech/substrate"]

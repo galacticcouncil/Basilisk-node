@@ -549,7 +549,7 @@ dependencies = [
  "pallet-nft",
  "pallet-preimage",
  "pallet-proxy",
- "pallet-relaychain-info",
+ "pallet-relaychain-info 0.3.1 (git+https://github.com/galacticcouncil/warehouse?rev=a97b39f4bb34d267b66694dd833aa7751db5d6a7)",
  "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
@@ -6334,6 +6334,21 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.1"
+source = "git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28#2dc34f6d99a6c66f56ce89c507eed48d821a21fd"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-relaychain-info"
+version = "0.3.1"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=a97b39f4bb34d267b66694dd833aa7751db5d6a7#a97b39f4bb34d267b66694dd833aa7751db5d6a7"
 dependencies = [
  "cumulus-pallet-parachain-system",
@@ -6821,6 +6836,99 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+]
+
+[[package]]
+name = "parachain-runtime-mock"
+version = "0.1.0"
+dependencies = [
+ "basilisk-runtime",
+ "cumulus-pallet-aura-ext",
+ "cumulus-pallet-dmp-queue",
+ "cumulus-pallet-parachain-system",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-timestamp",
+ "cumulus-primitives-utility",
+ "frame-benchmarking",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "frame-system-rpc-runtime-api",
+ "hex-literal",
+ "hydradx-adapters",
+ "hydradx-traits 0.8.2",
+ "kusama-runtime",
+ "orml-tokens",
+ "orml-traits",
+ "orml-unknown-tokens",
+ "orml-vesting",
+ "orml-xcm-support",
+ "orml-xtokens",
+ "pallet-asset-registry",
+ "pallet-aura",
+ "pallet-authorship",
+ "pallet-balances",
+ "pallet-collator-selection",
+ "pallet-collective",
+ "pallet-currencies",
+ "pallet-democracy",
+ "pallet-duster",
+ "pallet-elections-phragmen",
+ "pallet-exchange",
+ "pallet-exchange-benchmarking",
+ "pallet-lbp",
+ "pallet-marketplace",
+ "pallet-nft",
+ "pallet-price-oracle",
+ "pallet-relaychain-info 0.3.1 (git+https://github.com/galacticcouncil/warehouse?branch=polkadot-v0.9.28)",
+ "pallet-route-executor",
+ "pallet-scheduler",
+ "pallet-session",
+ "pallet-timestamp",
+ "pallet-tips",
+ "pallet-transaction-multi-payment",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-treasury",
+ "pallet-uniques",
+ "pallet-utility",
+ "pallet-xcm",
+ "pallet-xyk",
+ "pallet-xyk-rpc-runtime-api",
+ "parachain-info",
+ "parity-scale-codec",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "polkadot-runtime-parachains",
+ "pretty_assertions",
+ "primitives",
+ "scale-info",
+ "serde",
+ "sp-api",
+ "sp-arithmetic",
+ "sp-block-builder",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-externalities",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-staking",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-trie",
+ "sp-version",
+ "test-case",
+ "xcm",
+ "xcm-builder",
+ "xcm-emulator",
+ "xcm-executor",
 ]
 
 [[package]]
@@ -8998,7 +9106,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.7.7"
+version = "0.8.0"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -9042,7 +9150,7 @@ dependencies = [
  "pallet-marketplace",
  "pallet-nft",
  "pallet-price-oracle",
- "pallet-relaychain-info",
+ "pallet-relaychain-info 0.3.1 (git+https://github.com/galacticcouncil/warehouse?rev=a97b39f4bb34d267b66694dd833aa7751db5d6a7)",
  "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
@@ -9058,6 +9166,7 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-rpc-runtime-api",
  "parachain-info",
+ "parachain-runtime-mock",
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
@@ -11743,7 +11852,7 @@ dependencies = [
  "pallet-nft",
  "pallet-preimage",
  "pallet-proxy",
- "pallet-relaychain-info",
+ "pallet-relaychain-info 0.3.1 (git+https://github.com/galacticcouncil/warehouse?rev=a97b39f4bb34d267b66694dd833aa7751db5d6a7)",
  "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
