@@ -209,7 +209,7 @@ pub mod v1 {
 			for (collection_id, item_id, royalty) in MarketplaceItems::<T>::iter() {
 				assert!(royalty.royalty < MAX_ROYALTY, "Invalid value for collection {:?} and item {:?}.", collection_id, item_id);
 			}
-			
+
 			log::info!(
 				target: "runtime::marketplace",
 				"Marketplace migration: POST checks successful!"
