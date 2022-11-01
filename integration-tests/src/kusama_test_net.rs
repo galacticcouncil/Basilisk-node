@@ -34,6 +34,10 @@ pub const ALICE_INITIAL_MOVR_BALANCE: u128 = 200 * UNITS;
 pub const ALICE_INITIAL_KSM_BALANCE: u128 = 400 * UNITS;
 pub const ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 400 * UNITS;
 
+pub const ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
+pub const ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
+pub const BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 1000 * UNITS;
+
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::assert_ok;
@@ -257,24 +261,13 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 		.unwrap();
 
 	pallet_balances::GenesisConfig::<ParachainRuntime> {
-		balances: vec![
-			(AccountId::from(ALICE), ALICE_INITIAL_BSX_BALANCE),
-			(AccountId::from(BOB), BOB_INITIAL_BSX_BALANCE),
-			(AccountId::from(CHARLIE), CHARLIE_INITIAL_BSX_BALANCE),
-			(AccountId::from(DAVE), DAVE_INITIAL_BSX_BALANCE),
-			(vesting_account(), VESTING_ACCOUNT_INITIAL_BSX_BALANCE),
-		],
+		balances: vec![(AccountId::from(ALICE), ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN)],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
 
 	pallet_asset_registry::GenesisConfig::<ParachainRuntime> {
-		asset_names: vec![
-			(b"AUSD".to_vec(), 1_000_000u128),
-			(b"MOVR".to_vec(), 1_000u128),
-			(b"KSM".to_vec(), 1_000u128),
-			(b"NEW_BOOTSRAPPED_TOKEN".to_vec(), 1_000u128),
-		],
+		asset_names: vec![(b"AUSD".to_vec(), 1_000_000u128)],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
 	}
@@ -291,12 +284,12 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 
 	orml_tokens::GenesisConfig::<ParachainRuntime> {
 		balances: vec![
-			(AccountId::from(ALICE), 1, 200 * UNITS),
-			(AccountId::from(ALICE), 2, 200 * UNITS),
-			(AccountId::from(ALICE), 3, 200 * UNITS),
-			(AccountId::from(BOB), 1, BOB_INITIAL_AUSD_BALANCE),
-			(AccountId::from(CHARLIE), 1, 1000 * UNITS),
-			(AccountId::from(DAVE), 1, 1_000 * UNITS),
+			(
+				AccountId::from(ALICE),
+				AUSD,
+				ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN,
+			),
+			(AccountId::from(BOB), AUSD, BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN),
 		],
 	}
 	.assimilate_storage(&mut t)

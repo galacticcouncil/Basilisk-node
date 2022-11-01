@@ -139,7 +139,7 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - amount_to_send
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount_to_send
 		);
 	});
 
@@ -208,7 +208,7 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 		let fee = 10175000000;
 		assert_eq!(
 			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1000 * UNITS + amount_to_send - fee
+			BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN + amount_to_send - fee
 		);
 
 		assert_eq!(
@@ -254,7 +254,7 @@ fn transfer_from_other_parachain_and_back() {
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - amount_to_send
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount_to_send
 		);
 	});
 
@@ -307,7 +307,7 @@ fn transfer_from_other_parachain_and_back() {
 	OtherParachain::execute_with(|| {
 		assert_eq!(
 			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)),
-			200 * UNITS
+			ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN
 		);
 	});
 }
@@ -328,7 +328,7 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 		let insufficient_amount = 55;
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
-			200000000000000
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
 		);
 
 		assert_noop!(
@@ -356,7 +356,7 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
-			200000000000000
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
 		);
 	});
 
@@ -413,7 +413,7 @@ fn fee_currency_set_on_xcm_transfer() {
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - transfer_amount
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - transfer_amount
 		);
 	});
 
@@ -461,7 +461,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - 30 * UNITS
 		);
 	});
 
