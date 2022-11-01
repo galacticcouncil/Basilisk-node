@@ -32,9 +32,15 @@ fn create_candle_auction_should_work() {
 			mocked_candle_specific_data::<Test>(),
 		);
 
-		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
 
-		expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionCreated {
+				id: 0,
+				auction: auction,
+			}
+			.into(),
+		)]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
@@ -389,8 +395,7 @@ fn update_candle_auction_change_token_should_not_work() {
 		let mut updated_common_data = mocked_candle_common_data::<Test>(ALICE);
 		updated_common_data.token = mocked_nft_token_2::<Test>();
 
-		let auction =
-			mocked_candle_auction_object::<Test>(updated_common_data, mocked_candle_specific_data::<Test>());
+		let auction = mocked_candle_auction_object::<Test>(updated_common_data, mocked_candle_specific_data::<Test>());
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),

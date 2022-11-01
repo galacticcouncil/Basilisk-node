@@ -21,7 +21,7 @@ use frame_support::{dispatch::DispatchResult, pallet_prelude::DispatchError, tra
 use scale_info::TypeInfo;
 
 pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
-	fn create(&self, sender: AccountId, auction: &NftAuction) -> DispatchResult;
+	fn create(&self, sender: AccountId, auction: NftAuction) -> DispatchResult;
 
 	fn update(self, sender: AccountId, auction_id: AuctionId) -> DispatchResult;
 

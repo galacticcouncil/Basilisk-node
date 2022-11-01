@@ -53,6 +53,10 @@ pub fn expect_event<E: Into<TestEvent>>(e: E) {
 	assert_eq!(last_event(), e.into());
 }
 
+pub fn expect_events(e: Vec<TestEvent>) {
+	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
+}
+
 pub fn set_block_number<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
 	frame_system::Pallet::<T>::set_block_number(n);
 }
@@ -97,7 +101,6 @@ fn predefined_test_ext() -> sp_io::TestExternalities {
 			mocked_nft_instance_id_2::<Test>(),
 			bvec![0]
 		));
-
 	});
 
 	ext

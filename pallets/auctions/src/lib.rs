@@ -270,10 +270,9 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	/// Auction events
 	pub enum Event<T: Config> {
 		/// An auction is created
-		AuctionCreated(T::AccountId, T::AuctionId),
+		AuctionCreated { id: T::AuctionId, auction: Auction<T> },
 		/// A bid is placed
 		BidPlaced(T::AuctionId, T::AccountId, Bid<T>),
 		/// An auction has closed
@@ -372,13 +371,13 @@ pub mod pallet {
 
 			match &auction {
 				Auction::English(auction_object) => {
-					auction_object.create(sender, &auction)?;
+					auction_object.create(sender, auction.clone())?;
 				}
 				Auction::TopUp(auction_object) => {
-					auction_object.create(sender, &auction)?;
+					auction_object.create(sender, auction.clone())?;
 				}
 				Auction::Candle(auction_object) => {
-					auction_object.create(sender, &auction)?;
+					auction_object.create(sender, auction.clone())?;
 				}
 			}
 
@@ -589,10 +588,7 @@ impl<T: Config> Pallet<T> {
 	///
 	fn validate_common_data(sender: T::AccountId, common_data: &CommonAuctionData<T>) -> DispatchResult {
 		// Sender must be the owner of the auction
-		ensure!(
-			sender == common_data.owner.clone(),
-			Error::<T>::NotAuctionOwner
-		);
+		ensure!(sender == common_data.owner.clone(), Error::<T>::NotAuctionOwner);
 
 		let current_block_number = frame_system::Pallet::<T>::block_number();
 		ensure!(
@@ -625,16 +621,10 @@ impl<T: Config> Pallet<T> {
 	///
 	/// Validates whether a user has sufficient permissions to create an auction
 	///
-	fn validate_create_permissions(
-		sender: T::AccountId,
-		common_data: &CommonAuctionData<T>
-	) -> DispatchResult {
+	fn validate_create_permissions(sender: T::AccountId, common_data: &CommonAuctionData<T>) -> DispatchResult {
 		// Sender must be NFT Owner
 		let token_owner = pallet_nft::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
-		ensure!(
-			token_owner == Some(sender.clone()),
-			Error::<T>::NotATokenOwner
-		);
+		ensure!(token_owner == Some(sender.clone()), Error::<T>::NotATokenOwner);
 
 		// TODO switch to pallet_nft
 		let can_transfer =
@@ -655,7 +645,7 @@ impl<T: Config> Pallet<T> {
 	///
 	fn handle_create(
 		sender: <T>::AccountId,
-		auction: &Auction<T>,
+		auction: Auction<T>,
 		common_data: &CommonAuctionData<T>,
 	) -> DispatchResult {
 		let auction_id = <NextAuctionId<T>>::try_mutate(|next_id| -> result::Result<<T>::AuctionId, DispatchError> {
@@ -675,7 +665,10 @@ impl<T: Config> Pallet<T> {
 			common_data.token.1.into(),
 		)?;
 
-		Self::deposit_event(Event::AuctionCreated(sender, auction_id));
+		Self::deposit_event(Event::AuctionCreated {
+			id: auction_id,
+			auction: auction,
+		});
 
 		Ok(())
 	}
@@ -686,7 +679,7 @@ impl<T: Config> Pallet<T> {
 	///
 	fn validate_update_destroy_permissions(
 		sender: T::AccountId,
-		existing_common_data: &CommonAuctionData<T>
+		existing_common_data: &CommonAuctionData<T>,
 	) -> DispatchResult {
 		// Sender must be the owner of the auction
 		ensure!(
@@ -707,7 +700,10 @@ impl<T: Config> Pallet<T> {
 	///
 	/// Validates certain aspects relevant to the update action
 	///
-	fn validate_update(existing_common_data: &CommonAuctionData<T>, updated_common_data: &CommonAuctionData<T>) -> DispatchResult {
+	fn validate_update(
+		existing_common_data: &CommonAuctionData<T>,
+		updated_common_data: &CommonAuctionData<T>,
+	) -> DispatchResult {
 		ensure!(
 			existing_common_data.token == updated_common_data.token,
 			Error::<T>::CannotChangeForbiddenAttribute

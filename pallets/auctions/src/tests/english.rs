@@ -30,9 +30,15 @@ fn create_english_auction_should_work() {
 			mocked_english_specific_data::<Test>(),
 		);
 
-		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
 
-		expect_event(crate::Event::<Test>::AuctionCreated(ALICE, 0));
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionCreated {
+				id: 0,
+				auction: auction,
+			}
+			.into(),
+		)]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 
@@ -178,7 +184,6 @@ fn create_english_auction_when_sender_not_token_owner_should_not_work() {
 		);
 	});
 }
-
 
 /// Error NotATokenOwner
 #[test]

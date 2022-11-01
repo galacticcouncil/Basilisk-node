@@ -25,7 +25,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	/// Creates a Candle Auction
 	///
 	#[require_transactional]
-	fn create(&self, sender: T::AccountId, auction: &Auction<T>) -> DispatchResult {
+	fn create(&self, sender: T::AccountId, auction: Auction<T>) -> DispatchResult {
 		Pallet::<T>::validate_create_permissions(sender.clone(), &self.common_data)?;
 		self.validate_data(sender.clone())?;
 		Pallet::<T>::handle_create(sender, auction, &self.common_data)?;
