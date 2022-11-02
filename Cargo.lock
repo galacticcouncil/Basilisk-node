@@ -441,12 +441,8 @@ dependencies = [
  "jsonrpsee",
  "log",
  "pallet-grandpa",
- "pallet-lbp-rpc",
- "pallet-lbp-rpc-runtime-api",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
- "pallet-xyk-rpc",
- "pallet-xyk-rpc-runtime-api",
  "parity-scale-codec",
  "polkadot-cli",
  "polkadot-parachain",
@@ -541,7 +537,6 @@ dependencies = [
  "pallet-elections-phragmen",
  "pallet-identity",
  "pallet-lbp",
- "pallet-lbp-rpc-runtime-api",
  "pallet-liquidity-mining",
  "pallet-marketplace",
  "pallet-multisig",
@@ -565,7 +560,6 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "pallet-xyk-liquidity-mining-benchmarking",
- "pallet-xyk-rpc-runtime-api",
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
@@ -5983,33 +5977,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-lbp-rpc"
-version = "1.0.6"
-dependencies = [
- "jsonrpsee",
- "pallet-lbp-rpc-runtime-api",
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-blockchain",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
-name = "pallet-lbp-rpc-runtime-api"
-version = "1.0.6"
-dependencies = [
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
 name = "pallet-liquidity-mining"
 version = "1.0.1"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=38d96eb73e5dc3be3425f784ea920ab63f775260#38d96eb73e5dc3be3425f784ea920ab63f775260"
@@ -6747,35 +6714,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-xyk-rpc"
-version = "1.0.6"
-dependencies = [
- "jsonrpsee",
- "pallet-xyk-rpc-runtime-api",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-api",
- "sp-blockchain",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
-name = "pallet-xyk-rpc-runtime-api"
-version = "3.0.6"
-dependencies = [
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-api",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
 name = "parachain-info"
 version = "0.1.0"
 source = "git+https://github.com/paritytech//cumulus?branch=polkadot-v0.9.29#2fa95572487cfcf8dbe6941bf93545c39d47f784"
@@ -6846,7 +6784,6 @@ dependencies = [
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
- "pallet-xyk-rpc-runtime-api",
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",
@@ -9112,7 +9049,6 @@ dependencies = [
  "pallet-utility",
  "pallet-xcm",
  "pallet-xyk",
- "pallet-xyk-rpc-runtime-api",
  "parachain-info",
  "parachain-runtime-mock",
  "polkadot-parachain",
@@ -11812,7 +11748,6 @@ dependencies = [
  "pallet-elections-phragmen",
  "pallet-identity",
  "pallet-lbp",
- "pallet-lbp-rpc-runtime-api",
  "pallet-liquidity-mining",
  "pallet-marketplace",
  "pallet-multisig",
@@ -11837,7 +11772,6 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "pallet-xyk-liquidity-mining-benchmarking",
- "pallet-xyk-rpc-runtime-api",
  "parachain-info",
  "parity-scale-codec",
  "polkadot-parachain",

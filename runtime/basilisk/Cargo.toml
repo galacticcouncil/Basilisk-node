@@ -26,8 +26,6 @@ primitives = { default-features = false, path = "../../primitives" }
 common-runtime = { path = '../common', default-features = false }
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster = { path = "../../pallets/duster", default-features = false}
-pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api", default-features = false}
-pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api", default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
@@ -187,8 +185,6 @@ std = [
     "parachain-info/std",
     "pallet-xyk/std",
     "pallet-duster/std",
-    "pallet-xyk-rpc-runtime-api/std",
-    "pallet-lbp-rpc-runtime-api/std",
     "pallet-asset-registry/std",
     "pallet-aura/std",
     "pallet-balances/std",

@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 
-use basilisk_runtime::{opaque::Block, AccountId, AssetId, Balance, Index};
+use basilisk_runtime::{opaque::Block, AccountId, Balance, Index};
 pub use sc_rpc::SubscriptionTaskExecutor;
 pub use sc_rpc_api::DenyUnsafe;
 use sc_transaction_pool_api::TransactionPool;
@@ -36,14 +36,10 @@ where
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: pallet_xyk_rpc::XYKRuntimeApi<Block, AccountId, AssetId, Balance>,
-	C::Api: pallet_lbp_rpc::LBPRuntimeApi<Block, AccountId, AssetId>,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
 {
-	use pallet_lbp_rpc::{LBPApiServer, LBP};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-	use pallet_xyk_rpc::{XYKApiServer, XYK};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcExtension::new(());
@@ -59,8 +55,6 @@ where
 	// Extend this RPC with a custom API by using the following syntax.
 	// `YourRpcStruct` should have a reference to a client, which is needed
 	// to call into the runtime.
-	module.merge(XYK::new(client.clone()).into_rpc())?;
-	module.merge(LBP::new(client).into_rpc())?;
 
 	Ok(module)
 }

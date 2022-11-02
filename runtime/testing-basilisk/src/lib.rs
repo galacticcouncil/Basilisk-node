@@ -69,8 +69,6 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 mod xcm;
 
-use pallet_xyk_rpc_runtime_api as xyk_rpc;
-
 use pallet_currencies::BasicCurrencyAdapter;
 
 pub use common_runtime::*;
@@ -1107,48 +1105,6 @@ impl_runtime_apis! {
 			TransactionPayment::query_fee_details(uxt, len)
 		}
 	}
-
-	impl xyk_rpc::XYKApi<
-		Block,
-		AccountId,
-		AssetId,
-		Balance,
-	> for Runtime {
-		fn get_pool_balances(
-			pool_address: AccountId,
-		) -> Vec<xyk_rpc::BalanceInfo<AssetId, Balance>> {
-			let mut vec = Vec::new();
-
-			if let Some(pool_balances) = XYK::get_pool_balances(pool_address){
-				for b in pool_balances {
-					let item  = xyk_rpc::BalanceInfo{
-					 asset: Some(b.0),
-						amount: b.1
-					};
-
-					vec.push(item);
-				}
-			}
-
-			vec
-		}
-
-		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			XYK::pair_account_from_assets(asset_a, asset_b)
-		}
-
-	}
-
-	impl pallet_lbp_rpc_runtime_api::LBPApi<
-		Block,
-		AccountId,
-		AssetId,
-	> for Runtime {
-		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			LBP::pair_account_from_assets(asset_a, asset_b)
-		}
-	}
-
 
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {

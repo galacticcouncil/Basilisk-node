@@ -72,8 +72,6 @@ mod xcm;
 
 mod benchmarking;
 
-use pallet_xyk_rpc_runtime_api as xyk_rpc;
-
 use orml_tokens::CurrencyAdapter;
 use pallet_collective::EnsureProportionAtLeast;
 use pallet_currencies::BasicCurrencyAdapter;
@@ -1158,46 +1156,6 @@ impl_runtime_apis! {
 			len: u32,
 		) -> pallet_transaction_payment_rpc_runtime_api::FeeDetails<Balance> {
 			TransactionPayment::query_fee_details(uxt, len)
-		}
-	}
-
-	impl xyk_rpc::XYKApi<
-		Block,
-		AccountId,
-		AssetId,
-		Balance,
-	> for Runtime {
-		fn get_pool_balances(
-			pool_address: AccountId,
-		) -> Vec<xyk_rpc::BalanceInfo<AssetId, Balance>> {
-			let mut vec = Vec::new();
-
-			if let Some(pool_balances) = XYK::get_pool_balances(pool_address){
-				for b in pool_balances {
-					let item  = xyk_rpc::BalanceInfo{
-					 asset: Some(b.0),
-						amount: b.1
-					};
-
-					vec.push(item);
-				}
-			}
-
-			vec
-		}
-
-		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			XYK::pair_account_from_assets(asset_a, asset_b)
-		}
-	}
-
-	impl pallet_lbp_rpc_runtime_api::LBPApi<
-		Block,
-		AccountId,
-		AssetId,
-	> for Runtime {
-		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			LBP::pair_account_from_assets(asset_a, asset_b)
 		}
 	}
 
