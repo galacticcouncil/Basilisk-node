@@ -10,6 +10,9 @@ pub const DAVE: [u8; 32] = [7u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
+pub const OTHER_PARA_ID: u32 = 2000;
+pub const BASILISK_PARA_ID: u32 = 2090;
+
 pub const BSX: AssetId = CORE_ASSET_ID;
 pub const AUSD: AssetId = 1;
 pub const MOVR: AssetId = 2;
@@ -30,6 +33,10 @@ pub const ALICE_INITIAL_AUSD_BALANCE: u128 = 400 * UNITS;
 pub const ALICE_INITIAL_MOVR_BALANCE: u128 = 200 * UNITS;
 pub const ALICE_INITIAL_KSM_BALANCE: u128 = 400 * UNITS;
 pub const ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 400 * UNITS;
+
+pub const ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
+pub const ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
+pub const BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 1000 * UNITS;
 
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
@@ -63,12 +70,12 @@ decl_test_parachain! {
 }
 
 decl_test_parachain! {
-	pub struct Hydra{
-		Runtime = basilisk_runtime::Runtime,
-		Origin = basilisk_runtime::Origin,
-		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
-		DmpMessageHandler = basilisk_runtime::DmpQueue,
-		new_ext = hydra_ext(),
+	pub struct OtherParachain{
+		Runtime = parachain_runtime_mock::ParachainRuntime,
+		Origin = parachain_runtime_mock::Origin,
+		XcmpMessageHandler = parachain_runtime_mock::XcmpQueue,
+		DmpMessageHandler = parachain_runtime_mock::DmpQueue,
+		new_ext = other_parachain_ext(),
 	}
 }
 
@@ -76,8 +83,8 @@ decl_test_network! {
 	pub struct TestNet {
 		relay_chain = KusamaRelay,
 		parachains = vec![
-			(2000, Basilisk),
-			(3000, Hydra),
+			(2000, OtherParachain),
+			(2090, Basilisk),
 		],
 	}
 }
@@ -130,7 +137,7 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
 			(AccountId::from(ALICE), 2002 * UNITS),
-			(ParaId::from(2000).into_account_truncating(), 10 * UNITS),
+			(ParaId::from(BASILISK_PARA_ID).into_account_truncating(), 10 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -140,40 +147,6 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 		config: default_parachains_host_configuration(),
 	}
 	.assimilate_storage(&mut t)
-	.unwrap();
-
-	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-		&pallet_xcm::GenesisConfig {
-			safe_xcm_version: Some(2),
-		},
-		&mut t,
-	)
-	.unwrap();
-
-	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
-	ext
-}
-
-pub fn hydra_ext() -> sp_io::TestExternalities {
-	use basilisk_runtime::{Runtime, System};
-
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
-		.unwrap();
-
-	pallet_balances::GenesisConfig::<Runtime> {
-		balances: vec![(AccountId::from(ALICE), 200 * UNITS)],
-	}
-	.assimilate_storage(&mut t)
-	.unwrap();
-
-	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-		&parachain_info::GenesisConfig {
-			parachain_id: 3000.into(),
-		},
-		&mut t,
-	)
 	.unwrap();
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
@@ -213,9 +186,9 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
 		asset_names: vec![
-			(b"AUSD".to_vec(), 1_000_000u128),
+			(b"KSM".to_vec(), 1_000_000u128),
+			(b"aUSD".to_vec(), 1_000u128),
 			(b"MOVR".to_vec(), 1_000u128),
-			(b"KSM".to_vec(), 1_000u128),
 			(b"NEW_BOOTSRAPPED_TOKEN".to_vec(), 1_000u128),
 		],
 		native_asset_name: b"BSX".to_vec(),
@@ -226,20 +199,20 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: 2000u32.into(),
+			parachain_id: BASILISK_PARA_ID.into(),
 		},
 		&mut t,
 	)
 	.unwrap();
 	orml_tokens::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from(ALICE), AUSD, ALICE_INITIAL_AUSD_BALANCE * UNITS),
-			(AccountId::from(ALICE), MOVR, ALICE_INITIAL_MOVR_BALANCE * UNITS),
-			(AccountId::from(ALICE), KSM, ALICE_INITIAL_KSM_BALANCE * UNITS),
+			(AccountId::from(ALICE), AUSD, ALICE_INITIAL_AUSD_BALANCE),
+			(AccountId::from(ALICE), MOVR, ALICE_INITIAL_MOVR_BALANCE),
+			(AccountId::from(ALICE), KSM, ALICE_INITIAL_KSM_BALANCE),
 			(
 				AccountId::from(ALICE),
 				NEW_BOOTSTRAPPED_TOKEN,
-				ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE * UNITS,
+				ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE,
 			),
 			(AccountId::from(BOB), AUSD, BOB_INITIAL_AUSD_BALANCE),
 			(
@@ -275,6 +248,76 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 		// Make sure the prices are up-to-date.
 		MultiTransactionPayment::on_initialize(1);
 	});
+	ext
+}
+
+pub fn other_parachain_ext() -> sp_io::TestExternalities {
+	use frame_support::traits::OnInitialize;
+	use parachain_runtime_mock::{MultiTransactionPayment, NativeExistentialDeposit, ParachainRuntime, System};
+
+	let existential_deposit = NativeExistentialDeposit::get();
+
+	let mut t = frame_system::GenesisConfig::default()
+		.build_storage::<ParachainRuntime>()
+		.unwrap();
+
+	pallet_balances::GenesisConfig::<ParachainRuntime> {
+		balances: vec![(AccountId::from(ALICE), ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	pallet_asset_registry::GenesisConfig::<ParachainRuntime> {
+		asset_names: vec![(b"AUSD".to_vec(), 1_000_000u128)],
+		native_asset_name: b"BSX".to_vec(),
+		native_existential_deposit: existential_deposit,
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	<parachain_info::GenesisConfig as GenesisBuild<ParachainRuntime>>::assimilate_storage(
+		&parachain_info::GenesisConfig {
+			parachain_id: OTHER_PARA_ID.into(),
+		},
+		&mut t,
+	)
+	.unwrap();
+
+	orml_tokens::GenesisConfig::<ParachainRuntime> {
+		balances: vec![
+			(
+				AccountId::from(ALICE),
+				AUSD,
+				ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN,
+			),
+			(AccountId::from(BOB), AUSD, BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN),
+		],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	<pallet_xcm::GenesisConfig as GenesisBuild<ParachainRuntime>>::assimilate_storage(
+		&pallet_xcm::GenesisConfig {
+			safe_xcm_version: Some(2),
+		},
+		&mut t,
+	)
+	.unwrap();
+
+	pallet_transaction_multi_payment::GenesisConfig::<ParachainRuntime> {
+		currencies: vec![(1, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
+		account_currencies: vec![],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| {
+		System::set_block_number(1);
+		// Make sure the prices are up-to-date.
+		MultiTransactionPayment::on_initialize(1);
+	});
+
 	ext
 }
 
