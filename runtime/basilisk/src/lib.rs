@@ -536,8 +536,7 @@ parameter_types! {
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
-	//Generated weight file is not used because we want different prices for now.
-	type WeightInfo = weights::offsetted_nft::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
@@ -853,7 +852,7 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
 	type AMM = XYK;
-	type WeightInfo = pallet_xyk_liquidity_mining::weights::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::xyk_liquidity_mining::BasiliskWeight<Runtime>;
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = XYKWarehouseLM;
 	type NonDustableWhitelistHandler = Duster;

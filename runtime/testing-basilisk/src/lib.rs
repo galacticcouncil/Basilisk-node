@@ -503,7 +503,7 @@ parameter_types! {
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
