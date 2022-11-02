@@ -85,3 +85,14 @@ Connect to the local testnet at `ws://localhost:9988` or live `wss://basilisk.hy
 - 20 Mega Units equals 20:1 price
 - 50 Kilo Units equals 0.05:1 price
 
+### Testing of storage migrations and runtime upgrades
+
+The `try-runtime` tool can be used to test storage migrations and runtime upgrades against state from a real chain.
+Run the following command to test against the state on Basilisk on Kusama
+```
+cargo run --features=try-runtime try-runtime on-runtime-upgrade live --uri wss://rpc.basilisk.cloud:443
+```
+or against the Basilisk testnet on Rococo
+```
+cargo run --release --features=try-runtime try-runtime on-runtime-upgrade live --uri wss://rococo-basilisk-rpc.hydration.dev:443
+```
