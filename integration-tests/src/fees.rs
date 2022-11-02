@@ -23,8 +23,8 @@ fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 	Basilisk::execute_with(|| {
 		let diff = UNITS / 100; //0.01
 
-		let expected_rust_encoded_fees = 4_556 * UNITS / 100; //45.56
-		let expected_ui_fees = 4_655 * UNITS / 100; //46.55
+		let expected_rust_encoded_fees = 47_05 * UNITS / 100; //47.05
+		let expected_ui_fees = 4_804 * UNITS / 100; //48.04
 
 		let call = pallet_currencies::Call::<basilisk_runtime::Runtime>::transfer {
 			dest: AccountId::from(ALICE),
@@ -75,8 +75,8 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 		//NOTE: Price showed by polkadotAPPS is changing at second decimal place between runs.
 		let diff = UNITS / 10; //0.1
 
-		let expected_rust_encoded_fees = 41_130 * UNITS / 100; //411.30
-		let expected_ui_fees = 41_233 * UNITS / 100; //412.33
+		let expected_rust_encoded_fees = 48_619 * UNITS / 100; //486.19
+		let expected_ui_fees = 48_724 * UNITS / 100; //487.24
 
 		let call = pallet_nft::Call::<basilisk_runtime::Runtime>::mint {
 			collection_id: 1_000_000,
@@ -131,8 +131,8 @@ fn transaction_fees_should_be_as_expected_when_nft_collection_is_created() {
 		//NOTE: Price showed by polkadotAPPS is changing at second decimal place between runs.
 		let diff = UNITS / 10; //0.1
 
-		let expected_rust_encoded_fees = 39_879 * UNITS / 100; //398.79
-		let expected_ui_fees = 39_982 * UNITS / 100; //399.82
+		let expected_rust_encoded_fees = 45_584 * UNITS / 100; //455.84
+		let expected_ui_fees = 45_689 * UNITS / 100; //456.89
 
 		let call = pallet_nft::Call::<basilisk_runtime::Runtime>::create_collection {
 			collection_id: 0,
