@@ -116,15 +116,18 @@ pub mod v2 {
 			}
 		} else {
 			for (collection_id, item_id, royalty) in v1_storage::MarketplaceInstances::<T>::iter() {
+				let transformed_royalty = if royalty.royalty < v1_storage::MAX_ROYALTY {
+					// multiply the value by 100 to transform percentage to basis points
+					royalty.royalty * 100
+				} else {
+					royalty.royalty
+				};
 				MarketplaceItems::<T>::insert(
 					&collection_id,
 					&item_id,
 					RoyaltyOf::<T> {
 						author: royalty.author,
-						royalty: Into::<u16>::into(royalty.royalty)
-							// multiply the value by 100 to transform percentage to basis points
-							.checked_mul(100)
-							.unwrap_or(MAX_ROYALTY - 1),
+						royalty: Into::<u16>::into(transformed_royalty)
 					},
 				);
 				count += 1;
