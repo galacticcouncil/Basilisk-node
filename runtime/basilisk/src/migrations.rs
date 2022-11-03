@@ -36,7 +36,8 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 		frame_support::log::info!("Migrate Uniques Pallet end");
 
 		frame_support::log::info!("Migrate Marketplace Pallet start");
-		weight = weight.saturating_add(pallet_marketplace::migration::v1::move_and_rehash_old_storage::migrate::<Runtime>());
+		weight =
+			weight.saturating_add(pallet_marketplace::migration::v1::move_and_rehash_old_storage::migrate::<Runtime>());
 		frame_support::log::info!("Migrate Marketplace Pallet end");
 
 		frame_support::log::info!("Migrate NFT Pallet start");

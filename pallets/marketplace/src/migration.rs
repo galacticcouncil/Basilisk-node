@@ -16,7 +16,7 @@
 // limitations under the License..
 
 use crate::{Config, MarketplaceItems, Pallet, RoyaltyOf, MAX_ROYALTY};
-use codec::{Encode, Decode};
+use codec::{Decode, Encode};
 use frame_support::{
 	codec, log,
 	traits::{Get, PalletInfoAccess, StorageVersion},
@@ -31,8 +31,8 @@ pub mod v1 {
 
 	/// rename the storage and transform the royalty amount type from u8 to u16
 	pub mod move_and_transform_old_storage {
-		use frame_support::migration;
 		use super::*;
+		use frame_support::migration;
 
 		#[derive(Encode, Decode)]
 		pub struct OldRoyalty<AccountId> {
@@ -56,16 +56,18 @@ pub mod v1 {
 
 			// Assert that `MarketplaceItems` storage is empty
 			let pallet_name = <Pallet<T> as PalletInfoAccess>::name().as_bytes();
-			let key = [&twox_128(pallet_name), &twox_128(MarketplaceItems::<T>::storage_prefix())[..]].concat();
-			let key_iter =
-				frame_support::storage::KeyPrefixIterator::new(key.to_vec(), key.to_vec(), |_| Ok(()));
+			let key = [
+				&twox_128(pallet_name),
+				&twox_128(MarketplaceItems::<T>::storage_prefix())[..],
+			]
+			.concat();
+			let key_iter = frame_support::storage::KeyPrefixIterator::new(key.to_vec(), key.to_vec(), |_| Ok(()));
 			assert_eq!(key_iter.count(), 0, "MarketplaceItems storage is not empty");
 
 			log::info!(
 				target: "runtime::marketplace",
 				"Marketplace migration: PRE checks successful!"
 			);
-
 		}
 
 		pub fn migrate<T: Config>() -> Weight {
@@ -76,13 +78,17 @@ pub mod v1 {
 
 			let mut count: u64 = 0;
 			for (collection_id, item_id, royalty) in MarketplaceInstances::<T>::iter() {
-				MarketplaceItems::<T>::insert(&collection_id, &item_id, RoyaltyOf::<T> {
-					author: royalty.author,
-					// multiply the value by 100 to transform percentage to basis points
-					royalty: Into::<u16>::into(royalty.royalty)
-						.checked_mul(100)
-						.unwrap_or(MAX_ROYALTY - 1),
-				});
+				MarketplaceItems::<T>::insert(
+					&collection_id,
+					&item_id,
+					RoyaltyOf::<T> {
+						author: royalty.author,
+						// multiply the value by 100 to transform percentage to basis points
+						royalty: Into::<u16>::into(royalty.royalty)
+							.checked_mul(100)
+							.unwrap_or(MAX_ROYALTY - 1),
+					},
+				);
 				count += 1;
 			}
 
@@ -120,7 +126,12 @@ pub mod v1 {
 			assert_eq!(old_key_iter.count(), 0, "MarketplaceInstances storage is not empty");
 
 			for (collection_id, item_id, royalty) in MarketplaceItems::<T>::iter() {
-				assert!(royalty.royalty < MAX_ROYALTY, "Invalid value for collection {:?} and item {:?}.", collection_id, item_id);
+				assert!(
+					royalty.royalty < MAX_ROYALTY,
+					"Invalid value for collection {:?} and item {:?}.",
+					collection_id,
+					item_id
+				);
 			}
 
 			log::info!(
@@ -150,9 +161,12 @@ pub mod v1 {
 
 			// Assert that `MarketplaceItems` storage is empty
 			let pallet_name = <Pallet<T> as PalletInfoAccess>::name().as_bytes();
-			let key = [&twox_128(pallet_name), &twox_128(MarketplaceItems::<T>::storage_prefix())[..]].concat();
-			let key_iter =
-				frame_support::storage::KeyPrefixIterator::new(key.to_vec(), key.to_vec(), |_| Ok(()));
+			let key = [
+				&twox_128(pallet_name),
+				&twox_128(MarketplaceItems::<T>::storage_prefix())[..],
+			]
+			.concat();
+			let key_iter = frame_support::storage::KeyPrefixIterator::new(key.to_vec(), key.to_vec(), |_| Ok(()));
 			assert_eq!(key_iter.count(), 0, "MarketplaceItems storage is not empty");
 
 			log::info!(
@@ -207,7 +221,12 @@ pub mod v1 {
 			assert_eq!(old_key_iter.count(), 0, "MarketplaceInstances storage is not empty");
 
 			for (collection_id, item_id, royalty) in MarketplaceItems::<T>::iter() {
-				assert!(royalty.royalty < MAX_ROYALTY, "Invalid value for collection {:?} and item {:?}.", collection_id, item_id);
+				assert!(
+					royalty.royalty < MAX_ROYALTY,
+					"Invalid value for collection {:?} and item {:?}.",
+					collection_id,
+					item_id
+				);
 			}
 
 			log::info!(
