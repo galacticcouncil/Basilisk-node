@@ -127,7 +127,7 @@ pub mod v2 {
 					&item_id,
 					RoyaltyOf::<T> {
 						author: royalty.author,
-						royalty: Into::<u16>::into(transformed_royalty)
+						royalty: Into::<u16>::into(transformed_royalty),
 					},
 				);
 				count += 1;
