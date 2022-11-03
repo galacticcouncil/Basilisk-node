@@ -52,6 +52,11 @@ pub mod v1 {
 		>;
 
 		pub fn pre_migrate<T: Config>() {
+			log::info!(
+				target: "runtime::marketplace",
+				"Marketplace migration: PRE checks start"
+			);
+
 			assert_eq!(StorageVersion::get::<Pallet<T>>(), 0, "Storage version too high.");
 
 			// Assert that `MarketplaceItems` storage is empty
@@ -66,7 +71,7 @@ pub mod v1 {
 
 			log::info!(
 				target: "runtime::marketplace",
-				"Marketplace migration: PRE checks successful!"
+				"Marketplace migration: PRE checks successful"
 			);
 		}
 
@@ -75,6 +80,8 @@ pub mod v1 {
 				target: "runtime::marketplace",
 				"Running migration to v1 for Marketplace"
 			);
+
+			let num_of_instances = MarketplaceInstances::<T>::iter().count();
 
 			let mut count: u64 = 0;
 			for (collection_id, item_id, royalty) in MarketplaceInstances::<T>::iter() {
@@ -106,15 +113,33 @@ pub mod v1 {
 				);
 			}
 
+			let num_of_items = MarketplaceItems::<T>::iter().count();
+			if num_of_instances != num_of_items {
+				log::info!(
+					target: "runtime::marketplace",
+					"Migration to v1 for Marketplace wasn't successful! Not all data was migrated."
+				);
+			}
+
 			StorageVersion::new(1).put::<Pallet<T>>();
 
-			let reads = count.checked_add(1).unwrap_or(u64::MAX);
+			let reads = count.checked_mul(3).unwrap_or(u64::MAX)
+				.checked_add(1).unwrap_or(u64::MAX);
 			let writes = count.checked_add(2).unwrap_or(u64::MAX);
+
+			log::info!(
+				target: "runtime::marketplace",
+				"Migration to v1 for Marketplace was successful"
+			);
 
 			T::DbWeight::get().reads_writes(reads, writes)
 		}
 
 		pub fn post_migrate<T: Config>() {
+			log::info!(
+				target: "runtime::marketplace",
+				"Marketplace migration: POST checks start"
+			);
 			assert_eq!(StorageVersion::get::<Pallet<T>>(), 1, "Unexpected storage version.");
 
 			// Assert that no `MarketplaceInstances` storage remains at the old prefix.
@@ -136,7 +161,7 @@ pub mod v1 {
 
 			log::info!(
 				target: "runtime::marketplace",
-				"Marketplace migration: POST checks successful!"
+				"Marketplace migration: POST checks successful"
 			);
 		}
 	}
@@ -157,6 +182,11 @@ pub mod v1 {
 		>;
 
 		pub fn pre_migrate<T: Config>() {
+			log::info!(
+				target: "runtime::marketplace",
+				"Marketplace migration: PRE checks start"
+			);
+
 			assert_eq!(StorageVersion::get::<Pallet<T>>(), 0, "Storage version too high.");
 
 			// Assert that `MarketplaceItems` storage is empty
@@ -171,7 +201,7 @@ pub mod v1 {
 
 			log::info!(
 				target: "runtime::marketplace",
-				"Marketplace migration: PRE checks successful!"
+				"Marketplace migration: PRE checks successful"
 			);
 		}
 
@@ -180,6 +210,8 @@ pub mod v1 {
 				target: "runtime::marketplace",
 				"Running migration to v1 for Marketplace"
 			);
+
+			let num_of_instances = MarketplaceInstances::<T>::iter().count();
 
 			let mut count: u64 = 0;
 			for (collection_id, item_id, royalty) in MarketplaceInstances::<T>::iter() {
@@ -201,15 +233,34 @@ pub mod v1 {
 				);
 			}
 
+			let num_of_items = MarketplaceItems::<T>::iter().count();
+			if num_of_instances != num_of_items {
+				log::info!(
+					target: "runtime::marketplace",
+					"Migration to v1 for Marketplace wasn't successful! Not all data was migrated."
+				);
+			}
+
 			StorageVersion::new(1).put::<Pallet<T>>();
 
-			let reads = count.checked_add(1).unwrap_or(u64::MAX);
+			let reads = count.checked_mul(3).unwrap_or(u64::MAX)
+				.checked_add(1).unwrap_or(u64::MAX);
 			let writes = count.checked_add(2).unwrap_or(u64::MAX);
+
+			log::info!(
+				target: "runtime::marketplace",
+				"Migration to v1 for Marketplace was successful"
+			);
 
 			T::DbWeight::get().reads_writes(reads, writes)
 		}
 
 		pub fn post_migrate<T: Config>() {
+			log::info!(
+				target: "runtime::marketplace",
+				"Marketplace migration: POST checks start"
+			);
+
 			assert_eq!(StorageVersion::get::<Pallet<T>>(), 1, "Unexpected storage version.");
 
 			// Assert that no `MarketplaceInstances` storage remains at the old prefix.
@@ -231,7 +282,7 @@ pub mod v1 {
 
 			log::info!(
 				target: "runtime::marketplace",
-				"Marketplace migration: POST checks successful!"
+				"Marketplace migration: POST checks successful"
 			);
 		}
 	}
