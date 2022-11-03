@@ -103,7 +103,7 @@ pub mod v1 {
 			StorageVersion::new(1).put::<Pallet<T>>();
 
 			let reads = count.checked_add(1).unwrap_or(u64::MAX);
-			let writes = count.checked_add(2).unwrap_or(Weight::MAX);
+			let writes = count.checked_add(2).unwrap_or(u64::MAX);
 
 			T::DbWeight::get().reads_writes(reads, writes)
 		}
