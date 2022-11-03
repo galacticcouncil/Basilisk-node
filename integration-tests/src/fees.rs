@@ -23,7 +23,7 @@ fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 	Basilisk::execute_with(|| {
 		let diff = UNITS / 100; //0.01
 
-		let expected_rust_encoded_fees = 47_05 * UNITS / 100; //47.05
+		let expected_rust_encoded_fees = 4_705 * UNITS / 100; //47.05
 		let expected_ui_fees = 4_804 * UNITS / 100; //48.04
 
 		let call = pallet_currencies::Call::<basilisk_runtime::Runtime>::transfer {
