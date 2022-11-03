@@ -97,7 +97,7 @@ pub mod pallet {
 	#[pallet::getter(fn marketplace_items)]
 	/// Stores Marketplace info
 	pub type MarketplaceItems<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::NftCollectionId, Twox64Concat, T::NftItemId, RoyaltyOf<T>>;
+		StorageDoubleMap<_, Blake2_128Concat, T::NftCollectionId, Blake2_128Concat, T::NftItemId, RoyaltyOf<T>>;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nft::Config {
