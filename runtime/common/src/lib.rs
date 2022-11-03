@@ -99,7 +99,7 @@ parameter_types! {
 	/// Basilisk base weight of an extrinsic
 	/// This includes weight for payment in non-native currency.
 	// Default substrate base weight is 125 * WEIGHT_PER_MICROS
-	pub const BasiliskExtrinsicBaseWeight: Weight = 200 * WEIGHT_PER_MICROS;
+	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_PER_MICROS.ref_time());
 }
 
 // pallet timestamp

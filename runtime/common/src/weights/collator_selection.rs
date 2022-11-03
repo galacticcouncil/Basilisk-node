@@ -50,39 +50,39 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn set_invulnerables(b: u32) -> Weight {
-		(15_193_000 as Weight) // Standard Error: 26_000
-			.saturating_add((4_003_000 as Weight).saturating_mul(b as Weight))
-			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(b as Weight)))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(15_193_000 as u64) // Standard Error: 26_000
+			.saturating_add(Weight::from_ref_time(4_003_000 as u64).saturating_mul(b as u64))
+			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(b as u64)))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn set_desired_candidates() -> Weight {
-		(15_499_000 as Weight).saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(15_499_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn set_candidacy_bond() -> Weight {
-		(12_046_000 as Weight).saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(12_046_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn register_as_candidate(c: u32) -> Weight {
-		(48_831_000 as Weight) // Standard Error: 7_000
-			.saturating_add((437_000 as Weight).saturating_mul(c as Weight))
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(48_831_000 as u64) // Standard Error: 7_000
+			.saturating_add(Weight::from_ref_time(437_000 as u64).saturating_mul(c as u64))
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn leave_intent(c: u32) -> Weight {
-		(35_516_000 as Weight) // Standard Error: 7_000
-			.saturating_add((475_000 as Weight).saturating_mul(c as Weight))
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(35_516_000 as u64) // Standard Error: 7_000
+			.saturating_add(Weight::from_ref_time(475_000 as u64).saturating_mul(c as u64))
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn note_author() -> Weight {
-		(44_818_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(44_818_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn new_session(r: u32, c: u32) -> Weight {
-		(0 as Weight) // Standard Error: 1_795_000
-			.saturating_add((4_354_000 as Weight).saturating_mul(r as Weight)) // Standard Error: 1_795_000
-			.saturating_add((19_605_000 as Weight).saturating_mul(c as Weight))
-			.saturating_add(T::DbWeight::get().reads((2 as Weight).saturating_mul(c as Weight)))
-			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(c as Weight)))
+		Weight::from_ref_time(0 as u64) // Standard Error: 1_795_000
+			.saturating_add(Weight::from_ref_time(4_354_000 as u64).saturating_mul(r as u64)) // Standard Error: 1_795_000
+			.saturating_add(Weight::from_ref_time(19_605_000 as u64).saturating_mul(c as u64))
+			.saturating_add(T::DbWeight::get().reads((2 as u64).saturating_mul(c as u64)))
+			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(c as u64)))
 	}
 }

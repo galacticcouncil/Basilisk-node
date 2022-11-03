@@ -12,6 +12,7 @@ use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::latest::prelude::*;
 use polkadot_xcm::latest::Error;
+use polkadot_xcm::latest::Weight;
 use sp_runtime::traits::Convert;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,

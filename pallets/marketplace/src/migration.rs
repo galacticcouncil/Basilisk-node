@@ -16,179 +16,197 @@
 // limitations under the License..
 
 use crate::{Config, MarketplaceItems, Pallet, RoyaltyOf, MAX_ROYALTY};
-use codec::Decode;
+use codec::{Decode, Encode};
 use frame_support::{
 	codec, log,
 	traits::{Get, PalletInfoAccess, StorageVersion},
 	weights::Weight,
 };
 
-/// Royalty amount type is changed from u8 to u16.
-pub mod v1 {
+/// MarketplaceInstances storage item is renamed to MarketplaceItems and the hashing algorithm is changed from TwoX to Blake2.
+/// The royalty type is changed from u8 to u16 on testnet.
+pub mod v2 {
 	use super::*;
-	use frame_support::{
-		migration::move_prefix,
-		storage::{storage_prefix, unhashed},
-		storage_alias, StoragePrefixedMap, Twox64Concat,
-	};
-	use sp_arithmetic::traits::Saturating;
+	use frame_support::{migration, storage_alias, StoragePrefixedMap, Twox64Concat};
 	use sp_io::hashing::twox_128;
 
-	#[derive(Decode)]
-	pub struct OldRoyalty<AccountId> {
-		pub author: AccountId,
-		/// Royalty in percent in range 0-99
-		pub royalty: u8,
-	}
-
-	#[storage_alias]
-	type MarketplaceInstances<T: Config> = StorageDoubleMap<
-		Pallet<T>,
-		Twox64Concat,
-		<T as pallet_nft::Config>::NftCollectionId,
-		Twox64Concat,
-		<T as pallet_nft::Config>::NftItemId,
-		RoyaltyOf<T>,
-	>;
-
-	// rename the storage and transform the revenue type
-	pub mod move_and_transform_old_storage {
+	// Storage type with old hash, used on mainnet
+	pub mod v0_storage {
 		use super::*;
 
-		pub fn pre_migrate<T: Config>() {
-			assert_eq!(StorageVersion::get::<Pallet<T>>(), 0, "Storage version too high.");
+		#[storage_alias]
+		pub type MarketplaceInstances<T: Config> = StorageDoubleMap<
+			Pallet<T>,
+			Twox64Concat,
+			<T as pallet_nft::Config>::NftCollectionId,
+			Twox64Concat,
+			<T as pallet_nft::Config>::NftItemId,
+			RoyaltyOf<T>,
+		>;
+	}
 
-			log::info!(
-				target: "runtime::marketplace",
-				"Marketplace migration: PRE checks successful!"
-			);
+	// Storage type with old royalty type and hash, used on testnet
+	pub mod v1_storage {
+		use super::*;
+
+		pub const MAX_ROYALTY: u8 = 100;
+
+		#[derive(Encode, Decode)]
+		pub struct OldRoyalty<AccountId> {
+			pub author: AccountId,
+			/// Royalty in percent in range 0-99
+			pub royalty: u8,
 		}
 
-		pub fn migrate<T: Config>() -> Weight {
-			log::info!(
-				target: "runtime::marketplace",
-				"Running migration to v1 for Marketplace"
-			);
+		#[storage_alias]
+		pub type MarketplaceInstances<T: Config> = StorageDoubleMap<
+			Pallet<T>,
+			Twox64Concat,
+			<T as pallet_nft::Config>::NftCollectionId,
+			Twox64Concat,
+			<T as pallet_nft::Config>::NftItemId,
+			OldRoyalty<<T as frame_system::Config>::AccountId>,
+		>;
+	}
 
-			// move MarketplaceInstances to MarketplaceItems
-			let pallet_name = <Pallet<T> as PalletInfoAccess>::name().as_bytes();
-			let new_storage_prefix = storage_prefix(pallet_name, MarketplaceItems::<T>::storage_prefix());
-			let old_storage_prefix = storage_prefix(pallet_name, MarketplaceInstances::<T>::storage_prefix());
+	pub fn pre_migrate<T: Config>() {
+		log::info!(
+			target: "runtime::marketplace",
+			"Marketplace migration: PRE checks start"
+		);
 
-			move_prefix(&old_storage_prefix, &new_storage_prefix);
-			if let Some(value) = unhashed::get_raw(&old_storage_prefix) {
-				unhashed::put_raw(&new_storage_prefix, &value);
-				unhashed::kill(&old_storage_prefix);
+		assert!(StorageVersion::get::<Pallet<T>>() < 2, "Storage version too high.");
+
+		// Assert that `MarketplaceItems` storage is empty
+		let pallet_name = <Pallet<T> as PalletInfoAccess>::name().as_bytes();
+		let key = [
+			&twox_128(pallet_name),
+			&twox_128(MarketplaceItems::<T>::storage_prefix())[..],
+		]
+		.concat();
+		let key_iter = frame_support::storage::KeyPrefixIterator::new(key.to_vec(), key.to_vec(), |_| Ok(()));
+		assert_eq!(key_iter.count(), 0, "MarketplaceItems storage is not empty");
+
+		log::info!(
+			target: "runtime::marketplace",
+			"Marketplace migration: PRE checks successful"
+		);
+	}
+
+	pub fn migrate<T: Config>() -> Weight {
+		let storage_version = StorageVersion::get::<Pallet<T>>();
+
+		log::info!(
+			target: "runtime::marketplace",
+			"Running migration to v2 for Marketplace with storage version {:?}",
+			storage_version
+		);
+
+		let num_of_instances = if storage_version == 0 {
+			v0_storage::MarketplaceInstances::<T>::iter().count()
+		} else {
+			v1_storage::MarketplaceInstances::<T>::iter().count()
+		};
+
+		let mut count: u64 = 0;
+		if storage_version == 0 {
+			for (collection_id, item_id, royalty) in v0_storage::MarketplaceInstances::<T>::iter() {
+				MarketplaceItems::<T>::insert(&collection_id, &item_id, royalty);
+				count += 1;
 			}
-
-			// change Royalty type
-			let mut translated = 0u64;
-
-			<MarketplaceItems<T>>::translate(|_key_1, _key_2, old: OldRoyalty<T::AccountId>| {
-				translated.saturating_inc();
-				Some(RoyaltyOf::<T> {
-					author: old.author,
+		} else {
+			for (collection_id, item_id, royalty) in v1_storage::MarketplaceInstances::<T>::iter() {
+				let transformed_royalty = if royalty.royalty < v1_storage::MAX_ROYALTY {
 					// multiply the value by 100 to transform percentage to basis points
-					royalty: Into::<u16>::into(old.royalty)
-						.checked_mul(100)
-						.unwrap_or(MAX_ROYALTY - 1),
-				})
-			});
-
-			StorageVersion::new(1).put::<Pallet<T>>();
-
-			let reads = translated
-				.checked_mul(2)
-				.and_then(|v| v.checked_add(3))
-				.unwrap_or(Weight::MAX);
-			let writes = reads; // the number of writes is the same as the number of reads
-
-			T::DbWeight::get().reads_writes(reads, writes)
-		}
-
-		pub fn post_migrate<T: Config>() {
-			assert_eq!(StorageVersion::get::<Pallet<T>>(), 1, "Unexpected storage version.");
-
-			// Assert that no `MarketplaceInstances` storage remains at the old prefix.
-			let pallet_name = <Pallet<T> as PalletInfoAccess>::name().as_bytes();
-			let old_storage_prefix = MarketplaceInstances::<T>::storage_prefix();
-			let old_key = [&twox_128(pallet_name), &twox_128(old_storage_prefix)[..]].concat();
-			let old_key_iter =
-				frame_support::storage::KeyPrefixIterator::new(old_key.to_vec(), old_key.to_vec(), |_| Ok(()));
-			assert_eq!(old_key_iter.count(), 0);
-
-			for (_key_1, _key_2, royalty) in MarketplaceItems::<T>::iter() {
-				assert!(royalty.royalty < MAX_ROYALTY, "Invalid value.");
+					royalty.royalty * 100
+				} else {
+					royalty.royalty
+				};
+				MarketplaceItems::<T>::insert(
+					&collection_id,
+					&item_id,
+					RoyaltyOf::<T> {
+						author: royalty.author,
+						royalty: Into::<u16>::into(transformed_royalty),
+					},
+				);
+				count += 1;
 			}
+		};
 
+		let storage_prefix = if storage_version == 0 {
+			v0_storage::MarketplaceInstances::<T>::storage_prefix()
+		} else {
+			v1_storage::MarketplaceInstances::<T>::storage_prefix()
+		};
+
+		let res = migration::clear_storage_prefix(<Pallet<T>>::name().as_bytes(), storage_prefix, b"", None, None);
+		if res.maybe_cursor.is_some() {
 			log::info!(
 				target: "runtime::marketplace",
-				"Marketplace migration: POST checks successful!"
+				"Not all storage items has been removed"
 			);
 		}
+
+		let num_of_items = MarketplaceItems::<T>::iter().count();
+		if num_of_instances != num_of_items {
+			log::info!(
+				target: "runtime::marketplace",
+				"Migration to v1 for Marketplace wasn't successful! Not all data was migrated."
+			);
+		}
+
+		StorageVersion::new(2).put::<Pallet<T>>();
+
+		let reads = count
+			.checked_mul(3)
+			.unwrap_or(u64::MAX)
+			.checked_add(2)
+			.unwrap_or(u64::MAX);
+		let writes = count.checked_add(2).unwrap_or(u64::MAX);
+
+		log::info!(
+			target: "runtime::marketplace",
+			"Migration to v2 for Marketplace was successful"
+		);
+
+		T::DbWeight::get().reads_writes(reads, writes)
 	}
 
-	// rename the storage without transforming the revenue type
-	pub mod move_old_storage {
-		use super::*;
-		use core::convert::TryInto;
+	pub fn post_migrate<T: Config>() {
+		log::info!(
+			target: "runtime::marketplace",
+			"Marketplace migration: POST checks start"
+		);
 
-		pub fn pre_migrate<T: Config>() {
-			assert_eq!(StorageVersion::get::<Pallet<T>>(), 0, "Storage version too high.");
+		let storage_version = StorageVersion::get::<Pallet<T>>();
+		assert_eq!(storage_version, 2, "Unexpected storage version.");
 
-			log::info!(
-				target: "runtime::marketplace",
-				"Marketplace migration: PRE checks successful!"
+		// Assert that no `MarketplaceInstances` storage remains at the old prefix.
+		let pallet_name = <Pallet<T> as PalletInfoAccess>::name().as_bytes();
+		let old_storage_prefix = if storage_version == 0 {
+			v0_storage::MarketplaceInstances::<T>::storage_prefix()
+		} else {
+			v1_storage::MarketplaceInstances::<T>::storage_prefix()
+		};
+
+		let old_key = [&twox_128(pallet_name), &twox_128(old_storage_prefix)[..]].concat();
+		let old_key_iter =
+			frame_support::storage::KeyPrefixIterator::new(old_key.to_vec(), old_key.to_vec(), |_| Ok(()));
+		assert_eq!(old_key_iter.count(), 0, "MarketplaceInstances storage is not empty");
+
+		for (collection_id, item_id, royalty) in MarketplaceItems::<T>::iter() {
+			assert!(
+				royalty.royalty < MAX_ROYALTY,
+				"Invalid value for CollectionId {:?} and ItemId {:?}.",
+				collection_id,
+				item_id
 			);
 		}
 
-		pub fn migrate<T: Config>() -> Weight {
-			log::info!(
-				target: "runtime::marketplace",
-				"Running migration to v1 for Marketplace"
-			);
-
-			// move MarketplaceInstances to MarketplaceItems
-			let pallet_name = <Pallet<T> as PalletInfoAccess>::name().as_bytes();
-			let new_storage_prefix = storage_prefix(pallet_name, MarketplaceItems::<T>::storage_prefix());
-			let old_storage_prefix = storage_prefix(pallet_name, MarketplaceInstances::<T>::storage_prefix());
-
-			// If the number of items overflows the max weight, return the max weight.
-			// Make sure this won't happen by running try-runtime command before executing the migration.
-			let num_of_instances = MarketplaceItems::<T>::iter().count().try_into().unwrap_or(Weight::MAX);
-
-			move_prefix(&old_storage_prefix, &new_storage_prefix);
-			if let Some(value) = unhashed::get_raw(&old_storage_prefix) {
-				unhashed::put_raw(&new_storage_prefix, &value);
-				unhashed::kill(&old_storage_prefix);
-			}
-
-			StorageVersion::new(1).put::<Pallet<T>>();
-
-			let reads = num_of_instances
-				.checked_mul(2)
-				.and_then(|v| v.checked_add(3))
-				.unwrap_or(Weight::MAX);
-			let writes = num_of_instances.checked_add(3).unwrap_or(Weight::MAX);
-
-			T::DbWeight::get().reads_writes(reads, writes)
-		}
-
-		pub fn post_migrate<T: Config>() {
-			assert_eq!(StorageVersion::get::<Pallet<T>>(), 1, "Unexpected storage version.");
-
-			// Assert that no `MarketplaceInstances` storage remains at the old prefix.
-			let pallet_name = <Pallet<T> as PalletInfoAccess>::name().as_bytes();
-			let old_storage_prefix = MarketplaceInstances::<T>::storage_prefix();
-			let old_key = [&twox_128(pallet_name), &twox_128(old_storage_prefix)[..]].concat();
-			let old_key_iter =
-				frame_support::storage::KeyPrefixIterator::new(old_key.to_vec(), old_key.to_vec(), |_| Ok(()));
-			assert_eq!(old_key_iter.count(), 0);
-
-			log::info!(
-				target: "runtime::marketplace",
-				"Marketplace migration: POST checks successful!"
-			);
-		}
+		log::info!(
+			target: "runtime::marketplace",
+			"Marketplace migration: POST checks successful"
+		);
 	}
 }

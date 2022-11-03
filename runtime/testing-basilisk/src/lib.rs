@@ -69,8 +69,6 @@ pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 mod xcm;
 
-use pallet_xyk_rpc_runtime_api as xyk_rpc;
-
 use pallet_currencies::BasicCurrencyAdapter;
 
 pub use common_runtime::*;
@@ -131,7 +129,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 80,
+	spec_version: 81,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -169,7 +167,7 @@ impl WeightToFeePolynomial for WeightToFee {
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 		// extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT
 		let p = CENTS; // 1_000_000_000_000
-		let q = 10 * Balance::from(ExtrinsicBaseWeight::get()); // 7_919_840_000
+		let q = 10 * Balance::from(ExtrinsicBaseWeight::get().ref_time()); // 7_919_840_000
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,
@@ -345,7 +343,7 @@ impl InstanceFilter<Call> for ProxyType {
 					| Call::Treasury(..) | Call::Tips(..)
 					| Call::Utility(..)
 			),
-			ProxyType::Exchange => matches!(c, Call::XYK(..) | Call::Exchange(..) | Call::LBP(..) | Call::NFT(..)),
+			ProxyType::Exchange => matches!(c, Call::XYK(..) | Call::LBP(..) | Call::NFT(..)),
 			// Transfer group doesn't include cross-chain transfers
 			ProxyType::Transfer => matches!(c, Call::Balances(..) | Call::Currencies(..) | Call::Tokens(..)),
 		}
@@ -455,14 +453,6 @@ impl pallet_xyk::Config for Runtime {
 	type NonDustableWhitelistHandler = Duster;
 }
 
-impl pallet_exchange::Config for Runtime {
-	type Event = Event;
-	type AMMPool = XYK;
-	type Resolver = Exchange;
-	type Currency = Currencies;
-	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
-}
-
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
@@ -513,7 +503,7 @@ parameter_types! {
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
@@ -953,7 +943,6 @@ construct_runtime!(
 		AssetRegistry: pallet_asset_registry = 100,
 		XYK: pallet_xyk = 101,
 		Duster: pallet_duster = 102,
-		Exchange: pallet_exchange = 103,
 		LBP: pallet_lbp = 104,
 		NFT: pallet_nft = 105,
 
@@ -1100,20 +1089,6 @@ impl_runtime_apis! {
 		}
 	}
 
-		#[cfg(feature = "try-runtime")]
-	impl frame_try_runtime::TryRuntime<Block> for Runtime {
-		fn on_runtime_upgrade() -> (Weight, Weight) {
-			//log::info!("try-runtime::on_runtime_upgrade.");
-			let weight = Executive::try_runtime_upgrade().unwrap();
-			(weight, BlockWeights::get().max_block)
-		}
-
-		fn execute_block_no_check(block: Block) -> Weight {
-			Executive::execute_block_no_check(block)
-		}
-	}
-
-
 	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 		fn account_nonce(account: AccountId) -> Index {
 			System::account_nonce(account)
@@ -1136,48 +1111,6 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl xyk_rpc::XYKApi<
-		Block,
-		AccountId,
-		AssetId,
-		Balance,
-	> for Runtime {
-		fn get_pool_balances(
-			pool_address: AccountId,
-		) -> Vec<xyk_rpc::BalanceInfo<AssetId, Balance>> {
-			let mut vec = Vec::new();
-
-			if let Some(pool_balances) = XYK::get_pool_balances(pool_address){
-				for b in pool_balances {
-					let item  = xyk_rpc::BalanceInfo{
-					 asset: Some(b.0),
-						amount: b.1
-					};
-
-					vec.push(item);
-				}
-			}
-
-			vec
-		}
-
-		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			XYK::pair_account_from_assets(asset_a, asset_b)
-		}
-
-	}
-
-	impl pallet_lbp_rpc_runtime_api::LBPApi<
-		Block,
-		AccountId,
-		AssetId,
-	> for Runtime {
-		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			LBP::pair_account_from_assets(asset_a, asset_b)
-		}
-	}
-
-
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {
 		fn benchmark_metadata(extra: bool) -> (
@@ -1187,7 +1120,6 @@ impl_runtime_apis! {
 			use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 			use frame_support::traits::StorageInfoTrait;
 
-			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
@@ -1195,7 +1127,6 @@ impl_runtime_apis! {
 
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
-			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
@@ -1203,7 +1134,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
 			list_benchmark!(list, extra, pallet_democracy, Democracy);
@@ -1222,12 +1152,10 @@ impl_runtime_apis! {
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
 			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
 
-			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
-			impl pallet_exchange_benchmarking::Config for Runtime {}
 			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
@@ -1251,7 +1179,6 @@ impl_runtime_apis! {
 			// Basilisk pallets
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
-			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
@@ -1260,7 +1187,6 @@ impl_runtime_apis! {
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
 			add_benchmark!(params, batches, pallet_democracy, Democracy);

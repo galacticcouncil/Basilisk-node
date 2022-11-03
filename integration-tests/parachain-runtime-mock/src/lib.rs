@@ -48,6 +48,8 @@ use polkadot_xcm::prelude::MultiLocation;
 use sp_arithmetic::FixedU128;
 use sp_runtime::traits::AccountIdConversion;
 
+use polkadot_xcm::latest::Weight as XcmWeight;
+
 use basilisk_runtime::{AdjustmentVariable, MinimumMultiplier, TargetBlockFullness, WeightToFee};
 
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
@@ -66,14 +68,14 @@ parameter_types! {
 	pub const ExistentialDeposit: u128 = 500;
 	pub const MaxReserves: u32 = 50;
 	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
-	pub const UnitWeightCost: Weight = 10;
+	pub const UnitWeightCost: XcmWeight = 10;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub const MaxInstructions: u32 = 100;
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub BlockLength: frame_system::limits::BlockLength =
 		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub const ReservedXcmpWeight: Weight = WEIGHT_PER_SECOND / 4;
-	pub const ReservedDmpWeight: Weight = WEIGHT_PER_SECOND / 4;
+	pub const ReservedXcmpWeight: Weight = Weight::from_ref_time(WEIGHT_PER_SECOND.ref_time() / 4);
+	pub const ReservedDmpWeight: Weight =Weight::from_ref_time(WEIGHT_PER_SECOND.ref_time() / 4);
 	pub RegistryStringLimit: u32 = 100;
 	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
@@ -81,7 +83,7 @@ parameter_types! {
 	pub KsmPerSecond: (AssetId, u128) = (0, 10);
 	pub BaseRate: u128 = 100;
 	pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::parachain_id().into())));
-	pub const BaseXcmWeight: Weight = 100_000_000;
+	pub const BaseXcmWeight: XcmWeight = 100_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
 
 }

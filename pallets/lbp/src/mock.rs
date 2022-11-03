@@ -278,3 +278,7 @@ pub fn generate_trades(
 	}
 	trades
 }
+
+pub fn expect_events(e: Vec<Event>) {
+	test_utils::expect_events::<Event, Test>(e);
+}

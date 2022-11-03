@@ -6,6 +6,7 @@ use frame_support::{assert_noop, assert_ok};
 use polkadot_xcm::{latest::prelude::*, VersionedMultiAssets};
 
 use cumulus_primitives_core::ParaId;
+use frame_support::weights::Weight;
 use hex_literal::hex;
 use orml_traits::currency::MultiCurrency;
 use sp_core::H256;
@@ -300,7 +301,7 @@ fn transfer_from_other_parachain_and_back() {
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			35_990_141 // fees should go to treasury
+			30_905_849 // fees should go to treasury
 		);
 	});
 
@@ -470,7 +471,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			cumulus_pallet_xcmp_queue::Event::Fail {
 				message_hash: Some(hex!["4efbf4d7ba73f43d5bb4ebbec3189e132ccf2686aed37e97985af019e1cf62dc"].into()),
 				error: XcmError::AssetNotFound,
-				weight: 300_000_000,
+				weight: Weight::from_ref_time(300_000_000),
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {

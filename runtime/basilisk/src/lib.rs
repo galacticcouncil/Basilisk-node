@@ -72,8 +72,6 @@ mod xcm;
 
 mod benchmarking;
 
-use pallet_xyk_rpc_runtime_api as xyk_rpc;
-
 use orml_tokens::CurrencyAdapter;
 use pallet_collective::EnsureProportionAtLeast;
 use pallet_currencies::BasicCurrencyAdapter;
@@ -112,7 +110,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 80,
+	spec_version: 81,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -144,7 +142,6 @@ impl Contains<Call> for BaseFilter {
 
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
-			Call::Exchange(_) => false,
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
 			Call::OrmlXcm(_) => false,
@@ -174,7 +171,7 @@ impl WeightToFeePolynomial for WeightToFee {
 	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 		let p = 11 * CENTS;
-		let q = Balance::from(ExtrinsicBaseWeight::get());
+		let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,
@@ -377,7 +374,7 @@ impl InstanceFilter<Call> for ProxyType {
 					| Call::Treasury(..) | Call::Tips(..)
 					| Call::Utility(..)
 			),
-			ProxyType::Exchange => matches!(c, Call::XYK(..) | Call::Exchange(..) | Call::LBP(..) | Call::NFT(..)),
+			ProxyType::Exchange => matches!(c, Call::XYK(..) | Call::LBP(..) | Call::NFT(..)),
 			// Transfer group doesn't include cross-chain transfers
 			ProxyType::Transfer => matches!(c, Call::Balances(..) | Call::Currencies(..) | Call::Tokens(..)),
 		}
@@ -489,14 +486,6 @@ impl pallet_xyk::Config for Runtime {
 	type NonDustableWhitelistHandler = Duster;
 }
 
-impl pallet_exchange::Config for Runtime {
-	type Event = Event;
-	type AMMPool = XYK;
-	type Resolver = Exchange;
-	type Currency = Currencies;
-	type WeightInfo = weights::exchange::BasiliskWeight<Runtime>;
-}
-
 impl pallet_lbp::Config for Runtime {
 	type Event = Event;
 	type MultiCurrency = Currencies;
@@ -547,8 +536,7 @@ parameter_types! {
 
 impl pallet_nft::Config for Runtime {
 	type Event = Event;
-	//Generated weight file is not used because we want different prices for now.
-	type WeightInfo = weights::offsetted_nft::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
@@ -864,7 +852,7 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
 	type AMM = XYK;
-	type WeightInfo = pallet_xyk_liquidity_mining::weights::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::xyk_liquidity_mining::BasiliskWeight<Runtime>;
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = XYKWarehouseLM;
 	type NonDustableWhitelistHandler = Duster;
@@ -990,7 +978,6 @@ construct_runtime!(
 		AssetRegistry: pallet_asset_registry = 100,
 		XYK: pallet_xyk = 101,
 		Duster: pallet_duster = 102,
-		Exchange: pallet_exchange = 103,
 		LBP: pallet_lbp = 104,
 		NFT: pallet_nft = 105,
 
@@ -1135,7 +1122,7 @@ impl_runtime_apis! {
 		}
 	}
 
-		#[cfg(feature = "try-runtime")]
+	#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
 		fn on_runtime_upgrade() -> (Weight, Weight) {
 			//log::info!("try-runtime::on_runtime_upgrade.");
@@ -1143,8 +1130,8 @@ impl_runtime_apis! {
 			(weight, BlockWeights::get().max_block)
 		}
 
-		fn execute_block_no_check(block: Block) -> Weight {
-			Executive::execute_block_no_check(block)
+		fn execute_block(block: Block, state_root_check: bool, try_state: frame_try_runtime::TryStateSelect) -> Weight {
+			Executive::try_execute_block(block, state_root_check, try_state).unwrap()
 		}
 	}
 
@@ -1171,46 +1158,6 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl xyk_rpc::XYKApi<
-		Block,
-		AccountId,
-		AssetId,
-		Balance,
-	> for Runtime {
-		fn get_pool_balances(
-			pool_address: AccountId,
-		) -> Vec<xyk_rpc::BalanceInfo<AssetId, Balance>> {
-			let mut vec = Vec::new();
-
-			if let Some(pool_balances) = XYK::get_pool_balances(pool_address){
-				for b in pool_balances {
-					let item  = xyk_rpc::BalanceInfo{
-					 asset: Some(b.0),
-						amount: b.1
-					};
-
-					vec.push(item);
-				}
-			}
-
-			vec
-		}
-
-		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			XYK::pair_account_from_assets(asset_a, asset_b)
-		}
-	}
-
-	impl pallet_lbp_rpc_runtime_api::LBPApi<
-		Block,
-		AccountId,
-		AssetId,
-	> for Runtime {
-		fn get_pool_id(asset_a: AssetId, asset_b: AssetId) -> AccountId{
-			LBP::pair_account_from_assets(asset_a, asset_b)
-		}
-	}
-
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {
 		fn benchmark_metadata(extra: bool) -> (
@@ -1221,7 +1168,6 @@ impl_runtime_apis! {
 			use frame_support::traits::StorageInfoTrait;
 			use orml_benchmarking::list_benchmark as orml_list_benchmark;
 
-			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
@@ -1229,7 +1175,6 @@ impl_runtime_apis! {
 
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
-			list_benchmark!(list, extra, pallet_exchange, ExchangeBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
@@ -1267,12 +1212,10 @@ impl_runtime_apis! {
 
 			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
-			use pallet_exchange_benchmarking::Pallet as ExchangeBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
 			impl frame_system_benchmarking::Config for Runtime {}
-			impl pallet_exchange_benchmarking::Config for Runtime {}
 			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
@@ -1296,7 +1239,6 @@ impl_runtime_apis! {
 			// Basilisk pallets
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
-			add_benchmark!(params, batches, pallet_exchange, ExchangeBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);

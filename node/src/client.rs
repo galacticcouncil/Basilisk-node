@@ -3,7 +3,7 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use crate::service::{BasiliskExecutorDispatch, FullBackend, FullClient, TestingBasiliskExecutorDispatch};
-use common_runtime::{AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index};
+use common_runtime::{AccountId, Balance, Block, BlockNumber, Hash, Header, Index};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
@@ -26,8 +26,6 @@ pub trait RuntimeApiCollection:
 	+ sp_api::Metadata<Block>
 	+ sp_offchain::OffchainWorkerApi<Block>
 	+ sp_session::SessionKeys<Block>
-	+ pallet_xyk_rpc_runtime_api::XYKApi<Block, AccountId, AssetId, Balance>
-	+ pallet_lbp_rpc_runtime_api::LBPApi<Block, AccountId, AssetId>
 where
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
@@ -42,9 +40,7 @@ where
 		+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 		+ sp_api::Metadata<Block>
 		+ sp_offchain::OffchainWorkerApi<Block>
-		+ sp_session::SessionKeys<Block>
-		+ pallet_xyk_rpc_runtime_api::XYKApi<Block, AccountId, AssetId, Balance>
-		+ pallet_lbp_rpc_runtime_api::LBPApi<Block, AccountId, AssetId>,
+		+ sp_session::SessionKeys<Block>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
 }
