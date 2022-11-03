@@ -123,8 +123,11 @@ pub mod v1 {
 
 			StorageVersion::new(1).put::<Pallet<T>>();
 
-			let reads = count.checked_mul(3).unwrap_or(u64::MAX)
-				.checked_add(1).unwrap_or(u64::MAX);
+			let reads = count
+				.checked_mul(3)
+				.unwrap_or(u64::MAX)
+				.checked_add(1)
+				.unwrap_or(u64::MAX);
 			let writes = count.checked_add(2).unwrap_or(u64::MAX);
 
 			log::info!(
@@ -243,8 +246,11 @@ pub mod v1 {
 
 			StorageVersion::new(1).put::<Pallet<T>>();
 
-			let reads = count.checked_mul(3).unwrap_or(u64::MAX)
-				.checked_add(1).unwrap_or(u64::MAX);
+			let reads = count
+				.checked_mul(3)
+				.unwrap_or(u64::MAX)
+				.checked_add(1)
+				.unwrap_or(u64::MAX);
 			let writes = count.checked_add(2).unwrap_or(u64::MAX);
 
 			log::info!(
