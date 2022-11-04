@@ -1049,12 +1049,7 @@ impl<T: Config> AMMPosition<AssetId, Balance> for Pallet<T> {
 		let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
 		let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
 
-		hydra_dx_math::xyk::calculate_liquidity_out(
-			asset_a_reserve,
-			asset_b_reserve,
-			shares_amount,
-			total_shares,
-		)
-		.map_err(|_| Error::<T>::RemoveAssetAmountInvalid.into())
+		hydra_dx_math::xyk::calculate_liquidity_out(asset_a_reserve, asset_b_reserve, shares_amount, total_shares)
+			.map_err(|_| Error::<T>::RemoveAssetAmountInvalid.into())
 	}
 }

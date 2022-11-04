@@ -1,6 +1,6 @@
 [package]
 name = "pallet-lbp"
-version = "4.6.0"
+version = "4.6.1"
 description = "HydraDX Liquidity Bootstrapping Pool Pallet"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -22,7 +22,7 @@ serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
 # Warehouse dependencies
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev = "7b95ae58e6a8a24c56da3511cef24d8c394801bf", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "38d96eb73e5dc3be3425f784ea920ab63f775260", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "976e7bfbdbc42f0197d369e075a4e5cb17784986", default-features = false }
 
 ## Local dependencies
 primitives = { default-features = false, path = "../../primitives" }
@@ -44,7 +44,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-test-utils = {git = "https://github.com/galacticcouncil/warehouse", rev = "efed1ddf7f9c6ef057e5aeaad9228d4527c83221", default-features = false}
+test-utils = {git = "https://github.com/galacticcouncil/warehouse", rev = "976e7bfbdbc42f0197d369e075a4e5cb17784986", default-features = false}
 
 [features]
 default = ["std"]
