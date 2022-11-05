@@ -85,26 +85,16 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 			},
 		)?;
 
-		// Transfer funds to the subaccount of the auction
-		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-			&bidder,
-			&Pallet::<T>::get_auction_subaccount_id(auction_id),
-			bid.amount,
-			ExistenceRequirement::KeepAlive,
-		)?;
+		let past_bids_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
+		let amount_to_reserve = bid.amount.saturating_sub(past_bids_amount);
+
+		// Reserve bid amount by transferring it to the subaccount of the auction
+		Pallet::<T>::reserve_bid_amount(auction_id, bidder.clone(), amount_to_reserve)?;
 
 		self.common_data.last_bid = Some((bidder.clone(), bid.amount));
 
 		// Set next minimal bid
 		Pallet::<T>::set_next_bid_min(&mut self.common_data, bid.amount)?;
-
-		<ReservedAmounts<T>>::try_mutate(&bidder, auction_id, |locked_amount| -> DispatchResult {
-			*locked_amount = locked_amount
-				.checked_add(&bid.amount)
-				.ok_or(Error::<T>::InvalidReservedAmount)?;
-
-			Ok(())
-		})?;
 
 		// Avoid auction sniping
 		Pallet::<T>::avoid_auction_sniping(&mut self.common_data)?;
@@ -201,7 +191,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		let mut destroy_auction_data = false;
 
 		Pallet::<T>::validate_claim(&self.common_data)?;
-		Pallet::<T>::handle_claim(bidder, auction_id, amount)?;
+		Pallet::<T>::unreserve_bid_amount(auction_id, bidder.clone(), amount, bidder)?;
 
 		let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
 		let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);

@@ -42,17 +42,6 @@ macro_rules! bvec {
 	}
 }
 
-fn last_event() -> crate::mock::Event {
-	frame_system::Pallet::<Test>::events()
-		.pop()
-		.expect("An event expected")
-		.event
-}
-
-pub fn expect_event<E: Into<TestEvent>>(e: E) {
-	assert_eq!(last_event(), e.into());
-}
-
 pub fn expect_events(e: Vec<TestEvent>) {
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }

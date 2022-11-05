@@ -78,23 +78,18 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	///
 	#[require_transactional]
 	fn bid(&mut self, auction_id: T::AuctionId, bidder: T::AccountId, bid: &Bid<T>) -> DispatchResult {
-		// Unreserve funds
-		if let Some(current_bid) = &self.common_data.last_bid {
-			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-				&Pallet::<T>::get_auction_subaccount_id(auction_id),
-				&current_bid.0,
-				current_bid.1,
-				ExistenceRequirement::AllowDeath,
+		// Unreserve the amount of the previous bid
+		if let Some(previous_bid) = &self.common_data.last_bid {
+			Pallet::<T>::unreserve_bid_amount(
+				auction_id,
+				previous_bid.0.clone(),
+				previous_bid.1,
+				previous_bid.0.clone(),
 			)?;
 		}
 
-		// Reserve funds by transferring to the subaccount of the auction
-		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-			&bidder,
-			&Pallet::<T>::get_auction_subaccount_id(auction_id),
-			bid.amount,
-			ExistenceRequirement::KeepAlive,
-		)?;
+		// Reserve the amount of the bid
+		Pallet::<T>::reserve_bid_amount(auction_id, bidder.clone(), bid.amount)?;
 
 		self.common_data.last_bid = Some((bidder, bid.amount));
 		// Set next minimal bid

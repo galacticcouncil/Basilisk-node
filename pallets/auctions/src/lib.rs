@@ -138,7 +138,7 @@ use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{
 		AccountIdConversion, AtLeast32BitUnsigned, Bounded, CheckedAdd, CheckedSub, MaybeSerializeDeserialize, Member,
-		One, StaticLookup, Zero,
+		One, Saturating, StaticLookup, Zero,
 	},
 	Permill,
 };
@@ -278,7 +278,24 @@ pub mod pallet {
 		/// An auction is destroyed manually by owner
 		AuctionDestroyed { id: T::AuctionId },
 		/// A bid is placed
-		BidPlaced { id: T::AuctionId, bidder: T::AccountId, bid: Bid<T> },
+		BidPlaced {
+			id: T::AuctionId,
+			bidder: T::AccountId,
+			bid: Bid<T>,
+		},
+		/// A bid amount was reserved by transferring it to pallet account
+		BidAmountReserved {
+			auction_id: T::AuctionId,
+			bidder: T::AccountId,
+			amount: BalanceOf<T>,
+		},
+		/// A bid amount was unreserved by transferring it to a beneficiary
+		BidAmountUnreserved {
+			auction_id: T::AuctionId,
+			bidder: T::AccountId,
+			amount: BalanceOf<T>,
+			beneficiary: T::AccountId,
+		},
 		/// An auction has closed
 		AuctionClosed(T::AuctionId),
 	}
@@ -452,7 +469,7 @@ pub mod pallet {
 				}
 			}
 
-			Self::deposit_event(Event::AuctionDestroyed { id: auction_id });
+			Self::deposit_event(Event::AuctionDestroyed { id: id });
 
 			Ok(())
 		}
@@ -495,7 +512,11 @@ pub mod pallet {
 					}
 				}
 
-				Self::deposit_event(Event::BidPlaced { id: auction_id, bidder: bidder, bid: bid });
+				Self::deposit_event(Event::BidPlaced {
+					id: auction_id,
+					bidder: bidder,
+					bid: bid,
+				});
 
 				Ok(())
 			})
@@ -651,10 +672,10 @@ impl<T: Config> Pallet<T> {
 	/// Handles auction create
 	///
 	/// - fetches next auction_id
+	/// - freezes NFT
 	/// - inserts the Auction object in Auctions store
 	/// - inserts a new record in AuctionOwnerById
-	/// - freezes NFT
-	/// - deposits AuctionCreated event
+	/// - emits AuctionCreated event
 	///
 	fn handle_create(
 		sender: <T>::AccountId,
@@ -669,14 +690,19 @@ impl<T: Config> Pallet<T> {
 			Ok(current_id)
 		})?;
 
-		<Auctions<T>>::insert(auction_id, auction.clone());
-		<AuctionOwnerById<T>>::insert(auction_id, &sender);
-
 		pallet_uniques::Pallet::<T>::freeze(
 			RawOrigin::Signed(sender.clone()).into(),
 			common_data.token.0.into(),
 			common_data.token.1.into(),
 		)?;
+
+		<Auctions<T>>::insert(auction_id, auction.clone());
+		<AuctionOwnerById<T>>::insert(auction_id, &sender);
+
+		Pallet::<T>::deposit_event(Event::AuctionCreated {
+			id: auction_id,
+			auction: auction,
+		});
 
 		Ok(())
 	}
@@ -737,6 +763,67 @@ impl<T: Config> Pallet<T> {
 		<AuctionOwnerById<T>>::remove(auction_id);
 		<Auctions<T>>::remove(auction_id);
 		<HighestBiddersByAuctionClosingRange<T>>::remove_prefix(auction_id, None);
+
+		Ok(())
+	}
+
+	///
+	/// Reserves the amount of a bid by transferring it from the bidder to the subaccount of auction pallet
+	/// Creates an entry in ReservedAmounts store
+	/// Emits BidAmountReserved event
+	///
+	fn reserve_bid_amount(auction_id: T::AuctionId, bidder: T::AccountId, bid_amount: BalanceOf<T>) -> DispatchResult {
+		// Reserve funds by transferring to the subaccount of the auction
+		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+			&bidder,
+			&Self::get_auction_subaccount_id(auction_id),
+			bid_amount,
+			ExistenceRequirement::KeepAlive,
+		)?;
+
+		<ReservedAmounts<T>>::try_mutate(&bidder, auction_id, |locked_amount| -> DispatchResult {
+			*locked_amount = locked_amount
+				.checked_add(&bid_amount)
+				.ok_or(Error::<T>::InvalidReservedAmount)?;
+
+			Ok(())
+		})?;
+
+		Pallet::<T>::deposit_event(Event::BidAmountReserved {
+			auction_id: auction_id,
+			bidder: bidder,
+			amount: bid_amount,
+		});
+
+		Ok(())
+	}
+
+	///
+	/// Unreserves the amount of a bid by transferring it from the subaccount of auction pallet to the beneficiary
+	/// Removes the entry in ReservedAmounts store
+	/// Emits BidAmountUnreserved event
+	///
+	fn unreserve_bid_amount(
+		auction_id: T::AuctionId,
+		bidder: T::AccountId,
+		bid_amount: BalanceOf<T>,
+		beneficiary: T::AccountId,
+	) -> DispatchResult {
+		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
+			&Pallet::<T>::get_auction_subaccount_id(auction_id),
+			&beneficiary,
+			bid_amount,
+			ExistenceRequirement::AllowDeath,
+		)?;
+
+		Pallet::<T>::deposit_event(Event::BidAmountUnreserved {
+			auction_id: auction_id,
+			bidder: bidder.clone(),
+			amount: bid_amount,
+			beneficiary: bidder.clone(),
+		});
+
+		<ReservedAmounts<T>>::remove(bidder, auction_id);
 
 		Ok(())
 	}
@@ -808,24 +895,6 @@ impl<T: Config> Pallet<T> {
 			common_auction_data.closed,
 			Error::<T>::CloseAuctionBeforeClaimingReservedAmounts
 		);
-
-		Ok(())
-	}
-
-	///
-	/// Helper function for handling a claim
-	///
-	/// It transfers the reserved amount to the bidder after which destroys the record from store
-	///
-	fn handle_claim(bidder: T::AccountId, auction_id: T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
-		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-			&Pallet::<T>::get_auction_subaccount_id(auction_id),
-			&bidder,
-			amount,
-			ExistenceRequirement::AllowDeath,
-		)?;
-
-		<ReservedAmounts<T>>::remove(bidder, auction_id);
 
 		Ok(())
 	}

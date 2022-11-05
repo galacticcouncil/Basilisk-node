@@ -489,10 +489,7 @@ fn destroy_candle_auction_should_work() {
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed {
-				id: 0,
-			}
-			.into(),
+			pallet::Event::<Test>::AuctionDestroyed { id: 0 }.into(),
 		)]);
 
 		// NFT can be transferred
@@ -589,7 +586,11 @@ fn bid_candle_auction_should_work() {
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let bob_balance_after = Balances::free_balance(&BOB);
 
-		// The bid amount is transferred to the auction subaccount
+		// The bid amount is reserved
+		assert_eq!(
+			AuctionsModule::reserved_amounts(BOB, 0),
+			BalanceOf::<Test>::from(1_000_u32)
+		);
 		assert_eq!(
 			auction_subaccount_balance_before.saturating_add(1_000),
 			auction_subaccount_balance_after
@@ -602,6 +603,25 @@ fn bid_candle_auction_should_work() {
 			BOB
 		);
 
+		expect_events(vec![
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountReserved {
+					auction_id: 0,
+					bidder: BOB,
+					amount: BalanceOf::<Test>::from(1_000_u32),
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidPlaced {
+					id: 0,
+					bidder: BOB,
+					bid: bid_object(1_000, 20),
+				}
+				.into(),
+			),
+		]);
+
 		// Second bidder, in the beginning of the closing period
 		set_block_number::<Test>(27_368);
 
@@ -611,19 +631,14 @@ fn bid_candle_auction_should_work() {
 			BalanceOf::<Test>::from(1_100_u32)
 		));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::BidPlaced {
-				id: 0,
-				bidder: CHARLIE,
-				bid: bid_object(1100, 27_368)
-			}
-			.into(),
-		)]);
-
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let charlie_balance_after = Balances::free_balance(&CHARLIE);
 
-		// The difference between bid amount and last bid is transferred to the auction subaccount
+		// The bid amount is reserved
+		assert_eq!(
+			AuctionsModule::reserved_amounts(CHARLIE, 0),
+			BalanceOf::<Test>::from(1_100_u32)
+		);
 		assert_eq!(
 			auction_subaccount_balance_before.saturating_add(2_100),
 			auction_subaccount_balance_after
@@ -635,6 +650,25 @@ fn bid_candle_auction_should_work() {
 			AuctionsModule::highest_bidders_by_auction_closing_range(0, 1).unwrap(),
 			CHARLIE
 		);
+
+		expect_events(vec![
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountReserved {
+					auction_id: 0,
+					bidder: CHARLIE,
+					amount: BalanceOf::<Test>::from(1_100_u32),
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidPlaced {
+					id: 0,
+					bidder: CHARLIE,
+					bid: bid_object(1_100, 27_368),
+				}
+				.into(),
+			),
+		]);
 
 		// Third bidder = First bidder (repeated bid), at the end of the closing period
 		set_block_number::<Test>(99_356);
@@ -649,7 +683,7 @@ fn bid_candle_auction_should_work() {
 			pallet::Event::<Test>::BidPlaced {
 				id: 0,
 				bidder: BOB,
-				bid: bid_object(1500, 99_356)
+				bid: bid_object(1500, 99_356),
 			}
 			.into(),
 		)]);
@@ -657,18 +691,41 @@ fn bid_candle_auction_should_work() {
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let bob_balance_after = Balances::free_balance(&BOB);
 
-		// The difference between bid amount and last bid is transferred to the auction subaccount
+		// The updated bid is reserved
 		assert_eq!(
-			auction_subaccount_balance_before.saturating_add(3_600),
+			AuctionsModule::reserved_amounts(BOB, 0),
+			BalanceOf::<Test>::from(1_500_u32)
+		);
+		assert_eq!(
+			auction_subaccount_balance_before.saturating_add(2_600),
 			auction_subaccount_balance_after
 		);
-		assert_eq!(bob_balance_before.saturating_sub(2_500), bob_balance_after);
+		assert_eq!(bob_balance_before.saturating_sub(1_500), bob_balance_after);
 
 		// The bidder is set as highest bidder for the current range
 		assert_eq!(
 			AuctionsModule::highest_bidders_by_auction_closing_range(0, 99).unwrap(),
 			BOB
 		);
+
+		expect_events(vec![
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountReserved {
+					auction_id: 0,
+					bidder: BOB,
+					amount: BalanceOf::<Test>::from(500_u32),
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidPlaced {
+					id: 0,
+					bidder: BOB,
+					bid: bid_object(1_500, 99_356),
+				}
+				.into(),
+			),
+		]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
@@ -685,13 +742,6 @@ fn bid_candle_auction_should_work() {
 		};
 
 		assert_ok!(auction_check);
-
-		// Bids on TopUp auctions are stored in order to validate the claim_bids extrinsic
-		let locked_amount_bob = AuctionsModule::reserved_amounts(BOB, 0);
-		assert_eq!(locked_amount_bob, 2500);
-
-		let locked_amount_charlie = AuctionsModule::reserved_amounts(CHARLIE, 0);
-		assert_eq!(locked_amount_charlie, 1_100);
 	});
 }
 
@@ -756,10 +806,10 @@ fn close_candle_auction_with_winner_should_work() {
 
 		// Funds of Bob remain reserved in the auction subaccount, available to claim
 		assert_eq!(
-			auction_subaccount_balance_before.saturating_add(2_500),
+			auction_subaccount_balance_before.saturating_add(1_500),
 			auction_subaccount_balance_after
 		);
-		assert_eq!(bob_balance_before.saturating_sub(2_500), bob_balance_after);
+		assert_eq!(bob_balance_before.saturating_sub(1_500), bob_balance_after);
 
 		// The auction winner is the new owner of the NFT
 		assert_eq!(

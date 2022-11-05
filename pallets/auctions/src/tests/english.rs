@@ -503,10 +503,7 @@ fn destroy_english_auction_should_work() {
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed {
-				id: 0,
-			}
-			.into(),
+			pallet::Event::<Test>::AuctionDestroyed { id: 0 }.into(),
 		)]);
 
 		// NFT can be transferred
@@ -602,12 +599,35 @@ fn bid_english_auction_should_work() {
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let bob_balance_after = Balances::free_balance(&BOB);
 
-		// The bid amount is transferred to the auction subaccount
+		// The bid amount is reserved
+		assert_eq!(
+			AuctionsModule::reserved_amounts(BOB, 0),
+			BalanceOf::<Test>::from(1_000_u32)
+		);
 		assert_eq!(
 			auction_subaccount_balance_before.saturating_add(1_000),
 			auction_subaccount_balance_after
 		);
 		assert_eq!(bob_balance_before.saturating_sub(1_000), bob_balance_after);
+
+		expect_events(vec![
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidPlaced {
+					id: 0,
+					bidder: BOB,
+					bid: bid_object(1_000, 11),
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountReserved {
+					auction_id: 0,
+					bidder: BOB,
+					amount: BalanceOf::<Test>::from(1_000_u32),
+				}
+				.into(),
+			),
+		]);
 
 		// Second highest bidder
 		set_block_number::<Test>(12);
@@ -622,28 +642,52 @@ fn bid_english_auction_should_work() {
 			BalanceOf::<Test>::from(1_100_u32)
 		));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::BidPlaced {
-				id: 0,
-				bidder: CHARLIE,
-				bid: bid_object(1100, 12)
-			}
-			.into(),
-		)]);
-
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let bob_balance_after = Balances::free_balance(&BOB);
 		let charlie_balance_after = Balances::free_balance(&CHARLIE);
 
-		// Previous bidder receives back the reserved amount
+		// Previous bid amount is unreserved
+		assert_eq!(AuctionsModule::reserved_amounts(BOB, 0), BalanceOf::<Test>::from(0_u32));
 		assert_eq!(bob_balance_before.saturating_add(1_000), bob_balance_after);
 
-		// The bid amount is transferred to the auction subaccount
+		// New bid amount is reserved
+		assert_eq!(
+			AuctionsModule::reserved_amounts(CHARLIE, 0),
+			BalanceOf::<Test>::from(1_100_u32)
+		);
 		assert_eq!(
 			auction_subaccount_balance_before.saturating_add(100),
 			auction_subaccount_balance_after
 		);
 		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
+
+		expect_events(vec![
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountUnreserved {
+					auction_id: 0,
+					bidder: BOB,
+					amount: BalanceOf::<Test>::from(1_000_u32),
+					beneficiary: BOB,
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountReserved {
+					auction_id: 0,
+					bidder: CHARLIE,
+					amount: BalanceOf::<Test>::from(1_100_u32),
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidPlaced {
+					id: 0,
+					bidder: CHARLIE,
+					bid: bid_object(1100, 12),
+				}
+				.into(),
+			),
+		]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
