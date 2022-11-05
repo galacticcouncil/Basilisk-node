@@ -96,6 +96,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	#[require_transactional]
 	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
 		let mut destroy_auction_data = false;
+		let mut auction_winner: Option<T::AccountId> = None;
 
 		Pallet::<T>::unfreeze_nft(&self.common_data)?;
 
@@ -116,6 +117,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					ExistenceRequirement::AllowDeath,
 				)?;
 
+				auction_winner = Some(winner.0.clone());
 				// Auction and related data can be pruned
 				destroy_auction_data = true;
 			}
@@ -124,6 +126,11 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		}
 
 		self.common_data.closed = true;
+
+		Pallet::<T>::deposit_event(Event::AuctionClosed {
+			auction_id: auction_id,
+			auction_winner: auction_winner,
+		});
 
 		Ok(destroy_auction_data)
 	}

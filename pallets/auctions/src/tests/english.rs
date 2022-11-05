@@ -34,7 +34,7 @@ fn create_english_auction_should_work() {
 
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionCreated {
-				id: 0,
+				auction_id: 0,
 				auction: auction,
 			}
 			.into(),
@@ -271,7 +271,7 @@ fn update_english_auction_should_work() {
 
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionUpdated {
-				id: 0,
+				auction_id: 0,
 				auction: auction,
 			}
 			.into(),
@@ -503,7 +503,7 @@ fn destroy_english_auction_should_work() {
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed { id: 0 }.into(),
+			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 }.into(),
 		)]);
 
 		// NFT can be transferred
@@ -613,7 +613,7 @@ fn bid_english_auction_should_work() {
 		expect_events(vec![
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
-					id: 0,
+					auction_id: 0,
 					bidder: BOB,
 					bid: bid_object(1_000, 11),
 				}
@@ -681,7 +681,7 @@ fn bid_english_auction_should_work() {
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
-					id: 0,
+					auction_id: 0,
 					bidder: CHARLIE,
 					bid: bid_object(1100, 12),
 				}
@@ -820,7 +820,7 @@ fn bid_english_auction_after_auction_end_time_should_not_work() {
 ///
 /// Happy path
 #[test]
-fn close_english_auction_should_work() {
+fn close_english_auction_with_winner_should_work() {
 	predefined_test_ext().execute_with(|| {
 		let auction = mocked_english_auction_object::<Test>(
 			mocked_english_common_data::<Test>(ALICE),
@@ -855,6 +855,44 @@ fn close_english_auction_should_work() {
 			auction_subaccount_balance_before.saturating_sub(bid),
 			auction_subaccount_balance_after
 		);
+
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionClosed {
+				auction_id: 0,
+				auction_winner: Some(BOB),
+			}
+			.into(),
+		)]);
+
+		set_block_number::<Test>(22);
+
+		// Auction data is destroyed
+		assert!(matches!(AuctionsModule::auctions(0), None));
+		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
+	});
+}
+
+#[test]
+fn close_english_auction_without_winner_should_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = mocked_english_auction_object::<Test>(
+			mocked_english_common_data::<Test>(ALICE),
+			mocked_english_specific_data::<Test>(),
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		set_block_number::<Test>(21);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionClosed {
+				auction_id: 0,
+				auction_winner: None,
+			}
+			.into(),
+		)]);
 
 		set_block_number::<Test>(22);
 

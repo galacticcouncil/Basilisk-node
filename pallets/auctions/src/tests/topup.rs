@@ -36,7 +36,7 @@ fn create_topup_auction_should_work() {
 
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionCreated {
-				id: 0,
+				auction_id: 0,
 				auction: auction,
 			}
 			.into(),
@@ -231,7 +231,7 @@ fn update_topup_auction_should_work() {
 
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionUpdated {
-				id: 0,
+				auction_id: 0,
 				auction: auction,
 			}
 			.into(),
@@ -414,7 +414,7 @@ fn destroy_topup_auction_should_work() {
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed { id: 0 }.into(),
+			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 }.into(),
 		)]);
 
 		// NFT can be transferred
@@ -556,7 +556,7 @@ fn bid_topup_auction_should_work() {
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
-					id: 0,
+					auction_id: 0,
 					bidder: BOB,
 					bid: bid_object(1_000, 11),
 				}
@@ -598,7 +598,7 @@ fn bid_topup_auction_should_work() {
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
-					id: 0,
+					auction_id: 0,
 					bidder: CHARLIE,
 					bid: bid_object(1_100, 12),
 				}
@@ -640,7 +640,7 @@ fn bid_topup_auction_should_work() {
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
-					id: 0,
+					auction_id: 0,
 					bidder: BOB,
 					bid: bid_object(1_500, 14),
 				}
@@ -725,6 +725,14 @@ fn close_topup_auction_with_winner_should_work() {
 			Some(CHARLIE)
 		);
 
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionClosed {
+				auction_id: 0,
+				auction_winner: Some(CHARLIE),
+			}
+			.into(),
+		)]);
+
 		// Auction data is destroyed
 		assert!(matches!(AuctionsModule::auctions(0), None));
 		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
@@ -783,6 +791,14 @@ fn close_topup_auction_without_winner_should_work() {
 			Nft::owner(mocked_nft_class_id_1::<Test>(), mocked_nft_instance_id_1::<Test>()),
 			Some(ALICE)
 		);
+
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionClosed {
+				auction_id: 0,
+				auction_winner: None,
+			}
+			.into(),
+		)]);
 
 		// Auction data is not destroyed
 		let auction = AuctionsModule::auctions(0).unwrap();
@@ -913,6 +929,26 @@ fn claim_topup_auction_without_winner_should_work() {
 			auction_subaccount_balance_after
 		);
 
+		expect_events(vec![
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountUnreserved {
+					auction_id: 0,
+					bidder: BOB,
+					amount: BalanceOf::<Test>::from(1_000_u32),
+					beneficiary: BOB,
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountClaimed {
+					auction_id: 0,
+					bidder: BOB,
+					amount: BalanceOf::<Test>::from(1_000_u32),
+				}
+				.into(),
+			),
+		]);
+
 		// Bob cannot claim twice
 		let bob_balance_before = Balances::free_balance(&BOB);
 		let auction_subaccount_balance_before = Balances::free_balance(&get_auction_subaccount_id(0));
@@ -938,6 +974,26 @@ fn claim_topup_auction_without_winner_should_work() {
 
 		let final_auction_account_balance = Balances::free_balance(&get_auction_subaccount_id(0));
 		assert_eq!(final_auction_account_balance, Zero::zero());
+
+		expect_events(vec![
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountUnreserved {
+					auction_id: 0,
+					bidder: CHARLIE,
+					amount: BalanceOf::<Test>::from(1_100_u32),
+					beneficiary: CHARLIE,
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountClaimed {
+					auction_id: 0,
+					bidder: CHARLIE,
+					amount: BalanceOf::<Test>::from(1_100_u32),
+				}
+				.into(),
+			),
+		]);
 
 		// Auction data is destroyed
 		assert!(matches!(AuctionsModule::auctions(0), None));

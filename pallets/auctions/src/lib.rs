@@ -272,14 +272,20 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// An auction is created
-		AuctionCreated { id: T::AuctionId, auction: Auction<T> },
+		AuctionCreated {
+			auction_id: T::AuctionId,
+			auction: Auction<T>,
+		},
 		/// An auction is updated
-		AuctionUpdated { id: T::AuctionId, auction: Auction<T> },
+		AuctionUpdated {
+			auction_id: T::AuctionId,
+			auction: Auction<T>,
+		},
 		/// An auction is destroyed manually by owner
-		AuctionDestroyed { id: T::AuctionId },
+		AuctionDestroyed { auction_id: T::AuctionId },
 		/// A bid is placed
 		BidPlaced {
-			id: T::AuctionId,
+			auction_id: T::AuctionId,
 			bidder: T::AccountId,
 			bid: Bid<T>,
 		},
@@ -296,8 +302,17 @@ pub mod pallet {
 			amount: BalanceOf<T>,
 			beneficiary: T::AccountId,
 		},
-		/// An auction has closed
-		AuctionClosed(T::AuctionId),
+		/// An auction has been closed
+		AuctionClosed {
+			auction_id: T::AuctionId,
+			auction_winner: Option<T::AccountId>,
+		},
+		/// A reserved amount from a bid has been claimed
+		BidAmountClaimed {
+			auction_id: T::AuctionId,
+			bidder: T::AccountId,
+			amount: BalanceOf<T>,
+		},
 	}
 
 	#[pallet::error]
@@ -378,7 +393,6 @@ pub mod pallet {
 		/// Creates a new auction for a given Auction type
 		///
 		/// - calls the create() implementation on the given Auction type
-		/// - deposits AuctionCreated event
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::create_english()
@@ -432,7 +446,7 @@ pub mod pallet {
 			}
 
 			Pallet::<T>::deposit_event(Event::AuctionUpdated {
-				id: id,
+				auction_id: id,
 				auction: updated_auction,
 			});
 
@@ -469,7 +483,7 @@ pub mod pallet {
 				}
 			}
 
-			Self::deposit_event(Event::AuctionDestroyed { id: id });
+			Self::deposit_event(Event::AuctionDestroyed { auction_id: id });
 
 			Ok(())
 		}
@@ -513,7 +527,7 @@ pub mod pallet {
 				}
 
 				Self::deposit_event(Event::BidPlaced {
-					id: auction_id,
+					auction_id: auction_id,
 					bidder: bidder,
 					bid: bid,
 				});
@@ -565,8 +579,6 @@ pub mod pallet {
 					}
 				}
 
-				Self::deposit_event(Event::AuctionClosed(auction_id));
-
 				Ok(())
 			})?;
 
@@ -600,10 +612,20 @@ pub mod pallet {
 
 			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 			let destroy_auction_data: bool = match auction {
-				Auction::English(auction_object) => auction_object.claim(auction_id, bidder, claimable_amount)?,
-				Auction::TopUp(auction_object) => auction_object.claim(auction_id, bidder, claimable_amount)?,
-				Auction::Candle(auction_object) => auction_object.claim(auction_id, bidder, claimable_amount)?,
+				Auction::English(auction_object) => {
+					auction_object.claim(auction_id, bidder.clone(), claimable_amount)?
+				}
+				Auction::TopUp(auction_object) => auction_object.claim(auction_id, bidder.clone(), claimable_amount)?,
+				Auction::Candle(auction_object) => {
+					auction_object.claim(auction_id, bidder.clone(), claimable_amount)?
+				}
 			};
+
+			Self::deposit_event(Event::BidAmountClaimed {
+				auction_id: auction_id,
+				bidder: bidder,
+				amount: claimable_amount,
+			});
 
 			if destroy_auction_data {
 				Self::handle_destroy(auction_id)?;
@@ -700,7 +722,7 @@ impl<T: Config> Pallet<T> {
 		<AuctionOwnerById<T>>::insert(auction_id, &sender);
 
 		Pallet::<T>::deposit_event(Event::AuctionCreated {
-			id: auction_id,
+			auction_id: auction_id,
 			auction: auction,
 		});
 

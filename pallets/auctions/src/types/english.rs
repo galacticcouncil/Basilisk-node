@@ -113,11 +113,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	#[require_transactional]
 	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
 		Pallet::<T>::unfreeze_nft(&self.common_data)?;
+		let mut auction_winner: Option<T::AccountId> = None;
 
 		// In case of a winning bid:
 		// - transfer NFT
 		// - transfer reserved funds from the auction subaccount
 		if let Some(winning_bid) = &self.common_data.last_bid {
+			auction_winner = Some(winning_bid.0.clone());
 			let dest = T::Lookup::unlookup(winning_bid.0.clone());
 			let source = T::Origin::from(frame_system::RawOrigin::Signed(self.common_data.owner.clone()));
 			pallet_nft::Pallet::<T>::transfer(source, self.common_data.token.0, self.common_data.token.1, dest)?;
@@ -131,6 +133,11 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		}
 
 		self.common_data.closed = true;
+
+		Pallet::<T>::deposit_event(Event::AuctionClosed {
+			auction_id: auction_id,
+			auction_winner: auction_winner,
+		});
 
 		Ok(true)
 	}

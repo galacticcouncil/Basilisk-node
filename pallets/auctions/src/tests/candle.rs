@@ -36,7 +36,7 @@ fn create_candle_auction_should_work() {
 
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionCreated {
-				id: 0,
+				auction_id: 0,
 				auction: auction,
 			}
 			.into(),
@@ -280,7 +280,7 @@ fn update_candle_auction_should_work() {
 
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionUpdated {
-				id: 0,
+				auction_id: 0,
 				auction: auction,
 			}
 			.into(),
@@ -489,7 +489,7 @@ fn destroy_candle_auction_should_work() {
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed { id: 0 }.into(),
+			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 }.into(),
 		)]);
 
 		// NFT can be transferred
@@ -614,7 +614,7 @@ fn bid_candle_auction_should_work() {
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
-					id: 0,
+					auction_id: 0,
 					bidder: BOB,
 					bid: bid_object(1_000, 20),
 				}
@@ -662,7 +662,7 @@ fn bid_candle_auction_should_work() {
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
-					id: 0,
+					auction_id: 0,
 					bidder: CHARLIE,
 					bid: bid_object(1_100, 27_368),
 				}
@@ -681,7 +681,7 @@ fn bid_candle_auction_should_work() {
 
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::BidPlaced {
-				id: 0,
+				auction_id: 0,
 				bidder: BOB,
 				bid: bid_object(1500, 99_356),
 			}
@@ -719,7 +719,7 @@ fn bid_candle_auction_should_work() {
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
-					id: 0,
+					auction_id: 0,
 					bidder: BOB,
 					bid: bid_object(1_500, 99_356),
 				}
@@ -817,6 +817,14 @@ fn close_candle_auction_with_winner_should_work() {
 			Some(CHARLIE)
 		);
 
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionClosed {
+				auction_id: 0,
+				auction_winner: Some(CHARLIE),
+			}
+			.into(),
+		)]);
+
 		let auction = AuctionsModule::auctions(0).unwrap();
 
 		let auction_check = match auction {
@@ -870,6 +878,14 @@ fn close_candle_auction_with_single_bidder_should_work() {
 		assert_eq!(bob_balance_before.saturating_sub(1_000), bob_balance_after);
 		assert!(auction_subaccount_balance_after.is_zero());
 
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionClosed {
+				auction_id: 0,
+				auction_winner: Some(BOB),
+			}
+			.into(),
+		)]);
+
 		// Auction data is destroyed
 		assert!(matches!(AuctionsModule::auctions(0), None));
 		assert!(matches!(AuctionsModule::auction_owner_by_id(0), None));
@@ -900,6 +916,14 @@ fn close_candle_auction_without_bidders_should_work() {
 			AuctionsModule::highest_bidders_by_auction_closing_range(0, 1),
 			None
 		));
+
+		expect_events(vec![mock::Event::Auctions(
+			pallet::Event::<Test>::AuctionClosed {
+				auction_id: 0,
+				auction_winner: None,
+			}
+			.into(),
+		)]);
 	});
 }
 
@@ -1004,6 +1028,26 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 
 		assert_eq!(bob_balance_before, bob_balance_after);
 		assert_eq!(auction_subaccount_balance, Zero::zero());
+
+		expect_events(vec![
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountUnreserved {
+					auction_id: 0,
+					bidder: BOB,
+					amount: BalanceOf::<Test>::from(1_500_u32),
+					beneficiary: BOB,
+				}
+				.into(),
+			),
+			mock::Event::Auctions(
+				pallet::Event::<Test>::BidAmountClaimed {
+					auction_id: 0,
+					bidder: BOB,
+					amount: BalanceOf::<Test>::from(1_500_u32),
+				}
+				.into(),
+			),
+		]);
 
 		// Bob cannot claim twice
 		assert_noop!(

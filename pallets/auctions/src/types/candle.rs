@@ -108,6 +108,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 	#[require_transactional]
 	fn close(&mut self, auction_id: T::AuctionId) -> Result<bool, DispatchError> {
 		let mut destroy_auction_data = false;
+		let mut auction_winner: Option<T::AccountId> = None;
 
 		Pallet::<T>::unfreeze_nft(&self.common_data)?;
 
@@ -168,12 +169,19 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					if reserved_amount == auction_balance {
 						destroy_auction_data = true;
 					}
+
+					auction_winner = Some(winner.clone());
 				}
 				None => return Err(Error::<T>::ErrorDeterminingAuctionWinner.into()),
 			}
 		} else {
 			destroy_auction_data = true;
 		}
+
+		Pallet::<T>::deposit_event(Event::AuctionClosed {
+			auction_id: auction_id,
+			auction_winner: auction_winner,
+		});
 
 		Ok(destroy_auction_data)
 	}
