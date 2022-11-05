@@ -75,9 +75,9 @@ frame_support::construct_runtime!(
 	 NodeBlock = Block,
 	 UncheckedExtrinsic = UncheckedExtrinsic,
 	 {
-		 System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		 LBPPallet: lbp::{Pallet, Call, Storage, Event<T>},
-		 Currency: orml_tokens::{Pallet, Event<T>},
+		 System: frame_system,
+		 LBPPallet: lbp,
+		 Currency: orml_tokens,
 	 }
 
 );
@@ -136,6 +136,8 @@ impl orml_tokens::Config for Test {
 	type DustRemovalWhitelist = Nothing;
 	type OnNewTokenAccount = ();
 	type OnKilledTokenAccount = ();
+	type ReserveIdentifier = ();
+	type MaxReserves = ();
 }
 
 pub struct AssetPairAccountIdTest();
@@ -275,4 +277,8 @@ pub fn generate_trades(
 		trades.insert(block_num, (is_buy, amount));
 	}
 	trades
+}
+
+pub fn expect_events(e: Vec<Event>) {
+	test_utils::expect_events::<Event, Test>(e);
 }

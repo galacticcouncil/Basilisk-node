@@ -2,7 +2,7 @@
 
 use crate::*;
 use codec::Encode;
-use frame_support::weights::{DispatchClass, GetDispatchInfo, WeightToFeePolynomial};
+use frame_support::weights::{DispatchClass, GetDispatchInfo, WeightToFee};
 use sp_runtime::traits::Convert;
 use sp_runtime::FixedPointNumber;
 
@@ -14,20 +14,26 @@ fn full_block_cost() {
 	let length_fee = max_bytes * TransactionByteFee::get();
 	assert_eq!(length_fee, 39_321_600_000_000_000);
 
-	let max_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap_or(1);
-	let weight_fee = WeightToFee::calc(&max_weight);
+	let max_weight = BlockWeights::get()
+		.get(DispatchClass::Normal)
+		.max_total
+		.unwrap_or(Weight::from_ref_time(1));
+	let weight_fee = crate::WeightToFee::weight_to_fee(&max_weight);
 	assert_eq!(weight_fee, 46142147344500);
 
 	//let target_fee = 393 * DOLLARS + 68_950_233_386_750;
 	let target_fee = 39367742960050500;
 
-	assert_eq!(ExtrinsicBaseWeight::get() as u128 + length_fee + weight_fee, target_fee);
+	assert_eq!(
+		ExtrinsicBaseWeight::get().ref_time() as u128 + length_fee + weight_fee,
+		target_fee
+	);
 }
 
 #[test]
 // This function tests that the fee for `ExtrinsicBaseWeight` of weight is correct
 fn extrinsic_base_fee_is_correct() {
-	let base_fee = WeightToFee::calc(&ExtrinsicBaseWeight::get());
+	let base_fee = crate::WeightToFee::weight_to_fee(&ExtrinsicBaseWeight::get());
 	let base_fee_expected = CENTS * 11;
 	assert!(base_fee.max(base_fee_expected) - base_fee.min(base_fee_expected) < MILLICENTS);
 }

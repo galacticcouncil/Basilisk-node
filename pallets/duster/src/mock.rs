@@ -3,8 +3,8 @@ use crate as duster;
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, GenesisBuild, Nothing, OnKilledAccount};
 
-use orml_currencies::BasicCurrencyAdapter;
 use orml_traits::parameter_type_with_key;
+use pallet_currencies::BasicCurrencyAdapter;
 use primitives::{AssetId, Balance};
 
 use crate::Config;
@@ -45,17 +45,17 @@ frame_support::construct_runtime!(
 	NodeBlock = Block,
 	UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Duster: duster::{Pallet, Call, Storage, Event<T>},
-		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
-		Currencies: orml_currencies::{Pallet, Event<T>},
-		Balances: pallet_balances::{Pallet,Call, Storage,Config<T>, Event<T>},
+		System: frame_system,
+		Duster: duster,
+		Tokens: orml_tokens,
+		Currencies: pallet_currencies,
+		Balances: pallet_balances,
 	}
 );
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 
 	pub const SS58Prefix: u8 = 63;
@@ -146,9 +146,11 @@ impl orml_tokens::Config for Test {
 	type DustRemovalWhitelist = Nothing;
 	type OnNewTokenAccount = ();
 	type OnKilledTokenAccount = ();
+	type ReserveIdentifier = ();
+	type MaxReserves = ();
 }
 
-impl orml_currencies::Config for Test {
+impl pallet_currencies::Config for Test {
 	type Event = Event;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Test, Balances, Amount, u32>;

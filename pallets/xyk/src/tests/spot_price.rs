@@ -21,9 +21,9 @@ fn spot_price_provider_should_return_correct_price_when_pool_exists() {
 			assert_ok!(XYK::create_pool(
 				Origin::signed(ALICE),
 				asset_a,
-				asset_b,
 				initial,
-				Price::from_float(0.4)
+				asset_b,
+				39_600_000_000_000
 			));
 
 			let price = XYKSpotPrice::<Test>::spot_price(asset_a, asset_b);
@@ -58,9 +58,9 @@ fn spot_price_provider_should_return_none_when_asset_reserve_is_zero() {
 			assert_ok!(XYK::create_pool(
 				Origin::signed(ALICE),
 				asset_a,
-				asset_b,
 				initial,
-				Price::from_float(0.4)
+				asset_b,
+				39_600_000_000_000
 			));
 
 			let pool_account = XYK::get_pair_id(AssetPair {

@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{AccountId, AssetId, Balance, Currencies, Runtime};
+use crate::{AccountId, Runtime};
 use primitives::Price;
 
 use super::*;
@@ -25,22 +25,12 @@ use frame_benchmarking::BenchmarkError;
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
-use sp_runtime::traits::SaturatedConversion;
 
 use hydradx_traits::pools::SpotPriceProvider;
-use orml_traits::MultiCurrencyExtended;
 
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
 
 const SEED: u32 = 1;
-
-pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
-	assert_ok!(<Currencies as MultiCurrencyExtended<_>>::update_balance(
-		currency_id,
-		who,
-		balance.saturated_into()
-	));
-}
 
 runtime_benchmarks! {
 	{ Runtime, pallet_transaction_multi_payment}
@@ -82,7 +72,7 @@ runtime_benchmarks! {
 		update_balance(asset_out, &maker, 2_000_000_000_000_000);
 		update_balance(asset_id, &maker, 2_000_000_000_000_000);
 
-		create_pool(maker, asset_out, asset_id, 1_000_000_000_000_000, Price::from_inner(500_000_000_000_000_000));
+		create_pool(maker, asset_out, 1_000_000_000_000_000, asset_id, 500_000_000_000_000);
 
 	}: { <Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_id, asset_out) }
 	verify{

@@ -1,6 +1,6 @@
 // This file is part of HydraDX.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,29 +56,29 @@ pub trait WeightInfo {
 pub struct HydraWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn dust_account() -> Weight {
-		0
+		Weight::zero()
 	}
 
-	fn add_nondustable_account() -> u64 {
-		0
+	fn add_nondustable_account() -> Weight {
+		Weight::zero()
 	}
 
-	fn remove_nondustable_account() -> u64 {
-		0
+	fn remove_nondustable_account() -> Weight {
+		Weight::zero()
 	}
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn dust_account() -> Weight {
-		0
+		Weight::zero()
 	}
 
-	fn add_nondustable_account() -> u64 {
-		0
+	fn add_nondustable_account() -> Weight {
+		Weight::zero()
 	}
 
-	fn remove_nondustable_account() -> u64 {
-		0
+	fn remove_nondustable_account() -> Weight {
+		Weight::zero()
 	}
 }

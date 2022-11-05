@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +32,9 @@ use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
 use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
-use primitives::{asset::AssetPair, AssetId, Balance, Price};
+use primitives::{asset::AssetPair, AssetId, Balance};
 use sp_std::{vec, vec::Vec};
 
-use frame_support::sp_runtime::FixedPointNumber;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use primitives::Amount;
 
@@ -45,6 +44,7 @@ mod tests;
 mod benchmarking;
 
 mod impls;
+mod trade_execution;
 pub mod weights;
 
 pub use impls::XYKSpotPrice;
@@ -136,9 +136,11 @@ pub mod pallet {
 		ZeroLiquidity,
 
 		/// It is not allowed to create a pool with zero initial price.
+		/// Not used, kept for backward compatibility
 		ZeroInitialPrice,
 
 		/// Overflow
+		/// Not used, kept for backward compatibility
 		CreatePoolAssetAmountInvalid,
 
 		/// Overflow
@@ -287,13 +289,12 @@ pub mod pallet {
 		///
 		/// Emits `PoolCreated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
-		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
+			amount_a: Balance,
 			asset_b: AssetId,
-			amount: Balance,
-			initial_price: Price,
+			amount_b: Balance,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -302,9 +303,10 @@ pub mod pallet {
 				Error::<T>::CannotCreatePool
 			);
 
-			ensure!(amount >= T::MinPoolLiquidity::get(), Error::<T>::InsufficientLiquidity);
-
-			ensure!(initial_price != Price::zero(), Error::<T>::ZeroInitialPrice);
+			ensure!(
+				amount_a >= T::MinPoolLiquidity::get() && amount_b >= T::MinPoolLiquidity::get(),
+				Error::<T>::InsufficientLiquidity
+			);
 
 			ensure!(asset_a != asset_b, Error::<T>::CannotCreatePoolWithSameAssets);
 
@@ -315,24 +317,15 @@ pub mod pallet {
 
 			ensure!(!Self::exists(asset_pair), Error::<T>::TokenPoolAlreadyExists);
 
-			let asset_b_amount = initial_price
-				.checked_mul_int(amount)
-				.ok_or(Error::<T>::CreatePoolAssetAmountInvalid)?;
+			let shares_added = if asset_a < asset_b { amount_a } else { amount_b };
 
 			ensure!(
-				asset_b_amount >= T::MinPoolLiquidity::get(),
-				Error::<T>::InsufficientLiquidity
-			);
-
-			let shares_added = if asset_a < asset_b { amount } else { asset_b_amount };
-
-			ensure!(
-				T::Currency::free_balance(asset_a, &who) >= amount,
+				T::Currency::free_balance(asset_a, &who) >= amount_a,
 				Error::<T>::InsufficientAssetBalance
 			);
 
 			ensure!(
-				T::Currency::free_balance(asset_b, &who) >= asset_b_amount,
+				T::Currency::free_balance(asset_b, &who) >= amount_b,
 				Error::<T>::InsufficientAssetBalance
 			);
 
@@ -346,7 +339,7 @@ pub mod pallet {
 				T::MinPoolLiquidity::get(),
 			)?;
 
-			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out)?;
+			let _ = T::AMMHandler::on_create_pool(asset_pair.asset_in, asset_pair.asset_out);
 
 			T::NonDustableWhitelistHandler::add_account(&pair_account)?;
 
@@ -362,8 +355,8 @@ pub mod pallet {
 				pool: pair_account.clone(),
 			});
 
-			T::Currency::transfer(asset_a, &who, &pair_account, amount)?;
-			T::Currency::transfer(asset_b, &who, &pair_account, asset_b_amount)?;
+			T::Currency::transfer(asset_a, &who, &pair_account, amount_a)?;
+			T::Currency::transfer(asset_b, &who, &pair_account, amount_b)?;
 
 			T::Currency::deposit(share_token, &who, shares_added)?;
 
@@ -378,7 +371,6 @@ pub mod pallet {
 		///
 		/// Emits `LiquidityAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
-		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
@@ -407,11 +399,6 @@ pub mod pallet {
 				Error::<T>::InsufficientAssetBalance
 			);
 
-			ensure!(
-				T::Currency::free_balance(asset_b, &who) >= amount_b_max_limit,
-				Error::<T>::InsufficientAssetBalance
-			);
-
 			let pair_account = Self::get_pair_id(asset_pair);
 
 			let share_token = Self::share_token(&pair_account);
@@ -424,6 +411,11 @@ pub mod pallet {
 
 			let amount_b = hydra_dx_math::xyk::calculate_liquidity_in(asset_a_reserve, asset_b_reserve, amount_a)
 				.map_err(|_| Error::<T>::AddAssetAmountInvalid)?;
+
+			ensure!(
+				T::Currency::free_balance(asset_b, &who) >= amount_b,
+				Error::<T>::InsufficientAssetBalance
+			);
 
 			ensure!(amount_b <= amount_b_max_limit, Error::<T>::AssetAmountExceededLimit);
 
@@ -470,7 +462,6 @@ pub mod pallet {
 		/// Emits 'LiquidityRemoved' when successful.
 		/// Emits 'PoolDestroyed' when pool is destroyed.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
-		#[transactional]
 		pub fn remove_liquidity(
 			origin: OriginFor<T>,
 			asset_a: AssetId,
@@ -739,6 +730,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 		let amount_out = hydra_dx_math::xyk::calculate_out_given_in(asset_in_reserve, asset_out_reserve, amount)
 			.map_err(|_| Error::<T>::SellAssetAmountInvalid)?;
 
+		ensure!(
+			amount_out
+				<= asset_out_reserve
+					.checked_div(T::MaxOutRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxOutRatioExceeded
+		);
+
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(amount_out)?
 		} else {
@@ -888,6 +887,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		let buy_price = hydra_dx_math::xyk::calculate_in_given_out(asset_out_reserve, asset_in_reserve, amount)
 			.map_err(|_| Error::<T>::BuyAssetAmountInvalid)?;
+
+		ensure!(
+			buy_price
+				<= asset_in_reserve
+					.checked_div(T::MaxInRatio::get())
+					.ok_or(Error::<T>::Overflow)?,
+			Error::<T>::MaxInRatioExceeded
+		);
 
 		let transfer_fee = if discount {
 			Self::calculate_discounted_fee(buy_price)?

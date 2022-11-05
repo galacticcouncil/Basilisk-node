@@ -2,19 +2,18 @@
 
 use crate::kusama_test_net::*;
 use basilisk_runtime::{
-	AssetRegistry, ClassDeposit, InstanceDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount, Tokens,
+	AssetRegistry, CollectionDeposit, ItemDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount, Tokens,
 	NFT, RELAY_CHAIN_ASSET_LOCATION,
 };
 use frame_support::{assert_noop, assert_ok};
 use orml_traits::MultiCurrency;
 use orml_traits::MultiReservableCurrency;
-use primitives::nft::ClassType;
-use primitives::{AssetId, ClassId};
+use pallet_nft::CollectionType;
+use primitives::{AssetId, CollectionId};
 use xcm_emulator::TestExt;
 
 const KSM: AssetId = 1;
-
-const ALICE_COLLECTION: ClassId = 13370000;
+const ALICE_COLLECTION: CollectionId = 13370000;
 
 fn init() {
 	TestNet::reset();
@@ -29,10 +28,10 @@ fn init() {
 
 fn arrange_nft() {
 	Basilisk::execute_with(|| {
-		assert_ok!(NFT::create_class(
+		assert_ok!(NFT::create_collection(
 			Origin::signed(ALICE.into()),
 			ALICE_COLLECTION,
-			ClassType::Marketplace,
+			CollectionType::Marketplace,
 			b"ipfs://QmZn9GFNrNyaTXNdCLWEPtjYHGG9yajgw9JzxpMoDZ2Ziq"
 				.to_vec()
 				.try_into()
@@ -73,7 +72,7 @@ fn nft_pallet_should_reserve_ksm_when_nft_is_arranged() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			Tokens::reserved_balance(KSM, &AccountId::from(ALICE)),
-			ClassDeposit::get() + InstanceDeposit::get()
+			CollectionDeposit::get() + ItemDeposit::get()
 		);
 	});
 }
@@ -92,7 +91,7 @@ fn marketplace_should_reserve_ksm_when_royalties_are_added() {
 		));
 		assert_eq!(
 			Tokens::reserved_balance(KSM, &AccountId::from(ALICE)),
-			ClassDeposit::get() + InstanceDeposit::get() + RoyaltyBondAmount::get()
+			CollectionDeposit::get() + ItemDeposit::get() + RoyaltyBondAmount::get()
 		);
 	});
 }
@@ -118,14 +117,14 @@ fn make_offer_should_reserve_ksm_when_created() {
 
 #[test]
 #[ignore] // is not case when the minting is free
-fn create_class_should_fail_when_relay_chain_location_not_registered() {
+fn create_collection_should_fail_when_relay_chain_location_not_registered() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
 		assert_noop!(
-			NFT::create_class(
+			NFT::create_collection(
 				Origin::signed(ALICE.into()),
 				ALICE_COLLECTION,
-				ClassType::Marketplace,
+				CollectionType::Marketplace,
 				b"ipfs://QmZn9GFNrNyaTXNdCLWEPtjYHGG9yajgw9JzxpMoDZ2Ziq"
 					.to_vec()
 					.try_into()

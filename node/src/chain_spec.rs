@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 
 #![allow(clippy::or_fun_call)]
 #![allow(clippy::too_many_arguments)]
+#![allow(clippy::derive_partial_eq_without_eq)] //Needed due to bug 'https://github.com/rust-lang/rust-clippy/issues/8867'
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
@@ -47,7 +48,7 @@ const TELEMETRY_URLS: [&str; 2] = [
 const PARA_ID: u32 = 2090;
 
 /// The extensions for the [`ChainSpec`].
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
 #[serde(deny_unknown_fields)]
 pub struct Extensions {
 	/// The relay chain of the Parachain.
@@ -718,6 +719,7 @@ fn parachain_genesis(
 			dust_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
 		},
 		polkadot_xcm: Default::default(),
+		xyk_liquidity_mining: Default::default(),
 	}
 }
 
@@ -818,5 +820,6 @@ fn testnet_parachain_genesis(
 			dust_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 		},
 		polkadot_xcm: Default::default(),
+		xyk_liquidity_mining: Default::default(),
 	}
 }
