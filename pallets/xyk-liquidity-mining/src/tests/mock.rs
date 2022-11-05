@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ use frame_support::{
 };
 
 use frame_system as system;
-use hydradx_traits::{nft::CreateTypedCollection, pools::DustRemovalAccountWhitelist, AMM};
+use hydradx_traits::{nft::CreateTypedCollection, pools::DustRemovalAccountWhitelist, AMMPosition, AMM};
 use orml_traits::parameter_type_with_key;
 use pallet_liquidity_mining::{FarmMultiplier, YieldFarmId};
 use pallet_nft::CollectionType;
@@ -190,7 +190,7 @@ pub struct DummyDeposit {
 pub struct DummyFarmEntry {
 	_yield_farm_id: u32,
 	global_farm_id: u32,
-	_incentivized_asset_balance: Balance,
+	_valued_shares: Balance,
 	last_claimed: BlockNumber,
 }
 
@@ -295,6 +295,27 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for DummyAMM {
 				None => BSX,
 			}
 		})
+	}
+}
+
+impl AMMPosition<AssetId, Balance> for DummyAMM {
+	type Error = DispatchError;
+
+	fn get_liquidity_behind_shares(
+		asset_a: AssetId,
+		asset_b: AssetId,
+		_shares_amount: Balance,
+	) -> Result<(Balance, Balance), Self::Error> {
+		let asset_pair = AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		};
+		let amm_pool_id = DummyAMM::get_pair_id(asset_pair);
+
+		Ok((
+			Tokens::free_balance(asset_a, &amm_pool_id),
+			Tokens::free_balance(asset_b, &amm_pool_id),
+		))
 	}
 }
 
@@ -562,13 +583,13 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		yield_farm_id: u32,
 		amm_pool_id: Self::AmmPoolId,
 		shares_amount: Self::Balance,
-		get_balance_in_amm: fn(AssetId, Self::AmmPoolId) -> Result<Self::Balance, Self::Error>,
+		get_token_value_of_lp_shares: fn(AssetId, Self::AmmPoolId, Balance) -> Result<Self::Balance, Self::Error>,
 	) -> Result<u128, Self::Error> {
 		let deposit_id = get_next_deposit_id();
 
 		let incentivized_asset = GLOBAL_FARMS.with(|v| v.borrow().get(&global_farm_id).unwrap().incentivized_asset);
 
-		let incentivized_asset_balance = get_balance_in_amm(incentivized_asset, amm_pool_id).unwrap();
+		let valued_shares = get_token_value_of_lp_shares(incentivized_asset, amm_pool_id, shares_amount).unwrap();
 
 		DEPOSITS.with(|v| {
 			v.borrow_mut().insert(
@@ -587,7 +608,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 				DummyFarmEntry {
 					global_farm_id,
 					_yield_farm_id: yield_farm_id,
-					_incentivized_asset_balance: incentivized_asset_balance,
+					_valued_shares: valued_shares,
 					last_claimed: MockBlockNumberProvider::get(),
 				},
 			);
@@ -600,7 +621,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		global_farm_id: u32,
 		yield_farm_id: u32,
 		deposit_id: u128,
-		get_balance_in_amm: fn(AssetId, Self::AmmPoolId) -> Result<Self::Balance, Self::Error>,
+		get_token_value_of_lp_shares: fn(AssetId, Self::AmmPoolId, Balance) -> Result<Self::Balance, Self::Error>,
 	) -> Result<Self::Balance, Self::Error> {
 		let deposit = DEPOSITS.with(|v| {
 			let mut p = v.borrow_mut();
@@ -614,7 +635,8 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		let incentivized_asset = GLOBAL_FARMS.with(|v| v.borrow().get(&global_farm_id).unwrap().incentivized_asset);
 		let amm_pool_id = deposit.amm_pool_id;
 
-		let incentivized_asset_balance = get_balance_in_amm(incentivized_asset, amm_pool_id).unwrap();
+		let valued_shares =
+			get_token_value_of_lp_shares(incentivized_asset, amm_pool_id, deposit.shares_amount).unwrap();
 
 		DEPOSIT_ENTRIES.with(|v| {
 			v.borrow_mut().insert(
@@ -622,7 +644,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 				DummyFarmEntry {
 					_yield_farm_id: yield_farm_id,
 					global_farm_id,
-					_incentivized_asset_balance: incentivized_asset_balance,
+					_valued_shares: valued_shares,
 					last_claimed: MockBlockNumberProvider::get(),
 				},
 			)

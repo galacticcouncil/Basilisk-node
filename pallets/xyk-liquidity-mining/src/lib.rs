@@ -58,7 +58,7 @@ use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
 use hydradx_traits::{
 	nft::{CreateTypedCollection, ReserveCollectionId},
-	AMM,
+	AMMPosition, AMM,
 };
 use orml_traits::MultiCurrency;
 use pallet_nft::CollectionType;
@@ -124,7 +124,8 @@ pub mod pallet {
 		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = AssetId, Balance = Balance>;
 
 		/// AMM helper functions.
-		type AMM: AMM<Self::AccountId, AssetId, AssetPair, Balance>;
+		type AMM: AMM<Self::AccountId, AssetId, AssetPair, Balance>
+			+ AMMPosition<AssetId, Balance, Error = DispatchError>;
 
 		/// The origin account that can create new liquidity mining program.
 		type CreateOrigin: EnsureOrigin<Self::Origin>;
@@ -189,6 +190,9 @@ pub mod pallet {
 
 		/// Calculated reward to claim is 0.
 		ZeroClaimedRewards,
+
+		/// Asset is not in the `AssetPair`.
+		AssetNotInAssetPair,
 	}
 
 	#[pallet::event]
@@ -690,7 +694,7 @@ pub mod pallet {
 				yield_farm_id,
 				amm_pool_id,
 				shares_amount,
-				Self::get_asset_balance_in_amm_pool,
+				Self::get_token_value_of_lp_shares,
 			)?;
 
 			Self::lock_lp_tokens(amm_share_token, &who, shares_amount)?;
@@ -740,7 +744,7 @@ pub mod pallet {
 				global_farm_id,
 				yield_farm_id,
 				deposit_id,
-				Self::get_asset_balance_in_amm_pool,
+				Self::get_token_value_of_lp_shares,
 			)?;
 
 			Self::deposit_event(Event::SharesRedeposited {
@@ -917,8 +921,23 @@ impl<T: Config> Pallet<T> {
 		T::MultiCurrency::transfer(lp_token, &service_account_for_lp_shares, who, amount)
 	}
 
-	fn get_asset_balance_in_amm_pool(asset: AssetId, amm_pool_id: T::AccountId) -> Result<Balance, DispatchError> {
-		Ok(T::MultiCurrency::total_balance(asset, &amm_pool_id))
+	/// This function retuns value of lp tokens in the `asset` currency.
+	fn get_token_value_of_lp_shares(
+		asset: AssetId,
+		amm_pool_id: T::AccountId,
+		lp_shares_amount: Balance,
+	) -> Result<Balance, DispatchError> {
+		let assets = T::AMM::get_pool_assets(&amm_pool_id).ok_or(Error::<T>::CantGetXykAssets)?;
+
+		ensure!(assets.contains(&asset), Error::<T>::AssetNotInAssetPair);
+
+		let (liquidity_a, liquidity_b) = T::AMM::get_liquidity_behind_shares(assets[0], assets[1], lp_shares_amount)?;
+
+		if assets[0] == asset {
+			return Ok(liquidity_a);
+		}
+
+		Ok(liquidity_b)
 	}
 
 	fn ensure_xyk(asset_pair: AssetPair) -> Result<T::AccountId, Error<T>> {

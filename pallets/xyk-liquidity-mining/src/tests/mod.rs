@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +44,7 @@ pub mod create_yield_farm;
 pub mod deposit_shares;
 pub mod destroy_global_farm;
 pub mod destroy_yield_farm;
+pub mod get_token_value_of_lp_shares;
 pub mod mock;
 pub mod redeposit_shares;
 pub mod resume_yield_farm;
