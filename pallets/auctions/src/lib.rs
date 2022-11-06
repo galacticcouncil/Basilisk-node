@@ -156,7 +156,7 @@ mod benchmarking;
 pub mod weights;
 use weights::WeightInfo;
 
-#[cfg(test)]
+#[cfg(any(feature = "runtime-benchmarks", test))]
 mod mocked_objects;
 
 #[cfg(test)]
@@ -529,9 +529,9 @@ pub mod pallet {
 				}
 
 				Self::deposit_event(Event::BidPlaced {
-					auction_id: auction_id,
-					bidder: bidder,
-					bid: bid,
+					auction_id,
+					bidder,
+					bid,
 				});
 
 				Ok(())
@@ -624,8 +624,8 @@ pub mod pallet {
 			};
 
 			Self::deposit_event(Event::BidAmountClaimed {
-				auction_id: auction_id,
-				bidder: bidder,
+				auction_id,
+				bidder,
 				amount: claimable_amount,
 			});
 
@@ -682,7 +682,7 @@ impl<T: Config> Pallet<T> {
 	fn validate_create_permissions(sender: T::AccountId, common_data: &CommonAuctionData<T>) -> DispatchResult {
 		// Sender must be NFT Owner
 		let token_owner = pallet_nft::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
-		ensure!(token_owner == Some(sender.clone()), Error::<T>::NotATokenOwner);
+		ensure!(token_owner == Some(sender), Error::<T>::NotATokenOwner);
 
 		// TODO switch to pallet_nft
 		let can_transfer =
@@ -724,8 +724,8 @@ impl<T: Config> Pallet<T> {
 		<AuctionOwnerById<T>>::insert(auction_id, &sender);
 
 		Pallet::<T>::deposit_event(Event::AuctionCreated {
-			auction_id: auction_id,
-			auction: auction,
+			auction_id,
+			auction,
 		});
 
 		Ok(())
@@ -818,8 +818,8 @@ impl<T: Config> Pallet<T> {
 		})?;
 
 		Pallet::<T>::deposit_event(Event::BidAmountReserved {
-			auction_id: auction_id,
-			bidder: bidder,
+			auction_id,
+			bidder,
 			amount: bid_amount,
 		});
 
@@ -848,7 +848,7 @@ impl<T: Config> Pallet<T> {
 		)?;
 
 		Pallet::<T>::deposit_event(Event::BidAmountUnreserved {
-			auction_id: auction_id,
+			auction_id,
 			bidder: bidder.clone(),
 			amount: bid_amount,
 			beneficiary: bidder.clone(),

@@ -79,7 +79,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		// Reserve bid amount by transferring it to the subaccount of the auction
 		Pallet::<T>::reserve_bid_amount(auction_id, bidder.clone(), amount_to_reserve)?;
 
-		self.common_data.last_bid = Some((bidder.clone(), bid.amount));
+		self.common_data.last_bid = Some((bidder, bid.amount));
 
 		// Set next minimal bid
 		Pallet::<T>::set_next_bid_min(&mut self.common_data, bid.amount)?;
@@ -129,8 +129,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		self.common_data.closed = true;
 
 		Pallet::<T>::deposit_event(Event::AuctionClosed {
-			auction_id: auction_id,
-			auction_winner: auction_winner,
+			auction_id,
+			auction_winner,
 		});
 
 		Ok(destroy_auction_data)

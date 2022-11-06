@@ -37,9 +37,8 @@ fn create_candle_auction_should_work() {
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionCreated {
 				auction_id: 0,
-				auction: auction,
-			}
-			.into(),
+				auction,
+			},
 		)]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
@@ -281,9 +280,8 @@ fn update_candle_auction_should_work() {
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionUpdated {
 				auction_id: 0,
-				auction: auction,
-			}
-			.into(),
+				auction,
+			},
 		)]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
@@ -489,7 +487,7 @@ fn destroy_candle_auction_should_work() {
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 }.into(),
+			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 },
 		)]);
 
 		// NFT can be transferred
@@ -609,16 +607,14 @@ fn bid_candle_auction_should_work() {
 					auction_id: 0,
 					bidder: BOB,
 					amount: BalanceOf::<Test>::from(1_000_u32),
-				}
-				.into(),
+				},
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
 					auction_id: 0,
 					bidder: BOB,
 					bid: bid_object(1_000, 20),
-				}
-				.into(),
+				},
 			),
 		]);
 
@@ -657,16 +653,14 @@ fn bid_candle_auction_should_work() {
 					auction_id: 0,
 					bidder: CHARLIE,
 					amount: BalanceOf::<Test>::from(1_100_u32),
-				}
-				.into(),
+				},
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
 					auction_id: 0,
 					bidder: CHARLIE,
 					bid: bid_object(1_100, 27_368),
-				}
-				.into(),
+				},
 			),
 		]);
 
@@ -684,8 +678,7 @@ fn bid_candle_auction_should_work() {
 				auction_id: 0,
 				bidder: BOB,
 				bid: bid_object(1500, 99_356),
-			}
-			.into(),
+			},
 		)]);
 
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
@@ -714,16 +707,14 @@ fn bid_candle_auction_should_work() {
 					auction_id: 0,
 					bidder: BOB,
 					amount: BalanceOf::<Test>::from(500_u32),
-				}
-				.into(),
+				},
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
 					auction_id: 0,
 					bidder: BOB,
 					bid: bid_object(1_500, 99_356),
-				}
-				.into(),
+				},
 			),
 		]);
 
@@ -821,8 +812,7 @@ fn close_candle_auction_with_winner_should_work() {
 			pallet::Event::<Test>::AuctionClosed {
 				auction_id: 0,
 				auction_winner: Some(CHARLIE),
-			}
-			.into(),
+			},
 		)]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
@@ -882,8 +872,7 @@ fn close_candle_auction_with_single_bidder_should_work() {
 			pallet::Event::<Test>::AuctionClosed {
 				auction_id: 0,
 				auction_winner: Some(BOB),
-			}
-			.into(),
+			},
 		)]);
 
 		// Auction data is destroyed
@@ -922,8 +911,7 @@ fn close_candle_auction_without_bidders_should_work() {
 			pallet::Event::<Test>::AuctionClosed {
 				auction_id: 0,
 				auction_winner: None,
-			}
-			.into(),
+			},
 		)]);
 	});
 }
@@ -1037,16 +1025,14 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 					bidder: BOB,
 					amount: BalanceOf::<Test>::from(1_500_u32),
 					beneficiary: BOB,
-				}
-				.into(),
+				},
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidAmountClaimed {
 					auction_id: 0,
 					bidder: BOB,
 					amount: BalanceOf::<Test>::from(1_500_u32),
-				}
-				.into(),
+				},
 			),
 		]);
 

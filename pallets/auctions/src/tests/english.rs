@@ -35,9 +35,8 @@ fn create_english_auction_should_work() {
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionCreated {
 				auction_id: 0,
-				auction: auction,
-			}
-			.into(),
+				auction,
+			},
 		)]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
@@ -272,9 +271,8 @@ fn update_english_auction_should_work() {
 		expect_events(vec![mock::Event::Auctions(
 			pallet::Event::<Test>::AuctionUpdated {
 				auction_id: 0,
-				auction: auction,
-			}
-			.into(),
+				auction,
+			},
 		)]);
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
@@ -503,7 +501,7 @@ fn destroy_english_auction_should_work() {
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
 		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 }.into(),
+			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 },
 		)]);
 
 		// NFT can be transferred
@@ -616,16 +614,14 @@ fn bid_english_auction_should_work() {
 					auction_id: 0,
 					bidder: BOB,
 					bid: bid_object(1_000, 11),
-				}
-				.into(),
+				},
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidAmountReserved {
 					auction_id: 0,
 					bidder: BOB,
 					amount: BalanceOf::<Test>::from(1_000_u32),
-				}
-				.into(),
+				},
 			),
 		]);
 
@@ -668,24 +664,21 @@ fn bid_english_auction_should_work() {
 					bidder: BOB,
 					amount: BalanceOf::<Test>::from(1_000_u32),
 					beneficiary: BOB,
-				}
-				.into(),
+				},
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidAmountReserved {
 					auction_id: 0,
 					bidder: CHARLIE,
 					amount: BalanceOf::<Test>::from(1_100_u32),
-				}
-				.into(),
+				},
 			),
 			mock::Event::Auctions(
 				pallet::Event::<Test>::BidPlaced {
 					auction_id: 0,
 					bidder: CHARLIE,
 					bid: bid_object(1100, 12),
-				}
-				.into(),
+				},
 			),
 		]);
 
@@ -860,8 +853,7 @@ fn close_english_auction_with_winner_should_work() {
 			pallet::Event::<Test>::AuctionClosed {
 				auction_id: 0,
 				auction_winner: Some(BOB),
-			}
-			.into(),
+			},
 		)]);
 
 		set_block_number::<Test>(22);
@@ -890,8 +882,7 @@ fn close_english_auction_without_winner_should_work() {
 			pallet::Event::<Test>::AuctionClosed {
 				auction_id: 0,
 				auction_winner: None,
-			}
-			.into(),
+			},
 		)]);
 
 		set_block_number::<Test>(22);

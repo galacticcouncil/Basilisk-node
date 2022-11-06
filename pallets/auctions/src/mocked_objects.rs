@@ -16,6 +16,7 @@
 //     '  `             \ _ _ \
 
 #![allow(clippy::unused_unit)]
+#![allow(dead_code)]
 
 use super::*;
 
