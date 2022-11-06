@@ -420,14 +420,14 @@ fn destroy_topup_auction_should_work() {
 		// NFT can be transferred
 		assert_ok!(Nft::transfer(
 			Origin::signed(ALICE),
-			mocked_nft_class_id_1::<Test>(),
-			mocked_nft_instance_id_1::<Test>(),
+			mocked_nft_collection_id_1::<Test>(),
+			mocked_nft_item_id_1::<Test>(),
 			CHARLIE
 		));
 		assert_ok!(Nft::transfer(
 			Origin::signed(CHARLIE),
-			mocked_nft_class_id_1::<Test>(),
-			mocked_nft_instance_id_1::<Test>(),
+			mocked_nft_collection_id_1::<Test>(),
+			mocked_nft_item_id_1::<Test>(),
 			ALICE
 		));
 	});
@@ -721,7 +721,7 @@ fn close_topup_auction_with_winner_should_work() {
 
 		// The auction winner is the new owner of the NFT
 		assert_eq!(
-			Nft::owner(mocked_nft_class_id_1::<Test>(), mocked_nft_instance_id_1::<Test>()),
+			Nft::owner(mocked_nft_collection_id_1::<Test>(), mocked_nft_item_id_1::<Test>()),
 			Some(CHARLIE)
 		);
 
@@ -788,7 +788,7 @@ fn close_topup_auction_without_winner_should_work() {
 
 		// The auction winner is the new owner of the NFT
 		assert_eq!(
-			Nft::owner(mocked_nft_class_id_1::<Test>(), mocked_nft_instance_id_1::<Test>()),
+			Nft::owner(mocked_nft_collection_id_1::<Test>(), mocked_nft_item_id_1::<Test>()),
 			Some(ALICE)
 		);
 

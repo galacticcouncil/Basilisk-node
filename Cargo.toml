@@ -48,7 +48,7 @@ pallet-multisig = { git = "https://github.com/paritytech//substrate", branch = "
 pallet-offences = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
 pallet-offences-benchmarking = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
 pallet-proxy = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
-pallet-randomness-collective-flip = { git = "https://github.com/paritytech//substrate", rev = "22d40c761a985482f93bbbea5ba4199bdba74f8e" }
+pallet-randomness-collective-flip = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
 pallet-recovery = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
 pallet-scheduler = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
 pallet-session = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }

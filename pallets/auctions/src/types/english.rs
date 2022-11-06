@@ -119,13 +119,16 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		// - transfer NFT
 		// - transfer reserved funds from the auction subaccount
 		if let Some(winning_bid) = &self.common_data.last_bid {
+			let auction_account =
+				Pallet::<T>::get_auction_subaccount_id(auction_id).ok_or(Error::<T>::CannotGenerateAuctionAccount)?;
 			auction_winner = Some(winning_bid.0.clone());
+
 			let dest = T::Lookup::unlookup(winning_bid.0.clone());
 			let source = T::Origin::from(frame_system::RawOrigin::Signed(self.common_data.owner.clone()));
 			pallet_nft::Pallet::<T>::transfer(source, self.common_data.token.0, self.common_data.token.1, dest)?;
 
 			<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-				&Pallet::<T>::get_auction_subaccount_id(auction_id),
+				&auction_account,
 				&self.common_data.owner,
 				winning_bid.1,
 				ExistenceRequirement::AllowDeath,

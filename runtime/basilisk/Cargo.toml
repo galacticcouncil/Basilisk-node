@@ -188,12 +188,7 @@ std = [
     "parachain-info/std",
     "pallet-xyk/std",
     "pallet-duster/std",
-<<<<<<< HEAD
     "pallet-auctions/std",
-    "pallet-xyk-rpc-runtime-api/std",
-    "pallet-lbp-rpc-runtime-api/std",
-=======
->>>>>>> master
     "pallet-asset-registry/std",
     "pallet-aura/std",
     "pallet-balances/std",

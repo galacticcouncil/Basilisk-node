@@ -106,12 +106,13 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 				let source = T::Origin::from(frame_system::RawOrigin::Signed(self.common_data.owner.clone()));
 				pallet_nft::Pallet::<T>::transfer(source, self.common_data.token.0, self.common_data.token.1, dest)?;
 
-				let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+				let auction_account = Pallet::<T>::get_auction_subaccount_id(auction_id)
+					.ok_or(Error::<T>::CannotGenerateAuctionAccount)?;
 				let transfer_amount =
-					<<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+					<<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(&auction_account);
 
 				<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-					auction_account,
+					&auction_account,
 					&self.common_data.owner,
 					transfer_amount,
 					ExistenceRequirement::AllowDeath,
@@ -156,8 +157,10 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 		Pallet::<T>::unreserve_bid_amount(auction_id, bidder.clone(), amount, bidder)?;
 
-		let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
-		let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+		let auction_account =
+			Pallet::<T>::get_auction_subaccount_id(auction_id).ok_or(Error::<T>::CannotGenerateAuctionAccount)?;
+		let auction_balance =
+			<<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(&auction_account);
 
 		// Auction and related data can be pruned
 		if auction_balance.is_zero() {

@@ -988,7 +988,7 @@ construct_runtime!(
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
 
-		Auctions: pallet_auctions::{Pallet, Call, Storage, Event<T>} = 114,
+		Auctions: pallet_auctions = 114,
 
 		// ORML related modules - starts at 150
 		Currencies: pallet_currencies = 150,

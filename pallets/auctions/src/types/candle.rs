@@ -146,9 +146,11 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 					self.specific_data.winner = Some(winner.clone());
 
-					let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
+					let auction_account = Pallet::<T>::get_auction_subaccount_id(auction_id)
+						.ok_or(Error::<T>::CannotGenerateAuctionAccount)?;
+
 					let auction_balance =
-						<<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+						<<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(&auction_account);
 					let reserved_amount = <ReservedAmounts<T>>::get(&winner, &auction_id);
 
 					ensure!(
@@ -157,7 +159,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 					);
 
 					<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-						auction_account,
+						&auction_account,
 						&self.common_data.owner,
 						reserved_amount,
 						ExistenceRequirement::AllowDeath,
@@ -201,8 +203,11 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		Pallet::<T>::validate_claim(&self.common_data)?;
 		Pallet::<T>::unreserve_bid_amount(auction_id, bidder.clone(), amount, bidder)?;
 
-		let auction_account = &Pallet::<T>::get_auction_subaccount_id(auction_id);
-		let auction_balance = <<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(auction_account);
+		let auction_account =
+			Pallet::<T>::get_auction_subaccount_id(auction_id).ok_or(Error::<T>::CannotGenerateAuctionAccount)?;
+
+		let auction_balance =
+			<<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(&auction_account);
 
 		if auction_balance.is_zero() {
 			destroy_auction_data = true;

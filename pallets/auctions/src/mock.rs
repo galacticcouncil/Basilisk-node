@@ -17,14 +17,19 @@
 
 use crate::{self as pallet};
 
-use frame_support::{parameter_types, traits::Everything, PalletId};
+use core::convert::{TryFrom, TryInto};
+use frame_support::traits::{AsEnsureOriginWithArg, NeverEnsureOrigin};
+use frame_support::{assert_ok, parameter_types, traits::Everything, BoundedVec, PalletId};
 use frame_system as system;
-use primitives::nft::{ClassType, NftPermissions};
+use pallet_nft::{CollectionType, NftPermissions};
+use primitives::constants::currency::UNITS;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
+	Storage,
 };
+use std::borrow::Borrow;
 use system::EnsureRoot;
 
 mod auction {
@@ -45,11 +50,11 @@ frame_support::construct_runtime!(
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Auctions: pallet::{Pallet, Call, Storage, Event<T>},
-		Nft: pallet_nft::{Pallet, Call, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
+		System: frame_system,
+		Auctions: pallet,
+		Nft: pallet_nft,
+		Balances: pallet_balances,
+		Uniques: pallet_uniques,
 	}
 );
 
@@ -59,8 +64,6 @@ pub type Balance = u128;
 pub const ALICE: AccountId = AccountId::new([1u8; 32]);
 pub const BOB: AccountId = AccountId::new([2u8; 32]);
 pub const CHARLIE: AccountId = AccountId::new([3u8; 32]);
-pub const DAVE: AccountId = AccountId::new([4u8; 32]);
-pub const EVE: AccountId = AccountId::new([5u8; 32]);
 pub const BSX: Balance = 100_000_000_000;
 
 parameter_types! {
@@ -69,18 +72,18 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub ReserveClassIdUpTo: u32 = 999;
+	pub ReserveCollectionIdUpTo: u32 = 999;
 }
 
 impl pallet_nft::Config for Test {
 	type Event = Event;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
-	type NftClassId = u32;
-	type NftInstanceId = u32;
+	type NftCollectionId = u32;
+	type NftItemId = u32;
 	type ProtocolOrigin = EnsureRoot<AccountId>;
-	type ClassType = ClassType;
+	type CollectionType = CollectionType;
 	type Permissions = NftPermissions;
-	type ReserveClassIdUpTo = ReserveClassIdUpTo;
+	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
 }
 
 parameter_types! {
@@ -174,24 +177,24 @@ impl system::Config for Test {
 }
 
 parameter_types! {
-	pub const ClassDeposit: Balance = 9_900 * BSX; // 1 UNIT deposit to create asset class
-	pub const InstanceDeposit: Balance = 100 * BSX; // 1/100 UNIT deposit to create asset instance
+	pub const CollectionDeposit: Balance = 10_000 * UNITS; // 1 UNIT deposit to create asset collection
+	pub const ItemDeposit: Balance = 100 * UNITS; // 1/100 UNIT deposit to create asset item
 	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
 	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
-	pub const UniquesMetadataDepositBase: Balance = 100 * BSX;
-	pub const AttributeDepositBase: Balance = 10 * BSX;
-	pub const DepositPerByte: Balance = BSX;
+	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
+	pub const AttributeDepositBase: Balance = 10 * UNITS;
+	pub const DepositPerByte: Balance = UNITS;
 	pub const UniquesStringLimit: u32 = 128;
 }
 
 impl pallet_uniques::Config for Test {
 	type Event = Event;
-	type ClassId = u32;
-	type InstanceId = u32;
+	type CollectionId = u32;
+	type ItemId = u32;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
-	type ClassDeposit = ClassDeposit;
-	type InstanceDeposit = InstanceDeposit;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
@@ -199,33 +202,75 @@ impl pallet_uniques::Config for Test {
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
+	type Locker = ();
+	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = ();
 }
 
-pub struct ExtBuilder;
-impl Default for ExtBuilder {
-	fn default() -> Self {
-		ExtBuilder
-	}
+#[derive(Default)]
+pub struct ExtBuilder {
+	endowed_accounts: Vec<(AccountId, Balance)>,
+	minted_nfts: Vec<(
+		AccountId,
+		<Test as pallet_uniques::Config>::CollectionId,
+		<Test as pallet_uniques::Config>::ItemId,
+	)>,
 }
 
 impl ExtBuilder {
+	pub fn with_endowed_accounts(mut self, accounts: Vec<(AccountId, Balance)>) -> Self {
+		self.endowed_accounts = accounts;
+		self
+	}
+
+	pub fn with_minted_nft(
+		mut self,
+		nft: (
+			AccountId,
+			<Test as pallet_uniques::Config>::CollectionId,
+			<Test as pallet_uniques::Config>::ItemId,
+		),
+	) -> Self {
+		self.minted_nfts.push(nft);
+		self
+	}
+
 	pub fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
 
-		pallet_balances::GenesisConfig::<Test> {
-			balances: vec![
-				(ALICE, 40_000 * BSX),
-				(BOB, 2_000 * BSX),
-				(CHARLIE, 4_000 * BSX),
-				(DAVE, 4_000 * BSX),
-				(EVE, 4_000 * BSX),
-			],
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
+		self.add_account_with_balances(&mut t);
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| self.create_nft());
 		ext
+	}
+
+	fn add_account_with_balances(&self, t: &mut Storage) {
+		pallet_balances::GenesisConfig::<Test> {
+			balances: self
+				.endowed_accounts
+				.clone()
+				.iter()
+				.flat_map(|(x, asset)| vec![(x.borrow().clone(), *asset)])
+				.collect(),
+		}
+		.assimilate_storage(t)
+		.unwrap();
+	}
+
+	fn create_nft(&self) {
+		for nft in &self.minted_nfts {
+			let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
+				b"metadata".to_vec().try_into().unwrap();
+			assert_ok!(Nft::create_collection(
+				Origin::signed(nft.0.clone()),
+				nft.1,
+				Default::default(),
+				metadata.clone()
+			));
+			assert_ok!(Nft::mint(Origin::signed(nft.0.clone()), nft.1, nft.2, metadata));
+		}
 	}
 }

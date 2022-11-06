@@ -20,30 +20,30 @@
 use super::*;
 
 // NFT mocks
-pub fn mocked_nft_class_id_1<T: Config>() -> <T as pallet_nft::Config>::NftClassId {
-	<T as pallet_nft::Config>::NftClassId::from(1_000_000u32)
+pub fn mocked_nft_collection_id_1<T: Config>() -> <T as pallet_nft::Config>::NftCollectionId {
+	<T as pallet_nft::Config>::NftCollectionId::from(1_000_000u32)
 }
 
-pub fn mocked_nft_instance_id_1<T: Config>() -> <T as pallet_nft::Config>::NftInstanceId {
-	<T as pallet_nft::Config>::NftInstanceId::from(1u16)
+pub fn mocked_nft_item_id_1<T: Config>() -> <T as pallet_nft::Config>::NftItemId {
+	<T as pallet_nft::Config>::NftItemId::from(1u16)
 }
 
-pub fn mocked_nft_instance_id_2<T: Config>() -> <T as pallet_nft::Config>::NftInstanceId {
-	<T as pallet_nft::Config>::NftInstanceId::from(2u16)
+pub fn mocked_nft_instance_id_2<T: Config>() -> <T as pallet_nft::Config>::NftItemId {
+	<T as pallet_nft::Config>::NftItemId::from(2u16)
 }
 
 pub fn mocked_nft_token<T: Config>() -> (
-	<T as pallet_nft::Config>::NftClassId,
-	<T as pallet_nft::Config>::NftInstanceId,
+	<T as pallet_nft::Config>::NftCollectionId,
+	<T as pallet_nft::Config>::NftItemId,
 ) {
-	(mocked_nft_class_id_1::<T>(), mocked_nft_instance_id_1::<T>())
+	(mocked_nft_collection_id_1::<T>(), mocked_nft_item_id_1::<T>())
 }
 
 pub fn mocked_nft_token_2<T: Config>() -> (
-	<T as pallet_nft::Config>::NftClassId,
-	<T as pallet_nft::Config>::NftInstanceId,
+	<T as pallet_nft::Config>::NftCollectionId,
+	<T as pallet_nft::Config>::NftItemId,
 ) {
-	(mocked_nft_class_id_1::<T>(), mocked_nft_instance_id_2::<T>())
+	(mocked_nft_collection_id_1::<T>(), mocked_nft_instance_id_2::<T>())
 }
 
 // English Auction object mocks

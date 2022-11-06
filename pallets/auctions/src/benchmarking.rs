@@ -29,7 +29,6 @@ use crate::mocked_objects::*;
 
 use frame_system::RawOrigin;
 use pallet_nft as Nft;
-use primitives::nft::ClassType;
 
 const SEED: u32 = 1;
 const INITIAL_BALANCE: u128 = 10_000;
@@ -47,14 +46,11 @@ fn create_account<T: Config>(name: &'static str, index: u32) -> T::AccountId {
 	caller
 }
 
-fn prepare_environment<T: Config>(owner: T::AccountId) -> DispatchResult
-where
-	<T as pallet_nft::Config>::ClassType: sp_std::convert::From<primitives::nft::ClassType>,
-{
-	Nft::Pallet::<T>::create_class(
+fn prepare_environment<T: Config>(owner: T::AccountId) -> DispatchResult {
+	Nft::Pallet::<T>::create_collection(
 		RawOrigin::Signed(owner.clone()).into(),
-		mocked_nft_class_id_1::<T>(),
-		ClassType::Marketplace.into(),
+		mocked_nft_collection_id_1::<T>(),
+		Default::default(),
 		sp_std::vec![0; <T as pallet_uniques::Config>::StringLimit::get() as usize]
 			.try_into()
 			.unwrap(),
@@ -62,8 +58,8 @@ where
 
 	Nft::Pallet::<T>::mint(
 		RawOrigin::Signed(owner).into(),
-		mocked_nft_class_id_1::<T>(),
-		mocked_nft_instance_id_1::<T>(),
+		mocked_nft_collection_id_1::<T>(),
+		mocked_nft_item_id_1::<T>(),
 		sp_std::vec![0; <T as pallet_uniques::Config>::StringLimit::get() as usize]
 			.try_into()
 			.unwrap(),
@@ -78,7 +74,6 @@ where
 benchmarks! {
 	where_clause {
 		where
-			<T as pallet_nft::Config>::ClassType: sp_std::convert::From<primitives::nft::ClassType>,
 			T::AuctionId: sp_std::convert::From<u8>,
 			<<T as pallet::Config>::Currency as frame_support::traits::Currency<<T as frame_system::Config>::AccountId>>::Balance: From<u128>
 	}
@@ -177,7 +172,7 @@ benchmarks! {
 	} : { Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?; }
 	verify {
 		assert_eq!(
-		Nft::Pallet::<T>::owner(mocked_nft_class_id_1::<T>(), mocked_nft_instance_id_1::<T>()),
+		Nft::Pallet::<T>::owner(mocked_nft_collection_id_1::<T>(), mocked_nft_item_id_1::<T>()),
 		Some(bidder)
 		)
 	}
@@ -268,7 +263,7 @@ benchmarks! {
 	} : { Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?; }
 	verify {
 		assert_eq!(
-			Nft::Pallet::<T>::owner(mocked_nft_class_id_1::<T>(), mocked_nft_instance_id_1::<T>()),
+			Nft::Pallet::<T>::owner(mocked_nft_collection_id_1::<T>(), mocked_nft_item_id_1::<T>()),
 			Some(bidder)
 		)
 	}

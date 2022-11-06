@@ -142,7 +142,6 @@ use sp_runtime::{
 	},
 	Permill,
 };
-
 /// This module contains all implementations for the different auction types
 mod types;
 
@@ -385,6 +384,8 @@ pub mod pallet {
 		ErrorDeterminingAuctionWinner,
 		/// Certain attributes of an auction cannot be updated
 		CannotChangeForbiddenAttribute,
+		/// Substrate cannot generate the AccountId (reserved amounts) based on auctions pallet id and auction id
+		CannotGenerateAuctionAccount,
 	}
 
 	#[pallet::call]
@@ -784,7 +785,8 @@ impl<T: Config> Pallet<T> {
 	fn handle_destroy(auction_id: T::AuctionId) -> DispatchResult {
 		<AuctionOwnerById<T>>::remove(auction_id);
 		<Auctions<T>>::remove(auction_id);
-		<HighestBiddersByAuctionClosingRange<T>>::remove_prefix(auction_id, None);
+		// TODO: Find a non-iterative way to clear storage; only relevant for candle
+		// <HighestBiddersByAuctionClosingRange<T>>::clear_prefix(auction_id, 100, None);
 
 		Ok(())
 	}
@@ -795,10 +797,13 @@ impl<T: Config> Pallet<T> {
 	/// Emits BidAmountReserved event
 	///
 	fn reserve_bid_amount(auction_id: T::AuctionId, bidder: T::AccountId, bid_amount: BalanceOf<T>) -> DispatchResult {
+		let auction_account =
+			Self::get_auction_subaccount_id(auction_id).ok_or(Error::<T>::CannotGenerateAuctionAccount)?;
+
 		// Reserve funds by transferring to the subaccount of the auction
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
 			&bidder,
-			&Self::get_auction_subaccount_id(auction_id),
+			&auction_account,
 			bid_amount,
 			ExistenceRequirement::KeepAlive,
 		)?;
@@ -831,8 +836,11 @@ impl<T: Config> Pallet<T> {
 		bid_amount: BalanceOf<T>,
 		beneficiary: T::AccountId,
 	) -> DispatchResult {
+		let auction_account =
+			Self::get_auction_subaccount_id(auction_id).ok_or(Error::<T>::CannotGenerateAuctionAccount)?;
+
 		<<T as crate::Config>::Currency as Currency<T::AccountId>>::transfer(
-			&Pallet::<T>::get_auction_subaccount_id(auction_id),
+			&auction_account,
 			&beneficiary,
 			bid_amount,
 			ExistenceRequirement::AllowDeath,
@@ -949,8 +957,8 @@ impl<T: Config> Pallet<T> {
 	///
 	/// Generates AccountID of auction subaccount
 	///
-	fn get_auction_subaccount_id(auction_id: T::AuctionId) -> T::AccountId {
-		T::PalletId::get().into_sub_account(("ac", auction_id))
+	fn get_auction_subaccount_id(auction_id: T::AuctionId) -> Option<T::AccountId> {
+		T::PalletId::get().try_into_sub_account(auction_id)
 	}
 
 	/// A helper function which checks whether an auction ending block has been reached
