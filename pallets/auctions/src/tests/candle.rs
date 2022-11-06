@@ -34,12 +34,10 @@ fn create_candle_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionCreated {
-				auction_id: 0,
-				auction,
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionCreated {
+			auction_id: 0,
+			auction,
+		})]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
@@ -277,12 +275,10 @@ fn update_candle_auction_should_work() {
 
 		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionUpdated {
-				auction_id: 0,
-				auction,
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionUpdated {
+			auction_id: 0,
+			auction,
+		})]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 		let auction_check = match auction {
@@ -486,9 +482,9 @@ fn destroy_candle_auction_should_work() {
 		assert_eq!(AuctionsModule::auctions(0), None);
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 },
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionDestroyed {
+			auction_id: 0,
+		})]);
 
 		// NFT can be transferred
 		assert_ok!(Nft::transfer(
@@ -602,20 +598,16 @@ fn bid_candle_auction_should_work() {
 		);
 
 		expect_events(vec![
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidAmountReserved {
-					auction_id: 0,
-					bidder: BOB,
-					amount: BalanceOf::<Test>::from(1_000_u32),
-				},
-			),
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidPlaced {
-					auction_id: 0,
-					bidder: BOB,
-					bid: bid_object(1_000, 20),
-				},
-			),
+			mock::Event::Auctions(pallet::Event::<Test>::BidAmountReserved {
+				auction_id: 0,
+				bidder: BOB,
+				amount: BalanceOf::<Test>::from(1_000_u32),
+			}),
+			mock::Event::Auctions(pallet::Event::<Test>::BidPlaced {
+				auction_id: 0,
+				bidder: BOB,
+				bid: bid_object(1_000, 20),
+			}),
 		]);
 
 		// Second bidder, in the beginning of the closing period
@@ -648,20 +640,16 @@ fn bid_candle_auction_should_work() {
 		);
 
 		expect_events(vec![
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidAmountReserved {
-					auction_id: 0,
-					bidder: CHARLIE,
-					amount: BalanceOf::<Test>::from(1_100_u32),
-				},
-			),
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidPlaced {
-					auction_id: 0,
-					bidder: CHARLIE,
-					bid: bid_object(1_100, 27_368),
-				},
-			),
+			mock::Event::Auctions(pallet::Event::<Test>::BidAmountReserved {
+				auction_id: 0,
+				bidder: CHARLIE,
+				amount: BalanceOf::<Test>::from(1_100_u32),
+			}),
+			mock::Event::Auctions(pallet::Event::<Test>::BidPlaced {
+				auction_id: 0,
+				bidder: CHARLIE,
+				bid: bid_object(1_100, 27_368),
+			}),
 		]);
 
 		// Third bidder = First bidder (repeated bid), at the end of the closing period
@@ -673,13 +661,11 @@ fn bid_candle_auction_should_work() {
 			BalanceOf::<Test>::from(1_500_u32)
 		));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::BidPlaced {
-				auction_id: 0,
-				bidder: BOB,
-				bid: bid_object(1500, 99_356),
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::BidPlaced {
+			auction_id: 0,
+			bidder: BOB,
+			bid: bid_object(1500, 99_356),
+		})]);
 
 		let auction_subaccount_balance_after = Balances::free_balance(&get_auction_subaccount_id(0));
 		let bob_balance_after = Balances::free_balance(&BOB);
@@ -702,20 +688,16 @@ fn bid_candle_auction_should_work() {
 		);
 
 		expect_events(vec![
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidAmountReserved {
-					auction_id: 0,
-					bidder: BOB,
-					amount: BalanceOf::<Test>::from(500_u32),
-				},
-			),
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidPlaced {
-					auction_id: 0,
-					bidder: BOB,
-					bid: bid_object(1_500, 99_356),
-				},
-			),
+			mock::Event::Auctions(pallet::Event::<Test>::BidAmountReserved {
+				auction_id: 0,
+				bidder: BOB,
+				amount: BalanceOf::<Test>::from(500_u32),
+			}),
+			mock::Event::Auctions(pallet::Event::<Test>::BidPlaced {
+				auction_id: 0,
+				bidder: BOB,
+				bid: bid_object(1_500, 99_356),
+			}),
 		]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
@@ -808,12 +790,10 @@ fn close_candle_auction_with_winner_should_work() {
 			Some(CHARLIE)
 		);
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionClosed {
-				auction_id: 0,
-				auction_winner: Some(CHARLIE),
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionClosed {
+			auction_id: 0,
+			auction_winner: Some(CHARLIE),
+		})]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 
@@ -868,12 +848,10 @@ fn close_candle_auction_with_single_bidder_should_work() {
 		assert_eq!(bob_balance_before.saturating_sub(1_000), bob_balance_after);
 		assert!(auction_subaccount_balance_after.is_zero());
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionClosed {
-				auction_id: 0,
-				auction_winner: Some(BOB),
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionClosed {
+			auction_id: 0,
+			auction_winner: Some(BOB),
+		})]);
 
 		// Auction data is destroyed
 		assert!(matches!(AuctionsModule::auctions(0), None));
@@ -907,12 +885,10 @@ fn close_candle_auction_without_bidders_should_work() {
 			None
 		));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionClosed {
-				auction_id: 0,
-				auction_winner: None,
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionClosed {
+			auction_id: 0,
+			auction_winner: None,
+		})]);
 	});
 }
 
@@ -1019,21 +995,17 @@ fn claim_candle_auction_by_losing_bidder_should_work() {
 		assert_eq!(auction_subaccount_balance, Zero::zero());
 
 		expect_events(vec![
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidAmountUnreserved {
-					auction_id: 0,
-					bidder: BOB,
-					amount: BalanceOf::<Test>::from(1_500_u32),
-					beneficiary: BOB,
-				},
-			),
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidAmountClaimed {
-					auction_id: 0,
-					bidder: BOB,
-					amount: BalanceOf::<Test>::from(1_500_u32),
-				},
-			),
+			mock::Event::Auctions(pallet::Event::<Test>::BidAmountUnreserved {
+				auction_id: 0,
+				bidder: BOB,
+				amount: BalanceOf::<Test>::from(1_500_u32),
+				beneficiary: BOB,
+			}),
+			mock::Event::Auctions(pallet::Event::<Test>::BidAmountClaimed {
+				auction_id: 0,
+				bidder: BOB,
+				amount: BalanceOf::<Test>::from(1_500_u32),
+			}),
 		]);
 
 		// Bob cannot claim twice

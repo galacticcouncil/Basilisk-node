@@ -280,5 +280,6 @@ try-runtime= [
     "pallet-marketplace/try-runtime",
     "pallet-route-executor/try-runtime",
     "pallet-xyk-liquidity-mining/try-runtime",
+    "pallet-auctions/try-runtime",
     "warehouse-liquidity-mining/try-runtime",
 ]

@@ -723,10 +723,7 @@ impl<T: Config> Pallet<T> {
 		<Auctions<T>>::insert(auction_id, auction.clone());
 		<AuctionOwnerById<T>>::insert(auction_id, &sender);
 
-		Pallet::<T>::deposit_event(Event::AuctionCreated {
-			auction_id,
-			auction,
-		});
+		Pallet::<T>::deposit_event(Event::AuctionCreated { auction_id, auction });
 
 		Ok(())
 	}

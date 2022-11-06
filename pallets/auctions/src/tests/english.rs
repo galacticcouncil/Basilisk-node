@@ -32,12 +32,10 @@ fn create_english_auction_should_work() {
 
 		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction.clone()));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionCreated {
-				auction_id: 0,
-				auction,
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionCreated {
+			auction_id: 0,
+			auction,
+		})]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 
@@ -268,12 +266,10 @@ fn update_english_auction_should_work() {
 
 		assert_ok!(AuctionsModule::update(Origin::signed(ALICE), 0, auction.clone()));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionUpdated {
-				auction_id: 0,
-				auction,
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionUpdated {
+			auction_id: 0,
+			auction,
+		})]);
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
 
@@ -500,9 +496,9 @@ fn destroy_english_auction_should_work() {
 		assert_eq!(AuctionsModule::auctions(0), None);
 		assert_eq!(AuctionsModule::auction_owner_by_id(0), None);
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionDestroyed { auction_id: 0 },
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionDestroyed {
+			auction_id: 0,
+		})]);
 
 		// NFT can be transferred
 		assert_ok!(Nft::transfer(
@@ -609,20 +605,16 @@ fn bid_english_auction_should_work() {
 		assert_eq!(bob_balance_before.saturating_sub(1_000), bob_balance_after);
 
 		expect_events(vec![
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidPlaced {
-					auction_id: 0,
-					bidder: BOB,
-					bid: bid_object(1_000, 11),
-				},
-			),
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidAmountReserved {
-					auction_id: 0,
-					bidder: BOB,
-					amount: BalanceOf::<Test>::from(1_000_u32),
-				},
-			),
+			mock::Event::Auctions(pallet::Event::<Test>::BidPlaced {
+				auction_id: 0,
+				bidder: BOB,
+				bid: bid_object(1_000, 11),
+			}),
+			mock::Event::Auctions(pallet::Event::<Test>::BidAmountReserved {
+				auction_id: 0,
+				bidder: BOB,
+				amount: BalanceOf::<Test>::from(1_000_u32),
+			}),
 		]);
 
 		// Second highest bidder
@@ -658,28 +650,22 @@ fn bid_english_auction_should_work() {
 		assert_eq!(charlie_balance_before.saturating_sub(1_100), charlie_balance_after);
 
 		expect_events(vec![
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidAmountUnreserved {
-					auction_id: 0,
-					bidder: BOB,
-					amount: BalanceOf::<Test>::from(1_000_u32),
-					beneficiary: BOB,
-				},
-			),
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidAmountReserved {
-					auction_id: 0,
-					bidder: CHARLIE,
-					amount: BalanceOf::<Test>::from(1_100_u32),
-				},
-			),
-			mock::Event::Auctions(
-				pallet::Event::<Test>::BidPlaced {
-					auction_id: 0,
-					bidder: CHARLIE,
-					bid: bid_object(1100, 12),
-				},
-			),
+			mock::Event::Auctions(pallet::Event::<Test>::BidAmountUnreserved {
+				auction_id: 0,
+				bidder: BOB,
+				amount: BalanceOf::<Test>::from(1_000_u32),
+				beneficiary: BOB,
+			}),
+			mock::Event::Auctions(pallet::Event::<Test>::BidAmountReserved {
+				auction_id: 0,
+				bidder: CHARLIE,
+				amount: BalanceOf::<Test>::from(1_100_u32),
+			}),
+			mock::Event::Auctions(pallet::Event::<Test>::BidPlaced {
+				auction_id: 0,
+				bidder: CHARLIE,
+				bid: bid_object(1100, 12),
+			}),
 		]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
@@ -849,12 +835,10 @@ fn close_english_auction_with_winner_should_work() {
 			auction_subaccount_balance_after
 		);
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionClosed {
-				auction_id: 0,
-				auction_winner: Some(BOB),
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionClosed {
+			auction_id: 0,
+			auction_winner: Some(BOB),
+		})]);
 
 		set_block_number::<Test>(22);
 
@@ -878,12 +862,10 @@ fn close_english_auction_without_winner_should_work() {
 
 		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
 
-		expect_events(vec![mock::Event::Auctions(
-			pallet::Event::<Test>::AuctionClosed {
-				auction_id: 0,
-				auction_winner: None,
-			},
-		)]);
+		expect_events(vec![mock::Event::Auctions(pallet::Event::<Test>::AuctionClosed {
+			auction_id: 0,
+			auction_winner: None,
+		})]);
 
 		set_block_number::<Test>(22);
 
