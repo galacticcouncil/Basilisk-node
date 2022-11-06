@@ -961,7 +961,7 @@ construct_runtime!(
 		Uniques: pallet_uniques = 20,
 		Identity: pallet_identity = 21,
 		Multisig: pallet_multisig = 22,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 23,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip = 23,
 
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system exclude_parts { Config } = 50,

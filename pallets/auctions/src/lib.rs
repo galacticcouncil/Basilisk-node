@@ -156,6 +156,7 @@ mod benchmarking;
 pub mod weights;
 use weights::WeightInfo;
 
+#[cfg(test)]
 mod mocked_objects;
 
 #[cfg(test)]
