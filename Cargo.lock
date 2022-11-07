@@ -5995,7 +5995,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.0.1"
+version = "5.0.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6659,7 +6659,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "frame-support",
  "frame-system",
