@@ -35,7 +35,6 @@ use types::*;
 use weights::WeightInfo;
 
 mod benchmarking;
-pub mod migration;
 mod types;
 pub mod weights;
 
