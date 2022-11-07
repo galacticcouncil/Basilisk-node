@@ -40,7 +40,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod migration;
 pub mod weights;
 
 pub use pallet::*;
