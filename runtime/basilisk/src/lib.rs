@@ -22,6 +22,7 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::from_over_into)]
+#![allow(clippy::match_like_matches_macro)]
 
 #[cfg(test)]
 mod tests;
@@ -147,7 +148,6 @@ impl Contains<Call> for BaseFilter {
 			};
 		}
 
-		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
