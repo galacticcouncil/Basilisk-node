@@ -140,6 +140,13 @@ impl Contains<Call> for BaseFilter {
 			return false;
 		}
 
+		if let Call::XYK(method) = call {
+			return match method {
+				pallet_xyk::Call::remove_liquidity { .. } => true,
+				_ => false,
+			};
+		}
+
 		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::Uniques(_) => false,
