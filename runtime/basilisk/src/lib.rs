@@ -22,6 +22,7 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::from_over_into)]
+#![allow(clippy::match_like_matches_macro)]
 
 #[cfg(test)]
 mod tests;
@@ -140,7 +141,13 @@ impl Contains<Call> for BaseFilter {
 			return false;
 		}
 
-		#[allow(clippy::match_like_matches_macro)]
+		if let Call::XYK(method) = call {
+			return match method {
+				pallet_xyk::Call::remove_liquidity { .. } => true,
+				_ => false,
+			};
+		}
+
 		match call {
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
