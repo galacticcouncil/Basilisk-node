@@ -141,13 +141,6 @@ impl Contains<Call> for BaseFilter {
 			return false;
 		}
 
-		if let Call::XYK(method) = call {
-			return match method {
-				pallet_xyk::Call::remove_liquidity { .. } => true,
-				_ => false,
-			};
-		}
-
 		match call {
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
