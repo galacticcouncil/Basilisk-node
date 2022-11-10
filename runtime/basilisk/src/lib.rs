@@ -22,6 +22,7 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::from_over_into)]
+#![allow(clippy::match_like_matches_macro)]
 
 #[cfg(test)]
 mod tests;
@@ -110,7 +111,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 83,
+	spec_version: 84,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -140,7 +141,6 @@ impl Contains<Call> for BaseFilter {
 			return false;
 		}
 
-		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,

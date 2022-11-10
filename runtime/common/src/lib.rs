@@ -117,7 +117,7 @@ parameter_types! {
 
 // pallet aura
 parameter_types! {
-	pub const MaxAuthorities: u32 = 32;
+	pub const MaxAuthorities: u32 = 50;
 }
 
 // pallet transaction payment
@@ -257,7 +257,7 @@ parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
 	pub const MaxCandidates: u32 = 20;
 	pub const MinCandidates: u32 = 4;
-	pub const MaxInvulnerables: u32 = 10;
+	pub const MaxInvulnerables: u32 = 50;
 }
 
 // pallet session
