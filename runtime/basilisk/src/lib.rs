@@ -111,7 +111,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 81,
+	spec_version: 82,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -139,13 +139,6 @@ impl Contains<Call> for BaseFilter {
 		if pallet_transaction_pause::PausedTransactionFilter::<Runtime>::contains(call) {
 			// if paused, dont allow!
 			return false;
-		}
-
-		if let Call::XYK(method) = call {
-			return match method {
-				pallet_xyk::Call::remove_liquidity { .. } => true,
-				_ => false,
-			};
 		}
 
 		match call {
