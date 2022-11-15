@@ -10,6 +10,7 @@ members = [
   'pallets/marketplace',
   'pallets/duster',
   'pallets/xyk',
+  'pallets/stableswap-liquidity-mining',
   'integration-tests',
   'integration-tests/parachain-runtime-mock'
 ]
