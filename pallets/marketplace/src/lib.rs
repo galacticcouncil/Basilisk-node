@@ -34,7 +34,6 @@ use sp_std::convert::TryInto;
 use types::*;
 use weights::WeightInfo;
 
-mod benchmarking;
 mod types;
 pub mod weights;
 

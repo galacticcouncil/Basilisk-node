@@ -2,6 +2,7 @@
 
 pub mod currencies;
 pub mod duster;
+pub mod marketplace;
 pub mod multi_payment;
 pub mod route_executor;
 pub mod tokens;
