@@ -111,7 +111,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 84,
+	spec_version: 85,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -1176,7 +1176,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_nft, NFT);
-			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
@@ -1199,6 +1198,7 @@ impl_runtime_apis! {
 			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
+			orml_list_benchmark!(list, extra, pallet_marketplace, benchmarking::marketplace);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1240,7 +1240,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_nft, NFT);
-			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
@@ -1264,6 +1263,7 @@ impl_runtime_apis! {
 			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
 			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_add_benchmark!(params, batches, pallet_route_executor, benchmarking::route_executor);
+			orml_add_benchmark!(params, batches, pallet_marketplace, benchmarking::marketplace);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
