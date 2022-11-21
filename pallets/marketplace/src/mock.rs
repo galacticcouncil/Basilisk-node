@@ -71,7 +71,6 @@ impl pallet_nft::Config for Test {
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftCollectionId = u32;
 	type NftItemId = u32;
-	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type CollectionType = CollectionType;
 	type Permissions = NftPermissions;
 	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
