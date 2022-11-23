@@ -720,6 +720,7 @@ fn parachain_genesis(
 		},
 		polkadot_xcm: Default::default(),
 		ema_oracle: Default::default(),
+		xyk_liquidity_mining: Default::default(),
 	}
 }
 
@@ -821,5 +822,6 @@ fn testnet_parachain_genesis(
 		},
 		polkadot_xcm: Default::default(),
 		ema_oracle: Default::default(),
+		xyk_liquidity_mining: Default::default(),
 	}
 }

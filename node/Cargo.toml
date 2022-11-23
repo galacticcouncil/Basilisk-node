@@ -1,6 +1,6 @@
 [package]
 name = "basilisk"
-version = "7.0.0"
+version = "8.1.1"
 description = "Basilisk node"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -32,11 +32,7 @@ futures = "0.3.15"
 common-runtime = { path = "../runtime/common" }
 basilisk-runtime = { path = "../runtime/basilisk" }
 testing-basilisk-runtime = { path = "../runtime/testing-basilisk" }
-pallet-xyk-rpc = { path="../pallets/xyk/rpc" }
-pallet-xyk-rpc-runtime-api = {path = '../pallets/xyk/rpc/runtime-api', default-features = false}
 primitives = { path = "../primitives" }
-pallet-lbp-rpc = { path="../pallets/lbp/rpc" }
-pallet-lbp-rpc-runtime-api = {path = '../pallets/lbp/rpc/runtime-api', default-features = false}
 
 # Substrate dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29" }

@@ -1,6 +1,6 @@
 [package]
 name = "common-runtime"
-version = "2.2.1"
+version = "2.3.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -19,11 +19,11 @@ scale-info = { version = "2.1.1", default-features = false, features = ["derive"
 primitives = {path = '../../primitives', default-features = false}
 
 # Local dependencies
-pallet-exchange = { path = "../../pallets/exchange", default-features=false}
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
+pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
 
 # Warehouse dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "498268d83ec8208b5ea35c204e41fba07f593bf1", default-features = false }
@@ -51,6 +51,9 @@ pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.29", default-features = false }
 pallet-utility = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
 polkadot-xcm = { package = "xcm", git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.29-1", default-features = false }
+
+# Cumulus dependencies
+cumulus-pallet-xcmp-queue = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.29", default-features = false }
 
 # ORML dependencies
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }

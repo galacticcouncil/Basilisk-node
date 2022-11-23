@@ -1,6 +1,6 @@
 [package]
 name = "pallet-marketplace"
-version = "4.0.0"
+version = "5.0.3"
 authors = ["GalacticCoucil"]
 description = "The marketplace for trading NFTs"
 edition = "2018"
@@ -55,3 +55,4 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 ]
+try-runtime = ["frame-support/try-runtime"]

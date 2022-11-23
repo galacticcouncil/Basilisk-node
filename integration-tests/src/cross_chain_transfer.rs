@@ -6,6 +6,7 @@ use frame_support::{assert_noop, assert_ok};
 use polkadot_xcm::{latest::prelude::*, VersionedMultiAssets};
 
 use cumulus_primitives_core::ParaId;
+use frame_support::weights::Weight;
 use hex_literal::hex;
 use orml_traits::currency::MultiCurrency;
 use sp_core::H256;
@@ -22,7 +23,7 @@ where
 }
 
 #[test]
-fn transfer_from_relay_chain() {
+fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
@@ -33,7 +34,7 @@ fn transfer_from_relay_chain() {
 	KusamaRelay::execute_with(|| {
 		assert_ok!(kusama_runtime::XcmPallet::reserve_transfer_assets(
 			kusama_runtime::Origin::signed(ALICE.into()),
-			Box::new(Parachain(2000).into().into()),
+			Box::new(Parachain(BASILISK_PARA_ID).into().into()),
 			Box::new(
 				Junction::AccountId32 {
 					id: BOB,
@@ -47,7 +48,7 @@ fn transfer_from_relay_chain() {
 		));
 
 		assert_eq!(
-			kusama_runtime::Balances::free_balance(&ParaId::from(2000).into_account_truncating()),
+			kusama_runtime::Balances::free_balance(&ParaId::from(BASILISK_PARA_ID).into_account_truncating()),
 			310 * UNITS
 		);
 	});
@@ -65,7 +66,7 @@ fn transfer_from_relay_chain() {
 }
 
 #[test]
-fn transfer_to_relay_chain() {
+fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
@@ -91,7 +92,7 @@ fn transfer_to_relay_chain() {
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
-			200 * UNITS - 3 * UNITS
+			ALICE_INITIAL_AUSD_BALANCE - 3 * UNITS
 		);
 	});
 
@@ -104,27 +105,90 @@ fn transfer_to_relay_chain() {
 }
 
 #[test]
-fn transfer_from_hydra() {
+fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 	TestNet::reset();
+
+	let amount_to_send = 30 * UNITS;
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	Hydra::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
 			0,
-			30 * UNITS,
+			amount_to_send,
 			Box::new(
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(BASILISK_PARA_ID),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount_to_send
+		);
+	});
+
+	let fee = 10_185_185;
+	Basilisk::execute_with(|| {
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			1000 * UNITS + amount_to_send - fee
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			fee // fees should go to treasury
+		);
+	});
+}
+
+#[test]
+fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
+	TestNet::reset();
+
+	let amount_to_send = 30 * UNITS;
+
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::AssetRegistry::set_location(
+			parachain_runtime_mock::Origin::root(),
+			1,
+			parachain_runtime_mock::AssetLocation(MultiLocation::new(
+				1,
+				X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))
+			))
+		));
+	});
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			1,
+		));
+
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(ALICE.into()),
+			0,
+			amount_to_send,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(OTHER_PARA_ID),
 						Junction::AccountId32 {
 							id: BOB,
 							network: NetworkId::Any,
@@ -137,45 +201,147 @@ fn transfer_from_hydra() {
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
+			200 * UNITS - amount_to_send
 		);
 	});
 
-	Basilisk::execute_with(|| {
+	OtherParachain::execute_with(|| {
+		let fee = 10175000000;
 		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1_029_999_989_814_815
+			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(BOB)),
+			BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN + amount_to_send - fee
 		);
+
 		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			10_185_185 // fees should go to treasury
+			parachain_runtime_mock::Tokens::free_balance(1, &parachain_runtime_mock::ParachainTreasuryAccount::get()),
+			10175000000
 		);
 	});
 }
 
 #[test]
-fn transfer_insufficient_amount_should_fail() {
+fn transfer_from_other_parachain_and_back() {
+	TestNet::reset();
+
+	let amount_to_send = 30 * UNITS;
+
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			1,
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+		));
+	});
+
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
+			0,
+			amount_to_send,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(BASILISK_PARA_ID),
+						Junction::AccountId32 {
+							id: BOB,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount_to_send
+		);
+	});
+
+	let fee = 10_185_185;
+	Basilisk::execute_with(|| {
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			1000 * UNITS + amount_to_send - fee
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			fee // fees should go to treasury
+		);
+
+		//transfer back
+		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
+			basilisk_runtime::Origin::signed(BOB.into()),
+			1,
+		));
+
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::Origin::signed(BOB.into()),
+			0,
+			amount_to_send,
+			Box::new(
+				MultiLocation::new(
+					1,
+					X2(
+						Junction::Parachain(OTHER_PARA_ID),
+						Junction::AccountId32 {
+							id: ALICE,
+							network: NetworkId::Any,
+						}
+					)
+				)
+				.into()
+			),
+			399_600_000_000
+		));
+		assert_eq!(
+			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			1000 * UNITS - amount_to_send
+		);
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
+			30_905_849 // fees should go to treasury
+		);
+	});
+
+	OtherParachain::execute_with(|| {
+		assert_eq!(
+			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)),
+			ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN
+		);
+	});
+}
+
+#[test]
+fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amount_is_used() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	Hydra::execute_with(|| {
+	OtherParachain::execute_with(|| {
+		let insufficient_amount = 55;
+		assert_eq!(
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
+		);
+
 		assert_noop!(
-			basilisk_runtime::XTokens::transfer(
-				basilisk_runtime::Origin::signed(ALICE.into()),
+			parachain_runtime_mock::XTokens::transfer(
+				parachain_runtime_mock::Origin::signed(ALICE.into()),
 				0,
-				1_000_000 - 1,
+				insufficient_amount,
 				Box::new(
 					MultiLocation::new(
 						1,
 						X2(
-							Junction::Parachain(2000),
+							Junction::Parachain(BASILISK_PARA_ID),
 							Junction::AccountId32 {
 								id: BOB,
 								network: NetworkId::Any,
@@ -188,9 +354,10 @@ fn transfer_insufficient_amount_should_fail() {
 			),
 			orml_xtokens::Error::<basilisk_runtime::Runtime>::XcmExecutionFailed
 		);
+
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200000000000000
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
 		);
 	});
 
@@ -215,7 +382,7 @@ fn fee_currency_set_on_xcm_transfer() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::Origin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
 
 		// fee currency is not set before XCM transfer
@@ -225,16 +392,16 @@ fn fee_currency_set_on_xcm_transfer() {
 		);
 	});
 
-	Hydra::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			transfer_amount,
 			Box::new(
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(BASILISK_PARA_ID),
 						Junction::AccountId32 {
 							id: HITCHHIKER,
 							network: NetworkId::Any,
@@ -246,8 +413,8 @@ fn fee_currency_set_on_xcm_transfer() {
 			399_600_000_000
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - transfer_amount
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - transfer_amount
 		);
 	});
 
@@ -273,16 +440,16 @@ fn fee_currency_set_on_xcm_transfer() {
 fn assets_should_be_trapped_when_assets_are_unknown() {
 	TestNet::reset();
 
-	Hydra::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+	OtherParachain::execute_with(|| {
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(BASILISK_PARA_ID),
 						Junction::AccountId32 {
 							id: BOB,
 							network: NetworkId::Any,
@@ -294,17 +461,17 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			399_600_000_000
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - 30 * UNITS
 		);
 	});
 
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::Fail {
-				message_hash: Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
+				message_hash: Some(hex!["4efbf4d7ba73f43d5bb4ebbec3189e132ccf2686aed37e97985af019e1cf62dc"].into()),
 				error: XcmError::AssetNotFound,
-				weight: 300_000_000,
+				weight: Weight::from_ref_time(300_000_000),
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
@@ -313,94 +480,10 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			}
 			.into(),
 		]);
-		let origin = MultiLocation::new(1, X1(Parachain(3000)));
-		let loc = MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0)));
+		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
+		let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
 		let asset: MultiAsset = (loc, 30 * UNITS).into();
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
-	});
-}
-
-#[test]
-fn transfer_from_hydra_and_back() {
-	TestNet::reset();
-
-	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::Origin::root(),
-			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
-		));
-	});
-
-	Hydra::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
-			0,
-			30 * UNITS,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(2000),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
-					)
-				)
-				.into()
-			),
-			399_600_000_000
-		));
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
-		);
-	});
-
-	Basilisk::execute_with(|| {
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1_029_999_989_814_815
-		);
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			10_185_185 // fees should go to treasury
-		);
-
-		//transfer back
-		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
-			basilisk_runtime::Origin::signed(BOB.into()),
-			1,
-		));
-
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(BOB.into()),
-			0,
-			30 * UNITS,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(3000),
-						Junction::AccountId32 {
-							id: ALICE,
-							network: NetworkId::Any,
-						}
-					)
-				)
-				.into()
-			),
-			399_600_000_000
-		));
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			1000 * UNITS - 30 * UNITS
-		);
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			35_990_141 // fees should go to treasury
-		);
 	});
 }

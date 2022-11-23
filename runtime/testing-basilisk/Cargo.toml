@@ -1,6 +1,6 @@
 [package]
 name = "testing-basilisk-runtime"
-version = "78.0.0"
+version = "85.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -24,14 +24,12 @@ smallvec = "1.9.0"
 # local dependencies
 primitives = { default-features = false, path = "../../primitives" }
 common-runtime = { path = '../common', default-features = false }
-pallet-exchange = { path = "../../pallets/exchange", default-features=false}
-pallet-exchange-benchmarking = { path = "../../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
-pallet-xyk-rpc-runtime-api = { path = "../../pallets/xyk/rpc/runtime-api",default-features = false}
-pallet-lbp-rpc-runtime-api = { path = "../../pallets/lbp/rpc/runtime-api",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
+pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
+pallet-xyk-liquidity-mining-benchmarking = { path = "../../pallets/xyk-liquidity-mining/benchmarking", optional = true, default-features = false}
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
 pallet-democracy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
@@ -49,6 +47,7 @@ hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse", rev =
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "498268d83ec8208b5ea35c204e41fba07f593bf1", default-features = false }
 pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "498268d83ec8208b5ea35c204e41fba07f593bf1", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "498268d83ec8208b5ea35c204e41fba07f593bf1", default-features = false }
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev = "498268d83ec8208b5ea35c204e41fba07f593bf1", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.29", default-features = false }
@@ -134,7 +133,6 @@ runtime-benchmarks = [
     "pallet-nft/runtime-benchmarks",
     "pallet-xyk/runtime-benchmarks",
     "pallet-marketplace/runtime-benchmarks",
-    "pallet-exchange-benchmarking",
     "pallet-lbp/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
@@ -151,6 +149,7 @@ runtime-benchmarks = [
     "pallet-multisig/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "pallet-transaction-pause/runtime-benchmarks",
+    "pallet-xyk-liquidity-mining-benchmarking",
 ]
 std = [
     "codec/std",
@@ -182,10 +181,7 @@ std = [
     "parachain-info/std",
     "pallet-xyk/std",
     "pallet-duster/std",
-    "pallet-xyk-rpc-runtime-api/std",
-    "pallet-lbp-rpc-runtime-api/std",
     "pallet-asset-registry/std",
-    "pallet-exchange/std",
     "pallet-aura/std",
     "pallet-balances/std",
     "pallet-elections-phragmen/std",
@@ -226,10 +222,6 @@ std = [
     "pallet-preimage/std",
     "pallet-identity/std",
     "pallet-proxy/std",
-    "pallet-transaction-pause/std"
-]
-try-runtime= [
-    "frame-try-runtime",
-    "frame-executive/try-runtime",
-    "frame-system/try-runtime",
+    "pallet-transaction-pause/std",
+    "pallet-xyk-liquidity-mining/std",
 ]

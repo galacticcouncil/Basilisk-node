@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.7.6"
+version = "0.8.2"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -18,11 +18,8 @@ pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", 
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "498268d83ec8208b5ea35c204e41fba07f593bf1", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "498268d83ec8208b5ea35c204e41fba07f593bf1", default-features = false }
 
-pallet-exchange = { path = "../pallets/exchange", default-features = false}
-pallet-exchange-benchmarking = { path = "../pallets/exchange/benchmarking", optional = true, default-features = false}
 pallet-xyk = { path = "../pallets/xyk",default-features = false}
 pallet-duster= { path = "../pallets/duster",default-features = false}
-pallet-xyk-rpc-runtime-api = { path = "../pallets/xyk/rpc/runtime-api",default-features = false}
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
 
@@ -103,10 +100,12 @@ polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch =
 polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.29-1" }
 
 basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
-kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28" }
+kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.29" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.29" }
+parachain-runtime-mock = { path = "parachain-runtime-mock", default-features = false}
 
 [dev-dependencies]
-xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", rev = "7d4eec3c50d77b82f88f9c831c5b553633ca245f" }
+xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", rev = "0460d04c798028e7bef82c907082e11753ed173b" }
 hex-literal = "0.3.1"
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "498268d83ec8208b5ea35c204e41fba07f593bf1" }
 pretty_assertions = "1.2.1"
@@ -140,9 +139,7 @@ std = [
     "parachain-info/std",
     "pallet-xyk/std",
     "pallet-duster/std",
-    "pallet-xyk-rpc-runtime-api/std",
     "pallet-asset-registry/std",
-    "pallet-exchange/std",
     "pallet-aura/std",
     "pallet-balances/std",
     "pallet-elections-phragmen/std",

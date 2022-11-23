@@ -10,8 +10,8 @@ members = [
   'pallets/marketplace',
   'pallets/duster',
   'pallets/xyk',
-  'pallets/exchange',
   'integration-tests',
+  'integration-tests/parachain-runtime-mock'
 ]
 
 [patch."https://github.com/paritytech/substrate"]
@@ -143,6 +143,9 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech//substrate",
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
 substrate-wasm-builder = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
 try-runtime-cli = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
+pallet-mmr = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
+pallet-mmr-rpc = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
+sp-mmr-primitives = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.29" }
 
 [patch."https://github.com/paritytech/polkadot"]
 kusama-runtime = { git = "https://github.com/galacticcouncil/polkadot", branch = "fix-xcm-executor-atomicity-9-29-1" }
@@ -188,15 +191,3 @@ cumulus-primitives-utility = { git = "https://github.com/paritytech//cumulus", b
 cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.29" }
 parachain-info = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.29" }
 cumulus-relay-chain-interface = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.29" }
-#cumulus-relay-chain-local = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.29" }
-
-[patch."https://github.com/open-web3-stack/open-runtime-module-library"]
-orml-tokens = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.29" }
-orml-traits = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.29" }
-orml-vesting = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.29" }
-orml-benchmarking = { git = "https://github.com/open-web3-stack//open-runtime-module-library.git", branch = "polkadot-v0.9.29", optional = true }
-orml-xtokens = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.29" }
-orml-xcm-support = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.29" }
-orml-unknown-tokens = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.29" }
-orml-xcm = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.29" }
-orml-utilities = { git = "https://github.com/open-web3-stack//open-runtime-module-library", branch = "polkadot-v0.9.29" }

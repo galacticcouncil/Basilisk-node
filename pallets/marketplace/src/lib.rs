@@ -24,6 +24,7 @@ use frame_support::{
 	ensure,
 	traits::{Currency, ExistenceRequirement, ReservableCurrency},
 };
+use frame_support::traits::tokens::nonfungibles::Inspect;
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
 	traits::{CheckedDiv, CheckedMul, Saturating, StaticLookup},
@@ -34,8 +35,6 @@ use sp_std::convert::TryInto;
 use types::*;
 use weights::WeightInfo;
 
-mod benchmarking;
-pub mod migration;
 mod types;
 pub mod weights;
 
@@ -60,7 +59,10 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+
 	#[pallet::pallet]
+	#[pallet::storage_version(STORAGE_VERSION)]
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(_);
 
@@ -94,7 +96,7 @@ pub mod pallet {
 	#[pallet::getter(fn marketplace_items)]
 	/// Stores Marketplace info
 	pub type MarketplaceItems<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::NftCollectionId, Twox64Concat, T::NftItemId, RoyaltyOf<T>>;
+		StorageDoubleMap<_, Blake2_128Concat, T::NftCollectionId, Blake2_128Concat, T::NftItemId, RoyaltyOf<T>>;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nft::Config {

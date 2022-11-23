@@ -23,6 +23,8 @@ use xcm_builder::{
 };
 use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
 
+use polkadot_xcm::latest::Weight;
+
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
 
 pub type Barrier = (
@@ -140,7 +142,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
-	type WeightInfo = ();
+	type WeightInfo = weights::xcmp_queue::BasiliskWeight<Runtime>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
