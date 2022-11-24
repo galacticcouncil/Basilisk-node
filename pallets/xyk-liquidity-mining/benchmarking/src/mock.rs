@@ -145,6 +145,8 @@ impl pallet_liquidity_mining::Config<Instance1> for Test {
 	type AmmPoolId = AccountId;
 	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type AssetRegistry = AssetRegistry;
+	type NonDustableWhitelistHandler = Duster;
 	type Event = Event;
 }
 
@@ -189,7 +191,6 @@ impl pallet_nft::Config for Test {
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftCollectionId = primitives::CollectionId;
 	type NftItemId = primitives::ItemId;
-	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
 	type CollectionType = CollectionType;
 	type Permissions = NftPermissions;
 	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
@@ -341,6 +342,14 @@ impl ExtBuilder {
 
 		orml_tokens::GenesisConfig::<Test> {
 			balances: self.endowed_accounts,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
+		pallet_asset_registry::GenesisConfig::<Test> {
+			asset_names: vec![(b"KSM".to_vec(), 1_000), (b"DOT".to_vec(), 1_000)],
+			native_asset_name: b"BSX".to_vec(),
+			native_existential_deposit: 1_000_000_000_000,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

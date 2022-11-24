@@ -282,7 +282,6 @@ parameter_types! {
 // warehouse pallet liquidity mining
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
-	pub const MinDeposit: Balance = 1_000; //0.000_000_001 [LP Token], TODO:
 	pub const MaxEntriesPerDeposit: u8 = 5; //NOTE: Rebenchmark when this change, TODO:
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 50; //NOTE: Includes deleted/destroyed farms, TODO:
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100_800;  //1w, TODO:

@@ -2,9 +2,9 @@
 
 use crate::kusama_test_net::*;
 use basilisk_runtime::NFT;
-use frame_support::assert_ok;
 use frame_support::traits::tokens::nonfungibles::*;
 use frame_support::traits::ReservableCurrency;
+use frame_support::{assert_noop, assert_ok};
 use hydradx_traits::nft::CreateTypedCollection;
 use pallet_nft::CollectionType;
 use pallet_nft::NftPermission;
@@ -15,6 +15,7 @@ use xcm_emulator::TestExt;
 const ALLOW: bool = true;
 const NOT_ALLOW: bool = false;
 const RESERVED_COLLECTION_ID: CollectionId = 0;
+const NON_RESERVED_COLLECTION_ID: CollectionId = 1_000_000;
 const RESTRICTED_COLLECTION_TYPE: CollectionType = CollectionType::HydraHeads;
 
 fn create_nft_collection(account_id: AccountId, collection_id: CollectionId, collection_type: CollectionType) {
@@ -145,7 +146,7 @@ fn deposit_for_create_collection_should_be_zero() {
 	Basilisk::execute_with(|| {
 		// Act & Assert
 		assert_ok!(<NFT as Create<AccountId>>::create_collection(
-			&RESERVED_COLLECTION_ID,
+			&NON_RESERVED_COLLECTION_ID,
 			&AccountId::from(ALICE),
 			&AccountId::from(ALICE),
 		));
@@ -158,16 +159,19 @@ fn deposit_for_create_collection_should_be_zero() {
 }
 
 #[test]
-fn create_collection_should_ignore_reserved_ids() {
+fn create_collection_should_fail_when_collection_id_is_reserved() {
 	// Arrange
 	TestNet::reset();
 	Basilisk::execute_with(|| {
 		// Act & Assert
-		assert_ok!(<NFT as Create<AccountId>>::create_collection(
-			&RESERVED_COLLECTION_ID,
-			&AccountId::from(ALICE),
-			&AccountId::from(ALICE),
-		));
+		assert_noop!(
+			<NFT as Create<AccountId>>::create_collection(
+				&RESERVED_COLLECTION_ID,
+				&AccountId::from(ALICE),
+				&AccountId::from(ALICE),
+			),
+			pallet_nft::Error::<basilisk_runtime::Runtime>::IdReserved
+		);
 	});
 }
 
