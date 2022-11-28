@@ -227,8 +227,8 @@ pub mod pallet {
 			loyalty_curve: Option<LoyaltyCurve>,
 		},
 
-		/// Global farm was destroyed.
-		GlobalFarmDestroyed {
+		/// Global farm was terminated.
+		GlobalFarmTerminated {
 			global_farm_id: GlobalFarmId,
 			who: T::AccountId,
 			reward_currency: AssetId,
@@ -292,8 +292,8 @@ pub mod pallet {
 			multiplier: FarmMultiplier,
 		},
 
-		/// Yield farm was destroyed from global farm.
-		YieldFarmDestroyed {
+		/// Yield farm was terminated from global farm.
+		YieldFarmTerminated {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
 			who: T::AccountId,
@@ -414,25 +414,25 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Destroy existing liq. mining program.
+		/// Terminate existing liq. mining program.
 		///
 		/// Only farm owner can perform this action.
 		///
-		/// WARN: To successfully destroy a farm, farm have to be empty(all yield farms in he global farm must be destroyed).
+		/// WARN: To successfully terminate a farm, farm have to be empty(all yield farms in he global farm must be terminated).
 		///
 		/// Parameters:
 		/// - `origin`: global farm's owner.
-		/// - `global_farm_id`: id of global farm to be destroyed.
+		/// - `global_farm_id`: id of global farm to be terminated.
 		///
-		/// Emits `FarmDestroyed` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_global_farm())]
-		pub fn destroy_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
+		/// Emits `GlobalFarmTerminated` event when successful.
+		#[pallet::weight(<T as Config>::WeightInfo::terminate_global_farm())]
+		pub fn terminate_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let (reward_currency, undistributed_rewards, who) =
-				T::LiquidityMiningHandler::destroy_global_farm(who, global_farm_id)?;
+				T::LiquidityMiningHandler::terminate_global_farm(who, global_farm_id)?;
 
-			Self::deposit_event(Event::GlobalFarmDestroyed {
+			Self::deposit_event(Event::GlobalFarmTerminated {
 				global_farm_id,
 				who,
 				reward_currency,
@@ -627,13 +627,13 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `origin`: global farm's owner.
-		/// - `global_farm_id`: farm id from which yield farm should be destroyed.
-		/// - `yield_farm_id`: id of yield farm to be destroyed.
+		/// - `global_farm_id`: farm id from which yield farm should be terminated.
+		/// - `yield_farm_id`: id of yield farm to be terminated.
 		/// - `asset_pair`: asset pair identifying yield farm in the global farm.
 		///
-		/// Emits `YieldFarmDestroyed` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_yield_farm())]
-		pub fn destroy_yield_farm(
+		/// Emits `YieldFarmTerminated` event when successful.
+		#[pallet::weight(<T as Config>::WeightInfo::terminate_yield_farm())]
+		pub fn terminate_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
@@ -644,9 +644,9 @@ pub mod pallet {
 			//NOTE: don't check XYK pool existance, owner must be able to stop yield farm.
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			T::LiquidityMiningHandler::destroy_yield_farm(who.clone(), global_farm_id, yield_farm_id, amm_pool_id)?;
+			T::LiquidityMiningHandler::terminate_yield_farm(who.clone(), global_farm_id, yield_farm_id, amm_pool_id)?;
 
-			Self::deposit_event(Event::YieldFarmDestroyed {
+			Self::deposit_event(Event::YieldFarmTerminated {
 				global_farm_id,
 				yield_farm_id,
 				who,
@@ -807,8 +807,8 @@ pub mod pallet {
 		/// wasn't claimed in this period) and transfer LP shares.
 		/// * liq. mining is stopped - claim and transfer rewards(if it
 		/// wasn't claimed in this period) and transfer LP shares.
-		/// * yield farm was destroyed - only LP shares will be transferred.
-		/// * farm was destroyed - only LP shares will be transferred.
+		/// * yield farm was terminated - only LP shares will be transferred.
+		/// * farm was terminated - only LP shares will be transferred.
 		///
 		/// User's unclaimable rewards will be transferred back to global farm's account.
 		///

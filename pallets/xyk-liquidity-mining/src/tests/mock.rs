@@ -476,7 +476,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		})
 	}
 
-	fn destroy_global_farm(
+	fn terminate_global_farm(
 		who: AccountId,
 		global_farm_id: u32,
 	) -> Result<(AssetId, Self::Balance, AccountId), Self::Error> {
@@ -565,7 +565,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		})
 	}
 
-	fn destroy_yield_farm(
+	fn terminate_yield_farm(
 		_who: AccountId,
 		_global_farm_id: u32,
 		yield_farm_id: u32,
