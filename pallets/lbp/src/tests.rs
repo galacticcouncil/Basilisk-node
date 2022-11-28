@@ -17,11 +17,14 @@
 
 #![allow(clippy::bool_assert_comparison)]
 use super::*;
-pub use crate::mock::{
-	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE,
-	ETH, HDX, KUSD,
+use crate::mock::{
+	generate_trades, run_to_sale_end, run_to_sale_start, DEFAULT_FEE, EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID,
+	INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
 };
-use crate::mock::{KUSD_BSX_POOL_ID, HDX_BSX_POOL_ID, INITIAL_BALANCE, SAMPLE_POOL_DATA, EXISTENTIAL_DEPOSIT, generate_trades, SALE_START, SALE_END, run_to_sale_start, run_to_sale_end, SAMPLE_AMM_TRANSFER, DEFAULT_FEE};
+pub use crate::mock::{
+	run_to_block, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
+	HDX, KUSD,
+};
 use frame_support::{assert_err, assert_noop, assert_ok};
 use hydradx_traits::{AMMTransfer, LockedBalance};
 use sp_runtime::traits::BadOrigin;
@@ -644,10 +647,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_1.end, Some(18));
 		assert_eq!(updated_pool_data_1.initial_weight, 10_000_000);
 		assert_eq!(updated_pool_data_1.final_weight, 80_000_000);
-		assert_eq!(
-			updated_pool_data_1.fee,
-			(5, 100),
-		);
+		assert_eq!(updated_pool_data_1.fee, (5, 100),);
 		assert_eq!(updated_pool_data_1.fee_collector, BOB);
 
 		// removes old fee collector from store and
@@ -675,10 +675,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_2.end, Some(30));
 		assert_eq!(updated_pool_data_2.initial_weight, 10_000_000);
 		assert_eq!(updated_pool_data_2.final_weight, 80_000_000);
-		assert_eq!(
-			updated_pool_data_2.fee,
-			(5, 100),
-		);
+		assert_eq!(updated_pool_data_2.fee, (5, 100),);
 		assert_eq!(updated_pool_data_2.fee_collector, BOB);
 
 		// update only one parameter
@@ -701,10 +698,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_3.end, Some(30));
 		assert_eq!(updated_pool_data_3.initial_weight, 12_500_000);
 		assert_eq!(updated_pool_data_3.final_weight, 80_000_000);
-		assert_eq!(
-			updated_pool_data_3.fee,
-			(5, 100),
-		);
+		assert_eq!(updated_pool_data_3.fee, (5, 100),);
 		assert_eq!(updated_pool_data_3.fee_collector, BOB);
 
 		// update only one parameter
@@ -727,10 +721,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_4.end, Some(30));
 		assert_eq!(updated_pool_data_4.initial_weight, 12_500_000);
 		assert_eq!(updated_pool_data_4.final_weight, 80_000_000);
-		assert_eq!(
-			updated_pool_data_4.fee,
-			(5, 100),
-		);
+		assert_eq!(updated_pool_data_4.fee, (5, 100),);
 		assert_eq!(updated_pool_data_4.fee_collector, ALICE);
 
 		// mix
@@ -753,10 +744,7 @@ fn update_pool_data_should_work() {
 		assert_eq!(updated_pool_data_5.end, Some(18));
 		assert_eq!(updated_pool_data_5.initial_weight, 10_000_000);
 		assert_eq!(updated_pool_data_5.final_weight, 80_000_000);
-		assert_eq!(
-			updated_pool_data_5.fee,
-			(6, 1_000),
-		);
+		assert_eq!(updated_pool_data_5.fee, (6, 1_000),);
 		assert_eq!(updated_pool_data_5.fee_collector, ALICE);
 
 		// set repay target
@@ -2502,10 +2490,7 @@ fn amm_trait_should_work() {
 			asset_out: BSX,
 		});
 		// existing pool
-		assert_eq!(
-			LBPPallet::get_fee(&pool_id),
-			(400, 1_000)
-		);
+		assert_eq!(LBPPallet::get_fee(&pool_id), (400, 1_000));
 		// not existing pool
 		assert_eq!(LBPPallet::get_fee(&1_234), (0, 0));
 	});
@@ -3027,7 +3012,10 @@ fn calculate_fees_should_work() {
 
 		assert_eq!(LBPPallet::calculate_fees(&pool, 999_u128).unwrap(), 0,);
 
-		assert_eq!(LBPPallet::calculate_fees(&pool, u128::MAX).unwrap(), 680564733841876926926749214863536422);
+		assert_eq!(
+			LBPPallet::calculate_fees(&pool, u128::MAX).unwrap(),
+			680564733841876926926749214863536422
+		);
 
 		assert_ok!(LBPPallet::create_pool(
 			Origin::root(),

@@ -47,8 +47,8 @@ mod tests;
 
 mod benchmarking;
 
-pub mod weights;
 mod impls;
+pub mod weights;
 
 pub use impls::XYKSpotPrice;
 
@@ -589,8 +589,10 @@ impl<T: Config> Pallet<T> {
 	}
 	/// Calculate discounted trade fee
 	fn calculate_discounted_fee(amount: Balance) -> Result<Balance, DispatchError> {
-		Ok(hydra_dx_math::fee::calculate_pool_trade_fee(amount, (7, 10_000)) // 0.07%
-			.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?)
+		Ok(
+			hydra_dx_math::fee::calculate_pool_trade_fee(amount, (7, 10_000)) // 0.07%
+				.ok_or::<Error<T>>(Error::<T>::FeeAmountInvalid)?,
+		)
 	}
 
 	/// Calculate trade fee

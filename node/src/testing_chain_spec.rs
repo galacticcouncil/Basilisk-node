@@ -18,6 +18,7 @@
 #![allow(clippy::or_fun_call)]
 #![allow(clippy::too_many_arguments)]
 
+use crate::chain_spec::Extensions;
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use primitives::{AssetId, BlockNumber, Price};
@@ -31,7 +32,6 @@ use testing_basilisk_runtime::{
 	ParachainInfoConfig, SessionConfig, Signature, SudoConfig, SystemConfig, TechnicalCommitteeConfig, TokensConfig,
 	VestingConfig, NATIVE_EXISTENTIAL_DEPOSIT, UNITS, WASM_BINARY,
 };
-use crate::chain_spec::Extensions;
 
 const TOKEN_DECIMALS: u8 = 12;
 const TOKEN_SYMBOL: &str = "BSX";
