@@ -177,7 +177,7 @@ benchmarks! {
 		XYKLiquidityMining::<T>::update_global_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, FixedU128::from_inner(234_456_677_000_000_000_u128))?
 	}
 
-	destroy_global_farm {
+	terminate_global_farm {
 		let total_rewards = 1_000_000 * ONE;
 		let caller = create_funded_account::<T>("caller", 0);
 		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
@@ -194,10 +194,10 @@ benchmarks! {
 		set_period::<T>(100_000);
 
 		XYKLiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR)?;
-		XYKLiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, ASSET_PAIR)?;
+		XYKLiquidityMining::<T>::terminate_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, YIELD_FARM_ID, ASSET_PAIR)?;
 		set_period::<T>(200_000);
 	}: {
-		XYKLiquidityMining::<T>::destroy_global_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID)?
+		XYKLiquidityMining::<T>::terminate_global_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID)?
 	}
 
 	create_yield_farm {
@@ -261,7 +261,7 @@ benchmarks! {
 		XYKLiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR)?
 	}
 
-	destroy_yield_farm {
+	terminate_yield_farm {
 		let caller = create_funded_account::<T>("caller", 0);
 		let xyk_caller = create_funded_account::<T>("xyk_caller", 1);
 		let liq_provider = create_funded_account::<T>("liq_provider", 2);
@@ -278,7 +278,7 @@ benchmarks! {
 
 		XYKLiquidityMining::<T>::stop_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID, ASSET_PAIR)?;
 	}: {
-		XYKLiquidityMining::<T>::destroy_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR)?
+		XYKLiquidityMining::<T>::terminate_yield_farm(RawOrigin::Signed(caller.clone()).into(), GLOBAL_FARM_ID,YIELD_FARM_ID, ASSET_PAIR)?
 	}
 
 	deposit_shares {

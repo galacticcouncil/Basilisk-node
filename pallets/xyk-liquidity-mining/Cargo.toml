@@ -1,6 +1,6 @@
 [package]
 name = "pallet-xyk-liquidity-mining"
-version = "1.0.5"
+version = "1.0.6"
 description = "Liquidity mining"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -21,9 +21,9 @@ log = { version = "0.4.17", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 
 # HydraDX dependencies
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="cc486a8ba05e8f71463f87aae9dd9ff29520b83a", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="cc486a8ba05e8f71463f87aae9dd9ff29520b83a", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="cc486a8ba05e8f71463f87aae9dd9ff29520b83a", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
 
 primitives = { path = "../../primitives", default-features = false }
 

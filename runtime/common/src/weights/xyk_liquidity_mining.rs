@@ -60,7 +60,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
-	fn destroy_global_farm() -> Weight {
+	fn terminate_global_farm() -> Weight {
 		Weight::from_ref_time(76_718_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
@@ -80,7 +80,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
-	fn destroy_yield_farm() -> Weight {
+	fn terminate_yield_farm() -> Weight {
 		Weight::from_ref_time(89_895_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
