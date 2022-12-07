@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,57 +59,57 @@ pub struct HydraWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn create_pool() -> Weight {
-		(189_645_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(11 as Weight))
-			.saturating_add(T::DbWeight::get().writes(13 as Weight))
+		Weight::from_ref_time(189_645_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(11 as u64))
+			.saturating_add(T::DbWeight::get().writes(13 as u64))
 	}
 	fn add_liquidity() -> Weight {
-		(171_602_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(9 as Weight))
-			.saturating_add(T::DbWeight::get().writes(8 as Weight))
+		Weight::from_ref_time(171_602_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(9 as u64))
+			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
 	fn remove_liquidity() -> Weight {
-		(170_846_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(170_846_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(8 as u64))
+			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
 	fn sell() -> Weight {
-		(122_125_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(122_125_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn buy() -> Weight {
-		(121_289_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(121_289_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn create_pool() -> Weight {
-		(189_645_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(11 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(13 as Weight))
+		Weight::from_ref_time(189_645_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(11 as u64))
+			.saturating_add(RocksDbWeight::get().writes(13 as u64))
 	}
 	fn add_liquidity() -> Weight {
-		(171_602_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(8 as Weight))
+		Weight::from_ref_time(171_602_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(9 as u64))
+			.saturating_add(RocksDbWeight::get().writes(8 as u64))
 	}
 	fn remove_liquidity() -> Weight {
-		(170_846_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(7 as Weight))
+		Weight::from_ref_time(170_846_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(8 as u64))
+			.saturating_add(RocksDbWeight::get().writes(7 as u64))
 	}
 	fn sell() -> Weight {
-		(122_125_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(122_125_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	fn buy() -> Weight {
-		(121_289_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+		Weight::from_ref_time(121_289_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 }

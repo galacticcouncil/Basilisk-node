@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -719,6 +719,8 @@ fn parachain_genesis(
 			dust_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
 		},
 		polkadot_xcm: Default::default(),
+		xyk_liquidity_mining: Default::default(),
+		xyk_warehouse_lm: Default::default(),
 	}
 }
 
@@ -819,5 +821,7 @@ fn testnet_parachain_genesis(
 			dust_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 		},
 		polkadot_xcm: Default::default(),
+		xyk_liquidity_mining: Default::default(),
+		xyk_warehouse_lm: Default::default(),
 	}
 }

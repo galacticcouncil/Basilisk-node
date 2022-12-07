@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node.
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,6 +58,9 @@ mod benchmarking;
 
 #[allow(clippy::all)]
 pub mod weights;
+
+mod trade_execution;
+
 use weights::WeightInfo;
 // Re-export pallet items so that they can be accessed from the crate namespace.
 pub use pallet::*;
@@ -411,7 +414,6 @@ pub mod pallet {
 		/// This increases the price of the sold asset on every trade. Make sure to only run this with
 		/// previously illiquid assets.
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
-		#[transactional]
 		pub fn create_pool(
 			origin: OriginFor<T>,
 			pool_owner: T::AccountId,
@@ -514,7 +516,6 @@ pub mod pallet {
 		///
 		/// Emits `PoolUpdated` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::update_pool_data())]
-		#[transactional]
 		pub fn update_pool_data(
 			origin: OriginFor<T>,
 			pool_id: PoolId<T>,
@@ -600,7 +601,6 @@ pub mod pallet {
 		///
 		/// Emits `LiquidityAdded` event when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
-		#[transactional]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
 			amount_a: (AssetId, BalanceOf<T>),
@@ -661,7 +661,6 @@ pub mod pallet {
 		///
 		/// Emits 'LiquidityRemoved' when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
-		#[transactional]
 		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -712,7 +711,6 @@ pub mod pallet {
 		///
 		/// Emits `SellExecuted` when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]
-		#[transactional]
 		pub fn sell(
 			origin: OriginFor<T>,
 			asset_in: AssetId,
@@ -742,7 +740,6 @@ pub mod pallet {
 		///
 		/// Emits `BuyExecuted` when successful.
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
-		#[transactional]
 		pub fn buy(
 			origin: OriginFor<T>,
 			asset_out: AssetId,

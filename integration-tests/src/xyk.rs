@@ -4,7 +4,7 @@ use crate::kusama_test_net::*;
 
 use basilisk_runtime::{DustRemovalWhitelist, Origin, XYK};
 use hydradx_traits::AMM;
-use primitives::{asset::AssetPair, AssetId, Price};
+use primitives::{asset::AssetPair, AssetId};
 use xcm_emulator::TestExt;
 
 use frame_support::{assert_ok, traits::Contains};
@@ -29,9 +29,9 @@ fn pair_account_should_be_added_into_whitelist_when_pool_is_created() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE.into()),
 			asset_a,
-			asset_b,
 			100 * UNITS,
-			Price::from(2)
+			asset_b,
+			200 * UNITS,
 		));
 
 		//assert
@@ -51,9 +51,9 @@ fn pair_account_should_be_removed_from_whitelist_when_pool_was_destroyed() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE.into()),
 			asset_a,
-			asset_b,
 			100 * UNITS,
-			Price::from(2)
+			asset_b,
+			200 * UNITS,
 		));
 		assert!(DustRemovalWhitelist::contains(&pair_account(asset_a, asset_b)));
 
@@ -82,9 +82,9 @@ fn pool_should_be_created_when_it_was_destroyed_previously() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE.into()),
 			asset_a,
-			asset_b,
 			100 * UNITS,
-			Price::from(2)
+			asset_b,
+			200 * UNITS,
 		));
 		assert_ok!(XYK::remove_liquidity(
 			Origin::signed(ALICE.into()),
@@ -97,9 +97,9 @@ fn pool_should_be_created_when_it_was_destroyed_previously() {
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE.into()),
 			asset_a,
-			asset_b,
 			100 * UNITS,
-			Price::from(2)
+			asset_b,
+			200 * UNITS,
 		));
 	});
 }

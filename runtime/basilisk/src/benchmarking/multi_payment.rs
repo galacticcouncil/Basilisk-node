@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +72,7 @@ runtime_benchmarks! {
 		update_balance(asset_out, &maker, 2_000_000_000_000_000);
 		update_balance(asset_id, &maker, 2_000_000_000_000_000);
 
-		create_pool(maker, asset_out, asset_id, 1_000_000_000_000_000, Price::from_inner(500_000_000_000_000_000));
+		create_pool(maker, asset_out, 1_000_000_000_000_000, asset_id, 500_000_000_000_000);
 
 	}: { <Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_id, asset_out) }
 	verify{
