@@ -592,7 +592,7 @@ fn claim_trapped_asset_should_work() {
 		));
 	});
 
-	claim_asset(asset.clone(), BOB.into());
+	claim_asset(asset.clone(), BOB);
 
 	Basilisk::execute_with(|| {
 		assert_eq!(
