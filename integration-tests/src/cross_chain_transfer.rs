@@ -3,7 +3,7 @@ use crate::kusama_test_net::*;
 
 use frame_support::{assert_noop, assert_ok};
 
-use polkadot_xcm::{latest::prelude::*, VersionedMultiAssets};
+use polkadot_xcm::{latest::prelude::*, VersionedMultiAssets, VersionedXcm};
 
 use cumulus_primitives_core::ParaId;
 use frame_support::weights::Weight;
@@ -488,92 +488,12 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	});
 }
 
-#[test]
-fn transfer_from_hydra_and_back() {
-	TestNet::reset();
-
-	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::Origin::root(),
-			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
-		));
-	});
-
-	Hydra::execute_with(|| {
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
-			0,
-			30 * UNITS,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(2000),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
-					)
-				)
-				.into()
-			),
-			399_600_000_000
-		));
+fn trap_asset() -> MultiAsset {
+	OtherParachain::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - 30 * UNITS
+			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
 		);
-	});
-
-	Basilisk::execute_with(|| {
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1_029_999_989_814_815
-		);
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			10_185_185 // fees should go to treasury
-		);
-
-		//transfer back
-		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
-			basilisk_runtime::Origin::signed(BOB.into()),
-			1,
-		));
-
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(BOB.into()),
-			0,
-			30 * UNITS,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X2(
-						Junction::Parachain(3000),
-						Junction::AccountId32 {
-							id: ALICE,
-							network: NetworkId::Any,
-						}
-					)
-				)
-				.into()
-			),
-			399_600_000_000
-		));
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			1000 * UNITS - 30 * UNITS
-		);
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			35_990_141 // fees should go to treasury
-		);
-	});
-}
-
-fn trap_asset() -> MultiAsset {
-	Hydra::execute_with(|| {
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::Origin::signed(ALICE.into()),
 			0,
@@ -582,7 +502,7 @@ fn trap_asset() -> MultiAsset {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(2000),
+						Junction::Parachain(BASILISK_PARA_ID),
 						Junction::AccountId32 {
 							id: BOB,
 							network: NetworkId::Any,
@@ -604,10 +524,11 @@ fn trap_asset() -> MultiAsset {
 
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
-			cumulus_pallet_xcmp_queue::Event::Fail(
-				Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
-				XcmError::AssetNotFound,
-			)
+			cumulus_pallet_xcmp_queue::Event::Fail {
+				message_hash: Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
+				error: XcmError::AssetNotFound,
+				weight: Weight::from_ref_time(300_000_000),
+			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
 				parachain_block_number: 1,
@@ -623,10 +544,8 @@ fn trap_asset() -> MultiAsset {
 	asset
 }
 
-use polkadot_xcm::VersionedXcm;
-
 fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
-	Hydra::execute_with(|| {
+	OtherParachain::execute_with(|| {
 		let recipient = MultiLocation::new(
 			0,
 			X1(Junction::AccountId32 {
@@ -651,7 +570,7 @@ fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
 		]);
 		assert_ok!(basilisk_runtime::PolkadotXcm::send(
 			basilisk_runtime::Origin::root(),
-			Box::new(MultiLocation::new(1, X1(Parachain(2000))).into()),
+			Box::new(MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))).into()),
 			Box::new(VersionedXcm::from(xcm_msg))
 		));
 	});
@@ -681,7 +600,7 @@ fn claim_trapped_asset_should_work() {
 			1000 * UNITS + 29_999_992_361_112u128
 		);
 
-		let origin = MultiLocation::new(1, X1(Parachain(3000)));
+		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 0);
 	});
