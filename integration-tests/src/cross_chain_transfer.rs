@@ -488,14 +488,44 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	});
 }
 
+#[test]
+fn claim_trapped_asset_should_work() {
+	TestNet::reset();
+
+	// traps asset when asset is not registered yet
+	let asset = trap_asset();
+
+	// register the asset
+	Basilisk::execute_with(|| {
+		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::Origin::root(),
+			1,
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+		));
+	});
+
+	claim_asset(asset.clone(), BOB);
+
+	Basilisk::execute_with(|| {
+		assert_eq!(
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
+			1000 * UNITS + 29_999_992_361_112u128
+		);
+
+		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
+		let hash = determine_hash(&origin, vec![asset]);
+		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 0);
+	});
+}
+
 fn trap_asset() -> MultiAsset {
 	OtherParachain::execute_with(|| {
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
 		);
-		assert_ok!(basilisk_runtime::XTokens::transfer(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+		assert_ok!(parachain_runtime_mock::XTokens::transfer(
+			parachain_runtime_mock::Origin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -514,7 +544,7 @@ fn trap_asset() -> MultiAsset {
 			399_600_000_000
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
@@ -525,19 +555,21 @@ fn trap_asset() -> MultiAsset {
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::Fail {
-				message_hash: Some(hex!["0315cdbe0f0e6bc2603b96470ab1f12e1f9e3d4a8e9db689f2e557b19e24f3d0"].into()),
+				message_hash: Some(hex!["4efbf4d7ba73f43d5bb4ebbec3189e132ccf2686aed37e97985af019e1cf62dc"].into()),
 				error: XcmError::AssetNotFound,
 				weight: Weight::from_ref_time(300_000_000),
 			}
-			.into(),
+				.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
 				parachain_block_number: 1,
-				relaychain_block_number: 1,
+				relaychain_block_number: 4,
 			}
-			.into(),
+				.into(),
 		]);
-		let origin = MultiLocation::new(1, X1(Parachain(3000)));
-		let hash = determine_hash(&origin, vec![asset.clone()]);
+		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
+		let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
+		let asset: MultiAsset = (loc, 30 * UNITS).into();
+		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
 	});
 
@@ -568,40 +600,10 @@ fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
 				beneficiary: recipient,
 			},
 		]);
-		assert_ok!(basilisk_runtime::PolkadotXcm::send(
-			basilisk_runtime::Origin::root(),
+		assert_ok!(parachain_runtime_mock::PolkadotXcm::send(
+			parachain_runtime_mock::Origin::root(),
 			Box::new(MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))).into()),
 			Box::new(VersionedXcm::from(xcm_msg))
 		));
-	});
-}
-
-#[test]
-fn claim_trapped_asset_should_work() {
-	TestNet::reset();
-
-	// traps asset when asset is not registered yet
-	let asset = trap_asset();
-
-	// register the asset
-	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::Origin::root(),
-			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0))))
-		));
-	});
-
-	claim_asset(asset.clone(), BOB);
-
-	Basilisk::execute_with(|| {
-		assert_eq!(
-			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1000 * UNITS + 29_999_992_361_112u128
-		);
-
-		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
-		let hash = determine_hash(&origin, vec![asset]);
-		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 0);
 	});
 }
