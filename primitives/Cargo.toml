@@ -1,6 +1,6 @@
 [package]
 name = "primitives"
-version = "6.3.8"
+version = "6.4.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
@@ -16,7 +16,7 @@ serde = { features = ["derive"], optional = true, version = "1.0.136" }
 static_assertions = "1.1.0"
 
 # Warehouse dependencies
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "a138b20d1e8d65b949d30c526fa1f98be4d66a89", default-features = false }
 
 # Substrate dependencies
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }

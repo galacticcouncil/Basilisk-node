@@ -128,7 +128,6 @@ impl crate::Config for Test {}
 
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
-	pub const MinDeposit: Balance = 1;
 	pub const MaxEntriesPerDeposit: u8 = 5;
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
@@ -222,7 +221,6 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
 	pub const AttributeDepositBase: Balance = 10 * UNITS;
 	pub const DepositPerByte: Balance = UNITS;
-	pub const UniquesStringLimit: u32 = 60;
 }
 
 impl pallet_uniques::Config for Test {
@@ -236,7 +234,7 @@ impl pallet_uniques::Config for Test {
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
-	type StringLimit = UniquesStringLimit;
+	type StringLimit = primitives::UniquesStringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;

@@ -113,7 +113,7 @@ fn lm_create_global_farm<T: Config>(
 		BSX,
 		owner,
 		yield_per_period,
-		1,
+		1_000,
 		One::one(),
 	)
 }
@@ -156,7 +156,7 @@ benchmarks! {
 		let yield_per_period = Perquintill::from_percent(20);
 		let blocks_per_period = T::BlockNumber::from(1_u32);
 	}: {
-		XYKLiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), total_rewards, planned_yielding_periods, blocks_per_period, BSX, BSX, caller.clone(), yield_per_period, 1, One::one())?
+		XYKLiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), total_rewards, planned_yielding_periods, blocks_per_period, BSX, BSX, caller.clone(), yield_per_period, 1_000, One::one())?
 	}
 
 	update_global_farm {
