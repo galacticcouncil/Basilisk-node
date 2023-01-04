@@ -9032,7 +9032,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.8.4"
+version = "0.8.5"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -9058,6 +9058,7 @@ dependencies = [
  "orml-traits",
  "orml-unknown-tokens",
  "orml-vesting",
+ "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-registry",
