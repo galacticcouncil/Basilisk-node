@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.8.4"
+version = "0.8.5"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -39,6 +39,7 @@ pallet-authorship = { git = "https://github.com/paritytech/substrate", branch = 
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
+orml-xcm = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 
 # orml XCM support
 orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
