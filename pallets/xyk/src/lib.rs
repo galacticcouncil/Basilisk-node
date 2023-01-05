@@ -345,7 +345,7 @@ pub mod pallet {
 
 			T::NonDustableWhitelistHandler::add_account(&pair_account)?;
 
-			<ShareToken<T>>::insert(&pair_account, &share_token);
+			<ShareToken<T>>::insert(&pair_account, share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
 
 			Self::deposit_event(Event::PoolCreated {
