@@ -389,7 +389,7 @@ fn withdraw_shares_should_fail_when_nft_owner_is_not_found() {
 }
 
 #[test]
-fn withdraw_shares_should_when_yield_farm_is_not_claimable() {
+fn withdraw_shares_should_work_when_yield_farm_is_not_claimable() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![
 			(BOB, BSX, 1_000_000 * ONE),

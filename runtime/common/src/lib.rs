@@ -304,12 +304,3 @@ parameter_types! {
 	pub DepositFactor: Balance = deposit(0, 32);
 	pub const MaxSignatories: u16 = 100;
 }
-
-//pallet uniques
-parameter_types! {
-	pub const CollectionDeposit: Balance = 0;
-	pub const ItemDeposit: Balance = 0;
-	pub const KeyLimit: u32 = 256;	// Max 256 bytes per key
-	pub const ValueLimit: u32 = 1024;	// Max 1024 bytes per value
-	pub const UniquesStringLimit: u32 = 72;
-}
