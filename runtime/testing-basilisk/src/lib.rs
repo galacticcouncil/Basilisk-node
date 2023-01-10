@@ -129,7 +129,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 87,
+	spec_version: 88,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -519,7 +519,6 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
 	pub const AttributeDepositBase: Balance = 10 * UNITS;
 	pub const DepositPerByte: Balance = UNITS;
-	pub const UniquesStringLimit: u32 = 72;
 }
 
 impl pallet_uniques::Config for Runtime {
@@ -535,7 +534,7 @@ impl pallet_uniques::Config for Runtime {
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
-	type StringLimit = UniquesStringLimit;
+	type StringLimit = primitives::UniquesStringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
@@ -812,7 +811,6 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type MultiCurrency = Currencies;
 	type CreateOrigin = UnanimousTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
-	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
 	type AMM = XYK;
 	type WeightInfo = pallet_xyk_liquidity_mining::weights::BasiliskWeight<Runtime>;

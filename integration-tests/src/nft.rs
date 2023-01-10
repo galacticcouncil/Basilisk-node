@@ -2,12 +2,12 @@
 
 use crate::kusama_test_net::*;
 use basilisk_runtime::NFT;
+use frame_support::assert_ok;
 use frame_support::traits::tokens::nonfungibles::*;
 use frame_support::traits::ReservableCurrency;
-use frame_support::{assert_noop, assert_ok};
 use hydradx_traits::nft::CreateTypedCollection;
-use pallet_nft::CollectionType;
 use pallet_nft::NftPermission;
+use pallet_nft::{BoundedVecOfUnq, CollectionType};
 use primitives::{CollectionId, ItemId};
 use test_case::test_case;
 use xcm_emulator::TestExt;
@@ -15,7 +15,6 @@ use xcm_emulator::TestExt;
 const ALLOW: bool = true;
 const NOT_ALLOW: bool = false;
 const RESERVED_COLLECTION_ID: CollectionId = 0;
-const NON_RESERVED_COLLECTION_ID: CollectionId = 1_000_000;
 const RESTRICTED_COLLECTION_TYPE: CollectionType = CollectionType::HydraHeads;
 
 fn create_nft_collection(account_id: AccountId, collection_id: CollectionId, collection_type: CollectionType) {
@@ -24,7 +23,10 @@ fn create_nft_collection(account_id: AccountId, collection_id: CollectionId, col
 			AccountId,
 			CollectionId,
 			CollectionType,
-		>>::create_typed_collection(account_id, collection_id, collection_type,));
+			BoundedVecOfUnq<basilisk_runtime::Runtime>,
+		>>::create_typed_collection(
+			account_id, collection_id, collection_type, None
+		));
 	});
 }
 
@@ -126,51 +128,17 @@ fn deposit_for_create_typed_collection_should_be_zero(collection_type: Collectio
 			AccountId,
 			CollectionId,
 			CollectionType,
+			BoundedVecOfUnq<basilisk_runtime::Runtime>,
 		>>::create_typed_collection(
 			AccountId::from(ALICE),
 			RESERVED_COLLECTION_ID,
 			collection_type,
+			None,
 		));
 
 		assert_eq!(
 			<basilisk_runtime::Runtime as pallet_uniques::Config>::Currency::reserved_balance(&AccountId::from(ALICE)),
 			0
-		);
-	});
-}
-
-#[test]
-fn deposit_for_create_collection_should_be_zero() {
-	// Arrange
-	TestNet::reset();
-	Basilisk::execute_with(|| {
-		// Act & Assert
-		assert_ok!(<NFT as Create<AccountId>>::create_collection(
-			&NON_RESERVED_COLLECTION_ID,
-			&AccountId::from(ALICE),
-			&AccountId::from(ALICE),
-		));
-
-		assert_eq!(
-			<basilisk_runtime::Runtime as pallet_uniques::Config>::Currency::reserved_balance(&AccountId::from(ALICE)),
-			0
-		);
-	});
-}
-
-#[test]
-fn create_collection_should_fail_when_collection_id_is_reserved() {
-	// Arrange
-	TestNet::reset();
-	Basilisk::execute_with(|| {
-		// Act & Assert
-		assert_noop!(
-			<NFT as Create<AccountId>>::create_collection(
-				&RESERVED_COLLECTION_ID,
-				&AccountId::from(ALICE),
-				&AccountId::from(ALICE),
-			),
-			pallet_nft::Error::<basilisk_runtime::Runtime>::IdReserved
 		);
 	});
 }
@@ -270,10 +238,12 @@ fn create_typed_collection_should_ignore_permissions_and_reserved_ids(collection
 			AccountId,
 			CollectionId,
 			CollectionType,
+			BoundedVecOfUnq<basilisk_runtime::Runtime>,
 		>>::create_typed_collection(
 			AccountId::from(ALICE),
 			RESERVED_COLLECTION_ID,
 			collection_type,
+			None,
 		));
 	});
 }
