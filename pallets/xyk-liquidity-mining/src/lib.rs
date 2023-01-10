@@ -45,11 +45,7 @@ pub mod weights;
 pub use pallet::*;
 
 use frame_support::traits::tokens::nonfungibles::{Inspect, Mutate};
-use frame_support::{
-	ensure,
-	sp_runtime::traits::{BlockNumberProvider, Zero},
-	PalletId,
-};
+use frame_support::{ensure, sp_runtime::traits::Zero, PalletId};
 use hydradx_traits::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
 use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
@@ -132,9 +128,6 @@ pub mod pallet {
 
 		/// Pallet id.
 		type PalletId: Get<PalletId>;
-
-		/// The block number provider
-		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
 
 		/// NFT collection id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
 		#[pallet::constant]

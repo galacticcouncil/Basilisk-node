@@ -159,7 +159,6 @@ impl pallet_xyk_liquidity_mining::Config for Test {
 	type MultiCurrency = Currency;
 	type CreateOrigin = EnsureRoot<AccountId>;
 	type PalletId = LMPalletId;
-	type BlockNumberProvider = MockBlockNumberProvider;
 	type NftCollectionId = NftCollection;
 	type AMM = XYK;
 	type WeightInfo = ();

@@ -337,7 +337,6 @@ impl Config for Test {
 	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();
 	type PalletId = LMPalletId;
-	type BlockNumberProvider = MockBlockNumberProvider;
 	type AMM = DummyAMM;
 	type NftCollectionId = NftCollectionId;
 	type NFTHandler = DummyNFT;
