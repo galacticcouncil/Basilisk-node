@@ -457,7 +457,7 @@ fn update_candle_auction_after_auction_start_should_not_work() {
 	});
 }
 
-/// Error NoChangeOfAuctionType
+/// Error CannotChangeAuctionType
 #[test]
 fn update_candle_auction_with_mismatching_types_should_not_work() {
 	predefined_test_ext().execute_with(|| {
@@ -477,7 +477,7 @@ fn update_candle_auction_with_mismatching_types_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
-			Error::<Test>::NoChangeOfAuctionType,
+			Error::<Test>::CannotChangeAuctionType,
 		);
 	});
 }
@@ -958,7 +958,7 @@ fn close_candle_auction_which_is_already_closed_should_not_work() {
 	});
 }
 
-/// Error ErrorDeterminingAuctionWinner
+/// Error CannotDetermineAuctionWinner
 #[test]
 fn close_candle_auction_when_cannot_determine_winner_should_not_work() {
 	predefined_test_ext().execute_with(|| {
@@ -983,7 +983,7 @@ fn close_candle_auction_when_cannot_determine_winner_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
-			Error::<Test>::ErrorDeterminingAuctionWinner
+			Error::<Test>::CannotDetermineAuctionWinner
 		);
 	});
 }
@@ -1190,7 +1190,7 @@ fn claim_candle_not_closed_auction_should_not_work() {
 
 		assert_noop!(
 			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
-			Error::<Test>::CloseAuctionBeforeClaimingReservedAmounts
+			Error::<Test>::CannotClaimRunningAuction
 		);
 	});
 }

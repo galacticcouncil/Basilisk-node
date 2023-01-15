@@ -360,7 +360,7 @@ pub mod pallet {
 		/// BoundedVec exceeds limits
 		TooLong,
 		/// Auction type cannot be changed
-		NoChangeOfAuctionType,
+		CannotChangeAuctionType,
 		/// next_bid_min is invalid
 		InvalidNextBidMin,
 		/// TopUp reserved amount is invalid
@@ -370,7 +370,7 @@ pub mod pallet {
 		/// Auction is closed and won, the bid funds are transferred to seller
 		CannotClaimWonAuction,
 		/// Auction should be closed before claims are made
-		CloseAuctionBeforeClaimingReservedAmounts,
+		CannotClaimRunningAuction,
 		/// Candle auction must have default duration
 		CandleAuctionMustHaveDefaultDuration,
 		/// Candle auction must have default closing period duration
@@ -380,7 +380,7 @@ pub mod pallet {
 		/// Math overflow
 		Overflow,
 		/// Error when determining the auction winner
-		ErrorDeterminingAuctionWinner,
+		CannotDetermineAuctionWinner,
 		/// Certain attributes of an auction cannot be updated
 		CannotChangeForbiddenAttribute,
 		/// Substrate cannot generate the AccountId (reserved amounts) based on auctions pallet id and auction id
@@ -393,6 +393,9 @@ pub mod pallet {
 		/// Creates a new auction for a given Auction type
 		///
 		/// - calls the create() implementation on the given Auction type
+		///
+		/// Parameters:
+		/// - `auction` - Auction data (common and specific for the particular auction type)
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::create_english()
@@ -423,28 +426,32 @@ pub mod pallet {
 		/// - calls the update() implementation on the given Auction type
 		/// - deposits AuctionUpdated event
 		///
+		/// Parameters:
+		/// - `auction_id` - the id of the auction which is being updated
+		/// - `auction` - Auction data (common and specific for the particular auction type)
+		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::update_english()
 				.max(<T as Config>::WeightInfo::update_topup())
 				.max(<T as Config>::WeightInfo::update_candle())
 		)]
-		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
+		pub fn update(origin: OriginFor<T>, auction_id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			match updated_auction.clone() {
 				Auction::English(auction_object) => {
-					auction_object.update(sender, id)?;
+					auction_object.update(sender, auction_id)?;
 				}
 				Auction::TopUp(auction_object) => {
-					auction_object.update(sender, id)?;
+					auction_object.update(sender, auction_id)?;
 				}
 				Auction::Candle(auction_object) => {
-					auction_object.update(sender, id)?;
+					auction_object.update(sender, auction_id)?;
 				}
 			}
 
 			Pallet::<T>::deposit_event(Event::AuctionUpdated {
-				auction_id: id,
+				auction_id,
 				auction: updated_auction,
 			});
 
@@ -459,28 +466,31 @@ pub mod pallet {
 		/// - calls destroy helper function
 		/// - deposits AuctionDestroyed event
 		///
+		/// Parameters:
+		/// - `auction_id` - id of the auction which is being destroyed
+		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::destroy_english()
 				.max(<T as Config>::WeightInfo::destroy_topup())
 				.max(<T as Config>::WeightInfo::destroy_candle())
 		)]
-		pub fn destroy(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
+		pub fn destroy(origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
-			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionDoesNotExist)?;
+			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionDoesNotExist)?;
 
 			match auction {
 				Auction::English(auction_object) => {
-					auction_object.destroy(sender, id)?;
+					auction_object.destroy(sender, auction_id)?;
 				}
 				Auction::TopUp(auction_object) => {
-					auction_object.destroy(sender, id)?;
+					auction_object.destroy(sender, auction_id)?;
 				}
 				Auction::Candle(auction_object) => {
-					auction_object.destroy(sender, id)?;
+					auction_object.destroy(sender, auction_id)?;
 				}
 			}
 
-			Self::deposit_event(Event::AuctionDestroyed { auction_id: id });
+			Self::deposit_event(Event::AuctionDestroyed { auction_id });
 
 			Ok(())
 		}
@@ -491,6 +501,10 @@ pub mod pallet {
 		/// - validates bid
 		/// - calls the bid() implementation on the given Auction type
 		/// - deposits BidPlaced event
+		///
+		/// Parameters:
+		/// - `auction_id` - id of the auction which is being bid upon
+		/// - `amount` - amount of the bid
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::bid_english()
@@ -548,6 +562,9 @@ pub mod pallet {
 		/// - if necessary, calls the helper function for destroying all auction-related data
 		/// - deposits AuctionClosed event
 		///
+		/// Parameters:
+		/// - `auction_id` - id of the auction which is being closed
+		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::close_english()
 				.max(<T as Config>::WeightInfo::close_topup())
@@ -593,6 +610,11 @@ pub mod pallet {
 		/// - fetches claimable amount
 		/// - calls claim() implementation on the Auction type
 		/// - if necessary, calls the helper function for destroying all auction-related data
+		///
+		/// Parameters:
+		/// - `bidder` - account of the bidder whose reserved amount is being claimed
+		/// - `auction_id` - id of the auction holding the reserved amount
+		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::claim_topup()
 				.max(<T as Config>::WeightInfo::claim_candle())
@@ -911,10 +933,7 @@ impl<T: Config> Pallet<T> {
 			Pallet::<T>::is_auction_ended(common_auction_data),
 			Error::<T>::AuctionEndTimeNotReached
 		);
-		ensure!(
-			common_auction_data.closed,
-			Error::<T>::CloseAuctionBeforeClaimingReservedAmounts
-		);
+		ensure!(common_auction_data.closed, Error::<T>::CannotClaimRunningAuction);
 
 		Ok(())
 	}

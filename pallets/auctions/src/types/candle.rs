@@ -51,7 +51,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 				Ok(())
 			} else {
-				Err(Error::<T>::NoChangeOfAuctionType.into())
+				Err(Error::<T>::CannotChangeAuctionType.into())
 			}
 		})
 	}
@@ -76,8 +76,8 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		let closing_period_range = Pallet::<T>::determine_candle_closing_range(bid, self)?;
 
 		<HighestBiddersByAuctionClosingRange<T>>::mutate(
-			&auction_id,
-			&closing_period_range,
+			auction_id,
+			closing_period_range,
 			|highest_bidder| -> DispatchResult {
 				*highest_bidder = Some(bidder.clone());
 
@@ -123,7 +123,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 			let mut maybe_winner: Option<T::AccountId> = None;
 			let mut i = winning_closing_range;
 			while i >= One::one() {
-				let bidder = <HighestBiddersByAuctionClosingRange<T>>::get(&auction_id, i);
+				let bidder = <HighestBiddersByAuctionClosingRange<T>>::get(auction_id, i);
 
 				if let Some(highest_bidder) = bidder {
 					maybe_winner = Some(highest_bidder);
@@ -151,7 +151,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 					let auction_balance =
 						<<T as crate::Config>::Currency as Currency<T::AccountId>>::free_balance(&auction_account);
-					let reserved_amount = <ReservedAmounts<T>>::get(&winner, &auction_id);
+					let reserved_amount = <ReservedAmounts<T>>::get(&winner, auction_id);
 
 					ensure!(
 						reserved_amount > Zero::zero(),
@@ -165,7 +165,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 						ExistenceRequirement::AllowDeath,
 					)?;
 
-					<ReservedAmounts<T>>::remove(&winner, &auction_id);
+					<ReservedAmounts<T>>::remove(&winner, auction_id);
 
 					// Only one bidder: Auction and related data can be pruned
 					if reserved_amount == auction_balance {
@@ -174,7 +174,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 					auction_winner = Some(winner);
 				}
-				None => return Err(Error::<T>::ErrorDeterminingAuctionWinner.into()),
+				None => return Err(Error::<T>::CannotDetermineAuctionWinner.into()),
 			}
 		} else {
 			destroy_auction_data = true;

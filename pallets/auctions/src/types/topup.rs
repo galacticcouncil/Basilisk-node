@@ -51,7 +51,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 
 				Ok(())
 			} else {
-				Err(Error::<T>::NoChangeOfAuctionType.into())
+				Err(Error::<T>::CannotChangeAuctionType.into())
 			}
 		})
 	}
