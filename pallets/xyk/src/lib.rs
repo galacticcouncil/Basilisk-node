@@ -31,7 +31,9 @@
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM};
+use hydradx_traits::{
+	AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnTradeHandler, AMM,
+};
 use primitives::{asset::AssetPair, AssetId, Balance};
 use sp_std::{vec, vec::Vec};
 
@@ -60,7 +62,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
 	use hydradx_traits::pools::DustRemovalAccountWhitelist;
-	use hydradx_traits::ShareTokenRegistry;
+	use registry_traits::ShareTokenRegistry;
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
@@ -343,7 +345,7 @@ pub mod pallet {
 
 			T::NonDustableWhitelistHandler::add_account(&pair_account)?;
 
-			<ShareToken<T>>::insert(&pair_account, &share_token);
+			<ShareToken<T>>::insert(&pair_account, share_token);
 			<PoolAssets<T>>::insert(&pair_account, (asset_a, asset_b));
 
 			Self::deposit_event(Event::PoolCreated {
@@ -1024,5 +1026,30 @@ pub struct AllowAllPools();
 impl CanCreatePool<AssetId> for AllowAllPools {
 	fn can_create(_asset_a: AssetId, _asset_b: AssetId) -> bool {
 		true
+	}
+}
+
+impl<T: Config> AMMPosition<AssetId, Balance> for Pallet<T> {
+	type Error = DispatchError;
+
+	fn get_liquidity_behind_shares(
+		asset_a: AssetId,
+		asset_b: AssetId,
+		shares_amount: Balance,
+	) -> Result<(Balance, Balance), Self::Error> {
+		let asset_pair = AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		};
+
+		let pair_account = Self::get_pair_id(asset_pair);
+
+		let total_shares = Self::total_liquidity(&pair_account);
+
+		let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
+		let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
+
+		hydra_dx_math::xyk::calculate_liquidity_out(asset_a_reserve, asset_b_reserve, shares_amount, total_shares)
+			.map_err(|_| Error::<T>::RemoveAssetAmountInvalid.into())
 	}
 }

@@ -229,7 +229,7 @@ pub fn run() -> sc_cli::Result<()> {
 
 				let polkadot_config =
 					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, config.tokio_handle.clone())
-						.map_err(|err| format!("Relay chain argument error: {}", err))?;
+						.map_err(|err| format!("Relay chain argument error: {err}"))?;
 
 				cmd.run(config, polkadot_config)
 			})
@@ -381,12 +381,12 @@ pub fn run() -> sc_cli::Result<()> {
 				let state_version = Cli::native_runtime_version(&config.chain_spec).state_version();
 
 				let block: Block =
-					generate_genesis_block(&*config.chain_spec, state_version).map_err(|e| format!("{:?}", e))?;
+					generate_genesis_block(&*config.chain_spec, state_version).map_err(|e| format!("{e:?}"))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
 				let task_executor = config.tokio_handle.clone();
 				let polkadot_config = SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, task_executor)
-					.map_err(|err| format!("Relay chain argument error: {}", err))?;
+					.map_err(|err| format!("Relay chain argument error: {err}"))?;
 
 				let collator_options = cli.run.base.collator_options();
 
@@ -443,9 +443,10 @@ impl CliConfiguration<Self> for RelayChainCli {
 	}
 
 	fn base_path(&self) -> Result<Option<BasePath>> {
-		self.shared_params()
-			.base_path()
-			.or_else(|_| Ok(self.base_path.clone().map(Into::into)))
+		Ok(self
+			.shared_params()
+			.base_path()?
+			.or_else(|| self.base_path.clone().map(Into::into)))
 	}
 
 	fn rpc_http(&self, default_listen_port: u16) -> Result<Option<SocketAddr>> {

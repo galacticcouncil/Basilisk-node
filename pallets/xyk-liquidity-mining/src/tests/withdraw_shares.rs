@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node
 
-// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -384,6 +384,91 @@ fn withdraw_shares_should_fail_when_nft_owner_is_not_found() {
 			assert_noop!(
 				LiquidityMining::withdraw_shares(Origin::signed(CHARLIE), NOT_EXISTS_DEPOSIT, 2, BSX_KSM_ASSET_PAIR),
 				Error::<Test>::CantFindDepositOwner
+			);
+		});
+}
+
+#[test]
+fn withdraw_shares_should_work_when_yield_farm_is_not_claimable() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 2, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			//Arrange
+			set_block_number(1_000);
+
+			let charlie_lp_token_balance = Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE);
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				100 * ONE
+			);
+
+			assert_ok!(LiquidityMining::stop_yield_farm(
+				Origin::signed(ALICE),
+				1,
+				BSX_KSM_ASSET_PAIR
+			));
+
+			//Act
+			assert_ok!(LiquidityMining::withdraw_shares(
+				Origin::signed(CHARLIE),
+				1,
+				2,
+				BSX_KSM_ASSET_PAIR
+			));
+
+			//Assert
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::SharesWithdrawn {
+						global_farm_id: 1,
+						yield_farm_id: 2,
+						who: CHARLIE,
+						lp_token: BSX_KSM_SHARE_ID,
+						amount: 100 * ONE,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
+
+			pretty_assertions::assert_eq!(
+				has_event(
+					crate::Event::DepositDestroyed {
+						who: CHARLIE,
+						deposit_id: 1,
+					}
+					.into(),
+				),
+				true
+			);
+
+			//NOTE: deposit was destroyed and LP shares unlocked
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &CHARLIE),
+				charlie_lp_token_balance + 100 * ONE
+			);
+			pretty_assertions::assert_eq!(
+				Tokens::free_balance(BSX_KSM_SHARE_ID, &LiquidityMining::account_id()),
+				0
 			);
 		});
 }

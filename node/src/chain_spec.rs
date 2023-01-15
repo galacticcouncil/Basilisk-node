@@ -69,7 +69,7 @@ pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 
 /// Generate a crypto pair from seed.
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
-	TPublic::Pair::from_string(&format!("//{}", seed), None)
+	TPublic::Pair::from_string(&format!("//{seed}"), None)
 		.expect("static values are valid; qed")
 		.public()
 }
@@ -720,6 +720,7 @@ fn parachain_genesis(
 		},
 		polkadot_xcm: Default::default(),
 		xyk_liquidity_mining: Default::default(),
+		xyk_warehouse_lm: Default::default(),
 	}
 }
 
@@ -821,5 +822,6 @@ fn testnet_parachain_genesis(
 		},
 		polkadot_xcm: Default::default(),
 		xyk_liquidity_mining: Default::default(),
+		xyk_warehouse_lm: Default::default(),
 	}
 }

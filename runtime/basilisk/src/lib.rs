@@ -22,6 +22,7 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::from_over_into)]
+#![allow(clippy::match_like_matches_macro)]
 
 #[cfg(test)]
 mod tests;
@@ -110,7 +111,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 82,
+	spec_version: 88,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -140,7 +141,6 @@ impl Contains<Call> for BaseFilter {
 			return false;
 		}
 
-		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::Auctions(_) => false,
 			Call::Uniques(_) => false,
@@ -540,7 +540,6 @@ impl pallet_nft::Config for Runtime {
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;
-	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type CollectionType = pallet_nft::CollectionType;
 	type Permissions = pallet_nft::NftPermissions;
 	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
@@ -815,7 +814,6 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = ksm::deposit(1,129);
 	pub const AttributeDepositBase: Balance = ksm::deposit(1,0);
 	pub const DepositPerByte: Balance = ksm::deposit(0,1);
-	pub const UniquesStringLimit: u32 = 72;
 }
 
 impl pallet_uniques::Config for Runtime {
@@ -832,7 +830,7 @@ impl pallet_uniques::Config for Runtime {
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
-	type StringLimit = UniquesStringLimit;
+	type StringLimit = primitives::UniquesStringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
@@ -881,7 +879,6 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type MultiCurrency = Currencies;
 	type CreateOrigin = UnanimousTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
-	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
 	type AMM = XYK;
 	type WeightInfo = weights::xyk_liquidity_mining::BasiliskWeight<Runtime>;
@@ -901,6 +898,8 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type AmmPoolId = AccountId;
 	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type AssetRegistry = AssetRegistry;
+	type NonDustableWhitelistHandler = Duster;
 	type Event = Event;
 }
 
@@ -1211,7 +1210,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_nft, NFT);
-			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
@@ -1235,6 +1233,7 @@ impl_runtime_apis! {
 			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
+			orml_list_benchmark!(list, extra, pallet_marketplace, benchmarking::marketplace);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1276,7 +1275,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_nft, NFT);
-			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
@@ -1301,6 +1299,7 @@ impl_runtime_apis! {
 			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
 			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_add_benchmark!(params, batches, pallet_route_executor, benchmarking::route_executor);
+			orml_add_benchmark!(params, batches, pallet_marketplace, benchmarking::marketplace);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

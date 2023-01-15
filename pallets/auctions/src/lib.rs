@@ -681,7 +681,7 @@ impl<T: Config> Pallet<T> {
 	///
 	fn validate_create_permissions(sender: T::AccountId, common_data: &CommonAuctionData<T>) -> DispatchResult {
 		// Sender must be NFT Owner
-		let token_owner = pallet_nft::Pallet::<T>::owner(common_data.token.0, common_data.token.1);
+		let token_owner = pallet_nft::Pallet::<T>::owner(&common_data.token.0, &common_data.token.1);
 		ensure!(token_owner == Some(sender), Error::<T>::NotATokenOwner);
 
 		// TODO switch to pallet_nft

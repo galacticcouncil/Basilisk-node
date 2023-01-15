@@ -129,7 +129,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 82,
+	spec_version: 88,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -506,7 +506,6 @@ impl pallet_nft::Config for Runtime {
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;
-	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type CollectionType = pallet_nft::CollectionType;
 	type Permissions = pallet_nft::NftPermissions;
 	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
@@ -520,7 +519,6 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
 	pub const AttributeDepositBase: Balance = 10 * UNITS;
 	pub const DepositPerByte: Balance = UNITS;
-	pub const UniquesStringLimit: u32 = 72;
 }
 
 impl pallet_uniques::Config for Runtime {
@@ -536,7 +534,7 @@ impl pallet_uniques::Config for Runtime {
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
-	type StringLimit = UniquesStringLimit;
+	type StringLimit = primitives::UniquesStringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
@@ -813,7 +811,6 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type MultiCurrency = Currencies;
 	type CreateOrigin = UnanimousTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
-	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
 	type AMM = XYK;
 	type WeightInfo = pallet_xyk_liquidity_mining::weights::BasiliskWeight<Runtime>;
@@ -906,6 +903,8 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type AmmPoolId = AccountId;
 	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type AssetRegistry = AssetRegistry;
+	type NonDustableWhitelistHandler = Duster;
 	type Event = Event;
 }
 
@@ -1163,7 +1162,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_nft, NFT);
-			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 
 			list_benchmark!(list, extra, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
@@ -1218,8 +1216,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_nft, NFT);
-			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
-
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
 			add_benchmark!(params, batches, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);

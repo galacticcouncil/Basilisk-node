@@ -172,7 +172,7 @@ benchmarks! {
 	} : { Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?; }
 	verify {
 		assert_eq!(
-		Nft::Pallet::<T>::owner(mocked_nft_collection_id_1::<T>(), mocked_nft_item_id_1::<T>()),
+		Nft::Pallet::<T>::owner(&mocked_nft_collection_id_1::<T>(), &mocked_nft_item_id_1::<T>()),
 		Some(bidder)
 		)
 	}
@@ -263,7 +263,7 @@ benchmarks! {
 	} : { Auctions::<T>::close(RawOrigin::Signed(owner).into(), 0.into())?; }
 	verify {
 		assert_eq!(
-			Nft::Pallet::<T>::owner(mocked_nft_collection_id_1::<T>(), mocked_nft_item_id_1::<T>()),
+			Nft::Pallet::<T>::owner(&mocked_nft_collection_id_1::<T>(), &mocked_nft_item_id_1::<T>()),
 			Some(bidder)
 		)
 	}
