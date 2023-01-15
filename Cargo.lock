@@ -510,7 +510,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "88.0.0"
+version = "90.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1216,7 +1216,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.3"
+version = "2.4.0"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -8504,7 +8504,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.4.0"
+version = "6.5.0"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -11918,7 +11918,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "88.0.0"
+version = "90.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
