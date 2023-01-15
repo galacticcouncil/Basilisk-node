@@ -244,7 +244,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn auctions)]
 	/// Stores on-going and future auctions (closed auctions will be destroyed)
-	pub(crate) type Auctions<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, Auction<T>, OptionQuery>;
+	pub(crate) type Auctions<T: Config> = StorageMap<_, Blake2_128Concat, T::AuctionId, Auction<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auctions_index)]
@@ -255,18 +255,18 @@ pub mod pallet {
 	#[pallet::getter(fn reserved_amounts)]
 	/// Stores reserved amounts which were bid on a given auction
 	pub(crate) type ReservedAmounts<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::AccountId, Twox64Concat, T::AuctionId, BalanceOf<T>, ValueQuery>;
+		StorageDoubleMap<_, Blake2_128Concat, T::AccountId, Blake2_128Concat, T::AuctionId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn highest_bidders_by_auction_closing_range)]
 	/// Stores the higest bidder by auction and closing range
 	pub(crate) type HighestBiddersByAuctionClosingRange<T: Config> =
-		StorageDoubleMap<_, Twox64Concat, T::AuctionId, Twox64Concat, u32, T::AccountId, OptionQuery>;
+		StorageDoubleMap<_, Blake2_128Concat, T::AuctionId, Blake2_128Concat, u32, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
 	/// Stores auction owner by ID
-	pub(crate) type AuctionOwnerById<T: Config> = StorageMap<_, Twox64Concat, T::AuctionId, T::AccountId, OptionQuery>;
+	pub(crate) type AuctionOwnerById<T: Config> = StorageMap<_, Blake2_128Concat, T::AuctionId, T::AccountId, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
