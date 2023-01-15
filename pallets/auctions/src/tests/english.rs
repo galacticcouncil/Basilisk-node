@@ -60,6 +60,28 @@ fn create_english_auction_should_work() {
 	});
 }
 
+/// Error NoAvailableAuctionId
+#[test]
+fn create_english_auction_with_overflowing_auction_id_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		<NextAuctionId<Test>>::try_mutate(|next_id| -> DispatchResult {
+			*next_id = u64::MAX;
+			Ok(())
+		})
+		.unwrap();
+
+		let auction = mocked_english_auction_object::<Test>(
+			mocked_english_common_data::<Test>(ALICE),
+			mocked_english_specific_data::<Test>(),
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::NoAvailableAuctionId
+		);
+	});
+}
+
 /// Error AuctionStartTimeAlreadyPassed
 #[test]
 fn create_english_auction_starting_in_the_past_should_not_work() {
@@ -775,6 +797,32 @@ fn bid_english_auction_with_second_bid_below_first_bid_should_not_work() {
 	});
 }
 
+/// Error InvalidReservedAmount when amount is overflowing
+#[test]
+fn bid_english_auction_with_overflowing_reserved_amount_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		<ReservedAmounts<Test>>::try_mutate(BOB, 0, |locked_amount| -> DispatchResult {
+			*locked_amount = u128::MAX;
+			Ok(())
+		})
+		.unwrap();
+
+		let auction = mocked_english_auction_object::<Test>(
+			mocked_english_common_data::<Test>(ALICE),
+			mocked_english_specific_data::<Test>(),
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		set_block_number::<Test>(11);
+
+		assert_noop!(
+			AuctionsModule::bid(Origin::signed(BOB), 0, BalanceOf::<Test>::from(2_000_u32)),
+			Error::<Test>::InvalidReservedAmount,
+		);
+	});
+}
+
 /// Error AuctionEndTimeReached
 #[test]
 fn bid_english_auction_after_auction_end_time_should_not_work() {
@@ -915,6 +963,26 @@ fn close_english_auction_which_is_already_closed_should_not_work() {
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionDoesNotExist,
+		);
+	});
+}
+
+/// Error AuctionClosed
+#[test]
+fn claim_english_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = mocked_english_auction_object::<Test>(
+			mocked_english_common_data::<Test>(ALICE),
+			mocked_english_specific_data::<Test>(),
+		);
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		set_block_number::<Test>(21);
+
+		assert_noop!(
+			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::NoReservedAmountAvailableToClaim,
 		);
 	});
 }

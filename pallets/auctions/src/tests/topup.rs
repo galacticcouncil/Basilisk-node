@@ -61,6 +61,28 @@ fn create_topup_auction_should_work() {
 	});
 }
 
+/// Error NoAvailableAuctionId
+#[test]
+fn create_topup_auction_with_overflowing_auction_id_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		<NextAuctionId<Test>>::try_mutate(|next_id| -> DispatchResult {
+			*next_id = u64::MAX;
+			Ok(())
+		})
+		.unwrap();
+
+		let auction = mocked_topup_auction_object::<Test>(
+			mocked_topup_common_data::<Test>(ALICE),
+			mocked_topup_specific_data::<Test>(),
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::NoAvailableAuctionId
+		);
+	});
+}
+
 /// Error InvalidTimeConfiguration
 #[test]
 fn create_topup_auction_without_end_time_should_not_work() {
@@ -1070,6 +1092,47 @@ fn claim_topup_not_closed_auction_should_not_work() {
 		assert_noop!(
 			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
 			Error::<Test>::CloseAuctionBeforeClaimingReservedAmounts
+		);
+	});
+}
+
+#[test]
+fn claim_topup_won_auction_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let mut common_auction_data = mocked_topup_common_data::<Test>(ALICE);
+		common_auction_data.reserve_price = Some(1_500);
+
+		let auction = mocked_topup_auction_object::<Test>(common_auction_data, mocked_topup_specific_data::<Test>());
+
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		set_block_number::<Test>(11);
+
+		// First bidder, bid before start of closing period
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		// Second bidder, in the beginning of the closing period
+		set_block_number::<Test>(12);
+
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(CHARLIE),
+			0,
+			BalanceOf::<Test>::from(1_600_u32)
+		));
+
+		set_block_number::<Test>(22);
+
+		assert_ok!(AuctionsModule::close(Origin::signed(ALICE), 0));
+
+		set_block_number::<Test>(25);
+
+		assert_noop!(
+			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
+			Error::<Test>::AuctionDoesNotExist
 		);
 	});
 }

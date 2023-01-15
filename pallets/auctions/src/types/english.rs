@@ -152,7 +152,7 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		_bidder: T::AccountId,
 		_amount: BalanceOf<T>,
 	) -> Result<bool, DispatchError> {
-		Err(Error::<T>::ClaimsNotSupportedForThisAuctionType.into())
+		Err(Error::<T>::NoReservedAmountAvailableToClaim.into())
 	}
 
 	///

@@ -130,7 +130,7 @@ use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure, require_transactional,
 	traits::{tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, Get, LockableCurrency, Randomness},
-	transactional, PalletId, Parameter,
+	PalletId, Parameter,
 };
 use frame_system::{ensure_signed, RawOrigin};
 
@@ -369,14 +369,8 @@ pub mod pallet {
 		NoReservedAmountAvailableToClaim,
 		/// Auction is closed and won, the bid funds are transferred to seller
 		CannotClaimWonAuction,
-		/// Claims of reserved amounts are only available on certain auction types
-		ClaimsNotSupportedForThisAuctionType,
 		/// Auction should be closed before claims are made
 		CloseAuctionBeforeClaimingReservedAmounts,
-		/// No winner found
-		NoWinnerFound,
-		/// Secure hashes should always be bigger than u32
-		UnsecureHash,
 		/// Candle auction must have default duration
 		CandleAuctionMustHaveDefaultDuration,
 		/// Candle auction must have default closing period duration
@@ -405,7 +399,6 @@ pub mod pallet {
 				.max(<T as Config>::WeightInfo::create_topup())
 				.max(<T as Config>::WeightInfo::create_candle())
 		)]
-		#[transactional]
 		pub fn create(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -435,7 +428,6 @@ pub mod pallet {
 				.max(<T as Config>::WeightInfo::update_topup())
 				.max(<T as Config>::WeightInfo::update_candle())
 		)]
-		#[transactional]
 		pub fn update(origin: OriginFor<T>, id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -472,7 +464,6 @@ pub mod pallet {
 				.max(<T as Config>::WeightInfo::destroy_topup())
 				.max(<T as Config>::WeightInfo::destroy_candle())
 		)]
-		#[transactional]
 		pub fn destroy(origin: OriginFor<T>, id: T::AuctionId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			let auction = <Auctions<T>>::get(id).ok_or(Error::<T>::AuctionDoesNotExist)?;
@@ -506,7 +497,6 @@ pub mod pallet {
 				.max(<T as Config>::WeightInfo::bid_topup())
 				.max(<T as Config>::WeightInfo::bid_candle())
 		)]
-		#[transactional]
 		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
 			let bidder = ensure_signed(origin)?;
 			let bid = Bid {
@@ -563,7 +553,6 @@ pub mod pallet {
 				.max(<T as Config>::WeightInfo::close_topup())
 				.max(<T as Config>::WeightInfo::close_candle())
 		)]
-		#[transactional]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
 			let mut destroy_auction_data = false;
 
@@ -608,7 +597,6 @@ pub mod pallet {
 			<T as Config>::WeightInfo::claim_topup()
 				.max(<T as Config>::WeightInfo::claim_candle())
 		)]
-		#[transactional]
 		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
 			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
 			ensure!(

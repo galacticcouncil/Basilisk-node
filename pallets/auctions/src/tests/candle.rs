@@ -62,6 +62,28 @@ fn create_candle_auction_should_work() {
 	});
 }
 
+/// Error NoAvailableAuctionId
+#[test]
+fn create_candle_auction_with_overflowing_auction_id_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		<NextAuctionId<Test>>::try_mutate(|next_id| -> DispatchResult {
+			*next_id = u64::MAX;
+			Ok(())
+		})
+		.unwrap();
+
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
+
+		assert_noop!(
+			AuctionsModule::create(Origin::signed(ALICE), auction),
+			Error::<Test>::NoAvailableAuctionId
+		);
+	});
+}
+
 /// Error InvalidTimeConfiguration
 #[test]
 fn create_candle_auction_without_end_time_should_not_work() {
@@ -932,6 +954,36 @@ fn close_candle_auction_which_is_already_closed_should_not_work() {
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionDoesNotExist,
+		);
+	});
+}
+
+/// Error ErrorDeterminingAuctionWinner
+#[test]
+fn close_candle_auction_when_cannot_determine_winner_should_not_work() {
+	predefined_test_ext().execute_with(|| {
+		let auction = mocked_candle_auction_object(
+			mocked_candle_common_data::<Test>(ALICE),
+			mocked_candle_specific_data::<Test>(),
+		);
+		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
+
+		set_block_number::<Test>(20);
+
+		// First bidder, bid before start of closing period
+		assert_ok!(AuctionsModule::bid(
+			Origin::signed(BOB),
+			0,
+			BalanceOf::<Test>::from(1_000_u32)
+		));
+
+		set_block_number::<Test>(99_377);
+
+		<HighestBiddersByAuctionClosingRange<Test>>::remove(0, 1);
+
+		assert_noop!(
+			AuctionsModule::close(Origin::signed(ALICE), 0),
+			Error::<Test>::ErrorDeterminingAuctionWinner
 		);
 	});
 }

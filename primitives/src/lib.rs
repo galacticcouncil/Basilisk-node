@@ -24,8 +24,8 @@ use primitive_types::U256;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
+use frame_support::{pallet_prelude::MaxEncodedLen, parameter_types, sp_runtime::FixedU128, RuntimeDebug};
 use scale_info::TypeInfo;
-use frame_support::{pallet_prelude::MaxEncodedLen, parameter_types, RuntimeDebug, sp_runtime::FixedU128};
 
 pub mod asset;
 pub mod constants;
