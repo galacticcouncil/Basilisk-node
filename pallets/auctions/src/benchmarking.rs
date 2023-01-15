@@ -31,7 +31,7 @@ use frame_system::RawOrigin;
 use pallet_nft as Nft;
 
 const SEED: u32 = 1;
-const INITIAL_BALANCE: u128 = 10_000;
+const INITIAL_BALANCE: u128 = 1_000_000;
 const UNITS: u128 = 1_000_000_000_000;
 
 //
