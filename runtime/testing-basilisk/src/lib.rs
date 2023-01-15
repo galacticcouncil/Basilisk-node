@@ -863,6 +863,7 @@ impl pallet_auctions::Config for Runtime {
 	type CandleDefaultDuration = CandleDefaultDuration;
 	type CandleDefaultClosingPeriodDuration = CandleDefaultClosingPeriodDuration;
 	type CandleDefaultClosingRangesCount = CandleDefaultClosingRangesCount;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 }
 
 impl pallet_randomness_collective_flip::Config for Runtime {}

@@ -865,6 +865,7 @@ impl pallet_auctions::Config for Runtime {
 	type CandleDefaultDuration = CandleDefaultDuration;
 	type CandleDefaultClosingPeriodDuration = CandleDefaultClosingPeriodDuration;
 	type CandleDefaultClosingRangesCount = CandleDefaultClosingRangesCount;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
 impl pallet_randomness_collective_flip::Config for Runtime {}

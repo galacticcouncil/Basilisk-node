@@ -129,6 +129,7 @@ impl pallet::Config for Test {
 	type CandleDefaultDuration = CandleDefaultDuration;
 	type CandleDefaultClosingPeriodDuration = CandleDefaultClosingPeriodDuration;
 	type CandleDefaultClosingRangesCount = CandleDefaultClosingRangesCount;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {

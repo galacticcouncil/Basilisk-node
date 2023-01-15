@@ -137,8 +137,8 @@ use frame_system::{ensure_signed, RawOrigin};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{
-		AccountIdConversion, AtLeast32BitUnsigned, Bounded, CheckedAdd, CheckedSub, MaybeSerializeDeserialize, Member,
-		One, Saturating, StaticLookup, Zero,
+		AccountIdConversion, AtLeast32BitUnsigned, BlockNumberProvider, Bounded, CheckedAdd, CheckedSub,
+		MaybeSerializeDeserialize, Member, One, Saturating, StaticLookup, Zero,
 	},
 	Permill,
 };
@@ -204,6 +204,9 @@ pub mod pallet {
 		/// Type that provides randomness
 		type Randomness: Randomness<Self::Hash, Self::BlockNumber>;
 
+		/// The block number provider
+		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
+
 		/// Limit of auction name length
 		#[pallet::constant]
 		type AuctionsStringLimit: Get<u32>;
@@ -266,7 +269,8 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
 	/// Stores auction owner by ID
-	pub(crate) type AuctionOwnerById<T: Config> = StorageMap<_, Blake2_128Concat, T::AuctionId, T::AccountId, OptionQuery>;
+	pub(crate) type AuctionOwnerById<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AuctionId, T::AccountId, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
@@ -877,7 +881,7 @@ impl<T: Config> Pallet<T> {
 		common_auction_data: &CommonAuctionData<T>,
 		bid: &Bid<T>,
 	) -> DispatchResult {
-		let block_number = <frame_system::Pallet<T>>::block_number();
+		let block_number = T::BlockNumberProvider::current_block_number();
 		ensure!(bidder != &common_auction_data.owner, Error::<T>::CannotBidOnOwnAuction);
 		ensure!(block_number >= common_auction_data.start, Error::<T>::AuctionNotStarted);
 		ensure!(
@@ -938,7 +942,7 @@ impl<T: Config> Pallet<T> {
 	/// Helper function which extends auction end time if necessary to prevent auction sniping
 	///
 	fn avoid_auction_sniping(common_auction_data: &mut CommonAuctionData<T>) -> DispatchResult {
-		let block_number = <frame_system::Pallet<T>>::block_number();
+		let block_number = T::BlockNumberProvider::current_block_number();
 		let time_left = common_auction_data
 			.end
 			.checked_sub(&block_number)
@@ -961,7 +965,7 @@ impl<T: Config> Pallet<T> {
 
 	/// A helper function which checks whether an auction ending block has been reached
 	fn is_auction_ended(common_auction_data: &CommonAuctionData<T>) -> bool {
-		<frame_system::Pallet<T>>::block_number() >= common_auction_data.end
+		T::BlockNumberProvider::current_block_number() >= common_auction_data.end
 	}
 
 	/// A helper function which checks whether an auction is won
