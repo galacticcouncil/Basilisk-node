@@ -844,9 +844,6 @@ parameter_types! {
 	pub const BidStepPerc: u32 = 10; // Next bid step in percent
 	pub const MinAuctionDuration: u32 = 10; // Minimum auction duration
 	pub const BidMinAmount: u32 = 1; // Minimum bid amount
-	pub const CandleDefaultDuration: u32 = 99_356; // Default duration of candle auctions
-	pub const CandleDefaultClosingPeriodDuration: u32 = 72_000; // Default duration of the closing period of a candle auctions
-	pub const CandleDefaultClosingRangesCount: u32 = 10; // Default count of closing periods for candle auctions
 }
 
 impl pallet_auctions::Config for Runtime {
@@ -862,9 +859,6 @@ impl pallet_auctions::Config for Runtime {
 	type BidMinAmount = BidMinAmount;
 	type PalletId = AuctionsPalletId;
 	type Randomness = RandomnessCollectiveFlip;
-	type CandleDefaultDuration = CandleDefaultDuration;
-	type CandleDefaultClosingPeriodDuration = CandleDefaultClosingPeriodDuration;
-	type CandleDefaultClosingRangesCount = CandleDefaultClosingRangesCount;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 

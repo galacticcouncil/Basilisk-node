@@ -47,10 +47,6 @@
 //! - `NextAuctionId` - index for next auction id
 //!
 //! - `ReservedAmounts` - store for bid amounts which are reserved until an auction has closed. This enables claim functionality.
-//!   Used by Auction::TopUp and Auction::Candle
-//!
-//! - `HighestBiddersByAuctionClosingRange` - stores the highest bid per closing range (1-100) of an Auction::Candle
-//!
 //!
 //! ## Dispatchable Functions
 //!
@@ -60,7 +56,7 @@
 //!
 //! - `destroy` - destroy an auction
 //!
-//! - `bid` - place a bid on an auctio
+//! - `bid` - place a bid on an auction
 //!
 //! - `close` - close an auction after the end time has lapsed. Not done in a hook for better chain performance
 //!
@@ -85,33 +81,6 @@
 //! When creating an English auction with a reserve_price, auction.common_data.reserve_price must be equal to
 //! auction.common_data.next_bid_min.
 //!
-//! ### Auction::TopUp
-//!
-//! Implemented in ./types/topup.rs
-//!
-//! Top up auctions are traditionally used for charitive purposes. Users place bid which are accumulated. At the end,
-//! if the sum of all bids has reached the reserve_price set by the seller, the auction is won. In this case, the
-//! aggregated amount of bids is transferred to the beneficiary of the auction (eg NGO), and the NFT is transferred
-//! to the last bidder. If the auction is not won, bidders are able to claim back the amounts corresponding to their bids.
-//!
-//! ### Auction::Candle
-//!
-//! Implemented in ./types/candle.rs
-//!
-//! Candle auctions are used to incentivize bidders to bring out their bids early. At auction close, a randomness
-//! algorithm choses a winning bid from the closing period.
-//!
-//! The first implementation uses the default length of Kusama parachain auctions: 99_356 blocks (apprx 6d 21h)
-//! with a closing period of 72_000 blocks (apprx 5d).
-//!
-//! For better runtime performance, the closing period is divided into 100 ranges. When a user places a bid, it is
-//! stored as the highest bid for the current period. All bid amounts are transferred to a subaccount held by the
-//! auction.
-//!
-//! Once the auction is closed and the winning closing range is determined by the randomness, the total amount bid
-//! by the winning bidder is transferred to the auction owner, and the NFT is transferred to the winner. The reserved
-//! amounts bid by other users are available to be claimed.
-//!
 //! ## Auction sniping
 //!
 //! To avoid auction sniping, the pallet extends the end time of the auction for any late bids which are placed
@@ -124,8 +93,6 @@
 #![allow(clippy::unused_unit)]
 #![allow(clippy::upper_case_acronyms)]
 
-// Used for encoding/decoding into scale
-use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure, require_transactional,
@@ -138,7 +105,7 @@ use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{
 		AccountIdConversion, AtLeast32BitUnsigned, BlockNumberProvider, Bounded, CheckedAdd, CheckedSub,
-		MaybeSerializeDeserialize, Member, One, Saturating, StaticLookup, Zero,
+		MaybeSerializeDeserialize, Member, One, StaticLookup, Zero,
 	},
 	Permill,
 };
@@ -230,18 +197,6 @@ pub mod pallet {
 		/// Pallet ID (used for generating a subaccount)
 		#[pallet::constant]
 		type PalletId: Get<PalletId>;
-
-		/// The default duration of a Candle auction
-		#[pallet::constant]
-		type CandleDefaultDuration: Get<u32>;
-
-		/// The default duration of the closing period of a Candle auction
-		#[pallet::constant]
-		type CandleDefaultClosingPeriodDuration: Get<u32>;
-
-		/// The default count of closing ranges of a Candle auction
-		#[pallet::constant]
-		type CandleDefaultClosingRangesCount: Get<u32>;
 	}
 
 	#[pallet::storage]
@@ -259,12 +214,6 @@ pub mod pallet {
 	/// Stores reserved amounts which were bid on a given auction
 	pub(crate) type ReservedAmounts<T: Config> =
 		StorageDoubleMap<_, Blake2_128Concat, T::AccountId, Blake2_128Concat, T::AuctionId, BalanceOf<T>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn highest_bidders_by_auction_closing_range)]
-	/// Stores the higest bidder by auction and closing range
-	pub(crate) type HighestBiddersByAuctionClosingRange<T: Config> =
-		StorageDoubleMap<_, Blake2_128Concat, T::AuctionId, Blake2_128Concat, u32, T::AccountId, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn auction_owner_by_id)]
@@ -363,24 +312,16 @@ pub mod pallet {
 		CannotChangeAuctionType,
 		/// next_bid_min is invalid
 		InvalidNextBidMin,
-		/// TopUp reserved amount is invalid
+		/// Reserved amount is invalid
 		InvalidReservedAmount,
-		/// TopUp bidder does not have claim to a reserved amount
+		/// Bidder does not have a claimable reserved amount
 		NoReservedAmountAvailableToClaim,
 		/// Auction is closed and won, the bid funds are transferred to seller
 		CannotClaimWonAuction,
 		/// Auction should be closed before claims are made
 		CannotClaimRunningAuction,
-		/// Candle auction must have default duration
-		CandleAuctionMustHaveDefaultDuration,
-		/// Candle auction must have default closing period duration
-		CandleAuctionMustHaveDefaultClosingPeriodDuration,
-		/// Candle auction cannot have a reserve price
-		CandleAuctionDoesNotSupportReservePrice,
 		/// Math overflow
 		Overflow,
-		/// Error when determining the auction winner
-		CannotDetermineAuctionWinner,
 		/// Certain attributes of an auction cannot be updated
 		CannotChangeForbiddenAttribute,
 		/// Substrate cannot generate the AccountId (reserved amounts) based on auctions pallet id and auction id
@@ -399,20 +340,12 @@ pub mod pallet {
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::create_english()
-				.max(<T as Config>::WeightInfo::create_topup())
-				.max(<T as Config>::WeightInfo::create_candle())
 		)]
 		pub fn create(origin: OriginFor<T>, auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			match &auction {
 				Auction::English(auction_object) => {
-					auction_object.create(sender, auction.clone())?;
-				}
-				Auction::TopUp(auction_object) => {
-					auction_object.create(sender, auction.clone())?;
-				}
-				Auction::Candle(auction_object) => {
 					auction_object.create(sender, auction.clone())?;
 				}
 			}
@@ -432,20 +365,12 @@ pub mod pallet {
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::update_english()
-				.max(<T as Config>::WeightInfo::update_topup())
-				.max(<T as Config>::WeightInfo::update_candle())
 		)]
 		pub fn update(origin: OriginFor<T>, auction_id: T::AuctionId, updated_auction: Auction<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			match updated_auction.clone() {
 				Auction::English(auction_object) => {
-					auction_object.update(sender, auction_id)?;
-				}
-				Auction::TopUp(auction_object) => {
-					auction_object.update(sender, auction_id)?;
-				}
-				Auction::Candle(auction_object) => {
 					auction_object.update(sender, auction_id)?;
 				}
 			}
@@ -471,8 +396,6 @@ pub mod pallet {
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::destroy_english()
-				.max(<T as Config>::WeightInfo::destroy_topup())
-				.max(<T as Config>::WeightInfo::destroy_candle())
 		)]
 		pub fn destroy(origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
@@ -480,12 +403,6 @@ pub mod pallet {
 
 			match auction {
 				Auction::English(auction_object) => {
-					auction_object.destroy(sender, auction_id)?;
-				}
-				Auction::TopUp(auction_object) => {
-					auction_object.destroy(sender, auction_id)?;
-				}
-				Auction::Candle(auction_object) => {
 					auction_object.destroy(sender, auction_id)?;
 				}
 			}
@@ -508,8 +425,6 @@ pub mod pallet {
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::bid_english()
-				.max(<T as Config>::WeightInfo::bid_topup())
-				.max(<T as Config>::WeightInfo::bid_candle())
 		)]
 		pub fn bid(origin: OriginFor<T>, auction_id: T::AuctionId, amount: BalanceOf<T>) -> DispatchResult {
 			let bidder = ensure_signed(origin)?;
@@ -523,14 +438,6 @@ pub mod pallet {
 
 				match auction {
 					Auction::English(auction_object) => {
-						Self::validate_bid(&bidder, &auction_object.common_data, &bid)?;
-						auction_object.bid(auction_id, bidder.clone(), &bid)?;
-					}
-					Auction::TopUp(auction_object) => {
-						Self::validate_bid(&bidder, &auction_object.common_data, &bid)?;
-						auction_object.bid(auction_id, bidder.clone(), &bid)?;
-					}
-					Auction::Candle(auction_object) => {
 						Self::validate_bid(&bidder, &auction_object.common_data, &bid)?;
 						auction_object.bid(auction_id, bidder.clone(), &bid)?;
 					}
@@ -567,8 +474,6 @@ pub mod pallet {
 		///
 		#[pallet::weight(
 			<T as Config>::WeightInfo::close_english()
-				.max(<T as Config>::WeightInfo::close_topup())
-				.max(<T as Config>::WeightInfo::close_candle())
 		)]
 		pub fn close(_origin: OriginFor<T>, auction_id: T::AuctionId) -> DispatchResult {
 			let mut destroy_auction_data = false;
@@ -581,67 +486,10 @@ pub mod pallet {
 						Self::validate_close(&auction_object.common_data)?;
 						destroy_auction_data = auction_object.close(auction_id)?;
 					}
-					Auction::TopUp(auction_object) => {
-						Self::validate_close(&auction_object.common_data)?;
-						destroy_auction_data = auction_object.close(auction_id)?;
-					}
-					Auction::Candle(auction_object) => {
-						Self::validate_close(&auction_object.common_data)?;
-						destroy_auction_data = auction_object.close(auction_id)?;
-					}
 				}
 
 				Ok(())
 			})?;
-
-			if destroy_auction_data {
-				Self::handle_destroy(auction_id)?;
-			}
-
-			Ok(())
-		}
-
-		///
-		/// Claims amounts reserved in an auction
-		///
-		/// For TopUp and Candle auctions, all bids are transferred to a subaccount held by the auction.
-		/// After auction close, the reserved amounts of losing bidders can be claimed back.
-		///
-		/// - fetches claimable amount
-		/// - calls claim() implementation on the Auction type
-		/// - if necessary, calls the helper function for destroying all auction-related data
-		///
-		/// Parameters:
-		/// - `bidder` - account of the bidder whose reserved amount is being claimed
-		/// - `auction_id` - id of the auction holding the reserved amount
-		///
-		#[pallet::weight(
-			<T as Config>::WeightInfo::claim_topup()
-				.max(<T as Config>::WeightInfo::claim_candle())
-		)]
-		pub fn claim(_origin: OriginFor<T>, bidder: T::AccountId, auction_id: T::AuctionId) -> DispatchResult {
-			let claimable_amount = <ReservedAmounts<T>>::get(bidder.clone(), auction_id);
-			ensure!(
-				claimable_amount > Zero::zero(),
-				Error::<T>::NoReservedAmountAvailableToClaim
-			);
-
-			let auction = <Auctions<T>>::get(auction_id).ok_or(Error::<T>::AuctionDoesNotExist)?;
-			let destroy_auction_data: bool = match auction {
-				Auction::English(auction_object) => {
-					auction_object.claim(auction_id, bidder.clone(), claimable_amount)?
-				}
-				Auction::TopUp(auction_object) => auction_object.claim(auction_id, bidder.clone(), claimable_amount)?,
-				Auction::Candle(auction_object) => {
-					auction_object.claim(auction_id, bidder.clone(), claimable_amount)?
-				}
-			};
-
-			Self::deposit_event(Event::BidAmountClaimed {
-				auction_id,
-				bidder,
-				amount: claimable_amount,
-			});
 
 			if destroy_auction_data {
 				Self::handle_destroy(auction_id)?;
@@ -797,8 +645,6 @@ impl<T: Config> Pallet<T> {
 	fn handle_destroy(auction_id: T::AuctionId) -> DispatchResult {
 		<AuctionOwnerById<T>>::remove(auction_id);
 		<Auctions<T>>::remove(auction_id);
-		// TODO: Find a non-iterative way to clear storage; only relevant for candle
-		// <HighestBiddersByAuctionClosingRange<T>>::clear_prefix(auction_id, 100, None);
 
 		Ok(())
 	}
@@ -925,19 +771,6 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	///
-	/// Validates certain aspects relevant to the claim action
-	///
-	fn validate_claim(common_auction_data: &CommonAuctionData<T>) -> DispatchResult {
-		ensure!(
-			Pallet::<T>::is_auction_ended(common_auction_data),
-			Error::<T>::AuctionEndTimeNotReached
-		);
-		ensure!(common_auction_data.closed, Error::<T>::CannotClaimRunningAuction);
-
-		Ok(())
-	}
-
 	fn set_next_bid_min(common_auction_data: &mut CommonAuctionData<T>, amount: BalanceOf<T>) -> DispatchResult {
 		let bid_step = Permill::from_percent(<T as crate::Config>::BidStepPerc::get()).mul_floor(amount);
 		common_auction_data.next_bid_min = amount.checked_add(&bid_step).ok_or(Error::<T>::BidOverflow)?;
@@ -973,20 +806,5 @@ impl<T: Config> Pallet<T> {
 	/// A helper function which checks whether an auction ending block has been reached
 	fn is_auction_ended(common_auction_data: &CommonAuctionData<T>) -> bool {
 		T::BlockNumberProvider::current_block_number() >= common_auction_data.end
-	}
-
-	/// A helper function which checks whether an auction is won
-	fn is_auction_won(common_auction_data: &CommonAuctionData<T>) -> bool {
-		if !Pallet::is_auction_ended(common_auction_data) {
-			return false;
-		}
-
-		match &common_auction_data.last_bid {
-			Some(last_bid) => match common_auction_data.reserve_price {
-				Some(reserve_price) => last_bid.1 >= reserve_price,
-				None => true,
-			},
-			None => false,
-		}
 	}
 }

@@ -29,12 +29,6 @@ pub type AuctionsModule = Pallet<Test>;
 #[cfg(test)]
 mod english;
 
-#[cfg(test)]
-mod topup;
-
-#[cfg(test)]
-mod candle;
-
 pub fn expect_events(e: Vec<TestEvent>) {
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }

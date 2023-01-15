@@ -43,16 +43,16 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		<Auctions<T>>::try_mutate(auction_id, |maybe_auction| -> DispatchResult {
 			let auction_result = maybe_auction.as_mut().ok_or(Error::<T>::AuctionDoesNotExist)?;
 
-			if let Auction::English(existing_auction) = auction_result {
-				Pallet::<T>::validate_update_destroy_permissions(sender, &existing_auction.common_data)?;
-				Pallet::<T>::validate_update(&existing_auction.common_data, &self.common_data)?;
+			match auction_result {
+				Auction::English(existing_auction) => {
+					Pallet::<T>::validate_update_destroy_permissions(sender, &existing_auction.common_data)?;
+					Pallet::<T>::validate_update(&existing_auction.common_data, &self.common_data)?;
 
-				*existing_auction = self.clone();
-
-				Ok(())
-			} else {
-				Err(Error::<T>::CannotChangeAuctionType.into())
+					*existing_auction = self.clone();
+				}
 			}
+
+			Ok(())
 		})
 	}
 
@@ -143,16 +143,6 @@ impl<T: Config> NftAuction<T::AccountId, T::AuctionId, BalanceOf<T>, Auction<T>,
 		});
 
 		Ok(true)
-	}
-
-	/// English auctions do not implement reserved amounts and there are no claims
-	fn claim(
-		&self,
-		_auction_id: T::AuctionId,
-		_bidder: T::AccountId,
-		_amount: BalanceOf<T>,
-	) -> Result<bool, DispatchError> {
-		Err(Error::<T>::NoReservedAmountAvailableToClaim.into())
 	}
 
 	///

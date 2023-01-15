@@ -31,16 +31,12 @@ pub trait NftAuction<AccountId, AuctionId, BalanceOf, NftAuction, Bid> {
 
 	fn close(&mut self, auction_id: AuctionId) -> Result<bool, DispatchError>;
 
-	fn claim(&self, auction_id: AuctionId, bidder: AccountId, amount: BalanceOf) -> Result<bool, DispatchError>;
-
 	fn validate_data(&self, sender: AccountId) -> DispatchResult;
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub enum Auction<T: Config> {
 	English(EnglishAuction<T>),
-	TopUp(TopUpAuction<T>),
-	Candle(CandleAuction<T>),
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
@@ -50,35 +46,13 @@ pub struct EnglishAuction<T: Config> {
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct TopUpAuction<T: Config> {
-	pub common_data: CommonAuctionData<T>,
-	pub specific_data: TopUpAuctionData,
-}
-
-#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct Bid<T: Config> {
 	pub amount: BalanceOf<T>,
 	pub block_number: <T as frame_system::Config>::BlockNumber,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct CandleAuction<T: Config> {
-	pub common_data: CommonAuctionData<T>,
-	pub specific_data: CandleAuctionData<T>,
-}
-
-#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct EnglishAuctionData {}
-
-#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct TopUpAuctionData {}
-
-#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct CandleAuctionData<T: Config> {
-	pub closing_start: <T as frame_system::Config>::BlockNumber,
-	pub winning_closing_range: Option<u32>,
-	pub winner: Option<<T as frame_system::Config>::AccountId>,
-}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct CommonAuctionData<T: Config> {

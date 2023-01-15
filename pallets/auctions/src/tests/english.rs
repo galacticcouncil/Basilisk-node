@@ -39,7 +39,7 @@ fn create_english_auction_should_work() {
 
 		let auction = AuctionsModule::auctions(0).unwrap();
 
-		let auction_check = match auction {
+		let auction_check: DispatchResult = match auction {
 			Auction::English(data) => {
 				assert_eq!(data.common_data.reserve_price, None);
 				assert_eq!(data.common_data.last_bid, None);
@@ -51,7 +51,6 @@ fn create_english_auction_should_work() {
 
 				Ok(())
 			}
-			_ => Err(()),
 		};
 
 		assert_ok!(auction_check);
@@ -295,7 +294,7 @@ fn update_english_auction_should_work() {
 
 		let auction_result = AuctionsModule::auctions(0).unwrap();
 
-		let auction_check = match auction_result {
+		let auction_check: DispatchResult = match auction_result {
 			Auction::English(data) => {
 				assert_eq!(
 					String::from_utf8(data.common_data.name.to_vec()).unwrap(),
@@ -304,7 +303,6 @@ fn update_english_auction_should_work() {
 
 				Ok(())
 			}
-			_ => Err(()),
 		};
 
 		assert_ok!(auction_check);
@@ -467,31 +465,6 @@ fn update_english_auction_after_auction_start_should_not_work() {
 		assert_noop!(
 			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
 			Error::<Test>::AuctionAlreadyStarted,
-		);
-	});
-}
-
-/// Error CannotChangeAuctionType
-#[test]
-fn update_english_auction_with_mismatching_types_should_not_work() {
-	predefined_test_ext().execute_with(|| {
-		let auction = mocked_english_auction_object::<Test>(
-			mocked_english_common_data::<Test>(ALICE),
-			mocked_english_specific_data::<Test>(),
-		);
-
-		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
-
-		let mut updated_common_data = mocked_topup_common_data::<Test>(ALICE);
-		updated_common_data.name = to_bounded_name(b"Auction renamed".to_vec()).unwrap();
-
-		let auction = mocked_topup_auction_object::<Test>(updated_common_data, mocked_topup_specific_data::<Test>());
-
-		set_block_number::<Test>(5);
-
-		assert_noop!(
-			AuctionsModule::update(Origin::signed(ALICE), 0, auction),
-			Error::<Test>::CannotChangeAuctionType,
 		);
 	});
 }
@@ -691,7 +664,7 @@ fn bid_english_auction_should_work() {
 		]);
 
 		let auction = AuctionsModule::auctions(0).unwrap();
-		let auction_check = match auction {
+		let auction_check: DispatchResult = match auction {
 			Auction::English(data) => {
 				// Next bid step is updated
 				assert_eq!(data.common_data.next_bid_min, 1210);
@@ -701,7 +674,6 @@ fn bid_english_auction_should_work() {
 
 				Ok(())
 			}
-			_ => Err(()),
 		};
 
 		assert_ok!(auction_check);
@@ -963,26 +935,6 @@ fn close_english_auction_which_is_already_closed_should_not_work() {
 		assert_noop!(
 			AuctionsModule::close(Origin::signed(ALICE), 0),
 			Error::<Test>::AuctionDoesNotExist,
-		);
-	});
-}
-
-/// Error AuctionClosed
-#[test]
-fn claim_english_auction_should_not_work() {
-	predefined_test_ext().execute_with(|| {
-		let auction = mocked_english_auction_object::<Test>(
-			mocked_english_common_data::<Test>(ALICE),
-			mocked_english_specific_data::<Test>(),
-		);
-
-		assert_ok!(AuctionsModule::create(Origin::signed(ALICE), auction));
-
-		set_block_number::<Test>(21);
-
-		assert_noop!(
-			AuctionsModule::claim(Origin::signed(BOB), BOB, 0),
-			Error::<Test>::NoReservedAmountAvailableToClaim,
 		);
 	});
 }
