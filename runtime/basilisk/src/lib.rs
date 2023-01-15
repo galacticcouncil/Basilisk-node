@@ -858,11 +858,8 @@ impl pallet_auctions::Config for Runtime {
 	type MinAuctionDuration = MinAuctionDuration;
 	type BidMinAmount = BidMinAmount;
 	type PalletId = AuctionsPalletId;
-	type Randomness = RandomnessCollectiveFlip;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
-
-impl pallet_randomness_collective_flip::Config for Runtime {}
 
 impl pallet_relaychain_info::Config for Runtime {
 	type Event = Event;
@@ -990,7 +987,6 @@ construct_runtime!(
 		Uniques: pallet_uniques = 20,
 		Identity: pallet_identity = 21,
 		Multisig: pallet_multisig = 22,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip = 23,
 
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system exclude_parts { Config } = 50,

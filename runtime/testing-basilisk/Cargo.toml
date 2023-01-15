@@ -28,7 +28,6 @@ pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-auctions = { path = '../../pallets/auctions', default-features = false }
-pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.29" }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
 pallet-xyk-liquidity-mining-benchmarking = { path = "../../pallets/xyk-liquidity-mining/benchmarking", optional = true, default-features = false}

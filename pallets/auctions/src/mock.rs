@@ -93,29 +93,11 @@ parameter_types! {
 	pub const BidMinAmount: u32 = 1;
 	pub const AuctionsPalletId: PalletId = PalletId(*b"auctions");
 }
-
-pub struct TestRandomness<T>(sp_std::marker::PhantomData<T>);
-
-impl<Output: codec::Decode + Default, T> frame_support::traits::Randomness<Output, T::BlockNumber> for TestRandomness<T>
-where
-	T: frame_system::Config,
-{
-	fn random(subject: &[u8]) -> (Output, T::BlockNumber) {
-		use sp_runtime::traits::TrailingZeroInput;
-
-		(
-			Output::decode(&mut TrailingZeroInput::new(subject)).unwrap_or_default(),
-			frame_system::Pallet::<T>::block_number(),
-		)
-	}
-}
-
 impl pallet::Config for Test {
 	type Event = Event;
 	type Balance = Balance;
 	type AuctionId = u64;
 	type Currency = Balances;
-	type Randomness = TestRandomness<Test>;
 	type WeightInfo = pallet::weights::BasiliskWeight<Test>;
 	type AuctionsStringLimit = AuctionsStringLimit;
 	type BidAddBlocks = BidAddBlocks;

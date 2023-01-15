@@ -28,7 +28,6 @@ pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster = { path = "../../pallets/duster", default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-auctions = { path = '../../pallets/auctions', default-features = false }
-pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.17" }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
 pallet-xyk-liquidity-mining-benchmarking = { path = "../../pallets/xyk-liquidity-mining/benchmarking", optional = true, default-features = false}
@@ -196,7 +195,6 @@ std = [
     "pallet-balances/std",
     "pallet-elections-phragmen/std",
     "pallet-nft/std",
-    "pallet-randomness-collective-flip/std",
     "pallet-marketplace/std",
     "pallet-session/std",
     "pallet-timestamp/std",
@@ -271,7 +269,6 @@ try-runtime= [
     "pallet-preimage/try-runtime",
     "pallet-identity/try-runtime",
     "pallet-xcm/try-runtime",
-    "pallet-randomness-collective-flip/try-runtime",
     "cumulus-pallet-dmp-queue/try-runtime",
     "pallet-asset-registry/try-runtime",
     "pallet-xyk/try-runtime",

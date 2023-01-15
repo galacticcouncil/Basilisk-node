@@ -96,7 +96,7 @@
 use frame_support::{
 	dispatch::{DispatchError, DispatchResult},
 	ensure, require_transactional,
-	traits::{tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, Get, LockableCurrency, Randomness},
+	traits::{tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, Get, LockableCurrency},
 	PalletId, Parameter,
 };
 use frame_system::{ensure_signed, RawOrigin};
@@ -167,9 +167,6 @@ pub mod pallet {
 
 		/// Weights
 		type WeightInfo: WeightInfo;
-
-		/// Type that provides randomness
-		type Randomness: Randomness<Self::Hash, Self::BlockNumber>;
 
 		/// The block number provider
 		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
