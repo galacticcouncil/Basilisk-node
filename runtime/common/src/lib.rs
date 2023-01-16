@@ -16,7 +16,6 @@
 // limitations under the License.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-xr
 pub mod adapter;
 pub mod locked_balance;
 pub mod weights;
