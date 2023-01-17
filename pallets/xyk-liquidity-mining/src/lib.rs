@@ -44,12 +44,8 @@ pub mod weights;
 
 pub use pallet::*;
 
-use frame_support::traits::tokens::nonfungibles::{Create, Inspect, Mutate};
-use frame_support::{
-	ensure,
-	sp_runtime::traits::{BlockNumberProvider, Zero},
-	PalletId,
-};
+use frame_support::traits::tokens::nonfungibles::{Inspect, Mutate};
+use frame_support::{ensure, sp_runtime::traits::Zero, PalletId};
 use hydradx_traits::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
 use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
@@ -110,6 +106,7 @@ pub mod pallet {
 				pallet_account,
 				T::NftCollectionId::get(),
 				CollectionType::LiquidityMining,
+				None,
 			)
 			.unwrap();
 		}
@@ -132,19 +129,19 @@ pub mod pallet {
 		/// Pallet id.
 		type PalletId: Get<PalletId>;
 
-		/// The block number provider
-		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
-
 		/// NFT collection id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
 		#[pallet::constant]
 		type NftCollectionId: Get<primitives::CollectionId>;
 
 		/// Non fungible handling
 		type NFTHandler: Mutate<Self::AccountId>
-			+ Create<Self::AccountId>
 			+ Inspect<Self::AccountId, CollectionId = primitives::CollectionId, ItemId = DepositId>
-			+ CreateTypedCollection<Self::AccountId, primitives::CollectionId, CollectionType>
-			+ ReserveCollectionId<primitives::CollectionId>;
+			+ CreateTypedCollection<
+				Self::AccountId,
+				primitives::CollectionId,
+				CollectionType,
+				BoundedVec<u8, primitives::UniquesStringLimit>,
+			> + ReserveCollectionId<primitives::CollectionId>;
 
 		/// Liquidity mining handler for managing liquidity mining functionalities
 		type LiquidityMiningHandler: LiquidityMiningMutate<
@@ -227,8 +224,8 @@ pub mod pallet {
 			loyalty_curve: Option<LoyaltyCurve>,
 		},
 
-		/// Global farm was destroyed.
-		GlobalFarmDestroyed {
+		/// Global farm was terminated.
+		GlobalFarmTerminated {
 			global_farm_id: GlobalFarmId,
 			who: T::AccountId,
 			reward_currency: AssetId,
@@ -292,8 +289,8 @@ pub mod pallet {
 			multiplier: FarmMultiplier,
 		},
 
-		/// Yield farm was destroyed from global farm.
-		YieldFarmDestroyed {
+		/// Yield farm was terminated from global farm.
+		YieldFarmTerminated {
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
 			who: T::AccountId,
@@ -355,7 +352,7 @@ pub mod pallet {
 			min_deposit: Balance,
 			price_adjustment: FixedU128,
 		) -> DispatchResult {
-			T::CreateOrigin::ensure_origin(origin)?;
+			<T as pallet::Config>::CreateOrigin::ensure_origin(origin)?;
 
 			let (id, max_reward_per_period) = T::LiquidityMiningHandler::create_global_farm(
 				total_rewards,
@@ -414,25 +411,25 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Destroy existing liq. mining program.
+		/// Terminate existing liq. mining program.
 		///
 		/// Only farm owner can perform this action.
 		///
-		/// WARN: To successfully destroy a farm, farm have to be empty(all yield farms in he global farm must be destroyed).
+		/// WARN: To successfully terminate a farm, farm have to be empty(all yield farms in he global farm must be terminated).
 		///
 		/// Parameters:
 		/// - `origin`: global farm's owner.
-		/// - `global_farm_id`: id of global farm to be destroyed.
+		/// - `global_farm_id`: id of global farm to be terminated.
 		///
-		/// Emits `FarmDestroyed` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_global_farm())]
-		pub fn destroy_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
+		/// Emits `GlobalFarmTerminated` event when successful.
+		#[pallet::weight(<T as Config>::WeightInfo::terminate_global_farm())]
+		pub fn terminate_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let (reward_currency, undistributed_rewards, who) =
-				T::LiquidityMiningHandler::destroy_global_farm(who, global_farm_id)?;
+				T::LiquidityMiningHandler::terminate_global_farm(who, global_farm_id)?;
 
-			Self::deposit_event(Event::GlobalFarmDestroyed {
+			Self::deposit_event(Event::GlobalFarmTerminated {
 				global_farm_id,
 				who,
 				reward_currency,
@@ -627,13 +624,13 @@ pub mod pallet {
 		///
 		/// Parameters:
 		/// - `origin`: global farm's owner.
-		/// - `global_farm_id`: farm id from which yield farm should be destroyed.
-		/// - `yield_farm_id`: id of yield farm to be destroyed.
+		/// - `global_farm_id`: farm id from which yield farm should be terminated.
+		/// - `yield_farm_id`: id of yield farm to be terminated.
 		/// - `asset_pair`: asset pair identifying yield farm in the global farm.
 		///
-		/// Emits `YieldFarmDestroyed` event when successful.
-		#[pallet::weight(<T as Config>::WeightInfo::destroy_yield_farm())]
-		pub fn destroy_yield_farm(
+		/// Emits `YieldFarmTerminated` event when successful.
+		#[pallet::weight(<T as Config>::WeightInfo::terminate_yield_farm())]
+		pub fn terminate_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
@@ -644,9 +641,9 @@ pub mod pallet {
 			//NOTE: don't check XYK pool existance, owner must be able to stop yield farm.
 			let amm_pool_id = T::AMM::get_pair_id(asset_pair);
 
-			T::LiquidityMiningHandler::destroy_yield_farm(who.clone(), global_farm_id, yield_farm_id, amm_pool_id)?;
+			T::LiquidityMiningHandler::terminate_yield_farm(who.clone(), global_farm_id, yield_farm_id, amm_pool_id)?;
 
-			Self::deposit_event(Event::YieldFarmDestroyed {
+			Self::deposit_event(Event::YieldFarmTerminated {
 				global_farm_id,
 				yield_farm_id,
 				who,
@@ -777,13 +774,8 @@ pub mod pallet {
 		) -> DispatchResult {
 			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
 
-			let fail_on_double_claim = true;
-			let (global_farm_id, reward_currency, claimed, _) = T::LiquidityMiningHandler::claim_rewards(
-				owner.clone(),
-				deposit_id,
-				yield_farm_id,
-				fail_on_double_claim,
-			)?;
+			let (global_farm_id, reward_currency, claimed, _) =
+				T::LiquidityMiningHandler::claim_rewards(owner.clone(), deposit_id, yield_farm_id)?;
 
 			ensure!(!claimed.is_zero(), Error::<T>::ZeroClaimedRewards);
 
@@ -807,8 +799,8 @@ pub mod pallet {
 		/// wasn't claimed in this period) and transfer LP shares.
 		/// * liq. mining is stopped - claim and transfer rewards(if it
 		/// wasn't claimed in this period) and transfer LP shares.
-		/// * yield farm was destroyed - only LP shares will be transferred.
-		/// * farm was destroyed - only LP shares will be transferred.
+		/// * yield farm was terminated - only LP shares will be transferred.
+		/// * farm was terminated - only LP shares will be transferred.
 		///
 		/// User's unclaimable rewards will be transferred back to global farm's account.
 		///
@@ -834,20 +826,15 @@ pub mod pallet {
 			let global_farm_id = T::LiquidityMiningHandler::get_global_farm_id(deposit_id, yield_farm_id)
 				.ok_or(Error::<T>::DepositDataNotFound)?;
 
-			let unclaimable_rewards = if T::LiquidityMiningHandler::is_yield_farm_claimable(
+			let (withdrawn_amount, claim_data, is_destroyed) = T::LiquidityMiningHandler::withdraw_lp_shares(
+				owner.clone(),
+				deposit_id,
 				global_farm_id,
 				yield_farm_id,
 				amm_pool_id.clone(),
-			) {
-				//This should not fail on double claim, we need unclaimable_rewards
-				let fail_on_double_claim = false;
-				let (global_farm_id, reward_currency, claimed, unclaimable) = T::LiquidityMiningHandler::claim_rewards(
-					owner.clone(),
-					deposit_id,
-					yield_farm_id,
-					fail_on_double_claim,
-				)?;
+			)?;
 
+			if let Some((reward_currency, claimed, _)) = claim_data {
 				if !claimed.is_zero() {
 					Self::deposit_event(Event::RewardClaimed {
 						global_farm_id,
@@ -858,14 +845,7 @@ pub mod pallet {
 						deposit_id,
 					});
 				}
-
-				unclaimable
-			} else {
-				0
-			};
-
-			let (global_farm_id, withdrawn_amount, is_destroyed) =
-				T::LiquidityMiningHandler::withdraw_lp_shares(deposit_id, yield_farm_id, unclaimable_rewards)?;
+			}
 
 			let lp_token = Self::get_lp_token(&amm_pool_id)?;
 			if !withdrawn_amount.is_zero() {

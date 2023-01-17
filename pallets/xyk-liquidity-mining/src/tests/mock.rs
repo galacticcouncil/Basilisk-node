@@ -337,7 +337,6 @@ impl Config for Test {
 	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();
 	type PalletId = LMPalletId;
-	type BlockNumberProvider = MockBlockNumberProvider;
 	type AMM = DummyAMM;
 	type NftCollectionId = NftCollectionId;
 	type NFTHandler = DummyNFT;
@@ -363,15 +362,6 @@ impl<AccountId: From<u128>> Inspect<AccountId> for DummyNFT {
 	}
 }
 
-impl<AccountId: From<u128> + Into<u128> + Copy> Create<AccountId> for DummyNFT {
-	fn create_collection(collection: &Self::CollectionId, who: &AccountId, admin: &AccountId) -> DispatchResult {
-		NFT_COLLECTION.with(|v| {
-			v.replace((*collection, (*who).into(), (*admin).into()));
-		});
-		Ok(())
-	}
-}
-
 impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for DummyNFT {
 	fn mint_into(_collection: &Self::CollectionId, item: &Self::ItemId, who: &AccountId) -> DispatchResult {
 		NFTS.with(|v| {
@@ -394,11 +384,19 @@ impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for DummyNFT {
 	}
 }
 
-impl CreateTypedCollection<AccountId, primitives::CollectionId, CollectionType> for DummyNFT {
+impl
+	CreateTypedCollection<
+		AccountId,
+		primitives::CollectionId,
+		CollectionType,
+		BoundedVec<u8, primitives::UniquesStringLimit>,
+	> for DummyNFT
+{
 	fn create_typed_collection(
 		owner: AccountId,
 		collection_id: primitives::CollectionId,
 		_collection_type: CollectionType,
+		_metadata: Option<BoundedVec<u8, primitives::UniquesStringLimit>>,
 	) -> DispatchResult {
 		NFT_COLLECTION.with(|v| {
 			v.replace((collection_id, owner, owner));
@@ -415,7 +413,50 @@ impl ReserveCollectionId<primitives::CollectionId> for DummyNFT {
 
 pub struct DummyLiquidityMining {}
 
-impl DummyLiquidityMining {}
+impl DummyLiquidityMining {
+	fn claim_rewards(
+		who: AccountId,
+		deposit_id: u128,
+		yield_farm_id: u32,
+		fail_on_double_claim: bool,
+	) -> Result<(u32, AssetId, Balance, Balance), DispatchError> {
+		DEPOSIT_ENTRIES.with(|v| {
+			let mut p = v.borrow_mut();
+			let yield_farm_entry = p.get_mut(&(deposit_id, yield_farm_id)).unwrap();
+
+			if yield_farm_entry.last_claimed == MockBlockNumberProvider::get() && fail_on_double_claim {
+				return Err("Dummy Double Claim".into());
+			}
+
+			let reward_currency = GLOBAL_FARMS.with(|v| {
+				v.borrow()
+					.get(&yield_farm_entry.global_farm_id)
+					.unwrap()
+					.reward_currency
+			});
+
+			let mut claimed = 20_000_000 * ONE;
+			let mut unclaimable = 10_000 * ONE;
+			if yield_farm_entry.last_claimed == MockBlockNumberProvider::get() {
+				claimed = 0;
+				unclaimable = 200_000 * ONE;
+			}
+
+			if yield_farm_entry.last_claimed == MockBlockNumberProvider::get() {
+				claimed = 0;
+			}
+
+			yield_farm_entry.last_claimed = MockBlockNumberProvider::get();
+
+			if who == ZERO_REWARDS_USER {
+				claimed = 0;
+				unclaimable = 0;
+			}
+
+			Ok((yield_farm_entry.global_farm_id, reward_currency, claimed, unclaimable))
+		})
+	}
+}
 
 impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> for DummyLiquidityMining {
 	type Error = DispatchError;
@@ -476,7 +517,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		})
 	}
 
-	fn destroy_global_farm(
+	fn terminate_global_farm(
 		who: AccountId,
 		global_farm_id: u32,
 	) -> Result<(AssetId, Self::Balance, AccountId), Self::Error> {
@@ -565,7 +606,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		})
 	}
 
-	fn destroy_yield_farm(
+	fn terminate_yield_farm(
 		_who: AccountId,
 		_global_farm_id: u32,
 		yield_farm_id: u32,
@@ -657,50 +698,29 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		who: AccountId,
 		deposit_id: u128,
 		yield_farm_id: u32,
-		fail_on_doubleclaim: bool,
 	) -> Result<(u32, AssetId, Self::Balance, Self::Balance), Self::Error> {
-		DEPOSIT_ENTRIES.with(|v| {
-			let mut p = v.borrow_mut();
-			let yield_farm_entry = p.get_mut(&(deposit_id, yield_farm_id)).unwrap();
+		let fail_on_double_claim = true;
 
-			if yield_farm_entry.last_claimed == MockBlockNumberProvider::get() && fail_on_doubleclaim {
-				return Err("Dummy Double Claim".into());
-			}
-
-			let reward_currency = GLOBAL_FARMS.with(|v| {
-				v.borrow()
-					.get(&yield_farm_entry.global_farm_id)
-					.unwrap()
-					.reward_currency
-			});
-
-			let mut claimed = 20_000_000 * ONE;
-			let mut unclaimable = 10_000 * ONE;
-			if yield_farm_entry.last_claimed == MockBlockNumberProvider::get() {
-				claimed = 0;
-				unclaimable = 200_000 * ONE;
-			}
-
-			if yield_farm_entry.last_claimed == MockBlockNumberProvider::get() {
-				claimed = 0;
-			}
-
-			yield_farm_entry.last_claimed = MockBlockNumberProvider::get();
-
-			if who == ZERO_REWARDS_USER {
-				claimed = 0;
-				unclaimable = 0;
-			}
-
-			Ok((yield_farm_entry.global_farm_id, reward_currency, claimed, unclaimable))
-		})
+		Self::claim_rewards(who, deposit_id, yield_farm_id, fail_on_double_claim)
 	}
 
 	fn withdraw_lp_shares(
+		who: AccountId,
 		deposit_id: u128,
+		global_farm_id: u32,
 		yield_farm_id: u32,
-		_unclaimable_rewards: Self::Balance,
-	) -> Result<(u32, Self::Balance, bool), Self::Error> {
+		amm_pool_id: Self::AmmPoolId,
+	) -> Result<(Self::Balance, Option<(AssetId, Self::Balance, Self::Balance)>, bool), Self::Error> {
+		let claim_data = if Self::is_yield_farm_claimable(global_farm_id, yield_farm_id, amm_pool_id) {
+			let fail_on_double_claim = false;
+			let (_, reward_currency, claimed_amount, unclaimable_amount) =
+				Self::claim_rewards(who, deposit_id, yield_farm_id, fail_on_double_claim)?;
+
+			Some((reward_currency, claimed_amount, unclaimable_amount))
+		} else {
+			None
+		};
+
 		let deposit = DEPOSITS.with(|v| {
 			let mut p = v.borrow_mut();
 			let mut deposit = p.get_mut(&deposit_id).unwrap();
@@ -710,10 +730,6 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 			*deposit
 		});
 
-		let global_farm_id = DEPOSIT_ENTRIES
-			.with(|v| v.borrow_mut().remove(&(deposit_id, yield_farm_id)))
-			.unwrap()
-			.global_farm_id;
 		let withdrawn_amount = deposit.shares_amount;
 
 		let mut destroyed = false;
@@ -722,7 +738,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 			destroyed = true;
 		}
 
-		Ok((global_farm_id, withdrawn_amount, destroyed))
+		Ok((withdrawn_amount, claim_data, destroyed))
 	}
 
 	fn is_yield_farm_claimable(_global_farm_id: u32, yield_farm_id: u32, _amm_pool_id: Self::AmmPoolId) -> bool {

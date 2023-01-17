@@ -22,9 +22,8 @@
 use frame_support::{
 	dispatch::DispatchResult,
 	ensure,
-	traits::{Currency, ExistenceRequirement, ReservableCurrency},
+	traits::{tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, ReservableCurrency},
 };
-use frame_support::traits::tokens::nonfungibles::Inspect;
 use frame_system::{ensure_signed, RawOrigin};
 use sp_runtime::{
 	traits::{CheckedDiv, CheckedMul, Saturating, StaticLookup},
@@ -142,7 +141,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(
-				pallet_nft::Pallet::<T>::owner(collection_id, item_id) == Some(sender.clone()),
+				pallet_nft::Pallet::<T>::owner(&collection_id, &item_id) == Some(sender.clone()),
 				Error::<T>::NotTheTokenOwner
 			);
 
@@ -229,7 +228,7 @@ pub mod pallet {
 
 			Offers::<T>::try_mutate_exists(token_id, maker, |maybe_offer| -> DispatchResult {
 				let offer = maybe_offer.take().ok_or(Error::<T>::UnknownOffer)?;
-				let sender_is_owner = match pallet_nft::Pallet::<T>::owner(collection_id, item_id) {
+				let sender_is_owner = match pallet_nft::Pallet::<T>::owner(&collection_id, &item_id) {
 					Some(owner) => sender == owner,
 					None => false,
 				};
@@ -268,7 +267,7 @@ pub mod pallet {
 			let token_id = (collection_id, item_id);
 
 			let owner =
-				pallet_nft::Pallet::<T>::owner(collection_id, item_id).ok_or(Error::<T>::CollectionOrItemUnknown)?;
+				pallet_nft::Pallet::<T>::owner(&collection_id, &item_id).ok_or(Error::<T>::CollectionOrItemUnknown)?;
 
 			ensure!(sender == owner, Error::<T>::AcceptNotAuthorized);
 
@@ -315,7 +314,7 @@ pub mod pallet {
 				Error::<T>::RoyaltyAlreadySet
 			);
 			ensure!(royalty < MAX_ROYALTY, Error::<T>::NotInRange);
-			let owner = pallet_nft::Pallet::<T>::owner(collection_id, item_id)
+			let owner = pallet_nft::Pallet::<T>::owner(&collection_id, &item_id)
 				.ok_or(pallet_nft::Error::<T>::CollectionUnknown)?;
 			ensure!(sender == owner, pallet_nft::Error::<T>::NotPermitted);
 
@@ -437,7 +436,7 @@ impl<T: Config> Pallet<T> {
 		is_offer: bool,
 	) -> DispatchResult {
 		let owner =
-			pallet_nft::Pallet::<T>::owner(collection_id, item_id).ok_or(Error::<T>::CollectionOrItemUnknown)?;
+			pallet_nft::Pallet::<T>::owner(&collection_id, &item_id).ok_or(Error::<T>::CollectionOrItemUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
 		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));

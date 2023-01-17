@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 
 use scale_info::TypeInfo;
 
-use frame_support::sp_runtime::FixedU128;
+use frame_support::{parameter_types, sp_runtime::FixedU128};
 
 pub mod asset;
 pub mod constants;
@@ -54,6 +54,11 @@ pub type CollectionId = u128;
 
 /// NFT Item ID
 pub type ItemId = u128;
+
+parameter_types! {
+	/// NFT metadata limit
+	pub const UniquesStringLimit: u32 = 72;
+}
 
 /// Scaled Unsigned of Balance
 pub type HighPrecisionBalance = U256;
