@@ -35,7 +35,7 @@ use hydradx_traits::{
 	AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnLiquidityChangedHandler,
 	OnTradeHandler, Source, AMM,
 };
-use primitives::{asset::AssetPair, AssetId, Balance, Price};
+use primitives::{asset::AssetPair, AssetId, Balance};
 use sp_std::{vec, vec::Vec};
 
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
