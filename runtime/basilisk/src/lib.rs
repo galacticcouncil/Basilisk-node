@@ -935,15 +935,15 @@ use frame_support::BoundedVec;
 use hydradx_traits::OraclePeriod;
 use pallet_ema_oracle::{MAX_PERIODS, MAX_TRADES};
 parameter_types! {
-    pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(vec![
+	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(vec![
 				OraclePeriod::LastBlock, OraclePeriod::TenMinutes, OraclePeriod::Day, OraclePeriod::Week]);
 }
 impl pallet_ema_oracle::Config for Runtime {
-    type Event = Event;
-    type WeightInfo = ();
-    type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-    type SupportedPeriods = SupportedPeriods;
-    type MaxTradesPerBlock = ConstU32<MAX_TRADES>;
+	type Event = Event;
+	type WeightInfo = ();
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type SupportedPeriods = SupportedPeriods;
+	type MaxTradesPerBlock = ConstU32<MAX_TRADES>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -1000,10 +1000,10 @@ construct_runtime!(
 		Marketplace: pallet_marketplace = 109,
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
-		
+
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
-		
+
 		EmaOracle: pallet_ema_oracle = 120,
 
 		// ORML related modules - runtime module index for orml starts at 150
