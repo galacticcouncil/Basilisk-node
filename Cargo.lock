@@ -495,7 +495,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "88.0.0"
+version = "89.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1204,7 +1204,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.3"
+version = "2.3.4"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -5820,7 +5820,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "3.1.9"
+version = "3.1.10"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5990,7 +5990,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.6.4"
+version = "4.6.5"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6033,7 +6033,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.0.6"
+version = "5.0.7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6668,7 +6668,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.1.3"
+version = "6.1.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6698,7 +6698,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6724,7 +6724,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.5"
+version = "1.0.6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6767,7 +6767,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-runtime-mock"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8363,7 +8363,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.4.0"
+version = "6.4.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9033,7 +9033,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.8.6"
+version = "0.8.7"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -11748,7 +11748,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "88.0.0"
+version = "89.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
