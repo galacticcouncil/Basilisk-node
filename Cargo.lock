@@ -415,7 +415,7 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "basilisk"
-version = "8.1.3"
+version = "8.1.4"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -1205,7 +1205,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.3"
+version = "2.3.4"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -5811,7 +5811,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "3.1.9"
+version = "3.1.10"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6000,7 +6000,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.6.4"
+version = "4.6.5"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6043,7 +6043,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.0.6"
+version = "5.0.7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6678,7 +6678,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.1.3"
+version = "6.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6708,7 +6708,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6734,7 +6734,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.5"
+version = "1.0.6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6777,7 +6777,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-runtime-mock"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -8373,7 +8373,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.4.0"
+version = "6.4.1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9042,7 +9042,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.8.6"
+version = "0.9.0"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -9081,10 +9081,10 @@ dependencies = [
  "pallet-democracy",
  "pallet-duster",
  "pallet-elections-phragmen",
+ "pallet-ema-oracle",
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
- "pallet-price-oracle",
  "pallet-relaychain-info 0.3.2 (git+https://github.com/galacticcouncil/warehouse?rev=d54256856bc2b790c1b3bd830d756acac8830c3d)",
  "pallet-route-executor",
  "pallet-scheduler",

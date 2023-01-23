@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.8.6"
+version = "0.9.0"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -11,11 +11,11 @@ repository = "https://github.com/galacticcouncil/Basilisk-node"
 [dependencies]
 # Warehouse dependencies
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "d54256856bc2b790c1b3bd830d756acac8830c3d", default-features = false}
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "d54256856bc2b790c1b3bd830d756acac8830c3d", default-features = false}
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "d54256856bc2b790c1b3bd830d756acac8830c3d", default-features = false }
 pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "d54256856bc2b790c1b3bd830d756acac8830c3d", default-features = false }
 pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "d54256856bc2b790c1b3bd830d756acac8830c3d", default-features = false }
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
+pallet-ema-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "d54256856bc2b790c1b3bd830d756acac8830c3d", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "d54256856bc2b790c1b3bd830d756acac8830c3d", default-features = false }
 
 pallet-xyk = { path = "../pallets/xyk",default-features = false}
@@ -176,5 +176,5 @@ std = [
     "pallet-authorship/std",
     "basilisk-runtime/std",
     "hydradx-traits/std",
-    "pallet-price-oracle/std",
+    "pallet-ema-oracle/std",
 ]
