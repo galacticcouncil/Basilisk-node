@@ -64,8 +64,9 @@ use frame_support::{
 		ConstantMultiplier, DispatchClass, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
 		WeightToFeePolynomial,
 	},
+	BoundedVec,
 };
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AssetPairAccountIdFor, OraclePeriod};
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
@@ -931,13 +932,15 @@ impl pallet_route_executor::Config for Runtime {
 	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
 }
 
-use frame_support::BoundedVec;
-use hydradx_traits::OraclePeriod;
+// constants need to be in scope to be used in generics
 use pallet_ema_oracle::{MAX_PERIODS, MAX_TRADES};
+
 parameter_types! {
-	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(vec![
-				OraclePeriod::LastBlock, OraclePeriod::TenMinutes, OraclePeriod::Day, OraclePeriod::Week]);
+	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(
+		vec![OraclePeriod::LastBlock, OraclePeriod::TenMinutes, OraclePeriod::Day, OraclePeriod::Week]
+	);
 }
+
 impl pallet_ema_oracle::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = ();

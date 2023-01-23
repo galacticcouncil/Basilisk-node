@@ -151,6 +151,7 @@ runtime-benchmarks = [
     "pallet-multisig/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "pallet-transaction-pause/runtime-benchmarks",
+    "pallet-ema-oracle/runtime-benchmarks",
     "pallet-xyk-liquidity-mining-benchmarking",
 ]
 std = [
@@ -225,5 +226,6 @@ std = [
     "pallet-identity/std",
     "pallet-proxy/std",
     "pallet-transaction-pause/std",
+    "pallet-ema-oracle/std",
     "pallet-xyk-liquidity-mining/std",
 ]
