@@ -281,4 +281,5 @@ try-runtime= [
     "pallet-route-executor/try-runtime",
     "pallet-xyk-liquidity-mining/try-runtime",
     "warehouse-liquidity-mining/try-runtime",
+    "pallet-ema-oracle/try-runtime"
 ]
