@@ -51,7 +51,7 @@ fn xyk_trades_are_ingested_into_oracle() {
 			asset_a,
 			asset_b,
 			5 * UNITS,
-			1 * UNITS,
+			UNITS,
 			false,
 		));
 
