@@ -26,7 +26,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
 
 # Warehouse dependency
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "435b77e142a8a1f5ef847cb379f493b673668d4b", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "d54256856bc2b790c1b3bd830d756acac8830c3d", default-features = false }
 
 # local dependency
 primitives = { default-features = false, path = "../../primitives" }
