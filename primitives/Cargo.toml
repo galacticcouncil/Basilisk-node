@@ -16,7 +16,7 @@ serde = { features = ["derive"], optional = true, version = "1.0.136" }
 static_assertions = "1.1.0"
 
 # Warehouse dependencies
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
 
 # Substrate dependencies
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }

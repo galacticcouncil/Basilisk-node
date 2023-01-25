@@ -26,13 +26,13 @@ pallet-marketplace = { path = '../../pallets/marketplace', default-features = fa
 pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
 
 # Warehouse dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false}
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false}
 pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
-pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
-pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
-pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
+pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
+pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }

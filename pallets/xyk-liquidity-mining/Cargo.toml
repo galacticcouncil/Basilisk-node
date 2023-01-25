@@ -21,9 +21,9 @@ log = { version = "0.4.17", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 
 # HydraDX dependencies
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="a7e28a3a7fba655d9d27668097a1666f4250a495", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="654b06312c800c4fbdd052e5b3a83ca15efed63a", default-features = false }
 
 primitives = { path = "../../primitives", default-features = false }
 
