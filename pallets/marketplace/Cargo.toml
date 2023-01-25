@@ -1,6 +1,6 @@
 [package]
 name = "pallet-marketplace"
-version = "5.0.7"
+version = "5.0.8"
 authors = ["GalacticCoucil"]
 description = "The marketplace for trading NFTs"
 edition = "2018"
