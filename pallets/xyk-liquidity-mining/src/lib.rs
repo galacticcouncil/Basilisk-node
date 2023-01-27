@@ -189,6 +189,9 @@ pub mod pallet {
 
 		/// Asset is not in the `AssetPair`.
 		AssetNotInAssetPair,
+
+		/// Provided `AssetPair` is not used by the deposit.
+		InvalidAssetPair,
 	}
 
 	#[pallet::event]
@@ -732,16 +735,18 @@ pub mod pallet {
 			deposit_id: DepositId,
 		) -> DispatchResult {
 			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
-			Self::ensure_xyk(asset_pair)?;
+			let amm_pool_id = Self::ensure_xyk(asset_pair)?;
 
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
-			let shares_amount = T::LiquidityMiningHandler::redeposit_lp_shares(
+			let (shares_amount, deposit_amm_pool_id) = T::LiquidityMiningHandler::redeposit_lp_shares(
 				global_farm_id,
 				yield_farm_id,
 				deposit_id,
 				Self::get_token_value_of_lp_shares,
 			)?;
+
+			ensure!(amm_pool_id == deposit_amm_pool_id, Error::<T>::InvalidAssetPair);
 
 			Self::deposit_event(Event::SharesRedeposited {
 				global_farm_id,
