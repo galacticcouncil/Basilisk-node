@@ -1,6 +1,6 @@
 [package]
 name = "parachain-runtime-mock"
-version = "0.1.7"
+version = "0.1.8"
 description = "A mock runtime for a parachain"
 authors = ["GalacticCouncil"]
 edition = "2021"
