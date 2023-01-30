@@ -6734,7 +6734,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.7"
+version = "1.0.8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
