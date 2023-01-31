@@ -56,8 +56,8 @@ use codec::Decode;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, Contains, EitherOfDiverse, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter,
-		NeverEnsureOrigin, U128CurrencyToVote,
+		AsEnsureOriginWithArg, Contains, Defensive, EitherOfDiverse, EnsureOrigin, EqualPrivilegeOnly, Get,
+		InstanceFilter, NeverEnsureOrigin, U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
@@ -111,7 +111,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 89,
+	spec_version: 91,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -464,6 +464,7 @@ impl pallet_asset_registry::Config for Runtime {
 	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
+	type SequentialIdStartAt = SequentialIdOffset;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
 }
@@ -774,7 +775,7 @@ parameter_types! {
 pub struct RelayChainAssetId;
 impl Get<AssetId> for RelayChainAssetId {
 	fn get() -> AssetId {
-		let invalid_id = pallet_asset_registry::Pallet::<Runtime>::next_asset_id();
+		let invalid_id = pallet_asset_registry::Pallet::<Runtime>::next_asset_id().defensive_unwrap_or(AssetId::MAX);
 
 		match pallet_asset_registry::Pallet::<Runtime>::location_to_asset(RELAY_CHAIN_ASSET_LOCATION) {
 			Some(asset_id) => asset_id,

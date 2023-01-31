@@ -663,7 +663,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		yield_farm_id: u32,
 		deposit_id: u128,
 		get_token_value_of_lp_shares: fn(AssetId, Self::AmmPoolId, Balance) -> Result<Self::Balance, Self::Error>,
-	) -> Result<Self::Balance, Self::Error> {
+	) -> Result<(Self::Balance, Self::AmmPoolId), Self::Error> {
 		let deposit = DEPOSITS.with(|v| {
 			let mut p = v.borrow_mut();
 			let mut deposit = p.get_mut(&deposit_id).unwrap();
@@ -691,7 +691,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 			)
 		});
 
-		Ok(deposit.shares_amount)
+		Ok((deposit.shares_amount, deposit.amm_pool_id))
 	}
 
 	fn claim_rewards(

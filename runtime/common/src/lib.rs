@@ -296,6 +296,7 @@ parameter_types! {
 	pub const MaxSubAccounts: u32 = 100;
 	pub const MaxAdditionalFields: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
+	pub const SequentialIdOffset: u32 = 1_000_000;
 }
 
 // pallet multisig

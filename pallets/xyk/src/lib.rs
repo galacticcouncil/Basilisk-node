@@ -61,8 +61,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::OriginFor;
-	use hydradx_traits::pools::DustRemovalAccountWhitelist;
-	use registry_traits::ShareTokenRegistry;
+	use hydradx_traits::{pools::DustRemovalAccountWhitelist, registry::ShareTokenRegistry};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);

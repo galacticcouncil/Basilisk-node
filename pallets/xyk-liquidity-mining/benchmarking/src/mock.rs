@@ -54,8 +54,8 @@ pub const DAVE: AccountId = 4;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
-pub const BSX: AssetId = 1000;
-pub const KSM: AssetId = 4000;
+pub const BSX: AssetId = 0;
+pub const KSM: AssetId = 1;
 
 pub const LIQ_MINING_NFT_COLLECTION: primitives::CollectionId = 1;
 
@@ -88,6 +88,7 @@ parameter_types! {
 	pub const BSXAssetId: AssetId = BSX;
 	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
 	pub RegistryStringLimit: u32 = 100;
+	pub const SequentialIdOffset: u32 = 1_000_000;
 }
 
 impl BlockNumberProvider for MockBlockNumberProvider {
@@ -289,6 +290,7 @@ impl pallet_asset_registry::Config for Test {
 	type Balance = Balance;
 	type AssetNativeLocation = u8;
 	type StringLimit = RegistryStringLimit;
+	type SequentialIdStartAt = SequentialIdOffset;
 	type NativeAssetId = BSXAssetId;
 	type WeightInfo = ();
 }
@@ -345,6 +347,7 @@ impl ExtBuilder {
 
 		pallet_asset_registry::GenesisConfig::<Test> {
 			asset_names: vec![(b"KSM".to_vec(), 1_000), (b"DOT".to_vec(), 1_000)],
+			asset_ids: vec![(b"KSM".to_vec(), 1_000, 1), (b"DOT".to_vec(), 1_000, 2)],
 			native_asset_name: b"BSX".to_vec(),
 			native_existential_deposit: 1_000_000_000_000,
 		}

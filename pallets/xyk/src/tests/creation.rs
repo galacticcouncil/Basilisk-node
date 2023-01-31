@@ -292,8 +292,8 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
-				currency_id: 0,
-				who: 1,
+				currency_id: share_token,
+				who: ALICE,
 				amount: 100000000,
 			}
 			.into(),

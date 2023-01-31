@@ -1,6 +1,6 @@
 [package]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.6"
+version = "1.0.7"
 description = "Liquidity Mining Benchmarking Module"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -26,10 +26,10 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 
 # HydraDX dependencies
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="e85c3c68708c7d9789d18c0a230efd436fc5ea10", default-features = false}
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev="fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="e85c3c68708c7d9789d18c0a230efd436fc5ea10", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="e85c3c68708c7d9789d18c0a230efd436fc5ea10", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="36907491e672f2289427f147c88804db419f2f1d", default-features = false}
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev="36907491e672f2289427f147c88804db419f2f1d", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="36907491e672f2289427f147c88804db419f2f1d", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="36907491e672f2289427f147c88804db419f2f1d", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }

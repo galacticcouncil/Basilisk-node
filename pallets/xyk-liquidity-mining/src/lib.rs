@@ -747,7 +747,7 @@ pub mod pallet {
 				global_farm_id,
 				yield_farm_id,
 				who: owner,
-				amount: shares_amount,
+				amount: shares_amount.0,
 				lp_token: amm_share_token,
 				deposit_id,
 			});

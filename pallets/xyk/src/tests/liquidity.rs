@@ -168,7 +168,7 @@ fn add_liquidity_as_another_user_should_work() {
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
-				currency_id: 0,
+				currency_id: share_token,
 				who: 2,
 				amount: 10000000000,
 			}

@@ -9,10 +9,10 @@ use frame_support::{
 	BoundedVec,
 };
 use frame_system::RawOrigin;
+use hydradx_traits::registry::Registry;
 use orml_benchmarking::runtime_benchmarks;
 use pallet_nft::BoundedVecOfUnq;
 use primitives::{constants::currency::UNITS, CollectionId, ItemId};
-use registry_traits::registry::Registry;
 use sp_std::convert::TryInto;
 
 const ENDOWMENT: u32 = 1_000_000;
@@ -39,7 +39,10 @@ fn create_collection_and_mint(
 		RawOrigin::Root.into(),
 		name.clone(),
 		pallet_asset_registry::AssetType::Token,
-		1_000u32.into()
+		1_000u32.into(),
+		None,
+		None,
+		None,
 	));
 	let asset_id = AssetRegistry::retrieve_asset(&name).unwrap();
 	assert_ok!(AssetRegistry::set_location(
