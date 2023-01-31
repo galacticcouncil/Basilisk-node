@@ -75,6 +75,11 @@ pub const BSX_KSM_ASSET_PAIR: AssetPair = AssetPair {
 	asset_out: KSM,
 };
 
+pub const BSX_ACA_ASSET_PAIR: AssetPair = AssetPair {
+	asset_in: BSX,
+	asset_out: ACA,
+};
+
 pub const BSX_DOT_ASSET_PAIR: AssetPair = AssetPair {
 	asset_in: BSX,
 	asset_out: DOT,
