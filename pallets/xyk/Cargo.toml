@@ -1,6 +1,6 @@
 [package]
 name = 'pallet-xyk'
-version = '6.2.0'
+version = '6.2.1'
 description = 'XYK automated market maker'
 authors = ['GalacticCouncil']
 edition = '2021'
@@ -70,5 +70,6 @@ std = [
     'orml-tokens/std',
     'frame-benchmarking/std',
     "scale-info/std",
+    "pallet-asset-registry/std",
 ]
 try-runtime = ["frame-support/try-runtime"]

@@ -108,22 +108,19 @@ fn pool_should_be_created_when_it_was_destroyed_previously() {
 fn share_asset_id_should_be_offset() {
 	TestNet::reset();
 
-	let asset_a = 1;
-	let asset_b = 2;
-
 	Basilisk::execute_with(|| {
 		//arrange
 		assert_ok!(XYK::create_pool(
 			Origin::signed(ALICE.into()),
-			asset_a,
+			KSM,
 			100 * UNITS,
-			asset_b,
+			AUSD,
 			200 * UNITS,
 		));
 
 		let share_token = XYK::get_share_token(AssetPair {
-			asset_in: asset_a,
-			asset_out: asset_b,
+			asset_in: KSM,
+			asset_out: AUSD
 		});
 		let offset = <basilisk_runtime::Runtime as pallet_asset_registry::Config>::SequentialIdStartAt::get();
 		//assert
