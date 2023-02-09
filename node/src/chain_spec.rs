@@ -224,8 +224,10 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 				//technical committee
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				vec![],
-				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
-				vec![(b"KSM".to_vec(), 1_000u128, 1u32), (b"KUSD".to_vec(), 1_000u128, 2u32)],
+				vec![
+					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
+					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 			)
@@ -309,8 +311,10 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
 				get_vesting_config_for_test(),
-				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
-				vec![(b"KSM".to_vec(), 1_000u128, 1u32), (b"KUSD".to_vec(), 1_000u128, 2u32)],
+				vec![
+					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
+					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
@@ -371,7 +375,6 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 				PARA_ID.into(),
 				//technical committee
 				vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()], // same as sudo
-				vec![],
 				vec![],
 				vec![],
 				vec![],
@@ -444,7 +447,6 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 				PARA_ID.into(),
 				//technical committee
 				vec![hex!["0897746a8df7df1969bf5fdb4f048221109830994c8afa001e9454c525211404"].into()],
-				vec![],
 				vec![],
 				vec![],
 				vec![],
@@ -532,7 +534,6 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 				get_vesting_config_for_test(),
 				vec![],
 				vec![],
-				vec![],
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
 		},
@@ -607,8 +608,10 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
 				get_vesting_config_for_test(),
-				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
-				vec![(b"KSM".to_vec(), 1_000u128, 1u32), (b"KUSD".to_vec(), 1_000u128, 2u32)],
+				vec![
+					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
+					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
@@ -682,8 +685,7 @@ fn parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			asset_names: vec![],
-			asset_ids: vec![],
+			registered_assets: vec![],
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
@@ -740,9 +742,8 @@ fn testnet_parachain_genesis(
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
-	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
-	registered_ids: Vec<(Vec<u8>, Balance, AssetId)>, // (Asset name, Existential deposit, Chosen asset id)
-	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
+	registered_assets: Vec<(Vec<u8>, Balance, Option<AssetId>)>, // (Asset name, Existential deposit, Chosen asset id)
+	accepted_assets: Vec<(AssetId, Price)>, // (Asset id, Fallback price) - asset which fee can be paid with
 	elections: Vec<AccountId>,
 ) -> GenesisConfig {
 	GenesisConfig {
@@ -781,8 +782,7 @@ fn testnet_parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			asset_names: registered_assets.clone(),
-			asset_ids: registered_ids,
+			registered_assets: registered_assets.clone(),
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},

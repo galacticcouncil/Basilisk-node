@@ -120,7 +120,7 @@ fn share_asset_id_should_be_offset() {
 
 		let share_token = XYK::get_share_token(AssetPair {
 			asset_in: KSM,
-			asset_out: AUSD
+			asset_out: AUSD,
 		});
 		let offset = <basilisk_runtime::Runtime as pallet_asset_registry::Config>::SequentialIdStartAt::get();
 		//assert

@@ -1,8 +1,8 @@
 pub use super::mock::*;
 use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
-use hydradx_traits::AMM as AmmPool;
 use hydradx_traits::Registry;
+use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use sp_std::convert::TryInto;
@@ -359,8 +359,10 @@ fn share_asset_id_should_be_offset() {
 		};
 
 		// Next available asset id within the range of reserved IDs
-		let next_asset_id = AssetRegistry::next_asset_id().unwrap()
-			.checked_sub(<Test as pallet_asset_registry::Config>::SequentialIdStartAt::get()).unwrap();
+		let next_asset_id = AssetRegistry::next_asset_id()
+			.unwrap()
+			.checked_sub(<Test as pallet_asset_registry::Config>::SequentialIdStartAt::get())
+			.unwrap();
 
 		// Register the share token within the range of reserved IDs.
 		// This is how share tokens were registered before the offset was introduced.
