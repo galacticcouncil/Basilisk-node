@@ -346,7 +346,7 @@ impl ExtBuilder {
 		.unwrap();
 
 		pallet_asset_registry::GenesisConfig::<Test> {
-			registered_assets: vec![(b"KSM".to_vec(), 1_000, Some(1)), (b"DOT".to_vec(), 1_000, Some(2))],
+			registered_assets: vec![(b"KSM".to_vec(), 1_000, Some(KSM)), (b"DOT".to_vec(), 1_000, Some(2))],
 			native_asset_name: b"BSX".to_vec(),
 			native_existential_deposit: 1_000_000_000_000,
 		}
