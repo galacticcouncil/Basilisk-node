@@ -56,6 +56,7 @@ pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
 pub const BSX: AssetId = 0;
 pub const KSM: AssetId = 1;
+pub const DOT: AssetId = 2;
 
 pub const LIQ_MINING_NFT_COLLECTION: primitives::CollectionId = 1;
 
@@ -346,7 +347,7 @@ impl ExtBuilder {
 		.unwrap();
 
 		pallet_asset_registry::GenesisConfig::<Test> {
-			registered_assets: vec![(b"KSM".to_vec(), 1_000, Some(KSM)), (b"DOT".to_vec(), 1_000, Some(2))],
+			registered_assets: vec![(b"KSM".to_vec(), 1_000, Some(KSM)), (b"DOT".to_vec(), 1_000, Some(DOT))],
 			native_asset_name: b"BSX".to_vec(),
 			native_existential_deposit: 1_000_000_000_000,
 		}
