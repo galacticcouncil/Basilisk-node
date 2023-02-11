@@ -185,11 +185,11 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
-		asset_names: vec![
-			(b"KSM".to_vec(), 1_000_000u128),
-			(b"aUSD".to_vec(), 1_000u128),
-			(b"MOVR".to_vec(), 1_000u128),
-			(b"NEW_BOOTSRAPPED_TOKEN".to_vec(), 1_000u128),
+		registered_assets: vec![
+			(b"KSM".to_vec(), 1_000_000u128, Some(1)),
+			(b"aUSD".to_vec(), 1_000u128, Some(2)),
+			(b"MOVR".to_vec(), 1_000u128, Some(3)),
+			(b"NEW_BOOTSRAPPED_TOKEN".to_vec(), 1_000u128, Some(4)),
 		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
@@ -268,7 +268,7 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_asset_registry::GenesisConfig::<ParachainRuntime> {
-		asset_names: vec![(b"AUSD".to_vec(), 1_000_000u128)],
+		registered_assets: vec![(b"AUSD".to_vec(), 1_000_000u128, Some(1))],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
 	}
