@@ -39,7 +39,10 @@ fn create_collection_and_mint(
 		RawOrigin::Root.into(),
 		name.clone(),
 		pallet_asset_registry::AssetType::Token,
-		1_000u32.into()
+		1_000u32.into(),
+		None,
+		None,
+		None,
 	));
 	let asset_id = AssetRegistry::retrieve_asset(&name).unwrap();
 	assert_ok!(AssetRegistry::set_location(

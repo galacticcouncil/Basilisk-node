@@ -44,12 +44,8 @@ pub mod weights;
 
 pub use pallet::*;
 
-use frame_support::traits::tokens::nonfungibles::{Create, Inspect, Mutate};
-use frame_support::{
-	ensure,
-	sp_runtime::traits::{BlockNumberProvider, Zero},
-	PalletId,
-};
+use frame_support::traits::tokens::nonfungibles::{Inspect, Mutate};
+use frame_support::{ensure, sp_runtime::traits::Zero, PalletId};
 use hydradx_traits::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
 use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
@@ -110,6 +106,7 @@ pub mod pallet {
 				pallet_account,
 				T::NftCollectionId::get(),
 				CollectionType::LiquidityMining,
+				None,
 			)
 			.unwrap();
 		}
@@ -132,19 +129,19 @@ pub mod pallet {
 		/// Pallet id.
 		type PalletId: Get<PalletId>;
 
-		/// The block number provider
-		type BlockNumberProvider: BlockNumberProvider<BlockNumber = Self::BlockNumber>;
-
 		/// NFT collection id for liq. mining deposit nfts. Has to be within the range of reserved NFT class IDs.
 		#[pallet::constant]
 		type NftCollectionId: Get<primitives::CollectionId>;
 
 		/// Non fungible handling
 		type NFTHandler: Mutate<Self::AccountId>
-			+ Create<Self::AccountId>
 			+ Inspect<Self::AccountId, CollectionId = primitives::CollectionId, ItemId = DepositId>
-			+ CreateTypedCollection<Self::AccountId, primitives::CollectionId, CollectionType>
-			+ ReserveCollectionId<primitives::CollectionId>;
+			+ CreateTypedCollection<
+				Self::AccountId,
+				primitives::CollectionId,
+				CollectionType,
+				BoundedVec<u8, primitives::UniquesStringLimit>,
+			> + ReserveCollectionId<primitives::CollectionId>;
 
 		/// Liquidity mining handler for managing liquidity mining functionalities
 		type LiquidityMiningHandler: LiquidityMiningMutate<
@@ -192,6 +189,9 @@ pub mod pallet {
 
 		/// Asset is not in the `AssetPair`.
 		AssetNotInAssetPair,
+
+		/// Provided `AssetPair` is not used by the deposit.
+		InvalidAssetPair,
 	}
 
 	#[pallet::event]
@@ -355,7 +355,7 @@ pub mod pallet {
 			min_deposit: Balance,
 			price_adjustment: FixedU128,
 		) -> DispatchResult {
-			T::CreateOrigin::ensure_origin(origin)?;
+			<T as pallet::Config>::CreateOrigin::ensure_origin(origin)?;
 
 			let (id, max_reward_per_period) = T::LiquidityMiningHandler::create_global_farm(
 				total_rewards,
@@ -735,16 +735,18 @@ pub mod pallet {
 			deposit_id: DepositId,
 		) -> DispatchResult {
 			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
-			Self::ensure_xyk(asset_pair)?;
+			let amm_pool_id = Self::ensure_xyk(asset_pair)?;
 
 			let amm_share_token = T::AMM::get_share_token(asset_pair);
 
-			let shares_amount = T::LiquidityMiningHandler::redeposit_lp_shares(
+			let (shares_amount, deposit_amm_pool_id) = T::LiquidityMiningHandler::redeposit_lp_shares(
 				global_farm_id,
 				yield_farm_id,
 				deposit_id,
 				Self::get_token_value_of_lp_shares,
 			)?;
+
+			ensure!(amm_pool_id == deposit_amm_pool_id, Error::<T>::InvalidAssetPair);
 
 			Self::deposit_event(Event::SharesRedeposited {
 				global_farm_id,
@@ -777,13 +779,8 @@ pub mod pallet {
 		) -> DispatchResult {
 			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
 
-			let fail_on_double_claim = true;
-			let (global_farm_id, reward_currency, claimed, _) = T::LiquidityMiningHandler::claim_rewards(
-				owner.clone(),
-				deposit_id,
-				yield_farm_id,
-				fail_on_double_claim,
-			)?;
+			let (global_farm_id, reward_currency, claimed, _) =
+				T::LiquidityMiningHandler::claim_rewards(owner.clone(), deposit_id, yield_farm_id)?;
 
 			ensure!(!claimed.is_zero(), Error::<T>::ZeroClaimedRewards);
 
@@ -834,20 +831,15 @@ pub mod pallet {
 			let global_farm_id = T::LiquidityMiningHandler::get_global_farm_id(deposit_id, yield_farm_id)
 				.ok_or(Error::<T>::DepositDataNotFound)?;
 
-			let unclaimable_rewards = if T::LiquidityMiningHandler::is_yield_farm_claimable(
+			let (withdrawn_amount, claim_data, is_destroyed) = T::LiquidityMiningHandler::withdraw_lp_shares(
+				owner.clone(),
+				deposit_id,
 				global_farm_id,
 				yield_farm_id,
 				amm_pool_id.clone(),
-			) {
-				//This should not fail on double claim, we need unclaimable_rewards
-				let fail_on_double_claim = false;
-				let (global_farm_id, reward_currency, claimed, unclaimable) = T::LiquidityMiningHandler::claim_rewards(
-					owner.clone(),
-					deposit_id,
-					yield_farm_id,
-					fail_on_double_claim,
-				)?;
+			)?;
 
+			if let Some((reward_currency, claimed, _)) = claim_data {
 				if !claimed.is_zero() {
 					Self::deposit_event(Event::RewardClaimed {
 						global_farm_id,
@@ -858,14 +850,7 @@ pub mod pallet {
 						deposit_id,
 					});
 				}
-
-				unclaimable
-			} else {
-				0
-			};
-
-			let (global_farm_id, withdrawn_amount, is_destroyed) =
-				T::LiquidityMiningHandler::withdraw_lp_shares(deposit_id, yield_farm_id, unclaimable_rewards)?;
+			}
 
 			let lp_token = Self::get_lp_token(&amm_pool_id)?;
 			if !withdrawn_amount.is_zero() {

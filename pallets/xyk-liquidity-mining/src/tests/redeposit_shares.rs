@@ -255,3 +255,50 @@ fn redeposit_shares_should_fail_when_nft_owner_is_not_found() {
 			);
 		})
 }
+
+#[test]
+fn redeposit_shares_should_fail_when_asset_pair_is_not_in_the_deposit() {
+	ExtBuilder::default()
+		.with_endowed_accounts(vec![
+			(BOB, BSX, 1_000_000 * ONE),
+			(BOB, ACA, 1_000_000 * ONE),
+			(CHARLIE, BSX_KSM_SHARE_ID, 200 * ONE),
+		])
+		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
+		.with_amm_pool(BSX_ACA_AMM, BSX_ACA_SHARE_ID, BSX_ACA_ASSET_PAIR)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			ALICE,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_global_farm(
+			500_000 * ONE,
+			20_000,
+			10,
+			BSX,
+			BSX,
+			BOB,
+			Perquintill::from_percent(1),
+			ONE,
+			One::one(),
+		)
+		.with_yield_farm(ALICE, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_yield_farm(BOB, 2, One::one(), None, BSX_KSM_ASSET_PAIR)
+		.with_deposit(CHARLIE, 1, 3, BSX_KSM_ASSET_PAIR, 100 * ONE)
+		.build()
+		.execute_with(|| {
+			set_block_number(50_000);
+
+			//Act
+			assert_noop!(
+				LiquidityMining::redeposit_shares(Origin::signed(CHARLIE), 2, 4, BSX_ACA_ASSET_PAIR, 1),
+				Error::<Test>::InvalidAssetPair
+			);
+		})
+}

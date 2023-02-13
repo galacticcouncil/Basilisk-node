@@ -102,6 +102,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 63;
 	pub const NativeAssetId: AssetId = HDX;
 	pub RegistryStringLimit: u32 = 100;
+	pub const SequentialIdOffset: u32 = 1_000_000;
 }
 
 impl pallet_asset_registry::Config for Test {
@@ -111,6 +112,7 @@ impl pallet_asset_registry::Config for Test {
 	type Balance = Balance;
 	type AssetNativeLocation = u8;
 	type StringLimit = RegistryStringLimit;
+	type SequentialIdStartAt = SequentialIdOffset;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();
 }

@@ -1,6 +1,7 @@
 pub use super::mock::*;
 use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
+use hydradx_traits::Registry;
 use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
 use pallet_asset_registry::AssetType;
@@ -292,8 +293,8 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
-				currency_id: 0,
-				who: 1,
+				currency_id: share_token,
+				who: ALICE,
 				amount: 100000000,
 			}
 			.into(),
@@ -344,5 +345,74 @@ fn can_create_pool_should_work() {
 			),
 			Error::<Test>::CannotCreatePool
 		);
+	});
+}
+
+#[test]
+fn share_asset_id_should_be_offset() {
+	// Check that pools are created correctly with offset IDs.
+	new_test_ext().execute_with(|| {
+		// Arrange
+		let asset_pair = AssetPair {
+			asset_in: HDX,
+			asset_out: ACA,
+		};
+
+		// Next available asset id within the range of reserved IDs
+		let next_asset_id = AssetRegistry::next_asset_id()
+			.unwrap()
+			.checked_sub(<Test as pallet_asset_registry::Config>::SequentialIdStartAt::get())
+			.unwrap();
+
+		// Register the share token within the range of reserved IDs.
+		// This is how share tokens were registered before the offset was introduced.
+		assert_ok!(AssetRegistry::register(
+			Origin::signed(ALICE),
+			asset_pair.name(),
+			AssetType::PoolShare(HDX, ACA),
+			<Test as crate::Config>::MinPoolLiquidity::get(),
+			Some(next_asset_id),
+			None,
+			None,
+		));
+
+		// Create_pool doesn't register new share token if it already exists
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			100_000_000_000_000,
+			ACA,
+			10 * 100_000_000_000_000,
+		));
+
+		let pair_account = XYK::get_pair_id(asset_pair);
+		let share_token = XYK::share_token(pair_account);
+
+		assert_eq!(share_token, next_asset_id);
+		assert_eq!(AssetRegistry::retrieve_asset(&asset_pair.name()).unwrap(), share_token);
+
+		// Act
+		let next_asset_id = AssetRegistry::next_asset_id().unwrap();
+
+		// Create new pool. The share token should be created with offset ID.
+		assert_ok!(XYK::create_pool(
+			Origin::signed(ALICE),
+			HDX,
+			100_000_000_000_000,
+			DOT,
+			10 * 100_000_000_000_000,
+		));
+
+		let asset_pair = AssetPair {
+			asset_in: HDX,
+			asset_out: DOT,
+		};
+
+		let pair_account = XYK::get_pair_id(asset_pair);
+		let share_token = XYK::share_token(pair_account);
+
+		// Assert
+		assert_eq!(share_token, next_asset_id);
+		assert_eq!(AssetRegistry::retrieve_asset(&asset_pair.name()).unwrap(), share_token);
 	});
 }

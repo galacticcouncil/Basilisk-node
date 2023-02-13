@@ -148,11 +148,11 @@ pub mod pallet {
 				AccountBlacklist::<T>::insert(account_id, ());
 			});
 
-			if self.reward_account == None {
+			if self.reward_account.is_none() {
 				panic!("Reward account is not set in genesis config");
 			}
 
-			if self.dust_account == None {
+			if self.dust_account.is_none() {
 				panic!("Dust account is not set in genesis config");
 			}
 
@@ -336,7 +336,7 @@ impl<T: Config> DustRemovalAccountWhitelist<T::AccountId> for Pallet<T> {
 	}
 
 	fn remove_account(account: &T::AccountId) -> Result<(), Self::Error> {
-		AccountBlacklist::<T>::mutate(&account, |maybe_account| -> Result<(), DispatchError> {
+		AccountBlacklist::<T>::mutate(account, |maybe_account| -> Result<(), DispatchError> {
 			ensure!(!maybe_account.is_none(), Error::<T>::AccountNotBlacklisted);
 
 			*maybe_account = None;
