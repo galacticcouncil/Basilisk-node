@@ -559,12 +559,12 @@ fn trap_asset() -> MultiAsset {
 				error: XcmError::AssetNotFound,
 				weight: Weight::from_ref_time(300_000_000),
 			}
-				.into(),
+			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
 				parachain_block_number: 1,
 				relaychain_block_number: 4,
 			}
-				.into(),
+			.into(),
 		]);
 		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
 		let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
