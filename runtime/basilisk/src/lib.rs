@@ -111,7 +111,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 91,
+	spec_version: 92,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -946,7 +946,7 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment exclude_parts { Config } = 3,
 		Treasury: pallet_treasury = 4,
 		Utility: pallet_utility = 5,
-		Scheduler: pallet_scheduler = 6,
+		//NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
 		Democracy: pallet_democracy exclude_parts { Config } = 7,
 		Elections: pallet_elections_phragmen = 8,
 		Council: pallet_collective::<Instance1> = 9,
@@ -968,6 +968,10 @@ construct_runtime!(
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system exclude_parts { Config } = 50,
 		ParachainInfo: parachain_info = 51,
+
+		//NOTE: Scheduler must be after ParachainSystem otherwise RelayChainBlockNumberProvider
+		//will return 0 as current block number when used with Scheduler(democracy).
+		Scheduler: pallet_scheduler = 6,
 
 		PolkadotXcm: pallet_xcm = 52,
 		CumulusXcm: cumulus_pallet_xcm = 53,
