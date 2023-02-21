@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.8.8"
+version = "0.9.0"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -15,7 +15,7 @@ pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", re
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-ema-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 

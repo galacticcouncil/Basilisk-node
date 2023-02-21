@@ -28,7 +28,7 @@ pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", def
 # Warehouse dependencies
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false}
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }

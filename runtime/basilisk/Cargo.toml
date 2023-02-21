@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "91.0.0"
+version = "92.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -42,9 +42,7 @@ pallet-identity = { git = "https://github.com/paritytech/substrate", branch = "p
 hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false}
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
-#NOTE: we are not using latest asset registry for now.
-registry-traits = { package="hydradx-traits", git = "https://github.com/galacticcouncil/warehouse", rev = "fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "fcebd285141ce9ed15136f6102fa6396605d96af", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }
 pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "edfb8fcfa8b61f92a16f9664963c37060aa51ed3", default-features = false }

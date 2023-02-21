@@ -245,7 +245,7 @@ fn work_flow_happy_path_should_work() {
 			}
 			.into(),
 			orml_tokens::Event::Endowed {
-				currency_id: 0,
+				currency_id: share_token,
 				who: 2,
 				amount: 300000000000,
 			}
