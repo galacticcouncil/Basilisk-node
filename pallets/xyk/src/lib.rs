@@ -457,7 +457,8 @@ pub mod pallet {
 
 			let liquidity_a = T::Currency::total_balance(asset_a, &pair_account);
 			let liquidity_b = T::Currency::total_balance(asset_b, &pair_account);
-			T::AMMHandler::on_liquidity_changed(SOURCE, asset_a, asset_b, amount_a, amount_b, liquidity_a, liquidity_b).map_err(|(_w, e)| e)?;
+			T::AMMHandler::on_liquidity_changed(SOURCE, asset_a, asset_b, amount_a, amount_b, liquidity_a, liquidity_b)
+				.map_err(|(_w, e)| e)?;
 
 			Self::deposit_event(Event::LiquidityAdded {
 				who,
@@ -560,7 +561,8 @@ pub mod pallet {
 				remove_amount_b,
 				liquidity_a,
 				liquidity_b,
-			).map_err(|(_w, e)| e)?;
+			)
+			.map_err(|(_w, e)| e)?;
 
 			Self::deposit_event(Event::LiquidityRemoved {
 				who: who.clone(),
@@ -859,7 +861,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_out,
 			liquidity_in,
 			liquidity_out,
-		).map_err(|(_w, e)| e)?;
+		)
+		.map_err(|(_w, e)| e)?;
 
 		Self::deposit_event(Event::<T>::SellExecuted {
 			who: transfer.origin.clone(),
@@ -1019,7 +1022,8 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_out,
 			liquidity_in,
 			liquidity_out,
-		).map_err(|(_w, e)| e)?;
+		)
+		.map_err(|(_w, e)| e)?;
 
 		Self::deposit_event(Event::<T>::BuyExecuted {
 			who: transfer.origin.clone(),
