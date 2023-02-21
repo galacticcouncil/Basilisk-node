@@ -933,7 +933,7 @@ impl pallet_route_executor::Config for Runtime {
 }
 
 // constants need to be in scope to be used in generics
-use pallet_ema_oracle::{MAX_PERIODS, MAX_TRADES};
+use pallet_ema_oracle::{MAX_PERIODS, MAX_UNIQUE_ENTRIES};
 
 parameter_types! {
 	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(
@@ -946,7 +946,7 @@ impl pallet_ema_oracle::Config for Runtime {
 	type WeightInfo = ();
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
-	type MaxTradesPerBlock = ConstU32<MAX_TRADES>;
+	type MaxUniqueEntries = ConstU32<MAX_UNIQUE_ENTRIES>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

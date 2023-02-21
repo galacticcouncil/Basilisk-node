@@ -456,7 +456,9 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, liquidity_amount);
 
-			T::AMMHandler::on_liquidity_changed(SOURCE, asset_a, asset_b, amount_a, amount_b, liquidity_amount);
+			let liquidity_a = T::Currency::total_balance(asset_a, &pair_account);
+			let liquidity_b = T::Currency::total_balance(asset_b, &pair_account);
+			T::AMMHandler::on_liquidity_changed(SOURCE, asset_a, asset_b, amount_a, amount_b, liquidity_a, liquidity_b).map_err(|(_w, e)| e)?;
 
 			Self::deposit_event(Event::LiquidityAdded {
 				who,
@@ -549,14 +551,17 @@ pub mod pallet {
 
 			<TotalLiquidity<T>>::insert(&pair_account, liquidity_left);
 
+			let liquidity_a = T::Currency::total_balance(asset_a, &pair_account);
+			let liquidity_b = T::Currency::total_balance(asset_b, &pair_account);
 			T::AMMHandler::on_liquidity_changed(
 				SOURCE,
 				asset_a,
 				asset_b,
 				remove_amount_a,
 				remove_amount_b,
-				liquidity_left,
-			);
+				liquidity_a,
+				liquidity_b,
+			).map_err(|(_w, e)| e)?;
 
 			Self::deposit_event(Event::LiquidityRemoved {
 				who: who.clone(),
@@ -827,16 +832,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn execute_sell(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
-		let total_liquidity = Self::total_liquidity(&pair_account);
-		T::AMMHandler::on_trade(
-			SOURCE,
-			transfer.assets.asset_in,
-			transfer.assets.asset_out,
-			transfer.amount,
-			transfer.amount_out,
-			total_liquidity,
-		);
-
 		if transfer.discount && transfer.discount_amount > 0u128 {
 			let native_asset = T::NativeAssetId::get();
 			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
@@ -854,6 +849,18 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			&transfer.origin,
 			transfer.amount_out,
 		)?;
+
+		let liquidity_in = T::Currency::total_balance(transfer.assets.asset_in, &pair_account);
+		let liquidity_out = T::Currency::total_balance(transfer.assets.asset_out, &pair_account);
+		T::AMMHandler::on_trade(
+			SOURCE,
+			transfer.assets.asset_in,
+			transfer.assets.asset_out,
+			transfer.amount,
+			transfer.amount_out,
+			liquidity_in,
+			liquidity_out,
+		).map_err(|(_w, e)| e)?;
 
 		Self::deposit_event(Event::<T>::SellExecuted {
 			who: transfer.origin.clone(),
@@ -985,16 +992,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 	fn execute_buy(transfer: &AMMTransfer<T::AccountId, AssetId, AssetPair, Balance>) -> DispatchResult {
 		let pair_account = Self::get_pair_id(transfer.assets);
 
-		let total_liquidity = Self::total_liquidity(&pair_account);
-		T::AMMHandler::on_trade(
-			SOURCE,
-			transfer.assets.asset_in,
-			transfer.assets.asset_out,
-			transfer.amount,
-			transfer.amount_out,
-			total_liquidity,
-		);
-
 		if transfer.discount && transfer.discount_amount > 0 {
 			let native_asset = T::NativeAssetId::get();
 			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
@@ -1012,6 +1009,18 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			&pair_account,
 			transfer.amount_out + transfer.fee.1,
 		)?;
+
+		let liquidity_in = T::Currency::total_balance(transfer.assets.asset_in, &pair_account);
+		let liquidity_out = T::Currency::total_balance(transfer.assets.asset_out, &pair_account);
+		T::AMMHandler::on_trade(
+			SOURCE,
+			transfer.assets.asset_in,
+			transfer.assets.asset_out,
+			transfer.amount,
+			transfer.amount_out,
+			liquidity_in,
+			liquidity_out,
+		).map_err(|(_w, e)| e)?;
 
 		Self::deposit_event(Event::<T>::BuyExecuted {
 			who: transfer.origin.clone(),
