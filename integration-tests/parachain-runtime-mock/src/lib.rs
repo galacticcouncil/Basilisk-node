@@ -85,7 +85,7 @@ parameter_types! {
 	pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::parachain_id().into())));
 	pub const BaseXcmWeight: XcmWeight = 100_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
-
+	pub const SequentialIdOffset: u32 = 1_000_000;
 }
 parameter_type_with_key! {
 	pub ExistentialDeposits: |_currency_id: AssetId| -> Balance {
@@ -276,6 +276,7 @@ impl pallet_asset_registry::Config for ParachainRuntime {
 	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStringLimit;
+	type SequentialIdStartAt = SequentialIdOffset;
 	type NativeAssetId = ParachainNativeCurrencyId;
 	type WeightInfo = ();
 }
