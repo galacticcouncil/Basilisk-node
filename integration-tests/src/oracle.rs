@@ -62,12 +62,12 @@ fn xyk_trades_are_ingested_into_oracle() {
 		// assert
 		let expected = ((5000000000000, 9495238095240).into(), 0);
 		assert_eq!(EmaOracle::get_price(asset_a, asset_b, LastBlock, SOURCE), Ok(expected));
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, TenMinutes, SOURCE), Ok(expected));
-		// hourly oracle not configured/supported
+		// ten minutes oracle not configured/supported
 		assert_eq!(
-			EmaOracle::get_price(asset_a, asset_b, Hour, SOURCE),
+			EmaOracle::get_price(asset_a, asset_b, TenMinutes, SOURCE),
 			Err(OracleError::NotPresent)
 		);
+		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Hour, SOURCE), Ok(expected));
 		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Day, SOURCE), Ok(expected));
 		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Week, SOURCE), Ok(expected));
 	});
