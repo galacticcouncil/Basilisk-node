@@ -899,12 +899,15 @@ impl pallet_route_executor::Config for Runtime {
 }
 
 // constants need to be in scope to be used in generics
-use pallet_ema_oracle::{MAX_PERIODS, MAX_UNIQUE_ENTRIES};
+use pallet_ema_oracle::MAX_PERIODS;
 
 parameter_types! {
 	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(
-		vec![OraclePeriod::LastBlock, OraclePeriod::TenMinutes, OraclePeriod::Day, OraclePeriod::Week]
+		vec![OraclePeriod::LastBlock, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
 	);
+	// There are currently only a few pools, so the number of entries per block is limited.
+	// NOTE: Needs to be updated once the number of pools grows.
+	pub MaxUniqueOracleEntries: u32 = 30;
 }
 
 impl pallet_ema_oracle::Config for Runtime {
@@ -912,7 +915,7 @@ impl pallet_ema_oracle::Config for Runtime {
 	type WeightInfo = ();
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
-	type MaxUniqueEntries = ConstU32<MAX_UNIQUE_ENTRIES>;
+	type MaxUniqueEntries = MaxUniqueOracleEntries;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
