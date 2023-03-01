@@ -495,7 +495,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "92.0.0"
+version = "93.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1203,7 +1203,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.6"
+version = "2.4.6"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -11716,7 +11716,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "92.0.0"
+version = "93.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
