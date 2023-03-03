@@ -18,10 +18,9 @@
 use super::*;
 
 #[test]
-fn destroy_yield_farm_should_work() {
+fn terminate_global_farm_should_work() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
-		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
 		.with_global_farm(
 			500_000 * ONE,
 			20_000,
@@ -33,33 +32,24 @@ fn destroy_yield_farm_should_work() {
 			ONE,
 			One::one(),
 		)
-		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
 		.build()
 		.execute_with(|| {
-			//Act
-			assert_ok!(LiquidityMining::destroy_yield_farm(
-				Origin::signed(BOB),
-				1,
-				2,
-				BSX_KSM_ASSET_PAIR
-			));
+			assert_ok!(LiquidityMining::terminate_global_farm(Origin::signed(BOB), 1));
 
-			//Assert
-			assert_last_event!(crate::Event::YieldFarmDestroyed {
+			assert_last_event!(crate::Event::GlobalFarmTerminated {
 				global_farm_id: 1,
-				yield_farm_id: 2,
 				who: BOB,
-				asset_pair: BSX_KSM_ASSET_PAIR,
+				reward_currency: BSX,
+				undistributed_rewards: 500_000 * ONE,
 			}
 			.into());
 		});
 }
 
 #[test]
-fn destroy_yield_farm_should_fail_when_caller_is_not_signed() {
+fn terminate_global_farm_should_fail_when_origin_is_not_signed() {
 	ExtBuilder::default()
 		.with_endowed_accounts(vec![(BOB, BSX, 1_000_000 * ONE)])
-		.with_amm_pool(BSX_KSM_AMM, BSX_KSM_SHARE_ID, BSX_KSM_ASSET_PAIR)
 		.with_global_farm(
 			500_000 * ONE,
 			20_000,
@@ -71,11 +61,10 @@ fn destroy_yield_farm_should_fail_when_caller_is_not_signed() {
 			ONE,
 			One::one(),
 		)
-		.with_yield_farm(BOB, 1, One::one(), None, BSX_KSM_ASSET_PAIR)
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				LiquidityMining::destroy_yield_farm(Origin::none(), 1, 2, BSX_KSM_ASSET_PAIR),
+				LiquidityMining::terminate_global_farm(mock::Origin::none(), BOB_FARM),
 				BadOrigin
 			);
 		});

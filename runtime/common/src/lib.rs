@@ -117,7 +117,7 @@ parameter_types! {
 
 // pallet aura
 parameter_types! {
-	pub const MaxAuthorities: u32 = 32;
+	pub const MaxAuthorities: u32 = 50;
 }
 
 // pallet transaction payment
@@ -257,7 +257,7 @@ parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
 	pub const MaxCandidates: u32 = 20;
 	pub const MinCandidates: u32 = 4;
-	pub const MaxInvulnerables: u32 = 10;
+	pub const MaxInvulnerables: u32 = 50;
 }
 
 // pallet session
@@ -282,7 +282,6 @@ parameter_types! {
 // warehouse pallet liquidity mining
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
-	pub const MinDeposit: Balance = 1_000; //0.000_000_001 [LP Token], TODO:
 	pub const MaxEntriesPerDeposit: u8 = 5; //NOTE: Rebenchmark when this change, TODO:
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 50; //NOTE: Includes deleted/destroyed farms, TODO:
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100_800;  //1w, TODO:
@@ -297,6 +296,7 @@ parameter_types! {
 	pub const MaxSubAccounts: u32 = 100;
 	pub const MaxAdditionalFields: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
+	pub const SequentialIdOffset: u32 = 1_000_000;
 }
 
 // pallet multisig

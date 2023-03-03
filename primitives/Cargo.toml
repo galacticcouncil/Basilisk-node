@@ -1,6 +1,6 @@
 [package]
 name = "primitives"
-version = "6.3.6"
+version = "6.4.3"
 authors = ["GalacticCouncil"]
 edition = "2021"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
@@ -13,9 +13,10 @@ codec = { default-features = false, features = ["derive"], package = "parity-sca
 scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 primitive-types = { default-features = false, version = "0.11.1" }
 serde = { features = ["derive"], optional = true, version = "1.0.136" }
+static_assertions = "1.1.0"
 
 # Warehouse dependencies
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "976e7bfbdbc42f0197d369e075a4e5cb17784986", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "ea6e89e2348ca349337bc4269a5637f4e9c3c9b1", default-features = false }
 
 # Substrate dependencies
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }

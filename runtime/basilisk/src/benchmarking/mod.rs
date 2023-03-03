@@ -2,6 +2,7 @@
 
 pub mod currencies;
 pub mod duster;
+pub mod marketplace;
 pub mod multi_payment;
 pub mod route_executor;
 pub mod tokens;
@@ -29,6 +30,7 @@ pub fn register_asset(name: Vec<u8>, deposit: Balance) -> Result<AssetId, ()> {
 		AssetRegistry::to_bounded_name(name).map_err(|_| ())?,
 		pallet_asset_registry::AssetType::<AssetId>::Token,
 		deposit,
+		None,
 	)
 	.map_err(|_| ())
 }

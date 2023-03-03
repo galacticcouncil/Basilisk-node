@@ -50,7 +50,7 @@ pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 
 /// Generate a crypto pair from seed.
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
-	TPublic::Pair::from_string(&format!("//{}", seed), None)
+	TPublic::Pair::from_string(&format!("//{seed}"), None)
 		.expect("static values are valid; qed")
 		.public()
 }
@@ -130,7 +130,10 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
 				get_vesting_config_for_test(),
-				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
+				vec![
+					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
+					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
@@ -208,7 +211,10 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 				],
 				get_vesting_config_for_test(),
-				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
+				vec![
+					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
+					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 			)
@@ -272,7 +278,10 @@ pub fn k8s_testnet_parachain_config() -> Result<ChainSpec, String> {
 				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()],
 				vec![],
 				get_vesting_config_for_test(),
-				vec![(b"KSM".to_vec(), 1_000u128), (b"KUSD".to_vec(), 1_000u128)],
+				vec![
+					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
+					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![hex!["a62f1daf8e490a1c0514c7d9f3a700999100f2aeb1d67a2ca68b241d3d6b3547"].into()],
 			)
@@ -382,8 +391,8 @@ fn testnet_parachain_genesis(
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
-	registered_assets: Vec<(Vec<u8>, Balance)>, // (Asset name, Existential deposit)
-	accepted_assets: Vec<(AssetId, Price)>,     // (Asset id, Fallback price) - asset which fee can be paid with
+	registered_assets: Vec<(Vec<u8>, Balance, Option<AssetId>)>, // (Asset name, Existential deposit, Chosen asset id)
+	accepted_assets: Vec<(AssetId, Price)>, // (Asset id, Fallback price) - asset which fee can be paid with
 	elections: Vec<AccountId>,
 ) -> GenesisConfig {
 	GenesisConfig {
@@ -426,7 +435,7 @@ fn testnet_parachain_genesis(
 		// of this.
 		aura: Default::default(),
 		asset_registry: AssetRegistryConfig {
-			asset_names: registered_assets.clone(),
+			registered_assets: registered_assets.clone(),
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
 		},
@@ -474,5 +483,6 @@ fn testnet_parachain_genesis(
 		},
 		polkadot_xcm: Default::default(),
 		xyk_liquidity_mining: Default::default(),
+		xyk_warehouse_lm: Default::default(),
 	}
 }

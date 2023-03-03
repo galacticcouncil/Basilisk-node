@@ -54,8 +54,9 @@ pub const DAVE: AccountId = 4;
 
 pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
-pub const BSX: AssetId = 1000;
-pub const KSM: AssetId = 4000;
+pub const BSX: AssetId = 0;
+pub const KSM: AssetId = 1;
+pub const DOT: AssetId = 2;
 
 pub const LIQ_MINING_NFT_COLLECTION: primitives::CollectionId = 1;
 
@@ -88,6 +89,7 @@ parameter_types! {
 	pub const BSXAssetId: AssetId = BSX;
 	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
 	pub RegistryStringLimit: u32 = 100;
+	pub const SequentialIdOffset: u32 = 1_000_000;
 }
 
 impl BlockNumberProvider for MockBlockNumberProvider {
@@ -128,7 +130,6 @@ impl crate::Config for Test {}
 
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
-	pub const MinDeposit: Balance = 1;
 	pub const MaxEntriesPerDeposit: u8 = 5;
 	pub const MaxYieldFarmsPerGlobalFarm: u8 = 5;
 	pub const MinPlannedYieldingPeriods: BlockNumber = 100;
@@ -145,6 +146,8 @@ impl pallet_liquidity_mining::Config<Instance1> for Test {
 	type AmmPoolId = AccountId;
 	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type AssetRegistry = AssetRegistry;
+	type NonDustableWhitelistHandler = Duster;
 	type Event = Event;
 }
 
@@ -158,7 +161,6 @@ impl pallet_xyk_liquidity_mining::Config for Test {
 	type MultiCurrency = Currency;
 	type CreateOrigin = EnsureRoot<AccountId>;
 	type PalletId = LMPalletId;
-	type BlockNumberProvider = MockBlockNumberProvider;
 	type NftCollectionId = NftCollection;
 	type AMM = XYK;
 	type WeightInfo = ();
@@ -189,7 +191,6 @@ impl pallet_nft::Config for Test {
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftCollectionId = primitives::CollectionId;
 	type NftItemId = primitives::ItemId;
-	type ProtocolOrigin = frame_system::EnsureRoot<AccountId>;
 	type CollectionType = CollectionType;
 	type Permissions = NftPermissions;
 	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
@@ -221,7 +222,6 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = 100 * UNITS;
 	pub const AttributeDepositBase: Balance = 10 * UNITS;
 	pub const DepositPerByte: Balance = UNITS;
-	pub const UniquesStringLimit: u32 = 60;
 }
 
 impl pallet_uniques::Config for Test {
@@ -235,7 +235,7 @@ impl pallet_uniques::Config for Test {
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
-	type StringLimit = UniquesStringLimit;
+	type StringLimit = primitives::UniquesStringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
@@ -291,6 +291,7 @@ impl pallet_asset_registry::Config for Test {
 	type Balance = Balance;
 	type AssetNativeLocation = u8;
 	type StringLimit = RegistryStringLimit;
+	type SequentialIdStartAt = SequentialIdOffset;
 	type NativeAssetId = BSXAssetId;
 	type WeightInfo = ();
 }
@@ -341,6 +342,14 @@ impl ExtBuilder {
 
 		orml_tokens::GenesisConfig::<Test> {
 			balances: self.endowed_accounts,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
+		pallet_asset_registry::GenesisConfig::<Test> {
+			registered_assets: vec![(b"KSM".to_vec(), 1_000, Some(KSM)), (b"DOT".to_vec(), 1_000, Some(DOT))],
+			native_asset_name: b"BSX".to_vec(),
+			native_existential_deposit: 1_000_000_000_000,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

@@ -89,7 +89,7 @@ fn multiplier_can_grow_from_zero() {
 	// the weight is 1/100th bigger than target.
 	run_with_system_weight(target * 101 / 100, || {
 		let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
-		assert!(next > minimum_multiplier, "{:?} !>= {:?}", next, minimum_multiplier);
+		assert!(next > minimum_multiplier, "{next:?} !>= {minimum_multiplier:?}");
 	})
 }
 
@@ -103,9 +103,9 @@ fn multiplier_growth_simulator() {
 		run_with_system_weight(block_weight, || {
 			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
 			// ensure that it is growing as well.
-			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
+			assert!(next > multiplier, "{next:?} !>= {multiplier:?}");
 			multiplier = next;
 		});
 	}
-	println!("multiplier = {:?}", multiplier);
+	println!("multiplier = {multiplier:?}");
 }

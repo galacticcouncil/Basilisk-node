@@ -22,6 +22,7 @@
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::from_over_into)]
+#![allow(clippy::match_like_matches_macro)]
 
 #[cfg(test)]
 mod tests;
@@ -55,8 +56,8 @@ use codec::Decode;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, Contains, EitherOfDiverse, EnsureOrigin, EqualPrivilegeOnly, Get, InstanceFilter,
-		NeverEnsureOrigin, U128CurrencyToVote,
+		AsEnsureOriginWithArg, Contains, Defensive, EitherOfDiverse, EnsureOrigin, EqualPrivilegeOnly, Get,
+		InstanceFilter, NeverEnsureOrigin, U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
@@ -110,7 +111,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 83,
+	spec_version: 92,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -140,7 +141,6 @@ impl Contains<Call> for BaseFilter {
 			return false;
 		}
 
-		#[allow(clippy::match_like_matches_macro)]
 		match call {
 			Call::Uniques(_) => false,
 			Call::PolkadotXcm(_) => false,
@@ -464,6 +464,7 @@ impl pallet_asset_registry::Config for Runtime {
 	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
+	type SequentialIdStartAt = SequentialIdOffset;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
 }
@@ -539,7 +540,6 @@ impl pallet_nft::Config for Runtime {
 	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;
-	type ProtocolOrigin = EnsureRoot<AccountId>;
 	type CollectionType = pallet_nft::CollectionType;
 	type Permissions = pallet_nft::NftPermissions;
 	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
@@ -775,7 +775,7 @@ parameter_types! {
 pub struct RelayChainAssetId;
 impl Get<AssetId> for RelayChainAssetId {
 	fn get() -> AssetId {
-		let invalid_id = pallet_asset_registry::Pallet::<Runtime>::next_asset_id();
+		let invalid_id = pallet_asset_registry::Pallet::<Runtime>::next_asset_id().defensive_unwrap_or(AssetId::MAX);
 
 		match pallet_asset_registry::Pallet::<Runtime>::location_to_asset(RELAY_CHAIN_ASSET_LOCATION) {
 			Some(asset_id) => asset_id,
@@ -814,7 +814,6 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = ksm::deposit(1,129);
 	pub const AttributeDepositBase: Balance = ksm::deposit(1,0);
 	pub const DepositPerByte: Balance = ksm::deposit(0,1);
-	pub const UniquesStringLimit: u32 = 72;
 }
 
 impl pallet_uniques::Config for Runtime {
@@ -831,7 +830,7 @@ impl pallet_uniques::Config for Runtime {
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
-	type StringLimit = UniquesStringLimit;
+	type StringLimit = primitives::UniquesStringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
 	type WeightInfo = ();
@@ -849,7 +848,6 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type MultiCurrency = Currencies;
 	type CreateOrigin = UnanimousTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
-	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
 	type AMM = XYK;
 	type WeightInfo = weights::xyk_liquidity_mining::BasiliskWeight<Runtime>;
@@ -869,6 +867,8 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type AmmPoolId = AccountId;
 	type MaxFarmEntriesPerDeposit = MaxEntriesPerDeposit;
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
+	type AssetRegistry = AssetRegistry;
+	type NonDustableWhitelistHandler = Duster;
 	type Event = Event;
 }
 
@@ -946,7 +946,7 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment exclude_parts { Config } = 3,
 		Treasury: pallet_treasury = 4,
 		Utility: pallet_utility = 5,
-		Scheduler: pallet_scheduler = 6,
+		//NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
 		Democracy: pallet_democracy exclude_parts { Config } = 7,
 		Elections: pallet_elections_phragmen = 8,
 		Council: pallet_collective::<Instance1> = 9,
@@ -968,6 +968,10 @@ construct_runtime!(
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system exclude_parts { Config } = 50,
 		ParachainInfo: parachain_info = 51,
+
+		//NOTE: Scheduler must be after ParachainSystem otherwise RelayChainBlockNumberProvider
+		//will return 0 as current block number when used with Scheduler(democracy).
+		Scheduler: pallet_scheduler = 6,
 
 		PolkadotXcm: pallet_xcm = 52,
 		CumulusXcm: cumulus_pallet_xcm = 53,
@@ -1176,7 +1180,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_nft, NFT);
-			list_benchmark!(list, extra, pallet_marketplace, Marketplace);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
@@ -1199,6 +1202,7 @@ impl_runtime_apis! {
 			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
+			orml_list_benchmark!(list, extra, pallet_marketplace, benchmarking::marketplace);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1240,7 +1244,6 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_nft, NFT);
-			add_benchmark!(params, batches, pallet_marketplace, Marketplace);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
@@ -1264,6 +1267,7 @@ impl_runtime_apis! {
 			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
 			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_add_benchmark!(params, batches, pallet_route_executor, benchmarking::route_executor);
+			orml_add_benchmark!(params, batches, pallet_marketplace, benchmarking::marketplace);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
