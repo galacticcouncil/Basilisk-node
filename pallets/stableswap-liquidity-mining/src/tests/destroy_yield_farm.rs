@@ -73,7 +73,7 @@ fn destroy_yield_farm_should_work() {
 				pool_id
 			));
 
-			assert_ok!(StableswapMining::destroy_yield_farm(
+			assert_ok!(StableswapMining::terminate_yield_farm(
 				Origin::signed(owner),
 				global_farm_id,
 				yield_farm_id,

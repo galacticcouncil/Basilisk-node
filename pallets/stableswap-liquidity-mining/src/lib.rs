@@ -29,7 +29,7 @@ pub use pallet::*;
 use frame_support::{
 	pallet_prelude::*,
 	sp_runtime::traits::{AccountIdConversion, BlockNumberProvider, Zero},
-	traits::tokens::nonfungibles::{Create, Inspect, Mutate},
+	traits::tokens::nonfungibles::{Inspect, Mutate},
 	PalletId,
 };
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
@@ -88,10 +88,13 @@ pub mod pallet {
 
 		/// Non fungible handling
 		type NFTHandler: Mutate<Self::AccountId>
-			+ Create<Self::AccountId>
 			+ Inspect<Self::AccountId, CollectionId = primitives::CollectionId, ItemId = DepositId>
-			+ CreateTypedCollection<Self::AccountId, primitives::CollectionId, CollectionType>
-			+ ReserveCollectionId<primitives::CollectionId>;
+			+ CreateTypedCollection<
+				Self::AccountId,
+				primitives::CollectionId,
+				CollectionType,
+				BoundedVec<u8, primitives::UniquesStringLimit>,
+			> + ReserveCollectionId<primitives::CollectionId>;
 
 		type LiquidityMiningHandler: LiquidityMiningMutate<
 			Self::AccountId,
@@ -129,8 +132,8 @@ pub mod pallet {
 		/// Balance of LP tokens if not sufficient to create deposit.
 		InsufficientLpShares,
 
-        /// 
-        CantFindDepositOwner,
+		///
+		CantFindDepositOwner,
 	}
 
 	#[pallet::event]
@@ -217,7 +220,7 @@ pub mod pallet {
 			deposit_id: DepositId,
 		},
 
-		RewardsClaimed {
+		RewardClaimed {
 			who: T::AccountId,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
@@ -230,6 +233,7 @@ pub mod pallet {
 			who: T::AccountId,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
+			deposit_id: DepositId,
 			lp_token: AssetId,
 			amount: Balance,
 		},
@@ -310,11 +314,11 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(1_000)]
-		pub fn destroy_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
+		pub fn terminate_global_farm(origin: OriginFor<T>, global_farm_id: GlobalFarmId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
 			let (reward_currency, undistributed_rewards, _who) =
-				T::LiquidityMiningHandler::destroy_global_farm(who.clone(), global_farm_id)?;
+				T::LiquidityMiningHandler::terminate_global_farm(who.clone(), global_farm_id)?;
 
 			Self::deposit_event(Event::GlobalFarmDestroyed {
 				who,
@@ -441,7 +445,7 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(1_000)]
-		pub fn destroy_yield_farm(
+		pub fn terminate_yield_farm(
 			origin: OriginFor<T>,
 			global_farm_id: GlobalFarmId,
 			yield_farm_id: YieldFarmId,
@@ -449,7 +453,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			T::LiquidityMiningHandler::destroy_yield_farm(who.clone(), global_farm_id, yield_farm_id, pool_id)?;
+			T::LiquidityMiningHandler::terminate_yield_farm(who.clone(), global_farm_id, yield_farm_id, pool_id)?;
 
 			Self::deposit_event(Event::YieldFarmDestroyed {
 				who,
@@ -512,7 +516,7 @@ pub mod pallet {
 			yield_farm_id: YieldFarmId,
 			deposit_id: DepositId,
 		) -> DispatchResult {
-            let owner = Self::ensure_nft_owner(origin, deposit_id)?;
+			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
 
 			let _ = T::LiquidityMiningHandler::redeposit_lp_shares(
 				global_farm_id,
@@ -539,11 +543,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
 
-			const FAIL_ON_DOUBLE_CLAIM: bool = true;
 			let (global_farm_id, reward_currency, claimed, _) =
-				T::LiquidityMiningHandler::claim_rewards(owner.clone(), deposit_id, yield_farm_id, FAIL_ON_DOUBLE_CLAIM)?;
+				T::LiquidityMiningHandler::claim_rewards(owner.clone(), deposit_id, yield_farm_id)?;
 
-			Self::deposit_event(Event::RewardsClaimed {
+			Self::deposit_event(Event::RewardClaimed {
 				who: owner,
 				global_farm_id,
 				yield_farm_id,
@@ -562,42 +565,43 @@ pub mod pallet {
 			yield_farm_id: YieldFarmId,
 			pool_id: AssetId,
 		) -> DispatchResult {
-            let owner = Self::ensure_nft_owner(origin, deposit_id)?;
-
+			let owner = Self::ensure_nft_owner(origin, deposit_id)?;
 			let lp_token = Self::get_lp_token(pool_id)?;
 
 			let global_farm_id = T::LiquidityMiningHandler::get_global_farm_id(deposit_id, yield_farm_id)
 				.ok_or(Error::<T>::DepositNotFound)?;
 
-			let mut unclaimable_rewards = 0;
-			if T::LiquidityMiningHandler::is_yield_farm_claimable(global_farm_id, yield_farm_id, pool_id) {
-				let (global_farm_id, reward_currency, claimed, unclaimable) =
-					T::LiquidityMiningHandler::claim_rewards(owner.clone(), deposit_id, yield_farm_id, false)?;
+			let (withdrawn_amount, claim_data, deposit_destroyed) = T::LiquidityMiningHandler::withdraw_lp_shares(
+				owner.clone(),
+				deposit_id,
+				global_farm_id,
+				yield_farm_id,
+				pool_id.clone(),
+			)?;
 
-				unclaimable_rewards = unclaimable;
-
-				if claimed.gt(&Balance::zero()) {
-					Self::deposit_event(Event::RewardsClaimed {
-						who: owner.clone(),
+			if let Some((reward_currency, claimed, _)) = claim_data {
+				if !claimed.is_zero() {
+					Self::deposit_event(Event::RewardClaimed {
 						global_farm_id,
 						yield_farm_id,
-						deposit_id,
-						reward_currency,
+						who: owner.clone(),
 						claimed,
+						reward_currency,
+						deposit_id,
 					});
 				}
 			}
 
-			let (global_farm_id, withdrawn_amount, deposit_destroyed) =
-				T::LiquidityMiningHandler::withdraw_lp_shares(deposit_id, yield_farm_id, unclaimable_rewards)?;
-
-			Self::deposit_event(Event::SharesWithdrawn {
-				who: owner.clone(),
-				global_farm_id,
-				yield_farm_id,
-				lp_token,
-				amount: withdrawn_amount,
-			});
+			if !withdrawn_amount.is_zero() {
+				Self::deposit_event(Event::SharesWithdrawn {
+					global_farm_id,
+					yield_farm_id,
+					deposit_id,
+					who: owner.clone(),
+					lp_token,
+					amount: withdrawn_amount,
+				});
+			}
 
 			if deposit_destroyed {
 				//Unlock LP tokens
@@ -636,9 +640,9 @@ impl<T: Config> Pallet<T> {
 	) -> Result<Balance, DispatchError> {
 		todo!()
 	}
-    
-    //TODO: create generic function, this is coppied from xyk-lm-pallet
-    fn ensure_nft_owner(origin: OriginFor<T>, deposit_id: DepositId) -> Result<T::AccountId, DispatchError> {
+
+	//TODO: create generic function, this is coppied from xyk-lm-pallet
+	fn ensure_nft_owner(origin: OriginFor<T>, deposit_id: DepositId) -> Result<T::AccountId, DispatchError> {
 		let who = ensure_signed(origin)?;
 
 		let nft_owner =

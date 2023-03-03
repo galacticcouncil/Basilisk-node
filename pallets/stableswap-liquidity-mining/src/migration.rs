@@ -19,10 +19,10 @@ use super::*;
 pub fn init_nft_collection<T: Config>() -> frame_support::weights::Weight {
 	//let version = StorageVersion::get::<Pallet<T>>();
 
-    todo!()
+	todo!()
 }
 
-/* 
+/*
 TODO: fix this tests
 #[cfg(test)]
 mod tests {

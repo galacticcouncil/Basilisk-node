@@ -20,12 +20,12 @@ use crate::*;
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;
 use hydradx_traits_stableswap::Registry;
-use pallet_stableswap::types::AssetLiquidity;
-use pallet_stableswap as stableswap;
-use sp_arithmetic::Permill;
-use sp_runtime::traits::One;
 use orml_traits::MultiCurrency;
 use orml_traits::MultiCurrencyExtended;
+use pallet_stableswap as stableswap;
+use pallet_stableswap::types::AssetLiquidity;
+use sp_arithmetic::Permill;
+use sp_runtime::traits::One;
 
 const ONE: Balance = 1_000_000_000_000;
 const BSX: AssetId = 1;
@@ -56,7 +56,7 @@ fn initialize_global_farm<T: Config>(owner: T::AccountId) -> DispatchResult {
 	)
 }
 
-fn initialize_stableswap_pool_with_liquidity<T: Config>(owner: T::AccountId,seller: T::AccountId) -> AssetId {
+fn initialize_stableswap_pool_with_liquidity<T: Config>(owner: T::AccountId, seller: T::AccountId) -> AssetId {
 	let token_a = T::AssetRegistry::create_asset(&b"one".to_vec(), 1u128).unwrap();
 	let token_b = T::AssetRegistry::create_asset(&b"two".to_vec(), 1u128).unwrap();
 
@@ -75,7 +75,8 @@ fn initialize_stableswap_pool_with_liquidity<T: Config>(owner: T::AccountId,sell
 		amplification,
 		trade_fee,
 		withdraw_fee,
-	).unwrap();
+	)
+	.unwrap();
 
 	// Pool id will be next asset id in registry storage.
 	let next_asset_id: u32 = Into::<u32>::into(token_b) + 1u32;
@@ -95,14 +96,15 @@ fn initialize_stableswap_pool_with_liquidity<T: Config>(owner: T::AccountId,sell
 				amount: initial_liquidity,
 			},
 		],
-	).unwrap();
+	)
+	.unwrap();
 
 	T::MultiCurrency::update_balance(token_a, &seller, 100_000_000_000_000i128).unwrap();
 
 	let amount_sell = 100_000_000_000_000u128;
 	let buy_min_amount = 1_000u128;
 
-    pool_id
+	pool_id
 }
 
 benchmarks! {
@@ -174,7 +176,7 @@ benchmarks! {
 		}.into());
 	}
 
-    create_yield_farm {
+	create_yield_farm {
 		let owner: T::AccountId = account("caller", 0, 1);
 		let global_farm_id = 3;
 		let new_yield_farm_id = 4;
@@ -184,7 +186,7 @@ benchmarks! {
 
 		initialize_global_farm::<T>(owner.clone())?;
 
-        let pool_id = 1;
+		let pool_id = 1;
 
 	}: _(RawOrigin::Signed(owner.clone()), global_farm_id, pool_id, multiplier, Some(loyalty_curve))
 }

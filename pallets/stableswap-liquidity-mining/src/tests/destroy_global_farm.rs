@@ -71,7 +71,7 @@ fn destroy_global_farm_should_work() {
 		)
 		.build()
 		.execute_with(|| {
-			assert_ok!(StableswapMining::destroy_global_farm(
+			assert_ok!(StableswapMining::terminate_global_farm(
 				Origin::signed(owner),
 				global_farm_id
 			));
