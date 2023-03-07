@@ -624,13 +624,16 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		Ok(())
 	}
 
-	fn deposit_lp_shares(
+	fn deposit_lp_shares<F>(
 		global_farm_id: u32,
 		yield_farm_id: u32,
 		amm_pool_id: Self::AmmPoolId,
 		shares_amount: Self::Balance,
-		get_token_value_of_lp_shares: fn(AssetId, Self::AmmPoolId, Balance) -> Result<Self::Balance, Self::Error>,
-	) -> Result<u128, Self::Error> {
+		get_token_value_of_lp_shares: F,
+	) -> Result<u128, Self::Error>
+	where
+		F: Fn(AssetId, Self::AmmPoolId, Self::Balance) -> Result<Self::Balance, Self::Error>,
+	{
 		let deposit_id = get_next_deposit_id();
 
 		let incentivized_asset = GLOBAL_FARMS.with(|v| v.borrow().get(&global_farm_id).unwrap().incentivized_asset);
@@ -663,12 +666,15 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		Ok(deposit_id)
 	}
 
-	fn redeposit_lp_shares(
+	fn redeposit_lp_shares<F>(
 		global_farm_id: u32,
 		yield_farm_id: u32,
 		deposit_id: u128,
-		get_token_value_of_lp_shares: fn(AssetId, Self::AmmPoolId, Balance) -> Result<Self::Balance, Self::Error>,
-	) -> Result<(Self::Balance, Self::AmmPoolId), Self::Error> {
+		get_token_value_of_lp_shares: F,
+	) -> Result<(Self::Balance, Self::AmmPoolId), Self::Error>
+	where
+		F: Fn(AssetId, Self::AmmPoolId, Self::Balance) -> Result<Self::Balance, Self::Error>,
+	{
 		let deposit = DEPOSITS.with(|v| {
 			let mut p = v.borrow_mut();
 			let mut deposit = p.get_mut(&deposit_id).unwrap();
