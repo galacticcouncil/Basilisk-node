@@ -31,6 +31,7 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use core::ops::RangeInclusive;
 use frame_system::{EnsureRoot, RawOrigin};
 use hydradx_adapters::inspect::MultiInspectAdapter;
 use sp_api::impl_runtime_apis;
@@ -65,7 +66,7 @@ use frame_support::{
 		WeightToFeePolynomial,
 	},
 };
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AccountIdFor, AssetPairAccountIdFor};
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
@@ -229,6 +230,40 @@ where
 			buf.extend_from_slice(&asset_a.to_le_bytes());
 		}
 		T::AccountId::unchecked_from(<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(&buf[..]))
+	}
+}
+
+pub struct StableswapAccountId<T: frame_system::Config>(PhantomData<T>);
+impl<T: frame_system::Config> AccountIdFor<Vec<AssetId>> for StableswapAccountId<T>
+where
+	T::AccountId: UncheckedFrom<T::Hash> + AsRef<[u8]>,
+{
+	type AccountId = T::AccountId;
+
+	fn from_assets(assets: &Vec<AssetId>, identifier: Option<&[u8]>) -> Self::AccountId {
+		T::AccountId::unchecked_from(<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(
+			&Self::name(assets, identifier),
+		))
+	}
+
+	fn name(assets: &Vec<AssetId>, identifier: Option<&[u8]>) -> Vec<u8> {
+		let mut buf: Vec<u8> = Vec::new();
+
+		buf.extend_from_slice(identifier.unwrap_or_default());
+
+		let mut sorted_assets = assets.clone();
+		sorted_assets.sort();
+
+		sorted_assets
+			.into_iter()
+			.for_each(|a| buf.extend_from_slice(&a.to_le_bytes()));
+
+		let mut b: Vec<u8> = Vec::new();
+		<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(&buf[..])
+			.as_ref()
+			.clone_into(&mut b);
+
+		b
 	}
 }
 
@@ -932,6 +967,23 @@ impl pallet_route_executor::Config for Runtime {
 	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const AmplificationRange: RangeInclusive<u16> = RangeInclusive::new(2, 10_000);
+}
+
+impl pallet_stableswap::Config for Runtime {
+	type Event = Event;
+	type AssetId = AssetId;
+	type Currency = Currencies;
+	type ShareAccountId = StableswapAccountId<Self>;
+	type AssetRegistry = AssetRegistry;
+	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot; //TODO:
+	type MinPoolLiquidity = MinPoolLiquidity; //TODO:
+	type MinTradingLimit = MinTradingLimit; //TODO:
+	type AmplificationRange = AmplificationRange; //TODO:
+	type WeightInfo = (); //TODO:
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -993,6 +1045,8 @@ construct_runtime!(
 
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
+
+		Stableswap: pallet_stableswap = 114,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: pallet_currencies = 150,

@@ -548,6 +548,7 @@ dependencies = [
  "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
+ "pallet-stableswap",
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-multi-payment",
@@ -6380,6 +6381,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-stableswap"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=b67141958f31fc3af0894a22b5534a26e67f6334#b67141958f31fc3af0894a22b5534a26e67f6334"
+dependencies = [
+ "bitflags",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math",
+ "hydradx-traits",
+ "orml-traits",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-staking"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.29#cc370aa61e15c18d23a2f686b812fd576a630afe"
@@ -11778,6 +11799,7 @@ dependencies = [
  "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
+ "pallet-stableswap",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-tips",

@@ -50,6 +50,7 @@ pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse
 pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false }
 warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev = "b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false }
 pallet-ema-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false }
+pallet-stableswap = { git = "https://github.com/galacticcouncil/warehouse", rev = "b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.29", default-features = false }
@@ -153,6 +154,7 @@ runtime-benchmarks = [
     "pallet-transaction-pause/runtime-benchmarks",
     "pallet-ema-oracle/runtime-benchmarks",
     "pallet-xyk-liquidity-mining-benchmarking",
+    "pallet-stableswap/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -228,4 +230,5 @@ std = [
     "pallet-transaction-pause/std",
     "pallet-ema-oracle/std",
     "pallet-xyk-liquidity-mining/std",
+    "pallet-stableswap/std",
 ]
