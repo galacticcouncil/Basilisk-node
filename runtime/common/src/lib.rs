@@ -22,10 +22,12 @@ pub mod locked_balance;
 pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
+use core::ops::RangeInclusive;
 use frame_support::{
 	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_PER_MICROS, weights::Pays, PalletId,
 	RuntimeDebug,
 };
+use hydradx_traits::AccountIdFor;
 pub use pallet_transaction_payment::Multiplier;
 use polkadot_xcm::prelude::Here;
 use polkadot_xcm::v1::MultiLocation;
@@ -33,10 +35,13 @@ pub use primitives::constants::{chain::*, currency::*, time::*};
 pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_runtime::{
+	app_crypto::sp_core::crypto::UncheckedFrom,
 	generic,
 	traits::{BlakeTwo256, IdentifyAccount, Verify},
 	FixedPointNumber, MultiSignature, Perbill, Percent, Permill, Perquintill,
 };
+use sp_std::marker::PhantomData;
+use sp_std::prelude::*;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -73,6 +78,40 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+
+pub struct AssetsAccountId<T: frame_system::Config>(PhantomData<T>);
+impl<T: frame_system::Config> AccountIdFor<Vec<AssetId>> for AssetsAccountId<T>
+where
+	T::AccountId: UncheckedFrom<T::Hash> + AsRef<[u8]>,
+{
+	type AccountId = T::AccountId;
+
+	fn from_assets(assets: &Vec<AssetId>, identifier: Option<&[u8]>) -> Self::AccountId {
+		T::AccountId::unchecked_from(<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(
+			&Self::name(assets, identifier),
+		))
+	}
+
+	fn name(assets: &Vec<AssetId>, identifier: Option<&[u8]>) -> Vec<u8> {
+		let mut buf: Vec<u8> = Vec::new();
+
+		buf.extend_from_slice(identifier.unwrap_or_default());
+
+		let mut sorted_assets = assets.clone();
+		sorted_assets.sort();
+
+		sorted_assets
+			.into_iter()
+			.for_each(|a| buf.extend_from_slice(&a.to_le_bytes()));
+
+		let mut b: Vec<u8> = Vec::new();
+		<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(&buf[..])
+			.as_ref()
+			.clone_into(&mut b);
+
+		b
+	}
+}
 
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct AssetLocation(pub MultiLocation);
@@ -304,4 +343,12 @@ parameter_types! {
 	pub DepositBase: Balance = deposit(1, 88);
 	pub DepositFactor: Balance = deposit(0, 32);
 	pub const MaxSignatories: u16 = 100;
+}
+
+// pallet stableswap
+parameter_types! {
+	//TODO: validate theese params
+	pub const AmplificationRange: RangeInclusive<u16> = RangeInclusive::new(2, 10_000);
+	pub const StableswapMinPoolLiquidity: Balance =  MIN_POOL_LIQUIDITY; //TODO: same as xyk
+	pub const StableswapMinTradingLimit: Balance =  MIN_TRADING_LIMIT; //TODO: same as xyk
 }

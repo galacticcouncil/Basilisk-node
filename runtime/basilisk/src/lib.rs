@@ -66,7 +66,7 @@ use frame_support::{
 		WeightToFeePolynomial,
 	},
 };
-use hydradx_traits::{AccountIdFor, AssetPairAccountIdFor};
+use hydradx_traits::AssetPairAccountIdFor;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
@@ -230,40 +230,6 @@ where
 			buf.extend_from_slice(&asset_a.to_le_bytes());
 		}
 		T::AccountId::unchecked_from(<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(&buf[..]))
-	}
-}
-
-pub struct StableswapAccountId<T: frame_system::Config>(PhantomData<T>);
-impl<T: frame_system::Config> AccountIdFor<Vec<AssetId>> for StableswapAccountId<T>
-where
-	T::AccountId: UncheckedFrom<T::Hash> + AsRef<[u8]>,
-{
-	type AccountId = T::AccountId;
-
-	fn from_assets(assets: &Vec<AssetId>, identifier: Option<&[u8]>) -> Self::AccountId {
-		T::AccountId::unchecked_from(<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(
-			&Self::name(assets, identifier),
-		))
-	}
-
-	fn name(assets: &Vec<AssetId>, identifier: Option<&[u8]>) -> Vec<u8> {
-		let mut buf: Vec<u8> = Vec::new();
-
-		buf.extend_from_slice(identifier.unwrap_or_default());
-
-		let mut sorted_assets = assets.clone();
-		sorted_assets.sort();
-
-		sorted_assets
-			.into_iter()
-			.for_each(|a| buf.extend_from_slice(&a.to_le_bytes()));
-
-		let mut b: Vec<u8> = Vec::new();
-		<T::Hashing as frame_support::sp_runtime::traits::Hash>::hash(&buf[..])
-			.as_ref()
-			.clone_into(&mut b);
-
-		b
 	}
 }
 
@@ -963,7 +929,7 @@ impl pallet_route_executor::Config for Runtime {
 	type Balance = Balance;
 	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
-	type AMM = (XYK, LBP);
+	type AMM = (XYK, LBP, Stableswap);
 	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
 }
 
@@ -975,12 +941,12 @@ impl pallet_stableswap::Config for Runtime {
 	type Event = Event;
 	type AssetId = AssetId;
 	type Currency = Currencies;
-	type ShareAccountId = StableswapAccountId<Self>;
+	type ShareAccountId = AssetsAccountId<Self>;
 	type AssetRegistry = AssetRegistry;
-	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot; //TODO:
-	type MinPoolLiquidity = MinPoolLiquidity; //TODO:
-	type MinTradingLimit = MinTradingLimit; //TODO:
-	type AmplificationRange = AmplificationRange; //TODO:
+	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot;
+	type MinPoolLiquidity = StableswapMinPoolLiquidity;
+	type MinTradingLimit = StableswapMinTradingLimit;
+	type AmplificationRange = AmplificationRange;
 	type WeightInfo = (); //TODO:
 }
 

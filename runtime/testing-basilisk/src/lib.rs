@@ -893,8 +893,21 @@ impl pallet_route_executor::Config for Runtime {
 	type Balance = Balance;
 	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
-	type AMM = (XYK, LBP);
+	type AMM = (XYK, LBP, Stableswap);
 	type WeightInfo = common_runtime::weights::route_executor::BasiliskWeight<Runtime>;
+}
+
+impl pallet_stableswap::Config for Runtime {
+	type Event = Event;
+	type AssetId = AssetId;
+	type Currency = Currencies;
+	type ShareAccountId = AssetsAccountId<Self>;
+	type AssetRegistry = AssetRegistry;
+	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot;
+	type MinPoolLiquidity = StableswapMinPoolLiquidity;
+	type MinTradingLimit = StableswapMinTradingLimit;
+	type AmplificationRange = AmplificationRange;
+	type WeightInfo = (); //TODO:
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -958,6 +971,8 @@ construct_runtime!(
 
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
+
+		Stableswap: pallet_stableswap = 114,
 
 		// ORML related modules - starts at 150
 		Currencies: pallet_currencies = 150,
