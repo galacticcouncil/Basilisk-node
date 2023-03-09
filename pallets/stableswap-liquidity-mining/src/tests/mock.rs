@@ -17,18 +17,18 @@
 
 #![cfg(test)]
 use super::*;
-pub use hydradx_traits_stableswap::{Registry, ShareTokenRegistry};
+pub use hydradx_traits::{AccountIdFor, Registry, ShareTokenRegistry};
 
 pub(crate) use crate as stableswap_mining;
 use crate::Config;
 pub(crate) use frame_support::{
 	assert_ok, parameter_types,
 	sp_runtime::traits::{One, Zero},
-	traits::{Everything, GenesisBuild},
+	traits::{Everything, GenesisBuild, Nothing},
 	PalletId,
 };
 use frame_system as system;
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::EnsureRoot;
 use orml_traits::parameter_type_with_key;
 pub use sp_arithmetic::{FixedU128, Perquintill};
 use sp_core::H256;
@@ -38,10 +38,7 @@ use sp_runtime::{
 	DispatchError, DispatchResult,
 };
 
-pub use pallet_stableswap::{
-	traits::ShareAccountIdFor,
-	types::{AssetLiquidity, PoolInfo},
-};
+pub use pallet_stableswap::types::{AssetLiquidity, PoolInfo};
 
 use core::ops::RangeInclusive;
 use std::cell::RefCell;
@@ -129,7 +126,7 @@ impl system::Config for Test {
 
 parameter_types! {
 	pub const StableMiningPalletId: PalletId = PalletId(*b"STSP##LM");
-	pub const NFTClass: primitives::ClassId = LIQ_MINING_NFT_CLASS;
+	pub const NFTCollection: primitives::CollectionId= LIQ_MINING_NFT_CLASS;
 }
 
 impl Config for Test {
@@ -138,7 +135,7 @@ impl Config for Test {
 	type CreateOrigin = EnsureRoot<AccountId>;
 	type PalletId = StableMiningPalletId;
 	type BlockNumberProvider = MockBlockNumberProvider;
-	type NFTClassId = NFTClass;
+	type NftCollectionId = NFTCollection;
 	type NFTHandler = DummyNFT;
 	type LiquidityMiningHandler = DummyLiquidityMining;
 	type WeightInfo = ();
@@ -167,9 +164,11 @@ impl orml_tokens::Config for Test {
 	type ExistentialDeposits = ExistentialDeposits;
 	type OnDust = ();
 	type MaxLocks = ();
-	type DustRemovalWhitelist = Everything;
-	type OnKilledTokenAccount = ();
+	type DustRemovalWhitelist = Nothing;
 	type OnNewTokenAccount = ();
+	type OnKilledTokenAccount = ();
+	type MaxReserves = ConstU32<100_000>;
+	type ReserveIdentifier = ();
 }
 
 parameter_types! {
@@ -185,8 +184,6 @@ impl pallet_stableswap::Config for Test {
 	type Currency = Tokens;
 	type ShareAccountId = AccountIdConstructor;
 	type AssetRegistry = DummyRegistry<Test>;
-	type CreatePoolOrigin = EnsureSigned<AccountId>;
-	type Precision = Precision;
 	type MinPoolLiquidity = MinimumLiquidity;
 	type AmplificationRange = AmplificationRange;
 	type MinTradingLimit = MinimumTradingLimit;
@@ -194,7 +191,9 @@ impl pallet_stableswap::Config for Test {
 }
 
 thread_local! {
-	pub static NFTS: RefCell<HashMap<warehouse_liquidity_mining::DepositId, AccountId>> = RefCell::new(HashMap::default());
+	pub static NFT_COLLECTION: RefCell<(u128, u128, u128)>= RefCell::new((0,0,0));
+
+	pub static NFTS: RefCell<HashMap<pallet_liquidity_mining::DepositId, AccountId>> = RefCell::new(HashMap::default());
 	pub static REGISTERED_ASSETS: RefCell<HashMap<AssetId, u32>> = RefCell::new(HashMap::default());
 	pub static ASSET_IDENTS: RefCell<HashMap<Vec<u8>, u32>> = RefCell::new(HashMap::default());
 	pub static POOL_IDS: RefCell<Vec<AssetId>> = RefCell::new(Vec::new());
@@ -298,7 +297,7 @@ where
 }
 pub struct AccountIdConstructor;
 
-impl ShareAccountIdFor<Vec<u32>> for AccountIdConstructor {
+impl AccountIdFor<Vec<u32>> for AccountIdConstructor {
 	type AccountId = AccountId;
 
 	fn from_assets(assets: &Vec<u32>, _identifier: Option<&[u8]>) -> Self::AccountId {
@@ -320,18 +319,18 @@ impl ShareAccountIdFor<Vec<u32>> for AccountIdConstructor {
 	}
 }
 
-use frame_support::traits::tokens::nonfungibles::{Create, Inspect, Mutate};
+use frame_support::traits::tokens::nonfungibles::{Inspect, Mutate};
 pub struct DummyNFT;
 
 impl<AccountId: From<u128>> Inspect<AccountId> for DummyNFT {
-	type InstanceId = warehouse_liquidity_mining::DepositId;
-	type ClassId = primitives::ClassId;
+	type ItemId = pallet_liquidity_mining::DepositId;
+	type CollectionId = primitives::CollectionId;
 
-	fn owner(_class: &Self::ClassId, instance: &Self::InstanceId) -> Option<AccountId> {
+	fn owner(_collection: &Self::CollectionId, item: &Self::ItemId) -> Option<AccountId> {
 		let mut owner: Option<AccountId> = None;
 
 		NFTS.with(|v| {
-			if let Some(o) = v.borrow().get(instance) {
+			if let Some(o) = v.borrow().get(item) {
 				owner = Some((*o).into());
 			}
 		});
@@ -339,27 +338,52 @@ impl<AccountId: From<u128>> Inspect<AccountId> for DummyNFT {
 	}
 }
 
-impl<AccountId: From<u128>> Create<AccountId> for DummyNFT {
-	fn create_class(_class: &Self::ClassId, _who: &AccountId, _admin: &AccountId) -> DispatchResult {
+impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for DummyNFT {
+	fn mint_into(_collection: &Self::CollectionId, item: &Self::ItemId, _who: &AccountId) -> DispatchResult {
+		NFTS.with(|v| {
+			let mut m = v.borrow_mut();
+			m.insert(*item, (*_who).into());
+		});
+		Ok(())
+	}
+
+	fn burn(
+		_collection: &Self::CollectionId,
+		item: &Self::ItemId,
+		_maybe_check_ower: Option<&AccountId>,
+	) -> DispatchResult {
+		NFTS.with(|v| {
+			let mut m = v.borrow_mut();
+			m.remove(item);
+		});
 		Ok(())
 	}
 }
 
-impl<AccountId: From<u128> + Into<u128> + Copy> Mutate<AccountId> for DummyNFT {
-	fn mint_into(_class: &Self::ClassId, _instance: &Self::InstanceId, _who: &AccountId) -> DispatchResult {
-		NFTS.with(|v| {
-			let mut m = v.borrow_mut();
-			m.insert(*_instance, (*_who).into());
+impl
+	CreateTypedCollection<
+		AccountId,
+		primitives::CollectionId,
+		CollectionType,
+		BoundedVec<u8, primitives::UniquesStringLimit>,
+	> for DummyNFT
+{
+	fn create_typed_collection(
+		owner: AccountId,
+		collection_id: primitives::CollectionId,
+		_collection_type: CollectionType,
+		_metadata: Option<BoundedVec<u8, primitives::UniquesStringLimit>>,
+	) -> DispatchResult {
+		NFT_COLLECTION.with(|v| {
+			v.replace((collection_id, owner, owner));
 		});
 		Ok(())
 	}
+}
 
-	fn burn_from(_class: &Self::ClassId, instance: &Self::InstanceId) -> DispatchResult {
-		NFTS.with(|v| {
-			let mut m = v.borrow_mut();
-			m.remove(instance);
-		});
-		Ok(())
+impl ReserveCollectionId<primitives::CollectionId> for DummyNFT {
+	fn is_id_reserved(_id: primitives::CollectionId) -> bool {
+		true
 	}
 }
 
@@ -426,7 +450,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		})
 	}
 
-	fn destroy_global_farm(
+	fn terminate_global_farm(
 		who: AccountId,
 		global_farm_id: u32,
 	) -> Result<(AssetId, Self::Balance, AccountId), Self::Error> {
@@ -515,7 +539,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		})
 	}
 
-	fn destroy_yield_farm(
+	fn terminate_yield_farm(
 		_who: AccountId,
 		_global_farm_id: u32,
 		yield_farm_id: u32,

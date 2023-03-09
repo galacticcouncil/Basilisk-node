@@ -848,7 +848,7 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type MultiCurrency = Currencies;
 	type CreateOrigin = UnanimousTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
-	type NftCollectionId = LiquidityMiningNftCollectionId;
+	type NFTCollectionId = LiquidityMiningNftCollectionId;
 	type AMM = XYK;
 	type WeightInfo = weights::xyk_liquidity_mining::BasiliskWeight<Runtime>;
 	type NFTHandler = NFT;

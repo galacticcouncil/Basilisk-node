@@ -75,7 +75,7 @@ fn claim_rewards_should_work() {
 				yield_farm_id
 			));
 
-			assert_last_event!(crate::Event::RewardsClaimed {
+			assert_last_event!(crate::Event::RewardClaimed {
 				who,
 				global_farm_id,
 				yield_farm_id,
@@ -149,7 +149,7 @@ fn claim_rewards_should_fail_when_second_claim_in_same_period_from_same_farm() {
 				yield_farm_id
 			));
 
-			assert_last_event!(crate::Event::RewardsClaimed {
+			assert_last_event!(crate::Event::RewardClaimed {
 				who,
 				global_farm_id,
 				yield_farm_id,

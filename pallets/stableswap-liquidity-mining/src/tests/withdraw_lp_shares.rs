@@ -103,7 +103,7 @@ fn withdraw_lp_shares_should_work() {
 
 			pretty_assertions::assert_eq!(
 				has_event(
-					crate::Event::<Test>::RewardsClaimed {
+					crate::Event::<Test>::RewardClaimed {
 						who: owner,
 						global_farm_id: GC_FARM,
 						yield_farm_id,
@@ -142,7 +142,7 @@ fn withdraw_lp_shares_should_work() {
 
 			pretty_assertions::assert_eq!(
 				has_event(
-					crate::Event::<Test>::RewardsClaimed {
+					crate::Event::<Test>::RewardClaimed {
 						who: owner,
 						global_farm_id: BOB_FARM,
 						yield_farm_id,
@@ -252,7 +252,7 @@ fn withdraw_lp_shares_should_work_when_reward_claim_is_zero() {
 
 			pretty_assertions::assert_eq!(
 				has_event(
-					crate::Event::<Test>::RewardsClaimed {
+					crate::Event::<Test>::RewardClaimed {
 						who: owner,
 						global_farm_id,
 						yield_farm_id,
