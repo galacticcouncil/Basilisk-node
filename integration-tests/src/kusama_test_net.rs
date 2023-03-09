@@ -7,6 +7,7 @@ pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
 pub const CHARLIE: [u8; 32] = [6u8; 32];
 pub const DAVE: [u8; 32] = [7u8; 32];
+pub const STABLESWAP_LP: [u8; 32] = [8u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
@@ -18,6 +19,8 @@ pub const AUSD: AssetId = 1;
 pub const MOVR: AssetId = 2;
 pub const KSM: AssetId = 3;
 pub const NEW_BOOTSTRAPPED_TOKEN: AssetId = 4;
+pub const DAI: AssetId = 5;
+pub const DOT: AssetId = 6;
 
 pub const ALICE_INITIAL_BSX_BALANCE: u128 = 200 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
@@ -37,6 +40,7 @@ pub const ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 400 * UNITS;
 pub const ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
 pub const ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
 pub const BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 1000 * UNITS;
+pub const STABLESWAP_LP_INITIAL_BALANCE: u128 = 1_000_000 * UNITS;
 
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
@@ -179,6 +183,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			(AccountId::from(CHARLIE), CHARLIE_INITIAL_BSX_BALANCE),
 			(AccountId::from(DAVE), DAVE_INITIAL_BSX_BALANCE),
 			(vesting_account(), VESTING_ACCOUNT_INITIAL_BSX_BALANCE),
+			(AccountId::from(STABLESWAP_LP), STABLESWAP_LP_INITIAL_BALANCE),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -190,6 +195,9 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			(b"aUSD".to_vec(), 1_000u128, Some(2)),
 			(b"MOVR".to_vec(), 1_000u128, Some(3)),
 			(b"NEW_BOOTSRAPPED_TOKEN".to_vec(), 1_000u128, Some(4)),
+			(b"DAI".to_vec(), 1_000u128, Some(5)),
+			(b"DOT".to_vec(), 1_000u128, Some(6)),
+			(b"USDT".to_vec(), 1_000u128, Some(7)),
 		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
@@ -222,6 +230,17 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			),
 			(AccountId::from(CHARLIE), AUSD, CHARLIE_INITIAL_AUSD_BALANCE),
 			(AccountId::from(DAVE), AUSD, DAVE_INITIAL_AUSD_BALANCE),
+			//stableswpa LP
+			(
+				AccountId::from(STABLESWAP_LP),
+				NEW_BOOTSTRAPPED_TOKEN,
+				STABLESWAP_LP_INITIAL_BALANCE,
+			),
+			(AccountId::from(STABLESWAP_LP), MOVR, STABLESWAP_LP_INITIAL_BALANCE),
+			(AccountId::from(STABLESWAP_LP), KSM, STABLESWAP_LP_INITIAL_BALANCE),
+			(AccountId::from(STABLESWAP_LP), DOT, STABLESWAP_LP_INITIAL_BALANCE),
+			(AccountId::from(STABLESWAP_LP), DAI, STABLESWAP_LP_INITIAL_BALANCE),
+			(AccountId::from(STABLESWAP_LP), AUSD, STABLESWAP_LP_INITIAL_BALANCE),
 		],
 	}
 	.assimilate_storage(&mut t)
