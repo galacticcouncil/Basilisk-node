@@ -1205,7 +1205,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.7"
+version = "2.4.0"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
