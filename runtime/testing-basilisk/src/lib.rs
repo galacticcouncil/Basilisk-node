@@ -912,7 +912,7 @@ parameter_types! {
 
 impl pallet_ema_oracle::Config for Runtime {
 	type Event = Event;
-	type WeightInfo = ();
+	type WeightInfo = weights::ema_oracle::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
 	type MaxUniqueEntries = MaxUniqueOracleEntries;

@@ -4,6 +4,7 @@ pub mod collator_selection;
 pub mod currencies;
 pub mod democracy;
 pub mod duster;
+pub mod ema_oracle;
 pub mod lbp;
 pub mod marketplace;
 pub mod nft;
