@@ -351,7 +351,7 @@ pub fn run() -> sc_cli::Result<()> {
 				Ok((
 					cmd.run::<Block, ExtendedHostFunctions<
 						sp_io::SubstrateHostFunctions,
-						<service::HydraDXExecutorDispatch as NativeExecutionDispatch>::ExtendHostFunctions,
+						<service::BasiliskExecutorDispatch as NativeExecutionDispatch>::ExtendHostFunctions,
 					>>(),
 					task_manager,
 				))

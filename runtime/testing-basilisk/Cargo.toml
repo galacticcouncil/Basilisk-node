@@ -127,7 +127,7 @@ default = ["std"]
 runtime-benchmarks = [
     "frame-benchmarking",
     "frame-support/runtime-benchmarks",
-    "frame-system-benchmarking",
+    "frame-system-benchmarking/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
     "pallet-collective/runtime-benchmarks",
@@ -152,7 +152,7 @@ runtime-benchmarks = [
     "pallet-uniques/runtime-benchmarks",
     "pallet-transaction-pause/runtime-benchmarks",
     "pallet-ema-oracle/runtime-benchmarks",
-    "pallet-xyk-liquidity-mining-benchmarking",
+    "pallet-xyk-liquidity-mining-benchmarking/runtime-benchmarks",
 ]
 std = [
     "codec/std",

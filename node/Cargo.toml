@@ -74,6 +74,7 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", 
 sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sp-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 pallet-grandpa = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }

@@ -12,8 +12,8 @@ use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 pub struct OnRuntimeUpgradeMigration;
 impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		Ok(())
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		Ok(vec![])
 	}
 
 	fn on_runtime_upgrade() -> Weight {
@@ -21,7 +21,7 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
+	fn post_upgrade(_state: Vec<u8>) -> Result<(), &'static str> {
 		Ok(())
 	}
 }
