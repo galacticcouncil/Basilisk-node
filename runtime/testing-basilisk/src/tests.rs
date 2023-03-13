@@ -4,7 +4,8 @@ use crate::*;
 use codec::Encode;
 use frame_support::{
 	dispatch::{DispatchClass, GetDispatchInfo},
-	weights::WeightToFee};
+	weights::WeightToFee,
+};
 use sp_runtime::traits::Convert;
 use sp_runtime::FixedPointNumber;
 

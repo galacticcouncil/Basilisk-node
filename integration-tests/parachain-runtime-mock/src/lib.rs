@@ -1,8 +1,9 @@
 pub use basilisk_runtime::{AccountId, VestingPalletId};
 use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Everything, Nothing},
+	construct_runtime,
 	dispatch::Pays,
+	parameter_types,
+	traits::{Everything, Nothing},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	PalletId,
 };

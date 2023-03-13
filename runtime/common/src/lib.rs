@@ -23,8 +23,7 @@ pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
-	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId,
-	dispatch::Pays,
+	dispatch::Pays, parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId,
 	RuntimeDebug,
 };
 pub use pallet_transaction_payment::Multiplier;
@@ -35,7 +34,7 @@ pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	generic,
-	traits::{BlakeTwo256, IdentifyAccount, Bounded, Verify},
+	traits::{BlakeTwo256, Bounded, IdentifyAccount, Verify},
 	FixedPointNumber, MultiSignature, Perbill, Percent, Permill, Perquintill,
 };
 
