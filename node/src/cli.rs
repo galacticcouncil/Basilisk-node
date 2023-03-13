@@ -1,5 +1,5 @@
 use crate::chain_spec;
-use clap::Parser;
+use clap::{builder::PossibleValue, Parser};
 use std::error::Error;
 use std::fmt;
 use std::path::PathBuf;
@@ -34,10 +34,10 @@ impl clap::ValueEnum for RuntimeInstance {
 		&[Self::Basilisk, Self::Testing]
 	}
 
-	fn to_possible_value<'a>(&self) -> Option<clap::PossibleValue<'a>> {
+	fn to_possible_value(&self) -> Option<PossibleValue> {
 		match self {
-			Self::Basilisk => Some(clap::PossibleValue::new("basilisk")),
-			Self::Testing => Some(clap::PossibleValue::new("testing")),
+			Self::Basilisk => Some(PossibleValue::new("basilisk")),
+			Self::Testing => Some(PossibleValue::new("testing")),
 		}
 	}
 }

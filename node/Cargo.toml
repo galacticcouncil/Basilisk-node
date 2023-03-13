@@ -1,6 +1,6 @@
 [package]
 name = "basilisk"
-version = "8.1.6"
+version = "9.0.0"
 description = "Basilisk node"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -21,12 +21,12 @@ hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/HydraD
 [dependencies]
 codec = { package = "parity-scale-codec", version = "3.1.5" }
 hex-literal = "0.3.4"
-jsonrpsee = { version = "0.15.1", features = ["server", "macros"] }
+jsonrpsee = { version = "0.16.2", features = ["server", "macros"] }
 log = "0.4.17"
 serde = { version = "1.0.136", features = ["derive"] }
-serde_json = "1.0.82"
-clap = { version = "3.2.11", features = [ "derive" ] }
-futures = "0.3.15"
+serde_json = "1.0.85"
+clap = { version = "4.1.8", features = [ "derive" ] }
+futures = "0.3.21"
 
 # local dependencies
 common-runtime = { path = "../runtime/common" }
@@ -94,7 +94,6 @@ cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branc
 cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 cumulus-relay-chain-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 cumulus-relay-chain-inprocess-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
-cumulus-relay-chain-rpc-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 cumulus-relay-chain-minimal-node = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 
 # Polkadot dependencies
@@ -112,12 +111,13 @@ runtime-benchmarks = [
   "testing-basilisk-runtime/runtime-benchmarks",
   "frame-benchmarking-cli",
   "polkadot-service/runtime-benchmarks",
+  "polkadot-cli/runtime-benchmarks",
 ]
 cli = [
     'try-runtime-cli',
 ]
 try-runtime = [
     "basilisk-runtime/try-runtime",
-    "try-runtime-cli",
+    "try-runtime-cli/try-runtime",
 ]
 
