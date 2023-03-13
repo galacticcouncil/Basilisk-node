@@ -75,7 +75,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// Registry support
 		type AssetRegistry: ShareTokenRegistry<AssetId, Vec<u8>, Balance, DispatchError>;
@@ -295,6 +295,7 @@ pub mod pallet {
 		/// Shares are issued with specified initial price and represents proportion of asset in the pool.
 		///
 		/// Emits `PoolCreated` event when successful.
+		#[pallet::call_index(0)]
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		pub fn create_pool(
 			origin: OriginFor<T>,
@@ -377,6 +378,7 @@ pub mod pallet {
 		/// Shares are issued with current price.
 		///
 		/// Emits `LiquidityAdded` event when successful.
+		#[pallet::call_index(1)]
 		#[pallet::weight(
 			<T as Config>::WeightInfo::add_liquidity()
 				.saturating_add(T::AMMHandler::on_liquidity_changed_weight())
@@ -477,6 +479,7 @@ pub mod pallet {
 		///
 		/// Emits 'LiquidityRemoved' when successful.
 		/// Emits 'PoolDestroyed' when pool is destroyed.
+		#[pallet::call_index(2)]
 		#[pallet::weight(
 			<T as Config>::WeightInfo::remove_liquidity()
 				.saturating_add(T::AMMHandler::on_liquidity_changed_weight())
@@ -606,6 +609,7 @@ pub mod pallet {
 		/// `max_limit` - minimum amount of `asset_out` / amount of asset_out to be obtained from the pool in exchange for `asset_in`.
 		///
 		/// Emits `SellExecuted` when successful.
+		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::sell() + <T as Config>::AMMHandler::on_trade_weight())]
 		pub fn sell(
 			origin: OriginFor<T>,
@@ -629,6 +633,7 @@ pub mod pallet {
 		/// `max_limit` - maximum amount of `asset_in` to be sold in exchange for `asset_out`.
 		///
 		/// Emits `BuyExecuted` when successful.
+		#[pallet::call_index(4)]
 		#[pallet::weight(<T as Config>::WeightInfo::buy() + <T as Config>::AMMHandler::on_trade_weight())]
 		pub fn buy(
 			origin: OriginFor<T>,

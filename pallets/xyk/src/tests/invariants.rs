@@ -73,7 +73,7 @@ proptest! {
 			.build()
 			.execute_with(|| {
 				assert_ok!(XYK::create_pool(
-					Origin::signed(ALICE),
+					RuntimeOrigin::signed(ALICE),
 					asset_a,
 					initial_liquidity,
 					asset_b,
@@ -95,7 +95,7 @@ proptest! {
 				let issuance = XYK::total_liquidity(&pool_account);
 
 				assert_ok!(XYK::add_liquidity(
-					Origin::signed(BOB),
+					RuntimeOrigin::signed(BOB),
 					asset_a,
 					asset_b,
 					added_liquidity,
@@ -181,7 +181,7 @@ proptest! {
 			.build()
 			.execute_with(|| {
 				assert_ok!(XYK::create_pool(
-					Origin::signed(ALICE),
+					RuntimeOrigin::signed(ALICE),
 					asset_a,
 					initial_liquidity,
 					asset_b,
@@ -195,7 +195,7 @@ proptest! {
 				let share_token = XYK::share_token(pool_account);
 
 				assert_ok!(XYK::add_liquidity(
-					Origin::signed(BOB),
+					RuntimeOrigin::signed(BOB),
 					asset_a,
 					asset_b,
 					added_liquidity,
@@ -212,7 +212,7 @@ proptest! {
 				let issuance = XYK::total_liquidity(&pool_account);
 
 				assert_ok!(XYK::remove_liquidity(
-						Origin::signed(BOB),
+						RuntimeOrigin::signed(BOB),
 						asset_a,
 						asset_b,
 						bob_shares,
@@ -292,7 +292,7 @@ proptest! {
 			.build()
 			.execute_with(|| {
 				assert_ok!(XYK::create_pool(
-					Origin::signed(ALICE),
+					RuntimeOrigin::signed(ALICE),
 					asset_a,
 					initial_liquidity,
 					asset_b,
@@ -305,7 +305,7 @@ proptest! {
 				});
 
 				assert_ok!(XYK::add_liquidity(
-					Origin::signed(BOB),
+					RuntimeOrigin::signed(BOB),
 					asset_a,
 					asset_b,
 					added_liquidity,
@@ -315,7 +315,7 @@ proptest! {
 				let pool_balance_b = Currency::free_balance(asset_b, &pool_account);
 
 				assert_ok!(XYK::sell(
-						Origin::signed(CHARLIE),
+						RuntimeOrigin::signed(CHARLIE),
 						asset_a,
 						asset_b,
 						amount,
@@ -361,7 +361,7 @@ proptest! {
 			.build()
 			.execute_with(|| {
 				assert_ok!(XYK::create_pool(
-					Origin::signed(ALICE),
+					RuntimeOrigin::signed(ALICE),
 					asset_a,
 					initial_liquidity,
 					asset_b,
@@ -374,7 +374,7 @@ proptest! {
 				});
 
 				assert_ok!(XYK::add_liquidity(
-					Origin::signed(BOB),
+					RuntimeOrigin::signed(BOB),
 					asset_a,
 					asset_b,
 					added_liquidity,
@@ -384,7 +384,7 @@ proptest! {
 				let pool_balance_b = Currency::free_balance(asset_b, &pool_account);
 
 				assert_ok!(XYK::buy(
-						Origin::signed(CHARLIE),
+						RuntimeOrigin::signed(CHARLIE),
 						asset_b,
 						asset_a,
 						amount,
@@ -431,7 +431,7 @@ proptest! {
 			.build()
 			.execute_with(|| {
 				assert_ok!(XYK::create_pool(
-					Origin::signed(ALICE),
+					RuntimeOrigin::signed(ALICE),
 					asset_a,
 					initial_liquidity,
 					asset_b,
@@ -439,7 +439,7 @@ proptest! {
 				));
 
 				assert_ok!(XYK::create_pool(
-					Origin::signed(ALICE),
+					RuntimeOrigin::signed(ALICE),
 					asset_b,
 					10 * ONE,
 					HDX,
@@ -452,7 +452,7 @@ proptest! {
 				});
 
 				assert_ok!(XYK::add_liquidity(
-					Origin::signed(BOB),
+					RuntimeOrigin::signed(BOB),
 					asset_a,
 					asset_b,
 					added_liquidity,
@@ -462,7 +462,7 @@ proptest! {
 				let _pool_balance_b = Currency::free_balance(asset_b, &pool_account);
 
 				assert_ok!(XYK::buy(
-						Origin::signed(CHARLIE),
+						RuntimeOrigin::signed(CHARLIE),
 						asset_b,
 						asset_a,
 						amount,
@@ -508,7 +508,7 @@ proptest! {
 			.build()
 			.execute_with(|| {
 				assert_ok!(XYK::create_pool(
-					Origin::signed(ALICE),
+					RuntimeOrigin::signed(ALICE),
 					asset_a,
 					initial_liquidity,
 					asset_b,
@@ -516,7 +516,7 @@ proptest! {
 				));
 
 				assert_ok!(XYK::create_pool(
-					Origin::signed(ALICE),
+					RuntimeOrigin::signed(ALICE),
 					asset_a,
 					10 * ONE,
 					HDX,
@@ -529,7 +529,7 @@ proptest! {
 				});
 
 				assert_ok!(XYK::add_liquidity(
-					Origin::signed(BOB),
+					RuntimeOrigin::signed(BOB),
 					asset_a,
 					asset_b,
 					added_liquidity,
@@ -539,7 +539,7 @@ proptest! {
 				let _pool_balance_b = Currency::free_balance(asset_b, &pool_account);
 
 				assert_ok!(XYK::sell(
-						Origin::signed(CHARLIE),
+						RuntimeOrigin::signed(CHARLIE),
 						asset_a,
 						asset_b,
 						amount,
