@@ -13,40 +13,40 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "3.1.5", features = ["derive", "max-encoded-len"], default-features = false }
-scale-info = { version = "2.1.2", features = ["derive"], default-features = false }
+scale-info = { version = "2.3.1", features = ["derive"], default-features = false }
 
 # Local dependencies
 pallet-xyk-liquidity-mining = { path = "../../xyk-liquidity-mining", default-features = false }
 primitives = { path = "../../../primitives", default-features = false }
 pallet-xyk = { path = "../../xyk", default-features = false }
-pallet-duster = { path = "../../duster", default-features = false }
 
 # ORML dependencies
-orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
-orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
+orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.37", default-features = false }
+orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.37", default-features = false }
 
 # HydraDX dependencies
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false}
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev="b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false }
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="faea3f549eb3d35c21196e757044855b83620b91", default-features = false}
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev="faea3f549eb3d35c21196e757044855b83620b91", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="faea3f549eb3d35c21196e757044855b83620b91", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="faea3f549eb3d35c21196e757044855b83620b91", default-features = false }
+pallet-duster = { git = "https://github.com/galacticcouncil/warehouse", rev="faea3f549eb3d35c21196e757044855b83620b91", default-features = false }
 
 # Substrate dependencies
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 
-frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 
 [dev-dependencies]
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29"}
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29"}
-orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29"}
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37"}
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37"}
+orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.37"}
 
 [features]
 default = ["std"]

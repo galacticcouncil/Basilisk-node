@@ -22,7 +22,7 @@ use crate::mock::{
 	HDX_BSX_POOL_ID, INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
 };
 pub use crate::mock::{
-	set_block_number, Currency, Event as TestEvent, ExtBuilder, LBPPallet, Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
+	set_block_number, Currency, RuntimeEvent as TestEvent, ExtBuilder, LBPPallet, RuntimeOrigin as Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
 	HDX, KUSD,
 };
 use frame_support::{assert_err, assert_noop, assert_ok, dispatch::Dispatchable};

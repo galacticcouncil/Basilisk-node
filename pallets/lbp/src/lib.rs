@@ -187,7 +187,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// Multi currency for transfer of currencies
 		type MultiCurrency: MultiCurrencyExtended<Self::AccountId, CurrencyId = AssetId, Amount = Amount, Balance = Balance>
@@ -197,7 +197,7 @@ pub mod pallet {
 		type LockedBalance: LockedBalance<AssetId, Self::AccountId, Balance>;
 
 		/// The origin which can create a new pool
-		type CreatePoolOrigin: EnsureOrigin<Self::Origin>;
+		type CreatePoolOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Function for calculation of LBP weights
 		type LBPWeightFunction: LBPWeightCalculation<Self::BlockNumber>;
@@ -413,6 +413,7 @@ pub mod pallet {
 		/// the fee cost is transferred to the pool. If its bought from the pool the buyer bears the cost.
 		/// This increases the price of the sold asset on every trade. Make sure to only run this with
 		/// previously illiquid assets.
+		#[pallet::call_index(0)]
 		#[pallet::weight(<T as Config>::WeightInfo::create_pool())]
 		pub fn create_pool(
 			origin: OriginFor<T>,
@@ -515,6 +516,7 @@ pub mod pallet {
 		/// - `fee_collector`: The new receiver of trading fees. This parameter is optional.
 		///
 		/// Emits `PoolUpdated` event when successful.
+		#[pallet::call_index(1)]
 		#[pallet::weight(<T as Config>::WeightInfo::update_pool_data())]
 		pub fn update_pool_data(
 			origin: OriginFor<T>,
@@ -600,6 +602,7 @@ pub mod pallet {
 		/// - `amount_b`: The identifier of the second asset and the amount to add.
 		///
 		/// Emits `LiquidityAdded` event when successful.
+		#[pallet::call_index(2)]
 		#[pallet::weight(<T as Config>::WeightInfo::add_liquidity())]
 		pub fn add_liquidity(
 			origin: OriginFor<T>,
@@ -660,6 +663,7 @@ pub mod pallet {
 		/// - `amount_a`: The identifier of the asset and the amount to add.
 		///
 		/// Emits 'LiquidityRemoved' when successful.
+		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::remove_liquidity())]
 		pub fn remove_liquidity(origin: OriginFor<T>, pool_id: PoolId<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -710,6 +714,7 @@ pub mod pallet {
 		/// - `max_limit`: minimum amount of `asset_out` / amount of asset_out to be obtained from the pool in exchange for `asset_in`.
 		///
 		/// Emits `SellExecuted` when successful.
+		#[pallet::call_index(4)]
 		#[pallet::weight(<T as Config>::WeightInfo::sell())]
 		pub fn sell(
 			origin: OriginFor<T>,
@@ -739,6 +744,7 @@ pub mod pallet {
 		/// - `max_limit`: maximum amount of `asset_in` to be sold in exchange for `asset_out`.
 		///
 		/// Emits `BuyExecuted` when successful.
+		#[pallet::call_index(5)]
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
 		pub fn buy(
 			origin: OriginFor<T>,
