@@ -23,7 +23,8 @@ pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
-	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_PER_MICROS, weights::Pays, PalletId,
+	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId,
+	dispatch::Pays,
 	RuntimeDebug,
 };
 pub use pallet_transaction_payment::Multiplier;
@@ -34,7 +35,7 @@ pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	generic,
-	traits::{BlakeTwo256, IdentifyAccount, Verify},
+	traits::{BlakeTwo256, IdentifyAccount, Bounded, Verify},
 	FixedPointNumber, MultiSignature, Perbill, Percent, Permill, Perquintill,
 };
 
@@ -99,7 +100,7 @@ parameter_types! {
 	/// Basilisk base weight of an extrinsic
 	/// This includes weight for payment in non-native currency.
 	// Default substrate base weight is 125 * WEIGHT_PER_MICROS
-	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_PER_MICROS.ref_time());
+	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_REF_TIME_PER_MICROS);
 }
 
 // pallet timestamp
@@ -132,6 +133,7 @@ parameter_types! {
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	pub MaximumMultiplier: Multiplier = Bounded::max_value();
 	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
 }
 
