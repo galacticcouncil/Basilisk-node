@@ -9,7 +9,7 @@ use frame_support::{
 
 use pallet_transaction_multi_payment::Price;
 
-use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, Origin, Tokens};
+use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, RuntimeOrigin, Tokens};
 
 use hydradx_traits::{pools::SpotPriceProvider, AMM};
 use orml_traits::currency::MultiCurrency;
@@ -44,7 +44,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 
 		// ------------ BOB ------------
 		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
-			basilisk_runtime::Origin::signed(BOB.into()),
+			basilisk_runtime::RuntimeOrigin::signed(BOB.into()),
 			currency_1,
 		));
 
@@ -58,14 +58,14 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 		});
 
 		assert_ok!(basilisk_runtime::Balances::set_balance(
-			basilisk_runtime::Origin::root(),
+			basilisk_runtime::RuntimeOrigin::root(),
 			ALICE.into(),
 			2_000_000_000_000 * UNITS,
 			0,
 		));
 
 		assert_ok!(basilisk_runtime::Tokens::set_balance(
-			basilisk_runtime::Origin::root(),
+			basilisk_runtime::RuntimeOrigin::root(),
 			ALICE.into(),
 			1,
 			2_000_000_000_000 * UNITS,
@@ -73,7 +73,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 		));
 
 		assert_ok!(basilisk_runtime::XYK::create_pool(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			currency_0, // 1000 BSX
 			1_000 * UNITS,
 			currency_1, // 500 KSM (500_000_033_400_002)
@@ -86,7 +86,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 		basilisk_run_to_block(2);
 
 		assert_ok!(basilisk_runtime::XYK::buy(
-			basilisk_runtime::Origin::signed(ALICE.into()),
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			1,
 			66 * UNITS,
@@ -103,7 +103,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 
 		// ------------ DAVE ------------
 		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
-			basilisk_runtime::Origin::signed(DAVE.into()),
+			basilisk_runtime::RuntimeOrigin::signed(DAVE.into()),
 			currency_1,
 		));
 
@@ -144,7 +144,7 @@ fn fee_currency_on_account_lifecycle() {
 
 		// ------------ set on create ------------
 		assert_ok!(Currencies::transfer(
-			Origin::signed(BOB.into()),
+			RuntimeOrigin::signed(BOB.into()),
 			HITCHHIKER.into(),
 			1,
 			50_000_000_000_000,
@@ -161,7 +161,7 @@ fn fee_currency_on_account_lifecycle() {
 
 		// ------------ remove on delete ------------
 		assert_ok!(Tokens::transfer_all(
-			Origin::signed(HITCHHIKER.into()),
+			RuntimeOrigin::signed(HITCHHIKER.into()),
 			BOB.into(),
 			1,
 			false,
@@ -178,10 +178,15 @@ fn fee_currency_on_account_lifecycle() {
 fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
-		assert_ok!(Balances::set_balance(Origin::root(), HITCHHIKER.into(), UNITS, 0,));
+		assert_ok!(Balances::set_balance(
+			RuntimeOrigin::root(),
+			HITCHHIKER.into(),
+			UNITS,
+			0,
+		));
 
 		assert_ok!(Currencies::transfer(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			HITCHHIKER.into(),
 			1,
 			50_000_000_000_000,
@@ -200,14 +205,14 @@ fn fee_currency_should_not_change_when_account_holds_other_token_already() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
 		assert_ok!(Currencies::transfer(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			HITCHHIKER.into(),
 			1,
 			50_000_000_000_000,
 		));
 
 		assert_ok!(Currencies::transfer(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			HITCHHIKER.into(),
 			2,
 			50_000_000_000,
@@ -225,20 +230,20 @@ fn fee_currency_should_reset_to_default_when_account_spends_tokens() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
 		assert_ok!(Currencies::transfer(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			HITCHHIKER.into(),
 			1,
 			50_000_000_000_000,
 		));
 
 		assert_ok!(Currencies::transfer(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			HITCHHIKER.into(),
 			2,
 			50_000_000_000,
 		));
 		assert_ok!(Tokens::transfer_all(
-			Origin::signed(HITCHHIKER.into()),
+			RuntimeOrigin::signed(HITCHHIKER.into()),
 			ALICE.into(),
 			1,
 			false,

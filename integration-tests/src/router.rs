@@ -4,7 +4,7 @@ use crate::assert_trader_bsx_balance;
 use crate::assert_trader_non_native_balance;
 use crate::kusama_test_net::*;
 
-use basilisk_runtime::{BlockNumber, Origin, LBP, XYK};
+use basilisk_runtime::{BlockNumber, RuntimeOrigin, LBP, XYK};
 use hydradx_traits::AMM;
 use primitives::AssetId;
 
@@ -23,7 +23,7 @@ pub const SALE_END: Option<BlockNumber> = Some(40);
 mod router_different_pools_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{Origin, Router};
+	use basilisk_runtime::{Router, RuntimeOrigin};
 	use xcm_emulator::TestExt;
 
 	use frame_support::assert_ok;
@@ -66,7 +66,7 @@ mod router_different_pools_tests {
 
 			//Act
 			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				AUSD,
 				KSM,
 				amount_to_sell,
@@ -126,7 +126,7 @@ mod router_different_pools_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				AUSD,
 				KSM,
 				amount_to_buy,
@@ -156,7 +156,7 @@ mod router_different_pools_tests {
 mod xyk_router_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{Origin, Router};
+	use basilisk_runtime::{Router, RuntimeOrigin};
 	use xcm_emulator::TestExt;
 
 	use frame_support::{assert_noop, assert_ok};
@@ -186,7 +186,7 @@ mod xyk_router_tests {
 
 			//Act
 			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				KSM,
 				amount_to_sell,
@@ -246,7 +246,7 @@ mod xyk_router_tests {
 
 			//Act
 			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				KSM,
 				amount_to_sell,
@@ -291,7 +291,7 @@ mod xyk_router_tests {
 			//Act and Assert
 			assert_noop!(
 				Router::sell(
-					Origin::signed(TRADER.into()),
+					RuntimeOrigin::signed(TRADER.into()),
 					BSX,
 					AUSD,
 					amount_to_sell * UNITS,
@@ -335,7 +335,7 @@ mod xyk_router_tests {
 			//Act and Assert
 			assert_noop!(
 				Router::sell(
-					Origin::signed(TRADER.into()),
+					RuntimeOrigin::signed(TRADER.into()),
 					BSX,
 					KSM,
 					amount_to_sell * UNITS,
@@ -368,7 +368,7 @@ mod xyk_router_tests {
 			//Act and Assert
 			assert_noop!(
 				Router::sell(
-					Origin::signed(TRADER.into()),
+					RuntimeOrigin::signed(TRADER.into()),
 					BSX,
 					AUSD,
 					amount_to_sell * UNITS,
@@ -400,7 +400,14 @@ mod xyk_router_tests {
 
 			//Act and Assert
 			assert_noop!(
-				Router::sell(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_sell, limit, trades),
+				Router::sell(
+					RuntimeOrigin::signed(TRADER.into()),
+					BSX,
+					AUSD,
+					amount_to_sell,
+					limit,
+					trades
+				),
 				pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientTradingAmount
 			);
 
@@ -426,7 +433,14 @@ mod xyk_router_tests {
 
 			//Act and Assert
 			assert_noop!(
-				Router::sell(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_sell, limit, trades),
+				Router::sell(
+					RuntimeOrigin::signed(TRADER.into()),
+					BSX,
+					AUSD,
+					amount_to_sell,
+					limit,
+					trades
+				),
 				pallet_xyk::Error::<basilisk_runtime::Runtime>::MaxInRatioExceeded
 			);
 
@@ -456,7 +470,7 @@ mod xyk_router_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				KSM,
 				amount_to_buy,
@@ -510,7 +524,7 @@ mod xyk_router_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				AUSD,
 				amount_to_buy,
@@ -572,7 +586,7 @@ mod xyk_router_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				AUSD,
 				amount_to_buy,
@@ -617,7 +631,7 @@ mod xyk_router_tests {
 			//Act and Assert
 			assert_noop!(
 				Router::buy(
-					Origin::signed(TRADER.into()),
+					RuntimeOrigin::signed(TRADER.into()),
 					BSX,
 					AUSD,
 					amount_to_sell * UNITS,
@@ -661,7 +675,7 @@ mod xyk_router_tests {
 			//Act and Assert
 			assert_noop!(
 				Router::buy(
-					Origin::signed(TRADER.into()),
+					RuntimeOrigin::signed(TRADER.into()),
 					BSX,
 					AUSD,
 					amount_to_sell * UNITS,
@@ -695,7 +709,7 @@ mod xyk_router_tests {
 			//Act and Assert
 			assert_noop!(
 				Router::buy(
-					Origin::signed(TRADER.into()),
+					RuntimeOrigin::signed(TRADER.into()),
 					KSM,
 					AUSD,
 					amount_to_buy,
@@ -727,7 +741,14 @@ mod xyk_router_tests {
 
 			//Act and Assert
 			assert_noop!(
-				Router::buy(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_buy, limit, trades),
+				Router::buy(
+					RuntimeOrigin::signed(TRADER.into()),
+					BSX,
+					AUSD,
+					amount_to_buy,
+					limit,
+					trades
+				),
 				pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientTradingAmount
 			);
 
@@ -753,7 +774,14 @@ mod xyk_router_tests {
 
 			//Act and Assert
 			assert_noop!(
-				Router::buy(Origin::signed(TRADER.into()), BSX, AUSD, amount_to_buy, limit, trades),
+				Router::buy(
+					RuntimeOrigin::signed(TRADER.into()),
+					BSX,
+					AUSD,
+					amount_to_buy,
+					limit,
+					trades
+				),
 				pallet_xyk::Error::<basilisk_runtime::Runtime>::MaxOutRatioExceeded
 			);
 
@@ -766,7 +794,7 @@ mod xyk_router_tests {
 mod lbp_router_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{Origin, Router, LBP};
+	use basilisk_runtime::{Router, RuntimeOrigin, LBP};
 	use xcm_emulator::TestExt;
 
 	use frame_support::assert_ok;
@@ -795,7 +823,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_sell,
@@ -842,7 +870,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				NEW_BOOTSTRAPPED_TOKEN,
 				BSX,
 				amount_to_sell,
@@ -897,7 +925,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				KSM,
 				amount_to_sell,
@@ -950,7 +978,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				KSM,
 				amount_to_sell,
@@ -997,7 +1025,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_sell,
@@ -1031,7 +1059,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(LBP::sell(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_sell,
@@ -1067,7 +1095,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_buy,
@@ -1114,7 +1142,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				NEW_BOOTSTRAPPED_TOKEN,
 				BSX,
 				amount_to_buy,
@@ -1169,7 +1197,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				KSM,
 				amount_to_buy,
@@ -1222,7 +1250,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				KSM,
 				amount_to_buy,
@@ -1269,7 +1297,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(Router::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				BSX,
 				NEW_BOOTSTRAPPED_TOKEN,
 				amount_to_buy,
@@ -1303,7 +1331,7 @@ mod lbp_router_tests {
 
 			//Act
 			assert_ok!(LBP::buy(
-				Origin::signed(TRADER.into()),
+				RuntimeOrigin::signed(TRADER.into()),
 				NEW_BOOTSTRAPPED_TOKEN,
 				BSX,
 				amount_to_buy,
@@ -1322,7 +1350,7 @@ mod lbp_router_tests {
 
 fn create_xyk_pool(asset_a: u32, asset_b: u32) {
 	assert_ok!(XYK::create_pool(
-		Origin::signed(ALICE.into()),
+		RuntimeOrigin::signed(ALICE.into()),
 		asset_a,
 		100 * UNITS,
 		asset_b,
@@ -1332,7 +1360,7 @@ fn create_xyk_pool(asset_a: u32, asset_b: u32) {
 
 fn create_lbp_pool(accumulated_asset: u32, distributed_asset: u32) {
 	assert_ok!(LBP::create_pool(
-		Origin::root(),
+		RuntimeOrigin::root(),
 		ALICE.into(),
 		accumulated_asset,
 		100 * UNITS,
@@ -1349,7 +1377,7 @@ fn create_lbp_pool(accumulated_asset: u32, distributed_asset: u32) {
 	let account_id = get_lbp_pair_account_id(accumulated_asset, distributed_asset);
 
 	assert_ok!(LBP::update_pool_data(
-		Origin::signed(AccountId::from(ALICE)),
+		RuntimeOrigin::signed(AccountId::from(ALICE)),
 		account_id,
 		None,
 		SALE_START,

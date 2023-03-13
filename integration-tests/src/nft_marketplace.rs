@@ -2,8 +2,8 @@
 
 use crate::kusama_test_net::*;
 use basilisk_runtime::{
-	AssetRegistry, CollectionDeposit, ItemDeposit, Marketplace, MinimumOfferAmount, Origin, RoyaltyBondAmount, Tokens,
-	NFT, RELAY_CHAIN_ASSET_LOCATION,
+	AssetRegistry, CollectionDeposit, ItemDeposit, Marketplace, MinimumOfferAmount, RoyaltyBondAmount, RuntimeOrigin,
+	Tokens, NFT, RELAY_CHAIN_ASSET_LOCATION,
 };
 use frame_support::{assert_noop, assert_ok};
 use orml_traits::MultiCurrency;
@@ -19,7 +19,7 @@ fn init() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
 		assert_ok!(AssetRegistry::set_location(
-			basilisk_runtime::Origin::root(),
+			basilisk_runtime::RuntimeOrigin::root(),
 			KSM,
 			basilisk_runtime::AssetLocation(RELAY_CHAIN_ASSET_LOCATION.0)
 		));
@@ -29,7 +29,7 @@ fn init() {
 fn arrange_nft() {
 	Basilisk::execute_with(|| {
 		assert_ok!(NFT::create_collection(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			ALICE_COLLECTION,
 			CollectionType::Marketplace,
 			b"ipfs://QmZn9GFNrNyaTXNdCLWEPtjYHGG9yajgw9JzxpMoDZ2Ziq"
@@ -38,7 +38,7 @@ fn arrange_nft() {
 				.unwrap(),
 		));
 		assert_ok!(NFT::mint(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			ALICE_COLLECTION,
 			0,
 			b"ipfs://QmQu2jUmtFNPd86tEHFs6hmAArKYyjEC3xuwVWpFGjcMgm"
@@ -83,7 +83,7 @@ fn marketplace_should_reserve_ksm_when_royalties_are_added() {
 	arrange_nft();
 	Basilisk::execute_with(|| {
 		assert_ok!(Marketplace::add_royalty(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			ALICE_COLLECTION,
 			0,
 			AccountId::from(ALICE),
@@ -102,7 +102,7 @@ fn make_offer_should_reserve_ksm_when_created() {
 	arrange_nft();
 	Basilisk::execute_with(|| {
 		assert_ok!(Marketplace::make_offer(
-			Origin::signed(BOB.into()),
+			RuntimeOrigin::signed(BOB.into()),
 			ALICE_COLLECTION,
 			0,
 			MinimumOfferAmount::get(),
@@ -122,7 +122,7 @@ fn create_collection_should_fail_when_relay_chain_location_not_registered() {
 	Basilisk::execute_with(|| {
 		assert_noop!(
 			NFT::create_collection(
-				Origin::signed(ALICE.into()),
+				RuntimeOrigin::signed(ALICE.into()),
 				ALICE_COLLECTION,
 				CollectionType::Marketplace,
 				b"ipfs://QmZn9GFNrNyaTXNdCLWEPtjYHGG9yajgw9JzxpMoDZ2Ziq"
