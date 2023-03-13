@@ -456,7 +456,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "8.1.5"
+version = "8.1.6"
 dependencies = [
  "basilisk-runtime",
  "clap 3.2.23",
@@ -536,7 +536,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "93.0.0"
+version = "94.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1253,7 +1253,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.7"
+version = "2.3.8"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -6512,7 +6512,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.6.8"
+version = "4.6.9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6554,7 +6554,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.0.10"
+version = "5.0.11"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7248,7 +7248,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.2.2"
+version = "6.2.3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7277,7 +7277,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.1.4"
+version = "1.1.5"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9096,7 +9096,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.4.4"
+version = "6.4.5"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9823,7 +9823,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -12674,7 +12674,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "93.0.0"
+version = "94.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
