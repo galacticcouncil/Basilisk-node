@@ -55,7 +55,7 @@ parameter_types! {
 }
 
 impl pallet_marketplace::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Test>;
 	type MinimumOfferAmount = MinimumOfferAmount;
@@ -67,7 +67,7 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftCollectionId = u32;
 	type NftItemId = u32;
@@ -83,7 +83,7 @@ parameter_types! {
 
 impl pallet_balances::Config for Test {
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Pallet<Test>;
@@ -98,8 +98,8 @@ impl system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
-	type Origin = Origin;
-	type Call = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
 	type Index = u64;
 	type BlockNumber = u64;
 	type Hash = H256;
@@ -107,7 +107,7 @@ impl system::Config for Test {
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -132,7 +132,7 @@ parameter_types! {
 }
 
 impl pallet_uniques::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = u32;
 	type ItemId = u32;
 	type Currency = Balances;
@@ -223,23 +223,23 @@ impl ExtBuilder {
 			let metadata: BoundedVec<u8, <Test as pallet_uniques::Config>::StringLimit> =
 				b"metadata".to_vec().try_into().unwrap();
 			assert_ok!(NFT::create_collection(
-				Origin::signed(nft.0.clone()),
+				RuntimeOrigin::signed(nft.0.clone()),
 				nft.1,
 				Default::default(),
 				metadata.clone()
 			));
-			assert_ok!(NFT::mint(Origin::signed(nft.0.clone()), nft.1, nft.2, metadata));
+			assert_ok!(NFT::mint(RuntimeOrigin::signed(nft.0.clone()), nft.1, nft.2, metadata));
 		}
 	}
 }
 
-pub fn last_event() -> Event {
+pub fn last_event() -> RuntimeEvent {
 	frame_system::Pallet::<Test>::events()
 		.pop()
 		.expect("An event expected")
 		.event
 }
 
-pub fn expect_events(e: Vec<Event>) {
+pub fn expect_events(e: Vec<RuntimeEvent>) {
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }

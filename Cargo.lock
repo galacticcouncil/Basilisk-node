@@ -576,7 +576,7 @@ dependencies = [
  "pallet-democracy",
  "pallet-duster 3.2.1",
  "pallet-elections-phragmen",
- "pallet-ema-oracle 0.1.1",
+ "pallet-ema-oracle",
  "pallet-identity",
  "pallet-lbp",
  "pallet-liquidity-mining 3.1.1",
@@ -592,7 +592,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-multi-payment 8.0.5",
- "pallet-transaction-pause 0.1.3",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
@@ -1258,24 +1258,24 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
  "frame-system",
- "hydradx-traits 2.1.0",
+ "hydradx-traits 2.1.1",
  "orml-tokens",
  "orml-traits",
  "orml-vesting",
- "pallet-asset-registry 2.1.0",
+ "pallet-asset-registry 2.1.1",
  "pallet-balances",
  "pallet-collator-selection",
- "pallet-currencies 1.1.0",
+ "pallet-currencies 1.1.1",
  "pallet-democracy",
- "pallet-duster 3.2.0",
+ "pallet-duster 3.2.1",
  "pallet-lbp",
  "pallet-marketplace",
- "pallet-nft 7.1.0",
- "pallet-route-executor 1.0.2",
+ "pallet-nft 7.1.1",
+ "pallet-route-executor 1.0.3",
  "pallet-scheduler",
  "pallet-timestamp",
- "pallet-transaction-multi-payment 8.0.4",
- "pallet-transaction-pause 0.1.2",
+ "pallet-transaction-multi-payment 8.0.5",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-utility",
@@ -6388,7 +6388,6 @@ name = "pallet-duster"
 version = "3.2.0"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=faea3f549eb3d35c21196e757044855b83620b91#faea3f549eb3d35c21196e757044855b83620b91"
 dependencies = [
- "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hydradx-traits 2.1.0",
@@ -6481,25 +6480,6 @@ dependencies = [
  "sp-io",
  "sp-npos-elections",
  "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-ema-oracle"
-version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=faea3f549eb3d35c21196e757044855b83620b91#faea3f549eb3d35c21196e757044855b83620b91"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hydra-dx-math 5.2.0 (git+https://github.com/galacticcouncil/HydraDX-math?rev=0309d06ff0b4d22d3d2db2352fe4f51fc5650f18)",
- "hydradx-traits 2.1.0",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-arithmetic",
- "sp-core",
  "sp-std",
 ]
 
@@ -6625,7 +6605,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 5.2.0 (git+https://github.com/galacticcouncil/HydraDX-math?rev=c7231208d4c148e1c1244a0a188f32eb3b3e1970)",
- "hydradx-traits 2.1.0",
+ "hydradx-traits 2.1.1",
  "orml-tokens",
  "orml-traits",
  "parity-scale-codec",
@@ -6684,7 +6664,7 @@ dependencies = [
  "frame-system",
  "orml-utilities",
  "pallet-balances",
- "pallet-nft 7.1.0",
+ "pallet-nft 7.1.1",
  "pallet-uniques",
  "parity-scale-codec",
  "pretty_assertions",
@@ -6753,7 +6733,6 @@ name = "pallet-nft"
 version = "7.1.0"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=faea3f549eb3d35c21196e757044855b83620b91#faea3f549eb3d35c21196e757044855b83620b91"
 dependencies = [
- "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hydradx-traits 2.1.0",
@@ -6915,6 +6894,22 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hydradx-traits 2.1.0",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-price-oracle"
+version = "0.3.3"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=3f3de45ffaceba188c7052d28284414f72bc2218#3f3de45ffaceba188c7052d28284414f72bc2218"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hydradx-traits 2.1.1",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -7268,20 +7263,6 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-pause"
-version = "0.1.2"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=faea3f549eb3d35c21196e757044855b83620b91#faea3f549eb3d35c21196e757044855b83620b91"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-transaction-pause"
 version = "0.1.3"
 source = "git+https://github.com/galacticcouncil/warehouse?rev=3f3de45ffaceba188c7052d28284414f72bc2218#3f3de45ffaceba188c7052d28284414f72bc2218"
 dependencies = [
@@ -7460,12 +7441,12 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "hydra-dx-math 5.2.0 (git+https://github.com/galacticcouncil/HydraDX-math?rev=c7231208d4c148e1c1244a0a188f32eb3b3e1970)",
- "hydradx-traits 2.1.0",
+ "hydradx-traits 2.1.1",
  "log",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
- "pallet-asset-registry 2.1.0",
+ "pallet-asset-registry 2.1.1",
  "parity-scale-codec",
  "primitive-types 0.12.1",
  "primitives",
@@ -7486,15 +7467,15 @@ version = "1.1.4"
 dependencies = [
  "frame-support",
  "frame-system",
- "hydradx-traits 2.1.0",
+ "hydradx-traits 2.1.1",
  "lazy_static",
  "log",
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
  "pallet-balances",
- "pallet-liquidity-mining 3.1.0",
- "pallet-nft 7.1.0",
+ "pallet-liquidity-mining 3.1.1",
+ "pallet-nft 7.1.1",
  "parity-scale-codec",
  "pretty_assertions",
  "primitives",
@@ -7591,7 +7572,7 @@ dependencies = [
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft 7.1.0",
- "pallet-price-oracle",
+ "pallet-price-oracle 0.3.2",
  "pallet-relaychain-info 0.3.2",
  "pallet-route-executor 1.0.2",
  "pallet-scheduler",
@@ -10048,7 +10029,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex-literal",
- "hydradx-traits 2.1.0",
+ "hydradx-traits 2.1.1",
  "kusama-runtime",
  "orml-tokens",
  "orml-traits",
@@ -10057,28 +10038,28 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 2.1.0",
+ "pallet-asset-registry 2.1.1",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-collective",
- "pallet-currencies 1.1.0",
+ "pallet-currencies 1.1.1",
  "pallet-democracy",
- "pallet-duster 3.2.0",
+ "pallet-duster 3.2.1",
  "pallet-elections-phragmen",
- "pallet-ema-oracle 0.1.0",
+ "pallet-ema-oracle",
  "pallet-lbp",
  "pallet-marketplace",
- "pallet-nft 7.1.0",
- "pallet-price-oracle",
- "pallet-relaychain-info 0.3.2",
- "pallet-route-executor 1.0.2",
+ "pallet-nft 7.1.1",
+ "pallet-price-oracle 0.3.3",
+ "pallet-relaychain-info 0.3.3",
+ "pallet-route-executor 1.0.3",
  "pallet-scheduler",
  "pallet-session",
  "pallet-timestamp",
  "pallet-tips",
- "pallet-transaction-multi-payment 8.0.4",
+ "pallet-transaction-multi-payment 8.0.5",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
@@ -12885,8 +12866,8 @@ dependencies = [
 
 [[package]]
 name = "test-utils"
-version = "1.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=faea3f549eb3d35c21196e757044855b83620b91#faea3f549eb3d35c21196e757044855b83620b91"
+version = "1.1.1"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=3f3de45ffaceba188c7052d28284414f72bc2218#3f3de45ffaceba188c7052d28284414f72bc2218"
 dependencies = [
  "frame-system",
  "pretty_assertions",
@@ -12914,8 +12895,8 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "hex-literal",
- "hydradx-adapters 0.2.2",
- "hydradx-traits 2.1.0",
+ "hydradx-adapters 0.2.3",
+ "hydradx-traits 2.1.1",
  "orml-tokens",
  "orml-traits",
  "orml-unknown-tokens",
@@ -12923,34 +12904,34 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 2.1.0",
+ "pallet-asset-registry 2.1.1",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-collective",
- "pallet-currencies 1.1.0",
+ "pallet-currencies 1.1.1",
  "pallet-democracy",
- "pallet-duster 3.2.0",
+ "pallet-duster 3.2.1",
  "pallet-elections-phragmen",
- "pallet-ema-oracle 0.1.0",
+ "pallet-ema-oracle",
  "pallet-identity",
  "pallet-lbp",
- "pallet-liquidity-mining 3.1.0",
+ "pallet-liquidity-mining 3.1.1",
  "pallet-marketplace",
  "pallet-multisig",
- "pallet-nft 7.1.0",
+ "pallet-nft 7.1.1",
  "pallet-preimage",
  "pallet-proxy",
- "pallet-relaychain-info 0.3.2",
- "pallet-route-executor 1.0.2",
+ "pallet-relaychain-info 0.3.3",
+ "pallet-route-executor 1.0.3",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-tips",
- "pallet-transaction-multi-payment 8.0.4",
- "pallet-transaction-pause 0.1.2",
+ "pallet-transaction-multi-payment 8.0.5",
+ "pallet-transaction-pause",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",

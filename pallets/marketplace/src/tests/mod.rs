@@ -11,3 +11,4 @@ mod set_price;
 mod withdraw_offer;
 
 type Market = Pallet<Test>;
+type Origin = RuntimeOrigin;

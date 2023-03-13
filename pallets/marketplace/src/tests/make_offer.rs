@@ -1,5 +1,5 @@
 use super::*;
-use mock::Call;
+use mock::RuntimeCall;
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -97,7 +97,7 @@ fn make_offer_should_fail_when_offerer_has_not_enough_balance() {
 		.build()
 		.execute_with(|| {
 			// Act and assert
-			let call = Call::Marketplace(crate::Call::<Test>::make_offer {
+			let call = RuntimeCall::Marketplace(crate::Call::<Test>::make_offer {
 				collection_id: COLLECTION_ID_0,
 				item_id: ITEM_ID_0,
 				amount: (balance + 1) * UNITS,
