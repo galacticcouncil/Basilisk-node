@@ -18,12 +18,13 @@
 #![allow(clippy::bool_assert_comparison)]
 use super::*;
 use crate::mock::{
-	expect_events, generate_trades, run_to_sale_end, run_to_sale_start, Call, DEFAULT_FEE, EXISTENTIAL_DEPOSIT,
-	HDX_BSX_POOL_ID, INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER, SAMPLE_POOL_DATA,
+	expect_events, generate_trades, run_to_sale_end, run_to_sale_start, RuntimeCall as Call, DEFAULT_FEE,
+	EXISTENTIAL_DEPOSIT, HDX_BSX_POOL_ID, INITIAL_BALANCE, KUSD_BSX_POOL_ID, SALE_END, SALE_START, SAMPLE_AMM_TRANSFER,
+	SAMPLE_POOL_DATA,
 };
 pub use crate::mock::{
-	set_block_number, Currency, RuntimeEvent as TestEvent, ExtBuilder, LBPPallet, RuntimeOrigin as Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
-	HDX, KUSD,
+	set_block_number, Currency, ExtBuilder, LBPPallet, RuntimeEvent as TestEvent, RuntimeOrigin as Origin, Test, ALICE,
+	BOB, BSX, CHARLIE, ETH, HDX, KUSD,
 };
 use frame_support::{assert_err, assert_noop, assert_ok, dispatch::Dispatchable};
 use hydradx_traits::{AMMTransfer, LockedBalance};
@@ -1427,7 +1428,7 @@ fn remove_liquidity_should_work() {
 				account: KUSD_BSX_POOL_ID,
 			}
 			.into(),
-			mock::Event::Currency(orml_tokens::Event::Transfer {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Transfer {
 				currency_id: BSX,
 				from: KUSD_BSX_POOL_ID,
 				to: ALICE,
@@ -1616,7 +1617,7 @@ fn remove_liquidity_from_finalized_pool_should_work() {
 				account: KUSD_BSX_POOL_ID,
 			}
 			.into(),
-			mock::Event::Currency(orml_tokens::Event::Transfer {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Transfer {
 				currency_id: BSX,
 				from: KUSD_BSX_POOL_ID,
 				to: ALICE,
@@ -2287,29 +2288,29 @@ fn buy_should_work() {
 			}
 			.into(),
 			frame_system::Event::NewAccount { account: pool_id2 }.into(),
-			mock::Event::Currency(orml_tokens::Event::Endowed {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Endowed {
 				currency_id: CORE_ASSET_ID,
 				who: HDX_BSX_POOL_ID,
 				amount: 1000000000,
 			}),
-			mock::Event::Currency(orml_tokens::Event::Transfer {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Transfer {
 				currency_id: CORE_ASSET_ID,
 				from: ALICE,
 				to: HDX_BSX_POOL_ID,
 				amount: 1000000000,
 			}),
-			mock::Event::Currency(orml_tokens::Event::Endowed {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Endowed {
 				currency_id: BSX,
 				who: HDX_BSX_POOL_ID,
 				amount: 2000000000,
 			}),
-			mock::Event::Currency(orml_tokens::Event::Transfer {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Transfer {
 				currency_id: BSX,
 				from: ALICE,
 				to: HDX_BSX_POOL_ID,
 				amount: 2000000000,
 			}),
-			mock::Event::LBPPallet(Event::LiquidityAdded {
+			mock::RuntimeEvent::LBPPallet(Event::LiquidityAdded {
 				who: pool_id2,
 				asset_a: HDX,
 				asset_b: BSX,
@@ -2536,29 +2537,29 @@ fn sell_should_work() {
 			}
 			.into(),
 			frame_system::Event::NewAccount { account: pool_id2 }.into(),
-			mock::Event::Currency(orml_tokens::Event::Endowed {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Endowed {
 				currency_id: CORE_ASSET_ID,
 				who: HDX_BSX_POOL_ID,
 				amount: 1000000000,
 			}),
-			mock::Event::Currency(orml_tokens::Event::Transfer {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Transfer {
 				currency_id: CORE_ASSET_ID,
 				from: ALICE,
 				to: HDX_BSX_POOL_ID,
 				amount: 1000000000,
 			}),
-			mock::Event::Currency(orml_tokens::Event::Endowed {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Endowed {
 				currency_id: BSX,
 				who: HDX_BSX_POOL_ID,
 				amount: 2000000000,
 			}),
-			mock::Event::Currency(orml_tokens::Event::Transfer {
+			mock::RuntimeEvent::Currency(orml_tokens::Event::Transfer {
 				currency_id: BSX,
 				from: ALICE,
 				to: HDX_BSX_POOL_ID,
 				amount: 2000000000,
 			}),
-			mock::Event::LBPPallet(Event::LiquidityAdded {
+			mock::RuntimeEvent::LBPPallet(Event::LiquidityAdded {
 				who: pool_id2,
 				asset_a: HDX,
 				asset_b: BSX,
@@ -2598,7 +2599,7 @@ fn sell_should_work() {
 			2_000_u128
 		));
 
-		expect_events(vec![mock::Event::LBPPallet(Event::SellExecuted {
+		expect_events(vec![mock::RuntimeEvent::LBPPallet(Event::SellExecuted {
 			who: buyer,
 			asset_in: asset_out,
 			asset_out: asset_in,

@@ -38,4 +38,5 @@ std = [
     "sp-std/std",
     "sp-runtime/std",
     "scale-info/std",
+    "polkadot-primitives/std",
 ]
