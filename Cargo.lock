@@ -3134,7 +3134,7 @@ dependencies = [
  "sp-state-machine",
  "sp-std",
  "sp-tracing",
- "sp-weights 4.0.0 (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
  "tt-call",
 ]
 
@@ -3189,7 +3189,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "sp-version",
- "sp-weights 4.0.0 (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
@@ -4455,7 +4455,7 @@ dependencies = [
  "smallvec",
  "sp-core",
  "sp-runtime",
- "sp-weights 4.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
@@ -6892,7 +6892,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "sp-weights 4.0.0 (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
@@ -7118,7 +7118,7 @@ dependencies = [
  "sp-core",
  "sp-rpc",
  "sp-runtime",
- "sp-weights 4.0.0 (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
@@ -7130,7 +7130,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-api",
  "sp-runtime",
- "sp-weights 4.0.0 (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
@@ -8766,7 +8766,7 @@ dependencies = [
  "smallvec",
  "sp-core",
  "sp-runtime",
- "sp-weights 4.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
@@ -9757,7 +9757,7 @@ dependencies = [
  "smallvec",
  "sp-core",
  "sp-runtime",
- "sp-weights 4.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
@@ -12057,7 +12057,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-std",
- "sp-weights 4.0.0 (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
@@ -12274,21 +12274,6 @@ dependencies = [
 name = "sp-weights"
 version = "4.0.0"
 source = "git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.37#f38bd6671d460293c93062cc1e4fe9e9e490cb29"
-dependencies = [
- "parity-scale-codec",
- "scale-info",
- "serde",
- "smallvec",
- "sp-arithmetic",
- "sp-core",
- "sp-debug-derive",
- "sp-std",
-]
-
-[[package]]
-name = "sp-weights"
-version = "4.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.37#f38bd6671d460293c93062cc1e4fe9e9e490cb29"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -13320,7 +13305,7 @@ dependencies = [
  "sp-runtime",
  "sp-state-machine",
  "sp-version",
- "sp-weights 4.0.0 (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
  "substrate-rpc-client",
  "zstd",
 ]
@@ -14274,7 +14259,7 @@ dependencies = [
  "smallvec",
  "sp-core",
  "sp-runtime",
- "sp-weights 4.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.37)",
+ "sp-weights",
 ]
 
 [[package]]
