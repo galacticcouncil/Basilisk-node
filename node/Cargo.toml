@@ -84,6 +84,7 @@ try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "p
 
 # Cumulus dependencies
 cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
+cumulus-client-collator = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 cumulus-client-consensus-aura = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
@@ -94,6 +95,7 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/c
 cumulus-relay-chain-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 cumulus-relay-chain-inprocess-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 cumulus-relay-chain-rpc-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
+cumulus-relay-chain-minimal-node = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37" }
 
 # Polkadot dependencies
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }

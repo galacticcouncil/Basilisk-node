@@ -154,6 +154,7 @@ polkadot-node-core-pvf = { git = "https://github.com/galacticcouncil/polkadot", 
 polkadot-node-network-protocol = { git = "https://github.com/galacticcouncil/polkadot", branch = "fix-xcm-executor-atomicity-9-37" }
 polkadot-node-primitives = { git = "https://github.com/galacticcouncil/polkadot", branch = "fix-xcm-executor-atomicity-9-37" }
 polkadot-node-subsystem = { git = "https://github.com/galacticcouncil/polkadot", branch = "fix-xcm-executor-atomicity-9-37" }
+polkadot-node-subsystem-util = { git = "https://github.com/galacticcouncil/polkadot", branch = "fix-xcm-executor-atomicity-9-37" }
 polkadot-overseer = { git = "https://github.com/galacticcouncil/polkadot", branch = "fix-xcm-executor-atomicity-9-37" }
 polkadot-parachain = { git = "https://github.com/galacticcouncil/polkadot", branch = "fix-xcm-executor-atomicity-9-37" }
 polkadot-primitives = { git = "https://github.com/galacticcouncil/polkadot", branch = "fix-xcm-executor-atomicity-9-37" }
@@ -188,3 +189,4 @@ cumulus-primitives-utility = { git = "https://github.com/paritytech//cumulus", b
 cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.37" }
 parachain-info = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.37" }
 cumulus-relay-chain-interface = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.37" }
+cumulus-relay-chain-minimal-node = { git = "https://github.com/paritytech//cumulus", branch = "polkadot-v0.9.37" }
