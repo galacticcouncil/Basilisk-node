@@ -122,6 +122,9 @@ sp-staking = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
 
+# InvArch Tinkernet Multisig dependencies
+invarch-xcm-builder = { git = "https://github.com/InvArch/InvArch-XCM-Builder", branch = "polkadot-v0.9.29", default-features = false }
+
 [features]
 default = ["std"]
 runtime-benchmarks = [
