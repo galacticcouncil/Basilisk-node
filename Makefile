@@ -31,6 +31,10 @@ clippy:
 format:
 	cargo fmt
 
+.PHONY: try-runtime
+try-runtime:
+	cargo run --release --features=try-runtime --bin basilisk try-runtime --runtime ./target/release/wbuild/basilisk-runtime/basilisk_runtime.wasm on-runtime-upgrade --checks live --uri wss://rpc.basilisk.cloud:443
+
 .PHONY: build-docs
 build-docs:
 	cargo doc --release --target-dir ./Basilisk-dev-docs --no-deps
@@ -44,3 +48,8 @@ docker: build
 	ln -f $(CURDIR)/target/release/basilisk $(CURDIR)/basilisk
 	docker build --tag basilisk .
 	rm $(CURDIR)/basilisk
+
+checksum:
+	sha256sum target/release/basilisk > target/release/basilisk.sha256
+	cp target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm target/release/
+	sha256sum target/release/basilisk_runtime.compact.compressed.wasm > target/release/basilisk_runtime.compact.compressed.wasm.sha256
