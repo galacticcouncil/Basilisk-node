@@ -947,7 +947,7 @@ impl pallet_stableswap::Config for Runtime {
 	type MinPoolLiquidity = StableswapMinPoolLiquidity;
 	type MinTradingLimit = StableswapMinTradingLimit;
 	type AmplificationRange = AmplificationRange;
-	type WeightInfo = (); //TODO:
+	type WeightInfo = weights::stableswap::BasiliskWeight<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

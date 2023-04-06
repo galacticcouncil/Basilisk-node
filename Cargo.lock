@@ -1225,6 +1225,7 @@ dependencies = [
  "pallet-nft",
  "pallet-route-executor",
  "pallet-scheduler",
+ "pallet-stableswap",
  "pallet-timestamp",
  "pallet-transaction-multi-payment",
  "pallet-transaction-pause",

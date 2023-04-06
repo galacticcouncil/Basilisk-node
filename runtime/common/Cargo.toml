@@ -33,6 +33,7 @@ pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "dac8
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "dac8bb3132a97986c467a4c0cb53add47abd3717", default-features = false }
 pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "dac8bb3132a97986c467a4c0cb53add47abd3717", default-features = false }
 pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "dac8bb3132a97986c467a4c0cb53add47abd3717", default-features = false }
+pallet-stableswap = { git = "https://github.com/galacticcouncil/warehouse", rev = "dac8bb3132a97986c467a4c0cb53add47abd3717", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }

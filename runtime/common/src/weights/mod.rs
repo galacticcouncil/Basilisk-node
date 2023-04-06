@@ -10,6 +10,7 @@ pub mod nft;
 pub mod payment;
 pub mod route_executor;
 pub mod scheduler;
+pub mod stableswap;
 pub mod system;
 pub mod timestamp;
 pub mod tokens;
