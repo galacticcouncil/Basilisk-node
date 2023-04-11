@@ -352,3 +352,122 @@ parameter_types! {
 	pub const StableswapMinPoolLiquidity: Balance =  MIN_POOL_LIQUIDITY; //TODO: same as xyk
 	pub const StableswapMinTradingLimit: Balance =  MIN_TRADING_LIMIT; //TODO: same as xyk
 }
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::AssetsAccountId;
+	use codec::alloc::vec;
+	use primitives::AssetId;
+	use sp_core::H256;
+	use sp_runtime::traits::IdentityLookup;
+
+	frame_support::construct_runtime!(
+	 pub enum Test where
+	  Block = Block,
+	  NodeBlock = frame_system::mocking::MockBlock<Test>,
+	  UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>,
+	 {
+	  System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+	 }
+	);
+
+	impl frame_system::Config for Test {
+		type BaseCallFilter = ();
+		type BlockWeights = ();
+		type BlockLength = ();
+		type DbWeight = ();
+		type Origin = Origin;
+		type Call = Call;
+		type Index = u64;
+		type BlockNumber = BlockNumber;
+		type Hash = H256;
+		type Hashing = BlakeTwo256;
+		type AccountId = AccountId;
+		type Lookup = IdentityLookup<Self::AccountId>;
+		type Header = Header;
+		type Event = Event;
+		type BlockHashCount = BlockHashCount;
+		type Version = ();
+		type PalletInfo = PalletInfo;
+		type AccountData = pallet_balances::AccountData<u128>;
+		type OnNewAccount = ();
+		type OnKilledAccount = ();
+		type SystemWeightInfo = ();
+		type SS58Prefix = ();
+		type OnSetCode = ();
+		type MaxConsumers = frame_support::traits::ConstU32<16>;
+	}
+
+	#[test]
+	fn name_should_produce_same_result_for_unsorted_assets_when_identifier_is_none() {
+		let sorted_assets: Vec<AssetId> = vec![1, 2, 3, 4, 5, 6];
+		let unsorted_assets: Vec<AssetId> = vec![3, 2, 4, 1, 6, 5];
+
+		assert_eq!(
+			AssetsAccountId::<Test>::name(&sorted_assets, None),
+			AssetsAccountId::<Test>::name(&unsorted_assets, None),
+		);
+	}
+
+	#[test]
+	fn name_should_produce_same_result_for_unsorted_assets_when_identifier_is_provided() {
+		let sorted_assets: Vec<AssetId> = vec![1, 2, 3, 4, 5, 6];
+		let unsorted_assets: Vec<AssetId> = vec![3, 2, 4, 1, 6, 5];
+
+		let identifier = Some("identfier".as_bytes());
+
+		assert_eq!(
+			AssetsAccountId::<Test>::name(&sorted_assets, identifier),
+			AssetsAccountId::<Test>::name(&unsorted_assets, identifier)
+		);
+	}
+
+	#[test]
+	fn from_assets_should_produce_same_result_for_unsorted_assets_when_identifier_is_none() {
+		let sorted_assets: Vec<AssetId> = vec![1, 2, 3, 4, 5, 6];
+		let unsorted_assets: Vec<AssetId> = vec![3, 2, 4, 1, 6, 5];
+
+		assert_eq!(
+			AssetsAccountId::<Test>::from_assets(&sorted_assets, None),
+			AssetsAccountId::<Test>::from_assets(&unsorted_assets, None),
+		);
+	}
+
+	#[test]
+	fn from_assets_should_produce_same_result_for_unsorted_assets_when_identifier_is_provided() {
+		let sorted_assets: Vec<AssetId> = vec![1, 2, 3, 4, 5, 6];
+		let unsorted_assets: Vec<AssetId> = vec![3, 2, 4, 1, 6, 5];
+
+		let identifier = Some("identfier".as_bytes());
+
+		assert_eq!(
+			AssetsAccountId::<Test>::from_assets(&sorted_assets, identifier),
+			AssetsAccountId::<Test>::from_assets(&unsorted_assets, identifier)
+		);
+	}
+
+	#[test]
+	fn name_whith_and_without_indetifier_should_be_different() {
+		let assets: Vec<AssetId> = vec![1, 2, 3, 4, 5, 6];
+
+		let identifier = Some("identfier".as_bytes());
+
+		assert_ne!(
+			AssetsAccountId::<Test>::name(&assets, None),
+			AssetsAccountId::<Test>::name(&assets, identifier)
+		);
+	}
+
+	#[test]
+	fn from_assets_whith_and_without_indetifier_should_be_different() {
+		let assets: Vec<AssetId> = vec![1, 2, 3, 4, 5, 6];
+
+		let identifier = Some("identfier".as_bytes());
+
+		assert_ne!(
+			AssetsAccountId::<Test>::from_assets(&assets, None),
+			AssetsAccountId::<Test>::from_assets(&assets, identifier)
+		);
+	}
+}

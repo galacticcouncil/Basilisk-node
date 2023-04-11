@@ -59,3 +59,10 @@ cumulus-pallet-xcmp-queue = { git = "https://github.com/paritytech/cumulus", bra
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
 orml-vesting = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
+
+[features]
+default = ["std"]
+
+std = [
+  "codec/std"
+]
