@@ -23,7 +23,8 @@ pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
-	dispatch::Pays, parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId,
+	traits::LockIdentifier,
+	dispatch::Pays, parameter_types, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId,
 	RuntimeDebug,
 };
 pub use pallet_transaction_payment::Multiplier;
@@ -34,9 +35,10 @@ pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	generic,
-	traits::{BlakeTwo256, Bounded, IdentifyAccount, Verify},
+	traits::{AccountIdConversion, BlakeTwo256, Bounded, IdentifyAccount, Verify},
 	FixedPointNumber, MultiSignature, Perbill, Percent, Permill, Perquintill,
 };
+use sp_std::vec;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -87,6 +89,13 @@ pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(MultiLocatio
 	parents: 1,
 	interior: Here,
 });
+
+pub fn get_all_module_accounts() -> vec::Vec<AccountId> {
+	vec![
+		TreasuryPalletId::get().into_account_truncating(),
+		VestingPalletId::get().into_account_truncating(),
+	]
+}
 
 // frame system
 parameter_types! {

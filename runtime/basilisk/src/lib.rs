@@ -84,7 +84,6 @@ pub use common_runtime::*;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, DepositAll, RemoveTxAssetOnKilled, TransferFees};
 
 mod migrations;
-use migrations::OnRuntimeUpgradeMigration;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -1055,7 +1054,15 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsReversedWithSystemFirst,
-	OnRuntimeUpgradeMigration,
+	(
+		pallet_preimage::migration::v1::Migration<Runtime>,
+		pallet_democracy::migrations::v1::Migration<Runtime>,
+		pallet_multisig::migrations::v1::MigrateToV1<Runtime>,
+		DmpQueue,
+		XcmpQueue,
+		ParachainSystem,
+		migrations::OnRuntimeUpgradeMigration,
+	)
 >;
 
 impl_runtime_apis! {
