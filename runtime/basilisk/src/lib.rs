@@ -416,12 +416,7 @@ impl pallet_proxy::Config for Runtime {
 pub struct DustRemovalWhitelist;
 impl Contains<AccountId> for DustRemovalWhitelist {
 	fn contains(a: &AccountId) -> bool {
-		// Always whitelists treasury account
-		if *a == TreasuryAccount::get() {
-			return true;
-		}
-		// Check duster whitelist
-		pallet_duster::DusterWhitelist::<Runtime>::contains(a)
+		get_all_module_accounts().contains(a) || pallet_duster::DusterWhitelist::<Runtime>::contains(a)
 	}
 }
 
