@@ -23,8 +23,7 @@ pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
-	traits::LockIdentifier,
-	dispatch::Pays, parameter_types, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId,
+	dispatch::Pays, parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId,
 	RuntimeDebug,
 };
 pub use pallet_transaction_payment::Multiplier;

@@ -1057,7 +1057,7 @@ pub type Executive = frame_executive::Executive<
 		XcmpQueue,
 		ParachainSystem,
 		migrations::OnRuntimeUpgradeMigration,
-	)
+	),
 >;
 
 impl_runtime_apis! {
