@@ -7153,7 +7153,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.9"
+version = "1.0.10"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7195,7 +7195,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-runtime-mock"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
