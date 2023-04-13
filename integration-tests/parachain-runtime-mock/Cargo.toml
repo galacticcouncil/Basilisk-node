@@ -14,14 +14,14 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 scale-info = { version = "2.1", default-features = false, features = ["derive"] }
 
 # Warehouse dependencies
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01", default-features = false}
-pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01", default-features = false}
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01", default-features = false }
-pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01", default-features = false }
-pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01", default-features = false }
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01", default-features = false }
-hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871", default-features = false}
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871", default-features = false}
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871", default-features = false }
+pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871", default-features = false }
+hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871", default-features = false }
 
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-duster= { path = "../../pallets/duster",default-features = false}
@@ -110,7 +110,7 @@ kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "rel
 [dev-dependencies]
 xcm-emulator = { git = "https://github.com/shaunxw/xcm-simulator", rev = "0460d04c798028e7bef82c907082e11753ed173b" }
 hex-literal = "0.3.1"
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "059a2dda2bf24cc3333f18a6befb29b08fc66b01" }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "4ec8173a4dd52104ab696102c2e33108039ed871" }
 pretty_assertions = "1.2.1"
 sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29" }
 test-case = "2.2.1"

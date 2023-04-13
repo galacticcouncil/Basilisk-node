@@ -60,7 +60,7 @@ fn xyk_trades_are_ingested_into_oracle() {
 		basilisk_run_to_block(3);
 
 		// assert
-		let expected = ((5000000000000, 9495238095240).into(), 0);
+		let expected = ((105000000000000, 190504761904760).into(), 0);
 		assert_eq!(EmaOracle::get_price(asset_a, asset_b, LastBlock, SOURCE), Ok(expected));
 		// ten minutes oracle not configured/supported
 		assert_eq!(
