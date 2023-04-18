@@ -18,5 +18,6 @@ pub mod treasury;
 pub mod utility;
 pub mod vesting;
 pub mod xcmp_queue;
+pub mod xcm;
 pub mod xyk;
 pub mod xyk_liquidity_mining;

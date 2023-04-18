@@ -28,7 +28,7 @@ use frame_support::{
 };
 pub use pallet_transaction_payment::Multiplier;
 use polkadot_xcm::prelude::Here;
-use polkadot_xcm::v1::MultiLocation;
+use polkadot_xcm::v3::MultiLocation;
 pub use primitives::constants::{chain::*, currency::*, time::*};
 pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
@@ -80,7 +80,7 @@ pub struct AssetLocation(pub MultiLocation);
 
 impl Default for AssetLocation {
 	fn default() -> Self {
-		AssetLocation(MultiLocation::here())
+		AssetLocation(MultiLocation::default())
 	}
 }
 

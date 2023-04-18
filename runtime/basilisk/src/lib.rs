@@ -705,8 +705,6 @@ impl pallet_utility::Config for Runtime {
 
 impl pallet_authorship::Config for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
-	type UncleGenerations = UncleGenerations;
-	type FilterUncle = ();
 	type EventHandler = (CollatorSelection,);
 }
 
@@ -967,7 +965,7 @@ construct_runtime!(
 		Proxy: pallet_proxy = 12,
 		Tips: pallet_tips = 13,
 
-		Authorship: pallet_authorship exclude_parts { Inherent } = 14,
+		Authorship: pallet_authorship = 14,
 		CollatorSelection: pallet_collator_selection = 15,
 		Session: pallet_session = 16, // Session must be after collator and before aura
 		Aura: pallet_aura exclude_parts { Storage } = 17,
@@ -1184,6 +1182,13 @@ impl_runtime_apis! {
 			len: u32,
 		) -> pallet_transaction_payment_rpc_runtime_api::FeeDetails<Balance> {
 			TransactionPayment::query_fee_details(uxt, len)
+		}
+
+		fn query_weight_to_fee(weight: Weight) -> Balance {
+			TransactionPayment::weight_to_fee(weight)
+		}
+		fn query_length_to_fee(length: u32) -> Balance {
+			TransactionPayment::length_to_fee(length)
 		}
 	}
 
